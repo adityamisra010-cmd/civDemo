@@ -36,13 +36,17 @@ public static class UnitCardModel
         "Movement and battle arrive with the Battle Layer (milestone M7). This formation cannot be moved or given "
         + "orders yet: it stays where it is stationed, and it modernizes for free when its civilization enters a new Age.";
 
-    /// <summary>The card for formation <paramref name="unitId"/>, or null when no such formation exists.</summary>
-    public static UnitCard? Build(IReadOnlyWorldState world, SimConfig cfg, int unitId, PolityId player, Func<int, string> settlementName)
+    /// <summary>The card for formation <paramref name="unitId"/>, or null when no such formation exists — or (P7) when the
+    /// player does not know it (<paramref name="knowledge"/>; null = <see cref="PlayerKnowledge.Of(IReadOnlyWorldState, PolityId)"/>,
+    /// all-known until S2a): an unknown formation reads exactly as an id that names nothing.</summary>
+    public static UnitCard? Build(IReadOnlyWorldState world, SimConfig cfg, int unitId, PolityId player, Func<int, string> settlementName,
+        PlayerKnowledge? knowledge = null)
     {
         MilitaryUnitRow? found = null;
         for (int i = 0; i < world.MilitaryUnits.Count; i++)
             if (world.MilitaryUnits[i].Id == unitId) { found = world.MilitaryUnits[i]; break; }
         if (found is not { } unit) return null;
+        if (!(knowledge ?? PlayerKnowledge.Of(world, player)).KnowsUnit(unit)) return null;
         UnitFamilyContent? families = cfg.UnitFamilies;
         UnitIdentity? identity = families?.IdentityByKey(unit.Identity);
         UnitFamily? family = families?.FamilyByKey(unit.Family);

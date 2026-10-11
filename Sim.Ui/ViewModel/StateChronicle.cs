@@ -16,6 +16,11 @@ namespace Sim.Ui.ViewModel;
 ///
 /// Deterministic: polities, settlements, rows and nodes are scanned in table / content order; no dictionary
 /// iteration, no LINQ (law 5). Within one step the events append in the fixed order of <see cref="Observe"/>.
+///
+/// P7 — FILTERED BY SUBJECT: with a <see cref="PlayerKnowledge"/> (UiSession passes the player's, built from the world
+/// the step produced), an event is appended only when the player knows EVERY settlement and polity it names (a
+/// settlement the player does not know is never visited, its rows never read), and a re-equipment counts only the
+/// formations the player knows. All-known (or no knowledge given): every event, exactly as before.
 /// </summary>
 public sealed class StateChronicle
 {
@@ -30,18 +35,24 @@ public sealed class StateChronicle
 
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
 
-    /// <summary>Appends to <paramref name="annals"/> the events of the step <paramref name="prev"/> → <paramref name="next"/>.</summary>
-    public void Observe(IReadOnlyWorldState prev, IReadOnlyWorldState next, SimConfig cfg, Func<int, string> name, List<string> annals)
+    /// <summary>Appends to <paramref name="annals"/> the events of the step <paramref name="prev"/> → <paramref name="next"/>
+    /// that <paramref name="knowledge"/> admits (null: every event).</summary>
+    public void Observe(IReadOnlyWorldState prev, IReadOnlyWorldState next, SimConfig cfg, Func<int, string> name, List<string> annals,
+        PlayerKnowledge? knowledge = null)
     {
         ArgumentNullException.ThrowIfNull(prev);
         ArgumentNullException.ThrowIfNull(next);
         ArgumentNullException.ThrowIfNull(cfg);
         ArgumentNullException.ThrowIfNull(annals);
         string y = "In the year " + Year(next) + ", ";
+        // P7: the subjects an event names must all be known to the player.
+        bool S(SettlementId s) => knowledge is null || !knowledge.IsHiddenSettlement(s.Value);
+        bool P(PolityId p) => knowledge is null || knowledge.KnowsPolity(p.Value);
 
         for (int pi = 0; pi < next.Polities.Count; pi++)
         {
             PolityId p = next.Polities[pi].Id;
+            if (!P(p)) continue;   // P7: nothing is told of a polity the player has no contact with
             // Research completed (the player's — rivals' research is not shown, audit §C 9).
             if (p.Value == UiPlayer.Empire.Value && cfg.Research is { } research)
             {
@@ -71,6 +82,7 @@ public sealed class StateChronicle
         {
             TransportEdgeRow e = next.TransportEdges[i];
             if (!RoadPerformance.IsTravelled(e) || e.EdgeType == EdgeTypes.DirtPath) continue;
+            if (!S(e.A) || !S(e.B)) continue;
             int oldType = -1;
             if (TransportQuery.TryGetEdge(prev, e.Id, out TransportEdgeRow old) && RoadPerformance.IsTravelled(old)) oldType = old.EdgeType;
             if (oldType == e.EdgeType) continue;
@@ -85,6 +97,7 @@ public sealed class StateChronicle
         for (int i = 0; i < next.Structures.Count; i++)
         {
             StructureRow s = next.Structures[i];
+            if (!S(s.Settlement)) continue;
             long was = ConstructionQuery.Built(prev, s.Settlement, s.ProjectId);
             if (s.Count <= was) continue;
             string pname = "a structure";
@@ -96,6 +109,7 @@ public sealed class StateChronicle
         for (int i = 0; i < next.Institutions.Count; i++)
         {
             InstitutionRow row = next.Institutions[i];
+            if (!S(row.Settlement)) continue;
             string type = InstitutionContent.TypeOf(cfg.Research, row.Type)?.Name ?? "an institution";
             int at = -1;
             for (int k = 0; k < prev.Institutions.Count; k++) if (prev.Institutions[k].Id == row.Id) { at = k; break; }
@@ -111,12 +125,13 @@ public sealed class StateChronicle
         for (int i = 0; i < next.Settlements.Count; i++)
         {
             SettlementId s = next.Settlements[i].Id;
+            if (!S(s)) continue;
             bool existed = false;
             for (int k = 0; k < prev.Settlements.Count; k++) if (prev.Settlements[k].Id == s) { existed = true; break; }
             if (!existed) continue;
             bool had = EmpireQuery.TryGetController(prev, s, out PolityId was);
             bool has = EmpireQuery.TryGetController(next, s, out PolityId now);
-            if (had && (!has || now.Value != was.Value))
+            if (had && (!has || now.Value != was.Value) && P(was) && (!has || P(now)))
                 annals.Add(y + name(s.Value) + (has
                     ? " passed from " + Polity(was) + " to " + Polity(now) + "."
                     : " rose up and threw off the rule of " + Polity(was) + "."));
@@ -144,6 +159,7 @@ public sealed class StateChronicle
         {
             UnitConversionRow c = next.UnitConversions[i];
             if (c.Outcome != 1 && c.Outcome != 2) continue;
+            if (knowledge is not null && !KnowsConverted(next, knowledge, c)) continue;   // P7: a formation the player knows
             if (converted > 0 && c.Owner.Value != convOwner.Value) { Flush(); }
             converted++;
             convOwner = c.Owner;
@@ -158,6 +174,16 @@ public sealed class StateChronicle
                 + " for the new age (" + convTo + ").");
             converted = 0;
         }
+    }
+
+    /// <summary>P7: whether the player knows the formation a conversion row is about — its owner (contact) and the
+    /// formation itself as it stands in <paramref name="next"/>.</summary>
+    private static bool KnowsConverted(IReadOnlyWorldState next, PlayerKnowledge knowledge, UnitConversionRow c)
+    {
+        if (!knowledge.KnowsPolity(c.Owner.Value)) return false;
+        for (int u = 0; u < next.MilitaryUnits.Count; u++)
+            if (next.MilitaryUnits[u].Id == c.Unit) return knowledge.KnowsUnit(next.MilitaryUnits[u]);
+        return knowledge.AllKnown;
     }
 
     /// <summary>The full name of Age <paramref name="key"/> from the content.</summary>

@@ -93,14 +93,15 @@ public sealed class InfoPanel
     public void ScrollBy(double dy, double contentHeight, double viewHeight) =>
         Scroll = Math.Clamp(Scroll + dy, 0, Math.Max(0, contentHeight - viewHeight));
 
-    /// <summary>Builds the card when the world, the subject or the number of queued orders changed.</summary>
+    /// <summary>Builds the card when the world, the subject or the number of queued orders changed. P7:
+    /// <paramref name="knowledge"/> is what the player knows (null = the seam's production view, all-known until S2a).</summary>
     public InfoCard? Ensure(IReadOnlyWorldState world, SimConfig cfg, PolityId player, ActionQueryContext context,
-        Func<int, string> names, int queued)
+        Func<int, string> names, int queued, PolityKnowledge? knowledge = null)
     {
         if (Subject is not { } s) return null;
         if (Card is null || !ReferenceEquals(_builtFor, world) || _builtSubject != s || _builtQueued != queued)
         {
-            Card = InfoQuery.Card(world, cfg, player, s, context, names);
+            Card = InfoQuery.Card(world, cfg, player, s, context, names, knowledge: knowledge);
             _builtFor = world;
             _builtSubject = s;
             _builtQueued = queued;

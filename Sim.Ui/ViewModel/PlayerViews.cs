@@ -148,18 +148,23 @@ public static class PlayerViews
     /// burden), migration in and out and why, its labour, structures, institutions and the units stationed.
     /// <paramref name="record"/> is the settlement's latest SettlementRecord (null before the first End Turn —
     /// the turn-flow lines then say so, the stocks still read the live world).
+    /// P7: <paramref name="knowledge"/> is what the player knows (null = <see cref="PlayerKnowledge.Of(IReadOnlyWorldState, PolityId)"/>,
+    /// all-known until S2a). A settlement the player does not know reads exactly as one that is not there; the formations
+    /// listed are the ones the player knows; the "more attractive" place named under Migration is a known one.
     /// </summary>
     public static PlayerView Settlement(
         IReadOnlyWorldState world, SimConfig cfg, PolityId player, SettlementRecord? record,
-        int settlementId, Func<int, string> name, int density)
+        int settlementId, Func<int, string> name, int density, PlayerKnowledge? knowledge = null)
     {
         ArgumentNullException.ThrowIfNull(world);
         ArgumentNullException.ThrowIfNull(cfg);
         ArgumentNullException.ThrowIfNull(name);
+        PlayerKnowledge known = knowledge ?? PlayerKnowledge.Of(world, player);
         var id = new SettlementId(settlementId);
         bool exists = false;
         for (int i = 0; i < world.Settlements.Count; i++)
             if (world.Settlements[i].Id == id) { exists = true; break; }
+        if (known.IsHiddenSettlement(settlementId)) exists = false;   // P7: never read
         if (!exists) return new PlayerView("No settlement selected", [new ViewBlock("", new[] { "Select a settlement on the map." })]);
 
         bool controlled = EmpireQuery.TryGetController(world, id, out PolityId owner);
@@ -174,11 +179,11 @@ public static class PlayerViews
             Food(world, record, id, density),
             Housing(world, cfg, record, id, density),
             Happiness(world, cfg, id, density),
-            Migration(record, name, density),
+            Migration(record, name, density, known),
             Work(world, cfg, player, id, controlled && owner.Value == player.Value, density),
             Structures(world, cfg, id, density),
             new ViewBlock("Institutions", InstitutionLinesAt(world, cfg, id, name, density, includeSite: false)),
-            Units(world, cfg, id, name, player, density),
+            Units(world, cfg, id, name, player, density, known),
         };
         return new PlayerView(title, blocks) { Subtitle = ownerWord };
     }
@@ -336,7 +341,7 @@ public static class PlayerViews
                 Pct(rebelShare) + " of the people in revolt"));
     }
 
-    private static ViewBlock Migration(SettlementRecord? record, Func<int, string> name, int density)
+    private static ViewBlock Migration(SettlementRecord? record, Func<int, string> name, int density, PlayerKnowledge known)
     {
         var lines = new List<ViewLine>();
         if (record is null) { lines.Add("Movement shows after the first turn."); return new ViewBlock("Migration", lines); }
@@ -358,6 +363,7 @@ public static class PlayerViews
             foreach (AttractivenessReading a in m.AllAttractiveness)
             {
                 if (a.Settlement == record.Settlement || double.IsNaN(a.Value)) continue;
+                if (known.IsHiddenSettlement(a.Settlement)) continue;   // P7: the comparison names known places only
                 if (a.Value > best || (a.Value == best && a.Settlement < bestId)) { best = a.Value; bestId = a.Settlement; }
             }
             if (bestId != int.MaxValue)
@@ -424,7 +430,8 @@ public static class PlayerViews
     }
 
     private static ViewBlock Units(
-        IReadOnlyWorldState world, SimConfig cfg, SettlementId id, Func<int, string> name, PolityId player, int density)
+        IReadOnlyWorldState world, SimConfig cfg, SettlementId id, Func<int, string> name, PolityId player, int density,
+        PlayerKnowledge known)
     {
         var lines = new List<ViewLine>();
         var subjects = new List<InfoSubject?>();
@@ -433,6 +440,7 @@ public static class PlayerViews
         {
             MilitaryUnitRow u = world.MilitaryUnits[i];
             if (u.Location != id) continue;
+            if (!known.KnowsUnit(u)) continue;   // P7: a formation the player does not know is not listed
             subjects.Add(InfoSubject.OfFormation(u.Id));
             string unit = fam?.IdentityByKey(u.Identity)?.Name ?? fam?.FamilyByKey(u.Family)?.Name ?? "Formation";
             string whose = u.Owner.Value == player.Value ? "Your" : "The empire of " + u.Owner.Value.ToString(CultureInfo.InvariantCulture) + "'s";
@@ -551,14 +559,17 @@ public static class PlayerViews
 
     /// <summary>
     /// The EMPIRE player view: population, grain, trade in words, legitimacy and the levy (when taxation is
-    /// known), roads built and the formations under arms.
+    /// known), roads built and the formations under arms. P7: a trade flow or a road whose other end is a settlement
+    /// the player does not know is left out (it would name it).
     /// </summary>
     public static PlayerView Empire(
-        IReadOnlyWorldState world, SimConfig cfg, PolityId player, Func<int, string> name, int density)
+        IReadOnlyWorldState world, SimConfig cfg, PolityId player, Func<int, string> name, int density,
+        PlayerKnowledge? knowledge = null)
     {
         ArgumentNullException.ThrowIfNull(world);
         ArgumentNullException.ThrowIfNull(cfg);
         ArgumentNullException.ThrowIfNull(name);
+        PlayerKnowledge known = knowledge ?? PlayerKnowledge.Of(world, player);
         var mine = new List<SettlementId>();
         for (int s = 0; s < world.Settlements.Count; s++)
         {
@@ -602,6 +613,7 @@ public static class PlayerViews
         {
             TradeFlowRow f = world.TradeFlows[i];
             if (f.Quantity <= 0) continue;
+            if (known.IsHiddenSettlement(f.From.Value) || known.IsHiddenSettlement(f.To.Value)) continue;   // P7
             if (mine.Contains(f.From) || mine.Contains(f.To)) idx.Add(i);
         }
         idx.Sort((a, b) =>
@@ -648,6 +660,7 @@ public static class PlayerViews
             TransportEdgeRow e = world.TransportEdges[i];
             if (!RoadPerformance.IsTravelled(e)) continue;
             if (!mine.Contains(e.A) && !mine.Contains(e.B)) continue;
+            if (known.IsHiddenSettlement(e.A.Value) || known.IsHiddenSettlement(e.B.Value)) continue;   // P7
             routes++;
             km += e.LengthKm;
             if (density >= BreakdownFrom)

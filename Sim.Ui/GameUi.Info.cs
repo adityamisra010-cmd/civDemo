@@ -202,7 +202,7 @@ public sealed partial class GameUi
         _surface = FrameSurface.Info;
         IReadOnlyList<Sim.Core.Kernel.OrderRecord> queued = _session.QueuedOrders();
         _inspector.Ensure(_world, _session.Config, UiPlayer.Empire, ActionQueryContext.ForNextStep(_world, _eraTable, queued),
-            _session.Names.Name, queued.Count);
+            _session.Names.Name, queued.Count, _session.Knowledge.Core);   // P7: the card knows what the player knows
 
         // UR-3 geometry (as DrawContextPanel): the placed, scaled context rect; the header row's title in the era's
         // title face; the close button flush right.
@@ -272,7 +272,7 @@ public sealed partial class GameUi
         {
             IReadOnlyList<Sim.Core.Kernel.OrderRecord> queued = _session.QueuedOrders();
             _inspector.Ensure(_world, _session.Config, UiPlayer.Empire, ActionQueryContext.ForNextStep(_world, _eraTable, queued),
-                _session.Names.Name, queued.Count);
+                _session.Names.Name, queued.Count, _session.Knowledge.Core);   // P7
             Sim.Ui.Theme.PanelFrame.Paint(list, panel, _frameTheme, 7000, Sim.Ui.Theme.FrameKind.Panel);
             RectD body = panel.Inset(18);
             list.PushClip(body);

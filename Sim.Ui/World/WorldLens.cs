@@ -6,6 +6,7 @@ using Sim.Core.Systems.Ages;
 using Sim.Ui.Ages;
 using Sim.Ui.Render;
 using Sim.Ui.Theme;
+using Sim.Ui.ViewModel;
 using Rgba = Sim.Ui.Art.ParchmentPalette.Rgba;
 
 namespace Sim.Ui.World;
@@ -106,7 +107,7 @@ public sealed class WorldProjection
 
     /// <summary>The stride every system builds the traversal lattice with (<c>TraversalLattice.Build</c>'s default; the
     /// m1 spec §3 stride-4 sampling). The lens needs only the lattice's GEOMETRY, never its costs.</summary>
-    public const int LatticeStride = 4;
+    public const int LatticeStride = Sim.Core.Pathing.TraversalLattice.DefaultStride;
 
     /// <summary>
     /// The traversal lattice's geometry for a terrain of <paramref name="terrainSize"/> px, by arithmetic: nodes per
@@ -125,12 +126,21 @@ public sealed class WorldProjection
     /// <summary>Builds the projection. <paramref name="institutions"/> replaces the institution seam
     /// (tests only); the game and previews always read <see cref="InstitutionMarkerSource.InstitutionsAt"/>.
     /// <paramref name="grid"/> replaces the lattice geometry (tests only: the stride pin builds the same projection
-    /// on the geometry of a built <c>TraversalLattice</c>); otherwise <see cref="LatticeGrid"/> of the terrain size.</summary>
+    /// on the geometry of a built <c>TraversalLattice</c>); otherwise <see cref="LatticeGrid"/> of the terrain size.
+    /// <para>P7 — THE OBSERVER: <paramref name="knowledge"/> is what the player knows (null = <see cref="PlayerKnowledge.Of(IReadOnlyWorldState, PolityId)"/>
+    /// for <paramref name="player"/>, the seam's production view: all-known until S2a, so the projection is byte-identical).
+    /// The projection holds only what the observer knows, so every layer the lens paints from it — and every hit test that
+    /// reads the frame it paints — is filtered at once: a settlement or a formation the observer does not know is not in
+    /// it; a territory block, a dirt-path step (both ends) only on known nodes; a built route only between two known
+    /// settlements. Nothing of a hidden settlement is read (its rows are never visited), and the honest empty states
+    /// count only what is shown.</para></summary>
     public static WorldProjection Build(IReadOnlyWorldState world, SimConfig cfg, Func<int, string> name, PolityId player,
         Func<IReadOnlyWorldState, SimConfig, SettlementId, IReadOnlyList<InstitutionView>>? institutions = null,
-        (int LatticeSize, int Stride)? grid = null)
+        (int LatticeSize, int Stride)? grid = null, PlayerKnowledge? knowledge = null)
     {
         institutions ??= InstitutionMarkerSource.InstitutionsAt;
+        PlayerKnowledge known = knowledge ?? PlayerKnowledge.Of(world, player);
+        if (known.Player.Value != player.Value) throw new ArgumentException("the observer's knowledge must be the player's", nameof(knowledge));
         int size = world.Terrain?.Size ?? 256;
         (int lsize, int stride) = world.Terrain is null ? (1, 1) : grid ?? LatticeGrid(size);
 
@@ -147,6 +157,7 @@ public sealed class WorldProjection
         {
             TransportEdgeRow e = world.TransportEdges[i];
             if (!RoadPerformance.IsTravelled(e)) continue;
+            if (known.IsHiddenSettlement(e.A.Value) || known.IsHiddenSettlement(e.B.Value)) continue;   // P7: both ends known
             if (!SiteOf(world, e.A, size, out double ax, out double ay) || !SiteOf(world, e.B, size, out double bx, out double by)) continue;
             routes.Add(new RouteLensView(e.Id, e.A.Value, e.B.Value, ax, ay, bx, by, e.EdgeType, e.TargetClass, e.Modernization,
                 e.LengthKm, RoadLens.ClassName(cfg, e.EdgeType), RoadLens.ClassName(cfg, e.TargetClass)));
@@ -161,6 +172,7 @@ public sealed class WorldProjection
         for (int i = 0; i < world.NetworkEdges.Count; i++)
         {
             NetworkEdgeRow e = world.NetworkEdges[i];
+            if (!known.Known(anchor[e.A.Value]) || !known.Known(anchor[e.B.Value])) continue;   // P7: both ends on known nodes
             (double ax, double ay) = Center(anchor[e.A.Value], lsize, stride);
             (double bx, double by) = Center(anchor[e.B.Value], lsize, stride);
             var step = new RoadSegment(ax, ay, bx, by, e.EdgeType, e.Id.Value);
@@ -175,6 +187,7 @@ public sealed class WorldProjection
         for (int i = 0; i < world.CatchmentNodes.Count; i++)
         {
             CatchmentNodeRow row = world.CatchmentNodes[i];
+            if (!known.Known(row.LatticeNode) || known.IsHiddenSettlement(row.Settlement.Value)) continue;   // P7
             int ctl = EmpireQuery.TryGetController(world, row.Settlement, out PolityId p) ? p.Value : -1;
             (double cx, double cy) = Center(row.LatticeNode, lsize, stride);
             territory.Add(new TerritoryBlock(cx - stride / 2.0, cy - stride / 2.0, stride, ctl));
@@ -183,10 +196,12 @@ public sealed class WorldProjection
         AgeContent? ages = cfg.Ages;
         var settlements = new List<SettlementLensView>();
         bool anyInstitution = false;
+        bool anyStructure = false;
         for (int s = 0; s < world.Settlements.Count; s++)
         {
             SettlementRow row = world.Settlements[s];
             SettlementId id = row.Id;
+            if (!known.KnowsSettlement(id.Value)) continue;   // P7: a settlement the observer does not know is not drawn, nor read
             int ctl = EmpireQuery.TryGetController(world, id, out PolityId controller) ? controller.Value : -1;
             bool capital = ctl >= 0 && EmpireQuery.TryGetCapital(world, controller, out SettlementId cap) && cap.Value == id.Value;
             long pop = 0;
@@ -220,6 +235,7 @@ public sealed class WorldProjection
             for (int i = 0; i < world.NetworkEdges.Count; i++)
             {
                 NetworkEdgeRow e = world.NetworkEdges[i];
+                if (!known.Known(anchor[e.A.Value]) || !known.Known(anchor[e.B.Value])) continue;   // P7: the steps the map draws
                 if (mine.Contains(anchor[e.A.Value]) || mine.Contains(anchor[e.B.Value])) roadsHere++;
             }
             int notables = 0;
@@ -248,6 +264,7 @@ public sealed class WorldProjection
         for (int i = 0; i < world.MilitaryUnits.Count; i++)
         {
             MilitaryUnitRow u = world.MilitaryUnits[i];
+            if (!known.KnowsUnit(u)) continue;   // P7: D-039 C1 — a formation not observed is UNKNOWN, never drawn
             UnitIdentity? ident = fam?.IdentityByKey(u.Identity);
             units.Add(new UnitLensView(u.Id, u.Owner.Value, u.X, u.Y, u.Family,
                 fam?.FamilyByKey(u.Family)?.Name ?? "Formation", ident?.Name ?? "Formation", u.Location.Value));
@@ -259,7 +276,10 @@ public sealed class WorldProjection
             "Army movement and supply arrive with the Battle Layer (M7) - formations are shown where they are stationed",
         };
         if (!anyInstitution) absent.Add("Institutions: none founded");
-        if (world.Structures.Count == 0) absent.Add("Structures: none built yet");
+        // P7: the rows of a hidden settlement are not counted (all-known: exactly world.Structures.Count == 0).
+        for (int k = 0; k < world.Structures.Count && !anyStructure; k++)
+            if (!known.IsHiddenSettlement(world.Structures[k].Settlement.Value)) anyStructure = true;
+        if (!anyStructure) absent.Add("Structures: none built yet");
         if (routes.Count == 0) absent.Add("Roads: none developed - the free dirt-path baseline only");
 
         return new WorldProjection

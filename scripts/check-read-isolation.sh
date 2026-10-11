@@ -79,3 +79,33 @@ if [[ -n "$matches" ]]; then
   exit 1
 fi
 echo 'check-read-isolation: OK — needs/grievance tables read only by their owner, serialization, UI and tests.'
+
+# --- P7 (M5 map workstream): Sim.Ui's RAW READS of the foreign-sensitive world tables -------------------------------
+# A player-facing reader must ask the knowledge seam (Sim.Ui/ViewModel/PlayerKnowledge.cs, built from
+# Sim.Core/State/PolityKnowledge.cs) before it reads another settlement's or formation's rows. This section is ADVISORY
+# evidence, weaker than its name for the reason stated above (a grep cannot tell a guarded read from an unguarded one):
+# the leak gate of record is the metamorphic non-interference tests and the source guard in Sim.Ui.Tests
+# (KnowledgeLeakTests), which reads the SAME allowlist file. It still fails on a raw read in a file not on the list.
+# READ_ISOLATION_ROOT overrides the tree scanned (the injection demonstration runs it on a scratch copy).
+UI_PATTERN='\b(world|w|_world|World|prev|next|W)\.(Settlements|MilitaryUnits|Buckets|Deposits)\b'
+UI_ALLOW_FILE='scripts/ui-raw-read-allowlist.txt'
+UI_ROOT="${READ_ISOLATION_ROOT:-.}"
+if [[ ! -f "$UI_ALLOW_FILE" ]]; then
+  echo "check-read-isolation: FAILED — $UI_ALLOW_FILE is missing"
+  exit 1
+fi
+ui_allowed=$(grep -vE '^\s*(#|$)' "$UI_ALLOW_FILE" | sed -E 's/[[:space:]]*\|.*$//')
+ui_files=$(cd "$UI_ROOT" && grep -RlE --include='*.cs' --exclude-dir=bin --exclude-dir=obj "$UI_PATTERN" Sim.Ui 2>/dev/null | sort || true)
+ui_bad=""
+for f in $ui_files; do
+  if ! grep -qxF "$f" <<<"$ui_allowed"; then
+    ui_bad+="$f"$'\n'
+  fi
+done
+if [[ -n "$ui_bad" ]]; then
+  printf 'READ-ISOLATION VIOLATION (P7) — a raw read of Settlements/MilitaryUnits/Buckets/Deposits in Sim.Ui outside %s:\n%s\n' "$UI_ALLOW_FILE" "$ui_bad"
+  (cd "$UI_ROOT" && grep -nE "$UI_PATTERN" $ui_bad 2>/dev/null | head -n 20)
+  echo 'check-read-isolation: FAILED — route the reader through PlayerKnowledge, or argue the file onto the allowlist with its class and reason.'
+  exit 1
+fi
+echo "check-read-isolation: OK (P7) — Sim.Ui reads the foreign-sensitive tables raw only in the $(grep -cvE '^\s*(#|$)' "$UI_ALLOW_FILE") allowlisted files."

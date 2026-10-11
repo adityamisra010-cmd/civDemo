@@ -92,18 +92,33 @@ public static class SettlementSelection
     /// wrapping; with none selected (−1) or an unknown id, the first settlement.
     /// Settlement rows are in ascending id order by founding construction, but
     /// the scan derives the successor from the IDS, not the row order.
+    /// P7: only settlements the player KNOWS are cycled (<paramref name="knowledge"/>; null =
+    /// <see cref="PlayerKnowledge.Of(IReadOnlyWorldState)"/>, all-known until S2a) — Tab never
+    /// reaches a hidden settlement, and with none known it returns −1.
     /// </summary>
-    public static int CycleNext(IReadOnlyWorldState world, int currentId)
+    public static int CycleNext(IReadOnlyWorldState world, int currentId, PlayerKnowledge? knowledge = null)
     {
         if (world.Settlements.Count == 0) return -1;
+        PlayerKnowledge known = knowledge ?? PlayerKnowledge.Of(world);
 
         int lowest = int.MaxValue, bestAbove = int.MaxValue;
         for (int i = 0; i < world.Settlements.Count; i++)
         {
             int id = world.Settlements[i].Id.Value;
+            if (!known.KnowsSettlement(id)) continue;
             if (id < lowest) lowest = id;
             if (id > currentId && id < bestAbove) bestAbove = id;
         }
+        if (lowest == int.MaxValue) return -1;
         return bestAbove != int.MaxValue ? bestAbove : lowest;
+    }
+
+    /// <summary>P7: the selection a session opens on — the first settlement row the player knows (all-known: row 0,
+    /// as before), or −1.</summary>
+    public static int Opening(IReadOnlyWorldState world, PlayerKnowledge knowledge)
+    {
+        for (int i = 0; i < world.Settlements.Count; i++)
+            if (knowledge.KnowsSettlement(world.Settlements[i].Id.Value)) return world.Settlements[i].Id.Value;
+        return -1;
     }
 }

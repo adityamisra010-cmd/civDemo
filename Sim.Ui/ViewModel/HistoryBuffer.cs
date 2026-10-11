@@ -81,9 +81,14 @@ public sealed class HistoryBuffer
     }
 
     /// <summary>One sample per observed turn: idempotent against a repeated
-    /// Capture of the same turn (a redraw must not double-sample).</summary>
-    public void Capture(IReadOnlyWorldState world)
+    /// Capture of the same turn (a redraw must not double-sample). P7: the
+    /// WORLD series sum only the settlements the player knows
+    /// (<paramref name="knowledge"/>; null = all-known until S2a); each
+    /// settlement's own series is kept for every settlement (UI-side cache,
+    /// read only for the selection, which is always a known settlement).</summary>
+    public void Capture(IReadOnlyWorldState world, PlayerKnowledge? knowledge = null)
     {
+        PlayerKnowledge known = knowledge ?? PlayerKnowledge.Of(world);
         if (world.Clock.Turn == _lastTurn) return;
         _lastTurn = world.Clock.Turn;
 
@@ -109,6 +114,7 @@ public sealed class HistoryBuffer
             s[(int)Metric.Food].Add(food);
             s[(int)Metric.Grievance].Add((float)grievance);
 
+            if (known.IsHiddenSettlement(id.Value)) continue;   // P7: a hidden settlement is no part of the world total
             worldPop += pop;
             worldFood += food;
             worldGrievance += grievance;

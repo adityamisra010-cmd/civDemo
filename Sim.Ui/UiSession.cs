@@ -97,11 +97,28 @@ public sealed class UiSession
     /// captured per observed turn alongside the chronicle.</summary>
     public ViewModel.HistoryBuffer History { get; } = new();
 
+    /// <summary>
+    /// M5 map workstream P7 — WHAT THE PLAYER KNOWS of <see cref="World"/>, rebuilt after every step (and at the start) from
+    /// the Sim.Core knowledge seam: <see cref="PlayerKnowledge.Of(IReadOnlyWorldState)"/>, all-known until S2a stores an
+    /// extent. Every player-facing reader asks it; the annals are filtered by it HERE, before a line is appended (an event
+    /// is kept only when the player knows every settlement and polity it names), and the history buffer's world series
+    /// sum only what it knows. Never a second source of truth: a pure function of the world (and, for a test or the
+    /// headless gate's hidden-rival rig only, of the stub <see cref="StartFrom(WorldState, ulong, int?, int?, Func{IReadOnlyWorldState, PlayerKnowledge}?)"/>
+    /// was given). The developer export (chronicle.txt) writes the same filtered annals.
+    /// </summary>
+    public PlayerKnowledge Knowledge { get; private set; }
+
+    // P7: how Knowledge is built from a world — the production view, or a test/gate stub (never anything else).
+    private readonly Func<IReadOnlyWorldState, PlayerKnowledge> _knowledgeOf;
+
     private UiSession(
         WorldState world, TurnExecutor executor, OrderLog orders,
-        ulong seed, int? sizePx, int? settlements, SimConfig simCfg, int? aiEmpires = null)
+        ulong seed, int? sizePx, int? settlements, SimConfig simCfg, int? aiEmpires = null,
+        Func<IReadOnlyWorldState, PlayerKnowledge>? knowledgeOf = null)
     {
         World = world;
+        _knowledgeOf = knowledgeOf ?? (w => PlayerKnowledge.Of(w));
+        Knowledge = _knowledgeOf(world);
         _executor = executor;
         Orders = orders;
         _seed = seed;
@@ -119,7 +136,7 @@ public sealed class UiSession
         // FoodState classification, so the collector needs the sim config.
         _chronicle = new Sim.Core.Chronicle.ChronicleCollector(_chronicleCfg, _simCfg);
         ObserveChronicle(); // founding events fire on first sight
-        History.Capture(World); // the founding sample (turn 0)
+        History.Capture(World, Knowledge); // the founding sample (turn 0)
         CaptureTrace();         // turn 0 — the world before any order lands
     }
 
@@ -127,8 +144,21 @@ public sealed class UiSession
     {
         _chronicle.Observe(World);
         for (; _renderedEvents < _chronicle.Events.Count; _renderedEvents++)
+        {
+            // P7: the annals are filtered by SUBJECT — an event at a settlement the player does not know is never told.
+            // The collector itself still observes every settlement (its tracking state is the same with or without fog).
+            if (!AdmitsAnnal(Knowledge, _chronicle.Events[_renderedEvents])) continue;
             _annals.Add(Sim.Core.Chronicle.ChronicleProse.Render(
                 _chronicle.Events[_renderedEvents], _chronicleCfg, Names));
+        }
+    }
+
+    /// <summary>P7: whether a core chronicle event reaches the player's annals — its subject settlement is not one the
+    /// player does not know (all-known: every event, as before).</summary>
+    public static bool AdmitsAnnal(PlayerKnowledge knowledge, Sim.Core.Chronicle.ChronicleEvent e)
+    {
+        ArgumentNullException.ThrowIfNull(knowledge);
+        return !knowledge.IsHiddenSettlement(e.SettlementId);
     }
 
     /// <summary>Founds the world and builds the PRODUCTION executor + a fresh log.
@@ -155,10 +185,21 @@ public sealed class UiSession
     /// replays only from the same starting world, so it is never written as a playable session log.
     /// </summary>
     public static UiSession StartFrom(WorldState founded, ulong seed, int? sizeOverridePx = null, int? settlementsOverride = null)
+        => StartFrom(founded, seed, sizeOverridePx, settlementsOverride, knowledgeOf: null);
+
+    /// <summary>
+    /// As <see cref="StartFrom(WorldState, ulong, int?, int?)"/>, with the session's player knowledge built by
+    /// <paramref name="knowledgeOf"/> — P7's TEST SEAM: a knowledge stub (<see cref="PlayerKnowledge.From"/> over
+    /// <see cref="PolityKnowledge.Restricted"/>) that hides part of the world, for the metamorphic leak tests and the
+    /// headless gate's hidden-rival rig. Null = the production view. It changes what the UI SHOWS, never the world, the
+    /// orders or a hash.
+    /// </summary>
+    public static UiSession StartFrom(WorldState founded, ulong seed, int? sizeOverridePx, int? settlementsOverride,
+        Func<IReadOnlyWorldState, PlayerKnowledge>? knowledgeOf)
     {
         var orders = new OrderLog();
         return new UiSession(founded, BuildProductionExecutor(orders), orders,
-            seed, sizeOverridePx, settlementsOverride, UiFounding.ProductionConfig());
+            seed, sizeOverridePx, settlementsOverride, UiFounding.ProductionConfig(), knowledgeOf: knowledgeOf);
     }
 
     /// <summary>
@@ -402,9 +443,10 @@ public sealed class UiSession
         if (World.Settlements.Count != prev.Settlements.Count)
             Names = Sim.Core.Chronicle.NameRegistry.Build(_chronicleCfg, World.Seed, World);
         _observations.Observe(prev, World, _simCfg, OrderApplied.For(Orders, prev.Clock.Turn));
+        Knowledge = _knowledgeOf(World);   // P7: what the player knows of the world the step produced
         ObserveChronicle();
-        _events.Observe(prev, World, _simCfg, Names.Name, _annals);
-        History.Capture(World);
+        _events.Observe(prev, World, _simCfg, Names.Name, _annals, Knowledge);
+        History.Capture(World, Knowledge);
         CaptureTrace();
     }
 

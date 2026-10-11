@@ -68,10 +68,13 @@ public static class MarketModel
     /// <summary>Builds the goods table for one settlement, registry order.
     /// An id not present in the world yields rows with zero stock and no
     /// price — the panel renders them harmlessly (selection is pure UI state
-    /// and never crashes anything, T2.4 doctrine).</summary>
+    /// and never crashes anything, T2.4 doctrine). P7: so does a settlement the
+    /// player does not know (<paramref name="knowledge"/>; null = all-known until S2a)
+    /// — its rows are never read.</summary>
     public static IReadOnlyList<MarketGoodRow> Rows(
-        IReadOnlyWorldState world, int settlementId, GoodsConfig goods)
+        IReadOnlyWorldState world, int settlementId, GoodsConfig goods, PlayerKnowledge? knowledge = null)
     {
+        if ((knowledge ?? PlayerKnowledge.Of(world)).IsHiddenSettlement(settlementId)) settlementId = -1;
         var settlement = new SettlementId(settlementId);
         var rows = new List<MarketGoodRow>(goods.Goods.Length);
         foreach (GoodEntry entry in goods.Goods)
@@ -108,8 +111,9 @@ public static class MarketModel
     /// strict-greater comparison walking the fixed term order, earliest term
     /// wins exact ties. All-zero terms name no driver ("none").</summary>
     public static PriceBreakdown? Breakdown(
-        IReadOnlyWorldState world, int settlementId, int goodId, GoodsConfig goods)
+        IReadOnlyWorldState world, int settlementId, int goodId, GoodsConfig goods, PlayerKnowledge? knowledge = null)
     {
+        if ((knowledge ?? PlayerKnowledge.Of(world)).IsHiddenSettlement(settlementId)) return null;   // P7: never read
         var settlement = new SettlementId(settlementId);
         var good = new GoodId(goodId);
         for (int i = 0; i < world.PriceTerms.Count; i++)
