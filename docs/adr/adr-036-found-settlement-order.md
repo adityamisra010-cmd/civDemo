@@ -198,3 +198,93 @@ not chosen per order (§3); (c) "enough food" = per-capita share ≥ 1 grain of 
 lands (§2.6); (d) below-floor sites illegal (§2.2); (e) instantaneous founding, no travelling settler (§4); (f) a
 PREV-legal order refused at departure when the step itself empties the source's people or granary share (§3). Each is
 one line of `FoundingQuery` or one content number; none changes emergent founding.
+
+## 8. The AI founding policy (M5 S1c, appended 2026-10-11)
+
+**Written by packet S1c** (branch `m5w-s1c-ai-founding-policy`, cut from `m5w-s1b-found-settlement-order` @ `3d8aacc`,
+LOCAL, not pushed, not merged). D-051 §5: *"The AI uses the same order and the same predicates."* No ratified AI
+expansion policy exists (`docs/m5-ai-constitution.md` is a planning document), so this is the smallest conservative
+rule, every threshold content TUNE, **flagged for the Director**.
+
+**The same order, the same predicate.** `Sim.Core/Systems/Colonization/AiFoundingPolicy.cs` (the RoadDevelopmentPolicy /
+AiConstructionPolicy shape: not a system, writes no state) returns `FoundingQuery.FoundOrder(world, polity, source,
+cell)` — the player's constructor — and issues nothing unless `FoundingQuery.Check` (the explicit overload, with the
+batch's standing sites) answers `Legal` on the world the order will be judged on. There is no AI-only legality, verb or
+write path; ColonizationSystem founds or refuses the AI's order exactly as the player's. `AiOrders.For` calls it per AI
+polity after construction; `AiOrders.For`/`Append` gain a `WorldgenConfig` parameter (the siting config the pipeline's
+ColonizationSystem is built from — CLI `CliRecipes.Worldgen()`, UI `UiSession.ProductionWorldgen()`, tests
+`TestConfigs.Worldgen()`), so the AI judges with the system's frontier.
+
+**The rule** (sim.json `colonization.aiFounding`; every value TUNE with its reference class in `_doc`):
+
+| arm | rule | value |
+|---|---|---|
+| switch | `enabled`; absent section = inert | `true` |
+| interval | the polity's NEWEST settlement (largest `FoundedTurn` among those it controls, by any path) is at least this old, measured as the LOWER bound (turns elapsed) × (current turn length) — the era table only shortens turns, so it never opens early | `minYearsBetweenFoundings` **350** years |
+| source | controlled; at least this many people; fed (`FoodState` Normal or Stress — nobody starving); FoundingQuery's own people and food arms hold; tried in the composite key (population DESC, settlement id ASC) | `minSourcePopulation` **500** (DERIVED: the turn-zero founding size 400 ÷ (1 − orderPartyFraction 0.2)) |
+| site | the argmax of the UNJITTERED siting score (`SettlementSiting.CandidateScores`, the frontier raster) by the composite key (score DESC, cell ASC) over the cells FoundingQuery admits from that source — candidate, unobstructed by the batch's standing sites, unclaimed, and in the source's connected component (one uncapped `Pathfinder.Isochrone` flood: the edge set and relaxation `FindPath` expands, so flooded ⇔ FindPath finds it) | — |
+
+At most one order per polity per turn; the first source in key order with a legal site founds. **Batch spacing:**
+`AiFoundingPolicy.Sites` carries the occupied cells and the spacing exclusion across the polities of one producer call,
+grown with each order issued exactly as `ColonizationSystem.FoundOrdered` grows them with each founding, so a later AI
+polity never picks a site an earlier one's colony will exclude. Player orders that precede the AI's in a batch are not
+read by the AI; one that makes an AI order `TooClose` at delivery is refused by the system like any other.
+
+**The interval value was MEASURED before it was kept.** The first value, 50 years (two human generations, the
+village-fission cadence), bound at every opportunity on seed 42: 73 AI foundings in 600 turns, 84 settlements, a 7.8×
+slower run — not conservative. 350 years is anchored to the Age ladder's own expansion milestones (a4_expansion 14,
+a6_towns 18): a polity holding 6 of the canonical 12 at founding reaches 14 at this pace by about the historical Iron Age
+(8 foundings in the 2,800 years from 4000 BCE to ~1200 BCE). INFERRED anchor; the Director may rule a different pace.
+
+**KNOWN INFORMATION-ACCESS LEAK (recorded, not fixed).** The AI ranks every cell of the map and floods its whole
+connected component: no known-extent state exists until the fog-of-war packets (S2a/S2b), which await the Director's fog
+ruling, and FoundingQuery's known-extent arm is inert (§2), so the predicate admits what the AI reads. When the extent
+lands, the admissible set narrows to it THROUGH THE PREDICATE and the policy needs no second rule. MEASURED consequence
+(below): the score-only ranking over the whole component sends AI colonies a median 953 km (217–2,392 km) from their
+source, 44 % beyond 1,000 km; the known-extent arm is the ratified restriction (D-040 B1). A travel budget would be a new
+TUNE constant — not added; a Director option.
+
+**Unchanged:** emergent B1 founding (the policy issues orders; it never touches `ColonizationSystem`); the
+OrderRecord shape and IoVersion; the schema (v32); every world with no AI polity (the founded golden `937577ff…`, two
+CLI processes on this tree). With `enabled = false` the AI world is the pre-S1c world byte for byte.
+
+### 8.1 Evidence (this branch, Release)
+
+- **Attribution control** (`AiFoundingAttributionTests`): the canonical seed-42 world with one AI Empire, 300 turns,
+  switch OFF (`TestConfigs.PreAiFounding`) returns `a416ce4b…` — the turn-300 hash `sim run --founded --seed 42 --turns
+  300 --ai-empires 1` produces on the base tree 3d8aacc — BYTE FOR BYTE, and issues no kind-9 order; switch ON is
+  hash-identical through state 35, the first AI order is stamped 35 and state 36 is the first that differs; every order
+  before it is the same order in both logs; ON turn 300 = `aa7a87a9…` (in-test harness and CLI agree).
+- **Re-pinned with cause** (`AiEmpireIntegrationTests`, old → new, one cause, the AI's colonies; the control
+  `WithAiFoundingOff_EveryAiPinReturnsItsPreS1cValue` returns every old value with only the switch off): Age 2 advance
+  232/233 → 221/222; first road 140/141 → 134/135; first levy 451/452 → 423/424 with A3 451 → 423; the H2 stripped-Age
+  control 357/358 → 337/338. New pins: kind-9 orders at 35, 71, 107, 143, 179, 215, 286, 357 by the first levy, the AI
+  holding 14 settlements. The research targets (0, 26) and the first granary (9) precede the first founding and are
+  unchanged.
+- **ci.yml** `determinism-xproc` AI leg: the kind check covers 3..9; its re-derived values (two CLI processes) are in the
+  leg's comment.
+- **Policy tests** (`AiFoundingPolicyTests`): the composite-key argmax exhaustively over every tie-dense length-5 score
+  vector over {0, 0.5, 1, NaN} × every admission mask (32,768 cases); a FLATTENED frontier (every candidate tied) picks
+  the lowest cell THE predicate admits; the AI's order equals an INDEPENDENT oracle (every positive cell sorted by
+  (score DESC, cell ASC) with LINQ, asked of `FoundingQuery.Check` in turn); each per-cell arm (Occupied, TooClose,
+  Claimed with S1b's 10 km rig, Unreachable) made to bind on the TOP-ranked cell is passed over for the oracle's cell;
+  player/AI parity (same world twice, polity 2 AI vs player: the AI's record equals the player constructor's, the predicate
+  answers alike, and the stepped worlds hash-equal once the command source is set back); a played 12-turn run in which
+  every AI order is Legal on its world, founds at its cell in the next state, and the conservation audit balances every
+  turn; two AI polities in one batch spaced against each other and both founding; the toy-world trigger arms (size
+  threshold edge, Stress in / Severe out, no grain out, (population DESC, id ASC) tie-dense, the interval's lower bound
+  and control filter, the switch off/absent, the shipped content's derived values, the loader's refusals).
+- **Measured across seeds** (`AiFoundingMeasurement`, SIM_MEASURE=1; canonical 1024², one AI Empire, 600 turns; seeds
+  42, 1, 2, 3, 7): **7 AI foundings by turn 300 and 11 by 600 on every seed**, every one founded (none refused at
+  delivery), stamped 35, 71, 107, 143, 179, 215, 286, 357, 428, 499, 570 — the interval binds every time; the
+  **conservation audit balanced on all 3,000 ON turns**; a **replay** of each ON log with a fresh executor and no
+  producer is **hash-identical** every turn. The AI holds 13 settlements at 300 and 17 at 600 (OFF: 6 / 6).
+  **Age milestones:** `a4_expansion` (≥ 14) holds for the AI from turn **358 on every seed** (OFF: never in 600);
+  `a6_towns` (≥ 18) is **not reached by 600** on any seed (17). Age entries move EARLIER: A2 by 11–19 turns (seed 42:
+  233 → 222; 1: 237 → 225; 2: 233 → 218; 3: 251 → 233; 7: 248 → 229) and A3 by 28–54 turns (451 → 423, 462 → 433,
+  452 → 418, 489 → 440, 485 → 431); A4 is reached by no run in 600 turns. Wall time per 600-turn run ×1.6–2.3 (the
+  world holds 23 settlements instead of 12).
+
+**For the Director:** (g) the AI expansion rule and its two values (350 years, 500 people) — or a ratified pace;
+(h) the known leak and its distance consequence until the extent lands (or a travel budget now); (i) whether a4_expansion
+being met at turn 358 on every seed, ahead of the AI's other A4 milestones, is the intended reading of that milestone.
