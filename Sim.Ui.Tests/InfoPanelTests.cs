@@ -774,9 +774,14 @@ public class InfoPanelTests : IDisposable
         // the legend and the docked Age panel (both painted, not windows) each hide the ground behind them.
         UiSession s = Small();
         using UiFrameHarness h = UiFrameHarness.Start(s, WorkDir("behind"), Assets());
+        // Closer than fit, so the world fills the whole map rect: every probe point below lies over known ground (at fit
+        // a wide window shows paper beside the square world, where there is no ground to offer at all).
+        h.Ui.Camera.ZoomAt(h.Ui.MapRect.CenterX, h.Ui.MapRect.CenterY, 4.0, h.Ui.MapRect);
         h.Idle(2);
         bool PlaceAt(double x, double y)
         {
+            int cell = MapCells.At(h.Ui.Camera, h.Ui.MapRect, x, y, h.Ui.World.Terrain!.Size);
+            Assert.True(cell >= 0 && s.Knowledge.KnowsCell(cell), "the probe point is not over known ground - the rig is void");
             h.MoveTo(x, y);
             return h.Ui.InfoRegistry.Hits.Any(r => r.Subject.Kind == InfoKind.Cell && r.Rect.Contains(x, y));
         }
