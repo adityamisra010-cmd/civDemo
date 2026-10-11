@@ -887,6 +887,117 @@ Each property is one the system ought to have: the player and the AI may act onl
 7; D-040; D-039 C1); a test hides, perturbs and requires the player's every output unchanged, with a positive control
 proving the perturbation reaches that output when nothing is hidden.
 
+### 3.7 The place card: site and tile inspection (M5 workstream P8, 2026-10-11)
+
+Branch `m5w-p8-site-inspection`, cut from `m5w-p7-player-knowledge-seam` @ `c58d9b07`. Presentation only: a read-only
+Sim.Core query and a UI card. No state, order, system, schema or golden changed (measured below).
+
+**The composite, and only the one the simulation has.** The Director asked for "a composite settlement-suitability …
+explainable score and factor breakdown". The simulation already holds exactly ONE composite: the UNJITTERED siting
+score `SettlementSiting.CandidateScores` = region fertility (`BoxSum` over ±`fertilityRadiusPx`) × water access
+(`WaterAccess` of `WaterDistanceBfs`), the score turn-zero siting, emergent colonization and the AI's founding pick rank
+by and FoundingQuery's floor arm reads. The card shows THAT, titled "The simulation's siting score", decomposed into
+those two factors, with its rank among the positive scores and the floor (`ScoreFloor`'s population and percentile).
+No weight is invented and nothing else is folded in. (D-043 C2 limits institution viability, not a suitability score —
+the workstream plan's reading is corrected by the packet.)
+
+**Everything else is separate and labelled "not part of the score".** Each its own section: the founding predicate arm
+by arm (FoundingQuery's public parts — source, control, map, land, floor, occupancy, spacing, catchment claim, party,
+provisions, route — with `FoundingQuery.Check`'s own verdict; the first failing arm is pinned equal to it); the route
+and its cost from a chosen source (`RouteQuery.Find`; "set out from …" links re-judge from another settlement of the
+player's); the deposits a settlement founded here would get — EXPECTED per good (`HinterlandMeans` +
+`DepositChannelValue`, the ore spread as its range, labelled keyed to the settlement id, not the place) and, while the
+player knows every settlement, the exact roll for the next id (`AddDepositsForSite` into a scratch table, id maxId+1);
+discovery / presence / access / extraction as four lines (known cell; channel > 0; a land route from a settlement of
+the player's; `LabourActivities.CanAllocate` on the source a colony takes its ruler from — production works deposits
+with no research gate); the would-be catchment's arable land (`Pathfinder.Partition` with the site appended, the
+catchment's own tier budgets via the now-public `CatchmentSystem.TierOf`); the terrain fields; the nearest settlements
+the player knows (composite integer key: squared px distance, id); and "Not simulated": a per-place resource quantity,
+resource discovery, D-051 §2 availability classes (ratified, not built — they will change the deposit function the card
+calls), a land claim other than a catchment, farmland taken by a footprint (D-009). On water, deposits and the catchment
+are "not evaluated: no settlement can stand on water".
+
+**The refusal.** A cell the player's knowledge (P7 seam) does not know is never registered on the map, and its card, if
+asked for, is "Undiscovered ground" and reads nothing of the cell or the world. Pinned metamorphically with the stub
+(`PolityKnowledge.Restricted`): every land layer under the unknown nodes perturbed, report and card identical; control:
+all-known, the same perturbation moves them.
+
+**The UI.** The known ground under the pointer is a PASSIVE inspectable region (`InfoKind.Cell`, `InfoSubject.OfCell(cell,
+source)`), registered from the lens before the formation tokens (a token stays on top), picked through the camera's shown
+view and the map rect (`Sim.Ui/World/MapCells.At` — `Camera.ScreenToWorld`), only over open map (not an ImGui window, the
+legend, the docked Age panel or the modal Age flow). Its region is the cell's footprint, or a 12 px square about the
+pointer when a cell is smaller, so its centre names the same cell at any zoom. A plain click is unchanged; Shift+click
+opens the card in the right-hand column. The hint "Shift+click: what is here" is PAINTED and only while Shift is held
+(over all ground it would follow the pointer everywhere); never an ImGui tooltip. The card is judged from the selected
+settlement when it is the player's, else the capital. `UiSession.Sites` prepares the terrain half once per terrain, with
+the worldgen config the session's ColonizationSystem holds.
+
+**New public surface (flagged, decision ledger §29).** Sim.Core: `SiteAssessment` (`Prepare`, `Assess`, `DefaultSource`,
+`CompareNearby`, `FirstFailing`, the `Prepared` / `Report` / `FoundingArm` / `Nearby` / `DepositPreview` types),
+`InfoKind.Cell` (15), `InfoSubject.OfCell`, `InfoQuery.Card`'s optional `site` parameter, `CatchmentSystem.TierOf` (was
+private; no behaviour change). Sim.Ui: `MapCells`, `UiSession.Sites`, `InfoPanel.CellHintText` and `PaintHint`'s optional
+text, `UiFrameHarness.HoverWith`.
+
+**Gate rows (info area).**
+
+| row | states | what it checks |
+|---|---|---|
+| `info` / `shift-click Cell (map ground: the place card)` | all 10 | known land near the capital: the card opens for exactly that subject with InfoQuery's title, no order, unchanged hash and selection, Escape closes it first |
+| `info` / `hover hint over the map ground (painted only while Shift is held, never a tooltip)` | all 10 | no hint without Shift; the place hint with Shift; no tooltip window |
+| `info` / `undiscovered ground offers no place card (Shift+click opens nothing)` | hidden rival | zoomed to the Settlement band over each hidden settlement: no place region, no hint, a Shift+click opens nothing (a camera row) |
+
+**Unchanged (MEASURED).**
+
+| evidence | result |
+|---|---|
+| `--smoke --monkey 200`, base `c58d9b07` (exported and built) then this branch | base: 10 states, 2094 checks, 1974 pass, 120 n/o, 0 FAIL, 69,304 frames, 160.8 s. After (`496b92f`, and again on `67c6c3e` with a byte-identical report): 10 states, 2115 checks, 1995 pass, 120 n/o, 0 FAIL, 0 problems, 69,712 frames, 157.6 s / 138.2 s. With the three new rows removed, the two reports are identical line for line except the summary line (every pre-existing row's cells and not-offered reasons) |
+| world hash | `PreparingAssessingAndCarding_ChangeNoHash` (two worlds, every sampled cell, the hash, turn and ledger-flow count); the UI test and every gate row check hash and queue around the Shift+click |
+| founded seed-42 300-turn golden (`sim run --founded --seed 42 --turns 300`, two CLI processes from this tree) | both hash logs byte-identical; last line `937577ffb0e73c2b051d8d7832cfb5028c2154d01c9afef4d976b71ccb5e7f54`, the pinned `FOUNDED_GOLDEN` |
+
+**Data gaps (stated, not filled).** No per-cell resource quantity exists: deposits are written per settlement at founding,
+and the nine deposit goods collapse onto three channels; the card shows expected channel values. D-051 §2 will replace
+the deposit function; the card calls it and never copies it. A KNOWN cell's values are the simulation's own, and several
+read beyond the cell (the score's box and BFS, the floor and rank over every cell, the hinterland disc, the spacing,
+occupancy and claim masks and the route over every settlement and the lattice) — the ADR-037 §6 channel, for S2b/S2c;
+all-known today.
+
+**Found, not fixed (pre-existing, recorded in `docs/queue.md`).** A session or rig whose map is not the canonical size
+(`--size`, `UiSession.Start(sizeOverridePx: …)`, the Sim.Tests dev rigs) hands ColonizationSystem the canonical 1024-px
+worldgen config, and `WorldFounding.HinterlandMeans` indexes by the CONFIG's `sizePx`: a colony's deposits are read
+from other cells (measured), and `HinterlandMeans` throws for a site in a small map's bottom rows (measured on the
+function directly). The card refuses to evaluate deposits under such a mismatch
+instead of reading the wrong cells.
+
+**Mutant kill record.** One-edit mutants, each built and run against a filter (core: SiteAssessmentTests +
+InfoQueryTests — 30 tests, clean 16 s, bound 120 s = 7.5×; UI: InfoPanelTests — 21 tests, clean 29 s, bound 240 s ≈
+8×). None hung: every core run 13–17 s, every UI run 31–35 s.
+
+| mutant | killed by (semantic tests) |
+|---|---|
+| C1 the region-fertility factor read at radius + 1 | `TheComposite_IsTheSimulationsUnjitteredSitingScore…` |
+| C2 the assessment's refusal removed | `AnUnknownCell_IsRefused_NothingOfItIsRead…` |
+| C3 the card's refusal removed | `AnUnknownCell_IsRefused_NothingOfItIsRead…` |
+| C4 the nearest tie-break id DESC | `TheNearestOrder_IsSquaredDistanceThenId_TieDense…`, `AtAPlaceEquidistantFromTwoSettlements…` |
+| C5 the next-founding roll keyed to maxId + 2 | `TheIfFoundedNextDeposits_AreTheDepositRowsOfAColonyActuallyFoundedThere_BitExactly`, `TheWouldBeArableLand…` |
+| C6 the would-be catchment's budget at the top tier | `TheWouldBeArableLand_IsWhatTheCatchmentRecomputeGivesTheColony_BitExactly` |
+| C7 the Claimed arm always holds | `EveryOtherValue_IsItsOwnFunctionsValue…` (the per-arm pins; the arm never fails first on these maps) |
+| C8 the rank counts ties as below | `TheComposite…` |
+| C9 an invented weight folded into the composite line | `TheCellCard_ShowsTheOneCompositeDecomposed…NoWeightedComposite` |
+| C10 the nearest list names unknown settlements | `UnderAStub_TheNextFoundingRollIsWithheld_AndTheNearestListNamesOnlyKnownSettlements` |
+| C11 the next-founding roll shown under a stub | as C10 |
+| C12 deposits evaluated on water | `EveryOtherValue…` |
+| U1 the place hint painted without Shift | `ShiftClick_OnKnownMapGround…`, `TheHoverHint_IsPaintedBesideThePointer…`; the gate's hint row (`--smoke --state "A1 turn 1"`: 1 FAIL) |
+| U2 undiscovered ground offered | `UndiscoveredGround_IsNeverOffered…`; the gate's undiscovered-ground row (`--state "hidden rival"`: 1 FAIL) |
+| U3 the region is the bare footprint at every zoom | `ThePlaceRegion_ContainsThePointer_AndItsCentreIsTheSameCell_AtEveryZoom` |
+| U4 the ground registered over the tokens | `ShiftClick_OnKnownMapGround…` (Shift+click on the formation token) |
+| U5 the card ignores the selected source | `ShiftClick_OnKnownMapGround…` (the subject) |
+| U6 the ground behind a window offered | `TheGroundBehindAWindowTheLegendOrTheAgePanel_IsNotOffered` |
+| U7 the ground behind the legend offered | as U6 — SURVIVED the first version of that test (its legend probe lay over the paper beside the 256-px world); the test now zooms in and asserts each probe lies over known ground, and kills it |
+| U8 the ground behind the Age panel offered | as U6 |
+
+Each property is one the system ought to have: the card shows the simulation's own values and invents none; looking
+never acts; the player is shown only what it knows (P7); a token over the ground stays inspectable.
+
 ## 5. The Warband (Director §3), determined from the code
 
 | question | answer at this commit | evidence |
