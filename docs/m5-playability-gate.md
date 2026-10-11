@@ -1045,6 +1045,116 @@ Measured on this fix's tree (base `651bfb0`):
 | `--smoke --monkey 200` | 10 states, 2115 checks: 1995 pass, 120 not offered, 0 FAIL; 0 problems; 69,712 frames — the P8 record's counts and frames; the place rows PASS in every state, the undiscovered-ground row PASS in hidden rival |
 | founded seed-42 300-turn golden (two CLI processes) | hash logs byte-identical; last line `937577ffb0e73c2b051d8d7832cfb5028c2154d01c9afef4d976b71ccb5e7f54`, the pinned `FOUNDED_GOLDEN` |
 
+### 3.8 The resource and suitability overlay (M5 workstream P9, 2026-10-11)
+
+Branch `m5w-p9-resource-overlays`, cut from `m5w-p8-site-inspection` @ `efef5da8`. Presentation only: a UI-side bake of
+the simulation's own functions, a lens layer and its controls. No state, order, system, schema, content or golden
+changed; one Sim.Core edit makes three of the place card's reach helpers public with no behaviour change
+(`SiteAssessment.KnowsSquare` / `KnowsDiamond` / `KnowsDisc`).
+
+**What the overlay is.** Per traversal-lattice node (the knowledge grid's 16 km node), the value a settlement founded at
+the node's CENTRE CELL would be judged by, through the simulation's own public functions (never read from a rendered
+colour): one layer per goods.json `depositChannel` — moisture, water-proximity, elevation — the founding's own
+`WorldFounding.HinterlandMeans` + `DepositChannelValue` (labelled "Expected abundance (rate multiplier); actual varies
+±spread"; each channel's key row names EVERY good it drives with its spread — "Drives livestock, timber, fiber, hides:
+all exact, one field - no difference between them", "Drives stone (exact), copper-ore (±80%), tin-ore (±90%)" — so no
+layer claims a per-good difference the simulation lacks); the composite settlement suitability = the simulation's own
+UNJITTERED siting score `SettlementSiting.CandidateScores`, with its founding floor; and its two factor layers, region
+fertility (`BoxSum`) and water access (`WaterAccess` of `WaterDistanceBfs`). Each layer is individually toggleable; a
+stronger value is a deeper ink AND more opaque (16 ramp levels from 0 to the largest value drawn; alpha = opacity ×
+(0.25 + 0.75 × ramp)); the opacity steps in tenths from 10 % to 80 %, never opaque, so the terrain always shows through.
+A node whose centre cell is water is not drawn (no settlement stands on water). The realized ore rolls (the player's own
+settlements' `DepositRow`s, "copper-ore 0.183 (x1.68)" — rolled ÷ expected) are marked beside those settlements from the
+Regional zoom in. Tile inspection is P8's place card (Shift+click), named in the key.
+
+**The key** (painted by the lens, never a tooltip): the abundance statement, each shown layer's name and range with its
+ramp, its goods, what it measures with its counts, the founding floor; then four rows, each from the place card's own
+predicate — DISCOVERED (`PolityKnowledge.Known`; "every place known (no extent is stored yet)" while all-known), PRESENT
+(a channel value above 0 — the card's "present"; universally true until D-051 §2), ACCESSIBLE (a land route from a
+settlement of the player's — the card's "reachable", taken for every place as the union of unbounded
+`Pathfinder.Isochrone`s, pinned equal to the card's own `AccessibleFrom` on sampled places; and the places in the
+player's catchments), EXTRACTABLE (the card's "workable": `LabourActivities.CanAllocate` for the default source; herding
+and extraction labour, no research gate).
+
+**The player's information class** (P7 seam; the place card's rules, ADR-037 §7). An unknown node is not evaluated —
+nothing of it is drawn, scored, counted into a range or shown. A known node is WITHHELD (not drawn; counted "not
+judged") when its own reach touches undiscovered ground: the hinterland disc (channels), the fertility box, the water
+BFS's diamond. The ramp runs to the largest value DRAWN. Routes are not judged under a restricted view, nor the founding
+floor. Under a restricted view region fertility is summed over its own window (`ResourceOverlay.WindowSum`), not taken
+from the simulation's integral image, whose last bits depend on every cell above-left of the window (measured: P9
+mutant M2 below; the same bits reach P8's place-card REPORT — not its text — recorded in `docs/queue.md`).
+
+**Where.** One lens-owned `MapLayer.ResourceOverlay` (`MapLayerOwnership`), painted FIRST (under territory, paths and
+settlements) as one rect per run of equal levels along each lattice row, edges snapped to whole px (runs tile exactly:
+pinned), charged to that map layer and to no information layer (the legend's precedent); markers and key are painted
+before the legend, which stays last. Controls: an OVERLAYS tab at the clear map's bottom-left (right of the Age panel and
+the formation card while they show), unfolding a checkbox per layer and the opacity; the key sits beside the tab (above
+it when the map leaves no room), and a click on it picks nothing beneath (`OnLegend`). The bake (`UiSession.Overlay`) is
+made the first time a layer is shown and kept while the terrain and the knowledge masks are the same (production: once
+per session; 50 ms on the canonical map); the status (`UiSession.OverlayStatus`) once per world while shown (8 ms).
+
+**Gate rows (map: overlays, every state; map: knowledge, hidden rival).** All camera rows: the world hash and the queued
+orders unchanged.
+
+| row | states | what it checks |
+|---|---|---|
+| `overlays (unfold: its tab)` | all 10 | the controls unfold; every layer's checkbox and both opacity steps drawn; nothing painted yet |
+| `<layer> (show: its checkbox)` × 6 | all 10 | shown; drawn (or, for a channel on a map the founding config does not describe, "Not evaluated" in the key); every node drawn known; the key names the layer, its measure, a channel's goods and the abundance statement, has the Discovered / Present / Accessible / Extractable rows, lies inside the clear map, is in FrameText (lens); no tooltip |
+| `<layer> (hide: its checkbox)` × 6 | all 10 | not shown, nothing of the overlay painted, the key's title in no lens text |
+| `overlay opacity (-: one tenth less)`, `(+: one tenth more)` | all 10 | the opacity moves one tenth and the deepest fill drawn is exactly that opacity's alpha |
+| `overlays (fold: its tab)` | all 10 | the controls fold |
+| `the overlay draws nothing on undiscovered ground` | hidden rival | every layer shown: no undiscovered node drawn, no layer paints more nodes than its bake draws; reports the undiscovered nodes and the withheld values |
+
+Coverage: `control:overlays`, `control:overlay:<moisture|water|elevation|suitability|fertility|access>`,
+`control:overlay-opacity-down`, `control:overlay-opacity-up` — each pressed by a passing row in every state.
+
+**Measured.**
+
+| evidence | result |
+|---|---|
+| `--smoke --monkey 200`, base `efef5da8` (exported to scratch and built) then this branch (`e788b36`) | base: 10 states, 2115 checks, 1995 pass, 120 n/o, 0 FAIL, 0 problems, 69,712 frames. After: 10 states, 2276 checks, 2156 pass, 120 n/o, 0 FAIL, 0 problems, 71,186 frames, largest draw list 149,328 vertices (base 104,004; the hidden-rival row shows all six layers). +161 rows = 16 × 10 states + 1. With the overlay rows removed the two reports are identical line for line except the summary line |
+| world hash | `BakingStatusAndPainting_ChangeNoHash`; `ShowingEveryLayerAndPlaying_IsHashIdenticalToNotShowingThem` (every layer shown, an End Turn, against a session that showed none); every gate row; the frame-cost sweeps (canonical `4035cf18…` before and after) |
+| founded seed-42 300-turn golden (`Sim.Cli run --founded --seed 42 --turns 300`, two processes, this tree) | both hash logs byte-identical; last line `937577ffb0e73c2b051d8d7832cfb5028c2154d01c9afef4d976b71ccb5e7f54`, the pinned `FOUNDED_GOLDEN` |
+| gate scripts | `check-banned-constructs`, `check-read-isolation` (23 allowlisted files: + `Sim.Ui/World/ResourceOverlay.cs`, routed), `check-readonly-proof`: OK |
+| full Sim.Ui.Tests (`5d7abc7`) | 769 passed, 0 failed (14 m 27 s; P8's 753 + 16 new) |
+| targeted Sim.Tests (`SiteAssessment`, `FoundingVariationItem0`, `SettlementTests`, `WorldgenTests`, `PolityKnowledge`) | 40 passed, 1 skipped, 0 failed — the one Sim.Core edit is an access modifier; full Sim.Tests not run (no simulation, order, serialization or AI change) |
+| frame cost (`--frame-cost map`, `docs/m5-hardening-measurements.md` §"2026-10-11 — map frame cost with the resource overlay") | without the overlay the lens paints exactly what it painted; one layer adds ~1.3–2 ms a frame at World zoom (~6,500 rects), every layer ~12–17 ms (the worst case); Settlement zoom ≤ 0.7 ms |
+
+**Mutant kill record.** One-edit mutants in this worktree, each built, then `ResourceOverlay|WorldLayerOwnershipTests`
+(26 tests; clean 26 s quiet, bound 300 s); none hung (25–40 s each, M1 134 s while the smoke ran beside it).
+
+| mutant | killed by (semantic tests) |
+|---|---|
+| M1 the bake reads unknown nodes (the refusal removed) | `PerturbingTerrainAndDepositsUnderWhatTheStubHides…`, `TheBakeIsKept_ForTheSameSiteAndKnowledgeMask…` |
+| M2 the restricted region sum is the integral image | `PerturbingTerrainAndDepositsUnderWhatTheStubHides…` (the low bits of a known box's sum move with unknown ground) |
+| M3 the hinterland-disc reach check removed | `PerturbingTerrainAndDepositsUnderWhatTheStubHides…` |
+| M4 the water-BFS reach check removed | `PerturbingTerrainAndDepositsUnderWhatTheStubHides…` |
+| M5 the channel read at the point, not the hinterland mean | `EveryDrawnChannelNode_IsTheFoundingsFunctionAtItsCentreCell…`, `TheSuitabilityLayers_…AndThePlaceCardAgrees` |
+| M6 the paint draws every layer, shown or not | `ThePaint_ChargesEveryCommand…DrawsOnlyTheShownLayers…`, `Opacity_ScalesOnlyTheOverlaysAlpha…` |
+| M7 the fill ignores the opacity | `Opacity_ScalesOnlyTheOverlaysAlpha…`; the gate rows (canonical, hidden rival) |
+| M8 the opacity + step does nothing | `TheOpacity_StepsInTenths…`; the gate rows |
+| M9 access judged under a restricted view | `PerturbingTerrainAndDepositsUnderWhatTheStubHides…` — SURVIVED its first version (no perturbation changed the lattice's connectivity); the test now floods the undiscovered ground (the all-known control's reachable count moves) and pins "routes not judged" |
+| M10 the ore rolls of every settlement (knowledge and books checks removed) | `PerturbingTerrainAndDepositsUnderWhatTheStubHides…` (the hidden settlements' deposits) |
+| M11 a run drawn one node too long | `ThePaint_…ItsRunsCoverExactlyTheDrawnNodes` |
+| M12 a node whose centre is water drawn | `EveryDrawnChannelNode…`, `TheSuitabilityLayers…`, `TheKeysAccessAndExtractionRows…` |
+| M13 the bake kept for any knowledge mask | `TheBakeIsKept_ForTheSameSiteAndKnowledgeMask_AndRemadeForAnotherMask` |
+| M14 a channel row names only its first good | `ThereIsNoLayerPerGood…`; the gate rows |
+| M15 a checkbox never shows its layer | `ShowingEveryLayerAndPlaying…`, `TheOpacity_StepsInTenths…`; the gate rows |
+| M16 the opacity cap removed (opaque reachable) | `TheOpacity_StepsInTenths_From10To80Percent_NeverOpaque…` |
+| M17 the ramp inverted (a stronger value paler) | `TheSuitabilityLayers_…` (the level is floor(v / max × 16)) |
+
+Each property is one the overlay ought to have: it shows the simulation's own values at a stated granularity and invents
+none; it claims no per-good difference the simulation lacks; the player is shown only what it knows, and the choice to
+withhold tells nothing either; looking never acts; the terrain always shows through.
+
+**Data gaps (stated, not filled).** No per-cell resource quantity exists: the overlay draws the founding's EXPECTED
+channel value per node, and ore richness only as realized rolls at the player's settlements (the roll is keyed to the
+settlement id, not the place). The nine deposit goods collapse onto three channels. Presence is universally true until
+D-051 §2 (ratified, not built), which will replace the deposit function the overlay calls. The overlay's spacing and
+claim legality are not layers: they are per site and per turn, on P8's card and S1d's placement mode. On a map whose
+size differs from the founding path's worldgen config (the 256-px dev worlds) the channel layers say "Not evaluated"
+(P8's rule; the pre-existing size-mismatch defect in `docs/queue.md`).
+
 ## 5. The Warband (Director §3), determined from the code
 
 | question | answer at this commit | evidence |

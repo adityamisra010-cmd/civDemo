@@ -182,3 +182,20 @@ to that class and added to the gate of record.
 * **Unchanged.** No state, order, system, schema or golden; the all-known card's every line (the pre-existing
   SiteAssessment / InfoPanel tests and the gate's place rows). `SiteAssessment.Report.Verdict` is now nullable (null =
   not judged) and `FoundingArm` carries `Unseen`; both are P8's own, unmerged surface.
+
+## 8. Addendum (M5 P9, 2026-10-11): the resource overlay is a player output
+
+Appended by the P9 agent on branch `m5w-p9-resource-overlays` (LOCAL, not pushed, not merged). P9's resource and
+suitability overlay (`Sim.Ui/World/ResourceOverlay.cs`, `MapLayer.ResourceOverlay`) shows, per lattice node, the values
+the place card shows per cell, so it is held to §7's class by §7's own reach rules (`SiteAssessment.KnowsDisc` /
+`KnowsSquare` / `KnowsDiamond`, made public for it with no behaviour change): an unknown node is not evaluated; a known
+node whose reach touches undiscovered ground is withheld ("not judged" in the key); the ramp runs to the largest value
+DRAWN; routes (the key's accessible count) and the founding floor are judged only while the viewer sees the whole world;
+the realized ore rolls are the player's own settlements' books. One refinement §7 lacks, MEASURED: under a restricted
+view the overlay sums region fertility over its own window rather than taking the simulation's integral image
+(`BoxSum`), whose last bits depend on every cell above-left of the window — P9's metamorphic test kills the mutant that
+takes the integral image. The place card's REPORT has the same low-bit dependence (its text does not: three decimals);
+recorded in `docs/queue.md`, P8's to fix. Gate: `ResourceOverlayTests.PerturbingTerrainAndDepositsUnderWhatTheStubHides…`
+(the rival hidden whole plus a 17 × 17-node block; every land layer, rivers and water perturbed, and flooded; the hidden
+settlements' deposits — bake, status, key and paint identical; all-known control moves) and the gate row "the overlay
+draws nothing on undiscovered ground" (hidden rival).
