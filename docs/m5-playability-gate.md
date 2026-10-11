@@ -956,10 +956,10 @@ text, `UiFrameHarness.HoverWith`.
 
 **Data gaps (stated, not filled).** No per-cell resource quantity exists: deposits are written per settlement at founding,
 and the nine deposit goods collapse onto three channels; the card shows expected channel values. D-051 §2 will replace
-the deposit function; the card calls it and never copies it. A KNOWN cell's values are the simulation's own, and several
-read beyond the cell (the score's box and BFS, the floor and rank over every cell, the hinterland disc, the spacing,
-occupancy and claim masks and the route over every settlement and the lattice) — the ADR-037 §6 channel, for S2b/S2c;
-all-known today.
+the deposit function; the card calls it and never copies it. ~~A KNOWN cell's values are the simulation's own, and several
+read beyond the cell … — the ADR-037 §6 channel, for S2b/S2c; all-known today.~~ CORRECTED by review finding 1 (below):
+§6 records that channel for the AI's valuation only; the card is a player output, held to the player's stricter class
+(ADR-037 §7).
 
 **Found, not fixed (pre-existing, recorded in `docs/queue.md`).** A session or rig whose map is not the canonical size
 (`--size`, `UiSession.Start(sizeOverridePx: …)`, the Sim.Tests dev rigs) hands ColonizationSystem the canonical 1024-px
@@ -997,6 +997,53 @@ InfoQueryTests — 30 tests, clean 16 s, bound 120 s = 7.5×; UI: InfoPanelTests
 
 Each property is one the system ought to have: the card shows the simulation's own values and invents none; looking
 never acts; the player is shown only what it knows (P7); a token over the ground stays inspectable.
+
+**Review finding 1 (major), fixed: a known cell's place card read hidden settlements and hidden terrain.** The finding
+(independent verdict: confirmed) measured, through the P7 stub on the dev rig: known cells failing the spacing arm only
+because of a hidden rival with the card stating the distance to its site; at a settlement on known ground out of sight,
+"a settlement already stands here", "The site of a settlement." and "In the catchment of a settlement you do not know";
+and the score's first line moving when only the fertility under eight unknown nodes changed. The card was not in the
+gate of record, and this section called it "the ADR-037 §6 channel", which §6 records for the AI only.
+The fix holds the card to the PLAYER's class (ADR-037 §7, appended): while the player sees the whole world
+(`SiteAssessment.SeesAll` — all-known, or every node visible; production today) the card is unchanged line for line;
+otherwise every value that would read beyond what the player knows is withheld and shown "not judged" — never
+estimated — and no wording narrates a settlement the player does not know. Gate: `KnowledgeLeakTests` gains a "place
+cards" category in the static readers' comparison and `ThePlaceCardOfAKnownCell_TellsNothingOfWhatTheStubHides…` (hidden
+sites moved, hidden claims and a road planted, a river and rough ground under every unknown node; a control per
+channel); `SiteAssessmentTests` pins the finding's three cases metamorphically, each with an all-known control, and
+that a stub hiding nothing withholds nothing.
+
+Mutant kill record (one worktree; each mutant built, then `SiteAssessmentTests` — 17 tests, clean 19 s, bound 120 s —
+and `KnowledgeLeakTests` — 21 tests, clean 46 s, bound 300 s; none hung: core 15–24 s, UI 45–50 s):
+
+| mutant | killed by (semantic tests) |
+|---|---|
+| F0 `SeesAll` always true (the fix reverted) | `ThroughAStubHidingTheRival…`, `ASettlementOnKnownGroundOutOfSight…`, `AKnownPlaceAmidUnknownGround…`, `AStubThatHidesNothing…`, `UnderAStub_TheNextFoundingRollIsWithheld…`; UI `PerturbingWhatTheStubHides…` (place cards), `ThePlaceCardOfAKnownCell…` |
+| F1 `SeesAll` = all-known only (a stub hiding nothing withholds) | `AStubThatHidesNothing_WithholdsNothing…` |
+| F2 the water-access factor never withheld | `AKnownPlaceAmidUnknownGround…`; UI `ThePlaceCardOfAKnownCell…` |
+| F3 the region-fertility factor never withheld | `AKnownPlaceAmidUnknownGround…`; UI `PerturbingWhatTheStubHides…`, `ThePlaceCardOfAKnownCell…` |
+| F4 the hinterland disc check removed | as F3 |
+| F5 occupancy names any settlement under a stub | `ASettlementOnKnownGroundOutOfSight…` |
+| F6 the claim names any settlement under a stub | `ASettlementOnKnownGroundOutOfSight…`, `ThroughAStubHidingTheRival…`; UI `ThePlaceCardOfAKnownCell…` |
+| F7 a source the player does not know is kept | `ThroughAStubHidingTheRival…` (its card is a nonexistent id's) |
+| F8 the restricted verdict is `FoundingQuery.Check`'s | `ThroughAStubHidingTheRival…`, `ASettlementOnKnownGroundOutOfSight…`, `AKnownPlaceAmidUnknownGround…`; UI both |
+| F9 route and access judged under a stub (both guards removed) | UI `ThePlaceCardOfAKnownCell…` (the planted road and rough ground); `AKnownPlaceAmidUnknownGround…`, `AStubThatHidesNothing…` |
+| F10 floor and rank shown under a stub (both guards removed) | `AKnownPlaceAmidUnknownGround…`, `AStubThatHidesNothing…`; UI `PerturbingWhatTheStubHides…`, `ThePlaceCardOfAKnownCell…` |
+| F11 spacing judged under a stub | `ThroughAStubHidingTheRival…`; UI `ThePlaceCardOfAKnownCell…` |
+| F12 occupancy held on a cell out of sight | `ASettlementOnKnownGroundOutOfSight…` (it would state "No settlement stands here" where one stands) |
+
+Each property is one the card ought to have: the player is shown only what it knows, the choice to withhold tells
+nothing either, and a stub hiding nothing withholds nothing.
+
+Measured on this fix's tree (base `651bfb0`):
+
+| evidence | result |
+|---|---|
+| gate scripts | `check-banned-constructs`, `check-read-isolation` (22 allowlisted files, unchanged), `check-readonly-proof`: OK |
+| full Sim.Ui.Tests | 753 passed, 0 failed (10 m) |
+| full Sim.Tests | 1,690 passed, 13 skipped, 2 failed — the inherited CR-020 reds `Dev_MalthusCorridors_AllInBand` seeds 42 and 7, untouched (34 m) |
+| `--smoke --monkey 200` | 10 states, 2115 checks: 1995 pass, 120 not offered, 0 FAIL; 0 problems; 69,712 frames — the P8 record's counts and frames; the place rows PASS in every state, the undiscovered-ground row PASS in hidden rival |
+| founded seed-42 300-turn golden (two CLI processes) | hash logs byte-identical; last line `937577ffb0e73c2b051d8d7832cfb5028c2154d01c9afef4d976b71ccb5e7f54`, the pinned `FOUNDED_GOLDEN` |
 
 ## 5. The Warband (Director §3), determined from the code
 

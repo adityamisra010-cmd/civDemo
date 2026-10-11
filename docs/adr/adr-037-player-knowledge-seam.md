@@ -82,7 +82,8 @@ the one-AI world after six played turns, seen through a stub that hides the AI p
 polity is perturbed (people and stocks through the Ledger, deposits, dwellings, structures, queue, labour, deficits,
 grievances, needs, prices, class states, formations — one added —, tax, Age, control, conversions, and the terrain
 under every unknown node), and hidden EVENTS are planted. Identical under the stub: projection + lens (SVG bytes and
-LensFrame), HUD, player views, market, needs, Tab, unit and formation cards, good cards, both chronicles' annals, the
+LensFrame), HUD, player views, market, needs, Tab, unit and formation cards, good cards, the place card of every
+sampled known map cell (added by M5 P8, §7), both chronicles' annals, the
 Trends world series and `ForPlot`, the history buffer's world series, and FrameText of every player section of the
 real UI. Each has a POSITIVE CONTROL (all-known, the same perturbation changes it). After review, the selection-keyed
 readers too: a hidden settlement's own Trends series and price series are identical under the stub whatever it does
@@ -147,3 +148,37 @@ row. The one intended text change is §2's raw-id title. Evidence: the packet's 
   (chronicle.txt) writes the session's annals, so it is filtered like the panel (all-known: identical).
 * The forecast of D-051 §3 (not implemented) would step the full world; when both exist, that is a fold of hidden
   state into player numbers to resolve.
+
+## 7. Addendum (M5 P8, review finding 1, 2026-10-11): the place card is a player output
+
+Appended by the P8 fixer on branch `m5w-p8-site-inspection` (LOCAL, not pushed, not merged). P8 added the place card
+(`InfoKind.Cell`, built from `Sim.Core.State.SiteAssessment`): the first player surface that shows the founding
+predicate's arms. Its first version read, for a KNOWN cell, every settlement and the terrain beyond the cell, and said
+so on the card (the spacing distance to a hidden site, "The site of a settlement.", "In the catchment of a settlement
+you do not know"); its record called that "the same channel §6 records". It is not: §6 records that channel for the
+AI's valuation only, and holds the player's outputs to the stricter class. The card is a player output, so it is held
+to that class and added to the gate of record.
+
+* **The rule.** While the viewer SEES THE WHOLE WORLD (`SiteAssessment.SeesAll`: all-known, or every lattice node
+  visible) every value is the simulation's own — production today, so the all-known card is unchanged. Otherwise each
+  value that would read beyond what the viewer knows is WITHHELD and shown as "not judged" (never estimated: what a
+  polity assumes of ground it has not seen is S2b's modelling decision, as for the AI in §6): a score factor whose reach
+  touches an unknown cell (the fertility box; the cells the 4-connected water BFS reads to settle min(distance, cutoff));
+  the floor, the rank and the floor arm (every cell); spacing and the would-be catchment (every settlement, the
+  lattice); the route and access (the lattice, every road); the hinterland and deposits when the disc touches an
+  unknown cell; the occupancy and claim arms unless a settlement the viewer KNOWS decides them (occupancy also holds on a
+  cell in sight, where no settlement stands unseen); the predicate's verdict when such an arm precedes its first
+  failure; and a source settlement the viewer does not know names nothing. The card no longer narrates a settlement the
+  player does not know in any wording. Each "withheld or shown" choice is a function of the knowledge masks and known
+  rows alone, so it tells nothing either.
+* **The gate.** `KnowledgeLeakTests`: the static readers' comparison gains a "place cards" category (the sampled known
+  cells around the hidden polity and the player's settlements; identical through the stub, all-known control moves),
+  and `ThePlaceCardOfAKnownCell_TellsNothingOfWhatTheStubHides…` perturbs what only the card reads — hidden sites moved,
+  hidden claims and a road to a hidden settlement planted, a river and rough ground under every unknown node — with
+  a control per channel (spacing, claim, route, water access, score, floor, hinterland, catchment, the card).
+  `SiteAssessmentTests` pins the three measured cases of the finding (a hidden rival's spacing, a settlement on known
+  ground out of sight, a known cell amid unknown ground), each metamorphic with an all-known control, and that a stub
+  hiding nothing withholds nothing.
+* **Unchanged.** No state, order, system, schema or golden; the all-known card's every line (the pre-existing
+  SiteAssessment / InfoPanel tests and the gate's place rows). `SiteAssessment.Report.Verdict` is now nullable (null =
+  not judged) and `FoundingArm` carries `Unseen`; both are P8's own, unmerged surface.
