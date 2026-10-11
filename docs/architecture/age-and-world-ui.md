@@ -375,3 +375,23 @@ The cases cover:
   - No wall or other built-work state exists to compose.
   - The institution seam returns nothing until the institutions stream lands.
   - The road fixture's knowledge and materials are constructed; real play builds roads only once the player issues `DevelopRoads`, through the action surface of stream U2.
+
+## 10. M5 map workstream P3: hit geometry and the map legend (append-only note, 2026-10-11)
+
+Supersedes §5.1's layer list where they differ; §1–§9 remain the record of what they describe.
+
+- **A ninth map layer, `MapLayer.Legend`**, owned by the lens: the map legend, painted only when the player shows it
+  (its tab over the map's bottom-right corner, or L), last, through the DrawList. It is a plain DATA legend — the
+  title, one entry per information layer the frame DREW (`LensFrame.Painted`: on at the zoom AND touching the
+  viewport) by `WorldLens.LayerLabel`, then `WorldProjection.Absent` verbatim — so the honest empty states (§8) are now
+  shown in the game, not only in the headless previews. No art: the plate is the name plate's paper, rule and corner.
+- **Finer draw-call accounting.** `LensFrame.InfoDraws` counts the commands per information layer (`WorldLayer`);
+  every lens command but the legend's is charged to exactly one information layer of its map layer
+  (`MapLayerOwnership.MapLayerOf`), so the two accountings agree map layer by map layer.
+- **Hit geometry from the paint.** `LensFrame.SettlementHits` records each drawn settlement's mark centre, footprint
+  (World: the halo round the population mark; closer: the built footprint's circle) and name plate;
+  `SettlementSelection` picks from them (footprint target ≥ 44 px, or plate; ranked by (distance², id)). The
+  footprints are the same in every era; a plate's width is the era's type (UR-7), as the drawn plate always was.
+- **The selected formation's frame** is drawn by the lens (`Paint(…, selectedUnit:)`), no longer by GameUi after it.
+
+Tests: `Sim.Ui.Tests/LensHitGeometryAndLegendTests.cs`; record: `docs/m5-playability-gate.md` §3.4.

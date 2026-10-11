@@ -510,6 +510,100 @@ the settlement reach it, a landing within 0.5 px of the MAP RECT's centre. The m
 included, and the coverage row passes in every state. (Run on the working tree committed as `f874b6d`: `Sim.Ui` byte-
 identical; one test helper in `MapViewportTests` was tightened after the run.) `Sim.Ui.Tests` 681/681 on `f874b6d`.
 
+### 3.4 Settlement hit geometry and the map legend (M5 workstream P3, 2026-10-11)
+
+Branch `m5w-p3-lens-hit-geometry-legend`, cut from `m5w-p1-map-viewport` @ `1b54ce6`. Presentation only: no
+simulation, serialization or order code changed; selection and the legend are UI state.
+
+**The click hits what was drawn (IMPLEMENTED).** `WorldLens.Paint` records a `SettlementHit` in `LensFrame` for every
+settlement it draws (as it records `UnitPlacements` for tokens): the mark's centre, the FOOTPRINT (the halo round the
+population mark at World zoom, the built footprint's circle closer — its geometry, not its stroke, so the era's hand
+never moves it) and the NAME PLATE the name is set on. `SettlementSelection.HitTest(LensFrame, x, y)` admits a
+settlement by its footprint's target (grown about its centre to D-A2's 44 px minimum) or its plate, and ranks by
+(mark-centre distance², id) whatever the order of the hits. GameUi clicks through the frame the player saw. Deleted:
+`DrawNameLabels` and its label rects (measured beside a 20 px marker the map no longer draws), `LabelRect`,
+`MarkerScreenPx` and the world-and-camera hit test (a constant 22 px circle about the site cell). Tab cycling is
+unchanged (settlement-id order over the world's settlements; under fog it belongs to the P7 knowledge seam).
+
+**The map legend (IMPLEMENTED).** A plain DATA legend (no object-tier art), painted by the lens through the DrawList,
+last, over the map rect's bottom-right corner, on a paper plate in the era's hand (the name plate's ink, rule and
+corner): its title (`Legend - world view` …), one entry per information layer the frame actually DREW, then
+`WorldProjection.Absent` verbatim under "Not on the map". DRAWN means on at this zoom AND at least one of the layer's
+commands touching the viewport (`LensFrame.Painted`): with the territory toggle off, without formations, or with
+nothing in view, a layer is on but not listed. Its commands are charged to a new map layer, `MapLayer.Legend` (one
+owner: the lens), and the accounting gains a level — `LensFrame.InfoDraws` per information layer; every other lens
+command is charged to exactly one information layer of its map layer, so the two accountings agree layer by layer.
+Its runs are `TextCmd`s: they are in `LastLensCommands` and in `FrameText` under the lens surface; it is never an
+ImGui window or tooltip. A click on it selects nothing beneath. The selected formation's frame moved from GameUi into
+the lens paint (`selectedUnit`) so the legend stays the topmost thing the lens draws.
+
+| control | where | what it does |
+|---|---|---|
+| `legend` (`LEGEND +` / `LEGEND -`) | a tab over the map rect's bottom-right corner (`FrameSurface.Legend`) | shows / hides the legend just above it |
+| key **L** | — | the same toggle |
+
+*Decision:* the legend is OFF until the player asks for it; its tab is always on the map. Flipping the default is one
+field (`GameUi._showLegend`).
+
+**Gate rows (camera rows: the world hash and the queued orders must not change).** `map: legend` — "legend (show: its
+tab)", "legend (hide: its tab)"; `keys` — "L (legend: show, then hide)". Shown, the row requires the painted legend to
+list exactly `LensFrame.Painted` (non-empty) and the absent lines, its runs in the lens's commands to spell exactly
+that, every run to be in FrameText (lens), and no tooltip window; hidden, no legend painted, none charged, its title in
+no lens text. They run in every state's sweep and in `PlayabilityGate.CameraRows` (whose P6 mutant tests require them to
+FAIL under a camera operation that queues an order or steps the world). The monkey's keys include L.
+
+**Pins moved (old -> new, measured cause).**
+- `SelectionTests.HitTest_ZoomExtremes_*` (was `_ScreenRadiusHolds`): at 32× a click 23 px right of the mark MISSED (the
+  constant 22 px radius) though the lens drew the footprint to 64 px there. Now the drawn footprint is the target: its
+  edge hits, one pixel past misses. The other hit tests of `SelectionTests` are ported onto painted frames (or, for the
+  pure ranking, hand-built hits of the same geometry) with their properties unchanged.
+- `EraSurfaceTests.Continuity_*`: "every probe picks the same settlement in all nine eras" held for the deleted hit test,
+  which ignored names. A plate holds the name as the era's type SETS it (UR-7), so its width follows the era. MEASURED
+  at zooms 3.125 / 10.4 / 31.25: footprints and centres identical in every era; plate widths differ by up to 20.03 px
+  (Modern vs Prehistoric); 0–26 of ~11,500 probes pick differently per era, every one inside a plate. The test now pins
+  identical footprints and identical picks for every probe outside both eras' plates; each era's plate holding its name
+  is pinned by `LensHitGeometryTests`.
+- `WorldLayerOwnershipTests.Lens_DrawsOnlyItsOwnLayers_*`: each zoom is also painted with a legend (the new lens layer
+  must be drawn somewhere); without one, the Legend layer draws nothing.
+
+**MEASURED on `85448da`'s code** (the run preceded one added test, `EachRunIsChargedToTheLayerItShows`, which then
+passed in its class): `Sim.Ui --smoke --monkey 200` — 9 states, 1892 checks: 1782 pass, 110 not offered, **0 FAIL**,
+0 problems; 61,527 frames, 1,800 monkey actions; largest draw list 104,004 vertices; 120.3 s on 4 shared CPUs. Against
+P1 (1865 / 1755) the +27 checks and +27 passes are the three legend rows in nine states; the coverage row passes in
+every state. `Sim.Ui.Tests` 697/697.
+
+**Mutant kill record (ADR-015 §7.1/§7.2; MEASURED on `85448da`).** Each mutant is one source edit, built, run against
+
+```
+LensHitGeometry|MapLegendTests|SelectionTests|WorldLayerOwnershipTests|EraSurfaceTests.Continuity|PlayabilityGateTests.CameraRows
+```
+
+and restored from the commit. The clean filtered run (43 tests) takes 34.8 s; each mutant run was bounded at 139 s
+(4×). Every run finished in 30–34 s, none hung, and every mutant was killed by at least one semantic test. Each killing
+assertion states a property the UI ought to have: the target is what was drawn and never under 44 px, the ranking is
+(distance, id), the legend lists only what the frame drew and says what is absent, its commands are its own, and the
+legend lies over the map.
+
+| mutant | killed by |
+|---|---|
+| M1 the name plate admits nothing | `HitTest_NamePlate_SelectsItsSettlement_AndOnlyInsideThePlate`, `HitTest_OverlapRanking_…`, `ClickingADrawnName_SelectsThatSettlement` (Regional, Settlement), `AtSampledZoomsInEveryBand_…` |
+| M2 the id tie-break reversed | `HitTest_TieDense_LowestIdWins_WhateverTheHitOrder`, `HitTest_OverlappingMarkers_NearestWins_ExactTieLowerId`, `HitTest_OverlapRanking_…` |
+| M3 the ranking ignores distance (first admitted wins) | the same three |
+| M4 the footprint's target not grown to 44 px | `HitTest_AtDefaultZoom_HitsTheMarker_MissesBeyondRadius`, `HitRadius_IsDerivedFromTheNamedTargetStandard`, `HitTest_ZoomExtremes_…`, `HitTest_OverlapRanking_…`, `AtSampledZoomsInEveryBand_…` |
+| M5 the closer footprint recorded at the World mark's size | `HitTest_ZoomExtremes_TheTargetIsTheDrawnFootprint_NeverUnderTheMinimum`, `AtSampledZoomsInEveryBand_…` |
+| M6 the closer zooms record no name plate | `ClickingADrawnName_SelectsThatSettlement` (both), `HitTest_NamePlate_…`, `AtSampledZoomsInEveryBand_…` |
+| M7 a click on the legend falls through to the map | `AClickOnTheLegend_SelectsNothingBeneathIt` |
+| M8 the legend lists the zoom's layers, not the drawn ones | `ALayerOnButNotDrawn_IsNotListed`, `TheLegend_ListsExactlyTheLayersDrawn_…`, `WithEverythingInView_…`, `TheLegend_TogglesByItsTabAndL_…`, `CameraRows_Pass_…` (the gate's legend row) |
+| M9 a layer counts as drawn without touching the viewport | `ALayerOnButNotDrawn_IsNotListed` (nothing in view) |
+| M10 the legend charged to the settlement markers | `TheLegend_ListsExactlyTheLayersDrawn_…`, `Lens_DrawsOnlyItsOwnLayers_…`, `WithoutAnAnchor_…`, `TheSelectedFormationsFrame_…`, `TheLegend_TogglesByItsTabAndL_…`, `CameraRows_Pass_…` |
+| M11 the legend drops the absent lines | `TheLegend_ListsExactlyTheLayersDrawn_…`, `TheLegend_TogglesByItsTabAndL_…`, `CameraRows_Pass_…` |
+| M12 L does not toggle the legend | `TheLegend_TogglesByItsTabAndL_…`, `AClickOnTheLegend_…`, `CameraRows_Pass_…` (the L row) |
+| M13 the population line charged to the infrastructure layer | `EachRunIsChargedToTheLayerItShows` |
+| M14 the selected formation's frame drawn after the legend (GameUi's old order) | `TheSelectedFormationsFrame_IsTheLenss_AndTheLegendStaysOnTop` |
+
+M13 changes no map layer's total and no listed layer (both labels are drawn at Settlement zoom): only the exact
+per-layer pin catches it, which is why that pin was written.
+
 ## 5. The Warband (Director §3), determined from the code
 
 | question | answer at this commit | evidence |
