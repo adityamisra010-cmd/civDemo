@@ -429,6 +429,11 @@ public sealed partial class GameUi
     {
         // P7: every reader below asks what the player knows — the session's view, rebuilt with each step.
         PlayerKnowledge known = _session.Knowledge;
+        // P7 review: a selection the player no longer knows — a step moved it out of sight, or a surface named a hidden
+        // settlement — is dropped here, before any reader is keyed on it. RefreshHud runs after every step and every
+        // selection change, so no player surface (the HUD, the views, Market, Trends, Policy, the action surface, the
+        // lens) is ever handed a hidden settlement as the selection. All-known (production until S2a): never taken.
+        if (known.IsHiddenSettlement(_selected)) _selected = -1;
         _unitCard = _selectedUnit >= 0
             ? UnitCardModel.Build(_world, _session.Config, _selectedUnit, UiPlayer.Empire, id => _session.Names.Name(id), known) : null;
         if (_unitCard is null) _selectedUnit = -1;
@@ -2142,7 +2147,7 @@ public sealed partial class GameUi
         }
         ImGui.Separator();
         // Item 2 gate criterion: scarcity READS as a rising line.
-        Plot("price##sel-good", _session.History.Price(_selected, _selectedGood));
+        Plot("price##sel-good", _session.History.Price(_selected, _selectedGood, _session.Knowledge));   // P7: never a hidden one
         PopDataFont();
     }
 
@@ -2410,7 +2415,7 @@ public sealed partial class GameUi
             // Prices: the observation history has no price series (§7), so the
             // T3.9a buffer keeps them — per (settlement, good), never world.
             Text("price of the good selected under SETTLEMENT / Economy, this settlement");
-            float[] prices = _session.History.Price(_selected, _selectedGood);
+            float[] prices = _session.History.Price(_selected, _selectedGood, _session.Knowledge);   // P7: never a hidden one
             PlotDomain priceDomain = TrendAxisModel.PriceDomain(prices);
             PushDataFont();
             Text(TrendAxisModel.AxisLabel(priceDomain, ToDoubles(prices)));
@@ -2421,7 +2426,7 @@ public sealed partial class GameUi
         }
         double[] series = _trendWorldScope
             ? TrendsModel.World(_session.Observations, metric.Key, metric.ClassId, _session.Knowledge)   // P7: known settlements
-            : TrendsModel.Settlement(_session.Observations, _selected, metric.Key, metric.ClassId);
+            : TrendsModel.Settlement(_session.Observations, _selected, metric.Key, metric.ClassId, _session.Knowledge);   // P7: never a hidden one
         PlotDomain domain = TrendAxisModel.Domain(metric.Key, series);
         PlotBand band = TrendAxisModel.Band(
             metric.Key, series.Length == 0 ? double.NaN : series[^1]);

@@ -23,10 +23,10 @@ Sim.Ui/ViewModel/PlayerViews.cs | routed | a hidden settlement reads as absent; 
 Sim.Ui/ViewModel/StateChronicle.cs | routed | annal events are kept only when every settlement and polity they name is known
 Sim.Ui/ViewModel/UnitCardModel.cs | routed | an unknown formation has no card
 Sim.Ui/ViewModel/NeedsPanelModel.cs | routed | a hidden settlement reads as one with nobody present
-Sim.Ui/ViewModel/HistoryBuffer.cs | routed | the world series sum known settlements; per-settlement series are read only for the (known) selection
+Sim.Ui/ViewModel/HistoryBuffer.cs | routed | the world series sum known settlements; per-settlement series are cached for every settlement and read through the knowledge (a hidden settlement's price series is no data)
 Sim.Ui/Actions/ActionSurfaceModel.cs | own | adults of the player's controlled settlements (the labour summary)
 Sim.Ui/UiSession.cs | own | the settlement row COUNT, to rebuild the name registry after a founding (never displayed)
-Sim.Ui/ViewModel/ScreenModels.cs | developer | DEV > RECORDS: the selected settlement's class buckets for the explain views
+Sim.Ui/ViewModel/ScreenModels.cs | developer | DEV > RECORDS: the selected settlement's class buckets for the explain views; the selection-keyed views (Settlement, Policy) read a hidden settlement as no selection
 Sim.Ui/ViewModel/TurnAuditModel.cs | developer | DEV > TURN: the founded-settlement count of the turn audit
 Sim.Ui/ViewModel/CameraFocus.cs | geometry | the site of the settlement the caller centres on (the selection, a WHERE row)
 Sim.Ui/ViewModel/OverlayMeshes.cs | geometry | overlay mesh helpers no renderer calls any more (WorldLayerOwnershipTests); kept for their tests

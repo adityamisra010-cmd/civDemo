@@ -2,14 +2,17 @@ using System.Globalization;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.Xna.Framework.Input;
 using Sim.Core.Chronicle;
 using Sim.Core.Kernel;
 using Sim.Core.Observability;
 using Sim.Core.State;
 using Sim.Core.Systems;
 using Sim.Core.Worldgen;
+using Sim.Ui.Actions;
 using Sim.Ui.Headless;
 using Sim.Ui.Render;
+using Sim.Ui.Theme;
 using Sim.Ui.ViewModel;
 using Sim.Ui.World;
 using Xunit;
@@ -358,6 +361,22 @@ public class KnowledgeLeakTests : IDisposable
         }
         Assert.Equal(Series(Capture(a0, a1, Stub)), Series(Capture(b0, b1, Stub)));
         Assert.NotEqual(Series(Capture(a0, a1, All)), Series(Capture(b0, b1, All)));   // control
+
+        // P7 review (finding 2): a hidden settlement's own PRICE series — the Market and Trends price plots — reads as
+        // never captured through the stub, whatever its prices do; all-known it is read, and moves (the control).
+        HistoryBuffer ha = Capture(a0, a1, Stub), hb = Capture(b0, b1, Stub);
+        bool priceMoved = false;
+        foreach (int id in KnowledgeStubs.SettlementsOf(a1, Hidden))
+            foreach (GoodEntry g in r.Config.Goods!.Goods)
+            {
+                Assert.Empty(ha.Price(id, g.Id, Stub(a1)));
+                Assert.Empty(hb.Price(id, g.Id, Stub(b1)));
+                priceMoved |= !ha.Price(id, g.Id, All(a1)).SequenceEqual(hb.Price(id, g.Id, All(b1)));
+            }
+        Assert.True(priceMoved, "no hidden settlement's price series moved all-known - the control is void");
+        foreach (int id in KnowledgeStubs.SettlementsOf(a1, Player))
+            foreach (GoodEntry g in r.Config.Goods!.Goods)
+                Assert.Equal(ha.Price(id, g.Id, Stub(a1)), hb.Price(id, g.Id, Stub(b1)));
     }
 
     // ================================================================== metamorphic: Trends (the plotted values)
@@ -398,6 +417,19 @@ public class KnowledgeLeakTests : IDisposable
             if (!k.KnowsSettlement(id)) continue;
             Assert.Equal(TrendsModel.Settlement(la, id, SeriesKey.Population, -1), TrendsModel.Settlement(lb, id, SeriesKey.Population, -1));
         }
+        // P7 review (finding 2): a HIDDEN settlement's own series — the settlement scope — reads through the stub exactly
+        // as no selection, whatever it does; all-known it is read, and the perturbation moves it (the control).
+        bool settlementMoved = false;
+        foreach (int id in KnowledgeStubs.SettlementsOf(a1, Hidden))
+            foreach (TrendMetric m in TrendsModel.Metrics(r.Config.Registries.Classes))
+            {
+                if (m.IsPrice) continue;
+                double[] ha = TrendsModel.Settlement(la, id, m.Key, m.ClassId, Stub(a1)), hb = TrendsModel.Settlement(lb, id, m.Key, m.ClassId, Stub(b1));
+                Assert.Equal(TrendsModel.Settlement(la, -1, m.Key, m.ClassId), ha);
+                Assert.Equal(ha, hb);
+                settlementMoved |= !TrendsModel.Settlement(la, id, m.Key, m.ClassId, All(a1)).SequenceEqual(TrendsModel.Settlement(lb, id, m.Key, m.ClassId, All(b1)));
+            }
+        Assert.True(settlementMoved, "no hidden settlement's own series moved all-known - the control is void");
     }
 
     // ================================================================== metamorphic: the annals (hidden EVENTS planted)
@@ -566,6 +598,155 @@ public class KnowledgeLeakTests : IDisposable
         Assert.DoesNotContain("The empire of " + Hidden.Value.ToString(CultureInfo.InvariantCulture), hidden, StringComparison.Ordinal);
         Assert.Null(UnitCardModel.Build(w, r.Config, unitId, Player, r.Name, unseen));
         Assert.NotNull(UnitCardModel.Build(w, r.Config, unitId, Player, r.Name, All(w)));
+    }
+
+    // ================================================================== a selection that a step hides (P7 review, finding 2)
+
+    private static string PolicyText(PolicyView v)
+    {
+        var sb = new StringBuilder();
+        foreach (string l in v.Current) sb.Append("C ").Append(l).Append('\n');
+        foreach (PolicyChangeView c in v.History) sb.Append("H ").Append(c.Turn).Append(' ').Append(c.Line).Append(" / ").Append(string.Join(";", c.Consequences)).Append('\n');
+        foreach (string l in v.States) sb.Append("S ").Append(l).Append('\n');
+        return sb.ToString();
+    }
+
+    [Fact]
+    public void EverySelectionKeyedReader_ReadsAHiddenSettlementAsNoSelection_AndTheAllKnownControlReadsIt()
+    {
+        // Reader by reader (GameUi drops a hidden selection before any of them is asked, so the frame test below cannot
+        // see a reader that ignores knowledge): the settlement records, the labour record (POLICY), the action surface's
+        // labour note, the Trends settlement series and the price series, keyed on a settlement the stub hides, read
+        // exactly as no selection (id -1). The control: the all-known twin session (the same world and orders, one step)
+        // reads each of them for the same id.
+        UiSession s = PlayabilityGate.HiddenRival();
+        UiSession all = UiSession.StartFrom(UiSession.Start(42, aiEmpiresOverride: 1).World.Clone(), 42);
+        all.EndTurn();
+        Assert.Equal(s.World.Clock.Turn, all.World.Clock.Turn);
+        PlayerKnowledge k = s.Knowledge;
+        Assert.False(k.AllKnown);
+        IReadOnlyList<int> hidden = KnowledgeStubs.SettlementsOf(s.World, Hidden);
+        Assert.NotEmpty(hidden);
+        EraTheme theme = EraThemes.For(UiEras.Of(s.World, s.Config.Ages, Player));
+        EraTable era = UiSession.ProductionEra();
+        string? NoteOf(UiSession x, int selected) => ActionSurface.ForSession(x, era, selected, theme).Labour?.Note;
+
+        bool policyRead = false, noteRead = false, priceRead = false;
+        foreach (int id in hidden)
+        {
+            Assert.True(k.IsHiddenSettlement(id));
+            Assert.Null(ScreenModels.Settlement(s, id));
+            Assert.NotNull(ScreenModels.Settlement(all, id));                                       // control
+            Assert.Equal(PolicyText(ScreenModels.Policy(s, -1)), PolicyText(ScreenModels.Policy(s, id)));
+            policyRead |= PolicyText(ScreenModels.Policy(all, id)) != PolicyText(ScreenModels.Policy(all, -1));
+            Assert.Equal(NoteOf(s, -1), NoteOf(s, id));
+            noteRead |= NoteOf(all, id) is { } note && note.Contains(all.Names.Name(id), StringComparison.Ordinal);
+            foreach (TrendMetric m in TrendsModel.Metrics(s.Config.Registries.Classes))
+            {
+                if (m.IsPrice) continue;
+                Assert.Equal(TrendsModel.Settlement(s.Observations, -1, m.Key, m.ClassId, k), TrendsModel.Settlement(s.Observations, id, m.Key, m.ClassId, k));
+            }
+            Assert.NotEqual(TrendsModel.Settlement(all.Observations, -1, SeriesKey.Population, -1),
+                TrendsModel.Settlement(all.Observations, id, SeriesKey.Population, -1, all.Knowledge));   // control
+            foreach (GoodEntry g in s.Config.Goods!.Goods)
+            {
+                Assert.Empty(s.History.Price(id, g.Id, k));
+                priceRead |= all.History.Price(id, g.Id, all.Knowledge).Length > 0;
+            }
+        }
+        Assert.True(policyRead, "the all-known labour record of a rival settlement reads as no selection - the control is void");
+        Assert.True(noteRead, "the all-known action surface never named a rival selection - the control is void");
+        Assert.True(priceRead, "no rival settlement has a price series all-known - the control is void");
+    }
+
+    /// <summary>
+    /// The one-AI world from turn 0, played through the real UI: a settlement of the rival is selected by Tab (the first
+    /// one Tab reaches, or the <paramref name="rivalsOn"/>-th rival settlement after it) while the rival is KNOWN,
+    /// then End Turn is clicked; when <paramref name="hideOnStep"/>, the step hides the rival (S2a's ordinary case: a
+    /// foreign settlement goes out of sight). Returns the selected id, the selection after the step and every text the
+    /// player sections draw then — Trends in settlement scope (and on each price metric), POLICY's labour record open.
+    /// </summary>
+    private (int Target, int After, List<string> Texts, HashSet<string> ToldWhileKnown) SelectRivalThenStep(bool hideOnStep, int rivalsOn, string dir)
+    {
+        bool hide = false;
+        UiSession s = UiSession.StartFrom(UiSession.Start(42, aiEmpiresOverride: 1).World.Clone(), 42, null, null,
+            knowledgeOf: w => hide ? KnowledgeStubs.HidePolity(w, Player, Hidden) : PlayerKnowledge.Of(w));
+        using UiFrameHarness h = UiFrameHarness.Start(s, dir, Assets());
+        h.Idle(3);
+        IReadOnlyList<int> rival = KnowledgeStubs.SettlementsOf(s.World, Hidden);
+        Assert.True(rival.Count >= 2, "the rig needs two rival settlements");
+        for (int i = 0; i <= s.World.Settlements.Count && !rival.Contains(h.Ui.SelectedSettlement); i++) h.Key(Keys.Tab);
+        for (int n = 0; n < rivalsOn; n++)
+        {
+            int from = h.Ui.SelectedSettlement;
+            h.Key(Keys.Tab);
+            for (int i = 0; i <= s.World.Settlements.Count && !(rival.Contains(h.Ui.SelectedSettlement) && h.Ui.SelectedSettlement != from); i++) h.Key(Keys.Tab);
+        }
+        int target = h.Ui.SelectedSettlement;
+        Assert.Contains(target, rival);
+        var toldWhileKnown = new HashSet<string>(s.AnnalLines, StringComparer.Ordinal);
+        hide = hideOnStep;
+        Assert.True(h.ClickControl("end-turn"));
+        h.Idle(3);
+        Assert.Equal(hideOnStep, s.Knowledge.IsHiddenSettlement(target));
+        int after = h.Ui.SelectedSettlement;
+        var texts = new List<string> { "== map" };
+        texts.AddRange(h.Ui.FrameText.Texts());
+        foreach (Section section in GameSections.PlayerOrder)
+        {
+            Assert.True(h.ClickControl("nav:" + section), "no nav button for " + section);
+            h.Idle(3);
+            texts.Add("== " + section);
+            texts.AddRange(h.Ui.FrameText.Texts());
+        }
+        Assert.True(h.ClickControl("nav:Policy"));
+        h.ClickControl("labour-record");
+        h.Idle(3);
+        texts.Add("== Policy, labour record");
+        texts.AddRange(h.Ui.FrameText.Texts());
+        Assert.True(h.ClickControl("nav:Trends"));
+        Assert.True(h.ClickControl("trend-place"));
+        h.Idle(3);
+        texts.Add("== Trends, settlement scope");
+        texts.AddRange(h.Ui.FrameText.Texts());
+        for (int i = 0; i < h.Ui.TrendMetrics.Count; i++)
+        {
+            if (!h.Ui.TrendMetrics[i].IsPrice) continue;
+            Assert.True(h.ClickControl("trend-" + i.ToString(CultureInfo.InvariantCulture)));
+            h.Idle(3);
+            texts.Add("== Trends, price");
+            texts.AddRange(h.Ui.FrameText.Texts());
+        }
+        Assert.Empty(h.Problems);
+        return (target, after, texts, toldWhileKnown);
+    }
+
+    [Fact]
+    public void ASelectionThatAStepHides_IsDropped_AndWhichHiddenSettlementItWasLeavesNoTrace()
+    {
+        // METAMORPHIC on the hidden subject: two plays differ ONLY in which rival settlement was selected before the step
+        // hid the rival (a UI choice: the world, the orders and every hash are the same). After the step the selection is
+        // dropped, and every player section draws the same text, naming no hidden settlement. The control: when the step
+        // hides nothing, the selection survives and the two plays draw different text (each names its own selection).
+        Rig r = Played.Value;
+        (int t1, int after1, List<string> f1, HashSet<string> told) = SelectRivalThenStep(hideOnStep: true, rivalsOn: 0, Path.Combine(_root, "sel-a"));
+        (int t2, int after2, List<string> f2, _) = SelectRivalThenStep(hideOnStep: true, rivalsOn: 1, Path.Combine(_root, "sel-b"));
+        Assert.NotEqual(t1, t2);
+        Assert.Equal(-1, after1);
+        Assert.Equal(-1, after2);
+        Assert.Equal(f1, f2);
+        // No hidden settlement is named — except in the annal lines told while it was still known (its turn-0 founding:
+        // history the player legitimately learnt; the annals filter what is APPENDED, P7 section 2).
+        foreach (int id in new[] { t1, t2 })
+            foreach (string text in f1)
+                if (!told.Contains(text)) Assert.False(HasWord(text, r.Name(id)), r.Name(id) + " drawn after it was hidden: " + text);
+
+        (int c1, int cafter1, List<string> g1, _) = SelectRivalThenStep(hideOnStep: false, rivalsOn: 0, Path.Combine(_root, "sel-ca"));
+        (int c2, int cafter2, List<string> g2, _) = SelectRivalThenStep(hideOnStep: false, rivalsOn: 1, Path.Combine(_root, "sel-cb"));
+        Assert.Equal(c1, cafter1);
+        Assert.Equal(c2, cafter2);
+        Assert.NotEqual(g1, g2);
+        Assert.Contains(g1, text => HasWord(text, r.Name(c1)) && !told.Contains(text));
     }
 
     // ================================================================== selection: Tab and the click

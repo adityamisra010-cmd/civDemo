@@ -51,6 +51,7 @@ known). `UiSession.Knowledge` rebuilds it after every step. Every player-facing 
 | `MarketModel`, `NeedsPanelModel` | a hidden settlement's rows are never read. |
 | `UnitCardModel.Build`, `InfoQuery.Card` (formation) | an unknown formation reads exactly as an id that names nothing. |
 | `TrendsModel.World`, `HistoryBuffer.Capture` | the world series (what `ImGui.PlotLines` is handed) sum known settlements only. |
+| the selection (`GameUi.RefreshHud`; added after review) | a selection the player no longer knows — a step moved it out of sight (S2a's ordinary case), or a surface named a hidden settlement — is dropped (−1) before any reader is keyed on it; RefreshHud runs after every step and every selection change. Behind it, each selection-keyed reader reads a hidden settlement as no selection: `TrendsModel.Settlement`, `HistoryBuffer.Price` (Market and Trends), `ScreenModels.Settlement` / `Policy` (the labour record), `ActionSurface.ForSession` (its "not ours to command" note). |
 | player text | raw settlement ids are gone from player text: `HudModel.TitleLine` says "Unnamed settlement" / "No settlement selected" (it said "Settlement N"; ids are dense, so a colony's id counted the world's settlements). |
 
 `InfoQuery.DepositSector` no longer scans settlements (it asked `GoodsOf` of the first settlement anywhere holding the
@@ -83,7 +84,12 @@ grievances, needs, prices, class states, formations — one added —, tax, Age,
 under every unknown node), and hidden EVENTS are planted. Identical under the stub: projection + lens (SVG bytes and
 LensFrame), HUD, player views, market, needs, Tab, unit and formation cards, good cards, both chronicles' annals, the
 Trends world series and `ForPlot`, the history buffer's world series, and FrameText of every player section of the
-real UI. Each has a POSITIVE CONTROL (all-known, the same perturbation changes it). The AI: raising every unknown
+real UI. Each has a POSITIVE CONTROL (all-known, the same perturbation changes it). After review, the selection-keyed
+readers too: a hidden settlement's own Trends series and price series are identical under the stub whatever it does
+(control: all-known they move); each reads a hidden settlement exactly as no selection (control: all-known each reads
+it); and two plays of the real UI that differ only in WHICH rival settlement was selected before the step hid the
+rival draw the same text in every player section, naming neither (control: when nothing is hidden, they differ).
+The AI: raising every unknown
 cell's own score cannot move the founding pick (control: all-known it does); whatever the TERRAIN under unknown nodes
 (fertility 0 or 1 over half the map), the pick is a known cell and the oracle's best known legal cell (control:
 all-known, fertility 1 there puts the pick on an unknown cell); the valuation channel of §6 is QUARANTINED, not skipped

@@ -126,9 +126,13 @@ public static class TrendsModel
     /// it has no record), with the turn-0 founding sample in front for a key
     /// that has an opening. Length == Observations.Count, + 1 when
     /// <see cref="HasOpening"/> and at least one turn was observed.</summary>
-    public static double[] Settlement(IObservationHistory history, int settlement, SeriesKey key, int classId)
+    /// <remarks>P7 review: a settlement <paramref name="knowledge"/> hides reads exactly as no selection (id −1: no record
+    /// on any turn) — its records are never read (null = all-known, the production view until S2a).</remarks>
+    public static double[] Settlement(IObservationHistory history, int settlement, SeriesKey key, int classId,
+        PlayerKnowledge? knowledge = null)
     {
         ArgumentNullException.ThrowIfNull(history);
+        if (knowledge is not null && knowledge.IsHiddenSettlement(settlement)) settlement = -1;
         var into = new double[history.Observations.Count];
         int n = history.Series(settlement, key, into, classId);
         if (n != into.Length)

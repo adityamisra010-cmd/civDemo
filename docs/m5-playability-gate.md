@@ -843,6 +843,25 @@ InfoQueryTests, InstitutionAiTests, AiPolicyTests — 54 tests, clean 9 s, bound
 | M21 `KnowsSettlement` ignores the masks | `Restricted_AnswersFromItsMasks…` |
 | M22 the construction reorder reverted (queue before the seam) | OUTPUT-EQUIVALENT (a foreign queue never changed the output; the AI metamorphic test cannot see read order) — killed only by the structural pin `AiConstructionPolicy_AsksTheSeamBeforeItReadsAnyQueue`, recorded as such |
 
+**After review (finding 2: a selection that becomes hidden after a step).** `GameUi.RefreshHud` now drops a selection the
+player no longer knows, and each selection-keyed reader reads a hidden settlement as no selection. Mutants against
+KnowledgeLeakTests (18 tests, clean 39 s, bound 170 s ≈ 4×; each run 37–43 s, none hung):
+
+| mutant | killed by (semantic tests) |
+|---|---|
+| M23 the RefreshHud guard removed (a hidden selection survives the step) | `ASelectionThatAStepHides_IsDropped_AndWhichHiddenSettlementItWasLeavesNoTrace` (the selection is not dropped; the two plays draw their own selection's name) |
+| M24 `TrendsModel.Settlement` ignores knowledge | `EverySelectionKeyedReader_ReadsAHiddenSettlementAsNoSelection…`, `TheTrendsWorldSeries_AreIdentical…` (a hidden settlement's own series moves with it) |
+| M25 `HistoryBuffer.Price` ignores knowledge | `EverySelectionKeyedReader…`, `TheHistoryBuffersWorldSeries_SumOnlyKnownSettlements` (a hidden settlement's price series is read) |
+| M26 `ScreenModels.Policy` ignores knowledge | `EverySelectionKeyedReader…` (the labour record reads the hidden settlement's policy state) |
+| M27 `ScreenModels.Settlement` ignores knowledge | `EverySelectionKeyedReader…` |
+| M28 `ActionSurface.ForSession` passes a hidden selection through | `EverySelectionKeyedReader…` (the labour note names it: "… is not ours to command") |
+
+Not adopted: routing the Trends place-scope LABEL itself through the knowledge (M29, measured): it survived every test,
+because the RefreshHud guard means the label is never handed a hidden selection — an output-equivalent duplicate of the
+guard, so the label keeps reading the selection and M23's kill covers it. The GameUi call sites that hand the session's
+knowledge to `TrendsModel.Settlement` and `HistoryBuffer.Price` are likewise equivalent while the guard stands (the
+readers' own routing is what M24 and M25 pin).
+
 Each property is one the system ought to have: the player and the AI may act only on what they know (Spine principle
 7; D-040; D-039 C1); a test hides, perturbs and requires the player's every output unchanged, with a positive control
 proving the perturbation reaches that output when nothing is hidden.

@@ -258,9 +258,10 @@ public static class ActionSurface
     }
 
     /// <summary>The surface for a live session: its world, previous world, config, era table and queued orders.</summary>
+    /// <remarks>P7 review: a selection the session's knowledge hides is passed as no selection (−1), so no note names it.</remarks>
     public static ActionSurfaceModel ForSession(UiSession session, EraTable era, int selected, EraTheme theme) =>
         Build(new ActionSurfaceInput(session.World, session.PreviousWorld, session.Config, era, UiPlayer.Empire,
-            selected, session.QueuedOrders(), id => session.Names.Name(id), theme));
+            session.Knowledge.IsHiddenSettlement(selected) ? -1 : selected, session.QueuedOrders(), id => session.Names.Name(id), theme));
 
     // ------------------------------------------------------------------ labour
 
