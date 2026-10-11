@@ -886,3 +886,31 @@ catchments, rolls; once per turn while a layer is shown):
 |---|---|---|---|---|---|
 | canonical | 49.8 | 7.6 | 65536 | 22937 | 6 |
 | high-count | 58.6 | 49.9 | 65536 | 22937 | 6 |
+
+## 2026-10-11 — map frame cost with the 'now usable' outline (M5 map workstream P10; append-only, the sections above are unchanged)
+
+**Status:** MEASURED by the P10 agent with P4's `Sim.Ui --frame-cost map` (defaults: `--rounds 5 --settlements 400
+--turns 150`), Release, the P10 branch at `cec0b63`, run 16:56–16:58 UTC; load average 0.77 → 0.05 over the run (the
+machine was otherwise quiet). A measurement, not a budget (ADR-009).
+
+**What was swept.** P9's four sweeps unchanged (canonical, canonical + every overlay layer, canonical + the suitability
+layer alone, high-count; world hashes `4035cf18…` and `127236…`, the same as P4's, P2's and P9's), plus one: the
+region-fertility layer alone with a 'now usable' shortcut's outline of its qualifying places and five shortcut rows
+opening the key — the farming shortcut's view. The outline is one line per boundary run between qualifying and
+non-qualifying lattice nodes: on the canonical map (all known) the region-fertility layer qualifies 22,243 of the 22,937
+known land nodes in 1,024 segments; each deposit channel qualifies all 22,937 in 1,024 segments (the coast at the
+lattice's 16 km); the suitability and water-access layers (not opened by any shortcut today) 10,412 / 2,746 and
+10,831 / 2,800.
+
+| window | band | + one layer (suitability), P9's | + one layer (region fertility) + outline |
+|---|---|---|---|
+| 1280x800 | World | 1.60 ms / 8492 commands / 41992 mean vertices | 2.07 / 9508 / 46711 |
+| 1280x800 | Regional | 0.66 / 2752 / 13202 | 0.77 / 3010 / 14892 |
+| 1280x800 | Settlement | 0.14 / 702 / 3028 | 0.18 / 716 / 3740 |
+| 1920x1009 | World | 2.63 / 8810 / 43012 | 2.87 / 9884 / 47964 |
+| 2560x1440 | World | 2.44 / 8876 / 44459 | 2.98 / 9949 / 49409 |
+| 3840x2160 | World | 2.19 / 8876 / 45555 | 2.69 / 9949 / 50505 |
+
+The two columns are different layers (their fills differ by a few dozen runs), so the difference is an upper bound on
+the outline's cost: at most ~1,070 commands and ~0.5 ms a frame at World zoom, under 0.1 ms closer in. The outline is
+built once per bake and layer (the bake is immutable) and costs nothing while no shortcut is shown.

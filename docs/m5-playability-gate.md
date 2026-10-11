@@ -1157,6 +1157,118 @@ claim legality are not layers: they are per site and per turn, on P8's card and 
 size differs from the founding path's worldgen config (the 256-px dev worlds) the channel layers say "Not evaluated"
 (P8's rule; the pre-existing size-mismatch defect in `docs/queue.md`).
 
+### 3.9 The resource 'now usable' shortcut (M5 workstream P10, 2026-10-11)
+
+Branch `m5w-p10-discovery-shortcut`, cut from `m5w-p9-resource-overlays` @ `c0dc157c`. Presentation only: a UI-side
+history, a block in the overlays tab, an outline on P9's layers, one UI content file. No simulation, order, schema,
+golden or Sim.Core file changed.
+
+**The Director's default (workstream part 6, the audit's Option 1 as told).** The simulation has NO research that
+unlocks or reveals a resource: no research.json entity is a resource, no node's `unlocks` names a good, and extraction
+is ungated (ADR-033 D1 — ores, stone and timber are worked from turn 1). So the shortcut fires on a REAL eligibility
+transition only: a step in which the PLAYER's completed knowledge makes a content-declared entity knowledge-eligible
+that it was not before, AND the simulation's own predicate for that entity's effect gains at least one settlement the
+player holds (`DiscoveryShortcuts.Transitions`, `Sim.Ui/ViewModel/DiscoveryShortcuts.cs`):
+
+- **a recipe** — a goods.json recipe linked to a research entity (`recipes[].entity`) whose deposit inputs (goods.json
+  `depositChannel`) no recipe the player knew before consumed. The effect is `CraftingQuery.IsKnown` over the
+  settlement's knowledge (`CraftingQuery.KnowledgeOf`) — the predicate ProductionSystem computes with. On the shipped
+  content: bronze casting → copper-ore, tin-ore on the elevation channel (timber is not claimed: the baseline
+  toolmaking recipe consumed it already); pottery firing → clay on the water-proximity channel. Weaving and toolmaking
+  have no requirement and never transition;
+- **an activity** — a sector's researched identity for a sector the UI content maps to a layer, when the production
+  yield reads it: `LabourActivities.HarvestsWildFood` (the farming sector, with sim.json `farming.preCultivation` on)
+  flips for a held settlement. On the shipped content: Farming → the region-fertility layer (cultivated 26 instead of
+  wild 2 food per arable km² a year: "x13"). Herding, logging and mining are labels only (ADR-033 D1) and never fire,
+  even when the content maps their sector (pinned).
+
+No research node or entity id is named in code (a source-guard test checks every string literal of the three files
+against every node and entity id): the entities come from goods.json and research.json, the layer from the new UI
+content `Sim.Ui/UiContent/discovery-shortcuts.json` (embedded), whose `expiryTurns` is the documented TUNE value N = 5.
+The shortcut is stamped T = the clock of the state the completing step wrote (the turn just played) and offered while
+the clock reads less than T + N — gone, turn-exactly, when it reaches T + N (shown while the player plays turns T+1 …
+T+N; "shown through turn T+N").
+
+**What the player sees.** The overlays tab opens with a NOW USABLE block, kept short so the map stays clear: the
+headline ("Farming now usable: fertile land yields more food (x13)", "copper-ore, tin-ore now usable (Bronze
+casting)"), "Permission to use: newly known (your research)", "Knowledge of the resource: not simulated", and **Show on
+map** with "shown through turn N". The button shows the shortcut's P9 layer(s) (the same state the OVERLAYS checkboxes
+set) and OUTLINES its qualifying places — the nodes the player KNOWS whose value is drawn and above 0
+(`ResourceOverlay.Outline`; for a channel, P9's "present") — as the boundary between them and every other node, never
+around an unknown one; the overlay key then opens with the shortcut's rows: the headline, "Outlined: the N known places
+where … is above 0; shown through turn …", the full permission line ("Permission to use: Farming became known (your
+research) - your farmland yields 26 instead of 2 food per arable km2 a year from your next turn"; a recipe's quotes its
+own D-020 gate, "where artisan_share > 0.05"), a recipe's extraction note ("Extraction needs no research: copper-ore,
+tin-ore have been worked since founding") and the knowledge statement ("Knowledge of the resource: not simulated -
+every deposit is known wherever its ground is known"). At T + N the block entry, the outline and the rows go; the layer
+stays shown in OVERLAYS, which still toggles it (permanent manual access). Labelled 'now usable', never 'discovered'.
+
+**History and replay.** `UiSession.NowUsableHistory` is fed by `UiSession.Step` — the step live play and Resume's
+replay share — so a resumed session rebuilds it identically (pinned through `UiSession.Resume` and `ReplayTo`). It is
+UI-side history (the annals' precedent): it never touches the world, and no hash moves.
+
+**Gate rows (map: now usable).** All camera rows: the world hash and the queued orders unchanged.
+
+| row | states | what it checks |
+|---|---|---|
+| `<entity> (offered: an eligibility transition)` | research done: now usable | the entity is knowledge-eligible for the player now and the clock is within its offer; the block says NOW USABLE, 'now usable', the permission and knowledge lines and Show on map, and never 'discover'; its button drawn |
+| `<entity> (Show on map: its button)` | research done: now usable | the shortcut's layers shown and focused; the outline painted, with exactly the bake's qualifying nodes, every one known; the key opens with the headline and carries the permission line and the knowledge statement; no shortcut row says 'discover' |
+| `nothing offered after a completion that makes nothing usable` | every state whose last step learned something that fires nothing (research done; and, after the sweep's End Turns, every state) | the last step's completion fires nothing (`Transitions` empty), no block is drawn, nothing is offered |
+
+The new state **"research done: now usable"** is played, not rigged: from the canonical world, the cheapest node
+available at turn 1 whose completion alone fires a shortcut (`PlayabilityGate.NowUsableNode`: each available node a
+source entity's requirement names is probed through `Transitions` on a clone; the pick is the composite key
+(EffectiveCost, dense index), `PlayabilityGate.Cheapest`, tie-dense test) is targeted and End Turn pressed until the
+shortcut fires — on the shipped content "Root and tuber cultivation" (440 RP base cost), completing at clock turn 14 and firing Farming. Coverage:
+`control:now-usable-#`, pressed by the Show on map row.
+
+**Measured.**
+
+| evidence | result |
+|---|---|
+| `--smoke --monkey 200`, base `c0dc157c` (this worktree before any change) then this branch (`cec0b63`) | base: 10 states, 2276 checks, 2156 pass, 120 n/o, 0 FAIL, 0 problems, 71,186 frames, 154.2 s. After: 11 states, 2508 checks, 2379 pass, 129 n/o, 0 FAIL, 0 problems, 78,128 frames, largest draw list 149,328 vertices (unchanged), 196.4 s. Row by row (parsed from both reports): no base row removed or changed; +232 = the new state's 221 rows + 11 "nothing offered" rows (research done; and every state after the sweep's End Turns, where the notices row's research completion fires nothing — in the new state the shortcut has expired by then: the row requires nothing offered, i.e. the clock at 19 or past) |
+| world hash | `TheShortcut_ChangesNoHash_…` (the session's world at the firing turn = the bare production executor's from the same order log; the trigger reads two worlds and both hashes are unchanged); every gate row is a camera row (hash and queued orders unchanged) |
+| founded seed-42 300-turn golden | `Sim.Cli run --founded --seed 42 --turns 300 --hash-log`, two processes, this tree: both hash logs byte-identical (300 lines); last line `937577ffb0e73c2b051d8d7832cfb5028c2154d01c9afef4d976b71ccb5e7f54`, the pinned `FOUNDED_GOLDEN` (no simulation file changed) |
+| gate scripts | `check-banned-constructs`, `check-read-isolation` (23 allowlisted files, unchanged: the new code reads no raw foreign table), `check-readonly-proof`: OK |
+| full Sim.Ui.Tests | 790 passed, 0 failed (11 m 4 s; P9's 770 + 20 new `DiscoveryShortcutTests`), on `cec0b63` |
+| targeted Sim.Tests | `LabourActivityTests`, `ResearchUnlockPipelineTests`, `TradeResearchUnlockTests`, `TelemetryTests` (the read seams the trigger calls, and hash equality with observers): 41 passed, 0 failed. Full Sim.Tests not run: no simulation, order, serialization or AI file changed |
+| frame cost (`--frame-cost map`) | `docs/m5-hardening-measurements.md` §"2026-10-11 — map frame cost with the 'now usable' outline": the region-fertility layer outlined costs at most ~1,070 commands and ~0.5 ms a frame more than one plain layer at World zoom (1,024 outline segments on the canonical map), under 0.1 ms closer in; the plain lens and P9's sweeps unchanged; every world hash unchanged by every sweep |
+
+**Mutant kill record.** One-edit mutants in this worktree (`scratchpad/p10/mutants.py`), each built, then
+`DiscoveryShortcutTests` (20 tests; clean 26 s test time, 39 s wall; bound 180 s per run, ≈ 4.6 × the clean wall); none
+hung (34–46 s wall each; M8 11 s, its fixture failing at once).
+
+| mutant | result | killed by (semantic tests) |
+|---|---|---|
+| M1 sector: the player-level transition check removed (eligible after is enough) | KILLED | `ASettlementJoiningAPlayerThatAlreadyKnowsIt_FiresNothing_…` |
+| M2 recipe: the player-level transition check removed | SURVIVED — EQUIVALENT | proof: a recipe known before the step consumes its own deposit inputs, so the newly-usable filter (no recipe known before consumed them) already leaves it nothing to claim; the explicit check states the transition and is kept |
+| M3 recipe: every deposit input claimed (the newly-usable filter removed) | KILLED | `ARecipeShortcut_NamesOnlyTheDepositGoodsNoKnownRecipeConsumedBefore_…` (timber claimed; the variant whose inputs were all in use fires) |
+| M4 sector: the yield-reads-knowledge check removed | KILLED | `TheFarmingShortcut_FiresOnlyWhileTheYieldReadsTheKnowledge`, `ALabelOnlyIdentity_NeverFires_…`, `APlayerTransitionTheEconomyAlreadyHad_…` |
+| M5 recipe: the held-settlement (economy) check removed | KILLED | `APlayerTransitionTheEconomyAlreadyHad_FiresNothing_…` |
+| M6 expiry off by one (offered AT T + N too) | KILLED | `TheOffer_StartsOnItsStampedTurn_AndExpiresTurnExactly_AtTPlusN`, `InTheGame_…GoneAtTPlusN_TheLayerStays` |
+| M7 stamped with the clock the step began from | KILLED | `TheResearchDoneState_FiresExactlyOneShortcut_…StampedWithThatStepsClock`, `InTheGame_…` |
+| M8 the history never fed (the Step line removed) | KILLED — but only through the fixture's rig (it never fires), so re-run as M8b | — |
+| M8b the history fed by EndTurn, not by Step (replay does not rebuild it) | KILLED | `Resume_RebuildsTheNowUsableHistoryIdentically`, `InTheGame_…` (a ReplayTo session) |
+| M9 the focus (outline) kept after expiry | KILLED | `InTheGame_…GoneAtTPlusN_TheLayerStays` |
+| M10 a place at 0 qualifies (>= 0) | KILLED | `TheOutline_IsExactlyTheBoundaryOfTheKnownPlacesAboveZero_…` |
+| M11 an outline run drawn one node too long | KILLED | `TheOutline_IsExactlyTheBoundaryOfTheKnownPlacesAboveZero_…` |
+| M12 the lens outlines a layer that is not shown | KILLED | `TheLens_OutlinesOnlyAShownLayer_…` |
+| M13 the rig's pick breaks cost ties by the higher index | KILLED | `Cheapest_BreaksCostTiesByTheLowerIndex_WhateverOrderTheNodesComeIn` (tie-dense) |
+| M14 the label says 'discovered' | KILLED | `TheText_SaysNowUsable_NeverDiscovered_…`, the gate rows (`TheGateRows_PassInTheResearchDoneStates_…`) |
+
+Each property is one the shortcut ought to have: it claims a resource became usable only when the simulation's own
+predicate says the economy can now use it, and only once; it is gone when it says it will be; a resumed game shows the
+same history; looking never acts; it never shows the player a place it does not know.
+
+**Data gaps (stated, not filled).** KNOWLEDGE OF A RESOURCE is not simulated: every deposit exists at every settlement
+from founding and is known wherever its ground is known (no prospecting, no scarcity until D-051 §2). No research gates
+extraction (ADR-033 D1), so no shortcut ever says a deposit became extractable — only that a recipe or the farming
+yield now USES it. The farming layer is the region-fertility overlay (the siting factor: the Fertility raster summed
+around each place), not the catchment's arable area the yield reads (P8's place card states that). The history is UI-side
+and lives only through replay: `ResearchCompletedRow` carries no turn, so a snapshot load (not a replay) would start an
+empty history — every load path today replays. A shortcut with more than one overlay channel (a recipe whose new goods
+span channels) opens them all; none does on the shipped content.
+
 ## 5. The Warband (Director §3), determined from the code
 
 | question | answer at this commit | evidence |

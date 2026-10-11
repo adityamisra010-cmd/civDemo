@@ -448,3 +448,22 @@ Supersedes §5.1's and §10's layer lists where they differ; §1–§10 remain t
   the terrain and the knowledge masks are the same; its per-turn status (`UiSession.OverlayStatus`) while the world is.
 
 Tests: `Sim.Ui.Tests/ResourceOverlayTests.cs`; record: `docs/m5-playability-gate.md` §3.8.
+
+## 12. M5 map workstream P10: the resource 'now usable' shortcut (append-only note, 2026-10-11)
+
+Adds to §11; §1–§11 remain the record of what they describe.
+
+- **No new map layer.** The shortcut opens P9's layers (`MapLayer.ResourceOverlay`) through the same UI state the OVERLAYS
+  checkboxes set, and the lens draws, on a SHOWN layer named by the shortcut, the OUTLINE of its qualifying places
+  (`ResourceOverlay.Outline`: the known nodes drawn above 0, as lattice-node boundary runs) right after the layers' fills,
+  charged to `MapLayer.ResourceOverlay`; the overlay key opens with the shortcut's rows (`OverlayPaint.Highlight`,
+  `OverlayFrame.OutlinedLayers / OutlineSegments / OutlineNodes`).
+- **The trigger** (`DiscoveryShortcuts.Transitions`, fed by `UiSession.Step`): a content-declared recipe (goods.json
+  `recipes[].entity`) with newly usable deposit inputs, or a sector identity the UI content maps whose yield the
+  simulation reads (farming, `HarvestsWildFood`), newly knowledge-eligible for the player and gaining a held settlement.
+  No node or entity id in code. UI content: `Sim.Ui/UiContent/discovery-shortcuts.json` (embedded; `expiryTurns` TUNE 5,
+  `sectorLayers`).
+- **The control**: a NOW USABLE block at the top of the overlays tab while a shortcut is offered (clock < T + N), with a
+  Show on map button per shortcut (`now-usable-<history index>`). Labelled 'now usable', never 'discovered'. UI state only.
+
+Tests: `Sim.Ui.Tests/DiscoveryShortcutTests.cs`; record: `docs/m5-playability-gate.md` §3.9.

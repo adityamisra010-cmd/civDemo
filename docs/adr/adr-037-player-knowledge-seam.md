@@ -199,3 +199,16 @@ recorded in `docs/queue.md`, P8's to fix. Gate: `ResourceOverlayTests.Perturbing
 (the rival hidden whole plus a 17 × 17-node block; every land layer, rivers and water perturbed, and flooded; the hidden
 settlements' deposits — bake, status, key and paint identical; all-known control moves) and the gate row "the overlay
 draws nothing on undiscovered ground" (hidden rival).
+
+## 9. Addendum (M5 P10, 2026-10-11): the 'now usable' shortcut is a player output
+
+Appended by the P10 agent on branch `m5w-p10-discovery-shortcut` (LOCAL, not pushed, not merged). P10's resource
+'now usable' shortcut (`Sim.Ui/ViewModel/DiscoveryShortcuts.cs`, `Sim.Ui/GameUi.NowUsable.cs`) reads, for its trigger,
+only the player's OWN books: its completed knowledge (`ResearchQuery.CompletedMask` for the player) and the predicates the
+economy reads at the settlements it holds (`CraftingQuery.IsKnown` over `CraftingQuery.KnowledgeOf`,
+`LabourActivities.HarvestsWildFood`) — nothing of a rival. Its map highlight is a function of P9's bake (§8): the outline
+of a layer's QUALIFYING places — the nodes the player knows whose value is drawn and above 0 (`ResourceOverlay.Outline`,
+`Qualifies` requires `Known`) — so no unknown node is ever inside it. Gate: `DiscoveryShortcutTests.TheOutline_IsExactly…`
+(the boundary counted independently, all-known and under a half-known stub: no unknown node qualifies) and the gate row
+"<entity> (Show on map: its button)" (every outlined node known). The history is UI-side (`UiSession.NowUsableHistory`,
+fed by `Step`, rebuilt by replay) and changes no hash.
