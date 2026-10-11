@@ -299,7 +299,7 @@ public class RiverBandTests : IDisposable
     }
 
     /// <summary>THE REBUILD COUNTER: the real GameUi, the wheel eased over many frames; the host's cache, fed the shown zoom
-    /// every frame, rebuilds once per band crossed. The D-A3 trigger ("the zoom changed") is counted alongside, as the
+    /// every frame, rebuilds only on the frames the zoom entered another band (at most once per band crossed). The D-A3 trigger ("the zoom changed") is counted alongside, as the
     /// control: it fires on every frame of the ease.</summary>
     [Fact]
     public void TheRiverBuffer_IsNotRebuiltEveryFrameOfAnEase_ButOncePerZoomBandCrossed()
@@ -309,11 +309,12 @@ public class RiverBandTests : IDisposable
         Assert.True(cache.Update(h.Ui.Camera.Zoom));   // the first build
         int firstBand = cache.Band!.Value;
         double last = h.Ui.Camera.Zoom;
-        int zoomChanges = 0, frames = 0;
+        int zoomChanges = 0, bandChanges = 0, frames = 0;
         void Count()
         {
             frames++;
             if (h.Ui.Camera.Zoom != last) zoomChanges++;
+            if (RiverMesh.BandOf(h.Ui.Camera.Zoom) != RiverMesh.BandOf(last)) bandChanges++;
             last = h.Ui.Camera.Zoom;
             cache.Update(h.Ui.Camera.Zoom);
         }
@@ -324,7 +325,10 @@ public class RiverBandTests : IDisposable
         Assert.True(h.Ui.Camera.Settled);
         int crossed = Math.Abs(RiverMesh.BandOf(h.Ui.Camera.Zoom) - firstBand);
         Assert.True(crossed >= 2, $"the ease crossed only {crossed} band(s)");
-        Assert.Equal(1 + crossed, cache.Rebuilds);   // the first build, then exactly one per band crossed
+        // The first build, then one rebuild on exactly the frames whose zoom entered another band — never more than
+        // the bands crossed (a frame may cross two at once; the buffer is then built once, for the band it lands in).
+        Assert.True(bandChanges >= 1 && bandChanges <= crossed, $"{bandChanges} band changes for {crossed} bands crossed");
+        Assert.Equal(1 + bandChanges, cache.Rebuilds);
         // NOT EVERY FRAME: the zoom changed on many frames of the ease (the D-A3 trigger would have rebuilt on each);
         // the buffer was rebuilt on fewer than a third of them.
         Assert.True(3 * cache.Rebuilds < zoomChanges, $"{cache.Rebuilds} rebuilds over {zoomChanges} frames of zoom change");
