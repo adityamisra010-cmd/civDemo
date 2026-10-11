@@ -150,6 +150,46 @@ public class DiscoveryShortcutTests(NowUsableFixture fx) : IClassFixture<NowUsab
     }
 
     [Fact]
+    public void ASettlementJoiningAPlayerThatAlreadyKnowsIt_FiresNothing_ThePlayersKnowledgeDidNotTransition()
+    {
+        // A step in which the player, already farming and already knowing bronze casting, learns something else and gains a
+        // settlement (a colony founded, a place taken): that settlement's own predicates flip from wild food / unknown
+        // recipe to the player's, but the PLAYER's eligibility did not transition, so nothing is newly usable.
+        UiSession s = fx.Session;
+        WorldState knows = Knowing("recipe.bronze_casting", s.World);
+        WorldState next = knows.Clone();
+        int newId = 0;
+        for (int i = 0; i < next.Settlements.Count; i++) newId = Math.Max(newId, next.Settlements[i].Id.Value + 1);
+        next.Settlements.Add(next.Settlements[0] with { Id = new SettlementId(newId) });
+        next.Controls.Add(new ControlRow(Me, new SettlementId(newId), 1.0));
+        ResearchNodeId cheapest = ResearchQuery.CheapestAvailable(knows, Research, Me, ResearchTree.Technology)!.Value;
+        next.ResearchCompleted.Add(new ResearchCompletedRow(Me, cheapest));
+        Assert.NotEmpty(ResearchQuery.CompletedBetween(knows, next, Me));
+        Assert.True(LabourActivities.HarvestsWildFood(knows, s.Config, new SettlementId(newId)));    // the predicates DO flip
+        Assert.False(LabourActivities.HarvestsWildFood(next, s.Config, new SettlementId(newId)));    // for the new settlement
+        Assert.Empty(DiscoveryShortcuts.Transitions(knows, next, s.Config, DiscoveryShortcuts.Content, Me));
+    }
+
+    [Fact]
+    public void APlayerTransitionTheEconomyAlreadyHad_FiresNothing_EveryHeldSettlementPractisedItAsItsOwnTradition()
+    {
+        // Every settlement the player holds already holds the knowledge itself (SettlementKnowledge's own holder: a craft
+        // tradition that survived annexation), so the settlement predicates the economy reads — CraftingQuery.IsKnown over
+        // CraftingQuery.KnowledgeOf, LabourActivities.HarvestsWildFood — were already true: the player's eligibility
+        // transitions, the economy changes nowhere, and nothing fires. Control: without the traditions, both fire.
+        WorldState traditions = fx.Founded.Clone();
+        var nodes = new List<int>(Research.Entities[EntityOf("recipe.bronze_casting")].NodeAtoms);
+        nodes.Add(Research.IndexOf(fx.Node));
+        foreach (SettlementId s in LabourActivities.ControlledSettlements(fx.Founded, Me))
+            foreach (int n in nodes)
+                traditions.ResearchCompleted.Add(new ResearchCompletedRow(SettlementKnowledge.LocalHolder(s), Research.Nodes[n].Key));
+        IReadOnlyList<NowUsable> none = DiscoveryShortcuts.Transitions(traditions, With(traditions, Research, nodes), fx.Config, DiscoveryShortcuts.Content, Me);
+        Assert.Empty(none);
+        IReadOnlyList<NowUsable> both = DiscoveryShortcuts.Transitions(fx.Founded, With(fx.Founded, Research, nodes), fx.Config, DiscoveryShortcuts.Content, Me);
+        Assert.Equal(2, both.Count);
+    }
+
+    [Fact]
     public void ACompletionThatMakesNothingUsable_FiresNothing_TheShortcutsOwnNodeDoes()
     {
         ResearchNodeId cheapest = ResearchQuery.CheapestAvailable(fx.Founded, Research, Me, ResearchTree.Technology)!.Value;
