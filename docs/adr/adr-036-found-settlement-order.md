@@ -360,3 +360,24 @@ none hung):
 (h) the known leak and its distance consequence until the extent lands (or a travel budget now), and whether S2b
 restricts the AI's READ (the pre-filter) as well as its PICK (the predicate, §8.2); (i) whether a4_expansion
 being met at turn 358 on every seed, ahead of the AI's other A4 milestones, is the intended reading of that milestone.
+
+### 8.3 The site scan reads through the knowledge seam (M5 P7, appended 2026-10-11)
+
+**Written by packet P7** (branch `m5w-p7-player-knowledge-seam`, cut from `m5w-integration` @ `b49ae203`, LOCAL, not
+pushed, not merged; ADR-037). The Director's P7 addition — *"the AI cannot use information it has not legitimately
+discovered"* — answers half of item (h) above for the READ: the pre-filter's FIRST arm is now
+`PolityKnowledge.KnowsCell` for the issuer (ADR-037's one information-class seam), so a cell outside the issuer's known
+extent is never admitted and never raises the ranking's bar; the pick is a function of the known cells only, whatever
+an unknown cell scores. `PolityKnowledge.Of` is all-known until S2a stores an extent, so the arm admits every cell and
+every order is byte-identical (MEASURED: the ci.yml AI leg's 600-turn hash log and run log equal the base binary's,
+byte for byte). `Decide` and `BestSiteFor` gain overloads taking the knowledge (the production entries pass
+`PolityKnowledge.Of`); `IsDue` now tests control before reading a settlement's founding turn.
+
+What stays as §8 recorded, for S2b: the reachability flood still crosses the issuer's whole connected component, and the
+standing-site occupancy, spacing and claimed masks — the predicate's own rule arms — are read over every settlement.
+Neither is a ranking over unknown cells: an unknown cell is refused before them.
+
+**Tests** (Sim.Tests `PolityKnowledgeTests`): a stub hiding the unrestricted pick's node moves the order to the oracle's
+best KNOWN legal cell; with the rival knowing half the map, raising every unknown cell's score above every known one
+leaves the pick unchanged (control: all-known, the same raise moves it to an unknown cell). Mutant (the `KnowsCell` arm
+dropped): killed by both (ADR-037 / `docs/m5-playability-gate.md` §3.6 kill record).

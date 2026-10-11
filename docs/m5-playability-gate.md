@@ -770,6 +770,83 @@ target-anchored parity is the alternative if that is preferred. After the fix (M
 FAIL, 0 problems, 62,426 frames, the three wheel rows PASS in all nine states; `Sim.Tests` SnapshotTests and
 CiPinAgreementTests 25/25; banned-constructs, read-isolation and readonly-proof OK.
 
+### 3.6 The player-knowledge seam and the hidden-rival state (M5 workstream P7, 2026-10-11)
+
+Branch `m5w-p7-player-knowledge-seam`, cut from `m5w-integration` @ `b49ae203`. Record: ADR-037 (PROPOSED). No
+simulation behaviour changed: the seam is ALL-KNOWN until S2a stores an extent, and every reader routed through it is
+byte-identical to the base (measured below).
+
+**The seam (IMPLEMENTED).** `Sim.Core/State/PolityKnowledge.cs` answers what one polity knows — `Known(node)`,
+`Visible(node)`, `KnowsSettlement`, `KnowsUnit`, `KnowsPolity`, `ReadsInternals` — at the traversal lattice's node.
+`PolityKnowledge.Of` is all-known; its only future input is the stored known extent. `Sim.Ui/ViewModel/PlayerKnowledge.cs`
+is the player's per-turn view built from it (`UiSession.Knowledge`). The readers that ask it: the world projection (the
+lens, LensFrame and every hit test follow), Tab and the opening selection, the HUD's world totals, the annals (filtered
+by subject in UiSession), the player views, the market and needs panels, the unit and formation cards, the Trends world
+series and the history buffer's. The AI asks the same seam: the founding site scan ranks only known cells;
+AiConstructionPolicy reads a queue only after `ReadsInternals`. Raw settlement ids are gone from player text (the
+selection card's unnamed title).
+
+**The hidden-rival state and its rows.** A tenth state, `hidden rival`: the one-AI world, one End Turn played, its
+session's knowledge a stub (`Sim.Ui/Headless/KnowledgeStubs.HidePolity`) hiding the AI polity whole. The full sweep, the
+monkey and the coverage check run in it like any state, plus two rows drawn only where knowledge hides something:
+
+| row | what it checks |
+|---|---|
+| `map: knowledge` / `Tab never reaches a hidden settlement` | Tab, pressed once more than there are settlements, never selects a hidden one and reaches every known one (a camera row: no hash or order changes) |
+| `map: knowledge` / `a click on a hidden position selects nothing` | zoomed to the Settlement band and centred on each hidden settlement, a click there selects nothing and picks no formation, and the lens drew neither it nor a formation of the hidden polity |
+
+`SelectRows` now picks only settlements the player can click (in that state it picks `select settlement 8`; every
+other state's picks are the base's).
+
+**Byte-identical with all-known (MEASURED, base `b49ae203` built and run before any change, then this branch):**
+
+| evidence | result |
+|---|---|
+| every SVG preview (`--research/--age/--era/--action/--r2a/--player-views-preview`) | 77 files, identical |
+| a digest of every routed reader over seven worlds (seed 42 t0, t3; one AI t0, t12; seed 7 two AI t6; 250 px two AI t1, t5): projection, four cameras' SVG bytes and LensFrame, HUD per settlement, player views, market, needs, Tab, unit, formation and good cards, annals, Trends and history world series, AI orders | identical, except the deliberate no-selection title ("Settlement -1" -> "No settlement selected", one line per world) |
+| `--smoke --monkey 200` | base: 9 states, 1892 checks, 1782 pass, 110 n/o, 0 FAIL, 62,426 frames, 124.8 s. After: 10 states, 2094 checks, 1974 pass, 120 n/o, 0 FAIL, 0 problems, 69,304 frames, 137.7 s. Every pre-existing state's cells and not-offered reasons identical and in order; added: the `hidden rival` column (192 PASS, 10 n/o) and three rows |
+| ci.yml determinism-xproc (two CLI processes from this tree) | founded golden `937577ff…` (both logs identical), founded-orders replay, Found Settlement leg (`2149574f…`, replay, inspect VERIFIED) and 600-turn AI leg (`7f374638…`, kinds 3..9, replay, inspect VERIFIED) — every hash log and run log byte-identical to the base binary's |
+
+Gate runtime: +6,878 frames and +12.9 s on this machine (+10 %) for the new state.
+
+**Moved pins (old → new, measured cause: P7's raw-id rule).** `HudViewModelTests.HudModel_FoundedState_NumbersAndFormattingExact`
+and `SelectionTests.HudStrings_NonZeroSettlement_Exact`: an unnamed selection's title `"Settlement 0"` / `"Settlement 2"`
+→ `"Unnamed settlement"`.
+
+**Mutant kill record.** One-edit mutants, each built and run against a filter (UI: KnowledgeLeakTests, SelectionTests,
+HudViewModelTests, AnnalsTests — 41 tests, clean 27 s, bound 110 s = 4×; core: PolityKnowledgeTests, AiFoundingPolicyTests,
+InfoQueryTests, InstitutionAiTests, AiPolicyTests — 54 tests, clean 9 s, bound 40 s = 4×). None hung; every run took
+10–31 s.
+
+| mutant | killed by (semantic tests) |
+|---|---|
+| M1 `WorldProjection.Build` ignores the observer it is given | the static-reader metamorphic test, the FrameText metamorphic test, the click test, the gate rows |
+| M2 Build draws hidden settlements | as M1 |
+| M3 Build draws hidden formations | the static-reader metamorphic test, the gate rows |
+| M4 `CycleNext` ignores knowledge | `Tab_NeverReachesAHiddenSettlement…`, the static-reader test, the gate rows |
+| M5 the HUD's world population sums hidden settlements | the static-reader test, the FrameText test |
+| M6 the state chronicle's settlement filter admits everything | `TheAnnals_TellNothingOfWhatTheStubHides_EvenItsEvents` |
+| M7 the core chronicle's events unfiltered | `ACoreChronicleEvent_ReachesTheAnnals…`, the annals test, the FrameText test |
+| M8 the Trends world series sum hidden settlements | `TheTrendsWorldSeries_AreIdentical…` |
+| M9 the history buffer's world series sum hidden settlements | `TheHistoryBuffersWorldSeries_SumOnlyKnownSettlements` |
+| M10 the settlement view reads a hidden settlement | the static-reader test |
+| M11 the settlement view lists formations the player does not know | `TheSettlementView_ListsOnlyTheFormationsThePlayerKnows_WhereverTheyStand` (first run: SURVIVED — a formation stationed in a known settlement is always seen unless the player's own settlement is out of sight, a case no test built; the test was added and the mutant re-run: killed) |
+| M12 the unit card builds for an unknown formation | the static-reader test |
+| M13 the market rows read a hidden settlement | the static-reader test |
+| M14 the needs panel reads a hidden settlement | the static-reader test |
+| M15 the raw id back in the unnamed title | `RawSettlementIds_AreNotInPlayerText`, the two moved pins |
+| M16 GameUi builds the lens without the session's knowledge | the FrameText test, the gate rows |
+| M17 GameUi's Tab ignores the session's knowledge | the gate rows (`Tab never reaches a hidden settlement`) |
+| M18 the AI site scan's `KnowsCell` arm dropped | `TheAiSiteScan_RanksOnlyTheCellsItsPolityKnows`, `WhatTheAiDoesNotKnow_CannotMoveItsPick…` |
+| M19 the formation card ignores knowledge | `TheFormationCard_OfAFormationThePlayerDoesNotKnow…` |
+| M20 the pre-P7 `DepositSector` (scans the world's settlements) | `TheGoodCardsDepositSector_IsProductionsContentRule…` (no settlement holds fish: the old body said Extraction) |
+| M21 `KnowsSettlement` ignores the masks | `Restricted_AnswersFromItsMasks…` |
+| M22 the construction reorder reverted (queue before the seam) | OUTPUT-EQUIVALENT (a foreign queue never changed the output; the AI metamorphic test cannot see read order) — killed only by the structural pin `AiConstructionPolicy_AsksTheSeamBeforeItReadsAnyQueue`, recorded as such |
+
+Each property is one the system ought to have: the player and the AI may act only on what they know (Spine principle
+7; D-040; D-039 C1); a test hides, perturbs and requires the player's every output unchanged, with a positive control
+proving the perturbation reaches that output when nothing is hidden.
+
 ## 5. The Warband (Director §3), determined from the code
 
 | question | answer at this commit | evidence |
