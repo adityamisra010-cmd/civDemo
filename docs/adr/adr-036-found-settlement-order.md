@@ -480,3 +480,56 @@ state's sweep; the monkey's keys gain F (Enter and Escape were already among the
   kinds + `FoundSettlement`, query count 84 → 96. No golden moved: the founded seed-42 300-turn golden is
   `937577ff…` (two CLI processes, byte-identical logs).
 - **Mutants:** 15 one-edit mutants, each killed by a semantic test (§3.8 of the gate record).
+
+### 9.2 Review finding: the docked place card judged the bare world (fixed on this branch)
+
+**The finding** (major, confirmed by an independent verdict). At `64e2bec` the placement mode judged each place against
+this turn's batch (`FoundSettlementOrderFactory.Standing`), but the P8 place card it docked judged with
+`FoundingQuery.Check` on the bare world. Once the player had queued one founding, the card said that a place the mode
+refused "would be accepted" and ticked every arm, while the hint and the bar said "Not here" and Confirm stayed disabled.
+The hint's reason was false as well: "too close to a standing settlement", where no settlement stands. The obstacle was a
+colony the player had only ordered. So "the verdict in the place card's words" (§9 above; gate record §3.8) did not hold.
+The reviewer's probe used the canonical founded world for seed 42: an order from the capital to cell 634216, then the mode
+from settlement 1 resting on cell 633191.
+
+**The fix: one batch, read by both, told in one set of words.**
+- `SiteAssessment.Batch` (Sim.Core, a read-only snapshot) holds the batch's site cells (the world's settlements, then each
+  ordered site in log order) and their spacing exclusion. These are exactly the arrays the explicit overload of
+  `FoundingQuery.Check` takes. It also holds the standing settlements' exclusion on its own.
+  `FoundSettlementOrderFactory.Standing` builds the snapshot at the end of its replay, and `Judge` now reads its arrays.
+- `SiteAssessment.Assess(…, batch)`: when given a batch, the occupancy and spacing arms and the verdict are judged against
+  it with the explicit overload, and a refusal that only an ordered site causes is flagged (`OccupiedByOrder`,
+  `TooCloseByOrder`). Without a batch the card is P8's, unchanged.
+- `InfoQuery.Card(…, batch)` passes the batch to a map cell's card. `InfoQuery.FoundingLine(v, from, byOrder)` gives such
+  a refusal its own words: "too close to a settlement you ordered this turn" and "a settlement you ordered this turn will
+  stand here". The arm notes say the same.
+- The mode hands its batch to the card it docks (`PlacementMode.CardBatch`). While the mode is on, a place card is judged
+  against that batch (`GameUi.PlaceBatch`), and `InfoPanel.Ensure` rebuilds the card when the batch changes, so a card that
+  was already open is judged again. The hint, the bar and Confirm's refusal take their words from `PlacementMode.Reason`,
+  which asks the same batch.
+- The player's information class (ADR-037 §7): under a partial view, the player's own ordered site is the player's to
+  know, so the occupancy arm and the mode's reason say so. Spacing reads the lattice, so it stays "not judged".
+
+**A bound, recorded (`docs/queue.md`).** Outside the mode, a place card (Shift+click) is still judged on the standing
+settlements alone, as in P8.
+
+**Measured** (this tree, Release). Five new tests:
+- Sim.Tests `SiteAssessmentTests`:
+  - `WithABatch_…`, a dense sweep. The verdict equals the explicit overload on the batch, the first failing arm
+    reproduces it, and "by order" equals an independent oracle: Check on the bare world does not refuse on that arm.
+    The sweep reaches Occupied and TooClose, each both by order and by a standing settlement.
+  - `ThePlaceCard_InsideAnOrderedColonysExclusion_…`, which includes the bare card as the defect's control.
+  - `UnderAPartialView_…`.
+- Sim.Ui.Tests `FoundSettlementUiTests.AFoundingQueuedThisTurn_…`, through the live UI. One founding is queued through the
+  mode. The mode is then entered from another source, with a card for the place already open. On hover and on click, the
+  hint, the bar, `CanConfirm`, Enter's refusal, the guard and the docked card all agree. The ordered site itself agrees
+  the same way.
+- One existing test gained assertions (`TheReason_…`).
+
+Ten one-edit mutants were each killed by a semantic test (gate record §3.8). No golden, pin or band moved.
+
+Suites on this tree:
+- Full Sim.Ui.Tests: 762 passed.
+- Targeted Sim.Tests: 206 passed, 2 skipped.
+- The three gate scripts: OK.
+- `--smoke --monkey 200`: the same counts as the S1d record (2417 checks, 2288 pass, 129 not offered, 0 FAIL).

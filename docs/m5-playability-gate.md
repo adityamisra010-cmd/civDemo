@@ -1138,6 +1138,45 @@ Each property is one the mode ought to have: the UI queues only what the intake 
 the batch is the intake's, the action is offered only where its source-side arms hold, looking or choosing never acts,
 the player sees only what it knows, and the card is the source's judgement.
 
+**Review finding (fixed on this branch): the docked card and the mode now give one verdict.** At `64e2bec` the mode
+judged each place against this turn's batch, but the place card it docked judged the bare world. With one founding
+queued, the card said that a refused place "would be accepted", and the hint blamed "a standing settlement" that does not
+exist. The claim above, "the verdict in the place card's words", was false in that case. Now the card the mode docks is
+judged against the mode's own batch (`SiteAssessment.Batch`, `SiteAssessment.Assess(…, batch)`, `InfoQuery.Card(…, batch)`;
+ADR-036 §9.2). A refusal that only an ordered colony causes has its own words: "too close to a settlement you ordered
+this turn" and "a settlement you ordered this turn will stand here". The card's status line, its arms, the hint, the bar
+and Confirm's refusal all use them. No control, key, gate row or state was added. The live-UI pin is
+`FoundSettlementUiTests.AFoundingQueuedThisTurn_InsideItsColonysExclusion_TheHintTheBarConfirmAndTheDockedCardGiveOneVerdict`.
+Outside the mode, a place card is still P8's bare-world judgement (recorded in `docs/queue.md`).
+
+The mutants were run in this worktree by a script that applies one edit, builds, runs the test filter and restores the
+file. Each test run was bounded at 150 s, about 6x the clean filters (Sim.Tests `SiteAssessmentTests` 26 s; Sim.Ui.Tests
+`FoundSettlementUiTests` 22 s). None hung, and all ten were killed:
+
+| mutant | edit | killed by (semantic tests) |
+|---|---|---|
+| R1 | the card is not given the mode's batch (`PlaceBatch` → null; the defect as it was) | UI `AFoundingQueuedThisTurn_…` (the card read "a Found Settlement order from Putemim would be accepted") |
+| R2 | `Assess` judges the verdict on the bare world despite a batch | `WithABatch_EachArmAndTheVerdict_…` |
+| R3 | the spacing arm reads the standing exclusion despite a batch | `WithABatch_…` (first failing arm ≠ verdict) |
+| R4 | `Batch.ExcludedByOrder` drops "outside every standing settlement's exclusion" | `WithABatch_…` (a standing settlement's exclusion told as an order's) |
+| R5 | the mode's words ignore the order (`Reason` with byOrder false; the false hint as it was) | UI `AFoundingQueuedThisTurn_…` |
+| R6 | the card's status line ignores the order | `ThePlaceCard_InsideAnOrderedColonysExclusion_…` |
+| R7 | the info panel's card cache ignores the batch | UI `AFoundingQueuedThisTurn_…` (a card already open was not judged again) |
+| R8 | the standing exclusion is copied after the queue grew it | UI `AFoundingQueuedThisTurn_…` |
+| R9 | a partial view ignores the player's own ordered site | `UnderAPartialView_ThePlayersOwnOrderedSite_…` |
+| R10 | the player's own ordered site is told as unseen under a partial view | UI `TheReason_IsThePlaceCardsOwnLine_…` |
+
+Each property is one the system ought to have. What the card shows is what the emitter's guard and the intake decide, and
+the player is never told that a settlement stands where it has only been ordered.
+
+Measured on this tree (Release) after the fix:
+- Full Sim.Ui.Tests: 762 passed, 0 failed (12 m 39 s; 761 before, plus the new UI test).
+- Targeted Sim.Tests (SiteAssessment, InfoQuery, Founding, Colonization, AvailableActions, Knowledge,
+  TurnOneActionSurface): 206 passed, 2 skipped, 0 failed.
+- The gate scripts `check-banned-constructs`, `check-read-isolation` and `check-readonly-proof`: OK.
+- `--smoke --monkey 200`: 11 states, 2417 checks, 2288 pass, 129 not offered, 0 FAIL, 0 problems, 81,461 frames. These are
+  the same counts as the S1d record above, so no row and no verdict moved.
+
 ## 5. The Warband (Director §3), determined from the code
 
 | question | answer at this commit | evidence |
