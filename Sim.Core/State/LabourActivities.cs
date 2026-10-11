@@ -252,6 +252,14 @@ public static class LabourActivities
         return (identities, label);
     }
 
+    /// <summary>Whether a deposit of good <paramref name="goodId"/> is worked by Herding/fishing (livestock and fish) rather
+    /// than Extraction — the classification <see cref="GoodsOf"/> files deposits under, from content alone.</summary>
+    public static bool IsHerded(GoodsConfig goods, int goodId)
+    {
+        ArgumentNullException.ThrowIfNull(goods);
+        return goodId == goods.IdOf("livestock") || goodId == goods.IdOf("fish");
+    }
+
     /// <summary>
     /// The goods a sector of this settlement produces, registry (or recipe) order — the same classification
     /// ProductionSystem applies (pinned against its measured output by LabourActivityTests): Farming → the
@@ -277,7 +285,7 @@ public static class LabourActivities
                 bool food = sector == Sectors.Herding;
                 foreach (GoodEntry g in goods.Goods)
                 {
-                    bool isFood = g.Id == livestock || g.Id == fish;
+                    bool isFood = g.Id == livestock || g.Id == fish;   // IsHerded's rule, the ids hoisted out of the loop
                     if (isFood != food) continue;
                     if (DepositAbundance(world, settlement, new GoodId(g.Id)) > 0.0) ids.Add(g.Id);
                 }

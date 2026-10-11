@@ -40,6 +40,13 @@ namespace Sim.Core.Systems.Construction;
 /// Deterministic and tie-free: integer table and content order, composite keys with integer tie-breaks
 /// (tie-dense tests: InstitutionAiTests). Strategic construction is later AI work. Player-commanded polities
 /// are never touched.
+///
+/// P7 (the information class): every per-settlement read goes through the one knowledge seam,
+/// <see cref="PolityKnowledge.ReadsInternals"/> — a settlement's books (its queue, structures, stocks, people) are read
+/// only for a settlement the polity controls, and that test comes FIRST, before any queue is read (it used to read
+/// every settlement's queue and only then discard the foreign ones at the availability predicate's control arm —
+/// foreign state read, though it could not change the output). The test is the availability predicate's own control
+/// arm, guard included, so the orders are unchanged.
 /// </summary>
 public static class AiConstructionPolicy
 {
@@ -58,9 +65,11 @@ public static class AiConstructionPolicy
 
         var orders = new List<OrderRecord>();
         var ordered = new List<int>();   // settlements given an order this turn
+        PolityKnowledge knows = PolityKnowledge.Of(world, polity);
         for (int s = 0; s < world.Settlements.Count; s++)
         {
             SettlementId settlement = world.Settlements[s].Id;
+            if (!knows.ReadsInternals(settlement)) continue;   // P7: its own books only — control before the queue
             if (ConstructionQuery.Queue(world, settlement).Length > 0) continue;
             foreach (ConstructionProjectEntry project in projects)
             {
@@ -121,7 +130,7 @@ public static class AiConstructionPolicy
         for (int s = 0; s < world.Settlements.Count; s++)
         {
             SettlementId settlement = world.Settlements[s].Id;
-            if (!EmpireQuery.ControlsSettlement(world, polity, settlement)) continue;
+            if (!EmpireQuery.ControlsSettlement(world, polity, settlement)) continue;   // already control-first (P7)
             long rows = 0;
             for (int i = 0; i < world.Institutions.Count; i++)
                 if (world.Institutions[i].Settlement == settlement && world.Institutions[i].Type == typeKey) rows++;
@@ -140,9 +149,11 @@ public static class AiConstructionPolicy
     {
         SettlementId? best = null;
         long bestSpare = 0;
+        PolityKnowledge knows = PolityKnowledge.Of(world, polity);
         for (int s = 0; s < world.Settlements.Count; s++)
         {
             SettlementId settlement = world.Settlements[s].Id;
+            if (!knows.ReadsInternals(settlement)) continue;   // P7: its own books only — control before the queue
             if (alreadyOrdered is not null && Contains(alreadyOrdered, settlement.Value)) continue;
             if (ConstructionQuery.Queue(world, settlement).Length > 0) continue;
             if (!ConstructionQuery.IsProjectAvailable(world, cfg, polity, settlement, project.Id)) continue;

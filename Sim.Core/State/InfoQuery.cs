@@ -180,14 +180,20 @@ public static class InfoQuery
     /// <paramref name="context"/> is the action query's (the next step's dt for the construction capacity blocker);
     /// <paramref name="settlementName"/> names settlements (display only); <paramref name="actions"/> may pass the
     /// player's <see cref="AvailableActionsQuery.For"/> result when the caller already holds it (it must be the one for
-    /// this world, player and context).</summary>
+    /// this world, player and context). <paramref name="knowledge"/> is what the player knows (P7, the one knowledge seam;
+    /// null = <see cref="PolityKnowledge.Of"/>, all-known until S2a): a formation the player does not know gets the card of
+    /// an id that names nothing.</summary>
     public static InfoCard Card(
         IReadOnlyWorldState world, SimConfig cfg, PolityId player, InfoSubject subject,
-        ActionQueryContext? context = null, Func<int, string>? settlementName = null, ImmutableArray<ActionDescriptor>? actions = null)
+        ActionQueryContext? context = null, Func<int, string>? settlementName = null, ImmutableArray<ActionDescriptor>? actions = null,
+        PolityKnowledge? knowledge = null)
     {
         ArgumentNullException.ThrowIfNull(world);
         ArgumentNullException.ThrowIfNull(cfg);
-        var c = new Ctx(world, cfg, player, context ?? ActionQueryContext.None, settlementName, actions);
+        if (knowledge is not null && knowledge.Polity.Value != player.Value)
+            throw new ArgumentException("the knowledge must be the player's", nameof(knowledge));
+        var c = new Ctx(world, cfg, player, context ?? ActionQueryContext.None, settlementName, actions,
+            knowledge ?? PolityKnowledge.Of(world, player));
         var b = new B(subject);
         switch (subject.Kind)
         {
@@ -298,7 +304,7 @@ public static class InfoQuery
     /// </summary>
     public static string? SourceChain(IReadOnlyWorldState world, SimConfig cfg, PolityId polity, string good)
     {
-        var c = new Ctx(world, cfg, polity, ActionQueryContext.None, null, null);
+        var c = new Ctx(world, cfg, polity, ActionQueryContext.None, null, null, PolityKnowledge.Of(world, polity));
         int target = -1;
         return Chain(c, good, 0, ref target);
     }
@@ -306,7 +312,7 @@ public static class InfoQuery
     /// <summary>The research node the <see cref="SourceChain"/> of <paramref name="good"/> ends at (content index), or -1.</summary>
     public static int SourceChainNode(IReadOnlyWorldState world, SimConfig cfg, PolityId polity, string good)
     {
-        var c = new Ctx(world, cfg, polity, ActionQueryContext.None, null, null);
+        var c = new Ctx(world, cfg, polity, ActionQueryContext.None, null, null, PolityKnowledge.Of(world, polity));
         int target = -1;
         Chain(c, good, 0, ref target);
         return target;
@@ -996,7 +1002,8 @@ public static class InfoQuery
         MilitaryUnitRow? found = null;
         for (int i = 0; i < c.W.MilitaryUnits.Count; i++)
             if (c.W.MilitaryUnits[i].Id == b.Subject.Id) { found = c.W.MilitaryUnits[i]; break; }
-        if (found is not { } unit) { b.Unknown("a formation with this id"); return; }
+        // P7: a formation the player does not know reads exactly as an id that names nothing — no field of it is read.
+        if (found is not { } unit || !c.K.KnowsUnit(unit)) { b.Unknown("a formation with this id"); return; }
         UnitFamilyContent? fam = c.Cfg.UnitFamilies;
         UnitIdentity? identity = fam?.IdentityByKey(unit.Identity);
         UnitFamily? family = fam?.FamilyByKey(unit.Family);
@@ -1532,20 +1539,12 @@ public static class InfoQuery
         return sum;
     }
 
-    /// <summary>The sector that works a deposit good: production's own classification (LabourActivities.GoodsOf), asked
-    /// of the first settlement holding the deposit — Herding/fishing when it lists the good, else Extraction.</summary>
-    private static int DepositSector(Ctx c, int good)
-    {
-        for (int s = 0; s < c.W.Settlements.Count; s++)
-        {
-            SettlementId id = c.W.Settlements[s].Id;
-            if (Deposit(c.W, id, good) <= 0.0) continue;
-            (ImmutableArray<GoodId> herded, _) = LabourActivities.GoodsOf(c.W, c.Cfg.Goods, id, Sectors.Herding, c.R);
-            foreach (GoodId g in herded) if (g.Value == good) return Sectors.Herding;
-            return Sectors.Extraction;
-        }
-        return Sectors.Extraction;
-    }
+    /// <summary>The sector that works a deposit good: production's own classification (<see cref="LabourActivities.IsHerded"/>,
+    /// the rule LabourActivities.GoodsOf files a deposit under) — Herding/fishing for livestock and fish, Extraction for
+    /// every other deposit. P7: read from CONTENT, never by scanning settlements (it used to ask GoodsOf of the first
+    /// settlement anywhere holding the deposit — a foreign one included — and fell back to Extraction when none did).</summary>
+    private static int DepositSector(Ctx c, int good) =>
+        c.Cfg.Goods is { } goods && LabourActivities.IsHerded(goods, good) ? Sectors.Herding : Sectors.Extraction;
 
     private static ActionDescriptor? Find(Ctx c, ActionDomain domain, long id)
     {
@@ -1596,12 +1595,15 @@ public static class InfoQuery
         public readonly bool Stage;
         public readonly ActionQueryContext Q;
         public readonly Func<int, string>? NameFn;
+        /// <summary>P7: what the player knows (the one knowledge seam).</summary>
+        public readonly PolityKnowledge K;
         private ImmutableArray<ActionDescriptor>? _actions;
         private SettlementId[]? _controlled;
 
-        public Ctx(IReadOnlyWorldState w, SimConfig cfg, PolityId p, ActionQueryContext q, Func<int, string>? name, ImmutableArray<ActionDescriptor>? actions)
+        public Ctx(IReadOnlyWorldState w, SimConfig cfg, PolityId p, ActionQueryContext q, Func<int, string>? name, ImmutableArray<ActionDescriptor>? actions,
+            PolityKnowledge k)
         {
-            W = w; Cfg = cfg; P = p; Q = q; NameFn = name; _actions = actions;
+            W = w; Cfg = cfg; P = p; Q = q; NameFn = name; _actions = actions; K = k;
             R = cfg.Research;
             Done = R is null ? [] : ResearchQuery.CompletedMask(w, R, p);
             Stage = R is not null && ResearchQuery.StageReached(R, Done);
