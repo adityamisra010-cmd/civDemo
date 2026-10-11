@@ -124,6 +124,25 @@ public sealed class PlacementMode
             UiPlayer.Empire, new Sim.Core.State.SettlementId(Source), cell, _pending!);
     }
 
+    /// <summary>
+    /// M5 S1d review — THE BATCH the mode judges against (<see cref="FoundSettlementOrderFactory.Pending.Batch"/>: this turn's
+    /// queued founding orders replayed through THE predicate), for the place card it docks: the card is judged against these
+    /// same arrays (SiteAssessment.Assess with a batch), so its verdict, its arms and its words are the mode's. Null while the
+    /// mode is off or the world has no terrain.
+    /// </summary>
+    public SiteAssessment.Batch? CardBatch(UiSession session)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        if (!Active || session.Sites is not { } site || !Fresh(session, site)) return null;
+        return _pending!.Batch;
+    }
+
+    /// <summary>The words for <paramref name="verdict"/> at <paramref name="cell"/> (the hovered or selected place): as
+    /// <see cref="ReasonText(FoundingVerdict, string, bool, bool)"/>, a refusal only an order queued this turn causes told
+    /// as such (<see cref="SiteAssessment.Batch.RefusesByOrder"/> of the mode's batch — the place card's own test).</summary>
+    public string Reason(FoundingVerdict verdict, int cell) =>
+        ReasonText(verdict, SourceName, SeesAll, _pending is { } p && p.Batch.RefusesByOrder(verdict, cell));
+
     /// <summary>Rebuilds the batch's standing sites when the world, the knowledge or the queued orders changed (and
     /// re-judges the hovered and selected cells against them). True when the mode can judge.</summary>
     private bool Fresh(UiSession session, SiteAssessment.Prepared site)
@@ -193,13 +212,13 @@ public sealed class PlacementMode
         if (SelectedVerdict is null) { Refusal = "That place is not one you know."; return false; }
         if (SelectedVerdict is { } v && v != FoundingVerdict.Legal)
         {
-            Refusal = "Not here: " + ReasonText(v, SourceName, SeesAll) + ".";
+            Refusal = "Not here: " + Reason(v, Selected) + ".";
             return false;
         }
         if (!session.EmitFoundSettlement(Source, Selected))
         {
             Refusal = "The order was not accepted: " + (Judge(session, Selected) is { } now && now != FoundingVerdict.Legal
-                ? ReasonText(now, SourceName, SeesAll) : "settlers from " + SourceName + " are already ordered out this turn") + ".";
+                ? Reason(now, Selected) : "settlers from " + SourceName + " are already ordered out this turn") + ".";
             return false;
         }
         Cancel();
@@ -221,11 +240,19 @@ public sealed class PlacementMode
     /// sees the whole world, a refusal decided by what lies beyond the player's knowledge (the floor over every cell,
     /// occupancy, spacing, the claim, the route) is told only as such (ADR-037 §7).
     /// </summary>
-    public static string ReasonText(FoundingVerdict verdict, string from, bool seesAll)
+    public static string ReasonText(FoundingVerdict verdict, string from, bool seesAll) => ReasonText(verdict, from, seesAll, byOrder: false);
+
+    /// <summary>M5 S1d review: as <see cref="ReasonText(FoundingVerdict, string, bool)"/>, but a refusal that only an order
+    /// queued this turn causes (<paramref name="byOrder"/>) is told in its own words
+    /// (<see cref="InfoQuery.FoundingLine(FoundingVerdict, string, bool)"/>): "too close to a settlement you ordered this
+    /// turn", not "...a standing settlement". A place the player's own order takes is the player's to know, so that one is
+    /// told under a partial view too; spacing reads the lattice, so it is not.</summary>
+    public static string ReasonText(FoundingVerdict verdict, string from, bool seesAll, bool byOrder)
     {
         bool own = verdict is FoundingVerdict.Legal or FoundingVerdict.UnknownSource or FoundingVerdict.NotControlled
-            or FoundingVerdict.OffMap or FoundingVerdict.Water or FoundingVerdict.NoParty or FoundingVerdict.NoProvisions;
-        return seesAll || own ? InfoQuery.FoundingLine(verdict, from)
+            or FoundingVerdict.OffMap or FoundingVerdict.Water or FoundingVerdict.NoParty or FoundingVerdict.NoProvisions
+            || (byOrder && verdict == FoundingVerdict.Occupied);
+        return seesAll || own ? InfoQuery.FoundingLine(verdict, from, byOrder)
             : "settlers from " + from + " could not found a settlement here; why depends on what you have not seen";
     }
 

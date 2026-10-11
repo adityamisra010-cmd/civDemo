@@ -92,7 +92,7 @@ public static class PlacementOverlay
         if (!p.Active || p.Hovered < 0 || p.HoveredVerdict is not { } v) return [];
         var lines = new List<(string, Rgba)>();
         bool legal = v == FoundingVerdict.Legal;
-        lines.Add((legal ? "Found here: " + PlacementMode.ReasonText(v, p.SourceName, p.SeesAll) : "Not here: " + PlacementMode.ReasonText(v, p.SourceName, p.SeesAll),
+        lines.Add(((legal ? "Found here: " : "Not here: ") + p.Reason(v, p.Hovered),
             VerdictInk(t, v)));
         if (lattice is not null && p.RouteCell == p.Hovered && p.RouteLine(lattice) is { } route) lines.Add((route, t.Ink.Text));
         if (p.PartyLine.Length > 0) lines.Add((Cap(p.PartyLine), t.Ink.TextSoft));

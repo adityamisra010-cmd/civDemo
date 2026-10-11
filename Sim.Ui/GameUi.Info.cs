@@ -214,6 +214,11 @@ public sealed partial class GameUi
     /// (a pass over the terrain), so no other card pays for it.</summary>
     private SiteAssessment.Prepared? PlaceSites() => _inspector.Subject is { Kind: InfoKind.Cell } ? _session.Sites : null;
 
+    /// <summary>M5 S1d review: while the placement mode is on, a place's card is judged against the mode's own batch (this
+    /// turn's queued founding orders — <see cref="PlacementMode.CardBatch"/>), so the card the mode docks and the mode's hint,
+    /// bar and Confirm give one verdict in one set of words. Null otherwise (P8: the standing settlements alone).</summary>
+    private SiteAssessment.Batch? PlaceBatch() => _inspector.Subject is { Kind: InfoKind.Cell } ? _placement.CardBatch(_session) : null;
+
     private void RegisterFormationTokens()
     {
         if (_lensFrame is null) return;
@@ -231,7 +236,7 @@ public sealed partial class GameUi
         _surface = FrameSurface.Info;
         IReadOnlyList<Sim.Core.Kernel.OrderRecord> queued = _session.QueuedOrders();
         _inspector.Ensure(_world, _session.Config, UiPlayer.Empire, ActionQueryContext.ForNextStep(_world, _eraTable, queued),
-            _session.Names.Name, queued.Count, _session.Knowledge.Core, PlaceSites());   // P7: the card knows what the player knows; P8: a place's site half
+            _session.Names.Name, queued.Count, _session.Knowledge.Core, PlaceSites(), PlaceBatch());   // P7: the card knows what the player knows; P8: a place's site half; S1d: the mode's batch
 
         // UR-3 geometry (as DrawContextPanel): the placed, scaled context rect; the header row's title in the era's
         // title face; the close button flush right.
@@ -301,7 +306,7 @@ public sealed partial class GameUi
         {
             IReadOnlyList<Sim.Core.Kernel.OrderRecord> queued = _session.QueuedOrders();
             _inspector.Ensure(_world, _session.Config, UiPlayer.Empire, ActionQueryContext.ForNextStep(_world, _eraTable, queued),
-                _session.Names.Name, queued.Count, _session.Knowledge.Core, PlaceSites());   // P7; P8
+                _session.Names.Name, queued.Count, _session.Knowledge.Core, PlaceSites(), PlaceBatch());   // P7; P8; S1d
             Sim.Ui.Theme.PanelFrame.Paint(list, panel, _frameTheme, 7000, Sim.Ui.Theme.FrameKind.Panel);
             RectD body = panel.Inset(18);
             list.PushClip(body);

@@ -192,7 +192,7 @@ public sealed partial class GameUi
             int size = _world.Terrain?.Size ?? 1;
             string where = "Chosen: the place at " + (_placement.Selected % size).ToString(System.Globalization.CultureInfo.InvariantCulture)
                 + ", " + (_placement.Selected / size).ToString(System.Globalization.CultureInfo.InvariantCulture) + " - ";
-            lines.Add((where + PlacementMode.ReasonText(v, _placement.SourceName, _placement.SeesAll) + ".", PlacementOverlay.VerdictInk(_frameTheme, v)));
+            lines.Add((where + _placement.Reason(v, _placement.Selected) + ".", PlacementOverlay.VerdictInk(_frameTheme, v)));
             if (_session.Sites is { } site && _placement.RouteCell == _placement.Selected && _placement.RouteLine(site.Frontier.Lattice) is { } route)
                 lines.Add((route + ".", _frameTheme.Ink.TextSoft));
         }

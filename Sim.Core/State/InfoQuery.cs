@@ -191,18 +191,21 @@ public static class InfoQuery
     /// null = <see cref="PolityKnowledge.Of"/>, all-known until S2a): a formation the player does not know gets the card of
     /// an id that names nothing, and a map cell the player does not know is refused. <paramref name="site"/> is the
     /// terrain half of a site assessment (P8; <see cref="SiteAssessment.Prepare"/> with the founding path's worldgen
-    /// config) — a map cell's card without it is titled and refused as usual and otherwise reads "not loaded".</summary>
+    /// config) — a map cell's card without it is titled and refused as usual and otherwise reads "not loaded".
+    /// M5 S1d review: <paramref name="batch"/> is the founding batch a map cell's card is judged against (the placement
+    /// mode's — this turn's queued founding orders; <see cref="SiteAssessment.Assess"/>), or null for the standing
+    /// settlements alone. Only a map cell's card reads it.</summary>
     public static InfoCard Card(
         IReadOnlyWorldState world, SimConfig cfg, PolityId player, InfoSubject subject,
         ActionQueryContext? context = null, Func<int, string>? settlementName = null, ImmutableArray<ActionDescriptor>? actions = null,
-        PolityKnowledge? knowledge = null, SiteAssessment.Prepared? site = null)
+        PolityKnowledge? knowledge = null, SiteAssessment.Prepared? site = null, SiteAssessment.Batch? batch = null)
     {
         ArgumentNullException.ThrowIfNull(world);
         ArgumentNullException.ThrowIfNull(cfg);
         if (knowledge is not null && knowledge.Polity.Value != player.Value)
             throw new ArgumentException("the knowledge must be the player's", nameof(knowledge));
         var c = new Ctx(world, cfg, player, context ?? ActionQueryContext.None, settlementName, actions,
-            knowledge ?? PolityKnowledge.Of(world, player), site);
+            knowledge ?? PolityKnowledge.Of(world, player), site, batch);
         var b = new B(subject);
         switch (subject.Kind)
         {
@@ -1086,12 +1089,12 @@ public static class InfoQuery
         b.Title = (terrain.Water[cell] >= 0.5 ? "Water" : "Land") + " at " + Inv(cell % size) + ", " + Inv(cell / size);
         if (c.Site is not { } site || !site.IsFor(terrain)) { b.Inert("siting configuration (the founding path's worldgen)"); return; }
 
-        SiteAssessment.Report r = SiteAssessment.Assess(c.W, c.Cfg, site, c.K, c.P, cell, b.Subject.Settlement);
+        SiteAssessment.Report r = SiteAssessment.Assess(c.W, c.Cfg, site, c.K, c.P, cell, b.Subject.Settlement, batch: c.Batch);
         string from = r.Source >= 0 ? c.Name(r.Source) : "";
         b.What = "What the simulation holds for this place. Its siting score is the one composite the simulation ranks sites by;"
             + " everything after it is shown separately and is NOT part of that score - no weights are invented.";
         b.Status = InfoStatus.Known;
-        b.StatusLine = (r.Verdict is { } verdict ? FoundingLine(verdict, from) : FoundingNotJudged) + ".";
+        b.StatusLine = (r.Verdict is { } verdict ? FoundingLine(verdict, from, r.RefusedByOrder) : FoundingNotJudged) + ".";
 
         // ---- 1. THE COMPOSITE: the simulation's siting score, its two factors, its rank against the floor.
         int side = 2 * r.FertilityRadiusPx + 1;
@@ -1126,7 +1129,7 @@ public static class InfoQuery
         var arms = new List<InfoLink>
         {
             r.Verdict is { } v
-                ? new InfoLink("FoundingQuery: " + FoundingLine(v, from), null, v == FoundingVerdict.Legal)
+                ? new InfoLink("FoundingQuery: " + FoundingLine(v, from, r.RefusedByOrder), null, v == FoundingVerdict.Legal)
                 : new InfoLink("FoundingQuery: " + FoundingNotJudged, null, null),
         };
         foreach (SiteAssessment.FoundingArm a in r.Arms) arms.Add(new InfoLink(ArmLabel(c, r, a.Arm, from), null, a.Holds, ArmNote(c, r, a)));
@@ -1331,6 +1334,16 @@ public static class InfoQuery
         _ => "not judged",
     };
 
+    /// <summary>M5 S1d review: <see cref="FoundingLine(FoundingVerdict, string)"/>, except that a refusal only an order queued
+    /// this turn causes (<paramref name="byOrder"/>: <see cref="SiteAssessment.Batch.RefusesByOrder"/>) is told as such — no
+    /// settlement stands there yet. The place card's status line and the placement mode's hint and bar say the same.</summary>
+    public static string FoundingLine(FoundingVerdict v, string from, bool byOrder) => byOrder ? v switch
+    {
+        FoundingVerdict.Occupied => "a settlement you ordered this turn will stand here",
+        FoundingVerdict.TooClose => "too close to a settlement you ordered this turn",
+        _ => FoundingLine(v, from),
+    } : FoundingLine(v, from);
+
     private static string ArmLabel(Ctx c, SiteAssessment.Report r, FoundingVerdict arm, string from) => arm switch
     {
         FoundingVerdict.UnknownSource => r.Source >= 0 ? "Settlers set out from " + from : "A settlement to send settlers from",
@@ -1338,8 +1351,9 @@ public static class InfoQuery
         FoundingVerdict.OffMap => "On the map",
         FoundingVerdict.Water => "Land",
         FoundingVerdict.PoorSite => "At or above the score floor",
-        FoundingVerdict.Occupied => "No settlement stands here",
-        FoundingVerdict.TooClose => "Outside every settlement's spacing (" + Num(r.MinSpacingKm) + " km of travel on ideal ground)",
+        FoundingVerdict.Occupied => r.OrderedSites > 0 ? "No settlement stands or is ordered here" : "No settlement stands here",
+        FoundingVerdict.TooClose => "Outside every settlement's spacing" + (r.OrderedSites > 0 ? ", those you ordered this turn included" : "")
+            + " (" + Num(r.MinSpacingKm) + " km of travel on ideal ground)",
         FoundingVerdict.Claimed => "In no settlement's catchment",
         FoundingVerdict.NoParty => "A party: " + N0(r.Party) + " people would leave",
         FoundingVerdict.NoProvisions => "Provisions: " + N0(r.Provisions) + " " + GoodName(c.Cfg.Goods, c.Cfg.Goods?.GrainId ?? -1) + " would go with them",
@@ -1364,6 +1378,9 @@ public static class InfoQuery
         return a.Arm switch
         {
             FoundingVerdict.Occupied when r.OccupiedBy >= 0 => "The site of " + c.Name(r.OccupiedBy) + ".",
+            FoundingVerdict.Occupied when r.OccupiedByOrder => "A settlement you ordered this turn will stand here: its order is queued for End Turn.",
+            FoundingVerdict.TooClose when r.TooCloseByOrder => "A settlement you ordered this turn will stand " + Num(r.BatchSpacingCost)
+                + " travel-cost units away; the rule needs " + Num(r.MinSpacingCost) + ".",
             FoundingVerdict.TooClose => double.IsPositiveInfinity(r.SpacingCost)
                 ? "No standing site within the spacing reach."
                 : "The nearest standing site is " + Num(r.SpacingCost) + " travel-cost units away; the rule needs " + Num(r.MinSpacingCost) + ".",
@@ -1942,13 +1959,15 @@ public static class InfoQuery
         public readonly PolityKnowledge K;
         /// <summary>P8: the terrain half of a site assessment (map cells), or null.</summary>
         public readonly SiteAssessment.Prepared? Site;
+        /// <summary>M5 S1d review: the founding batch a map cell's card is judged against, or null.</summary>
+        public readonly SiteAssessment.Batch? Batch;
         private ImmutableArray<ActionDescriptor>? _actions;
         private SettlementId[]? _controlled;
 
         public Ctx(IReadOnlyWorldState w, SimConfig cfg, PolityId p, ActionQueryContext q, Func<int, string>? name, ImmutableArray<ActionDescriptor>? actions,
-            PolityKnowledge k, SiteAssessment.Prepared? site = null)
+            PolityKnowledge k, SiteAssessment.Prepared? site = null, SiteAssessment.Batch? batch = null)
         {
-            W = w; Cfg = cfg; P = p; Q = q; NameFn = name; _actions = actions; K = k; Site = site;
+            W = w; Cfg = cfg; P = p; Q = q; NameFn = name; _actions = actions; K = k; Site = site; Batch = batch;
             R = cfg.Research;
             Done = R is null ? [] : ResearchQuery.CompletedMask(w, R, p);
             Stage = R is not null && ResearchQuery.StageReached(R, Done);

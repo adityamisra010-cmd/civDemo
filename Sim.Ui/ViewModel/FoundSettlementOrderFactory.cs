@@ -36,10 +36,11 @@ public static class FoundSettlementOrderFactory
     /// order is judged against, and the sources that will already found.</summary>
     public sealed class Pending
     {
-        internal Pending(AiFoundingPolicy.Sites sites, int[] founding)
+        internal Pending(AiFoundingPolicy.Sites sites, int[] founding, SiteAssessment.Batch batch)
         {
             Sites = sites;
             Founding = founding;
+            Batch = batch;
         }
 
         /// <summary>The occupied sites and the spacing exclusion: the world's settlements, grown by each queued order the
@@ -48,6 +49,12 @@ public static class FoundSettlementOrderFactory
 
         /// <summary>The source settlement ids whose queued order the predicate accepts, in log order.</summary>
         public IReadOnlyList<int> Founding { get; }
+
+        /// <summary>M5 S1d review — the same standing sites as a snapshot (<see cref="SiteAssessment.Batch"/>: the occupied
+        /// cells and the exclusion <see cref="Sites"/> holds once the queue is replayed, and the standing settlements' own
+        /// exclusion). <see cref="Judge"/> reads THESE arrays, and so does the place card the placement mode docks
+        /// (SiteAssessment.Assess with this batch), so the mode's verdict and the card's are one judgement.</summary>
+        public SiteAssessment.Batch Batch { get; }
 
         /// <summary>Whether a queued order from <paramref name="source"/> already founds this turn.</summary>
         public bool Founds(SettlementId source)
@@ -68,6 +75,8 @@ public static class FoundSettlementOrderFactory
         ArgumentNullException.ThrowIfNull(world);
         ArgumentNullException.ThrowIfNull(queued);
         var sites = new AiFoundingPolicy.Sites(world, frontier);
+        int standing = sites.Occupied.Length;                 // the world's settlements' sites, before any order grows them
+        double[] standingSpacing = sites.Spacing.ToArray();   // copied: Accept grows the exclusion in place
         var founding = new List<int>();
         for (int i = 0; i < queued.Count; i++)
         {
@@ -80,7 +89,7 @@ public static class FoundSettlementOrderFactory
             sites.Accept(site);
             founding.Add(o.TargetId);
         }
-        return new Pending(sites, [.. founding]);
+        return new Pending(sites, [.. founding], new SiteAssessment.Batch(frontier, sites.Occupied, standing, sites.Spacing, standingSpacing));
     }
 
     /// <summary>
@@ -97,7 +106,7 @@ public static class FoundSettlementOrderFactory
         ArgumentNullException.ThrowIfNull(pending);
         if (knowledge.Polity.Value != issuer.Value) throw new ArgumentException("the knowledge must be the issuer's", nameof(knowledge));
         if (!knowledge.KnowsCell(cell)) return null;
-        return FoundingQuery.Check(world, cfg, frontier, pending.Sites.Spacing, pending.Sites.Occupied, issuer, source, cell);
+        return FoundingQuery.Check(world, cfg, frontier, pending.Batch.Spacing, pending.Batch.Occupied, issuer, source, cell);
     }
 
     /// <summary>The FoundSettlement order for (<paramref name="issuer"/>, <paramref name="source"/>,
