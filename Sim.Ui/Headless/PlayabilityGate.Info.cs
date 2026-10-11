@@ -101,7 +101,8 @@ public static partial class PlayabilityGate
         {
             // ---- POLICY: every kind the action surface paints, scrolled into view.
             foreach (InfoKind kind in new[] { InfoKind.LabourSector, InfoKind.Good, InfoKind.Learning, InfoKind.ResearchNode, InfoKind.Age,
-                         InfoKind.Project, InfoKind.Recipe, InfoKind.RoadClass, InfoKind.TaxEdict, InfoKind.Formation, InfoKind.Baseline, InfoKind.UniversityType })
+                         InfoKind.Project, InfoKind.Recipe, InfoKind.RoadClass, InfoKind.TaxEdict, InfoKind.Formation, InfoKind.Baseline, InfoKind.UniversityType,
+                         InfoKind.Founding })
             {
                 InfoKind k = kind;
                 Check("info", "shift-click " + k + " (POLICY)", () =>

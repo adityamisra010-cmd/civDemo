@@ -138,9 +138,16 @@ public class TurnOneActionSurfaceTests
         Assert.DoesNotContain(actions, a => a.Provenance.Researched);
         // R1: the crafts known at founding are exactly the BASELINE recipes (null requirement in content).
         Assert.Equal(["Weaving", "Toolmaking"], Of(actions, ActionDomain.Production).Select(a => a.Label));
+        // COLONIZATION (M5 S1d, D-051 §5): Found a settlement from every settlement — each can spare a party and provision
+        // it at founding (FoundingQuery.Departure, the source-side arms); the place is chosen on the map.
+        ActionDescriptor[] founding = Of(actions, ActionDomain.Colonization);
+        var ids = new List<long>();
+        for (int i = 0; i < w.Settlements.Count; i++) ids.Add(w.Settlements[i].Id.Value);
+        Assert.Equal(ids, founding.Select(a => a.Id));
+        Assert.All(founding, a => Assert.Equal((ActionKind.Order, (OrderKind?)OrderKind.FoundSettlement, (string?)null), (a.Kind, a.Order, a.Blocker)));
         // Construction contributes 12 (one granary per settlement), not 24: the workshop is not listed at founding
-        // (Director 2026-10-10, D-051 §4 — see CONSTRUCTION above).
-        Assert.Equal(12 * 5 + 1 + 12 + 1 + 8 + 2, actions.Length);
+        // (Director 2026-10-10, D-051 §4 — see CONSTRUCTION above). M5 S1d: + 12 Found Settlement (84 -> 96).
+        Assert.Equal(12 * 5 + 1 + 12 + 1 + 8 + 2 + 12, actions.Length);
     }
 
     // ------------------------------------------------------------------ Farming replaces Gathering (step 7)

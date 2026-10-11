@@ -32,6 +32,9 @@ public enum ActionCommandKind
     SetTax = 7,
     /// <summary>Select another controlled settlement (UI only).</summary>
     SelectSettlement = 8,
+    /// <summary>M5 S1d: enter the map's settlement-placement mode from <see cref="ActionCommand.Settlement"/> (UI only —
+    /// the order is appended by the placement's Confirm, through UiSession.EmitFoundSettlement).</summary>
+    FoundSettlement = 9,
 }
 
 public sealed record ActionCommand(
@@ -72,6 +75,8 @@ public enum ActionHitKind
     RoadSlot, RoadTrack, RoadApply,
     TaxSlot, TaxTrack, TaxApply,
     PrevSettlement, NextSettlement,
+    /// <summary>M5 S1d: "Choose a site..." — enter the placement mode from the block's source (A = its settlement id).</summary>
+    FoundSettlement,
 }
 
 public readonly record struct ActionHit(RectD Rect, ActionHitKind Kind, int A, int B);
@@ -223,6 +228,7 @@ public sealed partial class ActionSurfaceScreen
                 case ActionHitKind.PrevSettlement:
                 case ActionHitKind.NextSettlement:
                     return new ActionCommand(ActionCommandKind.SelectSettlement, h.A);
+                case ActionHitKind.FoundSettlement: return new ActionCommand(ActionCommandKind.FoundSettlement, h.A);
             }
         }
         return ActionCommand.None;
@@ -332,6 +338,7 @@ public sealed partial class ActionSurfaceScreen
         if (model.Governance is { } gov) y = PaintGovernance(d, m, model, gov, x, y, width, flat) + gap;
         if (model.Construction is { } construction) y = PaintConstruction(d, m, model, construction, x, y, width, flat) + gap;
         if (model.Roads is { } roads) y = PaintRoads(d, m, model, roads, x, y, width, flat) + gap;
+        if (model.Founding is { } founding) y = PaintFounding(d, m, founding, x, y, width, flat) + gap;   // M5 S1d
         if (model.Production is { } production) y = PaintProduction(d, m, production, x, y, width, flat) + gap;
         if (model.Military is { } military) y = PaintMilitary(d, m, model, military, x, y, width, flat) + gap;
         if (!model.Locked.IsDefaultOrEmpty) y = PaintLocked(d, m, model, x, y, width, flat) + gap;   // M5 polish: visibly locked
@@ -834,6 +841,32 @@ public sealed partial class ActionSurfaceScreen
         }
         if (shown < rb.Routes.Length)
             y = Wrapped(d, m, "... and " + (rb.Routes.Length - shown).ToString(CultureInfo.InvariantCulture) + " more eligible route(s).", x + Sp(8), y, w - Sp(8), Caption, t.Ink.TextSoft);
+        return y;
+    }
+
+    /// <summary>
+    /// M5 S1d — FOUND A SETTLEMENT: the source (the block's target settlement), the party and its provisions (the query's
+    /// own detail — FoundingQuery's numbers), and ONE button, "Choose a site...", that enters the map's placement mode. No
+    /// order is issued here: the site is chosen on the map, judged cell by cell by the same predicate, and the order is
+    /// appended only by the placement's Confirm.
+    /// </summary>
+    private double PaintFounding(DrawList d, ITextMeasure m, FoundingBlock fb, double x, double y, double w, bool flat)
+    {
+        EraTheme t = T;
+        string heading = flat ? "New settlements" : "Settling - found a settlement";
+        Info(HeadingRect(m, heading, x, y, w, flat), InfoSubject.OfFounding(fb.Source.Value), heading);
+        y = Heading(d, m, heading, x, y, w, flat, 950);
+        RectD go = Button(d, m, "Choose a site...", x + w, y, 951, ControlStyle.Primary);
+        _hits.Add(new ActionHit(go, ActionHitKind.FoundSettlement, fb.Source.Value, 0));
+        double labelW = Math.Max(Sp(40), w - go.W - Sp(12));
+        double ly = Wrapped(d, m, "Settlers from " + fb.Name, x, y + Math.Max(0, (go.H - L(BodyBold)) / 2), labelW, BodyBold, t.Ink.Text, FontRole.Heading);
+        y = Math.Max(ly, go.Bottom) + Sp(4);
+        y = Wrapped(d, m, fb.Detail + ".", x, y, w, Second, t.Ink.Text);
+        y = Wrapped(d, m, "Choose a place you have discovered on the map; each place says whether settlers could go there, and why not.",
+            x, y, w, Second, t.Ink.TextSoft);
+        if (fb.Sources.Length > 1)
+            y = Wrapped(d, m, "Select another of your settlements to send settlers from it ("
+                + fb.Sources.Length.ToString(CultureInfo.InvariantCulture) + " can).", x, y, w, Caption, t.Ink.TextSoft);
         return y;
     }
 

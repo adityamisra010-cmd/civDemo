@@ -169,6 +169,12 @@ public sealed record ProductionEntry(string Name, string Detail, int Settlements
 /// code change.</summary>
 public sealed record ProductionBlock(ImmutableArray<ProductionEntry> Entries);
 
+/// <summary>M5 S1d (D-051 §5): FOUND A SETTLEMENT from <c>Source</c> — the target settlement (the selection when the
+/// query lists it, else the capital, else the first listed). <c>Detail</c> is the descriptor's own (the party and its
+/// provisions, FoundingQuery's numbers); <c>Sources</c> every settlement the query lists it for. The site is chosen on the
+/// map in the placement mode; nothing here is an order until the placement's Confirm.</summary>
+public sealed record FoundingBlock(SettlementId Source, string Name, string Detail, ImmutableArray<SettlementId> Sources, ActionDescriptor Action);
+
 /// <summary>What the people do on their own — standing capabilities, one compact list, no controls. M5 polish:
 /// <c>Subjects</c> is each item's info subject (parallel to <c>Items</c>) for Shift+click.</summary>
 public sealed record StandingBlock(ImmutableArray<string> Items, ImmutableArray<InfoSubject> Subjects = default);
@@ -190,7 +196,7 @@ public sealed record ActionSurfaceModel(
     UiEra Era, SurfaceLayout Layout, LabourControlSpec Control, ImmutableArray<ActionDescriptor> Actions,
     LabourBlock? Labour, ResearchBlock? Research, AgeBlock? Age, ConstructionBlock? Construction, RoadsBlock? Roads,
     MilitaryBlock? Military, GovernanceBlock? Governance, StandingBlock? Standing, ImmutableArray<string> Notices,
-    ProductionBlock? Production = null, ImmutableArray<LockedDomain> Locked = default)
+    ProductionBlock? Production = null, ImmutableArray<LockedDomain> Locked = default, FoundingBlock? Founding = null)
 {
     /// <summary>The domains the surface shows, in the query's domain order.</summary>
     public ImmutableArray<ActionDomain> Domains
@@ -207,6 +213,7 @@ public sealed record ActionSurfaceModel(
             if (Governance is not null) b.Add(ActionDomain.Governance);
             if (Standing is not null) b.Add(ActionDomain.Standing);
             if (Production is not null) b.Add(ActionDomain.Production);
+            if (Founding is not null) b.Add(ActionDomain.Colonization);
             return b.ToImmutable();
         }
     }
@@ -254,7 +261,21 @@ public static class ActionSurface
             Standing(actions),
             Notices(input, actions, notices),
             Production(input, actions),
-            Locked(input, actions, target));
+            Locked(input, actions, target),
+            Founding(input, actions));
+    }
+
+    // ------------------------------------------------------------------ founding (M5 S1d)
+
+    /// <summary>The Found Settlement block: present iff the query lists the action for some settlement (its source-side
+    /// arms hold); shown for the target settlement (<see cref="TargetSettlement"/>: the selection, the capital, the first).</summary>
+    private static FoundingBlock? Founding(ActionSurfaceInput input, ImmutableArray<ActionDescriptor> actions)
+    {
+        if (TargetSettlement(input, actions, ActionDomain.Colonization) is not { } source) return null;
+        foreach (ActionDescriptor a in actions)
+            if (a.Domain == ActionDomain.Colonization && a.Id == source.Value)
+                return new FoundingBlock(source, input.Name(source.Value), a.Detail ?? "", SettlementsListed(actions, ActionDomain.Colonization), a);
+        return null;
     }
 
     /// <summary>The surface for a live session: its world, previous world, config, era table and queued orders.</summary>
@@ -873,6 +894,7 @@ public static class ActionSurface
         ActionDomain.Military => "arms",
         ActionDomain.Governance => "the tax edict",
         ActionDomain.Institutions => "institutions",
+        ActionDomain.Colonization => "founding settlements",
         _ => "what the people do on their own",
     };
 

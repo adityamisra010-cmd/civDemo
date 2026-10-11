@@ -38,6 +38,7 @@ public sealed class InfoPanel
     private object? _builtFor;
     private InfoSubject _builtSubject;
     private int _builtQueued = -1;
+    private object? _builtBatch;
 
     /// <summary>The open subject, or null.</summary>
     public InfoSubject? Subject { get; private set; }
@@ -95,17 +96,21 @@ public sealed class InfoPanel
 
     /// <summary>Builds the card when the world, the subject or the number of queued orders changed. P7:
     /// <paramref name="knowledge"/> is what the player knows (null = the seam's production view, all-known until S2a). P8:
-    /// <paramref name="site"/> is the terrain half of a map cell's site assessment (the session's).</summary>
+    /// <paramref name="site"/> is the terrain half of a map cell's site assessment (the session's). M5 S1d review:
+    /// <paramref name="batch"/> is the founding batch a map cell's card is judged against (the placement mode's), and the
+    /// card is rebuilt when it is another one (entering or leaving the mode, a rebuilt batch).</summary>
     public InfoCard? Ensure(IReadOnlyWorldState world, SimConfig cfg, PolityId player, ActionQueryContext context,
-        Func<int, string> names, int queued, PolityKnowledge? knowledge = null, SiteAssessment.Prepared? site = null)
+        Func<int, string> names, int queued, PolityKnowledge? knowledge = null, SiteAssessment.Prepared? site = null,
+        SiteAssessment.Batch? batch = null)
     {
         if (Subject is not { } s) return null;
-        if (Card is null || !ReferenceEquals(_builtFor, world) || _builtSubject != s || _builtQueued != queued)
+        if (Card is null || !ReferenceEquals(_builtFor, world) || _builtSubject != s || _builtQueued != queued || !ReferenceEquals(_builtBatch, batch))
         {
-            Card = InfoQuery.Card(world, cfg, player, s, context, names, knowledge: knowledge, site: site);
+            Card = InfoQuery.Card(world, cfg, player, s, context, names, knowledge: knowledge, site: site, batch: batch);
             _builtFor = world;
             _builtSubject = s;
             _builtQueued = queued;
+            _builtBatch = batch;
         }
         return Card;
     }

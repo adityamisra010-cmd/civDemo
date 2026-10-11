@@ -116,7 +116,9 @@ public static partial class PlayabilityGate
     private static readonly PolityId Me = UiPlayer.Empire;
 
     /// <summary>A named state and how it is built (by playing, or by a stated rig).</summary>
-    public sealed record GateState(string Name, string How, Func<UiSession> Build, int Width = 1280, int Height = 800);
+    /// <param name="MonkeyInPlacement">M5 S1d: the monkey starts inside the settlement-placement mode (the placement state).</param>
+    public sealed record GateState(string Name, string How, Func<UiSession> Build, int Width = 1280, int Height = 800,
+        bool MonkeyInPlacement = false);
 
     /// <summary>The states the Director listed (§2), in order.</summary>
     public static IReadOnlyList<GateState> States(int? aiEmpires)
@@ -139,6 +141,8 @@ public static partial class PlayabilityGate
         list.Add(new("tax available" + aiTag, "rig: the Taxation civic and a road class (track_road) with their prerequisites completed, Age III, one End Turn", () => TaxAvailable(ai)));
         list.Add(new("age advance" + aiTag, "rig: Age II's research milestones completed; the advance is then made THROUGH THE UI", () => AgeEligible(ai)));
         list.Add(new("colony+revolt" + aiTag, "rig: a colony founded by the real ColonizationSystem (stranded source) and one settlement passed to a new AI polity as RevoltSystem does", () => SettlementChanges(ai)));
+        list.Add(new("placement" + aiTag, "S1d: turn 1, a Found Settlement order placed through the UI's guarded emitter (the capital to its best legal place) and one End Turn - the colony stands; the monkey plays inside the placement mode",
+            () => PlacementRig(ai), MonkeyInPlacement: true));
         if (aiEmpires is null)
             list.Add(new("hidden rival", "P7: the one-AI world at turn 1 seen through a knowledge stub that hides the AI polity whole (KnowledgeStubs.HidePolity) - every surface draws, Tab and clicks skip what the player does not know", HiddenRival));
         return list;
@@ -183,6 +187,7 @@ public static partial class PlayabilityGate
             try
             {
                 run.Sweep();
+                if (state.MonkeyInPlacement) run.EnterForMonkey();   // M5 S1d
                 run.Monkey(o.MonkeySteps, o.MonkeySeed);
                 run.Coverage();
             }
@@ -503,6 +508,7 @@ public static partial class PlayabilityGate
 
         private void CloseEverything()
         {
+            if (Ui.Placement.Active) h.Key(Keys.Escape);   // M5 S1d: the placement mode first (its card goes with it)
             if (Ui.Inspector.IsOpen) h.Key(Keys.Escape);   // M5 polish: the info card closes first
             for (int i = 0; i < 4 && (Ui.ProgressionOpen || Ui.Age.FlowOpen); i++) h.Key(Keys.Escape);
             if (Ui.ContextFolded) h.ClickControl("panel-unfold");   // P1: a folded column's close button is on its panel
@@ -536,6 +542,8 @@ public static partial class PlayabilityGate
             Keyboard();
             CloseEverything();
             Map();
+            CloseEverything();
+            Placement();         // M5 S1d: the settlement-placement mode (before End Turn: a confirmed order founds there)
             CloseEverything();
             EndTurnChecks();
             CloseEverything();
@@ -2063,7 +2071,8 @@ public static partial class PlayabilityGate
             ulong Next() { x += 0x9E3779B97F4A7C15UL; ulong z = x; z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9UL; z = (z ^ (z >> 27)) * 0x94D049BB133111EBUL; return z ^ (z >> 31); }
             int Pick(int n) => (int)(Next() % (ulong)n);
             Keys[] keys = [Keys.K, Keys.Escape, Keys.Tab, Keys.D1, Keys.D2, Keys.D3, Keys.D4, Keys.D5, Keys.D6, Keys.D7, Keys.F12,
-                Keys.W, Keys.A, Keys.S, Keys.D, Keys.Up, Keys.Down, Keys.Left, Keys.Right, Keys.Space, Keys.Enter, Keys.H, Keys.L];
+                Keys.W, Keys.A, Keys.S, Keys.D, Keys.Up, Keys.Down, Keys.Left, Keys.Right, Keys.Space, Keys.Enter, Keys.H, Keys.L,
+                Keys.F];   // M5 S1d: F enters / leaves the placement mode (Enter confirms in it, Escape cancels)
             int endTurns = 0;
             for (int i = 0; i < steps; i++)
             {

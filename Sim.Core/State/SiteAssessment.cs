@@ -101,6 +101,80 @@ public static class SiteAssessment
         };
     }
 
+    /// <summary>
+    /// M5 S1d review — THE FOUNDING BATCH a place is judged against: the site cells standing for the coming step's founding
+    /// orders — the world's settlements first (<see cref="StandingCount"/> of them, in table order), then each site an order
+    /// already queued this turn will found, in log order — and the spacing exclusion they make. These are exactly the
+    /// arrays FoundingQuery.Check's explicit overload takes (AiFoundingPolicy.Sites grown by each accepted order: the
+    /// intake's own growth); <see cref="StandingSpacing"/> is the exclusion of the standing settlements alone, so a refusal
+    /// that only an ORDERED site causes is told as such. A snapshot: the caller (the UI's
+    /// FoundSettlementOrderFactory.Standing, which replays the queue through THE predicate) builds it once and nothing
+    /// writes it afterwards. Read-only; nothing here is serialized or consulted by a system.
+    /// </summary>
+    public sealed class Batch
+    {
+        private readonly int[] _occupied;
+        private readonly double[] _spacing;
+        private readonly double[] _standingSpacing;
+
+        /// <summary>The batch over <paramref name="frontier"/>: <paramref name="occupied"/> the site cells (the first
+        /// <paramref name="standingCount"/> the world's settlements', the rest ordered this turn), <paramref name="spacing"/>
+        /// their exclusion and <paramref name="standingSpacing"/> the standing settlements' alone (both over the frontier
+        /// lattice's nodes, or both empty for a world without terrain). Copied.</summary>
+        public Batch(SettlementSiting.FrontierSiting frontier, ReadOnlySpan<int> occupied, int standingCount,
+            ReadOnlySpan<double> spacing, ReadOnlySpan<double> standingSpacing)
+        {
+            ArgumentNullException.ThrowIfNull(frontier);
+            if ((uint)standingCount > (uint)occupied.Length) throw new ArgumentOutOfRangeException(nameof(standingCount));
+            if (spacing.Length != standingSpacing.Length) throw new ArgumentException("the two exclusions must cover the same nodes", nameof(standingSpacing));
+            Frontier = frontier;
+            StandingCount = standingCount;
+            _occupied = occupied.ToArray();
+            _spacing = spacing.ToArray();
+            _standingSpacing = standingSpacing.ToArray();
+        }
+
+        /// <summary>The frontier the batch was built over (the one the assessment's <see cref="Prepared"/> holds).</summary>
+        public SettlementSiting.FrontierSiting Frontier { get; }
+
+        /// <summary>The site cells: the world's settlements', then the ordered ones.</summary>
+        public ReadOnlySpan<int> Occupied => _occupied;
+
+        /// <summary>How many of <see cref="Occupied"/> (the first ones) are standing settlements' sites.</summary>
+        public int StandingCount { get; }
+
+        /// <summary>How many sites orders queued this turn will found.</summary>
+        public int OrderedCount => _occupied.Length - StandingCount;
+
+        /// <summary>The spacing exclusion of every site of the batch, per lattice node.</summary>
+        public ReadOnlySpan<double> Spacing => _spacing;
+
+        /// <summary>The spacing exclusion of the standing settlements alone, per lattice node.</summary>
+        public ReadOnlySpan<double> StandingSpacing => _standingSpacing;
+
+        /// <summary>Whether <paramref name="cell"/> is the site of an order queued this turn and of no standing settlement.</summary>
+        public bool OrderedAt(int cell) =>
+            !SettlementSiting.IsOccupied(Occupied[..StandingCount], cell) && SettlementSiting.IsOccupied(Occupied[StandingCount..], cell);
+
+        /// <summary>Whether <paramref name="cell"/>'s origin lattice node lies inside the spacing of a site ordered this turn
+        /// and outside every standing settlement's (IsUnobstructedFrontierCell's spacing test on each exclusion).</summary>
+        public bool ExcludedByOrder(int cell)
+        {
+            if ((uint)cell >= (uint)Frontier.Scores.Length || _spacing.Length == 0) return false;
+            int node = LatticeMap.OriginLatticeNode(Frontier.Lattice, Frontier.Size, cell);
+            return _spacing[node] < Frontier.MinSpacingCostUnits && !(_standingSpacing[node] < Frontier.MinSpacingCostUnits);
+        }
+
+        /// <summary>Whether the refusal <paramref name="verdict"/> at <paramref name="cell"/> is caused by an order queued this
+        /// turn alone: Occupied by an ordered site, or TooClose inside an ordered site's spacing only.</summary>
+        public bool RefusesByOrder(FoundingVerdict verdict, int cell) => verdict switch
+        {
+            FoundingVerdict.Occupied => OrderedAt(cell),
+            FoundingVerdict.TooClose => ExcludedByOrder(cell),
+            _ => false,
+        };
+    }
+
     /// <summary>One arm of the founding predicate as judged here: <see cref="Holds"/> null when the arm could not be
     /// judged — its source does not stand, or an earlier arm it depends on decides it, or (<see cref="Unseen"/>) it
     /// depends on what the viewer has not seen (the player's information class).</summary>
@@ -193,6 +267,28 @@ public static class SiteAssessment
         /// <summary>The settlement whose catchment holds the cell's node (a CatchmentNodes row), or -1. Unless
         /// <see cref="SeesAll"/>: a settlement the viewer KNOWS, or -1.</summary>
         public int ClaimedBy { get; init; } = -1;
+        /// <summary>M5 S1d review: how many sites orders queued this turn will found, in the <see cref="Batch"/> the place was
+        /// judged against (0 without one). With a batch the occupancy and spacing arms and the verdict are the batch's —
+        /// FoundingQuery.Check's explicit overload, the answer the emitter's guard and the intake give.</summary>
+        public int OrderedSites { get; init; }
+        /// <summary>The cell is the site of a settlement an order queued this turn will found (no settlement stands there
+        /// yet): <see cref="Batch.OrderedAt"/>. Unless <see cref="SeesAll"/>: the cell is one of the batch's ordered sites
+        /// and no settlement the viewer knows stands there (the standing settlements are not read). False without a batch.</summary>
+        public bool OccupiedByOrder { get; init; }
+        /// <summary>The cell's node lies inside the spacing of a site ordered this turn and outside every standing
+        /// settlement's: <see cref="Batch.ExcludedByOrder"/>. False without a batch, or unless <see cref="SeesAll"/>
+        /// (spacing reads every settlement and the lattice).</summary>
+        public bool TooCloseByOrder { get; init; }
+        /// <summary>Min travel cost from any site of the batch — standing or ordered this turn — to the cell's node (the
+        /// exclusion the spacing arm reads with a batch). NaN without a batch or unless <see cref="SeesAll"/>.</summary>
+        public double BatchSpacingCost { get; init; } = double.NaN;
+        /// <summary>Whether <see cref="Verdict"/> is a refusal that only an order queued this turn causes (its own words).</summary>
+        public bool RefusedByOrder => Verdict switch
+        {
+            FoundingVerdict.Occupied => OccupiedByOrder,
+            FoundingVerdict.TooClose => TooCloseByOrder,
+            _ => false,
+        };
 
         // ---- hinterland and deposits (not part of the score)
         public double HinterlandRadiusPx { get; init; }
@@ -262,10 +358,15 @@ public static class SiteAssessment
     /// The assessment of <paramref name="cell"/> for <paramref name="viewer"/> (whose knowledge is
     /// <paramref name="knowledge"/>), judged from <paramref name="source"/> (-1: <see cref="DefaultSource"/>), listing up to
     /// <paramref name="nearest"/> known settlements. Reads only; writes nothing anywhere.
+    /// <para>M5 S1d review: with a <paramref name="batch"/> (the placement mode's: this turn's queued founding orders replayed
+    /// through THE predicate) the occupancy and spacing arms and the verdict are judged against the batch's sites —
+    /// FoundingQuery.Check's explicit overload, the answer the emitter's guard and the intake give — and a refusal that only
+    /// an ordered site causes is flagged (<see cref="Report.OccupiedByOrder"/>, <see cref="Report.TooCloseByOrder"/>).
+    /// Without one, the standing settlements alone (P8, unchanged).</para>
     /// </summary>
     public static Report Assess(
         IReadOnlyWorldState world, SimConfig cfg, Prepared site, PolityKnowledge knowledge, PolityId viewer,
-        int cell, int source = -1, int nearest = 5)
+        int cell, int source = -1, int nearest = 5, Batch? batch = null)
     {
         ArgumentNullException.ThrowIfNull(world);
         ArgumentNullException.ThrowIfNull(cfg);
@@ -273,6 +374,8 @@ public static class SiteAssessment
         ArgumentNullException.ThrowIfNull(knowledge);
         if (knowledge.Polity.Value != viewer.Value) throw new ArgumentException("the knowledge must be the viewer's", nameof(knowledge));
         if (!site.IsFor(world.Terrain)) throw new ArgumentException("the prepared site half is for another terrain", nameof(site));
+        if (batch is not null && !ReferenceEquals(batch.Frontier, site.Frontier))
+            throw new ArgumentException("the batch is over another frontier than the prepared site half's", nameof(batch));
         TerrainSet t = site.Terrain;
         int size = t.Size;
 
@@ -321,19 +424,31 @@ public static class SiteAssessment
             candidate = SettlementSiting.IsFrontierCandidate(f, t, cell);
         }
 
-        // ---- obstruction (the standing sites, as FoundingQuery.Check derives them), and claim. Unless the viewer sees the
-        // whole world: spacing is withheld (every settlement, the lattice), and occupancy and claim name only a settlement
-        // the viewer KNOWS.
+        // ---- obstruction (the standing sites, as FoundingQuery.Check derives them — or, with a batch, the batch's sites, as the
+        // explicit overload takes them), and claim. Unless the viewer sees the whole world: spacing is withheld (every
+        // settlement, the lattice), and occupancy and claim name only a settlement the viewer KNOWS (or a site the viewer's
+        // own queued order takes — the batch's ordered sites are the viewer's orders).
         int occupiedBy = -1, claimedBy = -1;
-        bool isOccupied = false, tooClose = false;
-        double spacingCost = double.NaN;
+        bool isOccupied = false, tooClose = false, occupiedByOrder = false, tooCloseByOrder = false;
+        double spacingCost = double.NaN, batchSpacingCost = double.NaN;
         if (all)
         {
             var occupied = new int[n];
             for (int i = 0; i < n; i++) occupied[i] = world.Settlements[i].SiteCell;
             spacingCost = SettlementSiting.SeedSpacing(f, occupied)[node];
-            tooClose = spacingCost < f.MinSpacingCostUnits;
-            isOccupied = SettlementSiting.IsOccupied(occupied, cell);
+            if (batch is null)
+            {
+                tooClose = spacingCost < f.MinSpacingCostUnits;
+                isOccupied = SettlementSiting.IsOccupied(occupied, cell);
+            }
+            else
+            {
+                batchSpacingCost = batch.Spacing[node];
+                tooClose = batchSpacingCost < f.MinSpacingCostUnits;
+                isOccupied = SettlementSiting.IsOccupied(batch.Occupied, cell);
+                occupiedByOrder = batch.OrderedAt(cell);
+                tooCloseByOrder = !isOccupied && batch.ExcludedByOrder(cell);
+            }
             for (int i = 0; i < n; i++) if (occupied[i] == cell) { occupiedBy = world.Settlements[i].Id.Value; break; }
             for (int i = 0; i < world.CatchmentNodes.Count; i++)
                 if (world.CatchmentNodes[i].LatticeNode == node) { claimedBy = world.CatchmentNodes[i].Settlement.Value; break; }
@@ -342,6 +457,8 @@ public static class SiteAssessment
         {
             for (int i = 0; i < n; i++)
                 if (world.Settlements[i].SiteCell == cell && knowledge.KnowsSettlement(world.Settlements[i].Id)) { occupiedBy = world.Settlements[i].Id.Value; break; }
+            // Only the ORDERED part of the batch is read here (the viewer's own orders), never the standing settlements'.
+            occupiedByOrder = occupiedBy < 0 && batch is not null && SettlementSiting.IsOccupied(batch.Occupied[batch.StandingCount..], cell);
             for (int i = 0; i < world.CatchmentNodes.Count; i++)
                 if (world.CatchmentNodes[i].LatticeNode == node && knowledge.KnowsSettlement(world.CatchmentNodes[i].Settlement))
                 { claimedBy = world.CatchmentNodes[i].Settlement.Value; break; }
@@ -460,7 +577,9 @@ public static class SiteAssessment
         FoundingVerdict? verdict;
         if (all)
         {
-            verdict = FoundingQuery.Check(world, cfg, f, viewer, srcId, cell);
+            verdict = batch is null
+                ? FoundingQuery.Check(world, cfg, f, viewer, srcId, cell)
+                : FoundingQuery.Check(world, cfg, f, batch.Spacing, batch.Occupied, viewer, srcId, cell);
             arms = ImmutableArray.Create(
                 new FoundingArm(FoundingVerdict.UnknownSource, stands),
                 new FoundingArm(FoundingVerdict.NotControlled, stands ? EmpireQuery.ControlsSettlement(world, viewer, srcId) : null),
@@ -479,16 +598,17 @@ public static class SiteAssessment
             // Judged from what the viewer knows, or Unseen: the floor (every cell); occupancy, unless a known settlement
             // stands here or the cell is in sight (no settlement stands unseen on a cell in sight); spacing (every settlement,
             // the lattice); the claim, unless a known settlement's catchment holds the node; the route (the lattice, every road).
+            // A site the viewer's own order queued this turn takes is occupied in the batch: known to the viewer.
             arms = ImmutableArray.Create(
                 new FoundingArm(FoundingVerdict.UnknownSource, stands),
                 new FoundingArm(FoundingVerdict.NotControlled, stands ? EmpireQuery.ControlsSettlement(world, viewer, srcId) : null),
                 new FoundingArm(FoundingVerdict.OffMap, f.Size == size),
                 new FoundingArm(FoundingVerdict.Water, !water),
                 new FoundingArm(FoundingVerdict.PoorSite, null, Unseen: !water),
-                occupiedBy >= 0 ? new FoundingArm(FoundingVerdict.Occupied, false)
+                occupiedBy >= 0 || occupiedByOrder ? new FoundingArm(FoundingVerdict.Occupied, false)
                     : knowledge.SeesCell(cell) ? new FoundingArm(FoundingVerdict.Occupied, true)
                     : new FoundingArm(FoundingVerdict.Occupied, null, Unseen: true),
-                new FoundingArm(FoundingVerdict.TooClose, null, Unseen: occupiedBy < 0),
+                new FoundingArm(FoundingVerdict.TooClose, null, Unseen: occupiedBy < 0 && !occupiedByOrder),
                 claimedBy >= 0 ? new FoundingArm(FoundingVerdict.Claimed, false) : new FoundingArm(FoundingVerdict.Claimed, null, Unseen: true),
                 new FoundingArm(FoundingVerdict.NoParty, stands ? party >= 1 : null),
                 new FoundingArm(FoundingVerdict.NoProvisions, stands && party >= 1 ? provisions >= 1 : null),
@@ -523,6 +643,8 @@ public static class SiteAssessment
             Candidate = candidate,
             SiteNode = node, OccupiedBy = occupiedBy, SpacingCost = spacingCost, MinSpacingCost = f.MinSpacingCostUnits,
             MinSpacingKm = siting.MinSpacingKm, ClaimedBy = claimedBy,
+            OrderedSites = batch?.OrderedCount ?? 0, OccupiedByOrder = occupiedByOrder, TooCloseByOrder = tooCloseByOrder,
+            BatchSpacingCost = batchSpacingCost,
             HinterlandRadiusPx = radiusPx, MeanMoisture = meanM, MeanElevation = meanE, Deposits = deposits,
             DepositsUnavailable = depositsUnavailable, NextSettlementId = nextId, RollWithheld = rollWithheld,
             WouldBeArableKm2 = arable, WouldBeNodes = arableNodes, CatchmentUnavailable = catchmentUnavailable,

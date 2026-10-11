@@ -196,6 +196,28 @@ public static class FoundingQuery
         return FoundingVerdict.Legal;
     }
 
+    /// <summary>
+    /// M5 S1d — THE ROUTE the reachability arm judges, for a preview: <see cref="RouteQuery.Find"/> on the frontier lattice
+    /// plus <paramref name="world"/>'s network overlay, from the source's origin lattice node to the site's — the same
+    /// nodes and edge set <see cref="Pathfinder.FindPath"/> expands in arm 7, so the route shown is the route judged (its
+    /// <c>Found</c> is arm 7's answer). Null when the source does not stand in <paramref name="world"/> or the site is not
+    /// a cell of the frontier's map. Read-only, like the predicate.
+    /// </summary>
+    public static RouteQuery.Route? RouteFrom(
+        IReadOnlyWorldState world, SettlementSiting.FrontierSiting frontier, SettlementId source, int siteCell)
+    {
+        ArgumentNullException.ThrowIfNull(world);
+        ArgumentNullException.ThrowIfNull(frontier);
+        if ((uint)siteCell >= (uint)frontier.Scores.Length) return null;
+        int sourceCell = -1;
+        for (int i = 0; i < world.Settlements.Count; i++)
+            if (world.Settlements[i].Id == source) { sourceCell = world.Settlements[i].SiteCell; break; }
+        if (sourceCell < 0) return null;
+        return RouteQuery.Find(frontier.Lattice, world,
+            LatticeMap.OriginLatticeNode(frontier.Lattice, frontier.Size, sourceCell),
+            LatticeMap.OriginLatticeNode(frontier.Lattice, frontier.Size, siteCell));
+    }
+
     /// <summary>ADR-036 "unclaimed", negated: some settlement's catchment holds <paramref name="latticeNode"/>.</summary>
     public static bool IsClaimed(IReadOnlyWorldState world, int latticeNode)
     {

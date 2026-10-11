@@ -49,6 +49,8 @@ public static class FrameSurface
     public const string Legend = "legend";
     /// <summary>P9: the overlay controls (the overlay's key is the lens's: the lens paints it with the map).</summary>
     public const string Overlay = "overlay";
+    /// <summary>M5 S1d: the settlement-placement mode — its bar over the map and its hint beside the pointer.</summary>
+    public const string Placement = "placement";
 }
 
 /// <summary>

@@ -502,6 +502,9 @@ public sealed partial class GameUi
             case Sim.Ui.Actions.ActionCommandKind.SelectSettlement:
                 if (cmd.Settlement >= 0 && cmd.Settlement != _selected) { _selected = cmd.Settlement; RefreshHud(); }
                 return;
+            case Sim.Ui.Actions.ActionCommandKind.FoundSettlement:   // M5 S1d: the placement mode (UI only)
+                BeginPlacement(cmd.Settlement);
+                return;
         }
         if (!cmd.IsOrder || !Sim.Ui.Actions.ActionDispatch.Apply(_session, cmd)) return;
         SaveSession();
@@ -522,6 +525,7 @@ public sealed partial class GameUi
 
     private void EndTurn()
     {
+        EndPlacement();   // M5 S1d: the mode judged the world that is about to be stepped
         int ageBefore = _session.Config.Ages is { } a0 ? AgeQuery.CurrentAge(_world, a0, UiPlayer.Empire) : 0;
         _session.EndTurn();
         _world = _session.World;
@@ -605,7 +609,8 @@ public sealed partial class GameUi
         Sim.Ui.Render.RectD map = _mapRect;
         ImGuiIOPtr io = ImGui.GetIO();
         _shift = keyboard.IsKeyDown(Keys.LeftShift) || keyboard.IsKeyDown(Keys.RightShift);   // M5 polish: Shift+click = info
-        if (UpdateInfoKeys(keyboard, io))
+        // M5 S1d: in the placement mode Escape cancels it and Enter confirms — before the info card's Escape (its card is the mode's).
+        if (UpdatePlacementKeys(keyboard, io) || UpdateInfoKeys(keyboard, io))
         {
             _lastMouse = mouse;
             _lastKeyboard = keyboard;
@@ -680,8 +685,10 @@ public sealed partial class GameUi
             {
                 // P3: the legend lies over the map; a click on it picks nothing the map draws beneath it.
                 // H1 / Director §3: a formation token is picked before the settlement it stands beside.
-                int unit = OnLegend(mouse.X, mouse.Y) ? -1 : UnitSelection.HitTest(_lensFrame, mouse.X, mouse.Y);
-                if (unit >= 0) SelectUnit(unit);
+                // M5 S1d: in the placement mode a click CHOOSES A PLACE (the first of the two steps) and selects nothing else.
+                int unit = _placement.Active || OnLegend(mouse.X, mouse.Y) ? -1 : UnitSelection.HitTest(_lensFrame, mouse.X, mouse.Y);
+                if (_placement.Active) { if (!OnLegend(mouse.X, mouse.Y)) PlacementClick(mouse.X, mouse.Y); }
+                else if (unit >= 0) SelectUnit(unit);
                 else if (!OnLegend(mouse.X, mouse.Y))
                 {
                     // P3: the footprints and name plates the lens painted last frame — what the player clicked on.
@@ -716,6 +723,10 @@ public sealed partial class GameUi
 
             // P3: L shows (hides) the map legend — the same toggle as its tab. Key edge; UI state only, never an order.
             if (Edge(keyboard, Keys.L) && !keyboard.IsKeyDown(Keys.LeftControl) && !keyboard.IsKeyDown(Keys.RightControl)) _showLegend = !_showLegend;
+
+            // M5 S1d: F enters the settlement-placement mode from the action surface's founding source (or leaves it). Key
+            // edge; UI state only — the order is appended only by the placement's Confirm.
+            if (Edge(keyboard, Keys.F) && !keyboard.IsKeyDown(Keys.LeftControl) && !keyboard.IsKeyDown(Keys.RightControl)) TogglePlacement();
 
             // T4.19 lane B: digits 1..7 OPEN sections in roster order (key
             // edge; the same GameSections.Order the command bar draws, so the
@@ -877,6 +888,7 @@ public sealed partial class GameUi
         _lastLensCommands = lens.Commands;   // P6: kept, read-only, for the frame's observers (LastLensCommands)
         RegisterPlaceUnderPointer();   // P8: Shift+click the ground for its place card (under the tokens)
         RegisterFormationTokens();   // M5 polish: Shift+click a formation token for its card
+        DrawPlacementOverMap();      // M5 S1d: the hovered place judged, its card docked, the route and the marks
 
         if (_session.Config.Ages is null) return;
         _surface = FrameSurface.Age;
@@ -1132,6 +1144,7 @@ public sealed partial class GameUi
         DrawContextPanel();
         DrawLegendTab();   // P3: the map legend's tab, over the map's bottom-right corner
         DrawOverlayTab();   // P9: the resource overlay's controls, over the map's bottom-left corner
+        DrawPlacementBar();   // M5 S1d: the placement mode's bar (Confirm / Cancel) over the top of the map
         DrawCommandBar();
         if (modal) ImGui.EndDisabled();
         if (!modal) DrawInfoHint();   // M5 polish: the Age panel's regions, then the hover hint

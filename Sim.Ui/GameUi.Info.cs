@@ -204,13 +204,20 @@ public sealed partial class GameUi
         if (AgePanelVisible && AgePanelRect().Contains(px, py)) return;
         int cell = MapCells.At(_camera!, _mapRect, px, py, terrain.Size);
         if (cell < 0 || !_session.Knowledge.KnowsCell(cell)) return;
-        int source = _selected >= 0 && EmpireQuery.ControlsSettlement(_world, UiPlayer.Empire, new SettlementId(_selected)) ? _selected : -1;
+        // M5 S1d: in the placement mode the place is judged from the mode's source.
+        int source = _placement.Active ? _placement.Source
+            : _selected >= 0 && EmpireQuery.ControlsSettlement(_world, UiPlayer.Empire, new SettlementId(_selected)) ? _selected : -1;
         InfoRegistry.Add(MapCells.Region(_camera!, _mapRect, cell, terrain.Size, px, py), InfoSubject.OfCell(cell, source), "place", passive: true);
     }
 
     /// <summary>P8: the session's site half, asked for only while a PLACE's card is open — it is prepared the first time
     /// (a pass over the terrain), so no other card pays for it.</summary>
     private SiteAssessment.Prepared? PlaceSites() => _inspector.Subject is { Kind: InfoKind.Cell } ? _session.Sites : null;
+
+    /// <summary>M5 S1d review: while the placement mode is on, a place's card is judged against the mode's own batch (this
+    /// turn's queued founding orders — <see cref="PlacementMode.CardBatch"/>), so the card the mode docks and the mode's hint,
+    /// bar and Confirm give one verdict in one set of words. Null otherwise (P8: the standing settlements alone).</summary>
+    private SiteAssessment.Batch? PlaceBatch() => _inspector.Subject is { Kind: InfoKind.Cell } ? _placement.CardBatch(_session) : null;
 
     private void RegisterFormationTokens()
     {
@@ -229,7 +236,7 @@ public sealed partial class GameUi
         _surface = FrameSurface.Info;
         IReadOnlyList<Sim.Core.Kernel.OrderRecord> queued = _session.QueuedOrders();
         _inspector.Ensure(_world, _session.Config, UiPlayer.Empire, ActionQueryContext.ForNextStep(_world, _eraTable, queued),
-            _session.Names.Name, queued.Count, _session.Knowledge.Core, PlaceSites());   // P7: the card knows what the player knows; P8: a place's site half
+            _session.Names.Name, queued.Count, _session.Knowledge.Core, PlaceSites(), PlaceBatch());   // P7: the card knows what the player knows; P8: a place's site half; S1d: the mode's batch
 
         // UR-3 geometry (as DrawContextPanel): the placed, scaled context rect; the header row's title in the era's
         // title face; the close button flush right.
@@ -299,7 +306,7 @@ public sealed partial class GameUi
         {
             IReadOnlyList<Sim.Core.Kernel.OrderRecord> queued = _session.QueuedOrders();
             _inspector.Ensure(_world, _session.Config, UiPlayer.Empire, ActionQueryContext.ForNextStep(_world, _eraTable, queued),
-                _session.Names.Name, queued.Count, _session.Knowledge.Core, PlaceSites());   // P7; P8
+                _session.Names.Name, queued.Count, _session.Knowledge.Core, PlaceSites(), PlaceBatch());   // P7; P8; S1d
             Sim.Ui.Theme.PanelFrame.Paint(list, panel, _frameTheme, 7000, Sim.Ui.Theme.FrameKind.Panel);
             RectD body = panel.Inset(18);
             list.PushClip(body);
@@ -320,6 +327,7 @@ public sealed partial class GameUi
         if (AgePanelVisible && !_progressionOpen) InfoRegistry.AddRange(_age.InfoHits);
         InfoHint = null;
         InfoHintRect = null;
+        if (DrawPlacementHint()) return;   // M5 S1d: over a hovered place in the placement mode, its own hint
         if (!_active) return;
         System.Numerics.Vector2 p = ImGui.GetIO().MousePos;
         if (p.X < 0 || p.Y < 0 || p.X >= _viewportWidth || p.Y >= _viewportHeight) return;

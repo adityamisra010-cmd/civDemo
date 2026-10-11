@@ -1302,6 +1302,138 @@ and lives only through replay: `ResearchCompletedRow` carries no turn, so a snap
 empty history — every load path today replays. A shortcut with more than one overlay channel (a recipe whose new goods
 span channels) opens them all; none does on the shipped content.
 
+### 3.10 The settlement-placement mode: Found Settlement from the map (M5 workstream S1d, 2026-10-11)
+
+Branch `m5w-s1d-found-settlement-ui`, cut from `m5w-p8-site-inspection` @ `efef5da`. Presentation and order emission
+only: a read-only action listing, ONE guarded emitter, a UI mode. No system, table, schema, order kind or golden changed
+(measured below). Governing record: D-051 §5; ADR-036 §9 (appended).
+
+**The action.** `AvailableActionsQuery` lists "Found a settlement" (domain `Colonization`, `OrderKind.FoundSettlement`)
+for each owned source whose SOURCE-side arms of the predicate hold (control; party and provisions — `FoundingQuery.Departure`),
+not for a source whose founding is already queued this turn. POLICY paints it as a block ("New settlements" at the flat
+density, "Settling - found a settlement" grouped): the source, the party and the provisions (the descriptor's own detail),
+and ONE button, **Choose a site...** (`ActionHitKind.FoundSettlement`), which enters the placement mode. **F** does the same
+for the block's source (and leaves the mode).
+
+**The mode.** Over open map the KNOWN cell under the pointer is judged by the emitter's own judgement
+(`FoundSettlementOrderFactory.Judge` = the player's known extent, then `FoundingQuery.Check` with this turn's batch), its
+footprint painted in the verdict's ink (positive / danger) and a painted hint beside the pointer gives the verdict in the
+place card's words, the route and its cost, and the party and provisions — never an ImGui tooltip. After the pointer
+rests 8 frames, the route (`FoundingQuery.RouteFrom`, the route arm 7 judges) is drawn and the P8 place card judged FROM
+THE SOURCE is docked. A click CHOOSES the place (an illegal one too: its reason stays on the bar); the bar's **Confirm**
+(enabled only for a legal choice) or **Enter** asks `UiSession.EmitFoundSettlement`; **Cancel** or **Escape** leaves; End
+Turn leaves. Undiscovered ground is neither hovered nor chosen. In the mode a map click chooses a place and selects
+nothing else. Under a partial view (`SiteAssessment.SeesAll` false) a refusal decided by unseen ground is not narrated
+and no route is drawn; the legal / not-legal bit itself remains (recorded for S2b, `docs/queue.md`).
+
+**New controls, all recorded (`UiControls`) and covered by gate rows:** `control:found-confirm`,
+`control:found-cancel`, `hit:policy.FoundSettlement`, and the inspectable kind `info:Founding` (POLICY's founding heading
+— the action's own card, `InfoKind.Founding`; the info area's POLICY row list gains it). New key: F. New FrameText
+surface: `placement` (the bar and the hint).
+
+**Gate rows (area `policy: settle`, `placement`, `keys`), in every state's sweep after the map rows and before End Turn:**
+
+| row | what it checks |
+|---|---|
+| `Choose a site... (enters the placement mode)` | POLICY's button opens the mode for the block's source and the bar is drawn; not offered (with the reason) when no source is listed |
+| `hover a legal place (painted hint, route, docked place card; never a tooltip)` | camera row: the best legal place the player knows (AiFoundingPolicy.BestSiteFor with the player's knowledge, against the batch), hovered and rested: judged Legal, the hint says "Found here", no tooltip window, the docked card is `OfCell(place, source)`, and (while the player sees all) a route is shown |
+| `click an illegal place (chosen with its reason; Confirm disabled; Enter appends nothing)` | camera row: the source's own site is chosen as Occupied, the bar says why, a click on the disabled Confirm and Enter append nothing and the refusal is shown |
+| `the camera in the mode (wheel, drag): looking changes nothing` | camera row: wheel in/out and a drag in the mode leave the hash and the queue and the mode as they were |
+| `undiscovered ground is neither hovered nor chosen` | hidden rival only, camera row: where a hidden settlement stands, no hover, no hint, a click chooses nothing |
+| `Escape cancels (nothing queued, no exit request)` | camera row |
+| `found-cancel` | camera row: the bar's Cancel leaves the mode |
+| `F (the placement mode: enter, then leave)` | camera row |
+| `click a legal place, then Confirm (ONE FoundSettlement order, through EmitFoundSettlement)` | exactly one order appended, equal to `FoundingQuery.FoundOrder(world, player, source, place)`, and the mode ends; the sweep's End Turn rows then found the colony |
+
+**The placement state.** `placement`: turn 1, a Found Settlement order placed through `UiSession.EmitFoundSettlement`
+from the capital to its best legal place, one End Turn (the colony stands, so every later place is judged against it);
+the monkey starts inside the mode (`GateState.MonkeyInPlacement`), so its clicks choose places, its Enter confirms and its
+Escape cancels. The monkey's keys gain F in every state (its random stream therefore differs from the base's).
+
+**Moved pins (old -> new, measured cause: the query now lists the Found Settlement action — 12 at turn 1, one per
+settlement, each able to spare a party and provision it).** Sim.Tests `TurnOneActionSurfaceTests` total descriptors
+84 -> 96 (and the founding descriptors asserted: one per settlement, an Order of kind FoundSettlement, no blocker);
+Sim.Ui.Tests `ActionSurfaceTests.TurnOne_TheSurfaceIsExactlyTheBaselineSet` domains + `Colonization`;
+`TurnOne_NoModernDashboard_NoPercent_NoFutureControl` hit kinds + `FoundSettlement` (exactly one) and its query count
+84 -> 96. `InfoQueryTests.EveryAvailableAction_HasACard…` maps the new domain to its card (`InfoKind.Founding`) and adds
+the founding card of every controlled settlement to its converse sweep (an extension: the test throws on an unmapped
+domain by design).
+
+**Unchanged and changed (MEASURED).**
+
+| evidence | result |
+|---|---|
+| `--smoke --monkey 200`, base `efef5da` (exported, built) then this branch | base: 10 states, 2115 checks, 1995 pass, 120 n/o, 0 FAIL, 0 problems, 69,712 frames. After: 11 states, 2417 checks, 2288 pass, 129 n/o, 0 FAIL, 0 problems, 81,461 frames. ATTRIBUTION (the two reports' tables compared cell by cell): in the ten common states no row disappeared and no verdict changed; they gain exactly 91 PASS rows — the eight new placement rows (Choose a site, hover, illegal place, camera, Escape, Cancel, F, Confirm) and `shift-click Founding (POLICY)`, each in all ten states (90), and `undiscovered ground is neither hovered nor chosen` in hidden rival (1); the new `placement` state contributes 202 PASS and 9 n/o (rows its world does not offer, each with its reason, as A1's) |
+| gate scripts | `check-banned-constructs`, `check-read-isolation` (23 allowlisted files: + `PlayabilityGate.Placement.cs`, harness), `check-readonly-proof`: OK |
+| full Sim.Ui.Tests (`f777dd0`) | 761 passed, 0 failed (13 m 36 s), the out-of-process smoke included |
+| full Sim.Tests (`f777dd0`) | 1,696 passed, 13 skipped, 2 failed — the inherited CR-020 reds `Dev_MalthusCorridors_AllInBand` seeds 42 and 7, untouched (43 m 23 s) |
+| founded seed-42 300-turn golden (`sim run --founded --seed 42 --turns 300 --hash-log`, two CLI processes from this tree) | both hash logs byte-identical, 300 lines; last line `937577ffb0e73c2b051d8d7832cfb5028c2154d01c9afef4d976b71ccb5e7f54`, the pinned `FOUNDED_GOLDEN` |
+
+**Mutant kill record.** One-edit mutants, each applied to an exported copy of `f777dd0` (scratch, not a worktree), built
+and run against its filter, then reverted. Bound: 400 s per mutant including the rebuild (clean, no-build: placement UI
+tests 25 s, the guard test 14 s, the core filter 5 s; the bound is 16× the slowest clean filter). None hung.
+
+| mutant | edit | killed by (semantic tests) |
+|---|---|---|
+| M1 | the factory's known-extent arm removed | `UndiscoveredGround_IsNeitherHoverableNorSelectable_AndTheEmitterRefusesIt…` |
+| M2 | `Standing` ignores the queued orders (no batch) | `FoundSettlement_IsQueuedOnlyWhereTheSystemFoundsIt_AndTheLogReplays` |
+| M3 | `Create` skips "a queued order from the source already founds" | `FoundSettlement_IsQueuedOnlyWhereTheSystemFoundsIt…` |
+| M4 | the emitter appends `FoundOrder` unconditionally (no guard) | `FoundSettlement_IsQueuedOnlyWhereTheSystemFoundsIt…`, `AnIllegalPlace_QueuesNothing…`, `UndiscoveredGround…` |
+| M5 | the query lists a source without the Departure arm | `ASourceThatCannotProvisionAParty_IsNotListed…`, `WhenNoPartyCanForm_NothingIsListed…`, `TheFoundingCard_CarriesTheListedDescriptor…` |
+| M6 | the query ignores a queued founding | `ASourceWithAFoundingAlreadyQueuedThisTurn_IsNotListedAgain…`, `TheFoundingCard…`; UI `SelectSource_Hover_Click_Confirm_EndTurn…` |
+| M7 | the query lists settlements the issuer does not control | `EveryControlledSourceWhoseSourceArmsHold_IsListedOnce…`, `TheFoundingCard…` |
+| M8 | a click in the mode also selects the settlement under it | `AnIllegalPlace_QueuesNothing_AndShowsWhy…` (the selection must not change) |
+| M9 | the info card's Escape before the mode's | `AnIllegalPlace_QueuesNothing…` (Escape must leave the mode, its card docked) |
+| M10 | the route drawn under a partial view | `UndiscoveredGround…` (a known legal place under the stub shows no route) |
+| M11 | the reason always narrated, whatever the view | `TheReason_IsThePlaceCardsOwnLine_AndUnderAPartialView…` |
+| M12 | End Turn leaves the mode on | `FKey_EntersAndLeavesTheMode…` |
+| M13 | an undiscovered cell can be chosen | `UndiscoveredGround…` |
+| M14 | an undiscovered cell can be hovered | `UndiscoveredGround…` |
+| M15 | the docked card judged from no source (-1) | `SelectSource_Hover_Click_Confirm_EndTurn…`, `AnIllegalPlace…` |
+
+Each property is one the mode ought to have: the UI queues only what the intake founds (and only on known ground),
+the batch is the intake's, the action is offered only where its source-side arms hold, looking or choosing never acts,
+the player sees only what it knows, and the card is the source's judgement.
+
+**Review finding (fixed on this branch): the docked card and the mode now give one verdict.** At `64e2bec` the mode
+judged each place against this turn's batch, but the place card it docked judged the bare world. With one founding
+queued, the card said that a refused place "would be accepted", and the hint blamed "a standing settlement" that does not
+exist. The claim above, "the verdict in the place card's words", was false in that case. Now the card the mode docks is
+judged against the mode's own batch (`SiteAssessment.Batch`, `SiteAssessment.Assess(…, batch)`, `InfoQuery.Card(…, batch)`;
+ADR-036 §9.2). A refusal that only an ordered colony causes has its own words: "too close to a settlement you ordered
+this turn" and "a settlement you ordered this turn will stand here". The card's status line, its arms, the hint, the bar
+and Confirm's refusal all use them. No control, key, gate row or state was added. The live-UI pin is
+`FoundSettlementUiTests.AFoundingQueuedThisTurn_InsideItsColonysExclusion_TheHintTheBarConfirmAndTheDockedCardGiveOneVerdict`.
+Outside the mode, a place card is still P8's bare-world judgement (recorded in `docs/queue.md`).
+
+The mutants were run in this worktree by a script that applies one edit, builds, runs the test filter and restores the
+file. Each test run was bounded at 150 s, about 6x the clean filters (Sim.Tests `SiteAssessmentTests` 26 s; Sim.Ui.Tests
+`FoundSettlementUiTests` 22 s). None hung, and all ten were killed:
+
+| mutant | edit | killed by (semantic tests) |
+|---|---|---|
+| R1 | the card is not given the mode's batch (`PlaceBatch` → null; the defect as it was) | UI `AFoundingQueuedThisTurn_…` (the card read "a Found Settlement order from Putemim would be accepted") |
+| R2 | `Assess` judges the verdict on the bare world despite a batch | `WithABatch_EachArmAndTheVerdict_…` |
+| R3 | the spacing arm reads the standing exclusion despite a batch | `WithABatch_…` (first failing arm ≠ verdict) |
+| R4 | `Batch.ExcludedByOrder` drops "outside every standing settlement's exclusion" | `WithABatch_…` (a standing settlement's exclusion told as an order's) |
+| R5 | the mode's words ignore the order (`Reason` with byOrder false; the false hint as it was) | UI `AFoundingQueuedThisTurn_…` |
+| R6 | the card's status line ignores the order | `ThePlaceCard_InsideAnOrderedColonysExclusion_…` |
+| R7 | the info panel's card cache ignores the batch | UI `AFoundingQueuedThisTurn_…` (a card already open was not judged again) |
+| R8 | the standing exclusion is copied after the queue grew it | UI `AFoundingQueuedThisTurn_…` |
+| R9 | a partial view ignores the player's own ordered site | `UnderAPartialView_ThePlayersOwnOrderedSite_…` |
+| R10 | the player's own ordered site is told as unseen under a partial view | UI `TheReason_IsThePlaceCardsOwnLine_…` |
+
+Each property is one the system ought to have. What the card shows is what the emitter's guard and the intake decide, and
+the player is never told that a settlement stands where it has only been ordered.
+
+Measured on this tree (Release) after the fix:
+- Full Sim.Ui.Tests: 762 passed, 0 failed (12 m 39 s; 761 before, plus the new UI test).
+- Targeted Sim.Tests (SiteAssessment, InfoQuery, Founding, Colonization, AvailableActions, Knowledge,
+  TurnOneActionSurface): 206 passed, 2 skipped, 0 failed.
+- The gate scripts `check-banned-constructs`, `check-read-isolation` and `check-readonly-proof`: OK.
+- `--smoke --monkey 200`: 11 states, 2417 checks, 2288 pass, 129 not offered, 0 FAIL, 0 problems, 81,461 frames. These are
+  the same counts as the S1d record above, so no row and no verdict moved.
+
 ## 5. The Warband (Director §3), determined from the code
 
 | question | answer at this commit | evidence |

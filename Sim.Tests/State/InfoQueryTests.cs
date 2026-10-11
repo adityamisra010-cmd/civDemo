@@ -410,6 +410,7 @@ public class InfoQueryTests
             case ActionDomain.Standing: return [InfoSubject.OfBaseline(R.Baseline[(int)a.Id].Id)];
             case ActionDomain.Production: return [InfoSubject.OfRecipe(Cfg.Goods!.Recipes[(int)a.Id - 1].Name)];
             case ActionDomain.Trade: return [InfoSubject.OfEntity(Cfg.Trade.Entity!)];
+            case ActionDomain.Colonization: return [InfoSubject.OfFounding((int)a.Id)];   // M5 S1d
             default: throw new InvalidOperationException("unmapped domain " + a.Domain);
         }
     }
@@ -425,6 +426,7 @@ public class InfoQueryTests
             Assert.Contains(actions, a => a.Domain == ActionDomain.Construction);
             Assert.Contains(actions, a => a.Domain == ActionDomain.Production);
             Assert.Contains(actions, a => a.Domain == ActionDomain.Military);
+            Assert.Contains(actions, a => a.Domain == ActionDomain.Colonization);   // M5 S1d
             if (Governance.GateOf(w, Cfg, Player) == TaxGate.Open)
             {
                 Assert.Contains(actions, a => a.Domain == ActionDomain.Governance);
@@ -445,6 +447,7 @@ public class InfoQueryTests
             foreach (SettlementId s in LabourActivities.ControlledSettlements(w, Player))
             {
                 for (int sector = 0; sector < Sectors.Count; sector++) subjects.Add(InfoSubject.Sector(sector, s.Value));
+                subjects.Add(InfoSubject.OfFounding(s.Value));   // M5 S1d
                 foreach (ConstructionProjectEntry p in Cfg.Goods!.Projects!) subjects.Add(InfoSubject.OfProject(p.Id, s.Value));
             }
             foreach (RecipeEntry rec in Cfg.Goods!.Recipes) subjects.Add(InfoSubject.OfRecipe(rec.Name));

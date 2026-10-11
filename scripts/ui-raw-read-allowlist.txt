@@ -33,6 +33,7 @@ Sim.Ui/ViewModel/OverlayMeshes.cs | geometry | overlay mesh helpers no renderer 
 Sim.Ui/Headless/KnowledgeStubs.cs | harness | the knowledge stub itself: it must read the polity it hides
 Sim.Ui/Headless/PlayabilityGate.cs | harness | the headless gate's rigs and rows
 Sim.Ui/Headless/PlayabilityGate.Info.cs | harness | the gate's info rows (P8): the undiscovered-ground row reads where a hidden settlement stands, to check the UI offers nothing there
+Sim.Ui/Headless/PlayabilityGate.Placement.cs | harness | the gate's placement rows (S1d) and the placement state's rig: the source's own site (an illegal place) and where a hidden settlement stands (undiscovered ground offered nothing), and the rig's check that its order founded
 Sim.Ui/Headless/MapFrameCost.cs | harness | the map frame-cost bench (--frame-cost map)
 Sim.Ui/Theme/EraPreview.cs | harness | the era SVG preview tool
 Sim.Ui/Ages/AgePreview.cs | harness | the Age SVG preview tool

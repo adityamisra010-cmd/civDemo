@@ -30,6 +30,9 @@ public enum ActionDomain
     /// TradeArbitrageSystem moves goods along connected routes once it is legal — so a capability entry whose
     /// targets are the issuer's settlements where trade is legal now.</summary>
     Trade = 11,
+    /// <summary>M5 S1d (D-051 §5, ADR-036): found a settlement (OrderKind 9) from a settlement the issuer controls whose
+    /// SOURCE-side founding arms hold now; the site is chosen per cell in the UI's placement mode, by the same predicate.</summary>
+    Colonization = 12,
 }
 
 /// <summary>Whether an available action is something the issuer can ORDER now, or a STANDING baseline
@@ -165,6 +168,10 @@ public sealed record ActionQueryContext(IReadOnlyList<OrderRecord>? Queued = nul
 ///   predicate ConstructionSystem applies), with the founding viability, materials and capacity as its
 ///   transient blocker (<see cref="Institutions"/>). The Construction contributor does not list founding
 ///   projects, so nothing is listed twice.</item>
+/// <item><b>Colonization</b> (OrderKind 9, M5 S1d) — found a settlement from each settlement the issuer controls for which
+///   the SOURCE-side arms of <see cref="FoundingQuery"/> hold (control, enough people, enough food —
+///   <see cref="FoundingQuery.Departure"/>, the function ColonizationSystem applies); the per-cell arms are judged per site
+///   by the same predicate (the UI's placement mode).</item>
 /// <item><b>Standing</b> — the research.json baseline capabilities flagged simulated.</item>
 /// <item><b>Production</b> (R1; no order — the Crafting share runs it) — every goods.json recipe the issuer
 ///   KNOWS (<see cref="CraftingQuery.IsKnownBy"/>: its content-declared recipe entity is knowledge-eligible), with
@@ -200,6 +207,7 @@ public static class AvailableActionsQuery
         Standing(cfg, actions);
         Production(world, cfg, polity, actions);
         Trade(world, cfg, polity, actions);
+        Colonization(world, cfg, polity, context, actions);
         return Order(actions);
     }
 
@@ -617,6 +625,53 @@ public static class AvailableActionsQuery
             ActionDomain.Trade, 1, ActionKind.Standing, "trade." + entity, name, null, targets.ToImmutable(), null,
             EntityProvenance(world, research, polity, entity, []),
             "goods flow between connected settlements that both know trade, when a price gap exceeds the transport cost"));
+    }
+
+    // ------------------------------------------------------------------ Colonization (OrderKind 9; M5 S1d)
+
+    /// <summary>
+    /// M5 S1d (D-051 §5, ADR-036) — FOUND A SETTLEMENT. One Order descriptor (Id = the SOURCE settlement's id, target =
+    /// the source, <see cref="OrderKind.FoundSettlement"/>) per settlement the issuer controls for which the SOURCE-SIDE
+    /// arms of THE predicate hold on the world asked about: arm 1 (the issuer controls the source —
+    /// <see cref="EmpireQuery.ControlsSettlement"/>) and arms 5–6 (enough people, enough food —
+    /// <see cref="FoundingQuery.Departure"/> on the world's tables, the function ColonizationSystem applies to the order).
+    /// The PER-CELL arms (on the map, land, the floor, occupancy, spacing, the claim, the route — and the player's known
+    /// extent) depend on the site, which the order names and this query cannot: they are judged per cell, by the same
+    /// <see cref="FoundingQuery.Check(IReadOnlyWorldState, SimConfig, Worldgen.SettlementSiting.FrontierSiting, ReadOnlySpan{double}, ReadOnlySpan{int}, PolityId, SettlementId, int)"/>,
+    /// in the UI's placement mode. NOT listed: for a world without terrain (no site can be judged); for a source with a
+    /// FoundSettlement order of the issuer's already queued this turn (<see cref="ActionQueryContext.Queued"/>) — the
+    /// intake founds only the first legal order per source per turn, so a second would be skipped (the Age precedent: a
+    /// decision already queued is not offered twice). Detail: the party and its provisions —
+    /// <see cref="FoundingQuery.AllocateParty"/> and <see cref="FoundingQuery.ProvisionsShare"/>, the numbers the order
+    /// would move if it departed from this world (departure is live: ADR-036 §3).
+    /// </summary>
+    public static void Colonization(
+        IReadOnlyWorldState world, SimConfig cfg, PolityId polity, ActionQueryContext context, List<ActionDescriptor> into)
+    {
+        if (world.Terrain is null || cfg.Goods is not { } goods) return;
+        var grain = new GoodId(goods.GrainId);
+        string grainName = goods.ById(goods.GrainId).Name;
+        for (int s = 0; s < world.Settlements.Count; s++)
+        {
+            SettlementId source = world.Settlements[s].Id;
+            if (!EmpireQuery.ControlsSettlement(world, polity, source)) continue;
+            if (context.Queued is { } queued && FoundingQueued(queued, polity, source)) continue;
+            if (FoundingQuery.Departure(world.Buckets, world.GoodStocks, cfg, source, null, out long party) != FoundingVerdict.Legal) continue;
+            long provisions = FoundingQuery.ProvisionsShare(world.GoodStocks, world.Buckets, source, grain, party);
+            into.Add(new ActionDescriptor(
+                ActionDomain.Colonization, source.Value, ActionKind.Order, $"colonization.found.{Inv(source.Value)}", "Found a settlement",
+                OrderKind.FoundSettlement, [SettlementTarget(source)], null, ActionProvenance.None,
+                $"{Inv(party)} people and {Inv(provisions)} {grainName} would set out"));
+        }
+    }
+
+    /// <summary>Whether <paramref name="queued"/> holds a FoundSettlement order of <paramref name="polity"/>'s from
+    /// <paramref name="source"/>.</summary>
+    public static bool FoundingQueued(IReadOnlyList<OrderRecord> queued, PolityId polity, SettlementId source)
+    {
+        for (int i = 0; i < queued.Count; i++)
+            if (queued[i].Kind == OrderKind.FoundSettlement && queued[i].ActorId == polity.Value && queued[i].TargetId == source.Value) return true;
+        return false;
     }
 
     private static string RecipeName(ResearchContent? research, RecipeEntry recipe)

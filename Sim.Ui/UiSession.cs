@@ -416,6 +416,26 @@ public sealed class UiSession
         return true;
     }
 
+    /// <summary>
+    /// M5 S1d (D-051 §5, ADR-036): the placement mode's CONFIRM handler — ONE FoundSettlement order for the player's
+    /// Empire, from settlement <paramref name="sourceId"/> to terrain cell <paramref name="siteCell"/>, stamped with the
+    /// CURRENT turn (the next End Turn founds it, in the state of the turn after). Built by
+    /// <see cref="FoundSettlementOrderFactory"/> (= <see cref="FoundingQuery.FoundOrder"/>, the constructor the AI's founding
+    /// policy uses) and appended only when THE predicate ColonizationSystem applies (<see cref="FoundingQuery.Check(IReadOnlyWorldState, SimConfig, Sim.Core.Worldgen.SettlementSiting.FrontierSiting, ReadOnlySpan{double}, ReadOnlySpan{int}, PolityId, SettlementId, int)"/>)
+    /// answers Legal on this world with the batch the queued orders already make, on a cell the player knows (P7). Appends
+    /// NOTHING (and returns false) otherwise — a cell the player does not know, an illegal site, a source the Empire does
+    /// not hold or that cannot spare a party and its provisions, a source whose founding is already queued this turn, or a
+    /// world without terrain — so the caller shows why rather than pretend the order landed.
+    /// </summary>
+    public bool EmitFoundSettlement(int sourceId, int siteCell)
+    {
+        if (Sites is not { } site) return false;
+        if (FoundSettlementOrderFactory.Create(World, Config, site.Frontier, Knowledge.Core, UiPlayer.Empire,
+                new SettlementId(sourceId), siteCell, QueuedOrders()) is not { } order) return false;
+        Orders.Append(order);
+        return true;
+    }
+
     /// <summary>The not-yet-stepped orders: the log rows stamped with the current turn, in log order
     /// (exactly the batch the next End Turn delivers).</summary>
     public IReadOnlyList<OrderRecord> QueuedOrders()
