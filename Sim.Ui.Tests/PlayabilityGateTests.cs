@@ -596,6 +596,8 @@ public class PlayabilityGateTests : IDisposable
         // P1: folding a panel is looking too — the map takes the space back, the game is untouched.
         "fold the context panel (its fold button)", "unfold the context panel (its tab)",
         "fold the selection card", "unfold the selection card", "H (fold every panel, then unfold them)",
+        // P3: showing and hiding the map legend is looking too.
+        "legend (show: its tab)", "legend (hide: its tab)", "L (legend: show, then hide)",
     ];
 
     [Fact]

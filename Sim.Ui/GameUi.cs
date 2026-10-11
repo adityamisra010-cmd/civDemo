@@ -41,6 +41,9 @@ public sealed partial class GameUi
     private double _autoScale = 1.0;
 
     private bool _showCatchment = true; // T2.4: political geography on by default
+    // P3: the map legend, shown and hidden by its tab (and L). Off until the player asks for it: the tab stays on the map.
+    private bool _showLegend;
+    private PanelRect _legendTabRect;
 
     // ADR-033 D1/D2 — THE ACTION SURFACE (the POLICY section): what the civilization can do now, built from
     // AvailableActionsQuery / LabourActivities and painted in the era's hand. The screen owns only UI state
@@ -159,9 +162,6 @@ public sealed partial class GameUi
     private int _progressionDownX, _progressionDownY;
     private KeyboardState _lastKeyboard;
     private bool _clickCandidate;   // press began on the map (not over ImGui)
-    // D-A2: per-settlement label rects, measured each frame by DrawNameLabels
-    // (row-aligned with world.Settlements) and consumed by the click hit-test.
-    private readonly System.Collections.Generic.List<SettlementSelection.LabelRect> _labelRects = new();
     private int _clickDownX, _clickDownY;
 
     private int _viewportWidth, _viewportHeight;
@@ -253,6 +253,12 @@ public sealed partial class GameUi
     public Sim.Ui.Actions.ActionSurfaceScreen Actions => _actions;
     public Sim.Ui.Actions.NoticeToast Notices => _notices;
     public bool ShowTerritory => _showCatchment;
+    /// <summary>P3: whether the map legend is shown (the lens paints it; <see cref="LensFrame"/>'s Legend).</summary>
+    public bool ShowLegend => _showLegend;
+    /// <summary>P3: the legend's tab as drawn in the last frame (its window; the button is inset by the margin).</summary>
+    public PanelRect LegendTabRect => _legendTabRect;
+    /// <summary>P3: the legend's widest box at UI scale 1 (it is never wider than the map rect less its margins).</summary>
+    public const float LegendMaxWidth = 340f;
     public bool PolicyRecordOpen => _policyRecord;
     public bool AnnalsShowAll => _annalsShowAll;
     public bool TrendWorldScope => _trendWorldScope;
@@ -656,14 +662,14 @@ public sealed partial class GameUi
                 && _clickCandidate
                 && Math.Abs(mouse.X - _clickDownX) <= 4 && Math.Abs(mouse.Y - _clickDownY) <= 4)
             {
+                // P3: the legend lies over the map; a click on it picks nothing the map draws beneath it.
                 // H1 / Director §3: a formation token is picked before the settlement it stands beside.
-                int unit = UnitSelection.HitTest(_lensFrame, mouse.X, mouse.Y);
+                int unit = OnLegend(mouse.X, mouse.Y) ? -1 : UnitSelection.HitTest(_lensFrame, mouse.X, mouse.Y);
                 if (unit >= 0) SelectUnit(unit);
-                else
+                else if (!OnLegend(mouse.X, mouse.Y))
                 {
-                    int hit = SettlementSelection.HitTest(
-                        _world, _camera!, mouse.X, mouse.Y, map,
-                        _labelRects);   // D-A2: labels are part of the click target
+                    // P3: the footprints and name plates the lens painted last frame — what the player clicked on.
+                    int hit = SettlementSelection.HitTest(_lensFrame, mouse.X, mouse.Y);
                     if (hit >= 0) SelectUnit(-1);   // choosing a settlement puts the formation card away
                     if (hit >= 0 && hit != _selected)
                     {
@@ -691,6 +697,9 @@ public sealed partial class GameUi
             // P1: H folds every panel the map can take back (the right-hand column to its tab, the selection card to
             // its title) — and unfolds them when all are folded. Key edge; UI state only, never an order.
             if (Edge(keyboard, Keys.H) && !keyboard.IsKeyDown(Keys.LeftControl) && !keyboard.IsKeyDown(Keys.RightControl)) ToggleFoldAll();
+
+            // P3: L shows (hides) the map legend — the same toggle as its tab. Key edge; UI state only, never an order.
+            if (Edge(keyboard, Keys.L) && !keyboard.IsKeyDown(Keys.LeftControl) && !keyboard.IsKeyDown(Keys.RightControl)) _showLegend = !_showLegend;
 
             // T4.19 lane B: digits 1..7 OPEN sections in roster order (key
             // edge; the same GameSections.Order the command bar draws, so the
@@ -829,17 +838,20 @@ public sealed partial class GameUi
         // ADR-033 D8: the map's ink is derived from the era the interface paints with (MapInk.For — identity
         // inks constant, neutral ink, casing and legend paper following the era; it fades with the theme).
         if (!ReferenceEquals(_mapInkTheme, _frameTheme)) { _mapInk = Sim.Ui.World.MapInk.For(_frameTheme); _mapInkTheme = _frameTheme; }
+        // P3: the legend, when shown, sits over the map's bottom-right corner, just above its tab.
+        Sim.Ui.World.LegendAnchor? legend = null;
+        if (_showLegend)
+        {
+            _legendTabRect = LegendTab();
+            float margin = PanelLayout.Margin * Scale;
+            legend = new Sim.Ui.World.LegendAnchor(_legendTabRect.X + _legendTabRect.Width, _legendTabRect.Y - margin / 2,
+                Math.Min(LegendMaxWidth * Scale, Math.Max(1, map.W - 2 * margin)));
+        }
         _lensFrame = Sim.Ui.World.WorldLens.Paint(lens, Backend, _lens, level,
             (x, y) => cam.WorldToScreen(x, y, map), cam.Zoom,
             new Sim.Ui.Render.RectD(0, 0, v.Width, v.Height), _selected, showTerritory: _showCatchment, ink: _mapInk,
-            theme: _frameTheme, uiScale: Scale);   // UR-7: the map's labels by role, in the era's hand, × the UI scale
-        if (_selectedUnit >= 0)
-            foreach (Sim.Ui.World.UnitPlacement up in _lensFrame.UnitPlacements)
-                if (up.Id == _selectedUnit)
-                {
-                    double ts = UnitSelection.TokenSize(_lensFrame.Zoom) + 4;
-                    lens.Rect(new Sim.Ui.Render.RectD(up.X - ts, up.Y - ts * 0.8, 2 * ts, 1.6 * ts), null, _mapInk.Selection, 2.4, 3);
-                }
+            theme: _frameTheme, uiScale: Scale,   // UR-7: the map's labels by role, in the era's hand, × the UI scale
+            legend: legend, selectedUnit: _selectedUnit);   // P3: the lens frames the selected formation, under the legend
         Backend.Render(ImGui.GetBackgroundDrawList(), lens);
         _lastLensCommands = lens.Commands;   // P6: kept, read-only, for the frame's observers (LastLensCommands)
         RegisterFormationTokens();   // M5 polish: Shift+click a formation token for its card
@@ -966,33 +978,6 @@ public sealed partial class GameUi
             0xB4FFFFFFu);
     }
 
-    /// <summary>T2.9: name labels beside every marker — drawn on the ImGui
-    /// background drawlist (behind panels, above the map), constant screen
-    /// size like the markers themselves. Must run between BeforeLayout and
-    /// AfterLayout, so DrawHud calls it.</summary>
-    private void DrawNameLabels()
-    {
-        const float markerPx = (float)SettlementSelection.MarkerScreenPx;
-        _labelRects.Clear();
-        for (int i = 0; i < _world.Settlements.Count; i++)
-        {
-            LineGeometry.Vertex position = OverlayMeshes.SettlementPosition(
-                _world.Settlements[i], _world.Terrain!.Size);
-            (double sx, double sy) = _camera!.WorldToScreen(position.X, position.Y, _mapRect);
-            string name = _session.Names.Name(_world.Settlements[i].Id.Value);
-            var pos = new System.Numerics.Vector2(
-                (float)sx + markerPx / 2f + 4f, (float)sy - markerPx / 2f);
-            // The name TEXT is the WorldLens's (MapLayer.SettlementMarkers owner); only the click
-            // target is kept here, so a name is never drawn twice.
-            // D-A2: the label is part of the click target. The rect is
-            // measured HERE (the renderer owns font metrics) and handed to
-            // the pure view-model — ImGui never crosses into SettlementSelection.
-            System.Numerics.Vector2 extent = ImGui.CalcTextSize(name);
-            _labelRects.Add(new SettlementSelection.LabelRect(
-                pos.X, pos.Y, pos.X + extent.X, pos.Y + extent.Y));
-        }
-    }
-
     /// <summary>
     /// Panel furniture (§4 item 5; ADR-033 D8): the ERA'S frame behind the current ImGui window and the
     /// era's rule at the ELEMENT's rule rect, painted by the same <c>ChromeFurniture</c> the headless era
@@ -1114,7 +1099,6 @@ public sealed partial class GameUi
 
         DrawCompassRose();  // art substrate: §4 item 5 furniture
         DrawWorldLensAndAge();   // ADR-031: zoom lens (background) + Age panel/flow/toast (foreground)
-        DrawNameLabels();   // T2.9: background drawlist — under all chrome
 
         // H1: the ADVANCE AGE flow is MODAL (a full-window backdrop on the foreground list): the chrome under it is
         // drawn but inert, so a click outside the dialog cannot end the turn or open a section beneath it.
@@ -1124,6 +1108,7 @@ public sealed partial class GameUi
         DrawSelectionCard();
         DrawUnitCard();
         DrawContextPanel();
+        DrawLegendTab();   // P3: the map legend's tab, over the map's bottom-right corner
         DrawCommandBar();
         if (modal) ImGui.EndDisabled();
         if (!modal) DrawInfoHint();   // M5 polish: the Age panel's regions, then the hover hint
@@ -1512,6 +1497,45 @@ public sealed partial class GameUi
         bool clicked = Button(ChromeGeometry.FoldRightGlyph + "##panel-fold", Size(fold));
         Controls.Record("panel-fold");
         return clicked;
+    }
+
+    /// <summary>P3: whether (x, y) lies on the legend the lens painted last frame (it lies over the map there).</summary>
+    private bool OnLegend(double x, double y) => _lensFrame?.Legend is { } legend && legend.Rect.Contains(x, y);
+
+    /// <summary>P3: the legend tab's label — the legend's name and the fold glyph of what a click does.</summary>
+    private string LegendTabLabel() =>
+        "LEGEND " + (_showLegend ? ChromeGeometry.FoldUpGlyph : ChromeGeometry.UnfoldDownGlyph);
+
+    /// <summary>P3: the legend tab's window at the MAP RECT's bottom-right corner (inside the clear map, so it never sits
+    /// under the command bar or the context panel), sized to its label.</summary>
+    private PanelRect LegendTab()
+    {
+        float s = Scale, margin = PanelLayout.Margin * s;
+        float frameH = ImGui.GetFrameHeight();
+        float bw = (float)Math.Ceiling(LabelWidth(LegendTabLabel()) + 2f * ImGui.GetStyle().FramePadding.X + 8f * s);
+        float w = bw + 2f * margin, h = frameH + 2f * margin;
+        Sim.Ui.Render.RectD map = _mapRect;
+        return new PanelRect("##legend-tab", (float)map.Right - margin - w, (float)map.Bottom - margin - h, w, h);
+    }
+
+    /// <summary>
+    /// P3: THE MAP LEGEND'S TAB — one button over the map's bottom-right corner ("LEGEND +" shows the legend, "LEGEND -"
+    /// hides it; L does the same). The legend itself is not here: the world lens paints it on the map, just above this
+    /// tab, as a DrawList (never an ImGui window or tooltip), from the layers it drew this frame and the projection's
+    /// honest empty states. Looking only: the toggle is UI state and emits no order.
+    /// </summary>
+    private void DrawLegendTab()
+    {
+        _surface = FrameSurface.Legend;
+        _legendTabRect = LegendTab();
+        float margin = PanelLayout.Margin * Scale;
+        BeginChrome(_legendTabRect);
+        DrawPanelFurniture(new ChromeElement(_legendTabRect, RulePlacement.TopEdge));
+        ImGui.SetCursorPos(new System.Numerics.Vector2(margin, margin));
+        bool clicked = Button(LegendTabLabel() + "##legend", new System.Numerics.Vector2(_legendTabRect.Width - 2f * margin, ImGui.GetFrameHeight()));
+        Controls.Record("legend");
+        ImGui.End();
+        if (clicked) _showLegend = !_showLegend;
     }
 
     /// <summary>

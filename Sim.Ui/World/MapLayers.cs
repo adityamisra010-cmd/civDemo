@@ -12,6 +12,9 @@ public enum MapLayer
     UnitTokens = 5,
     InstitutionMarkers = 6,
     AgeBanners = 7,
+    /// <summary>P3: the map legend (the key to the information layers drawn, and the honest empty states) — painted by
+    /// the lens over the map, last, only when the player shows it.</summary>
+    Legend = 8,
 }
 
 /// <summary>Who draws a map layer: the legacy GPU map pass in <c>SimUiGame.Draw</c>, or the
@@ -23,7 +26,7 @@ public enum LayerOwner { MapRenderer = 0, WorldLens = 1 }
 /// lens owns everything that is zoom-dependent (D-047 Part 5): territory (polity-tinted), paths
 /// (dashed network at world zoom, cased roads below) and the built roads on them (by class, one owner
 /// per piece of ground — <see cref="RoadLens"/>), settlement markers and names (sized marks at
-/// world zoom, aggregated morphology below), formations, institutions and Age banners. The legacy
+/// world zoom, aggregated morphology below), formations, institutions, Age banners and (P3) the legend. The legacy
 /// GPU pass keeps only the substrate the lens draws over: the terrain bake and the vector rivers.
 /// <c>SimUiGame</c> draws a layer only when this table names <see cref="LayerOwner.MapRenderer"/>;
 /// <see cref="WorldLens.Paint"/> only ever draws the others.
@@ -34,6 +37,7 @@ public static class MapLayerOwnership
     [
         MapLayer.Terrain, MapLayer.Rivers, MapLayer.Territory, MapLayer.Paths,
         MapLayer.SettlementMarkers, MapLayer.UnitTokens, MapLayer.InstitutionMarkers, MapLayer.AgeBanners,
+        MapLayer.Legend,
     ];
 
     public static LayerOwner OwnerOf(MapLayer layer) => layer switch

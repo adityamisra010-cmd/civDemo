@@ -91,8 +91,8 @@ public sealed record CommandRowLayout(ScreenRect EndTurn, IReadOnlyList<ScreenRe
 ///
 /// Everything here is derived from <see cref="PanelLayout"/> and
 /// <see cref="UiTheme"/> constants plus the frame height the renderer
-/// measures (the renderer owns font metrics, as with SettlementSelection's
-/// label rects). No ImGui: tested headless.
+/// measures (the renderer owns font metrics, as the world lens owns the
+/// name plates it hands SettlementSelection). No ImGui: tested headless.
 /// </summary>
 public static class ChromeGeometry
 {

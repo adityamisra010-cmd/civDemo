@@ -45,6 +45,8 @@ public static class FrameSurface
     public const string Hint = "hint";
     /// <summary>The Knowledge &amp; Technology screen (and the info card pinned over its detail column).</summary>
     public const string Research = "research";
+    /// <summary>P3: the map legend's tab (the legend's own text is the lens's: the lens paints it with the map).</summary>
+    public const string Legend = "legend";
 }
 
 /// <summary>

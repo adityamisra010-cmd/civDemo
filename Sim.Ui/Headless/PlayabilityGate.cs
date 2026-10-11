@@ -1614,6 +1614,7 @@ public static partial class PlayabilityGate
             SelectRows();
             CameraLookRows();
             PanelFoldRows();
+            LegendRows();
         }
 
         private void Map()
@@ -1622,7 +1623,74 @@ public static partial class PlayabilityGate
             Units();
             CameraLookRows();
             PanelFoldRows();
+            LegendRows();
         }
+
+        /// <summary>
+        /// P3: THE MAP LEGEND — its tab shows it and hides it, and so does L. Shown, it must be PAINTED by the lens (its
+        /// runs in the lens's DrawList and in FrameText under the lens surface, spelling its title, one entry per layer
+        /// the frame drew — exactly LensFrame.Painted — and the projection's absent lines), with no ImGui tooltip window;
+        /// hidden, none of it is drawn. Each is a CAMERA row: looking at the legend changes neither the world hash nor
+        /// the queued orders.
+        /// </summary>
+        private void LegendRows()
+        {
+            LookCheck("map: legend", "legend (show: its tab)", () =>
+            {
+                CloseEverything();
+                if (Ui.ShowLegend) h.ClickControl("legend");
+                bool clicked = h.ClickControl("legend");
+                h.Idle(1);
+                return clicked ? LegendShown() : (GateResult.Fail, "the legend tab is not drawn");
+            });
+            LookCheck("map: legend", "legend (hide: its tab)", () =>
+            {
+                bool clicked = h.ClickControl("legend");
+                h.Idle(1);
+                return Expect(clicked && LegendHidden(), "clicked " + clicked + ", shown " + Ui.ShowLegend + ", legend painted " + (Ui.LensFrame?.Legend is not null));
+            });
+            LookCheck("keys", "L (legend: show, then hide)", () =>
+            {
+                CloseEverything();
+                bool before = Ui.ShowLegend;
+                h.Key(Keys.L);
+                h.Idle(1);
+                (GateResult r, string d) = before ? (LegendHidden() ? GateResult.Pass : GateResult.Fail, "L did not hide it") : LegendShown();
+                h.Key(Keys.L);
+                h.Idle(1);
+                bool back = Ui.ShowLegend == before && (before || LegendHidden());
+                return r != GateResult.Pass ? (r, "L: " + d) : Expect(back, "the second L did not toggle it back");
+            });
+            CloseEverything();
+        }
+
+        /// <summary>The legend as the last frame drew it, checked: painted, listing exactly the drawn layers and the absent
+        /// lines, its runs spelling exactly that in the lens's commands and in FrameText, no tooltip window.</summary>
+        private (GateResult, string) LegendShown()
+        {
+            if (!Ui.ShowLegend) return (GateResult.Fail, "the toggle did not flip");
+            if (Ui.LensFrame is not { Legend: { } legend } f) return (GateResult.Fail, "no legend painted");
+            if (!legend.Layers.SequenceEqual(f.Painted) || legend.Layers.Count == 0)
+                return (GateResult.Fail, "lists " + string.Join(", ", legend.Layers) + "; the frame drew " + string.Join(", ", f.Painted));
+            var want = new List<string> { legend.Title };
+            foreach (WorldLayer l in legend.Layers) want.Add(WorldLens.LayerLabel(l));
+            if (legend.Absent.Count > 0) want.Add(WorldLens.LegendAbsentHeading);
+            want.AddRange(legend.Absent);
+            var runs = new List<string>();
+            IReadOnlyList<DrawCmd> cmds = Ui.LastLensCommands;
+            for (int i = cmds.Count - f.LayerDraws[(int)MapLayer.Legend]; i < cmds.Count; i++) if (cmds[i] is TextCmd t) runs.Add(t.Text);
+            if (string.Join(" ", runs) != string.Join(" ", want)) return (GateResult.Fail, "the legend's runs do not spell its entries");
+            IReadOnlyList<string> lens = Ui.FrameText.Texts(FrameSurface.Lens);
+            foreach (string r in runs) if (!lens.Contains(r)) return (GateResult.Fail, "'" + r + "' is not in FrameText (lens)");
+            if (h.Gui.LastTooltipWindows.Count > 0) return (GateResult.Fail, "a tooltip window: " + h.Gui.LastTooltipWindows[0]);
+            return (GateResult.Pass, legend.Layers.Count.ToString(CultureInfo.InvariantCulture) + " layers drawn, "
+                + legend.Absent.Count.ToString(CultureInfo.InvariantCulture) + " absent lines");
+        }
+
+        /// <summary>Whether the legend is hidden: off, not painted, its title in no lens text of the last frame.</summary>
+        private bool LegendHidden() =>
+            !Ui.ShowLegend && Ui.LensFrame is { Legend: null } f && f.LayerDraws[(int)MapLayer.Legend] == 0
+            && !Ui.FrameText.Contains(WorldLens.LegendTitle(f.Zoom), FrameSurface.Lens);
 
         /// <summary>
         /// P1: THE PANELS THE MAP TAKES BACK — the context panel folded to its tab by its fold button and unfolded by the
@@ -1869,7 +1937,7 @@ public static partial class PlayabilityGate
             ulong Next() { x += 0x9E3779B97F4A7C15UL; ulong z = x; z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9UL; z = (z ^ (z >> 27)) * 0x94D049BB133111EBUL; return z ^ (z >> 31); }
             int Pick(int n) => (int)(Next() % (ulong)n);
             Keys[] keys = [Keys.K, Keys.Escape, Keys.Tab, Keys.D1, Keys.D2, Keys.D3, Keys.D4, Keys.D5, Keys.D6, Keys.D7, Keys.F12,
-                Keys.W, Keys.A, Keys.S, Keys.D, Keys.Up, Keys.Down, Keys.Left, Keys.Right, Keys.Space, Keys.Enter, Keys.H];
+                Keys.W, Keys.A, Keys.S, Keys.D, Keys.Up, Keys.Down, Keys.Left, Keys.Right, Keys.Space, Keys.Enter, Keys.H, Keys.L];
             int endTurns = 0;
             for (int i = 0; i < steps; i++)
             {
