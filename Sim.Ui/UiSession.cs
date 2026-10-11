@@ -61,6 +61,10 @@ public sealed class UiSession
     // assumed (TelemetryTests: hash equality with and without a log).
     private readonly SimConfig _simCfg;
 
+    // M5 S1c: the worldgen config the production pipeline's ColonizationSystem is built from (ProductionPipeline),
+    // which the AI's Found Settlement orders are judged with — loaded once, read by AppendAiOrders only.
+    private readonly Sim.Core.Worldgen.WorldgenConfig _worldgen = ProductionWorldgen();
+
     /// <summary>The observation history the UI graphs and panels read through
     /// (docs/observability-architecture.md §7: one read seam).</summary>
     public IObservationHistory Observations => _observations;
@@ -338,7 +342,7 @@ public sealed class UiSession
     /// domain predicates) — are appended to the order log like the player's clicks, so an AI run replays from
     /// the log. Player-commanded polities are never touched: the player is never auto-advanced.
     /// </summary>
-    private void AppendAiOrders() => AiOrders.Append(Orders, World, Config);
+    private void AppendAiOrders() => AiOrders.Append(Orders, World, Config, _worldgen);
 
     /// <summary>
     /// ADR-029: clears the player's research target (progress is kept, D-044 R9) — ONE SetResearchTarget

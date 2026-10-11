@@ -109,14 +109,14 @@ public class GovernanceActionTests
     public void AiOrders_CarryTheValve_OnlyForAnAiEmpireThatCanLevy()
     {
         WorldState none = DevDuo.Value.Clone();
-        Assert.DoesNotContain(AiOrders.For(none, Cfg), o => o.Kind == OrderKind.SetTaxRate);
+        Assert.DoesNotContain(AiOrders.For(none, Cfg, TestConfigs.Worldgen()), o => o.Kind == OrderKind.SetTaxRate);
 
         WorldState knowing = Complete(Complete(DevDuo.Value.Clone(), Rival, "taxation"), Player, "taxation");
         // H2: knowledge in the founding Age — the valve stays silent (the AI cannot bypass the Age gate).
-        Assert.DoesNotContain(AiOrders.For(knowing, Cfg), o => o.Kind == OrderKind.SetTaxRate);
+        Assert.DoesNotContain(AiOrders.For(knowing, Cfg, TestConfigs.Worldgen()), o => o.Kind == OrderKind.SetTaxRate);
         Assert.Empty(AiGovernance.OrdersFor(knowing, Cfg, Rival, knowing.Clock.Turn));
         WorldState both = InTaxAge(InTaxAge(knowing.Clone(), Rival), Player);
-        OrderRecord[] taxes = AiOrders.For(both, Cfg).Where(o => o.Kind == OrderKind.SetTaxRate).ToArray();
+        OrderRecord[] taxes = AiOrders.For(both, Cfg, TestConfigs.Worldgen()).Where(o => o.Kind == OrderKind.SetTaxRate).ToArray();
         OrderRecord[] expected = AiGovernance.OrdersFor(both, Cfg, Rival, both.Clock.Turn);
         Assert.NotEmpty(expected);   // anti-vacuity: at founding the rival's valve does want a rate
         Assert.Equal(expected, taxes);

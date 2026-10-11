@@ -313,7 +313,7 @@ public class HardeningMeasurementRigs(ITestOutputHelper output)
             {
                 WorldState prev = w;
                 // The CLI session loop's rule: run the producer whenever an AI polity exists (a revolt founds one).
-                if (hasAi || AiOrders.HasAiPolity(prev)) aiOrders += AiOrders.Append(orders, prev, cfg);
+                if (hasAi || AiOrders.HasAiPolity(prev)) aiOrders += AiOrders.Append(orders, prev, cfg, wg);
 
                 // Migration's own B1 readout on PREV (the planner Step itself consumes): which sources have
                 // departure demand with no reachable, viable destination this turn. Only computed when some

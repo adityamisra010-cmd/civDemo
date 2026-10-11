@@ -209,11 +209,46 @@ jobs:
           fi
           echo "founded replay: byte-identical to the ordered run over 300 turns"
 
+          # M5 S1b (ADR-036): the FOUND SETTLEMENT leg. Two OrderKind 9 orders on the founded seed-42 world
+          # (gen-sample-orders.py --found): turn 2 from settlement 0, turn 5 FROM the colony that order founds
+          # (settlement 12, above the turn-0 maximum: the ADR-034 deferral). Two processes must agree byte for
+          # byte (hash logs and run logs), the orders must have FOUNDED turn-exactly (the hash log equals the
+          # orderless founded run through turn 2 — the first order is delivered on the step from 2 — and differs
+          # at turn 3), `sim replay` of the run log must reproduce every hash and `sim inspect` must verify the
+          # record. FoundSettlementCiLegTests pins the script's literals as legal-and-founding in the suite.
+          python3 scripts/gen-sample-orders.py found-orders.bin 300 --found
+          $CLI run --founded --seed 42 --turns 300 --orders found-orders.bin --hash-log found-a.log --emit-session found-a
+          $CLI run --founded --seed 42 --turns 300 --orders found-orders.bin --hash-log found-b.log --emit-session found-b
+          if ! diff found-a.log found-b.log > found-xproc.diff || ! cmp found-a/orders-*.bin found-b/orders-*.bin; then
+            echo "FOUND-SETTLEMENT CROSS-PROCESS DIVERGENCE:"
+            head -n 5 found-xproc.diff
+            exit 1
+          fi
+          if [ "$(head -n 2 found-a.log)" != "$(head -n 2 f-run-a.log)" ] || [ "$(sed -n 3p found-a.log)" = "$(sed -n 3p f-run-a.log)" ]; then
+            echo "FOUND-SETTLEMENT DELIVERY: expected the orderless hashes through turn 2 and a founding in turn 3"
+            exit 1
+          fi
+          $CLI replay --founded --seed 42 --turns 300 --orders found-a/orders-*.bin --hash-log found-replayed.log
+          if ! diff found-a.log found-replayed.log > found-replay.diff; then
+            echo "FOUND-SETTLEMENT REPLAY DIVERGENCE — first divergent turn:"
+            head -n 5 found-replay.diff
+            exit 1
+          fi
+          $CLI inspect --manifest found-a/session-*.json --turn 300 | tee found-inspect.log
+          grep -q "reproduction VERIFIED" found-inspect.log
+          echo "found-settlement leg: two processes, turn-exact delivery, replay and inspect agree over 300 turns"
+
           # M5 integration (audit E4): the founded world with ONE AI Empire. The player's
           # orders (kinds 3, 4, 6 — gen-sample-orders.py --founded-mix) are merged with the
-          # AI's (kinds 4-8: construction, tax, research, Age, roads — H2 (2026-10-05): the AI levies at 466, on its
-          # first A3 turn (A3 decided 465), since the tax edict needs A3; 369 at R5 while still in A2, 549 before;
-          # 600 turns kept) into the RUN LOG --emit-session writes. Two processes must agree
+          # AI's (kinds 4-9: construction, tax, research, Age, roads, and — M5 S1c, ADR-036 §8 — Found Settlement;
+          # H2 (2026-10-05): the AI levies at 466, on its first A3 turn (A3 decided 465), since the tax edict needs A3;
+          # 369 at R5 while still in A2, 549 before; 600 turns kept) into the RUN LOG --emit-session writes.
+          # S1c RE-DERIVATION (2026-10-11; two CLI processes from this tree, byte-identical hash logs and run logs):
+          # the AI issues 11 Found Settlement orders in 600 turns (stamped 35, 71, 107, 143, 179, 215, 286, 357, 428,
+          # 499, 570), advances to A2 at 221 and to A3 at 422, orders its first road at 134 and levies at 423 on its
+          # first A3 turn. Pre-S1c on the base tree (3d8aacc): A2 232, A3 451, road 140, levy 452 — the 466/465 above
+          # is the H2-time value, superseded by the ADR-035 and D-051 1(b) re-pins and never updated here. The kind
+          # check below therefore covers 3..9. Two processes must agree
           # byte for byte (hash logs and run logs), `sim replay` of that run log (no AI
           # producer) must reproduce every hash, and `sim inspect` must verify the record.
           python3 scripts/gen-sample-orders.py mix-orders.bin 600 --founded-mix
@@ -229,7 +264,7 @@ jobs:
           b = open(sys.argv[1], "rb").read()
           n = struct.unpack_from("<i", b, 12)[0]
           kinds = {struct.unpack_from("<qiiid", b, 16 + 28 * i)[2] for i in range(n)}
-          missing = set(range(3, 9)) - kinds
+          missing = set(range(3, 10)) - kinds
           print(f"run log: {n} orders, kinds {sorted(kinds)}")
           sys.exit(f"order kinds never issued: {sorted(missing)}" if missing else 0)
           PY

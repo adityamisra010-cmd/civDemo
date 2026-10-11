@@ -66,7 +66,48 @@ public sealed record SimConfig(
     // defaulted tail: absent, InstitutionsSystem is INERT (founds nothing, writes no cost factor), the
     // staffing reader returns the raw adult count and the mortality seam returns 1.0, so toy and
     // hand-written configs run the full catalog unchanged; the canonical sim.json carries the section.
-    [property: JsonPropertyName("institutions")] InstitutionsConfig? Institutions = null);
+    [property: JsonPropertyName("institutions")] InstitutionsConfig? Institutions = null,
+    // ADR-036 (D-051 §5, the Found Settlement order): the party fraction. OPTIONAL and in the defaulted tail:
+    // absent, no Found Settlement order can form a party (FoundingQuery answers NoParty) and the order is inert;
+    // emergent D-037 B1 colonization never reads it. The canonical sim.json carries the section.
+    [property: JsonPropertyName("colonization")] ColonizationConfig? Colonization = null);
+
+/// <summary>
+/// ADR-036 (PROPOSED) — the Found Settlement order's one content number. <c>OrderPartyFraction</c> (TUNE, in (0, 1)):
+/// the party is this fraction of the SOURCE settlement's population, floored to whole people and allocated per
+/// bucket (FoundingQuery.AllocateParty), never emptying a non-empty bucket. The fixed five-field OrderRecord cannot
+/// carry a party size (TargetId = source, Amount = site), so the size is content, not an order payload. It is read
+/// ONLY on the order path: emergent D-037 B1 founding sizes its party from migration's unplaced demand and is
+/// untouched (T4.4 §8 standing prohibition on any B1 threshold or TUNE). Reference class in sim.json
+/// <c>colonization._doc</c>.
+/// </summary>
+public sealed record ColonizationConfig(
+    [property: JsonPropertyName("orderPartyFraction"), JsonRequired] double OrderPartyFraction,
+    // M5 S1c (ADR-036 §8): the AI founding policy's switch and trigger thresholds. OPTIONAL: absent, the policy
+    // is INERT (no AI polity ever issues a Found Settlement order), so toy and hand-written configs are untouched.
+    [property: JsonPropertyName("aiFounding")] AiFoundingConfig? AiFounding = null);
+
+/// <summary>
+/// M5 S1c (ADR-036 §8) — THE AI FOUNDING POLICY'S CONTENT (Sim.Core/Systems/Colonization/AiFoundingPolicy.cs).
+/// Every number is TUNE; each reference class is in sim.json <c>colonization.aiFounding._doc</c>, fixed before measuring.
+/// <list type="bullet">
+/// <item><c>Enabled</c> (true): THE SWITCH. False reproduces every pre-S1c world byte for byte — the policy then
+///   issues nothing, and nothing else reads this section (the attribution control,
+///   AiFoundingAttributionTests).</item>
+/// <item><c>MinSourcePopulation</c> (500 people): an AI settlement sends colonists only at or above this size —
+///   DERIVED as the turn-zero founding size (founding.cohortCounts, 400) ÷ (1 − orderPartyFraction 0.2), so the
+///   source keeps at least a newly founded settlement's population once the party has left.</item>
+/// <item><c>MinYearsBetweenFoundings</c> (350 years): at most one new settlement per AI polity in this many years —
+///   anchored to the Age ladder's own expansion milestones (a4_expansion 14, a6_towns 18), which a polity holding 6
+///   of the canonical 12 at founding reaches at this pace by about the historical Iron Age. A DURATION in years
+///   (law 3), measured as a LOWER bound (turns elapsed × the current turn length: the era table only ever shortens
+///   turns), so it never opens early.</item>
+/// </list>
+/// </summary>
+public sealed record AiFoundingConfig(
+    [property: JsonPropertyName("enabled"), JsonRequired] bool Enabled,
+    [property: JsonPropertyName("minSourcePopulation"), JsonRequired] long MinSourcePopulation,
+    [property: JsonPropertyName("minYearsBetweenFoundings"), JsonRequired] double MinYearsBetweenFoundings);
 
 /// <summary>ADR-033 D6 — the institutions section of sim.json. Today it carries the five specialized
 /// universities' tuning only; other institution types follow the same lifecycle later (out of scope).</summary>
@@ -1016,6 +1057,22 @@ public static class SimConfigLoader
         if (cfg.Roads is not null) ValidateRoads(cfg.Roads);
         if (cfg.Governance is not null) ValidateGovernance(cfg.Governance);
         if (cfg.Institutions is not null) ValidateInstitutions(cfg.Institutions);
+        if (cfg.Colonization is { } colonization
+            && !(colonization.OrderPartyFraction > 0.0 && colonization.OrderPartyFraction < 1.0))
+            throw new SimConfigException(
+                "colonization.orderPartyFraction must be in (0,1) — a party is some of the source's people and " +
+                $"never all of them (ADR-036), got {Inv(colonization.OrderPartyFraction)}.");
+        if (cfg.Colonization?.AiFounding is { } aiFounding)
+        {
+            if (aiFounding.MinSourcePopulation < 1)
+                throw new SimConfigException(
+                    "colonization.aiFounding.minSourcePopulation must be >= 1 person (ADR-036 §8), got " +
+                    $"{aiFounding.MinSourcePopulation.ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
+            if (!(aiFounding.MinYearsBetweenFoundings >= 0.0) || !double.IsFinite(aiFounding.MinYearsBetweenFoundings))
+                throw new SimConfigException(
+                    "colonization.aiFounding.minYearsBetweenFoundings must be a finite number of years >= 0 " +
+                    $"(ADR-036 §8), got {Inv(aiFounding.MinYearsBetweenFoundings)}.");
+        }
 
         if (cfg.Founding is null) throw new SimConfigException("founding is missing.");
         if (cfg.Founding.CohortCounts is null || cfg.Founding.CohortCounts.Length != State.Cohorts.Count)

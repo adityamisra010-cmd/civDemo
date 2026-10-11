@@ -98,7 +98,7 @@ public class CliRevoltPolityProducerTests
         {
             OrderBatch batch = player.BatchFor(world.Clock.Turn);
             for (int b = 0; b < batch.Count; b++) uiLog.Append(batch[b]);
-            AiOrders.Append(uiLog, world, cfg);
+            AiOrders.Append(uiLog, world, cfg, Sim.Cli.CliRecipes.Worldgen());
             world = executor.Step(world);
             Assert.Equal(WorldHash.ComputeHex(world), cliHashes[t - 1]);
             if (EmpireQuery.TryGetController(world, new SettlementId(0), out PolityId c) && c.Value != 1) revolted = true;

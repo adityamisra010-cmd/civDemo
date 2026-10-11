@@ -119,6 +119,33 @@ public enum OrderKind
     /// built edges and the consumed materials first appear in the state of turn t+1.
     /// </summary>
     DevelopRoads = 8,
+
+    /// <summary>
+    /// D-051 §5 / ADR-036 (PROPOSED — the legality terms await the Director's confirmation): the issuing
+    /// Empire's FOUND SETTLEMENT order. A party of colonists leaves one of the issuer's settlements with
+    /// provisions and founds a settlement at a chosen site, through the EXISTING colonization founding path
+    /// (ColonizationSystem.Found) — there is no settler unit and no movement system; founding is instantaneous.
+    /// TargetId = the SOURCE settlement's id; Amount = the SITE CELL (row-major terrain cell index), a whole
+    /// number carried exactly by the double (cells are &lt; 2^31, far inside the 2^53 exact range). The party
+    /// size is not carried: it is the content fraction sim.json colonization.orderPartyFraction of the
+    /// source's population (ADR-036 §3). The five-field OrderRecord already encodes this, so the wire format is
+    /// untouched (IoVersion stays 1).
+    ///
+    /// Range-validated at LOAD only for what needs no world: the source id is ≥ 0 and the cell is a
+    /// non-negative whole number (NaN and ±∞ are rejected). That the cell is on the map (&lt; Size²) needs the
+    /// terrain and is checked in OrderValidation.ValidateAgainstWorld, with the source's existence and control
+    /// (ADR-034 deferral for a source founded mid-game). Whether the site is LEGAL — land, scored, spaced,
+    /// unclaimed, reachable, with enough people and food at the source — is state-dependent and decided where
+    /// the order is consumed (ColonizationSystem, via <see cref="State.FoundingQuery"/>.Check):
+    /// an order failing it changes nothing. The first LEGAL order per source per turn founds; later orders from
+    /// that source in the same turn change nothing. Found Settlement orders resolve in log order BEFORE the
+    /// emergent (D-037 B1) foundings of the same step.
+    /// DELIVERY: an order stamped turn t founds in the step t → t+1 — the SettlementRow first appears in the
+    /// state of turn t+1 with FoundedTurn t+1; its catchment first appears in the state of t+2 (CatchmentSystem
+    /// recomputes on the next step), and GovernanceSystem's reach for it is 0.0 in t+1 and t+2 (no distance row
+    /// in PREV yet) and real from t+3.
+    /// </summary>
+    FoundSettlement = 9,
 }
 
 /// <summary>
@@ -323,11 +350,28 @@ public sealed class OrderLog
                         $"order[{index}] (turn {record.Turn}): DevelopRoads percentage must be in (0,100], got " +
                         $"{record.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
                 break;
+            case OrderKind.FoundSettlement:
+                // ADR-036: only the world-free checks live here (the critic correction to the S1b plan). The cell
+                // rides in a double: insist it is a non-negative WHOLE number rather than truncating later — a
+                // fractional cell is not a place, and flooring it would found somewhere the issuer did not choose.
+                // "On the map" (< Size²) needs the terrain: OrderValidation.ValidateAgainstWorld checks it.
+                if (record.TargetId < 0)
+                    throw new SnapshotFormatException(
+                        $"order[{index}] (turn {record.Turn}): FoundSettlement source settlement id must be " +
+                        $">= 0, got {record.TargetId}.");
+                if (!(record.Amount >= 0.0) || record.Amount != Math.Floor(record.Amount)
+                    || record.Amount > int.MaxValue)
+                    throw new SnapshotFormatException(
+                        $"order[{index}] (turn {record.Turn}): FoundSettlement site cell must be a non-negative " +
+                        "whole number carried exactly by Amount, got " +
+                        $"{record.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
+                break;
             default:
                 throw new SnapshotFormatException(
                     $"order[{index}] (turn {record.Turn}): unknown order kind {(int)record.Kind}; " +
                     "this build understands kinds 1 (SetRainBias), 2 (LaborAllocation), 3 (SectorAllocation), " +
-                    "4 (EnqueueConstruction), 5 (SetTaxRate), 6 (SetResearchTarget), 7 (AdvanceAge) and 8 (DevelopRoads).");
+                    "4 (EnqueueConstruction), 5 (SetTaxRate), 6 (SetResearchTarget), 7 (AdvanceAge), 8 (DevelopRoads) " +
+                    "and 9 (FoundSettlement).");
         }
     }
 }

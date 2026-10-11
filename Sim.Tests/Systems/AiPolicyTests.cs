@@ -183,8 +183,8 @@ public class AiPolicyTests
     {
         WorldState solo = DevSolo.Value.Clone();
         Assert.False(AiOrders.HasAiPolity(solo));
-        Assert.Empty(AiOrders.For(solo, Cfg));
-        Assert.Empty(AiOrders.For(Production().Run(solo, 3), Cfg));
+        Assert.Empty(AiOrders.For(solo, Cfg, TestConfigs.Worldgen()));
+        Assert.Empty(AiOrders.For(Production().Run(solo, 3), Cfg, TestConfigs.Worldgen()));
     }
 
     [Fact]
@@ -193,7 +193,7 @@ public class AiPolicyTests
         WorldState w = Duo();
         foreach (string good in new[] { "timber", "stone" })
             foreach (SettlementId s in LabourActivities.ControlledSettlements(w, Rival)) TopUp(w, s, good, 1_000);
-        OrderRecord[] first = AiOrders.For(w, Cfg), second = AiOrders.For(w, Cfg);
+        OrderRecord[] first = AiOrders.For(w, Cfg, TestConfigs.Worldgen()), second = AiOrders.For(w, Cfg, TestConfigs.Worldgen());
         Assert.Equal(first, second);
         Assert.NotEmpty(first);
         Assert.All(first, o => Assert.Equal((Rival.Value, w.Clock.Turn), (o.ActorId, o.Turn)));
@@ -201,12 +201,12 @@ public class AiPolicyTests
         Assert.Equal(OrderKind.SetResearchTarget, first[0].Kind);
         Assert.Equal(2, first.Count(o => o.Kind == OrderKind.EnqueueConstruction));
         var log = new OrderLog();
-        Assert.Equal(first.Length, AiOrders.Append(log, w, Cfg));
+        Assert.Equal(first.Length, AiOrders.Append(log, w, Cfg, TestConfigs.Worldgen()));
         Assert.Equal(first.Length, log.Count);
         // An extinct AI Empire decides nothing.
         w.Controls.Clear();
         w.Controls.Add(new ControlRow(Human, w.Settlements[0].Id, 1.0));
-        Assert.Empty(AiOrders.For(w, Cfg));
+        Assert.Empty(AiOrders.For(w, Cfg, TestConfigs.Worldgen()));
     }
 
     [Fact]
@@ -216,7 +216,7 @@ public class AiPolicyTests
         WorldState w = Production().Step(Duo());
         Complete(w, Rival, AncestorsOf("track_road"));
         foreach (SettlementId s in LabourActivities.ControlledSettlements(w, Rival)) TopUp(w, s, "timber", 5_000);
-        OrderRecord[] orders = AiOrders.For(w, Cfg);
+        OrderRecord[] orders = AiOrders.For(w, Cfg, TestConfigs.Worldgen());
         OrderRecord roads = Assert.Single(orders, o => o.Kind == OrderKind.DevelopRoads);
         Assert.Equal(RoadDevelopmentPolicy.Decide(w, Cfg, Rival), roads);
         // The rival's surface offers the same action the AI took.

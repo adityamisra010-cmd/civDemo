@@ -50,7 +50,7 @@
   {
    "id": "baseline.settlement_founding",
    "name": "Settlement founding",
-   "providedBy": "ColonizationSystem \u2014 a colony is founded when famine-flight migrants have no viable settlement to move to (MigrationSystem demand); no settler unit or found-settlement order exists",
+   "providedBy": "ColonizationSystem \u2014 a colony is founded when famine-flight migrants have no viable settlement to move to (MigrationSystem demand), or by a Found Settlement order (OrderKind 9, D-051 \u00a75, ADR-036) from a settlement the issuer controls to an unclaimed, reachable site; founding is instantaneous \u2014 no settler unit exists",
    "simulated": true
   },
   {

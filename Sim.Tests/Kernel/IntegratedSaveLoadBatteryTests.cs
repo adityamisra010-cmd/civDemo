@@ -17,7 +17,9 @@ namespace Sim.Tests.Kernel;
 /// the player sees) and then the AI's orders (AiOrders.Append) go into ONE order log the executor delivers
 /// from. The player issues every order kind the M5 surface has: labour (legacy + sector), research target
 /// set / clear / re-set, construction (a granary and a university, the knowledge rig-forced), road
-/// development, a tax rate and an Age advance (eligibility rig-forced). Rigs touch turn 0 only and move
+/// development, a tax rate, an Age advance (eligibility rig-forced) and — M5 S1b, ADR-036 — two Found
+/// Settlement orders: one from the player's second holding, then one FROM the colony it founded (the ADR-034 case), both late
+/// in the run so every earlier save point (and its measured turn) is untouched. Rigs touch turn 0 only and move
 /// conserved stocks through the Ledger.
 ///
 /// The uninterrupted run records every turn's hash. At each SAVE POINT (turn 1; mid-research; right after a
@@ -38,6 +40,10 @@ public class IntegratedSaveLoadBatteryTests
     private static readonly PolityId Rival = new(2);
     private const int Horizon = 40;
     private const long RoadTurn = 1, RoadAgainTurn = 12, AgeTurn = 3, TaxTurn = 5, ClearTurn = 9, RetargetTurn = 10;
+
+    /// <summary>M5 S1b (ADR-036): the Found Settlement turns — after the last measured save point (34), so the
+    /// orders change only worlds 36.. and the existing pins below cannot move.</summary>
+    private const long FoundTurn = 35, FromColonyTurn = 37;
 
     /// <summary>H2: the Age the player is rigged into at turn 0 — one below the tax edict's Age, so the scripted
     /// AdvanceAge enters the Age that makes the turn-5 tax order legal.</summary>
@@ -153,12 +159,34 @@ public class IntegratedSaveLoadBatteryTests
                 if (w.ResearchProgress[i].Polity == Player) { current = w.ResearchProgress[i].Node.Value; break; }
             if (FirstTarget(w, current) is { } o) log.Append(o);
         }
+        // The other holding, not the capital: at turn 35 the capital's granary is empty (measured: 0 grain, every
+        // otherwise-legal site NoProvisions), so it may not send a party; settlement 2 holds 647 grain.
+        if (t == FoundTurn) log.Append(FoundFrom(w, OtherHolding(w)));
+        if (t == FromColonyTurn) log.Append(FoundFrom(w, ColonyOf(w)));
+    }
+
+    /// <summary>A Found Settlement order from <paramref name="source"/> to its nearest LEGAL site (FoundingRigs'
+    /// stable ring scan over THE predicate, FoundingQuery.Check) — a pure function of the world.</summary>
+    private static OrderRecord FoundFrom(IReadOnlyWorldState w, SettlementId source)
+    {
+        int site = FoundingRigs.NearestLegalSite(w, Cfg, FoundingRigs.Frontier(w, Cfg), Player, source);
+        if (site < 0) throw new InvalidOperationException($"turn {w.Clock.Turn}: no legal site from settlement {source.Value}");
+        return FoundingQuery.FoundOrder(w, Player, source, site);
+    }
+
+    /// <summary>The colony the FoundTurn order founded: the player's settlement founded in state FoundTurn + 1.</summary>
+    private static SettlementId ColonyOf(IReadOnlyWorldState w)
+    {
+        for (int i = 0; i < w.Settlements.Count; i++)
+            if (w.Settlements[i].FoundedTurn == FoundTurn + 1 && EmpireQuery.ControlsSettlement(w, Player, w.Settlements[i].Id))
+                return w.Settlements[i].Id;
+        throw new InvalidOperationException("the FoundTurn order founded no colony");
     }
 
     private static void OneTurnOfOrders(OrderLog log, IReadOnlyWorldState w)
     {
         PlayerOrders(log, w);
-        AiOrders.Append(log, w, Cfg);
+        AiOrders.Append(log, w, Cfg, TestConfigs.Worldgen());
     }
 
     private static ImmutableArray<ActionDescriptor>[] Surface(IReadOnlyWorldState w) =>
@@ -260,7 +288,7 @@ public class IntegratedSaveLoadBatteryTests
         WorldState w = loaded;
         for (int t = k; t < Horizon; t++)
         {
-            if (issued && t == k) AiOrders.Append(log, w, Cfg);
+            if (issued && t == k) AiOrders.Append(log, w, Cfg, TestConfigs.Worldgen());
             else OneTurnOfOrders(log, w);
             w = exec.Step(w);
             Assert.True(run.Hashes[t + 1] == WorldHash.ComputeHex(w), $"{label} (saved at {k}): diverged at turn {t + 1}");
@@ -284,7 +312,8 @@ public class IntegratedSaveLoadBatteryTests
         var kinds = new HashSet<OrderKind>();
         for (int i = 0; i < run.Log.Count; i++) if (run.Log[i].ActorId == Player.Value) kinds.Add(run.Log[i].Kind);
         foreach (OrderKind k in new[] { OrderKind.LaborAllocation, OrderKind.SectorAllocation, OrderKind.EnqueueConstruction,
-                     OrderKind.SetTaxRate, OrderKind.SetResearchTarget, OrderKind.AdvanceAge, OrderKind.DevelopRoads })
+                     OrderKind.SetTaxRate, OrderKind.SetResearchTarget, OrderKind.AdvanceAge, OrderKind.DevelopRoads,
+                     OrderKind.FoundSettlement })
             Assert.Contains(k, kinds);
         Assert.Contains(Enumerable.Range(0, run.Log.Count).Select(i => run.Log[i]),
             o => o.ActorId == Player.Value && o.Kind == OrderKind.SetResearchTarget && o.TargetId == -1);
@@ -297,6 +326,18 @@ public class IntegratedSaveLoadBatteryTests
         Assert.Equal(0.0, TaxRate(run.Worlds[(int)TaxTurn]));
         Assert.True(TaxRate(run.Worlds[(int)TaxTurn + 1]) > 0.0);
         Assert.Equal(0.10, TaxRate(run.Worlds[(int)TaxTurn + 1]), 12);
+
+        // M5 S1b (ADR-036), turn-exact: the FoundTurn order founds in state FoundTurn + 1; the order FROM that colony
+        // (a source above the turn-0 maximum — ADR-034) founds in state FromColonyTurn + 1. The up-front validation
+        // every replay path runs accepts the whole log against turn 0.
+        int Count(IReadOnlyWorldState w) => w.Settlements.Count;
+        Assert.Equal(Count(run.Worlds[(int)FoundTurn]) + 1, Count(run.Worlds[(int)FoundTurn + 1]));
+        SettlementId colony = ColonyOf(run.Worlds[(int)FromColonyTurn]);
+        Assert.True(colony.Value > FoundingRigs.MaxSettlementId(run.Worlds[0]));
+        Assert.Equal(Count(run.Worlds[(int)FromColonyTurn]) + 1, Count(run.Worlds[(int)FromColonyTurn + 1]));
+        Assert.Contains(Enumerable.Range(0, run.Log.Count).Select(i => run.Log[i]),
+            o => o.Kind == OrderKind.FoundSettlement && o.TargetId == colony.Value && o.Turn == FromColonyTurn);
+        OrderValidation.ValidateAgainstWorld(run.Log, run.Worlds[0]);
 
         // The save points, MEASURED on this tree (dev world, seed 42): partial research progress from turn 1;
         // the player's first completion at 28; the turn-1 road order affords 62% of its first route (turn 2);
@@ -349,5 +390,18 @@ public class IntegratedSaveLoadBatteryTests
         SaveLoadContinue((int)AgeTurn, "age before decision");
         SaveLoadContinue((int)AgeTurn, "age decided, not yet entered", issued: true);
         SaveLoadContinue((int)AgeTurn + 1, "age entered");
+    }
+
+    [Fact]
+    public void SaveLoad_BetweenFoundSettlementIssueAndEffect()
+    {
+        // M5 S1b (ADR-036). FoundTurn: before the order and issued-not-delivered; FoundTurn + 1: the colony stands
+        // with no catchment yet (CatchmentSystem picks it up on the next step); FromColonyTurn: the order FROM the
+        // colony issued, not yet delivered; FromColonyTurn + 1: the second colony stands.
+        SaveLoadContinue((int)FoundTurn, "found before issue");
+        SaveLoadContinue((int)FoundTurn, "found issued, not yet delivered", issued: true);
+        SaveLoadContinue((int)FoundTurn + 1, "colony founded, catchment pending");
+        SaveLoadContinue((int)FromColonyTurn, "found from the colony issued, not yet delivered", issued: true);
+        SaveLoadContinue((int)FromColonyTurn + 1, "second colony founded");
     }
 }

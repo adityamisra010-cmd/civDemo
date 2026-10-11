@@ -156,7 +156,7 @@ public class TradeResearchUnlockTests
         TurnExecutor exec = Executor();
         for (int t = 0; t < 20; t++)
         {
-            OrderRecord[] orders = AiOrders.For(w, Cfg);
+            OrderRecord[] orders = AiOrders.For(w, Cfg, TestConfigs.Worldgen());
             Assert.DoesNotContain(orders, o => o.Kind == OrderKind.SetResearchTarget && o.TargetId == TradeKey.Value
                 && !ResearchQuery.AvailableMask(Research, ResearchQuery.CompletedMask(w, Research, ai))[Research.IndexOfId("trade")]);
             var log = new OrderLog();
