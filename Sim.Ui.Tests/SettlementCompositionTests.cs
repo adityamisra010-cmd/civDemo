@@ -618,6 +618,30 @@ public class SettlementCompositionTests(InstitutionWorldFixture fx) : IClassFixt
         return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(sb.ToString()))).ToLowerInvariant();
     }
 
+    /// <summary>The stable hash VARIES the composition between settlements — the point of hashing (settlements are not
+    /// stamped from one die) — while each settlement keeps its own for ever: across 64 settlement ids holding every kind of
+    /// the content, the kinds' arrangement and the block rings' rotation take many values, and each id gives the same
+    /// arrangement every time it is composed.</summary>
+    [Fact]
+    public void TheHashVariesTheArrangementBetweenSettlements_AndEachKeepsItsOwn()
+    {
+        WorldProjection p = Seam();
+        SettlementLensView cap = p.Settlements.Single(s => s.Id == fx.Capital);
+        var arrangements = new HashSet<string>(StringComparer.Ordinal);
+        var rotations = new HashSet<double>();
+        for (int id = 0; id < 64; id++)
+        {
+            SettlementLensView v = cap with { Id = id, Population = 5_000, Dwellings = 1_000 };
+            SettlementComposition a = SettlementComposer.Compose(v, p.Universe, p.Classes), b = SettlementComposer.Compose(v, p.Universe, p.Classes);
+            Assert.Equal(a.Parts, b.Parts);
+            Assert.Equal(a.Blocks, b.Blocks);
+            arrangements.Add(string.Join(" ", a.Parts.Select(x => x.Key + "@" + x.Lot.Ring.ToString(CultureInfo.InvariantCulture) + "." + x.Lot.Index.ToString(CultureInfo.InvariantCulture))));
+            rotations.Add(SettlementComposer.RingRotationDeg(id, 0));
+        }
+        Assert.True(arrangements.Count >= 32, $"only {arrangements.Count} distinct arrangements over 64 settlements");
+        Assert.True(rotations.Count >= 32, $"only {rotations.Count} distinct block-ring rotations over 64 settlements");
+    }
+
     // ------------------------------------------------------------------ content guard
 
     /// <summary>Every kind the shipped content can build has its own lot inside the smallest footprint: no part spills, no
