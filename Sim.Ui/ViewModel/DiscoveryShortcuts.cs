@@ -329,16 +329,26 @@ public static class DiscoveryShortcuts
             Knowledge: KnowledgeStatement);
     }
 
+    /// <summary>
+    /// The farming shortcut. ProductionSystem.Farm harvests the LOWER of two limits (Leontief): the land's (arable km² ×
+    /// the per-km² yield) and the labour's (farmers × the per-farmer output × the tool factor). Cultivation moves BOTH
+    /// coefficients — sim.json <c>farming.preCultivation</c> → <c>farming</c> — so the text states both arms and says the
+    /// harvest is the lower of the two. It never shows a multiplier: the land ratio alone (x13 on the shipped content) is
+    /// not the food change wherever labour binds, and neither ratio is the change of a harvest the step has not made yet.
+    /// The tool factor, weather and tax multiply both states alike and are not changed by the transition.
+    /// </summary>
     private static NowUsable ActivityShortcut(long turn, long expires, ResearchEntity entity, SimConfig cfg, string layer)
     {
         string name = NameOf(entity);
         double cultivated = cfg.Farming.YieldPerArableKm2PerYear;
+        double perFarmer = cfg.Farming.OutputPerFarmerPerYear;
         double wild = cfg.Farming.PreCultivation?.YieldPerArableKm2PerYear ?? cultivated;
-        string ratio = wild > 0.0 ? " (x" + Num(cultivated / wild) + ")" : "";
+        double perGatherer = cfg.Farming.PreCultivation?.OutputPerGathererPerYear ?? perFarmer;
         return new NowUsable(turn, entity.Index, entity.Id, name, NowUsableKind.Activity, [], [], [layer], expires,
-            Headline: name + " " + Label + ": fertile land yields more food" + ratio,
-            Permission: "Permission to use: " + name + " became known (your research) - your farmland yields " + Num(cultivated)
-                + " instead of " + Num(wild) + " food per arable km2 a year from your next turn",
+            Headline: name + " " + Label + ": cultivation replaces wild food on your farmland",
+            Permission: "Permission to use: " + name + " became known (your research) - from your next turn your harvest is the"
+                + " lower of two limits: land " + Num(wild) + " -> " + Num(cultivated) + " food per arable km2 a year; labour "
+                + Num(perGatherer) + " -> " + Num(perFarmer) + " food per farmer a year (before tools)",
             Extraction: null,
             Knowledge: KnowledgeStatement);
     }

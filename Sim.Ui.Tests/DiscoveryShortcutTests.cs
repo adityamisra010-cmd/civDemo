@@ -285,6 +285,59 @@ public class DiscoveryShortcutTests(NowUsableFixture fx) : IClassFixture<NowUsab
         Assert.StartsWith("Knowledge of the resource: not simulated", DiscoveryShortcuts.KnowledgeStatement, StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// Review finding (P10, major): ProductionSystem.Farm harvests min(land, labour) — arable km² × the per-km² yield
+    /// against farmers × the per-farmer output × tools. Cultivation lifts the LAND limit 2 → 26 (x13) on the shipped content
+    /// but the LABOUR limit only 4.3 → 5 (about x1.16), and a labour-bound farm's harvest follows the labour arm. So the
+    /// farming shortcut names BOTH arms, read from the same config fields the yield reads, and says the harvest is the
+    /// lower of the two; it never shows a multiplier — least of all the bare land ratio — as the food change.
+    /// </summary>
+    [Fact]
+    public void TheFarmingShortcut_NamesBothLeontiefArms_TheLabourArmToo_AndNeverShowsTheBareLandRatioAsTheFoodChange()
+    {
+        static string N(double v) => v.ToString("0.##", CultureInfo.InvariantCulture);
+        static void AssertNamesBothArms(NowUsable e, FarmingConfig f)
+        {
+            PreCultivationConfig pre = f.PreCultivation!;
+            Assert.Equal(NowUsableKind.Activity, e.Kind);
+            Assert.Contains("the lower of two limits", e.Permission, StringComparison.Ordinal);
+            Assert.Contains("land " + N(pre.YieldPerArableKm2PerYear) + " -> " + N(f.YieldPerArableKm2PerYear) + " food per arable km2 a year",
+                e.Permission, StringComparison.Ordinal);
+            Assert.Contains("labour " + N(pre.OutputPerGathererPerYear) + " -> " + N(f.OutputPerFarmerPerYear) + " food per farmer a year",
+                e.Permission, StringComparison.Ordinal);
+            string landRatio = N(f.YieldPerArableKm2PerYear / pre.YieldPerArableKm2PerYear);
+            foreach (string t in new[] { e.Headline, e.Permission, e.Knowledge })
+            {
+                Assert.DoesNotMatch(@"(^|[^A-Za-z0-9])x ?\d", t);                                      // no multiplier of any kind
+                Assert.DoesNotMatch(@"(^|[^0-9.])" + Regex.Escape(landRatio) + @"($|[^0-9.])", t);    // nor the land ratio bare
+                Assert.DoesNotContain("times", t, StringComparison.OrdinalIgnoreCase);
+            }
+        }
+
+        // The shipped content, as the gate state fired it: land 2 -> 26, labour 4.3 -> 5.
+        NowUsable shipped = fx.Session.NowUsableHistory.Entries[0];
+        AssertNamesBothArms(shipped, fx.Config.Farming);
+        Assert.Contains("land 2 -> 26 ", shipped.Permission, StringComparison.Ordinal);
+        Assert.Contains("labour 4.3 -> 5 ", shipped.Permission, StringComparison.Ordinal);
+
+        // Every figure is the config's, none written into the text: a variant whose four coefficients all differ (land
+        // ratio 21, labour ratio 1.6) fires with exactly its own arms.
+        PreCultivationConfig shippedPre = fx.Config.Farming.PreCultivation!;
+        SimConfig variant = fx.Config with
+        {
+            Farming = fx.Config.Farming with
+            {
+                YieldPerArableKm2PerYear = 31.5, OutputPerFarmerPerYear = 6.4,
+                PreCultivation = shippedPre with { YieldPerArableKm2PerYear = 1.5, OutputPerGathererPerYear = 4 },
+            },
+        };
+        WorldState next = With(fx.Founded, Research, [Research.IndexOf(fx.Node)]);
+        NowUsable varied = Assert.Single(DiscoveryShortcuts.Transitions(fx.Founded, next, variant, DiscoveryShortcuts.Content, Me));
+        AssertNamesBothArms(varied, variant.Farming);
+        Assert.Contains("land 1.5 -> 31.5 ", varied.Permission, StringComparison.Ordinal);
+        Assert.Contains("labour 4 -> 6.4 ", varied.Permission, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void NoResearchNodeOrEntityId_IsNamedInTheShortcutsCode()
     {

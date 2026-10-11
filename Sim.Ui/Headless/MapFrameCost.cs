@@ -248,7 +248,7 @@ public static class MapFrameCost
         if (m.Outline && m.Overlay is { } ob)
             foreach (OverlayLayer l in ob.Layers)
                 if (m.OnlyLayer == l.Kind)
-                    highlight = new OverlayHighlight([l.Index], ["Farming now usable: fertile land yields more food (x13)",
+                    highlight = new OverlayHighlight([l.Index], ["Farming now usable: cultivation replaces wild food on your farmland",
                         "Outlined: the known places where " + l.Name + " is above 0", "Permission to use: newly known (your research)",
                         DiscoveryShortcuts.KnowledgeStatement, "Shown through turn 19"]);
         return (d, cam, detail, w, h) => WorldLens.Paint(d, backend, p, detail, (x, y) => cam.WorldToScreen(x, y, w, h), cam.Zoom,
