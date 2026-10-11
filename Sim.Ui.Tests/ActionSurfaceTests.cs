@@ -83,7 +83,9 @@ public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<Cano
 
         Assert.Equal(UiEra.Prehistoric, m.Era);
         Assert.Equal(SurfaceLayout.Flat, m.Layout);   // A1: a short flat list
-        Assert.Equal(new[] { ActionDomain.Labour, ActionDomain.Research, ActionDomain.Construction, ActionDomain.Military, ActionDomain.Standing, ActionDomain.Production },
+        // M5 S1d: + Colonization — every settlement can spare a party and provision it at founding (D-051 §5).
+        Assert.Equal(new[] { ActionDomain.Labour, ActionDomain.Research, ActionDomain.Construction, ActionDomain.Military, ActionDomain.Standing, ActionDomain.Production,
+                ActionDomain.Colonization },
             m.Domains.ToArray());
         // R1: the crafts known at founding are exactly the content's BASELINE recipes (null requirement) — no
         // pottery firing (pottery_open_fired) and no bronze casting (tin_bronze) before their research.
@@ -171,10 +173,13 @@ public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<Cano
         foreach (string t in texts.Except(rest)) Assert.Contains(t, added, StringComparison.Ordinal);
 
         // The ONLY interactive regions: the pebbles, the settlement cycle, the trees link and the baseline
-        // projects' build buttons — no slider track, no tax, road, Age or apply control (nothing changed yet).
+        // projects' build buttons — no slider track, no tax, road, Age or apply control (nothing changed yet). M5 S1d: and
+        // the founding block's "Choose a site..." (it opens the placement mode; the order is the placement's Confirm).
         var kinds = screen.Hits.Select(h => h.Kind).Distinct().OrderBy(k => k).ToArray();
-        Assert.Equal(new[] { ActionHitKind.LabourSlot, ActionHitKind.ResearchOpen, ActionHitKind.Build, ActionHitKind.PrevSettlement, ActionHitKind.NextSettlement }
+        Assert.Equal(new[] { ActionHitKind.LabourSlot, ActionHitKind.ResearchOpen, ActionHitKind.Build, ActionHitKind.PrevSettlement, ActionHitKind.NextSettlement,
+                ActionHitKind.FoundSettlement }
             .OrderBy(k => k).ToArray(), kinds);
+        Assert.Equal(1, screen.Hits.Count(h => h.Kind == ActionHitKind.FoundSettlement));
         Assert.Equal(Sectors.Count * 10, screen.Hits.Count(h => h.Kind == ActionHitKind.LabourSlot));
         // Director 2026-10-10 (D-051 §4): the workshop is not a legal order at founding (its tools have no production
         // path), so the granary is the one build button; the workshop is named in the locked block instead.
@@ -187,7 +192,7 @@ public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<Cano
         ImmutableArray<ActionDescriptor> query = AvailableActionsQuery.For(s.World, s.Config, Me,
             ActionQueryContext.ForNextStep(s.World, Era, s.QueuedOrders()));
         Assert.True(AvailableActionsQuery.Same(query, m.Actions));
-        Assert.Equal(12 * 5 + 1 + 12 + 1 + 8 + 2, query.Length);   // R1: + the two baseline recipes; construction 12 (granaries) — no workshop at founding (Director 2026-10-10, D-051 §4)
+        Assert.Equal(12 * 5 + 1 + 12 + 1 + 8 + 2 + 12, query.Length);   // R1: + the two baseline recipes; construction 12 (granaries) — no workshop at founding (Director 2026-10-10, D-051 §4); M5 S1d: + 12 Found Settlement (84 -> 96)
         foreach (ActionHit build in screen.Hits.Where(h => h.Kind == ActionHitKind.Build))
             Assert.Contains(query, a => a.Domain == ActionDomain.Construction && a.Targets[0].Id == build.A && a.Targets[1].Id == build.B);
     }

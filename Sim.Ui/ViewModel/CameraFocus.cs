@@ -47,6 +47,19 @@ public static class CameraFocus
         return true;
     }
 
+    /// <summary>M5 S1d: IMMEDIATELY frames terrain cell <paramref name="cell"/> at the centre of the map rect (as near as the
+    /// clamp permits), at <paramref name="zoom"/> screen px per terrain px when given — the placement rows and tests aim at
+    /// one place this way. Pure camera math: no world is read.</summary>
+    public static void CenterOnCell(Camera camera, int cell, int terrainSize, Sim.Ui.Render.RectD view, double? zoom = null)
+    {
+        ArgumentNullException.ThrowIfNull(camera);
+        if (terrainSize <= 0 || cell < 0 || cell >= terrainSize * terrainSize) return;
+        camera.Stop();
+        if (zoom is { } z && z > 0) camera.ZoomAt(view.CenterX, view.CenterY, z / camera.Zoom, view);
+        (double sx, double sy) = camera.WorldToScreen(cell % terrainSize + 0.5, cell / terrainSize + 0.5, view);
+        camera.Pan(view.CenterX - sx, view.CenterY - sy, view);
+    }
+
     private static LineGeometry.Vertex? Position(IReadOnlyWorldState world, int settlementId)
     {
         if (world.Terrain is null) return null;

@@ -47,6 +47,8 @@ public static class FrameSurface
     public const string Research = "research";
     /// <summary>P3: the map legend's tab (the legend's own text is the lens's: the lens paints it with the map).</summary>
     public const string Legend = "legend";
+    /// <summary>M5 S1d: the settlement-placement mode — its bar over the map and its hint beside the pointer.</summary>
+    public const string Placement = "placement";
 }
 
 /// <summary>

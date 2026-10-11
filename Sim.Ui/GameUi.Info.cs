@@ -204,7 +204,9 @@ public sealed partial class GameUi
         if (AgePanelVisible && AgePanelRect().Contains(px, py)) return;
         int cell = MapCells.At(_camera!, _mapRect, px, py, terrain.Size);
         if (cell < 0 || !_session.Knowledge.KnowsCell(cell)) return;
-        int source = _selected >= 0 && EmpireQuery.ControlsSettlement(_world, UiPlayer.Empire, new SettlementId(_selected)) ? _selected : -1;
+        // M5 S1d: in the placement mode the place is judged from the mode's source.
+        int source = _placement.Active ? _placement.Source
+            : _selected >= 0 && EmpireQuery.ControlsSettlement(_world, UiPlayer.Empire, new SettlementId(_selected)) ? _selected : -1;
         InfoRegistry.Add(MapCells.Region(_camera!, _mapRect, cell, terrain.Size, px, py), InfoSubject.OfCell(cell, source), "place", passive: true);
     }
 
@@ -320,6 +322,7 @@ public sealed partial class GameUi
         if (AgePanelVisible && !_progressionOpen) InfoRegistry.AddRange(_age.InfoHits);
         InfoHint = null;
         InfoHintRect = null;
+        if (DrawPlacementHint()) return;   // M5 S1d: over a hovered place in the placement mode, its own hint
         if (!_active) return;
         System.Numerics.Vector2 p = ImGui.GetIO().MousePos;
         if (p.X < 0 || p.Y < 0 || p.X >= _viewportWidth || p.Y >= _viewportHeight) return;
