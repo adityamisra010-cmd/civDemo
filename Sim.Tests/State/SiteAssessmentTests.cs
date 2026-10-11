@@ -500,6 +500,351 @@ public class SiteAssessmentTests
         Assert.Equal(w.Settlements.Count, control.Nearest.Length);
     }
 
+    // ================================================================== THE PLAYER'S CLASS for a KNOWN cell (P8 review; ADR-037 §7)
+
+    /// <summary>Every word a card shows, for the "never narrated" checks.</summary>
+    private static string Text(InfoCard card)
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.Append(card.Title).Append('|').Append(card.What).Append('|').Append(card.StatusLine).Append('\n');
+        foreach (InfoSection sec in card.More)
+        {
+            sb.Append(sec.Heading).Append('\n');
+            foreach (InfoLink l in sec.Lines) sb.Append(l.Label).Append('|').Append(l.Met).Append('|').Append(l.Note).Append('\n');
+        }
+        return sb.ToString();
+    }
+
+    /// <summary>A settlement's name on these cards: one no other text can contain by accident.</summary>
+    private static string Named(int id) => "<S" + id.ToString(System.Globalization.CultureInfo.InvariantCulture) + ">";
+
+    private static InfoCard CardOf(IReadOnlyWorldState w, SiteAssessment.Prepared site, PolityKnowledge k, int cell, int source = -1) =>
+        InfoQuery.Card(w, Cfg, Player, InfoSubject.OfCell(cell, source), settlementName: Named, knowledge: k, site: site);
+
+    private static SiteAssessment.FoundingArm ArmOf(SiteAssessment.Report r, FoundingVerdict arm)
+    {
+        foreach (SiteAssessment.FoundingArm a in r.Arms) if (a.Arm == arm) return a;
+        throw new InvalidOperationException("no arm " + arm);
+    }
+
+    /// <summary>The rival's settlements, in table order.</summary>
+    private static List<SettlementRow> RivalSettlements(IReadOnlyWorldState w)
+    {
+        var rows = new List<SettlementRow>();
+        for (int i = 0; i < w.Settlements.Count; i++)
+            if (EmpireQuery.TryGetController(w, w.Settlements[i].Id, out PolityId p) && p.Value == Rival.Value) rows.Add(w.Settlements[i]);
+        return rows;
+    }
+
+    /// <summary>KnowledgeStubs.HidePolity's rule (Sim.Ui) on the duo world: the rival's site and catchment nodes are
+    /// unknown, every other node known; a node holding a player site is never hidden.</summary>
+    private static bool[] RivalHiddenMask(IReadOnlyWorldState w)
+    {
+        PolityKnowledge any = PolityKnowledge.Of(w, Player);
+        (int l, _) = PolityKnowledge.Grid(w.Terrain!.Size);
+        var known = new bool[l * l];
+        Array.Fill(known, true);
+        var rivals = new HashSet<int>();
+        foreach (SettlementRow row in RivalSettlements(w)) { rivals.Add(row.Id.Value); known[any.NodeOfCell(row.SiteCell)] = false; }
+        for (int i = 0; i < w.CatchmentNodes.Count; i++)
+            if (rivals.Contains(w.CatchmentNodes[i].Settlement.Value)) known[w.CatchmentNodes[i].LatticeNode] = false;
+        for (int i = 0; i < w.Settlements.Count; i++)
+            if (!rivals.Contains(w.Settlements[i].Id.Value)) known[any.NodeOfCell(w.Settlements[i].SiteCell)] = true;
+        return known;
+    }
+
+    /// <summary>The centre cell of lattice node <paramref name="node"/> on a <paramref name="size"/>-px map.</summary>
+    private static int CentreOf(int size, int node)
+    {
+        (int l, int block) = PolityKnowledge.Grid(size);
+        return (node / l * block + block / 2) * size + node % l * block + block / 2;
+    }
+
+    /// <summary>A copy of <paramref name="t"/> with, in every cell <paramref name="k"/> does not know, fertility set to
+    /// <paramref name="fertility"/>, a river, rough ground (movement cost × 3) and every other land layer changed.</summary>
+    private static TerrainSet RewrittenUnderUnknown(TerrainSet t, PolityKnowledge k, double fertility)
+    {
+        double[] elevation = t.Elevation.ToArray(), temperature = t.Temperature.ToArray(), moisture = t.Moisture.ToArray();
+        double[] fert = t.Fertility.ToArray(), rivers = t.Rivers.ToArray(), movement = t.MovementCost.ToArray();
+        int changed = 0;
+        for (int cell = 0; cell < fert.Length; cell++)
+        {
+            if (k.KnowsCell(cell)) continue;
+            fert[cell] = fertility;
+            moisture[cell] = 1.0 - moisture[cell];
+            temperature[cell] += 7.0;
+            elevation[cell] += 0.03;
+            if (rivers.Length == fert.Length) rivers[cell] = 1.0;
+            movement[cell] *= 3.0;
+            changed++;
+        }
+        Assert.True(changed > 0);
+        var polylines = new int[t.RiverPolylineCount][];
+        for (int i = 0; i < polylines.Length; i++) polylines[i] = t.RiverPolyline(i).ToArray();
+        System.Reflection.ConstructorInfo ctor = typeof(TerrainSet)
+            .GetConstructors(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)[0];
+        return (TerrainSet)ctor.Invoke([t.Size, t.KmPerPx, t.SeaLevel, elevation, t.Water.ToArray(), temperature, moisture, fert,
+            movement, rivers, polylines]);
+    }
+
+    [Fact]
+    public void ThroughAStubHidingTheRival_AKnownCellsCard_IsTheSameWhereverTheRivalStands_AndNeverNamesIt_TheAllKnownControlSeesIt()
+    {
+        // P8 review (finding 1, first case): through a stub hiding the rival whole (its site and catchment nodes), known cells
+        // failed the spacing arm only because of the rival and the card said how far away its site was. Spacing reads every
+        // settlement and the lattice, so through such a stub it is NOT JUDGED, and WHERE the rival stands — every rival site
+        // moved to the hidden node farthest from it — leaves every known cell's card identical and nameless. A source the
+        // player does not know names nothing (its card is a nonexistent id's). THE CONTROL: all-known, the rival's spacing is
+        // read, and the move moves it.
+        WorldState w = Duo1(), moved = Duo1();
+        int size = w.Terrain!.Size;
+        bool[] mask = RivalHiddenMask(w);
+        PolityKnowledge any = PolityKnowledge.Of(w, Player);
+        List<SettlementRow> rivals = RivalSettlements(w);
+        Assert.NotEmpty(rivals);
+        (int l, _) = PolityKnowledge.Grid(size);
+        for (int i = 0; i < moved.Settlements.Count; i++)
+        {
+            if (!rivals.Exists(r => r.Id == moved.Settlements[i].Id)) continue;
+            int from = any.NodeOfCell(moved.Settlements[i].SiteCell), best = -1;
+            long bestD = -1;
+            for (int v = 0; v < mask.Length; v++)
+            {
+                if (mask[v]) continue;
+                long dx = v % l - from % l, dy = v / l - from / l, d = dx * dx + dy * dy;
+                if (d > bestD) { bestD = d; best = v; }
+            }
+            Assert.True(bestD > 0, "the rival hides only its own site node - the rig is void");
+            moved.Settlements[i] = moved.Settlements[i] with { SiteCell = CentreOf(size, best) };
+        }
+        SiteAssessment.Prepared site = Site(w);   // clones share the terrain
+        PolityKnowledge stub = PolityKnowledge.Restricted(w, Player, mask, mask), stubMoved = PolityKnowledge.Restricted(moved, Player, mask, mask);
+        Assert.False(SiteAssessment.SeesAll(stub));
+        foreach (SettlementRow r in rivals) Assert.False(stub.KnowsSettlement(r.Id));
+
+        var cells = new List<int>();
+        foreach (SettlementRow r in rivals)
+            for (int radius = 4; radius <= 48; radius += 4)
+                foreach (int c in FoundingRigs.Ring(size, r.SiteCell, radius))
+                    if (c % 3 == 0 && stub.KnowsCell(c) && w.Terrain.Water[c] < 0.5) cells.Add(c);
+        Assert.True(cells.Count > 20, "too few known land cells near the rival - the rig is void");
+
+        int spacingMoved = 0, cardsMoved = 0;
+        foreach (int cell in cells)
+        {
+            SiteAssessment.Report r = Assess(w, site, cell, k: stub);
+            Assert.True(r.Known);
+            Assert.False(r.SeesAll);
+            Assert.True(double.IsNaN(r.SpacingCost));
+            SiteAssessment.FoundingArm tooClose = ArmOf(r, FoundingVerdict.TooClose);
+            Assert.Null(tooClose.Holds);
+            Assert.True(tooClose.Unseen || ArmOf(r, FoundingVerdict.Occupied).Holds == false);
+            InfoCard a = CardOf(w, site, stub, cell), b = CardOf(moved, site, stubMoved, cell);
+            Assert.True(a == b, "the card of known cell " + cell + " moved with the hidden rival:\n" + Text(a) + "\n---\n" + Text(b));
+            string text = Text(a);
+            foreach (SettlementRow rv in rivals) Assert.DoesNotContain(Named(rv.Id.Value), text, StringComparison.Ordinal);
+            Assert.DoesNotContain("travel-cost units away", text, StringComparison.Ordinal);
+
+            // CONTROL: all-known, the rival's spacing is read and the move changes it.
+            SiteAssessment.Report ca = Assess(w, site, cell), cb = Assess(moved, site, cell);
+            if (!ca.SpacingCost.Equals(cb.SpacingCost)) spacingMoved++;
+            if (CardOf(w, site, any, cell) != CardOf(moved, site, PolityKnowledge.Of(moved, Player), cell)) cardsMoved++;
+        }
+        Assert.True(spacingMoved > 0, "moving the rival moves no all-known spacing - the comparison proves nothing");
+        Assert.True(cardsMoved > 0, "moving the rival moves no all-known card - the comparison proves nothing");
+
+        // A source the player does not know names nothing: judged from the rival's own settlement, the card is a
+        // nonexistent id's, and does not name it.
+        InfoCard fromRival = CardOf(w, site, stub, cells[0], rivals[0].Id.Value), fromNothing = CardOf(w, site, stub, cells[0], 9999);
+        Assert.Equal(Text(fromNothing), Text(fromRival));
+        Assert.Equal(-1, Assess(w, site, cells[0], rivals[0].Id.Value, stub).Source);
+        Assert.DoesNotContain(Named(rivals[0].Id.Value), Text(fromRival), StringComparison.Ordinal);
+        Assert.Contains(Named(rivals[0].Id.Value), Text(CardOf(w, site, any, cells[0], rivals[0].Id.Value)), StringComparison.Ordinal);   // control
+    }
+
+    [Fact]
+    public void ASettlementOnKnownGroundOutOfSight_IsNeverNarrated_ItsSiteCardIsTheSameWhereverItStands_TheAllKnownControlNamesIt()
+    {
+        // P8 review (finding 1, second case): the rival's site node KNOWN but not in sight, so the player does not know the
+        // settlement. Its site cell's card said "a settlement already stands here", "The site of a settlement." and "In the
+        // catchment of a settlement you do not know". Now occupancy and claim are not judged there unless a settlement the
+        // player knows decides them, the predicate's answer is not judged, nothing narrates the settlement, and moving it to
+        // the next node out of sight leaves the card identical. CONTROL: all-known, the card names it standing there, and
+        // the move changes the card.
+        WorldState w = Duo1(), moved = Duo1();
+        int size = w.Terrain!.Size;
+        (int l, _) = PolityKnowledge.Grid(size);
+        PolityKnowledge any = PolityKnowledge.Of(w, Player);
+        SettlementRow rival = RivalSettlements(w)[0];
+        int cell = rival.SiteCell, n0 = any.NodeOfCell(cell);
+        var known = new bool[l * l];
+        var visible = new bool[l * l];
+        Array.Fill(known, true);
+        Array.Fill(visible, true);
+        for (int dy = -1; dy <= 1; dy++)
+            for (int dx = -1; dx <= 1; dx++)
+            {
+                int nx = n0 % l + dx, ny = n0 / l + dy;
+                if (nx >= 0 && nx < l && ny >= 0 && ny < l) visible[ny * l + nx] = false;
+            }
+        int to = -1;   // the next node out of sight that holds no settlement
+        foreach (int v in new[] { n0 + 1, n0 - 1, n0 + l, n0 - l })
+        {
+            if (v < 0 || v >= l * l || visible[v]) continue;
+            bool empty = true;
+            for (int i = 0; i < w.Settlements.Count; i++) empty &= any.NodeOfCell(w.Settlements[i].SiteCell) != v;
+            if (empty) { to = v; break; }
+        }
+        Assert.True(to >= 0, "no empty node out of sight beside the rival - the rig is void");
+        for (int i = 0; i < moved.Settlements.Count; i++)
+            if (moved.Settlements[i].Id == rival.Id) moved.Settlements[i] = moved.Settlements[i] with { SiteCell = CentreOf(size, to) };
+
+        SiteAssessment.Prepared site = Site(w);
+        PolityKnowledge stub = PolityKnowledge.Restricted(w, Player, known, visible), stubMoved = PolityKnowledge.Restricted(moved, Player, known, visible);
+        Assert.True(stub.KnowsCell(cell));
+        Assert.False(stub.KnowsSettlement(rival.Id));
+
+        SiteAssessment.Report r = Assess(w, site, cell, k: stub);
+        Assert.True(r.Known);
+        Assert.Equal((-1, -1), (r.OccupiedBy, r.ClaimedBy));
+        Assert.Equal((null, true), (ArmOf(r, FoundingVerdict.Occupied).Holds, ArmOf(r, FoundingVerdict.Occupied).Unseen));
+        Assert.Equal((null, true), (ArmOf(r, FoundingVerdict.Claimed).Holds, ArmOf(r, FoundingVerdict.Claimed).Unseen));
+        Assert.Null(r.Verdict);
+        Assert.Null(SiteAssessment.FirstFailing(r.Arms));
+        Assert.DoesNotContain(r.Nearest, x => x.Id == rival.Id);
+
+        InfoCard a = CardOf(w, site, stub, cell), b = CardOf(moved, site, stubMoved, cell);
+        Assert.True(a == b, "the card moved with the unseen settlement:\n" + Text(a) + "\n---\n" + Text(b));
+        string text = Text(a);
+        foreach (string told in new[] { "a settlement already stands here", "The site of a settlement", "a settlement you do not know", Named(rival.Id.Value) })
+            Assert.DoesNotContain(told, text, StringComparison.Ordinal);
+
+        // CONTROL: all-known, the card names the settlement standing there, and the move changes the card.
+        InfoCard ca = CardOf(w, site, any, cell), cb = CardOf(moved, site, PolityKnowledge.Of(moved, Player), cell);
+        Assert.NotEqual(ca, cb);
+        Assert.Contains("The site of " + Named(rival.Id.Value) + ".", Text(ca), StringComparison.Ordinal);
+        Assert.False(ArmOf(Assess(w, site, cell), FoundingVerdict.Occupied).Holds);   // all-known, the occupancy arm is judged and fails
+    }
+
+    [Fact]
+    public void AKnownPlaceAmidUnknownGround_ShowsNothingThatGroundDecides_WhateverLiesThere_TheAllKnownControlSeesIt()
+    {
+        // P8 review (finding 1, third case): with the eight nodes around a known cell hidden and only their fertility
+        // changed, the card's first line moved (the score's box reaches them). Now each factor whose reach touches unknown
+        // ground is not judged — the fertility box, the cells the water BFS reads, the hinterland disc — and so are the
+        // floor and the rank (every cell), and the card is identical whatever lies under those nodes: fertility 0 or 1,
+        // rivers everywhere, rough ground. CONTROL: all-known, each variant moves the score and the card.
+        WorldState w0 = W1();
+        int size = w0.Terrain!.Size;
+        SiteAssessment.Prepared site0 = Site(w0);
+        PolityKnowledge any = PolityKnowledge.Of(w0, Player);
+        (int l, _) = PolityKnowledge.Grid(size);
+        int target = -1;
+        for (int cell = 0; cell < size * size && target < 0; cell += 13)
+        {
+            int x = cell % size, y = cell / size;
+            if (x < 12 || y < 12 || x >= size - 12 || y >= size - 12) continue;
+            if (w0.Terrain.Water[cell] >= 0.5 || w0.Terrain.Rivers[cell] >= 0.5 || !(site0.Frontier.Scores[cell] > 0.0)) continue;
+            if (site0.WaterDistancePx[cell] < 6) continue;
+            bool far = true;
+            for (int i = 0; i < w0.Settlements.Count; i++)
+            {
+                int s = w0.Settlements[i].SiteCell;
+                far &= Math.Max(Math.Abs(s % size - x), Math.Abs(s / size - y)) > 24;
+            }
+            if (far) target = cell;
+        }
+        Assert.True(target >= 0, "no remote dry scored land cell - the rig is void");
+        int node = any.NodeOfCell(target);
+        var known = new bool[l * l];
+        for (int v = 0; v < known.Length; v++) known[v] = Math.Max(Math.Abs(v % l - node % l), Math.Abs(v / l - node / l)) != 1;
+
+        var cards = new List<InfoCard>();
+        var controlScores = new List<double>();
+        var controlCards = new List<InfoCard>();
+        foreach (double fertility in new[] { -1.0, 0.0, 1.0 })
+        {
+            WorldState w = W1();
+            if (fertility >= 0.0) w.Terrain = RewrittenUnderUnknown(w.Terrain!, PolityKnowledge.Restricted(w, Player, known, known), fertility);
+            SiteAssessment.Prepared site = Site(w);
+            PolityKnowledge stub = PolityKnowledge.Restricted(w, Player, known, known);
+            Assert.True(stub.KnowsCell(target));
+            SiteAssessment.Report r = Assess(w, site, target, k: stub);
+            Assert.True(r.Known);
+            Assert.True(r.RegionFertilityUnseen && r.WaterAccessUnseen && r.ScoreUnseen);
+            Assert.True(double.IsNaN(r.Score) && double.IsNaN(r.RegionFertility) && double.IsNaN(r.WaterAccess) && double.IsNaN(r.Floor));
+            Assert.Equal(-1, r.WaterDistancePx);
+            Assert.Equal(0L, r.PositiveScores);
+            Assert.Empty(r.Deposits);
+            Assert.Contains("not discovered", r.DepositsUnavailable, StringComparison.Ordinal);
+            Assert.Null(r.WouldBeArableKm2);
+            Assert.Null(r.Route);
+            cards.Add(CardOf(w, site, stub, target));
+
+            SiteAssessment.Report all = Assess(w, site, target);
+            controlScores.Add(all.Score);
+            controlCards.Add(CardOf(w, site, PolityKnowledge.Of(w, Player), target));
+        }
+        Assert.True(cards[0] == cards[1] && cards[0] == cards[2], "what lies under the unknown nodes reaches the card:\n" + Text(cards[0]) + "\n---\n" + Text(cards[1]));
+        Assert.Equal("Siting score: not judged", cards[0].More[0].Lines[0].Label);
+        Assert.Equal(3, controlScores.Distinct().Count());   // CONTROL: all-known, each variant moves the score
+        Assert.NotEqual(controlCards[0], controlCards[1]);
+        Assert.NotEqual(controlCards[1], controlCards[2]);
+    }
+
+    [Fact]
+    public void AStubThatHidesNothing_WithholdsNothing_AndOneThatHidesOnlyFarGround_StillShowsTheKnownReachesExactly()
+    {
+        // The "withheld or shown" choice is a function of the knowledge masks. A stub hiding nothing (every node known and in
+        // sight) sees the whole world: every card is the all-known card. A stub with one far node out of sight does not:
+        // the whole-map values (floor, rank, spacing, catchment, route) are not judged — but a cell whose own reaches are
+        // known still shows its score, both factors and its expected deposits exactly.
+        WorldState w = Duo1();
+        int size = w.Terrain!.Size;
+        SiteAssessment.Prepared site = Site(w);
+        (int l, _) = PolityKnowledge.Grid(size);
+        var every = new bool[l * l];
+        Array.Fill(every, true);
+        PolityKnowledge all = PolityKnowledge.Of(w, Player), none = PolityKnowledge.Restricted(w, Player, every, every);
+        Assert.False(none.AllKnown);
+        Assert.True(SiteAssessment.SeesAll(none));
+        // Every line is the all-known card's except the "Discovered" note, which says which knowledge state this is.
+        static string Shown(InfoCard c) => string.Join("\n", Text(c).Split('\n').Where(x => !x.StartsWith("Discovered|", StringComparison.Ordinal)));
+        foreach (int cell in Sample(w, 1, 1999)) Assert.Equal(Shown(CardOf(w, site, all, cell)), Shown(CardOf(w, site, none, cell)));
+
+        int capital = FoundingRigs.SiteCellOf(w, new SettlementId(SiteAssessment.DefaultSource(w, Player)));
+        PolityKnowledge any = all;
+        int farthest = -1;
+        long bestD = -1;
+        int cn = any.NodeOfCell(capital);
+        for (int v = 0; v < l * l; v++)
+        {
+            long dx = v % l - cn % l, dy = v / l - cn / l, d = dx * dx + dy * dy;
+            if (d > bestD) { bestD = d; farthest = v; }
+        }
+        var visible = (bool[])every.Clone();
+        visible[farthest] = false;
+        PolityKnowledge oneOut = PolityKnowledge.Restricted(w, Player, every, visible);
+        Assert.False(SiteAssessment.SeesAll(oneOut));
+        int probe = -1;   // a dry land cell beside the capital
+        foreach (int c in FoundingRigs.Ring(size, capital, 6)) if (w.Terrain.Water[c] < 0.5 && site.Frontier.Scores[c] > 0.0) { probe = c; break; }
+        Assert.True(probe >= 0);
+        SiteAssessment.Report r = Assess(w, site, probe, k: oneOut), a = Assess(w, site, probe);
+        Assert.False(r.ScoreUnseen);
+        Assert.Equal((a.Score, a.RegionFertility, a.WaterAccess), (r.Score, r.RegionFertility, r.WaterAccess));
+        Assert.Equal((a.MeanMoisture, a.MeanElevation), (r.MeanMoisture, r.MeanElevation));
+        Assert.Equal(a.Deposits.Length, r.Deposits.Length);
+        for (int i = 0; i < a.Deposits.Length; i++) Assert.Equal(a.Deposits[i] with { IfFoundedNext = null }, r.Deposits[i]);
+        Assert.True(double.IsNaN(r.Floor) && double.IsNaN(r.SpacingCost));
+        Assert.Null(r.WouldBeArableKm2);
+        Assert.Null(r.Route);
+        Assert.Equal(-1, r.AccessibleFrom);
+        InfoCard card = CardOf(w, site, oneOut, probe);
+        Assert.StartsWith("Siting score " , card.More[0].Lines[0].Label, StringComparison.Ordinal);
+        Assert.Equal(CardOf(w, site, all, probe).More[0].Lines[0].Label, card.More[0].Lines[0].Label);
+        Assert.StartsWith("Score floor: not judged", card.More[0].Lines[4].Label, StringComparison.Ordinal);
+    }
+
     // ================================================================== THE NEAREST ORDER (tie-dense)
 
     [Fact]

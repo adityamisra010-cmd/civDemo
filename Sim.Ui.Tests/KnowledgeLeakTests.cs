@@ -26,7 +26,9 @@ namespace Sim.Ui.Tests;
 /// structures, queues, labour, prices, grievances and needs, its formations, its tax and Age, the terrain under the
 /// nodes it hides — is perturbed. Every player-facing output must then be IDENTICAL: the world projection and the lens
 /// paint (SVG bytes and LensFrame), the HUD (world totals included), the player views, the market and needs panels, Tab,
-/// the unit and formation cards, the good cards, the annals (both chronicles, with hidden EVENTS planted), the Trends
+/// the unit and formation cards, the good cards, the place card of every sampled KNOWN map cell (InfoKind.Cell, M5 P8 —
+/// with its own perturbation of what only it reads: hidden sites moved, hidden claims and a hidden road planted, rivers
+/// and rough ground under every unknown node), the annals (both chronicles, with hidden EVENTS planted), the Trends
 /// world series and the history buffer's, and FrameText of every player section of the real UI. Each comparison has a
 /// POSITIVE CONTROL: with the all-known view the same perturbation does change the same output, so equality under the
 /// stub means the readers filtered, not that the perturbation missed. The read-isolation grep is advisory; the source
@@ -68,6 +70,10 @@ public class KnowledgeLeakTests : IDisposable
         public required SimConfig Config { get; init; }
         public required Func<int, string> Name { get; init; }
         public required bool[] Mask { get; init; }
+        /// <summary>P8: the worldgen config the session's founding path holds (the place card's site half is prepared with it).</summary>
+        public required WorldgenConfig Worldgen { get; init; }
+        /// <summary>P8: the KNOWN map cells whose place cards are gated (<see cref="PlaceCells"/>).</summary>
+        public required int[] Cells { get; init; }
     }
 
     private static readonly Lazy<Rig> Played = new(() =>
@@ -75,10 +81,11 @@ public class KnowledgeLeakTests : IDisposable
         UiSession s = UiSession.Start(42, aiEmpiresOverride: 1);
         for (int t = 0; t < 6; t++) s.EndTurn();
         WorldState next = s.World.Clone();
+        bool[] mask = KnowledgeStubs.HiddenMask(next, Player, Hidden);
         return new Rig
         {
             Prev = s.PreviousWorld!.Clone(), Next = next, Config = s.Config, Name = s.Names.Name,
-            Mask = KnowledgeStubs.HiddenMask(next, Player, Hidden),
+            Mask = mask, Worldgen = s.Sites!.Worldgen, Cells = PlaceCells(next, mask),
         };
     }, LazyThreadSafetyMode.ExecutionAndPublication);
 
@@ -87,6 +94,72 @@ public class KnowledgeLeakTests : IDisposable
 
     /// <summary>The all-known production view (the positive control).</summary>
     private static PlayerKnowledge All(IReadOnlyWorldState w) => PlayerKnowledge.Of(w);
+
+    // ================================================================== P8: the place card (InfoKind.Cell)
+
+    /// <summary>
+    /// The KNOWN map cells whose place cards the gate reads: around every hidden settlement, on rings 16, 28 and 44 px out
+    /// in the eight compass directions (where the hidden polity's spacing, catchment, roads and ground meet known ground),
+    /// and 10 px out from every other settlement in the four axis directions — the cells the stub knows, in that order, at
+    /// most 28.
+    /// </summary>
+    private static int[] PlaceCells(IReadOnlyWorldState w, bool[] mask)
+    {
+        PlayerKnowledge k = KnowledgeStubs.Over(w, Player, mask);
+        int size = w.Terrain!.Size;
+        IReadOnlyList<int> hidden = KnowledgeStubs.SettlementsOf(w, Hidden);
+        var cells = new List<int>();
+        void Add(int x, int y)
+        {
+            if (x < 0 || y < 0 || x >= size || y >= size) return;
+            int cell = y * size + x;
+            if (k.KnowsCell(cell) && !cells.Contains(cell)) cells.Add(cell);
+        }
+        for (int i = 0; i < w.Settlements.Count; i++)
+        {
+            int site = w.Settlements[i].SiteCell, x = site % size, y = site / size;
+            if (hidden.Contains(w.Settlements[i].Id.Value))
+            {
+                foreach (int r in new[] { 16, 28, 44 })
+                    for (int dy = -1; dy <= 1; dy++)
+                        for (int dx = -1; dx <= 1; dx++)
+                            if (dx != 0 || dy != 0) Add(x + r * dx, y + r * dy);
+            }
+            else foreach ((int dx, int dy) in new[] { (10, 0), (-10, 0), (0, 10), (0, -10) }) Add(x + dx, y + dy);
+        }
+        Assert.True(cells.Count >= 8, "too few known cells for the place cards - the rig is void");
+        return [.. cells.Take(28)];
+    }
+
+    private static readonly object SitesLock = new();
+    private static readonly List<SiteAssessment.Prepared> SitesMade = [];
+
+    /// <summary>The place card's site half for <paramref name="w"/>'s terrain (prepared once per terrain, as UiSession.Sites).</summary>
+    private static SiteAssessment.Prepared SitesFor(IReadOnlyWorldState w)
+    {
+        lock (SitesLock)
+        {
+            foreach (SiteAssessment.Prepared p in SitesMade) if (p.IsFor(w.Terrain)) return p;
+            SiteAssessment.Prepared made = SiteAssessment.Prepare(w, Played.Value.Config, Played.Value.Worldgen)!;
+            SitesMade.Add(made);
+            return made;
+        }
+    }
+
+    /// <summary>The place card of <paramref name="cell"/> as the player sees it through <paramref name="k"/>: every line.</summary>
+    private static string PlaceCard(IReadOnlyWorldState w, PlayerKnowledge k, int cell)
+    {
+        Rig r = Played.Value;
+        InfoCard card = InfoQuery.Card(w, r.Config, Player, InfoSubject.OfCell(cell), settlementName: r.Name, knowledge: k.Core, site: SitesFor(w));
+        var sb = new StringBuilder(card.Title).Append('|').Append(card.Kind).Append('|').Append(card.What).Append('|').Append(card.Status)
+            .Append('|').Append(card.StatusLine).Append('\n');
+        foreach (InfoSection sec in card.More)
+        {
+            sb.Append("## ").Append(sec.Heading).Append('\n');
+            foreach (InfoLink l in sec.Lines) sb.Append(l.Label).Append('|').Append(l.Subject).Append('|').Append(l.Met).Append('|').Append(l.Note).Append('\n');
+        }
+        return sb.ToString();
+    }
 
     [Fact]
     public void TheRig_HidesExactlyTheAiPolity_AndLeavesTheRestKnown()
@@ -297,6 +370,11 @@ public class KnowledgeLeakTests : IDisposable
         }
         cat["unit cards"] = units.ToString();
         cat["info cards"] = cards.ToString();
+
+        // P8: the place card of every sampled KNOWN map cell.
+        var places = new StringBuilder();
+        foreach (int cell in r.Cells) places.Append(cell).Append(":\n").Append(PlaceCard(w, k, cell));
+        cat["place cards"] = places.ToString();
         return cat;
     }
 
@@ -684,6 +762,101 @@ public class KnowledgeLeakTests : IDisposable
         Assert.Contains(r.Name(hidden[0]), readers[0](b, All(b)), StringComparison.Ordinal);
         Assert.Contains(r.Name(hidden[0]), readers[1](b, All(b)), StringComparison.Ordinal);
         Assert.Contains(WorldProjection.Build(b, r.Config, r.Name, Player, knowledge: All(b)).Routes, x => x.B == hidden[0]);
+    }
+
+    // ================================================================== P8: what only the place card reads (review finding 1)
+
+    /// <summary>
+    /// The rig's world after the step with everything of the hidden polity the PLACE CARD alone could read changed, on top
+    /// of the static readers' perturbation (salt 1) and a travelled road and trade to a hidden settlement
+    /// (<see cref="PlantedNext"/> 1): every hidden settlement's site moved to the unknown node farthest from it (spacing,
+    /// occupancy); a hidden settlement's catchment claim planted on the node of every sampled cell nobody claims (claim);
+    /// and under every unknown node a river and rough ground (water access, the lattice: spacing, catchment, route).
+    /// </summary>
+    private static WorldState PlaceCardPerturbedNext()
+    {
+        Rig r = Played.Value;
+        WorldState w = PlantedNext(1);
+        Perturb(w, Stub(w), r.Config, 1);
+        int size = w.Terrain!.Size;
+        (int l, int block) = PolityKnowledge.Grid(size);
+        bool[] mask = r.Mask;
+        IReadOnlyList<int> hidden = KnowledgeStubs.SettlementsOf(w, Hidden);
+        PolityKnowledge grid = PolityKnowledge.Of(w, Player);
+        for (int i = 0; i < w.Settlements.Count; i++)
+        {
+            if (!hidden.Contains(w.Settlements[i].Id.Value)) continue;
+            int from = grid.NodeOfCell(w.Settlements[i].SiteCell), best = -1;
+            long bestD = -1;
+            for (int v = 0; v < mask.Length; v++)
+            {
+                if (mask[v]) continue;
+                long dx = v % l - from % l, dy = v / l - from / l, d = dx * dx + dy * dy;
+                if (d > bestD) { bestD = d; best = v; }
+            }
+            Assert.True(bestD > 0);
+            w.Settlements[i] = w.Settlements[i] with { SiteCell = (best / l * block + block / 2) * size + best % l * block + block / 2 };
+        }
+        var claimant = new SettlementId(hidden[0]);
+        foreach (int cell in r.Cells)
+        {
+            int node = grid.NodeOfCell(cell);
+            bool claimed = false;
+            for (int i = 0; i < w.CatchmentNodes.Count; i++) claimed |= w.CatchmentNodes[i].LatticeNode == node;
+            if (!claimed) w.CatchmentNodes.Add(new CatchmentNodeRow(claimant, node, 1.0));
+        }
+        PlayerKnowledge k = Stub(w);
+        TerrainSet t = w.Terrain;
+        double[] rivers = t.Rivers.ToArray(), movement = t.MovementCost.ToArray();
+        for (int cell = 0; cell < movement.Length; cell++)
+        {
+            if (k.KnowsCell(cell)) continue;
+            if (rivers.Length == movement.Length) rivers[cell] = 1.0;
+            movement[cell] *= 3.0;
+        }
+        var polylines = new int[t.RiverPolylineCount][];
+        for (int i = 0; i < polylines.Length; i++) polylines[i] = t.RiverPolyline(i).ToArray();
+        ConstructorInfo ctor = typeof(TerrainSet).GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance)[0];
+        w.Terrain = (TerrainSet)ctor.Invoke([t.Size, t.KmPerPx, t.SeaLevel, t.Elevation.ToArray(), t.Water.ToArray(),
+            t.Temperature.ToArray(), t.Moisture.ToArray(), t.Fertility.ToArray(), movement, rivers, polylines]);
+        return w;
+    }
+
+    [Fact]
+    public void ThePlaceCardOfAKnownCell_TellsNothingOfWhatTheStubHides_SitesClaimsRoadsOrGround_AndTheAllKnownControlSeesEach()
+    {
+        // P8 review (finding 1): the place card is a player output, so it is held to the player's class (ADR-037 §7). Through
+        // the stub, every sampled KNOWN cell's card is identical however the hidden polity's sites, claims, roads, rivers and
+        // ground differ, and names no hidden settlement. EACH CHANNEL'S OWN CONTROL: all-known, the same perturbation moves
+        // the spacing, the claim, the route, the water access, the score, the floor, the hinterland and the would-be
+        // catchment of at least one sampled cell — so equality through the stub means the card withheld them.
+        Rig r = Played.Value;
+        WorldState a = r.Next.Clone(), b = PlaceCardPerturbedNext();
+        IReadOnlyList<int> hidden = KnowledgeStubs.SettlementsOf(a, Hidden);
+        PlayerKnowledge ka = Stub(a), kb = Stub(b);
+        foreach (int id in hidden) Assert.False(kb.KnowsSettlement(id));
+        var moved = new SortedDictionary<string, int>(StringComparer.Ordinal);
+        void Moved(string channel, bool differs) => moved[channel] = (moved.TryGetValue(channel, out int n) ? n : 0) + (differs ? 1 : 0);
+        foreach (int cell in r.Cells)
+        {
+            string sa = PlaceCard(a, ka, cell), sb = PlaceCard(b, kb, cell);
+            Assert.True(sa == sb, "the place card of known cell " + cell.ToString(CultureInfo.InvariantCulture) + " shows what the stub hides:\n" + sa + "\n---\n" + sb);
+            foreach (int id in hidden) Assert.False(HasWord(sb, r.Name(id)), "the place card names hidden " + r.Name(id));
+
+            SiteAssessment.Report ca = SiteAssessment.Assess(a, r.Config, SitesFor(a), All(a).Core, Player, cell);
+            SiteAssessment.Report cb = SiteAssessment.Assess(b, r.Config, SitesFor(b), All(b).Core, Player, cell);
+            Moved("spacing", !ca.SpacingCost.Equals(cb.SpacingCost));
+            Moved("claim", ca.ClaimedBy != cb.ClaimedBy);
+            Moved("route", !(ca.Route?.TotalCost ?? -1.0).Equals(cb.Route?.TotalCost ?? -1.0));
+            Moved("water access", ca.WaterDistancePx != cb.WaterDistancePx);
+            Moved("score", !ca.Score.Equals(cb.Score));
+            Moved("floor", !ca.Floor.Equals(cb.Floor));
+            Moved("hinterland", !ca.MeanMoisture.Equals(cb.MeanMoisture));
+            Moved("catchment", !Nullable.Equals(ca.WouldBeArableKm2, cb.WouldBeArableKm2));
+            Moved("card", PlaceCard(a, All(a), cell) != PlaceCard(b, All(b), cell));
+        }
+        foreach (KeyValuePair<string, int> m in moved)
+            Assert.True(m.Value > 0, "the perturbation does not reach the place card's " + m.Key + " - the comparison above proves nothing for it");
     }
 
     [Fact]
