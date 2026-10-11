@@ -573,8 +573,9 @@ public static class SiteAssessment
     }
 
     /// <summary>Whether every cell of the square ±<paramref name="r"/> about (<paramref name="x"/>, <paramref name="y"/>),
-    /// clamped to the map — BoxSum's own window — is known.</summary>
-    private static bool KnowsSquare(PolityKnowledge k, int size, int x, int y, int r)
+    /// clamped to the map — BoxSum's own window — is known. M5 P9: public (no behaviour change) so the resource overlay
+    /// withholds a region-fertility value by THE SAME reach rule as the place card.</summary>
+    public static bool KnowsSquare(PolityKnowledge k, int size, int x, int y, int r)
     {
         r = Math.Max(0, r);
         int y0 = Math.Max(0, y - r), y1 = Math.Min(size - 1, y + r), x0 = Math.Max(0, x - r), x1 = Math.Min(size - 1, x + r);
@@ -587,8 +588,9 @@ public static class SiteAssessment
     /// <summary>Whether every cell within <paramref name="r"/> 4-connected steps of (<paramref name="x"/>,
     /// <paramref name="y"/>) is known: the cells WaterDistanceBfs reads to settle a distance up to r (its expansion is
     /// 4-connected over every cell, so a cell's distance is the Manhattan distance to the nearest water or river cell —
-    /// none nearer than r lies inside, and none outside can come nearer).</summary>
-    private static bool KnowsDiamond(PolityKnowledge k, int size, int x, int y, int r)
+    /// none nearer than r lies inside, and none outside can come nearer). M5 P9: public (no behaviour change), for the
+    /// resource overlay's water-access reach.</summary>
+    public static bool KnowsDiamond(PolityKnowledge k, int size, int x, int y, int r)
     {
         for (int dy = -r; dy <= r; dy++)
         {
@@ -606,8 +608,9 @@ public static class SiteAssessment
     }
 
     /// <summary>Whether every cell of the hinterland disc about (<paramref name="x"/>, <paramref name="y"/>) is known — the
-    /// membership WorldFounding.HinterlandMeans reads (offsets within ±(int)radius, dx² + dy² ≤ radius², on the map).</summary>
-    private static bool KnowsDisc(PolityKnowledge k, int size, int x, int y, double radiusPx)
+    /// membership WorldFounding.HinterlandMeans reads (offsets within ±(int)radius, dx² + dy² ≤ radius², on the map). M5 P9:
+    /// public (no behaviour change), for the resource overlay's deposit-channel reach.</summary>
+    public static bool KnowsDisc(PolityKnowledge k, int size, int x, int y, double radiusPx)
     {
         int r = (int)radiusPx;
         double r2 = radiusPx * radiusPx;

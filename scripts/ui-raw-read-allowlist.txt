@@ -37,3 +37,4 @@ Sim.Ui/Headless/MapFrameCost.cs | harness | the map frame-cost bench (--frame-co
 Sim.Ui/Theme/EraPreview.cs | harness | the era SVG preview tool
 Sim.Ui/Ages/AgePreview.cs | harness | the Age SVG preview tool
 Sim.Ui/Actions/R2aPreview.cs | harness | the R2a SVG preview tool
+Sim.Ui/World/ResourceOverlay.cs | routed | the overlay's status: the ore-roll markers read the deposits of settlements the player controls and knows (PlayerKnowledge.KnowsSettlement, ReadsInternals); the player's own sites for the access isochrones; the layers read terrain only, masked by the known nodes

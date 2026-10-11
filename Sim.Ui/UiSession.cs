@@ -86,6 +86,49 @@ public sealed class UiSession
         }
     }
 
+    // M5 P9: the resource overlay's bake and the turn's status, kept while their inputs are the same.
+    private Sim.Ui.World.ResourceOverlay? _overlay;
+    private IReadOnlyList<Sim.Ui.World.OverlayLayer>? _overlayLayers;
+    private (WorldState World, PlayerKnowledge Knowledge, Sim.Ui.World.ResourceOverlay Bake, Sim.Ui.World.OverlayStatus Status)? _overlayStatus;
+
+    /// <summary>
+    /// M5 map workstream P9 — the resource overlay's layers for this session's content (the deposit channels, then the
+    /// siting score and its two factors): what the overlay controls list. Cheap — no terrain pass.
+    /// </summary>
+    public IReadOnlyList<Sim.Ui.World.OverlayLayer> OverlayLayers =>
+        _overlayLayers ??= World.Terrain is { } t ? Sim.Ui.World.ResourceOverlay.LayersOf(_simCfg, _worldgen, t.KmPerPx) : [];
+
+    /// <summary>
+    /// M5 map workstream P9 — THE RESOURCE OVERLAY's bake (<see cref="Sim.Ui.World.ResourceOverlay"/>) for what the player
+    /// knows: a pure function of the terrain, the configs and the knowledge masks, baked the first time an overlay layer is
+    /// shown and kept while they are the same (in production — all-known — once per session). UI-side only, the terrain
+    /// bake's precedent; nothing in the simulation reads it. Null for a world without terrain.
+    /// </summary>
+    public Sim.Ui.World.ResourceOverlay? Overlay
+    {
+        get
+        {
+            if (Sites is not { } site) return null;
+            if (_overlay is null || !_overlay.IsFor(site, Knowledge.Core)) _overlay = Sim.Ui.World.ResourceOverlay.Bake(_simCfg, site, Knowledge.Core);
+            return _overlay;
+        }
+    }
+
+    /// <summary>M5 P9: the overlay key's per-turn status (access, extraction, the realized ore rolls) for the world and
+    /// knowledge of now; null without terrain. Kept while the world, the knowledge and the bake are the same.</summary>
+    public Sim.Ui.World.OverlayStatus? OverlayStatus
+    {
+        get
+        {
+            if (Overlay is not { } bake) return null;
+            if (_overlayStatus is { } c && ReferenceEquals(c.World, World) && ReferenceEquals(c.Knowledge, Knowledge) && ReferenceEquals(c.Bake, bake))
+                return c.Status;
+            Sim.Ui.World.OverlayStatus status = bake.Status(World, _simCfg, Knowledge);
+            _overlayStatus = (World, Knowledge, bake, status);
+            return status;
+        }
+    }
+
     /// <summary>The observation history the UI graphs and panels read through
     /// (docs/observability-architecture.md §7: one read seam).</summary>
     public IObservationHistory Observations => _observations;

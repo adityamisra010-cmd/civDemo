@@ -350,6 +350,37 @@ public readonly record struct LegendAnchor(double Right, double Bottom, double M
 public sealed record MapLegend(RectD Rect, string Title, IReadOnlyList<WorldLayer> Layers, IReadOnlyList<string> Entries,
     IReadOnlyList<string> Absent);
 
+/// <summary>P9: where the lens lays the overlay's key out: the key's box is left-aligned on <paramref name="Left"/>, its foot
+/// on <paramref name="Bottom"/> (screen px), and it is never wider than <paramref name="MaxWidth"/>.</summary>
+public readonly record struct OverlayKeyAnchor(double Left, double Bottom, double MaxWidth);
+
+/// <summary>P9: what the lens is asked to paint of the resource overlay: the bake, which of its layers the player shows
+/// (parallel to <see cref="ResourceOverlay.Layers"/>), the opacity (0..1), the turn's status, where the key goes (null:
+/// no key) and how a settlement is named. UI state only — none of it reaches the simulation.</summary>
+public sealed record OverlayPaint(ResourceOverlay Bake, IReadOnlyList<bool> Shown, double Opacity, OverlayStatus? Status = null,
+    OverlayKeyAnchor? Key = null, Func<int, string>? Names = null)
+{
+    /// <summary>Whether any layer is shown.</summary>
+    public bool Any
+    {
+        get
+        {
+            for (int i = 0; i < Shown.Count; i++) if (Shown[i]) return true;
+            return false;
+        }
+    }
+}
+
+/// <summary>P9: THE OVERLAY'S KEY as one paint drew it — its box, its title and its rows (unwrapped, in order); every command
+/// of it is charged to <see cref="MapLayer.ResourceOverlay"/>.</summary>
+public sealed record OverlayKey(RectD Rect, string Title, IReadOnlyList<string> Rows);
+
+/// <summary>P9: what one paint drew of the resource overlay: the layers that drew a rect in view (indices, in order), per
+/// layer the rects emitted and the lattice nodes they cover, the key (null when none was asked for) and the realized-roll
+/// markers (settlement, text).</summary>
+public sealed record OverlayFrame(IReadOnlyList<int> Layers, IReadOnlyList<int> Rects, IReadOnlyList<int> Nodes, OverlayKey? Key,
+    IReadOnlyList<(int Settlement, string Text)> Markers);
+
 /// <summary>What one lens paint drew — the tests read this instead of pixels.
 /// <c>LayerDraws[(int)MapLayer]</c> counts the draw commands emitted per map layer (draw-call accounting
 /// for the single-owner rule); <c>Institutions</c> lists every institution marker drawn; <c>Paths</c>
@@ -380,6 +411,9 @@ public sealed record LensFrame(WorldZoom Zoom, IReadOnlyList<WorldLayer> Layers,
     /// <summary>P2: the level of detail this paint drew at (<see cref="Zoom"/> is its derived band). A banded paint carries
     /// its band's plateau (<see cref="MapDetail.Of"/>).</summary>
     public MapDetail Detail { get; init; } = MapDetail.Of(WorldZoom.World);
+
+    /// <summary>P9: what this paint drew of the resource overlay, or null when no overlay layer was shown.</summary>
+    public OverlayFrame? Overlay { get; init; }
 }
 
 /// <summary>
@@ -475,8 +509,8 @@ public static class WorldLens
     public static LensFrame Paint(DrawList d, ITextMeasure m, WorldProjection p, WorldZoom zoom,
         Func<double, double, (double X, double Y)> toScreen, double scale, RectD viewport, int selected = -1,
         bool showTerritory = true, MapInk? ink = null, EraTheme? theme = null, double uiScale = 1.0,
-        LegendAnchor? legend = null, int selectedUnit = -1) =>
-        Paint(d, m, p, MapDetail.Of(zoom), toScreen, scale, viewport, selected, showTerritory, ink, theme, uiScale, legend, selectedUnit);
+        LegendAnchor? legend = null, int selectedUnit = -1, OverlayPaint? overlay = null) =>
+        Paint(d, m, p, MapDetail.Of(zoom), toScreen, scale, viewport, selected, showTerritory, ink, theme, uiScale, legend, selectedUnit, overlay);
 
     /// <summary>
     /// P2: paints the lens at a CONTINUOUS level of detail (<see cref="MapDetail"/> — what the game paints every frame).
@@ -494,7 +528,7 @@ public static class WorldLens
     public static LensFrame Paint(DrawList d, ITextMeasure m, WorldProjection p, MapDetail detail,
         Func<double, double, (double X, double Y)> toScreen, double scale, RectD viewport, int selected = -1,
         bool showTerritory = true, MapInk? ink = null, EraTheme? theme = null, double uiScale = 1.0,
-        LegendAnchor? legend = null, int selectedUnit = -1)
+        LegendAnchor? legend = null, int selectedUnit = -1, OverlayPaint? overlay = null)
     {
         MapInk k = ink ?? MapInk.Default;
         _type = new MapType(theme, uiScale);
@@ -527,6 +561,12 @@ public static class WorldLens
         bool On(WorldLayer l) => detail.Alpha(l) > 0;
         var unitTokens = new List<int>();
         var drawn = new List<int>();
+
+        // P9: the resource overlay's layers, under everything else the lens draws (the terrain shows through them).
+        OverlayPaint? ov = overlay is { Any: true } ? overlay : null;
+        int[] oRects = new int[ov?.Bake.Layers.Count ?? 0], oNodes = new int[oRects.Length];
+        ov?.Bake.PaintLayers(d, ov.Shown, ov.Opacity, toScreen, viewport, k, oRects, oNodes);
+        Charge(MapLayer.ResourceOverlay, null);
 
         if (On(WorldLayer.Territories) && showTerritory)
         {
@@ -646,6 +686,42 @@ public static class WorldLens
         }
         Charge(MapLayer.UnitTokens, WorldLayer.MilitaryFormations);
 
+        // P9: the realized ore rolls beside the player's settlements (west of the footprint: the name is below, the banner
+        // above, the formations east) — closer than the World band only, fading in with the Regional blend like the
+        // formation labels (at World zoom the settlements stand too close for a line each) — then the overlay's key, both
+        // before the legend, which stays the last thing drawn.
+        OverlayFrame? overlayFrame = null;
+        if (ov is not null)
+        {
+            var markers = new List<(int, string)>();
+            if (ov.Status is { } status && R > 0)
+                foreach (SettlementLensView s in p.Settlements)
+                {
+                    string text = ov.Bake.MarkerText(ov.Shown, status, s.Id);
+                    if (text.Length == 0) continue;
+                    (double sx, double sy) = toScreen(s.X, s.Y);
+                    if (sx < viewport.X - 50 || sx > viewport.Right + 600 || sy < viewport.Y - 50 || sy > viewport.Bottom + 50) continue;
+                    int from = d.Commands.Count;
+                    double size = _type.Size(TypeRole.Caption, FontRole.Body);
+                    double w = _type.Width(m, text, TypeRole.Caption, FontRole.Body);
+                    double right = sx - FootprintRadius(s, scale, S) - 8;
+                    d.Rect(new RectD(right - w - 4, sy - size * 0.75, w + 8, size * 1.4), A(k.NamePlate, 0.85), A(k.Ink, 0.45), 1, 2);
+                    _type.Label(d, right, sy - size * 0.65, text, TypeRole.Caption, FontRole.Body, k.Ink, TextAlign.Right);
+                    d.FadeFrom(from, R);
+                    markers.Add((s.Id, text));
+                }
+            Charge(MapLayer.ResourceOverlay, null);
+            OverlayKey? okey = null;
+            if (ov.Key is OverlayKeyAnchor kat)
+            {
+                okey = PaintOverlayKey(d, m, ov, kat, k);
+                Charge(MapLayer.ResourceOverlay, null);
+            }
+            var shownLayers = new List<int>();
+            for (int i = 0; i < oRects.Length; i++) if (oRects[i] > 0) shownLayers.Add(i);
+            overlayFrame = new OverlayFrame(shownLayers, oRects, oNodes, okey, markers);
+        }
+
         var painted = new List<WorldLayer>();
         foreach (WorldLayer l in layers) if (visible[(int)l]) painted.Add(l);
         MapLegend? key = null;
@@ -656,7 +732,7 @@ public static class WorldLens
         }
         return new LensFrame(zoom, layers, unitTokens, drawn, draws, institutions, pieces, placements)
         {
-            SettlementHits = hits, InfoDraws = info, Painted = painted, Legend = key, Detail = detail,
+            SettlementHits = hits, InfoDraws = info, Painted = painted, Legend = key, Detail = detail, Overlay = overlayFrame,
         };
     }
 
@@ -742,6 +818,60 @@ public static class WorldLens
         }
         return new MapLegend(box, title, [.. painted], entries, [.. p.Absent]);
     }
+
+    /// <summary>
+    /// P9: THE OVERLAY'S KEY — a plain data key on the legend's paper plate (no art, no ImGui window): its title, then
+    /// <see cref="ResourceOverlay.KeyRows"/> word-wrapped to the anchor's width, each shown layer's name row followed by its
+    /// ramp (one swatch per level, pale to deep, at the overlay's opacity — exactly the fills the layer is drawn with).
+    /// </summary>
+    private static OverlayKey PaintOverlayKey(DrawList d, ITextMeasure m, OverlayPaint ov, OverlayKeyAnchor at, MapInk k)
+    {
+        ResourceOverlay b = ov.Bake;
+        double pad = _type.Px(8), maxText = Math.Max(_type.Px(40), at.MaxWidth - 2 * pad);
+        double swatch = _type.Px(9), swatchH = _type.Px(8);
+        IReadOnlyList<OverlayKeyRow> rows = b.KeyRows(ov.Shown, ov.Status, ov.Names ?? (id => "settlement " + id.ToString(CultureInfo.InvariantCulture)));
+        // The runs, in order: (text, role, font, gap before, ramp layer after it).
+        var runs = new List<(string Text, TypeRole Role, FontRole Font, double Gap, int Ramp)>
+        {
+            (ResourceOverlay.KeyTitle, TypeRole.Caption, FontRole.Caps, 0, -1),
+        };
+        double space = _type.Px(4);
+        foreach (OverlayKeyRow row in rows)
+        {
+            bool heading = row.Ramp >= 0;
+            (TypeRole role, FontRole font) = heading ? (TypeRole.Body, FontRole.Heading) : (TypeRole.Secondary, FontRole.Body);
+            List<string> lines = _type.Wrap(m, row.Text, role, font, maxText);
+            for (int i = 0; i < lines.Count; i++)
+                runs.Add((lines[i], role, font, i == 0 && heading ? space : 0, i == lines.Count - 1 ? row.Ramp : -1));
+        }
+        double w = LevelSwatchWidth(swatch), h = 0;
+        foreach ((string text, TypeRole role, FontRole font, double gap, int ramp) in runs)
+        {
+            w = Math.Max(w, _type.Width(m, text, role, font));
+            h += gap + _type.Size(role, font) * 1.3 + (ramp >= 0 ? swatchH + space : 0);
+        }
+        double boxW = Math.Min(at.MaxWidth, w + 2 * pad), boxH = h + 2 * pad;
+        var box = new RectD(at.Left, at.Bottom - boxH, boxW, boxH);
+        MapHandTokens hand = k.Hand;
+        d.Rect(box, A(k.NamePlate, 0.92), A(k.Ink, 0.55), Math.Max(1.0, hand.NamePlateRulePx), hand.NamePlateCornerPx);
+        double y = box.Y + pad;
+        foreach ((string text, TypeRole role, FontRole font, double gap, int ramp) in runs)
+        {
+            y += gap;
+            _type.Label(d, box.X + pad, y, text, role, font, k.Ink, TextAlign.Left);
+            y += _type.Size(role, font) * 1.3;
+            if (ramp < 0) continue;
+            for (int v = 0; v < ResourceOverlay.LevelCount; v++)
+                d.Rect(new RectD(box.X + pad + v * swatch, y, swatch, swatchH), ResourceOverlay.Fill(k, b.Layers[ramp], v, ov.Opacity));
+            d.Rect(new RectD(box.X + pad, y, LevelSwatchWidth(swatch), swatchH), null, A(k.Ink, 0.45), 1);
+            y += swatchH + space;
+        }
+        var texts = new List<string>();
+        foreach (OverlayKeyRow row in rows) texts.Add(row.Text);
+        return new OverlayKey(box, ResourceOverlay.KeyTitle, texts);
+    }
+
+    private static double LevelSwatchWidth(double swatch) => swatch * ResourceOverlay.LevelCount;
 
     /// <summary>The settlement each formation (parallel to <c>p.Units</c>) is stationed in, when the
     /// projection has it; null for a formation in the field.</summary>
