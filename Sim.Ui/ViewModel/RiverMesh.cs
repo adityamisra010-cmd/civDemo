@@ -87,8 +87,8 @@ public static class RiverMesh
     /// width divided back by zoom — after the transform every river lands at
     /// exactly ScreenWidthForRank px on screen. In the unclamped middle band
     /// this is bit-identical to the original world-width mesh; only clamped
-    /// ranks deviate. The caller rebuilds when zoom changes (zoom moves on
-    /// wheel events, not per frame).
+    /// ranks deviate. P2: the host no longer rebuilds this per zoom change (an eased zoom changes every frame); it
+    /// builds <see cref="BuildBand"/> once per zoom band (<see cref="RiverBandCache"/>).
     /// </summary>
     public static Vertex[] Build(TerrainSet terrain, double zoom)
     {
@@ -109,5 +109,79 @@ public static class RiverMesh
         var result = new Vertex[vertices.Count];
         for (int i = 0; i < vertices.Count; i++) result[i] = new Vertex(vertices[i].X, vertices[i].Y);
         return result;
+    }
+
+    // ------------------------------------------------------------------ P2: zoom bands (no rebuild per frame)
+
+    /// <summary>P2: zoom bands per octave — the mesh is rebuilt when the zoom crosses a 2^(1/4) step, never per frame of
+    /// an eased zoom (the D-A3 rebuild-on-every-zoom-change held only while the zoom moved per wheel event).</summary>
+    public const int BandsPerOctave = 4;
+
+    /// <summary>The band holding <paramref name="zoom"/>: ⌊4 log2 zoom⌋ (band b spans 2^(b/4) … 2^((b+1)/4)).</summary>
+    public static int BandOf(double zoom) => (int)Math.Floor(BandsPerOctave * Math.Log2(Math.Max(1e-9, zoom)));
+
+    /// <summary>The zoom range of band <paramref name="band"/>: [2^(b/4), 2^((b+1)/4)].</summary>
+    public static (double Low, double High) BandRange(int band) =>
+        (Math.Pow(2.0, band / (double)BandsPerOctave), Math.Pow(2.0, (band + 1) / (double)BandsPerOctave));
+
+    /// <summary>
+    /// P2: the WORLD width of a rank's strip for a whole zoom band [<paramref name="low"/>, <paramref name="high"/>]:
+    /// max(MIN / low, min(MAX / high, world width)). Drawn at ANY zoom z of the band its screen width is
+    /// max(MIN·z/low, min(MAX·z/high, w·z)) — never below <see cref="MinScreenWidthPx"/> (z ≥ low), never above
+    /// <see cref="MaxScreenWidthPx"/> (z ≤ high; MIN·2^¼ &lt; MAX/2^¼, so the outer max never exceeds it), exactly the
+    /// world width × z where neither clamp binds, and weakly monotone in rank (max/min of a monotone width). The cost:
+    /// near a clamp a river may read up to 2^¼ (19 %) heavier than the floor, or lighter than the ceiling, than the
+    /// per-zoom mesh drew.
+    /// </summary>
+    public static double BandWidthWorld(int rank, int count, double low, double high) =>
+        Math.Max(MinScreenWidthPx / low, Math.Min(MaxScreenWidthPx / high, WidthForRank(rank, count)));
+
+    /// <summary>P2: the river strips for zoom band <paramref name="band"/> (<see cref="BandWidthWorld"/>) — what the host
+    /// uploads once per band.</summary>
+    public static Vertex[] BuildBand(TerrainSet terrain, int band)
+    {
+        (double low, double high) = BandRange(band);
+        var vertices = new List<LineGeometry.Vertex>();
+        int count = terrain.RiverPolylineCount;
+        for (int rank = 0; rank < count; rank++)
+        {
+            ReadOnlySpan<int> line = terrain.RiverPolyline(rank);
+            double halfWidth = BandWidthWorld(rank, count, low, high) / 2.0;
+            for (int i = 0; i + 1 < line.Length; i++)
+            {
+                Vertex a = CellCenter(line[i], terrain.Size);
+                Vertex b = CellCenter(line[i + 1], terrain.Size);
+                LineGeometry.AppendSegmentQuad(vertices,
+                    new LineGeometry.Vertex(a.X, a.Y), new LineGeometry.Vertex(b.X, b.Y), halfWidth);
+            }
+        }
+        var result = new Vertex[vertices.Count];
+        for (int i = 0; i < vertices.Count; i++) result[i] = new Vertex(vertices[i].X, vertices[i].Y);
+        return result;
+    }
+}
+
+/// <summary>
+/// P2: WHEN THE HOST REBUILDS THE RIVER BUFFER — once per zoom band (<see cref="RiverMesh.BandOf"/>), counted. The host
+/// (SimUiGame) asks <see cref="Update"/> with the shown zoom every frame and rebuilds only when it answers true; the
+/// tests drive the same object with the eased camera's zoom and read <see cref="Rebuilds"/>. Pure.
+/// </summary>
+public sealed class RiverBandCache
+{
+    /// <summary>The band the buffer was last built for (null before the first build).</summary>
+    public int? Band { get; private set; }
+
+    /// <summary>How many times the buffer has been (re)built.</summary>
+    public int Rebuilds { get; private set; }
+
+    /// <summary>True when <paramref name="zoom"/> lies in another band than the buffer's — the caller rebuilds for
+    /// <see cref="Band"/>, which this has moved to it.</summary>
+    public bool Update(double zoom)
+    {
+        int band = RiverMesh.BandOf(zoom);
+        if (Band == band) return false;
+        Band = band;
+        Rebuilds++;
+        return true;
     }
 }

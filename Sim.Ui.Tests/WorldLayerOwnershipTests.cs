@@ -83,9 +83,12 @@ public class WorldLayerOwnershipTests(InstitutionWorldFixture fx) : IClassFixtur
         WorldProjection.Build(fx.Session.World, fx.Session.Config, id => fx.Session.Names.Name(id), Me);
 
     /// <summary>The whole 256-px world at 4 px per world px fits the 1024-px viewport: nothing is culled.</summary>
-    private static LensFrame PaintAll(DrawList d, WorldProjection p, WorldZoom z, bool territory = true) =>
+    private static LensFrame PaintAll(DrawList d, WorldProjection p, WorldZoom z, bool territory = true, LegendAnchor? legend = null) =>
         WorldLens.Paint(d, ApproxTextMeasure.Instance, p, z, (x, y) => (x * 4, y * 4), 4, new RectD(0, 0, 1024, 1024),
-            showTerritory: territory);
+            showTerritory: territory, legend: legend);
+
+    /// <summary>P3: the legend's anchor in the 1024-px viewport (its bottom-right corner, 340 px wide at most).</summary>
+    private static readonly LegendAnchor Corner = new(1012, 1012, 340);
 
     private static string RepoRoot()
     {
@@ -114,20 +117,23 @@ public class WorldLayerOwnershipTests(InstitutionWorldFixture fx) : IClassFixtur
     {
         WorldProjection p = Project();
         var drawnSomewhere = new bool[MapLayerOwnership.All.Length];
+        // P3: each zoom painted without the legend and with it (the legend is a lens layer drawn only when shown).
         foreach (WorldZoom z in Zooms)
-        {
-            var d = new DrawList();
-            LensFrame f = PaintAll(d, p, z);
-            int sum = 0;
-            foreach (MapLayer l in MapLayerOwnership.All)
+            foreach (LegendAnchor? legend in new LegendAnchor?[] { null, Corner })
             {
-                int n = f.LayerDraws[(int)l];
-                sum += n;
-                if (MapLayerOwnership.OwnerOf(l) == LayerOwner.MapRenderer) Assert.Equal(0, n);
-                if (n > 0) drawnSomewhere[(int)l] = true;
+                var d = new DrawList();
+                LensFrame f = PaintAll(d, p, z, legend: legend);
+                int sum = 0;
+                foreach (MapLayer l in MapLayerOwnership.All)
+                {
+                    int n = f.LayerDraws[(int)l];
+                    sum += n;
+                    if (MapLayerOwnership.OwnerOf(l) == LayerOwner.MapRenderer) Assert.Equal(0, n);
+                    if (n > 0) drawnSomewhere[(int)l] = true;
+                }
+                Assert.Equal(d.Commands.Count, sum);   // every command is charged to exactly one layer
+                Assert.Equal(legend is null, f.LayerDraws[(int)MapLayer.Legend] == 0);
             }
-            Assert.Equal(d.Commands.Count, sum);   // every command is charged to exactly one layer
-        }
         foreach (MapLayer l in MapLayerOwnership.All)
             Assert.Equal(MapLayerOwnership.OwnerOf(l) == LayerOwner.WorldLens, drawnSomewhere[(int)l]);
     }

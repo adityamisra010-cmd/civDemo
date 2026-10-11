@@ -38,8 +38,13 @@ public sealed partial class GameUi
     /// <summary>Where the hover hint was painted last frame.</summary>
     public RectD? InfoHintRect { get; private set; }
 
-    /// <summary>Opens (pins) the card for <paramref name="subject"/>; it is built at the next draw. UI state only.</summary>
-    public void OpenInfo(InfoSubject subject) => _inspector.Open(subject);
+    /// <summary>Opens (pins) the card for <paramref name="subject"/>; it is built at the next draw. UI state only. P1: the
+    /// card is shown — opened again on the subject it is folded over, it unfolds (the player asked to see it).</summary>
+    public void OpenInfo(InfoSubject subject)
+    {
+        _inspector.Open(subject);
+        FoldContext(false);
+    }
 
     /// <summary>The research figure's subject: the current target's node, else research itself.</summary>
     private InfoSubject ResearchChipSubject() =>
@@ -208,12 +213,14 @@ public sealed partial class GameUi
         DrawPanelFurniture(element);
         float frameHeight = ImGui.GetFrameHeight();
         ScreenRect close = ChromeGeometry.CloseButton(element, frameHeight, s);
+        ScreenRect fold = ChromeGeometry.FoldButton(element, frameHeight, s);
         ScreenRect head = ChromeGeometry.HeaderRow(element, frameHeight, s);
         ImGui.SetCursorScreenPos(new System.Numerics.Vector2(head.X + 2f * s, head.Y));
-        TitleRow("DETAILS", close.X - head.X - 10f * s, frameHeight);
-        PlaceCursor(panel, close);
+        TitleRow("DETAILS", fold.X - head.X - 10f * s, frameHeight);
         ImGui.PushStyleVar(ImGuiStyleVar.ButtonTextAlign,
             new System.Numerics.Vector2(ChromeGeometry.CloseGlyphAlign, ChromeGeometry.CloseGlyphAlign));
+        bool foldClicked = FoldButton(panel, fold);   // P1: the card folds to its tab like a section
+        PlaceCursor(panel, close);
         bool closeClicked = Button(ChromeGeometry.CloseGlyph + "##info-close", Size(close));
         Controls.Record("info-close");
         ImGui.PopStyleVar();
@@ -239,6 +246,7 @@ public sealed partial class GameUi
         ImGui.EndChild();
         ImGui.End();
         if (closeClicked) _inspector.Close();
+        else if (foldClicked) FoldContext(true);
         return true;
     }
 
@@ -288,7 +296,7 @@ public sealed partial class GameUi
         if (!_active) return;
         System.Numerics.Vector2 p = ImGui.GetIO().MousePos;
         if (p.X < 0 || p.Y < 0 || p.X >= _viewportWidth || p.Y >= _viewportHeight) return;
-        if (_inspector.IsOpen)
+        if (_inspector.IsOpen && (_progressionOpen || ContextShown))   // P1: a folded card covers nothing
         {
             PanelRect ctx = ContextRect;
             if (_progressionOpen ? InfoOverlayRect().Contains(p.X, p.Y)

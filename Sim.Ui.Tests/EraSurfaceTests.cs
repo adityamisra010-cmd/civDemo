@@ -332,7 +332,7 @@ public class EraSurfaceTests(SteppedWorldFixture fx) : IClassFixture<SteppedWorl
         cam.Pan((cam.CenterX - (cell % size + 0.5)) * cam.Zoom, (cam.CenterY - (cell / size + 0.5)) * cam.Zoom, vw, vh);
         WorldProjection p = WorldProjection.Build(w, fx.Session.Config, id => fx.Session.Names.Name(id), Me);
         var d = new DrawList();
-        LensFrame f = WorldLens.Paint(d, ApproxTextMeasure.Instance, p, WorldLens.LevelFor(cam.Zoom, vw, vh, size),
+        LensFrame f = WorldLens.Paint(d, ApproxTextMeasure.Instance, p, MapDetail.At(cam.Zoom, vw, vh, p.KmPerPx),   // P2: the game's continuous detail
             (x, y) => cam.WorldToScreen(x, y, vw, vh), cam.Zoom, new RectD(0, 0, vw, vh), cap.Value,
             ink: MapInk.For(t), theme: t);
         return (d, f, cam, w);
@@ -343,7 +343,8 @@ public class EraSurfaceTests(SteppedWorldFixture fx) : IClassFixture<SteppedWorl
     /// only tokenised ink and hand differ"): at World, Regional and Settlement zoom, every era draws the same lens frame
     /// (layers, settlements, draw-call accounting, institution markers, network pieces, token placements), every token
     /// plate on exactly its hit rect, and every click on a grid over the screen (and around every token) picks the same
-    /// formation and the same settlement in all nine eras.
+    /// formation in all nine eras, and the same settlement wherever it lies outside the name plates (P3: a plate holds
+    /// the name as the era sets it, so its width is the era's type — see the comment at the settlement probes).
     /// </summary>
     [Fact]
     public void Continuity_TheMapLens_HasTheSameGeometryAndHitRegions_InEveryEra()
@@ -360,7 +361,7 @@ public class EraSurfaceTests(SteppedWorldFixture fx) : IClassFixture<SteppedWorl
                     foreach (double dy in new[] { -s * 0.75 - 3.5, -s * 0.75 - 2.5, 0, s * 0.75 + 2.5, s * 0.75 + 3.5 })
                         probes.Add((u.X + dx, u.Y + dy));
             int[] units1 = probes.Select(q => UnitSelection.HitTest(f1, q.X, q.Y)).ToArray();
-            int[] towns1 = probes.Select(q => SettlementSelection.HitTest(w1, c1, q.X, q.Y, 1280, 800)).ToArray();
+            int[] towns1 = probes.Select(q => SettlementSelection.HitTest(f1, q.X, q.Y)).ToArray();
             Assert.Contains(towns1, h => h >= 0);
             tokens += f1.UnitPlacements.Count;
             foreach (UiEra era in UiEras.All)
@@ -368,7 +369,21 @@ public class EraSurfaceTests(SteppedWorldFixture fx) : IClassFixture<SteppedWorl
                 (DrawList d, LensFrame f, Camera c, WorldState w) = Lens(era, zoom);
                 MapHandEraTests.AssertSameFrame(f1, f, era + " at zoom " + zoom);
                 Assert.Equal(units1, probes.Select(q => UnitSelection.HitTest(f, q.X, q.Y)).ToArray());
-                Assert.Equal(towns1, probes.Select(q => SettlementSelection.HitTest(w, c, q.X, q.Y, 1280, 800)).ToArray());
+                // P3: settlements are picked by the geometry the lens PAINTED (LensFrame.SettlementHits). Every mark's centre
+                // and footprint is the same in every era (the hand strokes it; it never moves or sizes it). The NAME PLATE is
+                // a hit region now too, and it holds the name as the era SETS it (UR-7: the era's heading face) — so its
+                // width follows the era's type, as the drawn plate always did (measured at 31.25: Modern's plate 20.03 px
+                // wider than Prehistoric's; at the three zooms 0-26 of ~11,500 probes pick differently, every one of them
+                // inside a plate). Old -> new: "every probe picks the same settlement in all nine eras" held for the deleted
+                // world-and-camera hit test, which ignored the names; it holds now for every probe outside both eras' plates,
+                // and the plates contain their names in every era (WorldLensHitGeometryTests).
+                Assert.Equal(f1.SettlementHits.Select(x => (x.Id, x.X, x.Y, x.Footprint)), f.SettlementHits.Select(x => (x.Id, x.X, x.Y, x.Footprint)));
+                for (int i = 0; i < probes.Count; i++)
+                {
+                    (double qx, double qy) = probes[i];
+                    if (InAnyPlate(f1, qx, qy) || InAnyPlate(f, qx, qy)) continue;
+                    Assert.True(towns1[i] == SettlementSelection.HitTest(f, qx, qy), $"{era} at zoom {zoom}: probe ({qx}, {qy}) outside every plate");
+                }
                 // The plate the player sees IS the hit rect (less its grip margin), in the era's cut.
                 foreach (UnitPlacement u in f.UnitPlacements)
                 {
@@ -378,6 +393,13 @@ public class EraSurfaceTests(SteppedWorldFixture fx) : IClassFixture<SteppedWorl
             }
         }
         Assert.True(tokens > 0, "the stepped world drew no formation token: the unit hit regions were not exercised");
+    }
+
+    /// <summary>Whether (x, y) lies on any settlement's name plate in <paramref name="f"/>.</summary>
+    private static bool InAnyPlate(LensFrame f, double x, double y)
+    {
+        foreach (SettlementHit h in f.SettlementHits) if (SettlementSelection.Inside(h.NamePlate, x, y)) return true;
+        return false;
     }
 
     /// <summary>The nine eras' map previews (<see cref="EraPreview.MapSvg"/>, the game's own lens call) are

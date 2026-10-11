@@ -51,7 +51,8 @@ public sealed record PathPiece(int NetworkEdge, int Route, int EdgeType, double 
 /// Style by TIER first (D-009: PATH brown single line · ROAD dark-kerbed with a pale fill · HIGHWAY
 /// iron-red), class second (weight, fill and marks). World zoom draws the network as plain weighted
 /// strokes; Regional and Settlement zoom add casing and class marks, and Settlement zoom names each
-/// route. Pure: reads the projection only.
+/// route (P2: the widths blend and the names fade in across the Regional ↔ Settlement window). Pure: reads
+/// the projection only.
 /// </summary>
 public static class RoadLens
 {
@@ -60,46 +61,58 @@ public static class RoadLens
     /// <summary>How road class <paramref name="edgeType"/> is drawn at <paramref name="zoom"/>, strokes in
     /// paint order (casing first). <see cref="EdgeTypes.DirtPath"/> is exactly the baseline path look
     /// (dashed at World zoom, cased below); an unknown class draws as a dirt path.</summary>
-    public static IReadOnlyList<RoadStroke> StyleOf(int edgeType, WorldZoom zoom, MapInk ink)
+    public static IReadOnlyList<RoadStroke> StyleOf(int edgeType, WorldZoom zoom, MapInk ink) =>
+        zoom == WorldZoom.World ? WorldStyleOf(edgeType, ink) : StyleAt(edgeType, zoom == WorldZoom.Settlement ? 1.0 : 0.0, ink);
+
+    /// <summary>The World band's look: plain weighted strokes.</summary>
+    private static IReadOnlyList<RoadStroke> WorldStyleOf(int edgeType, MapInk ink) => edgeType switch
     {
-        bool world = zoom == WorldZoom.World;
-        bool town = zoom == WorldZoom.Settlement;
+        EdgeTypes.Trackway => [new(A(ink.Trackway, 0.95), 1.8, null)],
+        EdgeTypes.BuiltRoad => [new(ink.RoadEdge, 2.2, null)],
+        EdgeTypes.PavedRoad => [new(ink.RoadEdge, 2.6, null)],
+        EdgeTypes.MacadamRoad => [new(ink.RoadEdge, 3.0, null)],
+        EdgeTypes.Highway => [new(ink.Highway, 3.2, null)],
+        _ => [new(A(ink.Path, 0.75), 1.6, (4, 3))],
+    };
+
+    /// <summary>
+    /// P2: the cased look of the closer bands at a Settlement blend <paramref name="town"/> (<see cref="MapDetail.Settlement"/>):
+    /// the same strokes at both bands, each width blended from the Regional band's (0) to the Settlement band's (1) —
+    /// so a road widens continuously across the Regional ↔ Settlement window. At 0 and 1 exactly the banded styles.
+    /// </summary>
+    public static IReadOnlyList<RoadStroke> StyleAt(int edgeType, double town, MapInk ink)
+    {
+        double W(double regional, double settlement) => MapDetail.Mix(regional, settlement, town);
         switch (edgeType)
         {
             case EdgeTypes.Trackway:   // PATH tier: an improved path — a solid umber line, broken pale centre below World zoom
             {
-                if (world) return [new(A(ink.Trackway, 0.95), 1.8, null)];
-                double w = town ? 3.8 : 2.8;
+                double w = W(2.8, 3.8);
                 return [new(A(ink.PathCasing, 0.7), w + 2.2, null), new(A(ink.Trackway, 0.95), w, null), new(ink.PathCasing, w * 0.4, (3, 3))];
             }
             case EdgeTypes.BuiltRoad:  // ROAD tier: dark kerbs, tan bed
             {
-                if (world) return [new(ink.RoadEdge, 2.2, null)];
-                double w = town ? 4.6 : 3.2;
+                double w = W(3.2, 4.6);
                 return [new(ink.RoadEdge, w + 2.2, null), new(ink.BuiltRoad, w, null)];
             }
             case EdgeTypes.PavedRoad:  // ROAD tier: dark kerbs, pale paving, a fine set centre
             {
-                if (world) return [new(ink.RoadEdge, 2.6, null)];
-                double w = town ? 5.2 : 3.6;
+                double w = W(3.6, 5.2);
                 return [new(ink.RoadEdge, w + 2.2, null), new(ink.PavedRoad, w, null), new(A(ink.RoadMarks, 0.75), 1.0, (2, 2))];
             }
             case EdgeTypes.MacadamRoad: // ROAD tier: dark kerbs, umber bed, a continuous centre line
             {
-                if (world) return [new(ink.RoadEdge, 3.0, null)];
-                double w = town ? 5.6 : 3.8;
+                double w = W(3.8, 5.6);
                 return [new(ink.RoadEdge, w + 2.2, null), new(ink.MacadamRoad, w, null), new(A(ink.RoadMarks, 0.9), 1.0, null)];
             }
             case EdgeTypes.Highway:    // HIGHWAY tier: wide dark kerbs, iron-red bed, a dashed pale centre line
             {
-                if (world) return [new(ink.Highway, 3.2, null)];
-                double w = town ? 6.4 : 4.6;
+                double w = W(4.6, 6.4);
                 return [new(ink.RoadEdge, w + 2.6, null), new(ink.Highway, w, null), new(ink.HighwayCentre, 1.2, (6, 4))];
             }
             default:                   // DirtPath (the free baseline) — today's path look, unchanged
             {
-                if (world) return [new(A(ink.Path, 0.75), 1.6, (4, 3))];
-                double w = town ? 3.2 : 2.2;
+                double w = W(2.2, 3.2);
                 return [new(A(ink.PathCasing, 0.7), w + 2.2, null), new(A(ink.Path, 0.95), w, null)];
             }
         }
@@ -149,11 +162,15 @@ public static class RoadLens
         && DistanceToSegment(step.X1, step.Y1, route.X0, route.Y0, route.X1, route.Y1) < halfWidth;
 
     /// <summary>Paints the Paths layer: the baseline steps no route owns, then every route (table
-    /// order) on top, recording each piece drawn in <paramref name="pieces"/>.</summary>
-    public static void PaintNetwork(DrawList d, ITextMeasure m, WorldProjection p, WorldZoom zoom,
+    /// order) on top, recording each piece drawn in <paramref name="pieces"/>. Below World zoom the look is
+    /// <see cref="StyleAt"/> of the Settlement blend <paramref name="town"/> (P2), and each route is named once
+    /// <paramref name="town"/> is above 0, the name faded in with it (the banded lens: named at Settlement zoom only).</summary>
+    public static void PaintNetwork(DrawList d, ITextMeasure m, WorldProjection p, WorldZoom zoom, double town,
         Func<double, double, (double X, double Y)> toScreen, RectD viewport, MapInk ink, List<PathPiece> pieces)
     {
-        IReadOnlyList<RoadStroke> dirt = StyleOf(EdgeTypes.DirtPath, zoom, ink);
+        bool world = zoom == WorldZoom.World;
+        IReadOnlyList<RoadStroke> Style(int cls) => world ? WorldStyleOf(cls, ink) : StyleAt(cls, town, ink);
+        IReadOnlyList<RoadStroke> dirt = Style(EdgeTypes.DirtPath);
         foreach (RoadSegment s in p.Roads)
         {
             if (s.CoveredBy >= 0) continue;   // the route that runs here draws this ground
@@ -178,7 +195,7 @@ public static class RoadLens
             int layers = 0;
             for (int i = 0; i < parts.Length; i++)
             {
-                styles[i] = StyleOf(parts[i].Cls, zoom, ink);
+                styles[i] = Style(parts[i].Cls);
                 layers = Math.Max(layers, styles[i].Count);
                 (double ax, double ay) = toScreen(r.X0 + (r.X1 - r.X0) * parts[i].From, r.Y0 + (r.Y1 - r.Y0) * parts[i].From);
                 (double bx, double by) = toScreen(r.X0 + (r.X1 - r.X0) * parts[i].To, r.Y0 + (r.Y1 - r.Y0) * parts[i].To);
@@ -194,7 +211,11 @@ public static class RoadLens
                     d.Line(ends[i].X0, ends[i].Y0, ends[i].X1, ends[i].Y1, s.Color, s.Width, s.Dash);
                     counts[i]++;
                 }
-            if (zoom == WorldZoom.Settlement && Label(d, m, r, t, toScreen, viewport, ink)) counts[^1]++;
+            if (!world && town > 0)
+            {
+                int before = d.Commands.Count;
+                if (Label(d, m, r, t, toScreen, viewport, ink)) { d.FadeFrom(before, town); counts[^1]++; }
+            }
             for (int i = 0; i < parts.Length; i++)
                 pieces.Add(new PathPiece(-1, r.Id, parts[i].Cls, parts[i].From, parts[i].To, counts[i]));
         }

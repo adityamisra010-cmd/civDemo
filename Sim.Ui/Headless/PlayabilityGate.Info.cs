@@ -160,7 +160,7 @@ public static partial class PlayabilityGate
                 CloseEverything();
                 MilitaryUnitRow[] mine = MilitaryQuery.Units(Ui.World, Me);
                 if (mine.Length == 0) return (GateResult.NotOffered, "the player has no formation");
-                if (mine[0].Location.Value >= 0) CameraFocus.CenterOn(Ui.Camera, Ui.World, mine[0].Location.Value, h.Width, h.Height);
+                if (mine[0].Location.Value >= 0) CameraFocus.CenterOn(Ui.Camera, Ui.World, mine[0].Location.Value, Ui.MapRect);
                 h.Idle(2);
                 if (FirstHit(InfoKind.Formation, x => x.Passive && x.Subject.Id == mine[0].Id) is not { } hit) return (GateResult.Fail, "token not registered");
                 int selected = Ui.SelectedUnit;

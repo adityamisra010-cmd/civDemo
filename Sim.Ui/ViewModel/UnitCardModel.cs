@@ -88,7 +88,8 @@ public static class UnitCardModel
 }
 
 /// <summary>Picking a formation token on the map: the token rect the world lens drew (<see cref="WorldLens.UnitToken"/>:
-/// 2s × 1.5s about its centre, s = 9 px at World zoom, 12 px closer) grown by a small grip margin.</summary>
+/// 2s × 1.5s about its centre, s = 9 px at World zoom, 12 px closer — P2: blended between them across the World ↔
+/// Regional cross-fade, as <see cref="UnitPlacement.Size"/> records) grown by a small grip margin.</summary>
 public static class UnitSelection
 {
     public const double GripPx = 3;
@@ -101,10 +102,10 @@ public static class UnitSelection
     public static int HitTest(LensFrame? frame, double x, double y)
     {
         if (frame is null) return -1;
-        double s = TokenSize(frame.Zoom);
         for (int i = frame.UnitPlacements.Count - 1; i >= 0; i--)
         {
             UnitPlacement p = frame.UnitPlacements[i];
+            double s = p.Size > 0 ? p.Size : TokenSize(frame.Zoom);   // P2: the size the token was drawn at
             if (x >= p.X - s - GripPx && x <= p.X + s + GripPx && y >= p.Y - s * 0.75 - GripPx && y <= p.Y + s * 0.75 + GripPx)
                 return p.Id;
         }

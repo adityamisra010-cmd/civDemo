@@ -41,6 +41,9 @@ public sealed partial class GameUi
     private double _autoScale = 1.0;
 
     private bool _showCatchment = true; // T2.4: political geography on by default
+    // P3: the map legend, shown and hidden by its tab (and L). Off until the player asks for it: the tab stays on the map.
+    private bool _showLegend;
+    private PanelRect _legendTabRect;
 
     // ADR-033 D1/D2 — THE ACTION SURFACE (the POLICY section): what the civilization can do now, built from
     // AvailableActionsQuery / LabourActivities and painted in the era's hand. The screen owns only UI state
@@ -159,13 +162,21 @@ public sealed partial class GameUi
     private int _progressionDownX, _progressionDownY;
     private KeyboardState _lastKeyboard;
     private bool _clickCandidate;   // press began on the map (not over ImGui)
-    // D-A2: per-settlement label rects, measured each frame by DrawNameLabels
-    // (row-aligned with world.Settlements) and consumed by the click hit-test.
-    private readonly System.Collections.Generic.List<SettlementSelection.LabelRect> _labelRects = new();
     private int _clickDownX, _clickDownY;
 
     private int _viewportWidth, _viewportHeight;
     private bool _active = true;
+
+    // P1 (M5 map workstream): THE MAP RECT of the current frame — the clear map the chrome leaves (PanelLayout.MapRect
+    // over the PLACED bars and the context panel when it is shown) — synced once at the start of Update, so the input,
+    // the GPU pass and the lens of one frame all frame the map through the same rect. And the FOLDS, pure UI state: the
+    // right-hand column folded to a tab (the fold belongs to the content the column SHOWS — a section, or the info card
+    // over it — and is forgotten the frame that content goes: closed, or replaced, it comes back unfolded) and the
+    // selection card folded to its title.
+    private Sim.Ui.Render.RectD _mapRect;
+    private (Section Section, InfoSubject? Subject)? _foldedContext;
+    private bool _cardFolded;
+    private PanelRect _contextTabRect;
     private (Section, Section, SettlementTab) _contextBodyKey = (Section.None, Section.None, SettlementTab.Overview);
 
     // M5 hardening H1 (Director §3): the selected military formation and its card — PURE UI STATE. A click on a
@@ -208,7 +219,8 @@ public sealed partial class GameUi
         _theme = _frameTheme = DeriveTheme();
         UiTheme.Apply(_theme, Scale);
         _camera = new Camera(_world.Terrain!.Size);
-        _camera.Clamp(_viewportWidth, _viewportHeight);
+        _mapRect = ComputeMapRect();
+        _camera.Clamp(_mapRect);   // P1: fitted and clamped against the map rect, not the window
         _selected = _world.Settlements.Count > 0 ? _world.Settlements[0].Id.Value : -1;
         _age.Research = session.Config.Research;   // M5 polish: the Age panel names the research to do next
         RefreshHud();
@@ -241,6 +253,12 @@ public sealed partial class GameUi
     public Sim.Ui.Actions.ActionSurfaceScreen Actions => _actions;
     public Sim.Ui.Actions.NoticeToast Notices => _notices;
     public bool ShowTerritory => _showCatchment;
+    /// <summary>P3: whether the map legend is shown (the lens paints it; <see cref="LensFrame"/>'s Legend).</summary>
+    public bool ShowLegend => _showLegend;
+    /// <summary>P3: the legend's tab as drawn in the last frame (its window; the button is inset by the margin).</summary>
+    public PanelRect LegendTabRect => _legendTabRect;
+    /// <summary>P3: the legend's widest box at UI scale 1 (it is never wider than the map rect less its margins).</summary>
+    public const float LegendMaxWidth = 340f;
     public bool PolicyRecordOpen => _policyRecord;
     public bool AnnalsShowAll => _annalsShowAll;
     public bool TrendWorldScope => _trendWorldScope;
@@ -276,6 +294,69 @@ public sealed partial class GameUi
     public PanelRect StatusRect => Placed(PanelLayout.Status);
     public PanelRect CommandRect => Placed(PanelLayout.Command);
     public PanelRect ContextRect => Placed(PanelLayout.Context);
+
+    /// <summary>P1: the map rect the camera frames this frame (synced at the start of <see cref="Update"/>): under the
+    /// status band, above the command bar, left of the context panel when it is shown. The host's render matrix, the
+    /// lens, the hit tests and CameraFocus all go through it.</summary>
+    public Sim.Ui.Render.RectD MapRect => _mapRect;
+
+    /// <summary>P1: whether the right-hand column (a section, or the pinned info card) is drawn as a panel this frame —
+    /// something is open in it and it is not folded to its tab.</summary>
+    public bool ContextShown => ContextHasContent && !ContextFolded;
+
+    /// <summary>P1: whether the right-hand column's content is folded to its tab (the section stays open).</summary>
+    public bool ContextFolded => ContextHasContent && _foldedContext is { } k && k == ContextContent;
+
+    /// <summary>P1: whether the selection card is folded to its title row.</summary>
+    public bool SelectionFolded => _cardFolded;
+
+    /// <summary>P1: where the folded column's tab was drawn last frame (empty when it was not drawn).</summary>
+    public PanelRect ContextTabRect => _contextTabRect;
+
+    private bool ContextHasContent => _inspector.IsOpen || _openSection != Section.None;
+
+    /// <summary>P1: what the right-hand column SHOWS — the info card's subject when one is pinned (it takes the column;
+    /// the section under it is not shown), else the open section. A fold is of this, and of nothing under it.</summary>
+    private (Section Section, InfoSubject? Subject) ContextContent =>
+        _inspector.IsOpen ? (Section.None, _inspector.Subject) : (_openSection, null);
+
+    /// <summary>P1: the map rect for the chrome as it stands (PanelLayout.MapRect over the placed bars and panel).</summary>
+    private Sim.Ui.Render.RectD ComputeMapRect() =>
+        PanelLayout.MapRect(_viewportWidth, _viewportHeight, StatusRect, CommandRect, ContextShown ? ContextRect : null);
+
+    /// <summary>P1: re-derives the map rect; when it changed (a panel opened, folded or closed; the window was
+    /// resized) the camera is REFRAMED through Camera.Reframe — the world point under the cursor stays put (a fit view
+    /// re-fits), then the clamp against the new rect. Pure UI state: nothing here reads or writes the simulation.</summary>
+    private void SyncMapRect(int cursorX, int cursorY)
+    {
+        ForgetStaleFold();
+        Sim.Ui.Render.RectD next = ComputeMapRect();
+        if (next == _mapRect) return;
+        bool inside = next.Contains(cursorX, cursorY) && _mapRect.Contains(cursorX, cursorY);
+        _camera.Reframe(_mapRect, next, inside ? cursorX : next.CenterX, inside ? cursorY : next.CenterY);
+        _mapRect = next;
+    }
+
+    /// <summary>P1: folds (or unfolds) the right-hand column's current content to its tab. Folding nothing is nothing.</summary>
+    private void FoldContext(bool fold) => _foldedContext = fold && ContextHasContent ? ContextContent : null;
+
+    /// <summary>P1: the fold belongs to the content shown. Once per frame (the top of SyncMapRect), a fold whose content
+    /// the column no longer shows — closed (Escape, a close button, the info card closed) or replaced (another section,
+    /// another subject, the card over it) — is FORGOTTEN, so that content comes back unfolded whatever path brings it.
+    /// (Compared on every read, a remembered fold once re-folded its section the next time it opened.)</summary>
+    private void ForgetStaleFold()
+    {
+        if (!ContextFolded) _foldedContext = null;
+    }
+
+    /// <summary>P1: the H key — fold every panel the map can take back (the right-hand column, the selection card), or,
+    /// when they are all folded already, unfold them.</summary>
+    private void ToggleFoldAll()
+    {
+        bool allFolded = _cardFolded && (!ContextHasContent || ContextFolded);
+        _cardFolded = !allFolded;
+        FoldContext(!allFolded);
+    }
 
     /// <summary>The selection card as drawn last frame (UR-3: its height is its content).</summary>
     public PanelRect SelectionRect => _selectionRect;
@@ -502,9 +583,19 @@ public sealed partial class GameUi
     /// </summary>
     public void Update(MouseState mouse, KeyboardState keyboard, double dtSeconds, bool active = true)
     {
+        UpdateInput(mouse, keyboard, dtSeconds, active);
+        // P2: the map camera eases its shown view toward the target this frame's input set (wheel, W A S D, a glide),
+        // once per frame on every path — frame-rate independent (Camera.Advance). UI state only.
+        _camera.Advance(dtSeconds);
+    }
+
+    private void UpdateInput(MouseState mouse, KeyboardState keyboard, double dtSeconds, bool active)
+    {
         _active = active;
         _eraFade?.Advance(dtSeconds);
         Rectangle viewport = Viewport();
+        SyncMapRect(mouse.X, mouse.Y);   // P1: this frame's map rect (input, GPU pass and lens all use it)
+        Sim.Ui.Render.RectD map = _mapRect;
         ImGuiIOPtr io = ImGui.GetIO();
         _shift = keyboard.IsKeyDown(Keys.LeftShift) || keyboard.IsKeyDown(Keys.RightShift);   // M5 polish: Shift+click = info
         if (UpdateInfoKeys(keyboard, io))
@@ -560,11 +651,12 @@ public sealed partial class GameUi
         if (IsActive && !io.WantCaptureMouse)
         {
             if (mouse.LeftButton == ButtonState.Pressed && _lastMouse.LeftButton == ButtonState.Pressed)
-                _camera!.Pan(mouse.X - _lastMouse.X, mouse.Y - _lastMouse.Y, viewport.Width, viewport.Height);
+                _camera!.Pan(mouse.X - _lastMouse.X, mouse.Y - _lastMouse.Y, map);
 
+            // P2: the wheel moves the camera's TARGET (×1.25 a notch about the cursor); the shown view eases to it.
             int wheel = mouse.ScrollWheelValue - _lastMouse.ScrollWheelValue;
             if (wheel != 0)
-                _camera!.ZoomAt(mouse.X, mouse.Y, Math.Pow(1.25, wheel / 120.0), viewport.Width, viewport.Height);
+                _camera!.ZoomToward(mouse.X, mouse.Y, Math.Pow(1.25, wheel / 120.0), map);
 
             // T2.4 click-select: press→release edge with a small movement
             // threshold so a drag-pan never doubles as a click. A miss keeps
@@ -579,14 +671,14 @@ public sealed partial class GameUi
                 && _clickCandidate
                 && Math.Abs(mouse.X - _clickDownX) <= 4 && Math.Abs(mouse.Y - _clickDownY) <= 4)
             {
+                // P3: the legend lies over the map; a click on it picks nothing the map draws beneath it.
                 // H1 / Director §3: a formation token is picked before the settlement it stands beside.
-                int unit = UnitSelection.HitTest(_lensFrame, mouse.X, mouse.Y);
+                int unit = OnLegend(mouse.X, mouse.Y) ? -1 : UnitSelection.HitTest(_lensFrame, mouse.X, mouse.Y);
                 if (unit >= 0) SelectUnit(unit);
-                else
+                else if (!OnLegend(mouse.X, mouse.Y))
                 {
-                    int hit = SettlementSelection.HitTest(
-                        _world, _camera!, mouse.X, mouse.Y, viewport.Width, viewport.Height,
-                        _labelRects);   // D-A2: labels are part of the click target
+                    // P3: the footprints and name plates the lens painted last frame — what the player clicked on.
+                    int hit = SettlementSelection.HitTest(_lensFrame, mouse.X, mouse.Y);
                     if (hit >= 0) SelectUnit(-1);   // choosing a settlement puts the formation card away
                     if (hit >= 0 && hit != _selected)
                     {
@@ -609,7 +701,14 @@ public sealed partial class GameUi
             if (keyboard.IsKeyDown(Keys.S)) dy -= panPx;
             if (keyboard.IsKeyDown(Keys.A)) dx += panPx;
             if (keyboard.IsKeyDown(Keys.D)) dx -= panPx;
-            if (dx != 0 || dy != 0) _camera!.Pan(dx, dy, viewport.Width, viewport.Height);
+            if (dx != 0 || dy != 0) _camera!.GlidePan(dx, dy, map);   // P2: the keys glide (the target moves; the view eases)
+
+            // P1: H folds every panel the map can take back (the right-hand column to its tab, the selection card to
+            // its title) — and unfolds them when all are folded. Key edge; UI state only, never an order.
+            if (Edge(keyboard, Keys.H) && !keyboard.IsKeyDown(Keys.LeftControl) && !keyboard.IsKeyDown(Keys.RightControl)) ToggleFoldAll();
+
+            // P3: L shows (hides) the map legend — the same toggle as its tab. Key edge; UI state only, never an order.
+            if (Edge(keyboard, Keys.L) && !keyboard.IsKeyDown(Keys.LeftControl) && !keyboard.IsKeyDown(Keys.RightControl)) _showLegend = !_showLegend;
 
             // T4.19 lane B: digits 1..7 OPEN sections in roster order (key
             // edge; the same GameSections.Order the command bar draws, so the
@@ -619,7 +718,11 @@ public sealed partial class GameUi
             {
                 Keys key = Keys.D0 + digit;
                 if (keyboard.IsKeyDown(key) && !_lastKeyboard.IsKeyDown(key))
-                    _openSection = GameSections.OnDigit(_openSection, digit, _developer);
+                {
+                    Section next = GameSections.OnDigit(_openSection, digit, _developer);
+                    if (next == _openSection && ContextFolded && !_inspector.IsOpen) FoldContext(false);   // P1: its digit shows it
+                    _openSection = next;
+                }
             }
 
             // M5 polish UR-1: Ctrl+= / Ctrl+- step the interface size through UiScale.UserSteps, Ctrl+0 resets it
@@ -735,22 +838,31 @@ public sealed partial class GameUi
             _lens = Sim.Ui.World.WorldProjection.Build(_world, _session.Config, id => _session.Names.Name(id), UiPlayer.Empire);
             _lensTurn = _world.Clock.Turn;
         }
-        Sim.Ui.World.WorldZoom level = Sim.Ui.World.WorldLens.LevelFor(cam.Zoom, v.Width, v.Height, cam.WorldSize);
+        // P1: the level of detail is the MAP RECT's visible span (what the player can see of the world), and the lens is
+        // projected through it; its cull rect stays the window, because the map is drawn full-window beneath the chrome
+        // (the gutters around an open context panel show map).
+        Sim.Ui.Render.RectD map = _mapRect;
+        // P2: the level of detail is CONTINUOUS, keyed on the visible km across the map rect (MapDetail — the terrain's own
+        // km per px); its derived band is the LensFrame's Zoom.
+        Sim.Ui.World.MapDetail detail = Sim.Ui.World.MapDetail.At(cam.Zoom, map.W, map.H, _world.Terrain!.KmPerPx);
         var lens = new Sim.Ui.Render.DrawList();
         // ADR-033 D8: the map's ink is derived from the era the interface paints with (MapInk.For — identity
         // inks constant, neutral ink, casing and legend paper following the era; it fades with the theme).
         if (!ReferenceEquals(_mapInkTheme, _frameTheme)) { _mapInk = Sim.Ui.World.MapInk.For(_frameTheme); _mapInkTheme = _frameTheme; }
-        _lensFrame = Sim.Ui.World.WorldLens.Paint(lens, Backend, _lens, level,
-            (x, y) => cam.WorldToScreen(x, y, v.Width, v.Height), cam.Zoom,
+        // P3: the legend, when shown, sits over the map's bottom-right corner, just above its tab.
+        Sim.Ui.World.LegendAnchor? legend = null;
+        if (_showLegend)
+        {
+            _legendTabRect = LegendTab();
+            float margin = PanelLayout.Margin * Scale;
+            legend = new Sim.Ui.World.LegendAnchor(_legendTabRect.X + _legendTabRect.Width, _legendTabRect.Y - margin / 2,
+                Math.Min(LegendMaxWidth * Scale, Math.Max(1, map.W - 2 * margin)));
+        }
+        _lensFrame = Sim.Ui.World.WorldLens.Paint(lens, Backend, _lens, detail,
+            (x, y) => cam.WorldToScreen(x, y, map), cam.Zoom,
             new Sim.Ui.Render.RectD(0, 0, v.Width, v.Height), _selected, showTerritory: _showCatchment, ink: _mapInk,
-            theme: _frameTheme, uiScale: Scale);   // UR-7: the map's labels by role, in the era's hand, × the UI scale
-        if (_selectedUnit >= 0)
-            foreach (Sim.Ui.World.UnitPlacement up in _lensFrame.UnitPlacements)
-                if (up.Id == _selectedUnit)
-                {
-                    double ts = UnitSelection.TokenSize(_lensFrame.Zoom) + 4;
-                    lens.Rect(new Sim.Ui.Render.RectD(up.X - ts, up.Y - ts * 0.8, 2 * ts, 1.6 * ts), null, _mapInk.Selection, 2.4, 3);
-                }
+            theme: _frameTheme, uiScale: Scale,   // UR-7: the map's labels by role, in the era's hand, × the UI scale
+            legend: legend, selectedUnit: _selectedUnit);   // P3: the lens frames the selected formation, under the legend
         Backend.Render(ImGui.GetBackgroundDrawList(), lens);
         _lastLensCommands = lens.Commands;   // P6: kept, read-only, for the frame's observers (LastLensCommands)
         RegisterFormationTokens();   // M5 polish: Shift+click a formation token for its card
@@ -877,35 +989,6 @@ public sealed partial class GameUi
             0xB4FFFFFFu);
     }
 
-    /// <summary>T2.9: name labels beside every marker — drawn on the ImGui
-    /// background drawlist (behind panels, above the map), constant screen
-    /// size like the markers themselves. Must run between BeforeLayout and
-    /// AfterLayout, so DrawHud calls it.</summary>
-    private void DrawNameLabels()
-    {
-        Rectangle viewport = Viewport();
-        const float markerPx = (float)SettlementSelection.MarkerScreenPx;
-        _labelRects.Clear();
-        for (int i = 0; i < _world.Settlements.Count; i++)
-        {
-            LineGeometry.Vertex position = OverlayMeshes.SettlementPosition(
-                _world.Settlements[i], _world.Terrain!.Size);
-            (double sx, double sy) = _camera!.WorldToScreen(
-                position.X, position.Y, viewport.Width, viewport.Height);
-            string name = _session.Names.Name(_world.Settlements[i].Id.Value);
-            var pos = new System.Numerics.Vector2(
-                (float)sx + markerPx / 2f + 4f, (float)sy - markerPx / 2f);
-            // The name TEXT is the WorldLens's (MapLayer.SettlementMarkers owner); only the click
-            // target is kept here, so a name is never drawn twice.
-            // D-A2: the label is part of the click target. The rect is
-            // measured HERE (the renderer owns font metrics) and handed to
-            // the pure view-model — ImGui never crosses into SettlementSelection.
-            System.Numerics.Vector2 extent = ImGui.CalcTextSize(name);
-            _labelRects.Add(new SettlementSelection.LabelRect(
-                pos.X, pos.Y, pos.X + extent.X, pos.Y + extent.Y));
-        }
-    }
-
     /// <summary>
     /// Panel furniture (§4 item 5; ADR-033 D8): the ERA'S frame behind the current ImGui window and the
     /// era's rule at the ELEMENT's rule rect, painted by the same <c>ChromeFurniture</c> the headless era
@@ -1027,7 +1110,6 @@ public sealed partial class GameUi
 
         DrawCompassRose();  // art substrate: §4 item 5 furniture
         DrawWorldLensAndAge();   // ADR-031: zoom lens (background) + Age panel/flow/toast (foreground)
-        DrawNameLabels();   // T2.9: background drawlist — under all chrome
 
         // H1: the ADVANCE AGE flow is MODAL (a full-window backdrop on the foreground list): the chrome under it is
         // drawn but inert, so a click outside the dialog cannot end the turn or open a section beneath it.
@@ -1037,6 +1119,7 @@ public sealed partial class GameUi
         DrawSelectionCard();
         DrawUnitCard();
         DrawContextPanel();
+        DrawLegendTab();   // P3: the map legend's tab, over the map's bottom-right corner
         DrawCommandBar();
         if (modal) ImGui.EndDisabled();
         if (!modal) DrawInfoHint();   // M5 polish: the Age panel's regions, then the hover hint
@@ -1335,6 +1418,7 @@ public sealed partial class GameUi
     {
         // ADR-033 D9: the route names the explanation; the mode decides where it is shown.
         (_openSection, _developerTab) = GameSections.Resolve(route.Section, _developer, _developerTab);
+        if (!_inspector.IsOpen) FoldContext(false);   // P1: the routed section is shown — even when it was open, folded
         if (route.Section == Section.Settlement) _settlementTab = route.Tab;
         if (route.Expand == AuditExpand.Population) _auditExpanded[0] = true;
         if (route.Expand == AuditExpand.Grain) _auditExpanded[1] = true;
@@ -1373,8 +1457,13 @@ public sealed partial class GameUi
         (string Text, ExplainFigure Route)[] rows = SelectionRows();
         ImFontPtr? data = RoleFont(Sim.Ui.Theme.TypeRole.Data, Sim.Ui.Render.FontRole.Numeric);
         float h = content;
-        foreach ((string text, _) in rows) h += WrappedHeight(data, text, wrap) + rowGap;
-        h += PanelLayout.Margin * s - rowGap + 2f * s;
+        // P1: folded, the card is its title row and rule — the settlement's name, and the control that unfolds it.
+        if (_cardFolded) h += 2f * s;
+        else
+        {
+            foreach ((string text, _) in rows) h += WrappedHeight(data, text, wrap) + rowGap;
+            h += PanelLayout.Margin * s - rowGap + 2f * s;
+        }
         _selectionRect = new PanelRect(PanelLayout.Selection.Title, PanelLayout.Margin * s,
             StatusRect.Height + PanelLayout.Margin * s, width, (float)Math.Ceiling(h));
         element = new ChromeElement(_selectionRect, RulePlacement.UnderHeaderRow);
@@ -1384,8 +1473,21 @@ public sealed partial class GameUi
         BeginChrome(_selectionRect);
         DrawPanelFurniture(element);
         ScreenRect head = ChromeGeometry.HeaderRow(element, frameH, s);
+        ScreenRect fold = ChromeGeometry.CloseButton(element, frameH, s);   // P1: the card's one header control, flush right
         ImGui.SetCursorScreenPos(new System.Numerics.Vector2(_selectionRect.X + padX, head.Y));
-        TitleRow(_hud.TitleLine, wrap, frameH);
+        TitleRow(_hud.TitleLine, Math.Max(1f, fold.X - _selectionRect.X - padX - 6f * s), frameH);
+        ImGui.PushStyleVar(ImGuiStyleVar.ButtonTextAlign,
+            new System.Numerics.Vector2(ChromeGeometry.CloseGlyphAlign, ChromeGeometry.CloseGlyphAlign));
+        PlaceCursor(_selectionRect, fold);
+        bool cardFold = Button((_cardFolded ? ChromeGeometry.UnfoldDownGlyph : ChromeGeometry.FoldUpGlyph) + "##card-fold", Size(fold));
+        Controls.Record("card-fold");
+        ImGui.PopStyleVar();
+        if (_cardFolded)
+        {
+            ImGui.End();
+            if (cardFold) _cardFolded = false;
+            return;
+        }
         ImGui.SetCursorPosY(content);
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new System.Numerics.Vector2(ImGui.GetStyle().ItemSpacing.X, rowGap));
         ImGui.PushTextWrapPos(width - padX);
@@ -1395,6 +1497,80 @@ public sealed partial class GameUi
         ImGui.PopTextWrapPos();
         ImGui.PopStyleVar();
         ImGui.End();
+        if (cardFold) _cardFolded = true;
+    }
+
+    /// <summary>P1: the right-hand column's FOLD button (a panel header's, left of its close button) — the column folds
+    /// to its tab and the map takes the space back; the section (or the info card) stays open.</summary>
+    private bool FoldButton(in PanelRect panel, in ScreenRect fold)
+    {
+        PlaceCursor(panel, fold);
+        bool clicked = Button(ChromeGeometry.FoldRightGlyph + "##panel-fold", Size(fold));
+        Controls.Record("panel-fold");
+        return clicked;
+    }
+
+    /// <summary>P3: whether (x, y) lies on the legend the lens painted last frame (it lies over the map there).</summary>
+    private bool OnLegend(double x, double y) => _lensFrame?.Legend is { } legend && legend.Rect.Contains(x, y);
+
+    /// <summary>P3: the legend tab's label — the legend's name and the fold glyph of what a click does.</summary>
+    private string LegendTabLabel() =>
+        "LEGEND " + (_showLegend ? ChromeGeometry.FoldUpGlyph : ChromeGeometry.UnfoldDownGlyph);
+
+    /// <summary>P3: the legend tab's window at the MAP RECT's bottom-right corner (inside the clear map, so it never sits
+    /// under the command bar or the context panel), sized to its label.</summary>
+    private PanelRect LegendTab()
+    {
+        float s = Scale, margin = PanelLayout.Margin * s;
+        float frameH = ImGui.GetFrameHeight();
+        float bw = (float)Math.Ceiling(LabelWidth(LegendTabLabel()) + 2f * ImGui.GetStyle().FramePadding.X + 8f * s);
+        float w = bw + 2f * margin, h = frameH + 2f * margin;
+        Sim.Ui.Render.RectD map = _mapRect;
+        return new PanelRect("##legend-tab", (float)map.Right - margin - w, (float)map.Bottom - margin - h, w, h);
+    }
+
+    /// <summary>
+    /// P3: THE MAP LEGEND'S TAB — one button over the map's bottom-right corner ("LEGEND +" shows the legend, "LEGEND -"
+    /// hides it; L does the same). The legend itself is not here: the world lens paints it on the map, just above this
+    /// tab, as a DrawList (never an ImGui window or tooltip), from the layers it drew this frame and the projection's
+    /// honest empty states. Looking only: the toggle is UI state and emits no order.
+    /// </summary>
+    private void DrawLegendTab()
+    {
+        _surface = FrameSurface.Legend;
+        _legendTabRect = LegendTab();
+        float margin = PanelLayout.Margin * Scale;
+        BeginChrome(_legendTabRect);
+        DrawPanelFurniture(new ChromeElement(_legendTabRect, RulePlacement.TopEdge));
+        ImGui.SetCursorPos(new System.Numerics.Vector2(margin, margin));
+        bool clicked = Button(LegendTabLabel() + "##legend", new System.Numerics.Vector2(_legendTabRect.Width - 2f * margin, ImGui.GetFrameHeight()));
+        Controls.Record("legend");
+        ImGui.End();
+        if (clicked) _showLegend = !_showLegend;
+    }
+
+    /// <summary>
+    /// P1: THE FOLDED COLUMN'S TAB — at the top right of the map, under the status band, where the panel's header was:
+    /// one button naming what is folded ("&lt; POLICY", "&lt; DETAILS") that unfolds it. The map rect runs under it to
+    /// the window's edge (it floats, as the selection card does).
+    /// </summary>
+    private void DrawContextTab()
+    {
+        _surface = FrameSurface.Context;
+        float s = Scale, margin = PanelLayout.Margin * s;
+        string label = ChromeGeometry.UnfoldLeftGlyph + " " + (_inspector.IsOpen ? "DETAILS" : GameSections.Label(_openSection));
+        float frameH = ImGui.GetFrameHeight();
+        float bw = (float)Math.Ceiling(LabelWidth(label) + 2f * ImGui.GetStyle().FramePadding.X + 8f * s);
+        PanelRect context = ContextRect;
+        _contextTabRect = new PanelRect("##context-tab", _viewportWidth - margin - bw - 2f * margin, context.Y,
+            bw + 2f * margin, frameH + 2f * margin);
+        BeginChrome(_contextTabRect);
+        DrawPanelFurniture(new ChromeElement(_contextTabRect, RulePlacement.BottomEdge));
+        ImGui.SetCursorPos(new System.Numerics.Vector2(margin, margin));
+        bool unfold = Button(label + "##panel-unfold", new System.Numerics.Vector2(bw, frameH));
+        Controls.Record("panel-unfold");
+        ImGui.End();
+        if (unfold) FoldContext(false);
     }
 
     /// <summary>Selects formation <paramref name="unit"/> (or none, with -1) and opens (closes) its card. Opening
@@ -1547,7 +1723,12 @@ public sealed partial class GameUi
                 ImGui.GetWindowDrawList().AddRectFilled(new System.Numerics.Vector2(slot.X + 6f * s, slot.Bottom - bh - 2f * s),
                     new System.Numerics.Vector2(slot.Right - 6f * s, slot.Bottom - 2f * s), Col(t.Material.AccentSoft));
             }
-            if (navClicked) _openSection = GameSections.Toggle(_openSection, section);
+            if (navClicked)
+            {
+                // P1: the button of a section folded to its tab UNFOLDS it (it is open; the player asked to see it).
+                if (ContextFolded && _openSection == section && !_inspector.IsOpen) FoldContext(false);
+                else _openSection = GameSections.Toggle(_openSection, section);
+            }
         }
 
         ImGui.SetCursorPos(new System.Numerics.Vector2(row.TerritoryX - bar.X,
@@ -1582,6 +1763,8 @@ public sealed partial class GameUi
     /// </summary>
     private void DrawContextPanel()
     {
+        _contextTabRect = default;
+        if (ContextFolded) { DrawContextTab(); return; }   // P1: folded to its tab — the map takes the column back
         if (DrawInfoContext()) return;   // M5 polish: a pinned info card takes the right-hand column
         if (_openSection == Section.None) return;
         _surface = FrameSurface.Context;
@@ -1601,15 +1784,18 @@ public sealed partial class GameUi
         // era's title face.
         float frameHeight = ImGui.GetFrameHeight();
         ScreenRect close = ChromeGeometry.CloseButton(element, frameHeight, s);
+        ScreenRect fold = ChromeGeometry.FoldButton(element, frameHeight, s);
         ScreenRect head = ChromeGeometry.HeaderRow(element, frameHeight, s);
         ImGui.SetCursorScreenPos(new System.Numerics.Vector2(head.X + 2f * s, head.Y));
-        TitleRow(ContextTitle(), close.X - head.X - 10f * s, frameHeight);
-        PlaceCursor(panel, close);
+        TitleRow(ContextTitle(), fold.X - head.X - 10f * s, frameHeight);
         ImGui.PushStyleVar(ImGuiStyleVar.ButtonTextAlign,
             new System.Numerics.Vector2(ChromeGeometry.CloseGlyphAlign, ChromeGeometry.CloseGlyphAlign));
+        bool foldClicked = FoldButton(panel, fold);
+        PlaceCursor(panel, close);
         bool closeClicked = Button(ChromeGeometry.CloseGlyph + "##close", Size(close));
         Controls.Record("close");
         if (closeClicked) _openSection = Section.None;
+        else if (foldClicked) FoldContext(true);
         ImGui.PopStyleVar();
 
         // The header rule IS the separator now; content starts under it. The
@@ -1787,8 +1973,7 @@ public sealed partial class GameUi
             _selected = settlementId;
             RefreshHud();
         }
-        Rectangle viewport = Viewport();
-        CameraFocus.CenterOn(_camera!, _world, settlementId, viewport.Width, viewport.Height);
+        CameraFocus.GlideTo(_camera!, _world, settlementId, _mapRect);   // P1: at the centre of the clear map; P2: it glides there
     }
 
     /// <summary>

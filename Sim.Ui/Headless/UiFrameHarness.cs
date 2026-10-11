@@ -157,6 +157,19 @@ public sealed class UiFrameHarness : IDisposable
     /// <summary>Runs <paramref name="n"/> frames with the input unchanged (time passes: toasts fade, the camera glides).</summary>
     public void Idle(int n, double dt = 1.0 / 60.0) { for (int i = 0; i < n; i++) Frame(dt); }
 
+    /// <summary>P2: runs frames with the input unchanged until the map camera's ease has SETTLED (its shown view is its
+    /// target view), at most <paramref name="maxFrames"/>; returns the frames run (0 when it was settled already), or
+    /// -1 when it had not settled by then — a camera that never settles is itself a finding.</summary>
+    public int Settle(int maxFrames = 240, double dt = 1.0 / 60.0)
+    {
+        for (int i = 0; i < maxFrames; i++)
+        {
+            if (Ui.Camera.Settled) return i;
+            Frame(dt);
+        }
+        return Ui.Camera.Settled ? maxFrames : -1;
+    }
+
     /// <summary>Moves the pointer and holds it for three frames: ImGui's hover state settles over one frame, and its
     /// duplicate-ID detector compares with the previous frame's hovered item (its warning tooltip shows from the
     /// fourth hovered frame, which the following press/release frames of a click reach).</summary>

@@ -99,7 +99,29 @@ This is a slim re-implementation in the spirit of the unmerged `claude/civdemo-w
 | more than 16% | Regional |
 | otherwise | Settlement |
 
-The level selects the layers (`WorldLens.LayersFor`, a fixed array per level):
+*P2 (M5 map workstream, 2026-10-11): the table above is superseded — kept as the record of the banded lens.* The
+level of detail is now CONTINUOUS and keyed on the ground the player sees: `MapDetail.At(zoom, map rect, km per px)`,
+the visible km across the map rect's shorter side (`TerrainSet.KmPerPx`, read from state). Two cross-fades, each a
+smoothstep in log2 km over ±0.25 octave of its edge, replace the hard switches; outside them (the plateaus) the lens
+paints exactly the banded layers below, command for command. The DERIVED band (`MapDetail.Band`, `MapDetail.BandFor`)
+is kept for the gate, the tests, the legend title and the hit tests:
+
+| Visible km across the map rect's shorter side | Derived band | Cross-fade window |
+|---|---|---|
+| more than 2253 km | World | World ↔ Regional: 1894–2679 km (2253 × 2^±¼) |
+| more than 655 km | Regional | Regional ↔ Settlement: 551–779 km (655 × 2^±¼) |
+| otherwise | Settlement | — |
+
+The edges are the banded lens's switch points on the canonical world (55 % and 16 % of 1024 px × 4 km = 4096 km), so
+the canonical game changes band at the same zooms as before. A smaller world is banded by the km it shows: a 256-px
+(1024 km) world never reaches the World band, and its fit is the Regional plateau. Each information layer's opacity is
+`MapDetail.Alpha` (territories 1 − S; World marks and network 1 − R; roads, morphology, production signals R;
+institutional presence R(1 − S); institution types, infrastructure density, population scale S; formations and
+banners 1 — R and S the two blends); what two bands share (the name, the banner, the tokens, the footprint across the
+second window, the glyph and sector rings, the roads' widths) is drawn once with sizes blended between the bands'.
+
+The level selects the layers (`WorldLens.LayersFor`, a fixed array per level — P2: on the plateaus; in a cross-fade the
+layers of both bands with opacity above 0):
 
 | Zoom | Layers (paint order) |
 |---|---|
@@ -164,6 +186,8 @@ The fixture is a real seed-42 session (256 px, 4 settlements) played through the
 - **Read-only.** Panel, flow, confirm, projection, lens paint at all zooms and the progression screen leave the world hash unchanged.
 - **Knowledge-screen Age chip.** It shows "ADVANCE AGE available" and returns `OpenAge` with no order.
 - **Zoom.** `LevelFor` boundaries are checked at 7.0/7.2 and 24/25 on 1000 px / 256 px. Per-zoom layers are the ruled sets and are stable.
+  *P2 (2026-10-11): `LevelFor` is gone; the pins are restated in km (`MapDetail`): 2253 km and 655 km, checked on both
+  sides at 4 km per px over 1000 px (zooms 1.775/1.776 and 6.10/6.11).*
 - **Formations.** The lens draws one token per `MilitaryUnits` row, in table order, at every zoom, with family keys and identity names from content.
 - **Projection.**
   - It equals the tables: settlements, network edges, catchment nodes, and per-settlement population equal to the Σ Buckets.
@@ -375,3 +399,23 @@ The cases cover:
   - No wall or other built-work state exists to compose.
   - The institution seam returns nothing until the institutions stream lands.
   - The road fixture's knowledge and materials are constructed; real play builds roads only once the player issues `DevelopRoads`, through the action surface of stream U2.
+
+## 10. M5 map workstream P3: hit geometry and the map legend (append-only note, 2026-10-11)
+
+Supersedes §5.1's layer list where they differ; §1–§9 remain the record of what they describe.
+
+- **A ninth map layer, `MapLayer.Legend`**, owned by the lens: the map legend, painted only when the player shows it
+  (its tab over the map's bottom-right corner, or L), last, through the DrawList. It is a plain DATA legend — the
+  title, one entry per information layer the frame DREW (`LensFrame.Painted`: on at the zoom AND touching the
+  viewport) by `WorldLens.LayerLabel`, then `WorldProjection.Absent` verbatim — so the honest empty states (§8) are now
+  shown in the game, not only in the headless previews. No art: the plate is the name plate's paper, rule and corner.
+- **Finer draw-call accounting.** `LensFrame.InfoDraws` counts the commands per information layer (`WorldLayer`);
+  every lens command but the legend's is charged to exactly one information layer of its map layer
+  (`MapLayerOwnership.MapLayerOf`), so the two accountings agree map layer by map layer.
+- **Hit geometry from the paint.** `LensFrame.SettlementHits` records each drawn settlement's mark centre, footprint
+  (World: the halo round the population mark; closer: the built footprint's circle) and name plate;
+  `SettlementSelection` picks from them (footprint target ≥ 44 px, or plate; ranked by (distance², id)). The
+  footprints are the same in every era; a plate's width is the era's type (UR-7), as the drawn plate always was.
+- **The selected formation's frame** is drawn by the lens (`Paint(…, selectedUnit:)`), no longer by GameUi after it.
+
+Tests: `Sim.Ui.Tests/LensHitGeometryAndLegendTests.cs`; record: `docs/m5-playability-gate.md` §3.4.

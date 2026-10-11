@@ -307,17 +307,27 @@ public class AgeAndWorldUiTests(EligibleSessionFixture fx) : IClassFixture<Eligi
 
     // ------------------------------------------------------------------ world lens
 
+    // PIN MOVED DELIBERATELY (P2, M5 map workstream: the level of detail is keyed on the VISIBLE KM, not on the share
+    // of the world). Old: WorldLens.LevelFor(zoom, 1600, 1000, 256) — span = 1000 / zoom / 256 of a 256-px world — with
+    // 7.0 → World (0.558), 7.2 → Regional (0.543), 24 → Regional (0.163), 25 → Settlement (0.156). New: the derived
+    // band of MapDetail, visible = 1000 / zoom × 4 km (the canonical 4 km per px), World above 2253 km, Regional above
+    // 655 km. The old cameras now read 7.0 → 571 km → Settlement and 24 → 167 km → Settlement: the band no longer
+    // depends on the world's size. The edges are the old switch points ON THE CANONICAL WORLD (0.55 and 0.16 of
+    // 1024 px × 4 km = 2252.8 and 655.4 km, to the km), pinned on both sides here; that the canonical game's bands did
+    // not move is ContinuousLevelOfDetailTests.OnTheCanonicalWorld_TheKmBandsSwitchWhereTheShareBandsDid.
     [Theory]
-    [InlineData(1.0, WorldZoom.World)]
-    [InlineData(7.0, WorldZoom.World)]       // span 0.558
-    [InlineData(7.2, WorldZoom.Regional)]    // span 0.543
-    [InlineData(24.0, WorldZoom.Regional)]   // span 0.163
-    [InlineData(25.0, WorldZoom.Settlement)] // span 0.156
+    [InlineData(1.0, WorldZoom.World)]           // 4000 km
+    [InlineData(1.775, WorldZoom.World)]         // 2253.5 km
+    [InlineData(1.776, WorldZoom.Regional)]      // 2252.3 km
+    [InlineData(6.10, WorldZoom.Regional)]       // 655.7 km
+    [InlineData(6.11, WorldZoom.Settlement)]     // 654.7 km
+    [InlineData(25.0, WorldZoom.Settlement)]     // 160 km
     public void ZoomLevel_IsAPureFunctionOfTheVisibleSpan(double zoom, WorldZoom expected)
     {
-        // 1000 px viewport over a 256 px world: span = 1000 / zoom / 256.
-        Assert.Equal(expected, WorldLens.LevelFor(zoom, 1600, 1000, 256));
-        Assert.Equal(WorldLens.LevelFor(zoom, 1600, 1000, 256), WorldLens.LevelFor(zoom, 1600, 1000, 256));
+        // A 1000 px map rect side at 4 km per world px: visible = 1000 / zoom × 4 km — whatever the world's size.
+        Assert.Equal(expected, MapDetail.At(zoom, 1600, 1000, 4.0).Band);
+        Assert.Equal(expected, MapDetail.BandFor(1000 / zoom * 4.0));
+        Assert.Equal(MapDetail.At(zoom, 1600, 1000, 4.0), MapDetail.At(zoom, 1600, 1000, 4.0));
     }
 
     [Fact]

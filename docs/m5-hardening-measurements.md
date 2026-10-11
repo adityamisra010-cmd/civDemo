@@ -725,3 +725,122 @@ stride, turns 1/4; the `RoadWorldFixture` world with 6 built routes and 2 corrid
 `Sim.Ui.Tests/WorldProjectionStrideTests.cs`: the arithmetic grid equals the built lattice's geometry on every world,
 the projection built on either draws identical SVG bytes and `LensFrame`s at every band, and a control shows a
 geometry one px wider draws a different map.
+
+## 2026-10-10 — the map rect's share of the window, before and after P1 (M5 map workstream P1; append-only, the sections above are unchanged)
+
+**Status:** MEASURED by the P1 agent on branch `m5w-p1-map-viewport`: BEFORE on its base **`55640ae`**
+(`m5w-integration`, Wave A integrated) and AFTER on **`f874b6d`**, 2026-10-10, through the live `GameUi` in the headless
+frame harness (`UiFrameHarness`, real native ImGui, the window's automatic UI scale: 1.0 at 1280×800 and 1920×1009,
+1.375 at 2560×1440), canonical founded world, seed 42, turn 1. Geometry, not timing: the numbers are exact on any
+machine.
+
+**What is measured.** The *map rect* is the rectangle the camera frames the map through — under the status band, above
+the command bar, left of the context panel when it is shown (`PanelLayout.MapRect`). Before P1 there was no map rect:
+the camera framed the whole window and the chrome lay over it, so the BEFORE column is the same rectangle computed from
+the same placed chrome (P1 moves no chrome). *Unobstructed* subtracts what floats inside the rect: the selection card
+(and, after P1, the folded column's tab). "+ H" is after the H key (every panel folded; a section stays open).
+
+| window | state | map rect, before | map rect, after | unobstructed, before | unobstructed, after |
+|---|---|---|---|---|---|
+| 1280×800 | no section | 86.00 % | 86.00 % | 81.19 % | 81.19 % |
+| 1280×800 | no section + H | — (no fold) | 86.00 % | — | 84.25 % |
+| 1280×800 | a section open | 56.97 % | 56.97 % | 52.16 % | 52.16 % |
+| 1280×800 | a section open + H | — (no fold) | **86.00 %** | — | **83.63 %** |
+| 1920×1009 | no section | 88.90 % | 88.90 % | 86.36 % | 86.36 % |
+| 1920×1009 | no section + H | — | 88.90 % | — | 87.97 % |
+| 1920×1009 | a section open | 66.12 % | 66.12 % | 63.58 % | 63.58 % |
+| 1920×1009 | a section open + H | — | **88.90 %** | — | **87.65 %** |
+| 2560×1440 | no section | 89.31 % | 89.31 % | 86.82 % | 86.82 % |
+| 2560×1440 | no section + H | — | 89.31 % | — | 88.42 % |
+| 2560×1440 | a section open | 66.40 % | 66.40 % | 63.92 % | 63.92 % |
+| 2560×1440 | a section open + H | — | **89.31 %** | — | **88.09 %** |
+
+The selection card is 320×154 at scale 1 (440×208 at 1.375) and folds to 320×56 (440×74). The two bars are 112 px of
+height at scale 1 (154 px at 1.375) and do not fold.
+
+**The fit.** Before: the fit zoom fitted the WINDOW's shorter side (`min(w, h) / 1024`): 800 / 1009 / 1440 px of world,
+of which 112 / 112 / 154 px of world height sat under the two bars, and at the clamp the world's edges were parked
+under the status band, the command bar and an open panel (they could never be brought into the clear map). After: the
+fit fits the MAP RECT's shorter side — 688 / 897 / 1286 px of world, the WHOLE world inside the clear map, nothing
+under a bar (`CameraTests.MapRect_AtTheFit_NoWorldSitsUnderTheBars_AndTheWholeWorldIsInTheRect`, with the old camera as
+its control) — and the clamp brings every world edge to the clear map's edge
+(`CameraTests.MapRect_Clamp_KeepsTheRectOverTheWorld_AndEveryEdgeOfTheWorldReachesTheClearMap`). The fitted world is
+therefore SMALLER on screen than the old fit's (688 against 800 px at 1280×800) — the old fit's extra 112 px were the
+part under the bars.
+
+**Reading (INFERRED from the table; nothing here is ruled).** The enlargement is the open-section case: folding the
+column gives the map back the panel's 25–30 % of the window (52 → 84 % unobstructed at 1280×800) without closing the
+section. With no section open the chrome already left 86–89 %, and folding the card adds 1.6–3.1 points. What is left
+is structural: the two bars (14 % of a 1280×800 window) and, at the fit, the paper beside a square world in a wide rect
+(296 px each side at 1280×800 — a contain fit). A cover or fit-to-width zoom floor would fill that paper but put world
+outside the clear map at the floor, which the packet's "no world under the bars at fit" excludes; it is recorded in
+`docs/queue.md`, not built.
+
+## 2026-10-11 — map frame cost before / after the continuous level of detail (M5 map workstream P2; append-only, the sections above are unchanged)
+
+**Status:** MEASURED by the P2 agent with P4's `Sim.Ui --frame-cost map` (defaults: `--rounds 5 --settlements 400
+--turns 150`), Release. BEFORE: the base `9e066b2` (P3's tip), built in the P2 worktree before any edit, run
+2026-10-11 01:44–01:45 UTC. AFTER: `4fc40ee` (P2's code), run 02:22–02:24 UTC. A measurement, not a budget (ADR-009).
+
+**Load (read before the numbers).** The machine has 4 CPUs shared with other agents' builds and test runs; the load
+average was 3.2 → 4.0 over the BEFORE run and 4.1 → 3.7 over the AFTER run (5–6 in the minutes around both). The
+milliseconds are wall-clock under that load — an order of magnitude only. The vertex and command columns are exact
+(the same on any machine) and are the structural record.
+
+**What changed in the sweep.** The tool paints what the game now paints: `WorldLens.Paint` at the continuous
+`MapDetail` of each camera (keyed on the visible km), its row's band the derived band. The sweep itself is unchanged
+(fit → 32× in ×1.25 notches at the window centre, a 4×4 serpentine pan at each stop), and so are both worlds (the
+world hashes before and after the sweeps are the same as P4's: canonical `4035cf18…`, high-count `127236…`). A new
+last column counts the band's frames that fell inside a cross-fade: one zoom stop of the World band (16 frames) and two
+of the Regional band (32) — the stops between 1894 and 2679 km and between 551 and 779 km; no Settlement stop lands in
+the second window's Settlement half.
+
+| window | world | band | frames/sweep | cross-fade frames | ms/frame before → after | mean vertices before → after | max list vertices before → after | commands/frame before → after | max commands before → after |
+|---|---|---|---|---|---|---|---|---|---|
+| 1280x800 | canonical | World | 32 | 16 | 0.25 → 0.32 | 10608 → 13820 | 11784 → 18948 | 1658 → 2024 | 1735 → 2467 |
+| 1280x800 | canonical | Regional | 96 | 32 | 0.12 → 0.13 | 3493 → 4087 | 12692 → 17144 | 996 → 1048 | 2001 → 2313 |
+| 1280x800 | canonical | Settlement | 144 | 0 | 0.05 → 0.05 | 256 → 256 | 3048 → 3048 | 584 → 584 | 664 → 664 |
+| 1280x800 | high-count | World | 32 | 16 | 1.77 → 2.62 | 91240 → 119831 | 101060 → 159272 | 7058 → 8152 | 7693 → 9749 |
+| 1280x800 | high-count | Regional | 96 | 32 | 0.63 → 0.97 | 27782 → 33456 | 98588 → 130640 | 2543 → 2660 | 8061 → 8808 |
+| 1280x800 | high-count | Settlement | 144 | 0 | 0.11 → 0.10 | 4469 → 4469 | 37372 → 37372 | 115 → 115 | 732 → 732 |
+| 1920x1009 | canonical | World | 48 | 16 | 0.25 → 0.42 | 11031 → 13194 | 11784 → 18948 | 1687 → 1931 | 1735 → 2467 |
+| 1920x1009 | canonical | Regional | 96 | 32 | 0.12 → 0.16 | 3931 → 4675 | 12692 → 18312 | 1039 → 1091 | 2001 → 2313 |
+| 1920x1009 | canonical | Settlement | 128 | 0 | 0.06 → 0.09 | 371 → 371 | 3700 → 3700 | 586 → 586 | 664 → 664 |
+| 1920x1009 | high-count | World | 48 | 16 | 1.86 → 2.32 | 96164 → 115340 | 104924 → 159520 | 7293 → 8008 | 7783 → 9735 |
+| 1920x1009 | high-count | Regional | 96 | 32 | 0.75 → 1.07 | 33202 → 39767 | 105952 → 140732 | 2813 → 2934 | 8136 → 8867 |
+| 1920x1009 | high-count | Settlement | 128 | 0 | 0.13 → 0.12 | 5913 → 5913 | 40336 → 40336 | 133 → 133 | 742 → 742 |
+| 2560x1440 | canonical | World | 48 | 16 | 0.28 → 0.31 | 12209 → 14407 | 13000 → 20164 | 1693 → 1937 | 1735 → 2467 |
+| 2560x1440 | canonical | Regional | 96 | 32 | 0.13 → 0.14 | 3860 → 4727 | 12872 → 19556 | 1021 → 1073 | 2014 → 2326 |
+| 2560x1440 | canonical | Settlement | 112 | 0 | 0.06 → 0.06 | 432 → 432 | 3640 → 3640 | 586 → 586 | 664 → 664 |
+| 2560x1440 | high-count | World | 48 | 16 | 1.94 → 2.28 | 96895 → 116288 | 104924 → 159824 | 7301 → 7985 | 7783 → 9551 |
+| 2560x1440 | high-count | Regional | 96 | 32 | 0.69 → 1.00 | 32769 → 39114 | 107020 → 141880 | 2610 → 2723 | 8129 → 8852 |
+| 2560x1440 | high-count | Settlement | 112 | 0 | 0.14 → 0.13 | 6763 → 6763 | 39596 → 39596 | 128 → 128 | 690 → 690 |
+| 3840x2160 | canonical | World | 48 | 16 | 0.28 → 0.33 | 13311 → 15503 | 14080 → 21244 | 1693 → 1937 | 1735 → 2467 |
+| 3840x2160 | canonical | Regional | 96 | 32 | 0.13 → 0.15 | 3966 → 5080 | 13000 → 21892 | 1014 → 1065 | 2014 → 2326 |
+| 3840x2160 | canonical | Settlement | 80 | 0 | 0.06 → 0.06 | 562 → 562 | 3688 → 3688 | 587 → 587 | 664 → 664 |
+| 3840x2160 | high-count | World | 48 | 16 | 1.95 → 2.34 | 96824 → 116174 | 104924 → 159724 | 7279 → 7946 | 7783 → 9452 |
+| 3840x2160 | high-count | Regional | 96 | 32 | 0.70 → 0.96 | 34229 → 40539 | 106772 → 141624 | 2494 → 2599 | 8073 → 8786 |
+| 3840x2160 | high-count | Settlement | 80 | 0 | 0.18 → 0.17 | 9327 → 9327 | 46308 → 46308 | 153 → 153 | 660 → 660 |
+
+**Reading (INFERRED from the table; nothing here is ruled).**
+- **Every Settlement row is identical** in its vertices and commands, and the plateau frames of the other bands paint
+  exactly what they painted (the plateau paint is the banded paint, command for command:
+  `OnAPlateau_TheContinuousPaint_IsTheBandedPaint_CommandForCommand`). The whole difference is the cross-fade frames,
+  which paint both bands' layers.
+- **A cross-fade frame costs about 1.4–1.6× the plateau frames of its band.** Taking the plateau frames as unchanged,
+  the World band's fading frames average 1658 + 2 × 366 = 2390 commands on the canonical world at 1280×800 (1658 for
+  the band before), and 7058 + 2 × 1094 = 9246 on the high-count world, with a largest single list of 159,272–159,824
+  vertices at a high settlement count (before: 101,060–104,924). That is above the 16-bit 65,535 like the World band
+  already was, and is carried by M5 hardening H1's `VtxOffset` path: no frame violated the draw-data contract (a
+  violation aborts the run).
+- **Milliseconds:** canonical ≤ 0.42 ms per frame in any band (before ≤ 0.28); high-count World 2.3–2.6 ms (before
+  1.8–1.9) and Regional 1.0–1.1 ms (before 0.6–0.8), the increase confined to the cross-fade stops. Under the load
+  above, read as an order of magnitude.
+- An eased zoom crosses a window in a fraction of a second (the ease is 90 % done in 0.16 s), so a player sees the
+  heavier frames only while gliding through 2^±¼ of an edge; a camera that comes to rest inside a window keeps paying
+  them (both layer sets) until it moves.
+
+**Smoke gate on the same code (`4fc40ee`).** `dotnet Sim.Ui/bin/Release/net10.0/Sim.Ui.dll --smoke --monkey 200`:
+9 states, 1892 checks: 1782 pass, 110 not offered, 0 FAIL; 0 problems; 62,426 frames, 1,800 monkey actions; largest
+draw list 104,004 vertices; 124.8 s. Against P3's record (1892 / 1782 / 61,527 frames) the checks and passes are the
+same; the +899 frames are INFERRED to be the restated wheel rows letting the ease settle (not decomposed).

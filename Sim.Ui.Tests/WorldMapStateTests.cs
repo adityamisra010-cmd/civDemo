@@ -178,7 +178,7 @@ public class WorldMapStateTests(RoadWorldFixture fx) : IClassFixture<RoadWorldFi
         IReadOnlyList<UnitLensView>? units = null, IReadOnlyList<RoadSegment>? roads = null, IReadOnlyList<RouteLensView>? routes = null,
         int? playerAge = null) => new()
     {
-        WorldSize = p.WorldSize, Settlements = settlements ?? p.Settlements, Units = units ?? p.Units, Roads = roads ?? p.Roads,
+        WorldSize = p.WorldSize, KmPerPx = p.KmPerPx, Settlements = settlements ?? p.Settlements, Units = units ?? p.Units, Roads = roads ?? p.Roads,
         Routes = routes ?? p.Routes, Territory = p.Territory, PlayerPolity = p.PlayerPolity, PlayerAge = playerAge ?? p.PlayerAge,
         PlayerAgeName = p.PlayerAgeName, Absent = p.Absent,
     };
@@ -819,10 +819,14 @@ public class WorldMapStateTests(RoadWorldFixture fx) : IClassFixture<RoadWorldFi
     [Fact]
     public void ZoomLevels_KeepTheirThresholds_AndEveryLevelShowsTheNetwork()
     {
-        Assert.Equal(WorldZoom.World, WorldLens.LevelFor(7.0, 1600, 1000, 256));
-        Assert.Equal(WorldZoom.Regional, WorldLens.LevelFor(7.2, 1600, 1000, 256));
-        Assert.Equal(WorldZoom.Regional, WorldLens.LevelFor(24.0, 1600, 1000, 256));
-        Assert.Equal(WorldZoom.Settlement, WorldLens.LevelFor(25.0, 1600, 1000, 256));
+        // PIN MOVED DELIBERATELY (P2): the thresholds are in visible km (MapDetail), no longer shares of the world.
+        // Old: LevelFor 7.0 / 7.2 / 24 / 25 on 1000 px over a 256-px world → World / Regional / Regional / Settlement
+        // (spans 0.558 / 0.543 / 0.163 / 0.156). New: 2253 km and 655 km — the canonical world's old switch points —
+        // pinned on both sides, at 4 km per px over a 1000 px side.
+        Assert.Equal(WorldZoom.World, MapDetail.At(1.775, 1600, 1000, 4.0).Band);        // 2253.5 km
+        Assert.Equal(WorldZoom.Regional, MapDetail.At(1.776, 1600, 1000, 4.0).Band);     // 2252.3 km
+        Assert.Equal(WorldZoom.Regional, MapDetail.At(6.10, 1600, 1000, 4.0).Band);      // 655.7 km
+        Assert.Equal(WorldZoom.Settlement, MapDetail.At(6.11, 1600, 1000, 4.0).Band);    // 654.7 km
         Assert.Contains(WorldLayer.MajorInfrastructure, WorldLens.LayersFor(WorldZoom.World));
         Assert.Contains(WorldLayer.Roads, WorldLens.LayersFor(WorldZoom.Regional));
         Assert.Contains(WorldLayer.Roads, WorldLens.LayersFor(WorldZoom.Settlement));

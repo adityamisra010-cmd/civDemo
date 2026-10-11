@@ -1,3 +1,5 @@
+using Sim.Ui.Render;
+
 namespace Sim.Ui.ViewModel;
 
 /// <summary>One panel's rectangle, in screen pixels.</summary>
@@ -148,6 +150,27 @@ public static class PanelLayout
     /// <summary>The same, with a section open.</summary>
     public static float MapAreaWithContextOpen =>
         (DesignWidth - Context.Width - Margin) * (DesignHeight - Status.Height - Command.Height);
+
+    /// <summary>
+    /// P1 (M5 map workstream) — THE MAP RECT: the rectangle of the window the map is looked at through, derived from
+    /// the chrome as PLACED in the window — under the status band, above the command bar, and left of the context
+    /// panel when one is shown (the panel's own left edge: the same column <see cref="MapAreaWithContextOpen"/>
+    /// subtracts). The selection card floats INSIDE it, as it floats inside <see cref="ClearMapArea"/>. The camera fits,
+    /// clamps and centres on this rect; the map itself is still drawn full-window beneath the chrome. Pure.
+    /// </summary>
+    public static RectD MapRect(float windowWidth, float windowHeight, in PanelRect status, in PanelRect command, PanelRect? context)
+    {
+        double top = (double)status.Y + status.Height;
+        double bottom = Math.Min(windowHeight, command.Y);
+        double right = context is { } c ? Math.Min(windowWidth, c.X) : windowWidth;
+        return new RectD(0, top, Math.Max(1.0, right), Math.Max(1.0, bottom - top));
+    }
+
+    /// <summary>The design window's map rect with no panel shown (its area is <see cref="ClearMapArea"/>).</summary>
+    public static RectD ClearMapRect => MapRect(DesignWidth, DesignHeight, Status, Command, null);
+
+    /// <summary>The design window's map rect with the context panel shown (its area is <see cref="MapAreaWithContextOpen"/>).</summary>
+    public static RectD MapRectWithContextOpen => MapRect(DesignWidth, DesignHeight, Status, Command, Context);
 
     /// <summary>Strict-interior intersection: true iff the shared area is
     /// positive. Edge-adjacent rects (shared boundary only) do not overlap.</summary>

@@ -465,8 +465,310 @@ failure is not counted as a kill.
 | Digits 1–6, Escape, Tab, W/A/S/D, F12 | `Update` | key taps | section opens / closes / exit request with nothing open / next settlement / camera pans / DEV toggles |
 | Map: settlement marker or name | `Update` → `SettlementSelection.HitTest` | click the capital and two others | selected |
 | Map: formation token | `Update` → `UnitSelection.HitTest` | click | formation selected, its card opens (§5) |
-| Map: drag, wheel to Regional and Settlement zoom and back to World | `Update` | drag; wheel | camera moves; lens level changes |
+| Map: drag, wheel to Regional and Settlement zoom and back to World | `Update` | drag; wheel (P2: until the target's band, then the ease settles) | camera moves; lens level changes |
 | Notices | `NoticeToast` | End Turn until the step brings news | shown, then fades after 6 s |
+
+### 3.3 The map rect and the folding panels (M5 workstream P1, 2026-10-10)
+
+Branch `m5w-p1-map-viewport`, cut from `m5w-integration` @ `55640ae`. Presentation only: no simulation, serialization
+or order code changed; the camera and the folds are UI state.
+
+**The map rect (IMPLEMENTED).** `GameUi.MapRect` — under the status band, above the command bar, left of the context
+panel while it is shown (`PanelLayout.MapRect` over the PLACED chrome) — is synced once at the start of every
+`Update`, so one frame's input, GPU pass and lens all frame the map through the same rect. `Camera` takes it in every
+operation: the fit zoom fits it, the clamp keeps it over the world, `CameraFocus.CenterOn` lands at its centre, and
+`Camera.Reframe` keeps the world point under the cursor when it changes (a fit view re-fits). `WorldLens.LevelFor`,
+the lens projection, the settlement hit test, the name-label rects and the host's render matrix (`Camera.Transform`)
+go through it. The map is still drawn full-window beneath the chrome (the lens's cull rect stays the window).
+
+**The folds (IMPLEMENTED).** New controls, each recorded (`Controls.Record`) and each pressed by a gate row:
+
+| control | where | what it does |
+|---|---|---|
+| `panel-fold` (`>`) | the context panel's (or the pinned info card's) header, left of its close button | folds the right-hand column to a tab; the section stays open; the map rect takes the column back |
+| `panel-unfold` (`< POLICY`, `< DETAILS`) | the tab, top right of the map under the status band | unfolds it |
+| `card-fold` (`-` / `+`) | the selection card's header, flush right | folds the card to its title row and back |
+| key **H** | — | folds every panel (column and card); with all folded, unfolds them |
+
+A folded section's own command-bar button and its digit unfold it (they do not close it); another section, or another
+info subject, opens unfolded; Escape still closes it. The fold belongs to what the column SHOWS (the info card when one
+is pinned, else the section) and is forgotten the frame that content goes, so closed or replaced content comes back
+unfolded by any path; a click-to-explain route into a folded section and the info card opened again on its folded
+subject unfold it; a section action under a folded info card leaves the card folded. (P1 review fix: the fold was once
+remembered after its content closed, so the panel reopened folded and a route into it showed nothing.)
+
+**Gate rows (camera rows: the world hash and the queued orders must not change).** `map: panels` — "fold the context
+panel (its fold button)", "unfold the context panel (its tab)", "fold the selection card", "unfold the selection
+card"; `keys` — "H (fold every panel, then unfold them)". They run in every state's sweep and in
+`PlayabilityGate.CameraRows`, whose P6 mutant tests now also require every one of them to FAIL under a camera
+operation that queues an order or steps the world. "centre on a settlement" now also requires, where the clamp lets
+the settlement reach it, a landing within 0.5 px of the MAP RECT's centre. The monkey's keys include H.
+
+**MEASURED on `f874b6d`:** `Sim.Ui --smoke --monkey 200` — 9 states, 1865 checks: 1755 pass,
+110 not offered, **0 FAIL**, 0 problems; 61,320 frames, 1,800 monkey actions; largest draw list 104,004 vertices;
+144.1 s on 4 shared CPUs. Every P1 row passes in all nine states, the narrow 1080×640 and the wide 1920×1009 windows
+included, and the coverage row passes in every state. (Run on the working tree committed as `f874b6d`: `Sim.Ui` byte-
+identical; one test helper in `MapViewportTests` was tightened after the run.) `Sim.Ui.Tests` 681/681 on `f874b6d`.
+
+### 3.4 Settlement hit geometry and the map legend (M5 workstream P3, 2026-10-11)
+
+Branch `m5w-p3-lens-hit-geometry-legend`, cut from `m5w-p1-map-viewport` @ `1b54ce6`. Presentation only: no
+simulation, serialization or order code changed; selection and the legend are UI state.
+
+**The click hits what was drawn (IMPLEMENTED).** `WorldLens.Paint` records a `SettlementHit` in `LensFrame` for every
+settlement it draws (as it records `UnitPlacements` for tokens): the mark's centre, the FOOTPRINT (the halo round the
+population mark at World zoom, the built footprint's circle closer — its geometry, not its stroke, so the era's hand
+never moves it) and the NAME PLATE the name is set on. `SettlementSelection.HitTest(LensFrame, x, y)` admits a
+settlement by its footprint's target (grown about its centre to D-A2's 44 px minimum) or its plate, and ranks by
+(mark-centre distance², id) whatever the order of the hits. GameUi clicks through the frame the player saw. Deleted:
+`DrawNameLabels` and its label rects (measured beside a 20 px marker the map no longer draws), `LabelRect`,
+`MarkerScreenPx` and the world-and-camera hit test (a constant 22 px circle about the site cell). Tab cycling is
+unchanged (settlement-id order over the world's settlements; under fog it belongs to the P7 knowledge seam).
+
+**The map legend (IMPLEMENTED).** A plain DATA legend (no object-tier art), painted by the lens through the DrawList,
+last, over the map rect's bottom-right corner, on a paper plate in the era's hand (the name plate's ink, rule and
+corner): its title (`Legend - world view` …), one entry per information layer the frame actually DREW, then
+`WorldProjection.Absent` verbatim under "Not on the map". DRAWN means on at this zoom AND at least one of the layer's
+commands touching the viewport (`LensFrame.Painted`): with the territory toggle off, without formations, or with
+nothing in view, a layer is on but not listed. Its commands are charged to a new map layer, `MapLayer.Legend` (one
+owner: the lens), and the accounting gains a level — `LensFrame.InfoDraws` per information layer; every other lens
+command is charged to exactly one information layer of its map layer, so the two accountings agree layer by layer.
+Its runs are `TextCmd`s: they are in `LastLensCommands` and in `FrameText` under the lens surface; it is never an
+ImGui window or tooltip. A click on it selects nothing beneath. The selected formation's frame moved from GameUi into
+the lens paint (`selectedUnit`) so the legend stays the topmost thing the lens draws.
+
+| control | where | what it does |
+|---|---|---|
+| `legend` (`LEGEND +` / `LEGEND -`) | a tab over the map rect's bottom-right corner (`FrameSurface.Legend`) | shows / hides the legend just above it |
+| key **L** | — | the same toggle |
+
+*Decision:* the legend is OFF until the player asks for it; its tab is always on the map. Flipping the default is one
+field (`GameUi._showLegend`).
+
+**Gate rows (camera rows: the world hash and the queued orders must not change).** `map: legend` — "legend (show: its
+tab)", "legend (hide: its tab)"; `keys` — "L (legend: show, then hide)". Shown, the row requires the painted legend to
+list exactly `LensFrame.Painted` (non-empty) and the absent lines, its runs in the lens's commands to spell exactly
+that, every run to be in FrameText (lens), and no tooltip window; hidden, no legend painted, none charged, its title in
+no lens text. They run in every state's sweep and in `PlayabilityGate.CameraRows` (whose P6 mutant tests require them to
+FAIL under a camera operation that queues an order or steps the world). The monkey's keys include L.
+
+**Pins moved (old -> new, measured cause).**
+- `SelectionTests.HitTest_ZoomExtremes_*` (was `_ScreenRadiusHolds`): at 32× a click 23 px right of the mark MISSED (the
+  constant 22 px radius) though the lens drew the footprint to 64 px there. Now the drawn footprint is the target: its
+  edge hits, one pixel past misses. The other hit tests of `SelectionTests` are ported onto painted frames (or, for the
+  pure ranking, hand-built hits of the same geometry) with their properties unchanged.
+- `EraSurfaceTests.Continuity_*`: "every probe picks the same settlement in all nine eras" held for the deleted hit test,
+  which ignored names. A plate holds the name as the era's type SETS it (UR-7), so its width follows the era. MEASURED
+  at zooms 3.125 / 10.4 / 31.25: footprints and centres identical in every era; plate widths differ by up to 20.03 px
+  (Modern vs Prehistoric); 0–26 of ~11,500 probes pick differently per era, every one inside a plate. The test now pins
+  identical footprints and identical picks for every probe outside both eras' plates; each era's plate holding its name
+  is pinned by `LensHitGeometryTests`.
+- `WorldLayerOwnershipTests.Lens_DrawsOnlyItsOwnLayers_*`: each zoom is also painted with a legend (the new lens layer
+  must be drawn somewhere); without one, the Legend layer draws nothing.
+
+**MEASURED on `85448da`'s code** (the run preceded one added test, `EachRunIsChargedToTheLayerItShows`, which then
+passed in its class): `Sim.Ui --smoke --monkey 200` — 9 states, 1892 checks: 1782 pass, 110 not offered, **0 FAIL**,
+0 problems; 61,527 frames, 1,800 monkey actions; largest draw list 104,004 vertices; 120.3 s on 4 shared CPUs. Against
+P1 (1865 / 1755) the +27 checks and +27 passes are the three legend rows in nine states; the coverage row passes in
+every state. `Sim.Ui.Tests` 697/697.
+
+**Mutant kill record (ADR-015 §7.1/§7.2; MEASURED on `85448da`).** Each mutant is one source edit, built, run against
+
+```
+LensHitGeometry|MapLegendTests|SelectionTests|WorldLayerOwnershipTests|EraSurfaceTests.Continuity|PlayabilityGateTests.CameraRows
+```
+
+and restored from the commit. The clean filtered run (43 tests) takes 34.8 s; each mutant run was bounded at 139 s
+(4×). Every run finished in 30–34 s, none hung, and every mutant was killed by at least one semantic test. Each killing
+assertion states a property the UI ought to have: the target is what was drawn and never under 44 px, the ranking is
+(distance, id), the legend lists only what the frame drew and says what is absent, its commands are its own, and the
+legend lies over the map.
+
+| mutant | killed by |
+|---|---|
+| M1 the name plate admits nothing | `HitTest_NamePlate_SelectsItsSettlement_AndOnlyInsideThePlate`, `HitTest_OverlapRanking_…`, `ClickingADrawnName_SelectsThatSettlement` (Regional, Settlement), `AtSampledZoomsInEveryBand_…` |
+| M2 the id tie-break reversed | `HitTest_TieDense_LowestIdWins_WhateverTheHitOrder`, `HitTest_OverlappingMarkers_NearestWins_ExactTieLowerId`, `HitTest_OverlapRanking_…` |
+| M3 the ranking ignores distance (first admitted wins) | the same three |
+| M4 the footprint's target not grown to 44 px | `HitTest_AtDefaultZoom_HitsTheMarker_MissesBeyondRadius`, `HitRadius_IsDerivedFromTheNamedTargetStandard`, `HitTest_ZoomExtremes_…`, `HitTest_OverlapRanking_…`, `AtSampledZoomsInEveryBand_…` |
+| M5 the closer footprint recorded at the World mark's size | `HitTest_ZoomExtremes_TheTargetIsTheDrawnFootprint_NeverUnderTheMinimum`, `AtSampledZoomsInEveryBand_…` |
+| M6 the closer zooms record no name plate | `ClickingADrawnName_SelectsThatSettlement` (both), `HitTest_NamePlate_…`, `AtSampledZoomsInEveryBand_…` |
+| M7 a click on the legend falls through to the map | `AClickOnTheLegend_SelectsNothingBeneathIt` |
+| M8 the legend lists the zoom's layers, not the drawn ones | `ALayerOnButNotDrawn_IsNotListed`, `TheLegend_ListsExactlyTheLayersDrawn_…`, `WithEverythingInView_…`, `TheLegend_TogglesByItsTabAndL_…`, `CameraRows_Pass_…` (the gate's legend row) |
+| M9 a layer counts as drawn without touching the viewport | `ALayerOnButNotDrawn_IsNotListed` (nothing in view) |
+| M10 the legend charged to the settlement markers | `TheLegend_ListsExactlyTheLayersDrawn_…`, `Lens_DrawsOnlyItsOwnLayers_…`, `WithoutAnAnchor_…`, `TheSelectedFormationsFrame_…`, `TheLegend_TogglesByItsTabAndL_…`, `CameraRows_Pass_…` |
+| M11 the legend drops the absent lines | `TheLegend_ListsExactlyTheLayersDrawn_…`, `TheLegend_TogglesByItsTabAndL_…`, `CameraRows_Pass_…` |
+| M12 L does not toggle the legend | `TheLegend_TogglesByItsTabAndL_…`, `AClickOnTheLegend_…`, `CameraRows_Pass_…` (the L row) |
+| M13 the population line charged to the infrastructure layer | `EachRunIsChargedToTheLayerItShows` |
+| M14 the selected formation's frame drawn after the legend (GameUi's old order) | `TheSelectedFormationsFrame_IsTheLenss_AndTheLegendStaysOnTop` |
+
+M13 changes no map layer's total and no listed layer (both labels are drawn at Settlement zoom): only the exact
+per-layer pin catches it, which is why that pin was written.
+
+### 3.5 Eased zoom and pan, the continuous level of detail (M5 workstream P2, 2026-10-11)
+
+Branch `m5w-p2-eased-zoom-continuous-lod`, cut from `m5w-p3-lens-hit-geometry-legend` @ `9e066b2`. Presentation
+only: no simulation, serialization or order code changed (`git diff 9e066b2 -- Sim.Core Sim.Data Sim.Cli` is empty);
+the camera and the level of detail are UI state.
+
+**Eased zoom and pan (IMPLEMENTED).** `Camera` holds a SHOWN view (what is drawn, hit-tested and framed by the GPU pass)
+and a TARGET view. The wheel (`ZoomToward`: ×1.25 a notch, anchored at the cursor in the SHOWN view — the ground the
+player sees there) and W A S D (`GlidePan`) move the target; `GameUi.Update` calls `Camera.Advance(dt)` once per frame
+on every path, after the input. `Advance` eases the VISIBLE WORLD RECT — the centre and the inverse zoom by the same
+fraction k = 1 − exp(−14 dt) (`ProgressionCamera`'s rate) — and snaps onto the target within 1e-4 of the zoom and 0.05
+screen px. Because the rect's edges move linearly, a world point both views have under the cursor stays under it on
+every frame of the ease, not only once it settles — for a notch at a cursor that moved while the view was still
+easing as well as for a run of notches at one cursor. A drag (`Pan`) moves both views by the same screen delta.
+`ZoomAt`, `Clamp`, `Reframe` and `CameraFocus.CenterOn` stay immediate and leave the camera settled (`CenterOn`
+first ends an ease where it is, `Camera.Stop`), so every preview, test and measurement camera computes exactly what
+the P1 camera computed. The game's "select and centre" rows glide (`CameraFocus.GlideTo`). `UiFrameHarness.Settle`
+idles until the camera has settled (bounded; −1 when it does not).
+
+**The continuous level of detail (IMPLEMENTED).** `MapDetail` keys the level of detail on the visible km across the map
+rect's shorter side — screen px ÷ zoom × `TerrainSet.KmPerPx` (now carried by `WorldProjection.KmPerPx`). Two
+cross-fades, each a smoothstep in log2 km over ±0.25 octave of its edge, replace the hard switches. The DERIVED
+`WorldZoom` band — kept for the gate, the tests, the legend title and the hit tests — is:
+
+| visible km (map rect's shorter side) | derived band | cross-fade window about the edge |
+|---|---|---|
+| > 2253 | World | World ↔ Regional: 1894–2679 km |
+| > 655 (to 2253) | Regional | Regional ↔ Settlement: 551–779 km |
+| ≤ 655 | Settlement | — |
+
+The edges are the banded lens's switch points on the canonical world (55 % and 16 % of 1024 px × 4 km = 4096 km:
+2252.8 and 655.4 km, to the km): on the canonical game the band changes at the same zooms as before, except in two
+rounding slivers 0.4 km wide (pinned by `OnTheCanonicalWorld_TheKmBandsSwitchWhereTheShareBandsDid`). A smaller world
+is banded by the ground it shows: the 256-px dev and test worlds span 1024 km, never reach the World band, and their
+fit is the Regional plateau. At 1280×800 the opening zoom (1.0, 2752 km) is the World plateau; one notch in (2202 km)
+is inside the World ↔ Regional cross-fade, on its Regional side.
+
+Each information layer is drawn at its opacity (`MapDetail.Alpha`, R and S the two blends): territories 1 − S; the
+World marks and network 1 − R; roads, morphology and production signals R; institutional presence R(1 − S);
+institution types, infrastructure density and population scale S; formations and Age banners 1. What two bands share
+is drawn ONCE, at full opacity, with sizes and offsets blended (`MapDetail.Mix`, endpoint-exact): the settlement's
+name (one run — never two names cross-dissolving — at a place and size between the bands'), the banner, the selection
+ring, the formation tokens (9 → 12 px, the World row folding into the column; `UnitPlacement.Size` records the drawn
+size and `UnitSelection.HitTest` uses it), the footprint (its 14–40 / 34–150 px clamps blended), the glyph and sector
+rings, and the roads' widths (`RoadLens.StyleAt`). What only one side has fades: the World mark and the World network
+out and the footprint, the cased network, the glyphs and the formation labels in across the first window; territory
+out and the key, the population and density lines, the labour caption and the route names in across the second.
+Persisting elements are charged to the derived band's layer. On a plateau every opacity is 0 or 1 and every blend an
+endpoint: the continuous paint is the banded paint, command for command (SVG, accounting, hit geometry —
+`OnAPlateau_TheContinuousPaint_IsTheBandedPaint_CommandForCommand`). The hit footprint stays P3's rule — the
+outermost filled circle DRAWN, at any opacity.
+
+**Rivers (IMPLEMENTED).** The D-A3 river strip held its clamp by a rebuild on every zoom change, which an eased zoom
+would make every frame. The host now rebuilds through `RiverBandCache` once per 2^(1/4) zoom band
+(`RiverMesh.BandOf`), with `RiverMesh.BuildBand`: world width max(1/low, min(6/high, w)), so at every zoom of the band
+every river is inside [1, 6] screen px, rank-monotone, and exactly its world width where neither clamp binds. The cost:
+near a clamp a river may read up to 2^¼ heavier than the floor or lighter than the ceiling. Measured in the live GameUi
+(`TheRiverBuffer_IsNotRebuiltEveryFrameOfAnEase_ButOncePerZoomBandCrossed`): six notches eased over the frames to
+settle, the zoom changing on every one of them, rebuild once per band crossed.
+
+**Previews.** `ActionSurfacePreview` (the canonical world) paints the continuous detail, as the game; `AgePreview`'s
+three band shots and `EraPreview`'s chrome and era map paint a 256-px (1024 km) dev world, where the km bands would move
+their cameras one band closer, so they paint the PLATEAU of the band they are named for (a portrait of that band).
+MEASURED: `--age-preview`, `--era-preview` and `--action-preview` from the base `9e066b2` and from `72efc49`'s tree — all
+53 SVGs byte-identical once the `@font-face` URLs (the binary's location) are removed.
+
+**Gate rows restated (camera rows: the world hash and the queued orders must not change).** `map` — "wheel zoom to
+Regional", "wheel zoom to Settlement", "wheel zoom out to World": names unchanged. Old: wheel until the frame's lens
+showed the band — under an eased zoom that can pass mid-glide on a view the camera then leaves. New
+(`PlayabilityGate.WheelUntil`): notch until the TARGET view's band (`MapDetail`, km) is the one wanted, let the ease
+settle (bounded at 240 frames; not settling fails the row), then require the lens to draw that band. The
+point-under-the-cursor property is pinned where the clamp cannot intervene by `EasedCameraTests` (pure) and
+`EasedZoomUiTests` (the live GameUi). The W A S D, drag pan and CenterOn rows are unchanged and pass (W A S D now
+glides — the row's "the camera moved" holds of the shown view while the key is held; drag and CenterOn are immediate).
+
+**Pins moved (old -> new, measured cause).**
+- `AgeAndWorldUiTests.ZoomLevel_IsAPureFunctionOfTheVisibleSpan`, `WorldMapStateTests.ZoomLevels_KeepTheirThresholds_…`:
+  `LevelFor` 7.0 / 7.2 / 24 / 25 over 1000 px of a 256-px world (World / Regional / Regional / Settlement by share) ->
+  `MapDetail` at 4 km per px: 1.775 / 1.776 (2253.5 / 2252.3 km) and 6.10 / 6.11 (655.7 / 654.7 km). Cause: bands keyed
+  on visible km, not the share of the world (the old cameras now read 571 km and 167 km: Settlement). Attribution
+  control: the canonical world's bands did not move (above).
+- `SelectionTests.HitTest_AtDefaultZoom_HitsTheMarker_MissesBeyondRadius`: the 512-px fit of the 1024-km marker world
+  is Regional by km (was World); the drawn mark is the footprint at its 14 px floor, grown to the same 44 px target —
+  the hit radius pins unchanged. `HitTest_NamePlate_…`: the Regional scenario moved from zoom 6 (now 341 km, Settlement)
+  to the fit (zoom 2, 1024 km).
+- `MapViewportUiTests.LevelOfDetail_IsTheMapRectsVisibleSpan_NotTheWindows`: Zoom == 1.25 right after a notch ->
+  TargetZoom == 1.25 after it and Zoom == 1.25 (exact: the ease snaps) once settled. `OpeningThePanel_Reframes…`
+  measures from a settled view (it read the world point while the wheel's ease was still moving it).
+- `PreviewToolProcessTests.MapFrameCost_…`: the row regex gains the cross-fade-frames column (<= frames/sweep).
+- `LensHitGeometryTests`, `MapLegendTests`, `EraSurfaceTests`, `SelectionTests.PaintFrame`, `ProjectionDigest`: the
+  removed `LevelFor` call replaced by `MapDetail` (the continuous paint, as the game): on the canonical world their
+  cameras sit on plateaus, so their paints are unchanged; nothing asserted moved.
+
+**MEASURED on `4fc40ee`'s code** (Release, 4 CPUs shared with other agents): `Sim.Ui --smoke --monkey 200` — 9 states,
+1892 checks: 1782 pass, 110 not offered, **0 FAIL**, 0 problems; 62,426 frames, 1,800 monkey actions; largest draw
+list 104,004 vertices; 124.8 s. The three wheel rows, drag pan, W A S D and CenterOn PASS in all nine states. Against
+P3 (1892 / 1782 / 61,527 frames) the checks and passes are the same. The map frame cost before/after (P4's
+`--frame-cost map`, the same load caveat) is in `docs/m5-hardening-measurements.md` §"2026-10-11 — map frame cost
+before / after the continuous level of detail": every Settlement row and every plateau frame unchanged; a cross-fade
+frame paints both bands' layers, about 1.4–1.6× its band's commands, up to 159,824 vertices in one list on the
+400-settlement world (VtxOffset path; no draw-contract violation). `Sim.Ui.Tests` on `72efc49`: 722/722 (the base
+`9e066b2`: 698/698; +24 new). `Sim.Tests` SnapshotTests + CiPinAgreementTests (the founded golden `937577ff…`): 25/25.
+banned-constructs, read-isolation and readonly-proof: OK.
+
+**Mutant kill record (ADR-015 §7.1/§7.2; MEASURED).** Each mutant is one source edit, built, run against
+
+```
+EasedCameraTests|RiverBandTests|ContinuousLevelOfDetail|EasedZoomUiTests|MapViewportUiTests|AgeAndWorldUiTests.ZoomLevel
+|WorldMapStateTests.ZoomLevels|PlayabilityGateTests.CameraRows|SelectionTests|LensHitGeometry
+```
+
+and restored from the commit. The clean filtered run (65 tests) took 83.6 s; each mutant run was bounded at 334 s (4×).
+Every run finished in 78–98 s, none hung, and every mutant was killed by at least one semantic test. M1–M15 ran on
+`4fc40ee`; M1, M2, M4 and M7 were re-run on `eab810f` after the first run showed the river test failing under M1 and
+M2 for a reason that was not the property (a fast ease crossed two bands in one frame and the cache, correctly,
+built once): its equality was weakened to the property — one rebuild on exactly the frames that enter another band —
+and under M1 and M2 it now passes, while M4 and M7 still fail it. Each killing assertion states a property the map
+ought to have.
+
+| mutant | killed by |
+|---|---|
+| M1 the ease moves the zoom linearly, not the inverse zoom (the visible rect) | `TheWorldPointUnderTheCursor_IsFixedOnceTheEaseSettles_AndOnEveryFrameOfIt`, `NotchesArrivingDuringTheEase_KeepThePointUnderTheCursor` |
+| M2 the ease's step is linear in dt | `Advance_IsFrameRateIndependent` (30, 60, 144, 240 Hz) |
+| M3 the ease never snaps onto its target | `TheWheel_MovesOnlyTheTarget_AndTheShownViewEasesToItExactly`, `Advance_NeverOvershoots_…`, `ImmediateOperations_…`, both cursor tests, `TheWheel_EasesInTheGame_…`, `LevelOfDetail_IsTheMapRectsVisibleSpan_…`, `OpeningThePanel_Reframes…`, `CameraRows_Pass_…` (the wheel rows do not settle), `TheRiverBuffer_…` |
+| M4 the wheel zooms immediately (no ease) | `TheWheel_EasesInTheGame_…`, `TheRiverBuffer_…` (the zoom changed on one frame) |
+| M5 GameUi never advances the camera | `TheWheel_EasesInTheGame_…`, `LevelOfDetail_…`, `OpeningThePanel_…`, `ClickingADrawnName_SelectsThatSettlement` (both), `AClickOnTheLegend_…`, `CameraRows_Pass_…`, `TheRiverBuffer_…` |
+| M6 CenterOn does not end an ease | `ImmediateOperations_…_CenterOnStopsTheEase`, `ClickingADrawnName_SelectsThatSettlement` (both), `AClickOnTheLegend_SelectsNothingBeneathIt` |
+| M7 the river cache rebuilds on every zoom change (the D-A3 trigger) | `TheRiverBuffer_IsNotRebuiltEveryFrameOfAnEase_ButOncePerZoomBandCrossed` |
+| M8 the band mesh's ceiling at the band's low edge | `TheBandMesh_HoldsEveryRiverInsideTheClamp_AtEveryZoomOfItsBand_RankMonotone` |
+| M9 institutional presence does not fade out toward Settlement | `LayerAlpha_IsContinuous_AndMonotoneAcrossEachBandEdge_SoNoLayerPops` (the Settlement plateau lists a layer the band does not) |
+| M10 the footprint's clamps switch at the band (not blended) | `AcrossBothCrossFades_AtSampledScales_NothingPops`, `AcrossBothCrossFades_TheNetworkAndTheRouteNames_NeverPop` |
+| M11 the formation label appears at full opacity | the same two |
+| M12 the World network does not fade out | `AcrossBothCrossFades_TheNetworkAndTheRouteNames_NeverPop` |
+| M13 the cross-fade is a hard switch at the edge | both sweeps, `LayerAlpha_…`, `TheBlends_AreExactPlateaus…`, `AFormationToken_IsHitAtTheSizeItWasDrawn_InACrossFade` |
+| M14 the route names appear at full opacity | `AcrossBothCrossFades_TheNetworkAndTheRouteNames_NeverPop` |
+| M15 the token hit test ignores the size it was drawn at | `AFormationToken_IsHitAtTheSizeItWasDrawn_InACrossFade` |
+
+M12 and M14 are seen only by the road world's sweep: the canonical world at turn 2 has neither a dirt path nor a built
+route (MEASURED: `--frame-cost map --turns 2` reports "turn 2, 12 settlements, 934 territory blocks, 0 dirt-path steps,
+0 built routes"), which is why that sweep was written.
+
+**Review finding fixed (major; confirmed by an independent verdict): a notch mid-ease anchored on the TARGET view.**
+`ZoomToward` first solved its anchor in the target view (`ProgressionCamera.ZoomAt`'s pattern). A notch arriving
+mid-ease at a cursor other than the previous notch's then anchored on ground the player does not see under the cursor:
+with T(p) and S(p) the world points under screen point p in the target and the shown view, A the last notch's cursor and
+B this one, T(B) − S(B) = (B − A)(1/z_target − 1/z_shown), proportional to how far the cursor moved and to the zoom
+still pending. Every earlier test kept the cursor still between notches, where the two anchors coincide. MEASURED on
+`d535649`'s camera (the new tests, before the fix): settled at zoom 3 on the 1280×688 map rect, two notches at (400,
+300), 1 / 3 / 6 frames of 1/60 s, a notch at (900, 600) — the ground seen under (900, 600) ends 324.7 / 203.6 / 101.1
+screen px from the cursor (the finding's numbers); the live GameUi, the same shape, 257.1 px. Fix: the anchor is the
+SHOWN view (`ScreenToWorld`), so the target has the seen ground under the cursor and the eased rect keeps it there; at a
+still cursor the anchor is the same point as before. After the fix every drift is ≤ 1e-6 px and the zoom still
+accumulates (5.859375 after three notches). Tests: `ANotchAfterTheCursorMovedMidEase_KeepsTheGroundSeenUnderTheCursor`
+(lags 1, 3, 6), `NotchesAtAMovingCursor_EachKeepTheGroundSeenUnderItsCursor` (six notches, in and out, each at another
+cursor two frames after the last) and the live
+`AWheelNotchAfterTheCursorMovedMidEase_KeepsTheGroundSeenUnderTheCursor_TheWorldUntouched`. Mutant M16 (`ZoomToward`'s
+anchor back in the target view, one edit) on the kill-record filter above (now 70 tests; clean 81 s, bound 324 s = 4×):
+finished in 84 s, no hang, killed by exactly those five cases (the theory's three lags, the two facts) — and by none of
+the 65 older tests, which is the finding's point. Cost, for the Director: a notch restarts the target from what is on
+screen, so a W A S D glide lead still pending at the notch (DERIVED, not measured: in a steady glide the target leads
+the shown view by the glide speed ÷ 14 s⁻¹, about 1/14 s of glide) is not carried across it; `ProgressionCamera`'s
+target-anchored parity is the alternative if that is preferred. After the fix (MEASURED): `Sim.Ui.Tests` 727/727 (the
+722 before and 5 new); `Sim.Ui --smoke --monkey 200` unchanged — 9 states, 1892 checks, 1782 pass, 110 not offered, 0
+FAIL, 0 problems, 62,426 frames, the three wheel rows PASS in all nine states; `Sim.Tests` SnapshotTests and
+CiPinAgreementTests 25/25; banned-constructs, read-isolation and readonly-proof OK.
 
 ## 5. The Warband (Director §3), determined from the code
 

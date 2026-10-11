@@ -106,7 +106,7 @@ public static class ProjectionDigest
             SettlementLensView s = p.Settlements[Math.Min(v.CentreOnSettlementRow, p.Settlements.Count - 1)];
             cam.Pan((cam.CenterX - s.X) * cam.Zoom, (cam.CenterY - s.Y) * cam.Zoom, v.W, v.H);
         }
-        WorldZoom level = WorldLens.LevelFor(cam.Zoom, v.W, v.H, p.WorldSize);
+        MapDetail level = MapDetail.At(cam.Zoom, v.W, v.H, p.KmPerPx);   // P2: the game's continuous detail (km-keyed)
         var d = new DrawList();
         LensFrame f = WorldLens.Paint(d, ApproxTextMeasure.Instance, p, level, (x, y) => cam.WorldToScreen(x, y, v.W, v.H), cam.Zoom,
             new RectD(0, 0, v.W, v.H), selected: p.Settlements.Count > 0 ? p.Settlements[0].Id : -1);
