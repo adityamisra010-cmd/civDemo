@@ -25,6 +25,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- P12a: the settlement visual classes and composition lattice — VIEW data (how state is drawn), embedded so the
+         game, the headless tools and the tests read the same bytes. The simulation never reads it. -->
+    <EmbeddedResource Include="UiContent\world\settlement-classes.json" LogicalName="Sim.Ui.settlement-classes.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.5" />
     <PackageReference Include="ImGui.NET" Version="1.91.6.1" />
   </ItemGroup>

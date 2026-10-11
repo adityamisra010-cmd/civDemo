@@ -104,6 +104,22 @@ public sealed class WorldProjection
     /// <summary>Honest empty states: systems the map would show if they existed.</summary>
     public required IReadOnlyList<string> Absent { get; init; }
 
+    /// <summary>P12a: the kinds of part a settlement can hold, from content (<see cref="PartUniverse.Of"/>) — every settlement
+    /// reserves a lot for each. Empty when the projection was built without content (a hand-made projection): every held
+    /// kind then claims in (category, key) order.</summary>
+    public PartUniverse Universe { get; init; } = PartUniverse.Empty;
+
+    /// <summary>P12a: the settlement visual classes and composition lattice (<c>settlement-classes.json</c>).</summary>
+    public SettlementClasses Classes { get; init; } = SettlementClasses.Default;
+
+    private readonly System.Runtime.CompilerServices.ConditionalWeakTable<SettlementLensView, SettlementComposition> _compositions = new();
+
+    /// <summary>P12a: the composition of one of this projection's settlements (<see cref="SettlementComposer.Compose"/> of
+    /// the view, <see cref="Universe"/> and <see cref="Classes"/>) — a pure function of them, computed once per view instance
+    /// (a memo, never state: a changed view is a new instance and is composed afresh).</summary>
+    public SettlementComposition CompositionOf(SettlementLensView s) =>
+        _compositions.GetValue(s, v => SettlementComposer.Compose(v, Universe, Classes));
+
     /// <summary>The stride every system builds the traversal lattice with (<c>TraversalLattice.Build</c>'s default; the
     /// m1 spec §3 stride-4 sampling). The lens needs only the lattice's GEOMETRY, never its costs.</summary>
     public const int LatticeStride = 4;
@@ -203,9 +219,15 @@ public sealed class WorldProjection
                 // ADR-033 D6: a project that FOUNDS an institution (a university building) is drawn ONCE, as the
                 // institution, through InstitutionMarkerSource — never also as a generic structure glyph.
                 if (FoundsInstitution(cfg, st.ProjectId)) continue;
+                // P12a: one view per project KIND (rows of one kind summed), ascending project id — whatever the table's
+                // order, the settlement lists, keys and composes its structures the same way.
+                int at = -1;
+                for (int v = 0; v < structures.Count; v++) if (structures[v].ProjectId == st.ProjectId) { at = v; break; }
+                if (at >= 0) { structures[at] = structures[at] with { Count = structures[at].Count + st.Count }; continue; }
                 string pname = ProjectName(cfg, st.ProjectId);
                 structures.Add(new StructureView(st.ProjectId, pname, KindOf(pname), st.Count));
             }
+            structures.Sort(static (a, b) => a.ProjectId.CompareTo(b.ProjectId));   // project ids are unique here
             double[]? sectors = null;
             for (int a = 0; a < world.SectorAllocations.Count; a++)
             {
@@ -267,7 +289,7 @@ public sealed class WorldProjection
             WorldSize = size, KmPerPx = world.Terrain?.KmPerPx ?? double.NaN, Settlements = settlements, Units = units, Roads = roads, Routes = routes, Territory = territory,
             PlayerPolity = player.Value, PlayerAge = playerAge,
             PlayerAgeName = ages is null || playerAge == 0 ? "" : ages.Age(playerAge).Name,
-            Absent = absent,
+            Absent = absent, Universe = PartUniverse.Of(cfg),
         };
     }
 
@@ -317,6 +339,15 @@ public sealed class WorldProjection
 /// </summary>
 public readonly record struct SettlementHit(int Id, double X, double Y, RectD Footprint, RectD NamePlate);
 
+/// <summary>
+/// P12a (M5 map workstream): WHERE THE LENS DREW ONE PART of a settlement's composition — a structure kind's or an
+/// institution type's glyph (<paramref name="Key"/>, the <see cref="InstitutionMarker"/> key) on its lot
+/// (<paramref name="Ring"/>, <paramref name="Lot"/> of <see cref="SettlementComposition"/>), and the box its commands
+/// cover on screen (<paramref name="Rect"/>: their bounds with stroke, without the anti-aliasing fringe). Every part lies
+/// inside its settlement's footprint (<see cref="SettlementHit.Footprint"/>), so the settlement's click target holds it.
+/// </summary>
+public readonly record struct PartPlacement(int Settlement, string Key, int Ring, int Lot, RectD Rect);
+
 /// <summary>Where the lens lays its legend out: the legend's box is right-aligned on <paramref name="Right"/>, its foot on
 /// <paramref name="Bottom"/> (screen px), and it is never wider than <paramref name="MaxWidth"/>.</summary>
 public readonly record struct LegendAnchor(double Right, double Bottom, double MaxWidth);
@@ -360,14 +391,19 @@ public sealed record LensFrame(WorldZoom Zoom, IReadOnlyList<WorldLayer> Layers,
     /// <summary>P2: the level of detail this paint drew at (<see cref="Zoom"/> is its derived band). A banded paint carries
     /// its band's plateau (<see cref="MapDetail.Of"/>).</summary>
     public MapDetail Detail { get; init; } = MapDetail.Of(WorldZoom.World);
+
+    /// <summary>P12a: where each drawn part of each drawn settlement's composition went (one per <see cref="Institutions"/>
+    /// marker, in the same order) — the parts' hit geometry.</summary>
+    public IReadOnlyList<PartPlacement> Parts { get; init; } = [];
 }
 
 /// <summary>
 /// THE WORLD LENS — zoom-dependent drawing of the projection over the map (D-047 Part 5).
 /// Pure: given the projection, the camera (world px → screen px) and the viewport, it paints into a
-/// <see cref="DrawList"/>. Morphology is AGGREGATED (footprint size from population, ring of
-/// dwellings blocks from housing, one glyph per structure kind and per institution type with a count),
-/// never per building, and it is a READ OF STATE ONLY — no physical feature is gated by the Age or any
+/// <see cref="DrawList"/>. Morphology is AGGREGATED (footprint size from population on the compressive class scale,
+/// dwelling blocks from housing and one glyph per structure kind and per institution type with a count, each on its
+/// fixed lot of the settlement's composition — P12a, <see cref="SettlementComposer"/>), never per building, and it is a
+/// READ OF STATE ONLY — no physical feature is gated by the Age or any
 /// date (D-038 H5); the Age shows as the banner. Every colour comes from <see cref="MapInk"/>, and the era's
 /// HAND — glyph stroke weight, the token plate's cut, the banner's fly, the name plate's ornament — from its
 /// <see cref="MapInk.Hand"/> (packet P13): the painters switch on those tokens, never on an era or Age number.
@@ -488,6 +524,7 @@ public static class WorldLens
         var pieces = new List<PathPiece>();
         var placements = new List<UnitPlacement>();
         var hits = new List<SettlementHit>();
+        var parts = new List<PartPlacement>();
         int mark = d.Commands.Count;
         // Draw-call accounting: every command emitted since the last mark is charged to one map layer and (P3) to one
         // information layer of it (the legend to none). An information layer is DRAWN once one of its commands can
@@ -549,7 +586,7 @@ public static class WorldLens
             if (sx < viewport.X - 200 || sx > viewport.Right + 200 || sy < viewport.Y - 200 || sy > viewport.Bottom + 200) continue;
             drawn.Add(s.Id);
             Rgba pol = k.PolityOf(s.Controller, p.PlayerPolity);
-            double rMark = WorldMarkRadius(s), rFoot = FootprintRadius(s, scale, S);
+            double rMark = MarkRadiusPx(p, s), unitPx = p.Classes.UnitPx(scale, S), rFoot = p.Classes.FootprintRadiusUnits(s.Population) * unitPx;
             double reach = 0;   // P3: the footprint's radius as painted — the halo at World zoom, the built footprint closer
             double worldNameY = sy + rMark + 5, morphNameY = sy;
             if (aMark > 0)
@@ -564,7 +601,7 @@ public static class WorldLens
             }
             if (aMorph > 0)
             {
-                morphNameY = PaintMorphology(d, m, p, s, sx, sy, rFoot, S, detail, Charge, institutions, k);
+                morphNameY = PaintMorphology(d, m, p, s, sx, sy, rFoot, unitPx, S, detail, Charge, institutions, parts, k);
                 reach = Math.Max(reach, rFoot);
             }
             // The name: ONE run, at a place and size blended between the bands' (never two names cross-fading).
@@ -600,7 +637,7 @@ public static class WorldLens
                 if (station is not null)
                 {
                     wx = station.X; wy = station.Y;
-                    edge = MapDetail.Mix(WorldMarkRadius(station) + 2, FootprintRadius(station, scale, S), R) + tok + 3;
+                    edge = MapDetail.Mix(MarkRadiusPx(p, station) + 2, FootprintRadiusPx(p, station, scale, S), R) + tok + 3;
                 }
                 (double ux, double uy) = toScreen(wx, wy);
                 (double fx, double fy) = FanOffset(R, slots[i], tok);
@@ -636,7 +673,7 @@ public static class WorldLens
         }
         return new LensFrame(zoom, layers, unitTokens, drawn, draws, institutions, pieces, placements)
         {
-            SettlementHits = hits, InfoDraws = info, Painted = painted, Legend = key, Detail = detail,
+            SettlementHits = hits, InfoDraws = info, Painted = painted, Legend = key, Detail = detail, Parts = parts,
         };
     }
 
@@ -650,7 +687,8 @@ public static class WorldLens
         WorldLayer.MajorSettlements => "Settlements: mark sized by population",
         WorldLayer.MajorInfrastructure => "Paths (dashed) and built roads by class",
         WorldLayer.Roads => "Paths and built roads by class",
-        WorldLayer.SettlementMorphology => "Footprint: size from population, a block per 25 dwellings",
+        WorldLayer.SettlementMorphology => "Footprint: size class from population, a block per "
+            + SettlementClasses.Default.Lattice.DwellingsPerBlock.ToString(CultureInfo.InvariantCulture) + " dwellings",
         WorldLayer.InstitutionalPresence => "Structures and institutions: a glyph per kind",
         WorldLayer.InstitutionTypes => "Structures and institutions, named with counts",
         WorldLayer.InfrastructureDensity => "Path links in the catchment, size tier",
@@ -771,18 +809,19 @@ public static class WorldLens
     public static (double Dx, double Dy) FanOffset(double regional, int slot, double tokenSize) =>
         (MapDetail.Mix(slot * (tokenSize * 2 + 3), 0.0, regional), MapDetail.Mix(0.0, slot * FanPitch(tokenSize), regional));
 
-    /// <summary>The radius of a settlement's mark at World zoom (from population, capped).</summary>
-    private static double WorldMarkRadius(SettlementLensView s) => Math.Min(5 + Math.Sqrt(Math.Max(0, s.Population)) / 14.0, 16);
+    /// <summary>The radius of a settlement's mark at World zoom (screen px): its population's place on the compressive class
+    /// scale (P12a, D-043 D1; <see cref="SettlementClasses.WorldMarkRadiusPx"/>) — strictly increasing in population up to
+    /// the scale's stated saturation. It was 5 + √population / 14 capped at 16 px (saturated from 23,716 people).</summary>
+    public static double MarkRadiusPx(WorldProjection p, SettlementLensView s) => p.Classes.WorldMarkRadiusPx(s.Population);
 
-    /// <summary>The built footprint's radius (screen px): its world size from population × the scale, clamped to the
-    /// band's screen range — 14–40 px at Regional, 34–150 px at Settlement, the clamps blended by the Settlement blend
-    /// <paramref name="settlement"/> (P2: continuous across the Regional ↔ Settlement window).</summary>
-    private static double FootprintRadius(SettlementLensView s, double scale, double settlement)
-    {
-        double basePx = 2.0 + Math.Sqrt(Math.Max(0, s.Population)) / 22.0;   // world px
-        double r = basePx * scale;
-        return Math.Clamp(r, MapDetail.Mix(14, 34, settlement), MapDetail.Mix(40, 150, settlement));
-    }
+    /// <summary>The built footprint's radius (screen px): its population's footprint in lattice units
+    /// (<see cref="SettlementClasses.FootprintRadiusUnits"/>) × the screen px of a unit at this zoom
+    /// (<see cref="SettlementClasses.UnitPx"/>, the Settlement blend <paramref name="settlement"/> moving the band's floor —
+    /// continuous across the Regional ↔ Settlement window). At any one zoom it is strictly increasing in population up to
+    /// the scale's saturation: no clamp on the population side (P12a; it was the world size from √population × the scale,
+    /// clamped to 14–40 px at Regional and 34–150 px at Settlement).</summary>
+    public static double FootprintRadiusPx(WorldProjection p, SettlementLensView s, double scale, double settlement) =>
+        p.Classes.FootprintRadiusUnits(s.Population) * p.Classes.UnitPx(scale, settlement);
 
     /// <summary>A settlement's aggregated morphology at Regional and Settlement zoom — the footprint, the dwellings, the
     /// centre mark, the embedded glyphs (and their key) and the sector ring; returns where its name goes (the y of the
@@ -792,12 +831,16 @@ public static class WorldLens
     /// presence, institution types) — fading in across the World ↔ Regional window, whole across the Regional ↔
     /// Settlement one, where its size and radius blend; the key and the notables line fade in with institution types.</summary>
     private static double PaintMorphology(DrawList d, ITextMeasure m, WorldProjection p, SettlementLensView s,
-        double sx, double sy, double r, double settlement, MapDetail detail,
-        Action<MapLayer, WorldLayer?> charge, List<InstitutionMarker> institutions, MapInk k)
+        double sx, double sy, double r, double unitPx, double settlement, MapDetail detail,
+        Action<MapLayer, WorldLayer?> charge, List<InstitutionMarker> institutions, List<PartPlacement> parts, MapInk k)
     {
         Rgba ink = k.Ink;
         Rgba pol = k.PolityOf(s.Controller, p.PlayerPolity);
         int from = d.Commands.Count;
+        // P12a: the settlement's composition — every lot in lattice units about its centre, a function of its state and the
+        // content only (SettlementComposer); this paint only scales it by the zoom's px per unit.
+        SettlementComposition comp = p.CompositionOf(s);
+        CompositionLattice lattice = p.Classes.Lattice;
 
         // Footprint: the settlement's built extent (its radius from population), outlined. The
         // composition is a READ OF STATE (D-038 H5): no wall, palisade or tower is drawn, because no
@@ -805,20 +848,21 @@ public static class WorldLens
         d.Circle(sx, sy, r, A(k.Footprint, 0.92), null);
         d.Circle(sx, sy, r, null, A(ink, 0.55), Stroke(k, 1.2));
 
-        // Dwellings: a ring of blocks, one per 25 dwellings (aggregated; capped) — one form at every Age.
-        int blocks = (int)Math.Clamp(s.Dwellings / 25, 1, 48);
-        for (int i = 0; i < blocks; i++)
+        // Dwellings (P12a): one block per dwellingsPerBlock dwellings on the FIXED block lattice — the first lots in its
+        // fixed order on the rings the footprint holds, a lot under a part's glyph hidden where it stands — so a new block
+        // or a new part never moves a block already drawn, and a growing footprint opens rings outward (no cap of 48).
+        // One form at every Age.
+        double bw = lattice.BlockUnits * unitPx, bh = lattice.BlockHeightUnits * unitPx;
+        foreach (CompositionLot lot in comp.Blocks)
         {
-            double a = Math.PI * 2 * i / blocks + 0.3;
-            double rr = r * (0.55 + 0.25 * ((i * 7) % 3) / 2.0);
-            double bx = sx + Math.Cos(a) * rr, by = sy + Math.Sin(a) * rr;
-            double bs = Math.Max(2.5, r / 9);
-            d.Rect(new RectD(bx - bs / 2, by - bs / 2, bs, bs * 0.8), A(k.Dwelling, 0.85));
+            double bx = sx + lot.X * unitPx, by = sy + lot.Y * unitPx;
+            d.Rect(new RectD(bx - bw / 2, by - bh / 2, bw, bh), A(k.Dwelling, 0.85));
         }
 
-        // Centre: the capital star / settlement mark.
-        d.Circle(sx, sy, Math.Max(5, r / 6), pol, ink, Stroke(k, 1.2));
-        if (s.IsCapital) Star(d, sx, sy, Math.Max(4, r / 7), k.CapitalMark);
+        // Centre: the capital star / settlement mark, on the plaza the block lattice leaves open.
+        double centre = Math.Max(5, lattice.PlazaRadiusUnits * unitPx);
+        d.Circle(sx, sy, centre, pol, ink, Stroke(k, 1.2));
+        if (s.IsCapital) Star(d, sx, sy, Math.Max(4, centre * 6 / 7), k.CapitalMark);
         d.FadeFrom(from, detail.Alpha(WorldLayer.SettlementMorphology));
 
         charge(MapLayer.SettlementMarkers, WorldLayer.SettlementMorphology);
@@ -831,8 +875,7 @@ public static class WorldLens
             double aRing = Math.Min(1.0, aPresence + aTypes);
             WorldLayer ringLayer = detail.Band == WorldZoom.Settlement ? WorldLayer.InstitutionTypes : WorldLayer.InstitutionalPresence;
             int total = s.Structures.Count + s.Institutions.Count;
-            double g = MapDetail.Mix(6, 9, settlement);
-            double ring = r * MapDetail.Mix(0.4, 0.42, settlement);
+            double g = lattice.GlyphUnits * unitPx;   // P12a: the glyph fills its lot's box at every zoom
             int n = 0;
             // Settlement zoom: a key beside the footprint (left, right-aligned) names each embedded glyph
             // with its aggregated count, so labels never overprint the footprint or each other.
@@ -847,16 +890,23 @@ public static class WorldLens
                 d.FadeFrom(at, aTypes);
                 charge(MapLayer.InstitutionMarkers, WorldLayer.InstitutionTypes);
             }
-            (double, double) Slot(int i)
+            // P12a: each part on ITS lot of the composition (comp.Parts: the structures, then the institution types, in the
+            // view's order) — never spaced by its index among the others, so an arrival re-spaces nothing.
+            (double, double) Slot(int i) => (sx + comp.Parts[i].Lot.X * unitPx, sy + comp.Parts[i].Lot.Y * unitPx);
+            void Placed(int i, int at)
             {
-                double a = -Math.PI / 2 + Math.PI * 2 * i / Math.Max(1, total);
-                return (sx + Math.Cos(a) * ring, sy + Math.Sin(a) * ring);
+                RectD? box = null;
+                for (int c = at; c < d.Commands.Count; c++)
+                    if (DrawListCull.Bounds(d.Commands[c]) is RectD b) box = box is RectD u ? Union(u, b) : b;
+                RectD rect = box is RectD bb ? bb.Inset(DrawListCull.FringePx) : new RectD(0, 0, 0, 0);
+                parts.Add(new PartPlacement(s.Id, comp.Parts[i].Key, comp.Parts[i].Lot.Ring, comp.Parts[i].Lot.Index, rect));
             }
             foreach (StructureView st in s.Structures)
             {
                 (double gx, double gy) = Slot(n++);
                 int at = d.Commands.Count;
                 StructureGlyph(d, gx, gy, g, st.Kind, k);
+                Placed(n - 1, at);
                 d.FadeFrom(at, aRing);
                 charge(MapLayer.InstitutionMarkers, ringLayer);
                 if (named) Key(n - 1, st.Name, st.Count, (x, y) => StructureGlyph(d, x, y, 7, st.Kind, k));
@@ -867,6 +917,7 @@ public static class WorldLens
                 (double gx, double gy) = Slot(n++);
                 int at = d.Commands.Count;
                 UniversityGlyph(d, gx, gy, g, iv.TypeKey, k);
+                Placed(n - 1, at);
                 d.FadeFrom(at, aRing);
                 charge(MapLayer.InstitutionMarkers, ringLayer);
                 if (named) Key(n - 1, iv.Name, iv.Count, (x, y) => UniversityGlyph(d, x, y, 7, iv.TypeKey, k));
@@ -1040,6 +1091,12 @@ public static class WorldLens
             if (line.Length > 0) lines.Add(line);
             return lines;
         }
+    }
+
+    private static RectD Union(RectD a, RectD b)
+    {
+        double x = Math.Min(a.X, b.X), y = Math.Min(a.Y, b.Y);
+        return new RectD(x, y, Math.Max(a.Right, b.Right) - x, Math.Max(a.Bottom, b.Bottom) - y);
     }
 
     private static void Star(DrawList d, double cx, double cy, double r, Rgba c)

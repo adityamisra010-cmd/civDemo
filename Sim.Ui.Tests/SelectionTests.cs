@@ -78,7 +78,13 @@ public class SelectionTests
         (double sx, double sy) = cam.WorldToScreen(100.5, 100.5, 512, 512);
         Sim.Ui.World.LensFrame f = PaintFrame(world, cam, 512, 512);
         Assert.Equal(Sim.Ui.World.WorldZoom.Regional, f.Zoom);
-        Assert.True(Assert.Single(f.SettlementHits).Footprint.W < SettlementSelection.MinTargetDiameterPx);   // grown, not its own
+        // PIN MOVED (P12a), old -> new: the drawn footprint was 28 px across (the old 14 px Regional floor), under the 44 px
+        // target, so the target was GROWN. New: the population-0 footprint on the class scale is 5.5 lattice units x the
+        // Regional floor of 4 px per unit = 22 px radius, 44 px across — measured exactly the minimum target, so the target
+        // is the footprint itself. The property pinned holds either way: the target is max(drawn footprint, 44 px).
+        Sim.Ui.Render.RectD foot = Assert.Single(f.SettlementHits).Footprint;
+        Assert.Equal(44.0, foot.W);
+        Assert.Equal(Math.Max(foot.W, SettlementSelection.MinTargetDiameterPx), SettlementSelection.Target(foot).W);
 
         Assert.Equal(0, SettlementSelection.HitTest(f, sx, sy));
         Assert.Equal(0, SettlementSelection.HitTest(f,
@@ -109,8 +115,15 @@ public class SelectionTests
         Sim.Ui.World.LensFrame close = PaintFrame(world, cam, 512, 512);
         Assert.Equal(Sim.Ui.World.WorldZoom.Settlement, close.Zoom);
         Sim.Ui.World.SettlementHit hit = Assert.Single(close.SettlementHits);
-        double reach = hit.Footprint.W / 2;   // the footprint drawn: (2 world px) x 32 = 64 px radius
-        Assert.Equal(64.0, reach);
+        double reach = hit.Footprint.W / 2;
+        // PIN MOVED (P12a), old -> new: 64 -> 110 px. Old: the footprint was the world size from population — 2 world px
+        // for this population-0 marker — x 32. New: the population's footprint on the compressive class scale in lattice
+        // units (5.5 for population 0 — the smallest class holds every glyph lot, settlement-classes.json) x the screen px of
+        // a unit at 32x (32 / worldPxPerUnit 1.6 = 20). Measured: 110 px. The property pinned is unchanged: the target is
+        // exactly the footprint drawn.
+        Sim.Ui.World.SettlementClasses classes = Sim.Ui.World.SettlementClasses.Default;
+        Assert.Equal(classes.FootprintRadiusUnits(0) * classes.UnitPx(32.0, 1.0), reach);
+        Assert.Equal(110.0, reach);
         Assert.Equal(0, SettlementSelection.HitTest(close, msx + 6, msy));
         // PIN MOVED (P3), old -> new: a click 23 px right of the mark MISSED at 32× (the constant 22 px radius), though
         // the footprint the lens drew there reaches 64 px — the defect the packet fixes. Now the drawn footprint is the

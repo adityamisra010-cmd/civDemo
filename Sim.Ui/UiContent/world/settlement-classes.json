@@ -1,0 +1,33 @@
+{
+  "_doc": "P12a (M5 map workstream) - THE SETTLEMENT VISUAL CLASSES AND COMPOSITION LATTICE of the world lens. VIEW data only: how a settlement's state is DRAWN. The simulation reads none of it (Sim.Ui is outside the simulation). D-043 D1: a settlement's visual scale and class come primarily from its POPULATION; its contents (structures, institutions, dwellings) come from its other state. Embedded in Sim.Ui (logical name Sim.Ui.settlement-classes.json) and validated by SettlementClasses.Parse; a malformed table is an error, never a silent default.",
+  "_docSizeClasses": "The compressive population scale. A settlement of population p sits at SIZE INDEX i + t, where class i is the last whose minPopulation <= p and t = (ln(1+p) - ln(1+min_i)) / (ln(1+min_{i+1}) - ln(1+min_i)) - linear in the LOGARITHM of population between two thresholds, so each class spans the same visual step though the thresholds grow x4. The World-zoom mark radius (screen px) and the footprint radius (lattice units) are interpolated between the classes' values at that index: continuous and STRICTLY increasing in population up to the last threshold (the stated saturation, 4,096,000), constant above it. Thresholds: the first is 0, strictly ascending; both size columns strictly ascending. Measured range (P12a, order-free canonical worlds, seeds 42 and 7, 1,500 turns, no colonies): 219 to 61,078 people per settlement, so the measured range spans classes 0-4 and never reaches the saturation.",
+  "sizeClasses": [
+    { "minPopulation": 0,       "worldMarkRadiusPx": 4.0,  "footprintRadiusUnits": 5.5 },
+    { "minPopulation": 250,     "worldMarkRadiusPx": 5.5,  "footprintRadiusUnits": 6.0 },
+    { "minPopulation": 1000,    "worldMarkRadiusPx": 7.0,  "footprintRadiusUnits": 6.75 },
+    { "minPopulation": 4000,    "worldMarkRadiusPx": 8.5,  "footprintRadiusUnits": 7.75 },
+    { "minPopulation": 16000,   "worldMarkRadiusPx": 10.0, "footprintRadiusUnits": 9.0 },
+    { "minPopulation": 64000,   "worldMarkRadiusPx": 11.5, "footprintRadiusUnits": 10.5 },
+    { "minPopulation": 256000,  "worldMarkRadiusPx": 13.0, "footprintRadiusUnits": 12.25 },
+    { "minPopulation": 1024000, "worldMarkRadiusPx": 14.5, "footprintRadiusUnits": 14.25 },
+    { "minPopulation": 4096000, "worldMarkRadiusPx": 16.0, "footprintRadiusUnits": 16.5 }
+  ],
+  "_docLattice": "The FIXED composition lattice, in lattice UNITS about the settlement's centre (one unit = the dwelling-block pitch). Screen px per unit = max(camera px per world px / worldPxPerUnit, the band's floor - minUnitPxRegional blended to minUnitPxSettlement by the Settlement cross-fade): a function of the ZOOM only, never of population or of what the settlement holds, so a lot never moves when the settlement changes and the whole composition scales about its centre with the zoom. The footprint's radius is footprintRadiusUnits(population) units. Slot rings carry one glyph per structure kind and per institution type (aggregated, D-043 D2); every slot lot lies inside the SMALLEST footprint (validated), so every glyph is inside every footprint at every zoom. Block rings: ring k at radius blockFirstRadius + k * blockRingPitch with floor(2 pi radius / blockLotPitch) lots; a ring is OPEN when its blocks lie inside the footprint, so a growing settlement opens rings outward (no cap of 48 blocks) - the last ring reaches the saturated footprint (validated). One block per dwellingsPerBlock dwellings (HousingRow), filled in a fixed lot order (inner ring first; each ring in an even, coprime-step order from a per-settlement rotation), a block under an occupied glyph lot hidden where it stands.",
+  "lattice": {
+    "worldPxPerUnit": 1.6,
+    "minUnitPxRegional": 4.0,
+    "minUnitPxSettlement": 7.5,
+    "plazaRadiusUnits": 1.0,
+    "glyphUnits": 1.0,
+    "slotRings": [
+      { "radius": 1.95, "lots": 5 },
+      { "radius": 3.6, "lots": 9 }
+    ],
+    "blockUnits": 0.7,
+    "blockFirstRadius": 1.6,
+    "blockRingPitch": 1.0,
+    "blockLotPitch": 1.0,
+    "blockRings": 16,
+    "dwellingsPerBlock": 25
+  }
+}
