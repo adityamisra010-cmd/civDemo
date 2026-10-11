@@ -94,14 +94,14 @@ road planted between a known and a hidden settlement leave the Empire view's Tra
 projection's routes identical through the stub (all-known, each changes and names it), and real settlement records
 whose hidden neighbours are the most attractive leave every known settlement's Migration comparison identical
 (all-known, it names the hidden place).
-The AI: raising every unknown
-cell's own score cannot move the founding pick (control: all-known it does); whatever the TERRAIN under unknown nodes
-(fertility 0 or 1 over half the map), the pick is a known cell and the oracle's best known legal cell (control:
-all-known, fertility 1 there puts the pick on an unknown cell); the valuation channel of §6 is QUARANTINED, not skipped
-(`KnownCellsValuations_StillIntegrateTerrainUnderUnknownNodes_…` asserts it is still open and fails, naming the
-invariance tooth to restore, the moment S2b closes it); perturbing every row of every settlement the AI does not
-control, and every formation it does not own, leaves `AiOrders.For` identical over twelve played turns (control:
-emptying its own stocks changes its orders).
+
+The AI: raising every unknown cell's own score cannot move the founding pick (control: all-known it does); whatever the
+TERRAIN under unknown nodes (fertility 0 or 1 over half the map), the pick is a known cell and the oracle's best known
+legal cell (control: all-known, fertility 1 there puts the pick on an unknown cell); the valuation channel of §6 is
+QUARANTINED, not skipped (`KnownCellsValuations_StillIntegrateTerrainUnderUnknownNodes_…` asserts it is still open and
+fails, naming the invariance tooth to restore, the moment S2b closes it); perturbing every row of every settlement the
+AI does not control, and every formation it does not own, leaves `AiOrders.For` identical over twelve played turns
+(control: emptying its own stocks changes its orders).
 
 `scripts/check-read-isolation.sh` gains an ADVISORY section (a grep cannot tell a guarded read from an unguarded one):
 a raw read of `Settlements`, `MilitaryUnits`, `Buckets` or `Deposits` through a world receiver in Sim.Ui fails unless
@@ -131,8 +131,9 @@ row. The one intended text change is §2's raw-id title. Evidence: the packet's 
   moves the pick 36463 → 42559, both KNOWN cells; cell 36463's score falls 48.96 → 16.00. With half the map unknown,
   changing only unknown fertility moves 472 (fertility 0) / 468 (fertility 1) known cells' scores, flips
   `IsFrontierCandidate` for 433 / 2,883 known cells, and moves the floor 18.81 → 19.56 / 26.54. No known cell's terrain
-  changed in either. The player is held to the stricter class (the UI leak gate perturbs that terrain and requires every
-  player output identical), so the two are NOT yet held to the same information class here. What closes it — a
+  changed in either. The player's outputs the UI leak gate covers are held to the stricter class (it perturbs that
+  terrain and requires each of them identical), so the AI and the player are NOT yet held to the same information
+  class here. What closes it — a
   valuation over known cells only, and what a polity assumes of terrain it has not seen — is a modelling decision of
   S2b (ADR-036 §8 item (h)); this packet does not invent it. The floor is also the predicate's own rule arm (shared with
   the player's order), like the masks of §3.

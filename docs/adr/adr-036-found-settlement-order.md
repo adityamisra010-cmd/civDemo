@@ -369,8 +369,8 @@ discovered"* — answers half of item (h) above for the READ: the pre-filter's F
 `PolityKnowledge.KnowsCell` for the issuer (ADR-037's one information-class seam), so a cell outside the issuer's known
 extent is never admitted and never raises the ranking's bar, so an UNKNOWN cell is never picked, whatever it scores.
 The pick is NOT a function of known terrain only (corrected after review; this paragraph first claimed it was): a
-known cell's score is the frontier raster's, which integrates terrain under unknown nodes (below). `PolityKnowledge.Of` is all-known until S2a stores an extent, so the arm admits every cell and
-every order is byte-identical (MEASURED: the ci.yml AI leg's 600-turn hash log and run log equal the base binary's,
+known cell's score is the frontier raster's, which integrates terrain under unknown nodes (below). `PolityKnowledge.Of`
+is all-known until S2a stores an extent, so the arm admits every cell and every order is byte-identical (MEASURED: the ci.yml AI leg's 600-turn hash log and run log equal the base binary's,
 byte for byte). `Decide` and `BestSiteFor` gain overloads taking the knowledge (the production entries pass
 `PolityKnowledge.Of`); `IsDue` now tests control before reading a settlement's founding turn.
 
