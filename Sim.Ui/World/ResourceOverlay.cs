@@ -153,8 +153,9 @@ public sealed class ResourceOverlay
     public int JudgedForPresence { get; }
     public int PresentNodes { get; }
 
-    /// <summary>Why the channel layers are not evaluated (no goods content; a worldgen config for another map size, so
-    /// the founding's deposit function cannot be evaluated here — the place card's rule), or null.</summary>
+    /// <summary>Why the channel layers are not evaluated (no goods content is loaded), or null. M5 playtest blocker (D-052):
+    /// a map whose size differs from the founding path's worldgen config (`--size`, the 256-px dev worlds) is evaluated —
+    /// the founding's deposit function indexes the terrain by its own size.</summary>
     public string? ChannelsUnavailable { get; }
 
     /// <summary>The score's founding floor (SettlementSiting.ScoreFloor's percentile of the positive scores) — NaN unless
@@ -280,7 +281,8 @@ public sealed class ResourceOverlay
     /// <summary>The deposit channel <paramref name="channel"/>'s value for a settlement founded at <paramref name="cell"/>:
     /// THE founding's function (<see cref="WorldFounding.HinterlandMeans"/> over <see cref="WorldFounding.HinterlandRadiusPx"/>,
     /// then <see cref="WorldFounding.DepositChannelValue"/>) — exactly the abundance <see cref="WorldFounding.AddDepositsForSite"/>
-    /// writes for a good of this channel with no spread. <paramref name="worldgen"/> must describe this map's size.</summary>
+    /// writes for a good of this channel with no spread. The disc is indexed by <paramref name="terrain"/>'s own size, so
+    /// <paramref name="worldgen"/> need not describe it (D-052).</summary>
     public static double ChannelAt(TerrainSet terrain, WorldgenConfig worldgen, SimConfig cfg, string channel, int cell)
     {
         (double m, double e) = WorldFounding.HinterlandMeans(terrain, worldgen, cell, WorldFounding.HinterlandRadiusPx(worldgen, cfg));
@@ -341,11 +343,7 @@ public sealed class ResourceOverlay
         }
         var withheld = new int[count];
 
-        string? unavailable = cfg.Goods is null ? "no goods content is loaded"
-            : site.Worldgen.SizePx != size
-                ? "the founding path's worldgen config describes a " + Inv(site.Worldgen.SizePx) + "-px map and this map is " + Inv(size)
-                    + " px, so its deposit function cannot be evaluated here"
-                : null;
+        string? unavailable = cfg.Goods is null ? "no goods content is loaded" : null;
         double radiusPx = WorldFounding.HinterlandRadiusPx(site.Worldgen, cfg);
         SitingConfig siting = site.Worldgen.Siting;
         int r = siting.FertilityRadiusPx, cutoff = siting.WaterAccessCutoffPx;

@@ -159,6 +159,22 @@ unchanged. MEASURED on this branch (Release): `sim run --founded --seed 42 --tur
 - Only `OrderValidationException` is turned into the CLI-style diagnostic at launch. A genuine `resume diverged`
   under the same schema still ends the launch with an unhandled exception, as before.
 
+> **2026-10-12 — the last limitation above is CLOSED** (D-052 §13, the playtest-blocker pass on `m5w-integration`). The trace check now throws `ResumeDivergedException` (same message). `UiSession.Resume` turns a
+> same-schema divergence into `SessionIncompatibleException`, whose message tells the player which build recorded the
+> session, which build this is, the turn the worlds differ from, and what to do. `ResumeLaunch.Attempt`
+> (`Sim.Ui/ResumeRefusal.cs`, called by Program.cs) reports both refusals before any window opens:
+> - an `OrderValidationException` keeps "error: <message>" and exit code 2;
+> - an incompatible session gives "error: This saved session cannot be resumed with this build." plus the reasons, and
+>   exit code 3.
+>
+> Sim.Ui is a GUI exe, so both are also shown in a best-effort native error dialog: SDL2's
+> `SDL_ShowSimpleMessageBox`, suppressed by `CIV_UI_NO_DIALOG` for the tests that launch the exe. That dialog is NOT
+> yet observed on Windows. The trace check itself, the D-008 schema-mismatch path and every hash are unchanged.
+>
+> MEASURED: a real `2dc6af2` session resumed by the unpatched `f0427d2` build crashed (exit 134); the patched build
+> exits 3 with the report and leaves every session file byte-identical. Other `--resume` failures (a corrupt manifest,
+> a missing order log) still end unhandled; they are listed in `docs/m5-playtest-known-issues.md`.
+
 **Tests (Sim.Ui.Tests).**
 
 | test | pins |

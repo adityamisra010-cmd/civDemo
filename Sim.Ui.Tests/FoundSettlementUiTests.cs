@@ -44,8 +44,8 @@ public class FoundSettlementUiTests : IDisposable
 
     // ------------------------------------------------------------------ rigs and helpers
 
-    /// <summary>The canonical founded world (seed 42): the founding path's worldgen config describes its map, so a colony's
-    /// deposits are read from the right cells (docs/queue.md: a non-canonical --size does not).</summary>
+    /// <summary>The canonical founded world (seed 42): the founding path's worldgen config describes its map. (A non-canonical
+    /// --size map founds on its own cells too since D-052 — NonCanonicalSizeFoundingUiTests.)</summary>
     private static readonly Lazy<WorldState> Canonical = new(() => UiFounding.Found(42));
 
     private static UiSession Fresh() => UiSession.StartFrom(Canonical.Value.Clone(), 42);

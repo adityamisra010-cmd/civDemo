@@ -841,6 +841,15 @@ public sealed class UiSession
     /// <see cref="CanonicalSchema.Version"/>, the session is resumed by the D-008 recovery path — re-founded from
     /// the seed and replayed from the order log WITHOUT the trace-hash check (the trace still gives the turn to
     /// replay to) — and <see cref="ResumeNotice"/> says so explicitly. The ADR-034 order checks still apply.
+    ///
+    /// M5 playtest blocker (D-052) — A SESSION ANOTHER BUILD RECORDED UNDER THIS SCHEMA. The simulation can change
+    /// between builds without a schema bump (playtest build 2dc6af2 and f0427d2 are both v32 and differ from turn 1),
+    /// and then the trace check refuses the session — rightly: its world cannot be rebuilt here. That refusal used to
+    /// end the launch as an unhandled exception. It is now a <see cref="SessionIncompatibleException"/> carrying the
+    /// recorded and current build identities and the divergence turn, with the check's
+    /// <see cref="ResumeDivergedException"/> as its inner exception; <see cref="ResumeLaunch"/> reports it to the
+    /// player. The check itself, the schema-mismatch path above and every hash are unchanged, and nothing is written:
+    /// a refused resume has only read the session's files.
     /// </summary>
     public static UiSession Resume(string manifestPath, out string sessionLogPath)
     {
@@ -861,7 +870,18 @@ public sealed class UiSession
 
         bool sameSchema = manifest.SchemaVersion == CanonicalSchema.Version;
         UiSession session = Start(manifest.Seed, manifest.SizePx, manifest.Settlements, manifest.AiEmpires);
-        session.ReplayTo(saved, target, sameSchema ? trace : null);
+        try
+        {
+            session.ReplayTo(saved, target, sameSchema ? trace : null);
+        }
+        catch (ResumeDivergedException diverged)   // only with the trace checked, i.e. under this build's schema
+        {
+            throw new SessionIncompatibleException(
+                Path.GetFullPath(manifestPath),
+                manifest.BuildSha, manifest.BuildDate, manifest.Platform,
+                BuildInfo.Sha, BuildInfo.Date, System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier,
+                diverged);
+        }
         if (!sameSchema) session.ResumeNotice = SchemaMismatchNotice(manifest.SchemaVersion, CanonicalSchema.Version);
         return session;
     }
@@ -922,9 +942,10 @@ public sealed class UiSession
                     if (trace[r].Turn == World.Clock.Turn)
                     {
                         string hash = _trace[^1].Split(',')[^1];
+                        // M5 playtest blocker (D-052): a typed divergence, same message — Resume turns it into
+                        // the player-facing SessionIncompatibleException.
                         if (!string.Equals(hash, trace[r].Hash, StringComparison.Ordinal))
-                            throw new InvalidOperationException(
-                                $"resume diverged at turn {World.Clock.Turn}: replay hash {hash}, saved trace {trace[r].Hash}");
+                            throw new ResumeDivergedException(World.Clock.Turn, hash, trace[r].Hash);
                         break;
                     }
         }

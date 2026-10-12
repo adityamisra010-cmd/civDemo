@@ -679,10 +679,31 @@ public class ResourceOverlayTests(CanonicalOverlayFixture fx) : IClassFixture<Ca
         PaintOverlay(WorldProjection.Build(s.World, s.Config, s.Names.Name, Me), new OverlayPaint(b, AllOn(b), 0.8, st, new OverlayKeyAnchor(12, 1012, 340), s.Names.Name), 4.0);
         Assert.Equal(before, WorldHash.ComputeHex(s.World));
         Assert.Empty(s.QueuedOrders());
-        // The dev world's founding config is the production one at 1024 px: its channels are not evaluated, and say so.
-        Assert.Contains("1024-px map", b.ChannelsUnavailable, StringComparison.Ordinal);
-        Assert.Contains(b.KeyRows(AllOn(b), st, s.Names.Name), r => r.Text.StartsWith("Not evaluated: the founding path's worldgen config", StringComparison.Ordinal));
-        foreach (OverlayLayer l in b.Layers) if (l.Kind == OverlayKind.Channel) Assert.Equal(0, b.Drawn(l.Index));
+        // M5 playtest blocker (D-052): the dev world's founding config is the production one at 1024 px, and its channels ARE
+        // evaluated — the founding's deposit function indexes the terrain by its own size. Every land node of every channel
+        // is drawn, each the founding's function with this map's own size (Wg256) at its centre cell, bit for bit, the
+        // bottom rows (row >= 208, where the 1024-px disc ran past the raster) included; the key says nothing is unevaluated.
+        Assert.Null(b.ChannelsUnavailable);
+        Assert.DoesNotContain(b.KeyRows(AllOn(b), st, s.Names.Name), r => r.Text.StartsWith("Not evaluated", StringComparison.Ordinal));
+        Assert.True(b.AllKnown && b.SeesAll);
+        TerrainSet t = b.Terrain;
+        double radius = WorldFounding.HinterlandRadiusPx(Wg256, s.Config);
+        int channels = 0, bottom = 0;
+        foreach (OverlayLayer l in b.Layers)
+        {
+            if (l.Kind != OverlayKind.Channel) continue;
+            channels++;
+            Assert.Equal(b.KnownLandNodes, b.Drawn(l.Index));
+            for (int n = 0; n < b.NodeCount; n++)
+            {
+                int cell = b.SampleCell(n);
+                if (t.Water[cell] >= 0.5) continue;
+                (double m, double e) = WorldFounding.HinterlandMeans(t, Wg256, cell, radius);
+                Assert.Equal(Bits(WorldFounding.DepositChannelValue(l.Channel!, m, e)), Bits(b.Value(l.Index, n)));
+                if (cell / t.Size >= 208) bottom++;
+            }
+        }
+        Assert.True(channels > 0 && bottom > 0, "channels " + channels + ", bottom-row nodes " + bottom);
     }
 
     // ================================================================== m5w integration: the markers beside P12a's footprint

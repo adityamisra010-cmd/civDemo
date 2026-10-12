@@ -24,7 +24,8 @@ namespace Sim.Tests.State;
 ///
 /// The worlds are the dev preset (256², 4 settlements, seed 42) after one orderless production step. The site half is
 /// prepared with the DEV worldgen config and the founding pipelines are built with the same config, so the deposit
-/// preview is evaluated with the config founding uses (see <see cref="AWorldgenConfigForAnotherMapSize_LeavesTheDepositsUnevaluated"/>).
+/// preview is evaluated with the config founding uses (since D-052 a config for another map size evaluates the same values:
+/// see <see cref="AWorldgenConfigForAnotherMapSize_EvaluatesTheDepositsOnThisMap_ExactlyAsTheFoundingDoes"/>).
 /// </summary>
 public class SiteAssessmentTests
 {
@@ -483,16 +484,44 @@ public class SiteAssessmentTests
     }
 
     [Fact]
-    public void AWorldgenConfigForAnotherMapSize_LeavesTheDepositsUnevaluated_NeverReadsTheWrongCells()
+    public void AWorldgenConfigForAnotherMapSize_EvaluatesTheDepositsOnThisMap_ExactlyAsTheFoundingDoes()
     {
-        // WorldFounding.HinterlandMeans indexes by the CONFIG's sizePx; evaluated with the canonical 1024-px config on a
-        // 256-px map it would read other cells (or past the raster). The assessment says so instead of showing them.
+        // M5 playtest blocker (D-052): WorldFounding.HinterlandMeans indexes the disc by the TERRAIN's size, so the canonical
+        // 1024-px config — the founding path's config in every production pipeline — evaluated on this 256-px map reads this
+        // map's own cells: the card shows the deposits a colony founded here is written (it used to refuse them). Sites: a
+        // settlement's own cell, and the first land cell of the bottom rows (row >= 208, where the 1024-px disc ran past the
+        // raster).
         WorldState w = W1();
-        SiteAssessment.Report r = Assess(w, Site(w, TestConfigs.Worldgen()), w.Settlements[0].SiteCell);
-        Assert.True(r.Known);
-        Assert.Empty(r.Deposits);
-        Assert.Contains("1024-px", r.DepositsUnavailable);
-        Assert.Equal(Assess(w, Site(w), w.Settlements[0].SiteCell).Score, r.Score);   // the score half does not depend on it
+        TerrainSet t = w.Terrain!;
+        WorldgenConfig canonical = TestConfigs.Worldgen();
+        Assert.NotEqual(canonical.SizePx, t.Size);
+        SiteAssessment.Prepared site = Site(w, canonical), own = Site(w);
+        int bottom = -1;
+        for (int c = 208 * t.Size; c < t.Size * t.Size && bottom < 0; c++) if (t.Water[c] < 0.5) bottom = c;
+        Assert.True(bottom >= 0, "no land in the bottom rows - that half is void");
+        double radius = WorldFounding.HinterlandRadiusPx(DevWg, Cfg);
+        foreach (int cell in new[] { w.Settlements[0].SiteCell, bottom })
+        {
+            SiteAssessment.Report r = Assess(w, site, cell), mine = Assess(w, own, cell);
+            Assert.True(r.Known);
+            Assert.Null(r.DepositsUnavailable);
+            (double m, double e) = WorldFounding.HinterlandMeans(t, DevWg, cell, radius);   // the map's own disc
+            Assert.Equal(BitConverter.DoubleToInt64Bits(m), BitConverter.DoubleToInt64Bits(r.MeanMoisture));
+            Assert.Equal(BitConverter.DoubleToInt64Bits(e), BitConverter.DoubleToInt64Bits(r.MeanElevation));
+            var roll = new Table<DepositRow>();   // the founding's own call for the next settlement, with the map's own config
+            WorldFounding.AddDepositsForSite(roll, t, DevWg, Cfg, Cfg.Goods!, new SettlementId(r.NextSettlementId), cell, w.Seed, r.NextSettlementId);
+            Assert.Equal(roll.Count, r.Deposits.Length);
+            Assert.True(r.Deposits.Length > 0);
+            for (int i = 0; i < roll.Count; i++)
+            {
+                SiteAssessment.DepositPreview d = r.Deposits[i];
+                Assert.Equal(roll[i].Good, d.Good);
+                Assert.Equal(BitConverter.DoubleToInt64Bits(roll[i].Abundance), BitConverter.DoubleToInt64Bits(d.IfFoundedNext!.Value));
+                Assert.Equal(BitConverter.DoubleToInt64Bits(WorldFounding.DepositChannelValue(d.Channel, m, e)), BitConverter.DoubleToInt64Bits(d.ChannelValue));
+                Assert.Equal(mine.Deposits[i], d);   // the same preview the map's own config gives
+            }
+            Assert.Equal(mine.Score, r.Score);   // the score half never depended on it
+        }
     }
 
     // ================================================================== READ-ONLY

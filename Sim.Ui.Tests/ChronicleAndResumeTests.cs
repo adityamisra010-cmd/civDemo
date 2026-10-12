@@ -177,13 +177,20 @@ public class ChronicleAndResumeTests
         Directory.Delete(dir, recursive: true);
     }
 
+    /// <summary>M5 playtest blocker (D-052): the trace check's refusal is a typed <see cref="ResumeDivergedException"/>
+    /// (it was a plain InvalidOperationException) carrying the turn and both hashes, its message the check's own text.
+    /// The owner asked for this change of type; the refusal itself is unchanged.</summary>
     [Fact]
     public void Resume_RefusesATraceItCannotReproduce()
     {
         UiSession live = Played(3);
         UiSession fresh = Played(0);
         var bad = new List<SessionTrace.Row> { new(1, 0, 0, 0, 0, "deadbeef") };
-        Assert.Throws<InvalidOperationException>(() => fresh.ReplayTo(live.Orders, 3, bad));
+        ResumeDivergedException e = Assert.Throws<ResumeDivergedException>(() => fresh.ReplayTo(live.Orders, 3, bad));
+        Assert.Equal(1, e.Turn);
+        Assert.Equal("deadbeef", e.SavedHash);
+        Assert.Equal(64, e.ReplayHash.Length);
+        Assert.Equal("resume diverged at turn 1: replay hash " + e.ReplayHash + ", saved trace deadbeef", e.Message);
     }
 
     /// <summary>Rewrites a session manifest so it records <paramref name="schemaVersion"/> — what an older build
@@ -194,6 +201,29 @@ public class ChronicleAndResumeTests
         using (FileStream f = File.OpenRead(manifestPath)) m = SessionManifest.Read(f, manifestPath);
         using FileStream o = File.Create(manifestPath);
         (m with { SchemaVersion = schemaVersion }).Write(o);
+    }
+
+    /// <summary>M5 playtest blocker (D-052): rewrites a session manifest so it records another build's identity —
+    /// what that build wrote into it (every other field is the session's own).</summary>
+    internal static void RecordBuild(string manifestPath, string buildSha, string buildDate, string platform)
+    {
+        SessionManifest m;
+        using (FileStream f = File.OpenRead(manifestPath)) m = SessionManifest.Read(f, manifestPath);
+        using FileStream o = File.Create(manifestPath);
+        (m with { BuildSha = buildSha, BuildDate = buildDate, Platform = platform }).Write(o);
+    }
+
+    /// <summary>Every file in <paramref name="dir"/> as "name sha256", ordinal by name — to prove a refused resume
+    /// wrote, changed and created nothing there.</summary>
+    internal static string[] Fingerprint(string dir)
+    {
+        string[] files = Directory.GetFiles(dir, "*", SearchOption.AllDirectories);
+        Array.Sort(files, StringComparer.Ordinal);
+        var lines = new string[files.Length];
+        for (int i = 0; i < files.Length; i++)
+            lines[i] = Path.GetRelativePath(dir, files[i]) + " "
+                + Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(files[i])));
+        return lines;
     }
 
     /// <summary>Rewrites every trace line's hash as a build with another canonical stream would have computed it:
@@ -240,9 +270,11 @@ public class ChronicleAndResumeTests
             int older = CanonicalSchema.Version - 1;
             RecordTraceUnderAnotherSchema(UiSession.TracePath(log));
 
-            // Control: under THIS build's schema the doctored trace is refused at the first replayed turn.
+            // Control: under THIS build's schema the doctored trace is refused at the first replayed turn — as an
+            // incompatible session since D-052 (the owner's change), the check's divergence its inner exception.
             RecordSchema(manifestPath, CanonicalSchema.Version);
-            InvalidOperationException diverged = Assert.Throws<InvalidOperationException>(() => UiSession.Resume(manifestPath, out _));
+            SessionIncompatibleException refused = Assert.Throws<SessionIncompatibleException>(() => UiSession.Resume(manifestPath, out _));
+            ResumeDivergedException diverged = Assert.IsType<ResumeDivergedException>(refused.InnerException);
             Assert.StartsWith("resume diverged at turn 1:", diverged.Message, StringComparison.Ordinal);
 
             // Recorded under the previous schema: resumed by replay, with the notice.
@@ -282,6 +314,156 @@ public class ChronicleAndResumeTests
         finally
         {
             if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    /// <summary>
+    /// M5 playtest blocker (D-052) — A SESSION ANOTHER BUILD RECORDED UNDER THIS SCHEMA. The audit's case: a session
+    /// from playtest build 2dc6af2 (schema v32, like this build) resumed here replays into a different world from turn
+    /// 1, so the trace check refuses it — and that refusal ended the launch as an unhandled exception. Now Resume
+    /// refuses it with a <see cref="SessionIncompatibleException"/> that tells the player which build recorded it,
+    /// which build this is, from which turn the worlds differ and what to do, the check's
+    /// <see cref="ResumeDivergedException"/> kept as the inner exception. Nothing in the session directory is
+    /// written, changed or created (every file hashed before and after). The fixture: this build's own session,
+    /// its manifest rewritten to name build 2dc6af2 on win-x64 and its trace's hashes replaced (the stand-in for a
+    /// world another build computed — <see cref="RecordTraceUnderAnotherSchema"/>, under the SAME schema here).
+    /// </summary>
+    [Fact]
+    public void Resume_OfASessionAnotherBuildRecordedUnderThisSchema_IsRefusedAsIncompatible_AndItsFilesAreUntouched()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "d052-cross-build-resume-"
+            + Environment.ProcessId.ToString(System.Globalization.CultureInfo.InvariantCulture) + "-" + Guid.NewGuid().ToString("N"));
+        string log = Path.Combine(dir, "orders-20261011-120000-s256-n4.bin");
+        try
+        {
+            UiSession live = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4);
+            live.ExportManifest("2026-10-11 12:00:00", log);
+            live.ExportForensicRun("2026-10-11 12:00:00+00:00", log);
+            int capital = live.World.Settlements[0].Id.Value;
+            for (int t = 0; t < 3; t++)
+            {
+                if (t == 1) Assert.True(live.EmitSectorOrders([40, 20, 15, 15, 10], capital));
+                live.EndTurn();
+            }
+            live.Save(log);
+            live.ExportTrace(UiSession.TracePath(log));
+            live.ExportChronicle(UiSession.ChroniclePath(log));
+            live.FinalizeTelemetry(UiSession.TelemetryPath(log));
+            string manifestPath = UiSession.ManifestPath(log);
+            RecordBuild(manifestPath, "2dc6af2", "2026-10-11", "win-x64");
+            RecordTraceUnderAnotherSchema(UiSession.TracePath(log));
+            string[] before = Fingerprint(dir);
+            Assert.Equal(6, before.Length);   // manifest, forensic, orders, trace, chronicle, telemetry
+
+            SessionIncompatibleException e = Assert.Throws<SessionIncompatibleException>(() => UiSession.Resume(manifestPath, out _));
+            Assert.Equal(before, Fingerprint(dir));   // nothing written, changed or created
+
+            // The facts, typed...
+            Assert.Equal(Path.GetFullPath(manifestPath), e.ManifestPath);
+            Assert.Equal(("2dc6af2", "2026-10-11", "win-x64"), (e.RecordedBuildSha, e.RecordedBuildDate, e.RecordedPlatform));
+            Assert.Equal((BuildInfo.Sha, BuildInfo.Date, System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier),
+                (e.CurrentBuildSha, e.CurrentBuildDate, e.CurrentPlatform));
+            Assert.Equal(1, e.Turn);
+            ResumeDivergedException inner = Assert.IsType<ResumeDivergedException>(e.InnerException);
+            Assert.StartsWith("resume diverged at turn 1: replay hash ", inner.Message, StringComparison.Ordinal);
+            Assert.Equal(new string('0', 64), inner.SavedHash);
+            Assert.Equal(1, inner.Turn);
+
+            // ...and the player's message: what happened, between which builds, what to do, and that nothing changed.
+            Assert.Equal(string.Join("\n", e.Lines), e.Message);
+            Assert.Equal(
+                SessionIncompatibleException.Describe("2dc6af2", "2026-10-11", "win-x64", BuildInfo.Sha, BuildInfo.Date,
+                    System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier, 1),
+                e.Lines);
+            Assert.Equal("This saved session cannot be resumed with this build.", e.Lines[0]);
+            Assert.Contains("recorded by build 2dc6af2 (2026-10-11, win-x64)", e.Message, StringComparison.Ordinal);
+            Assert.Contains("this is build " + BuildInfo.Sha + " (" + BuildInfo.Date + ", ", e.Message, StringComparison.Ordinal);
+            Assert.Contains("a different world from turn 1,", e.Message, StringComparison.Ordinal);
+            Assert.Contains("start a new game", e.Message, StringComparison.Ordinal);
+            Assert.Contains("The session files were not changed.", e.Lines);
+            Assert.DoesNotContain("determinism defect", e.Message, StringComparison.Ordinal);   // another build's id
+            Assert.DoesNotContain("resume diverged", e.Message, StringComparison.Ordinal);      // the jargon stays inside
+
+            // Control: the very same files under this build's identity, the trace undoctored, resume.
+            live.ExportTrace(UiSession.TracePath(log));
+            RecordBuild(manifestPath, BuildInfo.Sha, BuildInfo.Date, System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier);
+            UiSession resumed = UiSession.Resume(manifestPath, out _);
+            Assert.Equal(WorldHash.ComputeHex(live.World), WorldHash.ComputeHex(resumed.World));
+            Assert.Empty(resumed.ResumeNotice);
+        }
+        finally
+        {
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    /// <summary>M5 playtest blocker (D-052): the incompatibility message adds a line about what a divergence MEANS
+    /// only when the recorded and current build ids are equal — a determinism defect to report if this build
+    /// recorded it, unless it was recorded on another platform (ADR-022: a session replays exactly only where it was
+    /// recorded), and saying so when the shared id is the unstamped "dev". Under another build's id there is no such
+    /// line; the turn is written culture-invariantly.</summary>
+    [Fact]
+    public void TheIncompatibilityMessage_NamesADeterminismDefect_OnlyUnderTheSameBuildId_AndThePlatformWhenItDiffers()
+    {
+        IReadOnlyList<string> other = SessionIncompatibleException.Describe("2dc6af2", "2026-10-11", "win-x64", "abc1234", "2026-10-12", "win-x64", 12345);
+        Assert.Equal(5, other.Count);
+        Assert.Equal("Replaying its orders here produces a different world from turn 12345, so the saved game cannot be rebuilt.", other[2]);
+        Assert.Equal("To continue it, run the build that recorded it. To play this build, start a new game.", other[3]);
+        Assert.Equal("The session files were not changed.", other[4]);
+
+        IReadOnlyList<string> same = SessionIncompatibleException.Describe("abc1234", "2026-10-12", "win-x64", "abc1234", "2026-10-12", "win-x64", 1);
+        Assert.Equal(6, same.Count);
+        Assert.Equal(other[0], same[0]);
+        Assert.Equal("If this build recorded it, that is a determinism defect: please report it with the session folder.", same[5]);
+
+        // A pre-v2 manifest records no platform: nothing to blame but the build.
+        IReadOnlyList<string> unrecorded = SessionIncompatibleException.Describe(
+            "abc1234", "2026-10-12", SessionManifest.PlatformNotRecorded, "abc1234", "2026-10-12", "linux-x64", 1);
+        Assert.Equal(same[5], unrecorded[5]);
+
+        // "dev" is every unstamped local build's id: the line does not let it pass for an identity.
+        IReadOnlyList<string> local = SessionIncompatibleException.Describe("dev", "local", "linux-x64", "dev", "local", "linux-x64", 1);
+        Assert.Equal(6, local.Count);
+        Assert.StartsWith("Both are unstamped local builds (\"dev\"), so which build recorded it is not known;", local[5], StringComparison.Ordinal);
+        Assert.Contains("determinism defect", local[5], StringComparison.Ordinal);
+
+        IReadOnlyList<string> elsewhere = SessionIncompatibleException.Describe("abc1234", "2026-10-12", "win-x64", "abc1234", "2026-10-12", "linux-x64", 2);
+        Assert.Equal(6, elsewhere.Count);
+        Assert.Contains("the platform", elsewhere[5], StringComparison.Ordinal);
+        Assert.Contains("ADR-022", elsewhere[5], StringComparison.Ordinal);
+        Assert.DoesNotContain("determinism defect", string.Join("\n", elsewhere), StringComparison.Ordinal);
+
+        // D-052 review nit: the two RIDs CR-013 §8.2 measured equal to the reference ("linux-x64" and
+        // "ubuntu.24.04-x64", SessionManifest.IsReferencePlatform) are ONE platform for the replay promise, so a
+        // same-build divergence between them is a determinism defect, not a platform one.
+        IReadOnlyList<string> reference = SessionIncompatibleException.Describe(
+            "abc1234", "2026-10-12", SessionManifest.MeasuredUbuntuRid, "abc1234", "2026-10-12", SessionManifest.ReferencePlatform, 3);
+        Assert.Equal(same[5], reference[5]);
+    }
+
+    /// <summary>D-052 review finding: Program.cs hands <see cref="ResumeLaunch.NativeDialog"/> to the launch, and the
+    /// process tests suppress the dialog through <see cref="ResumeLaunch.NoDialogVariable"/> — so pin the selector itself:
+    /// with the variable unset (this test process never sets it; RunSimUi sets it only on child processes) it is the
+    /// native dialog, and with it set it is null. The native call itself is not exercised here (it would block on a
+    /// display) — its evidence is manual.</summary>
+    [Fact]
+    public void TheNativeDialogSelector_IsTheNativeDialog_UnlessSuppressed()
+    {
+        string? saved = Environment.GetEnvironmentVariable(ResumeLaunch.NoDialogVariable);
+        try
+        {
+            Environment.SetEnvironmentVariable(ResumeLaunch.NoDialogVariable, null);
+            Action<string, string>? live = ResumeLaunch.NativeDialog();
+            Assert.NotNull(live);
+            Assert.Equal(typeof(NativeErrorDialog), live!.Method.DeclaringType);
+            Assert.Equal(nameof(NativeErrorDialog.Show), live.Method.Name);
+
+            Environment.SetEnvironmentVariable(ResumeLaunch.NoDialogVariable, "1");
+            Assert.Null(ResumeLaunch.NativeDialog());
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable(ResumeLaunch.NoDialogVariable, saved);
         }
     }
 }

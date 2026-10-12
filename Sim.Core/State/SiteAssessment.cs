@@ -476,11 +476,12 @@ public static class SiteAssessment
         double meanM = 0.0, meanE = 0.0;
         ImmutableArray<DepositPreview> deposits = [];
         string? depositsUnavailable = null, rollWithheld = null;
+        // M5 playtest blocker (D-052): no size-mismatch refusal. WorldFounding.HinterlandMeans indexes the disc by the
+        // TERRAIN's size, so on a map founded at a non-canonical size (`--size`, the 256-px dev worlds) the disc read
+        // with the founding path's 1024-px config is this map's own, and the card shows exactly the deposits a colony
+        // founded here is written.
         if (cfg.Goods is not { } goods) depositsUnavailable = "no goods content is loaded";
         else if (water) depositsUnavailable = "no settlement can stand on water";
-        else if (site.Worldgen.SizePx != size)
-            depositsUnavailable = "the founding path's worldgen config describes a " + Inv(site.Worldgen.SizePx) + "-px map and this map is "
-                + Inv(size) + " px, so its deposit function cannot be evaluated here";
         else if (!all && !KnowsDisc(knowledge, size, x, y, radiusPx))
             depositsUnavailable = "the hinterland a settlement here would draw on reaches ground you have not discovered";
         else
@@ -749,6 +750,4 @@ public static class SiteAssessment
         }
         return true;
     }
-
-    private static string Inv(long v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
 }

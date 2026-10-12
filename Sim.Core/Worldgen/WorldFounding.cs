@@ -361,11 +361,23 @@ public static class WorldFounding
     /// the pair <see cref="AddDepositsForSite"/> wrote that settlement's deposits
     /// from; evaluated anywhere else it is what a settlement founded there would
     /// get, before the per-good spread. The radius is in PIXELS.
+    ///
+    /// M5 playtest blocker (D-052): the disc is indexed by the TERRAIN's own size
+    /// (<see cref="TerrainSet.Size"/>), never by <paramref name="cfg"/>'s sizePx.
+    /// A world founded at a non-canonical size (`--size`, the 256-px dev preset)
+    /// is stepped by a pipeline whose ColonizationSystem holds worldgen.json's
+    /// 1024-px config; indexed by that config's size, a colony's disc was read
+    /// from other cells and, for a site in a 256-px map's bottom rows, past the
+    /// raster (IndexOutOfRangeException at End Turn). Where the two sizes agree —
+    /// every canonical world, every consistently configured rig — the cells read,
+    /// and so the means, are bit-identical to before. <paramref name="cfg"/> is no
+    /// longer read here; it stays in the signature so every caller keeps naming
+    /// the config its radius (<see cref="HinterlandRadiusPx"/>) comes from.
     /// </summary>
     public static (double Moisture, double Elevation) HinterlandMeans(
         TerrainSet t, WorldgenConfig cfg, int site, double radiusPx)
     {
-        int size = cfg.SizePx;
+        int size = t.Size;
         int cx = site % size, cy = site / size;
         int r = (int)radiusPx;
         double r2 = radiusPx * radiusPx;

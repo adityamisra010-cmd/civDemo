@@ -77,11 +77,17 @@ jobs:
         # CRLF and `cd /d "%~dp0"`: the launcher forces cwd to ITS OWN
         # directory — the zip root — so `runs/` lands beside the launcher and
         # not inside app/. `start ""` inherits that cwd for the child.
+        # D-052 §13 (Director, 2026-10-12): the playtest launcher starts the game with ONE AI Empire
+        # (`--ai-empires 1`), so the AI's founding, research and taxation are in the played game. worldgen.json's
+        # default (0) and every golden are unchanged; the session's manifest and log name (…-a1.bin) record the
+        # override. The exe without the flag (run from a terminal) still founds worldgen.json's count.
         run: |
           set -e
-          printf '@echo off\r\ncd /d "%%~dp0"\r\nstart "" "app\\Sim.Ui.exe"\r\n' \
+          printf '@echo off\r\ncd /d "%%~dp0"\r\nstart "" "app\\Sim.Ui.exe" --ai-empires 1\r\n' \
             > "publish/sim-ui-win-x64/Play civ-sim.cmd"
           cat "publish/sim-ui-win-x64/Play civ-sim.cmd"
+          grep -q -- '--ai-empires 1' "publish/sim-ui-win-x64/Play civ-sim.cmd" \
+            || { echo "launcher does not pass --ai-empires 1"; exit 1; }
 
       - name: Assert the publish is complete (director hardening, T1.7)
         # An empty or partial publish must never go green: the exe and every

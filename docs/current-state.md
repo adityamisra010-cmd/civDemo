@@ -1,5 +1,49 @@
 # CURRENT STATE — the routing document
 
+> **2026-10-12: D-052 recorded, and the two playtest blockers fixed, on `m5w-integration`** (two commits on
+> `f0427d2`, pushed to the new branch `claude/m5-playtest-d052` for the playtest build with the Director's authorization).
+> - `claude/new-session-yavghm` is untouched at `2dc6af2`.
+> - NOT merged, and M5 is NOT complete.
+> - The packets' acceptance and any merge to `main` are still the Director's.
+> - **The Director's 2026-10-12 rulings are recorded:** `docs/d052-m5-integration-audit-rulings.md`, with dated
+>   pointers in the records it supersedes. In summary:
+>   - ADR-036 and ADR-037 are RATIFIED as drafted, ADR-036 §8 (g)–(i) and the S1c re-pins included.
+>   - CR-020 is RULED: §A is the guard plus the approved primitive-tools direction, mechanism deferred; under §B,
+>     time-averaged weather stays on, every frozen calibration reference is preserved, and the two reds are
+>     disclosed.
+>   - CR-017 §3/§5 are scheduled for M7, and the CR stays OPEN.
+>   - D-051 §1(a), §2, §3 and §6, and primitive toolmaking, are deferred until after the playtest.
+>   - Fog and scouts go to M6; the visual milestone is placed at M6; movement and Action Points go to M7.
+>   - The unit-display reading is agreed, but NOT built.
+>   - The Spine's M5 items (budget, authority, laws-lite) are deferred, with destination unruled.
+>   - The playtest launcher uses `--ai-empires 1`.
+>   - `--size` must found correctly.
+>   - Old saves from another build are refused with a clear error.
+> - **Still open** (D-052 §14): ADR-035 P-F1/P-F0; acceptance of the 18 m5w packets and W0; publication (`2dc6af2`
+>   is the accepted remote baseline); the Spine items' destination; G9; the viewport fit; the shortcut's deposit
+>   highlight.
+> - **Playtest blockers fixed (code):**
+>   - `--size` founding: `WorldFounding.HinterlandMeans` indexes by the terrain's own size. It used to read the wrong
+>     cells and crash End Turn for bottom-row sites; that was reproduced, for example with `--seed 1 --size 256
+>     --ai-empires 1` at turn 180.
+>   - Cross-build resume: `SessionIncompatibleException` gives a clear error with exit code 3 and a best-effort native
+>     dialog, instead of an unhandled crash (`Sim.Ui/ResumeRefusal.cs`, `Sim.Ui/NativeErrorDialog.cs`).
+>   - The canonical founded golden `937577ff…` is unchanged, and no pin moved.
+> - **Playtest launcher:** `.github/workflows/ui-artifact.yml` writes `start "" "app\Sim.Ui.exe" --ai-empires 1`.
+> - **Known issues for the playtest:** `docs/m5-playtest-known-issues.md`.
+> - **MEASURED on this tree** (a scratch clone at `f0427d2` carrying the identical diff before it was committed, Release):
+>   build 0 warnings / 0 errors; banned-constructs, read-isolation and readonly-proof gates OK; three research
+>   `--check`s current; **Sim.Tests 1,703 passed / 2 failed / 13 skipped (1,718)** — the 2 failures are exactly the
+>   ruled CR-020 reds (`Dev_MalthusCorridors_AllInBand` seed 42: 8.71773E-05 below 0.75 × 0.000248624; seed 7: 124,455
+>   above 119,000); **Sim.Ui.Tests 845 / 845**; `--smoke --monkey 300` PASSED (12 states, 2,896 checks, 0 FAIL);
+>   ci.yml cross-process legs reproduced — orderless 400, ordered + replay 400, founded 300 = `937577ff…` (the pinned
+>   golden), founded replay, found-settlement leg (inspect VERIFIED 301 turns), AI leg (296 orders, kinds 3–9, inspect
+>   VERIFIED 601 turns, `7f374638…`).
+> - **NOT measured when this was written:** CI and the Windows smoke on the pushed commit (see its GitHub Actions runs),
+>   and the native dialog on Windows.
+>
+> Verify against git.
+
 > **2026-10-11: M5 map / exploration / settlement workstream, `m5w-integration` @ `6b624d45` (LOCAL, NOT pushed,
 > NOT merged).**
 > This entry records MEASURED facts only. It was written by packet W0 (branch `m5w-w0-docs`). It names no base for the

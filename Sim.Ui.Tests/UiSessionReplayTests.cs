@@ -211,7 +211,8 @@ public class UiSessionReplayTests
     }
 
     /// <summary>Runs <c>dotnet Sim.Ui.dll args…</c> from the test's output directory (the PreviewToolProcessTests
-    /// recipe), bounded by <paramref name="limit"/>: a hang is reported as non-termination (ADR-015 §7.1).</summary>
+    /// recipe), bounded by <paramref name="limit"/>: a hang is reported as non-termination (ADR-015 §7.1). D-052: with
+    /// <see cref="ResumeLaunch.NoDialogVariable"/> set, so a refused resume never opens the native (modal) dialog.</summary>
     private static (int Exit, string Out, string Err) RunSimUi(TimeSpan limit, params string[] args)
     {
         var psi = new System.Diagnostics.ProcessStartInfo("dotnet")
@@ -221,6 +222,7 @@ public class UiSessionReplayTests
             UseShellExecute = false,
             WorkingDirectory = AppContext.BaseDirectory,
         };
+        psi.Environment[ResumeLaunch.NoDialogVariable] = "1";
         psi.ArgumentList.Add(Path.Combine(AppContext.BaseDirectory, "Sim.Ui.dll"));
         foreach (string a in args) psi.ArgumentList.Add(a);
         using System.Diagnostics.Process p = System.Diagnostics.Process.Start(psi)!;
@@ -249,6 +251,162 @@ public class UiSessionReplayTests
             Assert.Equal(2, exit);
             Assert.Equal("error: " + cli, stderr.TrimEnd('\r', '\n'));
             Assert.DoesNotContain("resumed ", stdout, StringComparison.Ordinal);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    // ---------------------------------------------------------------------------------------------------------
+    // M5 playtest blocker (D-052) — THE --resume LAUNCH REPORTS EVERY REFUSAL, VISIBLY. ResumeLaunch.Attempt is what
+    // Program.cs runs for --resume: the stderr report and exit code (2 for the ADR-034 order checks, exactly as
+    // before; 3 for a session another build recorded), and the dialog callback (the native message box in the game,
+    // a recorder here — never the native dialog in a test).
+    // ---------------------------------------------------------------------------------------------------------
+
+    /// <summary><see cref="WriteSession"/>'s clean session, rewritten as build 2dc6af2 on win-x64 recorded it: the
+    /// manifest names that build and the trace's hashes are not this build's (the stand-in fixture,
+    /// <see cref="ChronicleAndResumeTests.RecordTraceUnderAnotherSchema"/>, under the SAME schema).</summary>
+    private static string WriteSessionOfAnotherBuild(string dir)
+    {
+        string manifest = WriteSession(dir, _ => null, out _, out _);
+        ChronicleAndResumeTests.RecordBuild(manifest, "2dc6af2", "2026-10-11", "win-x64");
+        string[] traces = Directory.GetFiles(dir, "trace-*.csv");
+        Assert.Single(traces);
+        ChronicleAndResumeTests.RecordTraceUnderAnotherSchema(traces[0]);
+        return manifest;
+    }
+
+    [Fact]
+    public void TheResumeLaunch_OfASessionAnotherBuildRecorded_ReportsTheIncompatibility_ToStderrAndTheDialog_WithExitCode3()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), $"d052-launch-incompatible-{Environment.ProcessId}-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(dir);
+        try
+        {
+            string manifest = WriteSessionOfAnotherBuild(dir);
+            string[] before = ChronicleAndResumeTests.Fingerprint(dir);
+            SessionIncompatibleException expected = Assert.Throws<SessionIncompatibleException>(() => UiSession.Resume(manifest, out _));
+
+            var stderr = new StringWriter();
+            var dialogs = new List<(string Title, string Message)>();
+            UiSession? resumed = ResumeLaunch.Attempt(manifest, stderr, (t, m) => dialogs.Add((t, m)), out string log, out int exit);
+
+            Assert.Null(resumed);
+            Assert.Equal(ResumeLaunch.SessionIncompatibleExitCode, exit);
+            Assert.Equal(3, exit);
+            Assert.Equal("", log);
+            string err = stderr.ToString();
+            Assert.StartsWith("error: This saved session cannot be resumed with this build." + Environment.NewLine, err, StringComparison.Ordinal);
+            var want = new System.Text.StringBuilder();
+            want.Append("error: ").Append(expected.Lines[0]).Append(Environment.NewLine);
+            for (int i = 1; i < expected.Lines.Count; i++) want.Append("  ").Append(expected.Lines[i]).Append(Environment.NewLine);
+            Assert.Equal(want.ToString(), err);
+            Assert.Contains("2dc6af2", err, StringComparison.Ordinal);
+            Assert.Contains("start a new game", err, StringComparison.Ordinal);
+
+            Assert.Single(dialogs);   // exactly once, with the same text
+            Assert.Equal(ResumeLaunch.DialogTitle, dialogs[0].Title);
+            Assert.Equal(expected.Message, dialogs[0].Message);
+            Assert.Equal(before, ChronicleAndResumeTests.Fingerprint(dir));
+
+            // A dialog that cannot be shown changes nothing: the stderr report and the exit code stand.
+            var stderr2 = new StringWriter();
+            Assert.Null(ResumeLaunch.Attempt(manifest, stderr2, (_, _) => throw new DllNotFoundException("SDL2"), out _, out int exit2));
+            Assert.Equal(3, exit2);
+            Assert.Equal(err, stderr2.ToString());
+            // ...and no dialog callback at all (CIV_UI_NO_DIALOG) is the same report.
+            var stderr3 = new StringWriter();
+            Assert.Null(ResumeLaunch.Attempt(manifest, stderr3, null, out _, out int exit3));
+            Assert.Equal(3, exit3);
+            Assert.Equal(err, stderr3.ToString());
+            Assert.Equal(before, ChronicleAndResumeTests.Fingerprint(dir));
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void TheResumeLaunch_OfALogTheOrderChecksReject_StillPrintsTheCliDiagnosticWithExitCode2_AndNowShowsItToo()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), $"d052-launch-rejected-{Environment.ProcessId}-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(dir);
+        try
+        {
+            string manifest = WriteSession(dir, w => Forge("forged actor, delivered", w), out OrderLog forged, out _);
+            string? cli = CliReplayDiagnostic(forged, ForgedSessionTurns);
+            Assert.NotNull(cli);
+
+            var stderr = new StringWriter();
+            var dialogs = new List<(string Title, string Message)>();
+            UiSession? resumed = ResumeLaunch.Attempt(manifest, stderr, (t, m) => dialogs.Add((t, m)), out _, out int exit);
+
+            Assert.Null(resumed);
+            Assert.Equal(2, exit);   // Cli.Guard's code, unchanged
+            Assert.Equal("error: " + cli + Environment.NewLine, stderr.ToString());   // Cli.Guard's line, unchanged
+            Assert.Single(dialogs);
+            Assert.Equal(ResumeLaunch.DialogTitle, dialogs[0].Title);
+            Assert.Equal(ResumeLaunch.OrderLogRejectedDialog(cli!), dialogs[0].Message);
+            Assert.Contains(cli!, dialogs[0].Message, StringComparison.Ordinal);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void TheResumeLaunch_OfThisBuildsOwnSession_ResumesIt_WithNoReportAndNoDialog()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), $"d052-launch-own-{Environment.ProcessId}-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(dir);
+        try
+        {
+            string manifest = WriteSession(dir, _ => null, out _, out UiSession live);
+            var stderr = new StringWriter();
+            var dialogs = new List<(string Title, string Message)>();
+            UiSession? resumed = ResumeLaunch.Attempt(manifest, stderr, (t, m) => dialogs.Add((t, m)), out string log, out int exit);
+
+            Assert.NotNull(resumed);
+            Assert.Equal(0, exit);
+            Assert.Equal("", stderr.ToString());
+            Assert.Empty(dialogs);
+            Assert.Equal(Path.Combine(dir, "orders-20261010-120000-s256-n4.bin"), log);
+            Assert.Equal(live.World.Clock.Turn, resumed.World.Clock.Turn);
+            Assert.Equal(WorldHash.ComputeHex(live.World), WorldHash.ComputeHex(resumed.World));
+            Assert.Equal(live.TraceLines.ToArray(), resumed.TraceLines.ToArray());
+            Assert.Empty(resumed.ResumeNotice);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    /// <summary>The real exe: Program.cs routes --resume through <see cref="ResumeLaunch"/>, so a session another build
+    /// recorded ends the launch with the incompatibility report on stderr and exit code 3 — not an unhandled exception
+    /// (exit 134 on Linux, as measured on f0427d2) — before any window opens, and the session files are unchanged.</summary>
+    [Fact]
+    public void TheUiResumeLaunch_OfASessionAnotherBuildRecorded_ExitsWith3AndTheReport_BeforeAnyWindowOpens()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), $"d052-resume-launch-{Environment.ProcessId}-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(dir);
+        try
+        {
+            WriteSessionOfAnotherBuild(dir);
+            string[] before = ChronicleAndResumeTests.Fingerprint(dir);
+
+            (int exit, string stdout, string stderr) = RunSimUi(TimeSpan.FromMinutes(3), "--resume", dir);
+            Assert.Equal(3, exit);
+            Assert.StartsWith("error: This saved session cannot be resumed with this build.", stderr, StringComparison.Ordinal);
+            Assert.Contains("recorded by build 2dc6af2 (2026-10-11, win-x64)", stderr, StringComparison.Ordinal);
+            Assert.Contains("a different world from turn 1,", stderr, StringComparison.Ordinal);
+            Assert.DoesNotContain("Unhandled exception", stderr, StringComparison.Ordinal);
+            Assert.DoesNotContain("resumed ", stdout, StringComparison.Ordinal);
+            Assert.Equal(before, ChronicleAndResumeTests.Fingerprint(dir));
         }
         finally
         {

@@ -143,19 +143,18 @@ if (Array.IndexOf(args, "--player-views-preview") >= 0)
 // S0 (ADR-034 §4 adopted): the replay runs the CLI's order checks, and a log they reject ends the launch with the
 // diagnostic and exit code `sim replay` gives (Cli.Guard: "error: <message>", 2) — before any window opens. A session
 // recorded under another schema is resumed by replay without the trace check (D-008) and says so, here and in-game.
+// M5 playtest blocker (D-052): a session another build recorded under THIS schema, whose replay here diverges from its
+// saved trace, is refused as incompatible — "error: This saved session cannot be resumed with this build." and the
+// reasons on stderr, exit code 3 — instead of ending the launch with an unhandled exception. Sim.Ui is a GUI exe whose
+// stderr a Windows player never sees, so both refusals are also shown in a native error dialog (best effort).
 if (Sim.Ui.UiArgs.ResumePath(args) is { } resumeArg)
 {
     string manifestPath = Sim.Ui.UiArgs.ResolveManifest(resumeArg);
-    Sim.Ui.UiSession resumed;
-    string resumedLog;
-    try
+    Sim.Ui.UiSession? resumed = Sim.Ui.ResumeLaunch.Attempt(
+        manifestPath, Console.Error, Sim.Ui.ResumeLaunch.NativeDialog(), out string resumedLog, out int refusal);
+    if (resumed is null)
     {
-        resumed = Sim.Ui.UiSession.Resume(manifestPath, out resumedLog);
-    }
-    catch (OrderValidationException e)
-    {
-        Console.Error.WriteLine($"error: {e.Message}");
-        Environment.ExitCode = 2;
+        Environment.ExitCode = refusal;
         return;
     }
     Console.WriteLine($"resumed {manifestPath} at turn {resumed.TurnsPlayed}");

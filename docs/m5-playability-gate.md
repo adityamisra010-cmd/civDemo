@@ -967,6 +967,9 @@ worldgen config, and `WorldFounding.HinterlandMeans` indexes by the CONFIG's `si
 from other cells (measured), and `HinterlandMeans` throws for a site in a small map's bottom rows (measured on the
 function directly). The card refuses to evaluate deposits under such a mismatch
 instead of reading the wrong cells.
+*(2026-10-12 — FIXED by the D-052 playtest-blocker pass: `HinterlandMeans` indexes by the terrain's own size, and
+this refusal is lifted; on a `--size` map the card evaluates deposits exactly as the founding writes them. Record:
+`docs/queue.md`, the P8 size-mismatch entry.)*
 
 **Mutant kill record.** One-edit mutants, each built and run against a filter (core: SiteAssessmentTests +
 InfoQueryTests — 30 tests, clean 16 s, bound 120 s = 7.5×; UI: InfoPanelTests — 21 tests, clean 29 s, bound 240 s ≈
@@ -1099,7 +1102,7 @@ orders unchanged.
 | row | states | what it checks |
 |---|---|---|
 | `overlays (unfold: its tab)` | all 10 | the controls unfold; every layer's checkbox and both opacity steps drawn; nothing painted yet |
-| `<layer> (show: its checkbox)` × 6 | all 10 | shown; drawn (or, for a channel on a map the founding config does not describe, "Not evaluated" in the key); every node drawn known; the key names the layer, its measure, a channel's goods and the abundance statement, has the Discovered / Present / Accessible / Extractable rows, lies inside the clear map, is in FrameText (lens); no tooltip |
+| `<layer> (show: its checkbox)` × 6 | all 10 | shown; drawn (or, for a channel on a map the founding config does not describe, "Not evaluated" in the key — *since D-052 (2026-10-12) only when no goods content is loaded*); every node drawn known; the key names the layer, its measure, a channel's goods and the abundance statement, has the Discovered / Present / Accessible / Extractable rows, lies inside the clear map, is in FrameText (lens); no tooltip |
 | `<layer> (hide: its checkbox)` × 6 | all 10 | not shown, nothing of the overlay painted, the key's title in no lens text |
 | `overlay opacity (-: one tenth less)`, `(+: one tenth more)` | all 10 | the opacity moves one tenth and the deepest fill drawn is exactly that opacity's alpha |
 | `overlays (fold: its tab)` | all 10 | the controls fold |
@@ -1156,6 +1159,8 @@ D-051 §2 (ratified, not built), which will replace the deposit function the ove
 claim legality are not layers: they are per site and per turn, on P8's card and S1d's placement mode. On a map whose
 size differs from the founding path's worldgen config (the 256-px dev worlds) the channel layers say "Not evaluated"
 (P8's rule; the pre-existing size-mismatch defect in `docs/queue.md`).
+*(2026-10-12 — no longer so: the size-mismatch defect is fixed and the rule lifted (D-052 §13); a 256-px map's
+channel layers are evaluated on its own cells.)*
 
 ### 3.9 The resource 'now usable' shortcut (M5 workstream P10, 2026-10-11)
 
