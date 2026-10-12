@@ -27,6 +27,9 @@ the conflict and this ruling.
 > **2026-10-10 — 1(b) implemented** on `m5p-d051-fixes` (time-averaged decade weather; 1(a) not yet). It moves two
 > frozen dev-corridor teeth; escalated in `docs/adr/cr-020-d051-tools-and-weather-vs-measured-behaviour.md` §B.
 
+> **2026-10-12 — §1(a) DEFERRED until after the M5 playtest** (`docs/d052-m5-integration-audit-rulings.md` §10); the
+> ruling stays ratified. §1(b) stays ON and its two red dev-corridor teeth are ruled in CR-020 §B (D-052 §9).
+
 ## 2. Resources: common floor plus regional richness, so that expansion pays
 
 Measured: stone rides the raw elevation channel with no floor. At 38 % of founded settlements it is
@@ -43,6 +46,9 @@ Ruling:
 - **(c)** The goal is that, **after roughly the first 100–150 turns**, an empire needs more land and
   more cities to get the resources it lacks. Expansion must pay. Rare and strategic goods stay rare.
 
+> **2026-10-12 — §2 DEFERRED until after the M5 playtest** (D-052 §10); the ruling stays ratified. Disclosed for the
+> playtest: stone-poor settlements, and the "now usable" shortcut outlining known land rather than deposits (D-052 §8).
+
 ## 3. Forecast: expected-value, never a read of the actual draw
 
 The player-facing "next turn" food and population forecast is computed by the authoritative
@@ -50,6 +56,9 @@ simulation, stepping a private copy of the world, with **expected weather** (and
 onset). It never reveals the actual next draw. ADR-019 §9.2/9.3 ("a forecast is a model over reality,
 never a read of it") stands. Labour orders take effect one turn late, so the forecast horizon is
 labelled honestly ("your changes act from turn N+2").
+
+> **2026-10-12 — §3 DEFERRED until after the M5 playtest** (D-052 §10); the ruling stays ratified. No next-turn
+> forecast ships in the playtest build.
 
 ## 4. Tools before bronze
 
@@ -61,6 +70,11 @@ queue's head-of-queue semantics are unchanged.
 > **2026-10-10 — not implemented as a recipe.** A plain stone-toolmaking recipe ate every unit of stone and blocked
 > all granaries (measured); the Age I trap is closed instead by making a workshop whose tools cannot be made an
 > illegal order. Options in `docs/adr/cr-020-d051-tools-and-weather-vs-measured-behaviour.md` §A.
+
+> **2026-10-12 — Director (D-052 §11):** the guard stays. The approved direction is a primitive stone-and-wood recipe
+> for the existing tools good, at lower productivity than bronze, with no stone exhaustion and no granary blockage;
+> its mechanism and milestone are deferred until after the playtest. §4 is NOT implemented as a recipe — the
+> 2026-10-10 note under §6 ("Implemented first instead: §4 …") means the guard, not a toolmaking path.
 
 ## 5. Settlers: a player "Found settlement" order in M5
 
@@ -102,6 +116,10 @@ revise it.
 > semantics; it is too broad for the candidate. The schema-free "intra-polity relief pooling" substitute raised in
 > the read-only audit is NOT authorised either — it needs its own design decision. §6 stays ratified and open.
 > Implemented first instead: §4 (pre-bronze toolmaking) and §1(b) (time-averaged decade weather).
+
+> **2026-10-12 — §6 stays DEFERRED until after the Director's M5 playtest** (D-052 §11); no partial pooling or
+> relief-pooling substitute. In the note above, "Implemented first instead: §4 (pre-bronze toolmaking)" is read as
+> the Workshop guard only: no pre-bronze toolmaking path exists (D-052 §11).
 
 ## Not changed by these rulings
 

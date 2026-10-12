@@ -1,9 +1,21 @@
 # ADR-036 — THE FOUND SETTLEMENT ORDER (D-051 §5): ORDER KIND 9, ONE LEGALITY PREDICATE, THE EXISTING FOUNDING PATH
 
-**Status:** PROPOSED — the LEGALITY TERMS in §2 and §3 are the defaults the Director was told the workstream would
-use unless he objects; they await his confirmation. Written 2026-10-10 by packet S1b of the M5 map / exploration /
-settlement workstream (branch `m5w-s1b-found-settlement-order`, cut from `m5w-integration` @ `55640aed`, LOCAL, not
-pushed, not merged).
+**Status:** RATIFIED by the Director, 2026-10-12 (D-052 §2), as drafted. *As first written:* PROPOSED — the LEGALITY
+TERMS in §2 and §3 are the defaults the Director was told the workstream would use unless he objects; they await his
+confirmation. Written 2026-10-10 by packet S1b of the M5 map / exploration / settlement workstream (branch
+`m5w-s1b-found-settlement-order`, cut from `m5w-integration` @ `55640aed`, LOCAL, not pushed, not merged).
+
+> **2026-10-12 — RATIFIED as drafted (`docs/d052-m5-integration-audit-rulings.md` §2).**
+> - The legality terms (§2–§3) and the §7 defaults (a)–(f) are confirmed.
+> - **§8 (g)** is confirmed: the AI rule as shipped (enabled, 500 people, 350 years).
+> - **§8 (h)** is accepted until M6's known extent (D-052 §5). Its measured consequence, a median 953 km colony
+>   distance, is accepted as evidence; no travel budget is added in M5.
+> - **§8 (i)** is accepted: `a4_expansion` met at turn 358 is the milestone's intended reading.
+> - The S1c re-pins in §8.1 are accepted.
+> - This is the kernel sign-off for the `OrderLog.cs` / `OrderValidation.cs` changes.
+>
+> The text below is the proposal as written; "awaits the Director" and "For the Director" lines in it are answered by
+> this note.
 
 **Governing record:** D-051 §5 (`docs/d051-m5-polish-rulings.md`, RATIFIED for M5): *"The player picks one of their
 settlements and an unclaimed, reachable site. A party of colonists leaves with provisions and founds a city that the

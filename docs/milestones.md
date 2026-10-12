@@ -27,6 +27,16 @@ section marked itself superseded. Reworded; the meaning is unchanged.)*
 | M10 | Integrated Civilization Simulation | future |
 | M11+ | Depth & Content Expansion | future (sequence intentionally open) |
 
+> **2026-10-12 — Director (`docs/d052-m5-integration-audit-rulings.md`).** The order and names above are unchanged, and
+> M5 is still NOT complete.
+> - **M6** also carries:
+>   - the visual milestone of D-038 E1 (drawn buildings and institutions, Age-specific terrain, richer unit art; D-052
+>     §6);
+>   - fog of war, scouts and visibility persistence (D-052 §5).
+> - **M7** carries unit movement and Action Points (D-052 §4).
+> - The M5 Dependencies items "budget", "authority" and "laws-lite" are deferred out of the M5 playtest build. Their
+>   destination is not yet ruled (D-052 §12).
+
 ### Dependencies
 
 M0 → … → M11+ is the **build order**, but later systems are not isolated layers bolted on top:

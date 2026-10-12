@@ -1186,3 +1186,22 @@ points (the section itself is kept as written):
   (1699 passed / 2 failed — the inherited CR-020 `Dev_MalthusCorridors_AllInBand` seeds 42 and 7 — / 13
   skipped; nothing in Sim.Core/Sim.Data/Sim.Cli changed since); smoke 12 states, 2896 checks, 0 FAIL; all
   three gate scripts and the three research `--check`s OK.
+
+## 2026-10-12 — Director rulings recorded (D-052): what they settle for this plan
+
+The rulings are recorded in `docs/d052-m5-integration-audit-rulings.md`; this note only routes them to this plan's
+packets (sections above kept as written):
+
+- **W0b is done by D-052** (docs only).
+- **S2a, S2b, S2c (fog, extent, visibility; schema v33):** M6 work, not M5 (D-052 §5). No M5 save-format change.
+- **S3a, S3b, S3c (move order, Action Points, schema v33/v34):** M7 work (D-052 §4); CR-017 §3/§5 are ruled before them.
+- **P5, P12b, P14 (render-only terrain detail, individually drawn institutions, authored silhouettes):** the visual
+  milestone, placed at M6 (D-052 §6).
+- **S1b, S1c, S1d:** ADR-036 RATIFIED as drafted, §8 (g)–(i) and the S1c re-pins included (D-052 §2).
+- **P7:** ADR-037 RATIFIED as drafted (D-052 §3).
+- **P10:** the shortcut decision is closed as built, its known-land outline disclosed (D-052 §8).
+- **P11:** NOT the closed unit-display decision. The agreed reading — one representative per type with its formation
+  count, a combined panel per co-located owner group — is outstanding work (D-052 §7).
+- **Base / publication:** `2dc6af2` (remote) is the accepted publication baseline; nothing is pushed or merged
+  without approval; per-packet acceptance is still unruled (D-052 §14).
+- **CR-020:** ruled (§A guard + deferred direction; §B 1(b) on, reds disclosed) — D-052 §9, §11.

@@ -1,8 +1,24 @@
 # CR-020 — D-051 §4 AND §1(b) AGAINST MEASURED BEHAVIOUR AND TWO FROZEN DEV-CORRIDOR TEETH
 
-**Status: OPEN — ESCALATED TO THE DIRECTOR.** Raised 2026-10-10 on branch `m5p-d051-fixes` (cut from
-`m5p-integration` @ `2dc6af2`) under CLAUDE.md's STOP rule. D-051 asks for this CR ("A CR records the
-conflict and this ruling", §1); none existed. Every number below was MEASURED by the agent raising it.
+**Status: RULED 2026-10-12 (D-052 §9 and §11)** — §A: option 1 for the playtest (the guard), with the approved
+direction recorded and its mechanism deferred; §B: option 3 (1(b) on, both teeth left red, disclosed), calibration to be
+reassessed from measured evidence after the playtest. *As first written:* **OPEN — ESCALATED TO THE DIRECTOR.** Raised
+2026-10-10 on branch `m5p-d051-fixes` (cut from `m5p-integration` @ `2dc6af2`) under CLAUDE.md's STOP rule. D-051 asks
+for this CR ("A CR records the conflict and this ruling", §1); none existed. Every number below was MEASURED by the
+agent raising it.
+
+> **2026-10-12 — Director ruling (`docs/d052-m5-integration-audit-rulings.md` §9, §11).**
+> - **§A:** the Workshop guard (`InputUnobtainable`) stays. The approved direction is a primitive stone-and-wood recipe
+>   that produces the existing tools good at lower productivity than bronze, with no stone exhaustion, no granary
+>   blockage and full Bronze Age productivity preserved. Its mechanism (option 2, option 3 or another) and its
+>   milestone are deferred until after the M5 playtest. Nothing is implemented.
+> - **§B:** time-averaged weather stays ON. Every frozen calibration reference is preserved: the `corridors.json`
+>   bands, the in-test dev envelope [71,000, 119,000], and the per-seed recorded migration values with their 0.75×
+>   tooth. Nothing is widened, waived, re-pinned or reverted. The two failing cases stay red and are disclosed for the
+>   playtest. Calibration is reassessed from measured evidence after the playtest.
+> - **The recommendation below (§B option 1) is NOT adopted now.** The reds still stop a merge to `main` and the M5
+>   exit sweep (GOV-3 B6).
+> - Evidence the audit added is in §B.4.
 
 **Not a request to change D-051.** Both rulings were executed as written. What is escalated is (A) that
 §4's mechanism, as a plain recipe, makes construction worse, and (B) that §1(b), implemented as ruled,
@@ -95,6 +111,30 @@ deliberately").
 
 **Recommendation: 1.** The quarantine exists to catch an unruled loss of flight; this loss is ruled.
 The branch currently carries option 3.
+
+### B.4 Evidence added by the 2026-10-12 integration audit (MEASURED on `m5w-integration` @ `f0427d2`)
+
+- **Seed 7 also fails the migration tooth.** `Dev_MalthusCorridors_AllInBand` calls `AssertMalthusKnownDeviation`
+  before `AssertDevMigrationQuarantine` (`CalibrationBatteryTests.cs:622` / `:623`). Seed 7 throws at the population
+  envelope (`:770`), so its migration teeth never run.
+  - Measured with 1(b) on: seed 7's `dev.migrationGrossPerDecade` = 1.0083155359603418E-04. That is ×0.3497 of the
+    recorded 2.8835491401298867E-04 (`:262`), below its drift floor 2.1627E-04 (`:317`).
+  - §B.2 above reports only seed 7's population and seed 42's migration.
+  - A ruling that re-records only the population envelope would therefore leave seed 7 red.
+- **The 0.75× tooth cannot separate a ruled weather change from a defect.**
+  - Across dev seeds 1–20, the per-seed ratio of 1(b) on to 1(b) off has a median of 0.664 (range 0.281–2.134).
+    13 / 20 seeds fall below 0.75, and 6 / 20 below the 0.536 "disablement signature".
+  - Seed 42 moves ×0.3466 against the switch-off control, and seed 7 ×0.3530.
+  - The drop is mostly in the number of migrants. Seed 42 moved 2,831 → 1,127 people, with person-years ×1.149; seed 7
+    moved 4,033 → 1,670, ×1.173.
+  - The tooth's calibration (×0.836 largest legitimate correction, ×0.536 disablement, `:186-192`) dates from T3.4c and
+    was not re-measured through the later re-pins.
+- **Attribution re-confirmed.** `f0427d2`'s dev world hashes equal `82bde01`'s. With `PreTimeAveragedHarvest` they equal
+  `2dc6af2`'s, and both seeds pass every check. No m5w packet changes the dev calibration world.
+- **The "band may not move" quote in §B.1 is the migration quarantine's docstring (`:159`).** It refers to the
+  `corridors.json` band [0.001, 0.01]. The population range [71k, 119k] is an in-test literal the test calls
+  "re-pinned like a golden", re-pinned four times: [70k, 100k], [68k, 119k], [82k, 138k] and [71k, 119k]. The
+  2026-10-12 ruling treats both, and the per-seed recorded values, as frozen (D-052 §9).
 
 ## Blast radius
 A: `ConstructionQuery`, `InfoQuery`, `AvailableActionsQuery`, `ActionSurfaceModel`; no golden moved.

@@ -1,7 +1,19 @@
 # ADR-037 — THE PLAYER-KNOWLEDGE READ SEAM (ALL-KNOWN) AND THE AI'S INFORMATION CLASS
 
-**Status:** PROPOSED. Written 2026-10-11 by packet P7 of the M5 map / exploration / settlement workstream (branch
-`m5w-p7-player-knowledge-seam`, cut from `m5w-integration` @ `b49ae203`, LOCAL, not pushed, not merged).
+**Status:** RATIFIED by the Director, 2026-10-12 (D-052 §3), as drafted. *As first written:* PROPOSED. Written
+2026-10-11 by packet P7 of the M5 map / exploration / settlement workstream (branch `m5w-p7-player-knowledge-seam`, cut
+from `m5w-integration` @ `b49ae203`, LOCAL, not pushed, not merged).
+
+> **2026-10-12 — RATIFIED as drafted (`docs/d052-m5-integration-audit-rulings.md` §3).**
+> - The one seam, all-known in production, and `Restricted` as a test seam only are confirmed. Player-visible
+>   information is gated by explicit knowledge queries through it.
+> - **Milestone correction (D-052 §5):** full fog, scouts, the LIVE / GHOST / UNKNOWN display, persisted sighting
+>   memory, extent storage and visibility persistence are **M6**, not M7 as §1 below (and the type comment in
+>   `PolityKnowledge.cs`) place GHOST memory.
+> - There is no M5 save-format change (schema v32).
+> - The open channels recorded below are M6's to close.
+>
+> The text below is the proposal as written.
 
 **Governing record:** Spine principle 7 (frozen; `docs/civ-sim-architecture-v3-outline.md`: AI actors use the player's
 verbs and information class — information asymmetry is permitted, rule asymmetry is not); the Director's P7 addition

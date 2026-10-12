@@ -5,6 +5,12 @@ been changed.** Raised under S8 §3 (`spine-s8-governance-freeze.md:37`) by D-04
 (`docs/d043-civilization-progression-ages-and-mobile-agents.md`), the Director's rulings of
 2026-09-29.
 
+> **2026-10-12 — SCHEDULING ruling, not a ruling on substance (`docs/d052-m5-integration-audit-rulings.md` §4).**
+> - Unit movement orders, Action Points / Action Capacity and right-click move are deferred to **M7 Battle Layer**.
+> - §3 (its Action Capacity half) and §5 (off-road movement) are therefore M7's, and must be ruled before any M7 movement
+>   packet. No collision below is resolved, and this CR stays OPEN.
+> - The m5w plan's S3a–S3c packets are M7's, not M5's.
+
 S8 §2 prices a Director override: it *"exists — it is your project. But it costs a written ADR
 stating what breaks, which tests and docs change, and the schedule price"*
 (`spine-s8-governance-freeze.md:33`). D-043 is a decision record, not that ADR. This CR prices

@@ -16,6 +16,12 @@ queue lines T4.21-2 (turn-2 vacancy refusal) and T4.21-6 (turn-2 REFUGEES REFUSE
 > red on the old scheme). Reverting would cost a re-pin of every chained golden for no behavioural gain.
 > P-F1 and P-F0 were recommended for acceptance in the same review (P-F1 closes the ADR-025 §2.4a deviation; P-F0 is
 > ordinary engineering under D-004); they ship in the playtest candidate. The text below is the proposal as written.
+>
+> **2026-10-12 — still UNRULED: P-F1 and P-F0** (`docs/d052-m5-integration-audit-rulings.md` §14).
+> - The 2026-10-12 rulings did not rule them. They ship in the M5 integration build (`m5w-integration`) on the
+>   2026-10-10 review's recommendation only.
+> - ADR-025's and `docs/queue.md`'s records that close their deviations read as provisional until the Director rules.
+> - The status line above stays PROPOSED for those two parts.
 
 **Touches:** `Sim.Core/Systems/Production/ProductionSystem.cs` (`Farm`, the land side of the Leontief
 minimum) and the type comment of `Sim.Core/State/FoodHeadroom.cs`. No schema change, no kernel change, no
