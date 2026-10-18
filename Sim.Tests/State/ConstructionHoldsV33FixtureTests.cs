@@ -20,10 +20,10 @@ namespace Sim.Tests.State;
 ///
 /// ONLY ONE CLAIM IS EXACT (X1): IN THE SHIPPED PIPELINE ORDER (construction before roaddevelopment, pinned by
 /// ConstructionHoldsSchemaV34Tests.TheShippedPipeline_RunsConstructionBeforeRoadDevelopment) section 61 is never read before
-/// construction rebuilds it, and every comparator below steps with the shipped executor. (In an order that runs road
-/// development first the table is read as loaded, so a migrated v33 world and a v34 save of the same state continue
-/// differently — SystemCatalog.RoadDevelopment's ownership paragraph; pinned by
-/// ConstructionReservationTests.TheV33Migration_IsExactInTheShippedOrder_ARoadFirstOrderReadsTheMigratedWorldsEmptyTable.)
+/// construction rebuilds it, and every comparator below steps with the shipped executor. (Until D-056 an order that ran road
+/// development first read the table as loaded, so a migrated v33 world and a v34 save of the same state continued
+/// differently; the executor now refuses that order — SystemCatalog.RoadDevelopment's ownership paragraph; pinned by
+/// ConstructionReservationTests.TheV33Migration_IsExactInEveryPipelineThatComposes_TheRoadFirstOrderIsRefused.)
 /// Therefore a migrated v33 world
 /// equals the world a <see cref="TestConfigs.PreReservations"/> run reaches at the same turn K (PreReservations publishes
 /// nothing), and stepped by the SHIPPED executor it continues exactly as that PreReservations world at K stepped by the

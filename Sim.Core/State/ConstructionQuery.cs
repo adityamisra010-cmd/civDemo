@@ -412,11 +412,13 @@ public static partial class ConstructionQuery
         for (int o = 0; o < pending.Count; o++)
         {
             OrderRecord order = pending[o];
-            if (order.Kind != OrderKind.CancelConstruction) continue;
-            if (!CancelOrderValid(world, order, (IReadOnlyTable<ConstructionQueueRow>?)queue ?? world.ConstructionQueue)) continue;
+            if (!IsCancel(order.Kind)) continue;
+            if (!CancelOrderValid(world, order, (IReadOnlyTable<ConstructionQueueRow>?)queue ?? world.ConstructionQueue,
+                    (IReadOnlyTable<ConstructionProgressRow>?)book ?? world.ConstructionProgress)) continue;
             queue ??= Copy(world.ConstructionQueue);
             book ??= CopyProgress(world.ConstructionProgress);
-            RemoveEntry(queue, book, new SettlementId(order.TargetId), (int)order.Amount);
+            int target = CancelTargetIndex(queue, book, order);
+            RemoveEntry(queue, book, new SettlementId(order.TargetId), queue[target].Slot);
         }
         // 2. Then enqueues, in batch order.
         for (int o = 0; o < pending.Count; o++)

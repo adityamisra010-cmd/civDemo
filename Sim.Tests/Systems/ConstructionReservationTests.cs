@@ -560,7 +560,7 @@ public class ConstructionReservationTests
         // The AI decides on t2: its heads at S0 (no builders, adults present: a valid wait) and S3 (held back by S0's hold)
         // are not structurally stalled, so it cancels neither.
         OrderRecord[] ai = AiConstructionPolicy.Decide(t2, Cfg, Rival, 10.0);
-        Assert.DoesNotContain(ai, o => o.Kind == OrderKind.CancelConstruction);
+        Assert.DoesNotContain(ai, o => ConstructionQuery.IsCancel(o.Kind));   // D-056: either cancel kind
         Assert.Null(ConstructionQuery.StructuralStall(t2, Cfg, S3, 10.0));
         Assert.Null(ConstructionQuery.StructuralStall(t2, Cfg, S0, 10.0));
     }
@@ -1456,32 +1456,32 @@ public class ConstructionReservationTests
         Assert.Equal(b == 100 ? 0L : 682_926L, P(next, S1));
     }
 
-    /// <summary>#22 ORDER IS DATA (L3-07; re-rigged in T1a round 2, 2026-10-16: the kernel is frozen, so there is no kernel edge
-    /// — road development is handed construction's NEXT ConstructionHolds read-only (SystemCatalog) and reads it AS IT STANDS
-    /// when it runs). t1 is the split rig (63 timber) after one CONSTRUCTION-ONLY step — no road development in it, so the
-    /// premise cannot depend on what road works read: S1's works completes on 41 timber and S0's waiting granary sets aside
-    /// the remaining 22 timber and 11 stone; the purse holds exactly 22 timber, all of it at S2, and the route is untouched
-    /// (60 timber). NEXT then carries into the next step (the kernel's PREV → NEXT copy) one of four tables: t1's own
-    /// published rows (22 timber), a LOADED SAVE's rows (10 timber in purse 1, through Snapshot.Save/Load), a loaded save's
-    /// SINGLE-SETTLEMENT row (10 of S2's timber in S2's own purse, key −1 − 2: the purse kind that also floors its donor) or
-    /// none. A road order is then delivered:
+    /// <summary>#22 THE SAME-STEP EDGE (L3-07; re-rigged in T1a round 2, 2026-10-16, when it pinned "order is data": road
+    /// development read construction's NEXT ConstructionHolds AS IT STOOD when it ran, so a road-first pipeline read the
+    /// previous step's or a loaded save's rows. D-056, 2026-10-18: the read is a DECLARED edge
+    /// (SystemRegistration.ReadsThisStepFrom) and the executor refuses a pipeline that runs road development before
+    /// construction while the hold rule applies — so no pipeline that composes can read a stale table). t1 is the split rig
+    /// (63 timber) after one CONSTRUCTION-ONLY step: S1's works completes on 41 timber and S0's waiting granary sets aside
+    /// the remaining 22 timber and 11 stone; the purse holds exactly 22 timber, all of it at S2. NEXT then carries into the
+    /// next step one of four tables: t1's own published rows, a LOADED SAVE's rows (10 timber in purse 1, through
+    /// Snapshot.Save/Load), a loaded save's SINGLE-SETTLEMENT row (10 of S2's timber in S2's own purse) or none. A road
+    /// order is then delivered:
     /// <list type="bullet">
     /// <item>THE SHIPPED ORDER (construction, then roaddevelopment): construction clears the table and publishes THIS step's
     ///   set-aside (22), so road works get 22 − 22 = 0, whatever was carried in;</item>
-    /// <item>A NON-SHIPPED ORDER (roaddevelopment before construction, or without it): road development reads the carried
-    ///   table — 22 − 22 = 0, 22 − 10 = 12 (either loaded row; S2, floored at 10, gives 12), 22 − 0 = 22 units — and never
-    ///   writes it (alone, NEXT keeps the carried rows);</item>
-    /// <item>the hold rule OFF (PreReservations): the table is ignored in any order, for BOTH purse kinds — 22 units with
-    ///   either loaded save's rows (T1a round 2 fix, 2026-10-17, finding T1a-r2-L1-T1a-r2-V1-F4: a rule-off gate covering
-    ///   Empire-purse rows only, single-settlement rows still subtracted and flooring S2, charged 12 here — MEASURED, mutant
-    ///   N5 — and passed every other row).</item>
+    /// <item>ROAD DEVELOPMENT FIRST (reversed): REFUSED when the pipeline is composed, naming both systems and their
+    ///   positions — before D-056 it charged 0, 12, 12 or 22 units by what was carried in;</item>
+    /// <item>ROAD DEVELOPMENT WITHOUT CONSTRUCTION (a test composition: no same-step producer): accepted, and it reads the
+    ///   table as the world carries it and never writes it;</item>
+    /// <item>the hold rule OFF (PreReservations): no edge is declared and the table is ignored in any order, for BOTH purse
+    ///   kinds — 22 units (T1a round 2 fix, 2026-10-17, finding T1a-r2-L1-T1a-r2-V1-F4, mutant N5).</item>
     /// </list></summary>
     [Theory]
     [InlineData("published", 0L)]
     [InlineData("loaded", 12L)]
     [InlineData("single", 12L)]
     [InlineData("none", 22L)]
-    public void TheEdgeOrderIsData_TheShippedOrderReadsThisStepsHolds_AnotherOrderReadsTheTableAsItStands(string carried, long otherOrder)
+    public void TheSameStepEdge_TheShippedOrderReadsThisStepsHolds_ARoadFirstPipelineIsRefused(string carried, long alone)
     {
         WorldState t1 = ConstructionOnly(Shipped, null).Step(SplitRig(timber: 63));   // S1 completes on 41; S0 sets aside 22 / 11
         Assert.Equal([Row(PlayerPurse, Timber, 22), Row(PlayerPurse, Stone, 11)], Holds(t1));
@@ -1506,12 +1506,16 @@ public class ConstructionReservationTests
 
         const string B = ConstructionSystem.Name;                                  // the pipelines, as pipeline.json names
         const string R = Sim.Core.Systems.Roads.RoadDevelopmentSystem.Name;          // them, built from each arm's config
-        long Charged(SimConfig cfg, string[] order, out WorldState next)
+        SystemRegistration[] Pipeline(SimConfig cfg, string[] order)
         {
             var pipeline = new SystemRegistration[order.Length];
             for (int i = 0; i < order.Length; i++)
                 pipeline[i] = order[i] == B ? SystemCatalog.Construction(cfg) : SystemCatalog.RoadDevelopment(cfg);
-            next = new TurnExecutor(ResearchRigs.FlatEra(10.0), pipeline, Log(Roads(1))).Step(prev);
+            return pipeline;
+        }
+        long Charged(SimConfig cfg, string[] order, out WorldState next)
+        {
+            next = new TurnExecutor(ResearchRigs.FlatEra(10.0), Pipeline(cfg, order), Log(Roads(1))).Step(prev);
             long u = 0;
             for (int i = 0; i < next.RoadDevelopments.Count; i++)
                 if (next.RoadDevelopments[i].Turn == 1) u += next.RoadDevelopments[i].MaterialUnits;
@@ -1521,15 +1525,19 @@ public class ConstructionReservationTests
         // The shipped order: this step's set-aside, recomputed by construction from what exists (22 of 22).
         Assert.Equal(0L, Charged(Shipped, [B, R], out WorldState shippedNext));
         Assert.Equal([Row(PlayerPurse, Timber, 22), Row(PlayerPurse, Stone, 11)], Holds(shippedNext));
+        Assert.Equal(new[] { B }, SystemCatalog.RoadDevelopment(Shipped).ReadsThisStepFrom);
 
-        // Another order: the table as it stands when road development runs — the carried rows.
-        Assert.Equal(otherOrder, Charged(Shipped, [R, B], out WorldState reversedNext));
-        Assert.Equal(22L - otherOrder, TotalOf(reversedNext, Timber));
-        Assert.Equal(otherOrder, Charged(Shipped, [R], out WorldState aloneNext));
-        Assert.Equal(Holds(prev), Holds(aloneNext));                               // read, never written
-        AssertConserved(reversedNext);
+        // Road development first: refused when composed, before any step.
+        var refused = Assert.Throws<PipelineFormatException>(() => new TurnExecutor(ResearchRigs.FlatEra(10.0), Pipeline(Shipped, [R, B]), Log(Roads(1))));
+        Assert.Contains($"'{R}' (position 1) reads the table '{B}' writes in the same step, so '{B}' must run before it, but it is at position 2", refused.Message);
 
-        // The rule off: the table is ignored, in the shipped order and in any other.
+        // No producer in the pipeline: the table as the world carries it, read and never written.
+        Assert.Equal(alone, Charged(Shipped, [R], out WorldState aloneNext));
+        Assert.Equal(Holds(prev), Holds(aloneNext));
+        AssertConserved(aloneNext);
+
+        // The rule off: no edge, and the table is ignored in every order.
+        Assert.Empty(SystemCatalog.RoadDevelopment(ShippedPre).ReadsThisStepFrom);
         Assert.Equal(22L, Charged(ShippedPre, [R], out _));
         Assert.Equal(22L, Charged(ShippedPre, [R, B], out _));
         Assert.Equal(22L, Charged(ShippedPre, [B, R], out _));
@@ -1555,25 +1563,18 @@ public class ConstructionReservationTests
     }
 
     /// <summary>
-    /// #22b THE v33 → v34 MIGRATION IS EXACT IN THE SHIPPED ORDER — and only there (T1a round 2 fix, 2026-10-17; finding
-    /// T1a-r2-L1-T1a-r2-V1-F3: the claim that a v33 load's EMPTY ConstructionHolds table is exact, now qualified so in
-    /// Snapshot, CanonicalSchema, Reservations, ADR-005 and sim.json). A v33 file has no section 61. From #22's t1 (purse 1
-    /// sets aside 22 timber and 11 stone; the purse holds 22 timber), a GENUINE v33 file of the same state (<see
+    /// #22b THE v33 → v34 MIGRATION IS EXACT IN EVERY PIPELINE THAT COMPOSES (T1a round 2 fix, 2026-10-17, finding
+    /// T1a-r2-L1-T1a-r2-V1-F3, when it was exact "in the shipped order — and only there"; D-056, 2026-10-18: the road-first
+    /// order it was not exact in is refused by the executor, #22). A v33 file has no section 61. From #22's t1 (purse 1 sets
+    /// aside 22 timber and 11 stone; the purse holds 22 timber), a GENUINE v33 file of the same state (<see
     /// cref="LoadAsV33"/>: it loads with the table empty, and its v33 hash is t1's) and a v34 save (both rows kept) are each
-    /// stepped with a road order:
-    /// <list type="bullet">
-    /// <item>THE SHIPPED ORDER (construction, then roaddevelopment — pinned by ConstructionHoldsSchemaV34Tests.
-    ///   TheShippedPipeline_RunsConstructionBeforeRoadDevelopment): construction rebuilds the table before road development
-    ///   reads it, so both arms charge 0 and reach the SAME next world (equal hashes) — the migration is exact;</item>
-    /// <item>ROAD DEVELOPMENT FIRST (reversed, or without construction — SystemCatalog.RoadDevelopment's ownership
-    ///   paragraph): it reads the table as loaded — the v34 save's rows (0 units) but the migrated world's empty table (22
-    ///   units) — so the two continue differently.</item>
-    /// </list>
-    /// A road development handed PREV's table instead of NEXT's (mutant A1, the round's R2-A1) breaks the shipped half: the
-    /// v34 arm reads its loaded rows and charges 0, the migrated arm charges 22.
+    /// stepped with a road order through construction then road development: construction rebuilds the table before road
+    /// development reads it, so both arms charge 0 and reach the SAME next world (equal hashes). A road development handed
+    /// PREV's table instead of NEXT's (mutant A1, the round's R2-A1) breaks it: the v34 arm reads its loaded rows and charges
+    /// 0, the migrated arm charges 22. The road-first pipeline in which the two continued differently cannot be composed.
     /// </summary>
     [Fact]
-    public void TheV33Migration_IsExactInTheShippedOrder_ARoadFirstOrderReadsTheMigratedWorldsEmptyTable()
+    public void TheV33Migration_IsExactInEveryPipelineThatComposes_TheRoadFirstOrderIsRefused()
     {
         WorldState t1 = ConstructionOnly(Shipped, null).Step(SplitRig(timber: 63));   // S1 completes on 41; S0 sets aside 22 / 11
         ConstructionHoldRow[] published = [Row(PlayerPurse, Timber, 22), Row(PlayerPurse, Stone, 11)];
@@ -1584,31 +1585,20 @@ public class ConstructionReservationTests
         Assert.Empty(Holds(v33));                                                  // the migration: no section 61, no rows
         Assert.Equal(SchemaProjection.HashAtSchemaV33(t1, out _), SchemaProjection.HashAtSchemaV33(v33, out _));
 
-        const string B = ConstructionSystem.Name;
-        const string R = Sim.Core.Systems.Roads.RoadDevelopmentSystem.Name;
-        (long Units, string Hash) Run(WorldState prev, string[] order)
+        SystemRegistration[] shipped = [SystemCatalog.Construction(Shipped), SystemCatalog.RoadDevelopment(Shipped)];
+        (long Units, string Hash) Run(WorldState prev)
         {
-            var pipeline = new SystemRegistration[order.Length];
-            for (int i = 0; i < order.Length; i++)
-                pipeline[i] = order[i] == B ? SystemCatalog.Construction(Shipped) : SystemCatalog.RoadDevelopment(Shipped);
-            WorldState next = new TurnExecutor(ResearchRigs.FlatEra(10.0), pipeline, Log(Roads(1))).Step(prev);
+            WorldState next = new TurnExecutor(ResearchRigs.FlatEra(10.0), shipped, Log(Roads(1))).Step(prev);
             AssertConserved(next);
             return (RoadUnits(next), WorldHash.ComputeHex(next));
         }
 
-        // The shipped order: construction rebuilds the table first — exact.
-        (long Units, string Hash) fromV34 = Run(v34, [B, R]), fromV33 = Run(v33, [B, R]);
+        (long Units, string Hash) fromV34 = Run(v34), fromV33 = Run(v33);
         Assert.Equal((0L, 0L), (fromV34.Units, fromV33.Units));
         Assert.Equal(fromV34.Hash, fromV33.Hash);
 
-        // Road development first: the table is read as loaded, before construction rebuilds it.
-        foreach (string[] order in new[] { new[] { R, B }, new[] { R } })
-        {
-            fromV34 = Run(v34, order);
-            fromV33 = Run(v33, order);
-            Assert.Equal((0L, 22L), (fromV34.Units, fromV33.Units));
-            Assert.NotEqual(fromV34.Hash, fromV33.Hash);
-        }
+        Assert.Throws<PipelineFormatException>(() => new TurnExecutor(ResearchRigs.FlatEra(10.0),
+            [SystemCatalog.RoadDevelopment(Shipped), SystemCatalog.Construction(Shipped)], Log(Roads(1))));
     }
 
     /// <summary>#23 Colonisation, the one system between construction and road development, moves only grain: no project

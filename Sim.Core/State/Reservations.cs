@@ -13,11 +13,11 @@ namespace Sim.Core.State;
 /// to hold for). <see cref="Enabled"/> is false when the switch is off, absent, or incremental construction is off — the
 /// attribution control is TestConfigs.PreReservations, never a gameplay setting. Construction CLEARS the table at the
 /// start of every step whatever the switch says, so a world construction steps with the switch off never carries a hold
-/// row. IN THE SHIPPED PIPELINE ORDER (construction before roaddevelopment, pinned by
-/// ConstructionHoldsSchemaV34Tests.TheShippedPipeline_RunsConstructionBeforeRoadDevelopment) a loaded or carried table is
-/// never read before construction rebuilds it. In an order that runs road development first, road development reads the
-/// table as it stands — a loaded save's rows, or the previous step's carried into NEXT (SystemCatalog.RoadDevelopment's
-/// ownership paragraph) — and with the switch off it ignores the table in any order.
+/// row. A loaded or carried table is never read before construction rebuilds it: road development's read is a declared
+/// same-step edge (D-056, SystemRegistration.ReadsThisStepFrom) and TurnExecutor refuses a pipeline that runs road
+/// development before construction while this rule applies (the shipped order is pinned by
+/// ConstructionHoldsSchemaV34Tests.TheShippedPipeline_RunsConstructionBeforeRoadDevelopment); with the switch off road
+/// development ignores the table in any order.
 ///
 /// THE PURSE KEY (an int, so the table's key compares as integers): a polity id ≥ 0 names an Empire purse; −1 −
 /// settlementId (always &lt; 0) names a single-settlement purse (purse-off, a stateless settlement, a world with no control

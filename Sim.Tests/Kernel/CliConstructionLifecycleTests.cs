@@ -21,7 +21,7 @@ namespace Sim.Tests.Kernel;
 ///  — `sim diff` of two populated saves that differ ONLY in the split names ResourceAllocations as the first and only
 ///    difference; `sim diff` of the batch-3 build's v33 save and this build's save of the same world differs ONLY in the
 ///    v34 block, with zero rows on the v33 side; and of the v33 save and its own v34 re-save, nowhere;
-///  — P7: a CancelConstruction naming a colony founded mid-run (an id above the turn-0 maximum, deferred to delivery,
+///  — P7: a cancel (kind 13 since D-056; kind 11 before) naming a colony founded mid-run (an id above the turn-0 maximum, deferred to delivery,
 ///    ADR-034) is accepted by `sim run` and `sim replay` and removes the colony's entry turn-exact; with the founding
 ///    order removed from the log the run is refused at delivery with the ADR-034 message.
 /// </summary>
@@ -278,14 +278,16 @@ public class CliConstructionLifecycleTests
         if (found) log.Append(FoundColony);
         log.Append(new OrderRecord(3, 1, OrderKind.EnqueueConstruction, Colony, Granary));
         log.Append(new OrderRecord(3, 1, OrderKind.EnqueueConstruction, Colony, Granary));
-        log.Append(new OrderRecord(4, 1, OrderKind.CancelConstruction, Colony, 1.0));
+        log.Append(new OrderRecord(4, 1, OrderKind.CancelConstructionEntry, Colony,
+            OrderLog.PackCancelTarget(new CancelTarget(1, Granary, 3))));   // D-056: slot 1, the granary ordered at 3
         string path = Path.Combine(dir, "colony-" + (found ? "found" : "forged") + ".bin");
         using (FileStream f = File.Create(path)) log.Save(f);
         return path;
     }
 
     /// <summary>
-    /// P7 — A KIND 11 TARGETING A DEFERRED COLONY ID, ACROSS PROCESSES. The log founds colony 12 at turn 2 (state 3), orders
+    /// P7 — A CANCEL TARGETING A DEFERRED COLONY ID, ACROSS PROCESSES (kind 11 until D-056; kind 13 since — a bare log
+    /// carrying kind 11 is now refused by every CLI runner, LegacyCancelGuardTests). The log founds colony 12 at turn 2 (state 3), orders
     /// two granaries there at turn 3 and cancels the colony's slot 1 at turn 4 — every one of these orders names an id the
     /// turn-0 world does not hold, so `sim run`'s up-front validation defers it to delivery (ADR-034), where the colony
     /// exists. MEASURED (t4-out/probe-colony.txt): the colony's first granary is built in the step that enqueues it (the
@@ -295,7 +297,7 @@ public class CliConstructionLifecycleTests
     /// run is REFUSED at delivery: exit 2 and the ADR-034 diagnostic naming the EnqueueConstruction and settlement 12.
     /// </summary>
     [Fact]
-    public void AKind11TargetingADeferredColonyId_IsAcceptedByRunAndReplay_AndRemovesTheColonysEntryTurnExact_AndWithoutTheColonyIsRefused()
+    public void ACancelTargetingADeferredColonyId_IsAcceptedByRunAndReplay_AndRemovesTheColonysEntryTurnExact_AndWithoutTheColonyIsRefused()
     {
         string dir = TempDir();
         try

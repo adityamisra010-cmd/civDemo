@@ -60,7 +60,11 @@ public class ResearchOrderTests
         Assert.Contains("11 (CancelConstruction)", e.Message);
         Assert.Contains("12 (SetResourceAllocation)", e.Message);
         Assert.Contains("kind 10 is reserved for MoveFormation (M7)", e.Message);
-        var thirteen = Assert.Throws<SnapshotFormatException>(() => RoundTrip(new OrderRecord(3, 1, (OrderKind)13, 0, 0.0)));
-        Assert.Contains("unknown order kind 13", thirteen.Message);
+        // D-056: kind 13 is CancelConstructionEntry now (the identity cancel), so the first kind past the end moved 13 -> 14
+        // (cause: the new kind; kind 13 round-trips in LegacyCancelGuardTests).
+        Assert.Contains("13 (CancelConstructionEntry)", e.Message);
+        Assert.Contains("kind 11 is legacy (read, no longer written: D-056)", e.Message);
+        var fourteen = Assert.Throws<SnapshotFormatException>(() => RoundTrip(new OrderRecord(3, 1, (OrderKind)14, 0, 0.0)));
+        Assert.Contains("unknown order kind 14", fourteen.Message);
     }
 }

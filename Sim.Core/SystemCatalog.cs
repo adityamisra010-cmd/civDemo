@@ -442,9 +442,15 @@ public static class SystemCatalog
     ///
     /// D-055 (schema v34): road development is also handed construction's NEXT ConstructionHolds READ-ONLY (an
     /// IReadOnlyTable; construction is its sole writer — the ownership record above), so road works can honour what the
-    /// queue heads set aside. ORDER IS DATA: it reads the table as it stands when road development runs. The shipped
-    /// pipeline.json runs construction (10th) before roaddevelopment (22nd), so there it reads THIS step's set-asides; in a
-    /// non-shipped order it reads the previous step's published set-asides carried into NEXT, or a loaded save's.</summary>
+    /// queue heads set aside.
+    /// D-056 (2026-10-18; supersedes D-055's "order is data" for this read): THE READ IS A DECLARED SAME-STEP EDGE —
+    /// <see cref="SystemRegistration.ReadsThisStepFrom"/> = construction, whenever the hold rule applies
+    /// (<see cref="Reservations.Enabled"/>; with it off road development ignores the table and declares nothing) — and the
+    /// executor refuses a pipeline that runs road development before construction (TurnExecutor's constructor). Every
+    /// pipeline that composes therefore reads THIS step's set-asides, which is what the shipped pipeline.json (construction
+    /// 10th, roaddevelopment 22nd) always did; the order in which a road-first pipeline read the previous step's or a
+    /// loaded save's rows is gone, and with it the one order in which the v33 → v34 migration was not exact. A pipeline
+    /// without construction (test compositions only) reads the table as the world carries it.</summary>
     public static SystemRegistration RoadDevelopment(SimConfig cfg)
     {
         var system = new Systems.Roads.RoadDevelopmentSystem(cfg);
@@ -452,7 +458,8 @@ public static class SystemCatalog
             (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<Systems.Roads.RoadDevelopmentTables>(
                 prev, new Systems.Roads.RoadDevelopmentTables(next.TransportEdges, next.RoadDevelopments, next.GoodStocks,
                     next.ConstructionHolds),
-                rng, Systems.Roads.RoadDevelopmentSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
+                rng, Systems.Roads.RoadDevelopmentSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))),
+            Reservations.Enabled(cfg) ? [Systems.Construction.ConstructionSystem.Name] : null);
     }
 
     /// <summary>ADR-033 D6 (SystemId 28): universities as real institutions — founds an institution row for

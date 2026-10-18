@@ -402,7 +402,7 @@ public partial class IntegratedSaveLoadBatteryTests
             Eq(0L, ConstructionQuery.Built(next, Capital(next), UniversityProject), arm + ": no university built");
             Eq((Sim.Tests.Systems.IncrementalConstructionTests.Sunk(loaded, TimberId) + 40 + 150, Sim.Tests.Systems.IncrementalConstructionTests.Sunk(loaded, StoneId) + 20 + 100),
                 (Sim.Tests.Systems.IncrementalConstructionTests.Sunk(next, TimberId), Sim.Tests.Systems.IncrementalConstructionTests.Sunk(next, StoneId)), arm + ": sunk = G's draw + the new entry's, no refund");
-            List<OrderRecord> without = BatchOf(run, ReEnqueueTurn, o => o.Kind is OrderKind.CancelConstruction || (o.Kind == OrderKind.EnqueueConstruction && o.ActorId == Player.Value));
+            List<OrderRecord> without = BatchOf(run, ReEnqueueTurn, o => ConstructionQuery.IsCancel(o.Kind) || (o.Kind == OrderKind.EnqueueConstruction && o.ActorId == Player.Value));
             Eq(BatchOf(run, ReEnqueueTurn).Count - 2, without.Count, arm + ": the control drops exactly the cancel and the enqueue");
             WorldState control = StepWith(LifecycleRig, loaded, without);
             Eq((0L, 0L, true), (ConstructionQuery.ProgressOf(control, g), ConstructionQuery.Built(control, g.Settlement, Granary), Queued(control, u)), arm + ": without the batch G still waits behind U");

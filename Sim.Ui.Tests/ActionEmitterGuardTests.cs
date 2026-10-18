@@ -103,7 +103,7 @@ public class ActionEmitterGuardTests
         Assert.True(s.EmitCancelConstruction(mine, last));
         Assert.Equal(ConstructionQuery.CancelOrder(s.World, Me, cap, last), s.Orders[s.Orders.Count - 1]);
         Assert.False(s.EmitCancelConstruction(mine, last));               // already pending this turn
-        Assert.Single(Enumerable.Range(0, s.Orders.Count).Select(i => s.Orders[i]), o => o.Kind == OrderKind.CancelConstruction && o.ActorId == Me.Value);
+        Assert.Single(Enumerable.Range(0, s.Orders.Count).Select(i => s.Orders[i]), o => ConstructionQuery.IsCancel(o.Kind) && o.ActorId == Me.Value);   // D-056: one cancel, of either kind
         s.EndTurn();
         hashes.Add(WorldHash.ComputeHex(s.World));
         Assert.DoesNotContain(ConstructionQuery.Queue(s.World, cap), r => r.Slot == last);

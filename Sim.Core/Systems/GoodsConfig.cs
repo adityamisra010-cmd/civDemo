@@ -306,6 +306,10 @@ public static class GoodsConfigLoader
                 throw new GoodsConfigException(
                     $"projects[{i}] ({pr.Name}).id must be >= 0, got {pr.Id} — the id is carried by an " +
                     "order's Amount field and must be a non-negative whole number.");
+            if (pr.Id >= 1 << Kernel.OrderLog.CancelProjectBits)
+                throw new GoodsConfigException(
+                    $"projects[{i}] ({pr.Name}).id must be below {1 << Kernel.OrderLog.CancelProjectBits}, got {pr.Id} — a cancel " +
+                    "order (kind 13, D-056) carries the project id in 16 bits of its Amount.");
             if (!projectIds.Add(pr.Id))
                 throw new GoodsConfigException($"projects[{i}] ({pr.Name}).id {pr.Id} is a duplicate.");
             if (pr.Inputs is null || pr.Inputs.Length == 0)

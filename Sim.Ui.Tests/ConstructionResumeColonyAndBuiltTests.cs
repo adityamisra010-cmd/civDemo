@@ -11,7 +11,7 @@ namespace Sim.Ui.Tests;
 /// <summary>
 /// D-055 (2026-10-16; the Director's batch-4 instruction, item 4 — "… cancellation and re-enqueueing across … resumed UI
 /// sessions and deterministic replay"; batch-4 design §4 P7; recon persistence-audit §7 P7) — TWO GAPS THE AUDIT LEFT:
-///  (1) A CancelConstruction (kind 11) NAMING A COLONY — an id the turn-0 world does not hold, whose checks ADR-034 DEFERS to
+///  (1) A cancel (kind 11 until D-056, now kind 13) NAMING A COLONY — an id the turn-0 world does not hold, whose checks ADR-034 DEFERS to
 ///      delivery — across a UI resume and a fresh replay: re-queued by the resume, validated against the world it is
 ///      delivered to, and removing the colony's entry turn-exact on both sessions; and the other side of ADR-034 — a v33
 ///      session (the trace not checked) whose replay never founds the colony a later order names is REFUSED at resume with
@@ -98,7 +98,9 @@ public class ConstructionResumeColonyAndBuiltTests
         try
         {
             UiSession live = ColonySession(log);
-            var cancel = new OrderRecord(4, UiPlayer.Empire.Value, OrderKind.CancelConstruction, Colony, 1.0);
+            // D-056: the emitter's cancel is kind 13, carrying the colony entry's identity (slot 1, the granary, its order turn).
+            OrderRecord cancel = ConstructionQuery.CancelOrder(live.World, UiPlayer.Empire, ColonyId, 1);
+            Assert.Equal((4L, OrderKind.CancelConstructionEntry, Colony), (cancel.Turn, cancel.Kind, cancel.TargetId));
             Assert.Contains(cancel, live.QueuedOrders());
             UiSession resumed = SaveAndResume(live, log);
             Assert.Empty(resumed.ResumeNotice);

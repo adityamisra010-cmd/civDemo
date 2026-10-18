@@ -131,7 +131,7 @@ public class IncrementalConstructionIntegrationTests
         Assert.Equal(1, Built(next, S3));
         // The switch off: the batch-2 AI — no cancel (it never stalls structurally under M4-D's model of the queue).
         Assert.DoesNotContain(AiConstructionPolicy.Decide(w, TestConfigs.PreIncrementalConstruction(Cfg), Rival, 10.0),
-            o => o.Kind == OrderKind.CancelConstruction);
+            o => ConstructionQuery.IsCancel(o.Kind));
     }
 
     [Fact]
@@ -164,7 +164,7 @@ public class IncrementalConstructionIntegrationTests
         HeadResolution r = ConstructionQuery.ResolveHead(w, Cfg, S1, w.ConstructionQueue, w.ConstructionProgress, w.GoodStocks, 10.0, null)!;
         Assert.Equal((HeadLimitKind.Labour, false, false), (r.Limit, r.NoLabourAdults, r.StructurallyStalled));
         Assert.Null(ConstructionQuery.StructuralStall(w, Cfg, S1, 10.0));
-        Assert.DoesNotContain(AiConstructionPolicy.Decide(w, Cfg, Rival, 10.0), o => o.Kind == OrderKind.CancelConstruction);
+        Assert.DoesNotContain(AiConstructionPolicy.Decide(w, Cfg, Rival, 10.0), o => ConstructionQuery.IsCancel(o.Kind));
 
         NoAdults(w, S1);
         Assert.True(ConstructionQuery.StructuralStall(w, Cfg, S1, 10.0) is { Limit: HeadLimitKind.Labour, NoLabourAdults: true });
@@ -220,7 +220,7 @@ public class IncrementalConstructionIntegrationTests
 
         UniversityRigs.Surplus(w, s, founding + 0.5);
         Assert.True(InstitutionViability.ToFound(w, cfg, s).Viable);
-        Assert.DoesNotContain(AiConstructionPolicy.Decide(w, cfg, Rival, 10.0), o => o.Kind == OrderKind.CancelConstruction);
+        Assert.DoesNotContain(AiConstructionPolicy.Decide(w, cfg, Rival, 10.0), o => ConstructionQuery.IsCancel(o.Kind));
 
         UniversityRigs.Surplus(w, s, founding - 0.1);
         Assert.Equal(ViabilityFailure.FoodSurplus, InstitutionViability.ToFound(w, cfg, s).Failure);

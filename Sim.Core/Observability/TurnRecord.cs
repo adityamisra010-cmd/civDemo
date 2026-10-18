@@ -152,6 +152,7 @@ public readonly record struct OrderApplied(
         OrderKind.LaborAllocation => TargetId,
         OrderKind.EnqueueConstruction => TargetId,
         OrderKind.CancelConstruction => TargetId,
+        OrderKind.CancelConstructionEntry => TargetId,
         OrderKind.FoundSettlement => TargetId,
         _ => -1,
     };

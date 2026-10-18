@@ -211,9 +211,12 @@ public sealed class ConstructionSystem(SimConfig cfg) : ISimSystem<ConstructionT
         for (int o = 0; o < ctx.Orders.Count; o++)
         {
             OrderRecord order = ctx.Orders[o];
-            if (order.Kind != OrderKind.CancelConstruction) continue;
-            if (!ConstructionQuery.CancelOrderValid(prev, order, queue)) continue;
-            ConstructionQuery.RemoveEntry(queue, progress, new SettlementId(order.TargetId), (int)order.Amount);
+            if (!ConstructionQuery.IsCancel(order.Kind)) continue;
+            // D-056: the target is resolved by ConstructionQuery.CancelTargetIndex — by identity for kind 13, by slot for
+            // the legacy kind 11 — and the entry it names is the one removed.
+            if (!ConstructionQuery.CancelOrderValid(prev, order, queue, progress)) continue;
+            int target = ConstructionQuery.CancelTargetIndex(queue, progress, order);
+            ConstructionQuery.RemoveEntry(queue, progress, new SettlementId(order.TargetId), queue[target].Slot);
         }
 
         // 4. ENQUEUE, in log order, against the NEXT queue and progress.

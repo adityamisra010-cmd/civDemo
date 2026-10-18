@@ -56,6 +56,11 @@ internal static class FromSave
         string? savePath = opts.Get("--save");
         if (saveAt >= 0 && savePath is null) throw new CliUsageException("--save-at requires --save PATH");
         if (savePath is not null && saveAt < 0) throw new CliUsageException("--save requires --save-at K");
+        // D-056 (verifier finding 26): --save naming the save being continued would overwrite it — the only copy of the
+        // world the run starts from — so it is refused before anything is read or written.
+        if (savePath is not null && string.Equals(Path.GetFullPath(savePath), Path.GetFullPath(path), StringComparison.Ordinal))
+            throw new CliUsageException(
+                $"--save {savePath} is the save being continued (--from-save): it would be overwritten. Write the continued save to another path.");
 
         byte[] bytes = File.ReadAllBytes(path);
         WorldState world = Load(path, sizeArg);

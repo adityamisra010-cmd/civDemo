@@ -21,7 +21,8 @@ namespace Sim.Ui.Tests;
 /// part-built head WAITING for materials resumed; a re-enqueue pending across the save; a flat session relabelled v32 with
 /// construction; the REAL v33 session fixture under v34 with X1's premises (i)–(iii) on the UI path ((iv), `sim inspect`,
 /// is Sim.Tests' ConstructionHoldsV33FixtureTests.PremiseIV — this project does not reference Sim.Cli); and a recorded
-/// kind-11 order whose replay under this build's rules hits a SHIFTED SLOT, documenting what happens.
+/// cancel whose replay under this build's rules hits a SHIFTED SLOT — refused as a legacy kind 11, applied to the right
+/// entry as a kind 13 (D-056).
 ///
 /// EVERY HOLD ASSERTION HAS A BINDING PREMISE (design §4, review L4-16): the same step from the resumed or replayed world
 /// under the PreReservations twin of the production pipeline (sim.json construction.reservations false — the batch-3
@@ -499,35 +500,50 @@ public class ConstructionLifecycleResumeTests
         }
     }
 
-    // ================================================================== a recorded kind 11 that hits a shifted slot
+    // ================================================================== a recorded cancel whose slot shifts in the replay
 
     /// <summary>
-    /// A RECORDED KIND-11 ORDER WHOSE REPLAY HITS A SHIFTED SLOT (D-055 limitation, documented — design X1, review L4-02).
-    /// A kind-11 order names (settlement, slot); slots are reused. The session is RECORDED under the batch-3 rule (the
-    /// PreReservations twin, AI orders appended each turn as End Turn does) and labelled schema v33, as the batch-3 build
-    /// wrote it: s0 orders two granaries at turn 0, s2 one at turn 1, s0's builders go at turn 2; s2's granary completes at
-    /// turn 5; the player orders another granary at s2 at turn 5 — slot 0, the queue being empty — and cancels (s2, slot 0)
-    /// at turn 6: the second granary, then at 500,000, leaves; s2 has one granary built. RESUMED by this build (the D-008
-    /// path, no trace check, the four-line notice), the same log is replayed under the hold rule: s0's waiting granary sets
-    /// aside the stone, s2's FIRST granary is still at 500,000 in slot 0 at turn 6 and the turn-5 order went to slot 1 — so
-    /// the recorded cancel removes the FIRST granary (its 500,000 forfeited), which the player never cancelled, and the
-    /// granary the player did cancel is the one that goes on being built (400,000 at turn 7, 900,000 at turn 8). The resume
-    /// is not refused: the cancel is valid at delivery. "The world may differ from the one originally played."
+    /// A RECORDED CANCEL WHOSE SLOT SHIFTS IN THE REPLAY (D-055 limitation, documented — design X1, review L4-02; FIXED by
+    /// D-056, 2026-10-18: until then this test pinned the hazard as passing). Cancels name their entry; slots are reused.
+    /// The session is RECORDED under the batch-3 rule (the PreReservations twin, AI orders appended each turn as End Turn
+    /// does) and labelled schema v33 with its trace in the v33 form, as the batch-3 build wrote it: s0 orders two granaries
+    /// at turn 0, s2 one at turn 1, s0's builders go at turn 2; s2's granary completes at turn 5; the player orders another
+    /// granary at s2 at turn 5 — slot 0, the queue being empty — and cancels it at turn 6: the second granary, then at
+    /// 500,000, leaves; s2 has one granary built. Replayed by this build under the hold rule, s0's waiting granary sets aside
+    /// the stone, s2's FIRST granary is still at 500,000 in slot 0 at turn 6 and the turn-5 order went to slot 1.
+    /// <list type="bullet">
+    /// <item>RECORDED AS KIND 11 (what the batch-3 build wrote: settlement and slot only): before D-056 the cancel removed the
+    ///   FIRST granary (its 500,000 forfeited), which the player never cancelled, and the resume was accepted. Now the
+    ///   resume is REFUSED before the turn-6 batch — the replayed world at turn 6 is not the recorded one in any readable
+    ///   form — with the diagnostic on stderr and in the dialog, exit 2, and every session file byte for byte as it was;</item>
+    /// <item>RECORDED AS KIND 13 (what every emitter now writes: the entry's identity — slot 0, the granary, ordered at turn
+    ///   5): the resume is accepted (the four-line v33 notice) and the cancel removes the turn-5 granary in slot 1 — the one
+    ///   the player cancelled; the first granary goes on being built.</item>
+    /// </list>
     /// </summary>
-    [Fact]
-    public void ARecordedCancel_ReplayedUnderTheHoldRule_HitsAShiftedSlot_AndRemovesAnEntryThePlayerNeverCancelled()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void ARecordedCancel_WhoseSlotShiftsInTheReplay_Kind11IsRefused_Kind13CancelsTheEntryThePlayerCancelled(bool legacy)
     {
         string dir = TempDir(out string log);
         try
         {
             // The batch-3 recording (the PreReservations twin): the player's orders through the very factories the emitters
-            // use, the AI's appended each turn, a trace line per turn.
+            // use (the legacy arm writes the slot-only order the batch-3 factory wrote), the AI's appended each turn, a trace
+            // line per turn in the v33 form.
             SimConfig c = UiFounding.ProductionConfig();
             SimConfig batch3 = c with { Construction = c.Construction! with { Reservations = false } };
             WorldState w = UiFounding.Found(42, 256, 4, 1);
             var recorded = new OrderLog();
             TurnExecutor exec = Production(batch3, recorded);
-            var traceLines = new List<string> { SessionTrace.Header, SessionTrace.Line(w, c.Goods!.GrainId) };
+            string V33Line(WorldState at)
+            {
+                string[] cols = SessionTrace.Line(at, c.Goods!.GrainId).Split(',');
+                cols[^1] = WorldHash.ComputeHexAsSchema(at, 33);
+                return string.Join(',', cols);
+            }
+            var traceLines = new List<string> { SessionTrace.Header, V33Line(w) };
             var worlds = new List<WorldState> { w };
             for (int t = 0; t < 8; t++)
             {
@@ -541,42 +557,67 @@ public class ConstructionLifecycleResumeTests
                 if (t == 5) recorded.Append(ConstructionQuery.EnqueueOrder(w, Me, S2, Granary));
                 if (t == 6)
                 {
-                    OrderRecord cancel = ConstructionQuery.CancelOrder(w, Me, S2, 0);
+                    OrderRecord cancel = legacy
+                        ? new OrderRecord(6, Me.Value, OrderKind.CancelConstruction, S2.Value, 0.0)
+                        : ConstructionQuery.CancelOrder(w, Me, S2, 0);
+                    Assert.Equal(legacy ? OrderKind.CancelConstruction : OrderKind.CancelConstructionEntry, cancel.Kind);
                     Assert.True(ConstructionQuery.CancelOrderValid(w, cancel));
                     recorded.Append(cancel);
                 }
                 AiOrders.Append(recorded, w, batch3, UiSession.ProductionWorldgen());
                 w = exec.Step(w);
                 worlds.Add(w);
-                traceLines.Add(SessionTrace.Line(w, c.Goods!.GrainId));
+                traceLines.Add(V33Line(w));
             }
             // As played (batch 3): at 6 the second granary (key 5) is slot 0 at 500,000; the cancel removes it.
             Assert.Equal(1, ConstructionQuery.Built(worlds[6], S2, Granary));
             Assert.Equal(new[] { (0, 5L, 500_000L) }, Entries(worlds[6], S2));
             Assert.Equal((1L, 0), (ConstructionQuery.Built(worlds[7], S2, Granary), Entries(worlds[7], S2).Length));
 
-            // The session files, as the batch-3 build wrote them (schema v33; its trace is never checked under v34).
+            // The session files, as the batch-3 build wrote them (schema v33).
             using (FileStream o = File.Create(log)) recorded.Save(o);
             File.WriteAllText(UiSession.TracePath(log), string.Join("\n", traceLines) + "\n");
             SessionManifest m = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1).Manifest(StartedAt, log);
-            using (FileStream o = File.Create(UiSession.ManifestPath(log))) (m with { SchemaVersion = 33 }).Write(o);
+            using (FileStream o = File.Create(UiSession.ManifestPath(log))) (m with { SchemaVersion = 33, BuildSha = "b3-final" }).Write(o);
+
+            // This build's replay up to the cancel's batch: s2's FIRST granary still in slot 0, the turn-5 one in slot 1.
+            var upToTheCancel = new OrderLog();
+            for (int i = 0; i < recorded.Count; i++) if (recorded[i].Turn < 6) upToTheCancel.Append(recorded[i]);
+            UiSession at6 = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1);
+            at6.ReplayTo(upToTheCancel, 6);
+            Assert.Equal(new[] { (0, 1L, 500_000L), (1, 5L, 0L) }, Entries(at6.World, S2));
+            Assert.Equal(0, ConstructionQuery.Built(at6.World, S2, Granary));
+
+            if (legacy)
+            {
+                string[] files = Directory.GetFiles(dir).Order(StringComparer.Ordinal).ToArray();
+                byte[][] before = files.Select(File.ReadAllBytes).ToArray();
+                var e = Assert.Throws<OrderValidationException>(() => UiSession.Resume(UiSession.ManifestPath(log), out _));
+                Assert.Contains("the orders delivered on turn 6 include 1 legacy slot-only cancel order", e.Message);
+                Assert.Contains("does not reproduce that world at turn 6", e.Message);
+                Assert.Contains("open it with the build that recorded it (build b3-final, ", e.Message);
+
+                // The launch: one report, exit 2, the dialog once — and every file as it was, no copy made.
+                var stderr = new StringWriter();
+                var shown = new List<string>();
+                Assert.Null(ResumeLaunch.Attempt(UiSession.ManifestPath(log), stderr, (_, text) => shown.Add(text), out _, out int code));
+                Assert.Equal(ResumeLaunch.OrderLogRejectedExitCode, code);
+                Assert.StartsWith("error: saved session " + Path.GetFileName(UiSession.ManifestPath(log)) + ": the orders delivered on turn 6", stderr.ToString());
+                Assert.Contains("The session files were not changed.", Assert.Single(shown));
+                Assert.Equal(files, Directory.GetFiles(dir).Order(StringComparer.Ordinal).ToArray());
+                for (int i = 0; i < files.Length; i++) Assert.Equal(before[i], File.ReadAllBytes(files[i]));
+                return;
+            }
 
             UiSession resumed = UiSession.Resume(UiSession.ManifestPath(log), out _);
             Assert.Equal(UiSession.SchemaMismatchNotice(33, CanonicalSchema.Version), resumed.ResumeNotice);
             Assert.Equal(8, resumed.World.Clock.Turn);
-            Assert.True(resumed.World.Terrain!.WrapX);
-
-            // This build's replay, turn by turn.
-            UiSession at6 = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1);
-            at6.ReplayTo(recorded, 6);
-            Assert.Equal(new[] { (0, 1L, 500_000L), (1, 5L, 0L) }, Entries(at6.World, S2));          // the first granary still in slot 0
-            Assert.Equal(0, ConstructionQuery.Built(at6.World, S2, Granary));
             UiSession at7 = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1);
             at7.ReplayTo(recorded, 7);
-            Assert.Equal(new[] { (1, 5L, 400_000L) }, Entries(at7.World, S2));                      // the cancel hit the FIRST granary
-            Assert.Equal(0, ConstructionQuery.Built(at7.World, S2, Granary));
-            Assert.Equal(new[] { (1, 5L, 900_000L) }, Entries(resumed.World, S2));
-            Assert.Equal(0, ConstructionQuery.Built(resumed.World, S2, Granary));
+            (int Slot, long Key, long P)[] after = Entries(at7.World, S2);
+            Assert.DoesNotContain(after, e => e.Key == 5);                                          // the cancelled entry is gone
+            Assert.Equal(new[] { (0, 1L) }, after.Select(e => (e.Slot, e.Key)).ToArray());         // the first granary stays
+            Assert.True(after[0].P > 500_000L, "the first granary goes on being built");
         }
         finally
         {

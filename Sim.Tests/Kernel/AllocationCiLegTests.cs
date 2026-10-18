@@ -42,7 +42,8 @@ public class AllocationCiLegTests(AllocationScenarioRun run)
             "records += [(117, 1, 4, 0, 1.0)] * 3 + [(117, 1, 4, 2, 1.0)] * 3",
             "records += [(125, 1, 3, (4 << 3) | 4, 0.01), (126, 1, 4, 4, 1.0), (127, 1, 3, (4 << 3) | 4, 0.0)]",
             "records += [(128, 1, 4, 0, 1.0)] * 2 + [(128, 1, 4, 2, 1.0)] * 2",
-            "records += [(132, 1, 11, 4, 0.0), (132, 1, 4, 4, 1.0), (134, 1, 3, (4 << 3) | 4, 10.0), (136, 1, 12, 1, 70.0)]",
+            "records += [(132, 1, 13, 4, cancel_target(0, 1, 126)), (132, 1, 4, 4, 1.0), (134, 1, 3, (4 << 3) | 4, 10.0), (136, 1, 12, 1, 70.0)]",
+            "return slot + (1 << 18) * (project + (1 << 16) * (enqueued_turn + 1))",   // D-056: OrderLog.PackCancelTarget
             "records += [(136, 1, 4, 0, 1.0), (136, 1, 4, 2, 1.0), (136, 1, 4, 4, 1.0)]",   // T3 round 2: heads in kind 12's step
             "records += [(turn, 1, 8, 0, 100.0 if turn < 126 else 1.0) for turn in range(116, max_turn)]",
             "records = [r for r in records if r[0] < max_turn]",
@@ -56,7 +57,7 @@ public class AllocationCiLegTests(AllocationScenarioRun run)
         string ci = CiStep();
         Assert.Contains($"{Sha256(Orders())}  alloc.bin", ci);
         Assert.Contains($"{Sha256(Orders(split: false))}  alloc-ctl.bin", ci);
-        Assert.Contains($"{Sha256(Orders(drop: (V, OrderKind.CancelConstruction)))}  alloc-no11.bin", ci);
+        Assert.Contains($"{Sha256(Orders(drop: (V, OrderKind.CancelConstructionEntry)))}  alloc-no13.bin", ci);
         Assert.Contains($"{Sha256(Orders(drop: (Seventy, OrderKind.SetResourceAllocation)))}  alloc-no12.bin", ci);
         Assert.Contains("sha256sum -c - <<'SHA'", ci);
 
@@ -67,7 +68,8 @@ public class AllocationCiLegTests(AllocationScenarioRun run)
         Assert.Equal(new[] { OrderKind.SetResourceAllocation, OrderKind.EnqueueConstruction, OrderKind.EnqueueConstruction,
             OrderKind.EnqueueConstruction, OrderKind.DevelopRoads }, All(Log(Orders()).BatchFor(Seventy)).Select(o => o.Kind).ToArray());
         Assert.All(Orders(), o => Assert.Equal(Player, o.ActorId));
-        Assert.Single(Orders(), o => o.Turn == V && o.Kind == OrderKind.CancelConstruction);
+        Assert.Single(Orders(), o => o.Turn == V && o.Kind == OrderKind.CancelConstructionEntry);
+        Assert.DoesNotContain(Orders(), o => o.Kind == OrderKind.CancelConstruction);   // D-056: kind 11 is no longer written
         Assert.Single(Orders(), o => o.Turn == Seventy && o.Kind == OrderKind.SetResourceAllocation);
     }
 
@@ -84,7 +86,7 @@ public class AllocationCiLegTests(AllocationScenarioRun run)
         [
             $"python3 scripts/gen-sample-orders.py alloc.bin {H} --allocation",
             $"python3 scripts/gen-sample-orders.py alloc-ctl.bin {H} --allocation --no-split",
-            $"python3 scripts/gen-sample-orders.py alloc-no11.bin {H} --allocation --drop {V}:11",
+            $"python3 scripts/gen-sample-orders.py alloc-no13.bin {H} --allocation --drop {V}:13",
             $"python3 scripts/gen-sample-orders.py alloc-no12.bin {H} --allocation --drop {Seventy}:12",
             $"$CLI run --founded --seed 42 --turns {P} --orders alloc.bin --hash-log alloc-a0.log --save-at {P} --save alloc-{P}.civsnap",
             $"$CLI run --from-save alloc-{P}.civsnap --turns {H - P} --orders alloc.bin --hash-log alloc-a.log --split-report alloc-a.rep --save-at {K} --save alloc-{K}.civsnap",
@@ -94,7 +96,7 @@ public class AllocationCiLegTests(AllocationScenarioRun run)
             $"$CLI replay --founded --seed 42 --turns {H} --orders alloc.bin --hash-log alloc-replayed.log",
             $"$CLI diff alloc-{K}.civsnap alloc-{K}-a1.civsnap",
             $"$CLI run --from-save alloc-{K}.civsnap --turns {V - K} --orders alloc.bin --hash-log alloc-v.log --save-at {V} --save alloc-{V}.civsnap",
-            $"$CLI run --from-save alloc-{K}.civsnap --turns {V + 1 - K} --orders alloc-no11.bin --hash-log alloc-t11.log",
+            $"$CLI run --from-save alloc-{K}.civsnap --turns {V + 1 - K} --orders alloc-no13.bin --hash-log alloc-t13.log",
             $"$CLI run --from-save alloc-{K}.civsnap --turns {Seventy + 1 - K} --orders alloc-no12.bin --hash-log alloc-t12.log --split-report alloc-t12.rep",
             $"$CLI split-check alloc-a.rep --expect-hold-at {K}",
             "$CLI split-check alloc-a.rep --control alloc-c.rep",
@@ -117,7 +119,7 @@ public class AllocationCiLegTests(AllocationScenarioRun run)
             "if [ \"$(cat alloc-v.log)\" != \"$(sed -n 131,132p alloc-full.log)\" ] \\",
             "|| [ \"$($CLI hash alloc-132.civsnap)\" != \"$(sed -n 132p alloc-full.log)\" ] \\",
             "|| [ \"$($CLI hash alloc-136.civsnap)\" != \"$(sed -n 136p alloc-full.log)\" ]; then",
-            "if [ \"$(head -n 2 alloc-t11.log)\" != \"$(sed -n 131,132p alloc-full.log)\" ] || [ \"$(sed -n 3p alloc-t11.log)\" = \"$(sed -n 133p alloc-full.log)\" ]; then",
+            "if [ \"$(head -n 2 alloc-t13.log)\" != \"$(sed -n 131,132p alloc-full.log)\" ] || [ \"$(sed -n 3p alloc-t13.log)\" = \"$(sed -n 133p alloc-full.log)\" ]; then",
             "if [ \"$(head -n 6 alloc-t12.log)\" != \"$(sed -n 131,136p alloc-full.log)\" ] || [ \"$(sed -n 7p alloc-t12.log)\" = \"$(sed -n 137p alloc-full.log)\" ]; then",
         })
             Assert.Contains(check, ci);
@@ -233,7 +235,9 @@ public class AllocationCiLegTests(AllocationScenarioRun run)
     public void V_ThePartBuiltHeadIsCancelled_AndTheSameProjectReEnqueued_InOneBatch()
     {
         OrderRecord[] batch = All(run.Log.BatchFor(V));
-        Assert.Contains(new OrderRecord(V, Player, OrderKind.CancelConstruction, Third, 0.0), batch);     // slot 0: the head
+        // D-056: the cancel carries the head's identity — slot 0, the granary, accepted at turn 126 (the progress row below).
+        Assert.Contains(new OrderRecord(V, Player, OrderKind.CancelConstructionEntry, Third,
+            OrderLog.PackCancelTarget(new CancelTarget(0, Granary, 126))), batch);
         Assert.Contains(new OrderRecord(V, Player, OrderKind.EnqueueConstruction, Third, Granary), batch);
         // When the batch is delivered the cancelled head is part-built (p > 0) and is settlement 4's only entry.
         ConstructionProgressRow before = All(run.World(V).ConstructionProgress).Single(r => r.Settlement.Value == Third);

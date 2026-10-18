@@ -100,7 +100,8 @@ public static class OrderValidation
             }
 
             if (record.Kind is not (OrderKind.LaborAllocation or OrderKind.SectorAllocation
-                or OrderKind.EnqueueConstruction or OrderKind.FoundSettlement or OrderKind.CancelConstruction)) continue;
+                or OrderKind.EnqueueConstruction or OrderKind.FoundSettlement or OrderKind.CancelConstruction
+                or OrderKind.CancelConstructionEntry)) continue;
 
             // ADR-036: a Found Settlement site must be ON THE MAP. The load-time pass sees no terrain, so it
             // could only insist on a whole, non-negative cell (OrderLog.ValidateRecord); the map size is
@@ -137,7 +138,8 @@ public static class OrderValidation
             // test worlds are legitimately in that state.
             // WS1 (D-054): CancelConstruction by the same rule — an Empire cancels only where it rules. The consumer
             // re-applies it on PREV at delivery (ConstructionQuery.CancelOrderValid): control can change after turn 0.
-            if (record.Kind is (OrderKind.EnqueueConstruction or OrderKind.CancelConstruction) && world.Controls.Count > 0
+            if (record.Kind is (OrderKind.EnqueueConstruction or OrderKind.CancelConstruction or OrderKind.CancelConstructionEntry)
+                && world.Controls.Count > 0
                 && !EmpireQuery.ControlsSettlement(world, record.Actor, new SettlementId(record.TargetId)))
             {
                 throw new OrderValidationException(
@@ -224,7 +226,21 @@ public static class OrderValidation
                     "(ADR-034).");
 
             if (record.Kind is not (OrderKind.LaborAllocation or OrderKind.SectorAllocation
-                or OrderKind.EnqueueConstruction or OrderKind.FoundSettlement or OrderKind.CancelConstruction)) continue;
+                or OrderKind.EnqueueConstruction or OrderKind.FoundSettlement or OrderKind.CancelConstruction
+                or OrderKind.CancelConstructionEntry)) continue;
+            // D-056: an identity cancel whose identity names TWO OR MORE of the settlement's entries, none at its recorded
+            // slot, cannot name one entry (ConstructionQuery.CancelTargetIndex). Live play never issues one (an entry keeps
+            // its slot for its life, so the recorded slot holds the entry), so it means the replayed world is not the
+            // recorded one: the log is refused rather than the cancel guessed at. Judged against PREV, before any later
+            // cancel of the same batch applies.
+            if (record.Kind == OrderKind.CancelConstructionEntry
+                && ConstructionQuery.CancelTargetIndex(prev.ConstructionQueue, prev.ConstructionProgress, record)
+                    == ConstructionQuery.CancelTargetAmbiguous)
+                throw new OrderValidationException(
+                    $"order (turn {record.Turn}): CancelConstructionEntry for settlement {record.TargetId} names " +
+                    $"{DescribeCancelTarget(record.Amount)}, and the world it is delivered to (turn {prev.Clock.Turn}) " +
+                    "queues more than one entry with that identity and none at that slot, so the cancel cannot be applied " +
+                    "to one entry. The replayed world is not the one the order was recorded in (D-056).");
             int target = record.Kind == OrderKind.SectorAllocation ? record.TargetId >> 3 : record.TargetId;
             bool deferredTarget = record.Turn >= 1 && maxSettlementId >= 0 && target > maxSettlementId;
             if (!deferredTarget) continue;
@@ -238,5 +254,12 @@ public static class OrderValidation
                     "Its check was deferred because a colony could have been founded with that id by then; none was " +
                     "(ADR-034).");
         }
+    }
+    /// <summary>A kind-13 payload as text for a diagnostic: "slot S, project P, enqueued on turn T".</summary>
+    public static string DescribeCancelTarget(double amount)
+    {
+        if (!OrderLog.TryUnpackCancelTarget(amount, out CancelTarget t)) return "a malformed target";
+        var inv = System.Globalization.CultureInfo.InvariantCulture;
+        return $"slot {t.Slot.ToString(inv)}, project {t.ProjectId.ToString(inv)}, enqueued on turn {t.EnqueuedTurn.ToString(inv)}";
     }
 }

@@ -7,9 +7,10 @@ namespace Sim.Core.Systems.Roads;
 /// GoodStocks is the SANCTIONED SHARED STOCK — this system is its SIXTH holder (SystemCatalog
 /// records the field-level split: Amount via Ledger SINK only, reason ConstructionMaterials).
 /// <c>Holds</c> (D-055, schema v34) is NOT owned: it is construction's NEXT ConstructionHolds table, handed READ-ONLY
-/// (SystemCatalog's ownership record; construction is its sole writer). ORDER IS DATA: it is read as it stands when this
-/// system runs — in the shipped pipeline.json, after construction, so THIS step's set-asides; in a non-shipped order, the
-/// previous step's published set-asides carried into NEXT, or a loaded save's.</summary>
+/// (SystemCatalog's ownership record; construction is its sole writer). D-056: the read is a declared same-step edge
+/// (SystemRegistration.ReadsThisStepFrom) — TurnExecutor refuses a pipeline that runs this system before construction while
+/// the hold rule applies, so it always reads THIS step's set-asides (a pipeline without construction, a test composition,
+/// reads the table as the world carries it).</summary>
 public sealed record RoadDevelopmentTables(
     Table<TransportEdgeRow> Edges, Table<RoadDevelopmentRow> Log, Table<GoodStockRow> GoodStocks,
     IReadOnlyTable<ConstructionHoldRow> Holds);
@@ -51,8 +52,8 @@ public sealed record RoadDevelopmentTables(
 /// order finds is at least min(its charge, the road share) of every good; with no split row (b = 100) building work
 /// went first and this order pays from what it left, as before. This system itself is unchanged by the split: it
 /// charges exactly as it always did, against what it finds. D-055: what it finds EXCLUDES what construction set aside
-/// (its published ConstructionHolds, read-only; in the shipped pipeline order construction ran earlier in the step, so
-/// these are this step's set-asides): the charge-time holding is the payers' stock less the set-asides of every purse
+/// (its published ConstructionHolds, read-only; construction ran earlier in the step — D-056's enforced edge — so these
+/// are this step's set-asides): the charge-time holding is the payers' stock less the set-asides of every purse
 /// whose holder set lies within the payers (RoadDevelopmentQuery.SetAsideWithin — the issuer's Empire purse, plus each
 /// payer's own purse in a purse-off or Controls-less world), and a donor in a single-settlement purse gives at most its
 /// stock less its own set-aside (an Empire purse's set-aside is fungible: it caps the aggregate). THE PAYERS are the

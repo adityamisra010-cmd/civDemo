@@ -239,7 +239,24 @@ namespace Sim.Cli
             return (int)n;
         }
 
+        /// <summary>
+        /// A BARE order log (`run --orders`, `run --from-save --orders`, `replay --orders`, `research --orders`): loaded
+        /// and range-validated, and — D-056 — refused when it carries a legacy slot-only cancel (kind 11), which no trace
+        /// can check here (<see cref="ReplayGuard.RefuseUnverifiable"/>). The refusal happens before a world is built or
+        /// any output file is opened. A session's own log is read by <see cref="LoadSessionOrders"/> instead.
+        /// </summary>
         internal static OrderLog LoadOrders(string path)
+        {
+            OrderLog log = LoadSessionOrders(path);
+            ReplayGuard.RefuseUnverifiable(log, "order log " + path,
+                "Re-issue the cancels with this build (it records the entry each one names, kind 13), or inspect the "
+                + "session they were recorded in with `sim inspect --manifest`, which checks them against its trace.");
+            return log;
+        }
+
+        /// <summary>A session's order log, for `sim inspect`: loaded and range-validated only — its kind-11 cancels are
+        /// checked against the session trace as they are delivered (<see cref="ReplayGuard.CheckBeforeDelivery"/>).</summary>
+        internal static OrderLog LoadSessionOrders(string path)
         {
             using var stream = File.OpenRead(path);
             return OrderLog.Load(stream);
@@ -589,7 +606,7 @@ namespace Sim.Cli
 
             Console.WriteLine(SessionSchemaNotice.Reproduce(manifest, Path.GetFileName(manifestPath), turns));
 
-            OrderLog orders = LoadOrders(Path.Combine(dir, manifest.OrdersFile));
+            OrderLog orders = LoadSessionOrders(Path.Combine(dir, manifest.OrdersFile));
             // Fix round 1 (D-054, verifier F1): a session recorded before v33 was played on a FLAT map, so it is rebuilt
             // flat (TopologyFlags.RecordedFlat — UiSession.Resume's rule); before, it was rebuilt on the shipped cylinder.
             WorldState world = StartWorld(
@@ -602,8 +619,10 @@ namespace Sim.Cli
             Sim.Core.Systems.SimConfig cfg = SimCfg();
             int grain = cfg.Goods?.GrainId ?? 0;
 
+            // D-056: the per-turn report is built in memory and written after the replay, so a refusal by the legacy-cancel
+            // guard below (or by ADR-034's delivery check) leaves no partial file behind.
             string? reportPath = opts.Get("--report-jsonl");
-            using Stream? report = reportPath is not null ? File.Create(reportPath) : null;
+            using MemoryStream? report = reportPath is not null ? new MemoryStream() : null;
 
             // T4.19 — THE GLASS BOX, HEADLESS. --telemetry rebuilds every turn's
             // record by replaying the log through the same observer the played
@@ -630,9 +649,14 @@ namespace Sim.Cli
             {
                 SessionTrace.Parse([SessionTrace.Line(world, grain)], "replay")[0],
             };
+            string recordedBy = $"build {manifest.BuildSha}, {manifest.BuildDate}, schema v{manifest.SchemaVersion.ToString(CultureInfo.InvariantCulture)}";
             for (long t = 1; t <= turns; t++)
             {
                 WorldState prev = world;
+                // D-056: a batch carrying a legacy kind-11 cancel is delivered only to the recorded world (the trace's row
+                // for its turn, in any readable schema form); otherwise inspect stops here, with nothing written.
+                ReplayGuard.CheckBeforeDelivery(orders.BatchFor(prev.Clock.Turn), prev, played,
+                    "session " + Path.GetFileName(manifestPath), recordedBy);
                 OrderValidation.ValidateAtDelivery(orders.BatchFor(prev.Clock.Turn), turnZero, prev); // ADR-034
                 world = executor.Step(prev);
                 replayed.Add(SessionTrace.Parse([SessionTrace.Line(world, grain)], "replay")[0]);
@@ -660,6 +684,7 @@ namespace Sim.Cli
 
             if (reportPath is not null)
             {
+                File.WriteAllBytes(reportPath, report!.ToArray());
                 Console.WriteLine();
                 Console.WriteLine($"full per-turn state: {reportPath} ({new FileInfo(reportPath).Length} bytes)");
             }
@@ -842,8 +867,12 @@ namespace Sim.Cli
                 OrderRecord o = orders[i];
                 if (o.Turn != turn) continue;
                 found++;
+                // D-056: a kind-13 cancel's Amount is a packed identity; it is printed as what it names.
+                string amount = o.Kind == OrderKind.CancelConstructionEntry
+                    ? OrderValidation.DescribeCancelTarget(o.Amount)
+                    : o.Amount.ToString("0.###", CultureInfo.InvariantCulture);
                 Console.WriteLine($"  ORDER  {o.Kind} target {o.TargetId.ToString(CultureInfo.InvariantCulture)} "
-                    + $"= {o.Amount.ToString("0.###", CultureInfo.InvariantCulture)}  "
+                    + $"= {amount}  "
                     + $"(Empire {o.ActorId.ToString(CultureInfo.InvariantCulture)})");
             }
             if (found == 0) Console.WriteLine("  (no orders issued on this turn)");

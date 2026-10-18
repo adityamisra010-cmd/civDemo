@@ -76,7 +76,7 @@ public class IncrementalConstructionUiTests(CanonicalTurnOneFixture fx) : IClass
         Assert.Equal("16 of 40 timber, 8 of 20 stone and 0.8 of 2 adult-years have gone in", head.GoneIn);
         Assert.Equal("16 timber, 8 stone, 0.8 adult-years", head.Forfeit);
         Assert.NotNull(head.Cancel);
-        Assert.Equal(OrderKind.CancelConstruction, head.Cancel!.Order);
+        Assert.Equal(OrderKind.CancelConstructionEntry, head.Cancel!.Order);   // D-056: the identity cancel
         Assert.Contains("16 of 40 timber, 8 of 20 stone and 0.8 of 2 adult-years have gone in", all, StringComparison.Ordinal);
 
         // No percentage in any figure on the surface.
@@ -382,7 +382,7 @@ public class IncrementalConstructionUiTests(CanonicalTurnOneFixture fx) : IClass
             Assert.Equal(WorldHash.ComputeHex(live.World), WorldHash.ComputeHex(resumed.World));
             Assert.Equal(live.Orders.Count, resumed.Orders.Count);
             for (int i = 0; i < live.Orders.Count; i++) Assert.Equal(live.Orders[i], resumed.Orders[i]);
-            Assert.Contains(Enumerable.Range(0, resumed.Orders.Count).Select(i => resumed.Orders[i]), o => o.Kind == OrderKind.CancelConstruction);
+            Assert.Contains(Enumerable.Range(0, resumed.Orders.Count).Select(i => resumed.Orders[i]), o => o.Kind == OrderKind.CancelConstructionEntry);
             Assert.Contains(Enumerable.Range(0, resumed.Orders.Count).Select(i => resumed.Orders[i]), o => o.Kind == OrderKind.SetResourceAllocation);
             Assert.Equal(live.TraceLines.ToArray(), resumed.TraceLines.ToArray());
             EraTheme th = EraThemes.For(UiEras.Of(live.World, live.Config.Ages, Me));

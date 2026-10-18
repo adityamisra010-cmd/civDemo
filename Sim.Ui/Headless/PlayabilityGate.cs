@@ -1347,7 +1347,7 @@ public static partial class PlayabilityGate
 
             // D-054 WS1: the queue's Cancel — on a COMMITTED entry only (one ordered this turn has none). One click when
             // nothing has gone in; when something has, the first click arms "Lose it" (the forfeit stated beside it) and the
-            // second emits. Either way exactly ONE CancelConstruction order for that entry, through EmitCancelConstruction.
+            // second emits. Either way exactly ONE cancel order (kind 13, D-056) for that entry, through EmitCancelConstruction.
             OpenPolicy();
             if (Ui.Actions.Model?.Construction is { } queued && CancellableEntry(queued) is { } entry)
             {
@@ -1365,7 +1365,8 @@ public static partial class PlayabilityGate
                     }
                     if (Queued != q + 1) return (GateResult.Fail, "SILENT: no cancel order appended");
                     OrderRecord last = S.QueuedOrders()[^1];
-                    return Expect(last.Kind == OrderKind.CancelConstruction && last.TargetId == at && (int)last.Amount == entry.Slot,
+                    return Expect(last.Kind == OrderKind.CancelConstructionEntry && last.TargetId == at
+                        && OrderLog.TryUnpackCancelTarget(last.Amount, out CancelTarget t) && t.Slot == entry.Slot,
                         "the order appended is not this entry's cancel");
                 });
             }

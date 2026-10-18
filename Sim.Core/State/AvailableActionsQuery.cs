@@ -394,7 +394,7 @@ public static class AvailableActionsQuery
                 : ConstructionQuery.GoneIn(cfg.Goods!, project, progress) + " - cancelling loses it";
             into.Add(new ActionDescriptor(
                 ActionDomain.ConstructionQueue, ((long)row.Settlement.Value << 32) | (uint)row.Slot, ActionKind.Order,
-                $"construction.cancel.{Inv(row.Settlement.Value)}.{Inv(row.Slot)}", $"Cancel {name}", OrderKind.CancelConstruction,
+                $"construction.cancel.{Inv(row.Settlement.Value)}.{Inv(row.Slot)}", $"Cancel {name}", OrderKind.CancelConstructionEntry,
                 [SettlementTarget(row.Settlement), new ActionTarget(ActionTargetKind.Project, row.ProjectId, name, Progress: progress)],
                 null, ActionProvenance.None, detail));
         }

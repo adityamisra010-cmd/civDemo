@@ -367,7 +367,7 @@ public class ConstructionTerminationTests
         Set(w, S3, Tools, 1);
         HeadResolution shortOne = ConstructionQuery.ResolveHead(w, Cfg, S1, w.ConstructionQueue, w.ConstructionProgress, w.GoodStocks, 10.0, null)!;
         Assert.Equal((HeadLimitKind.Materials, 400_000L, false), (shortOne.Limit, shortOne.ProgressAfter, shortOne.StructurallyStalled));
-        Assert.DoesNotContain(AiConstructionPolicy.Decide(w, Cfg, Rival, 10.0), o => o.Kind == OrderKind.CancelConstruction);
+        Assert.DoesNotContain(AiConstructionPolicy.Decide(w, Cfg, Rival, 10.0), o => ConstructionQuery.IsCancel(o.Kind));   // D-056: either cancel kind
     }
 
     /// <summary>
@@ -405,7 +405,7 @@ public class ConstructionTerminationTests
 
         OrderRecord[] orders = AiConstructionPolicy.Decide(w, Cfg, Rival, 10.0);
         Assert.Contains(ConstructionQuery.CancelOrder(w, Rival, S1, 0), orders);
-        Assert.DoesNotContain(orders, o => o.Kind == OrderKind.CancelConstruction && o.TargetId == S0.Value);   // the player's
+        Assert.DoesNotContain(orders, o => ConstructionQuery.IsCancel(o.Kind) && o.TargetId == S0.Value);   // the player's
         WorldState cancelled = ConstructionOnly(Cfg, Log(orders)).Step(w);
         Assert.Empty(ConstructionQuery.Queue(cancelled, S1));
         Assert.DoesNotContain(cancelled.ConstructionProgress.Rows(), p => p.Settlement == S1);

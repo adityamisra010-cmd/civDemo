@@ -268,20 +268,81 @@ public static partial class ConstructionQuery
     /// Controls table, the EnqueueConstruction rule), and the slot is queued in <paramref name="queue"/> — the system's
     /// NEXT queue (after this batch's earlier cancels), the UI's pending book. Otherwise the order changes nothing.
     /// </summary>
-    public static bool CancelOrderValid(IReadOnlyWorldState prev, OrderRecord order, IReadOnlyTable<ConstructionQueueRow> queue)
+    public static bool CancelOrderValid(IReadOnlyWorldState prev, OrderRecord order, IReadOnlyTable<ConstructionQueueRow> queue) =>
+        CancelOrderValid(prev, order, queue, prev.ConstructionProgress);
+
+    /// <summary>
+    /// D-056 — <see cref="CancelOrderValid(IReadOnlyWorldState, OrderRecord, IReadOnlyTable{ConstructionQueueRow})"/> for
+    /// BOTH cancel kinds, the target resolved by <see cref="CancelTargetIndex"/> in <paramref name="queue"/> with the
+    /// enqueue turns read from <paramref name="progress"/> (an entry's progress row is never moved by another entry's
+    /// removal, so PREV's table and the step's NEXT table agree on every entry the queue still holds).
+    /// </summary>
+    public static bool CancelOrderValid(IReadOnlyWorldState prev, OrderRecord order,
+        IReadOnlyTable<ConstructionQueueRow> queue, IReadOnlyTable<ConstructionProgressRow> progress)
     {
-        if (order.Kind != OrderKind.CancelConstruction) return false;
-        if (order.TargetId < 0 || !OrderLog.ConstructionSlotValid(order.Amount)) return false;
+        if (!IsCancel(order.Kind)) return false;
+        if (order.TargetId < 0) return false;
         if (prev.Polities.Count > 0 && !EmpireQuery.TryGetCommandSource(prev, order.Actor, out _)) return false;
         var settlement = new SettlementId(order.TargetId);
         if (prev.Controls.Count > 0 && !EmpireQuery.ControlsSettlement(prev, order.Actor, settlement)) return false;
-        return IndexOfSlot(queue, settlement, (int)order.Amount) >= 0;
+        return CancelTargetIndex(queue, progress, order) >= 0;
     }
 
     /// <summary><see cref="CancelOrderValid(IReadOnlyWorldState, OrderRecord, IReadOnlyTable{ConstructionQueueRow})"/>
     /// against the world's own queue.</summary>
     public static bool CancelOrderValid(IReadOnlyWorldState world, OrderRecord order) =>
-        CancelOrderValid(world, order, world.ConstructionQueue);
+        CancelOrderValid(world, order, world.ConstructionQueue, world.ConstructionProgress);
+
+    /// <summary>D-056 — true for both cancel kinds: <see cref="OrderKind.CancelConstruction"/> (11, legacy slot-only) and
+    /// <see cref="OrderKind.CancelConstructionEntry"/> (13, identity-carrying, the one every emitter now issues).</summary>
+    public static bool IsCancel(OrderKind kind) => kind is OrderKind.CancelConstruction or OrderKind.CancelConstructionEntry;
+
+    /// <summary><see cref="CancelTargetIndex"/>'s answer when two or more entries carry the order's identity and none sits
+    /// at its recorded slot: the cancel cannot name ONE entry, so it applies to none (and a replayed log is refused at
+    /// delivery, OrderValidation.ValidateAtDelivery).</summary>
+    public const int CancelTargetAmbiguous = -2;
+
+    /// <summary>
+    /// D-056 — THE CANCEL TARGET RESOLVER, one function for ConstructionSystem, the delivery check and the UI. The index in
+    /// <paramref name="queue"/> of the entry <paramref name="order"/> cancels, or −1 (no such entry, or a malformed
+    /// payload: the order changes nothing), or <see cref="CancelTargetAmbiguous"/>.
+    /// Kind 11 (legacy): the entry at its slot — the slot alone, which is why recorded kind-11 orders are only replayed
+    /// where a session trace proves the world is the recorded one (ReplayGuard). Kind 13: among the settlement's entries,
+    /// those whose ProjectId and EnqueuedTurn (read from <paramref name="progress"/>; −1 for a row-less v32 entry) are the
+    /// recorded ones; the one at the recorded slot if it is among them, else the only one, else none (−1) or
+    /// <see cref="CancelTargetAmbiguous"/>. A slot never redirects a kind-13 cancel to an entry of another identity.
+    /// </summary>
+    public static int CancelTargetIndex(IReadOnlyTable<ConstructionQueueRow> queue, IReadOnlyTable<ConstructionProgressRow> progress,
+        OrderRecord order)
+    {
+        if (order.TargetId < 0) return -1;
+        var settlement = new SettlementId(order.TargetId);
+        if (order.Kind == OrderKind.CancelConstruction)
+            return OrderLog.ConstructionSlotValid(order.Amount) ? IndexOfSlot(queue, settlement, (int)order.Amount) : -1;
+        if (order.Kind != OrderKind.CancelConstructionEntry || !OrderLog.TryUnpackCancelTarget(order.Amount, out CancelTarget t))
+            return -1;
+        int only = -1, matches = 0;
+        for (int i = 0; i < queue.Count; i++)
+        {
+            ConstructionQueueRow entry = queue[i];
+            if (entry.Settlement != settlement || entry.ProjectId != t.ProjectId) continue;
+            if (EnqueuedTurnOf(progress, entry) != t.EnqueuedTurn) continue;
+            if (entry.Slot == t.Slot) return i;
+            only = i;
+            matches++;
+        }
+        return matches switch { 0 => -1, 1 => only, _ => CancelTargetAmbiguous };
+    }
+
+    /// <summary>D-056 — the identity of the entry at (<paramref name="settlement"/>, <paramref name="slot"/>) as a
+    /// <see cref="CancelTarget"/>; null when that slot is not queued.</summary>
+    public static CancelTarget? CancelTargetOf(IReadOnlyWorldState world, SettlementId settlement, int slot)
+    {
+        int i = IndexOfSlot(world.ConstructionQueue, settlement, slot);
+        if (i < 0) return null;
+        ConstructionQueueRow entry = world.ConstructionQueue[i];
+        return new CancelTarget(slot, entry.ProjectId, EnqueuedTurnOf(world.ConstructionProgress, entry));
+    }
 
     /// <summary>The COMMITTED entries (the world's own queue) that the turn's pending batch <paramref name="pending"/>
     /// cancels, as the intake will apply it: each CancelConstruction that <see cref="CancelOrderValid(IReadOnlyWorldState, OrderRecord, IReadOnlyTable{ConstructionQueueRow})"/>
@@ -294,10 +355,11 @@ public static partial class ConstructionQuery
         for (int o = 0; o < pending.Count; o++)
         {
             OrderRecord order = pending[o];
-            if (order.Kind != OrderKind.CancelConstruction) continue;
-            if (!CancelOrderValid(world, order, (IReadOnlyTable<ConstructionQueueRow>?)queue ?? world.ConstructionQueue)) continue;
+            if (!IsCancel(order.Kind)) continue;
+            if (!CancelOrderValid(world, order, (IReadOnlyTable<ConstructionQueueRow>?)queue ?? world.ConstructionQueue,
+                    world.ConstructionProgress)) continue;
             queue ??= Copy(world.ConstructionQueue);
-            int i = IndexOfSlot(queue, new SettlementId(order.TargetId), (int)order.Amount);
+            int i = CancelTargetIndex(queue, world.ConstructionProgress, order);
             result.Add(new QueueEntryRef(queue[i].Settlement, queue[i].Slot, queue[i].ProjectId));
             RemoveAt(queue, i);
         }
@@ -325,10 +387,20 @@ public static partial class ConstructionQuery
         return string.Join(", ", parts);
     }
 
-    /// <summary>The CancelConstruction order the player's Cancel and the AI's structural-stall cancel issue — identical
-    /// for both: stamped with the CURRENT turn, TargetId = the settlement, Amount = the slot.</summary>
-    public static OrderRecord CancelOrder(IReadOnlyWorldState world, PolityId issuer, SettlementId settlement, int slot) =>
-        OrderRecord.From(world.Clock.Turn, issuer, OrderKind.CancelConstruction, settlement.Value, slot);
+    /// <summary>The cancel order the player's Cancel and the AI's structural-stall cancel issue — identical for both:
+    /// stamped with the CURRENT turn, TargetId = the settlement. D-056: it is a <see cref="OrderKind.CancelConstructionEntry"/>
+    /// carrying the entry's identity (slot, project, enqueue turn) read from <paramref name="world"/>, so a replay can
+    /// never apply it to another entry. A slot that is not queued has no identity: the order then carries an Amount that
+    /// names no entry (−1, which no queue resolves), and its validity predicate rejects it wherever it is checked — the
+    /// emitters append nothing for it. A queued entry's identity is encodable whenever its slot is below 2^18 and its order
+    /// turn below 2^19 − 1 (project ids are below 2^16: GoodsConfig refuses larger ones); beyond that the entry has no
+    /// cancel (the same −1 order), which no reachable game approaches.</summary>
+    public static OrderRecord CancelOrder(IReadOnlyWorldState world, PolityId issuer, SettlementId settlement, int slot)
+    {
+        double amount = CancelTargetOf(world, settlement, slot) is { } target && OrderLog.CanPackCancelTarget(target)
+            ? OrderLog.PackCancelTarget(target) : -1.0;
+        return OrderRecord.From(world.Clock.Turn, issuer, OrderKind.CancelConstructionEntry, settlement.Value, amount);
+    }
 
     /// <summary>
     /// THE ONE RESOLVER (WS1, D-054; ADR-033 D2). What the HEAD of <paramref name="settlement"/>'s queue in

@@ -172,12 +172,12 @@ public class AllocationScenarioTests(AllocationScenarioRun run)
     {
         // From world K (the save point), as the ci.yml twins run from save_K.
         (string[] main, SplitReportRow[] _) = Continue(run.World(K).Clone(), run.Log, V + 1);
-        (string[] no11, SplitReportRow[] _) = Continue(run.World(K).Clone(), Log(Orders(drop: (V, OrderKind.CancelConstruction))), V + 1);
+        (string[] no11, SplitReportRow[] _) = Continue(run.World(K).Clone(), Log(Orders(drop: (V, OrderKind.CancelConstructionEntry))), V + 1);
         Assert.Equal(main, run.Hashes[(int)(K + 1)..(int)(V + 2)]);
         Assert.Equal(main[..(int)(V - K)], no11[..(int)(V - K)]);              // equal through world V
         Assert.NotEqual(main[^1], no11[^1]);                                     // different at V + 1
         // ... and WHAT differs: without the cancel the part-built head is still there and the project is queued twice.
-        WorldState twin = StepTo(run.World(K).Clone(), Log(Orders(drop: (V, OrderKind.CancelConstruction))), V + 1);
+        WorldState twin = StepTo(run.World(K).Clone(), Log(Orders(drop: (V, OrderKind.CancelConstructionEntry))), V + 1);
         Assert.Equal(new[] { "4:0 126 422236", "4:1 132 0" },
             All(twin.ConstructionProgress).Where(r => r.Settlement.Value == Third).Select(r => $"{r.Settlement.Value}:{r.Slot} {r.EnqueuedTurn} {r.Progress}").ToArray());
 

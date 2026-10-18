@@ -36,7 +36,7 @@ public enum ActionCommandKind
     /// the order is appended by the placement's Confirm, through UiSession.EmitFoundSettlement).</summary>
     FoundSettlement = 9,
     /// <summary>WS1 (D-054): cancel the queue entry at slot <see cref="ActionCommand.Project"/> of
-    /// <see cref="ActionCommand.Settlement"/> (order kind 11, through UiSession.EmitCancelConstruction).</summary>
+    /// <see cref="ActionCommand.Settlement"/> (order kind 13 since D-056, through UiSession.EmitCancelConstruction).</summary>
     CancelConstruction = 10,
     /// <summary>WS2 (D-054): set the Empire's building/roads material split to <see cref="ActionCommand.Percent"/> shares
     /// in 100 for building work (order kind 12, through UiSession.EmitAllocationOrder).</summary>

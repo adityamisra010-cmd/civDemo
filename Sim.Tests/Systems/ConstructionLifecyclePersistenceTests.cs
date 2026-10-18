@@ -29,8 +29,9 @@ namespace Sim.Tests.Systems;
 /// saved between issue and delivery; L10 the TAMPER test — a v34 save whose ConstructionHolds rows were altered or dropped
 /// (still well-formed) loads, its world at K differs, and the next world equals the untampered continuation's: the table
 /// is never an input to construction (kills "the walk seeded from PREV.ConstructionHolds"). L10's rigs run construction
-/// only; in the shipped pipeline order road development also reads only this step's rebuild, and another order reads the
-/// table as it stands (ADR-040, D-055 §11; pinned by ConstructionReservationTests.TheEdgeOrderIsData_…).
+/// only; road development also reads only this step's rebuild — the executor refuses any pipeline that runs it before
+/// construction (D-056, superseding ADR-040 / D-055 §11's "order is data" for this read; pinned by
+/// ConstructionReservationTests.TheSameStepEdge_…).
 ///
 /// EVERY HOLD ASSERTION HAS A BINDING PREMISE (design §4, review L4-16): the same continuation under
 /// TestConfigs.PreReservations differs, and the younger head's exact draw is pinned on the loaded world. Progress values
@@ -346,7 +347,7 @@ public class ConstructionLifecyclePersistenceTests
             Set(prev, S1, Stone, 10);
             OrderRecord[] ai = AiConstructionPolicy.Decide(prev, Cfg, Rival, 10.0);
             Assert.Contains(ConstructionQuery.CancelOrder(prev, Rival, S1, 0), ai);
-            Assert.DoesNotContain(ai, o => o.Kind == OrderKind.CancelConstruction && o.TargetId == S0.Value);
+            Assert.DoesNotContain(ai, o => ConstructionQuery.IsCancel(o.Kind) && o.TargetId == S0.Value);   // D-056: either cancel kind
             WorldState t2 = ConstructionOnly(Cfg, Log(ai)).Step(prev);
             Eq(0, ConstructionQuery.Queue(t2, S1).Length, arm, "the AI's head after its cancel");
             Eq(new ConstructionProgressRow(S0, 0, Works, 0, 428_571), ProgressRow(t2, S0), arm, "the player's head, kept");

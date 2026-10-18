@@ -15,15 +15,18 @@ sweeping the construction weight every 20th turn, SetResearchTarget (kind 6) on
 knapping_oldowan (key 2) at turn 0 and a clear (-1) at turn 150, and
 EnqueueConstruction (kind 4) of a granary (project 1) at settlement 0 at turn 10.
 D-054 WS1: a SECOND and a THIRD granary at turn 10 (they queue behind the first,
-slots 1 and 2), a CancelConstruction (kind 11) of slot 2 at turn 11, and a
-CancelConstruction of a slot that does not exist (slot 7) at turn 12 -- a well-formed
-order the delivery-time check ignores. The first granary completes in step 10->11
+slots 1 and 2), a cancel of slot 2 at turn 11, and a cancel naming an entry that does
+not exist (slot 7, ordered at turn 12) at turn 12 -- a well-formed order the
+delivery-time check ignores. D-056: both cancels are CancelConstructionEntry (kind 13),
+which carries the entry's identity (slot, project, the turn its order was accepted --
+cancel_target below); the legacy slot-only kind 11 is no longer written, and a bare
+log carrying one is refused by every CLI runner. The first granary completes in step 10->11
 (measured on the seed-42 world), so at the turn-11 cancel's delivery slot 1 is the head
 and slot 2 is a genuine NON-HEAD entry (a cancel of slot 1 would have removed the head).
 D-054 WS2: SetResourceAllocation (kind 12) by the player for itself (TargetId 1):
 building 30 shares in 100 at turn 40, 70 at turn 200 (when the run reaches them) --
 the standing split is upserted and recomputed every step from then on.
-The AI Empire's orders (kinds 4-9, and 11 for its structurally stalled heads) are
+The AI Empire's orders (kinds 4-9, and 13 for its structurally stalled heads) are
 produced in-process and written by --emit-session; replay reads that run log.
 --found (M5 S1b, ADR-036; founded runs: sim run --founded --seed 42): two
 FoundSettlement orders (kind 9) by the player (polity 1). Turn 2: from settlement 0
@@ -47,7 +50,7 @@ window in the 1 % road phase: settlement 4 gets few builders (kind 3, constructi
 weight 0.01, at 125), a granary there at 126 (labour-paced: part-built, progress not a
 round number), and NO builders at 127 (weight 0) -- an OLDER part-built head that sets
 aside what it still needs; granaries at settlements 0 and 2 at 128 wait for it
-(HeldForEarlier); at 132 it is cancelled (kind 11) and the same project re-enqueued
+(HeldForEarlier); at 132 it is cancelled (kind 13) and the same project re-enqueued
 (kind 4) in one batch; its builders return at 134; (4) at 136, in ONE batch, b = 70
 and three granaries at settlements 0, 2 and 4 -- the new share binds in its own
 delivery step (T3 round 2: building work draws 70 % of the stone, its twin without
@@ -59,6 +62,12 @@ and pins the sha256 of the logs the ci.yml step checks.
 """
 import struct
 import sys
+
+
+def cancel_target(slot, project, enqueued_turn):
+    """D-056: kind 13's Amount -- OrderLog.PackCancelTarget: slot + 2^18 * (project + 2^16 * (enqueued_turn + 1))."""
+    return slot + (1 << 18) * (project + (1 << 16) * (enqueued_turn + 1))   # an exact int; "<qiiid" packs it as a double
+
 
 argv = sys.argv[1:]
 drop = None
@@ -81,7 +90,7 @@ if allocation:
     records += [(117, 1, 4, 0, 1.0)] * 3 + [(117, 1, 4, 2, 1.0)] * 3
     records += [(125, 1, 3, (4 << 3) | 4, 0.01), (126, 1, 4, 4, 1.0), (127, 1, 3, (4 << 3) | 4, 0.0)]
     records += [(128, 1, 4, 0, 1.0)] * 2 + [(128, 1, 4, 2, 1.0)] * 2
-    records += [(132, 1, 11, 4, 0.0), (132, 1, 4, 4, 1.0), (134, 1, 3, (4 << 3) | 4, 10.0), (136, 1, 12, 1, 70.0)]
+    records += [(132, 1, 13, 4, cancel_target(0, 1, 126)), (132, 1, 4, 4, 1.0), (134, 1, 3, (4 << 3) | 4, 10.0), (136, 1, 12, 1, 70.0)]
     records += [(136, 1, 4, 0, 1.0), (136, 1, 4, 2, 1.0), (136, 1, 4, 4, 1.0)]
     records += [(turn, 1, 8, 0, 100.0 if turn < 126 else 1.0) for turn in range(116, max_turn)]
     records = [r for r in records if r[0] < max_turn]
@@ -97,8 +106,8 @@ elif mix:
             records.append((10, 1, 4, 0, 1.0))
             records.append((10, 1, 4, 0, 1.0))    # D-054 WS1: a second granary, slot 1
             records.append((10, 1, 4, 0, 1.0))    # and a third, slot 2
-            records.append((11, 1, 11, 0, 2.0))   # kind 11: cancel slot 2 -- non-head at delivery (slot 1 is head then)
-            records.append((12, 1, 11, 0, 7.0))   # kind 11: no slot 7 -- ignored at delivery
+            records.append((11, 1, 13, 0, cancel_target(2, 1, 10)))   # kind 13: slot 2 -- non-head at delivery (slot 1 is head then)
+            records.append((12, 1, 13, 0, cancel_target(7, 1, 12)))   # kind 13: no such entry -- ignored at delivery
         if turn <= 150 < turn + 20:
             records.append((150, 1, 6, -1, 0.0))
     for turn, share in ((40, 30.0), (200, 70.0)):  # D-054 WS2: kind 12, the player's own split

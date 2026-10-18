@@ -21,12 +21,12 @@ public sealed class SnapshotFormatException(string message) : Exception(message)
 ///
 /// D-055 (schema v34): THE v34 FILE LAYOUT is the v33 one with the canonical stream running to section 61
 /// (ConstructionHolds). <see cref="Load"/> accepts the readable SET {32, 33, 34} (CanonicalSchema.IsReadable, the one
-/// helper): a v33 file's stream ends after section 60 and its ConstructionHolds table is left empty — exact IN THE SHIPPED
-/// PIPELINE ORDER (construction before roaddevelopment, pinned by
-/// ConstructionHoldsSchemaV34Tests.TheShippedPipeline_RunsConstructionBeforeRoadDevelopment), where construction clears
-/// and rebuilds that table before road development reads it; in an order that runs road development first, road works in
-/// the first step after a v33 load see no set-asides where a v34 save of the same state would carry its rows
-/// (SystemCatalog.RoadDevelopment's ownership paragraph) — and it carries the topology trailer as a v34 file does. A loaded ConstructionHolds table that no rule could have written (unsorted or duplicate (Purse, Good) keys,
+/// helper): a v33 file's stream ends after section 60 and its ConstructionHolds table is left empty — exact in every
+/// pipeline the executor composes (D-056: road development's read of the table is a declared same-step edge, so
+/// construction clears and rebuilds it before road development reads it; the shipped order is pinned by
+/// ConstructionHoldsSchemaV34Tests.TheShippedPipeline_RunsConstructionBeforeRoadDevelopment, and the road-first order in
+/// which a v33 load and a v34 save of the same state continued differently is refused by TurnExecutor) — and it carries
+/// the topology trailer as a v34 file does. A loaded ConstructionHolds table that no rule could have written (unsorted or duplicate (Purse, Good) keys,
 /// Units ≤ 0, Good &lt; 0) is refused (State.Reservations.InvariantViolation).
 /// </summary>
 public static class Snapshot
@@ -61,7 +61,23 @@ public static class Snapshot
             throw new SnapshotFormatException(
                 "not a civ-sim save: bad magic (expected CIVSNAP header).");
 
-        int version = reader.ReadInt32();
+        int version;
+        ulong headerSeed;
+        long headerTurn;
+        try
+        {
+            version = reader.ReadInt32();
+            if (CanonicalSchema.IsReadable(version))
+            {
+                headerSeed = reader.ReadUInt64();
+                headerTurn = reader.ReadInt64();
+            }
+            else (headerSeed, headerTurn) = (0UL, 0L);
+        }
+        catch (EndOfStreamException)
+        {
+            throw new SnapshotFormatException("save is truncated: its header (version, seed, turn) is incomplete."); // D-056
+        }
         if (!CanonicalSchema.IsReadable(version))
             throw new SnapshotFormatException(
                 $"save is schema version {version}, this build reads only versions " +
@@ -69,10 +85,19 @@ public static class Snapshot
                 "between milestones by design (D-008) — no migration exists for this version. Re-derive the world " +
                 "via seed + order-log replay.");
 
-        ulong headerSeed = reader.ReadUInt64();
-        long headerTurn = reader.ReadInt64();
-
-        WorldState world = CanonicalSchema.Read(reader, version, out byte[]? expectedTerrainHash);
+        WorldState world;
+        byte[]? expectedTerrainHash;
+        try
+        {
+            world = CanonicalSchema.Read(reader, version, out expectedTerrainHash);
+        }
+        catch (Exception e) when (e is EndOfStreamException or InvalidDataException)
+        {
+            // D-056: a stream that ends inside its tables, or a row count no writer emits, is a corrupt save — reported as
+            // one, never as a bare reader exception.
+            throw new SnapshotFormatException("save is truncated or corrupt: its state stream cannot be read to the end ("
+                + (e is EndOfStreamException ? "it ends inside a table" : e.Message.TrimEnd('.')) + ").");
+        }
 
         // The topology trailer (ADR-039; v33 and v34 alike); a v32 save has none and is flat.
         int topology = 0;
@@ -95,6 +120,12 @@ public static class Snapshot
                     "save is corrupt: it records an east-west wrapping world but was made without terrain — only a " +
                     "world with terrain can wrap.");
         }
+
+        // D-056: nothing follows the last field (the stream for v32, the topology trailer from v33): bytes after it mean
+        // the file is not one this or any build wrote.
+        if (reader.Read(new byte[1], 0, 1) > 0)
+            throw new SnapshotFormatException(
+                "save is corrupt: it carries bytes after its last field (" + (version >= 33 ? "the topology trailer" : "the state stream") + ").");
 
         AssertProgressInvariant(world);
 
@@ -147,9 +178,9 @@ public static class Snapshot
         if (ResourceAllocation.InvariantViolation(world.ResourceAllocations) is { } split)
             throw new SnapshotFormatException("save is corrupt: " + split + " (schema v33 invariant).");
         // D-055 (v34): the published holds as only construction writes them — ascending unique (Purse, Good), Units > 0,
-        // Good ≥ 0. In the shipped pipeline order the table is never an input (construction rebuilds it before road
-        // development reads it; in an order that runs road development first it is read as loaded — SystemCatalog.
-        // RoadDevelopment), and a save no rule wrote is refused rather than loaded, as the progress and split tables are.
+        // Good ≥ 0. The table is never an input (construction rebuilds it before road development reads it — D-056, an
+        // edge TurnExecutor enforces), and a save no rule wrote is refused rather than loaded, as the progress and split
+        // tables are.
         if (Reservations.InvariantViolation(world.ConstructionHolds) is { } holds)
             throw new SnapshotFormatException("save is corrupt: " + holds + " (schema v34 invariant).");
     }

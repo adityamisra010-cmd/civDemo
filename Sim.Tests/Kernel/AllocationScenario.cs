@@ -26,7 +26,7 @@ namespace Sim.Tests.Kernel;
 ///   is not a round number), and NO builders (weight 0, stamped 127): an OLDER part-built head that sets aside what it
 ///   still needs. The granaries stamped 128 at settlements 0 and 2 wait for it — HeldForEarlier, from <see cref="W"/> —
 ///   while the set-aside sits inside the 30 % share. Road works' unused share goes to building work at <see cref="Z"/>. At
-///   <see cref="V"/> the part-built head is cancelled (kind 11) and the same project re-enqueued (kind 4) in one batch;
+///   <see cref="V"/> the part-built head is cancelled (kind 13, D-056) and the same project re-enqueued (kind 4) in one batch;
 ///   settlement 4's builders return at 134; b = 70 is stamped <see cref="Seventy"/> in the batch that queues granaries at
 ///   settlements 0, 2 and 4 (T3 round 2, 2026-10-17): the new share binds in its own delivery step, where its twin without
 ///   the order draws the old share.</item>
@@ -55,7 +55,7 @@ internal static class AllocationScenario
     /// <summary>Road works' unused share used by building work (D_b &gt; E_b, D_r &lt; E_r, build + holds &gt; E_b).</summary>
     internal const long Z = 131;
 
-    /// <summary>The kind-11 cancel of the part-built head and its re-enqueue (kind 4), one batch.</summary>
+    /// <summary>The cancel (kind 13, D-056) of the part-built head and its re-enqueue (kind 4), one batch.</summary>
     internal const long V = 132;
 
     /// <summary>The kind-12 order that changes b to 70 — with three granaries in the same batch, so building work draws what
@@ -98,7 +98,7 @@ internal static class AllocationScenario
         r.Add(R(127, OrderKind.SectorAllocation, ThirdConstruction, 0.0));
         for (int i = 0; i < 2; i++) r.Add(R(128, OrderKind.EnqueueConstruction, 0, Granary));
         for (int i = 0; i < 2; i++) r.Add(R(128, OrderKind.EnqueueConstruction, 2, Granary));
-        r.Add(R(V, OrderKind.CancelConstruction, Third, 0.0));
+        r.Add(R(V, OrderKind.CancelConstructionEntry, Third, OrderLog.PackCancelTarget(new CancelTarget(0, Granary, 126))));
         r.Add(R(V, OrderKind.EnqueueConstruction, Third, Granary));
         r.Add(R(134, OrderKind.SectorAllocation, ThirdConstruction, 10.0));
         r.Add(R(Seventy, OrderKind.SetResourceAllocation, Player, 70.0));

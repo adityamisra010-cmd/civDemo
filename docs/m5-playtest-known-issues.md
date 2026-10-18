@@ -173,6 +173,16 @@ NOT complete; the exit and merge conditions are in D-052 §15.
   measured: seed 1, `--size 256 --ai-empires 1`, the AI's founding at turn 179. A `--size` session recorded by an
   earlier build therefore stops reproducing from its first colony founded after turn 0, and is refused like any other
   incompatible session. Canonical-size sessions are unaffected by this fix.
+- *D-056 (2026-10-18), cancels in old sessions.*
+  - **What changed.** A cancel now records which project it cancels, not only its queue slot (order kind 13). Sessions
+    recorded before this build hold the old slot-only cancels (kind 11). Slots are reused, so in a world that has
+    drifted from the one played, such a cancel could remove a different project.
+  - **What this build does with them.** It applies an old cancel only when the session's trace proves the world is the
+    one played at that turn. Otherwise the resume is refused (exit code 2, the message and the dialog), naming the turn
+    and the build that recorded the session. A session without old cancels resumes as before.
+  - **Your files are protected.** The session files are never changed by a refused resume. After any resume the trace
+    could not check turn by turn, the first save copies the recorded log, trace and chronicle aside first, as
+    `*.as-recorded.*`. Back up a session folder anyway before resuming it in a new build.
 - Only two resume failures get the clear report: a different build's session, and an order log the order checks
   reject (exit code 2, "error: <message>", also shown in the dialog). Other `--resume` failures still end with an
   unhandled error and no dialog: a wrong path, a corrupt or truncated manifest, a missing order log. Do not edit or

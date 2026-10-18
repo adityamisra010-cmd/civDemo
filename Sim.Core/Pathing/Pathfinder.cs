@@ -442,8 +442,11 @@ public static class Pathfinder
     ///   in another component leaves the count above zero, so the search runs to exhaustion exactly as the full
     ///   isochrone did and returns +∞ for it.
     /// Duplicate targets are awaited once and each copy reads the same cost; a target equal to the origin costs 0.
-    /// The early exit changes no result (the points above), so no result-level test can see it: it is a speed-up
-    /// guarded only by <c>sim bench</c>, through the catchment phase's TIME (D-055; its allocation column does not move).
+    /// The early exit changes no result (the points above), so no result-level test can see it: D-056 adds the
+    /// <see cref="DistancesTo(TraversalLattice, IReadOnlyWorldState, int, ReadOnlySpan{int}, out int)"/> overload, which
+    /// also reports how many nodes the search settled, and DistancesToEarlyExitTests pins the stop with it (fewer nodes
+    /// than the full isochrone reaches whenever every target is settled first; the whole component when one is not);
+    /// <c>sim bench</c> measures what it saves (the catchment phase's time).
     /// Awaiting a duplicate once matters for speed alone too (awaited twice, the count never reaches zero and the search
     /// floods the component), and only where two settlements share an origin node, which D-025 spacing forbids.
     /// Pure, no state (the mandate above): every array is a local of this call. LegacyPathfinderDifferentialTests
@@ -451,8 +454,16 @@ public static class Pathfinder
     /// LegacyCatchmentDistancesTests compares the table they write with the batch-3 one row for row.
     /// </summary>
     public static double[] DistancesTo(
-        TraversalLattice lattice, IReadOnlyWorldState world, int origin, ReadOnlySpan<int> targets)
+        TraversalLattice lattice, IReadOnlyWorldState world, int origin, ReadOnlySpan<int> targets) =>
+        DistancesTo(lattice, world, origin, targets, out _);
+
+    /// <summary>D-056 — <see cref="DistancesTo(TraversalLattice, IReadOnlyWorldState, int, ReadOnlySpan{int})"/>, also
+    /// returning in <paramref name="settled"/> the number of nodes the search settled (popped and closed) before it stopped:
+    /// the observable of the O5 early exit (the full isochrone settles every node it reaches).</summary>
+    public static double[] DistancesTo(
+        TraversalLattice lattice, IReadOnlyWorldState world, int origin, ReadOnlySpan<int> targets, out int settled)
     {
+        settled = 0;
         int n = lattice.NodeCount;
         for (int i = 0; i < targets.Length; i++)
             if ((uint)targets[i] >= (uint)n)
@@ -485,6 +496,7 @@ public static class Pathfinder
                 (_, int current) = open.Pop();
                 if (closed[current]) continue;
                 closed[current] = true;
+                settled++;
                 if (isTarget[current] && --remaining == 0) break; // every target settled: nothing later can change them
 
                 Expand(lattice, overlay, current, g, null, closed, (node, tentative) => open.Push(tentative, node));

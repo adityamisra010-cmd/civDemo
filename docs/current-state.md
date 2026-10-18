@@ -1,5 +1,19 @@
 # CURRENT STATE — the routing document
 
+> **2026-10-18: D-056, the Director's mandate "Fix the game", is implemented on `claude/new-session-yavghm` (the
+> protected development clone; NOT merged, NOT published).** Records: `docs/d056-director-mandate-fix-the-game.md`
+> (decisions and supersessions) and `docs/adr/adr-041-identity-cancel-replay-guard-same-step-edge.md` (the contract).
+> - **What changed.**
+>   - Cancels are order kind 13 and carry their entry's identity. Kind 11 is legacy: never written, and replayed only
+>     where the session trace proves the world is the recorded one; otherwise refused before any write. Bare CLI logs
+>     carrying kind 11 are refused.
+>   - The road-development read of ConstructionHolds is an enforced same-step edge.
+>   - The snapshot reader refuses truncated or padded files and impossible row counts.
+>   - The O5 early exit is observable.
+>   - `--from-save S --save S` is refused.
+> - **Schema stays v34.** The batch-4 entry below describes the base this sits on; verify both against the tree
+>   (gov-4).
+
 > **2026-10-18: batch 4 (the Director's instruction "Batch 4 — Independent Audit Remediation") is applied UNCOMMITTED
 > on `m5w-integration`, on top of the uncommitted batch-3 tree (`de86ace` + the batch-2 base + `b3-final-v9`).**
 > - **State.** LOCAL only, in the integration worktree's working tree. It is NOT committed, NOT merged, NOT pushed, NOT

@@ -173,12 +173,11 @@ public static class CanonicalSchema
     /// count prefix and nothing else. THE READABLE VERSIONS ARE THE SET {32, 33, 34} (<see cref="IsReadable"/>, the one
     /// helper every stream reader gates on — this reader, Snapshot.Load, Sim.Cli's SaveFiles and SnapshotDiff.LayoutFor): a
     /// v33 stream stops after section 60 and a v32 stream after section 58, every missing table left EMPTY — exact for the
-    /// v33 → v34 migration IN THE SHIPPED PIPELINE ORDER, where construction rebuilds the table before road development
-    /// reads it (construction before roaddevelopment, pinned by
-    /// ConstructionHoldsSchemaV34Tests.TheShippedPipeline_RunsConstructionBeforeRoadDevelopment; in an order that runs road
-    /// development first, the first step after a v33 load reads an empty table where a v34 save of the same state carries
-    /// rows — SystemCatalog.RoadDevelopment's ownership paragraph), and, for v32, because no partial construction state and
-    /// no split existed. The snapshot's topology trailer is unchanged (v33 and v34 carry it).
+    /// v33 → v34 migration in every pipeline the executor composes, where construction rebuilds the table before road
+    /// development reads it (D-056: a declared same-step edge TurnExecutor enforces — the road-first order, in which the
+    /// first step after a v33 load read an empty table where a v34 save of the same state carried rows, is refused; the
+    /// shipped order is pinned by ConstructionHoldsSchemaV34Tests.TheShippedPipeline_RunsConstructionBeforeRoadDevelopment),
+    /// and, for v32, because no partial construction state and no split existed. The snapshot's topology trailer is unchanged (v33 and v34 carry it).
     public const int Version = 34;
 
     /// <summary>The oldest member of the readable set (<see cref="IsReadable"/>): v32, the last version without the v33
@@ -194,6 +193,25 @@ public static class CanonicalSchema
     /// message: seed + order-log replay is the recovery path).
     /// </summary>
     public static bool IsReadable(int version) => version is 32 or 33 or Version;
+
+    /// <summary>
+    /// D-056 — THE BYTES A READABLE OLDER SCHEMA DID NOT WRITE: the length of the sections this build's stream appends
+    /// after the last section of schema <paramref name="version"/> — 0 for <see cref="Version"/>; section 61
+    /// (ConstructionHolds) for v33; sections 59–61 for v32. Exact because every table a readable version lacks was
+    /// APPENDED after every table it has (v33 and v34 changed no existing row), so the canonical stream a v
+    /// <paramref name="version"/> build wrote for the same tables is this build's stream less this many trailing bytes.
+    /// <see cref="WorldHash.ComputeHexAsSchema"/> hashes that prefix. Throws for a version outside the readable set.
+    /// </summary>
+    public static int BytesAppendedSince(IReadOnlyWorldState world, int version)
+    {
+        if (!IsReadable(version))
+            throw new ArgumentOutOfRangeException(nameof(version), version,
+                $"this build reads canonical streams of version 32, 33 and {Version} only.");
+        int holds = CountPrefixWidth + world.ConstructionHolds.Count * ConstructionHoldRowWidth;
+        int v33Tables = CountPrefixWidth + world.ConstructionProgress.Count * ConstructionProgressRowWidth
+            + CountPrefixWidth + world.ResourceAllocations.Count * ResourceAllocationRowWidth;
+        return version switch { Version => 0, 33 => holds, _ => holds + v33Tables };
+    }
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -967,10 +985,8 @@ public static class CanonicalSchema
     /// <summary>
     /// THE MIGRATING READER (v33, ADR-039; v34, D-055): reads a stream of schema <paramref name="version"/>, any member of
     /// the readable set (<see cref="IsReadable"/>: 32, 33, 34). A v33 stream ends after section 60: ConstructionHolds is
-    /// left EMPTY, which is exact in the shipped pipeline order — construction clears and rebuilds it before road development
-    /// reads it (pinned by ConstructionHoldsSchemaV34Tests.TheShippedPipeline_RunsConstructionBeforeRoadDevelopment); in an
-    /// order that runs road development first, the first step after a v33 load sees no set-asides where a v34 save of the
-    /// same state would carry its rows (SystemCatalog.RoadDevelopment's ownership paragraph). A v32 stream ends after
+    /// left EMPTY, which is exact in every pipeline the executor composes — construction clears and rebuilds it before road
+    /// development reads it (D-056: the read is a declared same-step edge, and TurnExecutor refuses the road-first order). A v32 stream ends after
     /// section 58: the two v33 tables are left empty too, which is exact (under v32 no entry had partial progress and no
     /// Empire had a split; a queued entry with no progress row reads p = 0, ordered as EnqueuedTurn = −1). Any other
     /// version is refused (Snapshot.Load names the D-008 recovery path first).
@@ -997,6 +1013,25 @@ public static class CanonicalSchema
     public static WorldState Read(BinaryReader reader, out byte[]? expectedTerrainHash) =>
         ReadStream(reader, Version, out expectedTerrainHash);
 
+    /// <summary>
+    /// D-056 — A TABLE'S ROW COUNT as the reader takes it: refused (<see cref="InvalidDataException"/>; Snapshot.Load turns it
+    /// into its corrupt-save diagnostic) when no writer could have produced it — negative (<see cref="Write"/> emits a
+    /// table's Count), or, on a seekable stream, more rows than bytes remain (every row is at least one byte), which would
+    /// otherwise grow a table toward the end of the stream before failing there.
+    /// </summary>
+    private static int ReadCount(BinaryReader reader)
+    {
+        int count = reader.ReadInt32();
+        if (count < 0)
+            throw new InvalidDataException($"a table's row count is negative ({count.ToString(System.Globalization.CultureInfo.InvariantCulture)}).");
+        Stream stream = reader.BaseStream;
+        if (stream.CanSeek && count > stream.Length - stream.Position)
+            throw new InvalidDataException(
+                $"a table claims {count.ToString(System.Globalization.CultureInfo.InvariantCulture)} rows but only " +
+                $"{(stream.Length - stream.Position).ToString(System.Globalization.CultureInfo.InvariantCulture)} bytes remain.");
+        return count;
+    }
+
     private static WorldState ReadStream(BinaryReader reader, int version, out byte[]? expectedTerrainHash)
     {
         ulong seed = reader.ReadUInt64();
@@ -1007,11 +1042,11 @@ public static class CanonicalSchema
 
         expectedTerrainHash = reader.ReadBoolean() ? reader.ReadBytes(32) : null;
 
-        int regionCount = reader.ReadInt32();
+        int regionCount = ReadCount(reader);
         for (int i = 0; i < regionCount; i++)
             world.Regions.Add(new RegionRow(new RegionId(reader.ReadInt32())));
 
-        int rngCount = reader.ReadInt32();
+        int rngCount = ReadCount(reader);
         for (int i = 0; i < rngCount; i++)
         {
             world.RngStreams.Add(new RngStreamRow(
@@ -1019,7 +1054,7 @@ public static class CanonicalSchema
                 reader.ReadUInt64(), reader.ReadUInt64()));
         }
 
-        int rainCount = reader.ReadInt32();
+        int rainCount = ReadCount(reader);
         for (int i = 0; i < rainCount; i++)
         {
             world.Rainfall.Add(new RainfallRow(
@@ -1027,7 +1062,7 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
-        int biomassCount = reader.ReadInt32();
+        int biomassCount = ReadCount(reader);
         for (int i = 0; i < biomassCount; i++)
         {
             var region = new RegionId(reader.ReadInt32());
@@ -1036,7 +1071,7 @@ public static class CanonicalSchema
             world.Biomass.Add(new BiomassRow(region, Conserved.FromSnapshot(stock), remainder));
         }
 
-        int goodsCount = reader.ReadInt32();
+        int goodsCount = ReadCount(reader);
         for (int i = 0; i < goodsCount; i++)
         {
             var region = new RegionId(reader.ReadInt32());
@@ -1044,7 +1079,7 @@ public static class CanonicalSchema
             world.Goods.Add(new GoodsRow(region, Conserved.FromSnapshot(stock)));
         }
 
-        int flowCount = reader.ReadInt32();
+        int flowCount = ReadCount(reader);
         for (int i = 0; i < flowCount; i++)
         {
             world.LedgerFlows.Add(new LedgerFlowRow(
@@ -1052,14 +1087,14 @@ public static class CanonicalSchema
                 reader.ReadInt64(), reader.ReadInt64()));
         }
 
-        int netNodeCount = reader.ReadInt32();
+        int netNodeCount = ReadCount(reader);
         for (int i = 0; i < netNodeCount; i++)
         {
             world.NetworkNodes.Add(new NetworkNodeRow(
                 new NetworkNodeId(reader.ReadInt32()), reader.ReadInt32()));
         }
 
-        int netEdgeCount = reader.ReadInt32();
+        int netEdgeCount = ReadCount(reader);
         for (int i = 0; i < netEdgeCount; i++)
         {
             world.NetworkEdges.Add(new NetworkEdgeRow(
@@ -1068,18 +1103,18 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
-        int settlementCount = reader.ReadInt32();
+        int settlementCount = ReadCount(reader);
         for (int i = 0; i < settlementCount; i++)
         {
             world.Settlements.Add(new SettlementRow(
                 new SettlementId(reader.ReadInt32()), reader.ReadInt32(), reader.ReadInt64()));
         }
 
-        int netMetaCount = reader.ReadInt32();
+        int netMetaCount = ReadCount(reader);
         for (int i = 0; i < netMetaCount; i++)
             world.NetworkMeta.Add(new NetworkMetaRow(reader.ReadInt32()));
 
-        int catchNodeCount = reader.ReadInt32();
+        int catchNodeCount = ReadCount(reader);
         for (int i = 0; i < catchNodeCount; i++)
         {
             world.CatchmentNodes.Add(new CatchmentNodeRow(
@@ -1087,7 +1122,7 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
-        int catchSummaryCount = reader.ReadInt32();
+        int catchSummaryCount = ReadCount(reader);
         for (int i = 0; i < catchSummaryCount; i++)
         {
             world.CatchmentSummaries.Add(new CatchmentSummaryRow(
@@ -1096,7 +1131,7 @@ public static class CanonicalSchema
                 reader.ReadInt32(), reader.ReadInt64(), reader.ReadInt32()));
         }
 
-        int bucketCount = reader.ReadInt32();
+        int bucketCount = ReadCount(reader);
         for (int i = 0; i < bucketCount; i++)
         {
             var settlement = new SettlementId(reader.ReadInt32());
@@ -1118,7 +1153,7 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
-        int goodStockCount = reader.ReadInt32();
+        int goodStockCount = ReadCount(reader);
         for (int i = 0; i < goodStockCount; i++)
         {
             var settlement = new SettlementId(reader.ReadInt32());
@@ -1133,7 +1168,7 @@ public static class CanonicalSchema
                 reader.ReadInt64(),
                 reader.ReadInt64()));
         }
-        int depositCount = reader.ReadInt32();
+        int depositCount = ReadCount(reader);
         for (int i = 0; i < depositCount; i++)
         {
             world.Deposits.Add(new DepositRow(
@@ -1142,7 +1177,7 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
-        int deficitCount = reader.ReadInt32();
+        int deficitCount = ReadCount(reader);
         for (int i = 0; i < deficitCount; i++)
         {
             world.ConsumptionDeficits.Add(new ConsumptionDeficitRow(
@@ -1151,7 +1186,7 @@ public static class CanonicalSchema
                 reader.ReadInt64()));
         }
 
-        int allocCount = reader.ReadInt32();
+        int allocCount = ReadCount(reader);
         for (int i = 0; i < allocCount; i++)
         {
             world.SectorAllocations.Add(new SectorAllocationRow(
@@ -1163,7 +1198,7 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
-        int progressCount = reader.ReadInt32();
+        int progressCount = ReadCount(reader);
         for (int i = 0; i < progressCount; i++)
         {
             world.PathProgress.Add(new PathProgressRow(
@@ -1172,7 +1207,7 @@ public static class CanonicalSchema
                 reader.ReadInt32()));
         }
 
-        int variableCount = reader.ReadInt32();
+        int variableCount = ReadCount(reader);
         for (int i = 0; i < variableCount; i++)
         {
             world.Variables.Add(new VariableRow(
@@ -1180,7 +1215,7 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
-        int classStateCount = reader.ReadInt32();
+        int classStateCount = ReadCount(reader);
         for (int i = 0; i < classStateCount; i++)
         {
             world.ClassStates.Add(new ClassStateRow(
@@ -1188,7 +1223,7 @@ public static class CanonicalSchema
                 new ClassId(reader.ReadInt32()), reader.ReadInt32()));
         }
 
-        int distanceCount = reader.ReadInt32();
+        int distanceCount = ReadCount(reader);
         for (int i = 0; i < distanceCount; i++)
         {
             world.SettlementDistances.Add(new SettlementDistanceRow(
@@ -1196,14 +1231,14 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
-        int migFlowCount = reader.ReadInt32();
+        int migFlowCount = ReadCount(reader);
         for (int i = 0; i < migFlowCount; i++)
         {
             world.MigrationFlows.Add(new MigrationFlowRow(
                 new SettlementId(reader.ReadInt32()), reader.ReadInt64(), reader.ReadInt64()));
         }
 
-        int vitalsCount = reader.ReadInt32();
+        int vitalsCount = ReadCount(reader);
         for (int i = 0; i < vitalsCount; i++)
         {
             world.SettlementVitals.Add(new SettlementVitalsRow(
@@ -1211,7 +1246,7 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
-        int satisfactionCount = reader.ReadInt32();
+        int satisfactionCount = ReadCount(reader);
         for (int i = 0; i < satisfactionCount; i++)
         {
             world.NeedSatisfactions.Add(new NeedSatisfactionRow(
@@ -1219,7 +1254,7 @@ public static class CanonicalSchema
                 reader.ReadInt32(), BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
-        int grievanceCount = reader.ReadInt32();
+        int grievanceCount = ReadCount(reader);
         for (int i = 0; i < grievanceCount; i++)
         {
             world.Grievances.Add(new GrievanceRow(
@@ -1227,7 +1262,7 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
-        int smoothedCount = reader.ReadInt32();
+        int smoothedCount = ReadCount(reader);
         for (int i = 0; i < smoothedCount; i++)
         {
             world.SmoothedAttractiveness.Add(new SmoothedAttractivenessRow(
@@ -1235,14 +1270,14 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
-        int priceCount = reader.ReadInt32();
+        int priceCount = ReadCount(reader);
         for (int i = 0; i < priceCount; i++)
         {
             world.Prices.Add(new PriceRow(
                 new SettlementId(reader.ReadInt32()), new GoodId(reader.ReadInt32()),
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
-        int priceTermCount = reader.ReadInt32();
+        int priceTermCount = ReadCount(reader);
         for (int i = 0; i < priceTermCount; i++)
         {
             world.PriceTerms.Add(new PriceTermRow(
@@ -1256,7 +1291,7 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
-        int weatherCount = reader.ReadInt32();
+        int weatherCount = ReadCount(reader);
         for (int i = 0; i < weatherCount; i++)
         {
             world.HarvestWeather.Add(new HarvestWeatherRow(
@@ -1265,7 +1300,7 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
-        int tradeFlowCount = reader.ReadInt32();
+        int tradeFlowCount = ReadCount(reader);
         for (int i = 0; i < tradeFlowCount; i++)
         {
             world.TradeFlows.Add(new TradeFlowRow(
@@ -1273,7 +1308,7 @@ public static class CanonicalSchema
                 new GoodId(reader.ReadInt32()), reader.ReadInt64()));
         }
 
-        int housingCount = reader.ReadInt32();
+        int housingCount = ReadCount(reader);
         for (int i = 0; i < housingCount; i++)
         {
             var settlement = new SettlementId(reader.ReadInt32());
@@ -1286,7 +1321,7 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
-        int claimCount = reader.ReadInt32();
+        int claimCount = ReadCount(reader);
         for (int i = 0; i < claimCount; i++)
         {
             world.Claims.Add(new ClaimRow(
@@ -1294,7 +1329,7 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
-        int controlCount = reader.ReadInt32();
+        int controlCount = ReadCount(reader);
         for (int i = 0; i < controlCount; i++)
         {
             world.Controls.Add(new ControlRow(
@@ -1302,14 +1337,14 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
-        int recognitionCount = reader.ReadInt32();
+        int recognitionCount = ReadCount(reader);
         for (int i = 0; i < recognitionCount; i++)
         {
             world.Recognitions.Add(new RecognitionRow(
                 new PolityId(reader.ReadInt32()), new PolityId(reader.ReadInt32())));
         }
 
-        int notableCount = reader.ReadInt32();
+        int notableCount = ReadCount(reader);
         for (int i = 0; i < notableCount; i++)
         {
             var id = new NotableId(reader.ReadInt32());
@@ -1320,35 +1355,35 @@ public static class CanonicalSchema
                 id, settlement, allegiance, cohort, Conserved.FromSnapshot(reader.ReadInt64())));
         }
 
-        int polityCount = reader.ReadInt32();
+        int polityCount = ReadCount(reader);
         for (int i = 0; i < polityCount; i++)
         {
             var id = new PolityId(reader.ReadInt32());
             world.Polities.Add(new PolityRow(id, (CommandSource)reader.ReadInt32()));
         }
 
-        int capitalCount = reader.ReadInt32();
+        int capitalCount = ReadCount(reader);
         for (int i = 0; i < capitalCount; i++)
         {
             world.Capitals.Add(new CapitalRow(
                 new PolityId(reader.ReadInt32()), new SettlementId(reader.ReadInt32())));
         }
 
-        int queueCount = reader.ReadInt32();
+        int queueCount = ReadCount(reader);
         for (int i = 0; i < queueCount; i++)
         {
             world.ConstructionQueue.Add(new ConstructionQueueRow(
                 new SettlementId(reader.ReadInt32()), reader.ReadInt32(), reader.ReadInt32()));
         }
 
-        int structureCount = reader.ReadInt32();
+        int structureCount = ReadCount(reader);
         for (int i = 0; i < structureCount; i++)
         {
             world.Structures.Add(new StructureRow(
                 new SettlementId(reader.ReadInt32()), reader.ReadInt32(), reader.ReadInt64()));
         }
 
-        int disasterCount = reader.ReadInt32();
+        int disasterCount = ReadCount(reader);
         for (int i = 0; i < disasterCount; i++)
         {
             world.Disasters.Add(new DisasterRow(
@@ -1359,14 +1394,14 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
-        int researchTargetCount = reader.ReadInt32();
+        int researchTargetCount = ReadCount(reader);
         for (int i = 0; i < researchTargetCount; i++)
         {
             world.ResearchTargets.Add(new ResearchTargetRow(
                 new PolityId(reader.ReadInt32()), new ResearchNodeId(reader.ReadInt32())));
         }
 
-        int researchProgressCount = reader.ReadInt32();
+        int researchProgressCount = ReadCount(reader);
         for (int i = 0; i < researchProgressCount; i++)
         {
             world.ResearchProgress.Add(new ResearchProgressRow(
@@ -1374,21 +1409,21 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
-        int researchCompletedCount = reader.ReadInt32();
+        int researchCompletedCount = ReadCount(reader);
         for (int i = 0; i < researchCompletedCount; i++)
         {
             world.ResearchCompleted.Add(new ResearchCompletedRow(
                 new PolityId(reader.ReadInt32()), new ResearchNodeId(reader.ReadInt32())));
         }
 
-        int researchEurekaCount = reader.ReadInt32();
+        int researchEurekaCount = ReadCount(reader);
         for (int i = 0; i < researchEurekaCount; i++)
         {
             world.ResearchEurekas.Add(new ResearchEurekaRow(
                 new PolityId(reader.ReadInt32()), new ResearchNodeId(reader.ReadInt32()), reader.ReadInt32()));
         }
 
-        int researchCostModifierCount = reader.ReadInt32();
+        int researchCostModifierCount = ReadCount(reader);
         for (int i = 0; i < researchCostModifierCount; i++)
         {
             world.ResearchCostModifiers.Add(new ResearchCostModifierRow(
@@ -1396,7 +1431,7 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
-        int researchCreditCount = reader.ReadInt32();
+        int researchCreditCount = ReadCount(reader);
         for (int i = 0; i < researchCreditCount; i++)
         {
             world.ResearchCredits.Add(new ResearchCreditRow(
@@ -1404,7 +1439,7 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
-        int researchExposureCount = reader.ReadInt32();
+        int researchExposureCount = ReadCount(reader);
         for (int i = 0; i < researchExposureCount; i++)
         {
             world.ResearchExposures.Add(new ResearchExposureRow(
@@ -1412,7 +1447,7 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
-        int ageStateCount = reader.ReadInt32();
+        int ageStateCount = ReadCount(reader);
         for (int i = 0; i < ageStateCount; i++)
         {
             world.AgeStates.Add(new AgeStateRow(
@@ -1420,7 +1455,7 @@ public static class CanonicalSchema
                 reader.ReadInt32(), reader.ReadInt64()));
         }
 
-        int ageEligibilityCount = reader.ReadInt32();
+        int ageEligibilityCount = ReadCount(reader);
         for (int i = 0; i < ageEligibilityCount; i++)
         {
             world.AgeEligibility.Add(new AgeEligibilityRow(
@@ -1429,7 +1464,7 @@ public static class CanonicalSchema
                 reader.ReadInt32(), reader.ReadInt32(), reader.ReadBoolean()));
         }
 
-        int ageTransitionCount = reader.ReadInt32();
+        int ageTransitionCount = ReadCount(reader);
         for (int i = 0; i < ageTransitionCount; i++)
         {
             world.AgeTransitions.Add(new AgeTransitionRow(
@@ -1437,7 +1472,7 @@ public static class CanonicalSchema
                 reader.ReadInt64(), reader.ReadInt64()));
         }
 
-        int militaryUnitCount = reader.ReadInt32();
+        int militaryUnitCount = ReadCount(reader);
         for (int i = 0; i < militaryUnitCount; i++)
         {
             world.MilitaryUnits.Add(new MilitaryUnitRow(
@@ -1447,7 +1482,7 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64()), reader.ReadInt32()));
         }
 
-        int unitConversionCount = reader.ReadInt32();
+        int unitConversionCount = ReadCount(reader);
         for (int i = 0; i < unitConversionCount; i++)
         {
             world.UnitConversions.Add(new UnitConversionRow(
@@ -1456,7 +1491,7 @@ public static class CanonicalSchema
                 reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32()));
         }
 
-        int transportEdgeCount = reader.ReadInt32();
+        int transportEdgeCount = ReadCount(reader);
         for (int i = 0; i < transportEdgeCount; i++)
         {
             world.TransportEdges.Add(new TransportEdgeRow(
@@ -1467,7 +1502,7 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64()), BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
-        int roadDevelopmentCount = reader.ReadInt32();
+        int roadDevelopmentCount = ReadCount(reader);
         for (int i = 0; i < roadDevelopmentCount; i++)
         {
             world.RoadDevelopments.Add(new RoadDevelopmentRow(
@@ -1477,14 +1512,14 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64()), BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
-        int taxPolicyCount = reader.ReadInt32();
+        int taxPolicyCount = ReadCount(reader);
         for (int i = 0; i < taxPolicyCount; i++)
         {
             world.TaxPolicies.Add(new TaxPolicyRow(
                 new PolityId(reader.ReadInt32()), BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
-        int institutionCount = reader.ReadInt32();
+        int institutionCount = ReadCount(reader);
         for (int i = 0; i < institutionCount; i++)
         {
             world.Institutions.Add(new InstitutionRow(
@@ -1492,14 +1527,14 @@ public static class CanonicalSchema
                 reader.ReadInt32(), reader.ReadInt64(), BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
-        int constructionLaborCount = reader.ReadInt32();
+        int constructionLaborCount = ReadCount(reader);
         for (int i = 0; i < constructionLaborCount; i++)
         {
             world.ConstructionLabor.Add(new ConstructionLaborRow(
                 new SettlementId(reader.ReadInt32()), BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
-        int taxGrievanceCount = reader.ReadInt32();
+        int taxGrievanceCount = ReadCount(reader);
         for (int i = 0; i < taxGrievanceCount; i++)
         {
             world.TaxGrievances.Add(new TaxGrievanceRow(
@@ -1510,7 +1545,7 @@ public static class CanonicalSchema
         // v32 streams end here (the explicit migration: the two v33 tables stay empty — see Read(reader, version, …)).
         if (version < 33) return world;
 
-        int constructionProgressCount = reader.ReadInt32();
+        int constructionProgressCount = ReadCount(reader);
         for (int i = 0; i < constructionProgressCount; i++)
         {
             world.ConstructionProgress.Add(new ConstructionProgressRow(
@@ -1518,14 +1553,14 @@ public static class CanonicalSchema
                 reader.ReadInt64(), reader.ReadInt64()));
         }
 
-        int allocationCount = reader.ReadInt32();
+        int allocationCount = ReadCount(reader);
         for (int i = 0; i < allocationCount; i++)
             world.ResourceAllocations.Add(new ResourceAllocationRow(new PolityId(reader.ReadInt32()), reader.ReadInt32()));
 
         // v33 streams end here (the v33 → v34 migration: ConstructionHolds stays empty — see Read(reader, version, …)).
         if (version < 34) return world;
 
-        int holdCount = reader.ReadInt32();
+        int holdCount = ReadCount(reader);
         for (int i = 0; i < holdCount; i++)
             world.ConstructionHolds.Add(new ConstructionHoldRow(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt64()));
 

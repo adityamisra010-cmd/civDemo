@@ -164,6 +164,12 @@ public enum OrderKind
     /// re-checked, the slot present). An order failing it changes nothing — never floored, never clamped.
     /// DELIVERY: an order stamped turn t removes the entry in the step t → t+1, BEFORE that step's enqueues and building
     /// work (ConstructionSystem's fixed order), so the state of turn t+1 no longer holds it and nothing more goes in.
+    ///
+    /// LEGACY (D-056): no longer emitted. A slot is reused once its entry is gone, so a recorded slot-only cancel can name a
+    /// DIFFERENT entry in a world that has diverged from the recorded one. Recorded kind-11 orders are still read and
+    /// replayed — but only where a session trace proves, before each batch that carries one, that the world is the
+    /// recorded one (Sim.Core.Kernel.ReplayGuard); a bare log carrying one is refused. Every emitter issues
+    /// <see cref="CancelConstructionEntry"/>.
     /// </summary>
     CancelConstruction = 11,
 
@@ -177,7 +183,32 @@ public enum OrderKind
     /// split; the last valid order of an Empire in a step wins.
     /// </summary>
     SetResourceAllocation = 12,
+
+    /// <summary>
+    /// D-056 (supersedes kind 11 as the emitted cancel; the Director's 2026-10-18 mandate) — CANCEL ONE QUEUE ENTRY BY
+    /// IDENTITY. Kind 11 named only (settlement, slot); slots are reused once a queue empties or its top slot leaves, so a
+    /// recorded kind 11 replayed under rules whose completion timing differs could remove a DIFFERENT entry and forfeit
+    /// its progress (the legacy-session defect: a completed granary's 500,000 lost while the cancelled one kept building).
+    /// Kind 13 carries what makes the entry the entry: TargetId = the settlement id; Amount = the packed
+    /// <see cref="CancelTarget"/> (slot, project id, enqueue turn), a whole number below 2^53 carried exactly by the double
+    /// (<see cref="OrderLog.PackCancelTarget"/>). The wire format is untouched (IoVersion stays 1).
+    ///
+    /// RESOLUTION (ConstructionQuery.CancelTargetIndex, one function for the system, the delivery check and the UI): the
+    /// entry of the settlement whose ProjectId and EnqueuedTurn equal the recorded ones — the one at the recorded slot when
+    /// several do. So a cancel follows the entry it was issued for and never lands on another one. No entry with that
+    /// identity: the order changes nothing (the entry is already gone — built or cancelled). Two or more with that identity
+    /// and none at the recorded slot: AMBIGUOUS, and a replayed log is refused at delivery
+    /// (OrderValidation.ValidateAtDelivery) rather than guessed at. Load, control and delivery rules are kind 11's.
+    /// </summary>
+    CancelConstructionEntry = 13,
 }
+
+/// <summary>
+/// D-056 — the identity a <see cref="OrderKind.CancelConstructionEntry"/> carries: the entry's slot when the order was
+/// issued (a hint that disambiguates duplicates), its project and the turn its enqueue order was accepted (−1 for an
+/// entry migrated from a v32 save, which has no progress row).
+/// </summary>
+public readonly record struct CancelTarget(int Slot, int ProjectId, long EnqueuedTurn);
 
 /// <summary>
 /// One external input to the sim (§3.9): {turn, actorId, payload}. Turn semantics:
@@ -304,6 +335,44 @@ public sealed class OrderLog
     public static bool ConstructionSlotValid(double amount) =>
         amount >= 0.0 && amount <= int.MaxValue && amount == Math.Floor(amount);
 
+    /// <summary>D-056 — the field widths of a packed <see cref="CancelTarget"/>: Amount = slot + 2^18 × (projectId +
+    /// 2^16 × (enqueuedTurn + 1)); slot in [0, 2^18), project in [0, 2^16), enqueue turn in [−1, 2^19 − 1) — 524,286
+    /// turns, far past a 6,000-year game at any era pace. 53 bits, so the double carries it exactly.</summary>
+    public const int CancelSlotBits = 18, CancelProjectBits = 16, CancelTurnBits = 19;
+
+    /// <summary>D-056 — whether every field of <paramref name="target"/> fits its width (<see cref="PackCancelTarget"/>).</summary>
+    public static bool CanPackCancelTarget(CancelTarget target) =>
+        target.Slot >= 0 && target.Slot < 1 << CancelSlotBits
+        && target.ProjectId >= 0 && target.ProjectId < 1 << CancelProjectBits
+        && target.EnqueuedTurn >= -1 && target.EnqueuedTurn + 1 < 1L << CancelTurnBits;
+
+    /// <summary>D-056 — packs <paramref name="target"/> into a CancelConstructionEntry Amount. Throws when a field is out
+    /// of range: an order that cannot carry its target's identity is never emitted.</summary>
+    public static double PackCancelTarget(CancelTarget target)
+    {
+        if (!CanPackCancelTarget(target))
+            throw new ArgumentOutOfRangeException(nameof(target),
+                $"cannot encode cancel target (slot {target.Slot}, project {target.ProjectId}, enqueued turn " +
+                $"{target.EnqueuedTurn}): needs slot < 2^{CancelSlotBits}, project < 2^{CancelProjectBits}, " +
+                $"turn + 1 < 2^{CancelTurnBits}.");
+        return target.Slot + (1L << CancelSlotBits) * (target.ProjectId + (1L << CancelProjectBits) * (target.EnqueuedTurn + 1));
+    }
+
+    /// <summary>D-056 — the inverse of <see cref="PackCancelTarget"/>. False unless <paramref name="amount"/> is a whole
+    /// number in [0, 2^53) (NaN and ±∞ fail); every such number decodes to fields inside their ranges.</summary>
+    public static bool TryUnpackCancelTarget(double amount, out CancelTarget target)
+    {
+        target = default;
+        if (!(amount >= 0.0) || amount >= 9007199254740992.0 || amount != Math.Floor(amount)) return false;
+        long packed = (long)amount;
+        int slot = (int)(packed & ((1L << CancelSlotBits) - 1));
+        long rest = packed >> CancelSlotBits;
+        int project = (int)(rest & ((1L << CancelProjectBits) - 1));
+        long turn = (rest >> CancelProjectBits) - 1;
+        target = new CancelTarget(slot, project, turn);
+        return true;
+    }
+
     /// <summary>A SetResourceAllocation payload: a whole number in [0, 100] (NaN fails).</summary>
     public static bool AllocationPercentValid(double amount) =>
         amount >= 0.0 && amount <= 100.0 && amount == Math.Floor(amount);
@@ -420,6 +489,17 @@ public sealed class OrderLog
                         "number carried exactly by Amount, got " +
                         $"{record.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
                 break;
+            case OrderKind.CancelConstructionEntry:
+                if (record.TargetId < 0)
+                    throw new SnapshotFormatException(
+                        $"order[{index}] (turn {record.Turn}): CancelConstructionEntry settlement id must be " +
+                        $">= 0, got {record.TargetId}.");
+                if (!TryUnpackCancelTarget(record.Amount, out _))
+                    throw new SnapshotFormatException(
+                        $"order[{index}] (turn {record.Turn}): CancelConstructionEntry target must be a packed whole " +
+                        "number in [0, 2^53) carried exactly by Amount, got " +
+                        $"{record.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
+                break;
             case OrderKind.SetResourceAllocation:
                 if (record.TargetId < 0)
                     throw new SnapshotFormatException(
@@ -436,8 +516,9 @@ public sealed class OrderLog
                     $"order[{index}] (turn {record.Turn}): unknown order kind {(int)record.Kind}; " +
                     "this build understands kinds 1 (SetRainBias), 2 (LaborAllocation), 3 (SectorAllocation), " +
                     "4 (EnqueueConstruction), 5 (SetTaxRate), 6 (SetResearchTarget), 7 (AdvanceAge), 8 (DevelopRoads), " +
-                    "9 (FoundSettlement), 11 (CancelConstruction) and 12 (SetResourceAllocation); kind 10 is reserved " +
-                    "for MoveFormation (M7).");
+                    "9 (FoundSettlement), 11 (CancelConstruction), 12 (SetResourceAllocation) and " +
+                    "13 (CancelConstructionEntry); kind 10 is reserved for MoveFormation (M7), and kind 11 is legacy " +
+                    "(read, no longer written: D-056).");
         }
     }
 }

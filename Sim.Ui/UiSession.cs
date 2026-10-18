@@ -361,7 +361,8 @@ public sealed class UiSession
     }
 
     /// <summary>
-    /// WS1 (D-054): the queue's Cancel handler — ONE CancelConstruction order (kind 11) for the player's Empire, stamped with
+    /// WS1 (D-054): the queue's Cancel handler — ONE cancel order for the player's Empire (D-056: kind 13, carrying the
+    /// entry's identity), stamped with
     /// the CURRENT turn (the next End Turn removes the entry before its building work), built by
     /// <see cref="ConstructionQuery.CancelOrder"/> (the constructor the AI's structural-stall cancel uses) and appended only
     /// when THE predicate ConstructionSystem applies at delivery holds (<see cref="ConstructionQuery.CancelOrderValid(IReadOnlyWorldState, OrderRecord)"/>:
@@ -925,6 +926,8 @@ public sealed class UiSession
         else for (int i = 0; i < saved.Count; i++) target = Math.Max(target, saved[i].Turn);
 
         bool sameSchema = manifest.SchemaVersion == CanonicalSchema.Version;
+        string recordedBy = "build " + manifest.BuildSha + ", " + manifest.BuildDate + ", schema v"
+            + manifest.SchemaVersion.ToString(CultureInfo.InvariantCulture);
         // Fix round 1 (D-054, verifier F1, 2026-10-15): a session recorded before v33 was played on a FLAT map (no world
         // wrapped before the cylinder), so it is re-founded flat — TopologyFlags.RecordedFlat, the rule the CLI's save
         // loader and `sim inspect` apply too. Before, it was re-founded on the shipped cylinder: a different map, and a
@@ -933,7 +936,10 @@ public sealed class UiSession
             wrapXOverride: TopologyFlags.RecordedFlat(manifest.SchemaVersion) ? false : null);
         try
         {
-            session.ReplayTo(saved, target, sameSchema ? trace : null);
+            // D-056: the trace goes in whatever the schema — ReplayGuard checks every batch carrying a legacy kind-11
+            // cancel against it in any readable form; the every-turn check stays this schema's only.
+            session.ReplayTo(saved, target, trace, checkEveryTurn: sameSchema,
+                describedAs: "saved session " + Path.GetFileName(manifestPath), recordedBy: recordedBy);
         }
         catch (ResumeDivergedException diverged)   // only with the trace checked, i.e. under this build's schema
         {
@@ -944,8 +950,48 @@ public sealed class UiSession
                 diverged);
         }
         if (!sameSchema) session.ResumeNotice = SchemaMismatchNotice(manifest.SchemaVersion, CanonicalSchema.Version);
+        else if (trace is null) session.ResumeNotice = MissingTraceNotice;
+        // D-056: a replay the trace did not check turn by turn may not be the recorded world, and the first save
+        // rewrites the log and the trace — so the recorded files are copied aside before it (KeepRecordedFiles).
+        if (!sameSchema || trace is null)
+            session._recordedFiles = [sessionLogPath, tracePath, Path.Combine(dir, manifest.ChronicleFile)];
         return session;
     }
+
+    /// <summary>D-056: the files a resumed session was recorded with, copied aside (<see cref="RecordedCopyPath"/>) by the
+    /// first <see cref="Save"/> before anything overwrites them — set only when the replay was not checked turn by turn
+    /// (another schema, or no trace), so the recording survives as evidence; null otherwise or once copied.</summary>
+    private string[]? _recordedFiles;
+
+    /// <summary>D-056: where <see cref="Save"/> keeps a recorded file before the first overwrite after an unchecked
+    /// resume — beside it, with ".as-recorded" before the extension (orders-X.bin → orders-X.as-recorded.bin).</summary>
+    public static string RecordedCopyPath(string path) =>
+        Path.Combine(Path.GetDirectoryName(path) ?? "",
+            Path.GetFileNameWithoutExtension(path) + ".as-recorded" + Path.GetExtension(path));
+
+    /// <summary>D-056: the copies, once — an existing copy (an earlier resume's) is never replaced, so it stays the
+    /// oldest recording. Missing files (no trace, no chronicle) are skipped.</summary>
+    private void KeepRecordedFiles()
+    {
+        if (_recordedFiles is null) return;
+        foreach (string file in _recordedFiles)
+        {
+            if (file.Length == 0 || !File.Exists(file)) continue;
+            string copy = RecordedCopyPath(file);
+            if (!File.Exists(copy)) File.Copy(file, copy);
+        }
+        _recordedFiles = null;
+    }
+
+    /// <summary>D-056: the notice for a session of this schema resumed without its trace file — nothing could check the
+    /// replay.</summary>
+    public static readonly IReadOnlyList<string> MissingTraceNotice =
+    [
+        "The saved trace file is missing.",
+        "Resumed by replaying its seed and orders (D-008).",
+        "The replay was not checked against the original game.",
+        "The world may differ from the one originally played.",
+    ];
 
     /// <summary>What <see cref="Resume"/> has to tell the player about how this session was rebuilt: empty for a
     /// session started here or resumed with its trace checked, the <see cref="SchemaMismatchNotice"/> lines when it
@@ -983,8 +1029,16 @@ public sealed class UiSession
     /// silently ignored by its consumer. The re-queued batch is checked too, against the world the next End Turn
     /// delivers it to. Observer-only: the steps are unchanged and no hash moves. Valid only from the founded world
     /// with an empty log — the turn-0 world the up-front pass needs — which is how <see cref="Resume"/> calls it.
+    ///
+    /// D-056: before each batch — the re-queued one too — <see cref="ReplayGuard.CheckBeforeDelivery"/> refuses one that
+    /// carries a legacy kind-11 cancel unless <paramref name="trace"/> proves the world it is delivered to is the
+    /// recorded one (in any readable schema form); with no trace, such a batch is refused. The check runs before the
+    /// batch is appended, so a refusal leaves the world as the previous step made it. <paramref name="checkEveryTurn"/>
+    /// keeps the every-turn hash check (this schema's sessions only — <see cref="Resume"/> passes false for another
+    /// schema's, whose trace hashes another stream).
     /// </summary>
-    public void ReplayTo(OrderLog saved, long target, IReadOnlyList<SessionTrace.Row>? trace = null)
+    public void ReplayTo(OrderLog saved, long target, IReadOnlyList<SessionTrace.Row>? trace = null,
+        bool checkEveryTurn = true, string describedAs = "this saved session", string? recordedBy = null)
     {
         ArgumentNullException.ThrowIfNull(saved);
         if (World.Clock.Turn != 0 || Orders.Count != 0)
@@ -998,11 +1052,12 @@ public sealed class UiSession
         while (World.Clock.Turn < target)
         {
             long turn = World.Clock.Turn;
+            ReplayGuard.CheckBeforeDelivery(saved.BatchFor(turn), World, trace, describedAs, recordedBy); // D-056
             for (; next < saved.Count && saved[next].Turn <= turn; next++)
                 if (saved[next].Turn == turn) Orders.Append(saved[next]);
             OrderValidation.ValidateAtDelivery(Orders.BatchFor(turn), turnZero, World); // ADR-034
             Step();
-            if (trace is not null)
+            if (checkEveryTurn && trace is not null)
                 for (int r = 0; r < trace.Count; r++)
                     if (trace[r].Turn == World.Clock.Turn)
                     {
@@ -1014,6 +1069,7 @@ public sealed class UiSession
                         break;
                     }
         }
+        ReplayGuard.CheckBeforeDelivery(saved.BatchFor(World.Clock.Turn), World, trace, describedAs, recordedBy); // D-056
         for (; next < saved.Count; next++)
             if (saved[next].Turn == World.Clock.Turn) Orders.Append(saved[next]);
         // The re-queued batch is delivered to exactly this world by the next End Turn (orders the player adds in
@@ -1024,6 +1080,7 @@ public sealed class UiSession
     public void Save(string path)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        KeepRecordedFiles();   // D-056: before the first overwrite after an unchecked resume
         using var stream = File.Create(path);
         Orders.Save(stream);
     }

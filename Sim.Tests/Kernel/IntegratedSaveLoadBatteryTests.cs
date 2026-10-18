@@ -408,7 +408,7 @@ public partial class IntegratedSaveLoadBatteryTests
         for (int i = 0; i < run.Log.Count; i++) if (run.Log[i].ActorId == Player.Value) kinds.Add(run.Log[i].Kind);
         foreach (OrderKind k in new[] { OrderKind.LaborAllocation, OrderKind.SectorAllocation, OrderKind.EnqueueConstruction,
                      OrderKind.SetTaxRate, OrderKind.SetResearchTarget, OrderKind.AdvanceAge, OrderKind.DevelopRoads,
-                     OrderKind.FoundSettlement, OrderKind.CancelConstruction, OrderKind.SetResourceAllocation })
+                     OrderKind.FoundSettlement, OrderKind.CancelConstructionEntry, OrderKind.SetResourceAllocation })   // D-056: the cancel is kind 13
             Assert.Contains(k, kinds);
         Assert.Contains(Enumerable.Range(0, run.Log.Count).Select(i => run.Log[i]),
             o => o.ActorId == Player.Value && o.Kind == OrderKind.SetResearchTarget && o.TargetId == -1);
@@ -540,14 +540,17 @@ public partial class IntegratedSaveLoadBatteryTests
         WorldState at = run.Worlds[(int)CancelTurn], after = run.Worlds[(int)CancelTurn + 1];
         SettlementId other = OtherHolding(at);
         OrderRecord[] cancels = Enumerable.Range(0, run.Log.Count).Select(i => run.Log[i])
-            .Where(o => o.ActorId == Player.Value && o.Kind == OrderKind.CancelConstruction).ToArray();
+            .Where(o => o.ActorId == Player.Value && ConstructionQuery.IsCancel(o.Kind)).ToArray();
         OrderRecord cancel = Assert.Single(cancels);
         Assert.Equal((CancelTurn, other.Value), (cancel.Turn, cancel.TargetId));
 
         ConstructionQueueRow[] before = ConstructionQuery.Queue(at, other);
         Assert.True(before.Length >= 2, "anti-vacuity: the holding has a non-head entry to cancel at CancelTurn");
         ConstructionQueueRow cancelled = before[^1];
-        Assert.Equal(cancelled.Slot, (int)cancel.Amount);
+        // D-056: the cancel is kind 13 and carries the entry's identity — its slot, project and order turn.
+        Assert.Equal(OrderKind.CancelConstructionEntry, cancel.Kind);
+        Assert.True(OrderLog.TryUnpackCancelTarget(cancel.Amount, out CancelTarget named));
+        Assert.Equal(new CancelTarget(cancelled.Slot, cancelled.ProjectId, ConstructionQuery.EnqueuedTurnOf(at.ConstructionProgress, cancelled)), named);
         Assert.NotEqual(before[0].Slot, cancelled.Slot);
         Assert.True(ConstructionQuery.ProgressIndex(at.ConstructionProgress, cancelled) >= 0, "the entry has its progress row");
 
