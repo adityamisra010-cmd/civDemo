@@ -107,3 +107,13 @@ A kind-11 cancel is delivered only to the world it was recorded in.
 | The edge | `ConstructionReservationTests.TheSameStepEdge_…`, `TheV33Migration_IsExactInEveryPipelineThatComposes_…` |
 | The reader | `Sim.Tests/State/SnapshotCorruptInputTests.cs` |
 | O5 | `Sim.Tests/Pathing/DistancesToEarlyExitTests.cs` |
+
+## Dated note — 2026-10-18 (ADR-042; appended, the contract above is unchanged except where named here)
+
+- **§2 "Missing trace" is superseded by ADR-042 §1.** With no trace, a batch naming any settlement is refused. A
+  session resumes with `MissingTraceNotice` only if its log names no settlement.
+- **§2's kind-11 rule is unchanged.** `ReplayProof` applies it before its own identity check.
+- **§2 "Runners: `sim inspect`".** Inspect now runs `ReplayProof`. For a v32 or v33 session its verdict line reports
+  the readable-form check (`SessionSchemaNotice.CheckedInRecordedForm`), no longer "trace not checked".
+- **§2 "Bare logs".** A bare-log runner given the log of a session recorded under another schema refuses it, before
+  any file is written (ADR-042 §2).

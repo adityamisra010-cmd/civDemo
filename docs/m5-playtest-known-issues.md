@@ -431,3 +431,31 @@ and §16 it names.
     the queue and the split must come back unchanged.
 16. **The words.** Nowhere may a project's reservation be called "held" or "reserved"; "held" appears only for what
     settlements hold and for the split's road share.
+
+## Dated note — 2026-10-18: D-056 / D-057 — resuming sessions, and checklist items (appended; the sections above are unchanged)
+
+- **Sessions of this build** (save schema v34, trace beside the manifest) resume exactly as before: the replay is
+  checked turn by turn.
+- **An older session** (v32 or v33) resumes with its four-line notice, unless a recorded order would be applied to a
+  settlement or polity the replay cannot show is the one it was given for. That happens when a colony or revolt-born
+  polity was founded after the replay stopped matching the recording.
+  - **On refusal:** the game names the order, the turn where the replay first differs, and the remedy. It exits before
+    any window opens and changes no file.
+  - **What survives:** of the three real older sessions tried, all resume or inspect: the batch-2 fixture, the batch-3
+    fixture and a 300-turn de86ace session (D-057 §1).
+- **A session whose trace file was deleted** resumes only if its orders name no settlement; otherwise put the trace back.
+- **A damaged session file** (a cut-short log, a malformed trace line, a missing manifest) is reported in a dialog
+  naming the file, with exit code 2. It no longer crashes the launch.
+- **`sim inspect` of an older session** says how far the replay matches the recording ("matches through turn P and
+  differs from turn F on").
+
+### Playtest checklist additions (D-056 / D-057) — continuing §16
+
+17. **Cancel and resume.** Order two projects at one settlement and cancel the second; save, quit, `--resume`. The
+    cancelled project must stay gone, and the other must keep its progress.
+18. **Found a colony, order it, resume.** Found a settlement, set its Labour, save, quit, `--resume`. The colony and its
+    Labour must come back unchanged, with no notice (a session of this build).
+19. **Deleted trace.** Copy a session directory, delete its `trace-*.csv`, and `--resume` the copy. Expect the refusal
+    dialog naming the trace file. The original directory is untouched.
+20. **Damaged log.** Copy a session directory, truncate its `orders-*.bin` (any length), and `--resume` the copy. Expect
+    the "one of its files cannot be read" dialog, not a crash.

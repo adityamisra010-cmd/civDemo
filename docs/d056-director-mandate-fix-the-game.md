@@ -113,3 +113,20 @@ re-enqueue, the edge) and by the allocation CI leg.
   allocated after turn 0 can still land on a different colony or polity. The guard covers cancels, the defect the
   mandate named. This residual was measured in the review (item 27) as possible, not observed. Refusing such sessions
   would also refuse every diverged old session with colonies or revolts, so it is left as a recorded residual.
+
+## Dated note — 2026-10-18 (D-057; appended, the record above is unchanged)
+
+D-057 (`docs/d057-identity-proof-and-validated-handoff.md`, contract ADR-042, conflict CR-022) continues this work under
+the Director's instruction "Fix the Game: Independent Audit, Remediation, and Validated Handoff". Read these parts of the
+record above with it:
+- **§8's residual is closed, not left open.** An order naming a colony or revolt-born polity founded after turn 0 is
+  now delivered only when the replay is proven to be the recorded game up to that founding (ADR-042 §1). The residual
+  was reproduced before it was closed (D-057 §1).
+- **§2's missing-trace rule is superseded.** A session without its trace now resumes only if its log names no
+  settlement; otherwise it is refused, and the remedy names the missing file. "A session without kind 11 resumes
+  with a four-line notice" was true only of the kind-11 check.
+- **§5 states the readable set {32, 33, 34} as "the migration contract".** Its standing is this record's — the
+  mandate's authorisation, pending the Director's acceptance — not a prior approval. D-057 §8 gives the technical
+  evidence: real v32 and v33 traces reproduce in their own forms.
+- **§6's kernel list grows.** D-057 §11 names the two further kernel files: `ReplayProof.cs` (new) and
+  `CanonicalSchema.cs` (strict fields).

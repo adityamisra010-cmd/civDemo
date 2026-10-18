@@ -1,5 +1,26 @@
 # CURRENT STATE — the routing document
 
+> **2026-10-18 (later): D-057 continues D-056 on `claude/new-session-yavghm` (LOCAL, development clone
+> `/home/user/m5w/dev`; NOT pushed, NOT merged, NOT published).** Records:
+> - `docs/d057-identity-proof-and-validated-handoff.md` (decisions, compatibility impact, the coupling map, the priority
+>   contract, the smoke rig, the bench);
+> - `docs/adr/adr-042-replay-identity-proof.md` (the contract);
+> - `docs/adr/cr-022-identity-proof-vs-d008-replay-recovery.md` (the conflict with D-008: implemented under delegated
+>   authority, awaiting the Director's ruling).
+>
+> **What changed:**
+> - A replayed order is delivered only when every settlement and polity it names is proven to be the recorded one
+>   (ReplayProof: UI resume and `sim inspect`).
+> - `inspect` reports the readable-form check for v32/v33 sessions.
+> - Bare-log runners refuse another schema's session log.
+> - A damaged session file is a refusal dialog, not a crash.
+> - `--emit-session` never overwrites a record.
+> - The snapshot reader refuses malformed flags and command sources.
+> - The 1-AI smoke age rig is fixed (a harness defect).
+> - Two system comments are corrected.
+>
+> **Schema stays v34;** no hash moved. Verify against the tree (gov-4) before relying on this entry.
+
 > **2026-10-18: D-056, the Director's mandate "Fix the game", is implemented on `claude/new-session-yavghm` (the
 > protected development clone; NOT merged, NOT published).** Records: `docs/d056-director-mandate-fix-the-game.md`
 > (decisions and supersessions) and `docs/adr/adr-041-identity-cancel-replay-guard-same-step-edge.md` (the contract).

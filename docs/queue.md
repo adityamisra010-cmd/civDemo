@@ -1550,3 +1550,11 @@
   instrumentation in the hot loop.
 - **Batch 4 item 4 — `sim replay` has no `--save-at`.** Cross-process replay is pinned by hash-log equality; the turn-exact
   semantics are pinned on the in-process replayed run and on `sim run` saves at consecutive turns.
+- **D-057 (2026-10-18) — carry a colony's identity in its orders** (CR-022 option 3): an order for a colony could name
+  it by founding cell and turn as kind 13 names a queue entry, so that a log recorded after a future order-log version
+  stays applicable after drift. Until then ReplayProof refuses what it cannot prove.
+- **D-057 — the batch-4 "O5 early exit has no test" line above is out of date:** D-056 made it observable
+  (`Pathfinder.DistancesTo(…, out int settled)`) and pinned it (`Sim.Tests/Pathing/DistancesToEarlyExitTests`).
+- **D-057 — partial emitted sessions.** A bare-log `--emit-session` run that ADR-034 refuses mid-run leaves its partial
+  directory (manifest, log, forensic, telemetry; no trace). D-057 makes it unresumable when its log names a settlement,
+  but the CLI could remove what it wrote, or write to a temporary directory and rename it at the end.
