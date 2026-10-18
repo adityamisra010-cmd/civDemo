@@ -166,6 +166,7 @@ public class IdentityDriftResumeTests
             lines.Add(string.Join(',', cols));
         }
         File.WriteAllText(UiSession.TracePath(log), string.Join("\n", lines) + "\n");
+        File.WriteAllText(UiSession.ChroniclePath(log), "the chronicle as the older build wrote it\n");
         SessionManifest m = UiSession.Start(42).Manifest(StartedAt, log);
         using (FileStream o = File.Create(UiSession.ManifestPath(log))) (m with { SchemaVersion = schema, BuildSha = "older-build" }).Write(o);
         return log;
@@ -207,6 +208,7 @@ public class IdentityDriftResumeTests
         {
             string log = WriteSession(dir, rec, 33, w => WorldHash.ComputeHexAsSchema(w, 33));
             string[] files = Directory.GetFiles(dir).Order(StringComparer.Ordinal).ToArray();
+            Assert.Equal(4, files.Length);   // the manifest, the log, the trace and the chronicle
             byte[][] before = files.Select(File.ReadAllBytes).ToArray();
 
             var e = Assert.Throws<OrderValidationException>(() => UiSession.Resume(UiSession.ManifestPath(log), out _));
