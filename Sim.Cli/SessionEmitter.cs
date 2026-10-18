@@ -78,6 +78,16 @@ public sealed class SessionEmitter : IDisposable
         RunId = run.RunId;
         _stem = RunId;
 
+        // D-057: the run id is derived from the run's identity at launch (seed, overrides, schema, content, the orders
+        // known then), not from its length, so two different runs can share it — measured: `run --founded --seed 42
+        // --turns 2` and `--turns 3` both emit run 70ec7bc67542fcda. Into one directory the second silently overwrote the
+        // first's whole record. A record already there is refused instead, before any file is written.
+        string existing = Path.Combine(_dir, "session-" + _stem + ".json");
+        if (File.Exists(existing))
+            throw new CliUsageException(
+                $"--emit-session {directory}: it already holds a session record for run {_stem} ({Path.GetFileName(existing)}), "
+                + "which this run would overwrite. Emit into another directory, or move that record away first.");
+
         // The identity goes down FIRST, before a turn is played, for the
         // manifest's own reason: a run that dies mid-way is still identified.
         ForensicSession.WriteRun(Path.Combine(_dir, "forensic-" + _stem + ".jsonl"), run);

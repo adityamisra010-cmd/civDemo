@@ -522,10 +522,11 @@ namespace Sim.Cli
             string? reportPath = opts.Get("--report-jsonl");
             int reportEvery = (int)opts.LongOr("--report-every", 1);
             if (reportEvery < 1) throw new CliUsageException("--report-every must be >= 1");
+            // D-057: the session record first — it refuses a directory that already holds this run's record before any
+            // output file (the report's included) is created.
+            using SessionEmitter? session = Emitter(opts, seed, founded, sizePx, settlements, aiEmpires, orders, world);
             using Stream? report = reportPath is not null ? File.Create(reportPath) : null;
             Sim.Core.Systems.SimConfig? reportCfg = report is not null ? SimCfg() : null;
-
-            using SessionEmitter? session = Emitter(opts, seed, founded, sizePx, settlements, aiEmpires, orders, world);
 
             for (int t = 1; t <= turns; t++)
             {
