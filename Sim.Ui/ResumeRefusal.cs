@@ -42,6 +42,19 @@ public sealed class ResumeDivergedException(long turn, string replayHash, string
 /// Only when the two builds call themselves the same does it add a line on what that means: a determinism defect to
 /// report, or — when the session was recorded on another platform — the expected platform divergence (ADR-022).
 /// </summary>
+/// <summary>
+/// D-057 — one of a saved session's files is missing or cannot be read: the manifest is not a session manifest, the order
+/// log is truncated or not an order log, a trace line is malformed. <see cref="UiSession.Resume"/> raises it before any
+/// world is founded; <see cref="ResumeLaunch"/> reports it (stderr, the dialog, <see cref="ResumeLaunch.SessionUnreadableExitCode"/>)
+/// instead of the unhandled exception that ended the launch before. The files are only read.
+/// </summary>
+public sealed class SessionUnreadableException(string path, string what, Exception inner)
+    : Exception($"the session's {what} {path} cannot be read: {inner.Message}", inner)
+{
+    /// <summary>The file that could not be read.</summary>
+    public string FilePath { get; } = path;
+}
+
 public sealed class SessionIncompatibleException : InvalidOperationException
 {
     public SessionIncompatibleException(
@@ -158,6 +171,9 @@ public static class ResumeLaunch
     /// by the pre-cylinder build). Cli.Guard's code, which `sim replay --founded --size 250` exits with too.</summary>
     public const int WorldRefusedExitCode = 2;
 
+    /// <summary>D-057: one of the session's files is missing or cannot be read — Cli.Guard's code for an error.</summary>
+    public const int SessionUnreadableExitCode = 2;
+
     /// <summary>The title of the refusal dialog.</summary>
     public const string DialogTitle = "civ-sim: this saved session cannot be resumed";
 
@@ -174,6 +190,13 @@ public static class ResumeLaunch
     /// <summary>The dialog text for a log the ADR-034 order checks rejected (stderr keeps the bare diagnostic).</summary>
     public static string OrderLogRejectedDialog(string diagnostic) =>
         "This saved session cannot be resumed: its order log was rejected by this build's order checks.\n"
+        + diagnostic + "\n"
+        + "The session files were not changed.";
+
+    /// <summary>D-057: the dialog text for a session one of whose files is missing or cannot be read (stderr keeps the bare
+    /// diagnostic).</summary>
+    public static string SessionUnreadableDialog(string diagnostic) =>
+        "This saved session cannot be resumed: one of its files cannot be read.\n"
         + diagnostic + "\n"
         + "The session files were not changed.";
 
@@ -228,8 +251,25 @@ public static class ResumeLaunch
             ShowDialog(dialog, WorldRefusedDialog(e.Message));
             exitCode = WorldRefusedExitCode;
         }
+        catch (SessionUnreadableException e)
+        {
+            // D-057: before this catch, a missing or unreadable session file ended the launch as an unhandled exception.
+            exitCode = ReportUnreadable(e, stderr, dialog);
+        }
         sessionLogPath = "";
         return null;
+    }
+
+    /// <summary>D-057: reports <paramref name="unreadable"/> — "error: &lt;message&gt;" on <paramref name="stderr"/>,
+    /// <see cref="SessionUnreadableDialog"/> to <paramref name="dialog"/> once — and returns
+    /// <see cref="SessionUnreadableExitCode"/>. Program.cs calls it too, for a `--resume` argument naming no manifest.</summary>
+    public static int ReportUnreadable(SessionUnreadableException unreadable, TextWriter stderr, Action<string, string>? dialog)
+    {
+        ArgumentNullException.ThrowIfNull(unreadable);
+        ArgumentNullException.ThrowIfNull(stderr);
+        stderr.WriteLine($"error: {unreadable.Message}");
+        ShowDialog(dialog, SessionUnreadableDialog(unreadable.Message));
+        return SessionUnreadableExitCode;
     }
 
     private static void ShowDialog(Action<string, string>? dialog, string message) => ShowDialog(dialog, DialogTitle, message);

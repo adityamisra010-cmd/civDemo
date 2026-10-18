@@ -911,16 +911,25 @@ public sealed class UiSession
     public static UiSession Resume(string manifestPath, out string sessionLogPath)
     {
         string dir = Path.GetDirectoryName(Path.GetFullPath(manifestPath)) ?? "";
-        SessionManifest manifest;
-        using (FileStream m = File.OpenRead(manifestPath)) manifest = SessionManifest.Read(m, manifestPath);
+        // D-057: a session file that is missing or cannot be read (a truncated log, a malformed trace line, a manifest that
+        // is not one) is a SessionUnreadableException — reported by ResumeLaunch like every refusal — not an unhandled
+        // exception that ends the launch with nothing a player sees.
+        SessionManifest manifest = ReadSessionFile(manifestPath, "manifest", path =>
+        {
+            using FileStream m = File.OpenRead(path);
+            return SessionManifest.Read(m, path);
+        });
         sessionLogPath = Path.Combine(dir, manifest.OrdersFile);
-        OrderLog saved;
-        using (FileStream o = File.OpenRead(sessionLogPath)) saved = OrderLog.Load(o);
+        OrderLog saved = ReadSessionFile(sessionLogPath, "order log", path =>
+        {
+            using FileStream o = File.OpenRead(path);
+            return OrderLog.Load(o);
+        });
 
         IReadOnlyList<SessionTrace.Row>? trace = null;
         string tracePath = Path.Combine(dir, manifest.TraceFile);
         if (manifest.TraceFile.Length > 0 && File.Exists(tracePath))
-            trace = SessionTrace.Parse(File.ReadAllLines(tracePath), tracePath);
+            trace = ReadSessionFile(tracePath, "trace", path => SessionTrace.Parse(File.ReadAllLines(path), path));
         long target = 0;
         if (trace is { Count: > 0 }) target = trace[^1].Turn;
         else for (int i = 0; i < saved.Count; i++) target = Math.Max(target, saved[i].Turn);
@@ -960,6 +969,23 @@ public sealed class UiSession
         if (!sameSchema || trace is null)
             session._recordedFiles = [sessionLogPath, tracePath, Path.Combine(dir, manifest.ChronicleFile)];
         return session;
+    }
+
+    /// <summary>D-057: reads one of a session's files with <paramref name="read"/>; a missing or unreadable file — the
+    /// I/O and format failures the readers raise — becomes a <see cref="SessionUnreadableException"/> naming it. Reads
+    /// only.</summary>
+    private static T ReadSessionFile<T>(string path, string what, Func<string, T> read)
+    {
+        try
+        {
+            return read(path);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidDataException
+            or SnapshotFormatException or System.Text.Json.JsonException or KeyNotFoundException or FormatException
+            or InvalidOperationException or ArgumentException)
+        {
+            throw new SessionUnreadableException(path, what, e);
+        }
     }
 
     /// <summary>D-056: the files a resumed session was recorded with, copied aside (<see cref="RecordedCopyPath"/>) by the

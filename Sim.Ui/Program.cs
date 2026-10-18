@@ -149,7 +149,19 @@ if (Array.IndexOf(args, "--player-views-preview") >= 0)
 // stderr a Windows player never sees, so both refusals are also shown in a native error dialog (best effort).
 if (Sim.Ui.UiArgs.ResumePath(args) is { } resumeArg)
 {
-    string manifestPath = Sim.Ui.UiArgs.ResolveManifest(resumeArg);
+    // D-057: a --resume argument naming no session manifest (a missing directory, one without a session-*.json) is
+    // reported like every refusal — the line, the dialog, exit 2 — not an unhandled exception.
+    string manifestPath;
+    try
+    {
+        manifestPath = Sim.Ui.UiArgs.ResolveManifest(resumeArg);
+    }
+    catch (IOException e)
+    {
+        Environment.ExitCode = Sim.Ui.ResumeLaunch.ReportUnreadable(
+            new Sim.Ui.SessionUnreadableException(resumeArg, "manifest", e), Console.Error, Sim.Ui.ResumeLaunch.NativeDialog());
+        return;
+    }
     Sim.Ui.UiSession? resumed = Sim.Ui.ResumeLaunch.Attempt(
         manifestPath, Console.Error, Sim.Ui.ResumeLaunch.NativeDialog(), out string resumedLog, out int refusal);
     if (resumed is null)
