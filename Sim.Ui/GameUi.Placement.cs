@@ -142,7 +142,8 @@ public sealed partial class GameUi
         Camera cam = _camera;
         RectD map = _mapRect;
         PlacementOverlay.PaintMap(d, _frameTheme, _mapInk, (x, y) => cam.WorldToScreen(x, y, map), _world.Terrain?.Size ?? 0,
-            _session.Sites?.Frontier.Lattice, _placement, Scale);
+            _session.Sites?.Frontier.Lattice, _placement, Scale,
+            wrapX: cam.WrapX, viewport: new RectD(0, 0, _viewportWidth, _viewportHeight));   // WS3: the route unwrapped, every copy in view
         Backend.Render(ImGui.GetBackgroundDrawList(), d);
     }
 

@@ -191,7 +191,18 @@ jobs:
           # multiplier is the mean of its yearly sub-step multipliers; a new settlement starts at a stationary draw).
           # Derived twice on this tree (in-test harness; two CLI processes, byte-identical logs);
           # TestConfigs.PreTimeAveragedHarvest returns e9e089bb… byte for byte (IntegratedPinAttributionTests).
-          FOUNDED_GOLDEN=937577ffb0e73c2b051d8d7832cfb5028c2154d01c9afef4d976b71ccb5e7f54
+          # BATCH 3 / D-054 RE-PIN (integration R1, 2026-10-14): 937577ff… -> 40115e28… — two causes, each
+          # measured: (1) schema v33 appends two EMPTY tables (ConstructionProgress, ResourceAllocations — this
+          # order-less world queues nothing part-built and sets no split: two zero count prefixes); (2) the
+          # world is a CYLINDER (worldgen.json topology.wrapX): the terrain regenerates x-periodic and its
+          # content hash is folded into every world hash, so the run differs from turn 0. WS1 (incremental
+          # construction) and WS2 (allocation ratios) do not act: TestConfigs.PreD054Sim on the cylinder gives
+          # the same 40115e28…. Derived twice on this tree (in-test harness; two CLI processes, byte-identical
+          # logs, last line the value below). CONTROLS: D054PairAttributionTests (both halves off + the v32
+          # projection return 937577ff… byte for byte), WrapAttributionTests (the cylinder off alone + v32 =
+          # 937577ff…), IncrementalConstructionAttributionTests (the v33 layout alone), and
+          # SnapshotTests.FoundedGoldenHashAtV32 (the live world's v32 projection, 0549049d…, the cylinder alone).
+          FOUNDED_GOLDEN=40115e28af11273b9e25c62d93817c48d6c9afe736a60a2ebc6e00428836f1b0
           if [ "$(tail -n 1 f-run-a.log)" != "$FOUNDED_GOLDEN" ]; then
             echo "FOUNDED RUN DIVERGED FROM PINNED GOLDEN:"
             echo "  expected $FOUNDED_GOLDEN"
@@ -199,6 +210,22 @@ jobs:
             exit 1
           fi
           echo "founded run matches the pinned golden"
+
+          # Batch 3 WS3 (D-054, integration R1 2026-10-14): THE SEAM, CROSS-PROCESS. The world is a cylinder
+          # (worldgen.json topology.wrapX), so every seam-crossing distance, route, neighbour and flow is
+          # computed through the wrapped topology. Seed 42 is a cylinder too, but seed 16 is the canonical seed
+          # whose LAND crosses the seam (123 rows with land on both edge columns) and whose settlement 3 -> 6
+          # travel route crosses it (SeamCrossingShippedWorldTests pins that route and its cost); its founded
+          # 300-turn run must be byte-identical in two separate processes, like seed 42's above.
+          $CLI run --founded --seed 16 --turns 300 --hash-log s16-run-a.log
+          $CLI run --founded --seed 16 --turns 300 --hash-log s16-run-b.log
+          if ! diff s16-run-a.log s16-run-b.log > s16-xproc.diff; then
+            echo "SEAM-SEED (16) CROSS-PROCESS DIVERGENCE — first divergent turn:"
+            head -n 5 s16-xproc.diff
+            exit 1
+          fi
+          [ "$(wc -l < s16-run-a.log)" -eq 300 ] || { echo "seed-16 hash log is not 300 turns"; exit 1; }
+          echo "seam seed 16: two processes byte-identical over 300 turns"
 
           $CLI run --founded --seed 42 --turns 300 --orders founded-orders.bin --hash-log f-ordered.log
           $CLI replay --founded --seed 42 --turns 300 --orders founded-orders.bin --hash-log f-replayed.log
@@ -239,7 +266,7 @@ jobs:
           echo "found-settlement leg: two processes, turn-exact delivery, replay and inspect agree over 300 turns"
 
           # M5 integration (audit E4): the founded world with ONE AI Empire. The player's
-          # orders (kinds 3, 4, 6 — gen-sample-orders.py --founded-mix) are merged with the
+          # orders (kinds 3, 4, 6 and — D-054 — 11, CancelConstruction, and 12, SetResourceAllocation: gen-sample-orders.py --founded-mix) are merged with the
           # AI's (kinds 4-9: construction, tax, research, Age, roads, and — M5 S1c, ADR-036 §8 — Found Settlement;
           # H2 (2026-10-05): the AI levies at 466, on its first A3 turn (A3 decided 465), since the tax edict needs A3;
           # 369 at R5 while still in A2, 549 before; 600 turns kept) into the RUN LOG --emit-session writes.
@@ -248,9 +275,21 @@ jobs:
           # 499, 570), advances to A2 at 221 and to A3 at 422, orders its first road at 134 and levies at 423 on its
           # first A3 turn. Pre-S1c on the base tree (3d8aacc): A2 232, A3 451, road 140, levy 452 — the 466/465 above
           # is the H2-time value, superseded by the ADR-035 and D-051 1(b) re-pins and never updated here. The kind
-          # check below therefore covers 3..9. Two processes must agree
+          # check below therefore covers 3..9, plus 11 (D-054 WS1: the player's two CancelConstruction orders — slot 2 of
+          # three granaries ordered at turn 10, a non-head entry when the turn-11 order is delivered, and a slot that does
+          # not exist; gen-sample-orders.py states the measured turn sequence) and 12 (D-054 WS2: the player's
+          # SetResourceAllocation orders, building 30 shares in 100 at turn 40 and 70 at turn 200). Kind 10
+          # is RESERVED (MoveFormation, M7) and is never written. Batch 3 (integration R1, 2026-10-14): the
+          # check is EXACT — the run log's kinds must be {3..9, 11, 12}, no more and no fewer (a stray kind
+          # would be a producer writing an order this leg does not cover). Two processes must agree
           # byte for byte (hash logs and run logs), `sim replay` of that run log (no AI
           # producer) must reproduce every hash, and `sim inspect` must verify the record.
+          # BATCH 3 RE-MEASUREMENT (integration R1, 2026-10-14; this step run locally from this tree, the world a
+          # cylinder): the AI's eleven Found Settlement stamps are unchanged (35 … 570), it decides A2 at 221 and A3
+          # at 421, orders its first road at 134 and levies at 422 (one turn earlier than on the flat world); the run
+          # log holds 275 orders of kinds exactly {3..9, 11, 12}; the player's kind-11 orders stand at 11 and 12 and
+          # its kind-12 orders at 40 and 200 — delivered and applied: a save at 40 holds no ResourceAllocations row,
+          # one at 41 holds the 30 % row, and the row changes between the saves at 200 and 201 (sim diff).
           python3 scripts/gen-sample-orders.py mix-orders.bin 600 --founded-mix
           $CLI run --founded --seed 42 --turns 600 --ai-empires 1 --orders mix-orders.bin --hash-log ai-a.log --emit-session ai-a
           $CLI run --founded --seed 42 --turns 600 --ai-empires 1 --orders mix-orders.bin --hash-log ai-b.log --emit-session ai-b
@@ -264,9 +303,10 @@ jobs:
           b = open(sys.argv[1], "rb").read()
           n = struct.unpack_from("<i", b, 12)[0]
           kinds = {struct.unpack_from("<qiiid", b, 16 + 28 * i)[2] for i in range(n)}
-          missing = set(range(3, 10)) - kinds
+          expected = set(range(3, 10)) | {11, 12}   # 10 is reserved (MoveFormation, M7)
           print(f"run log: {n} orders, kinds {sorted(kinds)}")
-          sys.exit(f"order kinds never issued: {sorted(missing)}" if missing else 0)
+          if kinds != expected:
+              sys.exit(f"order kinds never issued: {sorted(expected - kinds)}; unexpected kinds: {sorted(kinds - expected)}")
           PY
           $CLI replay --founded --seed 42 --turns 600 --ai-empires 1 --orders ai-a/orders-*.bin --hash-log ai-replayed.log
           if ! diff ai-a.log ai-replayed.log > ai-replay.diff; then

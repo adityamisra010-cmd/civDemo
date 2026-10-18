@@ -97,6 +97,8 @@ public static class WorldStates
         if (!TableEquals(a.Institutions, b.Institutions)) return false;
         if (!TableEquals(a.ConstructionLabor, b.ConstructionLabor)) return false;
         if (!TableEquals(a.TaxGrievances, b.TaxGrievances)) return false;
+        if (!TableEquals(a.ConstructionProgress, b.ConstructionProgress)) return false;   // v33 (D-054 WS1)
+        if (!TableEquals(a.ResourceAllocations, b.ResourceAllocations)) return false;     // v33 (D-054 WS2)
         return true;
     }
 

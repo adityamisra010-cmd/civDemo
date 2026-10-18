@@ -52,7 +52,26 @@ public sealed record WorldgenConfig(
     /// deliberate act with its own measurement, rather than something that
     /// happened to every existing world the day the seam landed.
     /// </summary>
-    [property: JsonPropertyName("aiEmpires")] int AiEmpires = 0);
+    [property: JsonPropertyName("aiEmpires")] int AiEmpires = 0,
+
+    /// <summary>
+    /// Batch 3 WS3 — THE WORLD'S EAST-WEST TOPOLOGY (worldgen.json `topology`). <c>wrapX: true</c> generates a
+    /// CYLINDER: the edge taper is y-only (the poles stay ocean), the value noise is periodic in x, hydrology wraps in x
+    /// with sinks on the poles only, and every x neighbour of worldgen and siting wraps. Absent or false is EXACTLY the
+    /// flat world generated before batch 3, byte for byte (the PreCylinderWorldgen attribution control) — an
+    /// attribution switch, not a gameplay setting; and the only supported mode for a size the lattice stride does not
+    /// divide (Worldgen.Generate refuses wrapX there).
+    ///
+    /// READ ONLY BY <see cref="Worldgen.Generate"/> (and validated by the loader): every other consumer reads
+    /// <see cref="TerrainSet.WrapX"/>, which Generate sets from it — a source guard enforces that, because a system
+    /// reading the config could disagree with the terrain it is stepping (the D-052 --size precedent: a world founded at
+    /// one size is stepped by a pipeline holding worldgen.json).
+    /// </summary>
+    [property: JsonPropertyName("topology")] TopologyConfig? Topology = null);
+
+/// <summary>Batch 3 WS3: worldgen.json `topology` (see <see cref="WorldgenConfig.Topology"/>).</summary>
+public sealed record TopologyConfig(
+    [property: JsonPropertyName("wrapX"), JsonRequired] bool WrapX);
 
 /// <summary>
 /// Settlement-siting tuning (T1.4; pluralized at T2.3 per D-025, all TUNE).
@@ -208,8 +227,106 @@ public static class WorldgenConfigLoader
             throw new WorldgenConfigException(
                 $"continentalMask.edgeTaperPx must be in 1..sizePx/4 (an ocean margin, not an ocean world), " +
                 $"got {cfg.ContinentalMask.EdgeTaperPx}.");
+        ValidateTopology(cfg);
 
         return cfg;
+    }
+
+    /// <summary>
+    /// Final-round fix 3 (verifier RC1-4-FLOOR-NOT-NAMED, 2026-10-15) — A MEASUREMENT, NOT A RULE: the smallest map
+    /// size (px) from which founding at the default settlement count (worldgen.json siting.settlementCount, 12)
+    /// succeeded on every measured seed at every measured larger size. MEASURED with
+    /// `sim run --founded --seed S --turns 1 --size N`: on seeds 42, 1 and 7 at 12–140 px (every 4 px), siting refused
+    /// every size up to 88 px on all three; seed 7 founded from 92 px, seed 1 from 104 px; seed 42 founded at 116 px,
+    /// was refused at 120 px ("could only place 10 of 12 sites") and founded from 124 px. On seeds 1–20 and 42 at
+    /// 100–160 px, every size from 124 px founded on all 21. Its ONLY use is to decide whether the cylinder's size
+    /// refusal adds its founding sentence (<see cref="ValidateTopology"/>); nothing is gated on it, and founding is
+    /// decided by settlement siting alone.
+    /// </summary>
+    private const int FoundingMeasuredPx = 124;
+
+    /// <summary>
+    /// Batch 3 WS3: the topology rules a wrapped world needs, shared by the loader and <see cref="Worldgen.Generate"/>
+    /// (every `--size` / test override reaches Generate without passing the loader). Under <c>topology.wrapX</c> the
+    /// value noise must be PERIODIC in x, which it is only when every octave's lattice period —
+    /// frequency × lacunarity^octave, the number of noise cells across the map — is a whole number; a fractional period
+    /// leaves a visible cut at the seam, so it is refused, naming the field and the octave. Flat worlds are unconstrained.
+    /// </summary>
+    /// <remarks>Final-round fix 3 (verifier RC1-4-FLOOR-NOT-NAMED, 2026-10-15): the size refusal adds its founding
+    /// sentence only when a size it names is below <see cref="FoundingMeasuredPx"/>.</remarks>
+    public static void ValidateTopology(WorldgenConfig cfg)
+    {
+        ArgumentNullException.ThrowIfNull(cfg);
+        if (cfg.Topology is not { WrapX: true }) return;
+        // The seam joins the last lattice column to the first, so the lattice must tile the map exactly: a size the
+        // stride does not divide leaves orphan terrain columns between the last block and the seam (the 250-px rig
+        // runs flat for exactly that reason). And a wrapped lattice narrower than MapTopology.MinWrapSize nodes makes
+        // a node its own neighbour.
+        int stride = Pathing.TraversalLattice.DefaultStride;
+        if (cfg.SizePx % stride != 0 || cfg.SizePx / stride < Pathing.MapTopology.MinWrapSize)
+        {
+            // W1 fix F1: the message names only what the person launching can change — the size (`--size` on the CLI
+            // and the UI). worldgen.json is an embedded resource, so "set topology.wrapX false" is not theirs to act on.
+            // Fix round 1 (verifier VR-1): the sizes it names are the nearest THE CYLINDER TAKES, and it says only that —
+            // founding can still refuse a tiny map for its own reason (siting: 12 px places 1 of 12 sites).
+            // Final nits (verifier RC1-4, 2026-10-15): the floor is worded as the cylinder's rule, not as an instruction —
+            // the imperative "Use a size that is a multiple of 4 px and at least 12 px" recommended 12 px, which founding
+            // refuses at the default settlement count (MEASURED, `sim run --founded --turns 1 --size N`: siting refused
+            // 12, 16, 20, 24, 32, 48 and 64 px on seeds 42, 1 and 7, and 96 px on seeds 42 and 1; 128 px founded on all
+            // three).
+            // Final-round fix 3 (verifier RC1-4-FLOOR-NOT-NAMED, 2026-10-15): the founding sentence names NO founding
+            // size — the size founding needs depends on the seed and the settlement count, so no figure here could be
+            // guaranteed — and it says only that siting CAN refuse such a map, with its own message. It is added only
+            // when a size this message names is below FoundingMeasuredPx, the smallest size founding was measured to
+            // succeed from; for a refusal whose nearest sizes are all at or above it (250 px: 248 and 252 px) the
+            // sentence would warn about a refusal no measured seed gave, so it is left out. ValidateTopology also runs
+            // where nothing is founded (`sim worldgen --size`, `sim hash`/`sim diff --size`): there the sentence, when
+            // present, is a fact about founding at that size, not about the command.
+            int floor = stride * Pathing.MapTopology.MinWrapSize;
+            int below = cfg.SizePx - ((cfg.SizePx % stride) + stride) % stride;
+            int above = below + stride;
+            bool twoNearest = below >= floor && below != cfg.SizePx;
+            string nearest = twoNearest
+                ? $"the nearest sizes the cylinder takes are {below} px and {above} px"
+                : $"the nearest size the cylinder takes is {Math.Max(floor, above)} px";
+            int smallestNamed = twoNearest ? below : Math.Max(floor, above);
+            string founding = smallestNamed < FoundingMeasuredPx
+                ? " That rule is the cylinder's alone: founding also needs room to site every settlement, and at the " +
+                  "default settlement count, settlement siting can refuse maps this small, with its own message."
+                : "";
+            throw new WorldgenConfigException(
+                $"this world is a cylinder (worldgen.json topology.wrapX), which needs a map size the lattice stride " +
+                $"divides into at least {Pathing.MapTopology.MinWrapSize} nodes: size {cfg.SizePx} px, stride {stride} px. " +
+                $"The cylinder's own rule is a multiple of {stride} px, at least {floor} px — {nearest}." + founding);
+        }
+        RequireIntegerPeriods("elevation", cfg.Elevation);
+        RequireIntegerPeriods("continentalMask.noise", cfg.ContinentalMask.Noise);
+    }
+
+    /// <summary>The integer x period of octave <paramref name="octave"/> of a noise field: frequency × lacunarity^octave,
+    /// computed by the SAME repeated multiplication the fBm uses (so the check and the generator agree bit for bit), or
+    /// −1 when it is not a whole number in [1, int.MaxValue].</summary>
+    public static int OctavePeriod(NoiseConfig n, int octave)
+    {
+        ArgumentNullException.ThrowIfNull(n);
+        double frequency = n.Frequency;
+        for (int o = 0; o < octave; o++) frequency *= n.Lacunarity;
+        if (!(frequency >= 1.0) || frequency > int.MaxValue || frequency != Math.Floor(frequency)) return -1;
+        return (int)frequency;
+    }
+
+    private static void RequireIntegerPeriods(string name, NoiseConfig n)
+    {
+        for (int octave = 0; octave < n.Octaves; octave++)
+        {
+            if (OctavePeriod(n, octave) > 0) continue;
+            double frequency = n.Frequency;
+            for (int o = 0; o < octave; o++) frequency *= n.Lacunarity;
+            throw new WorldgenConfigException(
+                $"topology.wrapX needs x-periodic noise: {name} octave {octave} has period frequency x lacunarity^{octave} = " +
+                $"{Inv(frequency)}, which is not a whole number of noise cells across the map. Use a whole-number " +
+                "frequency and lacunarity, or set topology.wrapX false.");
+        }
     }
 
     private static void ValidateNoise(string name, NoiseConfig? n)

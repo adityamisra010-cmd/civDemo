@@ -54,6 +54,27 @@ public sealed class SimUiGame : Game
     };
 
 
+    /// <summary>WS3 (batch 3): the terrain bake on a CYLINDER — wrapped across the texture's x (the bake is x-periodic, its
+    /// seam cross-faded: ParchmentBaker), clamped in y (the poles), bilinear as LinearClamp was.
+    /// <para>W2 review F7 — NOT TESTABLE HEADLESS, a manual-playtest check: the shipped sheets are powers of two (canonical
+    /// 1024 px → 2048 texels, 256 px → 512), but a cylinder accepts any <c>--size</c> divisible by 4, so <c>--size 1000</c>
+    /// samples a 2000-texel sheet with U-wrap. The game sets no GraphicsProfile; the MonoGame DesktopGL build it ships holds
+    /// no Reach-profile guard against wrapping a non-power-of-two texture (MEASURED: no such message among
+    /// MonoGame.Framework.dll's strings — only the occlusion-query and index-size Reach messages), and desktop OpenGL 2.0+
+    /// repeats a non-power-of-two texture (INFERRED; a GLES driver would not). Playtest: pan across the seam on the
+    /// canonical world AND on <c>--size 1000</c>, looking for a seam line or a clamped smear.</para></summary>
+    private static readonly SamplerState WrapUClampV = new()
+    {
+        AddressU = TextureAddressMode.Wrap,
+        AddressV = TextureAddressMode.Clamp,
+        AddressW = TextureAddressMode.Clamp,
+        Filter = TextureFilter.Linear,
+    };
+
+    /// <summary>WS3: the world px a visible-copies query is widened by on each side, so a river quad that runs past the
+    /// world's edge (a seam-crossing segment, unwrapped) is drawn at the copy that brings it into the window.</summary>
+    private const double CopyMarginWorldPx = 8.0;
+
     private VertexBuffer? _riverVertices;
     private BasicEffect? _worldEffect;
     private static readonly RasterizerState WorldRasterizer = new()
@@ -322,19 +343,44 @@ public sealed class SimUiGame : Game
             Matrix.CreateScale((float)scale)
             * Matrix.CreateTranslation((float)offsetX, (float)offsetY, 0f);
 
-        _spriteBatch!.Begin(samplerState: SamplerState.LinearClamp, transformMatrix: transform);
-        _spriteBatch.Draw(_terrainTexture, Vector2.Zero, null, Color.White,
-            0f, Vector2.Zero, _terrainDrawScale, SpriteEffects.None, 0f);
-        _spriteBatch.End();
+        // WS3: the world window the screen shows (x NOT normalised) — which copies of the world it holds.
+        Sim.Ui.Render.RectD shown = cam.ScreenRectToWorld(new Sim.Ui.Render.RectD(0, 0, viewport.Width, viewport.Height), ui.MapRect);
+        if (cam.WrapX && _terrainTexture is not null)
+        {
+            // WS3: ONE sprite over the visible window, its source rect running past the texture's edges where the window
+            // crosses the seam — the U-wrapped sampler continues it from the other side (the bake is x-periodic). Not
+            // testable headless: VisibleCopies and the bake's seam ΔRGB tests pin the parts that are.
+            double texelsPerWorldPx = _terrainTexture.Width / cam.WorldSize;
+            int srcX0 = (int)Math.Floor(shown.X * texelsPerWorldPx) - 2;
+            int srcX1 = (int)Math.Ceiling(shown.Right * texelsPerWorldPx) + 2;
+            var source = new Rectangle(srcX0, 0, Math.Max(1, srcX1 - srcX0), _terrainTexture.Height);
+            _spriteBatch!.Begin(samplerState: WrapUClampV, transformMatrix: transform);
+            _spriteBatch.Draw(_terrainTexture, new Vector2((float)(srcX0 / texelsPerWorldPx), 0f), source, Color.White,
+                0f, Vector2.Zero, _terrainDrawScale, SpriteEffects.None, 0f);
+            _spriteBatch.End();
+        }
+        else
+        {
+            _spriteBatch!.Begin(samplerState: SamplerState.LinearClamp, transformMatrix: transform);
+            _spriteBatch.Draw(_terrainTexture, Vector2.Zero, null, Color.White,
+                0f, Vector2.Zero, _terrainDrawScale, SpriteEffects.None, 0f);
+            _spriteBatch.End();
+        }
 
         // World-space vector layers. Layer ownership (Sim.Ui/World/MapLayers.cs): this GPU pass owns ONLY the
         // terrain bake (above) and the vector rivers; everything else on the map is the WorldLens's (GameUi).
-        _worldEffect!.World = transform;
-        _worldEffect.Projection = Matrix.CreateOrthographicOffCenter(
+        _worldEffect!.Projection = Matrix.CreateOrthographicOffCenter(
             0f, viewport.Width, viewport.Height, 0f, -1f, 1f);
         GraphicsDevice.RasterizerState = WorldRasterizer;
         GraphicsDevice.BlendState = BlendState.NonPremultiplied;
-        DrawWorldBuffer(_riverVertices);
+        // WS3: the river buffer at every copy k of the world the window shows (Camera.VisibleCopies; flat: {0}) — translated
+        // k circumferences before the camera's transform.
+        var widened = new Sim.Ui.Render.RectD(shown.X - CopyMarginWorldPx, shown.Y, shown.W + 2 * CopyMarginWorldPx, shown.H);
+        foreach (int k in cam.VisibleCopies(widened))
+        {
+            _worldEffect.World = k == 0 ? transform : Matrix.CreateTranslation((float)(k * cam.WorldSize), 0f, 0f) * transform;
+            DrawWorldBuffer(_riverVertices);
+        }
         DrawFibreOverlay(_fibreRestTexture);   // UR-2 pass 1: the map's remainder of the fibre (FibreOverlay.Rest)
 
         // The UI: one ImGui frame — GameUi draws it between the renderer's BeforeLayout and AfterLayout.

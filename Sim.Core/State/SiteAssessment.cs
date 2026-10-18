@@ -96,8 +96,8 @@ public static class SiteAssessment
             Terrain = terrain,
             Worldgen = worldgen,
             Frontier = frontier,
-            RegionFertility = SettlementSiting.BoxSum(terrain.Fertility, terrain.Size, worldgen.Siting.FertilityRadiusPx),
-            WaterDistancePx = SettlementSiting.WaterDistanceBfs(terrain.Water, terrain.Rivers, terrain.Size),
+            RegionFertility = SettlementSiting.BoxSum(terrain.Fertility, terrain.Size, worldgen.Siting.FertilityRadiusPx, terrain.WrapX),
+            WaterDistancePx = SettlementSiting.WaterDistanceBfs(terrain.Water, terrain.Rivers, terrain.Size, terrain.WrapX),
         };
     }
 
@@ -546,8 +546,8 @@ public static class SiteAssessment
         {
             SettlementRow row = world.Settlements[i];
             if (!knowledge.KnowsSettlement(row.Id)) continue;
-            long dx = row.SiteCell % size - x, dy = row.SiteCell / size - y;
-            long d2 = dx * dx + dy * dy;
+            // WS3: the squared distance on the cylinder when the world wraps (the sim's own donor-order metric).
+            long d2 = MapTopology.SquaredPx(row.SiteCell, cell, size, t.WrapX);
             near.Add(new Nearby(row.Id, d2, Math.Sqrt(d2) * t.KmPerPx));
         }
         Nearby[] sorted = [.. near];
@@ -697,14 +697,27 @@ public static class SiteAssessment
 
     /// <summary>Whether every cell of the square ±<paramref name="r"/> about (<paramref name="x"/>, <paramref name="y"/>),
     /// clamped to the map — BoxSum's own window — is known. M5 P9: public (no behaviour change) so the resource overlay
-    /// withholds a region-fertility value by THE SAME reach rule as the place card.</summary>
+    /// withholds a region-fertility value by THE SAME reach rule as the place card. WS3: on a wrapped world
+    /// (<see cref="PolityKnowledge.WrapX"/>) the window is BoxSum's modular one — it crosses the seam, each column once.</summary>
     public static bool KnowsSquare(PolityKnowledge k, int size, int x, int y, int r)
     {
         r = Math.Max(0, r);
-        int y0 = Math.Max(0, y - r), y1 = Math.Min(size - 1, y + r), x0 = Math.Max(0, x - r), x1 = Math.Min(size - 1, x + r);
+        int y0 = Math.Max(0, y - r), y1 = Math.Min(size - 1, y + r);
+        if (!k.WrapX)
+        {
+            int x0 = Math.Max(0, x - r), x1 = Math.Min(size - 1, x + r);
+            for (int yy = y0; yy <= y1; yy++)
+                for (int xx = x0; xx <= x1; xx++)
+                    if (!k.KnowsCell(yy * size + xx)) return false;
+            return true;
+        }
         for (int yy = y0; yy <= y1; yy++)
-            for (int xx = x0; xx <= x1; xx++)
+            for (int dx = -r; dx <= r; dx++)
+            {
+                int xx = MapTopology.NeighbourX(x, dx, size, wrap: true);
+                if (MapTopology.Dx(x, xx, size, wrap: true) != dx) continue;   // a column once, at its shortest offset
                 if (!k.KnowsCell(yy * size + xx)) return false;
+            }
         return true;
     }
 
@@ -715,6 +728,7 @@ public static class SiteAssessment
     /// resource overlay's water-access reach.</summary>
     public static bool KnowsDiamond(PolityKnowledge k, int size, int x, int y, int r)
     {
+        bool wrap = k.WrapX;   // WS3: the BFS crosses the seam on a wrapped world, so its reach does too
         for (int dy = -r; dy <= r; dy++)
         {
             int yy = y + dy;
@@ -722,8 +736,9 @@ public static class SiteAssessment
             int span = r - Math.Abs(dy);
             for (int dx = -span; dx <= span; dx++)
             {
-                int xx = x + dx;
-                if (xx < 0 || xx >= size) continue;
+                int xx = MapTopology.NeighbourX(x, dx, size, wrap);
+                if (xx < 0) continue;
+                if (wrap && MapTopology.Dx(x, xx, size, wrap) != dx) continue;
                 if (!k.KnowsCell(yy * size + xx)) return false;
             }
         }
@@ -735,6 +750,7 @@ public static class SiteAssessment
     /// public (no behaviour change), for the resource overlay's deposit-channel reach.</summary>
     public static bool KnowsDisc(PolityKnowledge k, int size, int x, int y, double radiusPx)
     {
+        bool wrap = k.WrapX;   // WS3: HinterlandMeans' disc wraps the seam on a wrapped world — so does its reach
         int r = (int)radiusPx;
         double r2 = radiusPx * radiusPx;
         for (int dy = -r; dy <= r; dy++)
@@ -743,8 +759,9 @@ public static class SiteAssessment
             if (yy < 0 || yy >= size) continue;
             for (int dx = -r; dx <= r; dx++)
             {
-                int xx = x + dx;
-                if (xx < 0 || xx >= size || dx * dx + dy * dy > r2) continue;
+                int xx = MapTopology.NeighbourX(x, dx, size, wrap);
+                if (xx < 0 || dx * dx + dy * dy > r2) continue;
+                if (wrap && MapTopology.Dx(x, xx, size, wrap) != dx) continue;
                 if (!k.KnowsCell(yy * size + xx)) return false;
             }
         }

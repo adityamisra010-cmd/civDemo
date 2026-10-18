@@ -111,8 +111,17 @@ public sealed record ProjectEntry(
     int ProjectId, string Name, string Materials, double LabourAdultYears, string? Blocker, long Built, int Queued,
     string? LearnedFrom, ActionDescriptor Action, string? Effects = null, string? Chain = null);
 
-/// <summary>One queued project, head first.</summary>
-public sealed record QueueEntry(int Slot, int ProjectId, string Name);
+/// <summary>One queued project, head first (WS1, D-054: one painted ROW per entry). <c>Progress</c> is p of
+/// ConstructionQuery.ProgressUnits (0 for an entry nothing has gone into); <c>Head</c> the first in line (with the pending
+/// orders applied); <c>Committed</c> an entry accepted on an earlier turn (one ordered this turn is not, and has no Cancel —
+/// "can be cancelled from next turn"); <c>CancelPending</c> a committed entry whose cancel is queued this turn;
+/// <c>GoneIn</c> the figures line ("16 of 40 timber, 8 of 20 stone and 0.8 of 2 adult-years have gone in"; head with p &gt; 0);
+/// <c>Status</c> the head's status from ConstructionQuery.HeadStatus (an estimate); <c>Forfeit</c> what a cancel loses
+/// ("16 timber, 8 stone, 0.8 adult-years"; p &gt; 0); <c>Cancel</c> the query's cancel descriptor (committed, cancellable);
+/// <c>Position</c> the place in the settlement's queue at End Turn (1 = first in line; 0 for a cancelled entry).</summary>
+public sealed record QueueEntry(
+    int Slot, int ProjectId, string Name, long Progress = 0, bool Head = false, bool Committed = true, bool CancelPending = false,
+    string? GoneIn = null, string? Status = null, string? Forfeit = null, ActionDescriptor? Cancel = null, int Position = 1);
 
 /// <summary>This turn's construction labour in adult-years: the construction share's whole pool, what housing
 /// took (its published draw, a one-turn lag) and what is left for projects and path-making.
@@ -124,10 +133,14 @@ public sealed record QueueEntry(int Slot, int ProjectId, string Name);
 /// covers housing's draw.</summary>
 public sealed record CapacityLine(double Pool, double Housing, double Available, double DtYears);
 
-/// <summary>The construction projects of the target settlement, its queue, the head's blocker and capacity.</summary>
+/// <summary>The construction projects of the target settlement, its queue, the head's blocker and capacity. WS1 (D-054):
+/// <c>Incremental</c> — the queue is built a little each turn (sim.json construction.incremental); <c>Ordered</c> the
+/// ordered-this-turn lines; <c>Priority</c> the building order across the player's settlements ("Building work is served
+/// oldest order first: …"); <c>LastTurn</c> what went into the head last turn.</summary>
 public sealed record ConstructionBlock(
     SettlementId Settlement, string Name, ImmutableArray<ProjectEntry> Projects, ImmutableArray<QueueEntry> Queue,
-    string? HeadBlocker, CapacityLine? Capacity, int OrderedThisTurn);
+    string? HeadBlocker, CapacityLine? Capacity, int OrderedThisTurn, bool Incremental = false,
+    ImmutableArray<string> Ordered = default, string? Priority = null, string? LastTurn = null, string? MaterialsLine = null);
 
 /// <summary>One developable inter-city route, ranked by use (the plan's order), with its present performance.</summary>
 public sealed record RouteEntry(
@@ -140,9 +153,32 @@ public sealed record RoadsBlock(
     int TargetClass, string ClassName, ImmutableArray<RouteEntry> Routes, string? Blocker, string? LearnedFrom,
     double? OrderedPercent, ActionDescriptor Action);
 
-/// <summary>What a road development of a given percentage would do now — an ESTIMATE on current stocks.</summary>
+/// <summary>What a road development of a given percentage would do now — an ESTIMATE on current stocks. WS2 (D-054): with
+/// the building/roads split in force, <c>AfterBuilding</c> is the share of the order that would be paid from what
+/// building work's predicted draw leaves (in [0, 1]: the least charged/needed ratio over its goods, the charges by the road
+/// system's own arithmetic), <c>LeftLine</c> says it in words ("after building work, about 25 of
+/// the 60 timber needed is left: about two-fifths of it would be paid this turn"), and <c>Warning</c> is the default
+/// split's "Building work may take up to X stone first under the current split - change it under Materials" (null when
+/// building work takes nothing the order needs). All three are null without the split.</summary>
 public sealed record RoadPlanPreview(
-    double Percent, int Routes, string Cost, double Affordable, ImmutableArray<string> Payers, ImmutableArray<string> RouteLabels);
+    double Percent, int Routes, string Cost, double Affordable, ImmutableArray<string> Payers, ImmutableArray<string> RouteLabels,
+    double? AfterBuilding = null, string? LeftLine = null, string? Warning = null);
+
+/// <summary>
+/// WS2 (D-054) — THE MATERIALS BLOCK: the Empire's building/roads split, present iff the query lists its descriptor
+/// (ActionDomain.ResourceAllocation — listed exactly when road development is, so the block shows iff the Roads block
+/// does). <c>BuildingsPercent</c> is the split in force for this turn's work (a Set queued this turn counts), with
+/// <c>CommittedPercent</c>/<c>HasRow</c> what the world holds and <c>QueuedPercent</c> the queued Set; <c>Goods</c> the goods
+/// it covers (from content); <c>ConstructionLine</c> what the construction block says building work may use this turn (it
+/// reads only the road order queued this turn); <c>Pending</c> and <c>DtYears</c> what the roads preview estimates with.
+/// </summary>
+public sealed record AllocationBlock(
+    ActionDescriptor Action, int BuildingsPercent, int CommittedPercent, bool HasRow, int? QueuedPercent, string Goods,
+    string? ConstructionLine, IReadOnlyList<OrderRecord> Pending, double DtYears)
+{
+    /// <summary>Whether the split in force is the default, building first.</summary>
+    public bool IsDefault => BuildingsPercent == ResourceAllocation.DefaultBuildingsPercent;
+}
 
 /// <summary>The tax edict: the declared levy, legitimacy, per-settlement collection, and a levy queued this turn.</summary>
 public sealed record GovernanceBlock(
@@ -196,7 +232,8 @@ public sealed record ActionSurfaceModel(
     UiEra Era, SurfaceLayout Layout, LabourControlSpec Control, ImmutableArray<ActionDescriptor> Actions,
     LabourBlock? Labour, ResearchBlock? Research, AgeBlock? Age, ConstructionBlock? Construction, RoadsBlock? Roads,
     MilitaryBlock? Military, GovernanceBlock? Governance, StandingBlock? Standing, ImmutableArray<string> Notices,
-    ProductionBlock? Production = null, ImmutableArray<LockedDomain> Locked = default, FoundingBlock? Founding = null)
+    ProductionBlock? Production = null, ImmutableArray<LockedDomain> Locked = default, FoundingBlock? Founding = null,
+    AllocationBlock? Allocation = null)
 {
     /// <summary>The domains the surface shows, in the query's domain order.</summary>
     public ImmutableArray<ActionDomain> Domains
@@ -214,6 +251,7 @@ public sealed record ActionSurfaceModel(
             if (Standing is not null) b.Add(ActionDomain.Standing);
             if (Production is not null) b.Add(ActionDomain.Production);
             if (Founding is not null) b.Add(ActionDomain.Colonization);
+            if (Allocation is not null) b.Add(ActionDomain.ResourceAllocation);
             return b.ToImmutable();
         }
     }
@@ -249,12 +287,16 @@ public static class ActionSurface
         var notices = new List<string>();
         LabourBlock? labour = Labour(input, actions, control, notices);
         SettlementId? target = labour?.Settlement ?? TargetSettlement(input, actions, ActionDomain.Construction);
+        AllocationBlock? allocation = Allocation(input, actions, context.NextDtYears ?? input.World.Clock.DtYears);
+        ConstructionBlock? construction = target is { } t ? Construction(input, actions, t, context.NextDtYears) : null;
+        if (construction is { Incremental: true } && allocation?.ConstructionLine is { } materials)
+            construction = construction with { MaterialsLine = materials };
         return new ActionSurfaceModel(
             input.Theme.Era, layout, control, actions,
             labour,
             Research(input, actions),
             Age(input, actions),
-            target is { } t ? Construction(input, actions, t, context.NextDtYears) : null,
+            construction,
             Roads(input, actions),
             Military(input, actions),
             Governance(input, actions),
@@ -262,7 +304,24 @@ public static class ActionSurface
             Notices(input, actions, notices),
             Production(input, actions),
             Locked(input, actions, target),
-            Founding(input, actions));
+            Founding(input, actions),
+            allocation);
+    }
+
+    // ------------------------------------------------------------------ the materials split (WS2, D-054)
+
+    /// <summary>The Materials block: present iff the query lists the split's descriptor (so iff the Roads block is
+    /// present), read through ResourceAllocationQuery on the current world and the player's pending orders — the
+    /// construction line from the QUEUED road order only.</summary>
+    private static AllocationBlock? Allocation(ActionSurfaceInput input, ImmutableArray<ActionDescriptor> actions, double dtYears)
+    {
+        ActionDescriptor? split = null;
+        foreach (ActionDescriptor a in actions) if (a.Domain == ActionDomain.ResourceAllocation) { split = a; break; }
+        if (split is null) return null;
+        AllocationView? view = ResourceAllocationQuery.ForEmpire(input.World, input.Config, input.Player, input.Queued, dtYears);
+        if (view is null) return null;
+        return new AllocationBlock(split, view.BuildingsPercent, view.CommittedPercent, view.HasRow, view.QueuedPercent,
+            AllocationText.Goods(input.Config), AllocationText.ConstructionLine(view, input.Config), input.Queued, dtYears);
     }
 
     // ------------------------------------------------------------------ founding (M5 S1d)
@@ -542,13 +601,21 @@ public static class ActionSurface
 
         var queue = ImmutableArray.CreateBuilder<QueueEntry>();
         string? headBlocker = null;
-        ConstructionQueueRow[] rows = ConstructionQuery.Queue(w, settlement);
-        for (int i = 0; i < rows.Length; i++)
+        bool incremental = ConstructionQuery.Incremental(input.Config);
+        var ordered = ImmutableArray.CreateBuilder<string>();
+        string? priority = null, lastTurn = null;
+        if (!incremental)
         {
-            ConstructionProjectEntry? p = goods.ProjectById(rows[i].ProjectId);
-            queue.Add(new QueueEntry(rows[i].Slot, rows[i].ProjectId, p is null ? "project " + Inv(rows[i].ProjectId) : NameOf(projects, rows[i].ProjectId, p.Name)));
-            if (i == 0 && p is not null) headBlocker = ConstructionQuery.Blocker(w, input.Config, settlement, p, dtYears);
+            ConstructionQueueRow[] rows = ConstructionQuery.Queue(w, settlement);
+            for (int i = 0; i < rows.Length; i++)
+            {
+                ConstructionProjectEntry? p = goods.ProjectById(rows[i].ProjectId);
+                queue.Add(new QueueEntry(rows[i].Slot, rows[i].ProjectId, p is null ? "project " + Inv(rows[i].ProjectId) : NameOf(projects, rows[i].ProjectId, p.Name)));
+                if (i == 0 && p is not null) headBlocker = ConstructionQuery.Blocker(w, input.Config, settlement, p, dtYears);
+            }
         }
+        else
+            IncrementalQueue(input, actions, settlement, dtYears ?? w.Clock.DtYears, projects, queue, ordered, ref headBlocker, ref priority, ref lastTurn);
 
         CapacityLine? capacity = null;
         if (dtYears is { } dt && dt > 0.0)
@@ -561,12 +628,112 @@ public static class ActionSurface
             capacity = new CapacityLine(pool, housing, ConstructionQuery.CapacityAdultYears(w, input.Config, settlement, dt), dt);
         }
 
-        int ordered = 0;
+        int orderedCount = 0;
         for (int i = 0; i < input.Queued.Count; i++)
             if (input.Queued[i].Kind == OrderKind.EnqueueConstruction && input.Queued[i].ActorId == input.Player.Value
-                && input.Queued[i].TargetId == settlement.Value) ordered++;
+                && input.Queued[i].TargetId == settlement.Value) orderedCount++;
         return new ConstructionBlock(settlement, input.Name(settlement.Value), projects.ToImmutable(), queue.ToImmutable(),
-            headBlocker, capacity, ordered);
+            headBlocker, capacity, orderedCount, incremental, ordered.ToImmutable(), priority, lastTurn);
+    }
+
+    /// <summary>
+    /// WS1 (D-054) — THE QUEUE AS IT WILL STAND AT END TURN, one entry per row: the world's queue with the player's pending
+    /// cancels and enqueues applied exactly as the intake will (ConstructionQuery.PendingBook), then the committed
+    /// entries whose cancel is pending (shown as cancelled this turn). The head's figures and status come from
+    /// ConstructionQuery.HeadStatus — the one resolver the system uses — and the screen labels them estimates.
+    /// </summary>
+    private static void IncrementalQueue(
+        ActionSurfaceInput input, ImmutableArray<ActionDescriptor> actions, SettlementId settlement, double dtYears,
+        ImmutableArray<ProjectEntry>.Builder projects, ImmutableArray<QueueEntry>.Builder queue, ImmutableArray<string>.Builder ordered,
+        ref string? headBlocker, ref string? priority, ref string? lastTurn)
+    {
+        IReadOnlyWorldState w = input.World;
+        SimConfig cfg = input.Config;
+        GoodsConfig goods = cfg.Goods!;
+        IReadOnlyTable<ConstructionQueueRow> book = ConstructionQuery.PendingBook(w, cfg, input.Queued, out IReadOnlyTable<ConstructionProgressRow> progress);
+        QueueEntryRef[] cancelled = ConstructionQuery.PendingCancels(w, input.Queued);
+
+        var rows = new List<ConstructionQueueRow>();
+        for (int i = 0; i < book.Count; i++) if (book[i].Settlement == settlement) rows.Add(book[i]);
+        rows.Sort(static (a, b) => a.Slot.CompareTo(b.Slot));   // slots are unique per settlement
+        HeadStatusReport? status = rows.Count > 0 ? ConstructionQuery.HeadStatus(w, cfg, settlement, input.Queued, dtYears) : null;
+        bool empire = ConstructionQuery.DrawsOnEmpire(w, cfg, settlement);
+        string building = BuildingLabel(input);
+        for (int i = 0; i < rows.Count; i++)
+        {
+            ConstructionQueueRow row = rows[i];
+            ConstructionProjectEntry? p = goods.ProjectById(row.ProjectId);
+            string name = p is null ? "project " + Inv(row.ProjectId) : NameOf(projects, row.ProjectId, AvailableActionsQuery.ProjectName(cfg.Research, p));
+            bool committed = Contains(w.ConstructionQueue, row);
+            long pr = ConstructionQuery.ProgressOf(progress, row);
+            bool head = i == 0;
+            string? line = head && status is not null ? ConstructionStatusText.Status(status, cfg, empire, input.Name(settlement.Value), input.Name, building) : null;
+            ActionDescriptor? cancel = committed ? FindCancel(actions, settlement, row.Slot) : null;
+            queue.Add(new QueueEntry(row.Slot, row.ProjectId, name, pr, head, committed, false,
+                head && pr > 0 && p is not null ? ConstructionQuery.GoneIn(goods, p, pr) : null, line,
+                pr > 0 && p is not null ? ConstructionQuery.Forfeit(p, pr) : null, cancel, i + 1));
+            if (head) headBlocker = status is { Resolution.Progresses: false } ? line : null;
+            if (head) lastTurn = ConstructionStatusText.LastTurn(input.Previous, w, cfg, row);
+            if (committed) continue;
+            if (head)
+            {
+                string uses = status is { Resolution: { Progresses: true, Project: { } hp } r } ? UpTo(hp, r) : "what its builders and the purse allow";
+                ordered.Add(name + " ordered - it is first in line, so at End Turn it starts and may use up to " + uses
+                    + "; later, cancelling loses what went in");
+            }
+            else ordered.Add(name + " ordered - joins the queue " + ConstructionStatusText.Ordinal(i + 1) + "; nothing is used until it is first in line");
+        }
+        foreach (QueueEntryRef c in cancelled)
+        {
+            if (c.Settlement != settlement) continue;
+            var row = new ConstructionQueueRow(c.Settlement, c.Slot, c.ProjectId);
+            ConstructionProjectEntry? p = goods.ProjectById(c.ProjectId);
+            string name = p is null ? "project " + Inv(c.ProjectId) : NameOf(projects, c.ProjectId, AvailableActionsQuery.ProjectName(cfg.Research, p));
+            long pr = ConstructionQuery.ProgressOf(w, row);
+            queue.Add(new QueueEntry(c.Slot, c.ProjectId, name, pr, false, true, true, null, null,
+                pr > 0 && p is not null ? ConstructionQuery.Forfeit(p, pr) : null, null, 0));
+        }
+
+        // The building order across the player's OWN settlements (P7: no foreign queue is named).
+        if (status is not null)
+        {
+            var names = new List<string>();
+            foreach (QueueEntryRef h in status.Order)
+                if (EmpireQuery.ControlsSettlement(w, input.Player, h.Settlement))
+                    names.Add(input.Name(h.Settlement.Value) + "'s " + ConstructionStatusText.ProjectName(cfg, h.ProjectId));
+            if (names.Count > 1)
+                priority = "Building work is served oldest order first: " + string.Join(", then ", names) + ".";
+        }
+    }
+
+    private static string UpTo(ConstructionProjectEntry project, HeadResolution r)
+    {
+        var parts = new List<string>();
+        for (int i = 0; i < project.Inputs.Length; i++)
+            if (r.Draws[i] > 0) parts.Add(Inv(r.Draws[i]) + " " + project.Inputs[i].Good);
+        return parts.Count == 0 ? "nothing yet" : string.Join(" and ", parts);
+    }
+
+    private static bool Contains(IReadOnlyTable<ConstructionQueueRow> table, ConstructionQueueRow row)
+    {
+        for (int i = 0; i < table.Count; i++) if (table[i] == row) return true;
+        return false;
+    }
+
+    private static ActionDescriptor? FindCancel(ImmutableArray<ActionDescriptor> actions, SettlementId settlement, int slot)
+    {
+        long id = ((long)settlement.Value << 32) | (uint)slot;
+        foreach (ActionDescriptor a in actions) if (a.Domain == ActionDomain.ConstructionQueue && a.Id == id) return a;
+        return null;
+    }
+
+    /// <summary>The construction sector's knowledge-derived label (what the Labour block calls it, e.g. "Building").</summary>
+    private static string BuildingLabel(ActionSurfaceInput input)
+    {
+        if (input.Config.Research is not { } research) return "Building";
+        bool[] completed = ResearchQuery.CompletedMask(input.World, research, input.Player);
+        string label = LabourActivities.CapabilityLabel(research, completed, Sectors.Construction);
+        return label.Length == 0 ? "Building" : label;
     }
 
     private static string NameOf(ImmutableArray<ProjectEntry>.Builder projects, int id, string fallback)
@@ -587,7 +754,7 @@ public static class ActionSurface
     private static RoadsBlock? Roads(ActionSurfaceInput input, ImmutableArray<ActionDescriptor> actions)
     {
         ActionDescriptor? road = null;
-        foreach (ActionDescriptor a in actions) if (a.Domain == ActionDomain.Roads) { road = a; break; }
+        foreach (ActionDescriptor a in actions) if (a.Domain == ActionDomain.Roads && a.Order == OrderKind.DevelopRoads) { road = a; break; }
         if (road is null || input.Config.Roads is not { } roads || input.Config.Research is not { } research || input.Config.Goods is not { } goods)
             return null;
         RoadRouteView[] views = RoadDevelopmentQuery.Describe(input.World, research, roads, goods, input.Player);
@@ -614,8 +781,67 @@ public static class ActionSurface
     /// <see cref="RoadOrderFactory.Preview"/> (= RoadDevelopmentQuery.Plan, the selection the system applies),
     /// with the affordable fraction of the whole on the CURRENT stocks of the Empire's paying settlements. An
     /// ESTIMATE: production runs before road development in the step that applies the order.</summary>
-    public static RoadPlanPreview RoadPlan(IReadOnlyWorldState world, SimConfig cfg, PolityId player, double percent, Func<int, string> name)
+    public static RoadPlanPreview RoadPlan(IReadOnlyWorldState world, SimConfig cfg, PolityId player, double percent, Func<int, string> name) =>
+        RoadPlan(world, cfg, player, percent, name, null, numerals: true);
+
+    /// <summary>
+    /// <see cref="RoadPlan(IReadOnlyWorldState, SimConfig, PolityId, double, Func{int, string})"/> with the building/roads
+    /// split (WS2, D-054): given the Materials block (<paramref name="split"/>: the pending orders and the step's dt), the
+    /// order is ALSO estimated on what remains after building work's predicted draw this turn — the split computed with
+    /// THIS DRAFT as the road order (ResourceAllocationQuery.ForEmpire), whose forecast holds building work's draws within
+    /// the split and what road development would CHARGE on what they leave (RoadDevelopmentQuery.SimulateCharges: the road
+    /// system's own charge arithmetic — its floors and min-ratio, and the order ending after a step it pays in part or at
+    /// one it can pay nothing of). The share of the order paid is the least charged/needed ratio over its goods, worded for
+    /// the era (<paramref name="numerals"/>: a percentage; otherwise fifths in words); nothing charged says "none of it".
+    /// At the default split (building first) it warns when building work will take goods the order needs first.
+    /// </summary>
+    public static RoadPlanPreview RoadPlan(
+        IReadOnlyWorldState world, SimConfig cfg, PolityId player, double percent, Func<int, string> name,
+        AllocationBlock? split, bool numerals)
     {
+        RoadPlanPreview basic = RoadPlanCore(world, cfg, player, percent, name, out RoadMaterialCost[] sum);
+        if (split is null || sum.Length == 0 || cfg.Goods is not { } goods) return basic;
+        AllocationView? view = ResourceAllocationQuery.ForEmpire(world, cfg, player, split.Pending, split.DtYears, roadDraftPercent: percent);
+        if (view is null) return basic;
+        SettlementId[] purse = RoadDevelopmentQuery.PayingSettlements(world, player);
+        var left = new long[sum.Length];
+        int binding = -1;
+        double worst = double.PositiveInfinity, after = 1.0;
+        long paidUnits = 1, neededUnits = 1;   // the least-paid good's charge and need (the share's exact numerator/denominator)
+        var taken = new List<string>();
+        for (int m = 0; m < sum.Length; m++)
+        {
+            int g = sum[m].Good.Value;
+            long have = EmpireStockpile.Available(world.GoodStocks, purse, sum[m].Good);
+            long building = view.Split.BuildingDrawOf(g);
+            left[m] = Math.Max(0, have - building);
+            double ratio = sum[m].Units <= 0 ? double.PositiveInfinity : (double)left[m] / sum[m].Units;
+            if (ratio < worst) { worst = ratio; binding = m; }
+            if (sum[m].Units > 0)
+            {
+                long charged = Math.Min(view.Split.RoadChargeOf(g), sum[m].Units);
+                double paid = (double)charged / sum[m].Units;
+                if (paid < after) { after = paid; paidUnits = charged; neededUnits = sum[m].Units; }
+            }
+            if (view.IsDefault && building > 0 && left[m] < sum[m].Units) taken.Add(Inv(building) + " " + goods.ById(g).Name);
+        }
+        // Batch 3 R3 (C2 review F9): a partial payment is floored and held to 1–99 % (never "about 100%" or "about 0%").
+        string share = numerals && after < 1.0 && after > 0.0
+            ? AllocationText.SharePercent(paidUnits, neededUnits)
+            : AllocationText.ShareWords(after);
+        string leftLine = after >= 1.0
+            ? "after building work, everything this order needs is left: all of it would be paid this turn"
+            : "after building work, about " + Inv(left[binding]) + " of the " + Inv(sum[binding].Units) + " "
+              + goods.ById(sum[binding].Good.Value).Name + " needed is left: " + share + " would be paid this turn";
+        string? warning = taken.Count == 0 ? null
+            : "Building work may take up to " + AllocationText.List(taken) + " first under the current split - change it under Materials";
+        return basic with { AfterBuilding = after, LeftLine = leftLine, Warning = warning };
+    }
+
+    private static RoadPlanPreview RoadPlanCore(
+        IReadOnlyWorldState world, SimConfig cfg, PolityId player, double percent, Func<int, string> name, out RoadMaterialCost[] summed)
+    {
+        summed = [];
         RoadDevelopmentStep[] plan = RoadOrderFactory.Preview(world, cfg, player, percent);
         if (plan.Length == 0 || cfg.Goods is not { } goods) return new RoadPlanPreview(percent, 0, "nothing", 1.0, [], []);
         var total = new List<RoadMaterialCost>();
@@ -631,6 +857,7 @@ public static class ActionSurface
             }
         }
         RoadMaterialCost[] sum = [.. total];
+        summed = sum;
         SettlementId[] payers = RoadDevelopmentQuery.PayingSettlements(world, player, plan[0].Route.A, plan[0].Route.B);
         double affordable = RoadDevelopmentQuery.AffordableFraction(world.GoodStocks, payers, sum);
         var payerNames = ImmutableArray.CreateBuilder<string>(payers.Length);
@@ -821,12 +1048,12 @@ public static class ActionSurface
         // accept), and where the empire HOLDS the input but its queued projects already claim it, the reason says so.
         if (settlement is { } here && cfg.Goods is { Projects: { } projects } goods)
         {
-            IReadOnlyTable<ConstructionQueueRow> claims = ConstructionQuery.QueueWithPending(w, cfg, input.Queued);
+            IReadOnlyTable<ConstructionQueueRow> claims = ConstructionQuery.QueueWithPending(w, cfg, input.Queued, out IReadOnlyTable<ConstructionProgressRow> claimsProgress);
             foreach (ConstructionProjectEntry p in projects)
             {
-                if (ConstructionQuery.Availability(w, cfg, input.Player, here, p.Id, claims) != ProjectAvailability.InputUnobtainable) continue;
-                string good = ConstructionQuery.UnobtainableInput(w, cfg, here, p, claims)?.Name ?? "an input";
-                string reason = (ConstructionQuery.ClaimedReason(w, cfg, here, p, claims, input.Name)
+                if (ConstructionQuery.Availability(w, cfg, input.Player, here, p.Id, claims, claimsProgress) != ProjectAvailability.InputUnobtainable) continue;
+                string good = ConstructionQuery.UnobtainableInput(w, cfg, here, p, claims, claimsProgress)?.Name ?? "an input";
+                string reason = (ConstructionQuery.ClaimedReason(w, cfg, here, p, claims, claimsProgress, input.Name)
                         ?? "needs " + good + ", which " + input.Name(here.Value) + " cannot make yet")
                     + (InfoQuery.SourceChain(w, cfg, input.Player, good) is { } chain ? " - comes from: " + chain : "");
                 lines.Add(new LockedDomain("Build " + AvailableActionsQuery.ProjectName(cfg.Research, p), reason, InfoSubject.OfProject(p.Id, here.Value)));
@@ -916,6 +1143,8 @@ public static class ActionSurface
         ActionDomain.Governance => "the tax edict",
         ActionDomain.Institutions => "institutions",
         ActionDomain.Colonization => "founding settlements",
+        ActionDomain.ConstructionQueue => "cancelling building projects",
+        ActionDomain.ResourceAllocation => "the materials split",
         _ => "what the people do on their own",
     };
 

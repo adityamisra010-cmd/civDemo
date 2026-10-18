@@ -143,6 +143,8 @@ public static partial class PlayabilityGate
         list.Add(new("colony+revolt" + aiTag, "rig: a colony founded by the real ColonizationSystem (stranded source) and one settlement passed to a new AI polity as RevoltSystem does", () => SettlementChanges(ai)));
         list.Add(new("placement" + aiTag, "S1d: turn 1, a Found Settlement order placed through the UI's guarded emitter (the capital to its best legal place) and one End Turn - the colony stands; the monkey plays inside the placement mode",
             () => PlacementRig(ai), MonkeyInPlacement: true));
+        list.Add(new(UnderConstructionStateName + aiTag, "D-054 WS1, rig: turn 1 with two granaries in the capital's queue as ConstructionSystem writes them - the head part-built (400,000 of 1,000,000: 16 of 40 timber, 8 of 20 stone in), the second not started - both committed, so each has a Cancel (the head's two-step)",
+            () => UnderConstruction(ai)));
         if (aiEmpires is null)
             list.Add(new("hidden rival", "P7: the one-AI world at turn 1 seen through a knowledge stub that hides the AI polity whole (KnowledgeStubs.HidePolity) - every surface draws, Tab and clicks skip what the player does not know", HiddenRival));
         return list;
@@ -216,6 +218,21 @@ public static partial class PlayabilityGate
         return report.Rows;
     }
 
+    /// <summary>
+    /// WS3 (batch 3 R3, W2 review F5): the W A S D row's verdict on a CYLINDER — null when D panned the view EAST and A then
+    /// panned it WEST, each by the camera's shortest wrapped delta (<see cref="Camera.DeltaX"/>: a pan across the seam counts
+    /// by its direction, never by the coordinate's jump from W to 0); otherwise what went wrong. <paramref name="before"/>,
+    /// <paramref name="afterD"/> and <paramref name="afterA"/> are the view's centre x before the keys, after D, after A.
+    /// </summary>
+    public static string? WrapPanProblem(Camera cam, double before, double afterD, double afterA)
+    {
+        ArgumentNullException.ThrowIfNull(cam);
+        double east = cam.DeltaX(before, afterD), west = cam.DeltaX(afterD, afterA);
+        if (east > 0 && west < 0) return null;
+        return "on a cylinder D must pan the view east and A west (no east-west edge): D moved x by "
+            + east.ToString("0.0", CultureInfo.InvariantCulture) + ", A by " + west.ToString("0.0", CultureInfo.InvariantCulture);
+    }
+
     /// <summary>P7: the knowledge rows alone — "Tab never reaches a hidden settlement" and "a click on a hidden position
     /// selects nothing" — exactly as the sweep runs them in the hidden-rival state, on <paramref name="h"/> (none when the
     /// session's knowledge hides nothing).</summary>
@@ -287,6 +304,32 @@ public static partial class PlayabilityGate
     {
         foreach (int n in nodes)
             if (!ResearchQuery.IsCompleted(w, Me, c.Nodes[n].Key)) w.ResearchCompleted.Add(new ResearchCompletedRow(Me, c.Nodes[n].Key));
+    }
+
+    /// <summary>D-054 WS1: the state whose capital queue holds a part-built head and an unstarted entry.</summary>
+    public const string UnderConstructionStateName = "under construction";
+
+    /// <summary>
+    /// D-054 WS1 — THE UNDER-CONSTRUCTION STATE's rig: the canonical turn-1 world with two granaries in the capital's queue,
+    /// written as ConstructionSystem writes them (a queue row and its progress row each; EnqueuedTurn 0): the head part-built
+    /// at 400,000 of 1,000,000 progress units (16 of 40 timber, 8 of 20 stone and 0.8 of 2 adult-years in), the second at 0.
+    /// Both are COMMITTED (in the world's queue), so the surface draws a Cancel on each — one click for the unstarted entry,
+    /// the two-step "Lose it" for the head. The rows are written directly (a stated rig, like the other rig states): the
+    /// materials that went in are not re-drawn, so no stock changes and the world stays conserved.
+    /// </summary>
+    public static UiSession UnderConstruction(int ai)
+    {
+        WorldState w = UiFounding.Found(42, aiEmpiresOverride: ai);
+        if (!EmpireQuery.TryGetCapital(w, Me, out SettlementId capital)) throw new InvalidOperationException("under-construction rig: no capital");
+        const int granary = 1;
+        int slot = ConstructionQuery.NextSlot(w.ConstructionQueue, capital);
+        w.ConstructionQueue.Add(new ConstructionQueueRow(capital, slot, granary));
+        w.ConstructionProgress.Add(new ConstructionProgressRow(capital, slot, granary, 0, 400_000));
+        w.ConstructionQueue.Add(new ConstructionQueueRow(capital, slot + 1, granary));
+        w.ConstructionProgress.Add(new ConstructionProgressRow(capital, slot + 1, granary, 0, 0));
+        UiSession s = UiSession.StartFrom(w, 42);
+        if (ConstructionQuery.Queue(s.World, capital).Length != 2) throw new InvalidOperationException("under-construction rig: the queue is not the two granaries");
+        return s;
     }
 
     /// <summary>The Taxation civic and its prerequisites completed AND the player at Age III: available under the
@@ -505,6 +548,20 @@ public static partial class PlayabilityGate
         }
 
         private static (GateResult, string) Expect(bool ok, string what) => ok ? (GateResult.Pass, "") : (GateResult.Fail, what);
+
+        /// <summary>D-054 WS1: the entry the Cancel row presses — a committed entry with a Cancel whose cancel is not
+        /// already pending, preferring one something has gone into (so the two-step confirm is exercised).</summary>
+        private static QueueEntry? CancellableEntry(ConstructionBlock c)
+        {
+            QueueEntry? any = null;
+            foreach (QueueEntry q in c.Queue)
+            {
+                if (!q.Committed || q.Cancel is null || q.CancelPending) continue;
+                if (q.Progress > 0) return q;
+                any ??= q;
+            }
+            return any;
+        }
 
         private void CloseEverything()
         {
@@ -1288,6 +1345,32 @@ public static partial class PlayabilityGate
             }
             else Row("policy: building", "Build", GateResult.NotOffered, "no construction block for the selection");
 
+            // D-054 WS1: the queue's Cancel — on a COMMITTED entry only (one ordered this turn has none). One click when
+            // nothing has gone in; when something has, the first click arms "Lose it" (the forfeit stated beside it) and the
+            // second emits. Either way exactly ONE CancelConstruction order for that entry, through EmitCancelConstruction.
+            OpenPolicy();
+            if (Ui.Actions.Model?.Construction is { } queued && CancellableEntry(queued) is { } entry)
+            {
+                int at = queued.Settlement.Value;
+                Check("policy: building", "Cancel: " + entry.Name + (entry.Progress > 0 ? " (two steps: Lose it)" : " (one click)"), () =>
+                {
+                    OpenPolicy();
+                    int q = Queued;
+                    if (!ClickAction(ActionHitKind.CancelConstruction, at, entry.Slot)) return (GateResult.Fail, "not drawn");
+                    if (entry.Progress > 0)
+                    {
+                        if (Queued != q) return (GateResult.Fail, "the first click of the two-step cancel appended an order");
+                        if (Ui.Actions.CancelArmed != (at, entry.Slot)) return (GateResult.Fail, "the first click did not arm the confirm");
+                        if (!ClickAction(ActionHitKind.CancelConfirm, at, entry.Slot)) return (GateResult.Fail, "\"Lose it\" not drawn after the first click");
+                    }
+                    if (Queued != q + 1) return (GateResult.Fail, "SILENT: no cancel order appended");
+                    OrderRecord last = S.QueuedOrders()[^1];
+                    return Expect(last.Kind == OrderKind.CancelConstruction && last.TargetId == at && (int)last.Amount == entry.Slot,
+                        "the order appended is not this entry's cancel");
+                });
+            }
+            else Row("policy: building", "Cancel", GateResult.NotOffered, "no committed queue entry at the selection (an entry can be cancelled from the turn after it is ordered)");
+
             // Roads.
             OpenPolicy();
             if (Ui.Actions.Model?.Roads is { } roads)
@@ -1311,6 +1394,40 @@ public static partial class PlayabilityGate
                 });
             }
             else Row("policy: roads", "Develop roads", GateResult.NotOffered, "no road class known yet (the block appears with one)");
+
+            // D-054 WS2: the Materials block (the building/roads split) — shown iff the Roads block is. The era's share
+            // control changes the draft (a tally or notch, or the slider), "Set" then appends exactly ONE
+            // SetResourceAllocation order for the player's Empire with the draft's share, through EmitAllocationOrder.
+            OpenPolicy();
+            if (Ui.Actions.Model?.Allocation is not null)
+            {
+                Check("policy: materials", "materials share control", () =>
+                {
+                    OpenPolicy();
+                    int before = Ui.Actions.AllocationDraft;
+                    // Toward the middle of the control: a tally/notch near half, or the slider's centre.
+                    int units = model.Control.Units;
+                    bool clicked = model.Control.IsSlider ? ClickAction(ActionHitKind.AllocTrack)
+                        : ClickAction(ActionHitKind.AllocSlot, int.MinValue, Math.Max(0, units / 2 - 1));
+                    if (!clicked) return (GateResult.Fail, "not drawn");
+                    return Expect(Ui.Actions.AllocationDraft != before && Ui.Actions.AllocationDraft is >= 0 and <= 100,
+                        "draft unchanged at " + before);
+                });
+                Check("policy: materials", "Set (materials split)", () =>
+                {
+                    OpenPolicy();
+                    if (Find(ActionHitKind.AllocApply) is null) return (GateResult.Fail, "the draft differs but there is no Set button");
+                    int q = Queued;
+                    int draft = Ui.Actions.AllocationDraft;
+                    ClickAction(ActionHitKind.AllocApply);
+                    if (Queued != q + 1) return (GateResult.Fail, "SILENT: no SetResourceAllocation order appended");
+                    OrderRecord last = S.QueuedOrders()[^1];
+                    return Expect(last.Kind == OrderKind.SetResourceAllocation && last.TargetId == last.ActorId && (int)last.Amount == draft,
+                        "the order appended is not the draft's split (" + draft + ")");
+                });
+            }
+            else Row("policy: materials", "Materials for building and roads", GateResult.NotOffered,
+                "no road class known yet (the block appears with the Roads block)");
 
             // The tax edict.
             OpenPolicy();
@@ -1612,6 +1729,23 @@ public static partial class PlayabilityGate
                 // All four keys, both directions: a camera already clamped at one map edge (the world's own
                 // geometry decides where the selected settlement sits — after ADR-035 the age-advance rig's camera
                 // starts at the bottom clamp at zoom 1) cannot move further that way, which is not a dead control.
+                // WS3 — RESTATED AS A WRAP ASSERTION: on a cylinder there is no east or west edge, so D must pan the view
+                // EAST and A WEST, each judged by the shortest wrapped delta (PlayabilityGate.WrapPanProblem — batch 3 R3, W2
+                // review F5: "x changed" passed a D that panned west); only W and S may meet the poles' clamp.
+                if (Ui.Camera.WrapX)
+                {
+                    double x0 = Ui.Camera.CenterX;
+                    h.Hold(Keys.D, 20);
+                    double x1 = Ui.Camera.CenterX;
+                    h.Hold(Keys.A, 20);
+                    double xa = Ui.Camera.CenterX;
+                    double y0 = Ui.Camera.CenterY;
+                    h.Hold(Keys.S, 20);
+                    h.Hold(Keys.W, 20);
+                    string? problem = WrapPanProblem(Ui.Camera, x0, x1, xa);
+                    return Expect(problem is null, problem + "; y " + y0.ToString("0.0", CultureInfo.InvariantCulture) + " -> "
+                        + Ui.Camera.CenterY.ToString("0.0", CultureInfo.InvariantCulture));
+                }
                 double x = Ui.Camera.CenterX, y = Ui.Camera.CenterY;
                 h.Hold(Keys.D, 20);
                 h.Hold(Keys.S, 20);
@@ -1629,22 +1763,27 @@ public static partial class PlayabilityGate
         /// <summary>A point on the map just below its centre (P1: the MAP RECT's centre — the clear map the chrome leaves).</summary>
         private (double X, double Y) Centre() => (Ui.MapRect.CenterX, Ui.MapRect.CenterY + 30);
 
-        /// <summary>How far (screen px) a settlement's marker is from the map rect's centre (P1: where CenterOn puts it).</summary>
+        /// <summary>How far (screen px) a settlement's marker is from the map rect's centre (P1: where CenterOn puts it).
+        /// WS3: at its copy nearest the view (Camera.WorldToScreenNearest — where the player sees it on a cylinder).</summary>
         private double FromCentre(SettlementRow row)
         {
             LineGeometry.Vertex p = OverlayMeshes.SettlementPosition(row, Ui.World.Terrain!.Size);
             RectD map = Ui.MapRect;
-            (double sx, double sy) = Ui.Camera.WorldToScreen(p.X, p.Y, map);
+            (double sx, double sy) = Ui.Camera.WorldToScreenNearest(p.X, p.Y, map);
             return Math.Sqrt((sx - map.CenterX) * (sx - map.CenterX) + (sy - map.CenterY) * (sy - map.CenterY));
         }
 
         /// <summary>P1: whether the camera's clamp lets <paramref name="row"/> sit exactly at the map rect's centre at the
-        /// current zoom (it is at least half the rect's view, in world px, from each world edge on both axes).</summary>
+        /// current zoom (it is at least half the rect's view, in world px, from each world edge on both axes).
+        /// WS3 — RESTATED AS A WRAP ASSERTION: a wrapped camera has no x clamp, so on a cylinder only the poles (y) can stop
+        /// the centring; x always allows it.</summary>
         private bool ClampAllowsCentre(SettlementRow row)
         {
             LineGeometry.Vertex p = OverlayMeshes.SettlementPosition(row, Ui.World.Terrain!.Size);
             double size = Ui.Camera.WorldSize, hw = Ui.MapRect.W / 2.0 / Ui.Camera.Zoom, hh = Ui.MapRect.H / 2.0 / Ui.Camera.Zoom;
-            return 2 * hw < size && 2 * hh < size && p.X >= hw && p.X <= size - hw && p.Y >= hh && p.Y <= size - hh;
+            bool yAllows = 2 * hh < size && p.Y >= hh && p.Y <= size - hh;
+            if (Ui.Camera.WrapX) return yAllows;
+            return 2 * hw < size && p.X >= hw && p.X <= size - hw && yAllows;
         }
 
         /// <summary>The camera rows of <see cref="Keyboard"/> and <see cref="Map"/>, in their sweep order.</summary>
@@ -1721,7 +1860,7 @@ public static partial class PlayabilityGate
                     SettlementRow row = default;
                     for (int i = 0; i < Ui.World.Settlements.Count; i++) if (Ui.World.Settlements[i].Id.Value == target) row = Ui.World.Settlements[i];
                     LineGeometry.Vertex pos = OverlayMeshes.SettlementPosition(row, Ui.World.Terrain!.Size);
-                    (double sx, double sy) = Ui.Camera.WorldToScreen(pos.X, pos.Y, Ui.MapRect);
+                    (double sx, double sy) = Ui.Camera.WorldToScreenNearest(pos.X, pos.Y, Ui.MapRect);
                     h.Click(sx, sy);
                     if (Ui.SelectedSettlement != before) return (GateResult.Fail, "the click at hidden settlement " + target.ToString(CultureInfo.InvariantCulture) + " selected " + Ui.SelectedSettlement.ToString(CultureInfo.InvariantCulture));
                     if (Ui.SelectedUnit >= 0) return (GateResult.Fail, "the click at hidden settlement " + target.ToString(CultureInfo.InvariantCulture) + " picked formation " + Ui.SelectedUnit.ToString(CultureInfo.InvariantCulture));
@@ -1897,7 +2036,7 @@ public static partial class PlayabilityGate
                     SettlementRow row = default;
                     for (int i = 0; i < Ui.World.Settlements.Count; i++) if (Ui.World.Settlements[i].Id.Value == target) row = Ui.World.Settlements[i];
                     LineGeometry.Vertex pos = OverlayMeshes.SettlementPosition(row, Ui.World.Terrain!.Size);
-                    (double sx, double sy) = Ui.Camera.WorldToScreen(pos.X, pos.Y, Ui.MapRect);
+                    (double sx, double sy) = Ui.Camera.WorldToScreenNearest(pos.X, pos.Y, Ui.MapRect);
                     h.Click(sx, sy);
                     return Expect(Ui.SelectedSettlement == target, "selected " + Ui.SelectedSettlement);
                 });
@@ -1909,8 +2048,9 @@ public static partial class PlayabilityGate
         public const int SettleFrames = 240;
 
         /// <summary>P2: the band of the camera's TARGET view over the map rect (where the ease is going).</summary>
-        private WorldZoom TargetBand() =>
-            MapDetail.At(Ui.Camera.TargetZoom, Ui.MapRect.W, Ui.MapRect.H, Ui.World.Terrain!.KmPerPx).Band;
+        private WorldZoom TargetBand() => Ui.Camera.WrapX
+            ? MapDetail.Across(Ui.Camera.TargetZoom, Ui.Camera.WindowWidth, Ui.World.Terrain!.KmPerPx).Band   // WS3: the game's keying
+            : MapDetail.At(Ui.Camera.TargetZoom, Ui.MapRect.W, Ui.MapRect.H, Ui.World.Terrain!.KmPerPx).Band;
 
         /// <summary>P2: one wheel row — notches of <paramref name="notch"/> at the map's centre (at most
         /// <paramref name="max"/>) until the target view's band is <paramref name="want"/>, then the ease settles.</summary>
@@ -2045,7 +2185,7 @@ public static partial class PlayabilityGate
             else
             {
                 Ui.Camera.Stop();
-                (double sx, double sy) = Ui.Camera.WorldToScreen(u.X + 0.5, u.Y + 0.5, Ui.MapRect);
+                (double sx, double sy) = Ui.Camera.WorldToScreenNearest(u.X + 0.5, u.Y + 0.5, Ui.MapRect);
                 Ui.Camera.Pan(Ui.MapRect.CenterX - sx, Ui.MapRect.CenterY - sy, Ui.MapRect);
             }
             h.Idle(2);
@@ -2123,7 +2263,7 @@ public static partial class PlayabilityGate
                 return Expect(ok, why);
             });
             Ui.Camera.Stop();
-            (double sx, double sy) = Ui.Camera.WorldToScreen(viewX, viewY, Ui.MapRect);
+            (double sx, double sy) = Ui.Camera.WorldToScreenNearest(viewX, viewY, Ui.MapRect);
             Ui.Camera.Pan(Ui.MapRect.CenterX - sx, Ui.MapRect.CenterY - sy, Ui.MapRect);
             h.Idle(1);
         }

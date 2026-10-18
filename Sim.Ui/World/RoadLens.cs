@@ -161,23 +161,77 @@ public static class RoadLens
         DistanceToSegment(step.X0, step.Y0, route.X0, route.Y0, route.X1, route.Y1) < halfWidth
         && DistanceToSegment(step.X1, step.Y1, route.X0, route.Y0, route.X1, route.Y1) < halfWidth;
 
+    /// <summary>
+    /// WS3: <see cref="InCorridor(RoadSegment, RouteLensView, double)"/> on a world <paramref name="wrapWidth"/> px round
+    /// (0: flat, exactly the flat rule). Both primitives are held unwrapped relative to their own first point, so near the seam
+    /// they may lie a circumference apart: the step is judged at its copy NEAREST the route's midpoint
+    /// (<see cref="Sim.Core.Pathing.MapTopology.UnwrapNear"/>; both its ends move by the same whole circumference), which is
+    /// the copy the route's corridor can hold — a route is at most maxRouteKm long, far under half a circumference.
+    /// </summary>
+    public static bool InCorridor(RoadSegment step, RouteLensView route, double halfWidth, double wrapWidth)
+    {
+        if (!(wrapWidth > 0)) return InCorridor(step, route, halfWidth);
+        double mid = (route.X0 + route.X1) / 2.0;
+        double shift = Sim.Core.Pathing.MapTopology.UnwrapNear(step.X0, mid, wrapWidth) - step.X0;
+        return DistanceToSegment(step.X0 + shift, step.Y0, route.X0, route.Y0, route.X1, route.Y1) < halfWidth
+            && DistanceToSegment(step.X1 + shift, step.Y1, route.X0, route.Y0, route.X1, route.Y1) < halfWidth;
+    }
+
     /// <summary>Paints the Paths layer: the baseline steps no route owns, then every route (table
     /// order) on top, recording each piece drawn in <paramref name="pieces"/>. Below World zoom the look is
     /// <see cref="StyleAt"/> of the Settlement blend <paramref name="town"/> (P2), and each route is named once
-    /// <paramref name="town"/> is above 0, the name faded in with it (the banded lens: named at Settlement zoom only).</summary>
-    public static void PaintNetwork(DrawList d, ITextMeasure m, WorldProjection p, WorldZoom zoom, double town,
-        Func<double, double, (double X, double Y)> toScreen, RectD viewport, MapInk ink, List<PathPiece> pieces)
+    /// <paramref name="town"/> is above 0, the name faded in with it (the banded lens: named at Settlement zoom only).
+    /// <para>WS3: <paramref name="copies"/> are the copies k of the world to consider (null or {0}: flat, exactly as
+    /// before) at <paramref name="worldWidth"/> px a circumference. On a wrapped paint every step and route — held unwrapped
+    /// relative to its first point (<see cref="WorldProjection.WrapX"/>) — is drawn at its copy nearest the viewport's centre
+    /// (as the flat paint draws it whatever the viewport) and at every other copy whose bounds touch the viewport; a route
+    /// is named at each copy drawn where its line is visible. Still ONE <see cref="PathPiece"/> per step or route part, its
+    /// <see cref="PathPiece.Commands"/> summing every copy's. Returns the draws beyond each piece of ground's first.</para></summary>
+    public static int PaintNetwork(DrawList d, ITextMeasure m, WorldProjection p, WorldZoom zoom, double town,
+        Func<double, double, (double X, double Y)> toScreen, RectD viewport, MapInk ink, List<PathPiece> pieces,
+        int[]? copies = null, double worldWidth = 0.0)
     {
         bool world = zoom == WorldZoom.World;
         IReadOnlyList<RoadStroke> Style(int cls) => world ? WorldStyleOf(cls, ink) : StyleAt(cls, town, ink);
         IReadOnlyList<RoadStroke> dirt = Style(EdgeTypes.DirtPath);
+        int[] ks = copies is { Length: > 0 } ? copies : [0];
+        int extra = 0;
+        (double X, double Y) At(int c, double x, double y) => c == 0 ? toScreen(x, y) : toScreen(x + c * worldWidth, y);
+        // WS3: the copy of a segment whose midpoint is nearest the viewport's centre (ascending k, the first nearest wins).
+        int Primary(double x0, double y0, double x1, double y1)
+        {
+            if (ks.Length == 1) return ks[0];
+            int best = ks[0];
+            double bestD = double.PositiveInfinity;
+            foreach (int c in ks)
+            {
+                double mid = (At(c, x0, y0).X + At(c, x1, y1).X) / 2.0;
+                double dd = Math.Abs(mid - viewport.CenterX);
+                if (dd < bestD) { bestD = dd; best = c; }
+            }
+            return best;
+        }
+        double Widest(IReadOnlyList<RoadStroke> styles)
+        {
+            double w = 0;
+            foreach (RoadStroke k in styles) w = Math.Max(w, k.Width);
+            return w;
+        }
         foreach (RoadSegment s in p.Roads)
         {
             if (s.CoveredBy >= 0) continue;   // the route that runs here draws this ground
             int before = d.Commands.Count;
-            (double x0, double y0) = toScreen(s.X0, s.Y0);
-            (double x1, double y1) = toScreen(s.X1, s.Y1);
-            foreach (RoadStroke k in dirt) d.Line(x0, y0, x1, y1, k.Color, k.Width, k.Dash);
+            int primary = Primary(s.X0, s.Y0, s.X1, s.Y1);
+            bool first = true;
+            foreach (int c in ks)
+            {
+                (double x0, double y0) = At(c, s.X0, s.Y0);
+                (double x1, double y1) = At(c, s.X1, s.Y1);
+                if (c != primary && !SegmentTouches(x0, y0, x1, y1, Widest(dirt) / 2.0, viewport)) continue;
+                foreach (RoadStroke k in dirt) d.Line(x0, y0, x1, y1, k.Color, k.Width, k.Dash);
+                if (!first) extra++;
+                first = false;
+            }
             pieces.Add(new PathPiece(s.Edge, -1, EdgeTypes.DirtPath, 0.0, 1.0, d.Commands.Count - before));
         }
 
@@ -190,35 +244,59 @@ public static class RoadLens
                 ? [(r.TargetClass, 0.0, t), (r.EdgeType, t, 1.0)]
                 : [(r.EdgeType, 0.0, 1.0)];
             var styles = new IReadOnlyList<RoadStroke>[parts.Length];
-            var ends = new (double X0, double Y0, double X1, double Y1)[parts.Length];
             var counts = new int[parts.Length];
             int layers = 0;
+            double widest = 0;
             for (int i = 0; i < parts.Length; i++)
             {
                 styles[i] = Style(parts[i].Cls);
                 layers = Math.Max(layers, styles[i].Count);
-                (double ax, double ay) = toScreen(r.X0 + (r.X1 - r.X0) * parts[i].From, r.Y0 + (r.Y1 - r.Y0) * parts[i].From);
-                (double bx, double by) = toScreen(r.X0 + (r.X1 - r.X0) * parts[i].To, r.Y0 + (r.Y1 - r.Y0) * parts[i].To);
-                ends[i] = (ax, ay, bx, by);
+                widest = Math.Max(widest, Widest(styles[i]));
             }
-            // Casings of every piece first, then fills, then marks — the two halves of a partial route
-            // read as one road whose bed changes at the split.
-            for (int k = 0; k < layers; k++)
+            int primary = Primary(r.X0, r.Y0, r.X1, r.Y1);
+            bool first = true;
+            foreach (int c in ks)
+            {
+                var ends = new (double X0, double Y0, double X1, double Y1)[parts.Length];
                 for (int i = 0; i < parts.Length; i++)
                 {
-                    if (k >= styles[i].Count) continue;
-                    RoadStroke s = styles[i][k];
-                    d.Line(ends[i].X0, ends[i].Y0, ends[i].X1, ends[i].Y1, s.Color, s.Width, s.Dash);
-                    counts[i]++;
+                    (double ax, double ay) = At(c, r.X0 + (r.X1 - r.X0) * parts[i].From, r.Y0 + (r.Y1 - r.Y0) * parts[i].From);
+                    (double bx, double by) = At(c, r.X0 + (r.X1 - r.X0) * parts[i].To, r.Y0 + (r.Y1 - r.Y0) * parts[i].To);
+                    ends[i] = (ax, ay, bx, by);
                 }
-            if (!world && town > 0)
-            {
-                int before = d.Commands.Count;
-                if (Label(d, m, r, t, toScreen, viewport, ink)) { d.FadeFrom(before, town); counts[^1]++; }
+                if (c != primary && !SegmentTouches(ends[0].X0, ends[0].Y0, ends[^1].X1, ends[^1].Y1, widest / 2.0, viewport)) continue;
+                // Casings of every piece first, then fills, then marks — the two halves of a partial route
+                // read as one road whose bed changes at the split.
+                for (int k = 0; k < layers; k++)
+                    for (int i = 0; i < parts.Length; i++)
+                    {
+                        if (k >= styles[i].Count) continue;
+                        RoadStroke s = styles[i][k];
+                        d.Line(ends[i].X0, ends[i].Y0, ends[i].X1, ends[i].Y1, s.Color, s.Width, s.Dash);
+                        counts[i]++;
+                    }
+                if (!world && town > 0)
+                {
+                    int before = d.Commands.Count;
+                    Func<double, double, (double X, double Y)> copy = c == 0 ? toScreen : (x, y) => At(c, x, y);
+                    if (Label(d, m, r, t, copy, viewport, ink)) { d.FadeFrom(before, town); counts[^1]++; }
+                }
+                if (!first) extra++;
+                first = false;
             }
             for (int i = 0; i < parts.Length; i++)
                 pieces.Add(new PathPiece(-1, r.Id, parts[i].Cls, parts[i].From, parts[i].To, counts[i]));
         }
+        return extra;
+    }
+
+    /// <summary>WS3: whether a segment (screen px) widened by <paramref name="halfWidth"/> either side, with the replay's
+    /// fringe, can touch <paramref name="viewport"/> (its bounding box does).</summary>
+    private static bool SegmentTouches(double x0, double y0, double x1, double y1, double halfWidth, RectD viewport)
+    {
+        double pad = halfWidth + DrawListCull.FringePx;
+        double lx = Math.Min(x0, x1) - pad, ly = Math.Min(y0, y1) - pad;
+        return DrawListCull.Touches(new RectD(lx, ly, Math.Max(x0, x1) + pad - lx, Math.Max(y0, y1) + pad - ly), viewport);
     }
 
     /// <summary>The route's name ("Paved road"; a partial route "Built road - 40% to Paved road") at the

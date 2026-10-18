@@ -61,7 +61,11 @@ public sealed record RecipeEntry(
 
 /// <summary>M4-D: one material requirement of a construction project. Absolute
 /// units, NOT a per-output coefficient — a project is built once, not per unit,
-/// which is exactly why it cannot borrow <see cref="RecipeInput"/>.</summary>
+/// which is exactly why it cannot borrow <see cref="RecipeInput"/>. WS1 (D-054):
+/// the units go in incrementally, in lockstep with the work — after progress p of
+/// N exactly ceil(Qty × p / N) have been delivered (ConstructionQuery.Delivered),
+/// so the project takes exactly Qty in total. The loader bounds Qty so that
+/// Qty × N stays inside a long.</summary>
 public sealed record ProjectInput(
     [property: JsonPropertyName("good"), JsonRequired] string Good,
     [property: JsonPropertyName("qty"), JsonRequired] long Qty);
@@ -82,9 +86,11 @@ public sealed record ProjectInput(
 /// DIMENSIONAL DECLARATION (S8 §4.1 requirement 2): `Inputs[].Qty` is in whole
 /// units of the named good, absolute per project. `LaborRequired` is in
 /// ADULT-YEARS — the same unit the construction sector's pool is measured in
-/// (share × adults × dtYears), so the comparison is dimensionally sound and no
+/// (share × adults × dtYears), so the ratio capacity / LaborRequired is the
+/// dimensionless share of the project one turn's builders can do, and no
 /// conversion constant is invented. There is NO build-time field: how many turns
-/// a project takes is emergent from what the settlement can marshal.
+/// a project takes is emergent from what the settlement can marshal — its
+/// builders' pace and its materials (WS1, D-054: labour is a pace, not a gate).
 ///
 /// ADR-033 D3 — `Entity` links the project to its research.json registry entity
 /// (e.g. building.granary): the project is AVAILABLE to an issuer only when that
@@ -314,10 +320,16 @@ public static class GoodsConfigLoader
                 if (input.Qty <= 0)
                     throw new GoodsConfigException(
                         $"projects[{i}] ({pr.Name}) input '{input.Good}'.qty must be > 0, got {input.Qty}.");
+                // WS1 (D-054): the lockstep delivery ceil(qty × p / N) is exact long arithmetic, so qty × N must fit.
+                if (input.Qty > Sim.Core.State.ConstructionQuery.MaxInputQty)
+                    throw new GoodsConfigException(
+                        $"projects[{i}] ({pr.Name}) input '{input.Good}'.qty must be at most " +
+                        $"{Sim.Core.State.ConstructionQuery.MaxInputQty} (the incremental delivery multiplies it by " +
+                        $"{Sim.Core.State.ConstructionQuery.ProgressUnits} progress units in exact integer arithmetic), got {input.Qty}.");
                 if (!seen.Add(input.Good))
                     throw new GoodsConfigException(
                         $"projects[{i}] ({pr.Name}) names input '{input.Good}' twice — one line per good, " +
-                        "or the atomic all-or-nothing draw would check one line and consume both.");
+                        "or the per-good draw and delivery accounting would check one line and consume both.");
             }
             if (!(pr.LaborRequired > 0.0) || !double.IsFinite(pr.LaborRequired))
                 throw new GoodsConfigException(

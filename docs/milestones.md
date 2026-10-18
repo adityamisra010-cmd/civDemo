@@ -422,6 +422,21 @@ construction queue**: an ordered queue whose head is either built whole this tur
 unchanged, competing for the existing construction sector against housing's published draw. Schema
 moved v22 → v23 → **v24** across these.
 
+> **2026-10-15 — M4-D's whole-building rule is superseded (D-054; dated note, the paragraph above is kept as written).**
+> The Director's 2026-10-14 instruction: "Replace the existing whole-building construction rule with the incremental
+> construction behaviour previously specified."
+> - With `sim.json` `construction.incremental` on (shipped), a queue head progresses each turn as far as its builders
+>   and the next units of its materials allow. What has gone in is stored (schema v33 `ConstructionProgress`) and is
+>   never lost while the head waits.
+> - Heads are served oldest order first.
+> - A head can be cancelled (order kind 11), with no refund.
+> - **What stands:** the ordered queue with only its head eligible; the competition with housing's draw; no construction
+>   currency; no second labour pool.
+> - The schema is now **v33**.
+>
+> Records: `docs/d054-batch3-incremental-construction-allocation-cylinder.md` §1 and §5, and
+> `docs/adr/adr-039-schema-v33-orders-11-12-and-cylinder-topology.md`.
+
 Beyond the Empire spine: **store bounding** (T4.2), whose pre-registered prediction that stores
 would sit near 1.5 years of demand was met to four decimals; **colonization** (T4.4); **transport and
 the river-aware lattice** (T4.7); **migration** rework (T4.10, T4.12); **comfort as a stock**

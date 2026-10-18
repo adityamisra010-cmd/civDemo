@@ -50,18 +50,33 @@ public class AiFoundingAttributionTests
     /// world. ATTRIBUTION (MEASURED on this tree, in-test harness): the batch off (PreD053) returns the OLD value
     /// aa7a87a98370c248… byte for byte (S1cPreD053Turn300, asserted below); purse off alone fd40bbafc5d9de65…; relief off
     /// alone b2e4f333… (= the live value: relief does not move it); granary effects off alone f9e69db77f396d00…. The per-layer
-    /// turn-exact proofs are EmpireConstructionStockpileTests' and GranaryAttributionTests' AI-world controls.</summary>
-    private const string S1cTurn300 = "b2e4f333c25aca4acf3cff69fcb0da83e59d18eb90efa8e968dc51a2344597d0";
+    /// turn-exact proofs are EmpireConstructionStockpileTests' and GranaryAttributionTests' AI-world controls.
+    /// BATCH 3 / D-054 RE-PIN (integration R1, 2026-10-14; VALUE + LAYOUT, MEASURED on this tree by the agent writing this
+    /// line): b2e4f333c25aca4a… -> 91836bcf92b14914…. CAUSE: (1) schema v33 appends ConstructionProgress and
+    /// ResourceAllocations, both EMPTY at turn 300 (the AI's purse prudence finishes every head in its delivery step and the
+    /// AI sets no split); (2) the shipped world is a CYLINDER (worldgen.json topology.wrapX): the terrain regenerates
+    /// x-periodic and is folded into every hash, so the AI world differs from turn 0. WS1/WS2 do not act. ATTRIBUTION
+    /// (MEASURED, in-test harness): the sim half off on the cylinder (TestConfigs.PreD054Sim) -> the SAME raw 91836bcf…; the
+    /// v32 projection of the live world -> <see cref="S1cTurn300AtV32"/> (0ce1d4d9…, the W1 stage's cylinder-only AI hash).
+    /// CONTROLS: D054PairAttributionTests ("ai": both halves off + v32 = OLD), WrapAttributionTests.WithTheCylinderOff_TheAiWorldIsTheBatch2AiWorld
+    /// (the cylinder off alone + v32 = OLD), IncrementalConstructionAttributionTests.AiWorldSeed42Turn300_MovedForTheV33LayoutAlone_TheIncrementalRuleNeverActsThere
+    /// (flat: WS1 on/off byte-identical every turn, v32 = OLD). `sim run --founded --seed 42 --turns 300 --ai-empires 1` on
+    /// this tree prints the NEW value.</summary>
+    private const string S1cTurn300 = "91836bcf92b14914489e3435f64f4104da8637883f0b615475be8233602f20f1";
+
+    /// <summary>Batch 3 (D-054, integration R1): THE CYLINDER-ALONE LINK — the live AI world through the v32 projection
+    /// (the two v33 tables dropped, asserted EMPTY): the AI hash the W1 stage measured with the cylinder and no v33 layout.</summary>
+    private const string S1cTurn300AtV32 = "0ce1d4d9af1590351636b0aacd18c3400b110d59d04c7aa07bce9a9bbcf3a19d";
 
     /// <summary>The turn the first AI Found Settlement order is stamped (state 36 is the first that differs).</summary>
     private const long FirstFoundingStamp = 35;
 
-    private static TurnExecutor Production(SimConfig cfg, OrderLog orders)
+    private static TurnExecutor Production(SimConfig cfg, OrderLog orders, WorldgenConfig? worldgen = null)
     {
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
         return new TurnExecutor(EraTableLoader.Load(eraStream),
-            PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg, TestConfigs.Worldgen())), orders);
+            PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg, worldgen ?? TestConfigs.PreD054Worldgen())), orders);
     }
 
     [Fact]
@@ -72,7 +87,7 @@ public class AiFoundingAttributionTests
         SimConfig off = TestConfigs.PreAiFounding(shipped);               // S1c OFF, the batch off with it (R4)
         Assert.True(on.Colonization!.AiFounding!.Enabled);                // the S1c switch is ON in the ON arm
         Assert.False(off.Colonization!.AiFounding!.Enabled);
-        WorldgenConfig wg = TestConfigs.Worldgen() with { AiEmpires = 1 };
+        WorldgenConfig wg = TestConfigs.PreD054Worldgen() with { AiEmpires = 1 };
 
         var offLog = new OrderLog();
         var onLog = new OrderLog();
@@ -81,8 +96,8 @@ public class AiFoundingAttributionTests
         long firstDifferent = -1;
         for (int t = 1; t <= Turns; t++)
         {
-            AiOrders.Append(offLog, wOff, off, TestConfigs.Worldgen());
-            AiOrders.Append(onLog, wOn, on, TestConfigs.Worldgen());
+            AiOrders.Append(offLog, wOff, off, TestConfigs.PreD054Worldgen());
+            AiOrders.Append(onLog, wOn, on, TestConfigs.PreD054Worldgen());
             wOff = offExec.Step(wOff);
             wOn = onExec.Step(wOn);
             if (firstDifferent < 0 && WorldHash.ComputeHex(wOff) != WorldHash.ComputeHex(wOn)) firstDifferent = wOn.Clock.Turn;
@@ -90,7 +105,8 @@ public class AiFoundingAttributionTests
 
         // OFF: no Found Settlement order, and the pre-S1c world returns byte for byte.
         for (int i = 0; i < offLog.Count; i++) Assert.NotEqual(OrderKind.FoundSettlement, offLog[i].Kind);
-        Assert.Equal(PreS1cTurn300, WorldHash.ComputeHex(wOff));
+        // D-054 (schema v33): the older literals compare through the v32 projection (the two empty v33 tables dropped).
+        Assert.Equal(PreS1cTurn300, SchemaProjection.V32(wOff));
 
         // ON: identical up to the first AI founding order's delivery, and different from the state it founds in.
         long firstStamp = -1;
@@ -106,18 +122,24 @@ public class AiFoundingAttributionTests
             Assert.Equal(offLog[k++], onLog[i]);
         }
         Assert.True(k == offLog.Count || offLog[k].Turn > firstStamp, "the OFF log has an order the ON log lacks");
-        Assert.Equal(S1cPreD053Turn300, WorldHash.ComputeHex(wOn));
+        Assert.Equal(S1cPreD053Turn300, SchemaProjection.V32(wOn));
 
-        // THE LIVE ARM: the shipped world, every layer on (the re-pinned S1cTurn300).
+        // THE LIVE ARM: the shipped world, every layer on (the re-pinned S1cTurn300). D-054 (integration R1): MOVED by the v33
+        // layout AND the cylinder — the incremental rule never acts on this world
+        // (IncrementalConstructionAttributionTests.AiWorldSeed42Turn300_MovedForTheV33LayoutAlone_…); the record is on S1cTurn300.
         var liveLog = new OrderLog();
-        TurnExecutor liveExec = Production(shipped, liveLog);
-        WorldState live = WorldFounding.Found(wg, shipped, 42);
+        TurnExecutor liveExec = Production(shipped, liveLog, TestConfigs.Worldgen());
+        // Batch 3 (D-054): the live arm founds the SHIPPED world (worldgen.json as shipped — a cylinder); the arms above are
+        // attribution controls for older layers and found the flat, pre-batch-3 world (PreD054Worldgen, the R4 rule).
+        WorldState live = WorldFounding.Found(TestConfigs.Worldgen() with { AiEmpires = 1 }, shipped, 42);
         for (int t = 1; t <= Turns; t++)
         {
             AiOrders.Append(liveLog, live, shipped, TestConfigs.Worldgen());
             live = liveExec.Step(live);
         }
+        Assert.True(live.Terrain!.WrapX);
         Assert.Equal(S1cTurn300, WorldHash.ComputeHex(live));
+        Assert.Equal(S1cTurn300AtV32, SchemaProjection.V32(live));   // batch 3: the cylinder-alone link (no v33 row)
         Assert.NotEqual(S1cPreD053Turn300, S1cTurn300);
     }
 }

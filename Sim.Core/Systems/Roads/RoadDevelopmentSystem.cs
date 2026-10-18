@@ -15,7 +15,8 @@ public sealed record RoadDevelopmentTables(
 /// and the action is the same for the player and for the AI: a DevelopRoads order (OrderKind 8)
 /// asking for X% of eligible inter-city transport demand.
 ///
-/// THE STEP, in order-log order, first DevelopRoads per Empire per turn:
+/// THE STEP, in order-log order, first DevelopRoads per Empire per turn (RoadDevelopmentQuery.DeliveredOrderIndices — the
+/// slot is taken by an Empire's first DevelopRoads order before the roster and range checks):
 ///  1. PLAN with <see cref="RoadDevelopmentQuery.Plan(IReadOnlyWorldState, IReadOnlyTable{TransportEdgeRow}, Research.ResearchContent, RoadsConfig, GoodsConfig, PolityId, double)"/>
 ///     — the single selection the UI preview and the AI policy also read. Inputs are PREV
 ///     (research, controls, the cached pairwise travel costs, last turn's realised trade) plus
@@ -36,7 +37,15 @@ public sealed record RoadDevelopmentTables(
 ///     revision, so catchments and pairwise travel costs are recomputed next turn — D-016).
 ///
 /// Modernization is atomic within the step (no multi-turn project, no builder): an order stamped
-/// turn t shows its effect in the state of turn t+1.
+/// turn t shows its effect in the state of turn t+1. (Building projects are no longer atomic — D-054
+/// WS1 builds them a little each turn — but road works are unchanged by it.)
+///
+/// WHAT IT PAYS FROM (D-054 WS2): the NEXT GoodStocks after building work, which ran earlier in the step. Under an
+/// Empire's building/roads split (sim.json construction.allocationRatios; ResourceAllocationRow) building work took at
+/// most its grant G_b of each good — its guaranteed share plus the road share this order did not need — so what this
+/// order finds is at least min(its charge, the road share) of every good; with no split row (b = 100) building work
+/// went first and this order pays from what it left, as before. This system itself is unchanged by the split: it
+/// charges exactly as it always did, against what it finds.
 ///
 /// WHAT IT NEVER DOES. It never runs without an order. It never charges for the free baseline
 /// (DirtPath costs nothing; ruling 2). Research completion builds nothing: it only widens what
@@ -60,19 +69,14 @@ public sealed class RoadDevelopmentSystem(SimConfig cfg) : ISimSystem<RoadDevelo
     public void Step(SimContext<RoadDevelopmentTables> ctx)
     {
         if (_cfg.Roads is null || _cfg.Research is null || _cfg.Goods is null) return;
-        IReadOnlyWorldState prev = ctx.Prev;
-        List<int>? served = null;
 
-        for (int o = 0; o < ctx.Orders.Count; o++)
+        // THE orders this step applies — the first DevelopRoads per Empire per turn, its slot taken before the roster
+        // and range checks — decided by the one State rule (RoadDevelopmentQuery.DeliveredOrderIndices) that the
+        // construction system's building/roads split (D-054 WS2) reads too, so the two can never disagree.
+        int[] delivered = RoadDevelopmentQuery.DeliveredOrderIndices(ctx.Prev, _cfg, ctx.Orders);
+        for (int i = 0; i < delivered.Length; i++)
         {
-            OrderRecord order = ctx.Orders[o];
-            if (order.Kind != OrderKind.DevelopRoads) continue;
-            served ??= [];
-            if (served.Contains(order.ActorId)) continue;   // one action per Empire per turn
-            served.Add(order.ActorId);
-            if (!IsRosterPolity(prev, order.Actor)) continue;
-            if (!(order.Amount > 0.0 && order.Amount <= 100.0)) continue; // load-validated; defensive
-
+            OrderRecord order = ctx.Orders[delivered[i]];
             Apply(ctx, order.Actor, order.Amount);
         }
     }
@@ -93,38 +97,25 @@ public sealed class RoadDevelopmentSystem(SimConfig cfg) : ISimSystem<RoadDevelo
             RouteStatus route = step.Route;
             // Ruling 1 (final): draw nearest-first to THIS route, ties by settlement id.
             SettlementId[] payers = RoadDevelopmentQuery.PayingSettlements(prev, polity, route.A, route.B);
-            double affordable = RoadDevelopmentQuery.AffordableFraction(owned.GoodStocks, payers, step.Cost);
-            bool complete = affordable >= 1.0;
 
-            // Units charged: the full cost, or floor(p × units) per good. The modernization
-            // performed is what the charged units buy — the minimum charged/full ratio — so a
-            // partial step is never free and never more than paid for.
-            var charge = new long[step.Cost.Length];
-            double bought = 1.0;
-            for (int m = 0; m < step.Cost.Length; m++)
-            {
-                long full = step.Cost[m].Units;
-                charge[m] = complete ? full : (long)Math.Floor(full * affordable);
-                long have = RoadDevelopmentQuery.CivilizationStock(owned.GoodStocks, payers, step.Cost[m].Good);
-                if (charge[m] > have) charge[m] = have;                       // defensive: never overspend
-                if (!complete)
-                {
-                    double ratio = (double)charge[m] / full;
-                    if (ratio < bought) bought = ratio;
-                }
-            }
-            if (!complete && !(bought > 0.0)) return;   // nothing affordable: the order ends here
+            // Units charged: the full cost, or floor(p × units) per good, and the modernization those units buy — the
+            // minimum charged/full ratio — so a partial step is never free and never more than paid for. THE one charge
+            // arithmetic (RoadDevelopmentQuery.ChargeStep), on what the payers hold before anything of the step is drawn;
+            // the construction system's split forecast (RoadDevelopmentQuery.SimulateCharges, D-054 WS2) runs the same.
+            RoadStepCharge charged = RoadDevelopmentQuery.ChargeStep(
+                step.Cost, RoadDevelopmentQuery.Holdings(owned.GoodStocks, payers, step.Cost), route.StartFraction);
+            if (!charged.Paid) return;   // nothing affordable: the order ends here
+            bool complete = charged.Complete;
 
             long units = 0;
             for (int m = 0; m < step.Cost.Length; m++)
             {
-                units += charge[m];
-                Draw(ctx, owned.GoodStocks, payers, step.Cost[m].Good, charge[m]);
+                units += charged.Charges[m];
+                Draw(ctx, owned.GoodStocks, payers, step.Cost[m].Good, charged.Charges[m]);
             }
 
             double before = route.StartFraction;
-            double after = complete ? 1.0 : before + (1.0 - before) * bought;
-            if (after >= 1.0) { after = 1.0; complete = true; }
+            double after = charged.After;
             int edgeId = WriteRoute(owned.Edges, roads, route, after, effectiveTurn);
 
             owned.Log.Add(new RoadDevelopmentRow(
@@ -171,14 +162,6 @@ public sealed class RoadDevelopmentSystem(SimConfig cfg) : ISimSystem<RoadDevelo
     /// min(remaining, held)). The caller has checked the total; a short purse throws before any flow.</summary>
     private static void Draw(SimContext<RoadDevelopmentTables> ctx, Table<GoodStockRow> stocks, SettlementId[] payers, GoodId good, long units) =>
         EmpireStockpile.Draw(ctx.Ledger, stocks, payers, good, units, ReasonIds.ConstructionMaterials);
-
-    private static bool IsRosterPolity(IReadOnlyWorldState prev, PolityId polity)
-    {
-        if (prev.Polities.Count == 0) return true;   // a toy world has no roster to check against
-        for (int i = 0; i < prev.Polities.Count; i++)
-            if (prev.Polities[i].Id.Value == polity.Value) return true;
-        return false;
-    }
 
     private static int IndexOfEdge(Table<TransportEdgeRow> edges, int id)
     {

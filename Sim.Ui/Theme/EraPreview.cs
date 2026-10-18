@@ -180,6 +180,9 @@ public static class EraPreview
     /// game's own call — <c>WorldLens.Paint(…, ink: MapInk.For(theme), theme: theme)</c> — over the parchment substrate,
     /// which is the same image in every era (style bible §1: the medium never changes; only what is drawn on it takes
     /// the era's ink and hand). The capital is selected, as in the game at turn 1.
+    /// WS3 (batch 3), DOCUMENTED, NOT WRAPPED: a preview TOOL — the lens is painted flat (copy 0, no <c>wrapX</c>); on a
+    /// wrapped world a capital within the portrait's half-width of the seam shows the seam's far side unpainted. The
+    /// game's camera and lens wrap (GameUi).
     /// </summary>
     public static string MapSvg(UiSession s, WorldState w, string? fontDir, string? terrainDataUri)
     {

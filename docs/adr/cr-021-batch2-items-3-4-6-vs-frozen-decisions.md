@@ -1,6 +1,8 @@
 # CR-021 — ITEMS 3, 4 AND 6 OF THE DIRECTOR'S 2026-10-13 BATCH AGAINST FROZEN DECISIONS
 
-**Status: OPEN — ESCALATED TO THE DIRECTOR.**
+**Status: RESOLVED 2026-10-15 (D-054), by the Director's 2026-10-14 instruction (batch 3)** — items 3, 4 and 6 are
+built; item 6 as the unrestricted cylinder, with its exploration gating and Satellites out of scope. *As first
+written:* **OPEN — ESCALATED TO THE DIRECTOR.**
 - Raised 2026-10-13 on the uncommitted `m5w-integration` working tree (base `de86ace`), under CLAUDE.md's STOP rule
   and the batch's own stop conditions:
   - "Stop and report if a required change would violate an existing frozen decision, require a save-format change,
@@ -9,6 +11,31 @@
   - item 6: "stop and provide a specific impact analysis and smallest safe implementation plan".
 - Items 1, 2 and 5 of the same batch are implemented (D-053). This CR covers only the three items that were not.
 - Every file:line was checked against `de86ace` by the agent raising it.
+
+> **2026-10-15 — RESOLVED by the Director's 2026-10-14 instruction (`docs/d054-batch3-incremental-construction-allocation-cylinder.md`;
+> contract `docs/adr/adr-039-schema-v33-orders-11-12-and-cylinder-topology.md`).** The analysis below is kept as
+> written.
+> - **§A (item 3): built** as incremental construction (D-054 §1). It is NOT §A.3 option 2's per-good
+>   `ConstructionProgressRow(Settlement, Slot, Good, long Delivered)`. It is ONE lockstep progress per queue entry:
+>   `ConstructionProgressRow(Settlement, Slot, ProjectId, EnqueuedTurn, Progress)`, schema v33 section 59. A cancel order
+>   now exists, and still refunds nothing (a Director question, D-054 §10 Q1).
+> - **§B (item 4): built** as the building/roads split (D-054 §2). The instruction asked the implementation to "Specify
+>   and implement consistent semantics for both available supply and requested demand". The semantics specified are
+>   guaranteed shares of supply, never amounts consumed, with the default open for confirmation (D-054 §10 Q2).
+>   - **Renumbered against §B.3:** order kind **11** is `CancelConstruction` and kind **12** is
+>     `SetResourceAllocation`, not `SetResourcePriority = 11`. Kind 10 stays reserved for MoveFormation.
+>   - **The row** is `ResourceAllocationRow(PolityId Polity, int BuildingsPercent)` (a whole number, section 60), not
+>     `ResourcePriorityRow(PolityId, double BuildingSharePercent)`.
+> - **§C (item 6):**
+>   - **Built:** W2, the true cylinder in worldgen and simulation, and W3, its rendering, both UNRESTRICTED.
+>   - **Out of scope "for now", by the instruction:** W1 (known extent, explored-longitude gating, Satellites). Nothing
+>     of W1 is built or faked.
+>   - **C.5's rulings:** 1 (timing) was not ruled as asked: W1 was not built (out of scope "for now"), so D-052 §5's
+>     visibility half stands. v33 did land in M5, but for WS1/WS2's tables (superseding D-052 §5's save-format half),
+>     so W1's known extent takes v34 (D-054 §5 items 6 and 13). 2 (topology) is answered: a cylinder, amending ADR-032
+>     FR3 and the x half of T3.1(b). 3 (what Satellites reveal) is NOT ruled: it is out of scope. *(Ruling 1 corrected
+>     2026-10-15 by final-round fix 1, verifier REC-CR021-C5; it first read "1 (timing) is answered: v33 lands in M5,
+>     superseding D-052 §5's save-format clause".)*
 
 **Not a request to change the batch.** Each item is reported with its exact blocker and the smallest safe plan. No
 partial or substitute version of any of them was built.

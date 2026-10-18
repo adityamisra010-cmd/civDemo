@@ -175,6 +175,27 @@ unchanged. MEASURED on this branch (Release): `sim run --founded --seed 42 --tur
 > exits 3 with the report and leaves every session file byte-identical. Other `--resume` failures (a corrupt manifest,
 > a missing order log) still end unhandled; they are listed in `docs/m5-playtest-known-issues.md`.
 
+> **2026-10-15 dated note (D-054, ADR-039 §7; batch 3, uncommitted; the text above is kept as written).** Schema v33
+> made the world an east-west cylinder, and every world recorded before v33 was flat.
+> - **Topology on resume.** `UiSession.Resume` founds a session whose manifest records a schema before v33
+>   (`TopologyFlags.RecordedFlat`) FLAT, on the map it was played on, and any other session with the shipped worldgen.
+>   The D-008 path above (no trace-hash check, the order checks still applied) is otherwise unchanged.
+> - **The notice, line 2.** For a pre-v33 session the second of the four lines now reads "Replayed from its seed and
+>   orders on the flat map v32 used (D-008)." (with that session's schema number). For any other schema mismatch it
+>   stays "Resumed by replaying its seed and orders (D-008)." Lines 1, 3 and 4 are unchanged.
+> - **The limitation "`sim inspect` is unchanged … compares hashes regardless" is superseded.** `sim inspect` compares
+>   hashes only when the manifest's schema is this build's (`SessionSchemaNotice.HashesChecked`). Otherwise it prints
+>   "trace not checked: the session was recorded under save schema vN and this build is v33, so no replayed hash can
+>   equal a recorded one (D-008). Replayed from its seed and orders on the flat map vN used; the rows below are this
+>   replay's." (the "on the flat map" clause only before v33), with only the plain platform line and no `sim replay`
+>   recipe of this build. It rebuilds a pre-v33 session flat as well.
+> - **Tests.** `ChronicleAndResumeTests.Resume_OfASessionRecordedUnderAnOlderSchema…` now records its older-schema
+>   session flat, as a v32 build would have; every assertion stands. `ResumeNoticeUiTests` (same name) now records the
+>   older-schema half flat and asserts the resumed world IS the recorded one (WrapX false, an equal hash) before the
+>   toast; its own-schema half records a separate session on the shipped cylinder and asserts an equal hash and no
+>   notice. The real batch-2 session fixture is pinned by `Batch2SessionResumeTests`.
+> - Record: `docs/d054-batch3-incremental-construction-allocation-cylinder.md` §4.
+
 **Tests (Sim.Ui.Tests).**
 
 | test | pins |

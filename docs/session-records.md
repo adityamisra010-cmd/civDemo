@@ -124,6 +124,30 @@ guessing.
 > a playtest record ("what size was the text?"), like `startedAt` and `platform`: nothing replays from it, and the UI
 > scale is never in the simulation, the save or the replay.
 
+> **DATED NOTE 2026-10-15 (D-054 §4, ADR-039 §7; batch 3, uncommitted; the section above is kept as written).** The
+> platform block and the "reproduce with:" line above are what `sim inspect` prints for a session recorded under THIS
+> build's schema with at least one traced turn. Three cases now print less, because no hash comparison follows:
+> - **A session recorded under another schema** (the manifest's `schemaVersion` is not this build's; for example a
+>   batch-2 session, v32, inspected by the v33 build). Only the plain line prints: `platform  played on …; inspecting
+>   on …; reference is linux-x64 (ADR-022)`. There is no "a hash mismatch below is a determinism finding" line and no
+>   NOTICE paragraph. The verdict is "trace not checked: the session was recorded under save schema vN and this build
+>   is v33, so no replayed hash can equal a recorded one (D-008). …" instead of a REPRODUCTION line.
+> - **Its recipe, for a session recorded before v33** (`TopologyFlags.RecordedFlat`; such a session is rebuilt on the
+>   FLAT map it was played on), three lines:
+>
+>   ```
+>     reproduce with: sim inspect --manifest <manifest file> (it rebuilds a v32 session on the flat map v32 used)
+>             not with this build's sim replay: it founds the cylinder this build ships (schema v33), not that flat map.
+>             The build that recorded the session (<buildSha>, <buildDate>) replays it with: <sim replay recipe>
+>   ```
+>
+>   This build's `sim replay` has no flat path, so it cannot reproduce such a session.
+> - **Its recipe, for a session a NEWER schema recorded,** two lines: "  reproduce with: the build that recorded the
+>   session (<buildSha>, <buildDate>): <sim replay recipe>" and "          not with this build's sim replay: this build
+>   is schema v33 and the session was recorded under vN, so no replay here reproduces its hashes (D-008)."
+> - **An empty trace, under any schema** (this build's own sessions included): the plain platform line, a blank line and
+>   "no turns recorded in <trace file> — nothing to inspect.", with no recipe.
+
 ## What this is not
 
 It is **not a savegame**. You still cannot quit at turn 60 and resume at turn 60;

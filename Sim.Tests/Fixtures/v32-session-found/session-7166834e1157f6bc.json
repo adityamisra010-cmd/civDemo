@@ -1,0 +1,16 @@
+{
+  "schema": "session-manifest/v2",
+  "seed": 42,
+  "sizePx": null,
+  "settlements": null,
+  "schemaVersion": 32,
+  "buildSha": "dev",
+  "buildDate": "local",
+  "startedAt": "not recorded (headless run: Sim.Cli reads no wall clock)",
+  "ordersFile": "orders-7166834e1157f6bc.bin",
+  "chronicleFile": "chronicle-7166834e1157f6bc.txt",
+  "traceFile": "trace-7166834e1157f6bc.csv",
+  "telemetryFile": "telemetry-7166834e1157f6bc.jsonl",
+  "platform": "ubuntu.24.04-x64",
+  "forensicFile": "forensic-7166834e1157f6bc.jsonl"
+}

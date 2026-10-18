@@ -45,6 +45,7 @@ public sealed class PolityKnowledge
     private readonly bool[]? _known;     // null: every node (no extent is stored before S2a)
     private readonly bool[]? _visible;   // null: every known node
     private readonly int _terrainSize, _latticeSize, _block;
+    private readonly bool _wrapX;
 
     /// <summary>The polity whose knowledge this is.</summary>
     public PolityId Polity { get; }
@@ -54,6 +55,10 @@ public sealed class PolityKnowledge
 
     /// <summary>Lattice nodes per side of the knowledge grid (0 for a world without terrain).</summary>
     public int LatticeSize => _latticeSize;
+
+    /// <summary>WS3: the world's east-west topology (<see cref="Worldgen.TerrainSet.WrapX"/>; false without terrain) —
+    /// read by the reach helpers that mirror the wrapped siting windows (SiteAssessment.KnowsSquare/Diamond/Disc).</summary>
+    public bool WrapX => _wrapX;
 
     private PolityKnowledge(IReadOnlyWorldState world, PolityId polity, bool[]? known, bool[]? visible)
     {
@@ -65,6 +70,7 @@ public sealed class PolityKnowledge
         {
             _terrainSize = terrain.Size;
             (_latticeSize, _block) = Grid(terrain.Size);
+            _wrapX = terrain.WrapX;
         }
     }
 
@@ -98,11 +104,8 @@ public sealed class PolityKnowledge
 
     /// <summary>The knowledge grid of a terrain of <paramref name="terrainSize"/> px — the traversal lattice's geometry
     /// (<see cref="TraversalLattice.DefaultStride"/>): nodes per side and the block width in terrain px.</summary>
-    public static (int LatticeSize, int BlockPx) Grid(int terrainSize)
-    {
-        int lsize = Math.Max(1, terrainSize / TraversalLattice.DefaultStride);
-        return (lsize, Math.Max(1, terrainSize / lsize));
-    }
+    public static (int LatticeSize, int BlockPx) Grid(int terrainSize) =>
+        MapTopology.LatticeGrid(terrainSize, TraversalLattice.DefaultStride);
 
     // ------------------------------------------------------------------ nodes and cells
 
@@ -111,15 +114,23 @@ public sealed class PolityKnowledge
     public int NodeOfCell(int cell)
     {
         if (_latticeSize == 0 || cell < 0 || cell >= _terrainSize * _terrainSize) return -1;
-        int x = Math.Min(cell % _terrainSize / _block, _latticeSize - 1);
-        int y = Math.Min(cell / _terrainSize / _block, _latticeSize - 1);
-        return y * _latticeSize + x;
+        return MapTopology.NodeOfCell(cell, _terrainSize, _latticeSize, _block);
     }
 
-    /// <summary>The lattice node under world position (<paramref name="x"/>, <paramref name="y"/>) in terrain px, or −1.</summary>
+    /// <summary>The lattice node under world position (<paramref name="x"/>, <paramref name="y"/>) in terrain px, or −1.
+    /// WS3: on a wrapped world an x outside [0, size) is the same place one circumference on — it is floored to its
+    /// column and the column normalised (integer modulo), never refused; y keeps its hard edges.</summary>
     public int NodeAt(double x, double y)
     {
-        if (_latticeSize == 0 || !(x >= 0.0) || !(y >= 0.0) || x >= _terrainSize || y >= _terrainSize) return -1;
+        if (_latticeSize == 0 || !(y >= 0.0) || y >= _terrainSize) return -1;
+        if (_wrapX)
+        {
+            if (!double.IsFinite(x)) return -1;
+            double column = Math.Floor(x);
+            if (column < long.MinValue / 2.0 || column > long.MaxValue / 2.0) return -1;
+            return NodeOfCell((int)y * _terrainSize + MapTopology.WrapX((long)column, _terrainSize));
+        }
+        if (!(x >= 0.0) || x >= _terrainSize) return -1;
         return NodeOfCell((int)y * _terrainSize + (int)x);
     }
 

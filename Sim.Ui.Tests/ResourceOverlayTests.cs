@@ -17,12 +17,12 @@ namespace Sim.Ui.Tests;
 /// <summary>
 /// TEST-ONLY FIXTURE — the canonical seed-42 world (1024 px, the founding path's own worldgen config, so the deposit
 /// channels are evaluated) played to turn 3, with a COLONY the player founded through OrderKind 9 at turn 2 (the
-/// determinism-xproc Found Settlement leg's first literal: settlement 0 to cell 330985, re-derived Legal by the predicate
-/// here). Its DepositRows were written by ColonizationSystem — the colony-founded half of the field-equals-DepositRow test.
+/// determinism-xproc Found Settlement leg's first literal: settlement 0 to cell 349391, re-derived Legal by the predicate
+/// here; batch 3 WS3 moved it from 330985, PoorSite on the cylindrical world). Its DepositRows were written by ColonizationSystem — the colony-founded half of the field-equals-DepositRow test.
 /// </summary>
 public sealed class CanonicalOverlayFixture
 {
-    public const int Source = 0, Site = 330985;
+    public const int Source = 0, Site = 349391;
     public UiSession Session { get; }
     public int Colony { get; }
 
@@ -309,10 +309,9 @@ public class ResourceOverlayTests(CanonicalOverlayFixture fx) : IClassFixture<Ca
         Assert.True(changed > 1000);
         var polylines = new int[t.RiverPolylineCount][];
         for (int i = 0; i < polylines.Length; i++) polylines[i] = t.RiverPolyline(i).ToArray();
-        System.Reflection.ConstructorInfo ctor = typeof(TerrainSet)
-            .GetConstructors(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)[0];
-        return (TerrainSet)ctor.Invoke([t.Size, t.KmPerPx, t.SeaLevel, elevation, water, temperature, moisture, fertility,
-            t.MovementCost.ToArray(), rivers, polylines]);
+        // Batch 3: the public test/tool factory (the internal constructor gained the topology flag); topology kept.
+        return TerrainSet.FromLayers(t.Size, t.KmPerPx, t.SeaLevel, elevation, water, temperature, moisture, fertility,
+            t.MovementCost, rivers, polylines, t.WrapX);
     }
 
     private static string StatusText(OverlayStatus st) =>

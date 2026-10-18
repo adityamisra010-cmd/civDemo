@@ -62,15 +62,18 @@ public readonly record struct MaterialShortfall(GoodId Good, string Name, long R
 /// the predicate ProductionSystem applies) makes it from inputs that are themselves obtainable (raw inputs: a
 /// deposit with abundance &gt; 0, or any stock in the purse). Otherwise the project is <see cref="ProjectAvailability.InputUnobtainable"/>:
 /// before it, the Age I Workshop (10 tools; tools come only from bronze, tin_bronze, Age III) was a legal order that
-/// froze its settlement's queue for hundreds of turns, and no cancel order exists. This is evaluated at ENQUEUE only
-/// (ConstructionSystem's order intake); queue-head resolution is unchanged. Raw-material shortfalls (stone) stay
+/// froze its settlement's queue for hundreds of turns (there was no cancel order before WS1). This is evaluated at
+/// ENQUEUE (ConstructionSystem's order intake). At resolution a head whose crafted input becomes unobtainable later just
+/// WAITS — it keeps its progress — and is reported as STRUCTURALLY STALLED (<see cref="HeadLimitKind.Unobtainable"/>), which
+/// the player sees and may cancel and the AI cancels for its own heads (WS1, D-054). Raw-material shortfalls (stone) stay
 /// affordability.
 ///
 /// THE GUARD READS THE UNCLAIMED PURSE FOR CRAFTED GOODS ONLY (switch on; D-053 §1). One purse serves many queues, so for
 /// a CRAFTED good — the only kind the guard exists for: one the empire cannot dig up and may be unable to make — "the
 /// purse holds it" is read as "the purse holds it UNCLAIMED": the purse's holding of the good less the CLAIMS on it
-/// (<see cref="Claimed"/>) — the whole input of that good of every project queued, at any slot (a queued project is
-/// unbuilt: a resolved head leaves the table), in the purse's settlements. Without it, ten tools held once would admit a
+/// (<see cref="Claimed(IReadOnlyTable{ConstructionQueueRow}, IReadOnlyTable{ConstructionProgressRow}, GoodsConfig, SettlementId[], GoodId)"/>)
+/// — the REMAINING input of that good (what has not yet gone in, WS1) of every project queued, at any slot (a completed
+/// project leaves the table), in the purse's settlements. Without it, ten tools held once would admit a
 /// workshop order in every settlement of the Empire, the first to resolve would spend them, and every other would freeze
 /// its queue for good — the trap above, re-opened by the purse. A stateless settlement's purse is itself, so it is checked
 /// against its own stock and its own queue. The claims touch exactly two readings: the direct test (the project's crafted
@@ -79,15 +82,19 @@ public readonly record struct MaterialShortfall(GoodId Good, string Name, long R
 /// not crafted) keeps the POOLED reading — any stock in the purse, claimed or not, or a deposit at the settlement: a raw
 /// good is dug, felled or gathered again, so a transient raw shortage stays a transient blocker (the paragraph above),
 /// never a refusal; claiming it would refuse a workshop because a granary elsewhere waits for the same timber. The queue
-/// is the world's own for every display and for the AI; ConstructionSystem's order intake passes its NEXT queue, which
-/// holds PREV's rows plus every order it accepted earlier in the same batch, so two orders of one batch cannot both count
-/// the same unclaimed units, and the action surface passes the world's queue plus the player's pending orders the intake
-/// would accept (<see cref="QueueWithPending"/>). Switch off: no claims, the pre-change reading bit-exact. THE GUARD IS
+/// is the world's own for every display and for the AI (with the world's own progress); ConstructionSystem's order intake
+/// passes its NEXT queue and NEXT progress, which hold PREV's rows less this batch's cancels plus every order it accepted
+/// earlier in the same batch, so two orders of one batch cannot both count the same unclaimed units, and the action surface
+/// passes the world's queue with the player's pending cancels and the pending orders the intake would accept applied
+/// (<see cref="QueueWithPending(IReadOnlyWorldState, SimConfig, IReadOnlyList{OrderRecord}?, out IReadOnlyTable{ConstructionProgressRow})"/>).
+/// CLAIMS ARE COUNTS, NOT SET-ASIDES (WS1, D-054): they never stop a project earlier in the building order, or road works,
+/// from using the units this step (the reservation rule is ConstructionSystem's header). Switch off: no claims, the
+/// pre-change reading bit-exact. THE GUARD IS
 /// STILL A REACHABILITY TEST, not an affordability test: an intermediate (bronze) held unclaimed in ANY amount above zero
 /// makes its chain producible, as before — a partial holding that cannot make the whole input remains the pre-existing
 /// gap, and raw inputs and capacity stay transient blockers.
 /// </summary>
-public static class ConstructionQuery
+public static partial class ConstructionQuery
 {
     /// <summary>THE EnqueueConstruction predicate (see the header), the purse's claims read from the world's own queue.</summary>
     public static bool IsProjectAvailable(
@@ -107,10 +114,26 @@ public static class ConstructionQuery
         IReadOnlyWorldState world, SimConfig cfg, PolityId issuer, SettlementId settlement, int projectId) =>
         Availability(world, cfg, issuer, settlement, projectId, world.ConstructionQueue);
 
-    /// <summary>The predicate's answer with its reason, the purse's claims read from <paramref name="queue"/>.</summary>
+    /// <summary>THE EnqueueConstruction predicate with the queue AND its progress given explicitly — ConstructionSystem's
+    /// intake passes its NEXT tables (the only caller that must: in-step reads never see PREV progress), the action surface
+    /// its pending book (<see cref="QueueWithPending(IReadOnlyWorldState, SimConfig, IReadOnlyList{OrderRecord}?, out IReadOnlyTable{ConstructionProgressRow})"/>).</summary>
+    public static bool IsProjectAvailable(
+        IReadOnlyWorldState world, SimConfig cfg, PolityId issuer, SettlementId settlement, int projectId,
+        IReadOnlyTable<ConstructionQueueRow> queue, IReadOnlyTable<ConstructionProgressRow> progress) =>
+        Availability(world, cfg, issuer, settlement, projectId, queue, progress) == ProjectAvailability.Available;
+
+    /// <summary>The predicate's answer with its reason, the purse's claims read from <paramref name="queue"/> (its
+    /// entries' progress from the world's own table).</summary>
     public static ProjectAvailability Availability(
         IReadOnlyWorldState world, SimConfig cfg, PolityId issuer, SettlementId settlement, int projectId,
-        IReadOnlyTable<ConstructionQueueRow> queue)
+        IReadOnlyTable<ConstructionQueueRow> queue) =>
+        Availability(world, cfg, issuer, settlement, projectId, queue, world.ConstructionProgress);
+
+    /// <summary>The predicate's answer with its reason, the purse's claims read from <paramref name="queue"/> and
+    /// <paramref name="progress"/> (each entry's REMAINING inputs).</summary>
+    public static ProjectAvailability Availability(
+        IReadOnlyWorldState world, SimConfig cfg, PolityId issuer, SettlementId settlement, int projectId,
+        IReadOnlyTable<ConstructionQueueRow> queue, IReadOnlyTable<ConstructionProgressRow> progress)
     {
         if (!SettlementExists(world, settlement)) return ProjectAvailability.UnknownSettlement;
         // Guarded on a non-empty relation: a world with no Controls at all (a hand-built toy) has
@@ -119,7 +142,7 @@ public static class ConstructionQuery
             return ProjectAvailability.NotControlled;
         if (cfg.Goods?.ProjectById(projectId) is not { } project) return ProjectAvailability.UnknownProject;
         if (!IsKnowledgeEligible(world, cfg.Research, issuer, project)) return ProjectAvailability.NotKnowledgeEligible;
-        if (UnobtainableInput(world, cfg, settlement, project, queue) is not null) return ProjectAvailability.InputUnobtainable;
+        if (UnobtainableInput(world, cfg, settlement, project, queue, progress) is not null) return ProjectAvailability.InputUnobtainable;
         return ProjectAvailability.Available;
     }
 
@@ -132,10 +155,17 @@ public static class ConstructionQuery
         UnobtainableInput(world, cfg, settlement, project, world.ConstructionQueue);
 
     /// <summary>As <see cref="UnobtainableInput(IReadOnlyWorldState, SimConfig, SettlementId, ConstructionProjectEntry)"/>,
-    /// the purse's claims read from <paramref name="queue"/> (switch on; with it off there are no claims).</summary>
+    /// the purse's claims read from <paramref name="queue"/> (switch on; with it off there are no claims), its entries'
+    /// progress from the world's own table.</summary>
     public static GoodEntry? UnobtainableInput(
         IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement, ConstructionProjectEntry project,
-        IReadOnlyTable<ConstructionQueueRow> queue)
+        IReadOnlyTable<ConstructionQueueRow> queue) =>
+        UnobtainableInput(world, cfg, settlement, project, queue, world.ConstructionProgress);
+
+    /// <summary>As above, the claims read from <paramref name="queue"/> and <paramref name="progress"/>.</summary>
+    public static GoodEntry? UnobtainableInput(
+        IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement, ConstructionProjectEntry project,
+        IReadOnlyTable<ConstructionQueueRow> queue, IReadOnlyTable<ConstructionProgressRow> progress)
     {
         if (cfg.Goods is not { } goods) return null;
         bool[]? knowledge = null;
@@ -145,7 +175,7 @@ public static class ConstructionQuery
         {
             int id = goods.IdOf(input.Good);
             if (id < 0 || input.Qty <= 0 || !IsCrafted(goods, id)) continue;
-            purse ??= new Purse(world, goods, Holders(world, cfg, settlement), cfg.Construction is { EmpireStockpile: true } ? queue : null);
+            purse ??= new Purse(world, goods, Holders(world, cfg, settlement), cfg.Construction is { EmpireStockpile: true } ? queue : null, progress);
             if (purse.Free(id) >= input.Qty) continue;
             if (!knowledgeRead) { knowledge = CraftingQuery.KnowledgeOf(world, cfg.Research, settlement); knowledgeRead = true; }
             // The direct input is short of the required amount, so a partial stock does not make it obtainable:
@@ -159,11 +189,13 @@ public static class ConstructionQuery
     /// <summary>The guard's reading of the purse. <see cref="Free"/> (a CRAFTED good): the holders' holding of it, less —
     /// when <c>Claims</c> is given (the switch on) — the claims on it of the projects queued there (<see cref="Unclaimed"/>).
     /// <see cref="Pooled"/> (a RAW good): the holders' whole holding, claimed or not (the header).</summary>
-    private sealed class Purse(IReadOnlyWorldState world, GoodsConfig goods, SettlementId[] holders, IReadOnlyTable<ConstructionQueueRow>? claims)
+    private sealed class Purse(
+        IReadOnlyWorldState world, GoodsConfig goods, SettlementId[] holders, IReadOnlyTable<ConstructionQueueRow>? claims,
+        IReadOnlyTable<ConstructionProgressRow> progress)
     {
         public long Free(int id) => claims is null
             ? Pooled(id)
-            : Unclaimed(world.GoodStocks, claims, goods, holders, new GoodId(id));
+            : Unclaimed(world.GoodStocks, claims, progress, goods, holders, new GoodId(id));
 
         public long Pooled(int id) => EmpireStockpile.Available(world.GoodStocks, holders, new GoodId(id));
     }
@@ -223,11 +255,15 @@ public static class ConstructionQuery
 
     /// <summary>
     /// THE CLAIMS on the purse <paramref name="holders"/> for <paramref name="good"/>: over every project in
-    /// <paramref name="queue"/> queued at one of the holders — ANY slot, head or waiting; a queued project is unbuilt (a
-    /// resolved head leaves the table) — that project's whole input of the good (<see cref="InputOf"/>: no project is
-    /// ever partly paid, M4-D). A row whose project the content no longer defines claims nothing. The exact long sum.
+    /// <paramref name="queue"/> queued at one of the holders — ANY slot, head or waiting; a completed project leaves the
+    /// table — that project's REMAINING input of the good (WS1, D-054): its whole input (<see cref="InputOf"/>) less what has
+    /// already gone in at the entry's progress in <paramref name="progress"/> (<see cref="Delivered"/>; an entry with no
+    /// matching progress row has delivered nothing). A row whose project the content no longer defines claims nothing. The
+    /// exact long sum. Claims are counts, not set-asides (the header).
     /// </summary>
-    public static long Claimed(IReadOnlyTable<ConstructionQueueRow> queue, GoodsConfig goods, SettlementId[] holders, GoodId good)
+    public static long Claimed(
+        IReadOnlyTable<ConstructionQueueRow> queue, IReadOnlyTable<ConstructionProgressRow> progress, GoodsConfig goods,
+        SettlementId[] holders, GoodId good)
     {
         long total = 0;
         checked
@@ -236,28 +272,44 @@ public static class ConstructionQuery
             {
                 if (!IsHolder(holders, queue[i].Settlement)) continue;
                 if (goods.ProjectById(queue[i].ProjectId) is not { } queued) continue;
-                total += InputOf(goods, queued, good);
+                total += Remaining(InputOf(goods, queued, good), ProgressOf(progress, queue[i]));
             }
         }
         return total;
     }
 
-    /// <summary>The purse's holding of <paramref name="good"/> less its claims (<see cref="Claimed"/>): what no queued
-    /// project already counts on. Negative when the queued projects already claim more than the purse holds.</summary>
+    /// <summary><see cref="Claimed(IReadOnlyTable{ConstructionQueueRow}, IReadOnlyTable{ConstructionProgressRow}, GoodsConfig, SettlementId[], GoodId)"/>
+    /// of a queue read WITHOUT progress — every entry's WHOLE input (a hand-built queue with no progress table; a v32 world).
+    /// Product code passes the progress table that belongs to the queue.</summary>
+    public static long Claimed(IReadOnlyTable<ConstructionQueueRow> queue, GoodsConfig goods, SettlementId[] holders, GoodId good) =>
+        Claimed(queue, NoProgress, goods, holders, good);
+
+    /// <summary>The purse's holding of <paramref name="good"/> less its claims (<see cref="Claimed(IReadOnlyTable{ConstructionQueueRow}, IReadOnlyTable{ConstructionProgressRow}, GoodsConfig, SettlementId[], GoodId)"/>):
+    /// what no queued project still counts on. Negative when the queued projects already claim more than the purse holds.</summary>
+    public static long Unclaimed(
+        IReadOnlyTable<GoodStockRow> stocks, IReadOnlyTable<ConstructionQueueRow> queue, IReadOnlyTable<ConstructionProgressRow> progress,
+        GoodsConfig goods, SettlementId[] holders, GoodId good) =>
+        checked(EmpireStockpile.Available(stocks, holders, good) - Claimed(queue, progress, goods, holders, good));
+
+    /// <summary><see cref="Unclaimed(IReadOnlyTable{GoodStockRow}, IReadOnlyTable{ConstructionQueueRow}, IReadOnlyTable{ConstructionProgressRow}, GoodsConfig, SettlementId[], GoodId)"/>
+    /// of a queue read without progress (every entry's whole input).</summary>
     public static long Unclaimed(
         IReadOnlyTable<GoodStockRow> stocks, IReadOnlyTable<ConstructionQueueRow> queue, GoodsConfig goods, SettlementId[] holders, GoodId good) =>
-        checked(EmpireStockpile.Available(stocks, holders, good) - Claimed(queue, goods, holders, good));
+        Unclaimed(stocks, queue, NoProgress, goods, holders, good);
 
-    /// <summary>The holders whose queued projects CLAIM <paramref name="good"/> (<see cref="Claimed"/>'s rows: a queued
-    /// project at one of the holders that takes the good), each once, in ascending SettlementId — the places a display names
-    /// when the claims are what refuses an order.</summary>
-    public static SettlementId[] ClaimedAt(IReadOnlyTable<ConstructionQueueRow> queue, GoodsConfig goods, SettlementId[] holders, GoodId good)
+    /// <summary>The holders whose queued projects still CLAIM <paramref name="good"/> (a queued project at one of the
+    /// holders with a remaining need of it), each once, in ascending SettlementId — the places a display names when the
+    /// claims are what refuses an order.</summary>
+    public static SettlementId[] ClaimedAt(
+        IReadOnlyTable<ConstructionQueueRow> queue, IReadOnlyTable<ConstructionProgressRow> progress, GoodsConfig goods,
+        SettlementId[] holders, GoodId good)
     {
         var ids = new List<int>();
         for (int i = 0; i < queue.Count; i++)
         {
             if (!IsHolder(holders, queue[i].Settlement)) continue;
-            if (goods.ProjectById(queue[i].ProjectId) is not { } queued || InputOf(goods, queued, good) <= 0) continue;
+            if (goods.ProjectById(queue[i].ProjectId) is not { } queued
+                || Remaining(InputOf(goods, queued, good), ProgressOf(progress, queue[i])) <= 0) continue;
             if (!ids.Contains(queue[i].Settlement.Value)) ids.Add(queue[i].Settlement.Value);
         }
         ids.Sort();
@@ -265,6 +317,11 @@ public static class ConstructionQuery
         for (int i = 0; i < result.Length; i++) result[i] = new SettlementId(ids[i]);
         return result;
     }
+
+    /// <summary><see cref="ClaimedAt(IReadOnlyTable{ConstructionQueueRow}, IReadOnlyTable{ConstructionProgressRow}, GoodsConfig, SettlementId[], GoodId)"/>
+    /// of a queue read without progress.</summary>
+    public static SettlementId[] ClaimedAt(IReadOnlyTable<ConstructionQueueRow> queue, GoodsConfig goods, SettlementId[] holders, GoodId good) =>
+        ClaimedAt(queue, NoProgress, goods, holders, good);
 
     /// <summary>
     /// WHY THE GUARD REFUSED, WHEN THE CLAIMS ARE THE REASON (display only): where <see cref="UnobtainableInput(IReadOnlyWorldState, SimConfig, SettlementId, ConstructionProjectEntry, IReadOnlyTable{ConstructionQueueRow})"/>
@@ -277,17 +334,23 @@ public static class ConstructionQuery
     /// </summary>
     public static string? ClaimedReason(
         IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement, ConstructionProjectEntry project,
-        IReadOnlyTable<ConstructionQueueRow> queue, Func<int, string> name)
+        IReadOnlyTable<ConstructionQueueRow> queue, Func<int, string> name) =>
+        ClaimedReason(world, cfg, settlement, project, queue, world.ConstructionProgress, name);
+
+    /// <summary>As above, the claims read from <paramref name="queue"/> and <paramref name="progress"/>.</summary>
+    public static string? ClaimedReason(
+        IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement, ConstructionProjectEntry project,
+        IReadOnlyTable<ConstructionQueueRow> queue, IReadOnlyTable<ConstructionProgressRow> progress, Func<int, string> name)
     {
         if (cfg.Goods is not { } goods || cfg.Construction is not { EmpireStockpile: true }) return null;
-        if (UnobtainableInput(world, cfg, settlement, project, queue) is not { } input) return null;
+        if (UnobtainableInput(world, cfg, settlement, project, queue, progress) is not { } input) return null;
         var good = new GoodId(input.Id);
         long required = InputOf(goods, project, good);
         SettlementId[] holders = Holders(world, cfg, settlement);
         long held = EmpireStockpile.Available(world.GoodStocks, holders, good);
         if (held < required) return null;                       // genuinely short: not the claims' doing
-        long claimed = Claimed(queue, goods, holders, good);
-        SettlementId[] at = ClaimedAt(queue, goods, holders, good);
+        long claimed = Claimed(queue, progress, goods, holders, good);
+        SettlementId[] at = ClaimedAt(queue, progress, goods, holders, good);
         var places = new string[at.Length];
         for (int i = 0; i < at.Length; i++) places[i] = name(at[i].Value);
         string whose = DrawsOnEmpire(world, cfg, settlement) ? "the empire's" : name(settlement.Value) + "'s";
@@ -298,32 +361,76 @@ public static class ConstructionQuery
     }
 
     /// <summary>
-    /// THE QUEUE A LISTING READS THE CLAIMS FROM (D-053 §1, display only): the world's queue plus every EnqueueConstruction
-    /// order of <paramref name="pending"/> (the turn's not-yet-delivered batch — the action surface's queued orders) that
-    /// ConstructionSystem's intake WOULD accept, in batch order, each judged against the rows before it exactly as the
-    /// intake judges an order against its NEXT queue (<see cref="IsProjectAvailable(IReadOnlyWorldState, SimConfig, PolityId, SettlementId, int, IReadOnlyTable{ConstructionQueueRow})"/>),
-    /// at the slot the intake would give it. So a workshop ordered this turn claims its ten tools at once, and a second one
-    /// the intake would refuse is neither offered nor shown as orderable. The world's own queue (no copy) when nothing is
-    /// pending or the switch is off (no claims to read).
+    /// THE QUEUE A LISTING READS THE CLAIMS FROM (D-053 §1, display only): with the construction purse on, the pending book
+    /// (<see cref="PendingBook"/>: the world's queue with the turn's not-yet-delivered batch <paramref name="pending"/> applied
+    /// exactly as ConstructionSystem's intake will apply it — cancels first, then the enqueues it would accept). So a workshop
+    /// ordered this turn claims its ten tools at once, a second one the intake would refuse is neither offered nor shown as
+    /// orderable, and a pending cancel frees its entry's remaining claims (WS1). Purse switch off: no claims, so the world's
+    /// own queue (no copy) — the pre-change reading bit-exact, as batch 2 shipped it (a pending order changes no availability
+    /// answer there). The progress that belongs to the returned queue is the overload with <c>out progress</c>.
     /// </summary>
     public static IReadOnlyTable<ConstructionQueueRow> QueueWithPending(
-        IReadOnlyWorldState world, SimConfig cfg, IReadOnlyList<OrderRecord>? pending)
+        IReadOnlyWorldState world, SimConfig cfg, IReadOnlyList<OrderRecord>? pending) =>
+        QueueWithPending(world, cfg, pending, out _);
+
+    /// <summary>As <see cref="QueueWithPending(IReadOnlyWorldState, SimConfig, IReadOnlyList{OrderRecord}?)"/>, with the
+    /// PROGRESS table that belongs to the returned queue.</summary>
+    public static IReadOnlyTable<ConstructionQueueRow> QueueWithPending(
+        IReadOnlyWorldState world, SimConfig cfg, IReadOnlyList<OrderRecord>? pending,
+        out IReadOnlyTable<ConstructionProgressRow> progress)
     {
-        if (pending is null || cfg.Construction is not { EmpireStockpile: true }) return world.ConstructionQueue;
+        if (cfg.Construction is not { EmpireStockpile: true })
+        {
+            progress = world.ConstructionProgress;
+            return world.ConstructionQueue;
+        }
+        return PendingBook(world, cfg, pending, out progress);
+    }
+
+    /// <summary>
+    /// THE QUEUE AS IT WILL STAND AT END TURN (WS1): the world's queue with the turn's not-yet-delivered batch
+    /// <paramref name="pending"/> applied exactly as ConstructionSystem's intake will apply it — every CancelConstruction the
+    /// intake would honour (<see cref="CancelOrderValid(IReadOnlyWorldState, OrderRecord, IReadOnlyTable{ConstructionQueueRow})"/>)
+    /// FIRST, in batch order, then every EnqueueConstruction it would accept, in batch order, each judged against the rows
+    /// before it (<see cref="IsProjectAvailable(IReadOnlyWorldState, SimConfig, PolityId, SettlementId, int, IReadOnlyTable{ConstructionQueueRow}, IReadOnlyTable{ConstructionProgressRow})"/>)
+    /// at the slot the intake would give it — whatever the purse switch. <paramref name="progress"/> is the progress that
+    /// belongs to it: the world's, less the rows of every pending cancel, plus a progress-0 row (EnqueuedTurn = the world's
+    /// turn, as the intake writes it) for every accepted pending enqueue when construction is incremental. The world's own
+    /// tables (no copy) when nothing is pending. Read by the queue display and <see cref="HeadStatus"/>.
+    /// </summary>
+    public static IReadOnlyTable<ConstructionQueueRow> PendingBook(
+        IReadOnlyWorldState world, SimConfig cfg, IReadOnlyList<OrderRecord>? pending,
+        out IReadOnlyTable<ConstructionProgressRow> progress)
+    {
+        progress = world.ConstructionProgress;
+        if (pending is null) return world.ConstructionQueue;
         Table<ConstructionQueueRow>? queue = null;
+        Table<ConstructionProgressRow>? book = null;
+        // 1. Cancels first, in batch order (ConstructionSystem's fixed order: cancels before enqueues).
+        for (int o = 0; o < pending.Count; o++)
+        {
+            OrderRecord order = pending[o];
+            if (order.Kind != OrderKind.CancelConstruction) continue;
+            if (!CancelOrderValid(world, order, (IReadOnlyTable<ConstructionQueueRow>?)queue ?? world.ConstructionQueue)) continue;
+            queue ??= Copy(world.ConstructionQueue);
+            book ??= CopyProgress(world.ConstructionProgress);
+            RemoveEntry(queue, book, new SettlementId(order.TargetId), (int)order.Amount);
+        }
+        // 2. Then enqueues, in batch order.
         for (int o = 0; o < pending.Count; o++)
         {
             OrderRecord order = pending[o];
             if (order.Kind != OrderKind.EnqueueConstruction) continue;
             queue ??= Copy(world.ConstructionQueue);
+            book ??= CopyProgress(world.ConstructionProgress);
             var settlement = new SettlementId(order.TargetId);
             int projectId = (int)order.Amount;
-            if (!IsProjectAvailable(world, cfg, order.Actor, settlement, projectId, queue)) continue;
-            int slot = 0;
-            for (int i = 0; i < queue.Count; i++)
-                if (queue[i].Settlement == settlement && queue[i].Slot >= slot) slot = queue[i].Slot + 1;
+            if (!IsProjectAvailable(world, cfg, order.Actor, settlement, projectId, queue, book)) continue;
+            int slot = NextSlot(queue, settlement);
             queue.Add(new ConstructionQueueRow(settlement, slot, projectId));
+            if (Incremental(cfg)) book.Add(new ConstructionProgressRow(settlement, slot, projectId, world.Clock.Turn, 0));
         }
+        if (book is not null) progress = book;
         return queue ?? world.ConstructionQueue;
     }
 
@@ -450,8 +557,10 @@ public static class ConstructionQuery
         cfg.Construction is { EmpireStockpile: true } && EmpireQuery.ControlsSettlement(world, viewer, settlement);
 
     /// <summary>Every input present IN FULL in the purse <paramref name="holders"/> (<see cref="Holders"/>) of
-    /// <paramref name="stocks"/> — checked before any draw: the all-or-nothing rule ConstructionSystem applies to its NEXT
-    /// stocks and the query to the world's. Each input is compared with the purse's whole holding of its good.</summary>
+    /// <paramref name="stocks"/> — checked before any draw: M4-D's whole-or-nothing gate, which ConstructionSystem applies to
+    /// its NEXT stocks only with construction.incremental OFF (the switch-off rule; D-054 WS1 superseded it — a head now
+    /// progresses as far as each unit of material allows, ResolveHead) and the query to the world's. Each input is compared
+    /// with the purse's whole holding of its good.</summary>
     public static bool MaterialsAvailable(
         IReadOnlyTable<GoodStockRow> stocks, GoodsConfig goods, SettlementId[] holders, ConstructionProjectEntry project)
     {
@@ -466,15 +575,23 @@ public static class ConstructionQuery
     /// <summary>The inputs the purse <paramref name="holders"/> (<see cref="Holders"/>) lacks now, input order (empty when
     /// every input is present in full); <c>Held</c> is the purse's whole holding.</summary>
     public static MaterialShortfall[] Shortfalls(
-        IReadOnlyTable<GoodStockRow> stocks, GoodsConfig goods, SettlementId[] holders, ConstructionProjectEntry project)
+        IReadOnlyTable<GoodStockRow> stocks, GoodsConfig goods, SettlementId[] holders, ConstructionProjectEntry project) =>
+        Shortfalls(stocks, goods, holders, project, progress: 0);
+
+    /// <summary>As above, against the REMAINING need of an entry at <paramref name="progress"/> (WS1: what has gone in is
+    /// not needed again): <c>Required</c> is the input less <see cref="Delivered"/> at that progress.</summary>
+    public static MaterialShortfall[] Shortfalls(
+        IReadOnlyTable<GoodStockRow> stocks, GoodsConfig goods, SettlementId[] holders, ConstructionProjectEntry project,
+        long progress)
     {
         var result = new List<MaterialShortfall>();
         for (int i = 0; i < project.Inputs.Length; i++)
         {
             ProjectInput input = project.Inputs[i];
             var good = new GoodId(goods.IdOf(input.Good));
+            long need = Remaining(input.Qty, progress);
             long held = EmpireStockpile.Available(stocks, holders, good);
-            if (held < input.Qty) result.Add(new MaterialShortfall(good, input.Good, input.Qty, held));
+            if (held < need) result.Add(new MaterialShortfall(good, input.Good, need, held));
         }
         return [.. result];
     }
@@ -489,39 +606,55 @@ public static class ConstructionQuery
     }
 
     /// <summary>
-    /// The transient blocker the action surface shows for an AVAILABLE project, or null when it could be
-    /// built this turn: the inputs short and, when the turn's length is known, the construction labour short;
-    /// for a project that founds an institution (ADR-033 D6), the host's founding viability first ("needs 4000
-    /// adults (has 3100)"). An input names what the PURSE holds (<see cref="Holders"/>): "needs 40 timber (empire
-    /// has 12)" where the settlement draws on its Empire, "needs 40 timber (has 12)" where it draws on its own stock
-    /// (no controller, or the switch off). Information, not a disabled future control (ADR-033 D2) — each reading
-    /// is the function ConstructionSystem gates the head with.
+    /// The transient blocker the action surface shows for an AVAILABLE project, or null when nothing in the purse or the
+    /// host stands in its way: the inputs short and, for a project that founds an institution (ADR-033 D6), the host's
+    /// founding viability first ("needs 4000 adults (has 3100)"). An input names what the PURSE holds
+    /// (<see cref="Holders"/>): "needs 40 timber (empire has 12)" where the settlement draws on its Empire, "needs 40
+    /// timber (has 12)" where it draws on its own stock (no controller, or the switch off). WS1 (incremental construction
+    /// on): the inputs are judged against the REMAINING need at <c>progress</c> (0 for a project not yet queued) and the
+    /// labour clause is gone — labour is a pace, not a gate, so a settlement with few builders builds slowly rather than
+    /// never. With incremental off (the M4-D gate), the per-turn labour clause stands as before when the turn's length is
+    /// known. Information, not a disabled future control (ADR-033 D2) — each reading is the function ConstructionSystem
+    /// resolves the head with.
     /// </summary>
     public static string? Blocker(
         IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement, ConstructionProjectEntry project, double? dtYears) =>
-        Blocker(world, cfg, settlement, project, dtYears, Holders(world, cfg, settlement), DrawsOnEmpire(world, cfg, settlement));
+        Blocker(world, cfg, settlement, project, dtYears, progress: 0);
+
+    /// <summary>As above for an entry at <paramref name="progress"/> (the head's, from <see cref="ProgressOf(IReadOnlyWorldState, ConstructionQueueRow)"/>).</summary>
+    public static string? Blocker(
+        IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement, ConstructionProjectEntry project, double? dtYears,
+        long progress) =>
+        Blocker(world, cfg, settlement, project, dtYears, Holders(world, cfg, settlement), DrawsOnEmpire(world, cfg, settlement), progress);
 
     /// <summary><see cref="Blocker(IReadOnlyWorldState, SimConfig, SettlementId, ConstructionProjectEntry, double?)"/> as
     /// <paramref name="viewer"/> may read it (P7): the materials against <see cref="HoldersSeenBy"/> — the Empire's purse
     /// where the viewer rules the settlement, the settlement's own stock ("has N") where it does not.</summary>
     public static string? BlockerSeenBy(
         IReadOnlyWorldState world, SimConfig cfg, PolityId viewer, SettlementId settlement, ConstructionProjectEntry project, double? dtYears) =>
+        BlockerSeenBy(world, cfg, viewer, settlement, project, dtYears, progress: 0);
+
+    /// <summary>As above for an entry at <paramref name="progress"/>.</summary>
+    public static string? BlockerSeenBy(
+        IReadOnlyWorldState world, SimConfig cfg, PolityId viewer, SettlementId settlement, ConstructionProjectEntry project, double? dtYears,
+        long progress) =>
         Blocker(world, cfg, settlement, project, dtYears,
-            HoldersSeenBy(world, cfg, viewer, settlement), DrawsOnEmpireSeenBy(world, cfg, viewer, settlement));
+            HoldersSeenBy(world, cfg, viewer, settlement), DrawsOnEmpireSeenBy(world, cfg, viewer, settlement), progress);
 
     private static string? Blocker(
         IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement, ConstructionProjectEntry project, double? dtYears,
-        SettlementId[] holders, bool empire)
+        SettlementId[] holders, bool empire, long progress)
     {
         GoodsConfig goods = cfg.Goods ?? throw new ArgumentException("a construction blocker needs goods content", nameof(cfg));
+        bool incremental = Incremental(cfg);
         var parts = new List<string>();
         if (InstitutionContent.FoundsInstitution(project)
             && InstitutionViability.ToFound(world, cfg, settlement) is { Viable: false } viability)
             parts.Add(InstitutionViability.Shortfall(viability));
         string holder = empire ? "empire has" : "has";
-        foreach (MaterialShortfall s in Shortfalls(world.GoodStocks, goods, holders, project))
+        foreach (MaterialShortfall s in Shortfalls(world.GoodStocks, goods, holders, project, incremental ? progress : 0))
             parts.Add($"{Num(s.Required)} {s.Name} ({holder} {Num(s.Held)})");
-        if (dtYears is { } dt && dt > 0.0)
+        if (!incremental && dtYears is { } dt && dt > 0.0)
         {
             double capacity = CapacityAdultYears(world, cfg, settlement, dt);
             if (capacity < project.LaborRequired)

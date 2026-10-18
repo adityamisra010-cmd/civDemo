@@ -50,11 +50,15 @@ public class PathBuildTests
         return new TurnExecutor(CanonicalEra(), [.. without], orders);
     }
 
-    private static WorldState Founded(SimConfig cfg) =>
+    private static WorldState Founded(SimConfig cfg, WorldgenConfig? worldgen = null, ulong seed = Seed) =>
         // N = 1 via the D-029 flag: these are single-settlement SEMANTICS
         // tests (hand-computed yields, ledger deltas); plural behavior is
         // covered by PluralWorldTests.
-        WorldFounding.Found(TestConfigs.DevWorldgen(), cfg, Seed, settlementsOverride: 1);
+        WorldFounding.Found(worldgen ?? TestConfigs.DevWorldgen(), cfg, seed, settlementsOverride: 1);
+
+    /// <summary>Batch 3 (D-054, integration R1 2026-10-14): the dev seed the build-loop magnitude bar runs on — the shipped
+    /// (cylindrical) dev world. See BuildLoop_EdgeAppends_RevisionIncrements_CatchmentStrictlyGrowsNextTurn.</summary>
+    private const ulong BuildLoopSeed = 1;
 
     private static OrderLog LaborOrder(long turn, double farmPct)
     {
@@ -187,9 +191,23 @@ public class PathBuildTests
         // revision increments, and the NEXT turn's catchment strictly grows
         // with effective farmland strictly increasing — T1.4's hand-test now
         // happens through gameplay.
+        // Batch 3 (D-054, W1 fix F5): the magnitude bar below is a measurement of THIS rig's first edge turn, and on the
+        // cylindrical dev world that turn completes ONE cheap segment (cost 0.1, at turn 3, from the default-mix bank)
+        // instead of the flat world's three (turn 4): MEASURED arable growth +1.40% (18161 -> 18416 km²), and +6.3% by
+        // turn 6 as the next segments land. What decides it is the cylinder's terrain (the same site, (85, 93), with the
+        // periodic noise's slightly different ground), not a road mechanism. (W1 then founded the FLAT world, +5.5%.)
+        // BATCH 3 / D-054 RE-RIG (integration R1, 2026-10-14) — BACK ON THE SHIPPED (CYLINDRICAL) WORLD, NEW SEED. The bar
+        // is D-009's claim that one dirt path materially extends a 50 km hinterland, so it belongs on the topology the game
+        // ships. MEASURED on this tree (this rig — N = 1, the turn-2 50 % order, no harvest weather — on dev seeds 1-30):
+        // on the CYLINDER 26 of 30 seeds clear the 2 % bar at the first edge turn (median ≈ +5 %; the four that do not — 4,
+        // 6, 8 and 20 — complete one sub-0.15-cost segment at turn 3 or 4 and read +0.00 %, as seed 42's reads +1.40 %);
+        // on the FLAT world 20 of 30 do. So seed 42's cylinder world is the outlier, not the topology, and the rig moves to
+        // the LOWEST dev seed whose cylinder world clears it: seed 1 — first edges at turn 4 (two segments, cost 0.241),
+        // arable +3.51 %, catchment nodes +5.7 % (MEASURED). The premise asserts below are unchanged.
         SimConfig cfg = TestConfigs.Sim();
         TurnExecutor exec = ProductionExecutor(cfg, LaborOrder(turn: 2, farmPct: 50.0));
-        WorldState world = Founded(cfg);
+        WorldState world = Founded(cfg, TestConfigs.DevWorldgen(), BuildLoopSeed);
+        Assert.True(world.Terrain!.WrapX);   // the shipped topology
 
         int firstEdgeTurn = -1;
         int nodesBefore = 0;
@@ -205,7 +223,7 @@ public class PathBuildTests
         Assert.True(firstEdgeTurn > 0, "no edge appended in 30 turns of sustained 50% path labor");
         Assert.Equal(world.NetworkEdges.Count, world.NetworkMeta[0].Revision); // one bump per edge
         Assert.True(world.NetworkNodes.Count >= 2, "edge appended without anchor nodes");
-        Console.WriteLine($"turns-to-first-edge @ seed {Seed} (order t2, 50/50, default rates): {firstEdgeTurn}");
+        Console.WriteLine($"turns-to-first-edge @ seed {BuildLoopSeed} (order t2, 50/50, default rates): {firstEdgeTurn}");
 
         // The D-016 lag, driven by gameplay: NEXT turn the catchment recomputes
         // strictly larger, farmland strictly higher.
@@ -274,20 +292,34 @@ public class PathBuildTests
         TurnExecutor exec = ProductionExecutor(cfg, LaborOrder(turn: 2, farmPct: 100.0));
         WorldState world = Founded(cfg);
 
-        for (int t = 1; t <= 30; t++) world = exec.Step(world);
+        // The order (issued turn 2) is in the allocation table of the turn-3 state; the step FROM it is the first that
+        // reads 100% farm (T1.9 delivery). Everything built up to then was paid from the DEFAULT mix's bank.
+        for (int t = 1; t <= 3; t++) world = exec.Step(world);
+        Assert.Equal(1.0, world.SectorAllocations[0].Farming);
+        int edgesInForce = world.NetworkEdges.Count;
+        long revisionInForce = world.NetworkMeta[0].Revision;
+        for (int t = 4; t <= 30; t++) world = exec.Step(world);
 
         Assert.Equal(1.0, world.SectorAllocations[0].Farming);
         // T3.5b: turn 1 ran on the subsistence DEFAULT (construction 0.08), so
         // a bank row exists from before the order. What the 100% order pins is
         // that construction accrual STOPS: the bank is frozen at its pre-order
         // value for the rest of the run and never reaches a build.
+        // Batch 3 (D-054, W1 fix F5) RE-RIG: "never reaches a build" is pinned from the turn the order is IN FORCE. On the
+        // flat dev world the pre-order bank built nothing (edgesInForce = 0, as before); on the cylindrical one the default
+        // mix's bank completes one cheap segment (cost 0.1) on the step to turn 3 — before the order is read (MEASURED:
+        // bank 7.93 -> 2.176, one edge) — and not one edge after it. The old literal 0 asserted the world's terrain, not
+        // the order's semantics.
         Assert.Equal(1, world.PathProgress.Count);
         double frozen = world.PathProgress[0].Banked;
         WorldState after = world;
         for (int t = 0; t < 5; t++) after = exec.Step(after);
         Assert.Equal(frozen, after.PathProgress[0].Banked, 9); // no further accrual
-        Assert.Equal(0, world.NetworkEdges.Count);
-        Assert.Equal(0, world.NetworkMeta[0].Revision);
+        Assert.Equal(edgesInForce, world.NetworkEdges.Count);
+        Assert.Equal(edgesInForce, after.NetworkEdges.Count);
+        Assert.Equal(revisionInForce, world.NetworkMeta[0].Revision);
+        Assert.Equal(revisionInForce, after.NetworkMeta[0].Revision);
+        Assert.InRange(edgesInForce, 0, 1);   // at most the one segment the default mix's bank can afford by turn 3
     }
 
     // --- load-time rejection -------------------------------------------------

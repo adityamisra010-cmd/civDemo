@@ -30,7 +30,7 @@ public static class SettlementSiting
     /// <summary>Chooses the site cell for a new settlement on this terrain.</summary>
     public static int ChooseSite(TerrainSet terrain, SitingConfig cfg) =>
         ChooseSite(terrain.Fertility, terrain.Water, terrain.Size, cfg.WaterAccessCutoffPx,
-            terrain.Rivers);
+            terrain.Rivers, terrain.WrapX);
 
     /// <summary>The T3.1(c) score jitter for one cell: 1 + j·u with u ∈ [−1,1]
     /// derived by SplitMix64 from (seed, cell) — deterministic, twin-safe.</summary>
@@ -72,8 +72,8 @@ public static class SettlementSiting
     {
         int size = terrain.Size;
         ReadOnlySpan<double> water = terrain.Water;
-        int[] waterDistance = WaterDistanceBfs(water, terrain.Rivers, size);
-        double[] region = BoxSum(terrain.Fertility, size, cfg.FertilityRadiusPx);
+        int[] waterDistance = WaterDistanceBfs(water, terrain.Rivers, size, terrain.WrapX);
+        double[] region = BoxSum(terrain.Fertility, size, cfg.FertilityRadiusPx, terrain.WrapX);
         var scores = new double[size * size];
         for (int i = 0; i < scores.Length; i++)
         {
@@ -107,8 +107,14 @@ public static class SettlementSiting
     /// With the fertility raster and r = siting.fertilityRadiusPx it is the
     /// REGION-FERTILITY factor of <see cref="CandidateScores"/>. M5 S1a: made
     /// public (no behaviour change) for the same read-only decomposition as
-    /// <see cref="WaterAccess"/>. r ≤ 0 returns a copy of the field.</summary>
-    public static double[] BoxSum(ReadOnlySpan<double> field, int size, int r)
+    /// <see cref="WaterAccess"/>. r ≤ 0 returns a copy of the field.
+    ///
+    /// WS3 (<paramref name="wrapX"/>): on a cylinder the window is MODULAR in x — a window that crosses the seam is
+    /// the sum of its two in-map pieces, [x − r + size, size − 1] and [0, x + r − size], each read from the SAME
+    /// integral image; y stays clamped. A window that does not cross the seam takes the unchanged expression, so its
+    /// value is bit-identical to the flat one (pinned). A window as wide as the map (2r + 1 ≥ size) covers every
+    /// column exactly once — clamped to the map width, never double-counted.</summary>
+    public static double[] BoxSum(ReadOnlySpan<double> field, int size, int r, bool wrapX = false)
     {
         if (r <= 0) return field.ToArray();
         // Integral image: I[y+1][x+1] = Σ field[0..y][0..x].
@@ -124,21 +130,42 @@ public static class SettlementSiting
             }
         }
         var sums = new double[size * size];
+        bool full = wrapX && 2 * (long)r + 1 >= size;   // the window spans every column: once each
         for (int y = 0; y < size; y++)
         {
             int y0 = Math.Max(0, y - r), y1 = Math.Min(size - 1, y + r);
             for (int x = 0; x < size; x++)
             {
-                int x0 = Math.Max(0, x - r), x1 = Math.Min(size - 1, x + r);
-                sums[y * size + x] =
-                    integral[(y1 + 1) * (size + 1) + (x1 + 1)]
-                    - integral[y0 * (size + 1) + (x1 + 1)]
-                    - integral[(y1 + 1) * (size + 1) + x0]
-                    + integral[y0 * (size + 1) + x0];
+                if (!wrapX || full || (x - r >= 0 && x + r <= size - 1))
+                {
+                    // Flat, a full-width wrapped window, or an interior window: the unchanged expression.
+                    int x0 = full ? 0 : Math.Max(0, x - r), x1 = full ? size - 1 : Math.Min(size - 1, x + r);
+                    sums[y * size + x] = Rect(integral, size, x0, x1, y0, y1);
+                }
+                else if (x - r < 0)
+                {
+                    // Crosses the seam westward: [x − r + size, size − 1] ∪ [0, x + r].
+                    sums[y * size + x] = Rect(integral, size, x - r + size, size - 1, y0, y1)
+                                       + Rect(integral, size, 0, x + r, y0, y1);
+                }
+                else
+                {
+                    // Crosses the seam eastward: [x − r, size − 1] ∪ [0, x + r − size].
+                    sums[y * size + x] = Rect(integral, size, x - r, size - 1, y0, y1)
+                                       + Rect(integral, size, 0, x + r - size, y0, y1);
+                }
             }
         }
         return sums;
     }
+
+    /// <summary>The integral-image sum over columns [x0, x1] × rows [y0, y1] — the four-term expression BoxSum has
+    /// always used, in the same order.</summary>
+    private static double Rect(double[] integral, int size, int x0, int x1, int y0, int y1) =>
+        integral[(y1 + 1) * (size + 1) + (x1 + 1)]
+        - integral[y0 * (size + 1) + (x1 + 1)]
+        - integral[(y1 + 1) * (size + 1) + x0]
+        + integral[y0 * (size + 1) + x0];
 
     /// <summary>
     /// T3.1(c) SCORE FLOOR: the jitter chooses among GOOD sites — cells whose
@@ -227,12 +254,12 @@ public static class SettlementSiting
     /// </summary>
     public static int ChooseSite(
         ReadOnlySpan<double> fertility, ReadOnlySpan<double> water, int size, int waterAccessCutoffPx,
-        ReadOnlySpan<double> rivers = default)
+        ReadOnlySpan<double> rivers = default, bool wrapX = false)
     {
         if (fertility.Length != size * size || water.Length != size * size)
             throw new ArgumentException("fertility and water must be size*size long");
 
-        int[] waterDistance = WaterDistanceBfs(water, rivers, size);
+        int[] waterDistance = WaterDistanceBfs(water, rivers, size, wrapX);
 
         int bestCell = -1;
         double bestScore = double.NegativeInfinity;
@@ -264,9 +291,11 @@ public static class SettlementSiting
     /// primitive test surface). Cells unreachable keep int.MaxValue.
     /// M5 S1a: public (no behaviour change) — the input of
     /// <see cref="WaterAccess"/> for a read-only score decomposition.
+    /// WS3 (<paramref name="wrapX"/>): W and E wrap on a cylinder, in the same
+    /// W, E, N, S order (<see cref="Pathing.MapTopology.NeighbourX"/>).
     /// </summary>
     public static int[] WaterDistanceBfs(
-        ReadOnlySpan<double> water, ReadOnlySpan<double> rivers, int size)
+        ReadOnlySpan<double> water, ReadOnlySpan<double> rivers, int size, bool wrapX = false)
     {
         int cells = size * size;
         var dist = new int[cells];
@@ -284,8 +313,9 @@ public static class SettlementSiting
         {
             int i = queue[head++];
             int x = i % size, y = i / size, d = dist[i] + 1;
-            if (x > 0 && dist[i - 1] == int.MaxValue) { dist[i - 1] = d; queue[tail++] = i - 1; }
-            if (x < size - 1 && dist[i + 1] == int.MaxValue) { dist[i + 1] = d; queue[tail++] = i + 1; }
+            int w = Pathing.MapTopology.NeighbourX(x, -1, size, wrapX), e = Pathing.MapTopology.NeighbourX(x, 1, size, wrapX);
+            if (w >= 0 && dist[y * size + w] == int.MaxValue) { dist[y * size + w] = d; queue[tail++] = y * size + w; }
+            if (e >= 0 && dist[y * size + e] == int.MaxValue) { dist[y * size + e] = d; queue[tail++] = y * size + e; }
             if (y > 0 && dist[i - size] == int.MaxValue) { dist[i - size] = d; queue[tail++] = i - size; }
             if (y < size - 1 && dist[i + size] == int.MaxValue) { dist[i + size] = d; queue[tail++] = i + size; }
         }

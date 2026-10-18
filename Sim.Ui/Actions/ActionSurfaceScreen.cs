@@ -35,6 +35,12 @@ public enum ActionCommandKind
     /// <summary>M5 S1d: enter the map's settlement-placement mode from <see cref="ActionCommand.Settlement"/> (UI only —
     /// the order is appended by the placement's Confirm, through UiSession.EmitFoundSettlement).</summary>
     FoundSettlement = 9,
+    /// <summary>WS1 (D-054): cancel the queue entry at slot <see cref="ActionCommand.Project"/> of
+    /// <see cref="ActionCommand.Settlement"/> (order kind 11, through UiSession.EmitCancelConstruction).</summary>
+    CancelConstruction = 10,
+    /// <summary>WS2 (D-054): set the Empire's building/roads material split to <see cref="ActionCommand.Percent"/> shares
+    /// in 100 for building work (order kind 12, through UiSession.EmitAllocationOrder).</summary>
+    SetAllocation = 11,
 }
 
 public sealed record ActionCommand(
@@ -44,7 +50,8 @@ public sealed record ActionCommand(
 
     /// <summary>Whether the command would append an order (the rest only move the UI).</summary>
     public bool IsOrder => Kind is ActionCommandKind.ApplyLabour or ActionCommandKind.ClearResearch or ActionCommandKind.Enqueue
-        or ActionCommandKind.DevelopRoads or ActionCommandKind.SetTax;
+        or ActionCommandKind.DevelopRoads or ActionCommandKind.SetTax or ActionCommandKind.CancelConstruction
+        or ActionCommandKind.SetAllocation;
 }
 
 /// <summary>THE ONE DISPATCH of an order-bearing command, through the session's guarded emitters (each
@@ -62,6 +69,8 @@ public static class ActionDispatch
             ActionCommandKind.Enqueue => session.EmitConstructionOrder(command.Settlement, command.Project),
             ActionCommandKind.DevelopRoads => session.EmitRoadOrder(command.Percent),
             ActionCommandKind.SetTax => session.EmitTaxOrder((int)Math.Round(command.Percent, MidpointRounding.AwayFromZero)),
+            ActionCommandKind.CancelConstruction => session.EmitCancelConstruction(command.Settlement, command.Project),
+            ActionCommandKind.SetAllocation => session.EmitAllocationOrder((int)Math.Round(command.Percent, MidpointRounding.AwayFromZero)),
             _ => false,
         };
     }
@@ -77,6 +86,18 @@ public enum ActionHitKind
     PrevSettlement, NextSettlement,
     /// <summary>M5 S1d: "Choose a site..." — enter the placement mode from the block's source (A = its settlement id).</summary>
     FoundSettlement,
+    /// <summary>WS1 (D-054): a committed queue entry's "Cancel" (A = settlement, B = slot). An entry nothing has gone into
+    /// is cancelled at once; one with progress ARMS the two-step confirm (the button becomes <see cref="CancelConfirm"/>).</summary>
+    CancelConstruction,
+    /// <summary>WS1: the armed "Lose it" — the second click that emits the cancel (A = settlement, B = slot).</summary>
+    CancelConfirm,
+    /// <summary>WS2 (D-054): one tally or notch of the building/roads split (B = its index): clicking the topmost lit one
+    /// turns it off, so b = 0 is reachable; the last one is b = 100.</summary>
+    AllocSlot,
+    /// <summary>WS2: the split's slider track (the numeral eras), 0..100.</summary>
+    AllocTrack,
+    /// <summary>WS2: "Set" — shown only while the draft differs from the split in force; emits kind 12.</summary>
+    AllocApply,
 }
 
 public readonly record struct ActionHit(RectD Rect, ActionHitKind Kind, int A, int B);
@@ -118,6 +139,15 @@ public sealed partial class ActionSurfaceScreen
     private int _dragSector = -1;
     private RectD _dragTrack;
     private RoadPlanPreview? _roadPreview;
+    // WS1: the queue entry whose Cancel is armed (the first click of the two-step confirm), and the turn it was armed in.
+    private (int Settlement, int Slot, long Turn) _cancelArmed = (-1, -1, -1);
+    // WS2: the building/roads split the Materials control holds (building work's shares in 100; -1 when the block is absent),
+    // reset to the split in force when the turn changes.
+    private int _allocDraft = -1;
+    private long _allocDraftTurn = -1;
+
+    /// <summary>The (settlement, slot) whose "Lose it" confirm is showing, or null.</summary>
+    public (int Settlement, int Slot)? CancelArmed => _cancelArmed.Settlement >= 0 ? (_cancelArmed.Settlement, _cancelArmed.Slot) : null;
 
     /// <summary>The labour split the control holds, in the era's units.</summary>
     public ReadOnlySpan<int> Draft => _draft;
@@ -127,6 +157,12 @@ public sealed partial class ActionSurfaceScreen
 
     /// <summary>The road development percentage the control holds.</summary>
     public int RoadDraft => _roadDraft;
+
+    /// <summary>WS2: the building share (0..100) the Materials control holds, or -1 when the block is absent.</summary>
+    public int AllocationDraft => _allocDraft;
+
+    /// <summary>The road preview the Roads block last painted (null before it has painted one).</summary>
+    public RoadPlanPreview? RoadPreview => _roadPreview;
 
     /// <summary>Whether the labour control differs from what the settlement runs (or has queued).</summary>
     public bool LabourChanged
@@ -168,9 +204,27 @@ public sealed partial class ActionSurfaceScreen
             }
         }
         else _taxDraft = -1;
+        if (model.Allocation is { } alloc)
+        {
+            if (_allocDraftTurn != world.Clock.Turn || _allocDraft < 0)
+            {
+                _allocDraft = alloc.BuildingsPercent;
+                _allocDraftTurn = world.Clock.Turn;
+            }
+        }
+        else _allocDraft = -1;
         int unit = model.Control.PercentPerUnit;
         _roadDraft = Math.Clamp((_roadDraft + unit - 1) / unit * unit, unit, 100);
         _roadPreview = null;
+        // WS1: an armed Cancel lasts only while its entry is still a committed, cancellable row of this turn's block.
+        if (_cancelArmed.Turn != world.Clock.Turn || !Armable(model, _cancelArmed.Settlement, _cancelArmed.Slot)) _cancelArmed = (-1, -1, -1);
+    }
+
+    private static bool Armable(ActionSurfaceModel model, int settlement, int slot)
+    {
+        if (model.Construction is not { } c || c.Settlement.Value != settlement) return false;
+        foreach (QueueEntry q in c.Queue) if (q.Slot == slot && q.Cancel is not null && !q.CancelPending) return true;
+        return false;
     }
 
     // ================================================================== input
@@ -229,9 +283,40 @@ public sealed partial class ActionSurfaceScreen
                 case ActionHitKind.NextSettlement:
                     return new ActionCommand(ActionCommandKind.SelectSettlement, h.A);
                 case ActionHitKind.FoundSettlement: return new ActionCommand(ActionCommandKind.FoundSettlement, h.A);
+                case ActionHitKind.CancelConstruction:
+                {
+                    // Nothing has gone in: one click. Progress made: arm the confirm (the forfeit is stated beside it).
+                    QueueEntry? q = EntryAt(model, h.A, h.B);
+                    if (q is null) return ActionCommand.None;
+                    if (q.Progress > 0) { _cancelArmed = (h.A, h.B, _world?.Clock.Turn ?? -1); return ActionCommand.None; }
+                    return new ActionCommand(ActionCommandKind.CancelConstruction, h.A, Project: h.B);
+                }
+                case ActionHitKind.CancelConfirm:
+                    _cancelArmed = (-1, -1, -1);
+                    return new ActionCommand(ActionCommandKind.CancelConstruction, h.A, Project: h.B);
+                case ActionHitKind.AllocSlot:
+                    // The topmost lit tally toggles off (b = 0 reachable), as the levy's does; the last is b = 100.
+                    _allocDraft = Math.Clamp((_allocDraft == (h.B + 1) * spec.PercentPerUnit ? h.B : h.B + 1) * spec.PercentPerUnit, 0, 100);
+                    _roadPreview = null;
+                    return ActionCommand.None;
+                case ActionHitKind.AllocTrack:
+                    _drag = h.Kind; _dragTrack = h.Rect;
+                    _allocDraft = TrackValue(h.Rect, x, 100);
+                    _roadPreview = null;
+                    return ActionCommand.None;
+                case ActionHitKind.AllocApply:
+                    if (model.Allocation is not { } al || _allocDraft < 0 || _allocDraft == al.BuildingsPercent) return ActionCommand.None;
+                    return new ActionCommand(ActionCommandKind.SetAllocation, Percent: _allocDraft);
             }
         }
         return ActionCommand.None;
+    }
+
+    private static QueueEntry? EntryAt(ActionSurfaceModel model, int settlement, int slot)
+    {
+        if (model.Construction is not { } c || c.Settlement.Value != settlement) return null;
+        foreach (QueueEntry q in c.Queue) if (q.Slot == slot && !q.CancelPending) return q;
+        return null;
     }
 
     /// <summary>The pointer moved with the button held: continues a slider drag. True when one is in progress.</summary>
@@ -243,6 +328,7 @@ public sealed partial class ActionSurfaceScreen
             case ActionHitKind.LabourTrack: MoveLabour(_dragSector, TrackValue(_dragTrack, x, model.Control.Units)); break;
             case ActionHitKind.RoadTrack: _roadDraft = Math.Clamp(TrackValue(_dragTrack, x, 100), 1, 100); _roadPreview = null; break;
             case ActionHitKind.TaxTrack: _taxDraft = TrackValue(_dragTrack, x, 100); break;
+            case ActionHitKind.AllocTrack: _allocDraft = TrackValue(_dragTrack, x, 100); _roadPreview = null; break;
         }
         return true;
     }
@@ -288,6 +374,8 @@ public sealed partial class ActionSurfaceScreen
         Secondary,
         /// <summary>Blocked: a sunken dashed plate, the label in the soft ink after a lock — it reads as unavailable.</summary>
         Disabled,
+        /// <summary>WS1: an irreversible verb ("Lose it"): the danger pigment, a danger edge, the label in the body role.</summary>
+        Danger,
     }
 
     private EraTheme T => Theme;
@@ -337,6 +425,7 @@ public sealed partial class ActionSurfaceScreen
         if (model.Age is { } age) y = PaintAge(d, m, age, x, y, width, flat) + gap;
         if (model.Governance is { } gov) y = PaintGovernance(d, m, model, gov, x, y, width, flat) + gap;
         if (model.Construction is { } construction) y = PaintConstruction(d, m, model, construction, x, y, width, flat) + gap;
+        if (model.Allocation is { } allocation) y = PaintAllocation(d, m, model, allocation, x, y, width, flat) + gap;   // WS2
         if (model.Roads is { } roads) y = PaintRoads(d, m, model, roads, x, y, width, flat) + gap;
         if (model.Founding is { } founding) y = PaintFounding(d, m, founding, x, y, width, flat) + gap;   // M5 S1d
         if (model.Production is { } production) y = PaintProduction(d, m, production, x, y, width, flat) + gap;
@@ -431,7 +520,7 @@ public sealed partial class ActionSurfaceScreen
     {
         EraTheme t = T;
         MaterialTokens mt = t.Material;
-        double size = style == ControlStyle.Primary ? Body : Second;
+        double size = style is ControlStyle.Primary or ControlStyle.Danger ? Body : Second;
         double lockW = style == ControlStyle.Disabled ? Sp(18) : 0;
         double bw = m.Width(t, label, size, FontRole.Body) + Sp(24) + lockW, bh = Math.Max(Sp(32), L(size) + Sp(10));
         var r = new RectD(rightX - bw, y, bw, bh);
@@ -442,6 +531,13 @@ public sealed partial class ActionSurfaceScreen
             {
                 Rgba fill = Mix(mt.PanelRaised, mt.Accent, hover ? 0.42 : 0.28);
                 PanelFrame.Paint(d, r, t, id, FrameKind.Button, fill, hover ? mt.BorderStrong : mt.Accent, hover ? 2.0 : 1.6);
+                d.Write(t, r.CenterX, r.Y + (bh - L(size)) / 2 + Sp(1), label, size, t.Ink.Text, TextAlign.Center, FontRole.Heading);
+                break;
+            }
+            case ControlStyle.Danger:
+            {
+                Rgba fill = Mix(mt.PanelRaised, t.Semantic.Danger, hover ? 0.42 : 0.28);
+                PanelFrame.Paint(d, r, t, id, FrameKind.Button, fill, hover ? mt.BorderStrong : t.Semantic.Danger, hover ? 2.0 : 1.6);
                 d.Write(t, r.CenterX, r.Y + (bh - L(size)) / 2 + Sp(1), label, size, t.Ink.Text, TextAlign.Center, FontRole.Heading);
                 break;
             }
@@ -745,7 +841,8 @@ public sealed partial class ActionSurfaceScreen
                 y = Wrapped(d, m, "An estimate from the current state: the turn re-reads labour, housing's draw and its own length when it resolves.",
                     x, y, w, Caption, t.Ink.TextSoft) + Sp(2);
             if (model.Layout == SurfaceLayout.Detailed)
-                y = Wrapped(d, m, "Path-making also banks the labour a finished project used (ADR-033 D10, open).", x, y, w, Caption, t.Ink.TextSoft) + Sp(2);
+                y = Wrapped(d, m, "Path-making gets what building projects leave: the labour a project used last turn is not available to paths this turn.",
+                    x, y, w, Caption, t.Ink.TextSoft) + Sp(2);
         }
         int k = 0;
         foreach (ProjectEntry p in c.Projects)
@@ -763,7 +860,9 @@ public sealed partial class ActionSurfaceScreen
             d.Write(t, x, hy, ThemeText.Fit(m, t, head, BodyBold, tw, FontRole.Heading), BodyBold, t.Ink.Text, TextAlign.Left, FontRole.Heading);
             y = build.Bottom + Sp(3);
             if (p.Blocker is { } blocker)
-                y = Blocker(d, m, "not yet:", blocker, x + Sp(8), y, w - Sp(8), Second, GoodTokens());
+                y = c.Incremental
+                    ? Blocker(d, m, "will wait for:", Sim.Core.State.InfoQuery.WithoutNeeds(blocker), x + Sp(8), y, w - Sp(8), Second, GoodTokens())
+                    : Blocker(d, m, "not yet:", blocker, x + Sp(8), y, w - Sp(8), Second, GoodTokens());
             else
                 y = WrappedInfo(d, m, "can be built: " + p.Materials + ", " + N1(p.LabourAdultYears) + " adult-years", x + Sp(8), y, w - Sp(8), Second, t.TextInk.Positive, FontRole.Body, GoodTokens());
             // M5 polish: where a missing material comes from, and what a built one does in this build.
@@ -776,6 +875,7 @@ public sealed partial class ActionSurfaceScreen
             y += Math.Max(Sp(6), t.Density.Gap * Scale * 0.5);
             k++;
         }
+        if (c.Incremental) return PaintQueue(d, m, model, c, x, y, w);
         if (!c.Queue.IsDefaultOrEmpty)
         {
             var names = new List<string>();
@@ -788,6 +888,129 @@ public sealed partial class ActionSurfaceScreen
         if (c.OrderedThisTurn > 0)
             y = Wrapped(d, m, c.OrderedThisTurn.ToString(CultureInfo.InvariantCulture) + " ordered this turn - joins the queue at End Turn.", x, y, w, Second, t.TextInk.Active);
         return y;
+    }
+
+    /// <summary>
+    /// WS1 (D-054) — THE QUEUE, ONE ROW PER ENTRY (era-ui §9a, UR-7: status, waiting reasons, the forfeit warning and the
+    /// priority line at the Body role in the Progress or Danger ink; explanations at Caption; Cancel Secondary, "Lose it"
+    /// Danger). The head shows the era's progress marks and the figures that have gone in — never a percentage, in any era —
+    /// and its status (an estimate from ConstructionQuery.HeadStatus). A committed entry has a Cancel: one click when nothing
+    /// has gone in, a two-step confirm stating the forfeit when something has. An entry ordered this turn has none.
+    /// </summary>
+    private double PaintQueue(DrawList d, ITextMeasure m, ActionSurfaceModel model, ConstructionBlock c, double x, double y, double w)
+    {
+        EraTheme t = T;
+        if (c.Queue.IsDefaultOrEmpty && c.Ordered.IsDefaultOrEmpty)
+            return c.MaterialsLine is { } none ? Wrapped(d, m, none, x, y, w, Second, t.TextInk.Progress) : y;
+        y = Wrapped(d, m, "Queue", x, y, w, Body, t.Ink.Text, FontRole.Heading) + Sp(2);
+        int k = 0;
+        foreach (QueueEntry q in c.Queue)
+        {
+            int id = 880 + k++;
+            double tw = w - Sp(8);
+            RectD? button = null;
+            if (q.CancelPending)
+            {
+                y = Wrapped(d, m, q.Name + " - cancelled this turn: leaves the queue at End Turn, before building work"
+                    + (q.Forfeit is { } f ? "; " + f + " are lost" : ""), x + Sp(8), y, tw, Second, t.TextInk.Danger);
+                continue;
+            }
+            if (q.Committed && q.Cancel is not null)
+            {
+                bool armed = _cancelArmed.Settlement == c.Settlement.Value && _cancelArmed.Slot == q.Slot;
+                RectD b = armed
+                    ? Button(d, m, "Lose it", x + w, y, id, ControlStyle.Danger)
+                    : Button(d, m, "Cancel", x + w, y, id, ControlStyle.Secondary);
+                _hits.Add(new ActionHit(b, armed ? ActionHitKind.CancelConfirm : ActionHitKind.CancelConstruction, c.Settlement.Value, q.Slot));
+                button = b;
+                tw = w - b.W - Sp(18);
+            }
+            string lead = q.Head
+                ? (q.Progress > 0 ? "Being built: " : "Next to build: ") + q.Name + (q.Progress > 0 ? "" : " - not started")
+                : ConstructionStatusText.Ordinal(q.Position) + " in line: " + q.Name;
+            double ty = y + (button is { } bb ? (bb.H - L(Body)) / 2 : 0);
+            Info(new RectD(x + Sp(8), ty, Math.Min(tw, m.Width(t, lead, Body, FontRole.Heading)), L(Body)), InfoSubject.OfProject(q.ProjectId, c.Settlement.Value), q.Name);
+            double ny = Wrapped(d, m, lead, x + Sp(8), ty, tw, Body, t.Ink.Text, FontRole.Heading);
+            y = Math.Max(ny, button is { } b2 ? b2.Bottom + Sp(2) : ny);
+            if (q.Head && q.Progress > 0)
+            {
+                // The era's progress marks (tally, counters, plates, a bar) — figures beside them, no percentage; floored and
+                // never all filled before completion (a part-built project never reads as done).
+                EraMarks.Progress(d, t, new RectD(x + Sp(8), y, Math.Min(Sp(240), w * 0.6), Sp(10)),
+                    q.Progress / (double)Sim.Core.State.ConstructionQuery.ProgressUnits, t.Semantic.Progress, id + 40, fullOnlyAtOne: true);
+                y += Sp(16);
+                if (q.GoneIn is { } gone) y = Wrapped(d, m, gone, x + Sp(8), y, w - Sp(8), Second, t.Ink.TextSoft);
+            }
+            if (q.Status is { } status)
+                y = Wrapped(d, m, status, x + Sp(8), y, w - Sp(8), Second, status.StartsWith("waiting", StringComparison.Ordinal) ? t.TextInk.Progress : t.TextInk.Active);
+            if (_cancelArmed.Settlement == c.Settlement.Value && _cancelArmed.Slot == q.Slot && q.Forfeit is { } lose)
+                y = Wrapped(d, m, "Cancelling loses what has gone in: " + lose + ". Nothing is refunded.", x + Sp(8), y, w - Sp(8), Second, t.TextInk.Danger);
+            else if (q.Committed && q.Cancel is not null && q.Progress == 0)
+                y = Wrapped(d, m, "Cancel - nothing has gone into it yet", x + Sp(8), y, w - Sp(8), Caption, t.Ink.TextSoft);
+            else if (!q.Committed)
+                y = Wrapped(d, m, "ordered this turn - can be cancelled from next turn", x + Sp(8), y, w - Sp(8), Caption, t.Ink.TextSoft);
+            y += Sp(4);
+        }
+        if (c.LastTurn is { } last) y = Wrapped(d, m, last, x, y, w, Second, t.Ink.TextSoft);
+        if (!c.Ordered.IsDefault) foreach (string o in c.Ordered) y = Wrapped(d, m, o, x, y, w, Second, t.TextInk.Active);
+        if (c.Priority is { } priority) y = Wrapped(d, m, priority, x, y, w, Body, t.TextInk.Progress);
+        if (c.MaterialsLine is { } materials) y = Wrapped(d, m, materials, x, y, w, Second, t.TextInk.Progress);   // WS2: the split
+        return Wrapped(d, m, "Work goes on each turn as far as builders and materials allow; what has gone in is never lost while a project waits, only if it is cancelled. Figures are estimates on current stocks.",
+            x, y, w, Caption, t.Ink.TextSoft);
+    }
+
+    // ------------------------------------------------------------------ the materials split (WS2, D-054)
+
+    /// <summary>
+    /// WS2 (D-054) — "MATERIALS FOR BUILDING AND ROADS": the Empire's standing building/roads split, between the Building
+    /// and Roads blocks (decision order). The explanation frames it as two GUARANTEED SHARES with spill-over (never amounts
+    /// spent regardless of need) and says dwellings draw first; the default says "building first". The control is the
+    /// era's own share control (tallies, notches, a slider) between the labels "Building" and "Roads", with b = 0 and
+    /// b = 100 both reachable; "Set" (Primary) shows only while the draft differs from the split in force; a Set queued
+    /// this turn is stated. In the numeral eras the control carries no inline numeral (its right end meets "Roads"); the
+    /// readout says both shares. READABILITY (era-ui §9a, UR-7; the WS1 UI rule — batch 3 R3, C2 review F6, the roles as
+    /// painted): the default line at the Body role (heading weight); the readout at the Body role in the body ink; the
+    /// queued line at the Second role (the Body size on this surface, UR-7) in the Active ink; the explanation and the
+    /// order-of-draws note at the Caption role in the soft ink; "Set" Primary.
+    /// </summary>
+    private double PaintAllocation(DrawList d, ITextMeasure m, ActionSurfaceModel model, AllocationBlock ab, double x, double y, double w, bool flat)
+    {
+        EraTheme t = T;
+        LabourControlSpec spec = model.Control;
+        const string title = "Materials for building and roads";
+        Info(HeadingRect(m, title, x, y, w, flat), InfoSubject.MaterialsSplit, title);
+        y = Heading(d, m, title, x, y, w, flat, 960);
+        if (ab.IsDefault) y = Wrapped(d, m, AllocationText.DefaultLine, x, y, w, Body, t.Ink.Text, FontRole.Heading);
+        // Batch 3 R3 (C2 review F6): the explanation is an explanation — the Caption role (the WS1 UI rule), in the soft ink.
+        y = Wrapped(d, m, AllocationText.Explanation(ab.BuildingsPercent, ab.Goods), x, y, w, Caption, t.Ink.TextSoft) + Sp(4);
+
+        int draft = Math.Clamp(_allocDraft < 0 ? ab.BuildingsPercent : _allocDraft, 0, 100);
+        bool set = _allocDraft >= 0 && _allocDraft != ab.BuildingsPercent;
+        double leftW = m.Width(t, "Building", BodyBold, FontRole.Heading) + Sp(10);
+        double rightW = m.Width(t, "Roads", BodyBold, FontRole.Heading) + Sp(10);
+        double rowH = Math.Max(L(BodyBold), Sp(22));
+        RectD? go = set ? Button(d, m, "Set", x + w, y, 962, ControlStyle.Primary) : null;
+        double goW = go is RectD gr ? gr.W + Sp(14) : Sp(60);
+        double ry = go is RectD g0 ? y + (g0.H - rowH) / 2 : y;
+        d.Write(t, x, ry, "Building", BodyBold, t.Ink.Text, TextAlign.Left, FontRole.Heading);
+        var r = new RectD(x + leftW, ry, Math.Max(Sp(60), Math.Min(Sp(220), w - leftW - rightW - goW)), rowH);
+        // Batch 3 R3 (C2 review F1): no inline numeral — at the control's right end it would stand beside "Roads" reading the
+        // BUILDING share; the Body readout below says both shares, each beside its own name.
+        PaintShareControl(d, m, spec, r, draft, t.Semantic.Infrastructure, ActionHitKind.AllocSlot, ActionHitKind.AllocTrack, 961, inlineNumeral: false);
+        d.Write(t, r.Right + Sp(8), ry, "Roads", BodyBold, t.Ink.Text, TextAlign.Left, FontRole.Heading);
+        double bottom = r.Bottom;
+        if (go is RectD gb)
+        {
+            _hits.Add(new ActionHit(gb, ActionHitKind.AllocApply, 0, 0));
+            Info(gb, InfoSubject.MaterialsSplit, title);
+            bottom = Math.Max(bottom, gb.Bottom);
+        }
+        y = bottom + Sp(4);
+        y = Wrapped(d, m, AllocationText.Readout(draft, spec.Numerals), x, y, w, Body, t.Ink.Text);
+        if (ab.QueuedPercent is { } q)
+            y = Wrapped(d, m, AllocationText.Queued(q, spec.Numerals), x, y, w, Second, t.TextInk.Active);
+        return Wrapped(d, m, "Each turn: dwellings take their own settlement's timber first; then building work, oldest order first; "
+            + "then road works. An estimate's figures use current stocks.", x, y, w, Caption, t.Ink.TextSoft);
     }
 
     // ------------------------------------------------------------------ roads (read only; transport is frozen)
@@ -819,16 +1042,22 @@ public sealed partial class ActionSurfaceScreen
             y = Wrapped(d, m, (spec.Numerals ? N0(_roadDraft) + "% of " : "a share of ") + "the demand on our busiest routes, heaviest-used first.", x, y, w, Second, t.Ink.TextSoft);
             if (_world is not null && _cfg is not null)
             {
-                _roadPreview ??= ActionSurface.RoadPlan(_world, _cfg, _player, _roadDraft, _name);
+                // WS2: with the building/roads split, what the order would be paid from is what building work's predicted
+                // draw leaves (the Materials block's split, this draft as the road order).
+                _roadPreview ??= ActionSurface.RoadPlan(_world, _cfg, _player, _roadDraft, _name, model.Allocation, spec.Numerals);
                 RoadPlanPreview p = _roadPreview;
                 string payers = p.Payers.Length <= 3 ? string.Join(", ", p.Payers)
                     : p.Payers[0] + ", " + p.Payers[1] + ", " + p.Payers[2] + " and " + (p.Payers.Length - 3).ToString(CultureInfo.InvariantCulture) + " more";
+                string paid = p.LeftLine is { } left ? "; " + left
+                    : p.Affordable >= 1.0 ? " (affordable)" : " (we can pay " + P(p.Affordable) + " of it now)";
                 string line = p.Routes.ToString(CultureInfo.InvariantCulture) + " route(s): " + string.Join(", ", p.RouteLabels)
-                    + ". Estimated cost on current stocks: " + p.Cost
-                    + (p.Affordable >= 1.0 ? " (affordable)" : " (we can pay " + P(p.Affordable) + " of it now)")
+                    + ". Estimated cost on current stocks: " + p.Cost + paid
                     + ". Our settlements nearest the route pay first: " + payers + ".";
                 y = Wrapped(d, m, line, x, y, w, Second, t.Ink.Text);
-                y = Wrapped(d, m, "An estimate: production uses tools before roads are built in the same turn.", x, y, w, Caption, t.Ink.TextSoft);
+                if (p.Warning is { } warn) y = Wrapped(d, m, warn + ".", x, y, w, Second, t.TextInk.Progress);
+                y = Wrapped(d, m, p.LeftLine is not null
+                    ? "An estimate on current stocks: this turn's production arrives before building work, and buildings draw before roads, within their share."
+                    : "An estimate: production uses tools before roads are built in the same turn.", x, y, w, Caption, t.Ink.TextSoft);
             }
         }
         if (rb.Blocker is { } blocker) y = Blocker(d, m, "not yet:", blocker, x, y, w, Second);
@@ -872,15 +1101,20 @@ public sealed partial class ActionSurfaceScreen
         return y;
     }
 
-    /// <summary>A single 0..100 share in the era's control (the tax levy, the road percentage).</summary>
-    private void PaintShareControl(DrawList d, ITextMeasure m, LabourControlSpec spec, RectD r, int percent, Rgba ink, ActionHitKind slot, ActionHitKind track, int id, int minUnits = 0)
+    /// <summary>A single 0..100 share in the era's control (the tax levy, the road percentage). In the numeral eras the
+    /// share is written at the control's right end (<paramref name="inlineNumeral"/>), except for a TWO-SIDED share — the
+    /// building/roads split, whose right end meets its second label ("Roads"): there a numeral beside "Roads" reading the
+    /// FIRST side's share would misread (batch 3 R3, C2 review F1), so its caller writes both shares in its readout.</summary>
+    private void PaintShareControl(DrawList d, ITextMeasure m, LabourControlSpec spec, RectD r, int percent, Rgba ink, ActionHitKind slot, ActionHitKind track, int id, int minUnits = 0,
+        bool inlineNumeral = true)
     {
         EraTheme t = T;
-        double numW = m.Width(t, "100%", Data, FontRole.Numeric) + Sp(6);
+        bool numeral = spec.Numerals && inlineNumeral;
+        double numW = inlineNumeral ? m.Width(t, "100%", Data, FontRole.Numeric) + Sp(6) : 0;
         if (!spec.IsSlider)
         {
             int units = spec.Units, value = (int)Math.Round(percent / (double)spec.PercentPerUnit, MidpointRounding.AwayFromZero);
-            double nw = spec.Numerals ? numW : 0;
+            double nw = numeral ? numW : 0;
             double s = (r.W - nw) / units, rad = Math.Min(s * 0.36, r.H * 0.38);
             for (int i = 0; i < units; i++)
             {
@@ -898,7 +1132,7 @@ public sealed partial class ActionSurfaceScreen
                 }
                 _hits.Add(new ActionHit(hit, slot, 0, i));
             }
-            if (spec.Numerals) d.Write(t, r.Right, r.Y + (r.H - L(Data)) / 2, percent.ToString(CultureInfo.InvariantCulture) + "%", Data, t.Ink.Text, TextAlign.Right, FontRole.Numeric);
+            if (numeral) d.Write(t, r.Right, r.Y + (r.H - L(Data)) / 2, percent.ToString(CultureInfo.InvariantCulture) + "%", Data, t.Ink.Text, TextAlign.Right, FontRole.Numeric);
             return;
         }
         var tr = new RectD(r.X, r.CenterY - 3, Math.Max(10, r.W - numW), 6);
@@ -907,7 +1141,7 @@ public sealed partial class ActionSurfaceScreen
         bool overTrack = Pointer is (double tx, double ty) && new RectD(tr.X, r.Y - 2, tr.W, r.H + 4).Contains(tx, ty);
         d.Circle(tr.X + tr.W * percent / 100.0, tr.CenterY, Math.Max(4, t.Controls.GrabPx * 0.42 * Scale) + (overTrack ? 1.5 : 0),
             overTrack ? Mix(t.Material.PanelRaised, t.Material.Accent, 0.22) : t.Material.PanelRaised, t.Material.BorderStrong, 1.1);
-        d.Write(t, r.Right, r.Y + (r.H - L(Data)) / 2, percent.ToString(CultureInfo.InvariantCulture) + "%", Data, t.Ink.Text, TextAlign.Right, FontRole.Numeric);
+        if (inlineNumeral) d.Write(t, r.Right, r.Y + (r.H - L(Data)) / 2, percent.ToString(CultureInfo.InvariantCulture) + "%", Data, t.Ink.Text, TextAlign.Right, FontRole.Numeric);
         _hits.Add(new ActionHit(new RectD(tr.X, r.Y - 2, tr.W, r.H + 4), track, 0, 0));
         _ = minUnits;
         _ = id;

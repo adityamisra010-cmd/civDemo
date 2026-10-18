@@ -38,3 +38,13 @@ exists after construction).
   excludes erosion/climate simulation) would move the mutated layers into
   cloned, canonically-serialized state — a director-approved ADR at that
   milestone, reversing this exclusion only for the layers that gain writers.
+
+## Dated note — 2026-10-15 (D-054, ADR-039 §5 and §9; appended, the decision above is unchanged)
+
+- **`TerrainSet.FromLayers(…, wrapX)`** is a public TEST AND TOOL factory for terrain worldgen cannot produce, such as
+  the seam-crossing `SeamWorld` fixture. It copies its layers, so the set stays immutable, and computes the content hash
+  exactly as for a generated set. The game never calls it.
+- **`TerrainSet.WrapX`** (the east-west cylinder, set by `Worldgen.Generate`) is NOT folded into the content hash. A
+  save binds it separately through the v33 snapshot topology trailer.
+- Everything this record decided stands: the terrain is immutable, outside `Clone()`, and its hash is folded into every
+  world hash.

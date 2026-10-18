@@ -19,7 +19,7 @@ namespace Sim.Core.Systems.Construction;
 /// only while that settlement's queue is EMPTY (one project waits at a time, so a blocked head is never buried
 /// under more). It enqueues the first such project in goods.json order that the settlement has not built yet,
 /// that is AVAILABLE to the polity there, and whose every material is covered IN FULL by the RESERVED PURSE now (item 3;
-/// the construction-labour gate is applied by the system when it resolves the queue). Building each project
+/// the builders' pace is the system's when it resolves the queue). Building each project
 /// once per settlement keeps the AI from sinking every unit of timber and stone into duplicate structures.</item>
 /// <item><b>Universities</b> (ADR-033 D6; projects that found an institution): AT MOST ONE founding per
 /// polity per turn, decided after the ordinary projects. The SPECIALTY is the AVAILABLE university type the
@@ -33,7 +33,8 @@ namespace Sim.Core.Systems.Construction;
 /// polity's settlements with an EMPTY queue and no order this turn where the project is AVAILABLE, the
 /// founding viability holds (InstitutionViability.ToFound — the gate ConstructionSystem applies), every
 /// material is covered in full by the RESERVED PURSE (item 3, after this turn's ordinary orders) and the construction
-/// capacity covers the labour (affordable this turn), the one with the LARGEST spare market (adults − adultsPerUniversity
+/// capacity can build it (item 4 (b) with incremental construction; the whole labour this turn without), the one with
+/// the LARGEST spare market (adults − adultsPerUniversity
 /// × the universities it already hosts, an integer), ties to the LOWER settlement id (composite key). No university is
 /// founded where any of those fails.</item>
 /// <item><b>The reserved purse</b> (D-051 §6, D-053 §1 — one purse serves every queue of an Empire). A settlement's purse
@@ -44,14 +45,31 @@ namespace Sim.Core.Systems.Construction;
 /// project chosen EARLIER in this same decision at one of them, in the iteration order above (settlement-table order,
 /// then the university last). A project is ordered only when that reserved purse covers its WHOLE cost, so the AI never
 /// orders two projects one purse can pay for only once, and never queues one that would only block its queue: on the
-/// stocks it decides on, each project it orders is paid for in full AFTER every claim already queued in the Empire and
-/// every order before it, so it never waits behind a sibling for the same stone and is never queued against materials
-/// the purse does not hold. What can still make an AI head
-/// wait is what could before the purse — the labour gate, a university host's founding viability, and stocks the step
-/// moves before construction runs (pipeline order, as for any order). With the switch off, a settlement's purse is itself, its
+/// stocks it decides on, each project it orders is covered in full AFTER every claim already queued in the Empire (each
+/// entry's remaining needs) and every order before it. What can still make an AI head wait is its builders' pace, a
+/// university host's founding viability, earlier projects in the building order and road works using the units first
+/// (claims set nothing aside — ConstructionSystem's header), and stocks the step moves before construction runs (pipeline
+/// order, as for any order). With the switch off, a settlement's purse is itself, its
 /// queue is empty (the AI orders only into an empty queue) and it receives at most one order a turn, so the
 /// reservation subtracts nothing: the pre-purse orders, bit-exact.</item>
 /// </list>
+/// <item><b>Incremental construction</b> (WS1, D-054; sim.json construction.incremental on). The SYSTEM lets any
+/// project start without its full cost — it advances as builders and materials allow and keeps what went in. The AI's
+/// ORDERING stays deliberately more cautious (a documented exception, recorded in D-054): it still orders only into an
+/// IDLE queue and only when the reserved purse covers the project's whole remaining inputs (item 3 — the claims are each
+/// queued entry's REMAINING needs), so its queues do not stall waiting for stone the purse never had. Two additions, both
+/// read through ConstructionQuery's one resolver: (a) BEFORE ordering, it CANCELS each of its own heads that is
+/// STRUCTURALLY STALLED (ConstructionQuery.StructuralStall: no labour adults, a host that cannot sustain the institution,
+/// an unobtainable crafted input, a project gone from the content) with the player's CancelConstruction order, so a dead
+/// head can never deadlock its queue or its claims, and it orders nothing into that settlement in the same decision (a
+/// viability wait counts as structural exactly as D-054 specifies it — the market OR the food surplus, though the published
+/// food_surplus_ratio moves with each harvest, so a bad harvest can make the AI forfeit a part-built university; whether a
+/// food-surplus lapse should count is an OPEN Director question raised at the C1 review, F2, pinned by
+/// IncrementalConstructionIntegrationTests.TheAi_CancelsAUniversityHeadWhoseHostCannotFoundIt_AsSpecified_…); and
+/// it does not order an ordinary project into a settlement with no labour adults (the head would stall at once). (b) A
+/// university's site needs builders able to move it at all this turn — floor(C / L × N) ≥ 1, i.e. one progress unit
+/// (was: capacity ≥ the whole laborRequired this turn, the M4-D gate). With the switch off, none of this applies: the
+/// batch-2 orders, bit-exact.</item>
 /// Deterministic and tie-free: integer table and content order, composite keys with integer tie-breaks
 /// (tie-dense tests: InstitutionAiTests). Strategic construction is later AI work. Player-commanded polities
 /// are never touched.
@@ -84,11 +102,28 @@ public static class AiConstructionPolicy
         var orders = new List<OrderRecord>();
         var ordered = new List<int>();   // settlements given an order this turn
         PolityKnowledge knows = PolityKnowledge.Of(world, polity);
+        bool incremental = ConstructionQuery.Incremental(cfg);
+
+        // WS1 (a): cancel this polity's own STRUCTURALLY STALLED heads first (the header). Settlement-table order.
+        if (incremental)
+        {
+            for (int s = 0; s < world.Settlements.Count; s++)
+            {
+                SettlementId settlement = world.Settlements[s].Id;
+                if (!knows.ReadsInternals(settlement)) continue;   // P7: its own books only — control before the queue
+                if (ConstructionQuery.StructuralStall(world, cfg, settlement, dtYears ?? 1.0) is not { } stalled) continue;
+                orders.Add(ConstructionQuery.CancelOrder(world, polity, settlement, stalled.Entry.Slot));
+                ordered.Add(settlement.Value);
+            }
+        }
+
         for (int s = 0; s < world.Settlements.Count; s++)
         {
             SettlementId settlement = world.Settlements[s].Id;
             if (!knows.ReadsInternals(settlement)) continue;   // P7: its own books only — control before the queue
             if (ConstructionQuery.Queue(world, settlement).Length > 0) continue;
+            // WS1: a settlement with no labour adults would stall any head at once — order nothing there.
+            if (incremental && !(InstitutionStaffing.LabourAdults(world, cfg, settlement) > 0.0)) continue;
             SettlementId[] holders = ConstructionQuery.Holders(world, cfg, settlement);   // the purse the system draws on
             foreach (ConstructionProjectEntry project in projects)
             {
@@ -108,8 +143,9 @@ public static class AiConstructionPolicy
 
     /// <summary>
     /// THE RESERVED PURSE (the header, item 3): whether, for every input of <paramref name="project"/>, the purse
-    /// <paramref name="holders"/> holds at least the input's quantity once the claims are reserved — the whole cost of every
-    /// project queued (any slot) at one of the holders (ConstructionQuery.Unclaimed) and of every EnqueueConstruction in
+    /// <paramref name="holders"/> holds at least the input's quantity once the claims are reserved — the REMAINING needs of
+    /// every project queued (any slot) at one of the holders (ConstructionQuery.Unclaimed with the world's progress; the
+    /// whole cost of an entry nothing has gone into) and the whole cost of every EnqueueConstruction in
     /// <paramref name="chosen"/> (this decision's earlier orders) whose settlement is one of the holders. Exact long
     /// arithmetic; a project chosen for a settlement outside the purse reserves nothing in it.
     /// </summary>
@@ -121,7 +157,7 @@ public static class AiConstructionPolicy
         {
             ProjectInput input = project.Inputs[i];
             var good = new GoodId(goods.IdOf(input.Good));
-            long free = ConstructionQuery.Unclaimed(world.GoodStocks, world.ConstructionQueue, goods, holders, good);
+            long free = ConstructionQuery.Unclaimed(world.GoodStocks, world.ConstructionQueue, world.ConstructionProgress, goods, holders, good);
             if (chosen is not null)
                 for (int c = 0; c < chosen.Count; c++)
                 {
@@ -218,7 +254,11 @@ public static class AiConstructionPolicy
             UniversityViability v = InstitutionViability.ToFound(world, cfg, settlement);
             if (!v.Viable) continue;
             if (!ReservedCovers(world, goods, ConstructionQuery.Holders(world, cfg, settlement), project, chosen)) continue;
-            if (!(ConstructionQuery.CapacityAdultYears(world, cfg, settlement, dtYears) >= project.LaborRequired)) continue;
+            double capacity = ConstructionQuery.CapacityAdultYears(world, cfg, settlement, dtYears);
+            // WS1 (the header, (b)): builders able to move it at all — one progress unit this turn; the M4-D gate otherwise.
+            if (ConstructionQuery.Incremental(cfg)
+                    ? ConstructionQuery.LabourBound(capacity, project.LaborRequired, 0) < 1
+                    : !(capacity >= project.LaborRequired)) continue;
             long spare = v.Adults - marketPerUniversity * v.Hosted;
             if (best is { } held && (spare < bestSpare || (spare == bestSpare && settlement.Value > held.Value))) continue;
             (best, bestSpare) = (settlement, spare);

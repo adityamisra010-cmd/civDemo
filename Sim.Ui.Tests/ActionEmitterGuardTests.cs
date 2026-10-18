@@ -76,6 +76,80 @@ public class ActionEmitterGuardTests
         }
     }
 
+    /// <summary>D-054 WS1: the queue's Cancel (UiSession.EmitCancelConstruction) appends a CancelConstruction order ONLY
+    /// where ConstructionSystem would apply it at delivery (ConstructionQuery.CancelOrderValid: a roster Empire, control, a
+    /// well-formed slot, the slot queued) — and only for a COMMITTED entry whose cancel is not already pending. The log the
+    /// UI wrote replays.</summary>
+    [Fact]
+    public void CancelConstruction_IsQueuedOnlyForACommittedEntryThePlayerControls_OnceATurn_AndTheLogReplays()
+    {
+        UiSession s = Duo();
+        int foreign = ForeignSettlement(s.World);
+        int mine = EmpireQuery.TryGetCapital(s.World, Me, out SettlementId cap) ? cap.Value : throw new InvalidOperationException();
+        int granary = s.Config.Goods!.Projects![0].Id;
+
+        Assert.False(s.EmitCancelConstruction(mine, 0));                  // nothing queued
+        Assert.True(s.EmitConstructionOrder(mine, granary));
+        Assert.True(s.EmitConstructionOrder(mine, granary));
+        Assert.False(s.EmitCancelConstruction(mine, 0));                  // ordered this turn: not committed yet
+        s.EndTurn();
+        var hashes = new List<string> { WorldHash.ComputeHex(s.World) };
+        Assert.Equal(2, ConstructionQuery.Queue(s.World, cap).Length + (int)ConstructionQuery.Built(s.World, cap, granary));
+
+        int last = ConstructionQuery.Queue(s.World, cap)[^1].Slot;
+        Assert.False(s.EmitCancelConstruction(foreign, 0));               // not the player's settlement
+        Assert.False(s.EmitCancelConstruction(mine, last + 5));           // no such slot
+        Assert.False(s.EmitCancelConstruction(mine, -1));                 // malformed slot
+        Assert.True(s.EmitCancelConstruction(mine, last));
+        Assert.Equal(ConstructionQuery.CancelOrder(s.World, Me, cap, last), s.Orders[s.Orders.Count - 1]);
+        Assert.False(s.EmitCancelConstruction(mine, last));               // already pending this turn
+        Assert.Single(Enumerable.Range(0, s.Orders.Count).Select(i => s.Orders[i]), o => o.Kind == OrderKind.CancelConstruction && o.ActorId == Me.Value);
+        s.EndTurn();
+        hashes.Add(WorldHash.ComputeHex(s.World));
+        Assert.DoesNotContain(ConstructionQuery.Queue(s.World, cap), r => r.Slot == last);
+
+        WorldState world = UiFounding.Found(42, 256, 4, aiEmpiresOverride: 1);
+        OrderValidation.ValidateAgainstWorld(s.Orders, world);
+        TurnExecutor exec = UiSession.BuildProductionExecutor(s.Orders);
+        for (int t = 0; t < hashes.Count; t++)
+        {
+            world = exec.Step(world);
+            Assert.Equal(hashes[t], WorldHash.ComputeHex(world));
+        }
+    }
+
+    /// <summary>D-054 WS2: the Materials block's Set (UiSession.EmitAllocationOrder) appends a SetResourceAllocation order
+    /// ONLY where ConstructionSystem would apply it at delivery (ConstructionQuery.AllocationOrderValid: the split switched on,
+    /// the player's Empire setting its OWN split, a whole share in [0, 100]) and only when it would change the split in force
+    /// for this turn. The log the UI wrote (with the AI's orders) replays.</summary>
+    [Fact]
+    public void SetResourceAllocation_IsGuardedByTheDeliveryPredicate_AndTheLogReplays()
+    {
+        UiSession s = Duo();
+        Assert.False(s.EmitAllocationOrder(-1));
+        Assert.False(s.EmitAllocationOrder(101));
+        Assert.False(s.EmitAllocationOrder(ResourceAllocation.DefaultBuildingsPercent));   // already in force: changes nothing
+        Assert.Equal(0, s.Orders.Count);
+        Assert.True(s.EmitAllocationOrder(30));
+        OrderRecord order = s.Orders[s.Orders.Count - 1];
+        Assert.Equal(ResourceAllocation.Order(s.World, Me, 30), order);
+        Assert.True(ConstructionQuery.AllocationOrderValid(s.World, s.Config, order));
+        Assert.False(ConstructionQuery.AllocationOrderValid(s.World, s.Config, order with { TargetId = order.TargetId + 1 }));
+        var hashes = new List<string>();
+        s.EndTurn();
+        hashes.Add(WorldHash.ComputeHex(s.World));
+        Assert.Equal(30, ResourceAllocation.EffectivePercent(s.World, Me));
+
+        WorldState world = UiFounding.Found(42, 256, 4, aiEmpiresOverride: 1);
+        OrderValidation.ValidateAgainstWorld(s.Orders, world);
+        TurnExecutor exec = UiSession.BuildProductionExecutor(s.Orders);
+        for (int t = 0; t < hashes.Count; t++)
+        {
+            world = exec.Step(world);
+            Assert.Equal(hashes[t], WorldHash.ComputeHex(world));
+        }
+    }
+
     [Fact]
     public void Labour_IsRefusedForASettlementThatNoLongerObeys()
     {

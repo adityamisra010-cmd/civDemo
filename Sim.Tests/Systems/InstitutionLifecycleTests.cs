@@ -361,6 +361,59 @@ public class InstitutionLifecycleTests
         Assert.True(straight.Institutions[0].Maturity > mid.Institutions[0].Maturity);
     }
 
+    // ------------------------------------------------------------------ incremental construction, founded once
+
+    /// <summary>
+    /// Fix round 1 (verifier WS1-INST1, 2026-10-15) — the design's "exactly-once completion … institution founded once"
+    /// clause for a university BUILT PIECE BY PIECE (D-054 WS1), through the real ConstructionSystem → InstitutionsSystem
+    /// pair. Before this test the completion test used a granary and counted only structures. The rig: the dev world's
+    /// capital, timber and stone at exactly 0 everywhere, then the full 1,800 timber and HALF the stone (600 of 1,200);
+    /// builders are not the limit (asserted). Turn-exact: the head reaches N/2 and waits, founding nothing while part-built;
+    /// the rest of the stone completes it in step 2→3 (counted once, both rows removed); InstitutionsSystem founds it in
+    /// step 3→4 (the one-step lag); no later step founds another or counts the building again.
+    /// </summary>
+    [Fact]
+    public void AUniversityBuiltPieceByPiece_FoundsNothingWhilePartBuilt_ThenExactlyOneInstitution_AndNoLaterStepFoundsAnother()
+    {
+        SimConfig cfg = Cfg(adultsPerUniversity: 100);
+        WorldState w = IncrementalConstructionTests.Solo();          // stone and timber at exactly 0 in every settlement
+        SettlementId s = w.Settlements[0].Id;
+        Grant(w, Research, Player);
+        Surplus(w, s, 2.0);
+        Construction(w, s, 0.5);
+        ConstructionProjectEntry project = InstitutionContent.ProjectOfType(cfg, Engineering)!;   // 1800 timber, 1200 stone
+        Assert.True(ConstructionQuery.CapacityAdultYears(w, cfg, s, 10.0) >= project.LaborRequired, "anti-vacuity: stone is the limit");
+        int timber = cfg.Goods!.IdOf("timber"), stone = cfg.Goods!.IdOf("stone");
+        IncrementalConstructionTests.Set(w, s, timber, 1800);
+        IncrementalConstructionTests.Set(w, s, stone, 600);
+        var log = new OrderLog();
+        log.Append(ConstructionQuery.EnqueueOrder(w, Player, s, project.Id));        // stamped turn 0
+        TurnExecutor exec = Only(log, 10.0, FoundingPipeline(cfg));
+
+        WorldState t1 = exec.Step(w);
+        ConstructionQueueRow entry = Assert.Single(Rows(t1.ConstructionQueue));
+        Assert.Equal(500_000, ConstructionQuery.ProgressOf(t1, entry));             // half the stone: half built
+        Assert.Equal((0L, 0), (ConstructionQuery.Built(t1, s, project.Id), t1.Institutions.Count));
+        WorldState t2 = exec.Step(t1);
+        Assert.Equal(500_000, ConstructionQuery.ProgressOf(t2, entry));             // waits, keeping what went in
+        Assert.Equal((0L, 0), (ConstructionQuery.Built(t2, s, project.Id), t2.Institutions.Count));
+
+        IncrementalConstructionTests.Set(t2, s, stone, 600);
+        WorldState t3 = exec.Step(t2);
+        Assert.Equal((1L, 0, 0, 0),
+            (ConstructionQuery.Built(t3, s, project.Id), t3.ConstructionQueue.Count, t3.ConstructionProgress.Count, t3.Institutions.Count));
+        WorldState t4 = exec.Step(t3);
+        Assert.Equal(new InstitutionRow(1, Player, s, Engineering, 4, 0.0), Assert.Single(Rows(t4.Institutions)));
+
+        WorldState later = t4;
+        for (int k = 0; k < 4; k++)
+        {
+            later = exec.Step(later);
+            Assert.Equal(1, Assert.Single(Rows(later.Institutions)).Id);
+            Assert.Equal(1L, ConstructionQuery.Built(later, s, project.Id));
+        }
+    }
+
     // ------------------------------------------------------------------ helpers
 
     private static T[] Rows<T>(Table<T> t) where T : unmanaged

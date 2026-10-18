@@ -43,6 +43,9 @@ public enum InfoKind
     Cell = 15,
     /// <summary>M5 S1d: the Found Settlement order FROM a settlement (D-051 §5): Id = the source settlement's id.</summary>
     Founding = 16,
+    /// <summary>WS2 (D-054): the Empire's building/roads material split — the order that sets it (kind 12) and the rule it
+    /// sets (singleton).</summary>
+    MaterialsSplit = 17,
 }
 
 /// <summary>
@@ -67,6 +70,8 @@ public readonly record struct InfoSubject(InfoKind Kind, long Id = 0, string? Re
     public static InfoSubject Research => new(InfoKind.Learning);
     public static InfoSubject OfCell(int cell, int source = -1) => new(InfoKind.Cell, cell, null, source);
     public static InfoSubject OfFounding(int source) => new(InfoKind.Founding, source);
+    /// <summary>WS2 (D-054): the building/roads material split.</summary>
+    public static InfoSubject MaterialsSplit => new(InfoKind.MaterialsSplit);
 }
 
 /// <summary>Where a subject stands for the issuer now — each value the reading of the simulation's own predicate.</summary>
@@ -225,6 +230,7 @@ public static class InfoQuery
             case InfoKind.Learning: LearningCard(c, b); break;
             case InfoKind.Cell: CellCard(c, b); break;
             case InfoKind.Founding: FoundingCard(c, b); break;
+            case InfoKind.MaterialsSplit: MaterialsSplitCard(c, b); break;
             default: b.Unknown("this kind of object"); break;
         }
         return b.Build(c);
@@ -790,6 +796,14 @@ public static class InfoQuery
 
     // ================================================================== construction project
 
+    /// <summary>The construction sector's knowledge-derived label for the viewer — what the Labour block and the queue's
+    /// status line call it (LabourActivities.CapabilityLabel; "Building" when nothing names it).</summary>
+    private static string BuildingLabel(Ctx c)
+    {
+        string label = c.R is null ? "" : LabourActivities.CapabilityLabel(c.R, c.Done, Sectors.Construction);
+        return label.Length == 0 ? "Building" : label;
+    }
+
     private static void ProjectCard(Ctx c, B b)
     {
         if (c.Cfg.Goods?.ProjectById((int)b.Subject.Id) is not { } p) { b.Unknown("a construction project with this id"); return; }
@@ -797,15 +811,29 @@ public static class InfoQuery
         bool founds = InstitutionContent.FoundsInstitution(p);
         b.Title = ProjectName(c, p);
         b.Kind = "Construction project" + (founds ? " - founds an institution" : "") + (where >= 0 ? " at " + c.Name(where) : "");
-        b.What = "Built through the construction queue from " + Materials(p) + " and " + Num(p.LaborRequired) + " adult-years of construction labour.";
+        bool incremental = ConstructionQuery.Incremental(c.Cfg);
+        b.What = (incremental ? "Built through the construction queue, a little each turn, from " : "Built through the construction queue from ")
+            + Materials(p) + " and " + Num(p.LaborRequired) + " adult-years of construction labour.";
         // D-053 §1: the purse's claims are the world's queue plus the turn's pending orders the intake would accept — the
-        // queue the listing reads (ConstructionQuery.QueueWithPending), so the card and the listing never disagree.
-        IReadOnlyTable<ConstructionQueueRow> claims = ConstructionQuery.QueueWithPending(c.W, c.Cfg, c.Q.Queued);
-        ProjectAvailability av = where >= 0 ? ConstructionQuery.Availability(c.W, c.Cfg, c.P, new SettlementId(where), p.Id, claims) : ProjectAvailability.UnknownSettlement;
-        string? blocker = av == ProjectAvailability.Available ? ConstructionQuery.BlockerSeenBy(c.W, c.Cfg, c.P, new SettlementId(where), p, c.Q.NextDtYears) : null;
+        // queue the listing reads (ConstructionQuery.QueueWithPending), so the card and the listing never disagree. WS1: with
+        // the pending cancels applied first and each entry's REMAINING needs (its progress in the same pending book).
+        IReadOnlyTable<ConstructionQueueRow> claims = ConstructionQuery.QueueWithPending(c.W, c.Cfg, c.Q.Queued, out IReadOnlyTable<ConstructionProgressRow> claimsProgress);
+        ProjectAvailability av = where >= 0 ? ConstructionQuery.Availability(c.W, c.Cfg, c.P, new SettlementId(where), p.Id, claims, claimsProgress) : ProjectAvailability.UnknownSettlement;
+        // WS1: the entry of this project already queued here (its lowest slot), whose progress the card reports.
+        long progress = 0;
+        ConstructionQueueRow? queued = null;
+        if (where >= 0)
+            foreach (ConstructionQueueRow row in ConstructionQuery.Queue(c.W, new SettlementId(where)))
+                if (row.ProjectId == p.Id) { progress = ConstructionQuery.ProgressOf(c.W, row); queued = row; break; }
+        // WS1 (C1 review F6): that entry is itself one of the claims in the pending book (unless a pending cancel removes it);
+        // its Met asks whether the purse covers what IT still needs after every OTHER claim, so its own claim is set aside.
+        ConstructionQueueRow? ownClaim = incremental && queued is { } qe
+            && ConstructionQuery.IndexOfSlot(claims, qe.Settlement, qe.Slot) is var at && at >= 0 && claims[at].ProjectId == qe.ProjectId
+            ? qe : null;
+        string? blocker = av == ProjectAvailability.Available ? ConstructionQuery.BlockerSeenBy(c.W, c.Cfg, c.P, new SettlementId(where), p, c.Q.NextDtYears, progress) : null;
         // The guard refused because the empire HOLDS the crafted input but its queued projects already claim it: say so.
         string? claimedReason = av == ProjectAvailability.InputUnobtainable
-            ? ConstructionQuery.ClaimedReason(c.W, c.Cfg, new SettlementId(where), p, claims, c.Name) : null;
+            ? ConstructionQuery.ClaimedReason(c.W, c.Cfg, new SettlementId(where), p, claims, claimsProgress, c.Name) : null;
         b.Status = av switch
         {
             ProjectAvailability.Available => blocker is null ? InfoStatus.Available : InfoStatus.Blocked,
@@ -815,6 +843,9 @@ public static class InfoQuery
         };
         b.StatusLine = av switch
         {
+            ProjectAvailability.Available when incremental => "Can be ordered now. Work goes on each turn as far as materials and builders allow; "
+                + "what has gone in is never lost while it waits, only if the project is cancelled."
+                + (blocker is null ? "" : " It will wait for " + WithoutNeeds(blocker) + "."),
             ProjectAvailability.Available => blocker is null ? "Can be built now." : "You may order it; it waits until it " + blocker + ".",
             ProjectAvailability.NotKnowledgeEligible => "Not yet known.",
             ProjectAvailability.InputUnobtainable => claimedReason is { } held
@@ -862,19 +893,45 @@ public static class InfoQuery
             int good = c.Cfg.Goods!.IdOf(i.Good);
             long held = PurseHeld(c, where, good);
             string has = (empire ? "empire has " : "has ") + Inv(held);
+            long need = incremental ? ConstructionQuery.Remaining(i.Qty, progress) : i.Qty;
             long claimed = empire && ConstructionQuery.IsCraftedGood(c.Cfg.Goods!, good)
-                ? ConstructionQuery.Claimed(claims, c.Cfg.Goods!, ConstructionQuery.Holders(c.W, c.Cfg, new SettlementId(where)), new GoodId(good)) : 0;
-            long usable = held - claimed;
+                ? ConstructionQuery.Claimed(claims, claimsProgress, c.Cfg.Goods!, ConstructionQuery.Holders(c.W, c.Cfg, new SettlementId(where)), new GoodId(good)) : 0;
+            long own = claimed > 0 && ownClaim is { } oc
+                ? ConstructionQuery.Remaining(ConstructionQuery.InputOf(c.Cfg.Goods!, p, new GoodId(good)), ConstructionQuery.ProgressOf(claimsProgress, oc)) : 0;
+            long usable = held - (claimed - own);
+            // WS1: claims are counts, not set-asides — the card says so in those words (never "reserved").
             string note = has + (!empire && where >= 0 ? " at " + c.Name(where) : "")
-                + (claimed > 0 ? "; " + Inv(claimed) + " claimed by projects queued at " + ClaimedPlaces(c, claims, where, good)
-                    + ", " + Inv(Math.Max(0, usable)) + " unclaimed" : "");
-            b.Requirements.Add(new InfoLink(Inv(i.Qty) + " " + i.Good, InfoSubject.OfGood(good), usable >= i.Qty, note));
-            if (held < i.Qty && Chain(c, i.Good, 0, ref b.TreeNode) is { } chain)
-                b.WhyLocked.Add(new InfoLink(Inv(i.Qty) + " " + i.Good + " (" + has + "): " + chain, InfoSubject.OfGood(good), false));
+                + (claimed > 0
+                    ? incremental
+                        ? "; " + Inv(claimed) + " counted toward projects already queued at " + ClaimedPlaces(c, claims, claimsProgress, where, good)
+                            + " (this does not set it aside: earlier projects in the building order, and road works under the split, can use it first)"
+                        : "; " + Inv(claimed) + " claimed by projects queued at " + ClaimedPlaces(c, claims, claimsProgress, where, good)
+                            + ", " + Inv(Math.Max(0, usable)) + " unclaimed"
+                    : "");
+            string label = incremental && progress > 0
+                ? Inv(i.Qty) + " " + i.Good + " - " + Inv(ConstructionQuery.Delivered(i.Qty, progress)) + " in, " + Inv(need) + " to go"
+                : Inv(i.Qty) + " " + i.Good;
+            // Met as the obtainability guard reads it: a crafted input against its UNCLAIMED holding, a raw one against the
+            // purse (claimed is 0 for a raw good) — WS1: against the REMAINING need, and for an entry already queued here
+            // against every claim but its own.
+            b.Requirements.Add(new InfoLink(label, InfoSubject.OfGood(good), usable >= need, note));
+            if (held < need && Chain(c, i.Good, 0, ref b.TreeNode) is { } chain)
+                b.WhyLocked.Add(new InfoLink(Inv(need) + " " + i.Good + " (" + has + "): " + chain, InfoSubject.OfGood(good), false));
         }
         double? cap = where >= 0 && c.Q.NextDtYears is { } dt && dt > 0.0 ? ConstructionQuery.CapacityAdultYears(c.W, c.Cfg, new SettlementId(where), dt) : null;
-        b.Requirements.Add(new InfoLink(Num(p.LaborRequired) + " adult-years of construction labour", InfoSubject.Sector(Sectors.Construction, where),
-            cap is { } cy ? cy >= p.LaborRequired : null, cap is { } cz ? "about " + Num(cz) + " this turn (an estimate)" : "the construction share of labour"));
+        if (incremental)
+        {
+            // WS1: labour is a PACE, not a gate — an estimate of how much a turn and how many turns, never a refusal.
+            double left = p.LaborRequired * (double)(ConstructionQuery.ProgressUnits - progress) / ConstructionQuery.ProgressUnits;
+            string pace = cap is { } cp && cp > 0.0
+                ? "about " + Num(cp) + " adult-years a turn here; about " + Inv((long)Math.Ceiling(left / cp)) + " more turns of building work (an estimate)"
+                : cap is not null ? "no builders here this turn - give " + BuildingLabel(c) + " a share in Labour" : "the construction share of labour";
+            b.Requirements.Add(new InfoLink(Num(p.LaborRequired) + " adult-years of construction labour", InfoSubject.Sector(Sectors.Construction, where),
+                cap is { } cm ? cm > 0.0 : null, pace));
+        }
+        else
+            b.Requirements.Add(new InfoLink(Num(p.LaborRequired) + " adult-years of construction labour", InfoSubject.Sector(Sectors.Construction, where),
+                cap is { } cy ? cy >= p.LaborRequired : null, cap is { } cz ? "about " + Num(cz) + " this turn (an estimate)" : "the construction share of labour"));
         if (founds && where >= 0 && InstitutionViability.ToFound(c.W, c.Cfg, new SettlementId(where)) is { Viable: false } v)
             b.Requirements.Add(new InfoLink("A town able to sustain it", null, false, "needs " + InstitutionViability.Shortfall(v)));
         if (blocker is not null && b.WhyLocked.Count == 0) b.WhyLocked.Add(new InfoLink("Waits: " + blocker, null, false));
@@ -913,7 +970,12 @@ public static class InfoQuery
             b.Enables.Add(new InfoLink(LevyServicesLabel, null, null,
                 "once a tax levy exists, each one built eases how heavily the levy is felt here, as far as your administration reaches"));
         }
-        b.RealizedBy = "ConstructionSystem builds it from the queue. A built structure holds no goods - it is counted, not stocked - and in this build only what is listed under what it enables reads it.";
+        b.RealizedBy = incremental
+            ? "ConstructionSystem builds it from the queue a little each turn, as far as its builders and the next units of its "
+              + "materials allow, oldest order first; what has gone in stays while it waits. Cancelling a queued one loses what has "
+              + "gone in - nothing is refunded. A part-built one does nothing; a built structure holds no goods - it is counted, not "
+              + "stocked - and in this build only what is listed under what it enables reads it."
+            : "ConstructionSystem builds it from the queue. A built structure holds no goods - it is counted, not stocked - and in this build only what is listed under what it enables reads it.";
         if (b.Status is InfoStatus.Locked or InfoStatus.Blocked)
             b.Summary = b.Status == InfoStatus.Locked ? claimedReason ?? "needs " + NeedsList(c, b.WhyLocked) : blocker;
         if (b.TreeNode < 0) b.TreeNode = ProjectTreeTarget(c, p, where);
@@ -921,13 +983,17 @@ public static class InfoQuery
 
     /// <summary>The places (ascending id, by the card's names) whose queued projects claim <paramref name="good"/> in the
     /// purse of settlement <paramref name="where"/> (ConstructionQuery.ClaimedAt).</summary>
-    private static string ClaimedPlaces(Ctx c, IReadOnlyTable<ConstructionQueueRow> claims, int where, int good)
+    private static string ClaimedPlaces(Ctx c, IReadOnlyTable<ConstructionQueueRow> claims, IReadOnlyTable<ConstructionProgressRow> progress, int where, int good)
     {
-        SettlementId[] at = ConstructionQuery.ClaimedAt(claims, c.Cfg.Goods!, ConstructionQuery.Holders(c.W, c.Cfg, new SettlementId(where)), new GoodId(good));
+        SettlementId[] at = ConstructionQuery.ClaimedAt(claims, progress, c.Cfg.Goods!, ConstructionQuery.Holders(c.W, c.Cfg, new SettlementId(where)), new GoodId(good));
         var names = new string[at.Length];
         for (int i = 0; i < at.Length; i++) names[i] = c.Name(at[i].Value);
         return string.Join(", ", names);
     }
+
+    /// <summary>A blocker ("needs 40 timber (empire has 0)") as what a project will wait for ("40 timber (empire has 0)").</summary>
+    public static string WithoutNeeds(string blocker) =>
+        blocker.StartsWith("needs ", StringComparison.Ordinal) ? blocker["needs ".Length..] : blocker;
 
     /// <summary>What the purse of settlement <paramref name="where"/> holds of <paramref name="good"/> as the card's viewer
     /// may read it (ConstructionQuery.HoldersSeenBy — the very holding ConstructionSystem gates and draws on where the
@@ -1544,6 +1610,59 @@ public static class InfoQuery
     }
 
     // ================================================================== tax edict
+
+    /// <summary>
+    /// WS2 (D-054) — THE BUILDING/ROADS MATERIAL SPLIT: the rule (State.ResourceAllocation) in words, the split in force for
+    /// the issuer (its ResourceAllocationRow, or the default "building first"), and the order that sets it — the
+    /// descriptor the query lists (ActionDomain.ResourceAllocation), whose predicate is the one ConstructionSystem applies
+    /// (ConstructionQuery.AllocationOrderValid). It reads only the issuer's own row.
+    /// </summary>
+    private static void MaterialsSplitCard(Ctx c, B b)
+    {
+        b.Title = "Materials for building and roads";
+        b.Kind = "Policy - a standing order: how building work and road works share the empire's materials";
+        string goods = SplitGoods(c.Cfg);
+        b.What = "On a turn you order road works, building work is guaranteed its share of the empire's " + goods
+            + " and road works the rest. Whatever one side does not need, the other may use; on turns without road works, "
+            + "building work may use all of it. The shares are guaranteed shares of what the empire holds when building "
+            + "work starts, never amounts spent regardless of need: nothing is used that the work does not need. "
+            + "Dwellings take their own settlement's timber before either.";
+        b.Effect = InfoEffect.Simulated;
+        b.RealizedBy = "ConstructionSystem applies the split (SetResourceAllocation) to each turn's building work - the grant "
+            + "of each good is the guaranteed share plus the road share road works do not need - and RoadDevelopmentSystem "
+            + "pays later in the turn from what is left.";
+        if (!ResourceAllocation.Enabled(c.Cfg)) { b.Inert("building/roads material split (sim.json construction.allocationRatios)"); return; }
+        int pct = ResourceAllocation.EffectivePercent(c.W, c.P);
+        string inForce = pct == ResourceAllocation.DefaultBuildingsPercent
+            ? "Building first (default): road works get only what building work leaves."
+            : "In force: building work keeps " + SplitShares(pct) + ".";
+        b.Action = Find(c, ActionDomain.ResourceAllocation, 1);
+        if (b.Action is not null)
+        {
+            b.Status = InfoStatus.Available;
+            b.StatusLine = inForce;
+        }
+        else
+        {
+            b.Status = InfoStatus.Known;
+            b.StatusLine = inForce + " It matters once your empire can order road works.";
+        }
+    }
+
+    /// <summary>The goods the split covers, from content (project inputs and road materials), in good-id order.</summary>
+    private static string SplitGoods(SimConfig cfg)
+    {
+        int[] ids = ResourceAllocation.EligibleGoodIds(cfg);
+        if (ids.Length == 0 || cfg.Goods is not { } goods) return "building materials";
+        var names = new List<string>(ids.Length);
+        foreach (int id in ids) names.Add(goods.ById(id).Name);
+        return names.Count == 1 ? names[0] : string.Join(", ", names, 0, names.Count - 1) + " and " + names[^1];
+    }
+
+    /// <summary>"7 shares in 10, road works 3" (or "73 shares in 100, road works 27") — never a percent sign.</summary>
+    public static string SplitShares(int buildingsPercent) => buildingsPercent % 10 == 0
+        ? Inv(buildingsPercent / 10) + " shares in 10, road works " + Inv((100 - buildingsPercent) / 10)
+        : Inv(buildingsPercent) + " shares in 100, road works " + Inv(100 - buildingsPercent);
 
     private static void TaxCard(Ctx c, B b)
     {

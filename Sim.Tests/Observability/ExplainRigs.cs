@@ -51,8 +51,8 @@ internal static class ExplainRigs
             PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg, TestConfigs.DevWorldgen())), orders);
     }
 
-    public static WorldState Found(SimConfig cfg) =>
-        WorldFounding.Found(TestConfigs.DevWorldgen(), cfg, Seed);
+    public static WorldState Found(SimConfig cfg, WorldgenConfig? worldgen = null) =>
+        WorldFounding.Found(worldgen ?? TestConfigs.DevWorldgen(), cfg, Seed);
 
     /// <summary>Every world from founding (index 0) through <paramref name="turns"/> steps.</summary>
     public static (SimConfig Cfg, List<WorldState> Worlds) Fed(int turns)
@@ -91,12 +91,19 @@ internal static class ExplainRigs
     /// siblings have it — on the shipped config the first deficit moves from world 3 to world 7 (MEASURED),
     /// which is relief, not the order-delivery semantic the turn pins guard. The control reproduces the
     /// de86ace rig exactly (every pinned value unchanged); the returned config is the one the rig ran on, so
-    /// every explanation is asked about the world its own system produced.</summary>
+    /// every explanation is asked about the world its own system produced.
+    /// Batch 3 (D-054, W1 fix F5): "the de86ace rig" is also the FLAT world — PreEmpireFoodAllocation is a batch-2 layer
+    /// twin, so by the R4 rule it strips every newer layer, the cylinder (worldgen.json topology.wrapX) included: the rig
+    /// founds on <see cref="TestConfigs.PreD054Worldgen(WorldgenConfig)"/>. On the cylindrical dev world the target carries
+    /// another population into the drawdown (MEASURED: deficit 0.78818337827898999 -> 0.78426084824711939 and the chain
+    /// fill 456 -> 472), which is the cylinder's terrain, not the order-delivery semantic these pins guard.
+    /// Integration R1 (2026-10-14) — RE-MEASURED on the merged tree: the flat rig's first positive deficit is world 3 (the
+    /// T1.9 landing turn the pins guard), and the rig stops at world 5.</summary>
     public static (SimConfig Cfg, List<WorldState> Worlds, int FirstDeficit) Starved(int maxTurns)
     {
         SimConfig cfg = TestConfigs.PreEmpireFoodAllocation(TestConfigs.Sim());
         OrderLog orders = ZeroFoodOrders(Target);
-        WorldState founded = Found(cfg);
+        WorldState founded = Found(cfg, TestConfigs.PreD054Worldgen(TestConfigs.DevWorldgen()));
         OrderValidation.ValidateAgainstWorld(orders, founded);
         TurnExecutor exec = Executor(cfg, orders);
         var worlds = new List<WorldState>(maxTurns + 1) { founded };

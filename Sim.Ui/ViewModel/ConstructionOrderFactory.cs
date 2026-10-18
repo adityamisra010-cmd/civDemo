@@ -21,7 +21,19 @@ public static class ConstructionOrderFactory
     /// simulation would refuse it.</summary>
     public static OrderRecord? Create(
         IReadOnlyWorldState world, SimConfig cfg, PolityId issuer, SettlementId settlement, int projectId) =>
-        ConstructionQuery.IsProjectAvailable(world, cfg, issuer, settlement, projectId)
+        Create(world, cfg, issuer, settlement, projectId, pending: null);
+
+    /// <summary>As above, judged — as ConstructionSystem's intake will judge it — against the world's queue with the turn's
+    /// <paramref name="pending"/> cancels and enqueues applied (ConstructionQuery.QueueWithPending and its progress): the ONE
+    /// predicate the listing uses, so the factory never appends what the listing hides (the batch-2 gap: a second workshop
+    /// on ten tools was logged and then silently ignored).</summary>
+    public static OrderRecord? Create(
+        IReadOnlyWorldState world, SimConfig cfg, PolityId issuer, SettlementId settlement, int projectId,
+        IReadOnlyList<OrderRecord>? pending)
+    {
+        IReadOnlyTable<ConstructionQueueRow> queue = ConstructionQuery.QueueWithPending(world, cfg, pending, out IReadOnlyTable<ConstructionProgressRow> progress);
+        return ConstructionQuery.IsProjectAvailable(world, cfg, issuer, settlement, projectId, queue, progress)
             ? ConstructionQuery.EnqueueOrder(world, issuer, settlement, projectId)
             : null;
+    }
 }

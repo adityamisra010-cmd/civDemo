@@ -711,8 +711,30 @@ public class SettlementCompositionTests(InstitutionWorldFixture fx) : IClassFixt
         Assert.Equal(PinnedCapitalLots, lots);
     }
 
-    /// <summary>The canonical seed-42 world after 4 End Turns, every settlement's composition (<see cref="Digest"/>).</summary>
-    private const string PinnedCanonicalDigest = "d8fbf5692a457c716fc5b2b001b4eb80b6ba740f5b2cc786946bc6e5531f6769";
+    /// <summary>The canonical seed-42 world after 4 End Turns, every settlement's composition (<see cref="Digest"/>).
+    /// BATCH 3 / D-054 RE-PIN (integration R1, 2026-10-14; MEASURED on this tree by the agent writing this line):
+    /// d8fbf5692a457c71… -> 31a160dc6f1d36d9…. CAUSE: the CYLINDER alone (worldgen.json topology.wrapX — the canonical world
+    /// regenerates x-periodic, so its settlements' sizes, footprints and parts after 4 turns differ). This digest is a
+    /// composition digest, not a WorldHash, so the v33 layout cannot reach it; WS1/WS2 do not act in 4 order-less turns.
+    /// ATTRIBUTION: Composition_WithTheCylinderOff_IsTheBatch2Digest (UiSession.Start(42, wrapXOverride: false), the flat
+    /// world, 4 End Turns) returns <see cref="Batch2CanonicalDigest"/> byte for byte.</summary>
+    private const string PinnedCanonicalDigest = "31a160dc6f1d36d9349f0ce0538ccb33aa6c0087aae1e10cc0c13528e6e8a33a";
+
+    /// <summary>The batch-2 value of <see cref="PinnedCanonicalDigest"/> — the flat (pre-cylinder) canonical world.</summary>
+    private const string Batch2CanonicalDigest = "d8fbf5692a457c716fc5b2b001b4eb80b6ba740f5b2cc786946bc6e5531f6769";
+
+    /// <summary>BATCH 3 / D-054 ATTRIBUTION CONTROL (integration R1, 2026-10-14) for <see cref="PinnedCanonicalDigest"/>: the
+    /// same 4 End Turns on the FLAT canonical world (UiSession.Start's wrapXOverride: false; the sim half as shipped) compose
+    /// every settlement exactly as the batch-2 build did, so the cylinder is the whole of the digest's move.</summary>
+    [Fact]
+    public void Composition_WithTheCylinderOff_IsTheBatch2Digest()
+    {
+        UiSession flat = UiSession.Start(42, wrapXOverride: false);
+        Assert.False(flat.World.Terrain!.WrapX);
+        for (int t = 0; t < 4; t++) flat.EndTurn();
+        WorldProjection p = WorldProjection.Build(flat.World, flat.Config, i => flat.Names.Name(i), Me);
+        Assert.Equal(Batch2CanonicalDigest, Digest(p));
+    }
 
     /// <summary>The institution fixture capital's parts and their lots (ring.index).</summary>
     private const string PinnedCapitalLots =

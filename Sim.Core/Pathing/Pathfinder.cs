@@ -15,6 +15,11 @@ namespace Sim.Core.Pathing;
 /// priority. All adjacency enumeration is in fixed offset order; the network
 /// overlay is built in edge-table row order.
 ///
+/// TOPOLOGY (batch 3 WS3): on a wrapped lattice (<see cref="TraversalLattice.WrapX"/>) every neighbour enumeration
+/// here — Expand, the Isochrone boundary scan, RelaxCappedFrom, LegCosts — steps across the east-west seam through
+/// <see cref="MapTopology.NeighbourX"/>, and the A* heuristic and the lane bound measure the short way round
+/// (<see cref="MapTopology.Dx"/>). On a flat lattice each is the pre-batch-3 arithmetic exactly.
+///
 /// COMPLEXITY: A* / Dijkstra are O(E log V) with V = lattice nodes (65,536 at
 /// the 256² default), E ≈ 8V lattice steps + 2·edges overlay; the binary heap
 /// gives the log factor. Isochrone is Dijkstra truncated at the budget.
@@ -52,6 +57,13 @@ public static class Pathfinder
     /// triangle inequality that length ≥ straight-line distance to the goal —
     /// h never overestimates, so A* returns optimal costs (the Dijkstra
     /// equivalence test binds this empirically).
+    /// WS3: on a wrapped lattice "straight-line distance" is the distance ON THE
+    /// CYLINDER (x the short way round, <see cref="MapTopology.Dx"/>) in both h and
+    /// the lane bound. That is a metric (the triangle inequality holds on the
+    /// cylinder), a seam step has the same length 1 or √2 it has inside the map,
+    /// and every lane's cost ≥ its wrapped endpoint distance × effMin — so the
+    /// argument above carries over unchanged and h stays admissible and
+    /// consistent. (The raw flat dx would OVERESTIMATE across the seam.)
     /// </summary>
     public static PathResult FindPath(
         TraversalLattice lattice, IReadOnlyWorldState world, int fromNode, int toNode)
@@ -140,8 +152,8 @@ public static class Pathfinder
             (int x, int y) = lattice.Coords(i);
             for (int d = 0; d < 8; d++)
             {
-                int nx = x + Dx[d], ny = y + Dy[d];
-                if (nx < 0 || ny < 0 || nx >= lattice.Size || ny >= lattice.Size) continue;
+                int nx = MapTopology.NeighbourX(x, Dx[d], lattice.Size, lattice.WrapX), ny = y + Dy[d];
+                if (nx < 0 || ny < 0 || ny >= lattice.Size) continue;
                 int nb = ny * lattice.Size + nx;
                 if (!closed[nb] && lattice.IsPassable(nb)) { boundary.Add(i); break; }
             }
@@ -289,8 +301,8 @@ public static class Pathfinder
             (int x, int y) = lattice.Coords(current);
             for (int d = 0; d < 8; d++)
             {
-                int nx = x + Dx[d], ny = y + Dy[d];
-                if (nx < 0 || ny < 0 || nx >= lattice.Size || ny >= lattice.Size) continue;
+                int nx = MapTopology.NeighbourX(x, Dx[d], lattice.Size, lattice.WrapX), ny = y + Dy[d];
+                if (nx < 0 || ny < 0 || ny >= lattice.Size) continue;
                 int nb = ny * lattice.Size + nx;
                 if (closed[nb] || !lattice.IsPassable(nb)) continue;
                 double tentative = g[current] + lattice.StepCost(current, nb);
@@ -342,7 +354,9 @@ public static class Pathfinder
             // in adjacency order, a lane replacing only a STRICTLY cheaper cost.
             (int ax, int ay) = lattice.Coords(a);
             (int bx, int by) = lattice.Coords(b);
-            if (a != b && Math.Abs(ax - bx) <= 1 && Math.Abs(ay - by) <= 1)
+            // WS3: the lattice step exactly as Expand enumerates it — x adjacency the short way round on a wrapped
+            // lattice (columns 0 and Size − 1 are neighbours), so RouteQuery.Find's exact-sum check holds across the seam.
+            if (a != b && MapTopology.AbsDx(ax, bx, lattice.Size, lattice.WrapX) <= 1 && Math.Abs(ay - by) <= 1)
             {
                 best = lattice.StepCost(a, b);
                 joined = true;
@@ -373,8 +387,8 @@ public static class Pathfinder
         (int x, int y) = lattice.Coords(current);
         for (int d = 0; d < 8; d++)
         {
-            int nx = x + Dx[d], ny = y + Dy[d];
-            if (nx < 0 || ny < 0 || nx >= lattice.Size || ny >= lattice.Size) continue;
+            int nx = MapTopology.NeighbourX(x, Dx[d], lattice.Size, lattice.WrapX), ny = y + Dy[d];
+            if (nx < 0 || ny < 0 || ny >= lattice.Size) continue;
             int nb = ny * lattice.Size + nx;
             if (closed[nb] || !lattice.IsPassable(nb)) continue;
             Relax(current, nb, g[current] + lattice.StepCost(current, nb), g, cameFrom, push);
@@ -406,7 +420,8 @@ public static class Pathfinder
     private static double Heuristic(TraversalLattice lattice, int node, int gx, int gy, double effMin)
     {
         (int x, int y) = lattice.Coords(node);
-        double dx = x - gx, dy = y - gy;
+        // WS3: the x term the short way round on a wrapped lattice (flat: x − gx's magnitude, as before).
+        double dx = MapTopology.Dx(gx, x, lattice.Size, lattice.WrapX), dy = y - gy;
         return Math.Sqrt(dx * dx + dy * dy) * effMin;
     }
 
@@ -446,7 +461,11 @@ public static class Pathfinder
         double[] roadCost = roadCount == 0 ? [] : new double[roadCount];
         if (roadCount > 0)
         {
-            int terrainSize = lattice.Size * lattice.Stride;
+            // W1 fix F9: the TERRAIN's size — the raster the site cells index. Size × Stride restated it, and on a flat
+            // world the stride does not divide (250 px: 62 × 4 = 248) read every site as a 248-px cell, anchoring each
+            // travelled road lane to the wrong lattice nodes (NonStrideLatticeGeometryTests). A terrain-less (toy)
+            // world's lattice is its own raster.
+            int terrainSize = world.Terrain?.Size ?? lattice.Size * lattice.Stride;
             for (int i = 0; i < roadCount; i++)
             {
                 TransportEdgeRow r = world.TransportEdges[i];
@@ -510,7 +529,8 @@ public static class Pathfinder
     {
         (int ax, int ay) = lattice.Coords(a);
         (int bx, int by) = lattice.Coords(b);
-        double dx = ax - bx, dy = ay - by;
+        // WS3: the endpoints' distance on the cylinder — consistent with Heuristic (flat: ax − bx's magnitude, as before).
+        double dx = MapTopology.Dx(bx, ax, lattice.Size, lattice.WrapX), dy = ay - by;
         double dist = Math.Sqrt(dx * dx + dy * dy);
         if (dist > 0.0)
         {

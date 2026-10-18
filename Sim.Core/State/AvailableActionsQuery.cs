@@ -33,6 +33,17 @@ public enum ActionDomain
     /// <summary>M5 S1d (D-051 §5, ADR-036): found a settlement (OrderKind 9) from a settlement the issuer controls whose
     /// SOURCE-side founding arms hold now; the site is chosen per cell in the UI's placement mode, by the same predicate.</summary>
     Colonization = 12,
+    /// <summary>WS1 (D-054, OrderKind 11): cancel one COMMITTED entry of a settlement's construction queue (an entry
+    /// accepted on an earlier turn — not one ordered this turn, and not one whose cancel is already queued) where the
+    /// issuer may cancel it now (ConstructionQuery.CancelOrderValid, what ConstructionSystem applies at delivery).
+    /// Id = settlement × 2^32 + slot. None for an empty queue.</summary>
+    ConstructionQueue = 13,
+    /// <summary>WS2 (D-054, OrderKind 12): set the Empire's standing building/roads material split (ResourceAllocationRow).
+    /// ONE descriptor (Id 1), listed exactly when the Roads one is (the split matters only to an Empire that can order
+    /// road works) and the predicate ConstructionSystem applies at delivery admits an order
+    /// (ConstructionQuery.AllocationOrderValid: the switch on, a roster Empire). Its own domain, not Roads: every Roads
+    /// descriptor is a road-class development (Id = the edge type; the road-class card and the Roads block read it so).</summary>
+    ResourceAllocation = 14,
 }
 
 /// <summary>Whether an available action is something the issuer can ORDER now, or a STANDING baseline
@@ -208,6 +219,7 @@ public static class AvailableActionsQuery
         Production(world, cfg, polity, actions);
         Trade(world, cfg, polity, actions);
         Colonization(world, cfg, polity, context, actions);
+        ConstructionQueue(world, cfg, polity, context, actions);
         return Order(actions);
     }
 
@@ -318,8 +330,9 @@ public static class AvailableActionsQuery
     /// <summary>Each (settlement, project) ConstructionQuery.IsProjectAvailable admits — the predicate
     /// ConstructionSystem applies to the order, its purse's claims read from the world's queue plus the pending batch
     /// (<see cref="ActionQueryContext.Queued"/>) as the intake would queue it — Id = settlement × 2^32 + project id, with the materials the
-    /// settlement's purse lacks (ConstructionQuery.Holders: its Empire's settlements together, or its own stock) and,
-    /// when the turn length is known, the capacity it lacks as its blocker. Projects that FOUND an
+    /// settlement's purse lacks (ConstructionQuery.Holders: its Empire's settlements together, or its own stock) — and, with
+    /// incremental construction off, the capacity it lacks this turn — as its blocker (WS1: labour is a pace, not a
+    /// blocker). Projects that FOUND an
     /// institution (the universities, ADR-033 D6) are listed by <see cref="Institutions"/> instead.</summary>
     public static void Construction(
         IReadOnlyWorldState world, SimConfig cfg, PolityId polity, ActionQueryContext context, List<ActionDescriptor> into)
@@ -329,14 +342,14 @@ public static class AvailableActionsQuery
         // D-053 §1: the purse's claims are read from the world's queue PLUS the turn's pending orders the intake would
         // accept (ConstructionQuery.QueueWithPending) — so once a workshop is ordered this turn its ten tools are claimed,
         // and a second workshop the intake would refuse is not offered.
-        IReadOnlyTable<ConstructionQueueRow> claims = ConstructionQuery.QueueWithPending(world, cfg, context.Queued);
+        IReadOnlyTable<ConstructionQueueRow> claims = ConstructionQuery.QueueWithPending(world, cfg, context.Queued, out IReadOnlyTable<ConstructionProgressRow> claimsProgress);
         for (int s = 0; s < world.Settlements.Count; s++)
         {
             SettlementId settlement = world.Settlements[s].Id;
             foreach (ConstructionProjectEntry project in projects)
             {
                 if (InstitutionContent.FoundsInstitution(project)) continue;   // the Institutions contributor's
-                if (!ConstructionQuery.IsProjectAvailable(world, cfg, polity, settlement, project.Id, claims)) continue;
+                if (!ConstructionQuery.IsProjectAvailable(world, cfg, polity, settlement, project.Id, claims, claimsProgress)) continue;
                 string name = ProjectName(cfg.Research, project);
                 long built = ConstructionQuery.Built(world, settlement, project.Id);
                 int queued = 0;
@@ -350,6 +363,38 @@ public static class AvailableActionsQuery
                     ConstructionQuery.Blocker(world, cfg, settlement, project, context.NextDtYears),
                     ProjectProvenance(world, cfg.Research, polity, project, builders), detail));
             }
+        }
+    }
+
+    // ------------------------------------------------------------------ Construction queue: cancel (OrderKind 11, WS1)
+
+    /// <summary>One descriptor per COMMITTED queue entry the issuer may cancel now (<see cref="ActionDomain.ConstructionQueue"/>):
+    /// the entry is in the world's own queue (an entry ordered this turn is not — it "can be cancelled from next turn"), no
+    /// cancel of it is already pending (<see cref="ConstructionQuery.PendingCancels"/>), and the order passes
+    /// <see cref="ConstructionQuery.CancelOrderValid(IReadOnlyWorldState, OrderRecord)"/> — the predicate ConstructionSystem
+    /// applies at delivery (one predicate, two callers). Detail: what has gone into it (forfeited by a cancel: no refund).</summary>
+    public static void ConstructionQueue(
+        IReadOnlyWorldState world, SimConfig cfg, PolityId polity, ActionQueryContext context, List<ActionDescriptor> into)
+    {
+        if (world.ConstructionQueue.Count == 0) return;
+        QueueEntryRef[] pending = ConstructionQuery.PendingCancels(world, context.Queued);
+        for (int i = 0; i < world.ConstructionQueue.Count; i++)
+        {
+            ConstructionQueueRow row = world.ConstructionQueue[i];
+            OrderRecord order = ConstructionQuery.CancelOrder(world, polity, row.Settlement, row.Slot);
+            if (!ConstructionQuery.CancelOrderValid(world, order)) continue;
+            if (Array.IndexOf(pending, new QueueEntryRef(row.Settlement, row.Slot, row.ProjectId)) >= 0) continue;
+            ConstructionProjectEntry? project = cfg.Goods?.ProjectById(row.ProjectId);
+            string name = project is null ? "project " + Inv(row.ProjectId) : ProjectName(cfg.Research, project);
+            long progress = ConstructionQuery.ProgressOf(world, row);
+            string detail = project is null || progress == 0
+                ? "nothing has gone into it yet"
+                : ConstructionQuery.GoneIn(cfg.Goods!, project, progress) + " - cancelling loses it";
+            into.Add(new ActionDescriptor(
+                ActionDomain.ConstructionQueue, ((long)row.Settlement.Value << 32) | (uint)row.Slot, ActionKind.Order,
+                $"construction.cancel.{Inv(row.Settlement.Value)}.{Inv(row.Slot)}", $"Cancel {name}", OrderKind.CancelConstruction,
+                [SettlementTarget(row.Settlement), new ActionTarget(ActionTargetKind.Project, row.ProjectId, name, Progress: progress)],
+                null, ActionProvenance.None, detail));
         }
     }
 
@@ -424,6 +469,29 @@ public static class AvailableActionsQuery
             ActionDomain.Roads, targetClass, ActionKind.Order, $"roads.develop.{Inv(targetClass)}", $"Develop roads ({className})",
             OrderKind.DevelopRoads, routes.MoveToImmutable(), blocker, provenance,
             $"{Inv(plan.Length)} eligible route(s), heaviest-used first"));
+        MaterialsSplit(world, cfg, polity, into);
+    }
+
+    // ------------------------------------------------------------------ Materials split (OrderKind 12, WS2)
+
+    /// <summary>The descriptor of the building/roads material split (<see cref="ActionDomain.ResourceAllocation"/>, Id 1):
+    /// called by the Roads contributor right after it lists road development, so it is listed exactly when that is (the
+    /// split governs nothing for an Empire that cannot order road works), and only when the predicate ConstructionSystem
+    /// applies at delivery (<see cref="ConstructionQuery.AllocationOrderValid"/>) admits the Empire's order and the Empire
+    /// has a purse to split (Controls, a settlement it controls). Detail: the split in force (its row, or the default).</summary>
+    private static void MaterialsSplit(IReadOnlyWorldState world, SimConfig cfg, PolityId polity, List<ActionDescriptor> into)
+    {
+        if (!Sim.Core.State.ResourceAllocation.Enabled(cfg) || world.Controls.Count == 0) return;
+        if (LabourActivities.ControlledSettlements(world, polity).Length == 0) return;
+        int b = Sim.Core.State.ResourceAllocation.EffectivePercent(world, polity);
+        if (!ConstructionQuery.AllocationOrderValid(world, cfg, Sim.Core.State.ResourceAllocation.Order(world, polity, b))) return;
+        string detail = b == Sim.Core.State.ResourceAllocation.DefaultBuildingsPercent
+            ? "building first (default): road works get only what building work leaves"
+            : "on a turn road works are ordered, building work is guaranteed " + Inv(b) + " shares in 100 and road works "
+              + Inv(100 - b) + "; whatever one side does not need, the other may use";
+        into.Add(new ActionDescriptor(
+            ActionDomain.ResourceAllocation, 1, ActionKind.Order, "allocation.materials", "Materials for building and roads",
+            OrderKind.SetResourceAllocation, [], null, ActionProvenance.None, detail));
     }
 
     private static string ClassName(ResearchContent research, RoadsConfig roads, int edgeType)

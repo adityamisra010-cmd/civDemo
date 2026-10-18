@@ -49,9 +49,13 @@ public static class MapFrameCost
     public const string Mode = "map";
 
     /// <summary>The high-count world's founding settlement count when <c>--settlements</c> is absent: about the siting
-    /// capacity of a canonical world (median 457 over 5 seeds, worldgen.json <c>_docMinSpacing</c>), i.e. the scale
-    /// colonisation can grow a world to.</summary>
-    public const int DefaultSettlements = 400;
+    /// capacity of the canonical world, i.e. the scale colonisation can grow a world to. Batch 3 WS3 (W2 review F3,
+    /// MEASURED): the seed-42 canonical CYLINDER sites at most 362 settlements at minSpacingKm 95.2
+    /// (<c>--frame-cost map --settlements 2000</c>: "settlement siting could only place 362 of 2000 sites"), so the flat
+    /// world's 400 (median capacity 457 over 5 flat seeds, worldgen.json <c>_docMinSpacing</c>) aborted the default run
+    /// (exit 134); 360 is the count W2's re-measurement used. A count past the capacity is refused as a usage error
+    /// naming it, before the canonical world is stepped.</summary>
+    public const int DefaultSettlements = 360;
 
     /// <summary>The canonical world's turn when <c>--turns</c> is absent.</summary>
     public const int DefaultCanonicalTurn = 150;
@@ -86,6 +90,7 @@ public static class MapFrameCost
     {
         rounds = Math.Max(1, rounds);
         log ??= _ => { };
+        UiSession highCount = StartHighCount(settlements);   // first: a count past the siting capacity is refused at once
         MapWorld canonical = Found("canonical", UiSession.Start(42), Math.Max(HighCountTurn, canonicalTurn), log);
         var worlds = new List<MapWorld>
         {
@@ -116,7 +121,7 @@ public static class MapFrameCost
                     + (GameUi.OverlayOpacityDefault / 10.0).ToString("0.0", CultureInfo.InvariantCulture)
                     + ", outlined as a 'now usable' shortcut shows it, with its key",
             },
-            Found("high-count", UiSession.Start(42, settlementsOverride: Math.Max(1, settlements)), HighCountTurn, log),
+            Found("high-count", highCount, HighCountTurn, log),
         };
 
         // Looking changes nothing: every world's hash before the sweeps must equal its hash after them.
@@ -140,9 +145,9 @@ public static class MapFrameCost
             foreach (MapWorld m in worlds)
             {
                 Painter paint = PainterFor(m, backend, gui.Fonts.Scale);
-                for (int k = 0; k < WarmUpSweeps; k++) Sweep(gui, backend, paint, m.Projection.WorldSize, m.Projection.KmPerPx, w, h);
+                for (int k = 0; k < WarmUpSweeps; k++) Sweep(gui, backend, paint, m.Projection.WorldSize, m.Projection.KmPerPx, w, h, m.Projection.WrapX);
                 var samples = new List<Band[]>();
-                for (int r = 0; r < rounds; r++) samples.Add(Sweep(gui, backend, paint, m.Projection.WorldSize, m.Projection.KmPerPx, w, h));
+                for (int r = 0; r < rounds; r++) samples.Add(Sweep(gui, backend, paint, m.Projection.WorldSize, m.Projection.KmPerPx, w, h, m.Projection.WrapX));
                 for (int z = 0; z < 3; z++) Row(sb, w, h, m.Name, (WorldZoom)z, samples, z);
             }
         }
@@ -211,10 +216,27 @@ public static class MapFrameCost
         while (sweeps < 2 * worlds.Count || Stopwatch.GetElapsedTime(t0) < GlobalWarmUp)
         {
             MapWorld m = worlds[sweeps % worlds.Count];
-            Sweep(gui, backend, PainterFor(m, backend, gui.Fonts.Scale), m.Projection.WorldSize, m.Projection.KmPerPx, w, h);
+            Sweep(gui, backend, PainterFor(m, backend, gui.Fonts.Scale), m.Projection.WorldSize, m.Projection.KmPerPx, w, h, m.Projection.WrapX);
             sweeps++;
         }
         log(string.Create(CultureInfo.InvariantCulture, $"map frame cost: warm-up {sweeps} sweeps"));
+    }
+
+    /// <summary>W2 review F3: the high-count world, founded by the simulation's own founding with <paramref name="settlements"/>
+    /// sites. A count the canonical world's siting cannot place is the caller's argument error (named, with the capacity the
+    /// siting reports), not an unhandled abort.</summary>
+    public static UiSession StartHighCount(int settlements)
+    {
+        try
+        {
+            return UiSession.Start(42, settlementsOverride: Math.Max(1, settlements));
+        }
+        catch (InvalidOperationException e) when (e.Message.StartsWith("settlement siting could only place", StringComparison.Ordinal))
+        {
+            throw new ArgumentException(string.Create(CultureInfo.InvariantCulture,
+                $"--settlements {settlements}: {e.Message} Pass a smaller --settlements (the default, {DefaultSettlements}, fits the canonical world)."),
+                nameof(settlements), e);
+        }
     }
 
     private static MapWorld Found(string name, UiSession s, int turns, Action<string> log)
@@ -254,7 +276,8 @@ public static class MapFrameCost
         return (d, cam, detail, w, h) => WorldLens.Paint(d, backend, p, detail, (x, y) => cam.WorldToScreen(x, y, w, h), cam.Zoom,
             new RectD(0, 0, w, h), selected, showTerritory: true, ink: ink, theme: theme, uiScale: uiScale,
             overlay: m.Overlay is { } o ? new OverlayPaint(o, all!, GameUi.OverlayOpacityDefault / 10.0, m.OverlayStatus,
-                new OverlayKeyAnchor(12, h - 12, GameUi.OverlayKeyMaxWidth * uiScale), m.Session.Names.Name) { Highlight = highlight } : null);
+                new OverlayKeyAnchor(12, h - 12, GameUi.OverlayKeyMaxWidth * uiScale), m.Session.Names.Name) { Highlight = highlight } : null,
+            wrapX: cam.WrapX);   // WS3: every copy of the world in view, as the game paints it
     }
 
     /// <summary>Per-band totals of one sweep.</summary>
@@ -265,10 +288,13 @@ public static class MapFrameCost
         public long Vertices, Commands, Culled;
     }
 
-    private static Band[] Sweep(HeadlessImGui gui, DrawListImGuiBackend backend, Painter paint, double worldSize, double kmPerPx, int w, int h)
+    private static Band[] Sweep(HeadlessImGui gui, DrawListImGuiBackend backend, Painter paint, double worldSize, double kmPerPx, int w, int h,
+        bool wrapX)
     {
         var bands = new[] { new Band(), new Band(), new Band() };
-        var cam = new Camera(worldSize);
+        // WS3 (batch 3): the game's camera — wrapped when the world is, its floor one circumference across the window — and
+        // the lens drawing every copy in view (the painter passes the camera's flag), so the measured cost includes the copies.
+        var cam = new Camera(worldSize, wrapX) { WindowWidth = w };
         cam.Clamp(w, h);
         while (true)
         {
@@ -293,7 +319,7 @@ public static class MapFrameCost
     private static void Frame(HeadlessImGui gui, DrawListImGuiBackend backend, Painter paint, Camera cam, double kmPerPx,
         int w, int h, Band[] bands)
     {
-        MapDetail detail = MapDetail.At(cam.Zoom, w, h, kmPerPx);
+        MapDetail detail = cam.WrapX ? MapDetail.Across(cam.Zoom, w, kmPerPx) : MapDetail.At(cam.Zoom, w, h, kmPerPx);   // WS3: the game's keying
         WorldZoom level = detail.Band;
         long t0 = Stopwatch.GetTimestamp();
         gui.BeginFrame(default, default, 1.0 / 60);

@@ -46,5 +46,8 @@ public class UiArgsUsageTests
         Assert.True(line.Success, "--help omits --frame-cost " + Sim.Ui.Headless.MapFrameCost.Mode);
         foreach (string option in new[] { "--rounds", "--settlements", "--turns" })
             Assert.Contains(option, line.Value, StringComparison.Ordinal);
+        // W2 review F3: the help names the settlement default the tool actually uses (it was 400, past the cylinder's capacity).
+        Assert.Contains("(default " + Sim.Ui.Headless.MapFrameCost.DefaultSettlements.ToString(System.Globalization.CultureInfo.InvariantCulture) + ",",
+            UiArgs.Usage, StringComparison.Ordinal);
     }
 }

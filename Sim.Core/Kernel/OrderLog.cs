@@ -146,6 +146,37 @@ public enum OrderKind
     /// in PREV yet) and real from t+3.
     /// </summary>
     FoundSettlement = 9,
+
+    // Kind 10 is RESERVED for MoveFormation (M7; D-052 §4, the m5w plan): never assign it here.
+
+    /// <summary>
+    /// WS1 (D-054 — the Director's 2026-10-14 instruction, workstream 1, item 9; ADR-039): CANCEL one entry of a
+    /// settlement's construction queue. TargetId = the settlement id; Amount = the entry's SLOT, a whole number
+    /// &gt;= 0 carried exactly by the double. NO REFUND: what has gone into the entry — its delivered materials and
+    /// the labour spent on it — was sunk as the work progressed and is forfeited (a salvage refund is an open Director
+    /// choice, D-054). The next slot becomes the head with its own progress. The five-field OrderRecord already encodes
+    /// this, so the wire format is untouched (IoVersion stays 1).
+    ///
+    /// Range-validated at LOAD (TargetId &gt;= 0; Amount finite, whole, in [0, int.MaxValue]). The settlement's
+    /// existence and the issuer's CONTROL of it are checked in OrderValidation (the EnqueueConstruction rule) — and
+    /// AGAIN WHERE IT IS CONSUMED, because that pass sees only the turn-0 world and only loaded logs
+    /// (ConstructionQuery.CancelOrderValid on PREV and the step's NEXT queue: a roster actor, control, the payload
+    /// re-checked, the slot present). An order failing it changes nothing — never floored, never clamped.
+    /// DELIVERY: an order stamped turn t removes the entry in the step t → t+1, BEFORE that step's enqueues and building
+    /// work (ConstructionSystem's fixed order), so the state of turn t+1 no longer holds it and nothing more goes in.
+    /// </summary>
+    CancelConstruction = 11,
+
+    /// <summary>
+    /// WS2 (D-054; ADR-039): set the issuing Empire's standing BUILDING/ROADS MATERIAL SPLIT. TargetId = the issuing
+    /// Empire's own PolityId (the SetTaxRate convention); Amount = BuildingsPercent, a WHOLE number in [0, 100] (roads
+    /// get the rest). Range-validated at LOAD; that the target is the issuer and the issuer a roster Empire is checked
+    /// in OrderValidation and again at delivery (ConstructionQuery.AllocationOrderValid, which also needs sim.json
+    /// construction.allocationRatios on). DELIVERY: an order stamped turn t upserts its Empire's ResourceAllocationRow (v33)
+    /// in the step t → t+1, BEFORE that step's building work (ConstructionSystem's step 2), so it governs that very step's
+    /// split; the last valid order of an Empire in a step wins.
+    /// </summary>
+    SetResourceAllocation = 12,
 }
 
 /// <summary>
@@ -267,6 +298,16 @@ public sealed class OrderLog
         return log;
     }
 
+    /// <summary>A CancelConstruction slot payload: finite, a whole number, in [0, int.MaxValue] (NaN and ±∞ fail).
+    /// The ONE payload rule, applied at load here and again by the consumer at delivery
+    /// (ConstructionQuery.CancelOrderValid) — an in-memory OrderLog.Append never validates.</summary>
+    public static bool ConstructionSlotValid(double amount) =>
+        amount >= 0.0 && amount <= int.MaxValue && amount == Math.Floor(amount);
+
+    /// <summary>A SetResourceAllocation payload: a whole number in [0, 100] (NaN fails).</summary>
+    public static bool AllocationPercentValid(double amount) =>
+        amount >= 0.0 && amount <= 100.0 && amount == Math.Floor(amount);
+
     /// <summary>
     /// Per-kind payload validation at LOAD time (T1.6): a malformed order is
     /// rejected here, actionably, before the sim ever runs — never mid-turn.
@@ -366,12 +407,37 @@ public sealed class OrderLog
                         "whole number carried exactly by Amount, got " +
                         $"{record.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
                 break;
+            case OrderKind.CancelConstruction:
+                // WS1: the slot rides in a double. A non-negative WHOLE number or the log is refused — 2.5 is not a slot,
+                // and a NaN saturating to 0 would cancel the head (the reason the consumer re-checks it too).
+                if (record.TargetId < 0)
+                    throw new SnapshotFormatException(
+                        $"order[{index}] (turn {record.Turn}): CancelConstruction settlement id must be " +
+                        $">= 0, got {record.TargetId}.");
+                if (!ConstructionSlotValid(record.Amount))
+                    throw new SnapshotFormatException(
+                        $"order[{index}] (turn {record.Turn}): CancelConstruction slot must be a non-negative whole " +
+                        "number carried exactly by Amount, got " +
+                        $"{record.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
+                break;
+            case OrderKind.SetResourceAllocation:
+                if (record.TargetId < 0)
+                    throw new SnapshotFormatException(
+                        $"order[{index}] (turn {record.Turn}): SetResourceAllocation target polity id must be " +
+                        $">= 0, got {record.TargetId}.");
+                if (!AllocationPercentValid(record.Amount))
+                    throw new SnapshotFormatException(
+                        $"order[{index}] (turn {record.Turn}): SetResourceAllocation building share must be a whole " +
+                        "number in [0,100], got " +
+                        $"{record.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
+                break;
             default:
                 throw new SnapshotFormatException(
                     $"order[{index}] (turn {record.Turn}): unknown order kind {(int)record.Kind}; " +
                     "this build understands kinds 1 (SetRainBias), 2 (LaborAllocation), 3 (SectorAllocation), " +
-                    "4 (EnqueueConstruction), 5 (SetTaxRate), 6 (SetResearchTarget), 7 (AdvanceAge), 8 (DevelopRoads) " +
-                    "and 9 (FoundSettlement).");
+                    "4 (EnqueueConstruction), 5 (SetTaxRate), 6 (SetResearchTarget), 7 (AdvanceAge), 8 (DevelopRoads), " +
+                    "9 (FoundSettlement), 11 (CancelConstruction) and 12 (SetResourceAllocation); kind 10 is reserved " +
+                    "for MoveFormation (M7).");
         }
     }
 }

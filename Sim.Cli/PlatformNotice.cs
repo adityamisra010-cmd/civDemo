@@ -31,8 +31,16 @@ public static class PlatformNotice
     /// The lines `sim inspect` prints under the world line: a plain platform
     /// line, then zero, one or two NOTICE paragraphs. Joined with '\n', no
     /// trailing newline.
+    ///
+    /// Fix round 2 (D-054, verifier RC1-1, 2026-10-15): <paramref name="hashesChecked"/> is false when `sim inspect`
+    /// will not compare the trace's hashes at all — a session recorded under another canonical schema, whose verdict is
+    /// <see cref="SessionSchemaNotice.NotChecked"/>. Every line after the first classifies that comparison, so then
+    /// only the plain platform line prints. MEASURED on fix round 1's tree: `sim inspect` of Fixtures/v32-session-found
+    /// printed "a hash mismatch below is a determinism finding." above "trace not checked: …", and the same session with
+    /// its manifest's platform set to win-x64 printed a NOTICE that a reference replay "is EXPECTED to report
+    /// REPRODUCTION FAILED from turn 2" above the same "trace not checked" verdict.
     /// </summary>
-    public static string For(string manifestPlatform, string runningPlatform)
+    public static string For(string manifestPlatform, string runningPlatform, bool hashesChecked = true)
     {
         bool recorded = SessionManifest.IsPlatformRecorded(manifestPlatform);
         bool playedOnRef = recorded && SessionManifest.IsReferencePlatform(manifestPlatform);
@@ -46,6 +54,9 @@ public static class PlatformNotice
                 + (runningOnRef ? " (reference platform)" : " (NOT the reference platform)")
                 + $"; reference is {Ref} (ADR-022)",
         };
+
+        // No hash comparison follows (another schema recorded the trace): there is nothing to classify.
+        if (!hashesChecked) return lines[0];
 
         if (!recorded)
         {

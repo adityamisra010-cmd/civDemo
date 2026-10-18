@@ -27,7 +27,7 @@ public class TaxGrievanceSchemaTests
     [Fact]
     public void SchemaV32_PopulatedTaxGrievances_LengthRoundTripAndHashExact()
     {
-        Assert.Equal(32, CanonicalSchema.Version);
+        Assert.Equal(33, CanonicalSchema.Version);   // v33: D-054 ConstructionProgress + ResourceAllocations
         WorldState world = Populated();
 
         using var ms = new MemoryStream();
@@ -37,13 +37,16 @@ public class TaxGrievanceSchemaTests
         // The populated rows' own contribution: 5 rows × (settlement 4 + class 4 + value bits 8).
         Assert.Equal(5 * 16, CanonicalSchema.ExpectedLength(world) - CanonicalSchema.ExpectedLength(new WorldState(32)));
 
-        // TaxGrievances is the LAST block: the stream ends with the last row's value bits, preceded by its class and
-        // settlement; the count prefix precedes the five rows.
+        // TaxGrievances was the LAST block through v32; v33 (D-054) appends ConstructionProgress and ResourceAllocations
+        // after it — here two EMPTY count prefixes (V33Trailer). Before them the stream ends with the last row's value
+        // bits, preceded by its class and settlement; the count prefix precedes the five rows.
         byte[] bytes = ms.ToArray();
-        Assert.Equal(0x7FF8_0000_0000_0D07, BitConverter.ToInt64(bytes, bytes.Length - 8));
-        Assert.Equal(1, BitConverter.ToInt32(bytes, bytes.Length - 12));
-        Assert.Equal(2, BitConverter.ToInt32(bytes, bytes.Length - 16));
-        Assert.Equal(5, BitConverter.ToInt32(bytes, bytes.Length - 4 - 5 * 16));
+        const int V33Trailer = 2 * 4;
+        Assert.All(bytes[^V33Trailer..], x => Assert.Equal(0, x));
+        Assert.Equal(0x7FF8_0000_0000_0D07, BitConverter.ToInt64(bytes, bytes.Length - V33Trailer - 8));
+        Assert.Equal(1, BitConverter.ToInt32(bytes, bytes.Length - V33Trailer - 12));
+        Assert.Equal(2, BitConverter.ToInt32(bytes, bytes.Length - V33Trailer - 16));
+        Assert.Equal(5, BitConverter.ToInt32(bytes, bytes.Length - V33Trailer - 4 - 5 * 16));
 
         ms.Position = 0;
         using var reader = new BinaryReader(ms);

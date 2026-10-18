@@ -204,3 +204,18 @@
   knowledge" on the card summary.
 - **Old sessions.** Sessions recorded by an earlier build diverge where construction waited on sibling stock, relief
   applies, or a granary acts. The D-052 resume guard refuses them.
+
+## Dated note — 2026-10-15 (D-054, ADR-039; appended, the sections above are unchanged)
+
+Batch 3 (the Director's 2026-10-14 instruction) supersedes three statements of this record for the shipped
+configuration. Each stays true of batch 2 alone.
+- **§2 "Gate":** "ConstructionSystem resolves heads in PREV `Settlements` row order (ascending id)" and "The M4-D
+  whole-or-nothing gate … unchanged".
+  - With `sim.json` `construction.incremental` on, heads progress incrementally (the materials-first lockstep).
+  - They are served oldest order first: EnqueuedTurn, then SettlementId, then Slot.
+  - The draw is still `EmpireStockpile.Draw` in this record's donor order. That order is now measured on the cylinder
+    (`MapTopology.SquaredPx`).
+- **The header:** "Touches no kernel contract and no save format. `CanonicalSchema.Version` stays 32." Batch 3 moves the
+  schema to v33 and adds order kinds 11 and 12 (ADR-039).
+- **§6:** the `AiEmpireIntegrationTests` first-build pin, "9 → 4" here, is 2 on the cylinder (D-054 §7). The AI-world
+  hash `b2e4f333…` is reproduced only through the batch-off pair and the v32 projection (`D054PairAttributionTests`).

@@ -13,6 +13,12 @@ namespace Sim.Core.Worldgen;
 /// descending D8 path to water or to the map border (border sinks are terminal
 /// mouths — the "documented sink resolution" of the acceptance test).
 ///
+/// BATCH 3 WS3 — THE CYLINDER: with <c>wrapX</c> the flood, the D8 routing and therefore every river see x-wrapped
+/// neighbours (a cell in column 0 neighbours column size − 1), and the border sinks are the POLES ONLY (rows y = 0
+/// and y = size − 1): on a cylinder the east and west edges are not borders, so a river may cross the seam and its
+/// polyline then joins column size − 1 to column 0 (the renderer unwraps it). Flat (wrapX false) is the pre-batch-3
+/// code path byte for byte.
+///
 /// DETERMINISM: every ordering is by explicit stable rule, never iteration
 /// accident (the T1.3 mandate's precedent):
 ///  · priority queue pops by (filled elevation, then node id) — total order;
@@ -50,11 +56,12 @@ public static class Hydrology
         public required double[] FilledElevation { get; init; }
     }
 
-    public static Result Compute(double[] elevation, double[] water, int size, RiversConfig cfg)
+    public static Result Compute(double[] elevation, double[] water, int size, RiversConfig cfg, bool wrapX = false)
     {
+        Pathing.MapTopology.RequireWrapSize(size, wrapX);
         int cells = size * size;
-        double[] filled = PriorityFlood(elevation, water, size);
-        int[] flowTarget = FlowTargets(filled, water, size);
+        double[] filled = PriorityFlood(elevation, water, size, wrapX);
+        int[] flowTarget = FlowTargets(filled, water, size, wrapX);
         long[] accumulation = Accumulate(filled, water, flowTarget, size);
         int[][] polylines = TracePolylines(water, flowTarget, accumulation, size, cfg);
 
@@ -75,18 +82,21 @@ public static class Hydrology
 
     // --- priority-flood fill ---------------------------------------------------
 
-    private static double[] PriorityFlood(double[] elevation, double[] water, int size)
+    private static double[] PriorityFlood(double[] elevation, double[] water, int size, bool wrapX)
     {
         int cells = size * size;
         var filled = new double[cells];
         var visited = new bool[cells];
         var heap = new MinHeap(cells);
 
-        // Seeds: all water cells and all border cells, in row-major (id) order.
+        // Seeds: all water cells and all border cells, in row-major (id) order. WS3: on a cylinder the border is the
+        // two poles only — columns 0 and size − 1 are neighbours, not edges.
         for (int i = 0; i < cells; i++)
         {
             int x = i % size, y = i / size;
-            bool border = x == 0 || y == 0 || x == size - 1 || y == size - 1;
+            bool border = wrapX
+                ? y == 0 || y == size - 1
+                : x == 0 || y == 0 || x == size - 1 || y == size - 1;
             if (water[i] >= 0.5 || border)
             {
                 filled[i] = elevation[i];
@@ -101,8 +111,8 @@ public static class Hydrology
             int x = i % size, y = i / size;
             for (int d = 0; d < 8; d++)
             {
-                int nx = x + Dx[d], ny = y + Dy[d];
-                if (nx < 0 || ny < 0 || nx >= size || ny >= size) continue;
+                int nx = Pathing.MapTopology.NeighbourX(x, Dx[d], size, wrapX), ny = y + Dy[d];
+                if (nx < 0 || ny < 0 || ny >= size) continue;
                 int n = ny * size + nx;
                 if (visited[n]) continue;
                 visited[n] = true;
@@ -116,7 +126,7 @@ public static class Hydrology
 
     // --- D8 direction over the conditioned surface -----------------------------
 
-    private static int[] FlowTargets(double[] filled, double[] water, int size)
+    private static int[] FlowTargets(double[] filled, double[] water, int size, bool wrapX)
     {
         int cells = size * size;
         var target = new int[cells];
@@ -129,8 +139,8 @@ public static class Hydrology
             int best = -1;
             for (int d = 0; d < 8; d++)
             {
-                int nx = x + Dx[d], ny = y + Dy[d];
-                if (nx < 0 || ny < 0 || nx >= size || ny >= size) continue;
+                int nx = Pathing.MapTopology.NeighbourX(x, Dx[d], size, wrapX), ny = y + Dy[d];
+                if (nx < 0 || ny < 0 || ny >= size) continue;
                 int n = ny * size + nx;
                 double gradient = (filled[i] - filled[n]) / Dist[d];
                 // Strictly steeper wins; equal-gradient ties go to the LOWER id.
@@ -141,7 +151,7 @@ public static class Hydrology
                 }
             }
             // best == -1 only for border land cells that are their own spill
-            // (documented terminal border sink).
+            // (documented terminal border sink — on a cylinder, a pole cell).
             target[i] = best;
         }
         return target;

@@ -74,7 +74,7 @@
   {
    "id": "baseline.construction",
    "name": "Basic internal construction",
-   "providedBy": "ConstructionSystem \u2014 an EnqueueConstruction order queues a project, which completes whole in one turn when construction capacity and every input are available (no progress field); no Builder unit",
+   "providedBy": "ConstructionSystem \u2014 an EnqueueConstruction order queues a project; the first project in a settlement's queue is built a little each turn, as far as its materials and builders allow, and is complete when all its materials and work have gone in (what has gone in is kept while it waits and lost only if it is cancelled; D-054); no Builder unit",
    "simulated": true
   },
   {

@@ -915,6 +915,8 @@ public class EmpireFoodAllocationTests
     // byte. Which layer moved a pin is the PER-LAYER proof below: the combined world against the combined world with ONLY
     // relief off, first differing exactly at the turn relief first moves grain.
 
+    // D-054 (schema v33): these literals are v32 measurements, so every comparison goes through
+    // SchemaProjection.V32 (the two empty v33 tables dropped; asserted empty).
     private const string De86aceFoundedGolden = "937577ffb0e73c2b051d8d7832cfb5028c2154d01c9afef4d976b71ccb5e7f54";
     private const string De86aceDrivenGolden = "7bcdc03ff5bf82ff22a527e9d1a28b614d216ddcee0265aacc98b44280a92033";
     private const string De86aceAiWorldTurn300 = "aa7a87a98370c24815d478877a3f4f862838fde51a33fd5d0841157ca73066a7";
@@ -926,9 +928,10 @@ public class EmpireFoodAllocationTests
     public void Switch_Off_FoundedGolden_ByteIdenticalToPreRelief()
     {
         Assert.Equal(De86aceFoundedGolden,
-            WorldHash.ComputeHex(Sim.Tests.Kernel.SnapshotTests.RunFoundedGolden(TestConfigs.PreD053(TestConfigs.Sim()))));
+            SchemaProjection.V32(Sim.Tests.Kernel.SnapshotTests.RunFoundedGolden(TestConfigs.PreD053(TestConfigs.Sim()), TestConfigs.PreD054Worldgen())));
         Assert.Equal(De86aceFoundedGolden,
-            WorldHash.ComputeHex(Sim.Tests.Kernel.SnapshotTests.RunFoundedGolden(TestConfigs.PreEmpireFoodAllocation(TestConfigs.Sim()))));
+            SchemaProjection.V32(Sim.Tests.Kernel.SnapshotTests.RunFoundedGolden(
+                TestConfigs.PreEmpireFoodAllocation(TestConfigs.PreD054Sim(TestConfigs.Sim())), TestConfigs.PreD054Worldgen())));
     }
 
     /// <summary>The driven golden (seed 42, 300 turns, the driven order batch) — a world where relief DOES happen
@@ -937,10 +940,12 @@ public class EmpireFoodAllocationTests
     [Fact]
     public void Switch_Off_DrivenGolden_ByteIdenticalToPreRelief_AndOnItMoves()
     {
-        (WorldState off, _) = Sim.Tests.Kernel.DrivenGoldenTests.RunDriven(300, TestConfigs.PreD053(TestConfigs.Sim()));
-        Assert.Equal(De86aceDrivenGolden, WorldHash.ComputeHex(off));
-        (WorldState on, _) = Sim.Tests.Kernel.DrivenGoldenTests.RunDriven(300, TestConfigs.Sim());
-        Assert.NotEqual(De86aceDrivenGolden, WorldHash.ComputeHex(on));
+        // D-054 (batch 3): the PreD054 PAIR — founded flat (PreD054Worldgen), the sim half stripped (PreD053 strips
+        // PreD054Sim), compared through the v32 projection.
+        (WorldState off, _) = Sim.Tests.Kernel.DrivenGoldenTests.RunDriven(300, TestConfigs.PreD053(TestConfigs.Sim()), TestConfigs.PreD054Worldgen());
+        Assert.Equal(De86aceDrivenGolden, SchemaProjection.V32(off));
+        (WorldState on, _) = Sim.Tests.Kernel.DrivenGoldenTests.RunDriven(300, TestConfigs.Sim(), TestConfigs.PreD054Worldgen());
+        Assert.NotEqual(De86aceDrivenGolden, SchemaProjection.V32(on));
     }
 
     /// <summary>Whether intra-polity relief moved grain in the step <paramref name="prev"/> → <paramref name="next"/>,
@@ -970,11 +975,14 @@ public class EmpireFoodAllocationTests
     [Fact]
     public void PerLayer_Relief_TheDrivenWorldDivergesExactlyAtTheFirstRelief()
     {
-        SimConfig on = TestConfigs.Sim(), off = TestConfigs.PreEmpireFoodAllocation(on);
-        WorldState w0 = WorldFounding.Found(TestConfigs.Worldgen(), on, 42);
+        // D-054: the combined BATCH-2 tree — the PreD054 PAIR: WS1/WS2 off (TestConfigs.PreD054Sim) and founded flat
+        // (TestConfigs.PreD054Worldgen) — so the relief-off world is a PreD054 world and its de86ace literal compares
+        // through the v32 projection.
+        SimConfig on = TestConfigs.PreD054Sim(TestConfigs.Sim()), off = TestConfigs.PreEmpireFoodAllocation(on);
+        WorldState w0 = WorldFounding.Found(TestConfigs.PreD054Worldgen(), on, 42);
         OrderLog orders = Sim.Tests.Kernel.DrivenGoldenTests.DrivingOrders(w0.Settlements.Count);
         OrderValidation.ValidateAgainstWorld(orders, w0);
-        TurnExecutor exOn = Pipeline(on, TestConfigs.Worldgen(), orders), exOff = Pipeline(off, TestConfigs.Worldgen(), orders);
+        TurnExecutor exOn = Pipeline(on, TestConfigs.PreD054Worldgen(), orders), exOff = Pipeline(off, TestConfigs.PreD054Worldgen(), orders);
         WorldState a = w0, b = w0.Clone();
         long firstRelief = -1, firstDifferent = -1;
         for (int t = 1; t <= 300; t++)
@@ -987,7 +995,7 @@ public class EmpireFoodAllocationTests
         }
         Assert.True(firstRelief > 0, "relief never moved grain on the driven world — the proof is vacuous");
         Assert.Equal(firstRelief, firstDifferent);
-        Assert.Equal(De86aceDrivenGolden, WorldHash.ComputeHex(b));      // relief off, the purse and granaries on: de86ace's
+        Assert.Equal(De86aceDrivenGolden, SchemaProjection.V32(b));      // relief off, the purse and granaries on: de86ace's
     }
 
     /// <summary>The AI world: `sim run --founded --seed 42 --turns 300 --ai-empires 1` (the AiFoundingAttributionTests
@@ -996,20 +1004,20 @@ public class EmpireFoodAllocationTests
     public void Switch_Off_AiWorld_ByteIdenticalToPreRelief()
     {
         SimConfig off = TestConfigs.PreD053(TestConfigs.Sim());
-        WorldgenConfig wg = TestConfigs.Worldgen() with { AiEmpires = 1 };
+        WorldgenConfig wg = TestConfigs.PreD054Worldgen() with { AiEmpires = 1 };
         var log = new OrderLog();
         TurnExecutor exec;
         using (var eraStream = Sim.Data.DataFiles.OpenEraPacing())
         using (var pipeStream = Sim.Data.DataFiles.OpenPipeline())
             exec = new TurnExecutor(EraTableLoader.Load(eraStream),
-                PipelineLoader.Load(pipeStream, SystemCatalog.All(off, TestConfigs.Worldgen())), log);
+                PipelineLoader.Load(pipeStream, SystemCatalog.All(off, TestConfigs.PreD054Worldgen())), log);
         WorldState w = WorldFounding.Found(wg, off, 42);
         Assert.Equal(2, w.Polities.Count);
         for (int t = 1; t <= 300; t++)
         {
-            AiOrders.Append(log, w, off, TestConfigs.Worldgen());
+            AiOrders.Append(log, w, off, TestConfigs.PreD054Worldgen());
             w = exec.Step(w);
         }
-        Assert.Equal(De86aceAiWorldTurn300, WorldHash.ComputeHex(w));
+        Assert.Equal(De86aceAiWorldTurn300, SchemaProjection.V32(w));
     }
 }

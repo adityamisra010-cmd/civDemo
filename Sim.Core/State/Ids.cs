@@ -125,8 +125,9 @@ public static class TransportModes
 
 /// <summary>
 /// ADR-032 — construction state of a <see cref="TransportEdgeRow"/>. Road development is
-/// atomic within a turn (the M4-D ConstructionSystem precedent: no timer, no partial state),
-/// so every row written today is Complete. The field exists for the schema the Director named
+/// atomic within a turn (no timer, no partial state — the M4-D precedent; D-054 WS1 moved
+/// building projects to incremental progress, roads did not change), so every row written
+/// today is Complete. The field exists for the schema the Director named
 /// (ruling 19) and for a later multi-turn project; no other value is defined yet.
 /// </summary>
 public static class TransportEdgeStates

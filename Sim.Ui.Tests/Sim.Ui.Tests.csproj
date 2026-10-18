@@ -21,6 +21,9 @@
     <!-- Art substrate: the tests read the SAME assets/ the game ships,
          so the seamless/palette gates judge the real files. -->
     <None Include="..\assets\**\*" LinkBase="assets" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Fix round 1 (D-054, verifier F1): the REAL batch-2 (schema v32) session Sim.Tests checks in
+         (Sim.Tests/Fixtures/v32-session-found/README.md) — the UI resume test reads the same files. -->
+    <None Include="..\Sim.Tests\Fixtures\v32-session-found\*" LinkBase="Fixtures\v32-session-found" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

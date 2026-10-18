@@ -167,9 +167,31 @@ public static class TestConfigs
     /// every OLDER attribution twin strips (the R4 rule: an older layer twin strips every newer layer — PreForager and its
     /// chain, PreTimeAveragedHarvest, PreTaxAge, PreAiFounding). Which layer moved a pin is the per-layer proof beside each
     /// switch-off control: the combined world against the combined world with only that layer off, first differing exactly
-    /// at the turn that layer first acts.</summary>
+    /// at the turn that layer first acts. By the same R4 rule it strips the NEWER D-054 batch too (<see cref="PreD054Sim"/>:
+    /// incremental construction, WS1), so every pre-D-053 twin is a pre-D-054 twin as well.</summary>
     public static SimConfig PreD053(SimConfig cfg) =>
-        PreGranaryEffects(PreEmpireFoodAllocation(PreEmpireConstructionStockpile(cfg)));
+        PreGranaryEffects(PreEmpireFoodAllocation(PreEmpireConstructionStockpile(PreD054Sim(cfg))));
+
+    /// <summary>D-054 WS1 (2026-10-14) — INCREMENTAL CONSTRUCTION SWITCHED OFF: sim.json construction.incremental false, so
+    /// the queue head resolves by M4-D's whole-or-nothing gate exactly as in batch 2 (ConstructionSystem's "THE SWITCH OFF"),
+    /// no progress row is written, the AI neither cancels stalled heads nor applies its WS1 ordering checks, and the
+    /// construction blocker keeps its per-turn labour clause. It also switches off WS2 (the building/roads split, which
+    /// needs incremental construction: the loader refuses allocationRatios without it). With it, a world's v32 projection
+    /// (SchemaProjection.HashAtSchemaV32) returns the batch-2 references byte for byte.</summary>
+    public static SimConfig PreIncrementalConstruction(SimConfig cfg) =>
+        cfg.Construction is { } c ? cfg with { Construction = c with { Incremental = false, AllocationRatios = false } } : cfg;
+
+    /// <summary>D-054 WS2 (2026-10-14) — THE BUILDING/ROADS SPLIT SWITCHED OFF: sim.json construction.allocationRatios
+    /// false, so kind-12 orders are ignored at delivery, no ResourceAllocationRow is written, and building work goes first
+    /// with road works getting what it leaves (WS1 alone). A world whose Empires never set a split (every AI world, and
+    /// every world with no kind-12 order) is byte-identical with it on or off: the default b = 100 cannot bind.</summary>
+    public static SimConfig PreAllocationRatios(SimConfig cfg) =>
+        cfg.Construction is { } c ? cfg with { Construction = c with { AllocationRatios = false } } : cfg;
+
+    /// <summary>D-054 (2026-10-14) — THE SIMCONFIG HALF OF THE BATCH OFF: WS1 and WS2 switched off. The worldgen half (the
+    /// cylinder, WS3) is <see cref="PreD054Worldgen(WorldgenConfig)"/>: PreD054 is a PAIR, and a control that founds a world
+    /// uses both (<see cref="FoundPreD054"/>). Every older SimConfig twin strips this half (<see cref="PreD053"/>).</summary>
+    public static SimConfig PreD054Sim(SimConfig cfg) => PreAllocationRatios(PreIncrementalConstruction(cfg));
 
     /// <summary>R1: completes, for EVERY polity of <paramref name="w"/>, the knowledge closure (the named nodes
     /// and all their prerequisite ancestors) of every research-gated goods.json recipe — the world of a
@@ -309,6 +331,14 @@ public static class TestConfigs
         return reader.ReadToEnd();
     }
 
+    /// <summary>The raw canonical worldgen.json text (for loader-rejection tests).</summary>
+    public static string WorldgenJson()
+    {
+        using var stream = global::Sim.Data.DataFiles.OpenWorldgen();
+        using var reader = new StreamReader(stream);
+        return reader.ReadToEnd();
+    }
+
     public static WorldgenConfig Worldgen()
     {
         using var stream = global::Sim.Data.DataFiles.OpenWorldgen();
@@ -322,4 +352,39 @@ public static class TestConfigs
         WorldgenConfig cfg = Worldgen();
         return cfg with { SizePx = 256, Siting = cfg.Siting with { SettlementCount = 4 } };
     }
+
+    // ======================================================================
+    // BATCH 3 (D-054) — THE WORLDGEN HALF OF THE ATTRIBUTION CHAIN. WS3's switch lives in worldgen.json
+    // (topology.wrapX), not sim.json, so no SimConfig twin can strip it: a test that FOUNDS a world must strip it
+    // on the WorldgenConfig it founds with. PreD054 is therefore a PAIR — this worldgen half, and the SimConfig
+    // half (the construction track's PreD054Sim, which the older SimConfig twins strip, the R4 rule). Every
+    // attribution control that founds a world founds it through PreD054Worldgen (or FoundPreD054), so with both
+    // halves off (and the v32 schema projection) it returns the batch-2 pins byte for byte.
+    // ======================================================================
+
+    /// <summary>Batch 3 WS3 — THE CYLINDER SWITCHED OFF: worldgen.json topology removed (absent = the flat square
+    /// raster). Worldgen.Generate then takes the pre-batch-3 code path at every stage — the four-sided edge taper,
+    /// the non-periodic noise (x / (size − 1)), border sinks on all four edges, no x wrap anywhere — so the terrain's
+    /// bytes and ContentHash are the pre-batch-3 ones, and so is every world founded on it
+    /// (WrapAttributionTests pins it).</summary>
+    public static WorldgenConfig PreCylinderWorldgen(WorldgenConfig cfg) => cfg with { Topology = null };
+
+    /// <summary>D-054 (batch 3) — the WORLDGEN half of the batch-off pair: <see cref="PreCylinderWorldgen"/> (WS3 is
+    /// the batch's only worldgen layer). Pair it with the sim half on every attribution control that founds a world.</summary>
+    public static WorldgenConfig PreD054Worldgen(WorldgenConfig cfg) => PreCylinderWorldgen(cfg);
+
+    /// <summary>The canonical worldgen with the batch-3 worldgen layer stripped (<see cref="PreD054Worldgen(WorldgenConfig)"/>
+    /// of <see cref="Worldgen"/>).</summary>
+    public static WorldgenConfig PreD054Worldgen() => PreD054Worldgen(Worldgen());
+
+    /// <summary>
+    /// D-054 — founds a world with the WHOLE batch off, BOTH halves of the pair (integration, 2026-10-14):
+    /// <see cref="Sim.Core.Worldgen.WorldFounding.Found"/> on <see cref="PreD054Worldgen(WorldgenConfig)"/> of
+    /// <paramref name="worldgen"/> (default: the canonical config) with <see cref="PreD054Sim"/> of <paramref name="sim"/>
+    /// (idempotent: PreD053 and the older twins already strip it). The caller runs the pipeline with the same pair
+    /// (<see cref="PreD054Sim"/> of its config, and a worldgen whose topology is off — only Worldgen.Generate reads it).
+    /// </summary>
+    public static global::Sim.Core.State.WorldState FoundPreD054(
+        ulong seed, SimConfig sim, WorldgenConfig? worldgen = null, int? settlementsOverride = null) =>
+        global::Sim.Core.Worldgen.WorldFounding.Found(PreD054Worldgen(worldgen ?? Worldgen()), PreD054Sim(sim), seed, settlementsOverride);
 }

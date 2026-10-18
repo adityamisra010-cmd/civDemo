@@ -614,6 +614,26 @@ public class PlayabilityGateTests : IDisposable
         Assert.Empty(h.Problems);
     }
 
+    /// <summary>
+    /// Batch 3 R3 (W2 review F5) — THE W A S D ROW ON A CYLINDER CHECKS DIRECTION: D must pan the view EAST and A WEST, by the
+    /// camera's shortest wrapped delta (it said only "x changed", so a D that panned west passed — MEASURED: with the keys'
+    /// signs swapped in GameUi every camera row still passed). The verdict across the seam goes by direction, not by the
+    /// coordinate's jump; the live rows (CameraRows_Pass…) hold it on the shipped game.
+    /// </summary>
+    [Fact]
+    public void TheWrapPanVerdict_WantsDEastAndAWest_ByTheShortestWrappedDelta()
+    {
+        var cam = new Camera(1024, wrapX: true);
+        Assert.Null(PlayabilityGate.WrapPanProblem(cam, 100, 110, 95));
+        Assert.Null(PlayabilityGate.WrapPanProblem(cam, 1020, 4, 1018));        // D east across the seam (x jumps 1020 -> 4)
+        Assert.Null(PlayabilityGate.WrapPanProblem(cam, 6, 20, 1022));          // A west across the seam (x jumps 20 -> 1022)
+        Assert.Contains("D moved x by -10.0", PlayabilityGate.WrapPanProblem(cam, 100, 90, 85), StringComparison.Ordinal);   // D west
+        Assert.Contains("A by 10.0", PlayabilityGate.WrapPanProblem(cam, 100, 110, 120), StringComparison.Ordinal);          // A east
+        Assert.NotNull(PlayabilityGate.WrapPanProblem(cam, 4, 1020, 1010));     // D WEST across the seam: x grew, the view went west
+        Assert.NotNull(PlayabilityGate.WrapPanProblem(cam, 100, 100, 100));     // nothing moved
+        Assert.NotNull(PlayabilityGate.WrapPanProblem(cam, 100, 110, 110));     // A did nothing
+    }
+
     /// <summary>THE MUTANT (ADR-015): a camera operation that QUEUES AN ORDER — the verification seam runs a labour order
     /// inside every camera row, after its input. The world hash cannot see it (an order changes nothing until the step);
     /// the queued-order leg of every camera row does.</summary>

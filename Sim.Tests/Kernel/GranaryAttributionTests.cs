@@ -34,7 +34,7 @@ public class GranaryAttributionTests
 {
     private const int Turns = 300;
 
-    /// <summary>The founded golden at the base commit de86ace (SnapshotTests.FoundedGoldenHash) — and, since the
+    /// <summary>The founded golden at the base commit de86ace (SnapshotTests.PreD054FoundedGoldenHash) — and, since the
     /// no-order world builds nothing, ALSO the value with the granary effects on.</summary>
     private const string De86aceFounded = "937577ffb0e73c2b051d8d7832cfb5028c2154d01c9afef4d976b71ccb5e7f54";
 
@@ -57,7 +57,7 @@ public class GranaryAttributionTests
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
         return new TurnExecutor(EraTableLoader.Load(eraStream),
-            PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg, TestConfigs.Worldgen())), orders);
+            PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg, TestConfigs.PreD054Worldgen())), orders);
     }
 
     /// <summary>Whether a granary can ACT on the next step read from <paramref name="w"/>: the farm factor at a settlement
@@ -89,23 +89,28 @@ public class GranaryAttributionTests
     {
         SimConfig on = TestConfigs.Sim();
         Assert.True(on.Granaries!.Enabled);                                   // the shipped content is the ON arm
-        WorldState wBatchOff = SnapshotTests.RunFoundedGolden(TestConfigs.PreD053(on));
-        Assert.Equal(De86aceFounded, WorldHash.ComputeHex(wBatchOff));       // the batch off: de86ace
-        WorldState wOff = SnapshotTests.RunFoundedGolden(TestConfigs.PreGranaryEffects(on));
-        Assert.Equal(De86aceFounded, WorldHash.ComputeHex(wOff));
-        WorldState wOn = SnapshotTests.RunFoundedGolden(on);
+        // D-054 (batch 3) — the PreD054 PAIR: every leg founds FLAT (TestConfigs.PreD054Worldgen, the worldgen half) and
+        // every de86ace / batch-2 literal compares through the v32 projection (SchemaProjection.V32 — the two appended v33
+        // tables dropped, asserted empty). The worlds built with WS1 off where the literal is a batch-2 value (the older
+        // twins — PreD053 and every twin older than it — strip the sim half, PreD054Sim, already).
+        WorldState wBatchOff = SnapshotTests.RunFoundedGolden(TestConfigs.PreD053(on), TestConfigs.PreD054Worldgen());
+        Assert.Equal(De86aceFounded, SchemaProjection.V32(wBatchOff));       // the batch off: de86ace
+        WorldState wOff = SnapshotTests.RunFoundedGolden(TestConfigs.PreGranaryEffects(on), TestConfigs.PreD054Worldgen());
+        Assert.Equal(De86aceFounded, SchemaProjection.V32(wOff));
+        WorldState wOn = SnapshotTests.RunFoundedGolden(on, TestConfigs.PreD054Worldgen());
         Assert.Equal(0, Granaries(wOn, on));                                  // nothing is built without an order
-        Assert.Equal(De86aceFounded, WorldHash.ComputeHex(wOn));
-        Assert.Equal(SnapshotTests.FoundedGoldenHash, WorldHash.ComputeHex(wOn));
+        Assert.Equal(De86aceFounded, SchemaProjection.V32(wOn));             // no order: WS1 never acts here either
+        Assert.Equal(SnapshotTests.PreD054FoundedGoldenHash, SchemaProjection.V32(wOn));
     }
 
     [Fact]
     public void WithTheBatchOff_TheAiWorldIsTheDe86aceWorldByteForByte_AndTheGranaryLayerAloneDivergesTheStepAfterAGranaryFirstActs()
     {
-        SimConfig on = TestConfigs.Sim();
+        // D-054: the per-layer proof keeps its batch-2 meaning — both arms with WS1 off (TestConfigs.PreD054Sim).
+        SimConfig on = TestConfigs.PreD054Sim(TestConfigs.Sim());
         SimConfig off = TestConfigs.PreGranaryEffects(on);
         Assert.False(off.Granaries!.Enabled);
-        WorldgenConfig wg = TestConfigs.Worldgen() with { AiEmpires = 1 };
+        WorldgenConfig wg = TestConfigs.PreD054Worldgen() with { AiEmpires = 1 };
 
         // THE BATCH OFF: the base commit's AI world, byte for byte.
         SimConfig batchOff = TestConfigs.PreD053(on);
@@ -114,10 +119,10 @@ public class GranaryAttributionTests
         WorldState wBatch = WorldFounding.Found(wg, batchOff, 42);
         for (int t = 1; t <= Turns; t++)
         {
-            AiOrders.Append(batchLog, wBatch, batchOff, TestConfigs.Worldgen());
+            AiOrders.Append(batchLog, wBatch, batchOff, TestConfigs.PreD054Worldgen());
             wBatch = batchExec.Step(wBatch);
         }
-        Assert.Equal(De86aceAiTurn300, WorldHash.ComputeHex(wBatch));
+        Assert.Equal(De86aceAiTurn300, SchemaProjection.V32(wBatch));
 
         // THE PER-LAYER PROOF: the combined world (ON) against the combined world with only the granary effects off.
 
@@ -128,8 +133,8 @@ public class GranaryAttributionTests
         long firstDifferent = -1, firstGranaryStands = -1, firstGranaryActs = -1;
         for (int t = 1; t <= Turns; t++)
         {
-            AiOrders.Append(offLog, wOff, off, TestConfigs.Worldgen());
-            AiOrders.Append(onLog, wOn, on, TestConfigs.Worldgen());
+            AiOrders.Append(offLog, wOff, off, TestConfigs.PreD054Worldgen());
+            AiOrders.Append(onLog, wOn, on, TestConfigs.PreD054Worldgen());
             wOff = offExec.Step(wOff);
             wOn = onExec.Step(wOn);
             if (firstGranaryStands < 0 && Granaries(wOn, on) > 0) firstGranaryStands = wOn.Clock.Turn;
@@ -145,7 +150,7 @@ public class GranaryAttributionTests
         Assert.Equal(firstGranaryActs + 1, firstDifferent);
         // The orders up to that step are the same orders (the layer adds no order and alters none before it acts).
         for (int i = 0; i < onLog.Count && onLog[i].Turn <= firstGranaryActs; i++) Assert.Equal(offLog[i], onLog[i]);
-        Assert.Equal(GranaryAiTurn300, WorldHash.ComputeHex(wOn));
+        Assert.Equal(GranaryAiTurn300, SchemaProjection.V32(wOn));          // the batch-2 AI world: WS1 off reproduces it
         Assert.NotEqual(De86aceAiTurn300, GranaryAiTurn300);
     }
 }

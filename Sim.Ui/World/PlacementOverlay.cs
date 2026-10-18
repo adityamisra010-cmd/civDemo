@@ -34,9 +34,14 @@ public static class PlacementOverlay
     /// Paints the map marks of <paramref name="p"/> through <paramref name="toScreen"/> (world px → screen px): the route
     /// (when the mode has one to show), the hovered place's footprint and the chosen place's ring. Returns the number of
     /// commands it added (0 when the mode is off).
+    /// <para>WS3: with <paramref name="wrapX"/> (a wrapped world; the game passes its camera's flag) the route is UNWRAPPED
+    /// node by node (each centre at its copy nearest the previous one — <see cref="MapTopology.UnwrapNear"/>), so a route
+    /// across the seam is one contiguous line the short way; the route and each mark are drawn at their copy nearest the
+    /// centre of <paramref name="viewport"/> and at every other copy (world x ± the map's width) that touches it. Flat: exactly
+    /// as before.</para>
     /// </summary>
     public static int PaintMap(DrawList d, EraTheme t, MapInk ink, Func<double, double, (double X, double Y)> toScreen,
-        int terrainSize, TraversalLattice? lattice, PlacementMode p, double uiScale)
+        int terrainSize, TraversalLattice? lattice, PlacementMode p, double uiScale, bool wrapX = false, RectD? viewport = null)
     {
         ArgumentNullException.ThrowIfNull(d);
         ArgumentNullException.ThrowIfNull(t);
@@ -46,29 +51,74 @@ public static class PlacementOverlay
         int before = d.Commands.Count;
         if (!p.Active || terrainSize <= 0) return 0;
         double s = Math.Max(0.5, uiScale);
+        bool wrap = wrapX && viewport is not null;
+        int[] ks = wrap ? [-1, 0, 1] : [0];
+        Func<double, double, (double X, double Y)> Copy(int c) => c == 0 ? toScreen : (x, y) => toScreen(x + c * terrainSize, y);
+        // The copies to draw an element of world x-extent [x0, x1] at: flat {0}; wrapped, the one nearest the viewport's
+        // centre and every other whose screen span (padded by pad px) touches the viewport.
+        List<int> Copies(double x0, double x1, double y, double pad)
+        {
+            var list = new List<int>(3);
+            if (!wrap) { list.Add(0); return list; }
+            RectD v = viewport!.Value;
+            int primary = 0;
+            double best = double.PositiveInfinity;
+            foreach (int c in ks)
+            {
+                double mid = (Copy(c)(x0, y).X + Copy(c)(x1, y).X) / 2.0, dd = Math.Abs(mid - v.CenterX);
+                if (dd < best) { best = dd; primary = c; }
+            }
+            foreach (int c in ks)
+            {
+                double a = Copy(c)(x0, y).X, b = Copy(c)(x1, y).X;
+                if (c == primary || (Math.Max(a, b) + pad >= v.X && Math.Min(a, b) - pad <= v.Right)) list.Add(c);
+            }
+            return list;
+        }
 
         if (p.Route is { Found: true } route && lattice is not null && route.Nodes.Length > 1)
         {
-            var pts = new (double X, double Y)[route.Nodes.Length];
-            for (int i = 0; i < pts.Length; i++)
+            var world = new (double X, double Y)[route.Nodes.Length];
+            double lo = double.PositiveInfinity, hi = double.NegativeInfinity;
+            for (int i = 0; i < world.Length; i++)
             {
                 (double wx, double wy) = NodeCentre(lattice, route.Nodes[i]);
-                pts[i] = toScreen(wx, wy);
+                if (wrapX && i > 0) wx = MapTopology.UnwrapNear(wx, world[i - 1].X, terrainSize);   // WS3: the short way, contiguous
+                world[i] = (wx, wy);
+                lo = Math.Min(lo, wx);
+                hi = Math.Max(hi, wx);
             }
-            d.Polyline(pts, ThemeColor.Alpha(ink.PathCasing, 0.85), 5.0 * s);
-            d.Polyline(pts, ink.Selection, 2.5 * s);
+            foreach (int c in Copies(lo, hi, world[0].Y, 5.0 * s))
+            {
+                Func<double, double, (double X, double Y)> at = Copy(c);
+                var pts = new (double X, double Y)[world.Length];
+                for (int i = 0; i < pts.Length; i++) pts[i] = at(world[i].X, world[i].Y);
+                d.Polyline(pts, ThemeColor.Alpha(ink.PathCasing, 0.85), 5.0 * s);
+                d.Polyline(pts, ink.Selection, 2.5 * s);
+            }
         }
         if (p.Hovered >= 0 && p.Hovered != p.Selected)
-            Mark(d, toScreen, terrainSize, p.Hovered, VerdictInk(t, p.HoveredVerdict), 1.6 * s, MinMarkPx * s, ring: false);
+        {
+            (int hx, int hy) = CellXY(p.Hovered, terrainSize);
+            foreach (int c in Copies(hx, hx + 1, hy, MinMarkPx * s + 4))
+                Mark(d, Copy(c), terrainSize, p.Hovered, VerdictInk(t, p.HoveredVerdict), 1.6 * s, MinMarkPx * s, ring: false);
+        }
         if (p.Selected >= 0)
-            Mark(d, toScreen, terrainSize, p.Selected, VerdictInk(t, p.SelectedVerdict), 2.8 * s, MinMarkPx * s * 1.4, ring: true);
+        {
+            (int sx, int sy) = CellXY(p.Selected, terrainSize);
+            foreach (int c in Copies(sx, sx + 1, sy, MinMarkPx * s * 1.4 + 4))
+                Mark(d, Copy(c), terrainSize, p.Selected, VerdictInk(t, p.SelectedVerdict), 2.8 * s, MinMarkPx * s * 1.4, ring: true);
+        }
         return d.Commands.Count - before;
     }
+
+    /// <summary>A cell's own column and row (a position, no delta).</summary>
+    private static (int X, int Y) CellXY(int cell, int size) => (cell % size, cell / size);
 
     private static void Mark(DrawList d, Func<double, double, (double X, double Y)> toScreen, int size, int cell, Rgba color,
         double width, double minRadius, bool ring)
     {
-        int x = cell % size, y = cell / size;
+        (int x, int y) = CellXY(cell, size);
         (double x0, double y0) = toScreen(x, y);
         (double x1, double y1) = toScreen(x + 1, y + 1);
         double cx = (x0 + x1) / 2.0, cy = (y0 + y1) / 2.0;

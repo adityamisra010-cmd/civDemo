@@ -52,8 +52,8 @@ public class FoundedHarnessTests
 
     /// <summary>Fresh 1024² founded world — everything constructed anew (twin
     /// equality therefore also proves founding + system statelessness).</summary>
-    private static WorldState FreshFounded(SimConfig? cfg = null) =>
-        WorldFounding.Found(TestConfigs.Worldgen(), cfg ?? TestConfigs.Sim(), Seed);
+    private static WorldState FreshFounded(SimConfig? cfg = null, WorldgenConfig? worldgen = null) =>
+        WorldFounding.Found(worldgen ?? TestConfigs.Worldgen(), cfg ?? TestConfigs.Sim(), Seed);
 
     /// <summary>D-053 §2 RE-RIG (2026-10-13): the config of the ORDERED TWIN, whose turn-exact pins measure a
     /// PER-SETTLEMENT rule — settlement 0, starved by its own labour orders, revolts at <see cref="RevoltTurn"/> and
@@ -64,6 +64,18 @@ public class FoundedHarnessTests
     /// ordered legs (replay, conservation, save/load) stay on the SHIPPED config: there the same SessionLog drives
     /// relief instead of revolt, so the determinism harness covers both.</summary>
     private static SimConfig OrderedTwinConfig() => TestConfigs.PreEmpireFoodAllocation(TestConfigs.Sim());
+
+    /// <summary>Batch 3 (D-054, W1 fix F5): "the de86ace run" the ordered twin reproduces is also the FLAT world — the
+    /// batch-2 twin strips every newer layer (the R4 rule), the cylinder (worldgen.json topology.wrapX) included. On the
+    /// cylindrical world settlement 0 is not starved into revolt by <see cref="SessionLog"/> (MEASURED: the revolt pin
+    /// failed "Expected: Not 1, Actual: 1"), so the twin founds flat and <see cref="RevoltTurn"/> stands.
+    /// Integration R1 (2026-10-14) — the premise RE-MEASURED on the merged tree (this config, <see cref="SessionLog"/>, 300
+    /// turns): FLAT — settlement 0 revolts at turn 39, the 4 orders landing after it (80, 30, 100, 45 %) are refused, 341
+    /// network edges; the CYLINDER — no revolt in 300 turns, 318 edges. Kept flat on purpose: the config is a batch-2 layer
+    /// twin, so the R4 rule strips the newer worldgen layer with it, and the property pinned (a revolted settlement's later
+    /// orders are refused, turn-exactly) is topology-independent; the shipped config's ordered legs (replay, conservation,
+    /// save/load) stay on the cylinder.</summary>
+    private static WorldgenConfig OrderedTwinWorldgen() => TestConfigs.PreD054Worldgen();
 
     /// <summary>Orders shaped like a real session: labor swings incl. both boundaries.
     /// ADR-033 D2: the swings starve settlement 0 into revolt at <see cref="RevoltTurn"/>, so the orders landing
@@ -123,7 +135,7 @@ public class FoundedHarnessTests
         // D-053 §2: the twin's revolt and refusal pins measure the per-settlement rule — OrderedTwinConfig states why.
         SimConfig cfg = OrderedTwinConfig();
         TurnExecutor execA = FreshExecutor(SessionLog(), cfg), execB = FreshExecutor(SessionLog(), cfg);
-        WorldState a = FreshFounded(cfg), b = FreshFounded(cfg);
+        WorldState a = FreshFounded(cfg, OrderedTwinWorldgen()), b = FreshFounded(cfg, OrderedTwinWorldgen());
         var settlement0 = new SettlementId(0);
         for (int t = 1; t <= Turns; t++)
         {

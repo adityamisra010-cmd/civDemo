@@ -308,3 +308,15 @@ The sections above are kept unchanged as history.
   food floor with a last settlement's permanent revolt, `taxCapacityOffsetMax` = 0.25) are RATIFIED.
 
 Record: `docs/d050-m5-hardening-rulings.md`.
+
+## D10 and batch 3 — pointer (appended 2026-10-15, D-054; the sections above are unchanged)
+
+- **D10's directive "no bank" is superseded for construction PROGRESS only.** Under D-054 §1 (incremental
+  construction, `sim.json` `construction.incremental`) a queue head's progress is stored state (schema v33
+  `ConstructionProgress`, ADR-039 §2) and survives turns, waits and saves.
+- **D10's rule stands.** Construction capacity is spent once: ConstructionSystem publishes the adult-years a head's
+  progress used, L × (p' − p) / N, and PathBuild subtracts them at the one-turn lag.
+- **The "unused capacity disappears" wording was inaccurate.** Construction capacity a head does not use is banked by
+  PathBuild toward dirt paths, as it always was.
+- **D3/D5 (the construction predicate, the AI) carry a new order:** kind 11 `CancelConstruction`, validated again at
+  delivery, and the AI's structural-stall cancel (D-054 §1).

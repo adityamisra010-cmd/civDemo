@@ -26,18 +26,51 @@ public static class WorldFounding
     public static WorldState Found(
         WorldgenConfig cfg, SimConfig simCfg, ulong seed, int? settlementsOverride = null)
     {
-        var world = new WorldState(seed)
-        {
-            Terrain = Worldgen.Generate(cfg, seed),
-        };
+        TerrainSet terrain = Worldgen.Generate(cfg, seed);
 
         int count = settlementsOverride ?? cfg.Siting.SettlementCount;
         if (count < 1) throw new ArgumentOutOfRangeException(nameof(settlementsOverride),
             $"settlement count must be >= 1, got {count}");
         int[] sites = SettlementSiting.ChooseSites(
-            world.Terrain!, cfg.Siting, count, simCfg.Transport.RiverCostFactor, seed);
-        for (int s = 0; s < sites.Length; s++)
-            world.Settlements.Add(new SettlementRow(new SettlementId(s), sites[s], FoundedTurn: 0));
+            terrain, cfg.Siting, count, simCfg.Transport.RiverCostFactor, seed);
+        return Assemble(terrain, sites, cfg, simCfg, seed);
+    }
+
+    /// <summary>
+    /// Batch 3 WS3 — THE TEST AND TOOL FOUNDING ENTRY (recorded under ADR-008 with <see cref="TerrainSet.FromLayers"/>):
+    /// founds a world on an explicit <paramref name="terrain"/> with settlement i at <paramref name="siteCells"/>[i] —
+    /// everything after siting is <see cref="Found"/>'s own code (Found calls this with the generated terrain and the
+    /// argmax sites through the same assembly, so the two cannot drift). Its use is a rig whose terrain and sites
+    /// worldgen cannot be asked for: the SeamWorld fixture's land strip across the east-west seam, with a settlement on
+    /// each side. The game never calls it. Every site must be a distinct land cell of the map.
+    /// </summary>
+    public static WorldState FoundOn(
+        TerrainSet terrain, ReadOnlySpan<int> siteCells, WorldgenConfig cfg, SimConfig simCfg, ulong seed)
+    {
+        ArgumentNullException.ThrowIfNull(terrain);
+        if (siteCells.Length < 1) throw new ArgumentException("a founded world needs at least one settlement", nameof(siteCells));
+        for (int s = 0; s < siteCells.Length; s++)
+        {
+            int c = siteCells[s];
+            if ((uint)c >= (uint)(terrain.Size * terrain.Size) || terrain.Water[c] >= 0.5
+                || SettlementSiting.IsOccupied(siteCells[..s], c))
+                throw new ArgumentException(
+                    $"site {s} (cell {c}) is not a distinct land cell of the {terrain.Size}-px map", nameof(siteCells));
+        }
+        return Assemble(terrain, siteCells, cfg, simCfg, seed);
+    }
+
+    /// <summary>Everything founding does after the terrain and the sites are fixed — <see cref="Found"/>'s body, unchanged
+    /// (it takes the sites as given: turn-zero siting's own guarantees are ChooseSites').</summary>
+    private static WorldState Assemble(
+        TerrainSet terrain, ReadOnlySpan<int> siteCells, WorldgenConfig cfg, SimConfig simCfg, ulong seed)
+    {
+        var world = new WorldState(seed)
+        {
+            Terrain = terrain,
+        };
+        for (int s = 0; s < siteCells.Length; s++)
+            world.Settlements.Add(new SettlementRow(new SettlementId(s), siteCells[s], FoundedTurn: 0));
 
         // Network revision 0 (D-016): PathBuild takes over incrementing at T1.6;
         // CatchmentSystem recomputes only when this counter moves.
@@ -251,9 +284,13 @@ public static class WorldFounding
                 if (world.Settlements[s].Id.Value == capital.Value) site = world.Settlements[s].SiteCell;
             for (int k = 0; k < families.FormationsPerPolity; k++)
             {
+                // WS3: the continuous X is written through the topology's normalisation, so a formation's
+                // position is ONE place in [0, size) on a cylinder — never a second copy one circumference on.
+                // (A site cell's column is already in range: this is the normalisation guard every future
+                // writer of X — M7 movement — must also pass through.)
                 world.MilitaryUnits.Add(new MilitaryUnitRow(
                     nextId++, polity, identity.FamilyKey, identity.Key, capital,
-                    site % size, site / size, Experience: 0.0, Army: 0));
+                    Pathing.MapTopology.WrapCoord(site % size, size), site / size, Experience: 0.0, Army: 0));
             }
         }
     }
@@ -378,6 +415,7 @@ public static class WorldFounding
         TerrainSet t, WorldgenConfig cfg, int site, double radiusPx)
     {
         int size = t.Size;
+        bool wrap = t.WrapX;
         int cx = site % size, cy = site / size;
         int r = (int)radiusPx;
         double r2 = radiusPx * radiusPx;
@@ -389,8 +427,12 @@ public static class WorldFounding
             if (y < 0 || y >= size) continue;
             for (int dx = -r; dx <= r; dx++)
             {
-                int x = cx + dx;
-                if (x < 0 || x >= size) continue;
+                // WS3: on a cylinder the disc wraps the seam; a column is visited once, at its shortest offset
+                // (a disc wider than the map never counts a column twice). Flat: off-map columns are skipped,
+                // and an interior disc reads the same cells in the same order as before.
+                int x = Pathing.MapTopology.NeighbourX(cx, dx, size, wrap);
+                if (x < 0) continue;
+                if (wrap && Pathing.MapTopology.Dx(cx, x, size, wrap) != dx) continue;
                 if (dx * dx + dy * dy > r2) continue;
                 int cell = y * size + x;
                 double land = t.Elevation[cell] - t.SeaLevel;

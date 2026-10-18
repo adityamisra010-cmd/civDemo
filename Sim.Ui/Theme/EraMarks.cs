@@ -149,11 +149,28 @@ public static class EraMarks
     }
 
     /// <summary>
+    /// How many of <paramref name="n"/> discrete marks (tally notches, clay counters) <paramref name="fraction"/> fills: none
+    /// at 0, at least one once started, otherwise rounded. With <paramref name="fullOnlyAtOne"/> (D-054 WS1 construction
+    /// progress — "floor it and cap it below full until completion") the count is FLOORED and at most n − 1 until the fraction
+    /// is exactly 1, so a part-built project never shows every mark (rounded, 95 % of ten notches would read as done).
+    /// </summary>
+    public static int MarksFilled(double fraction, int n, bool fullOnlyAtOne = false)
+    {
+        double f = double.IsNaN(fraction) ? 0 : Math.Clamp(fraction, 0, 1);
+        if (!(f > 0)) return 0;
+        if (!fullOnlyAtOne) return Math.Max(1, (int)Math.Round(f * n));
+        if (f >= 1) return n;
+        return Math.Min(n - 1, Math.Max(1, (int)Math.Floor(f * n)));
+    }
+
+    /// <summary>
     /// PROGRESS in the era's representation inside <paramref name="r"/>: carved tally notches (A1),
     /// clay counters (A2), segmented plates (A3–A5), a bar (A6–A7), a graduated bar (A8–A9).
-    /// <paramref name="fraction"/> in [0,1]; <paramref name="fill"/> the progress colour.
+    /// <paramref name="fraction"/> in [0,1]; <paramref name="fill"/> the progress colour. <paramref name="fullOnlyAtOne"/>:
+    /// the discrete marks are floored and never all filled below 1 (<see cref="MarksFilled"/>); the plates and bars are
+    /// proportional, so they are full only at 1 anyway.
     /// </summary>
-    public static void Progress(DrawList d, EraTheme t, RectD r, double fraction, Rgba fill, int id)
+    public static void Progress(DrawList d, EraTheme t, RectD r, double fraction, Rgba fill, int id, bool fullOnlyAtOne = false)
     {
         double f = double.IsNaN(fraction) ? 0 : Math.Clamp(fraction, 0, 1);
         int n = Math.Max(1, t.Controls.ProgressSegments);
@@ -163,7 +180,7 @@ public static class EraMarks
             case ProgressStyle.Notches when t.Icons.Style == IconStyle.Daubed:
             {
                 // tally marks: n strokes, groups of five struck through
-                int filled = f > 0 ? Math.Max(1, (int)Math.Round(f * n)) : 0;
+                int filled = MarksFilled(f, n, fullOnlyAtOne);
                 double step = r.W / (n + n / 5 + 0.5);
                 double x = r.X + step * 0.5;
                 for (int i = 0; i < n; i++)
@@ -180,7 +197,7 @@ public static class EraMarks
             case ProgressStyle.Notches:
             {
                 // clay counters: n small tokens, pressed (filled) for progress made
-                int filled = f > 0 ? Math.Max(1, (int)Math.Round(f * n)) : 0;
+                int filled = MarksFilled(f, n, fullOnlyAtOne);
                 double step = r.W / n, rad = Math.Min(step * 0.32, r.H * 0.45);
                 for (int i = 0; i < n; i++)
                 {

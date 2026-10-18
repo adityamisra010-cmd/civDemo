@@ -40,3 +40,14 @@ target, amount} records; `TurnExecutor` consumes `BatchFor(Prev.Clock.Turn)` int
 `OrderBatch`. Turn semantics: an order with Turn = t is delivered to the step
 executing from turn-t state. M0 defines exactly one order kind (SetRainBias,
 consumed by WeatherSystem) to prove the pipe end-to-end.
+
+## Dated note — 2026-10-15 (D-054, ADR-039; appended, the decision above is unchanged)
+
+"version mismatch rejected outright (D-008: no migration)" is superseded for ONE step only.
+- Schema v33 (incremental construction, the building/roads split) is the first schema with an EXPLICIT migration.
+  `Snapshot.Load` reads a v32 save through `CanonicalSchema.Read(reader, 32, …)`, which leaves the two appended tables
+  empty and treats the world as flat.
+- The v33 snapshot also carries an int32 topology trailer after the stream. The trailer is outside the stream and the
+  hash.
+- Every other version mismatch is still refused with the D-008 message.
+- Contract: `docs/adr/adr-039-schema-v33-orders-11-12-and-cylinder-topology.md` §2, §4 and §7.

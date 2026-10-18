@@ -61,7 +61,7 @@ public static partial class PlayabilityGate
             int size = Ui.World.Terrain!.Size;
             CameraFocus.CenterOnCell(Ui.Camera, cell, size, Ui.MapRect, zoom: 8.0);
             h.Idle(2);
-            return Ui.Camera.WorldToScreen(cell % size + 0.5, cell / size + 0.5, Ui.MapRect);
+            return Ui.Camera.WorldToScreenNearest(cell % size + 0.5, cell / size + 0.5, Ui.MapRect);
         }
 
         /// <summary>The camera back to the whole map (immediately).</summary>

@@ -54,7 +54,7 @@ public static class SnapshotDiff
     private static Field L(string n) => new(n, Kind.Int64);
     private static Field D(string n) => new(n, Kind.Double);
 
-    /// <summary>CanonicalSchema.Write blocks 3..45, in stream order. Every entry
+    /// <summary>CanonicalSchema.Write blocks 3..60, in stream order (v33). Every entry
     /// is (field, width class) exactly as the writer emits it; widths must sum
     /// to the schema's *RowWidth constants (SnapshotDiffTests proves the sum).</summary>
     public static readonly Table[] Layout =
@@ -142,7 +142,26 @@ public static class SnapshotDiff
         new("ConstructionLabor", [I("Settlement"), D("LastLaborUsed")]),
         // v32 (H2): the levy's grievance per (settlement, class) population segment.
         new("TaxGrievance", [I("Settlement"), I("Class"), D("Value")]),
+        // v33 (WS1/WS2, ADR-039): per-entry construction progress; the per-Empire building/roads split.
+        new("ConstructionProgress", [I("Settlement"), I("Slot"), I("ProjectId"), L("EnqueuedTurn"), L("Progress")]),
+        new("ResourceAllocations", [I("Polity"), I("BuildingsPercent")]),
     ];
+
+    /// <summary>The number of trailing <see cref="Layout"/> blocks schema v33 appended (absent from a v32 stream).</summary>
+    private const int V33Blocks = 2;
+
+    /// <summary>
+    /// THE LAYOUT OF A STREAM OF <paramref name="version"/> (ADR-039: the walk dispatches on the save's header version):
+    /// this build's <see cref="Layout"/> for v33, the same less the two v33 blocks for v32 (a v32 stream ends after
+    /// section 58, the levy's grievance table). Any other version is refused, as Snapshot.Load refuses it.
+    /// </summary>
+    public static Table[] LayoutFor(int version) => version switch
+    {
+        CanonicalSchema.Version => Layout,
+        CanonicalSchema.OldestReadableVersion => Layout[..^V33Blocks],
+        _ => throw new ArgumentOutOfRangeException(nameof(version), version,
+            $"sim diff walks canonical streams of version {CanonicalSchema.OldestReadableVersion} and {CanonicalSchema.Version} only."),
+    };
 
     /// <summary>A field that compares unequal. Row is -1 for the header block
     /// and for a table's row-count prefix.</summary>
@@ -156,14 +175,23 @@ public static class SnapshotDiff
         bool Identical, FieldDifference? First, IReadOnlyList<TableSummary> Tables,
         long BytesA, long BytesB, long BytesWalkedA, long BytesWalkedB);
 
-    public static Result Compare(WorldState a, WorldState b)
+    public static Result Compare(WorldState a, WorldState b) =>
+        CompareStreams(Serialize(a), CanonicalSchema.Version, Serialize(b), CanonicalSchema.Version);
+
+    /// <summary>
+    /// Compares two raw canonical STREAMS, each walked with the layout of its own schema <paramref name="versionA"/> /
+    /// <paramref name="versionB"/> (<see cref="LayoutFor"/>). A block one stream's version lacks reads as zero rows on
+    /// that side (a v32 stream has no ConstructionProgress), so a v32 and a v33 stream of one world differ only there.
+    /// </summary>
+    public static Result CompareStreams(byte[] bytesA, int versionA, byte[] bytesB, int versionB)
     {
-        byte[] bytesA = Serialize(a), bytesB = Serialize(b);
+        Table[] layoutA = LayoutFor(versionA), layoutB = LayoutFor(versionB);
+        Table[] walk = layoutA.Length >= layoutB.Length ? layoutA : layoutB;
         using var ra = new BinaryReader(new MemoryStream(bytesA, writable: false));
         using var rb = new BinaryReader(new MemoryStream(bytesB, writable: false));
 
         FieldDifference? first = null;
-        var tables = new List<TableSummary>(Layout.Length + 1);
+        var tables = new List<TableSummary>(walk.Length + 1);
 
         // Header block: seed, clock, terrain flag, then the conditional hash.
         int headerDiffs = 0;
@@ -190,10 +218,11 @@ public static class SnapshotDiff
         }
         tables.Add(new TableSummary("Header", 1, 1, 1, headerDiffs > 0 ? 1 : 0, headerDiffs > 0 ? 0 : -1));
 
-        for (int t = 0; t < Layout.Length; t++)
+        for (int t = 0; t < walk.Length; t++)
         {
-            Table table = Layout[t];
-            int countA = ra.ReadInt32(), countB = rb.ReadInt32();
+            Table table = walk[t];
+            int countA = t < layoutA.Length ? ra.ReadInt32() : 0;
+            int countB = t < layoutB.Length ? rb.ReadInt32() : 0;
             if (countA != countB)
             {
                 first ??= new FieldDifference(table.Name, -1, "RowCount", Kind.Int32,

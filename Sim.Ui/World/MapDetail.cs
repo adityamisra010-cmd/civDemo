@@ -22,6 +22,22 @@ namespace Sim.Ui.World;
 /// 4096 km: 2252.8 and 655.4 km, rounded to the km), so the game's canonical map changes band at the same zooms as
 /// before; a smaller world (the 256-px test and dev worlds, 1024 km) is now banded by the ground it shows, not by its
 /// share of itself.
+/// BATCH 3 WS3 NOTE (2026-10-15, integration R3 — W2 review F8): the sentence above describes FLAT worlds (the keying of
+/// <see cref="At(double, double, double, double)"/>, pinned by EasedZoomAndContinuousLodTests
+/// .OnTheCanonicalWorld_TheKmBandsSwitchWhereTheShareBandsDid, which still passes). The shipped canonical world is now a
+/// cylinder keyed by <see cref="Across"/> (below), and there the band zooms MOVED — MEASURED at 1280 × 800 (map rect
+/// 1280 × 688): World → Regional from 1.2215x to 2.2726x, Regional → Settlement from 4.2015x to 7.8169x. No P2 pin literal
+/// or gate wheel row failed; the wheel rows' notch counts are tabled in docs/m5-hardening-measurements.md.
+///
+/// BATCH 3 WS3 — A WRAPPED WORLD IS KEYED ON WIDTH (<see cref="Across"/>). On a cylinder the camera's floor is one
+/// circumference across the WINDOW (<see cref="ViewModel.Camera.MinZoom(Render.RectD)"/>), so the shorter side is no longer
+/// the span that reaches the whole world: BOTH edges (<see cref="WorldRegionalKm"/>, <see cref="RegionalSettlementKm"/>,
+/// unchanged) are keyed on the visible km across the WINDOW's width — the width the map is drawn across beneath the chrome,
+/// and the same width the floor is defined on. Then the canonical floor (one circumference, 4096 km) is on the World
+/// plateau and a 256-px world's floor (1024 km) on the Regional plateau at EVERY window, the bands are independent of the
+/// aspect ratio, and opening or closing a context panel changes neither the zoom nor the band (the map rect's own width —
+/// the spec's first wording — would put the 256-px floor inside the Settlement cross-fade whenever a panel is open, at
+/// every gate window: measured, and recorded as a deviation). A flat world is keyed exactly as before.
 /// </summary>
 public readonly record struct MapDetail(WorldZoom Band, double Regional, double Settlement, double VisibleKm)
 {
@@ -48,6 +64,15 @@ public readonly record struct MapDetail(WorldZoom Band, double Regional, double 
     /// <summary>The detail at a visible span.</summary>
     public static MapDetail At(double visibleKm) =>
         new(BandFor(visibleKm), Ramp(visibleKm, WorldRegionalKm), Ramp(visibleKm, RegionalSettlementKm), visibleKm);
+
+    /// <summary>WS3: the visible km across a span of <paramref name="widthPx"/> screen px at <paramref name="zoom"/>.</summary>
+    public static double VisibleKmAcross(double zoom, double widthPx, double kmPerPx) =>
+        widthPx / Math.Max(1e-9, zoom) * kmPerPx;
+
+    /// <summary>WS3: the detail of a WRAPPED camera — keyed on the visible km across the window's width
+    /// <paramref name="windowW"/> (see the type's remarks).</summary>
+    public static MapDetail Across(double zoom, double windowW, double kmPerPx) =>
+        At(VisibleKmAcross(zoom, windowW, kmPerPx));
 
     /// <summary>The detail of a camera: <paramref name="zoom"/> over a map rect of <paramref name="viewW"/> ×
     /// <paramref name="viewH"/>, <paramref name="kmPerPx"/> km per world px.</summary>

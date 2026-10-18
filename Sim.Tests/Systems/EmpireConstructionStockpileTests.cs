@@ -295,13 +295,17 @@ public class EmpireConstructionStockpileTests
     public void TwoCompetingHeads_OverOnePurse_TheLowerIdBuilds_TheOtherWaits_NothingIsAllocatedTwice()
     {
         // Heads at S1 and S2 (granaries: 40 timber + 20 stone each); the purse holds timber for both, stone for ONE.
+        // D-054 WS1: this pins the M4-D WHOLE-OR-NOTHING rule, which the switch keeps (TestConfigs.PreIncrementalConstruction).
+        // Under incremental construction S2 would take the 10 left and progress half-way — the FIFO split is pinned in
+        // IncrementalConstructionTests (competing heads, oldest order first).
+        SimConfig whole = TestConfigs.PreIncrementalConstruction(Cfg);
         WorldState w = TieWorld(Solo());
         foreach (SettlementId s in new[] { S1, S2 }) { AllBuilders(w, s); Set(w, s, Timber, 40); }
         Set(w, S3, Stone, 30);
         w.ConstructionQueue.Add(new ConstructionQueueRow(S2, 0, Granary));   // S2's row FIRST in the queue table:
         w.ConstructionQueue.Add(new ConstructionQueueRow(S1, 0, Granary));   // resolution follows the settlement table
 
-        WorldState next = ConstructionOnly(Cfg, null).Step(w);
+        WorldState next = ConstructionOnly(whole, null).Step(w);
         Assert.Equal((1L, 0L), (Built(next, S1), Built(next, S2)));          // ascending id: S1 first
         Assert.Equal(10, Of(next, S3, Stone));                                // S1 drew 20 of the 30
         Assert.Equal((0L, 40L), (Of(next, S1, Timber), Of(next, S2, Timber))); // S2 drew nothing: whole or not at all
@@ -311,11 +315,11 @@ public class EmpireConstructionStockpileTests
         AssertConserved(next);
 
         // It keeps waiting on the 10 left, and builds the step the purse covers it.
-        WorldState still = ConstructionOnly(Cfg, null).Step(next);
+        WorldState still = ConstructionOnly(whole, null).Step(next);
         Assert.Equal(0, Built(still, S2));
         Assert.Equal(10, Of(still, S3, Stone));
         Set(still, S0, Stone, 10);
-        WorldState done = ConstructionOnly(Cfg, null).Step(still);
+        WorldState done = ConstructionOnly(whole, null).Step(still);
         Assert.Equal(1, Built(done, S2));
         Assert.Equal((0L, 0L), (Of(done, S0, Stone), Of(done, S3, Stone)));
         AssertConserved(done);
@@ -487,7 +491,10 @@ public class EmpireConstructionStockpileTests
             .Single(a => a.Domain == ActionDomain.Construction && a.Id == (((long)S2.Value << 32) | (uint)Granary));
         Assert.Equal("needs 40 timber (empire has 10), 20 stone (empire has 6)", listed.Blocker);
         InfoCard card = InfoQuery.Card(w, Cfg, Player, InfoSubject.OfProject(Granary, S2.Value), new ActionQueryContext(null, null));
-        Assert.Contains("needs 40 timber (empire has 10), 20 stone (empire has 6)", card.StatusLine);
+        // D-054 WS1 (shipped): the card states the incremental rule and what the head will wait for — the same purse figures.
+        Assert.Contains("It will wait for 40 timber (empire has 10), 20 stone (empire has 6).", card.StatusLine);
+        InfoCard whole = InfoQuery.Card(w, TestConfigs.PreIncrementalConstruction(Cfg), Player, InfoSubject.OfProject(Granary, S2.Value), new ActionQueryContext(null, null));
+        Assert.Contains("needs 40 timber (empire has 10), 20 stone (empire has 6)", whole.StatusLine);   // the switch-off sentence
 
         // Enough in the purse (and no turn length to judge labour by): nothing blocks.
         Set(w, S1, Timber, 30);
@@ -513,6 +520,15 @@ public class EmpireConstructionStockpileTests
         ConstructionQuery.Availability(w, cfg, Player, s, Workshop);
 
     /// <summary>The project card's material lines: (label, Met, note), input order.</summary>
+    /// <summary>D-054 WS1: the project card's status for an orderable project (InfoQuery.ProjectCard).</summary>
+    private const string CanBeOrderedNow = "Can be ordered now. Work goes on each turn as far as materials and builders allow; "
+        + "what has gone in is never lost while it waits, only if the project is cancelled.";
+
+    /// <summary>D-054 WS1: the card's claims note — counts, never a set-aside.</summary>
+    private static string Counted(long n, string at) => "; " + n.ToString(System.Globalization.CultureInfo.InvariantCulture)
+        + " counted toward projects already queued at " + at
+        + " (this does not set it aside: earlier projects in the building order, and road works under the split, can use it first)";
+
     private static (string, bool?, string?)[] Materials(InfoCard card)
     {
         var lines = new List<(string, bool?, string?)>();
@@ -536,7 +552,10 @@ public class EmpireConstructionStockpileTests
         // ON: no blocker; the card agrees line by line — every material Met, the note the purse's holding.
         Assert.Null(ConstructionQuery.Blocker(w, Cfg, S2, granary, null));
         InfoCard on = InfoQuery.Card(w, Cfg, Player, InfoSubject.OfProject(Granary, S2.Value), ctx, name);
-        Assert.Equal((InfoStatus.Available, "Can be built now."), (on.Status, on.StatusLine));
+        // D-054 WS1 (shipped): the incremental rule; with incremental construction off, M4-D's "Can be built now."
+        Assert.Equal((InfoStatus.Available, CanBeOrderedNow), (on.Status, on.StatusLine));
+        InfoCard onWhole = InfoQuery.Card(w, TestConfigs.PreIncrementalConstruction(Cfg), Player, InfoSubject.OfProject(Granary, S2.Value), ctx, name);
+        Assert.Equal((InfoStatus.Available, "Can be built now."), (onWhole.Status, onWhole.StatusLine));
         Assert.Equal([("40 timber", (bool?)true, (string?)"empire has 400"), ("20 stone", true, "empire has 384")], Materials(on));
         Assert.Empty(on.WhyLocked);
 
@@ -544,7 +563,7 @@ public class EmpireConstructionStockpileTests
         Assert.Equal("needs 40 timber (has 0), 20 stone (has 0)", ConstructionQuery.Blocker(w, Off, S2, granary, null));
         InfoCard off = InfoQuery.Card(w, Off, Player, InfoSubject.OfProject(Granary, S2.Value), ctx, name);
         Assert.Equal(InfoStatus.Blocked, off.Status);
-        Assert.Contains("needs 40 timber (has 0), 20 stone (has 0)", off.StatusLine);
+        Assert.Equal(CanBeOrderedNow + " It will wait for 40 timber (has 0), 20 stone (has 0).", off.StatusLine);
         Assert.Equal([("40 timber", (bool?)false, (string?)"has 0 at S2"), ("20 stone", false, "has 0 at S2")], Materials(off));
 
         // A purse short of stone: the card names the shortfall exactly as the blocker does.
@@ -580,6 +599,38 @@ public class EmpireConstructionStockpileTests
         // Positive control: the foreign settlement's OWN stock is read.
         Set(moved, S1, Stone, 7);
         Assert.Equal([("40 timber", (bool?)false, (string?)"has 0 at S1"), ("20 stone", false, "has 7 at S1")], Materials(Card(moved)));
+    }
+
+    /// <summary>
+    /// C1 review F6 (D-054 WS1: a queued entry's requirement is Met when the purse covers what IT still needs): the card of an
+    /// ALREADY-QUEUED workshop does not count that entry's own claim against itself. S0's workshop is queued (nothing in yet);
+    /// the empire's only ten tools are at S3: its tools line is Met (ten held, ten to go, no OTHER claim). A second workshop
+    /// queued at S2 claims the same ten: now the line is not Met. Before the fix the first reading was Met = false (the entry's
+    /// own ten were subtracted from the ten held).
+    /// </summary>
+    [Fact]
+    public void TheProjectCard_OfAQueuedEntry_DoesNotCountItsOwnClaimAgainstItself()
+    {
+        WorldState w = TieWorld(Solo());
+        Set(w, S3, Tools, 10);
+        Set(w, S3, Timber, 200);
+        Set(w, S3, Stone, 200);
+        w.ConstructionQueue.Add(new ConstructionQueueRow(S0, 0, Workshop));
+        w.ConstructionProgress.Add(new ConstructionProgressRow(S0, 0, Workshop, 0, 0));
+        Func<int, string> name = id => "S" + id;
+        (string, bool?, string?) ToolsLine(IReadOnlyWorldState world) =>
+            Materials(InfoQuery.Card(world, Cfg, Player, InfoSubject.OfProject(Workshop, S0.Value), new ActionQueryContext(null, null), name))
+                .Single(l => l.Item1.EndsWith("tools", StringComparison.Ordinal));
+        Assert.Equal((bool?)true, ToolsLine(w).Item2);
+
+        WorldState contested = w.Clone();
+        contested.ConstructionQueue.Add(new ConstructionQueueRow(S2, 0, Workshop));
+        contested.ConstructionProgress.Add(new ConstructionProgressRow(S2, 0, Workshop, 0, 0));
+        Assert.Equal((bool?)false, ToolsLine(contested).Item2);
+
+        // A project not yet queued here is judged as the obtainability guard judges a NEW order: every queued claim counts.
+        Assert.Equal((bool?)false, Materials(InfoQuery.Card(w, Cfg, Player, InfoSubject.OfProject(Workshop, S2.Value),
+            new ActionQueryContext(null, null), name)).Single(l => l.Item1.EndsWith("tools", StringComparison.Ordinal)).Item2);
     }
 
     [Fact]
@@ -752,16 +803,22 @@ public class EmpireConstructionStockpileTests
         Assert.Equal("needs 10 tools; the empire's 10 are already claimed by projects queued at S0",
             ConstructionQuery.ClaimedReason(w, Cfg, S2, Cfg.Goods!.ProjectById(Workshop)!, w.ConstructionQueue, SName));
         // The crafted input's line is Met against the UNCLAIMED holding, and its note says so; the raw lines keep the pool.
+        // D-054 WS1 (shipped): the note says the claim is a count, not a set-aside; the switch-off note keeps "unclaimed".
+        SimConfig whole = TestConfigs.PreIncrementalConstruction(Cfg);
         (string, bool?, string?) tools = Materials(card).Single(l => l.Item1 == "10 tools");
-        Assert.Equal(("10 tools", (bool?)false, (string?)"empire has 10; 10 claimed by projects queued at S0, 0 unclaimed"), tools);
+        Assert.Equal(("10 tools", (bool?)false, (string?)("empire has 10" + Counted(10, "S0"))), tools);
+        Assert.Equal(("10 tools", (bool?)false, (string?)"empire has 10; 10 claimed by projects queued at S0, 0 unclaimed"),
+            Materials(WorkshopCard(w, whole, S2)).Single(l => l.Item1 == "10 tools"));
         Assert.Equal(("60 timber", (bool?)false, (string?)"empire has 0"), Materials(card).Single(l => l.Item1 == "60 timber"));
 
         // Partly claimed: fifteen held, ten claimed — five unclaimed is still short of ten.
         Set(w, S3, Tools, 15);
         InfoCard partly = WorkshopCard(w, Cfg, S2);
         Assert.Equal("Cannot be ordered yet: it needs 10 tools; 10 of the empire's 15 are already claimed by projects queued at S0.", partly.StatusLine);
-        Assert.Equal(("10 tools", (bool?)false, (string?)"empire has 15; 10 claimed by projects queued at S0, 5 unclaimed"),
+        Assert.Equal(("10 tools", (bool?)false, (string?)("empire has 15" + Counted(10, "S0"))),
             Materials(partly).Single(l => l.Item1 == "10 tools"));
+        Assert.Equal(("10 tools", (bool?)false, (string?)"empire has 15; 10 claimed by projects queued at S0, 5 unclaimed"),
+            Materials(WorkshopCard(w, whole, S2)).Single(l => l.Item1 == "10 tools"));
         // Two queues claim it: both are named, ascending id.
         WorldState two = w.Clone();
         Set(two, S3, Tools, 25);
@@ -773,8 +830,10 @@ public class EmpireConstructionStockpileTests
         Set(w, S3, Tools, 20);
         Assert.Equal(ProjectAvailability.Available, WorkshopAt(w, Cfg, S2));
         InfoCard enough = WorkshopCard(w, Cfg, S2);
-        Assert.Equal(("10 tools", (bool?)true, (string?)"empire has 20; 10 claimed by projects queued at S0, 10 unclaimed"),
+        Assert.Equal(("10 tools", (bool?)true, (string?)("empire has 20" + Counted(10, "S0"))),
             Materials(enough).Single(l => l.Item1 == "10 tools"));
+        Assert.Equal(("10 tools", (bool?)true, (string?)"empire has 20; 10 claimed by projects queued at S0, 10 unclaimed"),
+            Materials(WorkshopCard(w, whole, S2)).Single(l => l.Item1 == "10 tools"));
         Assert.Null(ConstructionQuery.ClaimedReason(w, Cfg, S2, Cfg.Goods!.ProjectById(Workshop)!, w.ConstructionQueue, SName));
 
         // A GENUINE shortage (nine tools, no claim, no recipe): the claims are not the reason — the older sentence stands.
@@ -1041,14 +1100,14 @@ public class EmpireConstructionStockpileTests
     /// tree (the value AiFoundingAttributionTests pinned as S1cTurn300 there).</summary>
     private const string De86aceAiTurn300 = "aa7a87a98370c24815d478877a3f4f862838fde51a33fd5d0841157ca73066a7";
 
-    /// <summary>The founded seed-42 300-turn golden at de86ace (SnapshotTests.FoundedGoldenHash, unmoved by the batch).</summary>
+    /// <summary>The founded seed-42 300-turn golden at de86ace (SnapshotTests.PreD054FoundedGoldenHash, unmoved by the batch).</summary>
     private const string De86aceFounded = "937577ffb0e73c2b051d8d7832cfb5028c2154d01c9afef4d976b71ccb5e7f54";
 
     private static TurnExecutor Production(SimConfig cfg, OrderLog orders)
     {
         using var era = Sim.Data.DataFiles.OpenEraPacing();
         using var pipe = Sim.Data.DataFiles.OpenPipeline();
-        return new TurnExecutor(EraTableLoader.Load(era), PipelineLoader.Load(pipe, SystemCatalog.All(cfg, TestConfigs.Worldgen())), orders);
+        return new TurnExecutor(EraTableLoader.Load(era), PipelineLoader.Load(pipe, SystemCatalog.All(cfg, TestConfigs.PreD054Worldgen())), orders);
     }
 
     [Fact]
@@ -1056,21 +1115,24 @@ public class EmpireConstructionStockpileTests
     {
         // The order-less founded world builds nothing either way (no order, no AI): the batch-off run must be de86ace's
         // golden exactly, and so must the shipped (ON) run SnapshotTests pins and the purse-off one.
-        Assert.Equal(De86aceFounded, WorldHash.ComputeHex(Sim.Tests.Kernel.SnapshotTests.RunFoundedGolden(TestConfigs.PreD053(Cfg))));
-        Assert.Equal(De86aceFounded, WorldHash.ComputeHex(Sim.Tests.Kernel.SnapshotTests.RunFoundedGolden(Off)));
-        Assert.Equal(De86aceFounded, Sim.Tests.Kernel.SnapshotTests.FoundedGoldenHash);
+        // D-054 (batch 3) — the PreD054 PAIR: founded flat (TestConfigs.PreD054Worldgen) with the sim half off (PreD053
+        // strips PreD054Sim; the purse-off leg strips it explicitly), and the de86ace literals — v32 measurements — compared
+        // through SchemaProjection.V32.
+        Assert.Equal(De86aceFounded, SchemaProjection.V32(Sim.Tests.Kernel.SnapshotTests.RunFoundedGolden(TestConfigs.PreD053(Cfg), TestConfigs.PreD054Worldgen())));
+        Assert.Equal(De86aceFounded, SchemaProjection.V32(Sim.Tests.Kernel.SnapshotTests.RunFoundedGolden(TestConfigs.PreD054Sim(Off), TestConfigs.PreD054Worldgen())));
+        Assert.Equal(De86aceFounded, Sim.Tests.Kernel.SnapshotTests.PreD054FoundedGoldenHash);
     }
 
     private static (WorldState World, OrderLog Log, List<string> Hashes) RunAi(SimConfig cfg)
     {
-        WorldgenConfig wg = TestConfigs.Worldgen() with { AiEmpires = 1 };
+        WorldgenConfig wg = TestConfigs.PreD054Worldgen() with { AiEmpires = 1 };
         var log = new OrderLog();
         TurnExecutor exec = Production(cfg, log);
         WorldState w = WorldFounding.Found(wg, cfg, 42);
         var hashes = new List<string>();
         for (int t = 1; t <= 300; t++)
         {
-            AiOrders.Append(log, w, cfg, TestConfigs.Worldgen());
+            AiOrders.Append(log, w, cfg, TestConfigs.PreD054Worldgen());
             w = exec.Step(w);
             hashes.Add(WorldHash.ComputeHex(w));
         }
@@ -1082,7 +1144,7 @@ public class EmpireConstructionStockpileTests
     {
         // THE BATCH OFF: de86ace, byte for byte (the roads refactor rides in this run too — the AI develops roads in it).
         (WorldState batchOff, _, _) = RunAi(TestConfigs.PreD053(Cfg));
-        Assert.Equal(De86aceAiTurn300, WorldHash.ComputeHex(batchOff));
+        Assert.Equal(De86aceAiTurn300, SchemaProjection.V32(batchOff));
         long roadUnits = 0;
         for (int i = 0; i < batchOff.RoadDevelopments.Count; i++) roadUnits += batchOff.RoadDevelopments[i].MaterialUnits;
         Assert.True(roadUnits > 0, "anti-vacuity: the AI paid for a road (through EmpireStockpile.Draw) in the batch-off run");

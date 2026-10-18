@@ -1009,3 +1009,162 @@ hash unchanged by every sweep (canonical `4035cf18…`, high-count `12723634…`
   of one side differ by up to 0.81 ms, high-count World at 3840×2160 after; 0.39 ms before). The cheap vertical test first culls every
   settlement whose labels lie wholly above or below the viewport; without it (the first measured version of the fix,
   one run) this band cost 0.65–0.77 ms.
+
+## 2026-10-14 — map frame cost before / after the cylinder's camera and copies (batch 3 WS3, rendering stage W2; append-only, the sections above are unchanged)
+
+`dotnet Sim.Ui.dll --frame-cost map --rounds 3 --settlements 360`, Release, on a shared 4-CPU container (load average
+5.6–6.1 at the start of each run). Before = the batch-3 W1 tree (the cylindrical world, the FLAT camera and lens: the
+x clamp, the shorter-side fit, one copy), after = W2 (`MapFrameCost` now sweeps with the game's wrapped camera — its floor
+one circumference across the window, x normalised — keys the level of detail on the window's width and paints with the
+lens's copies, `WorldLens.Paint(…, wrapX: true)`). Run alternately: before, after, before, after; both milliseconds of each
+side are given; every count column was identical between the two runs of a side. The same worlds both sides (every
+world's hash unchanged by every sweep and equal before and after: canonical `906a332f…`, high-count `f796ab1b…`).
+
+**`--settlements 360`, not the default 400: on the cylindrical seed-42 world the founding places only 362 sites at the
+siting spacing** (MEASURED: the W1 tree's `--frame-cost map` with the default aborts "settlement siting could only place
+362 of 400 sites at minSpacingKm 95.2"). The default was left unchanged by the W2 stage (a W1 consequence); **W2 review F3
+then set `MapFrameCost.DefaultSettlements` to 360** (MEASURED capacity: `--settlements 2000` → "could only place 362 of 2000
+sites"; the default run `--frame-cost map --rounds 1` now exits 0 with "high-count: turn 1, 360 settlements" and the same
+world hashes this section records, canonical `906a332f…` and high-count `f796ab1b…`), and a `--settlements` past the capacity is refused as a usage error (exit 2, one line
+naming the argument and the capacity, before the canonical world is stepped) instead of an unhandled exception (exit 134).
+
+| window | world | band | frames/sweep | median ms/frame (before ×2 → after ×2) | commands/frame | max commands | culled/frame (replay) | mean vertices | max list vertices |
+|---|---|---|---|---|---|---|---|---|---|
+| 1280x800 | canonical | World | 32 → 48 | 0.29, 0.33 → 0.38, 0.40 | 2091 → 1388 | 2550 → 2193 | 47.0 → 276.7 | 14544 → 7981 | 20104 → 17472 |
+| 1280x800 | canonical | Regional | 96 → 96 | 0.15, 0.16 → 0.21, 0.21 | 1066 → 791 | 2360 → 2054 | 481.2 → 609.7 | 4396 → 1386 | 17960 → 15596 |
+| 1280x800 | canonical | Settlement | 144 → 112 | 0.06, 0.06 → 0.11, 0.13 | 616 → 613 | 759 → 663 | 604.9 → 606.2 | 247 → 128 | 4584 → 3808 |
+| 1280x800 | canonical + overlay | World | 32 → 48 | 10.18, 10.32 → 7.96, 6.61 | 38857 → 24280 | 44893 → 42274 | 48.5 → 278.4 | 167927 → 105042 | 188592 → 179384 |
+| 1280x800 | canonical + overlay | Regional | 96 → 96 | 2.47, 2.65 → 2.86, 2.43 | 11497 → 4365 | 37049 → 19689 | 483.1 → 611.2 | 51888 → 21104 | 164012 → 93008 |
+| 1280x800 | canonical + overlay | Settlement | 144 → 112 | 1.19, 1.55 → 2.09, 2.25 | 1220 → 1011 | 4890 → 2829 | 606.0 → 607.3 | 7926 → 6965 | 25800 → 18276 |
+| 1280x800 | high-count | World | 32 → 48 | 2.94, 2.75 → 2.69, 1.51 | 7125 → 4323 | 8603 → 7257 | 108.3 → 207.8 | 110019 → 57966 | 153916 → 84720 |
+| 1280x800 | high-count | Regional | 96 → 96 | 1.17, 1.12 → 1.39, 0.83 | 2199 → 761 | 7550 → 3425 | 160.7 → 69.3 | 35724 → 12659 | 124256 → 58488 |
+| 1280x800 | high-count | Settlement | 144 → 112 | 0.33, 0.31 → 0.59, 0.33 | 101 → 66 | 691 → 543 | 35.9 → 26.5 | 4516 → 2778 | 44768 → 19164 |
+| 1920x1009 | canonical | World | 48 → 48 | 0.42, 0.42 → 0.36, 0.22 | 1992 → 1166 | 2550 → 2073 | 29.7 → 334.0 | 13767 → 6498 | 20104 → 16744 |
+| 1920x1009 | canonical | Regional | 96 → 96 | 0.19, 0.23 → 0.22, 0.13 | 1115 → 783 | 2360 → 2020 | 455.6 → 612.4 | 5053 → 1357 | 19096 → 16960 |
+| 1920x1009 | canonical | Settlement | 128 → 80 | 0.08, 0.10 → 0.13, 0.08 | 618 → 613 | 759 → 663 | 602.1 → 605.5 | 335 → 151 | 4568 → 3848 |
+| 1920x1009 | canonical + overlay | World | 48 → 48 | 12.75, 11.89 → 6.63, 6.52 | 41940 → 19998 | 47347 → 38690 | 29.9 → 334.5 | 179857 → 87559 | 198740 → 165840 |
+| 1920x1009 | canonical + overlay | Regional | 96 → 96 | 2.42, 3.38 → 2.17, 1.98 | 13217 → 3871 | 37715 → 17144 | 456.3 → 612.7 | 59666 → 19452 | 168144 → 84676 |
+| 1920x1009 | canonical + overlay | Settlement | 128 → 80 | 1.31, 1.37 → 0.49, 0.75 | 1374 → 1045 | 5286 → 2707 | 602.2 → 605.6 | 8970 → 7460 | 28976 → 18204 |
+| 1920x1009 | high-count | World | 48 → 48 | 1.65, 2.73 → 2.29, 2.26 | 7226 → 3471 | 8603 → 6518 | 59.8 → 133.8 | 104720 → 46786 | 154092 → 74956 |
+| 1920x1009 | high-count | Regional | 96 → 96 | 1.20, 1.51 → 0.98, 0.97 | 2524 → 633 | 7782 → 2965 | 140.4 → 45.5 | 41872 → 10891 | 132848 → 52948 |
+| 1920x1009 | high-count | Settlement | 128 → 80 | 0.21, 0.34 → 0.56, 0.52 | 116 → 66 | 716 → 447 | 35.8 → 25.0 | 5749 → 3077 | 47400 → 16680 |
+| 2560x1440 | canonical | World | 48 → 48 | 0.29, 0.40 → 0.29, 0.40 | 1998 → 1239 | 2550 → 2095 | 25.5 → 317.7 | 15030 → 7891 | 21344 → 19372 |
+| 2560x1440 | canonical | Regional | 96 → 96 | 0.14, 0.14 → 0.20, 0.22 | 1103 → 784 | 2367 → 2020 | 459.1 → 610.8 | 5076 → 1435 | 20276 → 17992 |
+| 2560x1440 | canonical | Settlement | 112 → 64 | 0.06, 0.06 → 0.13, 0.14 | 618 → 613 | 759 → 663 | 601.6 → 604.1 | 375 → 205 | 4512 → 3864 |
+| 2560x1440 | canonical + overlay | World | 48 → 48 | 9.74, 11.50 → 7.42, 7.43 | 42257 → 21602 | 47347 → 40135 | 25.6 → 317.9 | 182384 → 95116 | 199916 → 173024 |
+| 2560x1440 | canonical + overlay | Regional | 96 → 96 | 4.58, 3.93 → 1.81, 1.63 | 12957 → 4046 | 38137 → 17954 | 459.3 → 611.0 | 58699 → 20226 | 170992 → 88948 |
+| 2560x1440 | canonical + overlay | Settlement | 112 → 64 | 0.50, 0.54 → 2.52, 3.61 | 1442 → 1117 | 5289 → 2707 | 601.7 → 604.2 | 9287 → 7808 | 28876 → 18220 |
+| 2560x1440 | high-count | World | 48 → 48 | 1.72, 2.33 → 1.87, 2.25 | 7283 → 3737 | 8608 → 6823 | 55.5 → 135.8 | 105453 → 50162 | 154380 → 78512 |
+| 2560x1440 | high-count | Regional | 96 → 96 | 1.02, 1.11 → 0.95, 0.94 | 2442 → 665 | 7776 → 3056 | 119.3 → 43.8 | 40494 → 12102 | 133636 → 54956 |
+| 2560x1440 | high-count | Settlement | 112 → 64 | 0.22, 0.22 → 0.63, 0.63 | 126 → 80 | 703 → 474 | 36.3 → 26.7 | 6473 → 4003 | 46908 → 18220 |
+| 3840x2160 | canonical | World | 48 → 48 | 0.28, 0.34 → 0.44, 0.43 | 1998 → 1238 | 2550 → 2095 | 25.9 → 317.3 | 16187 → 9055 | 22520 → 21348 |
+| 3840x2160 | canonical | Regional | 96 → 96 | 0.13, 0.17 → 0.23, 0.23 | 1102 → 784 | 2367 → 2020 | 458.9 → 610.9 | 5384 → 1615 | 22532 → 21752 |
+| 3840x2160 | canonical | Settlement | 80 → 32 | 0.06, 0.07 → 0.14, 0.14 | 621 → 614 | 759 → 663 | 599.9 → 602.5 | 484 → 271 | 4584 → 4008 |
+| 3840x2160 | canonical + overlay | World | 48 → 48 | 9.82, 10.68 → 6.81, 7.67 | 42257 → 21600 | 47347 → 40135 | 26.0 → 317.4 | 183542 → 96280 | 201156 → 175360 |
+| 3840x2160 | canonical + overlay | Regional | 96 → 96 | 4.24, 4.33 → 2.90, 2.72 | 12956 → 4046 | 38137 → 17954 | 459.2 → 611.0 | 59009 → 20405 | 173248 → 92708 |
+| 3840x2160 | canonical + overlay | Settlement | 80 → 32 | 0.54, 0.65 → 1.39, 1.29 | 1652 → 1282 | 5289 → 2707 | 599.9 → 602.5 | 10240 → 8541 | 28940 → 18364 |
+| 3840x2160 | high-count | World | 48 → 48 | 2.52, 1.74 → 1.38, 1.50 | 7271 → 3719 | 8608 → 6781 | 48.4 → 126.4 | 105279 → 49880 | 154068 → 78000 |
+| 3840x2160 | high-count | Regional | 96 → 96 | 1.29, 1.01 → 0.58, 0.58 | 2425 → 661 | 7702 → 3045 | 107.9 → 41.5 | 41525 → 13162 | 133524 → 54532 |
+| 3840x2160 | high-count | Settlement | 80 → 32 | 0.47, 0.25 → 0.41, 0.41 | 158 → 112 | 716 → 474 | 43.4 → 37.1 | 8349 → 5543 | 47712 → 19376 |
+
+**Reading (counts MEASURED; causes INFERRED from the change).**
+- **The sweep starts at the cylinder's floor** (one circumference across the window: ×1.25 at 1280×800, ×1.875 at
+  1920×1009, ×2.5 at 2560×1440, ×3.75 at 3840×2160) instead of the flat fit (the whole world in the map rect's shorter
+  side), so fewer of each world's elements are in view at the World band: commands and vertices per frame FALL at every
+  window and band (canonical World at 1280×800 2,091 → 1,388 commands; high-count World 7,125 → 4,323). The wrapped
+  keying (visible km across the window's width) moves the band edges to deeper zooms, so the Settlement band takes fewer
+  notches of the sweep (144 → 112 frames per sweep at 1280×800; 80 → 32 at 3840×2160) and the World band more (32 → 48 at
+  1280×800).
+- **Culled per frame rises at the World band** (canonical 47.0 → 276.7 at 1280×800): at the floor the window spans one
+  circumference across but only the map rect's height over the zoom down it (688 / 1.25 ≈ 550 of the world's 1,024 px
+  at 1280×800), where the flat fit showed the whole world, so more of the world's elements lie off the window and are
+  culled.
+- **The copies themselves are cheap**: at the floor only the elements cut by the window's edges are drawn twice (the
+  lens's `LensFrame.Copies`; the unit tests pin it per element).
+- **Milliseconds** move both ways by up to a few ms between runs of one side on this loaded container (canonical +
+  overlay Settlement at 2560×1440: 2.52 / 3.61 after against 0.50 / 0.54 before at fewer commands — run-to-run load, not a
+  measured cost of the change). It is a measurement, not a budget (ADR-009).
+
+### Moved P2 pins and gate wheel rows (W2 review F4; MEASURED 2026-10-14)
+
+The design spec asks this stage to "record the moved P2 pins and gate wheel rows". Nothing here is re-pinned: the old
+assertions stand for the FLAT camera, which flat worlds still use, and the cylinder's behaviour is pinned by new tests.
+
+**Two live-session P2 pins (`MapViewportTests.MapViewportUiTests`), now founded flat (`wrapXOverride: false`).** With the
+switch off they pass with their assertions unchanged (the attribution control). Against the shipped world (the cylinder;
+the two calls changed back to `UiSession.Start(42)` in a scratch edit, built and run, then restored) both fail:
+- `LevelOfDetail_IsTheMapRectsVisibleSpan_NotTheWindows`: "Assert.Equal() Failure: Values differ / Expected: 1 /
+  Actual: 1.25". The game's camera now opens at the cylinder's floor, 1280 / 1024 = 1.25 at 1280×800 (was the flat fit
+  1.0), and the band is keyed on visible km across the WINDOW's width (`MapDetail.Across`; was the map rect's visible span).
+  Now pinned by `CylinderSessionTests.TheGame_OpensAtTheFloor_CentredOnTheOpeningSettlement` and the
+  `CylinderCameraTests` LOD-band theory.
+- `OpeningThePanel_ReframesWithoutMovingTheWorldPointUnderTheCursor_AndAFitViewReFits`: "the fitted world
+  363.125,-30.875..1643.125,1249.125 is not inside the map rect RectD { X = 0, Y = 52, W = 848, H = 688 … }". A view at
+  the floor no longer re-fits to the narrower rect when a panel opens: the zoom is unchanged (no world point twice, no
+  re-zoom). Now pinned by `CylinderSessionTests.AtTheFloor_OpeningAndClosingAPanel_ChangesNeitherZoomNorBandNorLayers`.
+
+**The gate's wheel rows** (`PlayabilityGate` "wheel zoom to Regional / to Settlement / out to World"; each notches at the map
+rect's centre until the TARGET view's band is the one wanted). Notch counts were measured by a temporary instrumentation
+of `WheelUntil` (a line per row, not in any patch), run through `--smoke --monkey 0` on the W1 tree (cylindrical world,
+flat camera: before) and the W2 tree (wrapped camera, `MapDetail.Across` keying: after). Both smokes: "12 states, 2896
+checks: 2747 pass, 149 not offered, 0 FAIL; 0 problems". Every row passes before and after. What moved is the zooms they
+start and stop at and, in some rows, the notch count:
+
+| state | # | row (target band) | map rect | before: notches (zoom from -> to) | after: notches (zoom from -> to) |
+|---|---|---|---|---|---|
+| A1 turn 1 | 1 | Regional | 1280x688 | 1 (1.0000 -> 1.2500) | 3 (1.2500 -> 2.4414) |
+| A1 turn 1 | 2 | Settlement | 1280x688 | 6 (1.2500 -> 4.7684) | 6 (2.4414 -> 9.3132) |
+| A1 turn 1 | 3 | World | 1280x688 | 7 (4.7684 -> 1.0000) | 7 (9.3132 -> 1.9531) |
+| one AI | 1 | Regional | 1280x688 | 1 (1.0000 -> 1.2500) | 3 (1.2500 -> 2.4414) |
+| one AI | 2 | Settlement | 1280x688 | 6 (1.2500 -> 4.7684) | 6 (2.4414 -> 9.3132) |
+| one AI | 3 | World | 1280x688 | 7 (4.7684 -> 1.0000) | 7 (9.3132 -> 1.9531) |
+| wide window | 1 | Regional | 1920x897 | 3 (1.0000 -> 1.9531) | 3 (1.8750 -> 3.6621) |
+| wide window | 2 | Settlement | 1920x897 | 5 (1.9531 -> 5.9605) | 6 (3.6621 -> 13.9698) |
+| wide window | 3 | World | 1920x897 | 6 (5.9605 -> 1.5625) | 7 (13.9698 -> 2.9297) |
+| narrow window | 1 | Regional | 1080x528 | 0 (1.0000 -> 1.0000) | 3 (1.0547 -> 2.0599) |
+| narrow window | 2 | Settlement | 1080x528 | 6 (1.0000 -> 3.8147) | 6 (2.0599 -> 7.8580) |
+| narrow window | 3 | World | 1080x528 | 7 (3.8147 -> 0.8000) | 7 (7.8580 -> 1.6479) |
+| target set | 1 | Regional | 1280x688 | 1 (1.0000 -> 1.2500) | 3 (1.2500 -> 2.4414) |
+| target set | 2 | Settlement | 1280x688 | 6 (1.2500 -> 4.7684) | 6 (2.4414 -> 9.3132) |
+| target set | 3 | World | 1280x688 | 7 (4.7684 -> 1.0000) | 7 (9.3132 -> 1.9531) |
+| research done | 1 | Regional | 1280x688 | 1 (1.0000 -> 1.2500) | 3 (1.2500 -> 2.4414) |
+| research done | 2 | Settlement | 1280x688 | 6 (1.2500 -> 4.7684) | 6 (2.4414 -> 9.3132) |
+| research done | 3 | World | 1280x688 | 7 (4.7684 -> 1.0000) | 7 (9.3132 -> 1.9531) |
+| research done: now usable | 1 | Regional | 1280x688 | 1 (1.0000 -> 1.2500) | 3 (1.2500 -> 2.4414) |
+| research done: now usable | 2 | Settlement | 1280x688 | 6 (1.2500 -> 4.7684) | 6 (2.4414 -> 9.3132) |
+| research done: now usable | 3 | World | 1280x688 | 7 (4.7684 -> 1.0000) | 7 (9.3132 -> 1.9531) |
+| tax available | 1 | Regional | 1280x688 | 1 (1.0000 -> 1.2500) | 3 (1.2500 -> 2.4414) |
+| tax available | 2 | Settlement | 1280x688 | 6 (1.2500 -> 4.7684) | 6 (2.4414 -> 9.3132) |
+| tax available | 3 | World | 1280x688 | 7 (4.7684 -> 1.0000) | 7 (9.3132 -> 1.9531) |
+| age advance | 1 | Regional | 1280x688 | 1 (1.0000 -> 1.2500) | 3 (1.2500 -> 2.4414) |
+| age advance | 2 | Settlement | 1280x688 | 6 (1.2500 -> 4.7684) | 6 (2.4414 -> 9.3132) |
+| age advance | 3 | World | 1280x688 | 7 (4.7684 -> 1.0000) | 7 (9.3132 -> 1.9531) |
+| colony+revolt | 1 | Regional | 1280x688 | 1 (1.0000 -> 1.2500) | 3 (1.2500 -> 2.4414) |
+| colony+revolt | 2 | Settlement | 1280x688 | 6 (1.2500 -> 4.7684) | 6 (2.4414 -> 9.3132) |
+| colony+revolt | 3 | World | 1280x688 | 7 (4.7684 -> 1.0000) | 7 (9.3132 -> 1.9531) |
+| placement | 1 | Regional | 1280x688 | 1 (1.0000 -> 1.2500) | 3 (1.2500 -> 2.4414) |
+| placement | 2 | Settlement | 1280x688 | 6 (1.2500 -> 4.7684) | 6 (2.4414 -> 9.3132) |
+| placement | 3 | World | 1280x688 | 7 (4.7684 -> 1.0000) | 7 (9.3132 -> 1.9531) |
+| hidden rival | 1 | Settlement | 1280x688 | 7 (1.0000 -> 4.7684) | 9 (1.2500 -> 9.3132) |
+| hidden rival | 2 | World | 1280x688 | 7 (4.7684 -> 1.0000) | 7 (9.3132 -> 1.9531) |
+| hidden rival | 3 | Regional | 1280x688 | 1 (1.0000 -> 1.2500) | 1 (1.9531 -> 2.4414) |
+| hidden rival | 4 | Settlement | 1280x688 | 6 (1.2500 -> 4.7684) | 6 (2.4414 -> 9.3132) |
+| hidden rival | 5 | World | 1280x688 | 7 (4.7684 -> 1.0000) | 7 (9.3132 -> 1.9531) |
+| hidden rival | 6 | Settlement | 1280x688 | 8 (1.0000 -> 4.7684) | 8 (1.9531 -> 9.3132) |
+| hidden rival | 7 | World | 1280x688 | 7 (4.7684 -> 1.0000) | 7 (9.3132 -> 1.9531) |
+
+Reading (MEASURED from the table):
+- The rows now start at the cylinder's floor: 1.25 at 1280×800, 1.875 at 1920×1009, 1.0547 at 1080×640. Before, they started at 1.0.
+- "To Regional" takes 3 notches in every state, where it took 1 at 1280×800 (3 in the wide window, which is unchanged; 0
+  in the narrow window, whose flat opening was already Regional). The one exception is hidden rival row 3, which takes 1,
+  as before, because it starts from the World row's stop. (Corrected 2026-10-15, final-round fix 2, verifier finding
+  REC-WHEEL-WIDE: this line first said "where it took 1" for every state but the narrow window; the table's wide-window
+  row took 3 before as well.)
+- "To Settlement" ends at 9.3132 at 1280×800 (was 4.7684), 13.9698 at 1920×1009 (was 5.9605) and 7.8580 at 1080×640 (was
+  3.8147). It takes 6 notches from Regional (5 → 6 in the wide window) and 9 from the floor (hidden rival row 1, was 7).
+- "Out to World" stops at 1.9531 at 1280×800, the first zoom whose window width shows more than the World band's edge
+  (1280 / 1.9531 × 4 km = 2621 km > 2253). It does not stop at the floor.
+
+The deviation behind these rows (the band keyed on the WINDOW's width, not the map rect's width the spec names) is a
+Director question for D-054. The measured reason is in `CylinderCameraTests`: keyed on the shown-panel map rect, the
+256-px floor is on no plateau at any gate window.

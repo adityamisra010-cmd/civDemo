@@ -80,7 +80,10 @@ public class HarvestWeatherGeographyTests
         Assert.Equal(GeographicDistance.Km(w.Terrain!, a, b) / kmPerCost, ab);
         Assert.True(GeographicDistance.TryIdealGroundCostUnits(w, a, a, kmPerCost, out double self));
         Assert.Equal(0.0, self);
-        // Straight-line km equals ADR-032's road-length invariant over the same two sites.
+        // Straight-line km equals ADR-032's road-length invariant over the same two sites. Batch 3 WS3 (ADR-032 FR3
+        // amended, W1 fix F7): both lengths are the straight line ON THE CYLINDER when the world wraps —
+        // GeographicDistance.Km and RoadDevelopmentQuery.GeographicKm go through the same MapTopology.Km — so the
+        // equality holds on a wrapped world as it did on a flat one.
         Assert.Equal(RoadDevelopmentQuery.GeographicKm(w, w.Settlements[0].Id, w.Settlements[1].Id, double.NaN),
             GeographicDistance.Km(w.Terrain!, a, b), 9);
     }

@@ -217,12 +217,8 @@ public sealed class ResourceOverlay
     // ------------------------------------------------------------------ geometry
 
     /// <summary>The cell a node's values are taken at: its block's centre cell (block x·b + b/2, y·b + b/2), on the map.</summary>
-    public static int SampleCell(int node, int size, int latticeSize, int block)
-    {
-        int x = Math.Min(size - 1, node % latticeSize * block + block / 2);
-        int y = Math.Min(size - 1, node / latticeSize * block + block / 2);
-        return y * size + x;
-    }
+    public static int SampleCell(int node, int size, int latticeSize, int block) =>
+        MapTopology.NodeCentreCell(node, size, latticeSize, block);   // WS3: the one statement of the lattice's geometry
 
     /// <summary>This bake's <see cref="SampleCell(int, int, int, int)"/>.</summary>
     public int SampleCell(int node) => SampleCell(node, Size, LatticeSize, Block);
@@ -291,14 +287,29 @@ public sealed class ResourceOverlay
 
     /// <summary>The sum of <paramref name="field"/> over the window ±<paramref name="r"/> about (<paramref name="x"/>,
     /// <paramref name="y"/>), clamped to the map — BoxSum's window — summed row by row from that window's cells alone (the
-    /// restricted view's region fertility; see the type's remarks).</summary>
-    public static double WindowSum(ReadOnlySpan<double> field, int size, int x, int y, int r)
+    /// restricted view's region fertility; see the type's remarks). WS3: on a wrapped world (<paramref name="wrapX"/>) the
+    /// window is BoxSum's MODULAR one — x crosses the seam, each column once at its shortest offset
+    /// (<see cref="MapTopology.NeighbourX"/>, <see cref="MapTopology.Dx"/>, as <see cref="SiteAssessment.KnowsSquare"/>
+    /// walks it); y stays clamped. Flat: exactly the clamped window, as before.</summary>
+    public static double WindowSum(ReadOnlySpan<double> field, int size, int x, int y, int r, bool wrapX = false)
     {
         r = Math.Max(0, r);
-        int y0 = Math.Max(0, y - r), y1 = Math.Min(size - 1, y + r), x0 = Math.Max(0, x - r), x1 = Math.Min(size - 1, x + r);
+        int y0 = Math.Max(0, y - r), y1 = Math.Min(size - 1, y + r);
         double sum = 0.0;
+        if (!wrapX)
+        {
+            int x0 = Math.Max(0, x - r), x1 = Math.Min(size - 1, x + r);
+            for (int yy = y0; yy <= y1; yy++)
+                for (int xx = x0; xx <= x1; xx++) sum += field[yy * size + xx];
+            return sum;
+        }
         for (int yy = y0; yy <= y1; yy++)
-            for (int xx = x0; xx <= x1; xx++) sum += field[yy * size + xx];
+            for (int dx = -r; dx <= r; dx++)
+            {
+                int xx = MapTopology.NeighbourX(x, dx, size, wrap: true);
+                if (MapTopology.Dx(x, xx, size, wrap: true) != dx) continue;   // a column once, at its shortest offset
+                sum += field[yy * size + xx];
+            }
         return sum;
     }
 
@@ -386,7 +397,7 @@ public sealed class ResourceOverlay
             bool boxKnown = all || SiteAssessment.KnowsSquare(knowledge, size, x, y, r);
             int distance = site.WaterDistancePx[cell];
             bool diamondKnown = all || SiteAssessment.KnowsDiamond(knowledge, size, x, y, Math.Min(distance, cutoff));
-            double region = !boxKnown ? double.NaN : all ? site.RegionFertility[cell] : WindowSum(t.Fertility, size, x, y, r);
+            double region = !boxKnown ? double.NaN : all ? site.RegionFertility[cell] : WindowSum(t.Fertility, size, x, y, r, t.WrapX);
             double access = diamondKnown ? SettlementSiting.WaterAccess(distance, cutoff) : double.NaN;
             double score = all ? site.Frontier.Scores[cell]
                 : boxKnown && diamondKnown ? (access <= 0.0 ? 0.0 : region * access) : double.NaN;
@@ -576,36 +587,53 @@ public sealed class ResourceOverlay
     /// to whole screen px so neighbouring runs tile without a seam or an overlap; rows and runs off the viewport are not
     /// emitted. <paramref name="rects"/> and <paramref name="nodes"/> count, per layer, the rects emitted and the nodes
     /// they cover.
+    /// <para>WS3: <paramref name="copies"/> are the copies k of the world (world x + k·<paramref name="worldWidth"/>) to
+    /// paint the runs at — null or {0}: flat, exactly as before. A run is drawn at every copy in view; its edges are taken at
+    /// the copy's own world x, so a run ending at the seam and its continuation from x = 0 one circumference on meet at the
+    /// same snapped screen px. <paramref name="nodes"/> counts each node ONCE however many copies of it are drawn; the draws
+    /// beyond a run's first are returned (<see cref="LensFrame.Copies"/>).</para>
     /// </summary>
-    internal void PaintLayers(DrawList d, IReadOnlyList<bool> shown, double opacity, Func<double, double, (double X, double Y)> toScreen,
-        RectD viewport, MapInk k, int[] rects, int[] nodes)
+    internal int PaintLayers(DrawList d, IReadOnlyList<bool> shown, double opacity, Func<double, double, (double X, double Y)> toScreen,
+        RectD viewport, MapInk k, int[] rects, int[] nodes, int[]? copies = null, double worldWidth = 0.0)
     {
-        int l = LatticeSize, b = Block;
+        int l = LatticeSize, b = Block, extra = 0;
+        int[] ks = copies is { Length: > 0 } ? copies : [0];
         for (int i = 0; i < Layers.Count; i++)
         {
             if (i >= shown.Count || !shown[i]) continue;
             var fill = new Rgba[LevelCount];
             for (int v = 0; v < LevelCount; v++) fill[v] = Fill(k, Layers[i], v, opacity);
             byte[] lv = _levels[i];
+            bool[]? seen = ks.Length > 1 ? new bool[NodeCount] : null;   // WS3: a node drawn at two copies counts once
             for (int ny = 0; ny < l; ny++)
             {
                 double y0 = Math.Round(toScreen(0, ny * b).Y), y1 = Math.Round(toScreen(0, (ny + 1) * b).Y);
                 if (y1 <= y0 || y1 <= viewport.Y || y0 >= viewport.Bottom) continue;
-                int row = ny * l, nx = 0;
-                while (nx < l)
+                int row = ny * l;
+                foreach (int c in ks)
                 {
-                    byte level = lv[row + nx];
-                    if (level == NotDrawn) { nx++; continue; }
-                    int start = nx;
-                    while (nx < l && lv[row + nx] == level) nx++;
-                    double x0 = Math.Round(toScreen(start * b, ny * b).X), x1 = Math.Round(toScreen(nx * b, ny * b).X);
-                    if (x1 <= x0 || x1 <= viewport.X || x0 >= viewport.Right) continue;
-                    d.Rect(new RectD(x0, y0, x1 - x0, y1 - y0), fill[level]);
-                    rects[i]++;
-                    nodes[i] += nx - start;
+                    double off = c * worldWidth;
+                    int nx = 0;
+                    while (nx < l)
+                    {
+                        byte level = lv[row + nx];
+                        if (level == NotDrawn) { nx++; continue; }
+                        int start = nx;
+                        while (nx < l && lv[row + nx] == level) nx++;
+                        double x0 = c == 0 ? Math.Round(toScreen(start * b, ny * b).X) : Math.Round(toScreen(start * b + off, ny * b).X);
+                        double x1 = c == 0 ? Math.Round(toScreen(nx * b, ny * b).X) : Math.Round(toScreen(nx * b + off, ny * b).X);
+                        if (x1 <= x0 || x1 <= viewport.X || x0 >= viewport.Right) continue;
+                        d.Rect(new RectD(x0, y0, x1 - x0, y1 - y0), fill[level]);
+                        rects[i]++;
+                        if (seen is null) { nodes[i] += nx - start; continue; }
+                        if (seen[row + start]) { extra++; continue; }   // the same run, already drawn at another copy
+                        for (int q = start; q < nx; q++) seen[row + q] = true;
+                        nodes[i] += nx - start;
+                    }
                 }
             }
         }
+        return extra;
     }
 
     // ------------------------------------------------------------------ the outline (P10)
@@ -635,7 +663,13 @@ public sealed class ResourceOverlay
         var q = new bool[NodeCount];
         for (int n = 0; n < q.Length; n++)
             if (Qualifies(layer, n)) { q[n] = true; nodes++; }
-        bool In(int x, int y) => x >= 0 && y >= 0 && x < l && y < l && q[y * l + x];
+        // WS3: on a cylinder the columns wrap (MapTopology.WrapX) — the seam is no boundary: qualifying places on both sides of
+        // it are one region, and the boundary between column l − 1 and column 0 is drawn once, at x = 0 (copies draw it at the
+        // seam's other side too). Flat: off the map is outside, as before.
+        bool wrap = Terrain.WrapX;
+        bool In(int x, int y) => wrap
+            ? y >= 0 && y < l && q[y * l + MapTopology.WrapX(x, l)]
+            : x >= 0 && y >= 0 && x < l && y < l && q[y * l + x];
         var seg = new List<int>();
         for (int y = 0; y <= l; y++)          // the boundary between row y-1 and row y
         {
@@ -648,7 +682,7 @@ public sealed class ResourceOverlay
                 seg.Add(start * b); seg.Add(y * b); seg.Add(x * b); seg.Add(y * b);
             }
         }
-        for (int x = 0; x <= l; x++)          // the boundary between column x-1 and column x
+        for (int x = 0; x <= (wrap ? l - 1 : l); x++)          // the boundary between column x-1 and column x
         {
             int y = 0;
             while (y < l)
@@ -666,16 +700,34 @@ public sealed class ResourceOverlay
     /// <paramref name="ink"/>, every segment that touches the viewport; returns how many it drew.</summary>
     internal int PaintOutline(DrawList d, int layer, Func<double, double, (double X, double Y)> toScreen, RectD viewport, Rgba ink, double width)
     {
+        int extra = 0;
+        return PaintOutline(d, layer, toScreen, viewport, ink, width, null, 0.0, ref extra);
+    }
+
+    /// <summary>WS3: <see cref="PaintOutline(DrawList, int, Func{double, double, ValueTuple{double, double}}, RectD, Rgba, double)"/>
+    /// at every copy k of the world in <paramref name="copies"/> (null or {0}: flat, exactly as before); each segment copy in
+    /// view is drawn and counted, and the draws beyond a segment's first are added to <paramref name="extra"/>.</summary>
+    internal int PaintOutline(DrawList d, int layer, Func<double, double, (double X, double Y)> toScreen, RectD viewport, Rgba ink,
+        double width, int[]? copies, double worldWidth, ref int extra)
+    {
         int[] s = Outline(layer).Segments;
+        int[] ks = copies is { Length: > 0 } ? copies : [0];
         int drawn = 0;
         for (int i = 0; i + 3 < s.Length; i += 4)
         {
-            (double x0, double y0) = toScreen(s[i], s[i + 1]);
-            (double x1, double y1) = toScreen(s[i + 2], s[i + 3]);
-            if (Math.Max(x0, x1) < viewport.X || Math.Min(x0, x1) > viewport.Right
-                || Math.Max(y0, y1) < viewport.Y || Math.Min(y0, y1) > viewport.Bottom) continue;
-            d.Line(x0, y0, x1, y1, ink, width);
-            drawn++;
+            bool first = true;
+            foreach (int c in ks)
+            {
+                double off = c * worldWidth;
+                (double x0, double y0) = c == 0 ? toScreen(s[i], s[i + 1]) : toScreen(s[i] + off, s[i + 1]);
+                (double x1, double y1) = c == 0 ? toScreen(s[i + 2], s[i + 3]) : toScreen(s[i + 2] + off, s[i + 3]);
+                if (Math.Max(x0, x1) < viewport.X || Math.Min(x0, x1) > viewport.Right
+                    || Math.Max(y0, y1) < viewport.Y || Math.Min(y0, y1) > viewport.Bottom) continue;
+                d.Line(x0, y0, x1, y1, ink, width);
+                drawn++;
+                if (!first) extra++;
+                first = false;
+            }
         }
         return drawn;
     }

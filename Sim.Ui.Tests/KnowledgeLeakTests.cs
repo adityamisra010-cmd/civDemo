@@ -197,8 +197,9 @@ public class KnowledgeLeakTests : IDisposable
     /// <summary>
     /// Perturbs, in place, everything of <paramref name="w"/> that <paramref name="k"/> hides: every row keyed by a hidden
     /// settlement (people and stocks through the Ledger, so the world stays conserved; deposits, dwellings, structures, a
-    /// queued project, the labour split, deficits, grievances, needs, prices, class states), the hidden polity's formations
-    /// (experience, plus one new formation where one of them stands), its tax, and the terrain under every unknown node.
+    /// queued project with its WS1 progress row, the labour split, deficits, grievances, needs, prices, class states), the
+    /// hidden polity's formations (experience, plus one new formation where one of them stands), its tax, its WS2 material
+    /// split row (D-054, schema v33), and the terrain under every unknown node.
     /// <paramref name="salt"/> varies the amounts, so two calls perturb differently.
     /// </summary>
     private static void Perturb(WorldState w, PlayerKnowledge k, SimConfig cfg, int salt)
@@ -231,6 +232,7 @@ public class KnowledgeLeakTests : IDisposable
             if (at >= 0) w.Structures[at] = w.Structures[at] with { Count = w.Structures[at].Count + 2 + salt };
             else w.Structures.Add(new StructureRow(s, project, 2 + salt));
             w.ConstructionQueue.Add(new ConstructionQueueRow(s, 7 + salt, project));
+            w.ConstructionProgress.Add(new ConstructionProgressRow(s, 7 + salt, project, 3 + salt, 250_000 + 1_000 * salt));
         }
         for (int i = 0; i < w.SectorAllocations.Count; i++)
             if (H(w.SectorAllocations[i].Settlement))
@@ -265,6 +267,10 @@ public class KnowledgeLeakTests : IDisposable
         for (int i = 0; i < w.TaxPolicies.Count; i++) if (w.TaxPolicies[i].Polity.Value == Hidden.Value) tax = i;
         if (tax >= 0) w.TaxPolicies[tax] = new TaxPolicyRow(Hidden, 0.31 + 0.01 * salt);
         else w.TaxPolicies.Add(new TaxPolicyRow(Hidden, 0.31 + 0.01 * salt));
+        int split = -1;
+        for (int i = 0; i < w.ResourceAllocations.Count; i++) if (w.ResourceAllocations[i].Polity.Value == Hidden.Value) split = i;
+        if (split >= 0) w.ResourceAllocations[split] = new ResourceAllocationRow(Hidden, 40 + salt);
+        else w.ResourceAllocations.Add(new ResourceAllocationRow(Hidden, 40 + salt));
 
         w.Terrain = UnderUnknownNodes(w.Terrain!, k, salt);
     }
@@ -289,9 +295,9 @@ public class KnowledgeLeakTests : IDisposable
         Assert.True(changed > 0);
         var polylines = new int[terrain.RiverPolylineCount][];
         for (int i = 0; i < polylines.Length; i++) polylines[i] = terrain.RiverPolyline(i).ToArray();
-        ConstructorInfo ctor = typeof(TerrainSet).GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance)[0];
-        return (TerrainSet)ctor.Invoke([terrain.Size, terrain.KmPerPx, terrain.SeaLevel, elevation, terrain.Water.ToArray(),
-            temperature, moisture, fertility, terrain.MovementCost.ToArray(), terrain.Rivers.ToArray(), polylines]);
+        // Batch 3: the public test/tool factory (the internal constructor gained the topology flag); topology kept.
+        return TerrainSet.FromLayers(terrain.Size, terrain.KmPerPx, terrain.SeaLevel, elevation, terrain.Water,
+            temperature, moisture, fertility, terrain.MovementCost, terrain.Rivers, polylines, terrain.WrapX);
     }
 
     /// <summary>The rig's world after the step, perturbed (salt 1).</summary>
@@ -705,8 +711,11 @@ public class KnowledgeLeakTests : IDisposable
         // D-051 §6 / D-053 §1 (the construction purse) under P7. A KNOWN foreign settlement A whose Empire also rules a
         // HIDDEN settlement B: A's queue head blocker must not sum B's stock (measured on the v1 patch: "20 stone (empire has
         // 3)" became "(empire has 17)" when only B's stone moved). It reads A's own stock; the player's own head still reads
-        // the player's Empire.
+        // the player's Empire. D-054 WS1: this blocker line is the SWITCH-OFF rule (construction.incremental off), so this
+        // test reads the settlement view under that config; the shipped (incremental) reading of the same rig — a foreign head
+        // says what is being built and never why it waits — is the next test.
         Rig r = Played.Value;
+        SimConfig whole = r.Config with { Construction = r.Config.Construction! with { Incremental = false } };
         WorldState w = r.Next.Clone();
         IReadOnlyList<int> foreign = KnowledgeStubs.SettlementsOf(w, Hidden);
         Assert.True(foreign.Count >= 2, "the rig needs two settlements of one foreign Empire");
@@ -727,7 +736,7 @@ public class KnowledgeLeakTests : IDisposable
         Assert.Single(ConstructionQuery.Queue(w, a));
 
         string Structures(WorldState world, SettlementId at) =>
-            Block(PlayerViews.Settlement(world, r.Config, Player, null, at.Value, r.Name, 3, KnowledgeStubs.Over(world, Player, mask)), "Structures");
+            Block(PlayerViews.Settlement(world, whole, Player, null, at.Value, r.Name, 3, KnowledgeStubs.Over(world, Player, mask)), "Structures");
         string before = Structures(w, a);
         Assert.Contains("granary - needs 40 timber (has 0), 20 stone (has 2)", before, StringComparison.Ordinal);
 
@@ -753,6 +762,63 @@ public class KnowledgeLeakTests : IDisposable
         string mineAfter = Structures(ownHead, home);
         Assert.Contains("20 stone (empire has 3)", mineBefore, StringComparison.Ordinal);
         Assert.Contains("20 stone (empire has 17)", mineAfter, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void WithIncrementalConstruction_AForeignQueueHead_SaysOnlyWhatIsBeingBuilt_WhileTheViewersOwnHeadReadsItsEmpiresPurse()
+    {
+        // D-054 WS1 under P7: a KNOWN foreign settlement A's head line names the project and nothing else — no figures, no
+        // waiting reason ("why it waits is not known to us") — so neither A's own stock nor its hidden sibling B's moves it.
+        // CONTROL: the player's own head reads the player's Empire through ConstructionQuery.HeadStatus — a sibling's stone
+        // turns "waiting for stone" into a head that will start at End Turn.
+        Rig r = Played.Value;
+        Assert.True(ConstructionQuery.Incremental(r.Config));
+        WorldState w = r.Next.Clone();
+        IReadOnlyList<int> foreign = KnowledgeStubs.SettlementsOf(w, Hidden);
+        Assert.True(foreign.Count >= 2, "the rig needs two settlements of one foreign Empire");
+        SettlementId a = new(foreign[0]), b = new(foreign[1]);
+        PolityKnowledge grid = PlayerKnowledge.Of(w).Core;
+        var mask = new bool[grid.LatticeSize * grid.LatticeSize];
+        for (int n = 0; n < mask.Length; n++) mask[n] = true;
+        for (int i = 0; i < w.Settlements.Count; i++)
+            if (w.Settlements[i].Id == b) mask[grid.NodeOfCell(w.Settlements[i].SiteCell)] = false;
+        int stone = r.Config.Goods!.IdOf("stone"), timber = r.Config.Goods!.IdOf("timber");
+        int slot = NextSlot(w, a);
+        w.ConstructionQueue.Add(new ConstructionQueueRow(a, slot, 1));
+        w.ConstructionProgress.Add(new ConstructionProgressRow(a, slot, 1, w.Clock.Turn, 0));
+        foreach (SettlementId s in new[] { a, b }) { SetStock(w, s, stone, 0); SetStock(w, s, timber, 0); }
+        SetStock(w, a, stone, 2);
+        SetStock(w, b, stone, 3);
+        Assert.Single(ConstructionQuery.Queue(w, a));
+
+        string Structures(WorldState world, SettlementId at) =>
+            Block(PlayerViews.Settlement(world, r.Config, Player, null, at.Value, r.Name, 3, KnowledgeStubs.Over(world, Player, mask)), "Structures");
+        string before = Structures(w, a);
+        Assert.Contains("Being built: granary", before, StringComparison.Ordinal);
+        Assert.DoesNotContain("waiting", before, StringComparison.Ordinal);
+        Assert.DoesNotContain("stone", before, StringComparison.Ordinal);
+        WorldState moved = w.Clone();
+        SetStock(moved, b, stone, 17);
+        SetStock(moved, a, stone, 19);
+        SetStock(moved, a, timber, 40);
+        Assert.Equal(before, Structures(moved, a));
+
+        SettlementId[] mine = LabourActivities.ControlledSettlements(w, Player);
+        Assert.True(mine.Length >= 2, "the rig needs two of the player's settlements");
+        SettlementId home = mine[0], sibling = mine[1];
+        WorldState ownHead = w.Clone();
+        int own = NextSlot(ownHead, home);
+        ownHead.ConstructionQueue.Add(new ConstructionQueueRow(home, own, 1));
+        ownHead.ConstructionProgress.Add(new ConstructionProgressRow(home, own, 1, ownHead.Clock.Turn, 0));
+        Assert.Single(ConstructionQuery.Queue(ownHead, home));
+        foreach (SettlementId s in mine) { SetStock(ownHead, s, stone, 0); SetStock(ownHead, s, timber, 0); }
+        SetStock(ownHead, sibling, timber, 40);
+        string mineBefore = Structures(ownHead, home);
+        SetStock(ownHead, sibling, stone, 20);
+        string mineAfter = Structures(ownHead, home);
+        Assert.Contains("Next to build: granary - not started; waiting for stone", mineBefore, StringComparison.Ordinal);
+        Assert.Contains("Next to build: granary - not started", mineAfter, StringComparison.Ordinal);
+        Assert.DoesNotContain("waiting for stone", mineAfter, StringComparison.Ordinal);
     }
 
     // ================================================================== the subject filters, each with its own control (P7 review, finding 3)
@@ -893,9 +959,9 @@ public class KnowledgeLeakTests : IDisposable
         }
         var polylines = new int[t.RiverPolylineCount][];
         for (int i = 0; i < polylines.Length; i++) polylines[i] = t.RiverPolyline(i).ToArray();
-        ConstructorInfo ctor = typeof(TerrainSet).GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance)[0];
-        w.Terrain = (TerrainSet)ctor.Invoke([t.Size, t.KmPerPx, t.SeaLevel, t.Elevation.ToArray(), t.Water.ToArray(),
-            t.Temperature.ToArray(), t.Moisture.ToArray(), t.Fertility.ToArray(), movement, rivers, polylines]);
+        // Batch 3: the public test/tool factory (the internal constructor gained the topology flag); topology kept.
+        w.Terrain = TerrainSet.FromLayers(t.Size, t.KmPerPx, t.SeaLevel, t.Elevation, t.Water,
+            t.Temperature, t.Moisture, t.Fertility, movement, rivers, polylines, t.WrapX);
         return w;
     }
 

@@ -55,5 +55,12 @@ public class ResearchOrderTests
         Assert.Contains("5 (SetTaxRate)", e.Message);
         Assert.Contains("6 (SetResearchTarget)", e.Message);
         Assert.Contains("9 (FoundSettlement)", e.Message);
+        // D-054 (ADR-039): kinds 11 (CancelConstruction) and 12 (SetResourceAllocation) are new; 10 STAYS unknown — it is
+        // reserved for MoveFormation (M7), and the message says so.
+        Assert.Contains("11 (CancelConstruction)", e.Message);
+        Assert.Contains("12 (SetResourceAllocation)", e.Message);
+        Assert.Contains("kind 10 is reserved for MoveFormation (M7)", e.Message);
+        var thirteen = Assert.Throws<SnapshotFormatException>(() => RoundTrip(new OrderRecord(3, 1, (OrderKind)13, 0, 0.0)));
+        Assert.Contains("unknown order kind 13", thirteen.Message);
     }
 }

@@ -742,15 +742,58 @@ public record struct CapitalRow(PolityId Polity, SettlementId Place);
 /// Ordering is the SLOT, an explicit integer, not row position — rows are
 /// appended and removed over time and "wherever the row happens to sit" is not
 /// an order anyone can rely on across a save. Head of a settlement's queue is
-/// its lowest slot. Slots are assigned strictly increasing per settlement and
-/// are never reused, so insertion order is total and deterministic.
+/// its lowest slot. A new entry takes one past the settlement's highest slot
+/// CURRENTLY queued, so slots increase strictly while the queue is non-empty and
+/// insertion order is total and deterministic; once a settlement's queue EMPTIES
+/// its next entry takes slot 0 again (slots ARE reused — an earlier version of
+/// this comment said otherwise, which was never true). Reuse is safe because every
+/// reader matches an entry's progress on (Settlement, Slot, ProjectId) and
+/// ConstructionSystem removes an entry's progress row with the entry itself
+/// (<see cref="ConstructionProgressRow"/>, the invariant there).
 ///
-/// There is NO progress field here, deliberately: no percent, no turns
-/// remaining, no completion turn. A project either has its materials and its
-/// labour this turn and is built whole, or it waits unchanged. Duration is
-/// emergent from what the settlement can marshal, never a stored timer.
+/// THE ENTRY CARRIES NO PROGRESS FIELD; its progress lives beside it in
+/// <see cref="ConstructionProgressRow"/> (schema v33, WS1 — D-054 supersedes M4-D's
+/// "built whole or waits"). Keeping this row's 12-byte layout unchanged leaves
+/// every caller of its constructor untouched. Duration is still emergent from what
+/// the settlement can marshal — labour and materials each turn — never a stored
+/// timer.
 /// </summary>
 public record struct ConstructionQueueRow(SettlementId Settlement, int Slot, int ProjectId);
+
+/// <summary>
+/// WS1 (schema v33; D-054 — the Director's 2026-10-14 instruction, workstream 1, superseding M4-D's
+/// "built whole or waits") — HOW FAR ONE QUEUED ENTRY HAS BEEN BUILT. Owned by ConstructionSystem.
+///
+/// <c>Progress</c> is an integer p in [0, N), N = ConstructionQuery.ProgressUnits (1,000,000): the
+/// fraction p / N of the project's labour has been done and, for each input of cost c, exactly
+/// ceil(c × p / N) units have been delivered (ConstructionQuery.Delivered — materials FIRST: no
+/// progress without the next unit of every input). A completed entry (p = N) is removed with its
+/// queue row in the step it completes, so no stored row ever holds N. Delivered materials left their
+/// good stocks through the Ledger as the work went in: they are SUNK, never a stock held here.
+/// <c>EnqueuedTurn</c> is the turn whose batch carried the accepted order (PREV's clock in the step
+/// that enqueued it) — the building order's FIFO key, oldest first (ConstructionSystem's header).
+///
+/// INVARIANT: every row has a <see cref="ConstructionQueueRow"/> with the same (Settlement, Slot,
+/// ProjectId), at most one row per (Settlement, Slot), and Progress in [0, N − 1]; queue slots are
+/// unique per settlement. The converse is optional: a queue entry with no row has p = 0 and is ordered as
+/// EnqueuedTurn = −1 (every entry of a v32 save, which had no partial state to carry). Asserted at
+/// the end of every construction step and by Snapshot.Load, through the one statement
+/// ConstructionQuery.ProgressInvariantViolation. Row order: appended at enqueue in intake
+/// order (or at an absent-row entry's first progress), updated in place, removed preserving the
+/// relative order of the rest. Not a conserved stock: a measure of work, not of goods or people.
+/// </summary>
+public record struct ConstructionProgressRow(
+    SettlementId Settlement, int Slot, int ProjectId, long EnqueuedTurn, long Progress);
+
+/// <summary>
+/// WS2 (schema v33; D-054) — ONE EMPIRE'S BUILDING/ROADS MATERIAL SPLIT: the whole-number share
+/// <c>BuildingsPercent</c> in [0, 100] of the empire purse that building projects are guaranteed on a
+/// turn road works are ordered (roads get 100 − it). Owned by ConstructionSystem, upserted by the
+/// SetResourceAllocation order (kind 12). ABSENCE OF A ROW IS THE DEFAULT 100 — building first, road
+/// works get what building work leaves (the batch-2 rule). The table is part of the v33 layout from
+/// the first v33 build; its semantics are WS2's (ConstructionSystem's header).
+/// </summary>
+public record struct ResourceAllocationRow(PolityId Polity, int BuildingsPercent);
 
 /// <summary>
 /// M4-D — a completed structure, counted per (settlement, project).
@@ -1043,12 +1086,14 @@ public record struct InstitutionRow(
 
 /// <summary>
 /// ADR-033 D10 (schema v31) — THE CONSTRUCTION LABOUR A SETTLEMENT'S QUEUE CONSUMED THIS STEP, in
-/// adult-years: the project's laborRequired for every queue head ConstructionSystem resolved. Owned by
-/// ConstructionSystem; REBUILT every step (cleared first, a row only where a project was built — the
-/// TradeFlows / Disasters precedent; absence reads 0). PathBuild subtracts it at the standard §3.2
-/// one-turn lag exactly as it subtracts <see cref="HousingRow.LastLaborUsed"/>, so construction capacity
-/// is spent once: what the queue built is no longer also banked toward dirt paths. Observational, not a
-/// stock.
+/// adult-years. Owned by ConstructionSystem; REBUILT every step (cleared first, a row only where the
+/// queue's head consumed labour — the TradeFlows / Disasters precedent; absence reads 0). With incremental
+/// construction (WS1, sim.json construction.incremental) it is the labour the head's progress used this
+/// step, L × (p' − p) / N, written only when the head progressed; with the switch off, the project's
+/// whole laborRequired in the step it was built. PathBuild subtracts it at the standard §3.2 one-turn
+/// lag exactly as it subtracts <see cref="HousingRow.LastLaborUsed"/>, so construction capacity is spent
+/// once: labour the queue used is not also banked toward dirt paths, while capacity the head did NOT use
+/// still reaches PathBuild's bank. Observational, not a stock.
 /// </summary>
 public record struct ConstructionLaborRow(SettlementId Settlement, double LastLaborUsed);
 
@@ -1187,6 +1232,12 @@ public interface IReadOnlyWorldState
 
     /// <summary>H2 (v32): the levy's grievance per (settlement, class) segment — owned by NeedsGrievanceSystem.</summary>
     IReadOnlyTable<TaxGrievanceRow> TaxGrievances { get; }
+
+    /// <summary>WS1 (v33): per-entry construction progress (absence = 0) — owned by ConstructionSystem.</summary>
+    IReadOnlyTable<ConstructionProgressRow> ConstructionProgress { get; }
+
+    /// <summary>WS2 (v33): each Empire's building/roads material split (absence = 100) — owned by ConstructionSystem.</summary>
+    IReadOnlyTable<ResourceAllocationRow> ResourceAllocations { get; }
 }
 
 /// <summary>
@@ -1384,6 +1435,12 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>H2 (v32): the levy's grievance per (settlement, class) segment — owned by NeedsGrievanceSystem.</summary>
     public Table<TaxGrievanceRow> TaxGrievances { get; }
 
+    /// <summary>WS1 (v33): per-entry construction progress — owned by ConstructionSystem.</summary>
+    public Table<ConstructionProgressRow> ConstructionProgress { get; }
+
+    /// <summary>WS2 (v33): each Empire's building/roads material split — owned by ConstructionSystem.</summary>
+    public Table<ResourceAllocationRow> ResourceAllocations { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
@@ -1442,6 +1499,8 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<InstitutionRow> IReadOnlyWorldState.Institutions => Institutions;
     IReadOnlyTable<ConstructionLaborRow> IReadOnlyWorldState.ConstructionLabor => ConstructionLabor;
     IReadOnlyTable<TaxGrievanceRow> IReadOnlyWorldState.TaxGrievances => TaxGrievances;
+    IReadOnlyTable<ConstructionProgressRow> IReadOnlyWorldState.ConstructionProgress => ConstructionProgress;
+    IReadOnlyTable<ResourceAllocationRow> IReadOnlyWorldState.ResourceAllocations => ResourceAllocations;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -1504,6 +1563,8 @@ public sealed class WorldState : IReadOnlyWorldState
         Institutions = new Table<InstitutionRow>();
         ConstructionLabor = new Table<ConstructionLaborRow>();
         TaxGrievances = new Table<TaxGrievanceRow>();
+        ConstructionProgress = new Table<ConstructionProgressRow>();
+        ResourceAllocations = new Table<ResourceAllocationRow>();
     }
 
     private WorldState(
@@ -1537,7 +1598,8 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<TransportEdgeRow> transportEdges, Table<RoadDevelopmentRow> roadDevelopments,
         Table<TaxPolicyRow> taxPolicies,
         Table<InstitutionRow> institutions, Table<ConstructionLaborRow> constructionLabor,
-        Table<TaxGrievanceRow> taxGrievances)
+        Table<TaxGrievanceRow> taxGrievances,
+        Table<ConstructionProgressRow> constructionProgress, Table<ResourceAllocationRow> resourceAllocations)
     {
         Seed = seed;
         Clock = clock;
@@ -1599,6 +1661,8 @@ public sealed class WorldState : IReadOnlyWorldState
         Institutions = institutions;
         ConstructionLabor = constructionLabor;
         TaxGrievances = taxGrievances;
+        ConstructionProgress = constructionProgress;
+        ResourceAllocations = resourceAllocations;
     }
 
     /// <summary>
@@ -1623,7 +1687,8 @@ public sealed class WorldState : IReadOnlyWorldState
             ResearchEurekas.Clone(), ResearchCostModifiers.Clone(), ResearchCredits.Clone(), ResearchExposures.Clone(),
             AgeStates.Clone(), AgeEligibility.Clone(), AgeTransitions.Clone(), MilitaryUnits.Clone(),
             UnitConversions.Clone(), TransportEdges.Clone(), RoadDevelopments.Clone(),
-            TaxPolicies.Clone(), Institutions.Clone(), ConstructionLabor.Clone(), TaxGrievances.Clone())
+            TaxPolicies.Clone(), Institutions.Clone(), ConstructionLabor.Clone(), TaxGrievances.Clone(),
+            ConstructionProgress.Clone(), ResourceAllocations.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };

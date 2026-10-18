@@ -344,9 +344,76 @@ public class ClassSystemTests
         // precedes the local latch, and the instrument reports the latch, not
         // the presence — is untouched by either packet.
         // Bounded: the loop stops at the latch (hard ceiling 120 turns).
-        SimConfig cfg = TestConfigs.Sim();
+        // (Batch 3, D-054: the run and every PROPERTY assert are ArtisanPresenceRun, shared with the cylinder-off
+        // attribution twin ArtisanPresence_WithTheCylinderOff_ReturnsTheBatch2Turns; the turn pins stay here.)
+        (int latchTurn, int firstPresentTurn, long artisansAtFirstPresent) = ArtisanPresenceRun(TestConfigs.DevWorldgen());
+        // T4.21-4 RE-PIN (VALUE, ONE ruled cause: the arming). MEASURED on that
+        // tree: latch 70 -> 84, first-present 13 -> 10. Both moved with the
+        // famine-class disaster: the latch tracks the surplus-ratio trajectory,
+        // and the first-present turn tracks migration, which the flight channel
+        // fed. The gap the test measures widened from 57 turns to 74.
+        // T4.21-7 RE-PIN BACK (VALUE, ONE ruled cause: THE DISARMING —
+        // hazardPerYear 0.01 -> 0.0, CR-016's orchestrator decision). MEASURED
+        // on this tree by the agent writing this line: latch 84 -> 70 and
+        // first-present 10 -> 13, i.e. EXACTLY the pre-arming pair, so the
+        // arming was the whole of the move in both directions. The property the
+        // test pins — an immigrant artisan precedes the LOCAL latch, and the
+        // instrument reports the latch and not the presence — is untouched at
+        // either value, and the gap is 57 turns again.
+        // R1 RE-PIN (2026-10-03; VALUE, ONE cause: research-gated recipes — this world fires no pottery
+        // before pottery_open_fired, which moves the surplus-ratio trajectory by one turn). MEASURED on this
+        // tree by the agent writing this line: latch 70 -> 71, first-present 13 unchanged; the property (the
+        // immigrant precedes the local latch, the instrument reports the latch) is untouched.
+        // M5 R2b RE-PIN (2026-10-03; VALUE): latch 71 -> 70, first-present 13 unchanged — MEASURED. The cause
+        // is the R2b layer set (weather correlation over geographic distance is the INFERRED one: this rig levies
+        // no tax, and no settlement reaches the protest onset); the property is untouched.
+        // R4 RE-PIN (2026-10-04; VALUE, the forager layer): latch 70 -> 71 MEASURED (first-present 13 unchanged);
+        // the property is untouched.
+        // ADR-035 RE-PIN (2026-10-07; VALUE, one cause: the founding-turn harvest — the row-absent land side
+        // is unmeasured, not zero). MEASURED: first-present 13 -> 54, latch 71 unchanged; the immigrant still
+        // precedes the local latch and the instrument still reports the latch, so the property is untouched.
+        // ADR-035 §6 RE-PIN (2026-10-07, P-F0: the founding death remainder seeded at 0.5; MEASURED): latch 71 -> 72.
+        // ADR-035 §7 RE-PIN (2026-10-07, P-F2: founding cohort noise at demographic scale; MEASURED): latch 72 -> 69.
+        // D-051 1(b) RE-PIN (2026-10-10, time-averaged decade weather; MEASURED): latch 69 -> 67; the property is untouched.
+        // (Batch 3 / D-054: latch 67 -> 10 — the re-pin is below, with the first-present turn.)
+        // ADR-035 §6 RE-PIN (2026-10-07, P-F0: the founding death remainder seeded at 0.5; MEASURED): first-present 54 -> 16 (still before the latch).
+        // ADR-035 §7 RE-PIN (2026-10-07, P-F2: founding cohort noise at demographic scale; MEASURED): first-present 16 -> 17.
+        // D-051 1(b) RE-PIN (2026-10-10, time-averaged decade weather; MEASURED): first-present 17 -> 14 (still before the latch, 67).
+        // BATCH 3 / D-054 RE-PIN (integration R1, 2026-10-14; VALUE, MEASURED on this tree by the agent writing this line):
+        // latch 67 -> 10, first-present 14 -> 6, two immigrant artisans at first presence (was one; still in [1, 3]). The
+        // immigrant still precedes the local latch (by 4 turns), the class is still dormant at settlement 0 on the
+        // first-present turn and the instrument still reports the latch — the property is untouched. CAUSE: the CYLINDER
+        // alone (worldgen.json topology.wrapX — dev seed 3's 256-px world regenerates x-periodic, so its land, surplus
+        // ratio and migration trajectory differ from turn 0). ATTRIBUTION: ArtisanPresence_WithTheCylinderOff_ReturnsTheBatch2Turns
+        // (the cylinder off alone, WS1/WS2 on) returns latch 67 / first-present 14 / one artisan; the sim half off alone on
+        // the cylinder (TestConfigs.PreD054Sim; MEASURED) returns 10 / 6 / 2 — this order-free world builds nothing.
+        Assert.Equal(10, latchTurn);
+        Assert.Equal(6, firstPresentTurn);
+        Assert.InRange(artisansAtFirstPresent, 1, 3); // a handful of migrants, not a promoted class (§4.3 item 2)
+    }
+
+    /// <summary>BATCH 3 / D-054 ATTRIBUTION CONTROL (integration R1, 2026-10-14) for the turn pins of
+    /// <see cref="ArtisanPresence_CanPrecedeLocalLatch_ViaMigration_IsNotEmergence"/>: the same rig with ONLY the cylinder
+    /// switched off (TestConfigs.PreCylinderWorldgen — the flat dev world; WS1/WS2 stay ON) returns the batch-2 turns
+    /// (latch 67, first-present 14, one artisan), and every property assert holds there too.</summary>
+    [Fact]
+    public void ArtisanPresence_WithTheCylinderOff_ReturnsTheBatch2Turns()
+    {
+        (int latchTurn, int firstPresentTurn, long artisansAtFirstPresent) =
+            ArtisanPresenceRun(TestConfigs.PreCylinderWorldgen(TestConfigs.DevWorldgen()));
+        Assert.Equal((67, 14, 1L), (latchTurn, firstPresentTurn, artisansAtFirstPresent));
+    }
+
+    /// <summary>The T4.19-D rig (dev preset, 256 px, N = 4, seed 3, production pipeline) on <paramref name="dev"/>, run to
+    /// settlement 0's artisan latch (ceiling 120 turns), with every PROPERTY assert of the regression pin — an immigrant
+    /// artisan is present before the local latch, the class is dormant there on that turn, the instrument reports the latch
+    /// not the presence, conservation holds. Returns (latch turn, first-present turn, artisans at first presence).</summary>
+    internal static (int Latch, int FirstPresent, long ArtisansAtFirstPresent) ArtisanPresenceRun(WorldgenConfig dev, SimConfig? cfgOverride = null)
+    {
+        SimConfig cfg = cfgOverride ?? TestConfigs.Sim();
         TurnExecutor exec = ProductionExecutor(cfg);
-        WorldState world = WorldFounding.Found(TestConfigs.DevWorldgen(), cfg, 3);
+        WorldState world = WorldFounding.Found(dev, cfg, 3);
+        Assert.Equal(dev.Topology is { WrapX: true }, world.Terrain!.WrapX);
         Assert.Equal(0, ArtisanAdults(world));
         Assert.Equal(0, LatchActive(world, S0, Artisans));
 
@@ -376,41 +443,8 @@ public class ClassSystemTests
         Assert.Equal(0, activeAtFirstPresent);
         // The corrected instrument reports the latch, not the presence.
         Assert.NotEqual(firstPresentTurn, latchTurn);
-        // T4.21-4 RE-PIN (VALUE, ONE ruled cause: the arming). MEASURED on that
-        // tree: latch 70 -> 84, first-present 13 -> 10. Both moved with the
-        // famine-class disaster: the latch tracks the surplus-ratio trajectory,
-        // and the first-present turn tracks migration, which the flight channel
-        // fed. The gap the test measures widened from 57 turns to 74.
-        // T4.21-7 RE-PIN BACK (VALUE, ONE ruled cause: THE DISARMING —
-        // hazardPerYear 0.01 -> 0.0, CR-016's orchestrator decision). MEASURED
-        // on this tree by the agent writing this line: latch 84 -> 70 and
-        // first-present 10 -> 13, i.e. EXACTLY the pre-arming pair, so the
-        // arming was the whole of the move in both directions. The property the
-        // test pins — an immigrant artisan precedes the LOCAL latch, and the
-        // instrument reports the latch and not the presence — is untouched at
-        // either value, and the gap is 57 turns again.
-        // R1 RE-PIN (2026-10-03; VALUE, ONE cause: research-gated recipes — this world fires no pottery
-        // before pottery_open_fired, which moves the surplus-ratio trajectory by one turn). MEASURED on this
-        // tree by the agent writing this line: latch 70 -> 71, first-present 13 unchanged; the property (the
-        // immigrant precedes the local latch, the instrument reports the latch) is untouched.
-        // M5 R2b RE-PIN (2026-10-03; VALUE): latch 71 -> 70, first-present 13 unchanged — MEASURED. The cause
-        // is the R2b layer set (weather correlation over geographic distance is the INFERRED one: this rig levies
-        // no tax, and no settlement reaches the protest onset); the property is untouched.
-        // R4 RE-PIN (2026-10-04; VALUE, the forager layer): latch 70 -> 71 MEASURED (first-present 13 unchanged);
-        // the property is untouched.
-        // ADR-035 RE-PIN (2026-10-07; VALUE, one cause: the founding-turn harvest — the row-absent land side
-        // is unmeasured, not zero). MEASURED: first-present 13 -> 54, latch 71 unchanged; the immigrant still
-        // precedes the local latch and the instrument still reports the latch, so the property is untouched.
-        // ADR-035 §6 RE-PIN (2026-10-07, P-F0: the founding death remainder seeded at 0.5; MEASURED): latch 71 -> 72.
-        // ADR-035 §7 RE-PIN (2026-10-07, P-F2: founding cohort noise at demographic scale; MEASURED): latch 72 -> 69.
-        // D-051 1(b) RE-PIN (2026-10-10, time-averaged decade weather; MEASURED): latch 69 -> 67; the property is untouched.
-        Assert.Equal(67, latchTurn);
-        // ADR-035 §6 RE-PIN (2026-10-07, P-F0: the founding death remainder seeded at 0.5; MEASURED): first-present 54 -> 16 (still before the latch).
-        // ADR-035 §7 RE-PIN (2026-10-07, P-F2: founding cohort noise at demographic scale; MEASURED): first-present 16 -> 17.
-        // D-051 1(b) RE-PIN (2026-10-10, time-averaged decade weather; MEASURED): first-present 17 -> 14 (still before the latch, 67).
-        Assert.Equal(14, firstPresentTurn);
-        Assert.InRange(artisansAtFirstPresent, 1, 3); // a handful of migrants, not a promoted class (§4.3 item 2)
         Assert.True(ConservationAuditor.IsConserved(world, out string report), report);
+        return (latchTurn, firstPresentTurn, artisansAtFirstPresent);
     }
 
     // --- hysteresis teeth ---------------------------------------------------

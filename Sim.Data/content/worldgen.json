@@ -42,9 +42,13 @@
     "cellFractionMin": 0.0005,
     "cellFractionMax": 0.05
   },
+  "topology": {
+    "_doc": "Batch 3 WS3 (D-054; the Director's 2026-10-14 instruction: genuine east-west cylindrical world topology). wrapX true: the world is a CYLINDER — x is periodic (moving east past the eastern edge returns to the western edge), y keeps its hard edges (the poles stay ocean). Worldgen then tapers the poles only, makes the noise periodic in x (every octave's frequency x lacunarity^octave must be a whole number — the loader refuses otherwise), wraps hydrology with sinks on the poles only, and wraps every x neighbour; every simulation distance, path, flood and siting window wraps through MapTopology. Supersedes ADR-032 Final Ruling 3 (flat square raster, no wrap) and T3.1(b)'s x half. Absent or false is the flat pre-batch-3 world byte for byte (the PreCylinderWorldgen attribution control) — and the only supported mode for a size the lattice stride (4 px) does not divide.",
+    "wrapX": true
+  },
   "siting": {
     "settlementCount": 12,
-    "_docMinSpacing": "T4.1b/ADR-018: 95.2 km, DERIVED as s = r*sqrt(pi/0.866) = 50 * 1.9046 — the spacing at which a settlement's hex allotment EQUALS the catchment area it actually works. Was 480.0 (T3.2b re-denomination of minSpacingTravel = 30 cost units), at which 96 % of a settlement's allotment was never touched. SPACING IS A FLOOR, NOT A TARGET: founding still places settlementCount settlements; what this raises is CAPACITY (median 457 across 5 seeds), which colonization grows into over 6,000 years. Do not read 95.2 as a claim about how many villages a neolithic continent held.",
+    "_docMinSpacing": "T4.1b/ADR-018: 95.2 km, DERIVED as s = r*sqrt(pi/0.866) = 50 * 1.9046 — the spacing at which a settlement's hex allotment EQUALS the catchment area it actually works. Was 480.0 (T3.2b re-denomination of minSpacingTravel = 30 cost units), at which 96 % of a settlement's allotment was never touched. SPACING IS A FLOOR, NOT A TARGET: founding still places settlementCount settlements; what this raises is CAPACITY (T4.1b: median 457 across 5 seeds, flat; RE-MEASURED 2026-10-14, batch 3 / D-054, by the same greedy saturation of the founding siting over seeds 42, 1, 2, 3, 6: median 381 (min 308, max 584) on the shipped cylinder, median 400 (min 353, max 522) on the flat world with topology off), which colonization grows into over 6,000 years. Do not read 95.2 as a claim about how many villages a neolithic continent held.",
     "minSpacingKm": 95.2,
     "waterAccessCutoffPx": 24,
     "scoreJitter": 0.35,

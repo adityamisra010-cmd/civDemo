@@ -30,9 +30,10 @@ public readonly record struct Lever(OrderKind? Kind, int[] Sectors, string Reaso
 /// lever here is that order, by sector, or None. <see cref="OrderKind.EnqueueConstruction"/>
 /// (M4-D) exists but reaches no node in any need chain: a completed structure
 /// feeds no need, and the queue only COMPETES for the construction pool
-/// (ConstructionSystem.CapacityMeets subtracts housing's draw, never the
-/// reverse) — so it is not listed as a lever for Shelter, because pulling it
-/// cannot raise a dwelling count.
+/// (ConstructionQuery.CapacityAdultYears subtracts housing's draw, never the
+/// reverse; D-054 WS1 spends it as a pace, ConstructionQuery.LabourBound) — so it
+/// is not listed as a lever for Shelter, because pulling it cannot raise a
+/// dwelling count.
 ///
 /// WHERE THERE IS NO LEVER THE TABLE SAYS SO. Weather, arable land, deposit
 /// abundance and population are conditions; grain imports do not exist (grain

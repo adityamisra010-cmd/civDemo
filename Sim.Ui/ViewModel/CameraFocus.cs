@@ -12,6 +12,10 @@ namespace Sim.Ui.ViewModel;
 /// already applies (never off the world's edge) is the clamp this gets, and
 /// a settlement near the edge lands as close to the centre as the world
 /// allows. Pure double math; testable headless like CameraTests.
+///
+/// WS3 (batch 3): on a wrapped camera (<see cref="Camera.WrapX"/>) every centring aims at the settlement's copy NEAREST the
+/// view (<see cref="Camera.WorldToScreenNearest"/>), the glide eases the short way round (<see cref="Camera.Advance"/> takes the
+/// shortest wrapped delta), and the camera's normalisation keeps the centre in [0, WorldSize); y keeps its clamp.
 /// </summary>
 public static class CameraFocus
 {
@@ -30,7 +34,7 @@ public static class CameraFocus
         ArgumentNullException.ThrowIfNull(world);
         if (Position(world, settlementId) is not { } pos) return false;
         camera.Stop();
-        (double sx, double sy) = camera.WorldToScreen(pos.X, pos.Y, view);
+        (double sx, double sy) = camera.WorldToScreenNearest(pos.X, pos.Y, view);
         camera.Pan(view.CenterX - sx, view.CenterY - sy, view);
         return true;
     }
@@ -43,6 +47,8 @@ public static class CameraFocus
         ArgumentNullException.ThrowIfNull(camera);
         ArgumentNullException.ThrowIfNull(world);
         if (Position(world, settlementId) is not { } pos) return false;
+        // WS3: on a cylinder the target's x is normalised by the camera and the shown view eases toward it along the SHORTEST
+        // wrapped delta (Camera.Advance) — so the glide goes the short way round whatever copy the target is set at.
         camera.GlidePan((camera.TargetCenterX - pos.X) * camera.TargetZoom, (camera.TargetCenterY - pos.Y) * camera.TargetZoom, view);
         return true;
     }
@@ -56,7 +62,7 @@ public static class CameraFocus
         if (terrainSize <= 0 || cell < 0 || cell >= terrainSize * terrainSize) return;
         camera.Stop();
         if (zoom is { } z && z > 0) camera.ZoomAt(view.CenterX, view.CenterY, z / camera.Zoom, view);
-        (double sx, double sy) = camera.WorldToScreen(cell % terrainSize + 0.5, cell / terrainSize + 0.5, view);
+        (double sx, double sy) = camera.WorldToScreenNearest(cell % terrainSize + 0.5, cell / terrainSize + 0.5, view);
         camera.Pan(view.CenterX - sx, view.CenterY - sy, view);
     }
 

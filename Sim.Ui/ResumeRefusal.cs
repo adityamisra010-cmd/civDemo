@@ -153,6 +153,11 @@ public static class ResumeLaunch
     /// <summary>The session was recorded by a build whose world this build does not reproduce.</summary>
     public const int SessionIncompatibleExitCode = 3;
 
+    /// <summary>Batch 3 WS3 (W1 fix F1): this build cannot create the session's world at all — worldgen refused its
+    /// configuration (a cylinder at a size the lattice stride does not divide: a session recorded at <c>--size 250</c>
+    /// by the pre-cylinder build). Cli.Guard's code, which `sim replay --founded --size 250` exits with too.</summary>
+    public const int WorldRefusedExitCode = 2;
+
     /// <summary>The title of the refusal dialog.</summary>
     public const string DialogTitle = "civ-sim: this saved session cannot be resumed";
 
@@ -172,6 +177,13 @@ public static class ResumeLaunch
         + diagnostic + "\n"
         + "The session files were not changed.";
 
+    /// <summary>The dialog text for a session whose world this build's worldgen refuses (stderr keeps the bare
+    /// diagnostic).</summary>
+    public static string WorldRefusedDialog(string diagnostic) =>
+        "This saved session cannot be resumed: this build cannot create its world.\n"
+        + diagnostic + "\n"
+        + "The session files were not changed.";
+
     /// <summary>
     /// Resumes the session <paramref name="manifestPath"/> names (<see cref="UiSession.Resume"/>). On success: the
     /// session, exit code 0, nothing written to <paramref name="stderr"/>, no dialog. On a refusal: null, the
@@ -179,8 +191,10 @@ public static class ResumeLaunch
     /// <see cref="OrderLogRejectedExitCode"/> with "error: &lt;message&gt;" exactly as before for an
     /// <see cref="OrderValidationException"/>, <see cref="SessionIncompatibleExitCode"/> with "error: " + the first
     /// of <see cref="SessionIncompatibleException.Lines"/> and the rest indented for a
-    /// <see cref="SessionIncompatibleException"/>. Any other exception propagates unchanged. A dialog callback that
-    /// throws is ignored: the stderr report and the exit code stand.
+    /// <see cref="SessionIncompatibleException"/>; <see cref="WorldRefusedExitCode"/> with "error: &lt;message&gt;" for
+    /// a <see cref="Sim.Core.Worldgen.WorldgenConfigException"/> (batch 3 WS3: the session's size is one a cylinder
+    /// refuses). Any other exception propagates unchanged. A dialog callback that throws is ignored: the stderr report
+    /// and the exit code stand.
     /// </summary>
     public static UiSession? Attempt(
         string manifestPath, TextWriter stderr, Action<string, string>? dialog, out string sessionLogPath, out int exitCode)
@@ -206,14 +220,73 @@ public static class ResumeLaunch
             ShowDialog(dialog, e.Message);
             exitCode = SessionIncompatibleExitCode;
         }
+        catch (Sim.Core.Worldgen.WorldgenConfigException e)
+        {
+            // Batch 3 WS3 (W1 fix F1): before this catch, a session recorded at a size a cylinder refuses ended the
+            // launch as an unhandled exception. Reported like Cli.Guard: the line, then the code.
+            stderr.WriteLine($"error: {e.Message}");
+            ShowDialog(dialog, WorldRefusedDialog(e.Message));
+            exitCode = WorldRefusedExitCode;
+        }
         sessionLogPath = "";
         return null;
     }
 
-    private static void ShowDialog(Action<string, string>? dialog, string message)
+    private static void ShowDialog(Action<string, string>? dialog, string message) => ShowDialog(dialog, DialogTitle, message);
+
+    /// <summary>Best effort: a dialog callback that throws is ignored, the stderr report stands. Shared with
+    /// <see cref="NewGameLaunch"/>.</summary>
+    internal static void ShowDialog(Action<string, string>? dialog, string title, string message)
     {
         if (dialog is null) return;
-        try { dialog(DialogTitle, message); }
+        try { dialog(title, message); }
         catch (Exception) { }   // best effort: the stderr report stands
+    }
+}
+
+/// <summary>
+/// Batch 3 WS3 (W1 fix F1) — THE FRESH LAUNCH, as a testable seam (the <see cref="ResumeLaunch"/> precedent:
+/// Program.cs only calls it). With worldgen.json topology.wrapX on, <see cref="Sim.Core.Worldgen.Worldgen.Generate"/>
+/// refuses a <c>--size</c> the lattice stride does not divide; that refusal used to end the launch as an UNHANDLED
+/// exception (exit 134 on Linux, nothing a Windows player sees). It now goes through the same reporter as a refused
+/// resume, before any window opens: "error: &lt;message&gt;" on stderr (Cli.Guard's line), the exit code
+/// (<see cref="WorldRefusedExitCode"/>, Cli.Guard's 2), and the injected dialog callback once.
+/// </summary>
+public static class NewGameLaunch
+{
+    /// <summary>Worldgen refused the world's configuration: Cli.Guard's code (`sim run --founded --size 250` exits with it).</summary>
+    public const int WorldRefusedExitCode = 2;
+
+    /// <summary>The title of the refusal dialog.</summary>
+    public const string DialogTitle = "civ-sim: this world cannot be created";
+
+    /// <summary>The dialog text for a world this build's worldgen refuses (stderr keeps the bare diagnostic).</summary>
+    public static string WorldRefusedDialog(string diagnostic) =>
+        "This world cannot be created with these launch options.\n" + diagnostic;
+
+    /// <summary>
+    /// Starts a new session (<see cref="UiSession.Start"/>). On success: the session, exit code 0, nothing written to
+    /// <paramref name="stderr"/>, no dialog. On a <see cref="Sim.Core.Worldgen.WorldgenConfigException"/>: null,
+    /// "error: &lt;message&gt;" on <paramref name="stderr"/>, <see cref="WorldRefusedDialog"/> to
+    /// <paramref name="dialog"/> (once) and <see cref="WorldRefusedExitCode"/>. Any other exception propagates unchanged.
+    /// </summary>
+    public static UiSession? Attempt(
+        ulong seed, int? sizeOverridePx, int? settlementsOverride, int? aiEmpiresOverride,
+        TextWriter stderr, Action<string, string>? dialog, out int exitCode)
+    {
+        ArgumentNullException.ThrowIfNull(stderr);
+        try
+        {
+            UiSession session = UiSession.Start(seed, sizeOverridePx, settlementsOverride, aiEmpiresOverride);
+            exitCode = 0;
+            return session;
+        }
+        catch (Sim.Core.Worldgen.WorldgenConfigException e)
+        {
+            stderr.WriteLine($"error: {e.Message}");
+            ResumeLaunch.ShowDialog(dialog, DialogTitle, WorldRefusedDialog(e.Message));
+            exitCode = WorldRefusedExitCode;
+            return null;
+        }
     }
 }

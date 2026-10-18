@@ -160,7 +160,10 @@ public class MapViewportUiTests : IDisposable
     [Fact]
     public void LevelOfDetail_IsTheMapRectsVisibleSpan_NotTheWindows()
     {
-        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("lod"), Assets());
+        // WS3 (batch 3): founded FLAT (wrapXOverride: false) — this pins the FLAT camera's opening zoom and its keying on the
+        // map rect's shorter side, which flat worlds keep; the canonical world is now a cylinder, whose camera opens at its
+        // floor and keys on the window's width (CylinderSessionTests, CylinderCameraTests).
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42, wrapXOverride: false), WorkDir("lod"), Assets());
         Assert.Equal(1.0, h.Ui.Camera.Zoom);
         RectD map = h.Ui.MapRect;
         double km = h.Ui.World.Terrain!.KmPerPx;
@@ -179,7 +182,10 @@ public class MapViewportUiTests : IDisposable
     [Fact]
     public void OpeningThePanel_ReframesWithoutMovingTheWorldPointUnderTheCursor_AndAFitViewReFits()
     {
-        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("reframe"), Assets());
+        // WS3 (batch 3): founded FLAT — the fit view that re-fits the narrower rect (the whole world inside it) is the FLAT
+        // camera's; a cylinder's floor is one circumference across the window and a panel never re-zooms it
+        // (CylinderSessionTests.AtTheFloor_OpeningAndClosingAPanel_ChangesNeitherZoomNorBandNorLayers).
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42, wrapXOverride: false), WorkDir("reframe"), Assets());
         RectD band = h.Ui.MapRect;
         h.Wheel(band.CenterX, band.CenterY, 3);
         Assert.True(h.Settle() >= 0);   // P2: the wheel eases — measure the reframe from a settled view

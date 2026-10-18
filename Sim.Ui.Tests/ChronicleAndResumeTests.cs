@@ -254,7 +254,12 @@ public class ChronicleAndResumeTests
         string log = Path.Combine(dir, "orders-20261010-120000-s256-n4-a1.bin");
         try
         {
-            UiSession live = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1);
+            // Fix round 1 (D-054, 2026-10-15): the session is recorded FLAT, as every session recorded under the previous
+            // schema (v32) was — Resume now re-founds a pre-v33 session flat (TopologyFlags.RecordedFlat). MEASURED with
+            // the cylinder rig after that fix: the resumed (flat) world no longer equalled the fresh cylinder replay
+            // ("Expected: 0d5c72e1…, Actual: 71883a5e…" at the fresh-replay comparison) — the rig, a cylinder session
+            // relabelled v32, is a session no v32 build could have written. Re-rigged, not re-pinned: every assertion stands.
+            UiSession live = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1, wrapXOverride: false);
             live.ExportManifest("2026-10-10 12:00:00", log);
             int capital = live.World.Settlements[0].Id.Value;
             for (int t = 0; t < 8; t++)
@@ -292,8 +297,9 @@ public class ChronicleAndResumeTests
             // A fresh replay of the same seed and log, with no trace at all.
             OrderLog saved;
             using (FileStream f = File.OpenRead(log)) saved = OrderLog.Load(f);
-            UiSession fresh = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1);
+            UiSession fresh = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1, wrapXOverride: false);
             fresh.ReplayTo(saved, 8);
+            Assert.False(resumed.World.Terrain!.WrapX);                                // rebuilt on the flat map it was played on
             Assert.Equal(WorldHash.ComputeHex(fresh.World), WorldHash.ComputeHex(resumed.World));
             Assert.Equal(WorldHash.ComputeHex(live.World), WorldHash.ComputeHex(resumed.World));
             Assert.Equal(fresh.TraceLines.ToArray(), resumed.TraceLines.ToArray());   // rebuilt with this build's hashes
@@ -477,25 +483,46 @@ public class ResumeNoticeUiTests
 {
     private static string Assets() => Path.Combine(AppContext.BaseDirectory, "assets");
 
+    /// <summary>A session recorded 2 turns into <paramref name="dir"/> (256 px, 4 settlements): flat when
+    /// <paramref name="flat"/>, as every session recorded under a schema before v33 was, else the shipped cylinder.
+    /// Returns the live session and its manifest path.</summary>
+    private static (UiSession Live, string Manifest) Record(string dir, bool flat)
+    {
+        string log = Path.Combine(dir, "orders-20261010-120000-s256-n4.bin");
+        UiSession live = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, wrapXOverride: flat ? false : null);
+        live.ExportManifest("2026-10-10 12:00:00", log);
+        for (int t = 0; t < 2; t++) live.EndTurn();
+        live.Save(log);
+        live.ExportTrace(UiSession.TracePath(log));
+        return (live, UiSession.ManifestPath(log));
+    }
+
+    /// <summary>
+    /// Final nits (verifier RC1-5, 2026-10-15): the older-schema half is recorded FLAT, like its sibling
+    /// ChronicleAndResumeTests.Resume_OfASessionRecordedUnderAnOlderSchema… — every session recorded under v32 was flat,
+    /// and Resume rebuilds a pre-v33 session flat (fix round 1). The rig recorded a CYLINDER session and relabelled it v32,
+    /// a session no v32 build could have written; it passed only because it asserted the notice. MEASURED on fix round 2's
+    /// tree with a world-identity assertion added to that rig: "Expected: 96f7adfa4cb7d662… Actual: d82b01914521b012…"
+    /// (the live cylinder world vs the flat world Resume rebuilt). Now the resumed world is asserted to BE the recorded one
+    /// as well as the notice; the own-schema half keeps a session this build recorded (the shipped cylinder).
+    /// </summary>
     [Fact]
     public void AGameOpenedOnASessionResumedUnderAnotherSchema_ShowsTheNotice_AndOneUnderItsOwnSchemaDoesNot()
     {
         string dir = Path.Combine(Path.GetTempPath(), "s0-schema-notice-"
             + Environment.ProcessId.ToString(System.Globalization.CultureInfo.InvariantCulture) + "-" + Guid.NewGuid().ToString("N"));
-        string log = Path.Combine(dir, "orders-20261010-120000-s256-n4.bin");
         try
         {
-            UiSession live = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4);
-            live.ExportManifest("2026-10-10 12:00:00", log);
-            for (int t = 0; t < 2; t++) live.EndTurn();
-            live.Save(log);
-            live.ExportTrace(UiSession.TracePath(log));
-            string manifestPath = UiSession.ManifestPath(log);
+            (UiSession live, string manifestPath) = Record(Path.Combine(dir, "older"), flat: true);
 
             int older = CanonicalSchema.Version - 1;
             ChronicleAndResumeTests.RecordSchema(manifestPath, older);
-            ChronicleAndResumeTests.RecordTraceUnderAnotherSchema(UiSession.TracePath(log));
+            ChronicleAndResumeTests.RecordTraceUnderAnotherSchema(UiSession.TracePath(Path.Combine(dir, "older", "orders-20261010-120000-s256-n4.bin")));
             UiSession resumed = UiSession.Resume(manifestPath, out _);
+            // The world the session was played in, rebuilt — not only the notice.
+            Assert.False(resumed.World.Terrain!.WrapX);
+            Assert.Equal(live.World.Clock.Turn, resumed.World.Clock.Turn);
+            Assert.Equal(WorldHash.ComputeHex(live.World), WorldHash.ComputeHex(resumed.World));
             string before = WorldHash.ComputeHex(resumed.World);
             using (var h = Sim.Ui.Headless.UiFrameHarness.Start(resumed, Path.Combine(dir, "ui-older"), Assets()))
             {
@@ -506,12 +533,13 @@ public class ResumeNoticeUiTests
             }
             Assert.Equal(before, WorldHash.ComputeHex(resumed.World));
 
-            // The same session under its own schema (and its own, undoctored trace): resumed with the trace
-            // checked, and opened with no notice.
-            live.ExportTrace(UiSession.TracePath(log));
-            ChronicleAndResumeTests.RecordSchema(manifestPath, CanonicalSchema.Version);
-            UiSession own = UiSession.Resume(manifestPath, out _);
+            // A session recorded by THIS build (the shipped cylinder) under its own schema and its own, undoctored trace:
+            // resumed with the trace checked, into the world it was played in, and opened with no notice.
+            (UiSession ownLive, string ownManifest) = Record(Path.Combine(dir, "own"), flat: false);
+            UiSession own = UiSession.Resume(ownManifest, out _);
             Assert.Empty(own.ResumeNotice);
+            Assert.True(own.World.Terrain!.WrapX);
+            Assert.Equal(WorldHash.ComputeHex(ownLive.World), WorldHash.ComputeHex(own.World));
             using (var h = Sim.Ui.Headless.UiFrameHarness.Start(own, Path.Combine(dir, "ui-own"), Assets()))
             {
                 Assert.False(h.Ui.Notices.Visible);

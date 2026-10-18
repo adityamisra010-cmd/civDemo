@@ -1,5 +1,87 @@
 # CURRENT STATE — the routing document
 
+> **2026-10-15: batch 3 (the Director's 2026-10-14 instruction) is implemented, LOCAL and UNCOMMITTED, on top of the
+> uncommitted batch-2 tree of the `m5w-integration` worktree (`de86ace`).**
+> - **State.** LOCAL only, in the integration worktree's working tree. It is NOT committed, NOT merged, NOT pushed, NOT
+>   tagged and NOT packaged; committing, merging and publication wait for the Director. M5 stays NOT complete
+>   (D-052 §15). LOCAL, REMOTE and MAIN are three different states: no batch-3 commit exists, so no remote branch and
+>   not `main` carries batch 3.
+>   - Verify before relying on it: in the working tree, `Sim.Core/Pathing/MapTopology.cs` must exist and
+>     `Sim.Core/Kernel/CanonicalSchema.cs` must read `public const int Version = 33;`. If not, batch 3 is not applied
+>     there.
+>   - The final code is the batch-3 diff `b3-final-r3.patch` (sha256 `855a14029c906c51…`: the combine stage's tree
+>     `5ab74d3e…` plus fix rounds 1 and 2 and a final nits round) plus final-round fix 1 (2026-10-15: the save/load
+>     battery's part-built save point moved to world 8, and three comment-only edits) plus final-round fix 3
+>     (2026-10-15: the wording of two refusals, the cylinder's size refusal and the corrupt-trailer refusal, and their
+>     tests) plus final-round fix 4 (2026-10-15: one semantic worldgen test for the flat noise mapping, mutant MA2; no
+>     product code; its doc comment corrected afterwards). Its non-docs diff over the batch-2 base has sha256
+>     `317ec1b6…` (`fa72fa6c…` before that comment correction, `5de7149e…` before fix 4; D-054 header).
+> - **Built** (records: `docs/d054-batch3-incremental-construction-allocation-cylinder.md` for the decisions,
+>   supersessions, measurements, moved pins and Director questions; `docs/adr/adr-039-schema-v33-orders-11-12-and-cylinder-topology.md`
+>   for the contract):
+>   - **WS1, incremental construction.** It supersedes M4-D's "built whole or waits". Switch: `sim.json`
+>     `construction.incremental`.
+>   - **WS2, each Empire's building/roads material split** (default 100 = building first). Switch:
+>     `construction.allocationRatios`.
+>   - **WS3, the east-west cylinder** in worldgen, simulation and rendering. Switch: `worldgen.json` `topology.wrapX`.
+>   - All three are shipped ON. The attribution pair `TestConfigs.PreD054Sim` + `PreD054Worldgen` turns the batch off.
+> - **Contract changes (ADR-039).**
+>   - Schema **v33**: `ConstructionProgress`, 28-byte rows; `ResourceAllocations`, 8-byte rows.
+>   - Order kinds **11** `CancelConstruction` and **12** `SetResourceAllocation`. Kind 10 stays reserved for M7.
+>   - An int32 snapshot topology trailer.
+>   - The first explicit migration: a v32 save loads flat.
+>   - **One rule for old records:** `TopologyFlags.RecordedFlat(v)` = `v < 33`. Every pre-v33 save or session is
+>     rebuilt FLAT, by the UI resume, `sim inspect` and the CLI save loader; a v33 save uses the topology its trailer
+>     names. A real batch-2 session (`Sim.Tests/Fixtures/v32-session-found/`) resumes into the batch-2 build's own
+>     world (hash `6157dfde…` at turn 8). `sim replay` has no flat path (D-054 §4, §9).
+>   - CR-021 is RESOLVED.
+> - **Moved pins** (each attributed in integration R1; no re-pin since; D-054 §7).
+>   - The founded golden `937577ff…` → `40115e28…`, with ci.yml `FOUNDED_GOLDEN` moving the same way (its V32
+>     projection `0549049d…` is the cylinder alone). Driven `4f4e0b81…` → `fa1ce900…`. AI `b2e4f333…` → `91836bcf…`.
+>     First-reign `467f2cb6…` → `bccc8aed…`. Cause: the v33 layout plus the cylinder.
+>   - Toy `5994e978…` → `222280e5…`: the layout alone.
+>   - Seven turn and digest pins moved for the cylinder: five in Sim.Tests and two in Sim.Ui.Tests. One of them, the
+>     battery's save points, also moved for WS1.
+>   - With both halves off and the v32 projection, every batch-2 reference reproduces byte for byte.
+> - **Calibration.** No literal, band, envelope, hazard, spoilage or store bound was touched. The two CR-020 reds remain
+>   the only Sim.Tests failures: seed 42 8.35755E-05 (was 8.71773E-05); seed 7 123,950 (was 124,483). The cylinder alone
+>   moves them. The nightly corridor drift is in D-054 §6.
+> - **MEASURED on the final code** by final-round fix 3 (HEAD `de86ace` + batch-2 base + the final batch-3 diff;
+>   Release, .NET 10.0.112; a result, not a certification, gov-4 §9; D-054 §8):
+>   - build: 0 warnings, 0 errors (also with `--no-incremental`);
+>   - the three gates (banned constructs, read isolation, readonly proof) and the three research `--check`s: OK;
+>   - **Sim.Tests 2,060 passed / 2 failed / 13 skipped (2,075)**, the 2 being the CR-020 seeds above;
+>   - **Sim.Ui.Tests 975 / 975**;
+>   - calibration battery (read from the full run) 5 passed, the same 2 failed;
+>   - smoke `--monkey 300`: 13 states, 3,190 checks, 0 FAIL.
+> - **Measured by final-round fix 1** on its code (the final code before fix 3's two message changes): Sim.Tests
+>   2,056 / 2 / 13 (2,071) and Sim.Ui.Tests 974 / 974; every test name of those runs is in fix 3's with the same
+>   outcome, except the renamed size and trailer theory cases.
+> - **Measured by the nits round on `b3-final-r3.patch`** (which differs from final-round fix 1's code only in one test
+>   file and three doc comments): the same counts as fix 1, and the ci.yml cross-process step rc 0, including the
+>   seed-16 seam leg and the exact kind set {3..9, 11, 12}, with every hash equal to the combine stage's run.
+>   Final-round fixes 1 and 3 did not re-run that step: they changed no order, hash or simulation code (fix 3 changed
+>   the text of two CLI/UI refusals).
+> - **Measured on the final code in the integration worktree itself** (2026-10-15, after final-round fix 3 and before
+>   fix 4's test; D-054 §8): the same suite counts as above, determinism filter 48 / 48, the ci.yml cross-process step
+>   rc 0 (every leg, including the seed-16 seam leg and the exact kind set {3..9, 11, 12}), nightly 20 × 650 rc 0 and
+>   identical in every field to the combine stage's, corridors rc 0. Final-round fix 4 then added one Sim.Tests test:
+>   full Sim.Tests 2,061 / 2 / 13 (2,076).
+> - **Measured only on the combine stage's tree `5ab74d3e…`** (the later rounds changed no simulation system): bench
+>   +13.8 % on the shipped config and +1.2 % on the same flat world; the six CLI hash legs with the V32 projection; the
+>   cylinder-off nightly control (the calibration battery's cylinder-off control was measured on the W1 tree).
+> - **NOT measured:** CI on any batch-3 commit (none exists); the Windows build and smoke; the GPU seam (the manual
+>   playtest, `docs/m5-playtest-known-issues.md` §16).
+> - **Open for the Director:** D-054 §10 (19 questions; Q9, old sessions, is reframed for the final code, and Q17,
+>   Q18 and Q19, where batch 3's dated notes sit in frozen documents, are new).
+> - **Batch-3 dated notes** were appended to: `docs/milestones.md` (M4-D), §4 below, `docs/queue.md` (T3.1(b), the
+>   M4-D entry, the P1 zoom-floor entry), D-052, D-053, ADR-005, ADR-008, ADR-032 (Final Ruling 3), ADR-033 (D10),
+>   ADR-034 (§4, the resume notice), ADR-038, CR-021, the m5w plan, D-009, the M1 spec (D-015), the M3 spec (T3.1(b)),
+>   `docs/institutions-universities.md` and `docs/session-records.md`. Some of them sit inside the body, next to the
+>   text they supersede, rather than at the end of the file; D-054 §10 Q19 lists those and asks whether gov-4 §6 allows
+>   it.
+> - Verify these claims against the working tree (gov-4). They describe LOCAL state only.
+
 > **2026-10-14: batch 2 (the Director's 2026-10-13 instruction) is implemented UNCOMMITTED on `m5w-integration`, on
 > top of `de86ace`.** Nothing is committed, pushed, merged, tagged or packaged; publication waits for the Director.
 > - **Built:**
@@ -514,6 +596,14 @@ attribution control before any repin, then repinned on director approval.
 
 Certification run: `Sim.Tests` **572 passed / 6 failed / 6 skipped** (584, 24m07), `Sim.Ui.Tests`
 **151/151**, build 0 warnings, all three gates OK. The 6 are the unchanged mainline quarantine.
+
+> *2026-10-15 dated note (D-054; the M4-D text above is kept as written).* "Built whole this turn or waits unchanged.
+> No build timer, no fractional progress … Materials leave settlement good stocks all-or-nothing" is SUPERSEDED for the
+> shipped configuration by the Director's 2026-10-14 instruction: incremental construction, with progress stored in
+> schema v33 `ConstructionProgress`, materials going in as they become available, and a cancel order (kind 11). The
+> queue with only its head eligible, the competition with housing's draw, "no construction currency, no second labour
+> pool", and an Empire building only where it rules all stand. Record: `docs/d054-batch3-incremental-construction-allocation-cylinder.md`
+> §1 and §5.
 
 **M4-C — FOUNDING INSTANTIATES THE EMPIRE. CERTIFIED.**
 

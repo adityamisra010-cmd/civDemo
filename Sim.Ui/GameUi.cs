@@ -218,10 +218,15 @@ public sealed partial class GameUi
         // ADR-033 D8: the interface's era is DERIVED from the player's authoritative Age.
         _theme = _frameTheme = DeriveTheme();
         UiTheme.Apply(_theme, Scale);
-        _camera = new Camera(_world.Terrain!.Size);
+        // WS3 (batch 3): the camera wraps east-west exactly when the world does (TerrainSet.WrapX); its zoom floor is one
+        // circumference across the WINDOW (Camera.WindowWidth), so a context panel never re-zooms the map.
+        _camera = new Camera(_world.Terrain!.Size, _world.Terrain.WrapX) { WindowWidth = _viewportWidth };
         _mapRect = ComputeMapRect();
         _camera.Clamp(_mapRect);   // P1: fitted and clamped against the map rect, not the window
         _selected = SettlementSelection.Opening(_world, session.Knowledge);   // P7: the first settlement the player knows
+        // WS3: on a cylinder the floor shows about half the world's height, so the game opens CENTRED on the player's opening
+        // settlement — it is on screen whatever its latitude. (A flat world opens framed as before.)
+        if (_camera.WrapX && _selected >= 0) CameraFocus.CenterOn(_camera, _world, _selected, _mapRect);
         _age.Research = session.Config.Research;   // M5 polish: the Age panel names the research to do next
         RefreshHud();
         // S0 (D-008): a session resumed under another schema opens with its notice — the trace was not checked and
@@ -343,9 +348,10 @@ public sealed partial class GameUi
     {
         ForgetStaleFold();
         Sim.Ui.Render.RectD next = ComputeMapRect();
-        if (next == _mapRect) return;
+        if (next == _mapRect && _camera.WindowWidth == _viewportWidth) return;
         bool inside = next.Contains(cursorX, cursorY) && _mapRect.Contains(cursorX, cursorY);
-        _camera.Reframe(_mapRect, next, inside ? cursorX : next.CenterX, inside ? cursorY : next.CenterY);
+        // WS3: the window's width travels with the rect (a wrapped camera's floor is one circumference across the window).
+        _camera.Reframe(_mapRect, next, inside ? cursorX : next.CenterX, inside ? cursorY : next.CenterY, _viewportWidth);
         _mapRect = next;
     }
 
@@ -463,7 +469,8 @@ public sealed partial class GameUi
         Sim.Core.Observability.SettlementRecord? record = _session.Observations.Observations.Count == 0 || _selected < 0
             ? null : _session.Observations.Settlement(_session.Observations.LastTurn, _selected);
         _placeView = _selected >= 0
-            ? PlayerViews.Settlement(_world, _session.Config, UiPlayer.Empire, record, _selected, names, density, known) : null;
+            ? PlayerViews.Settlement(_world, _session.Config, UiPlayer.Empire, record, _selected, names, density, known,
+                ActionQueryContext.ForNextStep(_world, _eraTable).NextDtYears) : null;
         _empireView = PlayerViews.Empire(_world, _session.Config, UiPlayer.Empire, names, density, known);
         _institutionsView = PlayerViews.Institutions(_world, _session.Config, UiPlayer.Empire, names, density);
         _trendMetrics = TrendsModel.Metrics(_displayCfg.Registries.Classes);
@@ -877,7 +884,11 @@ public sealed partial class GameUi
         Sim.Ui.Render.RectD map = _mapRect;
         // P2: the level of detail is CONTINUOUS, keyed on the visible km across the map rect (MapDetail — the terrain's own
         // km per px); its derived band is the LensFrame's Zoom.
-        Sim.Ui.World.MapDetail detail = Sim.Ui.World.MapDetail.At(cam.Zoom, map.W, map.H, _world.Terrain!.KmPerPx);
+        // WS3: a wrapped world is keyed on the visible km across the WINDOW's width (MapDetail.Across) — the width its floor
+        // is one circumference across, so a context panel never changes the band.
+        Sim.Ui.World.MapDetail detail = cam.WrapX
+            ? Sim.Ui.World.MapDetail.Across(cam.Zoom, v.Width, _world.Terrain!.KmPerPx)
+            : Sim.Ui.World.MapDetail.At(cam.Zoom, map.W, map.H, _world.Terrain!.KmPerPx);
         var lens = new Sim.Ui.Render.DrawList();
         // ADR-033 D8: the map's ink is derived from the era the interface paints with (MapInk.For — identity
         // inks constant, neutral ink, casing and legend paper following the era; it fades with the theme).
@@ -896,7 +907,8 @@ public sealed partial class GameUi
             new Sim.Ui.Render.RectD(0, 0, v.Width, v.Height), _selected, showTerritory: _showCatchment, ink: _mapInk,
             theme: _frameTheme, uiScale: Scale,   // UR-7: the map's labels by role, in the era's hand, × the UI scale
             legend: legend, selectedUnit: _selectedUnit,   // P3: the lens frames the selected formation, under the legend
-            overlay: OverlayForLens());   // P9: the resource overlay's shown layers (under everything) and its key
+            overlay: OverlayForLens(),   // P9: the resource overlay's shown layers (under everything) and its key
+            wrapX: cam.WrapX);   // WS3: on a cylinder every element is drawn at each copy of the world the window shows
         Backend.Render(ImGui.GetBackgroundDrawList(), lens);
         _lastLensCommands = lens.Commands;   // P6: kept, read-only, for the frame's observers (LastLensCommands)
         RegisterPlaceUnderPointer();   // P8: Shift+click the ground for its place card (under the tokens)
@@ -2540,7 +2552,7 @@ public sealed partial class GameUi
         PushDataFont();
         Text(BuildInfo.Describe()); // same identity as the title
         Text(HudModel.StatusLine(_world.Seed, Fps));
-        Text(HudModel.CameraLine(_camera!.CenterX, _camera.CenterY, _camera.Zoom));
+        Text(HudModel.CameraLine(_camera!.CenterX, _camera.CenterY, _camera.Zoom, _camera.WrapX ? _camera.WorldSize : 0));   // WS3: normalised
         // Art-substrate provenance: which assets are real and which are
         // stand-ins, plus the bake cost — the glass-box habit applied to art.
         Text(_art.SummaryLine());

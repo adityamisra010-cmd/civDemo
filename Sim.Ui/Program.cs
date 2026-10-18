@@ -164,7 +164,16 @@ if (Sim.Ui.UiArgs.ResumePath(args) is { } resumeArg)
     return;
 }
 
-var session = Sim.Ui.UiSession.Start(seed, sizeOverride, settlementsOverride, aiEmpiresOverride);
+// Batch 3 WS3 (W1 fix F1): the fresh start goes through NewGameLaunch, so a --size the cylinder refuses (worldgen.json
+// topology.wrapX: a size the lattice stride does not divide) ends the launch with "error: <message>" on stderr, the
+// native dialog and exit code 2 — Cli.Guard's — before any window opens, instead of an unhandled exception.
+Sim.Ui.UiSession? session = Sim.Ui.NewGameLaunch.Attempt(
+    seed, sizeOverride, settlementsOverride, aiEmpiresOverride, Console.Error, Sim.Ui.ResumeLaunch.NativeDialog(), out int startRefusal);
+if (session is null)
+{
+    Environment.ExitCode = startRefusal;
+    return;
+}
 string sessionLogPath = Sim.Ui.UiSession.SessionLogPath(DateTime.Now, sizeOverride, settlementsOverride, aiEmpiresOverride);
 
 // UR-7 (M5 polish, 2026-10-06): the game is CONSTRUCTED first — its window exists but is not shown until Run — so the

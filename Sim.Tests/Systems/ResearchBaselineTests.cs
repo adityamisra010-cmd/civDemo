@@ -58,6 +58,22 @@ public class ResearchBaselineTests
         Assert.False(baseline.Single(b => b.Id == "baseline.basic_military").Simulated);
     }
 
+    /// <summary>D-054 WS1 (the restatement sweep): the in-game baseline.construction card states the incremental rule —
+    /// never M4-D's superseded "completes whole in one turn ... (no progress field)".</summary>
+    [Fact]
+    public void TheBaselineConstructionCard_StatesTheIncrementalRule_NotTheSupersededWholeInOneTurn()
+    {
+        WorldState w = WorldFounding.Found(TestConfigs.DevWorldgen(), TestConfigs.Sim(), 42);
+        InfoCard card = InfoQuery.Card(w, TestConfigs.Sim(), new PolityId(1), InfoSubject.OfBaseline("baseline.construction"));
+        foreach (string text in new[] { card.What, card.RealizedBy })
+        {
+            Assert.DoesNotContain("whole in one turn", text, StringComparison.Ordinal);
+            Assert.DoesNotContain("no progress field", text, StringComparison.Ordinal);
+            Assert.Contains("built a little each turn", text, StringComparison.Ordinal);
+            Assert.Contains("lost only if it is cancelled", text, StringComparison.Ordinal);
+        }
+    }
+
     [Fact]
     public void D047_FireHaftingFishingWatercraftShelterAndPaths_AreDeclaredBaseline()
     {

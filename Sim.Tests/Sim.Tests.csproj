@@ -23,6 +23,14 @@
          replay fixture: the log that exposed the ghost-harvest spec defect. -->
     <None Include="Fixtures\first-reign-orders.bin" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Fixtures\t38-director-orders.bin" CopyToOutputDirectory="PreserveNewest" />
+    <!-- D-054 / ADR-039: a REAL schema-v32 snapshot written by the batch-2 build, and the order log that made it
+         (Fixtures/README-v32-fixture.md) — the explicit v32 -> v33 migration is tested against it. -->
+    <None Include="Fixtures\v32-seed42-turn40.civsnap" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\v32-fixture-orders.bin" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Fix round 1 (D-054, verifier F1): a REAL session the batch-2 (schema v32) build recorded — manifest, order log and
+         trace (Fixtures/v32-session-found/README.md). `sim inspect` and the UI resume rebuild it on the flat map it was
+         played on. Sim.Ui.Tests links the same files. -->
+    <None Include="Fixtures\v32-session-found\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

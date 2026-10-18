@@ -45,3 +45,12 @@ All ten packets accepted · director has played a session on his own machine fro
 ## 6. GOVERNANCE NOTES
 
 This spec is the ratified M1 document; packets above are the cut. The kernel remains frozen — T1.1's ADR-008 and T1.7's possible TFM pin are the only sanctioned kernel-adjacent touches, both pre-authorized here. Anything else that smells structural: stop, Contradiction Report, per S8. The M2 spec (full D-010 buckets, D-018 classes/needs, real Malthus calibration) gets written only after M1 exit — with a played game in hand.
+
+## Dated note — 2026-10-15 (D-054; appended, the spec above is unchanged)
+
+**D-015.** "a 4,096 km square world": the rasters are still 1024 × 1024 at 4 km/px. Since the Director's 2026-10-14
+instruction the world is an east-west CYLINDER (`worldgen.json` `topology.wrapX`, shipped ON):
+- x is periodic, with a circumference of 4,096 km;
+- the poles keep their hard edges and stay ocean.
+
+Record: `docs/d054-batch3-incremental-construction-allocation-cylinder.md` §3 and §5.

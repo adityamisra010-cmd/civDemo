@@ -31,7 +31,7 @@ public class InstitutionSchemaTests
     [Fact]
     public void SchemaV31_PopulatedInstitutionTables_LengthRoundTripAndHashExact()
     {
-        Assert.Equal(32, CanonicalSchema.Version);   // v32: H2 TaxGrievances
+        Assert.Equal(33, CanonicalSchema.Version);   // v32: H2 TaxGrievances (v33: D-054 ConstructionProgress + ResourceAllocations)
         WorldState world = Populated();
 
         using var ms = new MemoryStream();
@@ -86,13 +86,14 @@ public class InstitutionSchemaTests
         // The two tables are the LAST v31 blocks (appended after TaxPolicies, in that order): the stream ends with the
         // last labour row (settlement, labour bits), preceded by the labour count and the last institution row.
         // H2 (v32, 2026-10-05): one table now follows them — TaxGrievances, EMPTY here — so the v31 blocks end 4
-        // bytes (its zero count prefix) before the stream does.
+        // bytes (its zero count prefix) before the stream does. D-054 (v33): two more EMPTY tables follow it —
+        // ConstructionProgress and ResourceAllocations — so the v31 blocks end 12 bytes before the stream does.
         using var ms = new MemoryStream();
         using (var writer = new BinaryWriter(ms, System.Text.Encoding.UTF8, leaveOpen: true))
             CanonicalSchema.Write(a, writer);
         byte[] bytes = ms.ToArray();
-        const int v32Trailer = 4;
-        Assert.Equal(0, BitConverter.ToInt32(bytes, bytes.Length - v32Trailer));
+        const int v32Trailer = 3 * 4;
+        Assert.All(bytes[^v32Trailer..], x => Assert.Equal(0, x));
         int end = bytes.Length - v32Trailer;
         Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0), BitConverter.ToInt64(bytes, end - 8));
         Assert.Equal(int.MaxValue, BitConverter.ToInt32(bytes, end - 12));

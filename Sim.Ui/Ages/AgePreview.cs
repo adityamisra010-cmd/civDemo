@@ -174,7 +174,10 @@ public static class AgePreview
     }
 
     /// <summary>The camera for a preview zoom: world fits; regional centres the player's capital at
-    /// ~30% of the world; settlement zoom frames the capital closely.</summary>
+    /// ~30% of the world; settlement zoom frames the capital closely.
+    /// WS3 (batch 3), DOCUMENTED, NOT WRAPPED: this is a preview TOOL (a still image of a band), not the game. It paints the
+    /// lens flat (copy 0, no <c>wrapX</c>) and the substrate unwrapped, so on a wrapped world a capital within the preview's
+    /// half-width of the seam shows the far side of the seam unpainted; the game's camera and lens wrap (GameUi).</summary>
     public static (double Cx, double Cy, double Zoom) CameraFor(UiSession s, WorldZoom z, bool capitalLeft)
     {
         double size = s.World.Terrain!.Size;

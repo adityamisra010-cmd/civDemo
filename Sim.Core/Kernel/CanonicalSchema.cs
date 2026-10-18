@@ -102,8 +102,10 @@ public static class CanonicalSchema
     /// v24 (M4-D): ConstructionQueue and Structures appended after Capitals —
     /// the per-settlement construction queue (ordered by an explicit Slot, never
     /// by row position) and the completed-structure counts. No progress field
-    /// exists in either, by design: construction is atomic within a turn, so
-    /// there is no fractional state to persist.
+    /// exists in either: under M4-D a project was built whole in one turn or
+    /// waited, so there was no fractional state to persist. (Superseded at v33 —
+    /// WS1, D-054: construction is now incremental and its progress lives in the
+    /// appended ConstructionProgress table; neither v24 row changed.)
     /// v23 (M4, D-042): Polities and Capitals tables appended after Notables.
     /// PolityRow is the Empire roster — the pre-existing D-037 PolityId reused as
     /// the strategic identity, carrying only its command source (AI or player), so
@@ -152,7 +154,22 @@ public static class CanonicalSchema
     /// ConstructionLabor — the levy's grievance per (settlement, class) population segment (Settlement, Class,
     /// Value bits; 16 bytes), a stock NeedsGrievanceSystem integrates with dt. Rows exist only where a levy has
     /// been felt, so an untaxed world carries one empty count prefix and nothing else; no existing row changed width.
-    public const int Version = 32;
+    /// v33 (WS1 + WS2, D-054 / ADR-039 — the Director's 2026-10-14 instruction; it supersedes D-052 §5's "no M5 schema
+    /// change" and takes v33 before m5w S2a, which moves to v34 under the "first to land" rule): ConstructionProgress
+    /// (section 59: Settlement, Slot, ProjectId, EnqueuedTurn, Progress; 28 bytes — the incremental-construction state,
+    /// one row per queued entry that has an order turn or progress) and ResourceAllocations (section 60: Polity,
+    /// BuildingsPercent; 8 bytes — the per-Empire building/roads split, absence = 100) appended after TaxGrievances. No
+    /// existing row changed width (ConstructionQueueRow keeps its 12 bytes). A world with neither carries two empty count
+    /// prefixes and nothing else. THE FIRST EXPLICIT MIGRATION: <see cref="Read(BinaryReader, int, out byte[])"/> reads a
+    /// v32 stream (it stops after section 58 and leaves both new tables empty — exact, because no partial construction
+    /// state and no split existed under v32), and Snapshot.Load dispatches on the header version (32 or 33); the v33
+    /// SNAPSHOT also carries an int32 topology trailer after this stream (Snapshot's header doc) — not part of the
+    /// canonical stream, so the world hash never sees it.
+    public const int Version = 33;
+
+    /// <summary>The oldest stream version <see cref="Read(BinaryReader, int, out byte[])"/> migrates (v32: the last
+    /// version without the two v33 tables).</summary>
+    public const int OldestReadableVersion = 32;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -215,6 +232,8 @@ public static class CanonicalSchema
     private const int InstitutionRowWidth = 4 + 4 + 4 + 4 + 8 + 8;  // Id, Polity, Settlement, Type, FoundedTurn, Maturity bits (v31)
     private const int ConstructionLaborRowWidth = 4 + 8;            // Settlement, LastLaborUsed bits (v31)
     private const int TaxGrievanceRowWidth = 4 + 4 + 8;             // Settlement, Class, Value bits (v32)
+    private const int ConstructionProgressRowWidth = 4 + 4 + 4 + 8 + 8; // Settlement, Slot, ProjectId, EnqueuedTurn, Progress (v33)
+    private const int ResourceAllocationRowWidth = 4 + 4;           // Polity, BuildingsPercent (v33)
     private const int SeedWidth = 8;
     private const int ClockWidth = 8 + 8 + 8;            // Turn, SimDays, DtDays
 
@@ -884,10 +903,46 @@ public static class CanonicalSchema
             writer.Write(row.Class.Value);
             writer.Write(BitConverter.DoubleToInt64Bits(row.Value));
         }
+
+        // 59. ConstructionProgress (v33, WS1: per-entry incremental-construction progress)
+        writer.Write(world.ConstructionProgress.Count);
+        for (int i = 0; i < world.ConstructionProgress.Count; i++)
+        {
+            ConstructionProgressRow row = world.ConstructionProgress[i];
+            writer.Write(row.Settlement.Value);
+            writer.Write(row.Slot);
+            writer.Write(row.ProjectId);
+            writer.Write(row.EnqueuedTurn);
+            writer.Write(row.Progress);
+        }
+
+        // 60. ResourceAllocations (v33, WS2: the per-Empire building/roads split; absence = 100)
+        writer.Write(world.ResourceAllocations.Count);
+        for (int i = 0; i < world.ResourceAllocations.Count; i++)
+        {
+            ResourceAllocationRow row = world.ResourceAllocations[i];
+            writer.Write(row.Polity.Value);
+            writer.Write(row.BuildingsPercent);
+        }
     }
 
     /// <summary>Reads a state stream written by <see cref="Write"/> (same order, field by field).</summary>
     public static WorldState Read(BinaryReader reader) => Read(reader, out _);
+
+    /// <summary>
+    /// THE MIGRATING READER (v33, ADR-039): reads a stream of schema <paramref name="version"/> — this build's
+    /// <see cref="Version"/>, or <see cref="OldestReadableVersion"/> (32), whose stream ends after section 58: the two
+    /// v33 tables are then left EMPTY, which is exact (under v32 no entry had partial progress and no Empire had a
+    /// split; a queued entry with no progress row reads p = 0, ordered as EnqueuedTurn = −1). Any other version is
+    /// refused (Snapshot.Load names the D-008 recovery path first).
+    /// </summary>
+    public static WorldState Read(BinaryReader reader, int version, out byte[]? expectedTerrainHash)
+    {
+        if (version != Version && version != OldestReadableVersion)
+            throw new ArgumentOutOfRangeException(nameof(version), version,
+                $"this build reads canonical streams of version {OldestReadableVersion} and {Version} only.");
+        return ReadStream(reader, version, out expectedTerrainHash);
+    }
 
     /// <summary>
     /// As <see cref="Read(BinaryReader)"/>; <paramref name="expectedTerrainHash"/>
@@ -900,7 +955,10 @@ public static class CanonicalSchema
     /// pair generalizes to farming/herding/extraction/crafting/construction.
     /// Row width 12 → 44; the table's position in the stream is unchanged.
     /// </summary>
-    public static WorldState Read(BinaryReader reader, out byte[]? expectedTerrainHash)
+    public static WorldState Read(BinaryReader reader, out byte[]? expectedTerrainHash) =>
+        ReadStream(reader, Version, out expectedTerrainHash);
+
+    private static WorldState ReadStream(BinaryReader reader, int version, out byte[]? expectedTerrainHash)
     {
         ulong seed = reader.ReadUInt64();
         var world = new WorldState(seed)
@@ -1410,6 +1468,21 @@ public static class CanonicalSchema
                 BitConverter.Int64BitsToDouble(reader.ReadInt64())));
         }
 
+        // v32 streams end here (the explicit migration: the two v33 tables stay empty — see Read(reader, version, …)).
+        if (version < 33) return world;
+
+        int constructionProgressCount = reader.ReadInt32();
+        for (int i = 0; i < constructionProgressCount; i++)
+        {
+            world.ConstructionProgress.Add(new ConstructionProgressRow(
+                new SettlementId(reader.ReadInt32()), reader.ReadInt32(), reader.ReadInt32(),
+                reader.ReadInt64(), reader.ReadInt64()));
+        }
+
+        int allocationCount = reader.ReadInt32();
+        for (int i = 0; i < allocationCount; i++)
+            world.ResourceAllocations.Add(new ResourceAllocationRow(new PolityId(reader.ReadInt32()), reader.ReadInt32()));
+
         return world;
     }
 
@@ -1478,5 +1551,7 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.TaxPolicies.Count * TaxPolicyRowWidth
         + CountPrefixWidth + (long)world.Institutions.Count * InstitutionRowWidth
         + CountPrefixWidth + (long)world.ConstructionLabor.Count * ConstructionLaborRowWidth
-        + CountPrefixWidth + (long)world.TaxGrievances.Count * TaxGrievanceRowWidth;
+        + CountPrefixWidth + (long)world.TaxGrievances.Count * TaxGrievanceRowWidth
+        + CountPrefixWidth + (long)world.ConstructionProgress.Count * ConstructionProgressRowWidth
+        + CountPrefixWidth + (long)world.ResourceAllocations.Count * ResourceAllocationRowWidth;
 }

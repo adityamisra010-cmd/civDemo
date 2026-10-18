@@ -18,10 +18,14 @@ namespace Sim.Tests.Kernel;
 /// </summary>
 public class FoundSettlementCiLegTests
 {
+    /// <remarks>Batch 3 WS3 (D-054, W1 fix F5): re-derived on the CYLINDRICAL seed-42 world — the nearest Legal site to
+    /// each source settlement (squared px on the cylinder, then cell id) at its turn. The pre-cylinder literals 330985 and
+    /// 322801 are PoorSite on the cylinder (MEASURED: "Expected: Legal, Actual: PoorSite"), so the CI leg's orders would
+    /// be refused and its two processes would agree on a run that founds nothing.</remarks>
     private static readonly OrderRecord[] Scripted =
     [
-        new(2, 1, OrderKind.FoundSettlement, 0, 330985.0),
-        new(5, 1, OrderKind.FoundSettlement, 12, 322801.0),
+        new(2, 1, OrderKind.FoundSettlement, 0, 349391.0),
+        new(5, 1, OrderKind.FoundSettlement, 12, 335063.0),
     ];
 
     [Fact]
@@ -29,7 +33,7 @@ public class FoundSettlementCiLegTests
     {
         string root = RepoRoot();
         string script = File.ReadAllText(Path.Combine(root, "scripts", "gen-sample-orders.py"));
-        Assert.Contains("records = [(2, 1, 9, 0, 330985.0), (5, 1, 9, 12, 322801.0)]", script);
+        Assert.Contains("records = [(2, 1, 9, 0, 349391.0), (5, 1, 9, 12, 335063.0)]", script);
         string ci = File.ReadAllText(Path.Combine(root, ".github", "workflows", "ci.yml"));
         Assert.Contains("gen-sample-orders.py found-orders.bin 300 --found", ci);
     }

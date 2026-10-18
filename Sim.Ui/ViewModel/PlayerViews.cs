@@ -151,10 +151,13 @@ public static class PlayerViews
     /// P7: <paramref name="knowledge"/> is what the player knows (null = <see cref="PlayerKnowledge.Of(IReadOnlyWorldState, PolityId)"/>,
     /// all-known until S2a). A settlement the player does not know reads exactly as one that is not there; the formations
     /// listed are the ones the player knows; the "more attractive" place named under Migration is a known one.
+    /// WS1 (D-054): <paramref name="nextDtYears"/> is the coming step's length (ActionQueryContext.ForNextStep — what the
+    /// action surface judges the queue head with); null reads the last step's (<c>world.Clock.DtYears</c>), which is 0
+    /// before the first End Turn and would make every head read "waiting for builders".
     /// </summary>
     public static PlayerView Settlement(
         IReadOnlyWorldState world, SimConfig cfg, PolityId player, SettlementRecord? record,
-        int settlementId, Func<int, string> name, int density, PlayerKnowledge? knowledge = null)
+        int settlementId, Func<int, string> name, int density, PlayerKnowledge? knowledge = null, double? nextDtYears = null)
     {
         ArgumentNullException.ThrowIfNull(world);
         ArgumentNullException.ThrowIfNull(cfg);
@@ -181,7 +184,7 @@ public static class PlayerViews
             Happiness(world, cfg, id, density),
             Migration(record, name, density, known),
             Work(world, cfg, player, id, controlled && owner.Value == player.Value, density),
-            Structures(world, cfg, player, id, density),
+            Structures(world, cfg, player, id, density, nextDtYears ?? world.Clock.DtYears),
             new ViewBlock("Institutions", InstitutionLinesAt(world, cfg, id, name, density, includeSite: false)),
             Units(world, cfg, id, name, player, density, known),
         };
@@ -397,7 +400,7 @@ public static class PlayerViews
     /// (ConstructionQuery.BlockerSeenBy, P7): against the Empire's purse where the player rules the settlement (D-051 §6,
     /// D-053 §1), and against the settlement's own stock where it does not — a foreign settlement's pooled figure would sum
     /// its Empire's other settlements, which the player may not know.</summary>
-    private static ViewBlock Structures(IReadOnlyWorldState world, SimConfig cfg, PolityId player, SettlementId id, int density)
+    private static ViewBlock Structures(IReadOnlyWorldState world, SimConfig cfg, PolityId player, SettlementId id, int density, double dtYears)
     {
         var lines = new List<ViewLine>();
         var subjects = new List<InfoSubject?>();
@@ -412,6 +415,36 @@ public static class PlayerViews
         }
         if (lines.Count == 0) lines.Add("Nothing has been built here yet.");
         ConstructionQueueRow[] queue = ConstructionQuery.Queue(world, id);
+        if (ConstructionQuery.Incremental(cfg))
+        {
+            // WS1 (D-054): a part-built project is NOT a structure (it is not counted above). Own settlement: the head's
+            // progress in figures (no percentage) or why it waits (ConstructionQuery.HeadStatus — an estimate on the
+            // COMMITTED queue: this view lists the committed entries, so it passes no pending orders; the action surface
+            // shows the queue as it will stand at End Turn — ConstructionStatusText's header). A FOREIGN settlement: what is
+            // being built, never why it waits — that is not known to us (P7).
+            bool own = EmpireQuery.ControlsSettlement(world, player, id);
+            for (int q = 0; q < queue.Length; q++)
+            {
+                string label = ProjectName(projects, queue[q].ProjectId);
+                string line;
+                if (q > 0) line = "Waiting to be built: " + label;
+                else if (!own) line = "Being built: " + label;
+                else
+                {
+                    long p = ConstructionQuery.ProgressOf(world, queue[q]);
+                    ConstructionProjectEntry? project = cfg.Goods?.ProjectById(queue[q].ProjectId);
+                    HeadStatusReport? status = ConstructionQuery.HeadStatus(world, cfg, id, null, dtYears);
+                    string? waiting = status is null ? null : ConstructionStatusText.WaitingFor(status, cfg);
+                    line = p > 0 && project is not null
+                        ? "Being built: " + label + " - " + ConstructionStatusText.MaterialsIn(project, p) + (waiting is null ? "" : "; " + waiting)
+                        : "Next to build: " + label + " - not started" + (waiting is null ? "" : "; " + waiting);
+                }
+                lines.Add(line);
+                subjects.Add(InfoSubject.OfProject(queue[q].ProjectId, id.Value));
+            }
+            while (subjects.Count < lines.Count) subjects.Insert(0, null);
+            return new ViewBlock("Structures", lines, subjects);
+        }
         for (int q = 0; q < queue.Length; q++)
         {
             string label = ProjectName(projects, queue[q].ProjectId);
@@ -562,8 +595,25 @@ public static class PlayerViews
     // --- the empire ----------------------------------------------------------------------------
 
     /// <summary>
+    /// Whether AvailableActionsQuery lists the building/roads split's descriptor (<see cref="ActionDomain.ResourceAllocation"/>)
+    /// for <paramref name="player"/> — the Materials block's own visibility predicate. The descriptor is listed only by the
+    /// query's Roads contributor (right after road development, gated by the delivery predicate
+    /// ConstructionQuery.AllocationOrderValid, which holds the roster rule <see cref="AvailableActionsQuery.For"/> applies), so
+    /// that contributor alone answers, without listing every other domain.
+    /// </summary>
+    public static bool MaterialsSplitListed(IReadOnlyWorldState world, SimConfig cfg, PolityId player)
+    {
+        var listed = new List<ActionDescriptor>();
+        AvailableActionsQuery.Roads(world, cfg, player, listed);
+        foreach (ActionDescriptor a in listed) if (a.Domain == ActionDomain.ResourceAllocation) return true;
+        return false;
+    }
+
+    /// <summary>
     /// The EMPIRE player view: population, grain, trade in words, legitimacy and the levy (when taxation is
-    /// known), roads built and the formations under arms. P7: a trade flow or a road whose other end is a settlement
+    /// known), roads built (and, WS2, the building/roads material split — read only — exactly when the action surface's
+    /// Materials block is shown, <see cref="MaterialsSplitListed"/>) and the
+    /// formations under arms. P7: a trade flow or a road whose other end is a settlement
     /// the player does not know is left out (it would name it).
     /// </summary>
     public static PlayerView Empire(
@@ -674,6 +724,12 @@ public static class PlayerViews
         }
         roads.Insert(0, routes == 0 ? "No roads built yet - travellers use dirt paths."
             : Fig(density, (routes == 1 ? "One road" : N(routes) + " roads") + " link your settlements", N(km) + " km"));
+        // WS2 (D-054), read-only: the building/roads material split in force, from the player's OWN row only (the P7
+        // information class) — shown exactly when the action surface's Materials block is: when AvailableActionsQuery lists
+        // the ResourceAllocation descriptor (batch 3 R3, C2 review F10; it was "a road class above the dirt path is known",
+        // which also showed the line to an Empire with no route to develop and so no control to change it).
+        if (MaterialsSplitListed(world, cfg, player))
+            roads.Add(AllocationText.EmpireLine(ResourceAllocation.EffectivePercent(world, player)));
 
         // Arms.
         int units = 0;

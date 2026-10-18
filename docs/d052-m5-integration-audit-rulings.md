@@ -213,3 +213,18 @@ and does not say whether the M5 exit waits for them. Both stay open for the M5 e
 - `docs/m5w-map-workstream-audit-and-plan.md`.
 - `docs/queue.md`: the P8 `--size` line.
 - `docs/current-state.md`: the routing entry.
+
+## Pointer added 2026-10-15 (D-054; dated note, historical text kept)
+
+- **§5: the save-format half is superseded.** "No visibility state and no save-format change ship in M5:
+  `CanonicalSchema.Version` stays 32" no longer holds for the save format. The Director's 2026-10-14 instruction asks
+  for incremental construction and a building/roads split, "with an explicit version migration if required". Schema
+  **v33** therefore ships in M5 (ADR-039), with the first explicit migration (v32 → v33).
+- **The visibility half STANDS.** There is no fog, no known extent and no explored-longitude state. The same instruction
+  puts exploration gating and Satellites "EXPLICITLY OUT OF SCOPE FOR NOW".
+- **§4 stands.** Movement and Action Points are M7, and order kind 10 stays reserved for MoveFormation. Batch 3 took
+  kinds 11 and 12. §4's "(`OrderKind` 10, Action Points, schema v33/v34)" for S3a–S3c: v33 is now taken, so their
+  state takes the next free version after S2a's.
+- **The m5w plan's reservation** "v33 = the first schema bump to land" is met by batch 3, so S2a's known extent moves to
+  v34.
+- Record: `docs/d054-batch3-incremental-construction-allocation-cylinder.md` §5 items 6 and 13.

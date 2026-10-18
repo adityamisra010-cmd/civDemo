@@ -87,7 +87,19 @@ public class DrivenGoldenTests
     // ADR-035 §7 (P-F2, founding composition) RE-PIN (VALUE): feaaff5a72423b64… -> 5a8c6c648daa4517…. CAUSE: founding cohort noise at demographic scale (CV ~ 1/sqrt(n_c)) instead of RC-1's per-cohort ±0.69; the settlement-common size factor is unchanged.
     // D-051 1(b) (2026-10-10, time-averaged decade weather) RE-PIN (VALUE): 5a8c6c648daa4517… -> 7bcdc03ff5bf82ff…. CAUSE: a turn's harvest multiplier is the time-average of the yearly weather process over the turn's yearly sub-steps (mean unchanged, per-decade log-spread ~0.29 -> ~0.19) and a new settlement joins the weather at a stationary draw. CONTROL: TestConfigs.PreTimeAveragedHarvest returns the old value byte for byte (IntegratedPinAttributionTests.*_MovedForTheTimeAveragedHarvestAlone).
     // D-053 (2026-10-13; integrated 2026-10-14) RE-PIN (VALUE): 7bcdc03ff5bf82ff… -> 4f4e0b81a5886201…. CAUSE: intra-polity grain relief (D-053 §2) — the driving orders starve settlements while their polity holds spare grain; from turn 5 the siblings' spare grain feeds them (the first step whose grain books show a negative residual), so fewer starve (turn-300 population 8,332 -> 16,451, MEASURED). ATTRIBUTION (MEASURED on this tree, RunDriven(300)): the batch off (TestConfigs.PreD053) returns OLD byte for byte; relief off alone (PreEmpireFoodAllocation) returns OLD too, while the purse off alone and the granary effects off alone both return NEW — relief is the whole of the move (no granary is built on this world and no construction order is issued). CONTROLS: EmpireFoodAllocationTests.Switch_Off_DrivenGolden_… (batch off = OLD) and PerLayer_Relief_TheDrivenWorldDivergesExactlyAtTheFirstRelief (turn-exact).
-    internal const string Golden = "4f4e0b81a5886201fb3cebbbe74802e8757e15355f6793a320e467276934b4c6";
+    // BATCH 3 / D-054 (integration R1, 2026-10-14) RE-PIN (VALUE + LAYOUT): 4f4e0b81a5886201… -> fa1ce900ea15a9ab…. CAUSE: the v33 layout (two EMPTY appended tables) and the cylinder (worldgen.json topology.wrapX; the world differs from turn 0); WS1/WS2 do not act. CONTROLS: D054PairAttributionTests, WrapAttributionTests, IncrementalConstructionAttributionTests and GoldenAtV32 (full record on DrivenGolden_Seed42Turn300_MatchesPinnedConstant).
+    internal const string Golden = "fa1ce900ea15a9abb6f1205fc0728ccb9877676933e70f6610df951037511bc0";
+
+    /// <summary>Batch 3 (D-054, integration R1, 2026-10-14): THE CYLINDER-ALONE LINK — the driven golden's world through the
+    /// v32 projection (SchemaProjection.V32: the two v33 tables dropped, asserted EMPTY). It equals the driven golden the W1
+    /// stage measured with the cylinder and without the v33 layout (c7fbbe8f…), so the raw re-pin factors exactly into the
+    /// layout and the cylinder (this value against <see cref="PreD054Golden"/>).</summary>
+    internal const string GoldenAtV32 = "c7fbbe8fe134df4820837a02d7774b4ac4f9090eb86ca251d66a169e058e6524";
+
+    /// <summary>Batch 3 (D-054): the driven golden with the batch's worldgen layer off (founded flat,
+    /// TestConfigs.PreD054Worldgen) — the batch-2 value of <see cref="Golden"/>, where every pre-batch-3 attribution chain
+    /// of this world now ends (WrapAttributionTests is the cylinder's control). Integration (2026-10-14): BOTH halves of the PreD054 pair (PreD054Sim + PreD054Worldgen) and the v32 projection (SchemaProjection.V32 — schema v33 appended two tables) give it; D054PairAttributionTests pins that.</summary>
+    internal const string PreD054Golden = "4f4e0b81a5886201fb3cebbbe74802e8757e15355f6793a320e467276934b4c6";
 
     public static (WorldState World, SimConfig Cfg) RunDriven(int turns) => RunDriven(turns, null);
 
@@ -95,10 +107,16 @@ public class DrivenGoldenTests
     /// attribution controls in IntegratedPinAttributionTests can run the λ = 0
     /// twin of this world — the arming is a pure data change, and a layout
     /// control must not be asked to absorb a behaviour change.</summary>
-    public static (WorldState World, SimConfig Cfg) RunDriven(int turns, SimConfig? cfgOverride)
+    public static (WorldState World, SimConfig Cfg) RunDriven(int turns, SimConfig? cfgOverride) =>
+        RunDriven(turns, cfgOverride, null);
+
+    /// <summary>Batch 3 (D-054): as above, founded with <paramref name="worldgen"/> (default the shipped config) — an
+    /// attribution control passes TestConfigs.PreD054Worldgen() (the flat, pre-cylinder world).</summary>
+    public static (WorldState World, SimConfig Cfg) RunDriven(int turns, SimConfig? cfgOverride, WorldgenConfig? worldgen)
     {
         SimConfig cfg = cfgOverride ?? TestConfigs.Sim();
-        WorldState world = WorldFounding.Found(TestConfigs.Worldgen(), cfg, 42);
+        WorldgenConfig wg = worldgen ?? TestConfigs.Worldgen();
+        WorldState world = WorldFounding.Found(wg, cfg, 42);
         OrderLog orders = DrivingOrders(world.Settlements.Count);
         OrderValidation.ValidateAgainstWorld(orders, world);
 
@@ -106,7 +124,7 @@ public class DrivenGoldenTests
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
         var exec = new TurnExecutor(
             EraTableLoader.Load(eraStream),
-            PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg, TestConfigs.Worldgen())), orders);
+            PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg, wg)), orders);
         return (exec.Run(world, turns), cfg);
     }
 
@@ -497,6 +515,22 @@ public class DrivenGoldenTests
         //   CONTROL IntegratedPinAttributionTests.*_MovedForTheV32Levy*: the asserted-absent levy rows stripped and the
         //           empty v32 count prefix dropped return OLD byte for byte (docs/d049-taxation-and-revolt-model.md §8).
         //   MEASURED by the in-test harness (DrivenGoldenTests.RunDriven(300)).
+        // BATCH 3 / D-054 RE-PIN (integration R1, 2026-10-14) — THE v33 LAYOUT + THE CYLINDER, MEASURED on this tree by the
+        // agent writing this line (ADR-015 §6).
+        //   OLD  4f4e0b81a5886201fb3cebbbe74802e8757e15355f6793a320e467276934b4c6
+        //   NEW  fa1ce900ea15a9abb6f1205fc0728ccb9877676933e70f6610df951037511bc0
+        //   CAUSE (1) v32 -> v33 appends ConstructionProgress and ResourceAllocations, both EMPTY here (the driving batch
+        //         carries only SectorAllocation orders: nothing is queued, no split is set); (2) the shipped world is a
+        //         CYLINDER (worldgen.json topology.wrapX): the terrain regenerates x-periodic and its content hash is folded
+        //         into every world hash, so the run differs from turn 0. WS1/WS2 do not act.
+        //   ATTRIBUTION, MEASURED (in-test harness): the sim half off on the cylinder (TestConfigs.PreD054Sim) -> the SAME raw
+        //         fa1ce900…; the v32 projection of THIS world -> c7fbbe8fe134df48… = the W1 stage's cylinder-only driven
+        //         golden (asserted below as GoldenAtV32: the layout is the whole raw/v32 difference).
+        //   CONTROLS D054PairAttributionTests ("driven": both halves off + v32 = OLD);
+        //         WrapAttributionTests.WithTheCylinderOff_TheDrivenGoldenIsTheBatch2DrivenGolden (the cylinder off alone + v32
+        //         = OLD); IncrementalConstructionAttributionTests.DrivenGoldenSeed42Turn300_MovedForTheV33LayoutAlone (flat: raw
+        //         e888941a… != OLD, v32 = OLD).
+        //   MEASURED by the in-test harness (DrivenGoldenTests.RunDriven(300)).
         const string golden = Golden;
 
         // ---- CAUSE 1 (from main, T4.4) ----
@@ -586,6 +620,7 @@ public class DrivenGoldenTests
         //   NOT A SCHEMA CHANGE: no table joined or left the stream.
         (WorldState world, _) = RunDriven(300);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
+        Assert.Equal(GoldenAtV32, SchemaProjection.V32(world));   // batch 3: the cylinder-alone link (no v33 row)
     }
 
     [Fact]

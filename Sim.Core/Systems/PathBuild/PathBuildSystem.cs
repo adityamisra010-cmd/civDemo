@@ -288,6 +288,8 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
     /// Passable 8-neighbor flood from <paramref name="origin"/> — fixed
     /// expansion order (ascending queue, W/E/N/S then diagonals), deterministic
     /// by construction. Pure; recomputed per build call (not state, not a cache).
+    /// WS3: x neighbours wrap on a wrapped lattice (<see cref="MapTopology.NeighbourX"/>),
+    /// so the component reaches across the east-west seam exactly as Expand does.
     /// </summary>
     public static bool[] PassableComponent(TraversalLattice lattice, int origin)
     {
@@ -305,8 +307,8 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
             (int x, int y) = lattice.Coords(node);
             for (int d = 0; d < 8; d++)
             {
-                int nx = x + dx[d], ny = y + dy[d];
-                if (nx < 0 || ny < 0 || nx >= lattice.Size || ny >= lattice.Size) continue;
+                int nx = MapTopology.NeighbourX(x, dx[d], lattice.Size, lattice.WrapX), ny = y + dy[d];
+                if (nx < 0 || ny < 0 || ny >= lattice.Size) continue;
                 int nb = lattice.NodeId(nx, ny);
                 if (inComponent[nb] || !lattice.IsPassable(nb)) continue;
                 inComponent[nb] = true;
@@ -396,6 +398,9 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
         public IReadOnlyTable<ConstructionLaborRow> ConstructionLabor => prev.ConstructionLabor;
         // Interface completeness only (forwarded, never read here — the read-isolation allowlist reason above).
         public IReadOnlyTable<TaxGrievanceRow> TaxGrievances => prev.TaxGrievances;
+        // Interface completeness only (forwarded, never read here).
+        public IReadOnlyTable<ConstructionProgressRow> ConstructionProgress => prev.ConstructionProgress;
+        public IReadOnlyTable<ResourceAllocationRow> ResourceAllocations => prev.ResourceAllocations;
     }
 
     private static void Upsert(Table<SectorAllocationRow> allocations, SectorAllocationRow row)

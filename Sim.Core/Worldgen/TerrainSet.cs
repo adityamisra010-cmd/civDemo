@@ -17,6 +17,20 @@ public sealed class TerrainSet
     public double KmPerPx { get; }
     public double SeaLevel { get; }
 
+    /// <summary>
+    /// Batch 3 WS3 — THE WORLD'S EAST-WEST TOPOLOGY: true when the world is a CYLINDER (x periodic with period
+    /// <see cref="Size"/>; the poles, y = 0 and y = Size − 1, keep their hard edges), false for the flat square raster.
+    /// Set by <see cref="Worldgen.Generate"/> from worldgen.json `topology.wrapX` — the ONLY reader of that config field;
+    /// every other consumer (pathing, distances, siting, the UI) reads THIS property, through
+    /// <see cref="Pathing.MapTopology"/>.
+    ///
+    /// NOT folded into <see cref="ContentHash"/>: the hash covers the rasters, and a wrapped world's rasters already differ
+    /// from a flat one's at every seed (the y-only taper, the periodic noise, the wrapped hydrology). A snapshot binds the
+    /// flag separately (the v33 topology trailer, wired at integration), so a save can never be loaded onto the other
+    /// topology over equal rasters.
+    /// </summary>
+    public bool WrapX { get; }
+
     private readonly double[] _elevation;
     private readonly double[] _water;        // 1.0 = water, 0.0 = land
     private readonly double[] _temperature;  // °C
@@ -47,11 +61,13 @@ public sealed class TerrainSet
         int size, double kmPerPx, double seaLevel,
         double[] elevation, double[] water, double[] temperature,
         double[] moisture, double[] fertility, double[] movementCost,
-        double[] rivers, int[][] riverPolylines)
+        double[] rivers, int[][] riverPolylines, bool wrapX = false)
     {
+        Pathing.MapTopology.RequireWrapSize(size, wrapX);
         Size = size;
         KmPerPx = kmPerPx;
         SeaLevel = seaLevel;
+        WrapX = wrapX;
         _elevation = elevation;
         _water = water;
         _temperature = temperature;
@@ -61,6 +77,46 @@ public sealed class TerrainSet
         _rivers = rivers;
         _riverPolylines = riverPolylines;
         ContentHash = ComputeContentHash();
+    }
+
+    /// <summary>
+    /// Batch 3 WS3 — THE TEST AND TOOL FACTORY (recorded under ADR-008): a TerrainSet from explicit layers, for rigs that
+    /// need terrain worldgen cannot produce — above all a land strip that crosses the east-west seam of a wrapped world
+    /// (the SeamWorld fixture), which no seed is guaranteed to generate. The game never calls it: every played world comes
+    /// from <see cref="Worldgen.Generate"/>. Each layer must be Size² long and is COPIED (the set stays immutable); every
+    /// polyline cell must be on the map. The content hash is computed exactly as for a generated set.
+    /// </summary>
+    public static TerrainSet FromLayers(
+        int size, double kmPerPx, double seaLevel,
+        ReadOnlySpan<double> elevation, ReadOnlySpan<double> water, ReadOnlySpan<double> temperature,
+        ReadOnlySpan<double> moisture, ReadOnlySpan<double> fertility, ReadOnlySpan<double> movementCost,
+        ReadOnlySpan<double> rivers, IReadOnlyList<int[]> riverPolylines, bool wrapX)
+    {
+        if (size < 1) throw new ArgumentOutOfRangeException(nameof(size), size, "a terrain needs at least one cell.");
+        if (!(kmPerPx > 0.0) || !double.IsFinite(kmPerPx))
+            throw new ArgumentOutOfRangeException(nameof(kmPerPx), kmPerPx, "km per pixel must be a finite distance > 0.");
+        int cells = size * size;
+        double[] Copy(ReadOnlySpan<double> layer, string name)
+        {
+            if (layer.Length != cells)
+                throw new ArgumentException(name + " must be size*size long", name);
+            return layer.ToArray();
+        }
+        ArgumentNullException.ThrowIfNull(riverPolylines);
+        var lines = new int[riverPolylines.Count][];
+        for (int p = 0; p < lines.Length; p++)
+        {
+            int[] line = riverPolylines[p] ?? throw new ArgumentException("a river polyline is null", nameof(riverPolylines));
+            for (int i = 0; i < line.Length; i++)
+                if ((uint)line[i] >= (uint)cells)
+                    throw new ArgumentException("river polyline " + p.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                        + " leaves the map", nameof(riverPolylines));
+            lines[p] = [.. line];
+        }
+        return new TerrainSet(size, kmPerPx, seaLevel,
+            Copy(elevation, nameof(elevation)), Copy(water, nameof(water)), Copy(temperature, nameof(temperature)),
+            Copy(moisture, nameof(moisture)), Copy(fertility, nameof(fertility)), Copy(movementCost, nameof(movementCost)),
+            Copy(rivers, nameof(rivers)), lines, wrapX);
     }
 
     // Canonical, field-by-field per ADR-005 discipline: header values then each

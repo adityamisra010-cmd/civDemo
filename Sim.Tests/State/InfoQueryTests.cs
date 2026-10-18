@@ -238,7 +238,9 @@ public class InfoQueryTests
                 InfoStatus expect = av == ProjectAvailability.Available ? (blocker is null ? InfoStatus.Available : InfoStatus.Blocked)
                     : av is ProjectAvailability.NotKnowledgeEligible or ProjectAvailability.InputUnobtainable ? InfoStatus.Locked : InfoStatus.Known;
                 Assert.Equal(expect, card.Status);
-                if (blocker is not null) Assert.Contains(blocker, card.StatusLine);
+                // D-054 WS1 (shipped): the card says what the head will wait for — the blocker's figures, without "needs".
+                if (blocker is not null)
+                    Assert.Contains(ConstructionQuery.Incremental(Cfg) ? "It will wait for " + InfoQuery.WithoutNeeds(blocker) + "." : blocker, card.StatusLine);
                 ActionDescriptor? listed = AvailableActionsQuery.For(w, Cfg, Player, q).SingleOrDefault(a =>
                     a.Domain is ActionDomain.Construction or ActionDomain.Institutions && a.Id == (((long)cap.Value << 32) | (uint)p.Id));
                 Assert.Equal(listed, card.Action);
@@ -411,6 +413,7 @@ public class InfoQueryTests
             case ActionDomain.Production: return [InfoSubject.OfRecipe(Cfg.Goods!.Recipes[(int)a.Id - 1].Name)];
             case ActionDomain.Trade: return [InfoSubject.OfEntity(Cfg.Trade.Entity!)];
             case ActionDomain.Colonization: return [InfoSubject.OfFounding((int)a.Id)];   // M5 S1d
+            case ActionDomain.ResourceAllocation: return [InfoSubject.MaterialsSplit];   // D-054 WS2
             default: throw new InvalidOperationException("unmapped domain " + a.Domain);
         }
     }
@@ -443,7 +446,7 @@ public class InfoQueryTests
                 }
 
             // Conversely: every card that claims an orderable status carries a descriptor the query lists.
-            var subjects = new List<InfoSubject> { InfoSubject.Tax, InfoSubject.Research };
+            var subjects = new List<InfoSubject> { InfoSubject.Tax, InfoSubject.Research, InfoSubject.MaterialsSplit };   // D-054 WS2: the split
             foreach (SettlementId s in LabourActivities.ControlledSettlements(w, Player))
             {
                 for (int sector = 0; sector < Sectors.Count; sector++) subjects.Add(InfoSubject.Sector(sector, s.Value));

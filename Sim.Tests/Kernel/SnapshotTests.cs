@@ -307,7 +307,19 @@ public class SnapshotTests
         //   CONTROL IntegratedPinAttributionTests.*_MovedForTheV32Levy*: the asserted-absent levy rows stripped and the
         //           empty v32 count prefix dropped return OLD byte for byte (docs/d049-taxation-and-revolt-model.md §8).
         //   DERIVED TWICE: this in-test harness and the built CLI (`sim run --seed 42 --turns 200 --hash-log`) agree.
-        const string golden = "5994e97838d275d3dd2a82cc6d0df1e23c70d2a9bbe412f4ba44538e043db180";
+        // BATCH 3 / D-054 RE-PIN (integration R1, 2026-10-14) — SCHEMA v33, THE v33 LAYOUT ALONE, MEASURED on this tree by
+        // the agent writing this line (ADR-015 §6).
+        //   OLD  5994e97838d275d3dd2a82cc6d0df1e23c70d2a9bbe412f4ba44538e043db180
+        //   NEW  222280e50f5675575469d07ac11c243717db441ce89e4cd536ca873cb9fc5cd3
+        //   CAUSE v32 -> v33 appends ConstructionProgress and ResourceAllocations (D-054 WS1/WS2), both EMPTY here (the
+        //         toy pipeline runs no construction system and this world has no polity), so the entire movement is two
+        //         four-byte zero count prefixes. WS1 and WS2 do not act; the cylinder (worldgen.json topology.wrapX) cannot
+        //         reach this world — it has no terrain.
+        //   CONTROLS IncrementalConstructionAttributionTests.ToyGoldenSeed42Turn200_AndFirstReignTurn40_MovedForTheV33LayoutAlone
+        //         and D054PairAttributionTests.WithBothHalvesOff_EveryBatch2ReferenceReproducesByteForByte_ThroughTheV32Projection
+        //         ("toy"): the v32 projection (SchemaProjection.V32, asserting 0 v33 rows) returns OLD byte for byte.
+        //   DERIVED TWICE: this in-test harness and the built CLI (`sim run --seed 42 --turns 200 --hash-log`) agree.
+        const string golden = "222280e50f5675575469d07ac11c243717db441ce89e4cd536ca873cb9fc5cd3";
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -1037,6 +1049,24 @@ public class SnapshotTests
         //           empty v32 count prefix dropped return OLD byte for byte (docs/d049-taxation-and-revolt-model.md §8).
         //   DERIVED TWICE: this in-test harness and the built CLI (`sim run --founded --seed 42 --turns 300 --hash-log`).
         //   ci.yml FOUNDED_GOLDEN moves in the same commit.
+        // BATCH 3 / D-054 RE-PIN (integration R1, 2026-10-14) — THE v33 LAYOUT + THE CYLINDER, MEASURED on this tree by the
+        // agent writing this line (ADR-015 §6).
+        //   OLD  937577ffb0e73c2b051d8d7832cfb5028c2154d01c9afef4d976b71ccb5e7f54
+        //   NEW  40115e28af11273b9e25c62d93817c48d6c9afe736a60a2ebc6e00428836f1b0
+        //   CAUSE (1) v32 -> v33 appends ConstructionProgress and ResourceAllocations (D-054 WS1/WS2), both EMPTY here: with
+        //         no order log nothing is queued part-built and no split is set — two four-byte zero count prefixes;
+        //         (2) the shipped world is a CYLINDER (worldgen.json topology.wrapX, D-054 WS3): the 1024² terrain regenerates
+        //         x-periodic and its content hash is folded into every world hash (CanonicalSchema position 2b), so the run
+        //         differs from TURN 0. WS1 (incremental construction) and WS2 (allocation ratios) do not act.
+        //   ATTRIBUTION, MEASURED (in-test harness): the sim half off on the cylinder (TestConfigs.PreD054Sim) -> the SAME raw
+        //         40115e28… (WS1/WS2 move nothing); the v32 projection of THIS world -> 0549049d92f6c59d… = the W1 stage's
+        //         cylinder-only golden (asserted below as FoundedGoldenHashAtV32: the layout is the whole raw/v32 difference).
+        //   CONTROLS D054PairAttributionTests.WithBothHalvesOff_EveryBatch2ReferenceReproducesByteForByte_ThroughTheV32Projection
+        //         ("founded": both halves off + v32 = OLD); WrapAttributionTests.WithTheCylinderOff_TheFoundedGoldenIsTheBatch2Golden_AndOnItDiffersFromTurnZero
+        //         (the cylinder off alone + v32 = OLD; first divergent turn 0); IncrementalConstructionAttributionTests
+        //         .FoundedGoldenSeed42Turn300_MovedForTheV33LayoutAlone (flat: raw 8bca9f77… != OLD, v32 = OLD).
+        //   DERIVED TWICE: this in-test harness and the built CLI (`sim run --founded --seed 42 --turns 300 --hash-log`, two
+        //         separate processes, byte-identical logs). ci.yml FOUNDED_GOLDEN moves with it (CiPinAgreementTests).
         const string golden = FoundedGoldenHash;
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101
@@ -1065,7 +1095,9 @@ public class SnapshotTests
         //         the whole of the movement.
         //   NOT A SCHEMA CHANGE: no table joined or left the stream.
         //   ci.yml's FOUNDED_GOLDEN is updated in the same commit.
-        Assert.Equal(golden, WorldHash.ComputeHex(RunFoundedGolden()));
+        WorldState world = RunFoundedGolden();
+        Assert.Equal(golden, WorldHash.ComputeHex(world));
+        Assert.Equal(FoundedGoldenHashAtV32, SchemaProjection.V32(world));   // batch 3: the cylinder-alone link (no v33 row)
     }
 
     /// <summary>
@@ -1078,21 +1110,39 @@ public class SnapshotTests
     // ADR-035 §6 (P-F0, founding death remainder) RE-PIN (VALUE): 33d05c5bf9c6ee57… -> 8cbafbb803705b26…. CAUSE: a new bucket row's D-004 death accumulator is seeded at 0.5, so the first integer reconciliation rounds instead of flooring (the turn-1 phantom survivors are gone).
     // ADR-035 §7 (P-F2, founding composition) RE-PIN (VALUE): 8cbafbb803705b26… -> e9e089bbce9f2049…. CAUSE: founding cohort noise at demographic scale (CV ~ 1/sqrt(n_c)) instead of RC-1's per-cohort ±0.69; the settlement-common size factor is unchanged.
     // D-051 1(b) (2026-10-10, time-averaged decade weather) RE-PIN (VALUE): e9e089bbce9f2049… -> 937577ffb0e73c2b…. CAUSE: a turn's harvest multiplier is the time-average of the yearly weather process over the turn's yearly sub-steps (mean unchanged, per-decade log-spread ~0.29 -> ~0.19) and a new settlement joins the weather at a stationary draw. CONTROL: TestConfigs.PreTimeAveragedHarvest returns the old value byte for byte (IntegratedPinAttributionTests.*_MovedForTheTimeAveragedHarvestAlone).
-    internal const string FoundedGoldenHash = "937577ffb0e73c2b051d8d7832cfb5028c2154d01c9afef4d976b71ccb5e7f54";
+    // BATCH 3 / D-054 (integration R1, 2026-10-14) RE-PIN (VALUE + LAYOUT): 937577ffb0e73c2b… -> 40115e28af11273b…. CAUSE: the v33 layout (two EMPTY appended tables) and the cylinder (worldgen.json topology.wrapX; the world differs from turn 0); WS1/WS2 do not act. CONTROLS: D054PairAttributionTests (both halves off + v32 = OLD), WrapAttributionTests (the cylinder off alone + v32 = OLD), IncrementalConstructionAttributionTests (the layout alone), and FoundedGoldenHashAtV32 (the cylinder alone). Full record on FoundedGolden_Seed42Turn300_MatchesPinnedConstant.
+    internal const string FoundedGoldenHash = "40115e28af11273b9e25c62d93817c48d6c9afe736a60a2ebc6e00428836f1b0";
 
-    /// <summary>The founded golden's world: canonical 1024² N = 12, seed 42, 300 no-order turns.</summary>
-    internal static WorldState RunFoundedGolden(Sim.Core.Systems.SimConfig? cfgOverride = null)
+    /// <summary>Batch 3 (D-054, integration R1, 2026-10-14): THE CYLINDER-ALONE LINK — the founded golden's world through
+    /// the v32 projection (SchemaProjection.V32: the two v33 tables dropped, asserted EMPTY). It equals the founded golden
+    /// the W1 stage measured with the cylinder and without the v33 layout (0549049d…), so the raw re-pin factors exactly into
+    /// the layout (this projection) and the cylinder (this value against <see cref="PreD054FoundedGoldenHash"/>).</summary>
+    internal const string FoundedGoldenHashAtV32 = "0549049d92f6c59d65a01111485cca4d938f36cfa0696a5fa8575811194fb6c9";
+
+    /// <summary>Batch 3 (D-054): the founded golden with the batch's worldgen layer off (founded flat,
+    /// TestConfigs.PreD054Worldgen) — the batch-2 value of <see cref="FoundedGoldenHash"/>, where every pre-batch-3
+    /// attribution chain of this world (IntegratedPinAttributionTests, the D-053 switch-off controls) now ends. The
+    /// cylinder moves the live pin from turn 0 (the terrain is folded into every hash); WrapAttributionTests is that
+    /// control. Integration (2026-10-14): BOTH halves of the PreD054 pair (PreD054Sim + PreD054Worldgen) and the v32 projection (SchemaProjection.V32 — schema v33 appended two tables) give it; D054PairAttributionTests pins that.</summary>
+    internal const string PreD054FoundedGoldenHash = "937577ffb0e73c2b051d8d7832cfb5028c2154d01c9afef4d976b71ccb5e7f54";
+
+    /// <summary>The founded golden's world: canonical 1024² N = 12, seed 42, 300 no-order turns.
+    /// <paramref name="worldgen"/> (batch 3, D-054): the worldgen the world is founded with — default the shipped one;
+    /// an attribution control passes <see cref="TestUtil.TestConfigs.PreD054Worldgen()"/> (the flat, pre-cylinder world).</summary>
+    internal static WorldState RunFoundedGolden(
+        Sim.Core.Systems.SimConfig? cfgOverride = null, Sim.Core.Worldgen.WorldgenConfig? worldgen = null)
     {
         Sim.Core.Systems.SimConfig cfg = cfgOverride ?? TestUtil.TestConfigs.Sim();
+        Sim.Core.Worldgen.WorldgenConfig wg = worldgen ?? TestUtil.TestConfigs.Worldgen();
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
         var executor = new TurnExecutor(
             EraTableLoader.Load(eraStream),
             PipelineLoader.Load(pipeStream, SystemCatalog.All(
-                cfg, TestUtil.TestConfigs.Worldgen())));
+                cfg, wg)));
         return executor.Run(
             Sim.Core.Worldgen.WorldFounding.Found(
-                TestUtil.TestConfigs.Worldgen(), cfg, 42), 300);
+                wg, cfg, 42), 300);
     }
 
     [Fact]

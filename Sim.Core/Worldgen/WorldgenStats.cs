@@ -36,8 +36,9 @@ public static class WorldgenStats
             for (int dx = -1; dx <= 1; dx++)
             {
                 if (dx == 0 && dy == 0) continue;
-                int nx = x + dx, ny = y + dy;
-                if (nx < 0 || ny < 0 || nx >= size || ny >= size) continue;
+                // WS3: the "same construction as the boost" — which wraps x on a cylinder.
+                int nx = Pathing.MapTopology.NeighbourX(x, dx, size, terrain.WrapX), ny = y + dy;
+                if (nx < 0 || ny < 0 || ny >= size) continue;
                 int nb = ny * size + nx;
                 if (dist[nb] == int.MaxValue) { dist[nb] = d; near[nb] = true; queue[tail++] = nb; }
             }

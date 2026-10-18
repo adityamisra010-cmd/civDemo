@@ -201,7 +201,7 @@
       "id": 2,
       "name": "workshop",
       "entity": "building.workshop",
-      "_doc": "M4-D second constructible, deliberately several times the granary in both materials and labour so a settlement can hold it queued for many turns without any stored timer. TUNE.",
+      "_doc": "M4-D second constructible, deliberately several times the granary in both materials and labour. D-054 (WS1): like every project it is built a little each turn, as far as its builders and the next units of its materials allow; its progress is stored (ConstructionProgress) and what has gone in is kept while it waits - there is no timer. TUNE.",
       "inputs": [
         {
           "good": "timber",
@@ -226,7 +226,7 @@
         "entity": "inst.university",
         "universityType": "military_university"
       },
-      "_doc": "ADR-033 D6 (docs/institutions-universities.md 3): the five specialized-university projects, one per research.json universityTypes entry, ids 10 + the type key. Each BUILDS building.university and FOUNDS inst.university of its type: both entities gate (the research stage's own reading, D-044 R4), checked by the one availability predicate (ConstructionQuery.IsProjectAvailable). The completed building is counted in Structures; InstitutionsSystem founds the institution the next step (maturity 0). TUNE, reference class: the workshop (60 timber, 40 stone, 8.0 adult-years for a ~50 m2 craft workshop) scaled by floor area to a ~1,500 m2 collegiate complex (hall, library/chapel, lodgings round a quadrangle; INFERRED from high-medieval Oxford/Cambridge colleges), x30; the workshop's tools are its own equipment and do not scale. Founding also requires the host's FOUNDING viability (InstitutionViability.ToFound), checked when the queue head resolves.",
+      "_doc": "ADR-033 D6 (docs/institutions-universities.md 3): the five specialized-university projects, one per research.json universityTypes entry, ids 10 + the type key. Each BUILDS building.university and FOUNDS inst.university of its type: both entities gate (the research stage's own reading, D-044 R4), checked by the one availability predicate (ConstructionQuery.IsProjectAvailable). The completed building is counted in Structures; InstitutionsSystem founds the institution the next step (maturity 0). TUNE, reference class: the workshop (60 timber, 40 stone, 8.0 adult-years for a ~50 m2 craft workshop) scaled by floor area to a ~1,500 m2 collegiate complex (hall, library/chapel, lodgings round a quadrangle; INFERRED from high-medieval Oxford/Cambridge colleges), x30; the workshop's tools are its own equipment and do not scale. Founding also requires the host's FOUNDING viability (InstitutionViability.ToFound), checked every step before the head progresses (D-054 WS1: a part-built university waits, keeping what has gone in, while its host cannot found one more).",
       "inputs": [
         {
           "good": "timber",

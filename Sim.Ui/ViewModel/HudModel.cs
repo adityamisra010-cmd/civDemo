@@ -257,4 +257,15 @@ public sealed record HudModel(
     public static string CameraLine(double centerX, double centerY, double zoom) =>
         string.Create(CultureInfo.InvariantCulture,
             $"camera ({centerX:F0}, {centerY:F0}) zoom {zoom:F2}x");
+
+    /// <summary>WS3: the camera line of a camera on a world <paramref name="wrapWidth"/> px round — the centre's x rounded to
+    /// the whole px and NORMALISED into [0, wrapWidth) (a centre a hair west of the seam reads 0, never the world's width);
+    /// <paramref name="wrapWidth"/> ≤ 0: exactly <see cref="CameraLine(double, double, double)"/>.</summary>
+    public static string CameraLine(double centerX, double centerY, double zoom, double wrapWidth)
+    {
+        if (!(wrapWidth > 0)) return CameraLine(centerX, centerY, zoom);
+        double x = Math.Round(Sim.Core.Pathing.MapTopology.WrapCoord(centerX, wrapWidth), MidpointRounding.AwayFromZero);
+        if (x >= wrapWidth) x -= wrapWidth;
+        return CameraLine(x, centerY, zoom);
+    }
 }

@@ -94,6 +94,13 @@ public readonly record struct TerritoryBlock(double X, double Y, double Size, in
 public sealed class WorldProjection
 {
     public required double WorldSize { get; init; }
+
+    /// <summary>Batch 3 WS3: the world is a cylinder east-west (<c>TerrainSet.WrapX</c>). Its seam-crossing primitives — a
+    /// built route, a dirt-path step — are held UNWRAPPED relative to their first point (<see cref="RouteLensView.X1"/>,
+    /// <see cref="RoadSegment.X1"/> may lie outside [0, <see cref="WorldSize"/>): the short way round, as the simulation
+    /// measures it); every position (settlements, formations, territory blocks) is in [0, WorldSize). A paint draws copies
+    /// only when asked (<see cref="WorldLens.Paint(DrawList, ITextMeasure, WorldProjection, MapDetail, Func{double, double, ValueTuple{double, double}}, double, RectD, int, bool, MapInk?, EraTheme?, double, LegendAnchor?, int, OverlayPaint?, bool)"/>'s wrapX).</summary>
+    public bool WrapX { get; init; }
     /// <summary>P2: km per world px — the terrain's own scale (<c>TerrainSet.KmPerPx</c>; D-015's 4 km at the canonical
     /// config). The continuous level of detail is keyed on the km the view shows (<see cref="MapDetail"/>).</summary>
     public required double KmPerPx { get; init; }
@@ -138,11 +145,8 @@ public sealed class WorldProjection
     /// pass over every terrain cell each turn (P4); the pin is <c>WorldProjectionStrideTests</c>, which builds the
     /// lattice and compares both the geometry and the drawn map.
     /// </summary>
-    public static (int LatticeSize, int Stride) LatticeGrid(int terrainSize)
-    {
-        int lsize = terrainSize / LatticeStride;
-        return (lsize, terrainSize / lsize);
-    }
+    public static (int LatticeSize, int Stride) LatticeGrid(int terrainSize) =>
+        Sim.Core.Pathing.MapTopology.LatticeGrid(terrainSize, LatticeStride);   // WS3: the one statement of the lattice's geometry
 
     /// <summary>Builds the projection. <paramref name="institutions"/> replaces the institution seam
     /// (tests only); the game and previews always read <see cref="InstitutionMarkerSource.InstitutionsAt"/>.
@@ -164,6 +168,10 @@ public sealed class WorldProjection
         if (known.Player.Value != player.Value) throw new ArgumentException("the observer's knowledge must be the player's", nameof(knowledge));
         int size = world.Terrain?.Size ?? 256;
         (int lsize, int stride) = world.Terrain is null ? (1, 1) : grid ?? LatticeGrid(size);
+        // WS3: on a cylinder a seam-crossing primitive is unwrapped relative to its first point (MapTopology.UnwrapNear —
+        // bit-identical for one that does not cross), and a step's corridor is judged at the route's nearest copy.
+        bool wrapX = world.Terrain?.WrapX ?? false;
+        double wrapWidth = wrapX ? size : 0.0;
 
         // Network: node id -> lattice node, in table order (ids are table order).
         int maxId = -1;
@@ -180,6 +188,7 @@ public sealed class WorldProjection
             if (!RoadPerformance.IsTravelled(e)) continue;
             if (known.IsHiddenSettlement(e.A.Value) || known.IsHiddenSettlement(e.B.Value)) continue;   // P7: both ends known
             if (!SiteOf(world, e.A, size, out double ax, out double ay) || !SiteOf(world, e.B, size, out double bx, out double by)) continue;
+            if (wrapX) bx = Sim.Core.Pathing.MapTopology.UnwrapNear(bx, ax, size);   // WS3: the route the short way, as its LengthKm
             routes.Add(new RouteLensView(e.Id, e.A.Value, e.B.Value, ax, ay, bx, by, e.EdgeType, e.TargetClass, e.Modernization,
                 e.LengthKm, RoadLens.ClassName(cfg, e.EdgeType), RoadLens.ClassName(cfg, e.TargetClass)));
         }
@@ -196,10 +205,11 @@ public sealed class WorldProjection
             if (!known.Known(anchor[e.A.Value]) || !known.Known(anchor[e.B.Value])) continue;   // P7: both ends on known nodes
             (double ax, double ay) = Center(anchor[e.A.Value], lsize, stride);
             (double bx, double by) = Center(anchor[e.B.Value], lsize, stride);
+            if (wrapX) bx = Sim.Core.Pathing.MapTopology.UnwrapNear(bx, ax, size);   // WS3: a lattice step across the seam
             var step = new RoadSegment(ax, ay, bx, by, e.EdgeType, e.Id.Value);
             int owner = -1;
             foreach (RouteLensView r in routes)
-                if ((owner < 0 || r.Id < owner) && RoadLens.InCorridor(step, r, corridor)) owner = r.Id;
+                if ((owner < 0 || r.Id < owner) && RoadLens.InCorridor(step, r, corridor, wrapWidth)) owner = r.Id;
             roads.Add(owner < 0 ? step : step with { CoveredBy = owner });
         }
 
@@ -316,7 +326,7 @@ public sealed class WorldProjection
 
         return new WorldProjection
         {
-            WorldSize = size, KmPerPx = world.Terrain?.KmPerPx ?? double.NaN, Settlements = settlements, Units = units, Roads = roads, Routes = routes, Territory = territory,
+            WorldSize = size, WrapX = wrapX, KmPerPx = world.Terrain?.KmPerPx ?? double.NaN, Settlements = settlements, Units = units, Roads = roads, Routes = routes, Territory = territory,
             PlayerPolity = player.Value, PlayerAge = playerAge,
             PlayerAgeName = ages is null || playerAge == 0 ? "" : ages.Age(playerAge).Name,
             Absent = absent, Universe = PartUniverse.Of(cfg),
@@ -481,7 +491,8 @@ public sealed record LensFrame(WorldZoom Zoom, IReadOnlyList<WorldLayer> Layers,
     IReadOnlyList<PathPiece> Paths, IReadOnlyList<UnitPlacement> UnitPlacements)
 {
     /// <summary>P3: where each drawn settlement's mark and name went (one per <see cref="SettlementsDrawn"/> id, in the
-    /// same order) — the settlement hit geometry.</summary>
+    /// same order) — the settlement hit geometry. WS3: one per drawn COPY on a wrapped paint (a settlement cut by the window's
+    /// edges is hit at either half), so there it may hold an id twice, in the order drawn.</summary>
     public IReadOnlyList<SettlementHit> SettlementHits { get; init; } = [];
 
     /// <summary>P3: the draw-call accounting one level finer — <c>InfoDraws[(int)WorldLayer]</c> counts the commands
@@ -506,8 +517,14 @@ public sealed record LensFrame(WorldZoom Zoom, IReadOnlyList<WorldLayer> Layers,
     public OverlayFrame? Overlay { get; init; }
 
     /// <summary>P12a: where each drawn part of each drawn settlement's composition went (one per <see cref="Institutions"/>
-    /// marker, in the same order) — the parts' hit geometry.</summary>
+    /// marker, in the same order) — the parts' hit geometry. WS3: on a wrapped paint a settlement drawn at two copies (cut by
+    /// the window's edges) places its parts at both, its markers once — the extra copies are in <see cref="Copies"/>.</summary>
     public IReadOnlyList<PartPlacement> Parts { get; init; } = [];
+
+    /// <summary>WS3: the element draws beyond each element's FIRST (a wrapped paint draws an element at every copy that
+    /// touches the viewport: at the floor only an element cut by the window's edges is drawn twice). The per-row lists count
+    /// each row once; 0 on every flat paint.</summary>
+    public int Copies { get; init; }
 }
 
 /// <summary>
@@ -604,8 +621,8 @@ public static class WorldLens
     public static LensFrame Paint(DrawList d, ITextMeasure m, WorldProjection p, WorldZoom zoom,
         Func<double, double, (double X, double Y)> toScreen, double scale, RectD viewport, int selected = -1,
         bool showTerritory = true, MapInk? ink = null, EraTheme? theme = null, double uiScale = 1.0,
-        LegendAnchor? legend = null, int selectedUnit = -1, OverlayPaint? overlay = null) =>
-        Paint(d, m, p, MapDetail.Of(zoom), toScreen, scale, viewport, selected, showTerritory, ink, theme, uiScale, legend, selectedUnit, overlay);
+        LegendAnchor? legend = null, int selectedUnit = -1, OverlayPaint? overlay = null, bool wrapX = false) =>
+        Paint(d, m, p, MapDetail.Of(zoom), toScreen, scale, viewport, selected, showTerritory, ink, theme, uiScale, legend, selectedUnit, overlay, wrapX);
 
     /// <summary>
     /// P2: paints the lens at a CONTINUOUS level of detail (<see cref="MapDetail"/> — what the game paints every frame).
@@ -619,11 +636,26 @@ public static class WorldLens
     /// Settlement window. On a plateau every opacity is 0 or 1 and every blend an endpoint, so the commands are exactly
     /// the banded lens's (the <see cref="WorldZoom"/> overload).
     /// Persisting elements are charged to the layer of the derived band (<see cref="MapDetail.Band"/>).
+    ///
+    /// BATCH 3 WS3 — THE CYLINDER (<paramref name="wrapX"/>, honoured only for a projection of a wrapped world,
+    /// <see cref="WorldProjection.WrapX"/>; the game passes its camera's flag, every other paint is flat and unchanged).
+    /// EVERY map element — the overlay's runs and outline, territory blocks, dirt-path steps, routes and their names,
+    /// settlements (marks, footprints, parts, names, banners), formation tokens, ore markers — is drawn at EVERY copy k
+    /// (world x + k·WorldSize, k ∈ {−1, 0, 1}) whose screen bounds touch <paramref name="viewport"/>, with a hit record
+    /// (<see cref="LensFrame.SettlementHits"/>, <see cref="LensFrame.UnitPlacements"/>, <see cref="LensFrame.Parts"/>) for
+    /// each copy drawn; what the flat paint draws unconditionally (steps, routes, tokens) is also always drawn at its copy
+    /// nearest the viewport's centre, so every row is drawn as in the flat paint. The camera's floor keeps the window at most
+    /// one circumference wide, so two copies of one element can only be the two halves of an element cut by the window's
+    /// edges — ONE object across the cut, never a duplicate: no world point inside the window is painted at two screen x.
+    /// The frame's lists count each DISTINCT row once (<see cref="LensFrame.SettlementsDrawn"/>, <see cref="LensFrame.UnitTokens"/>,
+    /// <see cref="LensFrame.Institutions"/>, one <see cref="PathPiece"/> per step or route part, whose commands include every
+    /// copy's); <see cref="LensFrame.Copies"/> counts the draws beyond each element's first. The legend and the overlay's key
+    /// are screen furniture, painted once.
     /// </summary>
     public static LensFrame Paint(DrawList d, ITextMeasure m, WorldProjection p, MapDetail detail,
         Func<double, double, (double X, double Y)> toScreen, double scale, RectD viewport, int selected = -1,
         bool showTerritory = true, MapInk? ink = null, EraTheme? theme = null, double uiScale = 1.0,
-        LegendAnchor? legend = null, int selectedUnit = -1, OverlayPaint? overlay = null)
+        LegendAnchor? legend = null, int selectedUnit = -1, OverlayPaint? overlay = null, bool wrapX = false)
     {
         MapInk k = ink ?? MapInk.Default;
         _type = new MapType(theme, uiScale);
@@ -658,10 +690,32 @@ public static class WorldLens
         var unitTokens = new List<int>();
         var drawn = new List<int>();
 
+        // WS3: the copies this paint considers — {0} flat (every expression below then reduces to the flat one exactly).
+        double worldW = p.WorldSize;
+        bool wrap = wrapX && p.WrapX && worldW > 0;
+        int[] ks = wrap ? WrapCopies : FlatCopies;
+        int copies = 0;
+        (double X, double Y) At(int c, double x, double y) => c == 0 ? toScreen(x, y) : toScreen(x + c * worldW, y);
+        // The copy whose screen x is nearest the viewport's centre — where an element the flat paint draws whatever the
+        // viewport (a step, a route, a token) is always drawn; ascending k, the first nearest wins.
+        int Primary(double x, double y)
+        {
+            if (!wrap) return 0;
+            int best = 0;
+            double bestD = double.PositiveInfinity;
+            foreach (int c in ks)
+            {
+                double dd = Math.Abs(At(c, x, y).X - viewport.CenterX);
+                if (dd < bestD) { bestD = dd; best = c; }
+            }
+            return best;
+        }
+        var discard = new List<InstitutionMarker>();   // a settlement's markers at its second copy (counted once, at its first)
+
         // P9: the resource overlay's layers, under everything else the lens draws (the terrain shows through them).
         OverlayPaint? ov = overlay is { Any: true } ? overlay : null;
         int[] oRects = new int[ov?.Bake.Layers.Count ?? 0], oNodes = new int[oRects.Length];
-        ov?.Bake.PaintLayers(d, ov.Shown, ov.Opacity, toScreen, viewport, k, oRects, oNodes);
+        if (ov is not null) copies += ov.Bake.PaintLayers(d, ov.Shown, ov.Opacity, toScreen, viewport, k, oRects, oNodes, ks, worldW);
         // P10: a 'now usable' shortcut's outline of the qualifying places on its shown layers, over their fills.
         var outlined = new List<int>();
         int outlineSegments = 0, outlineNodes = 0;
@@ -669,7 +723,7 @@ public static class WorldLens
             foreach (int li in hl.Layers)
             {
                 if ((uint)li >= (uint)ov.Bake.Layers.Count || li >= ov.Shown.Count || !ov.Shown[li] || outlined.Contains(li)) continue;
-                outlineSegments += ov.Bake.PaintOutline(d, li, toScreen, viewport, A(k.Ink, 0.9), 2.0);
+                outlineSegments += ov.Bake.PaintOutline(d, li, toScreen, viewport, A(k.Ink, 0.9), 2.0, ks, worldW, ref copies);
                 outlineNodes += ov.Bake.Outline(li).Nodes;
                 outlined.Add(li);
             }
@@ -681,10 +735,16 @@ public static class WorldLens
             double alpha = MapDetail.Mix(0.42, 0.24, R) * detail.Alpha(WorldLayer.Territories);
             foreach (TerritoryBlock t in p.Territory)
             {
-                (double x, double y) = toScreen(t.X, t.Y);
-                double s = t.Size * scale;
-                if (x > viewport.Right || y > viewport.Bottom || x + s < viewport.X || y + s < viewport.Y) continue;
-                d.Rect(new RectD(x, y, s + 0.6, s + 0.6), A(k.PolityOf(t.Polity, p.PlayerPolity), alpha));
+                bool firstCopy = true;
+                foreach (int c in ks)
+                {
+                    (double x, double y) = At(c, t.X, t.Y);
+                    double s = t.Size * scale;
+                    if (x > viewport.Right || y > viewport.Bottom || x + s < viewport.X || y + s < viewport.Y) continue;
+                    d.Rect(new RectD(x, y, s + 0.6, s + 0.6), A(k.PolityOf(t.Polity, p.PlayerPolity), alpha));
+                    if (!firstCopy) copies++;
+                    firstCopy = false;
+                }
             }
         }
         Charge(MapLayer.Territory, WorldLayer.Territories);
@@ -695,14 +755,14 @@ public static class WorldLens
         if (On(WorldLayer.MajorInfrastructure))
         {
             int from = d.Commands.Count;
-            RoadLens.PaintNetwork(d, m, p, WorldZoom.World, 0, toScreen, viewport, k, pieces);
+            copies += RoadLens.PaintNetwork(d, m, p, WorldZoom.World, 0, toScreen, viewport, k, pieces, ks, worldW);
             d.FadeFrom(from, detail.Alpha(WorldLayer.MajorInfrastructure));
             Charge(MapLayer.Paths, WorldLayer.MajorInfrastructure);
         }
         if (On(WorldLayer.Roads))
         {
             int from = d.Commands.Count;
-            RoadLens.PaintNetwork(d, m, p, S >= 1 ? WorldZoom.Settlement : WorldZoom.Regional, S, toScreen, viewport, k, pieces);
+            copies += RoadLens.PaintNetwork(d, m, p, S >= 1 ? WorldZoom.Settlement : WorldZoom.Regional, S, toScreen, viewport, k, pieces, ks, worldW);
             d.FadeFrom(from, detail.Alpha(WorldLayer.Roads));
             Charge(MapLayer.Paths, WorldLayer.Roads);
         }
@@ -713,7 +773,10 @@ public static class WorldLens
         bool banners = On(WorldLayer.AgeBanners);
         foreach (SettlementLensView s in p.Settlements)
         {
-            (double sx, double sy) = toScreen(s.X, s.Y);
+          bool firstCopy = true;
+          foreach (int c in ks)   // WS3: every copy that reaches the viewport (flat: the one)
+          {
+            (double sx, double sy) = At(c, s.X, s.Y);
             double rMark = MarkRadiusPx(p, s), unitPx = p.Classes.UnitPx(scale, S), rFoot = p.Classes.FootprintRadiusUnits(s.Population) * unitPx;
             // The name: ONE run, at a place and size blended between the bands' (never two names cross-fading) — under the
             // World mark, or under the footprint (and its sector ring) closer.
@@ -725,7 +788,8 @@ public static class WorldLens
             double bannerY = sy - MapDetail.Mix(18, rFoot + 14, R);
             // P12a review fix: the cull follows what this settlement paints (Reaches), never a fixed margin about its centre.
             if (!Reaches(m, p, s, sx, sy, rMark, rFoot, unitPx, nameSize, ly, banner, bannerY, s.Id == selected, detail, k, viewport)) continue;
-            drawn.Add(s.Id);
+            if (firstCopy) drawn.Add(s.Id);
+            else copies++;
             Rgba pol = k.PolityOf(s.Controller, p.PlayerPolity);
             double reach = 0;   // P3: the footprint's radius as painted — the halo at World zoom, the built footprint closer
             if (aMark > 0)
@@ -740,7 +804,7 @@ public static class WorldLens
             }
             if (aMorph > 0)
             {
-                PaintMorphology(d, m, p, s, sx, sy, rFoot, unitPx, S, detail, Charge, institutions, parts, k);
+                PaintMorphology(d, m, p, s, sx, sy, rFoot, unitPx, S, detail, Charge, firstCopy ? institutions : discard, parts, k);
                 reach = Math.Max(reach, rFoot);
             }
             RectD plate = Name(d, m, sx, ly, s.Name, nameSize, k);
@@ -752,6 +816,8 @@ public static class WorldLens
 
             if (banner) Banner(d, m, sx, bannerY, s.Age, pol, s.IsCapital, k, s.Id);
             Charge(MapLayer.AgeBanners, WorldLayer.AgeBanners);
+            firstCopy = false;
+          }
         }
 
         if (On(WorldLayer.MilitaryFormations))
@@ -774,19 +840,27 @@ public static class WorldLens
                     wx = station.X; wy = station.Y;
                     edge = MapDetail.Mix(MarkRadiusPx(p, station) + 2, FootprintRadiusPx(p, station, scale, S), R) + tok + 3;
                 }
-                (double ux, double uy) = toScreen(wx, wy);
                 (double fx, double fy) = FanOffset(R, slots[i], tok);
-                ux += edge + fx;
-                uy += fy;
-                UnitToken(d, ux, uy, tok, u.Emblem ?? UnitEmblem.Unkeyed(u.FamilyKey), k.PolityOf(u.Owner, p.PlayerPolity), k);
-                if (R > 0)
+                int primary = Primary(wx, wy);
+                bool firstCopy = true;
+                foreach (int c in ks)   // WS3: the copy nearest the centre always (as flat), any other that touches the viewport
                 {
-                    int from = d.Commands.Count;
-                    _type.Label(d, ux + tok + 5, uy - _type.Size(TypeRole.Caption, FontRole.Caps) * 0.62, u.IdentityName, TypeRole.Caption, FontRole.Caps, k.Ink, TextAlign.Left);
-                    d.FadeFrom(from, R);
+                    (double ux, double uy) = At(c, wx, wy);
+                    ux += edge + fx;
+                    uy += fy;
+                    if (c != primary && !TokenTouches(m, ux, uy, tok, R, u.IdentityName, viewport)) continue;
+                    UnitToken(d, ux, uy, tok, u.Emblem ?? UnitEmblem.Unkeyed(u.FamilyKey), k.PolityOf(u.Owner, p.PlayerPolity), k);
+                    if (R > 0)
+                    {
+                        int from = d.Commands.Count;
+                        _type.Label(d, ux + tok + 5, uy - _type.Size(TypeRole.Caption, FontRole.Caps) * 0.62, u.IdentityName, TypeRole.Caption, FontRole.Caps, k.Ink, TextAlign.Left);
+                        d.FadeFrom(from, R);
+                    }
+                    if (firstCopy) unitTokens.Add(u.Id);
+                    else copies++;
+                    firstCopy = false;
+                    placements.Add(new UnitPlacement(u.Id, ux, uy, slots[i]) { Size = tok });
                 }
-                unitTokens.Add(u.Id);
-                placements.Add(new UnitPlacement(u.Id, ux, uy, slots[i]) { Size = tok });
             }
             // The selected formation's frame, over every token (UnitSelection's hit rect, 4 px out).
             foreach (UnitPlacement up in placements)
@@ -811,16 +885,28 @@ public static class WorldLens
                 {
                     string text = ov.Bake.MarkerText(ov.Shown, status, s.Id);
                     if (text.Length == 0) continue;
-                    (double sx, double sy) = toScreen(s.X, s.Y);
-                    if (sx < viewport.X - 50 || sx > viewport.Right + 600 || sy < viewport.Y - 50 || sy > viewport.Bottom + 50) continue;
-                    int from = d.Commands.Count;
-                    double size = _type.Size(TypeRole.Caption, FontRole.Body);
-                    double w = _type.Width(m, text, TypeRole.Caption, FontRole.Body);
-                    double right = sx - FootprintRadiusPx(p, s, scale, S) - 8;
-                    d.Rect(new RectD(right - w - 4, sy - size * 0.75, w + 8, size * 1.4), A(k.NamePlate, 0.85), A(k.Ink, 0.45), 1, 2);
-                    _type.Label(d, right, sy - size * 0.65, text, TypeRole.Caption, FontRole.Body, k.Ink, TextAlign.Right);
-                    d.FadeFrom(from, R);
-                    markers.Add((s.Id, text));
+                    bool firstCopy = true;
+                    int primary = Primary(s.X, s.Y);
+                    foreach (int c in ks)   // WS3: at every copy in view; the marker counts once
+                    {
+                        (double sx, double sy) = At(c, s.X, s.Y);
+                        if (sx < viewport.X - 50 || sx > viewport.Right + 600 || sy < viewport.Y - 50 || sy > viewport.Bottom + 50) continue;
+                        int from = d.Commands.Count;
+                        double size = _type.Size(TypeRole.Caption, FontRole.Body);
+                        double w = _type.Width(m, text, TypeRole.Caption, FontRole.Body);
+                        double right = sx - FootprintRadiusPx(p, s, scale, S) - 8;
+                        var plate = new RectD(right - w - 4, sy - size * 0.75, w + 8, size * 1.4);
+                        // WS3 (W2 review F8): the copy nearest the centre is culled by the flat margin, exactly as the flat paint
+                        // culls its one copy; any OTHER copy only when its plate (with the replay's fringe) can touch the viewport —
+                        // the flat margin, one window wide at the floor, would emit (and count) a copy wholly off the window.
+                        if (c != primary && !DrawListCull.Touches(plate.Inset(-DrawListCull.FringePx), viewport)) continue;
+                        d.Rect(plate, A(k.NamePlate, 0.85), A(k.Ink, 0.45), 1, 2);
+                        _type.Label(d, right, sy - size * 0.65, text, TypeRole.Caption, FontRole.Body, k.Ink, TextAlign.Right);
+                        d.FadeFrom(from, R);
+                        if (firstCopy) markers.Add((s.Id, text));
+                        else copies++;
+                        firstCopy = false;
+                    }
                 }
             Charge(MapLayer.ResourceOverlay, null);
             OverlayKey? okey = null;
@@ -848,8 +934,23 @@ public static class WorldLens
         return new LensFrame(zoom, layers, unitTokens, drawn, draws, institutions, pieces, placements)
         {
             SettlementHits = hits, InfoDraws = info, Painted = painted, Legend = key, Detail = detail, Overlay = overlayFrame,
-            Parts = parts,
+            Parts = parts, Copies = copies,
         };
+    }
+
+    /// <summary>WS3: the copies a flat paint considers (the one world, where it is) and a wrapped paint considers (the
+    /// world and one circumference either side — enough while the window is at most one circumference wide).</summary>
+    private static readonly int[] FlatCopies = [0], WrapCopies = [-1, 0, 1];
+
+    /// <summary>WS3: whether a formation token at (<paramref name="ux"/>, <paramref name="uy"/>) of half-size
+    /// <paramref name="tok"/> — its plate, its selection frame and, once labelled (<paramref name="regional"/> &gt; 0), its
+    /// identity label to the right — can touch <paramref name="viewport"/> (with the replay's fringe).</summary>
+    private static bool TokenTouches(ITextMeasure m, double ux, double uy, double tok, double regional, string label, RectD viewport)
+    {
+        double ts = tok + 4 + DrawListCull.FringePx;
+        double right = ux + ts;
+        if (regional > 0) right = Math.Max(right, ux + tok + 5 + _type.Width(m, label, TypeRole.Caption, FontRole.Caps) + DrawListCull.FringePx);
+        return DrawListCull.Touches(new RectD(ux - ts, uy - ts, right - (ux - ts), 2 * ts), viewport);
     }
 
     // ---------------------------------------------------------------- the legend (P3)

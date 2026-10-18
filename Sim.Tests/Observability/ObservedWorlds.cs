@@ -37,8 +37,8 @@ internal static class ObservedWorlds
 {
     internal sealed record Run(ObservationLog Log, WorldState Final, SimConfig Cfg);
 
-    internal static WorldState Founded(ulong seed = 42UL) =>
-        WorldFounding.Found(TestConfigs.Worldgen(), TestConfigs.Sim(), seed);
+    internal static WorldState Founded(ulong seed = 42UL, WorldgenConfig? worldgen = null) =>
+        WorldFounding.Found(worldgen ?? TestConfigs.Worldgen(), TestConfigs.Sim(), seed);
 
     internal static TurnExecutor Executor(SimConfig cfg, OrderLog? orders)
     {
@@ -128,13 +128,22 @@ internal static class ObservedWorlds
     /// starvation NON-VACUITY sample WorldReconciliationTests pins, which is a
     /// per-settlement regime: intra-polity relief feeds the settlements the driving
     /// orders starve while their polity has spare grain. The shipped Driven300 stays
-    /// the world every identity is reconciled on.</summary>
+    /// the world every identity is reconciled on.
+    /// Batch 3 (D-054, W1 fix F5): "the de86ace driven run" is also the FLAT world — the batch-2 twin strips every newer
+    /// layer (the R4 rule), the cylinder included — so it founds on <see cref="TestConfigs.PreD054Worldgen()"/>. On the
+    /// cylinder its decay sample is gone (MEASURED: "no dwelling decay on turn 201 (per-settlement stores)").
+    /// Integration R1 (2026-10-14) — RE-MEASURED on the merged tree: FLAT (this run) — starvation on turn 8 = 93, the first
+    /// dwelling decay on turn 201, 44 dwellings across 14 of the 300 turns (WorldReconciliationTests' samples hold); the
+    /// CYLINDER (the same config) — starvation on turn 8 = 64 and NO dwelling decay in 300 turns. Kept flat: a batch-2 layer
+    /// twin strips the newer worldgen layer too (the R4 rule), and reconciliation of the decay flow is topology-independent
+    /// — the shipped Driven300 (cylinder) is reconciled every turn beside it.</summary>
     internal static readonly Lazy<Run> DrivenPerSettlementStores300 =
-        new(() => DrivenRun(300, TestConfigs.PreEmpireFoodAllocation(TestConfigs.Sim())), LazyThreadSafetyMode.ExecutionAndPublication);
+        new(() => DrivenRun(300, TestConfigs.PreEmpireFoodAllocation(TestConfigs.Sim()), TestConfigs.PreD054Worldgen()),
+            LazyThreadSafetyMode.ExecutionAndPublication);
 
-    internal static Run DrivenRun(int turns, SimConfig? cfg = null)
+    internal static Run DrivenRun(int turns, SimConfig? cfg = null, WorldgenConfig? worldgen = null)
     {
-        WorldState world = Founded();
+        WorldState world = Founded(worldgen: worldgen);
         OrderLog orders = DrivenGoldenTests.DrivingOrders(world.Settlements.Count);
         OrderValidation.ValidateAgainstWorld(orders, world);
         return Observed(world, orders, turns, cfg);

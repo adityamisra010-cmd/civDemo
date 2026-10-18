@@ -85,8 +85,22 @@ public static class OrderValidation
                 continue;   // no settlement target to resolve
             }
 
+            // WS2 (D-054): an Empire sets ITS OWN building/roads split — the SetTaxRate rule. The consumer re-applies
+            // it (and the roster check) on PREV at delivery.
+            if (record.Kind == OrderKind.SetResourceAllocation)
+            {
+                if (record.TargetId != record.ActorId)
+                {
+                    throw new OrderValidationException(
+                        $"order[{i}] (turn {record.Turn}): SetResourceAllocation targets polity " +
+                        $"{record.TargetId} but was issued by polity {record.ActorId}. An Empire " +
+                        "sets its own split of materials; it does not set another Empire's.");
+                }
+                continue;   // no settlement target to resolve
+            }
+
             if (record.Kind is not (OrderKind.LaborAllocation or OrderKind.SectorAllocation
-                or OrderKind.EnqueueConstruction or OrderKind.FoundSettlement)) continue;
+                or OrderKind.EnqueueConstruction or OrderKind.FoundSettlement or OrderKind.CancelConstruction)) continue;
 
             // ADR-036: a Found Settlement site must be ON THE MAP. The load-time pass sees no terrain, so it
             // could only insist on a whole, non-negative cell (OrderLog.ValidateRecord); the map size is
@@ -121,11 +135,13 @@ public static class OrderValidation
             // reason the actor check is guarded on a non-empty roster: a world
             // with no control relation has nothing to check against, and hand-built
             // test worlds are legitimately in that state.
-            if (record.Kind == OrderKind.EnqueueConstruction && world.Controls.Count > 0
+            // WS1 (D-054): CancelConstruction by the same rule — an Empire cancels only where it rules. The consumer
+            // re-applies it on PREV at delivery (ConstructionQuery.CancelOrderValid): control can change after turn 0.
+            if (record.Kind is (OrderKind.EnqueueConstruction or OrderKind.CancelConstruction) && world.Controls.Count > 0
                 && !EmpireQuery.ControlsSettlement(world, record.Actor, new SettlementId(record.TargetId)))
             {
                 throw new OrderValidationException(
-                    $"order[{i}] (turn {record.Turn}): EnqueueConstruction targets settlement " +
+                    $"order[{i}] (turn {record.Turn}): {record.Kind} targets settlement " +
                     $"{record.TargetId}, which polity {record.ActorId} does not control. An Empire may " +
                     "only build where it rules (D-037 control is authoritative).");
             }
@@ -208,7 +224,7 @@ public static class OrderValidation
                     "(ADR-034).");
 
             if (record.Kind is not (OrderKind.LaborAllocation or OrderKind.SectorAllocation
-                or OrderKind.EnqueueConstruction or OrderKind.FoundSettlement)) continue;
+                or OrderKind.EnqueueConstruction or OrderKind.FoundSettlement or OrderKind.CancelConstruction)) continue;
             int target = record.Kind == OrderKind.SectorAllocation ? record.TargetId >> 3 : record.TargetId;
             bool deferredTarget = record.Turn >= 1 && maxSettlementId >= 0 && target > maxSettlementId;
             if (!deferredTarget) continue;

@@ -41,7 +41,7 @@ public class ResearchSchemaTests
     [Fact]
     public void SchemaV26_PopulatedResearchTables_LengthAndRoundTripExact()
     {
-        Assert.Equal(32, CanonicalSchema.Version);   // v31: ADR-033 D6/D10 Institutions + ConstructionLabor (v32: H2 TaxGrievances)
+        Assert.Equal(33, CanonicalSchema.Version);   // v31: ADR-033 D6/D10 Institutions + ConstructionLabor (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations)
         WorldState world = Populated();
 
         using var ms = new MemoryStream();

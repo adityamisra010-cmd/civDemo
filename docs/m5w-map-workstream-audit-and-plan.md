@@ -1205,3 +1205,19 @@ packets (sections above kept as written):
 - **Base / publication:** `2dc6af2` (remote) is the accepted publication baseline; nothing is pushed or merged
   without approval; per-packet acceptance is still unruled (D-052 §14).
 - **CR-020:** ruled (§A guard + deferred direction; §B 1(b) on, reds disclosed) — D-052 §9, §11.
+
+## 2026-10-15 — batch 3 (D-054) took schema v33 (dated note; sections above kept as written)
+
+The reservation in this plan's coupling map, "kind 9 = FoundSettlement, kind 10 = MoveFormation, v33 = the first schema
+bump to land", is met by the Director's 2026-10-14 batch 3 (ADR-039).
+- **v33 is taken:** `ConstructionProgress` and `ResourceAllocations`, plus a snapshot topology trailer.
+- **S2a's known extent therefore takes v34.** S3's Action Points state takes the next free version after it, where the
+  S3 section says "v34 if S2a took v33".
+- **Order kinds 11 (`CancelConstruction`) and 12 (`SetResourceAllocation`) are taken.** Kind 9 is unchanged, and kind
+  10 stays reserved for MoveFormation.
+- **The world is now an east-west cylinder** (`worldgen.json` `topology.wrapX`). Every S2/S3 packet that computes
+  geometry must go through `Sim.Core/Pathing/MapTopology.cs`; `MapTopologyGuardTests` enforces this.
+- **Batch 3 built no fog or extent state.** The Director put explored-longitude gating and Satellites "EXPLICITLY OUT
+  OF SCOPE FOR NOW".
+
+Record: `docs/d054-batch3-incremental-construction-allocation-cylinder.md`.

@@ -17,8 +17,15 @@ public static class UiFounding
     /// <param name="aiEmpiresOverride">ADR-033 D5: found this many AI-commanded Empires instead of
     /// worldgen.json's <c>aiEmpires</c> (whose default stays 0). Recorded in the session manifest so the
     /// session replays (`sim replay --ai-empires N`).</param>
+    /// <param name="wrapXOverride">Batch 3 WS3: found the world with this east-west topology instead of
+    /// worldgen.json's <c>topology.wrapX</c> — a TEST AND TOOL SEAM (the launcher never sets it). Its one use is a
+    /// rig that needs a size the lattice stride does not divide, which only a flat world supports (the 250-px
+    /// StrideWorldsFixture world, which exists to exercise the orphan terrain columns). The manifest does not record
+    /// it, so a session founded with it is not resumable from its log — like <see cref="UiSession.StartFrom(WorldState, ulong, int?, int?)"/>,
+    /// it is never written as a playable session.</param>
     public static WorldState Found(
-        ulong seed, int? sizeOverridePx = null, int? settlementsOverride = null, int? aiEmpiresOverride = null)
+        ulong seed, int? sizeOverridePx = null, int? settlementsOverride = null, int? aiEmpiresOverride = null,
+        bool? wrapXOverride = null)
     {
         WorldgenConfig worldgenCfg;
         using (var stream = Sim.Data.DataFiles.OpenWorldgen())
@@ -27,6 +34,7 @@ public static class UiFounding
         }
         if (sizeOverridePx is { } sz) worldgenCfg = worldgenCfg with { SizePx = sz };
         if (aiEmpiresOverride is { } ai) worldgenCfg = worldgenCfg with { AiEmpires = ai };
+        if (wrapXOverride is { } wrap) worldgenCfg = worldgenCfg with { Topology = new TopologyConfig(wrap) };
 
         return WorldFounding.Found(worldgenCfg, ProductionConfig(), seed, settlementsOverride);
     }

@@ -99,10 +99,18 @@ public class InstitutionAiTests
         Assert.Null(AiConstructionPolicy.University(hungry, cfg, Rival, dt));
         // Not viable (market) → nothing.
         Assert.Null(AiConstructionPolicy.University(w, Cfg(adultsPerUniversity: 1_000_000), Rival, dt));
-        // Not affordable: no capacity for the labour at the default share → nothing.
+        // Not buildable: WS1 (D-054) — the site needs builders able to move the project at all this turn,
+        // floor(C / L × N) ≥ 1 (labour is a pace, not a gate). No construction share → nothing; a small share (C far below
+        // the 240 adult-years) now qualifies — it was refused under M4-D's whole-labour-this-turn gate, which the
+        // switch-off twin still applies.
+        WorldState none = w.Clone();
+        foreach (SettlementId s in sites) Construction(none, s, 0.0);
+        Assert.Null(AiConstructionPolicy.University(none, cfg, Rival, dt));
         WorldState weak = w.Clone();
         foreach (SettlementId s in sites) Construction(weak, s, 0.01);
-        Assert.Null(AiConstructionPolicy.University(weak, cfg, Rival, dt));
+        Assert.True(ConstructionQuery.CapacityAdultYears(weak, cfg, sites[0], dt) < 240.0, "anti-vacuity: the weak share cannot build it in one turn");
+        Assert.NotNull(AiConstructionPolicy.University(weak, cfg, Rival, dt));
+        Assert.Null(AiConstructionPolicy.University(weak, TestConfigs.PreIncrementalConstruction(cfg), Rival, dt));
         // A busy queue, or a settlement already given an order this turn, is skipped.
         Assert.NotNull(AiConstructionPolicy.University(w, cfg, Rival, dt));
         Assert.Null(AiConstructionPolicy.University(w, cfg, Rival, dt, [sites[0].Value, sites[1].Value]));

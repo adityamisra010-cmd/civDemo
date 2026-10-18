@@ -32,8 +32,26 @@ namespace Sim.Ui.ViewModel;
 /// <see cref="Clamp(RectD)"/>, <see cref="Stop"/> — act on the shown view and leave the camera SETTLED (target =
 /// shown), so a camera never eased computes exactly what it computed before P2. The camera is UI state only: nothing
 /// here reads or writes the simulation.
+///
+/// BATCH 3 WS3 — THE CYLINDER (<see cref="WrapX"/>; the Director's 2026-10-14 instruction: "rendering and camera movement
+/// must display the same world consistently across the boundary"). A camera built with <c>wrapX: true</c> (only the game,
+/// from <c>TerrainSet.WrapX</c>, and the frame-cost measurement pass it; every existing flat camera and test is unchanged):
+/// <list type="bullet">
+/// <item>X is NORMALISED into [0, <see cref="WorldSize"/>) after every operation (<see cref="Sim.Core.Pathing.MapTopology.WrapCoord"/>) —
+///   panning east past the eastern edge continues from the western edge, and the reverse; there is no x clamp;</item>
+/// <item><see cref="Advance"/>, the glide and <see cref="Settled"/> take the SHORTEST wrapped delta, so an ease never goes the
+///   long way round;</item>
+/// <item>Y keeps its clamp (the poles are hard edges);</item>
+/// <item>THE ZOOM FLOOR is the WINDOW's width over the world's (<see cref="WindowWidth"/>; not the map rect's), so the window —
+///   the map is drawn full-window beneath the chrome — is never wider than one circumference: no world point is ever on
+///   screen twice, and opening or closing a context panel neither re-zooms nor shows repeated terrain. (A window taller
+///   than wide floors on its height instead, so the poles' clamp stays meaningful — the same rule for any landscape window.)</item>
+/// </list>
+/// What is drawn where is the caller's: <see cref="WorldToScreen(double, double, RectD)"/> stays the plain affine map of
+/// copy 0 (world x as given), <see cref="VisibleCopies"/> says which copies k (world x + k·WorldSize) of the world the window
+/// shows, and <see cref="WorldToScreenNearest"/> places a point at its copy nearest the view centre.
 /// </summary>
-public sealed class Camera(double worldSize)
+public sealed class Camera(double worldSize, bool wrapX = false)
 {
     /// <summary>One view of the world: the world point at the map rect's centre and the zoom.</summary>
     private struct View
@@ -61,6 +79,14 @@ public sealed class Camera(double worldSize)
 
     public double WorldSize { get; } = worldSize;
 
+    /// <summary>WS3: the world is a cylinder east-west (see the class remarks). False: the flat camera, exactly as before.</summary>
+    public bool WrapX { get; } = wrapX;
+
+    /// <summary>WS3: the width in screen px of the WINDOW the map is drawn across (the game sets it from its viewport) — a
+    /// wrapped camera's zoom floor is this over <see cref="WorldSize"/>. 0 (unset): the map rect's right edge. Unused by a
+    /// flat camera.</summary>
+    public double WindowWidth { get; set; }
+
     public const double MaxZoom = 32.0;
 
     /// <summary>P2: the ease rate, per second — ProgressionCamera's (k = 1 − exp(−14 dt)): 90 % of the way in 0.16 s.</summary>
@@ -79,10 +105,19 @@ public sealed class Camera(double worldSize)
     /// smaller than an 1/8 of it so degenerate viewports cannot zero out).</summary>
     public double MinZoom(int viewportW, int viewportH) => MinZoom(Window(viewportW, viewportH));
 
-    /// <summary>P1: the fit zoom of a MAP RECT — the whole world inside it, on its shorter side.</summary>
-    public double MinZoom(RectD view) =>
-        Math.Max(Math.Min(view.W, view.H) / WorldSize / 8.0,
-                 Math.Min(view.W, view.H) / WorldSize);
+    /// <summary>P1: the fit zoom of a MAP RECT — the whole world inside it, on its shorter side. WS3: a wrapped camera's
+    /// floor is one circumference across the WINDOW — max(<see cref="WindowWidth"/> (else the rect's right edge), the rect's
+    /// height) / <see cref="WorldSize"/> — so the window never shows a world point twice, whatever panel is open.</summary>
+    public double MinZoom(RectD view)
+    {
+        if (WrapX)
+        {
+            double across = Math.Max(Math.Max(WindowWidth, view.Right), view.H);
+            return Math.Max(1e-9, across / WorldSize);
+        }
+        return Math.Max(Math.Min(view.W, view.H) / WorldSize / 8.0,
+                        Math.Min(view.W, view.H) / WorldSize);
+    }
 
     public (double X, double Y) ScreenToWorld(double sx, double sy, int viewportW, int viewportH) =>
         ScreenToWorld(sx, sy, Window(viewportW, viewportH));
@@ -104,6 +139,43 @@ public sealed class Camera(double worldSize)
     public (double X, double Y) TargetScreenToWorld(double sx, double sy, RectD view) =>
         (_target.X + (sx - view.CenterX) / _target.Zoom,
          _target.Y + (sy - view.CenterY) / _target.Zoom);
+
+    /// <summary>WS3: world → screen at the copy of <paramref name="wx"/> NEAREST the view centre (<see cref="CenterX"/>): on a
+    /// wrapped camera the point is placed where the player sees it (a settlement just west of the seam, viewed from just
+    /// east of it, is to the left of the centre, not a circumference away); flat, exactly <see cref="WorldToScreen(double, double, RectD)"/>.</summary>
+    public (double X, double Y) WorldToScreenNearest(double wx, double wy, RectD view) =>
+        WorldToScreen(WrapX ? Sim.Core.Pathing.MapTopology.NearestCopy(wx, CenterX, WorldSize) : wx, wy, view);
+
+    /// <summary>WS3: the world rect (world px) a screen rect <paramref name="screen"/> shows through the map rect
+    /// <paramref name="view"/> in the SHOWN view — x NOT normalised (it may run below 0 or past <see cref="WorldSize"/>, which
+    /// is exactly the information <see cref="VisibleCopies"/> needs).</summary>
+    public RectD ScreenRectToWorld(RectD screen, RectD view)
+    {
+        (double x0, double y0) = ScreenToWorld(screen.X, screen.Y, view);
+        (double x1, double y1) = ScreenToWorld(screen.Right, screen.Bottom, view);
+        return new RectD(x0, y0, x1 - x0, y1 - y0);
+    }
+
+    /// <summary>
+    /// WS3: WHICH COPIES OF THE WORLD a world-space window shows — the k ∈ {−1, 0, 1} (ascending) for which the copy
+    /// [k·<see cref="WorldSize"/>, (k + 1)·<see cref="WorldSize"/>) intersects [<paramref name="windowWorld"/>.X,
+    /// <paramref name="windowWorld"/>.Right). A pure function. A flat camera always answers {0} (there is one world, drawn
+    /// where it is). On a wrapped camera the centre is in [0, WorldSize) and the floor keeps the window at most one
+    /// circumference wide, so {−1, 0, 1} is always enough: a window straddling the seam answers two copies (the two pieces of
+    /// one world across the cut, never a duplicate), one inside the world answers {0}. The GPU passes (the terrain sprite's
+    /// source rect, the river buffer's translations) draw exactly these copies.
+    /// </summary>
+    public int[] VisibleCopies(RectD windowWorld)
+    {
+        if (!WrapX) return [0];
+        var ks = new List<int>(3);
+        for (int k = -1; k <= 1; k++)
+        {
+            double lo = k * WorldSize, hi = (k + 1) * WorldSize;
+            if (windowWorld.X < hi && windowWorld.Right > lo) ks.Add(k);
+        }
+        return [.. ks];
+    }
 
     /// <summary>P1: the affine map world → screen as (scale, offset x, offset y): screen = world × scale + offset. The
     /// render matrix (SimUiGame) is built from THIS, so the GPU pass and <see cref="WorldToScreen(double, double, RectD)"/>
@@ -147,7 +219,7 @@ public sealed class Camera(double worldSize)
     public void ZoomAt(double cursorSx, double cursorSy, double factor, RectD view)
     {
         (double wx, double wy) = ScreenToWorld(cursorSx, cursorSy, view);
-        _shown.Zoom = Math.Clamp(Zoom * factor, MinZoom(view), MaxZoom);
+        _shown.Zoom = Math.Clamp(Zoom * factor, MinZoom(view), CeilingFor(MinZoom(view)));
         _shown.X = wx - (cursorSx - view.CenterX) / _shown.Zoom;
         _shown.Y = wy - (cursorSy - view.CenterY) / _shown.Zoom;
         _target = _shown;
@@ -169,7 +241,7 @@ public sealed class Camera(double worldSize)
     public void ZoomToward(double cursorSx, double cursorSy, double factor, RectD view)
     {
         (double wx, double wy) = ScreenToWorld(cursorSx, cursorSy, view);
-        _target.Zoom = Math.Clamp(_target.Zoom * factor, MinZoom(view), MaxZoom);
+        _target.Zoom = Math.Clamp(_target.Zoom * factor, MinZoom(view), CeilingFor(MinZoom(view)));
         _target.X = wx - (cursorSx - view.CenterX) / _target.Zoom;
         _target.Y = wy - (cursorSy - view.CenterY) / _target.Zoom;
         ClampView(ref _target, view);
@@ -188,10 +260,12 @@ public sealed class Camera(double worldSize)
         double inv = 1.0 / _shown.Zoom;
         inv += (1.0 / _target.Zoom - inv) * k;
         _shown.Zoom = 1.0 / inv;
-        _shown.X += (_target.X - _shown.X) * k;
+        // WS3: on a cylinder the centre eases along the SHORTEST wrapped delta (never the long way round), and is normalised.
+        _shown.X += DeltaX(_shown.X, _target.X) * k;
+        if (WrapX) _shown.X = Wrap(_shown.X);
         _shown.Y += (_target.Y - _shown.Y) * k;
         bool moving = Math.Abs(_target.Zoom - _shown.Zoom) > SettleZoomFraction * _target.Zoom
-            || Math.Abs(_target.X - _shown.X) * _target.Zoom > SettleScreenPx
+            || Math.Abs(DeltaX(_shown.X, _target.X)) * _target.Zoom > SettleScreenPx
             || Math.Abs(_target.Y - _shown.Y) * _target.Zoom > SettleScreenPx;
         if (!moving) _shown = _target;
         return moving;
@@ -226,19 +300,28 @@ public sealed class Camera(double worldSize)
     /// would leave the new rect), the clamp wins: that is what "inside the world" means. P2: the shown view and the
     /// target view are reframed alike, each about the same anchor, so an ease in progress carries on in the new rect.
     /// </summary>
-    public void Reframe(RectD from, RectD to, double anchorSx, double anchorSy)
+    public void Reframe(RectD from, RectD to, double anchorSx, double anchorSy) =>
+        Reframe(from, to, anchorSx, anchorSy, WindowWidth);
+
+    /// <summary>WS3: <see cref="Reframe(RectD, RectD, double, double)"/> when the WINDOW's width changed too (a resize): a
+    /// wrapped camera's floor before the change is judged at the old <see cref="WindowWidth"/>, after it at
+    /// <paramref name="toWindowWidth"/> (which becomes the camera's). A flat camera ignores the window width.</summary>
+    public void Reframe(RectD from, RectD to, double anchorSx, double anchorSy, double toWindowWidth)
     {
         bool settled = Settled;
-        ReframeView(ref _shown, from, to, anchorSx, anchorSy);
+        double fromFloor = MinZoom(from);
+        WindowWidth = toWindowWidth;
+        double toFloor = MinZoom(to);
+        ReframeView(ref _shown, from, to, anchorSx, anchorSy, fromFloor, toFloor);
         if (settled) _target = _shown;
-        else ReframeView(ref _target, from, to, anchorSx, anchorSy);
+        else ReframeView(ref _target, from, to, anchorSx, anchorSy, fromFloor, toFloor);
     }
 
-    private void ReframeView(ref View v, RectD from, RectD to, double anchorSx, double anchorSy)
+    private void ReframeView(ref View v, RectD from, RectD to, double anchorSx, double anchorSy, double fromFloor, double toFloor)
     {
-        bool atFit = v.Zoom <= MinZoom(from) * (1.0 + 1e-12);
+        bool atFit = v.Zoom <= fromFloor * (1.0 + 1e-12);
         double wx = v.X + (anchorSx - from.CenterX) / v.Zoom, wy = v.Y + (anchorSy - from.CenterY) / v.Zoom;
-        v.Zoom = atFit ? Math.Min(MinZoom(to), MaxZoom) : Math.Clamp(v.Zoom, MinZoom(to), MaxZoom);
+        v.Zoom = atFit ? Math.Min(toFloor, CeilingFor(toFloor)) : Math.Clamp(v.Zoom, toFloor, CeilingFor(toFloor));
         v.X = wx - (anchorSx - to.CenterX) / v.Zoom;
         v.Y = wy - (anchorSy - to.CenterY) / v.Zoom;
         ClampView(ref v, to);
@@ -246,9 +329,31 @@ public sealed class Camera(double worldSize)
 
     private void ClampView(ref View v, RectD view)
     {
-        v.Zoom = Math.Clamp(v.Zoom, MinZoom(view), MaxZoom);
-        v.X = ClampAxis(v.X, view.W, v.Zoom);
+        v.Zoom = Math.Clamp(v.Zoom, MinZoom(view), CeilingFor(MinZoom(view)));
+        v.X = WrapX ? Wrap(v.X) : ClampAxis(v.X, view.W, v.Zoom);   // WS3: no x edge on a cylinder — normalised instead
         v.Y = ClampAxis(v.Y, view.H, v.Zoom);
+    }
+
+    /// <summary>The zoom ceiling over a floor of <paramref name="floor"/>: <see cref="MaxZoom"/>. WS3: a wrapped camera's
+    /// floor (one circumference across the window) can exceed it on a tiny world (a 12-px --size world in a 1280-px window:
+    /// 107×); its ceiling is then the floor — the window is never wider than one circumference, and the clamp never inverts.
+    /// A flat camera keeps <see cref="MaxZoom"/> exactly.</summary>
+    private double CeilingFor(double floor) => WrapX ? Math.Max(floor, MaxZoom) : MaxZoom;
+
+    /// <summary>WS3: a world x normalised into [0, <see cref="WorldSize"/>) (<see cref="Sim.Core.Pathing.MapTopology.WrapCoord"/>).</summary>
+    private double Wrap(double x) => Sim.Core.Pathing.MapTopology.WrapCoord(x, WorldSize);
+
+    /// <summary>WS3: the x delta from <paramref name="from"/> to <paramref name="to"/> — on a cylinder the SHORTEST way round
+    /// (in (−WorldSize/2, WorldSize/2]; east at the exact half-world tie, MapTopology's convention), flat the plain difference.</summary>
+    public double DeltaX(double from, double to)
+    {
+        double d = to - from;
+        if (!WrapX || !double.IsFinite(d)) return d;
+        double size = WorldSize;
+        d -= size * Math.Floor(d / size + 0.5);
+        if (d <= -size / 2.0) d += size;
+        else if (d > size / 2.0) d -= size;
+        return d;
     }
 
     private double ClampAxis(double center, double viewportPx, double zoom)

@@ -303,6 +303,7 @@ public class IntegratedPinAttributionTests
     private static string HashWithoutM4(WorldState world, int dropTrailingTables)
     {
         WorldState stripped = world.Clone();
+        StripV33AssertingEmpty(stripped);
         StripLevy(stripped);
         StripInstitutions(stripped);
         StripGovernance(stripped);
@@ -322,7 +323,7 @@ public class IntegratedPinAttributionTests
             CanonicalSchema.Write(stripped, writer);
         }
 
-        return HashDroppingTrailer(buffer.ToArray(), dropTrailingTables + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount);
+        return HashDroppingTrailer(buffer.ToArray(), dropTrailingTables + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount);
     }
 
     private static string HashDroppingTrailer(byte[] full, int dropTrailingTables)
@@ -398,6 +399,7 @@ public class IntegratedPinAttributionTests
     internal static string HashAtSchemaV26(WorldState world, out int ageRowsRemoved)
     {
         WorldState stripped = world.Clone();
+        StripV33AssertingEmpty(stripped);
         StripLevy(stripped);
         StripInstitutions(stripped);
         StripGovernance(stripped);
@@ -408,7 +410,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount);
+        return HashDroppingTrailer(buffer.ToArray(), AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount);
     }
 
     /// <summary>ADR-032: the two v29 transport tables, appended after UnitConversions. Every pin in
@@ -429,6 +431,7 @@ public class IntegratedPinAttributionTests
     internal static string HashAtSchemaV28(WorldState world, out int roadRowsRemoved)
     {
         WorldState stripped = world.Clone();
+        StripV33AssertingEmpty(stripped);
         StripLevy(stripped);
         StripInstitutions(stripped);
         StripGovernance(stripped);
@@ -438,7 +441,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount);
+        return HashDroppingTrailer(buffer.ToArray(), RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount);
     }
 
     /// <summary>ADR-033 D4: the one v30 governance table (TaxPolicies), appended after
@@ -476,6 +479,7 @@ public class IntegratedPinAttributionTests
     internal static string HashAtSchemaV29(WorldState world, out int strengthsRestored)
     {
         WorldState stripped = world.Clone();
+        StripV33AssertingEmpty(stripped);
         StripLevy(stripped);
         StripInstitutions(stripped);
         strengthsRestored = StripGovernance(stripped);
@@ -484,7 +488,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), GovernanceTableCount + InstitutionTableCount + LevyTableCount);
+        return HashDroppingTrailer(buffer.ToArray(), GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount);
     }
 
     /// <summary>ADR-033 D6 + D10: the two v31 tables (Institutions, ConstructionLabor), appended after
@@ -516,6 +520,7 @@ public class IntegratedPinAttributionTests
     internal static string HashAtSchemaV30(WorldState world, out int institutionRowsRemoved)
     {
         WorldState stripped = world.Clone();
+        StripV33AssertingEmpty(stripped);
         StripLevy(stripped);
         institutionRowsRemoved = StripInstitutions(stripped);
         using var buffer = new MemoryStream();
@@ -523,7 +528,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), InstitutionTableCount + LevyTableCount);
+        return HashDroppingTrailer(buffer.ToArray(), InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount);
     }
 
     /// <summary>H2 (2026-10-05): the one v32 table (TaxGrievances — the levy's grievance per population segment),
@@ -545,13 +550,14 @@ public class IntegratedPinAttributionTests
     internal static string HashAtSchemaV31(WorldState world, out int levyRowsRemoved)
     {
         WorldState stripped = world.Clone();
+        StripV33AssertingEmpty(stripped);
         levyRowsRemoved = StripLevy(stripped);
         using var buffer = new MemoryStream();
         using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true))
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), LevyTableCount);
+        return HashDroppingTrailer(buffer.ToArray(), LevyTableCount + TestUtil.SchemaProjection.V33TableCount);
     }
 
     /// <summary>A pre-v32 pin's comparison form: the v31 stream of an UNTAXED run (no levy-grievance row to strip —
@@ -561,6 +567,57 @@ public class IntegratedPinAttributionTests
         string hash = HashAtSchemaV31(world, out int removed);
         Assert.Equal(0, removed);
         return hash;
+    }
+
+    /// <summary>D-054 (batch 3; C2 review F7, integration R1 2026-10-14): the v33 strip every chain helper below v33 starts
+    /// with, ASSERTING it removed no row — exactly as <see cref="TestUtil.SchemaProjection.V32"/> does. A ConstructionProgress
+    /// or ResourceAllocations row is a behaviour change (WS1 / WS2), never a layout one, so a pre-v33 pin must never be
+    /// compared through a strip that hid one. Pinned by <see cref="EveryOlderSchemaProjection_RefusesAWorldWithAV33Row_AsTheV32ProjectionDoes"/>.</summary>
+    private static void StripV33AssertingEmpty(WorldState stripped)
+    {
+        int removed = TestUtil.SchemaProjection.StripV33(stripped);
+        Assert.True(removed == 0,
+            $"the v33 strip removed {removed} row(s): a part-built head or a material split is behaviour, not layout — a pre-v33 pin cannot be compared through it");
+    }
+
+    /// <summary>
+    /// D-054 (batch 3; C2 review F7, integration R1 2026-10-14): EVERY OLDER-SCHEMA PROJECTION REFUSES A POPULATED v33 TABLE.
+    /// Each chain helper below v33 strips ConstructionProgress and ResourceAllocations before asking its original question —
+    /// and a row there is a BEHAVIOUR change (a part-built head under WS1, an empire's material split under WS2), never a
+    /// layout one, so a projection that cleared it silently would let a pre-v33 pin hide exactly the change it must see
+    /// (MEASURED by the reviewer: on the v32 fixture world WS1 changes ONLY the ConstructionProgress table). So each helper
+    /// asserts its v33 strip removed nothing, as <see cref="TestUtil.SchemaProjection.V32"/> does. Both tables, every helper,
+    /// and a positive control: the same world with the row removed projects cleanly through all of them.
+    /// </summary>
+    [Fact]
+    public void EveryOlderSchemaProjection_RefusesAWorldWithAV33Row_AsTheV32ProjectionDoes()
+    {
+        var helpers = new (string Name, Func<WorldState, string> Project)[]
+        {
+            ("v22", HashAtSchemaV22), ("v23", HashAtSchemaV23),
+            ("v24", w => HashAtSchemaV24(w, out _)), ("v25", w => HashAtSchemaV25(w, out _)),
+            ("v26", w => HashAtSchemaV26(w, out _)), ("v28", w => HashAtSchemaV28(w, out _)),
+            ("v29", w => HashAtSchemaV29(w, out _)), ("v30", w => HashAtSchemaV30(w, out _)),
+            ("v31", w => HashAtSchemaV31(w, out _)), ("v32", TestUtil.SchemaProjection.V32),
+        };
+        WorldState clean = SnapshotTests.CanonicalExecutor().Run(SnapshotTests.Genesis(42), 3);
+        Assert.Equal(0, clean.ConstructionProgress.Count + clean.ResourceAllocations.Count);
+        WorldState progress = clean.Clone();
+        progress.ConstructionProgress.Add(new ConstructionProgressRow(new SettlementId(0), 0, 1, 2, 1));
+        WorldState split = clean.Clone();
+        split.ResourceAllocations.Add(new ResourceAllocationRow(new PolityId(1), 30));
+        foreach ((string name, Func<WorldState, string> project) in helpers)
+        {
+            _ = project(clean);   // the positive control: a v33-empty world projects
+            Assert.True(Throws(() => project(progress)), $"{name}: a ConstructionProgress row was stripped silently");
+            Assert.True(Throws(() => project(split)), $"{name}: a ResourceAllocations row was stripped silently");
+        }
+
+        static bool Throws(Action a)
+        {
+            try { a(); return false; }
+            catch (Xunit.Sdk.XunitException) { return true; }
+        }
     }
 
     /// <summary>
@@ -594,6 +651,7 @@ public class IntegratedPinAttributionTests
     private static string HashAtSchemaV25(WorldState world, out int researchRowsRemoved)
     {
         WorldState stripped = world.Clone();
+        StripV33AssertingEmpty(stripped);
         StripLevy(stripped);
         StripInstitutions(stripped);
         StripGovernance(stripped);
@@ -605,7 +663,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), ResearchTableCount + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount);
+        return HashDroppingTrailer(buffer.ToArray(), ResearchTableCount + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount);
     }
 
     /// <summary>
@@ -617,6 +675,7 @@ public class IntegratedPinAttributionTests
     private static string HashAtSchemaV24(WorldState world, out int disasterStreamsRemoved)
     {
         WorldState stripped = world.Clone();
+        StripV33AssertingEmpty(stripped);
         StripLevy(stripped);
         StripInstitutions(stripped);
         StripGovernance(stripped);
@@ -629,7 +688,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), 1 + ResearchTableCount + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount);
+        return HashDroppingTrailer(buffer.ToArray(), 1 + ResearchTableCount + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount);
     }
 
     /// <summary>
@@ -727,10 +786,10 @@ public class IntegratedPinAttributionTests
         var executor = new TurnExecutor(
             EraTableLoader.Load(eraStream),
             PipelineLoader.Load(pipeStream, SystemCatalog.All(
-                Unarmed(), TestUtil.TestConfigs.Worldgen())));
+                Unarmed(), TestUtil.TestConfigs.PreD054Worldgen())));
         WorldState world = executor.Run(
             Sim.Core.Worldgen.WorldFounding.Found(
-                TestUtil.TestConfigs.Worldgen(), Unarmed(), 42), 300);
+                TestUtil.TestConfigs.PreD054Worldgen(), Unarmed(), 42), 300);
 
         Assert.Equal(mainValue, HashAtSchemaV22(world));
 
@@ -773,7 +832,7 @@ public class IntegratedPinAttributionTests
         // OLD (T4.21-3 alone) f424daa7da78568c23f475dd0b24dce31ee3b15f8ccf7d50fbf2713e0300d325.
         const string mainValue = "24bdc655d8aba2ec0168a4fe70b69334d6f0fe8af054242f595aa743a4183aad";
 
-        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1());
+        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1(), TestUtil.TestConfigs.PreD054Worldgen());
         Assert.Equal(mainValue, HashAtSchemaV22(world));
 
         // M4-C LAYER — this world is FOUNDED too, so it also carries Empire rows.
@@ -813,7 +872,7 @@ public class IntegratedPinAttributionTests
         // be measured at all. Both constants below re-measured on this tree via
         // HashAtSchemaV22 / HashAtSchemaV23; the founded, FirstReign and
         // synthetic controls in this file are UNMOVED (run, not assumed).
-        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, Unarmed());
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, Unarmed(), TestUtil.TestConfigs.PreD054Worldgen());
         string atV22 = HashAtSchemaV22(world);
 
         Assert.NotEqual(mainPinBeforeTheFix, atV22);
@@ -851,7 +910,7 @@ public class IntegratedPinAttributionTests
         Assert.Equal(beforeT421, HashAtSchemaV24(world, out int removed));
         Assert.Equal(0, removed);
         Assert.Equal(0, world.Disasters.Count);
-        Assert.Equal(32, CanonicalSchema.Version);   // v31: ADR-033 D6/D10 Institutions + ConstructionLabor (v32: H2 TaxGrievances)
+        Assert.Equal(33, CanonicalSchema.Version);   // v31: ADR-033 D6/D10 Institutions + ConstructionLabor (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations)
     }
 
     [Fact]
@@ -884,10 +943,10 @@ public class IntegratedPinAttributionTests
         var executor = new TurnExecutor(
             EraTableLoader.Load(eraStream),
             PipelineLoader.Load(pipeStream, SystemCatalog.All(
-                Unarmed(), TestUtil.TestConfigs.Worldgen())));
+                Unarmed(), TestUtil.TestConfigs.PreD054Worldgen())));
         WorldState world = executor.Run(
             Sim.Core.Worldgen.WorldFounding.Found(
-                TestUtil.TestConfigs.Worldgen(), Unarmed(), 42), 300);
+                TestUtil.TestConfigs.PreD054Worldgen(), Unarmed(), 42), 300);
 
         Assert.Equal(beforeT421, HashAtSchemaV24(world, out int removed));
         Assert.Equal(world.Settlements.Count, removed);   // one disaster stream per settlement — not vacuous
@@ -914,7 +973,7 @@ public class IntegratedPinAttributionTests
         // OLD (T4.21-3 alone) 77454c587a98f8fadb2ad055ca00509612f32a2a7aa73762e2418e0da30ebdfb.
         const string beforeT421 = "4c30b3d68e1e4606d3ba59935f1601af5be522f7bb752a8c7c37568f89cde0ea";
 
-        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1());
+        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1(), TestUtil.TestConfigs.PreD054Worldgen());
         Assert.Equal(beforeT421, HashAtSchemaV24(world, out int removed));
         Assert.True(removed >= 1, "no disaster stream rows to strip — control vacuous");
         Assert.Equal(0, world.Disasters.Count);
@@ -931,7 +990,7 @@ public class IntegratedPinAttributionTests
         // OLD (T4.21-3 alone) d6a0554e6c419cc6b8f3bd364b30f9721fb9b1ad1fb00675f265ae309ab1f1a1.
         const string beforeT421 = "003a7e49a9359dd65f16c27052c50be41957a2b479d6ebc7b666b67c9b0c3700";
 
-        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, Unarmed());
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, Unarmed(), TestUtil.TestConfigs.PreD054Worldgen());
         Assert.Equal(beforeT421, HashAtSchemaV24(world, out int removed));
         Assert.Equal(world.Settlements.Count, removed);
         Assert.Equal(0, world.Disasters.Count);
@@ -965,10 +1024,10 @@ public class IntegratedPinAttributionTests
         var executor = new TurnExecutor(
             EraTableLoader.Load(eraStream),
             PipelineLoader.Load(pipeStream, SystemCatalog.All(
-                Unarmed(), TestUtil.TestConfigs.Worldgen())));
+                Unarmed(), TestUtil.TestConfigs.PreD054Worldgen())));
         WorldState world = executor.Run(
             Sim.Core.Worldgen.WorldFounding.Found(
-                TestUtil.TestConfigs.Worldgen(), Unarmed(), 42), 300);
+                TestUtil.TestConfigs.PreD054Worldgen(), Unarmed(), 42), 300);
         Assert.Equal(beforeResearch, HashAtSchemaV25(world, out _));
         Assert.Equal(0, world.ResearchTargets.Count);    // nobody chose a target
         Assert.Equal(0, world.ResearchCompleted.Count);
@@ -977,7 +1036,7 @@ public class IntegratedPinAttributionTests
         // writes NO research row and its strip is vacuous on its own. The research-DRIVEN arm
         // below supplies the teeth: the same world with a target chosen every time one is free.
         WorldState researched = RunWithResearchDriver(
-            Sim.Core.Worldgen.WorldFounding.Found(TestUtil.TestConfigs.Worldgen(), Unarmed(), 42),
+            Sim.Core.Worldgen.WorldFounding.Found(TestUtil.TestConfigs.PreD054Worldgen(), Unarmed(), 42),
             new OrderLog(), Unarmed(), 300, researchFrom: 0);
         Assert.Equal(beforeResearch, HashAtSchemaV25(researched, out int removed));
         Assert.True(removed > 0, "no research rows to strip — control vacuous");
@@ -999,7 +1058,7 @@ public class IntegratedPinAttributionTests
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
         var executor = new TurnExecutor(
             EraTableLoader.Load(eraStream),
-            PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg, TestUtil.TestConfigs.Worldgen())), orders);
+            PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg, TestUtil.TestConfigs.PreD054Worldgen())), orders);
         for (int t = 0; t < turns; t++)
         {
             if (world.Clock.Turn >= researchFrom && !ResearchQuery.TryGetTarget(world, player, out _)
@@ -1015,7 +1074,7 @@ public class IntegratedPinAttributionTests
     {
         // FirstReignTests' golden on main.
         const string beforeResearch = "bd7b6b232d27e6fb40f3716fc2d85a4956017e5047617923aebb89ee663646a2";
-        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1());
+        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1(), TestUtil.TestConfigs.PreD054Worldgen());
         Assert.Equal(beforeResearch, HashAtSchemaV25(world, out _));
     }
 
@@ -1024,11 +1083,11 @@ public class IntegratedPinAttributionTests
     {
         // DrivenGoldenTests' golden on main.
         const string beforeResearch = "7d5e626004fb895f0f410503392bd0b3b03d73f76bf6429d24593073da63003e";
-        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, Unarmed());
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, Unarmed(), TestUtil.TestConfigs.PreD054Worldgen());
         Assert.Equal(beforeResearch, HashAtSchemaV25(world, out _));
         // The order-less research arm writes no research row (measured; see the founded control),
         // so the teeth are the same driven world with the research driver added to its orders.
-        WorldState founded = Sim.Core.Worldgen.WorldFounding.Found(TestUtil.TestConfigs.Worldgen(), Unarmed(), 42);
+        WorldState founded = Sim.Core.Worldgen.WorldFounding.Found(TestUtil.TestConfigs.PreD054Worldgen(), Unarmed(), 42);
         WorldState researched = RunWithResearchDriver(founded,
             DrivenGoldenTests.DrivingOrders(founded.Settlements.Count), Unarmed(), 300,
             researchFrom: 2); // the log is append-only in turn order, and its batch is stamped turn 2
@@ -1057,7 +1116,7 @@ public class IntegratedPinAttributionTests
     public void FoundedGoldenSeed42Turn300_MovedForTheAgeLayerAlone()
     {
         const string beforeAges = "52f480ba1c4d07747bdaf013049bf1f6e48092644c59001dd834afe05283b3fd";
-        WorldState world = SnapshotTests.RunFoundedGolden(PreR1());
+        WorldState world = SnapshotTests.RunFoundedGolden(PreR1(), TestUtil.TestConfigs.PreD054Worldgen());
         Assert.Equal(beforeAges, HashAtSchemaV26(world, out int removed));
         Assert.True(removed > 0, "no Age/military rows to strip — control vacuous");
         Assert.Equal(1, world.MilitaryUnits.Count); // the founding warband, unconverted: nobody advanced
@@ -1067,7 +1126,7 @@ public class IntegratedPinAttributionTests
     public void FirstReignTurn40_MovedForTheAgeLayerAlone()
     {
         const string beforeAges = "1694047ed455d28eb43471d6f6b535f2a23bd41b3cb211dd8c8fac13e44d1a5c";
-        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1());
+        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1(), TestUtil.TestConfigs.PreD054Worldgen());
         Assert.Equal(beforeAges, HashAtSchemaV26(world, out int removed));
         Assert.True(removed > 0, "no Age/military rows to strip — control vacuous");
     }
@@ -1076,7 +1135,7 @@ public class IntegratedPinAttributionTests
     public void DrivenGoldenSeed42Turn300_MovedForTheAgeLayerAlone()
     {
         const string beforeAges = "17105b1f871ef985cf3f627d26d95f928b53a5b91114730a3c74f7f7dafd075e";
-        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, PreR1());
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, PreR1(), TestUtil.TestConfigs.PreD054Worldgen());
         Assert.Equal(beforeAges, HashAtSchemaV26(world, out int removed));
         Assert.True(removed > 0, "no Age/military rows to strip — control vacuous");
     }
@@ -1105,7 +1164,7 @@ public class IntegratedPinAttributionTests
     public void FoundedGoldenSeed42Turn300_MovedForTheTransportLayoutAlone()
     {
         const string beforeRoads = "ed3794e7f8db2e909a68f2a39101c2eb24a97552934b8077eb2e05ff910bbb44";
-        WorldState world = SnapshotTests.RunFoundedGolden(PreR1());
+        WorldState world = SnapshotTests.RunFoundedGolden(PreR1(), TestUtil.TestConfigs.PreD054Worldgen());
         Assert.Equal(beforeRoads, HashAtSchemaV28(world, out int removed));
         Assert.Equal(0, removed); // no order log: no road is ever developed
     }
@@ -1114,7 +1173,7 @@ public class IntegratedPinAttributionTests
     public void FirstReignTurn40_MovedForTheTransportLayoutAlone()
     {
         const string beforeRoads = "7aaa807b52e26b2e2a94d01f448108bbb251a107e6e52cbb6264d44301d5fbd8";
-        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1());
+        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1(), TestUtil.TestConfigs.PreD054Worldgen());
         Assert.Equal(beforeRoads, HashAtSchemaV28(world, out int removed));
         Assert.Equal(0, removed); // the first-reign log carries no DevelopRoads order
     }
@@ -1123,7 +1182,7 @@ public class IntegratedPinAttributionTests
     public void DrivenGoldenSeed42Turn300_MovedForTheTransportLayoutAlone()
     {
         const string beforeRoads = "fe22abb415892680514b635d9abebb136b0a07b616c9b525116659e0937e5a51";
-        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, PreR1());
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, PreR1(), TestUtil.TestConfigs.PreD054Worldgen());
         Assert.Equal(beforeRoads, HashAtSchemaV28(world, out int removed));
         Assert.Equal(0, removed); // the driven log carries no DevelopRoads order
     }
@@ -1157,7 +1216,7 @@ public class IntegratedPinAttributionTests
     public void FoundedGoldenSeed42Turn300_MovedForTheGovernanceLayerAlone()
     {
         const string beforeGovernance = "9c8380a27a4ba1fc2b0ca110f6faa6b963140a743f0861c59681350852474a9d";
-        WorldState world = SnapshotTests.RunFoundedGolden(PreR1());
+        WorldState world = SnapshotTests.RunFoundedGolden(PreR1(), TestUtil.TestConfigs.PreD054Worldgen());
         Assert.Equal(beforeGovernance, HashAtSchemaV29(world, out int restored));
         // Non-vacuous: the founded world's non-capital settlements carry a computed reach < 1.
         Assert.True(restored > 0, "no Strength differed from 1.0 — the reach computation is invisible and the control vacuous");
@@ -1168,7 +1227,7 @@ public class IntegratedPinAttributionTests
     public void FirstReignTurn40_MovedForTheGovernanceLayerAlone()
     {
         const string beforeGovernance = "2fbff5cbb41f429b9aadfd6f7ad6053927cc78fc9b32ca11a48bff77fe6cb422";
-        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1());
+        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1(), TestUtil.TestConfigs.PreD054Worldgen());
         Assert.Equal(beforeGovernance, HashAtSchemaV29(world, out _));
         Assert.Equal(0, world.TaxPolicies.Count);   // the first-reign log carries no SetTaxRate order
     }
@@ -1177,7 +1236,7 @@ public class IntegratedPinAttributionTests
     public void DrivenGoldenSeed42Turn300_MovedForTheGovernanceLayerAlone()
     {
         const string beforeGovernance = "66bcd40e56f5620e803eb296d649fd53a9e1ae390fc737b15c58e7243b807477";
-        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, PreR1());
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, PreR1(), TestUtil.TestConfigs.PreD054Worldgen());
         Assert.Equal(beforeGovernance, HashAtSchemaV29(world, out int restored));
         Assert.True(restored > 0, "no Strength differed from 1.0 — control vacuous");
         Assert.Equal(0, world.TaxPolicies.Count);   // the driven log carries no SetTaxRate order
@@ -1211,7 +1270,7 @@ public class IntegratedPinAttributionTests
     public void FoundedGoldenSeed42Turn300_MovedForTheInstitutionsLayoutAlone()
     {
         const string beforeInstitutions = "14365a5c7529619011a77375972377419144b3013fea1e20e822f3a6290a1dc9";
-        WorldState world = SnapshotTests.RunFoundedGolden(PreR1());
+        WorldState world = SnapshotTests.RunFoundedGolden(PreR1(), TestUtil.TestConfigs.PreD054Worldgen());
         Assert.Equal(beforeInstitutions, HashAtSchemaV30(world, out int removed));
         Assert.Equal(0, removed);   // no order log: nothing is built, no university is founded
         Assert.Equal(0, world.Structures.Count);
@@ -1221,7 +1280,7 @@ public class IntegratedPinAttributionTests
     public void FirstReignTurn40_MovedForTheInstitutionsLayoutAlone()
     {
         const string beforeInstitutions = "71ca4e65df90e40540d43c262036f1a8d0eb9f5f3a9eb33c75166165e83f7636";
-        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1());
+        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1(), TestUtil.TestConfigs.PreD054Worldgen());
         Assert.Equal(beforeInstitutions, HashAtSchemaV30(world, out int removed));
         Assert.Equal(0, removed);   // the first-reign log carries no EnqueueConstruction order
     }
@@ -1230,7 +1289,7 @@ public class IntegratedPinAttributionTests
     public void DrivenGoldenSeed42Turn300_MovedForTheInstitutionsLayoutAlone()
     {
         const string beforeInstitutions = "9308cd36f9a80fd7acbe90fc2e43112c2f9c482c15209ba6495f53c721b6b700";
-        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, PreR1());
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, PreR1(), TestUtil.TestConfigs.PreD054Worldgen());
         Assert.Equal(beforeInstitutions, HashAtSchemaV30(world, out int removed));
         Assert.Equal(0, removed);   // the driven log carries only SectorAllocation orders
     }
@@ -1250,8 +1309,8 @@ public class IntegratedPinAttributionTests
     public void FoundedGoldenSeed42Turn300_MovedForTheRecipeKnowledgeLayerAlone()
     {
         const string preR1 = "246ff3f5b619901551417ce5ba097e02ea68d2735a9457dace29df4ab494fcf4";
-        Assert.Equal(preR1, V31(SnapshotTests.RunFoundedGolden(PreR1())));
-        string now = V31(SnapshotTests.RunFoundedGolden(PreR2()));
+        Assert.Equal(preR1, V31(SnapshotTests.RunFoundedGolden(PreR1(), TestUtil.TestConfigs.PreD054Worldgen())));
+        string now = V31(SnapshotTests.RunFoundedGolden(PreR2(), TestUtil.TestConfigs.PreD054Worldgen()));
         Assert.True(now == PostR1FoundedGolden, "R1 founded hash " + now);
     }
 
@@ -1259,8 +1318,8 @@ public class IntegratedPinAttributionTests
     public void FirstReignTurn40_MovedForTheRecipeKnowledgeLayerAlone()
     {
         const string preR1 = "a5d44cc8c88a97975e7e598bea283c8d8516bbd0ed07f6b02e166172f894a244";
-        Assert.Equal(preR1, V31(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1())));
-        string now = V31(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR2()));
+        Assert.Equal(preR1, V31(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1(), TestUtil.TestConfigs.PreD054Worldgen())));
+        string now = V31(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR2(), TestUtil.TestConfigs.PreD054Worldgen()));
         Assert.True(now == PostR1FirstReignGolden, "R1 first-reign hash " + now);
     }
 
@@ -1268,9 +1327,9 @@ public class IntegratedPinAttributionTests
     public void DrivenGoldenSeed42Turn300_MovedForTheRecipeKnowledgeLayerAlone()
     {
         const string preR1 = "b871cefee40eaa5af58af6da2ececac297fd3b64f3eaa40abd57abab835424c1";
-        (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, PreR1());
+        (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, PreR1(), TestUtil.TestConfigs.PreD054Worldgen());
         Assert.Equal(preR1, V31(twin));
-        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, PreR2());
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, PreR2(), TestUtil.TestConfigs.PreD054Worldgen());
         string now = V31(world);
         Assert.True(now == PostR1DrivenGolden, "R1 driven hash " + now);
     }
@@ -1300,46 +1359,46 @@ public class IntegratedPinAttributionTests
     [Fact]
     public void FoundedGoldenSeed42Turn300_MovedForTheR2bLayersAlone()
     {
-        Assert.Equal(PostR1FoundedGolden, V31(SnapshotTests.RunFoundedGolden(PreR2b())));
-        Assert.Equal(PostR1FoundedGolden, V31(SnapshotTests.RunFoundedGolden(PreR2())));
-        Assert.Equal(SnapshotTests.FoundedGoldenHash, WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden()));
+        Assert.Equal(PostR1FoundedGolden, V31(SnapshotTests.RunFoundedGolden(PreR2b(), TestUtil.TestConfigs.PreD054Worldgen())));
+        Assert.Equal(PostR1FoundedGolden, V31(SnapshotTests.RunFoundedGolden(PreR2(), TestUtil.TestConfigs.PreD054Worldgen())));
+        Assert.Equal(SnapshotTests.PreD054FoundedGoldenHash, TestUtil.SchemaProjection.V32(SnapshotTests.RunFoundedGolden(TestUtil.TestConfigs.PreD054Sim(TestUtil.TestConfigs.Sim()), TestUtil.TestConfigs.PreD054Worldgen())));
     }
 
     [Fact]
     public void FirstReignTurn40_MovedForTheR2bLayersAlone()
     {
-        Assert.Equal(PostR1FirstReignGolden, V31(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR2b())));
-        Assert.Equal(PostR1FirstReignGolden, V31(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR2())));
-        Assert.Equal(Sim.Tests.Systems.FirstReignTests.PostR1Golden, WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _)));
+        Assert.Equal(PostR1FirstReignGolden, V31(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR2b(), TestUtil.TestConfigs.PreD054Worldgen())));
+        Assert.Equal(PostR1FirstReignGolden, V31(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR2(), TestUtil.TestConfigs.PreD054Worldgen())));
+        Assert.Equal(Sim.Tests.Systems.FirstReignTests.PreD054Golden, TestUtil.SchemaProjection.V32(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, TestUtil.TestConfigs.PreD054Sim(TestUtil.TestConfigs.Sim()), TestUtil.TestConfigs.PreD054Worldgen())));
     }
 
     [Fact]
     public void DrivenGoldenSeed42Turn300_MovedForTheR2bLayersAlone()
     {
-        (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, PreR2b());
+        (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, PreR2b(), TestUtil.TestConfigs.PreD054Worldgen());
         Assert.Equal(R2aOnlyDrivenGolden, V31(twin));
-        (WorldState both, _) = DrivenGoldenTests.RunDriven(300, PreR2());
+        (WorldState both, _) = DrivenGoldenTests.RunDriven(300, PreR2(), TestUtil.TestConfigs.PreD054Worldgen());
         Assert.Equal(PostR1DrivenGolden, V31(both));
     }
 
     [Fact]
     public void FoundedAndFirstReign_UnmovedByTheTradeKnowledgeLayer()
     {
-        Assert.Equal(R2bOnlyFoundedGolden, V31(SnapshotTests.RunFoundedGolden(PreR2a())));
-        Assert.Equal(R2bOnlyFirstReignGolden, V31(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR2a())));
+        Assert.Equal(R2bOnlyFoundedGolden, V31(SnapshotTests.RunFoundedGolden(PreR2a(), TestUtil.TestConfigs.PreD054Worldgen())));
+        Assert.Equal(R2bOnlyFirstReignGolden, V31(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR2a(), TestUtil.TestConfigs.PreD054Worldgen())));
     }
 
     [Fact]
     public void DrivenGoldenSeed42Turn300_MovedForTheTradeKnowledgeLayerAlone()
     {
-        (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, PreR2a());
+        (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, PreR2a(), TestUtil.TestConfigs.PreD054Worldgen());
         Assert.Equal(R2bOnlyDrivenGolden, V31(twin));
         // Which part of the layer: the TRADE GATE alone (node, entity and city-state research kept; only
         // sim.json trade.entity removed) returns the R2b-only pin too — the gate is the entire R2a cause here.
         Sim.Core.Systems.SimConfig ungated = TestUtil.TestConfigs.PreForager(TestUtil.TestConfigs.Sim());
-        (WorldState gateOnly, _) = DrivenGoldenTests.RunDriven(300, ungated with { Trade = ungated.Trade with { Entity = null } });
+        (WorldState gateOnly, _) = DrivenGoldenTests.RunDriven(300, ungated with { Trade = ungated.Trade with { Entity = null } }, TestUtil.TestConfigs.PreD054Worldgen());
         Assert.Equal(R2bOnlyDrivenGolden, V31(gateOnly));
-        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, TestUtil.TestConfigs.PreForager(TestUtil.TestConfigs.Sim()));
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, TestUtil.TestConfigs.PreForager(TestUtil.TestConfigs.Sim()), TestUtil.TestConfigs.PreD054Worldgen());
         Assert.Equal(R3DrivenGolden, V31(world));
     }
 
@@ -1360,24 +1419,24 @@ public class IntegratedPinAttributionTests
     [Fact]
     public void FoundedGoldenSeed42Turn300_MovedForTheForagerLayerAlone()
     {
-        Assert.Equal(R3FoundedGolden, V31(SnapshotTests.RunFoundedGolden(TestUtil.TestConfigs.PreForager(TestUtil.TestConfigs.Sim()))));
-        Assert.Equal(SnapshotTests.FoundedGoldenHash, WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden()));
+        Assert.Equal(R3FoundedGolden, V31(SnapshotTests.RunFoundedGolden(TestUtil.TestConfigs.PreForager(TestUtil.TestConfigs.Sim()), TestUtil.TestConfigs.PreD054Worldgen())));
+        Assert.Equal(SnapshotTests.PreD054FoundedGoldenHash, TestUtil.SchemaProjection.V32(SnapshotTests.RunFoundedGolden(TestUtil.TestConfigs.PreD054Sim(TestUtil.TestConfigs.Sim()), TestUtil.TestConfigs.PreD054Worldgen())));
     }
 
     [Fact]
     public void FirstReignTurn40_MovedForTheForagerLayerAlone()
     {
-        Assert.Equal(R3FirstReignGolden, V31(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, TestUtil.TestConfigs.PreForager(TestUtil.TestConfigs.Sim()))));
-        Assert.Equal(Sim.Tests.Systems.FirstReignTests.PostR1Golden, WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _)));
+        Assert.Equal(R3FirstReignGolden, V31(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, TestUtil.TestConfigs.PreForager(TestUtil.TestConfigs.Sim()), TestUtil.TestConfigs.PreD054Worldgen())));
+        Assert.Equal(Sim.Tests.Systems.FirstReignTests.PreD054Golden, TestUtil.SchemaProjection.V32(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, TestUtil.TestConfigs.PreD054Sim(TestUtil.TestConfigs.Sim()), TestUtil.TestConfigs.PreD054Worldgen())));
     }
 
     [Fact]
     public void DrivenGoldenSeed42Turn300_MovedForTheForagerLayerAlone()
     {
-        (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, TestUtil.TestConfigs.PreForager(TestUtil.TestConfigs.Sim()));
+        (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, TestUtil.TestConfigs.PreForager(TestUtil.TestConfigs.Sim()), TestUtil.TestConfigs.PreD054Worldgen());
         Assert.Equal(R3DrivenGolden, V31(twin));
-        (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
-        Assert.Equal(DrivenGoldenTests.Golden, WorldHash.ComputeHex(world));
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, TestUtil.TestConfigs.PreD054Sim(TestUtil.TestConfigs.Sim()), TestUtil.TestConfigs.PreD054Worldgen());
+        Assert.Equal(DrivenGoldenTests.PreD054Golden, TestUtil.SchemaProjection.V32(world));
     }
 
     // ======================================================================
@@ -1410,25 +1469,25 @@ public class IntegratedPinAttributionTests
         WorldState world = SnapshotTests.CanonicalExecutor().Run(SnapshotTests.Genesis(42), 200);
         Assert.Equal(V31ToyGolden, V31(world));
         Assert.Equal(0, world.TaxPolicies.Count);
-        Assert.Equal(32, CanonicalSchema.Version);
+        Assert.Equal(33, CanonicalSchema.Version);   // v33: D-054 ConstructionProgress + ResourceAllocations
     }
 
     [Fact]
     public void FoundedGoldenSeed42Turn300_MovedForTheV32LevyLayerAlone()
     {
-        WorldState world = SnapshotTests.RunFoundedGolden();
+        WorldState world = SnapshotTests.RunFoundedGolden(TestUtil.TestConfigs.PreD054Sim(TestUtil.TestConfigs.Sim()), TestUtil.TestConfigs.PreD054Worldgen());
         Assert.Equal(V31FoundedGolden, V31(world));
         Assert.Equal(0, world.TaxPolicies.Count);   // no order log: no levy, so no levy grievance anywhere
-        Assert.Equal(SnapshotTests.FoundedGoldenHash, WorldHash.ComputeHex(world));
+        Assert.Equal(SnapshotTests.PreD054FoundedGoldenHash, TestUtil.SchemaProjection.V32(world));
     }
 
     [Fact]
     public void FirstReignTurn40_MovedForTheV32LevyLayerAlone()
     {
-        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _);
+        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, TestUtil.TestConfigs.PreD054Sim(TestUtil.TestConfigs.Sim()), TestUtil.TestConfigs.PreD054Worldgen());
         Assert.Equal(V31FirstReignGolden, V31(world));
         Assert.Equal(0, world.TaxPolicies.Count);   // the first-reign log carries no SetTaxRate order
-        Assert.Equal(Sim.Tests.Systems.FirstReignTests.PostR1Golden, WorldHash.ComputeHex(world));
+        Assert.Equal(Sim.Tests.Systems.FirstReignTests.PreD054Golden, TestUtil.SchemaProjection.V32(world));
     }
 
     // D-053 (2026-10-13): the batch is NEWER than H2 and MOVES the driven world (relief happens on it — MEASURED, the
@@ -1441,12 +1500,12 @@ public class IntegratedPinAttributionTests
     [Fact]
     public void DrivenGoldenSeed42Turn300_MovedForTheV32LevyLayerAlone()
     {
-        (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, TestUtil.TestConfigs.PreD053(TestUtil.TestConfigs.Sim()));
+        (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, TestUtil.TestConfigs.PreD053(TestUtil.TestConfigs.Sim()), TestUtil.TestConfigs.PreD054Worldgen());
         Assert.Equal(V31DrivenGolden, V31(twin));
         Assert.Equal(0, twin.TaxPolicies.Count);   // the driven log carries only SectorAllocation orders
-        (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, TestUtil.TestConfigs.PreD054Sim(TestUtil.TestConfigs.Sim()), TestUtil.TestConfigs.PreD054Worldgen());
         Assert.Equal(0, world.TaxPolicies.Count);
-        Assert.Equal(DrivenGoldenTests.Golden, WorldHash.ComputeHex(world));
+        Assert.Equal(DrivenGoldenTests.PreD054Golden, TestUtil.SchemaProjection.V32(world));
     }
 
     // ======================================================================
@@ -1476,29 +1535,32 @@ public class IntegratedPinAttributionTests
     [Fact]
     public void FoundedGoldenSeed42Turn300_MovedForTheTimeAveragedHarvestAlone()
     {
-        Assert.Equal(PreTimeAveragedFoundedGolden, WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden(PreTimeAveraged())));
-        string now = WorldHash.ComputeHex(SnapshotTests.RunFoundedGolden());
+        // D-054 (batch 3, schema v33 + the cylinder): the PreD054 PAIR — founded flat (TestConfigs.PreD054Worldgen) and
+        // compared through the v32 projection (the pre-1(b) literals are v32 measurements); the "now" leg is the batch-2
+        // world (both halves off: PreD054Sim + PreD054Worldgen), whose v32 hash is the batch-2 golden.
+        Assert.Equal(PreTimeAveragedFoundedGolden, TestUtil.SchemaProjection.V32(SnapshotTests.RunFoundedGolden(PreTimeAveraged(), TestUtil.TestConfigs.PreD054Worldgen())));
+        string now = TestUtil.SchemaProjection.V32(SnapshotTests.RunFoundedGolden(TestUtil.TestConfigs.PreD054Sim(TestUtil.TestConfigs.Sim()), TestUtil.TestConfigs.PreD054Worldgen()));
         Assert.NotEqual(PreTimeAveragedFoundedGolden, now);
-        Assert.Equal(SnapshotTests.FoundedGoldenHash, now);
+        Assert.Equal(SnapshotTests.PreD054FoundedGoldenHash, now);
     }
 
     [Fact]
     public void FirstReignTurn40_MovedForTheTimeAveragedHarvestAlone()
     {
-        Assert.Equal(PreTimeAveragedFirstReignGolden, WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreTimeAveraged())));
-        string now = WorldHash.ComputeHex(Sim.Tests.Systems.FirstReignTests.Replay(40, out _));
+        Assert.Equal(PreTimeAveragedFirstReignGolden, TestUtil.SchemaProjection.V32(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreTimeAveraged(), TestUtil.TestConfigs.PreD054Worldgen())));
+        string now = TestUtil.SchemaProjection.V32(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, TestUtil.TestConfigs.PreD054Sim(TestUtil.TestConfigs.Sim()), TestUtil.TestConfigs.PreD054Worldgen()));
         Assert.NotEqual(PreTimeAveragedFirstReignGolden, now);
-        Assert.Equal(Sim.Tests.Systems.FirstReignTests.PostR1Golden, now);
+        Assert.Equal(Sim.Tests.Systems.FirstReignTests.PreD054Golden, now);
     }
 
     [Fact]
     public void DrivenGoldenSeed42Turn300_MovedForTheTimeAveragedHarvestAlone()
     {
-        (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, PreTimeAveraged());
-        Assert.Equal(PreTimeAveragedDrivenGolden, WorldHash.ComputeHex(twin));
-        (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
-        string now = WorldHash.ComputeHex(world);
+        (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, PreTimeAveraged(), TestUtil.TestConfigs.PreD054Worldgen());
+        Assert.Equal(PreTimeAveragedDrivenGolden, TestUtil.SchemaProjection.V32(twin));
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, TestUtil.TestConfigs.PreD054Sim(TestUtil.TestConfigs.Sim()), TestUtil.TestConfigs.PreD054Worldgen());
+        string now = TestUtil.SchemaProjection.V32(world);
         Assert.NotEqual(PreTimeAveragedDrivenGolden, now);
-        Assert.Equal(DrivenGoldenTests.Golden, now);
+        Assert.Equal(DrivenGoldenTests.PreD054Golden, now);
     }
 }

@@ -53,6 +53,11 @@ public readonly record struct RoadMaterialCost(GoodId Good, long Units);
 /// modernization to the target class (the system applies the affordable proportion of it).</summary>
 public readonly record struct RoadDevelopmentStep(RouteStatus Route, RoadMaterialCost[] Cost);
 
+/// <summary>ADR-032 / D-054 — what one development step charges (<see cref="RoadDevelopmentQuery.ChargeStep"/>):
+/// <c>Charges</c> per cost entry (aligned with the step's cost), whether anything is <c>Paid</c> at all (false: the order
+/// ends with no row and no flow), whether the route is <c>Complete</c> after it, and the fraction <c>After</c>.</summary>
+public readonly record struct RoadStepCharge(long[] Charges, bool Paid, bool Complete, double After);
+
 /// <summary>
 /// ADR-032 — THE READ-ONLY ROUTE VIEW a UI displays (ruling 29): route, endpoints, class,
 /// modernization percentage, effective performance (cost factor and relative speed — the
@@ -197,13 +202,20 @@ public static class RoadDevelopmentQuery
     /// overlay and shrinks as other roads get faster. A terrain-less world (a hand-built toy, in
     /// which no pathfinder ever runs and the cached rows are supplied by hand) has no positions;
     /// it falls back to <paramref name="toyFallbackKm"/>, its hand-written baseline km.
+    ///
+    /// ADR-032 FR3 AMENDED (batch 3 WS3, the Director's 2026-10-14 instruction revising Final Ruling 3's
+    /// "flat square raster (no wrap)"): on a wrapped (cylindrical) world the straight line is the one ON THE
+    /// CYLINDER — x the short way round the seam (<see cref="Pathing.MapTopology.SquaredPx"/>). That is the same
+    /// "as the crow flies" abstraction FR3 already applies to a bay between two land-connected settlements of
+    /// the flat world (the length never followed the ground); `maxRouteKm` candidacy reads it, and the renderer
+    /// draws the road the short way, consistent with its length. Flat worlds are unchanged bit for bit.
     /// </summary>
     public static double GeographicKm(IReadOnlyWorldState world, SettlementId a, SettlementId b, double toyFallbackKm)
     {
         Worldgen.TerrainSet? terrain = world.Terrain;
         if (terrain is null) return toyFallbackKm;
         if (!TrySiteCell(world, a, out int ca) || !TrySiteCell(world, b, out int cb)) return toyFallbackKm;
-        long sq = SquaredPx(terrain.Size, ca, cb);
+        long sq = SquaredPx(terrain, ca, cb);
         return Math.Sqrt(sq) * terrain.KmPerPx;
     }
 
@@ -215,12 +227,11 @@ public static class RoadDevelopmentQuery
         return false;
     }
 
-    /// <summary>Exact squared pixel distance between two row-major cells of a Size×Size raster (integer, tie-exact).</summary>
-    private static long SquaredPx(int size, int c1, int c2)
-    {
-        long dx = c1 % size - c2 % size, dy = c1 / size - c2 / size;
-        return dx * dx + dy * dy;
-    }
+    /// <summary>Exact squared pixel distance between two row-major cells of the world's raster (integer, tie-exact) —
+    /// WS3: on the cylinder when the terrain wraps (<see cref="Pathing.MapTopology.SquaredPx"/>), so the donor order of
+    /// roads, the construction purse and grain relief ranks a settlement across the seam by its true distance.</summary>
+    private static long SquaredPx(Worldgen.TerrainSet terrain, int c1, int c2) =>
+        Pathing.MapTopology.SquaredPx(c1, c2, terrain.Size, terrain.WrapX);
 
     private static int Lookup(int[] index, int id) => id >= 0 && id < index.Length ? index[id] : -1;
 
@@ -364,7 +375,7 @@ public static class RoadDevelopmentQuery
     /// ADR-032 §Payment order (the Director's final ruling 1): the issuer's paying settlements in
     /// DRAW ORDER for a development of route (<paramref name="a"/>, <paramref name="b"/>) — ranked by
     /// physical distance to the route, nearest first, ties by settlement id ascending. The distance
-    /// is GEOGRAPHIC and performance-independent: the exact integer squared pixel distance from the
+    /// is GEOGRAPHIC and performance-independent (on the cylinder when the world wraps, WS3): the exact integer squared pixel distance from the
     /// settlement's site cell to the NEARER endpoint's site cell (an endpoint the issuer controls is
     /// at 0). A terrain-less world has no positions: every distance is 0 and the order is ascending id.
     /// </summary>
@@ -379,8 +390,8 @@ public static class RoadDevelopmentQuery
         {
             TrySiteCell(world, ids[i], out int c);
             long d = long.MaxValue;
-            if (hasA) d = Math.Min(d, SquaredPx(terrain.Size, c, ca));
-            if (hasB) d = Math.Min(d, SquaredPx(terrain.Size, c, cb));
+            if (hasA) d = Math.Min(d, SquaredPx(terrain, c, ca));
+            if (hasB) d = Math.Min(d, SquaredPx(terrain, c, cb));
             keys[i] = (d, ids[i].Value);
         }
         Array.Sort(keys, static (x, y) => x.Dist != y.Dist ? x.Dist.CompareTo(y.Dist) : x.Id.CompareTo(y.Id));
@@ -399,17 +410,172 @@ public static class RoadDevelopmentQuery
     /// goods of holding / units (1 when the step costs nothing). The system turns it into whole
     /// units charged (floored) and performs exactly the modernization those units buy.
     /// </summary>
-    public static double AffordableFraction(IReadOnlyTable<GoodStockRow> stocks, SettlementId[] payers, RoadMaterialCost[] cost)
+    public static double AffordableFraction(IReadOnlyTable<GoodStockRow> stocks, SettlementId[] payers, RoadMaterialCost[] cost) =>
+        AffordableFraction(cost, Holdings(stocks, payers, cost));
+
+    /// <summary><see cref="AffordableFraction(IReadOnlyTable{GoodStockRow}, SettlementId[], RoadMaterialCost[])"/> on
+    /// the holdings <paramref name="have"/> of each cost entry's good (aligned with <paramref name="cost"/>).</summary>
+    public static double AffordableFraction(RoadMaterialCost[] cost, long[] have)
     {
         double p = 1.0;
         for (int m = 0; m < cost.Length; m++)
         {
-            long have = CivilizationStock(stocks, payers, cost[m].Good);
-            if (have >= cost[m].Units) continue;
-            double q = have <= 0 ? 0.0 : (double)have / cost[m].Units;
+            if (have[m] >= cost[m].Units) continue;
+            double q = have[m] <= 0 ? 0.0 : (double)have[m] / cost[m].Units;
             if (q < p) p = q;
         }
         return p;
+    }
+
+    /// <summary>The civilization's holding of each cost entry's good (aligned with <paramref name="cost"/>), read
+    /// before anything of the step is drawn.</summary>
+    public static long[] Holdings(IReadOnlyTable<GoodStockRow> stocks, SettlementId[] payers, RoadMaterialCost[] cost)
+    {
+        var have = new long[cost.Length];
+        for (int m = 0; m < cost.Length; m++) have[m] = CivilizationStock(stocks, payers, cost[m].Good);
+        return have;
+    }
+
+    /// <summary>
+    /// THE CHARGE ARITHMETIC OF ONE DEVELOPMENT STEP (ADR-032 rulings 13-14; D-054 WS2 shares it): given what the
+    /// civilization holds of each cost entry's good (<paramref name="have"/>, aligned with <paramref name="cost"/>), the
+    /// units charged and the modernization performed. Fully affordable: every good in full, the route complete. Partly:
+    /// floor(full × affordable) of each good, capped at the holding, and the modernization those units buy — the minimum
+    /// charged/full ratio — so a partial step is never free and never more than paid for; a fraction that reaches 1 is
+    /// snapped to complete. Nothing affordable: <see cref="RoadStepCharge.Paid"/> is false — the order ends with no row
+    /// and no flow. RoadDevelopmentSystem charges exactly this (it draws what <see cref="RoadStepCharge.Charges"/> says)
+    /// and <see cref="SimulateCharges"/> sums it without drawing, so the two can never disagree.
+    /// </summary>
+    public static RoadStepCharge ChargeStep(RoadMaterialCost[] cost, long[] have, double startFraction)
+    {
+        double affordable = AffordableFraction(cost, have);
+        bool complete = affordable >= 1.0;
+        var charge = new long[cost.Length];
+        double bought = 1.0;
+        for (int m = 0; m < cost.Length; m++)
+        {
+            long full = cost[m].Units;
+            charge[m] = complete ? full : (long)Math.Floor(full * affordable);
+            if (charge[m] > have[m]) charge[m] = have[m];                       // defensive: never overspend
+            if (!complete)
+            {
+                double ratio = (double)charge[m] / full;
+                if (ratio < bought) bought = ratio;
+            }
+        }
+        if (!complete && !(bought > 0.0)) return new RoadStepCharge(new long[cost.Length], false, false, startFraction);
+
+        double after = complete ? 1.0 : startFraction + (1.0 - startFraction) * bought;
+        if (after >= 1.0) { after = 1.0; complete = true; }
+        return new RoadStepCharge(charge, true, complete, after);
+    }
+
+    /// <summary>
+    /// THE DevelopRoads ORDERS ROAD DEVELOPMENT APPLIES THIS STEP (ADR-032; D-054 WS2 — one rule, two callers:
+    /// RoadDevelopmentSystem acts on exactly these, and ConstructionSystem's building/roads split reads the one of an
+    /// Empire): the indices into <paramref name="orders"/>, in log order, of the FIRST DevelopRoads order of each actor
+    /// that passes. The actor's one slot per turn is taken by its first DevelopRoads order BEFORE any check, so a first
+    /// order that is then rejected (an actor not on the roster — every actor counts in a world with no roster, a toy —
+    /// or a percentage outside (0, 100], NaN included) leaves that actor with no road works this turn. Empty when road
+    /// development is inert (no roads, research or goods content).
+    /// </summary>
+    public static int[] DeliveredOrderIndices(IReadOnlyWorldState prev, SimConfig cfg, IReadOnlyList<OrderRecord> orders)
+    {
+        if (cfg.Roads is null || cfg.Research is null || cfg.Goods is null) return [];
+        List<int>? served = null;
+        List<int>? result = null;
+        for (int o = 0; o < orders.Count; o++)
+        {
+            OrderRecord order = orders[o];
+            if (order.Kind != OrderKind.DevelopRoads) continue;
+            served ??= [];
+            if (served.Contains(order.ActorId)) continue;   // one action per Empire per turn
+            served.Add(order.ActorId);
+            if (!IsRosterPolity(prev, order.Actor)) continue;
+            if (!(order.Amount > 0.0 && order.Amount <= 100.0)) continue; // load-validated; defensive
+            (result ??= []).Add(o);
+        }
+        return result is null ? [] : [.. result];
+    }
+
+    /// <summary><see cref="DeliveredOrderIndices(IReadOnlyWorldState, SimConfig, IReadOnlyList{OrderRecord})"/> on a
+    /// step's batch.</summary>
+    public static int[] DeliveredOrderIndices(IReadOnlyWorldState prev, SimConfig cfg, OrderBatch batch) =>
+        DeliveredOrderIndices(prev, cfg, Orders(batch));
+
+    /// <summary>The DevelopRoads order road development applies for <paramref name="polity"/> this step (see
+    /// <see cref="DeliveredOrderIndices(IReadOnlyWorldState, SimConfig, IReadOnlyList{OrderRecord})"/>), or null.</summary>
+    public static OrderRecord? DeliveredOrderFor(
+        IReadOnlyWorldState prev, SimConfig cfg, IReadOnlyList<OrderRecord> orders, PolityId polity)
+    {
+        int[] delivered = DeliveredOrderIndices(prev, cfg, orders);
+        for (int i = 0; i < delivered.Length; i++)
+            if (orders[delivered[i]].ActorId == polity.Value) return orders[delivered[i]];
+        return null;
+    }
+
+    /// <summary><see cref="DeliveredOrderFor(IReadOnlyWorldState, SimConfig, IReadOnlyList{OrderRecord}, PolityId)"/>
+    /// on a step's batch.</summary>
+    public static OrderRecord? DeliveredOrderFor(IReadOnlyWorldState prev, SimConfig cfg, OrderBatch batch, PolityId polity) =>
+        DeliveredOrderFor(prev, cfg, Orders(batch), polity);
+
+    /// <summary>
+    /// WHAT A DevelopRoads ORDER OF <paramref name="percent"/>% WOULD BE CHARGED (D-054 WS2's D_r), per good id, against
+    /// the civilization holding <paramref name="available"/> (indexed by good id; a good beyond it holds 0), WITHOUT
+    /// DRAWING: road development's own plan (<see cref="Plan(IReadOnlyWorldState, IReadOnlyTable{TransportEdgeRow}, ResearchContent, RoadsConfig, GoodsConfig, PolityId, double)"/>
+    /// on <paramref name="prev"/>'s route rows) and its own charge arithmetic (<see cref="ChargeStep"/>) step by step, the
+    /// holding reduced by each step's charges, ending where the system ends — after a step it could pay only in part, or
+    /// at one it can pay nothing of. A pure function: it reads and allocates, and changes nothing. The route rows are
+    /// PREV's: within one step a second Empire's order would see the first's modernization (the system plans on its NEXT
+    /// rows), which this does not — an approximation of the forecast only, never of what is drawn. All zeros when road
+    /// development is inert or <paramref name="percent"/> is not in (0, 100].
+    /// </summary>
+    public static long[] SimulateCharges(IReadOnlyWorldState prev, SimConfig cfg, PolityId polity, double percent, long[] available)
+    {
+        var charged = new long[available.Length];
+        if (cfg.Roads is not { } roads || cfg.Research is not { } research || cfg.Goods is not { } goods) return charged;
+        if (!(percent > 0.0 && percent <= 100.0)) return charged;
+        RoadDevelopmentStep[] plan = Plan(prev, prev.TransportEdges, research, roads, goods, polity, percent);
+        var holding = (long[])available.Clone();
+        for (int p = 0; p < plan.Length; p++)
+        {
+            RoadMaterialCost[] cost = plan[p].Cost;
+            var have = new long[cost.Length];
+            for (int m = 0; m < cost.Length; m++)
+            {
+                int g = cost[m].Good.Value;
+                have[m] = g >= 0 && g < holding.Length ? holding[g] : 0;
+            }
+            RoadStepCharge step = ChargeStep(cost, have, plan[p].Route.StartFraction);
+            if (!step.Paid) break;                                   // nothing affordable: the order ends here
+            for (int m = 0; m < cost.Length; m++)
+            {
+                int g = cost[m].Good.Value;
+                if (g < 0 || g >= holding.Length) continue;
+                holding[g] -= step.Charges[m];
+                charged[g] += step.Charges[m];
+            }
+            if (!step.Complete) break;                               // paid in part: the order ends after it
+        }
+        return charged;
+    }
+
+    /// <summary>The roster rule road development applies to an order's actor: on the roster, or any actor in a world
+    /// with no roster (a toy has none to check against).</summary>
+    public static bool IsRosterPolity(IReadOnlyWorldState prev, PolityId polity)
+    {
+        if (prev.Polities.Count == 0) return true;
+        for (int i = 0; i < prev.Polities.Count; i++)
+            if (prev.Polities[i].Id.Value == polity.Value) return true;
+        return false;
+    }
+
+    /// <summary>A step's batch as a list (its orders in log order).</summary>
+    public static OrderRecord[] Orders(OrderBatch batch)
+    {
+        var orders = new OrderRecord[batch.Count];
+        for (int i = 0; i < orders.Length; i++) orders[i] = batch[i];
+        return orders;
     }
 
     /// <summary>

@@ -60,6 +60,14 @@ public sealed class TraversalLattice
     public int Stride { get; }
     public double KmPerNode { get; }
 
+    /// <summary>
+    /// Batch 3 WS3: the lattice's east-west topology — copied from <see cref="TerrainSet.WrapX"/> at
+    /// <see cref="Build"/> (a parameter of <see cref="FromCosts"/>). When true, column 0 and column Size − 1 are
+    /// 8-adjacent (<see cref="MapTopology.NeighbourX"/>): every expansion, flood, heuristic and leg cost of the
+    /// pathfinder crosses the seam. y never wraps.
+    /// </summary>
+    public bool WrapX { get; }
+
     private readonly double[] _nodeCost;
     private readonly bool[] _passable;
 
@@ -74,11 +82,13 @@ public sealed class TraversalLattice
     /// <summary>The global minimum node cost over passable nodes (heuristic input).</summary>
     public double MinNodeCost { get; }
 
-    private TraversalLattice(int size, int stride, double kmPerNode, double[] nodeCost, bool[] passable)
+    private TraversalLattice(int size, int stride, double kmPerNode, double[] nodeCost, bool[] passable, bool wrapX)
     {
+        MapTopology.RequireWrapSize(size, wrapX);
         Size = size;
         Stride = stride;
         KmPerNode = kmPerNode;
+        WrapX = wrapX;
         _nodeCost = nodeCost;
         _passable = passable;
 
@@ -108,6 +118,13 @@ public sealed class TraversalLattice
                 "transport.riverCostFactor must be in (0,1] — a river must be cheaper than "
                 + "ideal ground to be a corridor at all, and cannot be free.");
 
+        // WS3: a wrapped lattice must tile the map exactly — the seam joins its last column to its first, so terrain
+        // columns past the last whole block (a size the stride does not divide) would sit between them unseen.
+        if (terrain.WrapX && terrain.Size % stride != 0)
+            throw new ArgumentException(
+                "a wrapped (cylindrical) terrain of " + terrain.Size.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                + " px is not divisible by the lattice stride " + stride.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                + "; the seam would skip the trailing columns.", nameof(terrain));
         int size = terrain.Size / stride;
         var nodeCost = new double[size * size];
         var passable = new bool[size * size];
@@ -142,7 +159,7 @@ public sealed class TraversalLattice
                 passable[node] = waterSum / cells < 0.5;
             }
         }
-        return new TraversalLattice(size, stride, terrain.KmPerPx * stride, nodeCost, passable);
+        return new TraversalLattice(size, stride, terrain.KmPerPx * stride, nodeCost, passable, terrain.WrapX);
     }
 
     /// <summary>
@@ -158,17 +175,21 @@ public sealed class TraversalLattice
     public static double Blend(double blockMeanCost, double span, double riverCostFactor) =>
         (1.0 - span) * blockMeanCost + span * riverCostFactor;
 
-    /// <summary>Test factory: a handcrafted lattice with explicit costs/passability.</summary>
-    public static TraversalLattice FromCosts(int size, double[] nodeCost, bool[] passable, double kmPerNode = 1.0)
+    /// <summary>Test factory: a handcrafted lattice with explicit costs/passability. <paramref name="wrapX"/> (WS3) makes
+    /// it a cylinder (needs size ≥ <see cref="MapTopology.MinWrapSize"/>); the default is the flat lattice it always was.</summary>
+    public static TraversalLattice FromCosts(int size, double[] nodeCost, bool[] passable, double kmPerNode = 1.0, bool wrapX = false)
     {
         if (nodeCost.Length != size * size || passable.Length != size * size)
             throw new ArgumentException("nodeCost and passable must be size*size long");
-        return new TraversalLattice(size, 1, kmPerNode, nodeCost, passable);
+        return new TraversalLattice(size, 1, kmPerNode, nodeCost, passable, wrapX);
     }
 
     /// <summary>
     /// Cost of one lattice step a→b (must be 8-neighbors): mean node cost times
     /// step length in stride units (1 cardinal, DiagonalFactor diagonal).
+    /// WS3: a seam step (column 0 ↔ column Size − 1 on a wrapped lattice) is a true
+    /// neighbour step and is costed by the same rule — it is diagonal iff both
+    /// coordinates differ, which holds across the seam exactly as inside the map.
     /// </summary>
     public double StepCost(int a, int b)
     {

@@ -176,7 +176,20 @@ public class NonCanonicalSizeFoundingTests
     {
         const ulong seed = 1;
         const int turns = 180;
-        WorldState world = Sim.Cli.HeadlessFounding.Found(seed, sizeOverridePx: 256, aiEmpiresOverride: 1);
+        // Batch 3 (D-054, W1 fix F5): the defect this pins is in ROWS (a sized world's bottom rows indexed through the
+        // 1024-px config), so the rig needs an AI that founds there — and on the cylindrical world none does: MEASURED,
+        // seeds 1-20, 180 turns at 256 px, 5 colonies each and none in rows >= 208 (the y-only taper and the periodic
+        // noise move the land; the AI expands along it). So the world is HeadlessFounding's own founding (worldgen.json
+        // at --size 256 with one AI Empire, the production SimConfig) with the cylinder switched off — the flat world the
+        // defect was measured on; every recipe after founding is the CLI's, unchanged.
+        // Integration R1 (2026-10-14) — RE-MEASURED on the merged tree (seed 1, 180 turns): FLAT — 5 colonies, ONE in the
+        // bottom rows (row 208; the others at rows 63, 107, 80, 88); the CYLINDER — 5 colonies, none there (rows 169, 107, 88,
+        // 62, 84). The defect is a ROW-index one (the 1024-px config's disc carried past a 256-px raster's bottom rows), so the
+        // property is topology-independent; the order-driven bottom-row case above (dev seed 1, its site asserted in rows
+        // >= 208) runs on the shipped cylinder.
+        WorldState world = WorldFounding.Found(
+            TestConfigs.PreD054Worldgen(Sim.Cli.CliRecipes.Worldgen()) with { SizePx = 256, AiEmpires = 1 }, Cfg, seed);
+        Assert.False(world.Terrain!.WrapX);
         SimConfig cfg = Cfg;
         var orders = new OrderLog();
         var exec = new TurnExecutor(Sim.Cli.CliRecipes.Era(), Sim.Cli.CliRecipes.ProductionPipeline(), orders);

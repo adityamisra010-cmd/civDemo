@@ -90,6 +90,15 @@ Neither table carries people, money or goods, so the Ledger is untouched (law 1)
   colleges): ×30 ⇒ **1,800 timber, 1,200 stone, 240 adult-years**. The workshop's 10 tools are its own
   equipment, not building material, so they do not scale. The project is built whole in one turn or waits
   (ConstructionSystem's gate) — a university is a project a village cannot marshal and a city can.
+  > *2026-10-15 dated note (D-054 §1; batch 3, uncommitted; the bullet above is kept as written).* "Built whole in one
+  > turn or waits" is SUPERSEDED for the shipped configuration (`sim.json` `construction.incremental` on). A university
+  > at the head of its queue is now built piece by piece: each turn it takes as much of its 1,800 timber, 1,200 stone and
+  > 240 adult-years as its builders and the empire's purse allow, materials first, and keeps what has gone in while it
+  > waits (schema v33 `ConstructionProgress`). It can be cancelled (order kind 11), with no refund. The costs above and
+  > the viability gate below are unchanged: viability is checked every step before any progress, and a head whose host
+  > cannot sustain it waits keeping its progress. The institution is still founded once, the step after completion
+  > (`InstitutionLifecycleTests.AUniversityBuiltPieceByPiece…`). Record:
+  > `docs/d054-batch3-incremental-construction-allocation-cylinder.md` §1.
 - **Viability is a resolution gate** beside materials and capacity: the queue head of a university
   project resolves only where the FOUNDING viability (§4) holds on PREV; otherwise it waits like a head
   short of stone. LOCKED/AVAILABLE stay the existing predicate.

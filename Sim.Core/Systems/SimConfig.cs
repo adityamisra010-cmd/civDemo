@@ -91,9 +91,28 @@ public sealed record SimConfig(
 /// ConstructionQuery.Claimed). False or absent: the settlement's own stock only and no claims, exactly as before — the attribution control
 /// (TestConfigs.PreEmpireConstructionStockpile), never a gameplay setting. Roads already drew on the civilization's
 /// purse (ADR-032) and are not switched by it.
+///
+/// <c>Incremental</c> (WS1, D-054 — the Director's 2026-10-14 instruction, workstream 1; true in the shipped sim.json):
+/// INCREMENTAL CONSTRUCTION — a queue head progresses a little each turn as far as its builders and the next units of
+/// its materials allow, the materials leaving the purse in lockstep with the work, and what has gone in is never lost
+/// while it waits (ConstructionSystem's header; progress in ConstructionProgressRow, schema v33). False or absent: M4-D's
+/// whole-or-nothing gate exactly as before (batch 2) — the attribution control (TestConfigs.PreIncrementalConstruction),
+/// never a gameplay setting.
+///
+/// <c>AllocationRatios</c> (WS2, D-054 — the Director's 2026-10-14 instruction, workstream 2; true in the shipped
+/// sim.json): EDITABLE BUILDING/ROADS MATERIAL SPLIT — each Empire's standing BuildingsPercent b (ResourceAllocationRow,
+/// order kind 12; absent = 100, building first) guarantees building work b shares in 100 and road works the rest of each
+/// eligible good the Empire's purse holds when building work starts, on a turn the Empire's road order is delivered;
+/// whatever one side does not need, the other may use (State.ResourceAllocation). The LOADER REFUSES it without
+/// <c>Incremental</c> and <c>EmpireStockpile</c> (a whole-or-wait head capped to a share could never build, and the split
+/// is an Empire purse's), and the rule is inert under any such combination built in code. False or absent: building
+/// work first, road works get what it leaves, exactly as with WS1 alone — the attribution control
+/// (TestConfigs.PreAllocationRatios), never a gameplay setting.
 /// </summary>
 public sealed record ConstructionConfig(
-    [property: JsonPropertyName("empireStockpile")] bool EmpireStockpile = false);
+    [property: JsonPropertyName("empireStockpile")] bool EmpireStockpile = false,
+    [property: JsonPropertyName("incremental")] bool Incremental = false,
+    [property: JsonPropertyName("allocationRatios")] bool AllocationRatios = false);
 
 /// <summary>
 /// M5 item 5 (D-053 §3) — THE GRANARY EFFECTS' CONTENT (<see cref="State.GranaryEffects"/>). Two distinct, bounded,
@@ -1129,6 +1148,13 @@ public static class SimConfigLoader
         if (cfg.Governance is not null) ValidateGovernance(cfg.Governance);
         if (cfg.Institutions is not null) ValidateInstitutions(cfg.Institutions);
         if (cfg.Granaries is not null) ValidateGranaries(cfg.Granaries);
+        if (cfg.Construction is { AllocationRatios: true } construction && !(construction.Incremental && construction.EmpireStockpile))
+            throw new SimConfigException(
+                "construction.allocationRatios requires construction.incremental and construction.empireStockpile to be " +
+                "true (D-054 WS2): the building/roads split caps a head's share of the Empire's purse, so it needs " +
+                $"incremental construction (a whole-or-wait head capped below its cost could never build) and the Empire " +
+                $"purse (the split is an Empire's), got incremental {(construction.Incremental ? "true" : "false")}, " +
+                $"empireStockpile {(construction.EmpireStockpile ? "true" : "false")}.");
         if (cfg.Colonization is { } colonization
             && !(colonization.OrderPartyFraction > 0.0 && colonization.OrderPartyFraction < 1.0))
             throw new SimConfigException(

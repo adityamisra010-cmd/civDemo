@@ -29,9 +29,20 @@ public static class SmokeCommand
             int frameCost = Array.IndexOf(args, "--frame-cost");
             if (frameCost >= 0 && frameCost + 1 < args.Length && args[frameCost + 1] == MapFrameCost.Mode)
             {
-                Console.Write(MapFrameCost.Run(assets, Arg(args, "--rounds") ?? 5,
-                    settlements: Arg(args, "--settlements") ?? MapFrameCost.DefaultSettlements, canonicalTurn: Arg(args, "--turns") ?? MapFrameCost.DefaultCanonicalTurn,
-                    log: line => Console.Error.WriteLine(line)));
+                int settlements = Arg(args, "--settlements") ?? MapFrameCost.DefaultSettlements;
+                string table;
+                try
+                {
+                    table = MapFrameCost.Run(assets, Arg(args, "--rounds") ?? 5, settlements: settlements,
+                        canonicalTurn: Arg(args, "--turns") ?? MapFrameCost.DefaultCanonicalTurn, log: line => Console.Error.WriteLine(line));
+                }
+                catch (ArgumentException e) when (e.ParamName == "settlements")
+                {
+                    // W2 review F3: a --settlements past the canonical world's siting capacity is a usage error, not an abort.
+                    Console.Error.WriteLine("sim-ui --frame-cost " + MapFrameCost.Mode + ": " + e.Message);
+                    return 2;
+                }
+                Console.Write(table);
                 return 0;
             }
             if (frameCost >= 0)

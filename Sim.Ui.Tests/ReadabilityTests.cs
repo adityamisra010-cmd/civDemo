@@ -419,8 +419,13 @@ public class ReadabilityTests(CanonicalTurnOneFixture fx) : IClassFixture<Canoni
         ProjectEntry blocked = model.Construction!.Projects.First(p => p.Blocker is not null);
         Assert.Contains("(empire has ", blocked.Blocker!, StringComparison.Ordinal);   // D-053 §1: the player's own purse
         List<TextCmd> texts = d.Commands.OfType<TextCmd>().ToList();
-        // "not yet:" in the progress family's text ink (≥ 5.5:1), never the pigment (1.88:1 rendered before).
-        TextCmd lead = texts.First(c => c.Text == "not");
+        // The lead — "not yet:", and with incremental construction (D-054 WS1: a legal project short of materials is
+        // ordered and waits at the queue head) "will wait for:" — in the progress family's text ink (≥ 5.5:1), never the
+        // pigment (1.88:1 rendered before).
+        bool incremental = Sim.Core.State.ConstructionQuery.Incremental(fx.Session.Config);
+        Assert.True(incremental);   // shipped: sim.json construction.incremental
+        TextCmd lead = texts.First(c => c.Text == "will");
+        Assert.Contains(texts, c => c.Text == "for:" && c.Color == t.TextInk.Progress);
         Assert.Equal(t.TextInk.Progress, lead.Color);
         // The missing quantity is set bold in the body ink.
         string qty = blocked.Blocker!.Split(' ')[1];   // "needs 40 timber (empire has 0)…" → "40"

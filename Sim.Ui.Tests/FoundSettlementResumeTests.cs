@@ -17,15 +17,15 @@ namespace Sim.Ui.Tests;
 /// and delivered by the next End Turn of both sessions).
 ///
 /// The two played orders are the determinism-xproc Found Settlement leg's literals (gen-sample-orders.py --found;
-/// re-derived as legal and founding by Sim.Tests FoundSettlementCiLegTests): turn 2 from settlement 0 to cell 330985,
+/// re-derived as legal and founding by Sim.Tests FoundSettlementCiLegTests): turn 2 from settlement 0 to cell 349391,
 /// turn 5 from settlement 12 — the colony the first order founds, above the turn-0 maximum (the ADR-034 deferral) —
-/// to cell 322801. Each is offered only after THE predicate (<see cref="FoundingQuery.Check(IReadOnlyWorldState, Sim.Core.Systems.SimConfig, SettlementSiting.FrontierSiting, PolityId, SettlementId, int)"/>)
+/// to cell 335063 (batch 3 WS3: re-derived on the cylindrical world, where 330985 and 322801 are PoorSite). Each is offered only after THE predicate (<see cref="FoundingQuery.Check(IReadOnlyWorldState, Sim.Core.Systems.SimConfig, SettlementSiting.FrontierSiting, PolityId, SettlementId, int)"/>)
 /// answers Legal on the world the player sees, which is what the S1d placement mode will ask.
 /// </summary>
 public class FoundSettlementResumeTests
 {
-    private const int FirstOrderTurn = 2, FirstSource = 0, FirstSite = 330985;
-    private const int SecondOrderTurn = 5, SecondSource = 12, SecondSite = 322801;
+    private const int FirstOrderTurn = 2, FirstSource = 0, FirstSite = 349391;
+    private const int SecondOrderTurn = 5, SecondSource = 12, SecondSite = 335063;
     private const int SavedTurns = 8;
 
     private static WorldgenConfig Worldgen() => UiSession.ProductionWorldgen();

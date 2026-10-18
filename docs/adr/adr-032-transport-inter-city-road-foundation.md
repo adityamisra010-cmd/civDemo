@@ -455,3 +455,21 @@ collection and burden (new; D-040 C6's road–control coupling realized); (2) mi
 :238-243`); (4) harvest-weather spatial correlation (`HarvestWeatherSystem.cs:121, :211-226`) —
 ESCALATED: should weather correlation use geographic distance rather than road-aware travel cost? §7's
 "the trade system is unchanged" refers to the freight travel-time hook (`TransportQuery`) only.
+
+---
+
+**Amendment to Final Ruling 3 (§12.3) — dated note, 2026-10-15 (D-054, ADR-039; appended, the text above is
+unchanged).** The Director's 2026-10-14 instruction makes the world an east-west CYLINDER (`worldgen.json`
+`topology.wrapX`, shipped ON) and directs this record's no-wrap assumption to be revised ("Revise the architecture
+decision that prohibits wrapping").
+- **The invariant stands.** A road's physical length never depends on network performance.
+- **What changes.** `RoadDevelopmentQuery.GeographicKm` is now the straight-line distance between the two site cells
+  measured ON THE CYLINDER: the wrapped geodesic, taking the shorter way round in x (`MapTopology.Km`), × `KmPerPx`. The
+  sentence "The map is a flat square raster (no wrap), so this is the existing geometry" is superseded.
+- **Why this is still FR3.** It is the same as-the-crow-flies abstraction FR3 already applied to a bay between two
+  land-connected settlements.
+- **Consequences.** `roads.maxRouteKm` candidacy uses the wrapped length, and roads are drawn the short way, consistent
+  with it.
+- **§12.1.** The "exact INTEGER squared pixel distance, on the terrain raster" behind the nearest-first payment order is
+  now the wrapped squared distance (`MapTopology.SquaredPx`).
+- **Flat worlds.** With `topology.wrapX` false both are byte-identical to the rule above.

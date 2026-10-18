@@ -16,6 +16,11 @@ namespace Sim.Ui.ViewModel;
 /// overlap and cover the joints. Width falls linearly with discharge rank
 /// (rank 0 = highest discharge = widest). Anti-aliasing is the renderer's job
 /// (MSAA — see SimUiGame); the mesh is plain solid geometry.
+///
+/// WS3 (batch 3): on a cylinder (<see cref="TerrainSet.WrapX"/>) a polyline may step across the seam (cell x = size − 1
+/// to x = 0). Each segment is built from a to the copy of b NEAREST a (<see cref="Sim.Core.Pathing.MapTopology.UnwrapNear"/>
+/// — b itself for every segment that does not cross, bit for bit), so a seam-crossing river is a short quad past the
+/// world's edge, never one map-wide; the host draws the buffer at every visible copy of the world, which carries it on.
 /// </summary>
 public static class RiverMesh
 {
@@ -74,6 +79,11 @@ public static class RiverMesh
     public static Vertex CellCenter(int cell, int terrainSize) =>
         new(cell % terrainSize + 0.5, cell / terrainSize + 0.5);
 
+    /// <summary>WS3: <paramref name="b"/> at its copy nearest <paramref name="a"/> on a wrapped terrain (a segment's far end
+    /// unwrapped relative to its first point); <paramref name="b"/> itself on a flat one.</summary>
+    public static Vertex Unwrapped(Vertex b, Vertex a, TerrainSet terrain) =>
+        terrain.WrapX ? b with { X = Sim.Core.Pathing.MapTopology.UnwrapNear(b.X, a.X, terrain.Size) } : b;
+
     /// <summary>
     /// Triangle-list vertices (three per triangle, six per segment quad) for
     /// every river polyline, in discharge-rank order. Deterministic: pure
@@ -101,7 +111,7 @@ public static class RiverMesh
             for (int i = 0; i + 1 < line.Length; i++)
             {
                 Vertex a = CellCenter(line[i], terrain.Size);
-                Vertex b = CellCenter(line[i + 1], terrain.Size);
+                Vertex b = Unwrapped(CellCenter(line[i + 1], terrain.Size), a, terrain);
                 LineGeometry.AppendSegmentQuad(vertices,
                     new LineGeometry.Vertex(a.X, a.Y), new LineGeometry.Vertex(b.X, b.Y), halfWidth);
             }
@@ -150,7 +160,7 @@ public static class RiverMesh
             for (int i = 0; i + 1 < line.Length; i++)
             {
                 Vertex a = CellCenter(line[i], terrain.Size);
-                Vertex b = CellCenter(line[i + 1], terrain.Size);
+                Vertex b = Unwrapped(CellCenter(line[i + 1], terrain.Size), a, terrain);
                 LineGeometry.AppendSegmentQuad(vertices,
                     new LineGeometry.Vertex(a.X, a.Y), new LineGeometry.Vertex(b.X, b.Y), halfWidth);
             }

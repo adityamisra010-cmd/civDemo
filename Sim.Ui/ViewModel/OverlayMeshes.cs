@@ -110,5 +110,6 @@ public static class OverlayMeshes
         new(settlement.SiteCell % terrainSize + 0.5, settlement.SiteCell / terrainSize + 0.5);
 
     /// <summary>The stride the M1 systems build their lattice with (TraversalLattice default).</summary>
-    public static int LatticeStride(TraversalLattice lattice, int terrainSize) => terrainSize / lattice.Size;
+    public static int LatticeStride(TraversalLattice lattice, int terrainSize) =>
+        Sim.Core.Pathing.MapTopology.BlockPx(terrainSize, lattice.Size);   // WS3: the one statement of the lattice's geometry
 }

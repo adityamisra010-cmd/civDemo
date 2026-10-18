@@ -235,14 +235,17 @@ public sealed class UiSession
 
     /// <summary>Founds the world and builds the PRODUCTION executor + a fresh log.
     /// <paramref name="aiEmpiresOverride"/> (ADR-033 D5) founds that many AI-commanded Empires instead of
-    /// worldgen.json's count (default 0); their orders come from <see cref="AiOrders"/> at every End Turn.</summary>
+    /// worldgen.json's count (default 0); their orders come from <see cref="AiOrders"/> at every End Turn.
+    /// <paramref name="wrapXOverride"/> (batch 3 WS3) is <see cref="UiFounding.Found"/>'s test and tool seam for the
+    /// world's east-west topology — never set by the launcher, not recorded in the manifest.</summary>
     public static UiSession Start(
-        ulong seed, int? sizeOverridePx = null, int? settlementsOverride = null, int? aiEmpiresOverride = null)
+        ulong seed, int? sizeOverridePx = null, int? settlementsOverride = null, int? aiEmpiresOverride = null,
+        bool? wrapXOverride = null)
     {
         var orders = new OrderLog();
         SimConfig simCfg = UiFounding.ProductionConfig();
         return new UiSession(
-            UiFounding.Found(seed, sizeOverridePx, settlementsOverride, aiEmpiresOverride),
+            UiFounding.Found(seed, sizeOverridePx, settlementsOverride, aiEmpiresOverride, wrapXOverride),
             BuildProductionExecutor(orders), orders,
             seed, sizeOverridePx, settlementsOverride, simCfg, aiEmpiresOverride);
     }
@@ -348,8 +351,32 @@ public sealed class UiSession
     /// </summary>
     public bool EmitConstructionOrder(int settlementId, int projectId)
     {
-        if (ConstructionOrderFactory.Create(World, Config, UiPlayer.Empire, new SettlementId(settlementId), projectId) is not { } order)
+        // WS1 (the batch-2 one-predicate gap closed): judged against the queue the intake will see — the world's queue with
+        // this turn's pending cancels and enqueues applied (ConstructionQuery.QueueWithPending), so an order the intake would
+        // refuse (a second workshop on ten tools) is never logged.
+        if (ConstructionOrderFactory.Create(World, Config, UiPlayer.Empire, new SettlementId(settlementId), projectId, QueuedOrders()) is not { } order)
             return false;
+        Orders.Append(order);
+        return true;
+    }
+
+    /// <summary>
+    /// WS1 (D-054): the queue's Cancel handler — ONE CancelConstruction order (kind 11) for the player's Empire, stamped with
+    /// the CURRENT turn (the next End Turn removes the entry before its building work), built by
+    /// <see cref="ConstructionQuery.CancelOrder"/> (the constructor the AI's structural-stall cancel uses) and appended only
+    /// when THE predicate ConstructionSystem applies at delivery holds (<see cref="ConstructionQuery.CancelOrderValid(IReadOnlyWorldState, OrderRecord)"/>:
+    /// a roster Empire, control, a well-formed slot, the slot queued) for a COMMITTED entry whose cancel is not already
+    /// pending (<see cref="ConstructionQuery.PendingCancels"/>) — an entry ordered this turn has no cancel ("from next turn").
+    /// No refund: what has gone in is lost. Appends NOTHING (false) otherwise.
+    /// </summary>
+    public bool EmitCancelConstruction(int settlementId, int slot)
+    {
+        var settlement = new SettlementId(settlementId);
+        OrderRecord order = ConstructionQuery.CancelOrder(World, UiPlayer.Empire, settlement, slot);
+        if (!ConstructionQuery.CancelOrderValid(World, order)) return false;
+        int i = ConstructionQuery.IndexOfSlot(World.ConstructionQueue, settlement, slot);
+        var entry = new QueueEntryRef(settlement, slot, World.ConstructionQueue[i].ProjectId);
+        if (Array.IndexOf(ConstructionQuery.PendingCancels(World, QueuedOrders()), entry) >= 0) return false;
         Orders.Append(order);
         return true;
     }
@@ -413,6 +440,30 @@ public sealed class UiSession
         PolityId me = UiPlayer.Empire;
         if (!Governance.CanLevyTax(World, Config, me)) return false;
         Orders.Append(TaxOrderFactory.Create(World.Clock.Turn, me, percent));
+        return true;
+    }
+
+    /// <summary>
+    /// WS2 (D-054): the Materials block's "Set" handler — ONE SetResourceAllocation order (kind 12) for the player's Empire,
+    /// stamped with the CURRENT turn, legislated by the Empire for itself (<see cref="ResourceAllocation.Order"/>: TargetId =
+    /// the Empire, Amount = building work's shares in 100). It governs THIS turn's work: the next End Turn applies it before
+    /// any building work (ConstructionSystem's step 2). Appended only when THE predicate ConstructionSystem applies at
+    /// delivery holds (<see cref="ConstructionQuery.AllocationOrderValid"/>: the split switched on, a roster Empire setting its
+    /// own split, a whole share in [0, 100]) and the share differs from the split in force for this turn (the world's row
+    /// with this turn's earlier Sets applied — a Set that changes nothing is not logged; the button shows only while the
+    /// draft differs). A later Set in the same turn replaces an earlier one (the last valid order wins). Appends NOTHING
+    /// (false) otherwise.
+    /// </summary>
+    public bool EmitAllocationOrder(int percent)
+    {
+        if (percent is < 0 or > 100) return false;
+        PolityId me = UiPlayer.Empire;
+        OrderRecord order = ResourceAllocation.Order(World, me, percent);
+        if (!ConstructionQuery.AllocationOrderValid(World, Config, order)) return false;
+        IReadOnlyList<OrderRecord> queued = QueuedOrders();
+        int inForce = ResourceAllocation.EffectivePercent(ConstructionQuery.AllocationsWith(World, Config, World.ResourceAllocations, queued), me);
+        if (inForce == percent) return false;
+        Orders.Append(order);
         return true;
     }
 
@@ -842,6 +893,11 @@ public sealed class UiSession
     /// the seed and replayed from the order log WITHOUT the trace-hash check (the trace still gives the turn to
     /// replay to) — and <see cref="ResumeNotice"/> says so explicitly. The ADR-034 order checks still apply.
     ///
+    /// D-054 (fix round 1, 2026-10-15) — A SESSION RECORDED BEFORE THE CYLINDER. Every world recorded under a schema before
+    /// v33 was flat; such a session is re-founded flat (<see cref="TopologyFlags.RecordedFlat"/>), so its replay runs on the
+    /// map it was played on, and the notice says so. A session this build recorded is re-founded with the shipped worldgen,
+    /// as it was founded.
+    ///
     /// M5 playtest blocker (D-052) — A SESSION ANOTHER BUILD RECORDED UNDER THIS SCHEMA. The simulation can change
     /// between builds without a schema bump (playtest build 2dc6af2 and f0427d2 are both v32 and differ from turn 1),
     /// and then the trace check refuses the session — rightly: its world cannot be rebuilt here. That refusal used to
@@ -869,7 +925,12 @@ public sealed class UiSession
         else for (int i = 0; i < saved.Count; i++) target = Math.Max(target, saved[i].Turn);
 
         bool sameSchema = manifest.SchemaVersion == CanonicalSchema.Version;
-        UiSession session = Start(manifest.Seed, manifest.SizePx, manifest.Settlements, manifest.AiEmpires);
+        // Fix round 1 (D-054, verifier F1, 2026-10-15): a session recorded before v33 was played on a FLAT map (no world
+        // wrapped before the cylinder), so it is re-founded flat — TopologyFlags.RecordedFlat, the rule the CLI's save
+        // loader and `sim inspect` apply too. Before, it was re-founded on the shipped cylinder: a different map, and a
+        // log whose FoundSettlement sites are legal only on the flat one was rejected (exit 2).
+        UiSession session = Start(manifest.Seed, manifest.SizePx, manifest.Settlements, manifest.AiEmpires,
+            wrapXOverride: TopologyFlags.RecordedFlat(manifest.SchemaVersion) ? false : null);
         try
         {
             session.ReplayTo(saved, target, sameSchema ? trace : null);
@@ -896,12 +957,16 @@ public sealed class UiSession
 
     /// <summary>The explicit notice for a session whose manifest records schema <paramref name="recorded"/> while
     /// this build writes <paramref name="current"/> (D-008: saves may break between milestones; seed + order-log
-    /// replay is the recovery path). Four short lines, so the notice toast shows each of them whole.</summary>
+    /// replay is the recovery path). Four short lines, so the notice toast shows each of them whole. Fix round 1
+    /// (D-054, verifier F1): for a schema before v33 (<see cref="TopologyFlags.RecordedFlat"/>) the second line names the
+    /// map it was rebuilt on — flat, as it was played.</summary>
     public static IReadOnlyList<string> SchemaMismatchNotice(int recorded, int current) =>
     [
         "Recorded under save schema v" + recorded.ToString(CultureInfo.InvariantCulture)
             + "; this build is v" + current.ToString(CultureInfo.InvariantCulture) + ".",
-        "Resumed by replaying its seed and orders (D-008).",
+        TopologyFlags.RecordedFlat(recorded)
+            ? "Replayed from its seed and orders on the flat map v" + recorded.ToString(CultureInfo.InvariantCulture) + " used (D-008)."
+            : "Resumed by replaying its seed and orders (D-008).",
         "The saved trace was not checked against this replay.",
         "The world may differ from the one originally played.",
     ];

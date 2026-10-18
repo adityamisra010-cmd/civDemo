@@ -254,10 +254,10 @@ public class PolityKnowledgeTests
             if (k.KnowsCell(cell) && fertility[cell] != terrain.Fertility[cell]) changedKnown++;
         var polylines = new int[terrain.RiverPolylineCount][];
         for (int i = 0; i < polylines.Length; i++) polylines[i] = terrain.RiverPolyline(i).ToArray();
-        System.Reflection.ConstructorInfo ctor = typeof(TerrainSet)
-            .GetConstructors(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)[0];
-        return (TerrainSet)ctor.Invoke([terrain.Size, terrain.KmPerPx, terrain.SeaLevel, terrain.Elevation.ToArray(), terrain.Water.ToArray(),
-            terrain.Temperature.ToArray(), terrain.Moisture.ToArray(), fertility, terrain.MovementCost.ToArray(), terrain.Rivers.ToArray(), polylines]);
+        // Batch 3: the public test/tool factory replaces the reflection into the internal constructor (whose signature
+        // gained the topology flag); the copy keeps the world's topology, so it is the same map to every path.
+        return TerrainSet.FromLayers(terrain.Size, terrain.KmPerPx, terrain.SeaLevel, terrain.Elevation, terrain.Water,
+            terrain.Temperature, terrain.Moisture, fertility, terrain.MovementCost, terrain.Rivers, polylines, terrain.WrapX);
     }
 
     /// <summary>The rival's knowledge of the half of the map (by lattice column) holding <paramref name="sourceCell"/> —
@@ -368,8 +368,8 @@ public class PolityKnowledgeTests
     // ================================================================== the AI producer: no other polity's books
 
     /// <summary>Perturbs every row of a settlement <paramref name="ai"/> does not control (people and stocks through the
-    /// Ledger; deposits, dwellings, structures, a queued project, the labour split, deficits) and every formation it does
-    /// not own.</summary>
+    /// Ledger; deposits, dwellings, structures, a queued project with its WS1 progress, the labour split, deficits), every
+    /// formation it does not own, and every other polity's WS2 material split row (D-054, schema v33).</summary>
     private static void PerturbForeignBooks(WorldState w, PolityId ai, SimConfig cfg, int salt)
     {
         var ledger = new Ledger(w.LedgerFlows);
@@ -392,7 +392,11 @@ public class PolityKnowledgeTests
             if (!Foreign(s)) continue;
             w.Structures.Add(new StructureRow(s, project + 500, 3 + salt));
             w.ConstructionQueue.Add(new ConstructionQueueRow(s, 50 + salt, project));
+            w.ConstructionProgress.Add(new ConstructionProgressRow(s, 50 + salt, project, 2 + salt, 300_000 + 1_000 * salt));
         }
+        for (int i = 0; i < w.Polities.Count; i++)
+            if (w.Polities[i].Id.Value != ai.Value)
+                w.ResourceAllocations.Add(new ResourceAllocationRow(w.Polities[i].Id, 35 + salt));
         for (int i = 0; i < w.SectorAllocations.Count; i++)
             if (Foreign(w.SectorAllocations[i].Settlement))
                 w.SectorAllocations[i] = new SectorAllocationRow(w.SectorAllocations[i].Settlement, 0.05, 0.05, 0.6, 0.2, 0.1);

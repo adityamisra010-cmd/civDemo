@@ -254,6 +254,23 @@ public sealed class PreviewToolProcessTests : IDisposable
         Assert.Contains(lines, l => l.StartsWith("World hash unchanged by every sweep: high-count ", StringComparison.Ordinal));
     }
 
+    /// <summary>
+    /// Batch 3 WS3 (W2 review F3): a <c>--settlements</c> past the canonical cylinder's siting capacity (362 at seed 42) is a
+    /// USAGE ERROR — exit 2 with one line naming the argument and the capacity — not an unhandled exception (exit 134), and
+    /// it is refused before the canonical world is stepped. Bounded: a hang is non-termination (ADR-015 §7.1).
+    /// </summary>
+    [Fact]
+    public void MapFrameCost_ASettlementCountPastTheSitingCapacity_IsAUsageError_NotAnAbort()
+    {
+        (int exit, string output, string err) = RunSimUi(TimeSpan.FromMinutes(5),
+            "--frame-cost", Sim.Ui.Headless.MapFrameCost.Mode, "--rounds", "1", "--settlements", "2000", "--turns", "1");
+        Assert.True(exit == 2, "sim-ui --frame-cost map --settlements 2000 exit " + exit + "\n" + Tail(output) + "\n" + Tail(err));
+        Assert.Contains("sim-ui --frame-cost map: --settlements 2000: settlement siting could only place 362 of 2000", err, StringComparison.Ordinal);
+        Assert.DoesNotContain("Unhandled exception", err, StringComparison.Ordinal);
+        Assert.DoesNotContain("canonical: founded", err, StringComparison.Ordinal);   // refused before the canonical world is stepped
+        Assert.Equal("", output);
+    }
+
     // ------------------------------------------------------------------ the rig, in process
 
     [Fact]

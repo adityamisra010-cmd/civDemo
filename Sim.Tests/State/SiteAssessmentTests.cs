@@ -576,10 +576,9 @@ public class SiteAssessmentTests
         Assert.True(changed > 100);
         var polylines = new int[t.RiverPolylineCount][];
         for (int i = 0; i < polylines.Length; i++) polylines[i] = t.RiverPolyline(i).ToArray();
-        System.Reflection.ConstructorInfo ctor = typeof(TerrainSet)
-            .GetConstructors(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)[0];
-        return (TerrainSet)ctor.Invoke([t.Size, t.KmPerPx, t.SeaLevel, elevation, t.Water.ToArray(), temperature, moisture, fertility,
-            t.MovementCost.ToArray(), t.Rivers.ToArray(), polylines]);
+        // Batch 3: the public test/tool factory (the internal constructor gained the topology flag); topology kept.
+        return TerrainSet.FromLayers(t.Size, t.KmPerPx, t.SeaLevel, elevation, t.Water, temperature, moisture, fertility,
+            t.MovementCost, t.Rivers, polylines, t.WrapX);
     }
 
     [Fact]
@@ -760,10 +759,9 @@ public class SiteAssessmentTests
         Assert.True(changed > 0);
         var polylines = new int[t.RiverPolylineCount][];
         for (int i = 0; i < polylines.Length; i++) polylines[i] = t.RiverPolyline(i).ToArray();
-        System.Reflection.ConstructorInfo ctor = typeof(TerrainSet)
-            .GetConstructors(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)[0];
-        return (TerrainSet)ctor.Invoke([t.Size, t.KmPerPx, t.SeaLevel, elevation, t.Water.ToArray(), temperature, moisture, fert,
-            movement, rivers, polylines]);
+        // Batch 3: the public test/tool factory (the internal constructor gained the topology flag); topology kept.
+        return TerrainSet.FromLayers(t.Size, t.KmPerPx, t.SeaLevel, elevation, t.Water, temperature, moisture, fert,
+            movement, rivers, polylines, t.WrapX);
     }
 
     [Fact]

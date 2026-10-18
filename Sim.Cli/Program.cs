@@ -113,7 +113,10 @@ namespace Sim.Cli
                 the canonical size, or --size PX. diff (T4.19/CR-013) walks
                 both canonical streams in schema order and reports the first
                 divergent table/row/field (doubles as R text + 64-bit pattern)
-                and a per-table summary; exit 0 identical, 1 different.
+                and a per-table summary; exit 0 identical, 1 different. A
+                schema-v32 save is migrated on load (terrain flat, the two v33
+                tables empty) and says so in one line on stderr; stdout is
+                unchanged in shape.
                 """);
             return 1;
         }
@@ -165,11 +168,13 @@ namespace Sim.Cli
                 orders);
         }
 
-        /// <summary>The starting world: M0 toy genesis, or the founded production world.</summary>
+        /// <summary>The starting world: M0 toy genesis, or the founded production world. <paramref name="wrapXOverride"/>
+        /// (D-054): <see cref="HeadlessFounding.Found"/>'s topology override — `sim inspect` founds a session recorded
+        /// before v33 flat.</summary>
         internal static WorldState StartWorld(
             ulong seed, bool founded, int? sizeOverridePx = null, int? settlementsOverride = null,
-            int? aiEmpiresOverride = null) =>
-            founded ? HeadlessFounding.Found(seed, sizeOverridePx, settlementsOverride, aiEmpiresOverride) : Genesis(seed);
+            int? aiEmpiresOverride = null, bool? wrapXOverride = null) =>
+            founded ? HeadlessFounding.Found(seed, sizeOverridePx, settlementsOverride, aiEmpiresOverride, wrapXOverride) : Genesis(seed);
 
         internal static int? AiEmpiresOpt(Options opts, bool founded)
         {
@@ -362,36 +367,15 @@ namespace Sim.Cli
             return positional.ToArray();
         }
 
-        // Snapshot header layout (Snapshot.Save): magic 8 | version 4 | seed 8 |
-        // turn 8, then the canonical stream: seed 8 | clock 24 | terrain flag 1.
-        private const int SaveHeaderSeedOffset = 8 + 4;
-        private const int SaveTerrainFlagOffset = 8 + 4 + 8 + 8 + 8 + 24;
-
-        /// <summary>
-        /// Loads a save, regenerating its terrain when the stream says it had one.
-        /// Terrain is not serialized (ADR-008); Snapshot.Load demands the
-        /// regenerated TerrainSet and validates its content hash against the one
-        /// the save recorded, so a wrong size or worldgen config fails loudly
-        /// rather than hashing a different world. The seed and the flag are read
-        /// from fixed header offsets BEFORE Load so that a toy save (no terrain)
-        /// is loaded plainly and a founded save gets exactly one worldgen.
-        /// </summary>
+        /// <summary>Loads a save (<see cref="SaveFiles.Load(string, long, out string?)"/>: terrain regenerated when the
+        /// stream says it had one; a schema-v32 save regenerated flat, D-054 / ADR-039). A save the load MIGRATED gets
+        /// its one-line note on STDERR (<see cref="SaveFiles.MigrationNote"/>): stdout stays exactly the hash / the diff
+        /// a script parses.</summary>
         private static WorldState LoadSave(string path, long sizePx)
         {
-            byte[] bytes = File.ReadAllBytes(path);
-            Sim.Core.Worldgen.TerrainSet? terrain = null;
-            if (bytes.Length > SaveTerrainFlagOffset && bytes[SaveTerrainFlagOffset] != 0)
-            {
-                ulong seed = BitConverter.ToUInt64(bytes, SaveHeaderSeedOffset);
-                if (!BitConverter.IsLittleEndian) throw new InvalidOperationException("big-endian host: header peek assumes little-endian saves");
-                Sim.Core.Worldgen.WorldgenConfig wgCfg;
-                using (var wgStream = Sim.Data.DataFiles.OpenWorldgen())
-                    wgCfg = Sim.Core.Worldgen.WorldgenConfigLoader.Load(wgStream);
-                if (sizePx >= 0) wgCfg = wgCfg with { SizePx = (int)sizePx };
-                terrain = Sim.Core.Worldgen.Worldgen.Generate(wgCfg, seed);
-            }
-            using var stream = new MemoryStream(bytes, writable: false);
-            return Snapshot.Load(stream, terrain);
+            WorldState world = SaveFiles.Load(path, sizePx, out string? note);
+            if (note is not null) Console.Error.WriteLine(note);
+            return world;
         }
 
         internal static int Replay(string[] args)
@@ -519,9 +503,17 @@ namespace Sim.Cli
             // (CR-013 §8, expected from turn 2) is not read as a determinism
             // defect. RuntimeIdentifier is provenance printed for a human; it
             // is never an input to the replay.
+            // Fix round 2 (D-054, verifier RC1-1): ONE condition for the platform lines and the verdict below — the
+            // trace's hashes are compared only under this build's schema, so only then is there a comparison for the
+            // platform lines to classify. The recipe line is SessionSchemaNotice.Reproduce: a session recorded before
+            // v33 is not reproduced by this build's `sim replay` (it founds the cylinder), so the line names `sim inspect`.
+            // Final nits (verifier RC2-1): the condition is SessionSchemaNotice.HashesChecked, which Reproduce keys on too.
+            // Final nits (verifier RC2-2): an EMPTY trace has no comparison to classify and nothing to reproduce — the
+            // plain platform line, then the empty-trace line, and no recipe (it named `sim inspect`, which then said
+            // there was nothing to inspect).
+            bool hashesChecked = SessionSchemaNotice.HashesChecked(manifest.SchemaVersion);
             Console.WriteLine(PlatformNotice.For(
-                manifest.Platform, System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier));
-            Console.WriteLine($"  reproduce with: {manifest.ReplayCommand(turns)}");
+                manifest.Platform, System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier, hashesChecked && turns > 0));
 
             if (turns == 0)
             {
@@ -530,9 +522,14 @@ namespace Sim.Cli
                 return 0;
             }
 
+            Console.WriteLine(SessionSchemaNotice.Reproduce(manifest, Path.GetFileName(manifestPath), turns));
+
             OrderLog orders = LoadOrders(Path.Combine(dir, manifest.OrdersFile));
+            // Fix round 1 (D-054, verifier F1): a session recorded before v33 was played on a FLAT map, so it is rebuilt
+            // flat (TopologyFlags.RecordedFlat — UiSession.Resume's rule); before, it was rebuilt on the shipped cylinder.
             WorldState world = StartWorld(
-                manifest.Seed, founded: true, manifest.SizePx, manifest.Settlements, manifest.AiEmpires);
+                manifest.Seed, founded: true, manifest.SizePx, manifest.Settlements, manifest.AiEmpires,
+                wrapXOverride: TopologyFlags.RecordedFlat(manifest.SchemaVersion) ? false : null);
             OrderValidation.ValidateAgainstWorld(orders, world);
             WorldState turnZero = world;
 
@@ -581,7 +578,13 @@ namespace Sim.Cli
             }
 
             Console.WriteLine();
-            Console.WriteLine(Divergence(played, replayed));
+            // Fix round 1 (D-054, verifier F1): UiSession.Resume's S0 rule, headless — the trace's hashes cover the
+            // canonical stream of the schema that recorded them, so across schemas none can equal a replayed one. Comparing
+            // them printed "REPRODUCTION FAILED at turn 0", a determinism verdict on a schema difference; the line now says
+            // the trace was not checked, and on what map the session was replayed.
+            Console.WriteLine(hashesChecked
+                ? Divergence(played, replayed)
+                : SessionSchemaNotice.NotChecked(manifest.SchemaVersion));
 
             long? focus = opts.Get("--turn") is not null ? opts.LongOr("--turn", 0) : null;
             int window = (int)opts.LongOr("--window", 3);
@@ -1258,8 +1261,12 @@ namespace Sim.Cli
     /// </summary>
     public static class HeadlessFounding
     {
+        /// <param name="wrapXOverride">D-054 (fix round 1): found the world with this east-west topology instead of
+        /// worldgen.json's <c>topology.wrapX</c> — UiFounding.Found's seam, the same override. `sim inspect` sets it false
+        /// for a session recorded before v33 (TopologyFlags.RecordedFlat); no command line sets it.</param>
         public static WorldState Found(
-            ulong seed, int? sizeOverridePx = null, int? settlementsOverride = null, int? aiEmpiresOverride = null)
+            ulong seed, int? sizeOverridePx = null, int? settlementsOverride = null, int? aiEmpiresOverride = null,
+            bool? wrapXOverride = null)
         {
             Sim.Core.Worldgen.WorldgenConfig wgCfg;
             using (var stream = Sim.Data.DataFiles.OpenWorldgen())
@@ -1269,6 +1276,7 @@ namespace Sim.Cli
             if (sizeOverridePx is { } sz) wgCfg = wgCfg with { SizePx = sz };
             // ADR-033 D5: worldgen.json's aiEmpires (default 0) unless overridden (sim run/replay --ai-empires).
             if (aiEmpiresOverride is { } ai) wgCfg = wgCfg with { AiEmpires = ai };
+            if (wrapXOverride is { } wrap) wgCfg = wgCfg with { Topology = new Sim.Core.Worldgen.TopologyConfig(wrap) };
             Sim.Core.Systems.SimConfig simCfg;
             using (var stream = Sim.Data.DataFiles.OpenSim())
             using (var needs = Sim.Data.DataFiles.OpenNeeds())

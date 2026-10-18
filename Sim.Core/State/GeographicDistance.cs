@@ -8,8 +8,14 @@ namespace Sim.Core.State;
 /// along roads (docs/m5-governing-loop-port.md §5 B4, escalated; resolved here).
 ///
 /// It is the same formula as <see cref="RoadDevelopmentQuery.GeographicKm"/> (ADR-032's road
-/// length invariant), restated over raw site cells rather than called, because that function lives
+/// length invariant), applied to raw site cells rather than called, because that function lives
 /// in the frozen transport surface (997824b) and takes a toy fallback this reader does not want.
+/// Both now go through <see cref="Pathing.MapTopology.Km"/>.
+///
+/// BATCH 3 WS3 (ADR-032 FR3 amended by the Director's 2026-10-14 instruction): on a wrapped
+/// (cylindrical) world the straight line is the one ON THE CYLINDER — x the short way round the
+/// seam, <see cref="Pathing.MapTopology.Dx"/>. Weather between two settlements either side of the
+/// seam correlates by their true separation; a flat world is unchanged bit for bit.
 ///
 /// <see cref="IdealGroundCostUnits"/> expresses the length in the IDEAL-GROUND travel-cost units
 /// the weather kernel's range is denominated in (<c>harvestVariance.spatialRangeCostUnits</c>):
@@ -20,13 +26,11 @@ namespace Sim.Core.State;
 /// </summary>
 public static class GeographicDistance
 {
-    /// <summary>Straight-line km between two row-major cells of the world's raster.</summary>
+    /// <summary>Straight-line km between two row-major cells of the world's raster (on the cylinder when it wraps).</summary>
     public static double Km(Worldgen.TerrainSet terrain, int cellA, int cellB)
     {
         ArgumentNullException.ThrowIfNull(terrain);
-        int size = terrain.Size;
-        long dx = cellA % size - cellB % size, dy = cellA / size - cellB / size;
-        return Math.Sqrt(dx * dx + dy * dy) * terrain.KmPerPx;
+        return Pathing.MapTopology.Km(cellA, cellB, terrain.Size, terrain.KmPerPx, terrain.WrapX);
     }
 
     /// <summary>

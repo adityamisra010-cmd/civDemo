@@ -514,7 +514,14 @@ public class ContinuousLevelOfDetailTests(CanonicalLensFixture fx) : IClassFixtu
 
     /// <summary>The attribution control for the moved threshold pins: on the canonical world (1024 px × 4 km) the km bands
     /// switch where the share bands (55 % / 16 % of the world) did, at every zoom of three map rects, except in the
-    /// rounding slivers (2252.8 → 2253 km, 655.36 → 655 km).</summary>
+    /// rounding slivers (2252.8 → 2253 km, 655.36 → 655 km).
+    /// <para>BATCH 3 WS3 NOTE (2026-10-15, integration R3 — W2 review F8): this pins the FLAT keying
+    /// (<see cref="MapDetail.At(double, double, double, double)"/>, the map rect's shorter side), which flat worlds still use;
+    /// it passes unchanged and no P2 pin literal or gate wheel row failed under WS3. The shipped canonical world is now a
+    /// CYLINDER, keyed on the window's width (<see cref="MapDetail.Across"/>), so its band zooms MOVED — MEASURED at
+    /// 1280 × 800 (map rect 1280 × 688, 4 km/px): World → Regional 1.2215x (flat) → 2.2726x (cylinder), Regional →
+    /// Settlement 4.2015x → 7.8169x. The cylinder's bands are pinned by CylinderCameraTests and CylinderSessionTests; the
+    /// gate wheel rows' notch counts before and after are tabled in docs/m5-hardening-measurements.md (W2 review F4).</para></summary>
     [Fact]
     public void OnTheCanonicalWorld_TheKmBandsSwitchWhereTheShareBandsDid()
     {

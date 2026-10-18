@@ -102,7 +102,7 @@ public static partial class PlayabilityGate
             // ---- POLICY: every kind the action surface paints, scrolled into view.
             foreach (InfoKind kind in new[] { InfoKind.LabourSector, InfoKind.Good, InfoKind.Learning, InfoKind.ResearchNode, InfoKind.Age,
                          InfoKind.Project, InfoKind.Recipe, InfoKind.RoadClass, InfoKind.TaxEdict, InfoKind.Formation, InfoKind.Baseline, InfoKind.UniversityType,
-                         InfoKind.Founding })
+                         InfoKind.Founding, InfoKind.MaterialsSplit })
             {
                 InfoKind k = kind;
                 Check("info", "shift-click " + k + " (POLICY)", () =>
@@ -228,7 +228,7 @@ public static partial class PlayabilityGate
                             SettlementRow row = default;
                             for (int i = 0; i < Ui.World.Settlements.Count; i++) if (Ui.World.Settlements[i].Id.Value == target) row = Ui.World.Settlements[i];
                             LineGeometry.Vertex pos = OverlayMeshes.SettlementPosition(row, Ui.World.Terrain!.Size);
-                            (double sx, double sy) = Ui.Camera.WorldToScreen(pos.X, pos.Y, Ui.MapRect);
+                            (double sx, double sy) = Ui.Camera.WorldToScreenNearest(pos.X, pos.Y, Ui.MapRect);
                             sx = Math.Round(sx);
                             sy = Math.Round(sy);
                             int cell = MapCells.At(Ui.Camera, Ui.MapRect, sx, sy, Ui.World.Terrain.Size);

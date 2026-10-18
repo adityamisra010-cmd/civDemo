@@ -209,3 +209,22 @@ From item 3, **"no unit consumed by both a project and a road"** is delivered by
   - Seed 7: population 124,455 → 124,483 (one relief settlement-turn in 1,000), still red at the same assertion.
   - Every canonical metric is bit-identical.
   - No new red.
+
+## Pointer added 2026-10-15 (D-054; dated note, the sections above are unchanged)
+
+The Director's 2026-10-14 instruction (batch 3) builds items 3, 4 and 6 of this batch's §4, which CR-021 had escalated.
+CR-021 is RESOLVED. In this record:
+- **§1, superseded clauses:**
+  - "The M4-D gate is unchanged: a head is built whole or waits" (construction is now incremental, D-054 §1);
+  - "Queue heads are tried in ascending settlement id" (heads are now served oldest order first: EnqueuedTurn, then
+    SettlementId, then Slot);
+  - "This fixed priority (buildings, then roads) is what exists until item 4 is ruled" (now each Empire's
+    building/roads split, D-054 §2, whose default of 100 keeps buildings first);
+  - "(no cancel order exists)" (order kind 11 `CancelConstruction`).
+- **§1, standing:** the purse, its donor order (now measured on the cylinder), the claims (now each entry's REMAINING
+  needs) and the AI reservation.
+- **§5.4:** the purse's stocks stand; "all-or-nothing" is superseded.
+- **§5.6, "Not touched":** it stays true of batch 2. Batch 3 adds schema v33, order kinds 11 and 12, and the cylinder's
+  measurement of the road and purse order (ADR-039).
+
+Record: `docs/d054-batch3-incremental-construction-allocation-cylinder.md` §5 item 3.

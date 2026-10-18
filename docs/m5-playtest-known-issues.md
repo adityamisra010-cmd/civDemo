@@ -5,6 +5,18 @@ the D-052 implementation pass on `m5w-integration` (two commits on `f0427d2`), p
 `claude/m5-playtest-d052` for the playtest build. `claude/new-session-yavghm` stays at `2dc6af2`. Governing record:
 `docs/d052-m5-integration-audit-rulings.md`.
 
+> **2026-10-15 — batch 3 (D-054), UNCOMMITTED on top of batch 2, not pushed and not in any build yet.**
+> - The Director's 2026-10-14 instruction adds three things:
+>   - incremental construction with a cancel order (§7);
+>   - each Empire's building/roads material split (§7);
+>   - a true east-west cylindrical world in worldgen, simulation and rendering (§11).
+> - These are batch 2's items 3, 4 and 6, which the batch-2 entry below records as not built. They are built now, the
+>   wrap without exploration gating or Satellites (out of scope by the instruction).
+> - Sections 6, 7, 9, 11, 12 and 13 are updated below with *Batch 3* lines.
+> - §15 lists batch 3's known issues, and §16 is the **manual playtest checklist** for what no headless test can see.
+> - Records: `docs/d054-batch3-incremental-construction-allocation-cylinder.md` (§10 holds the Director's questions)
+>   and ADR-039.
+
 > **2026-10-14 — batch 2 (D-053), UNCOMMITTED on `m5w-integration`, not pushed and not in any build yet.**
 > - The Director's 2026-10-13 batch adds the empire purse for construction and roads (§7), grain relief in a shortage
 >   (§5), and granary effects (§14).
@@ -80,6 +92,9 @@ NOT complete; the exit and merge conditions are in D-052 §15.
 - INFERRED, not reproduced: in Age III+ a Workshop you queue can sit at the head of the construction queue for a long
   time if the settlement cannot hold 10 tools (farmers wear tools out), and there is no cancel order. If a queue stalls
   on a Workshop, note the settlement and turn.
+  - *Batch 3:* a cancel order now exists. Each committed queue row has a Cancel button, and a head with work in it asks
+    you to confirm ("Lose it"), because cancelling refunds nothing. A Workshop also no longer needs all 10 tools at
+    once: it takes them as they come, keeping what has gone in.
 
 ## 7. Central stockpile — partly built (batch 2, D-053 §1–§2)
 
@@ -101,6 +116,21 @@ NOT complete; the exit and merge conditions are in D-052 §15.
   D-051 §6 stays open for these.
 - **Construction is still built whole.** A project waits until the empire holds its full cost, then is built in one
   turn. There is no partial progress (item 3, CR-021 §A).
+  - *Batch 3 (D-054 §1): superseded.* Construction is now INCREMENTAL.
+    - A project starts as soon as it is first in its settlement's queue and there are builders and the first unit of
+      each material.
+    - Each turn it takes what the builders can use and the empire holds, materials first. What has gone in is never
+      lost while it waits.
+    - The queue shows "16 of 40 timber, 8 of 20 stone and 0.8 of 2 adult-years have gone in", the reason it is
+      waiting, and the order it is served in: oldest order first, across the empire.
+    - Cancelling a part-built project forfeits what went in. There is no refund (D-054 §10 Q1).
+- *Batch 3 (D-054 §2):* **the building/roads material split.** A "Materials for building and roads" block sits between
+  Construction and Roads. On a turn you order road works, building work is guaranteed its share of each eligible good,
+  and road works get the rest. Whatever one side does not need, the other may use.
+  - The default is "building first": road works get only what building work leaves, the same as batch 2. The AI never
+    changes it.
+  - Numeral-free eras show shares in 10; numeral eras show percentages.
+  - Dwellings are not under the split. They take their own settlement's timber first.
 
 ## 8. Units
 
@@ -123,6 +153,21 @@ NOT complete; the exit and merge conditions are in D-052 §15.
   stock a sibling held, relief applied, or a granary acted. Measured: the seed-42 one-AI world first differs at turn 5. Expect
   any AI game, and any game where you built, to be refused. They are refused like any other incompatible session. Start a new game on a batch-2 build.
 - A session recorded under an older SAVE SCHEMA is still resumed by replay with the "RESUMED SESSION" notice (D-008).
+- *Batch 3:* every session recorded by a batch-2 build is an older save schema (v32; this build is v33).
+  - **It resumes on the FLAT map it was played on**, at any size (250 px included), and its orders are replayed
+    without the trace check. Every batch-2 world was flat; the cylinder arrived with v33.
+  - The "RESUMED SESSION" notice reads: "Recorded under save schema v32; this build is v33." / "Replayed from its seed
+    and orders on the flat map v32 used (D-008)." / "The saved trace was not checked against this replay." / "The
+    world may differ from the one originally played."
+  - Measured on a real batch-2 session (seed 42, two settlements founded by order): it resumes into exactly the world
+    the batch-2 build played, 14 settlements at turn 8.
+  - **It may still differ** where batch 3's construction rules act: a project that waited under batch 2's
+    whole-or-wait rule is now built piece by piece on replay (D-054 §10 Q9). If you see that, note the session.
+  - `sim inspect` of such a session also rebuilds it flat. It says "trace not checked: …" instead of a reproduction
+    verdict, and its "reproduce with:" line points to `sim inspect` itself, because this build's `sim replay` always
+    founds the cylinder.
+  - CLI `.civsnap` saves of schema v32 load FLAT too: `sim hash` / `sim diff` migrate them explicitly and print a
+    one-line migration note on stderr.
 - `--size` maps: founding a settlement (player or AI) on a non-canonical map now reads deposits from that map's own
   cells. Before this pass it read the wrong cells, and could crash End Turn for sites in the bottom rows. That crash was
   measured: seed 1, `--size 256 --ai-empires 1`, the AI's founding at turn 179. A `--size` session recorded by an
@@ -147,6 +192,28 @@ NOT complete; the exit and merge conditions are in D-052 §15.
 
 - The camera keeps a contain fit: in a wide window there is paper beside the square world, and the status and command
   bars do not fold (unruled, D-052 §14).
+  - *Batch 3 (D-054 §3): superseded for the shipped world, which is now an east-west CYLINDER.*
+    - Pan east past the edge and you arrive in the west, and the reverse. North and south still stop at the poles.
+    - Cities, routes and roads cross the seam, and nothing is drawn twice.
+    - The zoom floor is the window's width / the world's width, so the map always fills the window. Opening or closing a
+      panel no longer re-zooms.
+    - The game opens centred on your first settlement.
+    - **The whole world can no longer be seen at once.** At the floor about 47–54 % of its height is visible (53.8 % at
+      1280×800, 46.7 % at 1920×1009). A minimap is queued, not built (D-054 §10 Q5).
+    - The level of detail now changes at deeper zooms: at the default 1280×800 window, "to Regional" takes 3 wheel
+      notches from the floor, where it took 1.
+- *Batch 3:* a `--size` the cylinder cannot take (not a multiple of 4 px, or under 12 px) is refused at launch, exit
+  code 2, with "error: this world is a cylinder (worldgen.json topology.wrapX), which needs a map size the lattice
+  stride divides into at least 3 nodes: size 250 px, stride 4 px. The cylinder's own rule is a multiple of 4 px, at
+  least 12 px — the nearest sizes the cylinder takes are 248 px and 252 px." (shown for `--size 250`).
+  - When a size the message names is below 124 px, it adds one sentence. For `--size 8` the message ends "— the
+    nearest size the cylinder takes is 12 px. That rule is the cylinder's alone: founding also needs room to site every
+    settlement, and at the default settlement count, settlement siting can refuse maps this small, with its own
+    message."
+  - Small sizes the cylinder takes can still be refused by settlement siting with the default 12 settlements: measured
+    (2026-10-15, final-round fix 3) for every size the cylinder takes up to 88 px on seeds 42, 1 and 7, and on some
+    seeds up to 120 px (seed 42 at 120 px). Every size from 124 to 160 px founded on seeds 1–20 and 42, and 248, 252
+    and 256 px found and run.
 - With all six resource overlays on at World zoom the map alone measured 12–17 ms per frame headless; frame drops are
   possible on large worlds or slower machines. No GPU frame timing exists yet — please note any stutter.
 - The overlay key reads each place as a 16 km node sampled at its centre (not stated in the key).
@@ -159,6 +226,9 @@ NOT complete; the exit and merge conditions are in D-052 §15.
 - The native incompatibility dialog (§9) is untested on Windows; if it fails, the error still goes to stderr and the
   launch still ends cleanly.
 - Measured headless on Linux only: the smoke gate, frame costs and every test count in the handoff report.
+- *Batch 3:* no batch-3 commit exists, so no CI or Windows build has run on it. The GPU side of the seam can only be
+  checked by eye: the U-wrapped terrain sampler, the rivers drawn at each copy, and the 2000-texel sheet of
+  `--size 1000`. See §16.
 
 ## 13. Not in the M5 playtest build (deferred by ruling)
 
@@ -167,6 +237,10 @@ NOT complete; the exit and merge conditions are in D-052 §15.
 - editable building/road resource ratios (a new per-empire table, v33, and a new order kind);
 - the east-west map wrap gated by explored longitudes, with Satellites revealing the map (no explored-extent state
   until M6; a true cylinder reopens ADR-032 Final Ruling 3, D-015 and the T3.1(b) ocean ring).
+
+*Batch 3 (D-054):* the first two are now BUILT (§7), and the third is built as an UNRESTRICTED cylinder (§11). Its
+exploration gating and Satellites stay out of scope by the Director's instruction: "EXPLICITLY OUT OF SCOPE FOR NOW".
+There is still no fog, no known extent and no unit movement (M6, M7).
 
 
 Fog of war, scouts and visibility (M6) · the visual milestone: drawn buildings/institutions, Age terrain, richer unit
@@ -188,3 +262,94 @@ art (M6) · movement and Action Points (M7) · the Spine's M5 items budget, auth
   - A granary does NOT increase storage. The store bound (1.5 years of demand) and spoilage are unchanged.
   - The settlement food line now says "grain store", not "granaries".
 - **Unchanged.** The Age II "Communal store" milestone and the Age III levy relief.
+
+## 15. Batch 3 (D-054) — known issues
+
+- **Two calibration tests stay RED (§2), with moved values.**
+  - Seed 42: dev migration 8.35755E-05 (was 8.71773E-05).
+  - Seed 7: dev population 123,950 (was 124,483).
+  - The dev worlds are cylinders now. No frozen reference was touched.
+  - The nightly corridors drift as well: density target band 17 → 16 of 20 seeds, and the quarantined migration breach
+    77.66 % → 80.83 %. D-054 §6 has the numbers.
+- **Cancelling refunds nothing.** Whatever has gone into a project (materials and builders' work) is lost when you
+  cancel it. The UI warns before a part-built project is cancelled (D-054 §10 Q1).
+- **The AI is more cautious than you.** It orders a building only into an idle queue, and only when the empire already
+  holds the whole remaining cost.
+  - It cancels its own project when the settlement can no longer build it: no adults left, or a university whose town
+    can no longer sustain one. That includes after a bad harvest lowers the food surplus, so an AI may abandon a
+    part-built university (D-054 §10 Q3, Q6).
+- **The split's default is "building first"** (100), which is batch 2's behaviour. The AI never changes it (D-054 §10
+  Q2).
+- **The books do not separate building materials from road materials.** Both are booked as construction materials
+  (D-054 §10 Q12).
+- **The whole world is never on screen at once** (§11). A minimap is queued, not built.
+- **Level of detail on the cylinder is keyed on the window's width** (D-054 §10 Q4).
+- **The seam is checked headless only on the baked parchment's row mean.** A partly faded seam would pass that test, so
+  the eye is the judge (§16; D-054 §10 Q10, Q11).
+- **Old sessions.** Batch-2 sessions resume on the flat map they were played on (§9), but under batch 3's rules, so a
+  game where construction waited can come back different (D-054 §10 Q9). This build's `sim replay` cannot replay them;
+  `sim inspect` and the game's resume can.
+- **Slower turns on the shipped world.** About +14 % per turn, from path-building on the cylinder's different road
+  network (measured over 60 turns). The same flat world costs about +1 %.
+- **No unit movement exists** (M7). "Movement across the seam" means the existing travel: catchments, migration, trade,
+  colonisation reach, the AI founding flood, route previews and path-building. All of it wraps.
+  - On the shipped worlds, only seed 16 has settlements whose shortest route crosses the seam. A migrant crossing it is
+    pinned there with trade and recipe knowledge given at the start. No trade across the seam was seen in 300 turns
+    on any of the seven shipped seeds whose land crosses it (D-054 §3, §10 Q18).
+- **A younger project can take what an older, waiting one still needs** (D-054 §10 Q17). Work is served oldest order
+  first only among projects that can progress this turn. If the older head has no builders this turn, a younger head
+  elsewhere in the empire may use the materials the older one was waiting for.
+
+## 16. Manual playtest checklist (batch 3) — what no headless test can see
+
+Launch from a terminal so the seed and size can be chosen, for example `app\Sim.Ui.exe --seed 16 --ai-empires 1`.
+Seeds with land across the seam: **16** (a pinned route crosses it between its settlements 3 and 6) and **6** (land and
+a river cross it). Note the seed, size, turn and window size of anything odd, and take a screenshot.
+
+1. **Pan across the seam, both ways, on the canonical world (1024 px), seed 16 and then seed 6.**
+   - Hold D past the eastern edge until you are back in the west, then hold A the other way.
+   - Look for a vertical **seam line**, a **smear** (stretched or clamped texels), or a **crease** in the paper or
+     washes at the cross-fade band (the last 32 world px before the seam).
+   - Check the **rivers** (seed 6), **coasts, roads, territory and the resource overlays** as they cross.
+   - Nothing may be drawn twice or cut off.
+2. **Repeat on `--size 1000`** (for example `--seed 16 --size 1000`). This world's terrain sheet is 2000 texels wide, which
+   is not a power of two; whether the graphics driver wraps it correctly is untested. Look for the same seam line or
+   smear.
+3. **Zoom out fully at the seam.** The floor should show the world once across the window, never two copies.
+   - Open and close a side panel: the zoom must not change.
+   - Wheel in to Regional and Settlement and back.
+4. **Click a settlement standing at or across the seam** (on either side). The right card must open, and its route
+   preview must take the short way across the seam.
+5. **A part-built project.**
+   - Order a Granary where the empire is short of stone, and End Turn a few times.
+   - The queue should show "… of 40 timber, … of 20 stone … have gone in", a "waiting for …" reason, and the "served
+     oldest order first" line.
+   - In the numeral-free eras no "%" may appear anywhere in the construction block.
+   - Check the "Last turn: … went in" line after an End Turn.
+6. **Cancel a part-built head.**
+   - Click Cancel on the head with work in it. It must turn into "Lose it" with a line naming what will be lost, and only
+     the second click cancels.
+   - After End Turn the entry is gone, and the next one is head with nothing in it.
+   - A project ordered this turn shows no Cancel.
+7. **The allocation control ("Materials for building and roads").** It appears with the Roads block, once a road class
+   is known.
+   - **In a numeral-free era (Ages I–III):** the share tally reads "building work keeps N shares in 10, road works M",
+     with no "%" anywhere. Both ends (all to building, all to roads) are reachable. Set appears only when the draft
+     differs, and the queued line reads "Set this turn: …".
+   - **In a numeral era (Age IV on):** the readout below the control reads "Building N% · Roads M%", and the control
+     row itself carries no number. Check that nothing reads as a building share sitting beside "Roads". From Age VII
+     the control is a slider.
+   - Order a road the same turn, and check the construction block's "may use up to" line and the roads preview's "after
+     building work, about …" line.
+   - Quit with a part-built head and a split set, then resume with `app\Sim.Ui.exe --resume runs\<session-dir>`. The
+     split, the head's progress and the queue must come back unchanged, with no resume notice.
+8. **WASD at the seam.** D moves east, A moves west, and W and S stop at the poles. The HUD's camera x never shows the
+   world width (it wraps to 0).
+9. **An old (batch-2) session, if you have one.** Resume it with `app\Sim.Ui.exe --resume runs\<session-dir>`.
+   - The game must open with the "RESUMED SESSION" notice, whose second line reads "Replayed from its seed and orders on
+     the flat map v32 used (D-008)."
+   - The map must be FLAT: panning east stops at the edge, with no wrap, and the settlements are where you left them.
+   - Note anything that looks different from how you left it, especially a building that is now further along (§9).
+10. **A size the cylinder refuses.** Launch with `--size 250`. No game window may open. The error dialog ("civ-sim:
+    this world cannot be created") and stderr must show the "this world is a cylinder …" message quoted in §11, and
+    the launch must end with exit code 2. The dialog is not yet observed on Windows (§12).
