@@ -19,7 +19,10 @@ public sealed record HousingTables(Table<HousingRow> Housing, Table<GoodStockRow
 /// and Shelter is a Tier A gate need, so the flow artifact was the largest
 /// grievance term in the world (docs/t3.8-review-record.md, measured).
 ///
-/// THE STEP, per settlement, in table row order, all signals from PREV:
+/// THE STEP, per settlement, in table row order. Every signal is read from PREV except the timber and clay on hand,
+/// which are read from the shared NEXT GoodStocks at housing's place in the pipeline: after production, appropriation,
+/// consumption and trade have moved them this step, before construction (SystemCatalog's GoodStocks share, order as
+/// data; D-057's coupling map. Corrected 2026-10-18: this line read "all signals from PREV").
 ///  1. MAINTENANCE. Upkeep demand = dwellings × upkeep{timber,clay}/yr × dt.
 ///     The maintenance FRACTION m = min over materials of available/demand
 ///     (Leontief — roof and walls both needed; a settlement rich in timber

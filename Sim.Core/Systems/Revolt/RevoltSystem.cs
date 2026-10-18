@@ -98,8 +98,13 @@ public readonly record struct RevoltTables(
 /// does not touch population, goods or any other stock.
 ///
 /// SIGNALS ARE ALL FROM PREV (§3.2), so the reading that condemns a settlement is
-/// the one every other system saw this turn, and the outcome cannot depend on
-/// where this system sits in the pipeline.
+/// the one every other system saw this turn, and WHICH settlements revolt cannot depend on
+/// where this system sits in the pipeline. WHAT THE NEW POLITY INHERITS does: its knowledge
+/// (ResearchCompleted) and Age (AgeStates) are copied from the shared NEXT tables at revolt's
+/// place, before research and agetransition write this step's rows, so the child gets the
+/// parent's knowledge and Age as they stood at the start of the step (SystemCatalog's
+/// sanctioned shared tables, order as data; D-057's coupling map. Corrected 2026-10-18: this
+/// paragraph said the whole outcome was order-independent).
 /// </summary>
 public sealed class RevoltSystem(SimConfig cfg) : ISimSystem<RevoltTables>
 {

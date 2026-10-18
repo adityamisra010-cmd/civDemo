@@ -347,7 +347,12 @@ public static partial class PlayabilityGate
     }
 
     /// <summary>Age II's research milestones (core and supporting) completed with their prerequisites; then played
-    /// forward (bounded) until the player is eligible.</summary>
+    /// forward (bounded) until the player is eligible. D-057: the bound is 200 turns, not 120. The research milestones
+    /// give one category, and Age II needs two, so the second must come from play. Measured on seed 42: with the whole
+    /// world (no AI Empire) the player is eligible at turn 23; with one AI Empire it holds 6 of the 12 settlements and is
+    /// eligible at turn 133, by the same rules. The 120-turn bound therefore failed that rig ("age rig: not eligible for
+    /// Age II" in `--smoke --ai-empires 1`): the simulation was right and the rig's bound was too tight. A world that is
+    /// eligible sooner stops sooner, so the 0-AI state is unchanged.</summary>
     private static UiSession AgeEligible(int ai)
     {
         WorldState w = UiFounding.Found(42, aiEmpiresOverride: ai);
@@ -366,7 +371,7 @@ public static partial class PlayabilityGate
         }
         Complete(w, c, Ancestry(c, [.. wanted]));
         UiSession s = UiSession.StartFrom(w, 42);
-        AgePreview.PlayToEligible(s, 120);
+        AgePreview.PlayToEligible(s, 200);
         if (!AgeQuery.IsEligible(s.World, ages, Me)) throw new InvalidOperationException("age rig: not eligible for Age II");
         return s;
     }
