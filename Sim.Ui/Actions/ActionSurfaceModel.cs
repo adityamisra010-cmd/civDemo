@@ -736,8 +736,9 @@ public static class ActionSurface
 
     // ------------------------------------------------------------------ M5 polish: what a project does, where a material comes from
 
-    /// <summary>What reads a built project in this build, from its info card (InfoQuery): the Age facts it counts toward
-    /// and, for a public work, the levy's public-services offset. Null when nothing does.</summary>
+    /// <summary>What reads a built project in this build, from its info card (InfoQuery): the Age facts it counts toward,
+    /// for a granary its local farm-output and empire-wide famine effects (M5 item 5), and, for a public work, the levy's
+    /// public-services offset. Null when nothing does.</summary>
     private static string? ProjectEffects(ActionSurfaceInput input, ConstructionProjectEntry p, SettlementId settlement)
     {
         InfoCard card = InfoQuery.Card(input.World, input.Config, input.Player, InfoSubject.OfProject(p.Id, settlement.Value),
@@ -748,15 +749,29 @@ public static class ActionSurface
             if (l.Subject is { Kind: InfoKind.AgeMilestone } s)
                 parts.Add("counts toward Age " + AgePanelModel.Numeral((int)s.Id) + " \"" + l.Label + "\"");
             else if (l.Subject is { Kind: InfoKind.UniversityType }) parts.Add("founds the " + l.Label);
-            else if (l.Subject is null) parts.Add("once a levy exists, eases how heavily it is felt here");
+            else if (l.Subject is null)
+            {
+                // M5 item 5 (D-053 §3): a granary's two effects in their brief, multiplier form (no percentages on this
+                // surface) — the RESULTING TOTAL factors the simulation multiplies by (State.GranaryEffects) with one more
+                // STANDING granary (queued ones are not counted): the settlement's own count for the harvest, its
+                // civilization's for famine. The levy line keeps its form.
+                if (string.Equals(l.Label, InfoQuery.GranaryFarmLabel, StringComparison.Ordinal) && GranaryEffects.Active(input.Config) is { } gf)
+                    parts.Add(InfoQuery.GranaryFarmBrief(gf, GranaryEffects.LocalGranaries(input.World, input.Config, settlement),
+                        LabourActivities.HarvestsWildFood(input.World, input.Config, settlement)));   // C1: 1.0 on wild food
+                else if (string.Equals(l.Label, InfoQuery.GranaryFamineLabel, StringComparison.Ordinal) && GranaryEffects.Active(input.Config) is { } gn)
+                    parts.Add(InfoQuery.GranaryFamineBrief(gn, GranaryEffects.EmpireGranaries(input.World, input.Config, settlement)));
+                else
+                    parts.Add("once a levy exists, eases how heavily it is felt here");
+            }
         }
         return parts.Count == 0 ? null : string.Join("; ", parts);
     }
 
-    /// <summary>The source chain of the first material the settlement lacks that nothing the civilization holds makes.</summary>
+    /// <summary>The source chain of the first material the settlement's purse lacks (ConstructionQuery.Holders — its
+    /// Empire's settlements together, or its own stock) that nothing the civilization holds makes.</summary>
     private static string? MissingChain(ActionSurfaceInput input, ConstructionProjectEntry p, SettlementId settlement)
     {
-        foreach (MaterialShortfall s in ConstructionQuery.Shortfalls(input.World.GoodStocks, input.Config.Goods!, settlement, p))
+        foreach (MaterialShortfall s in ConstructionQuery.Shortfalls(input.World, input.Config, settlement, p))
             if (InfoQuery.SourceChain(input.World, input.Config, input.Player, s.Name) is { } chain) return chain;
         return null;
     }
@@ -802,15 +817,21 @@ public static class ActionSurface
         // D-051 §4 / Director 2026-10-10: a project whose crafted input has no production path here yet is not a legal
         // order (ConstructionQuery.InputUnobtainable), so the query does not list it — name it as locked, with where the
         // input comes from (the source chain the Construction block used to show as its blocker), rather than let it vanish.
+        // D-053 §1: the claims are read from the queue the listing reads (the world's plus the pending orders the intake would
+        // accept), and where the empire HOLDS the input but its queued projects already claim it, the reason says so.
         if (settlement is { } here && cfg.Goods is { Projects: { } projects } goods)
+        {
+            IReadOnlyTable<ConstructionQueueRow> claims = ConstructionQuery.QueueWithPending(w, cfg, input.Queued);
             foreach (ConstructionProjectEntry p in projects)
             {
-                if (ConstructionQuery.Availability(w, cfg, input.Player, here, p.Id) != ProjectAvailability.InputUnobtainable) continue;
-                string good = ConstructionQuery.UnobtainableInput(w, cfg, here, p)?.Name ?? "an input";
-                string reason = "needs " + good + ", which " + input.Name(here.Value) + " cannot make yet"
+                if (ConstructionQuery.Availability(w, cfg, input.Player, here, p.Id, claims) != ProjectAvailability.InputUnobtainable) continue;
+                string good = ConstructionQuery.UnobtainableInput(w, cfg, here, p, claims)?.Name ?? "an input";
+                string reason = (ConstructionQuery.ClaimedReason(w, cfg, here, p, claims, input.Name)
+                        ?? "needs " + good + ", which " + input.Name(here.Value) + " cannot make yet")
                     + (InfoQuery.SourceChain(w, cfg, input.Player, good) is { } chain ? " - comes from: " + chain : "");
                 lines.Add(new LockedDomain("Build " + AvailableActionsQuery.ProjectName(cfg.Research, p), reason, InfoSubject.OfProject(p.Id, here.Value)));
             }
+        }
         if (!Lists(ActionDomain.Age) && cfg.Ages is { } ages && AgeQuery.NextAge(w, ages, input.Player) is { } nextAge
             && AgeQuery.PendingAdvance(w, ages, input.Queued, input.Player) is null)
         {

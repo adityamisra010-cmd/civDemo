@@ -166,22 +166,11 @@ public sealed class RoadDevelopmentSystem(SimConfig cfg) : ISimSystem<RoadDevelo
     }
 
     /// <summary>Draws <paramref name="units"/> of a good from the civilization's settlements in
-    /// the given (nearest-first) order through the Ledger (a sink per row touched). The caller has checked the total.</summary>
-    private static void Draw(SimContext<RoadDevelopmentTables> ctx, Table<GoodStockRow> stocks, SettlementId[] payers, GoodId good, long units)
-    {
-        long left = units;
-        for (int p = 0; p < payers.Length && left > 0; p++)
-        {
-            int idx = GoodStockIndex.IndexOf(stocks, payers[p], good);
-            if (idx < 0) continue;
-            long take = Math.Min(left, stocks[idx].Amount.Value);
-            if (take <= 0) continue;
-            ctx.Ledger.Flow(ref stocks.Ref(idx).Amount, ConservedQuantityIds.OfGood(good),
-                ReasonIds.ConstructionMaterials, take, FlowDirection.Sink, OverdrawPolicy.Throw);
-            left -= take;
-        }
-        if (left != 0) throw new InvalidOperationException("road development: the civilization's holding was checked but did not cover the charge.");
-    }
+    /// the given (nearest-first) order through the Ledger (a sink per row touched) — EmpireStockpile.Draw, the one
+    /// purse draw construction uses too (the same loop that lived here, moved unchanged: each payer in order gives
+    /// min(remaining, held)). The caller has checked the total; a short purse throws before any flow.</summary>
+    private static void Draw(SimContext<RoadDevelopmentTables> ctx, Table<GoodStockRow> stocks, SettlementId[] payers, GoodId good, long units) =>
+        EmpireStockpile.Draw(ctx.Ledger, stocks, payers, good, units, ReasonIds.ConstructionMaterials);
 
     private static bool IsRosterPolity(IReadOnlyWorldState prev, PolityId polity)
     {

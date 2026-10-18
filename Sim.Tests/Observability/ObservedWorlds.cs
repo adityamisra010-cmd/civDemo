@@ -52,9 +52,9 @@ internal static class ObservedWorlds
     /// <summary>Steps <paramref name="world"/> for <paramref name="turns"/> turns,
     /// observing every step. The observation call sits AFTER the step and reads
     /// both worlds; the Step call is the same one the unobserved twin makes.</summary>
-    internal static Run Observed(WorldState world, OrderLog? orders, int turns)
+    internal static Run Observed(WorldState world, OrderLog? orders, int turns, SimConfig? config = null)
     {
-        SimConfig cfg = TestConfigs.Sim();
+        SimConfig cfg = config ?? TestConfigs.Sim();
         OrderLog log = orders ?? new OrderLog();
         TurnExecutor exec = Executor(cfg, orders);
         var observations = new ObservationLog();
@@ -123,12 +123,21 @@ internal static class ObservedWorlds
     internal static readonly Lazy<Run> Founding5 =
         new(() => FoundingRun(5), LazyThreadSafetyMode.ExecutionAndPublication);
 
-    internal static Run DrivenRun(int turns)
+    /// <summary>D-053 §2 (2026-10-13): the DRIVEN world on the per-settlement store
+    /// (TestConfigs.PreEmpireFoodAllocation) — the de86ace driven run. It carries the
+    /// starvation NON-VACUITY sample WorldReconciliationTests pins, which is a
+    /// per-settlement regime: intra-polity relief feeds the settlements the driving
+    /// orders starve while their polity has spare grain. The shipped Driven300 stays
+    /// the world every identity is reconciled on.</summary>
+    internal static readonly Lazy<Run> DrivenPerSettlementStores300 =
+        new(() => DrivenRun(300, TestConfigs.PreEmpireFoodAllocation(TestConfigs.Sim())), LazyThreadSafetyMode.ExecutionAndPublication);
+
+    internal static Run DrivenRun(int turns, SimConfig? cfg = null)
     {
         WorldState world = Founded();
         OrderLog orders = DrivenGoldenTests.DrivingOrders(world.Settlements.Count);
         OrderValidation.ValidateAgainstWorld(orders, world);
-        return Observed(world, orders, turns);
+        return Observed(world, orders, turns, cfg);
     }
 
     /// <summary>The stranded-source rig (ColonizationTests.StrandedSource), then

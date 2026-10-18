@@ -378,8 +378,9 @@ public sealed partial class ActionSurfaceScreen
     private readonly record struct RichWord(string Text, bool Bold);
 
     /// <summary>
-    /// UR-6 — A BLOCKER, READABLE: "needs 40 timber (has 0), 20 stone (has 0)" wrapped at the Secondary role in the
-    /// progress family's TEXT ink, with every MISSING QUANTITY ("40 timber") emphasised — the thing the player has to
+    /// UR-6 — A BLOCKER, READABLE: "needs 40 timber (has 0), 20 stone (has 0)" — or, for a settlement that draws on its
+    /// Empire's purse, "needs 40 timber (empire has 0), …" (ConstructionQuery.Blocker) — wrapped at the Secondary role in
+    /// the progress family's TEXT ink, with every MISSING QUANTITY ("40 timber") emphasised — the thing the player has to
     /// go and get is the first thing the eye lands on (they were 11.5 px amber at 1.88:1).
     /// </summary>
     private double Blocker(DrawList d, ITextMeasure m, string lead, string blocker, double x, double y, double w, double size,
@@ -391,8 +392,9 @@ public sealed partial class ActionSurfaceScreen
         string[] parts = blocker.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         for (int i = 0; i < parts.Length; i++)
         {
-            // "<quantity> <good>" followed by "(has …)": the missing amount and what it is.
-            bool qty = i + 2 < parts.Length && StartsWithDigit(parts[i]) && parts[i + 2].StartsWith("(has", StringComparison.Ordinal);
+            // "<quantity> <good>" followed by "(has …)" or "(empire has …)": the missing amount and what it is.
+            bool qty = i + 2 < parts.Length && StartsWithDigit(parts[i])
+                && (parts[i + 2].StartsWith("(has", StringComparison.Ordinal) || parts[i + 2].Equals("(empire", StringComparison.Ordinal));
             if (qty)
             {
                 words.Add(new RichWord(parts[i], true));

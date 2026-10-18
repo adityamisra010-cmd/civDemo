@@ -21,22 +21,50 @@ namespace Sim.Tests.Kernel;
 /// carry orders from the revolt-founded polity, its per-turn hashes must equal an in-process replica of the UI's
 /// end-turn loop (player orders of the turn, then AiOrders.Append, then step), and `sim replay` of the emitted run log
 /// must reproduce every hash.
+///
+/// D-053 §2 RE-RIG (2026-10-13). Intra-polity grain relief feeds a starving settlement while its polity has spare
+/// grain, so on the shipped config the FoundedHarness swings alone no longer starve settlement 0 into revolt (MEASURED:
+/// with them alone it is fed by its eleven siblings and never revolts in 300 turns; this test failed "the CLI run log
+/// carries no order from the polity the revolt founded"). `sim run` loads the embedded content and has no switch for
+/// the per-settlement store, so the test cannot run on TestConfigs.PreEmpireFoodAllocation; it is re-rigged instead so
+/// the POLITY HAS NO SPARE GRAIN: on the turn settlement 0's 0 % swing is issued, every other settlement is ordered off
+/// its food labour too (Farming 0, Herding 0; Extraction 50 and Construction 50, so they stay HOUSED and only
+/// settlement 0, unfed AND unhoused, becomes revolt-ready). Once the polity's stores are spent, nobody can feed
+/// settlement 0 and it revolts at <see cref="RevoltTurn"/>. What the test pins is unchanged: the CLI drives the polity
+/// the revolt founds exactly as the UI loop does, and the run log replays.
 /// </summary>
 public class CliRevoltPolityProducerTests
 {
     private const ulong Seed = 42;
-    // The FoundedHarness revolt turn (FoundedHarnessTests.RevoltTurn: 58 at H4; ADR-035 moved it 58 -> 63 -> 97 -> 39),
-    // plus a few turns of the new polity's own orders.
-    private const int Turns = FoundedHarnessTests.RevoltTurn + 6;
 
-    /// <summary>FoundedHarnessTests.SessionLog: labour swings on settlement 0, which starve it unfed and unhoused into
-    /// revolt at FoundedHarnessTests.RevoltTurn on this world.</summary>
-    private static OrderLog PlayerLog()
+    /// <summary>The turn settlement 0 revolts under <see cref="PlayerLog"/> on the shipped config (MEASURED,
+    /// 2026-10-13, D-053 §2 re-rig). History: it read FoundedHarnessTests.RevoltTurn (58 at H4; ADR-035 moved it
+    /// 58 -> 63 -> 97 -> 39), which is now the per-settlement-store twin's pin.</summary>
+    private const int RevoltTurn = 37;
+
+    // The revolt turn plus a few turns of the new polity's own orders.
+    private const int Turns = RevoltTurn + 6;
+
+    /// <summary>FoundedHarnessTests.SessionPcts' labour swings on settlement 0, plus — issued with its 0 % swing — every
+    /// other settlement's food labour abandoned while it keeps building (the D-053 §2 re-rig, header).</summary>
+    private static OrderLog PlayerLog(WorldState founded)
     {
         var log = new OrderLog();
         double[] pcts = FoundedHarnessTests.SessionPcts;   // ADR-035 §7: the re-rigged swing set, shared
         for (int i = 0; i < pcts.Length; i++)
-            log.Append(new OrderRecord(3 + i * 30, ActorId: 1, OrderKind.LaborAllocation, 0, pcts[i]));
+        {
+            int turn = 3 + i * 30;
+            log.Append(new OrderRecord(turn, ActorId: 1, OrderKind.LaborAllocation, 0, pcts[i]));
+            if (pcts[i] != 0.0) continue;
+            double[] housedUnfed = [0.0, 0.0, 50.0, 0.0, 50.0];   // Farming, Herding, Extraction, Crafting, Construction
+            for (int s = 0; s < founded.Settlements.Count; s++)
+            {
+                int id = founded.Settlements[s].Id.Value;
+                if (id == 0) continue;
+                for (int sector = 0; sector < housedUnfed.Length; sector++)
+                    log.Append(new OrderRecord(turn, ActorId: 1, OrderKind.SectorAllocation, id * 8 + sector, housedUnfed[sector]));
+            }
+        }
         return log;
     }
 
@@ -65,7 +93,9 @@ public class CliRevoltPolityProducerTests
         if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
         Directory.CreateDirectory(dir);
         string ordersPath = Path.Combine(dir, "player.bin");
-        using (FileStream f = File.Create(ordersPath)) PlayerLog().Save(f);
+        WorldState founded = Sim.Cli.HeadlessFounding.Found(Seed);
+        OrderLog player = PlayerLog(founded);
+        using (FileStream f = File.Create(ordersPath)) player.Save(f);
         string runHashes = Path.Combine(dir, "run.log"), replayHashes = Path.Combine(dir, "replay.log");
         string session = Path.Combine(dir, "session");
 
@@ -81,13 +111,13 @@ public class CliRevoltPolityProducerTests
             if (runLog[i].ActorId != 1) { foreign++; if (firstForeignTurn < 0) firstForeignTurn = (int)runLog[i].Turn; }
         Assert.True(foreign > 0, "the CLI run log carries no order from the polity the revolt founded — the producer never ran");
         // ADR-035 RE-PIN (2026-10-07; MEASURED): 58 -> 63 (P-F1) -> 97 (P-F0) -> 39 (P-F2, re-rigged swing set), read
-        // from the FoundedHarness pin.
-        Assert.Equal(FoundedHarnessTests.RevoltTurn, firstForeignTurn);   // the new polity's first order is stamped on the revolt turn
+        // from the FoundedHarness pin. D-053 §2 RE-RIG (2026-10-13): the test's own rig and pin, RevoltTurn (header).
+        Assert.Equal(RevoltTurn, firstForeignTurn);   // the new polity's first order is stamped on the revolt turn
 
         // 2. EQUIVALENCE: the UI's end-turn loop, replicated in-process (the player's orders of the turn, then the
         //    AI producer on the same world, then one step) gives the same world on every turn.
         SimConfig cfg = CliConfig();
-        OrderLog player = PlayerLog();
+        Assert.True(cfg.Consumption.EmpireFoodAllocation);   // the CLI runs the shipped content: relief is ON here
         var uiLog = new OrderLog();
         var executor = new TurnExecutor(Sim.Cli.CliRecipes.Era(), Sim.Cli.CliRecipes.ProductionPipeline(), uiLog);
         WorldState world = Sim.Cli.HeadlessFounding.Found(Seed);
@@ -102,6 +132,8 @@ public class CliRevoltPolityProducerTests
             world = executor.Step(world);
             Assert.Equal(WorldHash.ComputeHex(world), cliHashes[t - 1]);
             if (EmpireQuery.TryGetController(world, new SettlementId(0), out PolityId c) && c.Value != 1) revolted = true;
+            if (t == RevoltTurn - 1) Assert.True(EmpireQuery.ControlsSettlement(world, new PolityId(1), new SettlementId(0)));
+            if (t == RevoltTurn) Assert.True(revolted, $"settlement 0 did not revolt on turn {RevoltTurn}");
         }
         Assert.True(revolted, "settlement 0 never revolted — the rig no longer reaches a mid-run AI polity (vacuous)");
 

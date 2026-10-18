@@ -405,7 +405,14 @@ public class MigrationTests
         // deterministic). THE D-021 ORDERING: famine-attributable
         // out-migration from settlement 0 crosses 10% of its starting
         // population strictly before famine-attributable starvation does.
-        SimConfig cfg = TestConfigs.Sim();
+        // D-053 §2 RE-RIG (2026-10-13): this rig measures the PER-SETTLEMENT
+        // exit-before-death ordering in a FAMINE regime, so it runs on
+        // TestConfigs.PreEmpireFoodAllocation — intra-polity grain relief removes
+        // the regime only while the polity has spare grain (D-053 §2), and on this
+        // world its eleven siblings have it: on the shipped config settlement 0
+        // never classified FAMINE over the turns the rig ran (MEASURED, 2026-10-13). The
+        // control reproduces the de86ace run.
+        SimConfig cfg = TestConfigs.PreEmpireFoodAllocation(TestConfigs.Sim());
         var orders = new OrderLog();
         orders.Append(new OrderRecord(1, ActorId: 1, OrderKind.LaborAllocation, TargetId: 0, Amount: 0.0));
         using var pipeA = Sim.Data.DataFiles.OpenPipeline();

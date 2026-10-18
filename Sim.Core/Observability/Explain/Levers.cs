@@ -66,7 +66,9 @@ public static class Levers
             Sectors.Farming, Sectors.Herding),
         ChainNode.EffectiveDeficit => Lever.Allocation(
             "The adapted form of the deficit above, so the same two pools reach it; the absorbable shortfall itself "
-            + "is a tuning constant (sim.json foodState.adaptationAbsorbableShortfall), not an order.",
+            + "is a tuning constant (sim.json foodState.adaptationAbsorbableShortfall), not an order. Granaries built "
+            + "anywhere in the civilization (a construction order) soften it, with diminishing returns and a ceiling "
+            + "(sim.json granaries.famineReductionMax).",
             Sectors.Farming, Sectors.Herding),
         ChainNode.DisasterMultiplierApplied => Lever.None(
             "A rare famine-class crop failure (DisasterSystem): drawn from a per-year hazard against a settlement's "

@@ -153,7 +153,20 @@ public class WorldReconciliationTests
         // founded world the DRIVEN world starves without a disaster — its orders
         // drive settlements into deficit — so this is a positive sample at every
         // λ and only the TURN moves. Trade on 7 holds throughout.
-        Assert.True(log.At(8)!.Turn.Population.Starvation > 0, "no starvation on turn 8");
+        // D-053 §2 RE-RIG (2026-10-13): the starvation sample is a PER-SETTLEMENT
+        // regime — the driving orders starve particular settlements — and intra-
+        // polity grain relief removes it while the polity has spare grain: on the
+        // shipped driven world NOBODY starves in 300 turns (MEASURED, 2026-10-13;
+        // this assert failed "no starvation on turn 8"). The sample moves to the same
+        // driven run on TestConfigs.PreEmpireFoodAllocation (the de86ace run, its
+        // turn unchanged), which is reconciled every turn as well; the every-turn
+        // reconciliation and the samples relief does not touch stay on the SHIPPED
+        // world, so reconciliation is proven WITH relief and the starvation flow
+        // keeps its positive coverage. (The dwelling-decay sample below moves with it,
+        // for the same measured reason.)
+        ObservationLog perSettlementStores = ObservedWorlds.DrivenPerSettlementStores300.Value.Log;
+        AssertEveryTurnReconciles(perSettlementStores, "driven, per-settlement stores");
+        Assert.True(perSettlementStores.At(8)!.Turn.Population.Starvation > 0, "no starvation on turn 8 (per-settlement stores)");
         // R2a (2026-10-03): trade between settlements is a research unlock and this run researches nothing, so NO
         // TRADE OCCURS in 300 driven turns (MEASURED on this tree by the agent writing this line; first trade was
         // turn 7). The absence is PINNED; trade's positive coverage is TradeResearchUnlockTests.T02 (the realm
@@ -197,10 +210,14 @@ public class WorldReconciliationTests
         // line): first decay 149 -> 201, 44 dwellings across 14 of the 300 turns. Fewer weather-driven shortfalls empty
         // fewer homes, so decay arrives later and rarer; the positive sample stays (starvation on 8, migration on 2 and
         // 3 unchanged).
-        Assert.Equal(0, log.At(200)!.Turn.Dwellings.Decayed);
+        // D-053 §2 RE-RIG (2026-10-13; MEASURED): decay comes from homes famine emptied, and relief removes those famines
+        // while the polity has spare grain — on the shipped driven world NO dwelling decays in 300 turns. So this sample
+        // moves, unchanged (first decay 201), to the per-settlement-store run, beside the starvation sample above; the
+        // shipped world's dwellings account is still reconciled on every turn (AssertEveryTurnReconciles above).
+        Assert.Equal(0, perSettlementStores.At(200)!.Turn.Dwellings.Decayed);
         for (int t = 1; t < 201; t++)
-            Assert.Equal(0, log.At(t)!.Turn.Dwellings.Decayed);
-        Assert.True(log.At(201)!.Turn.Dwellings.Decayed > 0, "no dwelling decay on turn 201");
+            Assert.Equal(0, perSettlementStores.At(t)!.Turn.Dwellings.Decayed);
+        Assert.True(perSettlementStores.At(201)!.Turn.Dwellings.Decayed > 0, "no dwelling decay on turn 201 (per-settlement stores)");
         // The driven world's goods economy is live: crafted goods are produced
         // AND consumed as inputs, which is what makes the per-good accounts
         // non-trivial (pottery on turn 5, MEASURED on the merged tree: 1829

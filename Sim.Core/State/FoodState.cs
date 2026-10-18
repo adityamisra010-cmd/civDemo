@@ -116,6 +116,39 @@ public static class FoodState
         return d <= a ? 0.0 : (d - a) / (1.0 - a);
     }
 
+    /// <summary>
+    /// M5 item 5 (D-053 §3) — THE EFFECTIVE DEFICIT THE DEMOGRAPHIC KERNEL READS at settlement <paramref name="s"/>: the
+    /// dead-zone form above times the EMPIRE-WIDE granary famine-intensity factor
+    /// (<see cref="GranaryEffects.FamineIntensityFactor(IReadOnlyWorldState, GranaryBinding, SettlementId)"/>, read from
+    /// the world passed in — PREV at every caller) — the civilization's organised relief capacity blunts the unabsorbed
+    /// shortfall in every regime, FAMINE included; no grain moves. The factor lies in (1 − famineReductionMax, 1], so the
+    /// result is never negative and never above the dead-zone form. When that form is 0 (NORMAL, STRESS) or the
+    /// civilization holds no granary (or the effects are off) the multiplication is SKIPPED and the dead-zone value is
+    /// returned bit for bit. DemographicsSystem (with the binding it resolved once), the observer and the causal chain
+    /// all reach the SAME private arithmetic, so the recorded effective deficit is the one the kernel used. The
+    /// classification, the nominal d and every other reader of the deficit are unchanged.
+    /// </summary>
+    public static double EffectiveDeficit(IReadOnlyWorldState w, SettlementId s, double d, FoodStateKind state, SimConfig cfg)
+    {
+        double dEff = EffectiveDeficit(d, state, cfg);
+        return dEff > 0.0 ? WithGranaries(w, s, dEff, GranaryEffects.Bind(cfg)) : dEff;
+    }
+
+    /// <summary>The same effective deficit with the granary content already resolved (<see cref="GranaryEffects.Bind"/>)
+    /// — DemographicsSystem's per-settlement call, which scans no project names.</summary>
+    public static double EffectiveDeficit(IReadOnlyWorldState w, SettlementId s, double d, FoodStateKind state, SimConfig cfg,
+        GranaryBinding granaries)
+    {
+        double dEff = EffectiveDeficit(d, state, cfg);
+        return dEff > 0.0 ? WithGranaries(w, s, dEff, granaries) : dEff;
+    }
+
+    private static double WithGranaries(IReadOnlyWorldState w, SettlementId s, double dEff, GranaryBinding granaries)
+    {
+        double factor = GranaryEffects.FamineIntensityFactor(w, granaries, s);
+        return factor < 1.0 ? dEff * factor : dEff;
+    }
+
     /// <summary>Farming == 0 ∧ Herding == 0 on the RAW row in force (absent row →
     /// Sectors.Default → never abandoned) — exactly ProductionSystem's row read.</summary>
     public static bool IsAbandoned(IReadOnlyWorldState w, SettlementId s)

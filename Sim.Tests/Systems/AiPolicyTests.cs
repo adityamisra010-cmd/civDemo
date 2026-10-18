@@ -151,28 +151,40 @@ public class AiPolicyTests
     [Fact]
     public void AiConstruction_GranaryFirst_OnePerIdleSettlement_OnlyWhereAvailableAndAffordable()
     {
+        // The PREMISE of the original assertions is that each settlement pays from its OWN stock: one settlement stocked,
+        // one order. D-053 §1 (the construction purse, shipped ON) changes that premise — a sibling pays from the Empire's
+        // purse — so the original assertions run on the config that reproduces it (TestConfigs.PreEmpireConstructionStockpile,
+        // the purse off) and the ON arm below asserts the new behaviour on the same world.
+        SimConfig own = TestConfigs.PreEmpireConstructionStockpile(Cfg);
         WorldState w = Duo();
         SettlementId[] rivals = LabourActivities.ControlledSettlements(w, Rival);
         Assert.Equal(2, rivals.Length);
         SettlementId a = rivals[0], b = rivals[1];
-        Assert.Empty(AiConstructionPolicy.Decide(w, Cfg, Rival));          // founding endows no timber or stone
+        Assert.Empty(AiConstructionPolicy.Decide(w, own, Rival));          // founding endows no timber or stone
+        Assert.Empty(AiConstructionPolicy.Decide(w, Cfg, Rival));          // ...for the purse either
 
         foreach (string good in new[] { "timber", "stone", "tools" }) TopUp(w, a, good, 1_000);
-        OrderRecord granary = Assert.Single(AiConstructionPolicy.Decide(w, Cfg, Rival));
+        // ON (the shipped purse): a's stock pays for BOTH idle settlements' granaries — b draws on a through the Empire's
+        // purse, reserved within the one decision (40 + 40 timber, 20 + 20 stone of a's 1,000).
+        Assert.Equal([ConstructionQuery.EnqueueOrder(w, Rival, a, 1), ConstructionQuery.EnqueueOrder(w, Rival, b, 1)],
+            AiConstructionPolicy.Decide(w, Cfg, Rival));
+        OrderRecord granary = Assert.Single(AiConstructionPolicy.Decide(w, own, Rival));
         Assert.Equal(ConstructionQuery.EnqueueOrder(w, Rival, a, 1), granary);   // the player's constructor, granary first
-        Assert.Empty(AiConstructionPolicy.Decide(w, Cfg, Human));                 // the human is never touched
+        Assert.Empty(AiConstructionPolicy.Decide(w, own, Human));                 // the human is never touched
+        Assert.Empty(AiConstructionPolicy.Decide(w, Cfg, Human));
 
         // A settlement with a waiting project gets nothing more; one that built the granary moves on to the workshop.
         w.ConstructionQueue.Add(new ConstructionQueueRow(a, 0, 1));
-        Assert.Empty(AiConstructionPolicy.Decide(w, Cfg, Rival));
+        Assert.Empty(AiConstructionPolicy.Decide(w, own, Rival));
         w.ConstructionQueue.Clear();
         w.Structures.Add(new StructureRow(a, 1, 1));
-        Assert.Equal(ConstructionQuery.EnqueueOrder(w, Rival, a, 2), Assert.Single(AiConstructionPolicy.Decide(w, Cfg, Rival)));
+        Assert.Equal(ConstructionQuery.EnqueueOrder(w, Rival, a, 2), Assert.Single(AiConstructionPolicy.Decide(w, own, Rival)));
         w.Structures.Add(new StructureRow(a, 2, 1));
-        Assert.Empty(AiConstructionPolicy.Decide(w, Cfg, Rival));                 // each project once per settlement
+        Assert.Empty(AiConstructionPolicy.Decide(w, own, Rival));                 // each project once per settlement
 
         // Two idle, stocked settlements: one order each, settlement-table order.
         foreach (string good in new[] { "timber", "stone" }) TopUp(w, b, good, 1_000);
+        Assert.Equal([ConstructionQuery.EnqueueOrder(w, Rival, b, 1)], AiConstructionPolicy.Decide(w, own, Rival));
         Assert.Equal([ConstructionQuery.EnqueueOrder(w, Rival, b, 1)], AiConstructionPolicy.Decide(w, Cfg, Rival));
     }
 

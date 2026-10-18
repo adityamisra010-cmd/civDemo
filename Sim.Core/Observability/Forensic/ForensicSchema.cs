@@ -140,17 +140,21 @@ public static class ForensicSchema
     public const string LimitStoreLosses = "store-losses-unsplit";
 
     /// <summary>
-    /// StoreLosses is ONE residual absorbing FOUR mechanisms. Its identity is
+    /// StoreLosses is ONE residual absorbing FIVE mechanisms (D-053 §2 added
+    /// intra-polity grain relief to the four). Its identity is
     /// carried on the record itself (SettlementRecord.FoodSection), and the
     /// split is not available: ConsumptionSystem.BoundStore is `private static`
-    /// and its annualGrainDemand argument is built AT THE CALL SITE from two
-    /// transient locals, so no public function can be called with it.
+    /// and its annualGrainDemand argument is built from two transient locals
+    /// (now in EatOwnStore), and a relief grant is a transient local of
+    /// RelieveShortages, so no public function can be called with either.
     /// </summary>
     public const string StoreLossesWhy =
         "StoreLosses is a RESIDUAL of a stated identity and absorbs spoilage, granary overflow, "
-        + "appropriation and colony provisions in ONE number. ConsumptionSystem.BoundStore is `private "
-        + "static` (:285) and its annualGrainDemand argument is assembled at the call site (:200-203) from "
-        + "transient locals, so the split cannot be recomputed through any public function. World level is "
+        + "appropriation, colony provisions and intra-polity grain relief (D-053 s2) in ONE number. "
+        + "ConsumptionSystem.BoundStore is `private "
+        + "static` (:538) and its annualGrainDemand argument is assembled in EatOwnStore (:310-311) from "
+        + "transient locals, and each relief grant is a transient local of the private RelieveShortages "
+        + "(:413), so the split cannot be recomputed through any public function. World level is "
         + "exact by ledger reason; the per-settlement split is not recorded.";
 
     /// <summary>Token for the AI limitation.</summary>

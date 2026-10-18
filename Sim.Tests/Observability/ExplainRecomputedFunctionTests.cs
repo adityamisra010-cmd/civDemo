@@ -82,6 +82,8 @@ public class ExplainRecomputedFunctionTests
     [Fact]
     public void ChainFill_IsTheSystemsFill_OnTheStarvedWorld()
     {
+        // D-053 §2: the starved rig runs on the per-settlement store (ExplainRigs.Starved states why) — relief would
+        // feed the target from its siblings and move this T1.9 turn for a reason that is not order delivery.
         (SimConfig cfg, List<WorldState> worlds, int first) = ExplainRigs.Starved(maxTurns: 12);
         Assert.Equal(3, first);
         WorldState prev = worlds[first], next = worlds[first + 1];

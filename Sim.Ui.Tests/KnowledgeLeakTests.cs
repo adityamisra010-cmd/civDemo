@@ -678,6 +678,83 @@ public class KnowledgeLeakTests : IDisposable
         Assert.NotNull(UnitCardModel.Build(w, r.Config, unitId, Player, r.Name, All(w)));
     }
 
+    /// <summary>Sets one (settlement, good) stock to exactly <paramref name="qty"/> through the Ledger (find-or-add).</summary>
+    private static void SetStock(WorldState w, SettlementId s, int good, long qty)
+    {
+        var id = new GoodId(good);
+        int idx = GoodStockIndex.IndexOf(w.GoodStocks, s, id);
+        if (idx < 0) idx = w.GoodStocks.Add(new GoodStockRow(s, id, Conserved.Zero, 0.0, 0.0));
+        long have = w.GoodStocks[idx].Amount.Value;
+        if (have == qty) return;
+        new Ledger(w.LedgerFlows).Flow(ref w.GoodStocks.Ref(idx).Amount, ConservedQuantityIds.OfGood(id), ReasonIds.InitialEndowment,
+            Math.Abs(qty - have), qty > have ? FlowDirection.Source : FlowDirection.Sink, OverdrawPolicy.Throw);
+    }
+
+    /// <summary>The next free queue slot of <paramref name="s"/> (one past its highest).</summary>
+    private static int NextSlot(IReadOnlyWorldState w, SettlementId s)
+    {
+        int next = 0;
+        for (int i = 0; i < w.ConstructionQueue.Count; i++)
+            if (w.ConstructionQueue[i].Settlement == s && w.ConstructionQueue[i].Slot >= next) next = w.ConstructionQueue[i].Slot + 1;
+        return next;
+    }
+
+    [Fact]
+    public void AForeignQueueHead_TellsNothingOfItsEmpiresHiddenSettlements_WhileTheViewersOwnHeadReadsItsEmpiresPurse()
+    {
+        // D-051 §6 / D-053 §1 (the construction purse) under P7. A KNOWN foreign settlement A whose Empire also rules a
+        // HIDDEN settlement B: A's queue head blocker must not sum B's stock (measured on the v1 patch: "20 stone (empire has
+        // 3)" became "(empire has 17)" when only B's stone moved). It reads A's own stock; the player's own head still reads
+        // the player's Empire.
+        Rig r = Played.Value;
+        WorldState w = r.Next.Clone();
+        IReadOnlyList<int> foreign = KnowledgeStubs.SettlementsOf(w, Hidden);
+        Assert.True(foreign.Count >= 2, "the rig needs two settlements of one foreign Empire");
+        SettlementId a = new(foreign[0]), b = new(foreign[1]);
+        PolityKnowledge grid = PlayerKnowledge.Of(w).Core;
+        var mask = new bool[grid.LatticeSize * grid.LatticeSize];
+        for (int n = 0; n < mask.Length; n++) mask[n] = true;
+        for (int i = 0; i < w.Settlements.Count; i++)
+            if (w.Settlements[i].Id == b) mask[grid.NodeOfCell(w.Settlements[i].SiteCell)] = false;
+        PlayerKnowledge k = KnowledgeStubs.Over(w, Player, mask);
+        Assert.True(k.KnowsSettlement(a.Value) && k.IsHiddenSettlement(b.Value), "rig: A known, B hidden");
+
+        int stone = r.Config.Goods!.IdOf("stone"), timber = r.Config.Goods!.IdOf("timber");
+        w.ConstructionQueue.Add(new ConstructionQueueRow(a, NextSlot(w, a), 1));   // a granary at A's queue head
+        foreach (SettlementId s in new[] { a, b }) { SetStock(w, s, stone, 0); SetStock(w, s, timber, 0); }
+        SetStock(w, a, stone, 2);
+        SetStock(w, b, stone, 3);
+        Assert.Single(ConstructionQuery.Queue(w, a));
+
+        string Structures(WorldState world, SettlementId at) =>
+            Block(PlayerViews.Settlement(world, r.Config, Player, null, at.Value, r.Name, 3, KnowledgeStubs.Over(world, Player, mask)), "Structures");
+        string before = Structures(w, a);
+        Assert.Contains("granary - needs 40 timber (has 0), 20 stone (has 2)", before, StringComparison.Ordinal);
+
+        WorldState moved = w.Clone();
+        SetStock(moved, b, stone, 17);                                    // ONLY the hidden settlement's stock moves
+        SetStock(moved, b, timber, 9);
+        Assert.Equal(before, Structures(moved, a));
+
+        // CONTROL 1: A's own stock is read — the line is live.
+        WorldState own = w.Clone();
+        SetStock(own, a, stone, 7);
+        Assert.Contains("20 stone (has 7)", Structures(own, a), StringComparison.Ordinal);
+        // CONTROL 2: the player's own queue head reads the player's Empire — a sibling's stock moves it.
+        SettlementId[] mine = LabourActivities.ControlledSettlements(w, Player);
+        Assert.True(mine.Length >= 2, "the rig needs two of the player's settlements");
+        SettlementId home = mine[0], sibling = mine[1];
+        WorldState ownHead = w.Clone();
+        ownHead.ConstructionQueue.Add(new ConstructionQueueRow(home, NextSlot(ownHead, home), 1));
+        foreach (SettlementId s in mine) { SetStock(ownHead, s, stone, 0); SetStock(ownHead, s, timber, 0); }
+        SetStock(ownHead, sibling, stone, 3);
+        string mineBefore = Structures(ownHead, home);
+        SetStock(ownHead, sibling, stone, 17);
+        string mineAfter = Structures(ownHead, home);
+        Assert.Contains("20 stone (empire has 3)", mineBefore, StringComparison.Ordinal);
+        Assert.Contains("20 stone (empire has 17)", mineAfter, StringComparison.Ordinal);
+    }
+
     // ================================================================== the subject filters, each with its own control (P7 review, finding 3)
 
     /// <summary>The block of <paramref name="v"/> headed <paramref name="heading"/>, as text.</summary>

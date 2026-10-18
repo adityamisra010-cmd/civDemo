@@ -20,6 +20,13 @@ namespace Sim.Ui.Tests;
 /// zero farming and zero herding at turn 0 (the ExplainRigs construction,
 /// through the UI's own EmitSectorOrders) and steps until its deficit is
 /// positive, then once more so the drawdown turn has a Next.
+/// D-053 §2 RE-RIG (2026-10-13): the STARVED rig is a ONE-settlement world
+/// (256², N = 1, seed 42). Intra-polity grain relief feeds a starving settlement
+/// while its polity has spare grain, so on the N = 4 world its three siblings fed
+/// it and the rig lost its regime (MEASURED: first deficit on turn 7, not 2, and no
+/// class emptied); UiSession has no config seam for the per-settlement store, so
+/// the rig is instead one whose polity has NO spare grain by construction — a
+/// polity of one settlement has no sibling to draw on.
 /// </summary>
 public class GlassBoxUiTests
 {
@@ -34,7 +41,8 @@ public class GlassBoxUiTests
     /// session on the turn AFTER the first positive deficit.</summary>
     private static Sim.Ui.UiSession Starved(out int firstDeficitTurn)
     {
-        var session = Sim.Ui.UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4);
+        // D-053 §2: N = 1, a polity with no spare grain by construction (class header).
+        var session = Sim.Ui.UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 1);
         int target = session.World.Settlements[0].Id.Value;
         int[] weights = [0, 0, 45, 45, 10];
         Assert.True(session.EmitSectorOrders(weights, target));
@@ -47,6 +55,7 @@ public class GlassBoxUiTests
         }
         Assert.True(firstDeficitTurn > 0, "settlement 0 never showed a deficit in 12 turns");
         session.EndTurn();
+        Assert.Equal(1, session.World.Settlements.Count);   // still a polity of one: relief had no sibling to draw on
         return session;
     }
 
@@ -368,6 +377,7 @@ public class GlassBoxUiTests
     [Fact]
     public void Grievance_OnTheStarvedSession_PrimaryIsSustenanceAndFirst_ChainCarriesGaps_LeverIsFarming()
     {
+        // D-053 §2: the starved session is the one-settlement world (class header) — every value below is unchanged on it.
         Sim.Ui.UiSession session = Starved(out int firstDeficit);
         int target = session.World.Settlements[0].Id.Value;
         SettlementView? view = ScreenModels.Settlement(session, target);
@@ -486,6 +496,7 @@ public class GlassBoxUiTests
         // by PREV — and the tab must use the same rule: the class is SHOWN with
         // the G the system wrote for it (reproduces exactly), not hidden
         // because next has nobody.
+        // D-053 §2: the starved session is the one-settlement world (class header); the turn below moved with the rig.
         // T4.21-2 ∥ T4.21-3 MERGE RE-PIN, MEASURED ON THE MERGED TREE by the
         // agent writing this line: the emptying turn is 11 (was 5). What decides
         // it is the joint trajectory of ADR-025's bounded migration and
@@ -519,7 +530,12 @@ public class GlassBoxUiTests
         // ADR-035 RE-PIN (2026-10-07; MEASURED on each commit's tree): P-F1 leaves it at 7; P-F0 (the founding death
         // remainder) 7 -> 6; P-F2 (founding composition) 6 -> 9. Missed by those commits (Sim.Ui.Tests was run on the
         // final tree only) and re-pinned here. The rule pinned is untouched.
-        Assert.Equal(9, session.Observations.LastTurn);
+        // D-053 §2 RE-RIG (2026-10-13; MEASURED): the starved session is now the ONE-settlement world (class header),
+        // where relief cannot act — no sibling exists (asserted below) — and its emptying turn is 10. The move 9 -> 10 is
+        // the rig's world (N = 1 instead of N = 4), not relief: on the N = 4 world relief fed the settlement and no class
+        // emptied inside the loop at all. The rule pinned is untouched.
+        Assert.Equal(1, session.World.Settlements.Count);
+        Assert.Equal(10, session.Observations.LastTurn);
 
         // Next has NOBODY of that class in the settlement, yet its grievance row stands.
         var explanation = GrievanceExplanation.For(session.PreviousWorld!, session.World, session.Config, id, new ClassId(emptiedClass));

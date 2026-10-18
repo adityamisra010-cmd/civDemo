@@ -40,24 +40,35 @@ public class FoundedHarnessTests
     /// pinned, not assumed.</summary>
     private const int EraBoundaryTurn = 250;
 
-    private static TurnExecutor FreshExecutor(OrderLog? orders = null)
+    private static TurnExecutor FreshExecutor(OrderLog? orders = null, SimConfig? cfg = null)
     {
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline(); // PRODUCTION preset
         return new TurnExecutor(
             EraTableLoader.Load(eraStream),
-            PipelineLoader.Load(pipeStream, SystemCatalog.All(TestConfigs.Sim())),
+            PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg ?? TestConfigs.Sim())),
             orders);
     }
 
     /// <summary>Fresh 1024² founded world — everything constructed anew (twin
     /// equality therefore also proves founding + system statelessness).</summary>
-    private static WorldState FreshFounded() =>
-        WorldFounding.Found(TestConfigs.Worldgen(), TestConfigs.Sim(), Seed);
+    private static WorldState FreshFounded(SimConfig? cfg = null) =>
+        WorldFounding.Found(TestConfigs.Worldgen(), cfg ?? TestConfigs.Sim(), Seed);
+
+    /// <summary>D-053 §2 RE-RIG (2026-10-13): the config of the ORDERED TWIN, whose turn-exact pins measure a
+    /// PER-SETTLEMENT rule — settlement 0, starved by its own labour orders, revolts at <see cref="RevoltTurn"/> and
+    /// every later order is refused. Intra-polity grain relief removes that regime only while the polity has spare
+    /// grain (D-053 §2): on the shipped config settlement 0's eleven siblings feed it and it never revolts in 300 turns
+    /// (MEASURED, 2026-10-13: the twin's revolt pin failed "Expected: Not 1, Actual: 1"). So the twin runs on
+    /// TestConfigs.PreEmpireFoodAllocation, which reproduces the de86ace run exactly (RevoltTurn unchanged). The other
+    /// ordered legs (replay, conservation, save/load) stay on the SHIPPED config: there the same SessionLog drives
+    /// relief instead of revolt, so the determinism harness covers both.</summary>
+    private static SimConfig OrderedTwinConfig() => TestConfigs.PreEmpireFoodAllocation(TestConfigs.Sim());
 
     /// <summary>Orders shaped like a real session: labor swings incl. both boundaries.
     /// ADR-033 D2: the swings starve settlement 0 into revolt at <see cref="RevoltTurn"/>, so the orders landing
-    /// after it are refused — the ordered legs exercise refusal too.</summary>
+    /// after it are refused — the ordered twin exercises refusal too. D-053 §2: that holds on the per-settlement store
+    /// (<see cref="OrderedTwinConfig"/>); on the shipped config relief feeds settlement 0 instead.</summary>
     private static OrderLog SessionLog()
     {
         var log = new OrderLog();
@@ -74,8 +85,8 @@ public class FoundedHarnessTests
     // boundaries (0 and 100) still appear in the log.
     internal static readonly double[] SessionPcts = [60.0, 0.0, 80.0, 30.0, 100.0, 45.0];
 
-    /// <summary>The turn settlement 0 revolts on this world under <see cref="SessionLog"/> (MEASURED; history on
-    /// FoundedOrderedTwin_HashIdentical_EveryTurn). CliRevoltPolityProducerTests reads it.</summary>
+    /// <summary>The turn settlement 0 revolts on this world under <see cref="SessionLog"/> and
+    /// <see cref="OrderedTwinConfig"/> (MEASURED; history on FoundedOrderedTwin_HashIdentical_EveryTurn).</summary>
     internal const int RevoltTurn = 39;
 
     /// <summary>The farming share in force at <paramref name="turn"/>: the last order landing (issue turn + 1) at or
@@ -109,8 +120,10 @@ public class FoundedHarnessTests
     [Fact]
     public void FoundedOrderedTwin_HashIdentical_EveryTurn()
     {
-        TurnExecutor execA = FreshExecutor(SessionLog()), execB = FreshExecutor(SessionLog());
-        WorldState a = FreshFounded(), b = FreshFounded();
+        // D-053 §2: the twin's revolt and refusal pins measure the per-settlement rule — OrderedTwinConfig states why.
+        SimConfig cfg = OrderedTwinConfig();
+        TurnExecutor execA = FreshExecutor(SessionLog(), cfg), execB = FreshExecutor(SessionLog(), cfg);
+        WorldState a = FreshFounded(cfg), b = FreshFounded(cfg);
         var settlement0 = new SettlementId(0);
         for (int t = 1; t <= Turns; t++)
         {

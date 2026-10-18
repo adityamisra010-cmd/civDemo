@@ -149,8 +149,8 @@ public static class ForensicSession
             null),
         new ForensicLimitation(
             ForensicSchema.LimitStoreLosses,
-            "The per-settlement split of StoreLosses into spoilage, granary overflow, appropriation and "
-                + "colony provisions.",
+            "The per-settlement split of StoreLosses into spoilage, granary overflow, appropriation, "
+                + "colony provisions and intra-polity grain relief.",
             ForensicSchema.StoreLossesWhy,
             null),
         new ForensicLimitation(

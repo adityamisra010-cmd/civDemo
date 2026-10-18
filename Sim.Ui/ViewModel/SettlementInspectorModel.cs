@@ -239,7 +239,7 @@ public static class SettlementInspectorModel
         lines.Add(string.Create(CultureInfo.InvariantCulture,
             $"  food surplus ratio: {R(r.Economy.FoodSurplusRatio)}"));
         lines.Add(SurplusRatioLagNote);
-        lines.Add("  granary capacity / spoilage / overflow, per settlement: " + StoreGapReason);
+        lines.Add("  store capacity / spoilage / overflow, per settlement: " + StoreGapReason);
         return lines;
     }
 

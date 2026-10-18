@@ -66,6 +66,11 @@ citizens or economic agents.**
 
 ## §4 RESOURCE OWNERSHIP
 
+> *2026-10-14 pointer (text below unchanged):* items 3 here and 1 of §10 were reversed in substance by D-051 §6
+> (ratified 2026-10-07), which did not name them. `docs/d053-batch2-playtest-rulings.md` §5.3 names them, for
+> construction/roads and shortage food, and asks the Director to confirm. Physical location is kept: goods stay in
+> their settlements' rows.
+
 1. Resources have **both physical location and economic ownership**.
 2. Resources at a settlement are owned by the Empire **controlling** that
    settlement.

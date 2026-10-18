@@ -70,7 +70,64 @@ public sealed record SimConfig(
     // ADR-036 (D-051 §5, the Found Settlement order): the party fraction. OPTIONAL and in the defaulted tail:
     // absent, no Found Settlement order can form a party (FoundingQuery answers NoParty) and the order is inert;
     // emergent D-037 B1 colonization never reads it. The canonical sim.json carries the section.
-    [property: JsonPropertyName("colonization")] ColonizationConfig? Colonization = null);
+    [property: JsonPropertyName("colonization")] ColonizationConfig? Colonization = null,
+    // D-051 §6 applied to construction (the empire purse; EmpireStockpile / ConstructionQuery.Holders; authority D-051 §6
+    // and D-053 §1, the Director's 2026-10-13 instruction, item 1). OPTIONAL and in
+    // the defaulted tail: absent (or empireStockpile false), a construction project draws on its own settlement's stock
+    // alone — the pre-change rule, bit-exact. The canonical sim.json carries the section, ON.
+    [property: JsonPropertyName("construction")] ConstructionConfig? Construction = null,
+    // M5 item 5 (granaries): the two granary effects — the LOCAL farm-output factor and the EMPIRE-WIDE famine-intensity
+    // factor (State.GranaryEffects). OPTIONAL and in the defaulted tail: absent (or enabled false) both factors are the
+    // literal 1.0 and neither ProductionSystem nor DemographicsSystem multiplies by them, so toy and hand-written configs
+    // (and the attribution control TestConfigs.PreGranaryEffects) run exactly as before. The canonical sim.json carries it.
+    [property: JsonPropertyName("granaries")] GranariesConfig? Granaries = null);
+
+/// <summary>
+/// D-051 §6 applied to construction (authority: D-051 §6 and D-053 §1 — the Director's 2026-10-13 instruction, item 1:
+/// construction and roads draw on the empire stockpile) — the construction queue's content switch. <c>EmpireStockpile</c> (true in the
+/// shipped sim.json): a settlement an Empire controls builds from the goods of EVERY settlement that Empire controls,
+/// drawn instantly and losslessly in a stated donor order (Sim.Core/State/EmpireStockpile.cs); a stateless settlement
+/// builds from its own; the obtainability guard reads that purse UNCLAIMED (less every queued project's inputs,
+/// ConstructionQuery.Claimed). False or absent: the settlement's own stock only and no claims, exactly as before — the attribution control
+/// (TestConfigs.PreEmpireConstructionStockpile), never a gameplay setting. Roads already drew on the civilization's
+/// purse (ADR-032) and are not switched by it.
+/// </summary>
+public sealed record ConstructionConfig(
+    [property: JsonPropertyName("empireStockpile")] bool EmpireStockpile = false);
+
+/// <summary>
+/// M5 item 5 (D-053 §3) — THE GRANARY EFFECTS' CONTENT (<see cref="State.GranaryEffects"/>). Two distinct, bounded,
+/// saturating effects of the goods.json project <c>Project</c> names, each the ADR-028 / InstitutionEffects curve
+/// S = 1 − e^(−x):
+/// <list type="bullet">
+/// <item><c>Enabled</c> (true): THE SWITCH. False (or the section absent) makes both factors the literal 1.0 and skips
+///   both multiplications, which reproduces the pre-granary-effects world byte for byte (TestConfigs.PreGranaryEffects,
+///   GranaryAttributionTests).</item>
+/// <item><c>Project</c> ("granary"): the goods.json project whose built Structures count — data, never a code literal
+///   (the ages.json <c>structures</c> fact names projects the same way).</item>
+/// <item><c>FarmYieldBonusMax</c> (0.05, TUNE) / <c>FarmYieldScale</c> (1.0): LOCAL. ProductionSystem.Farm multiplies the
+///   settlement's REALISED CULTIVATED grain rate by 1 + max × (1 − e^(−m/scale)), m = granaries standing AT that
+///   settlement — the part of its own crop a dedicated store saves from post-harvest loss; never applied while the
+///   settlement still harvests wild food. 0.05 recovers at most about half of the ×0.90 storage, vermin and threshing
+///   loss ADR-013 deducts inside the derived yield (threshing loss stays). The maximum is in [0, 1); the factor never
+///   exceeds 1 + max.</item>
+/// <item><c>FamineReductionMax</c> (0.25, TUNE) / <c>FamineReductionScale</c> (2.0, TUNE): EMPIRE-WIDE. DemographicsSystem
+///   multiplies the EFFECTIVE deficit (the one input of starvation mortality and fertility suppression) by
+///   1 − max × (1 − e^(−n/scale)), n = granaries standing anywhere in the settlement's civilization (its own count
+///   when stateless; an absolute count, independent of the civilization's size) — organised relief capacity, NOT
+///   stored grain: no grain moves. The maximum is in [0, 1), so the factor stays in [1 − max, 1]: the effective
+///   deficit is never inverted and never raised.</item>
+/// </list>
+/// Reference classes and labels (DERIVED / IDENTITY / TUNE) in sim.json <c>granaries._doc</c>. Neither effect touches
+/// the store: spoilage (consumption.grainSpoilagePerYear) and the store bound (granaryYearsOfDemand) are unchanged.
+/// </summary>
+public sealed record GranariesConfig(
+    [property: JsonPropertyName("enabled"), JsonRequired] bool Enabled,
+    [property: JsonPropertyName("project"), JsonRequired] string Project,
+    [property: JsonPropertyName("farmYieldBonusMax"), JsonRequired] double FarmYieldBonusMax,
+    [property: JsonPropertyName("farmYieldScale"), JsonRequired] double FarmYieldScale,
+    [property: JsonPropertyName("famineReductionMax"), JsonRequired] double FamineReductionMax,
+    [property: JsonPropertyName("famineReductionScale"), JsonRequired] double FamineReductionScale);
 
 /// <summary>
 /// ADR-036 (PROPOSED) — the Found Settlement order's one content number. <c>OrderPartyFraction</c> (TUNE, in (0, 1)):
@@ -348,7 +405,17 @@ public sealed record ConsumptionConfig(
     // THE SETTLEMENT'S OWN ANNUAL GRAIN DEMAND so it scales with population and
     // introduces no per-world constant. DERIVED from agrarian household storage
     // carrying "one to a few years"; midpoint taken. Manifest 1b.
-    [property: JsonPropertyName("granaryYearsOfDemand"), JsonRequired] double GranaryYearsOfDemand);
+    [property: JsonPropertyName("granaryYearsOfDemand"), JsonRequired] double GranaryYearsOfDemand,
+    // INTRA-POLITY GRAIN RELIEF IN A SHORTAGE — D-053 §2 (the Director's 2026-10-13 instruction, item 2;
+    // D-053 §5: it supersedes D-052 §11's "no relief-pooling substitute" for this item), a partial step toward
+    // D-051 §6's ratified central stockpile, NOT that stockpile. true (shipped) = a settlement a polity controls
+    // whose grain row is EMPTY after its own eating and whose requirement is still unmet draws on the grain its
+    // polity's other settlements still hold, divided among the claimants by max-min water-filling on the
+    // NOMINAL deficit u/R (FoodRelief; not the effective deficit — ConsumptionSystem's header states why) and
+    // drawn nearest-first (ADR-032's order), BEFORE spoilage and the granary bound, which stay per settlement.
+    // IDENTITY, not TUNE: the rule has no coefficient. false or ABSENT = the per-settlement store, byte for byte
+    // — RETAINED as the golden-attribution control (TestConfigs.PreEmpireFoodAllocation; EmpireFoodAllocationTests).
+    [property: JsonPropertyName("empireFoodAllocation")] bool EmpireFoodAllocation = false);
 
 /// <summary>
 /// Cohort demographic profiles (T2.1, D-026), all per-sim-year, all TUNE
@@ -861,12 +928,16 @@ public static class SimConfigLoader
     /// goods.json (the D-031 registry, attached as SimConfig.Goods). Systems
     /// that bind goods (Farming, Consumption at M3) refuse construction
     /// without it.</summary>
-    public static SimConfig Load(Stream simJson, Stream needsJson, Stream goodsJson) =>
-        ValidateNeedsAgainstRegistries(Load(simJson) with
+    public static SimConfig Load(Stream simJson, Stream needsJson, Stream goodsJson)
+    {
+        SimConfig cfg = ValidateNeedsAgainstRegistries(Load(simJson) with
         {
             Needs = NeedsConfigLoader.Load(needsJson),
             Goods = GoodsConfigLoader.Load(goodsJson),
         });
+        ValidateGranariesAgainstContent(cfg);
+        return cfg;
+    }
 
     /// <summary>ADR-029: canonical four-file load — the three-file load plus
     /// research.json (the Technology and Civics graph, D-044), attached as
@@ -1057,6 +1128,7 @@ public static class SimConfigLoader
         if (cfg.Roads is not null) ValidateRoads(cfg.Roads);
         if (cfg.Governance is not null) ValidateGovernance(cfg.Governance);
         if (cfg.Institutions is not null) ValidateInstitutions(cfg.Institutions);
+        if (cfg.Granaries is not null) ValidateGranaries(cfg.Granaries);
         if (cfg.Colonization is { } colonization
             && !(colonization.OrderPartyFraction > 0.0 && colonization.OrderPartyFraction < 1.0))
             throw new SimConfigException(
@@ -1370,6 +1442,36 @@ public static class SimConfigLoader
             throw new SimConfigException($"{p}maxMortalityReduction must be in [0,1), got {Inv(u.MaxMortalityReduction)}.");
         if (!(u.HealthDecayCostUnits > 0.0) || !double.IsFinite(u.HealthDecayCostUnits))
             throw new SimConfigException($"{p}healthDecayCostUnits must be a finite value > 0, got {Inv(u.HealthDecayCostUnits)}.");
+    }
+
+    /// <summary>M5 item 5: the granary effects' tuning — a named project, both ceilings in [0, 1) (the famine factor
+    /// 1 − max × S stays in (0, 1], so the effective deficit is never inverted and never raised; the farm factor
+    /// 1 + max × S stays below 2), and positive finite e-fold scales.</summary>
+    private static void ValidateGranaries(GranariesConfig g)
+    {
+        const string p = "granaries.";
+        if (string.IsNullOrWhiteSpace(g.Project))
+            throw new SimConfigException($"{p}project must name a goods.json construction project.");
+        if (!(g.FarmYieldBonusMax >= 0.0 && g.FarmYieldBonusMax < 1.0))
+            throw new SimConfigException($"{p}farmYieldBonusMax must be in [0,1) — the share of the delivered harvest a " +
+                                         $"granary can save from post-harvest loss, got {Inv(g.FarmYieldBonusMax)}.");
+        if (!(g.FarmYieldScale > 0.0) || !double.IsFinite(g.FarmYieldScale))
+            throw new SimConfigException($"{p}farmYieldScale must be a finite value > 0, got {Inv(g.FarmYieldScale)}.");
+        if (!(g.FamineReductionMax >= 0.0 && g.FamineReductionMax < 1.0))
+            throw new SimConfigException($"{p}famineReductionMax must be in [0,1) so the famine factor stays in (0,1] and " +
+                                         $"the effective deficit is never inverted, got {Inv(g.FamineReductionMax)}.");
+        if (!(g.FamineReductionScale > 0.0) || !double.IsFinite(g.FamineReductionScale))
+            throw new SimConfigException($"{p}famineReductionScale must be a finite value > 0, got {Inv(g.FamineReductionScale)}.");
+    }
+
+    /// <summary>M5 item 5: the granaries section names a goods.json construction project — checked where sim.json and
+    /// goods.json meet. Public so a config assembled without the canonical load can be checked.</summary>
+    public static void ValidateGranariesAgainstContent(SimConfig cfg)
+    {
+        if (cfg.Granaries is not { } g || cfg.Goods is null) return;
+        foreach (ConstructionProjectEntry p in cfg.Goods.Projects ?? [])
+            if (string.Equals(p.Name, g.Project, StringComparison.Ordinal)) return;
+        throw new SimConfigException($"granaries.project '{g.Project}' is not a goods.json projects name.");
     }
 
     /// <summary>ADR-033 D6: the health type names a research.json university type.</summary>

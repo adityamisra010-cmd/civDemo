@@ -43,14 +43,21 @@ namespace Sim.Core;
 ///     every produced row, LastProducedUnits on every row (zeroed each step),
 ///     and ConsumeRemainder on the TOOLS row and on every RECIPE-INPUT row.
 ///   CONSUMPTION owns: Amount via Ledger (reason Eaten) and ConsumeRemainder on
-///     the GRAIN row.
+///     the GRAIN row. Intra-polity grain relief in a shortage (D-053 §2, a partial
+///     step toward D-051 §6; consumption.empireFoodAllocation): it ALSO moves
+///     grain by Ledger.TRANSFER between the GRAIN rows of settlements one polity
+///     controls (grain still held to a sibling whose grain row is empty and whose
+///     requirement is unmet, which eats it at once, Eaten) — conserving, never a
+///     source, after Production and Appropriation and before its own
+///     spoilage/overflow sinks; no remainder field is touched by it.
 ///   HOUSING (T3.8, the FOURTH holder) owns: Amount via Ledger SINK only, reason
 ///     HousingMaterials, on the TIMBER and CLAY rows (build + upkeep draws) —
 ///     never a source, never another good, no remainder field touched.
 ///   ROAD DEVELOPMENT (ADR-032, the SIXTH holder) owns: Amount via Ledger SINK
 ///     only, reason ConstructionMaterials, on the rows its roads.classes materials
-///     name, at the ISSUING civilization's controlled settlements in ascending id
-///     (never an endpoint as such) — never a source, no remainder field.
+///     name, at the ISSUING civilization's controlled settlements nearest-first to
+///     the route, ties by id (ADR-032 final ruling 1; drawn through EmpireStockpile.Draw,
+///     the purse draw construction shares) — never a source, no remainder field.
 ///     It runs only on a turn carrying a DevelopRoads order.
 ///   TRADE (T3.6, the third holder) owns: Amount via Ledger.TRANSFER ONLY —
 ///     conserving cross-settlement moves within a good, never a source or
@@ -225,8 +232,12 @@ public static class SystemCatalog
     }
 
     /// <summary>M4-D: the settlement construction queue — FIFTH holder of the
-    /// GoodStocks share (see the ownership record above). It draws materials the
-    /// same way housing does, under its own reason.</summary>
+    /// GoodStocks share (see the ownership record above). It draws materials
+    /// through Ledger SINKS only, under its own reason (ConstructionMaterials), from
+    /// the building settlement's purse (EmpireStockpile, sim.json
+    /// construction.empireStockpile): the rows of the settlements its controller
+    /// commands, the builder first then nearest-first, or the builder's own rows
+    /// alone — never a source, no remainder field.</summary>
     public static SystemRegistration Construction(SimConfig cfg)
     {
         var system = new ConstructionSystem(cfg);

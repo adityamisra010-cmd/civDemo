@@ -24,7 +24,8 @@ public enum ProjectAvailability
     InputUnobtainable = 5,
 }
 
-/// <summary>One input a project lacks in a settlement now: <c>Required</c> units of <c>Good</c>, <c>Held</c> present.</summary>
+/// <summary>One input a project lacks in a settlement now: <c>Required</c> units of <c>Good</c>, <c>Held</c> present in the
+/// settlement's purse (<see cref="ConstructionQuery.Holders"/>: its Empire's settlements together, or itself alone).</summary>
 public readonly record struct MaterialShortfall(GoodId Good, string Name, long Required, long Held);
 
 /// <summary>
@@ -44,26 +45,72 @@ public readonly record struct MaterialShortfall(GoodId Good, string Name, long R
 /// construction capability predates research). Materials and capacity are AFFORDABILITY — transient
 /// blockers the query reports, never reasons to hide the project.
 ///
+/// THE PURSE (D-051 §6 and D-053 §1 — the Director's 2026-10-13 instruction, item 1: construction and roads draw on the
+/// empire stockpile; sim.json <c>construction.empireStockpile</c>): every reading of what a settlement HOLDS for a project —
+/// <see cref="MaterialsAvailable"/>, <see cref="Shortfalls"/>, <see cref="Blocker"/>, the obtainability guard below — reads
+/// <see cref="Holders"/>: with the switch on, a settlement an Empire controls holds what its Empire's settlements hold
+/// together (EmpireStockpile — the donor order is stated there), and a settlement no Empire controls holds its own stock;
+/// with it off (or absent), every settlement holds its own stock only, the pre-change rule bit-exact. ConstructionSystem
+/// draws the materials from the same holders in the same order. Capacity, deposits and recipe availability stay the
+/// settlement's OWN — the purse pools goods, not labour, land or workshops. A DISPLAY for a settlement the viewer does not
+/// control reads that settlement's own stock only (<see cref="HoldersSeenBy"/>, P7): the pooled figure would sum the
+/// foreign Empire's other settlements, which the viewer may not know.
+///
 /// ONE EXCEPTION, Director 2026-10-10 (D-051 §4; dated note in ADR-033 D3): a CRAFTED input with NO production
 /// path is not a transient blocker. A good no deposit yields and only recipes make (tools) is OBTAINABLE when the
-/// settlement holds the required amount, or when some recipe available there NOW (CraftingQuery.IsRecipeAvailable —
+/// settlement's purse holds the required amount, or when some recipe available there NOW (CraftingQuery.IsRecipeAvailable —
 /// the predicate ProductionSystem applies) makes it from inputs that are themselves obtainable (raw inputs: a
-/// deposit with abundance &gt; 0, or any stock). Otherwise the project is <see cref="ProjectAvailability.InputUnobtainable"/>:
+/// deposit with abundance &gt; 0, or any stock in the purse). Otherwise the project is <see cref="ProjectAvailability.InputUnobtainable"/>:
 /// before it, the Age I Workshop (10 tools; tools come only from bronze, tin_bronze, Age III) was a legal order that
 /// froze its settlement's queue for hundreds of turns, and no cancel order exists. This is evaluated at ENQUEUE only
 /// (ConstructionSystem's order intake); queue-head resolution is unchanged. Raw-material shortfalls (stone) stay
 /// affordability.
+///
+/// THE GUARD READS THE UNCLAIMED PURSE FOR CRAFTED GOODS ONLY (switch on; D-053 §1). One purse serves many queues, so for
+/// a CRAFTED good — the only kind the guard exists for: one the empire cannot dig up and may be unable to make — "the
+/// purse holds it" is read as "the purse holds it UNCLAIMED": the purse's holding of the good less the CLAIMS on it
+/// (<see cref="Claimed"/>) — the whole input of that good of every project queued, at any slot (a queued project is
+/// unbuilt: a resolved head leaves the table), in the purse's settlements. Without it, ten tools held once would admit a
+/// workshop order in every settlement of the Empire, the first to resolve would spend them, and every other would freeze
+/// its queue for good — the trap above, re-opened by the purse. A stateless settlement's purse is itself, so it is checked
+/// against its own stock and its own queue. The claims touch exactly two readings: the direct test (the project's crafted
+/// input — the unclaimed holding covers the required amount) and, in the recipe chain, a CRAFTED intermediate's "any
+/// stock" (bronze: the unclaimed holding is above zero). A RAW input of the chain (timber, copper ore; any good that is
+/// not crafted) keeps the POOLED reading — any stock in the purse, claimed or not, or a deposit at the settlement: a raw
+/// good is dug, felled or gathered again, so a transient raw shortage stays a transient blocker (the paragraph above),
+/// never a refusal; claiming it would refuse a workshop because a granary elsewhere waits for the same timber. The queue
+/// is the world's own for every display and for the AI; ConstructionSystem's order intake passes its NEXT queue, which
+/// holds PREV's rows plus every order it accepted earlier in the same batch, so two orders of one batch cannot both count
+/// the same unclaimed units, and the action surface passes the world's queue plus the player's pending orders the intake
+/// would accept (<see cref="QueueWithPending"/>). Switch off: no claims, the pre-change reading bit-exact. THE GUARD IS
+/// STILL A REACHABILITY TEST, not an affordability test: an intermediate (bronze) held unclaimed in ANY amount above zero
+/// makes its chain producible, as before — a partial holding that cannot make the whole input remains the pre-existing
+/// gap, and raw inputs and capacity stay transient blockers.
 /// </summary>
 public static class ConstructionQuery
 {
-    /// <summary>THE EnqueueConstruction predicate (see the header).</summary>
+    /// <summary>THE EnqueueConstruction predicate (see the header), the purse's claims read from the world's own queue.</summary>
     public static bool IsProjectAvailable(
         IReadOnlyWorldState world, SimConfig cfg, PolityId issuer, SettlementId settlement, int projectId) =>
-        Availability(world, cfg, issuer, settlement, projectId) == ProjectAvailability.Available;
+        Availability(world, cfg, issuer, settlement, projectId, world.ConstructionQueue) == ProjectAvailability.Available;
 
-    /// <summary>The predicate's answer with its reason.</summary>
+    /// <summary>THE EnqueueConstruction predicate with the queue whose projects CLAIM the purse given explicitly —
+    /// ConstructionSystem's order intake passes its NEXT queue (PREV's rows plus the orders it accepted earlier in the
+    /// batch; see the header).</summary>
+    public static bool IsProjectAvailable(
+        IReadOnlyWorldState world, SimConfig cfg, PolityId issuer, SettlementId settlement, int projectId,
+        IReadOnlyTable<ConstructionQueueRow> queue) =>
+        Availability(world, cfg, issuer, settlement, projectId, queue) == ProjectAvailability.Available;
+
+    /// <summary>The predicate's answer with its reason (claims from the world's own queue).</summary>
     public static ProjectAvailability Availability(
-        IReadOnlyWorldState world, SimConfig cfg, PolityId issuer, SettlementId settlement, int projectId)
+        IReadOnlyWorldState world, SimConfig cfg, PolityId issuer, SettlementId settlement, int projectId) =>
+        Availability(world, cfg, issuer, settlement, projectId, world.ConstructionQueue);
+
+    /// <summary>The predicate's answer with its reason, the purse's claims read from <paramref name="queue"/>.</summary>
+    public static ProjectAvailability Availability(
+        IReadOnlyWorldState world, SimConfig cfg, PolityId issuer, SettlementId settlement, int projectId,
+        IReadOnlyTable<ConstructionQueueRow> queue)
     {
         if (!SettlementExists(world, settlement)) return ProjectAvailability.UnknownSettlement;
         // Guarded on a non-empty relation: a world with no Controls at all (a hand-built toy) has
@@ -72,32 +119,59 @@ public static class ConstructionQuery
             return ProjectAvailability.NotControlled;
         if (cfg.Goods?.ProjectById(projectId) is not { } project) return ProjectAvailability.UnknownProject;
         if (!IsKnowledgeEligible(world, cfg.Research, issuer, project)) return ProjectAvailability.NotKnowledgeEligible;
-        if (UnobtainableInput(world, cfg, settlement, project) is not null) return ProjectAvailability.InputUnobtainable;
+        if (UnobtainableInput(world, cfg, settlement, project, queue) is not null) return ProjectAvailability.InputUnobtainable;
         return ProjectAvailability.Available;
     }
 
-    /// <summary>The first CRAFTED input of <paramref name="project"/> (project input order) that the settlement neither
-    /// holds in the required amount nor can produce now through an available recipe chain — or null when every crafted
-    /// input is obtainable (see the header's exception). Raw and farmed inputs are never checked here.</summary>
+    /// <summary>The first CRAFTED input of <paramref name="project"/> (project input order) that the settlement's purse
+    /// (<see cref="Holders"/>) neither holds UNCLAIMED in the required amount nor can come to hold through a recipe chain
+    /// available in the settlement now — or null when every crafted input is obtainable (see the header's exception and
+    /// its claims). Claims from the world's own queue. Raw and farmed inputs are never checked here.</summary>
     public static GoodEntry? UnobtainableInput(
-        IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement, ConstructionProjectEntry project)
+        IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement, ConstructionProjectEntry project) =>
+        UnobtainableInput(world, cfg, settlement, project, world.ConstructionQueue);
+
+    /// <summary>As <see cref="UnobtainableInput(IReadOnlyWorldState, SimConfig, SettlementId, ConstructionProjectEntry)"/>,
+    /// the purse's claims read from <paramref name="queue"/> (switch on; with it off there are no claims).</summary>
+    public static GoodEntry? UnobtainableInput(
+        IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement, ConstructionProjectEntry project,
+        IReadOnlyTable<ConstructionQueueRow> queue)
     {
         if (cfg.Goods is not { } goods) return null;
         bool[]? knowledge = null;
         bool knowledgeRead = false;
+        Purse? purse = null;
         foreach (ProjectInput input in project.Inputs)
         {
             int id = goods.IdOf(input.Good);
             if (id < 0 || input.Qty <= 0 || !IsCrafted(goods, id)) continue;
-            if (Held(world, settlement, id) >= input.Qty) continue;
+            purse ??= new Purse(world, goods, Holders(world, cfg, settlement), cfg.Construction is { EmpireStockpile: true } ? queue : null);
+            if (purse.Free(id) >= input.Qty) continue;
             if (!knowledgeRead) { knowledge = CraftingQuery.KnowledgeOf(world, cfg.Research, settlement); knowledgeRead = true; }
             // The direct input is short of the required amount, so a partial stock does not make it obtainable:
             // only a recipe that can make more does (nine tools and no way to make a tenth is the permanent block).
             var visiting = new bool[MaxGoodId(goods) + 1];
-            if (!MadeByAvailableRecipe(world, cfg, goods, settlement, id, knowledge, visiting)) return goods.ById(id);
+            if (!MadeByAvailableRecipe(world, cfg, goods, settlement, purse, id, knowledge, visiting)) return goods.ById(id);
         }
         return null;
     }
+
+    /// <summary>The guard's reading of the purse. <see cref="Free"/> (a CRAFTED good): the holders' holding of it, less —
+    /// when <c>Claims</c> is given (the switch on) — the claims on it of the projects queued there (<see cref="Unclaimed"/>).
+    /// <see cref="Pooled"/> (a RAW good): the holders' whole holding, claimed or not (the header).</summary>
+    private sealed class Purse(IReadOnlyWorldState world, GoodsConfig goods, SettlementId[] holders, IReadOnlyTable<ConstructionQueueRow>? claims)
+    {
+        public long Free(int id) => claims is null
+            ? Pooled(id)
+            : Unclaimed(world.GoodStocks, claims, goods, holders, new GoodId(id));
+
+        public long Pooled(int id) => EmpireStockpile.Available(world.GoodStocks, holders, new GoodId(id));
+    }
+
+    /// <summary>A CRAFTED good — no deposit yields it and at least one recipe outputs it (tools, bronze): the only kind the
+    /// obtainability guard checks and the only kind its claims touch (the header). The project card reads its crafted
+    /// inputs by the same rule.</summary>
+    public static bool IsCraftedGood(GoodsConfig goods, int id) => IsCrafted(goods, id);
 
     /// <summary>A good no deposit yields and at least one recipe outputs.</summary>
     private static bool IsCrafted(GoodsConfig goods, int id)
@@ -108,22 +182,24 @@ public static class ConstructionQuery
         return false;
     }
 
-    /// <summary>Whether the settlement can come to hold good <paramref name="id"/>: any stock of it; a deposit of it
-    /// (raw goods); or an available recipe that outputs it from producible inputs. <paramref name="visiting"/> breaks
-    /// recipe cycles (a good already on the path is not a source of itself).</summary>
+    /// <summary>Whether the settlement can come to hold good <paramref name="id"/>: any stock of it in its purse
+    /// (<paramref name="purse"/>; above zero — a reachability test, see the header) — UNCLAIMED stock for a crafted good,
+    /// the POOLED holding for a raw one; a deposit of it at the settlement (raw goods); or a recipe available in the
+    /// settlement that outputs it from producible inputs. <paramref name="visiting"/> breaks recipe cycles (a good already
+    /// on the path is not a source of itself).</summary>
     private static bool Producible(
-        IReadOnlyWorldState world, SimConfig cfg, GoodsConfig goods, SettlementId settlement, int id,
+        IReadOnlyWorldState world, SimConfig cfg, GoodsConfig goods, SettlementId settlement, Purse purse, int id,
         bool[]? knowledge, bool[] visiting)
     {
-        if (Held(world, settlement, id) > 0) return true;
+        if ((IsCrafted(goods, id) ? purse.Free(id) : purse.Pooled(id)) > 0) return true;
         if (goods.ById(id).DepositChannel is not null) return DepositOf(world, settlement, id) > 0.0;
-        return MadeByAvailableRecipe(world, cfg, goods, settlement, id, knowledge, visiting);
+        return MadeByAvailableRecipe(world, cfg, goods, settlement, purse, id, knowledge, visiting);
     }
 
     /// <summary>Whether some recipe available in the settlement now outputs good <paramref name="id"/> from inputs
     /// that are all <see cref="Producible"/>.</summary>
     private static bool MadeByAvailableRecipe(
-        IReadOnlyWorldState world, SimConfig cfg, GoodsConfig goods, SettlementId settlement, int id,
+        IReadOnlyWorldState world, SimConfig cfg, GoodsConfig goods, SettlementId settlement, Purse purse, int id,
         bool[]? knowledge, bool[] visiting)
     {
         if (visiting[id]) return false;
@@ -137,7 +213,7 @@ public static class ConstructionQuery
             foreach (RecipeInput ri in r.Inputs)
             {
                 int inId = goods.IdOf(ri.Good);
-                if (inId < 0 || !Producible(world, cfg, goods, settlement, inId, knowledge, visiting)) { inputs = false; break; }
+                if (inId < 0 || !Producible(world, cfg, goods, settlement, purse, inId, knowledge, visiting)) { inputs = false; break; }
             }
             if (inputs) { ok = true; break; }
         }
@@ -145,12 +221,137 @@ public static class ConstructionQuery
         return ok;
     }
 
-    private static long Held(IReadOnlyWorldState world, SettlementId settlement, int id)
+    /// <summary>
+    /// THE CLAIMS on the purse <paramref name="holders"/> for <paramref name="good"/>: over every project in
+    /// <paramref name="queue"/> queued at one of the holders — ANY slot, head or waiting; a queued project is unbuilt (a
+    /// resolved head leaves the table) — that project's whole input of the good (<see cref="InputOf"/>: no project is
+    /// ever partly paid, M4-D). A row whose project the content no longer defines claims nothing. The exact long sum.
+    /// </summary>
+    public static long Claimed(IReadOnlyTable<ConstructionQueueRow> queue, GoodsConfig goods, SettlementId[] holders, GoodId good)
     {
-        for (int i = 0; i < world.GoodStocks.Count; i++)
-            if (world.GoodStocks[i].Settlement == settlement && world.GoodStocks[i].Good.Value == id)
-                return world.GoodStocks[i].Amount.Value;
-        return 0;
+        long total = 0;
+        checked
+        {
+            for (int i = 0; i < queue.Count; i++)
+            {
+                if (!IsHolder(holders, queue[i].Settlement)) continue;
+                if (goods.ProjectById(queue[i].ProjectId) is not { } queued) continue;
+                total += InputOf(goods, queued, good);
+            }
+        }
+        return total;
+    }
+
+    /// <summary>The purse's holding of <paramref name="good"/> less its claims (<see cref="Claimed"/>): what no queued
+    /// project already counts on. Negative when the queued projects already claim more than the purse holds.</summary>
+    public static long Unclaimed(
+        IReadOnlyTable<GoodStockRow> stocks, IReadOnlyTable<ConstructionQueueRow> queue, GoodsConfig goods, SettlementId[] holders, GoodId good) =>
+        checked(EmpireStockpile.Available(stocks, holders, good) - Claimed(queue, goods, holders, good));
+
+    /// <summary>The holders whose queued projects CLAIM <paramref name="good"/> (<see cref="Claimed"/>'s rows: a queued
+    /// project at one of the holders that takes the good), each once, in ascending SettlementId — the places a display names
+    /// when the claims are what refuses an order.</summary>
+    public static SettlementId[] ClaimedAt(IReadOnlyTable<ConstructionQueueRow> queue, GoodsConfig goods, SettlementId[] holders, GoodId good)
+    {
+        var ids = new List<int>();
+        for (int i = 0; i < queue.Count; i++)
+        {
+            if (!IsHolder(holders, queue[i].Settlement)) continue;
+            if (goods.ProjectById(queue[i].ProjectId) is not { } queued || InputOf(goods, queued, good) <= 0) continue;
+            if (!ids.Contains(queue[i].Settlement.Value)) ids.Add(queue[i].Settlement.Value);
+        }
+        ids.Sort();
+        var result = new SettlementId[ids.Count];
+        for (int i = 0; i < result.Length; i++) result[i] = new SettlementId(ids[i]);
+        return result;
+    }
+
+    /// <summary>
+    /// WHY THE GUARD REFUSED, WHEN THE CLAIMS ARE THE REASON (display only): where <see cref="UnobtainableInput(IReadOnlyWorldState, SimConfig, SettlementId, ConstructionProjectEntry, IReadOnlyTable{ConstructionQueueRow})"/>
+    /// names a crafted input the settlement's purse HOLDS in the required amount but not UNCLAIMED (switch on: the
+    /// projects queued in the purse's settlements already claim it), the sentence that says so — "needs 10 tools; the
+    /// empire's 10 are already claimed by projects queued at Bigen" (or "4 of the empire's 12 are …"; a stateless
+    /// settlement's purse is its own: "Bigen's 10 …"), the places named by <paramref name="name"/> in ascending id.
+    /// Null when the project is not refused for an input, when the purse is genuinely short of it (the older "cannot make
+    /// yet" reason stands), or with the switch off (no claims). Claims from <paramref name="queue"/>.
+    /// </summary>
+    public static string? ClaimedReason(
+        IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement, ConstructionProjectEntry project,
+        IReadOnlyTable<ConstructionQueueRow> queue, Func<int, string> name)
+    {
+        if (cfg.Goods is not { } goods || cfg.Construction is not { EmpireStockpile: true }) return null;
+        if (UnobtainableInput(world, cfg, settlement, project, queue) is not { } input) return null;
+        var good = new GoodId(input.Id);
+        long required = InputOf(goods, project, good);
+        SettlementId[] holders = Holders(world, cfg, settlement);
+        long held = EmpireStockpile.Available(world.GoodStocks, holders, good);
+        if (held < required) return null;                       // genuinely short: not the claims' doing
+        long claimed = Claimed(queue, goods, holders, good);
+        SettlementId[] at = ClaimedAt(queue, goods, holders, good);
+        var places = new string[at.Length];
+        for (int i = 0; i < at.Length; i++) places[i] = name(at[i].Value);
+        string whose = DrawsOnEmpire(world, cfg, settlement) ? "the empire's" : name(settlement.Value) + "'s";
+        string subject = claimed >= held ? whose + " " + Num(held) : Num(claimed) + " of " + whose + " " + Num(held);
+        bool one = claimed >= held ? held == 1 : claimed == 1;
+        return "needs " + Num(required) + " " + input.Name + "; " + subject + (one ? " is" : " are")
+            + " already claimed by projects queued at " + string.Join(", ", places);
+    }
+
+    /// <summary>
+    /// THE QUEUE A LISTING READS THE CLAIMS FROM (D-053 §1, display only): the world's queue plus every EnqueueConstruction
+    /// order of <paramref name="pending"/> (the turn's not-yet-delivered batch — the action surface's queued orders) that
+    /// ConstructionSystem's intake WOULD accept, in batch order, each judged against the rows before it exactly as the
+    /// intake judges an order against its NEXT queue (<see cref="IsProjectAvailable(IReadOnlyWorldState, SimConfig, PolityId, SettlementId, int, IReadOnlyTable{ConstructionQueueRow})"/>),
+    /// at the slot the intake would give it. So a workshop ordered this turn claims its ten tools at once, and a second one
+    /// the intake would refuse is neither offered nor shown as orderable. The world's own queue (no copy) when nothing is
+    /// pending or the switch is off (no claims to read).
+    /// </summary>
+    public static IReadOnlyTable<ConstructionQueueRow> QueueWithPending(
+        IReadOnlyWorldState world, SimConfig cfg, IReadOnlyList<OrderRecord>? pending)
+    {
+        if (pending is null || cfg.Construction is not { EmpireStockpile: true }) return world.ConstructionQueue;
+        Table<ConstructionQueueRow>? queue = null;
+        for (int o = 0; o < pending.Count; o++)
+        {
+            OrderRecord order = pending[o];
+            if (order.Kind != OrderKind.EnqueueConstruction) continue;
+            queue ??= Copy(world.ConstructionQueue);
+            var settlement = new SettlementId(order.TargetId);
+            int projectId = (int)order.Amount;
+            if (!IsProjectAvailable(world, cfg, order.Actor, settlement, projectId, queue)) continue;
+            int slot = 0;
+            for (int i = 0; i < queue.Count; i++)
+                if (queue[i].Settlement == settlement && queue[i].Slot >= slot) slot = queue[i].Slot + 1;
+            queue.Add(new ConstructionQueueRow(settlement, slot, projectId));
+        }
+        return queue ?? world.ConstructionQueue;
+    }
+
+    private static Table<ConstructionQueueRow> Copy(IReadOnlyTable<ConstructionQueueRow> rows)
+    {
+        var copy = new Table<ConstructionQueueRow>(rows.Count);
+        for (int i = 0; i < rows.Count; i++) copy.Add(rows[i]);
+        return copy;
+    }
+
+    /// <summary>How many units of <paramref name="good"/> <paramref name="project"/> takes: the sum of its inputs of the good
+    /// (0 when it takes none).</summary>
+    public static long InputOf(GoodsConfig goods, ConstructionProjectEntry project, GoodId good)
+    {
+        long qty = 0;
+        checked
+        {
+            for (int i = 0; i < project.Inputs.Length; i++)
+                if (goods.IdOf(project.Inputs[i].Good) == good.Value) qty += project.Inputs[i].Qty;
+        }
+        return qty;
+    }
+
+    /// <summary>Whether <paramref name="settlement"/> is one of <paramref name="holders"/>.</summary>
+    public static bool IsHolder(SettlementId[] holders, SettlementId settlement)
+    {
+        for (int i = 0; i < holders.Length; i++) if (holders[i].Value == settlement.Value) return true;
+        return false;
     }
 
     private static double DepositOf(IReadOnlyWorldState world, SettlementId settlement, int id)
@@ -218,53 +419,108 @@ public static class ConstructionQuery
         return capacity;
     }
 
-    /// <summary>Every input present IN FULL in <paramref name="stocks"/> (checked before any draw — the
-    /// all-or-nothing rule ConstructionSystem applies to its NEXT stocks and the query to the world's).</summary>
+    /// <summary>
+    /// THE PURSE a project in <paramref name="settlement"/> is checked against and paid from, in DRAW ORDER (see the
+    /// header): with sim.json <c>construction.empireStockpile</c> on, <see cref="EmpireStockpile.Holders"/> — the settlement
+    /// first, then the other settlements its controller commands, nearest-first, ties by id; the settlement alone when no
+    /// Empire controls it. With the switch off or absent, the settlement alone (the pre-change rule). ConstructionSystem
+    /// computes it on PREV (turn-start control) and reads and draws the stocks on its NEXT table.
+    /// </summary>
+    public static SettlementId[] Holders(IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement) =>
+        cfg.Construction is { EmpireStockpile: true } ? EmpireStockpile.Holders(world, settlement) : [settlement];
+
+    /// <summary>Whether the purse of <paramref name="settlement"/> is an Empire's (the switch is on and an Empire controls
+    /// it) rather than the settlement's own stock — what the blocker says it holds.</summary>
+    public static bool DrawsOnEmpire(IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement) =>
+        cfg.Construction is { EmpireStockpile: true } && EmpireQuery.TryGetController(world, settlement, out _);
+
+    /// <summary>
+    /// The purse of <paramref name="settlement"/> AS <paramref name="viewer"/> MAY READ IT (P7, the information class):
+    /// <see cref="Holders"/> where the viewer controls the settlement — its own Empire's books — and the settlement's own
+    /// stock alone where it does not. A foreign settlement's pooled figure would sum its Empire's OTHER settlements, which
+    /// the viewer may not know; its own stock is what the viewer's settlement view already shows of it. Every display that
+    /// may be asked about a settlement the viewer does not rule reads this (PlayerViews' Structures block, the project card).
+    /// </summary>
+    public static SettlementId[] HoldersSeenBy(IReadOnlyWorldState world, SimConfig cfg, PolityId viewer, SettlementId settlement) =>
+        EmpireQuery.ControlsSettlement(world, viewer, settlement) ? Holders(world, cfg, settlement) : [settlement];
+
+    /// <summary>Whether <see cref="HoldersSeenBy"/> is an Empire's purse: the switch is on and the viewer controls the
+    /// settlement — what the display says the figure is ("empire has").</summary>
+    public static bool DrawsOnEmpireSeenBy(IReadOnlyWorldState world, SimConfig cfg, PolityId viewer, SettlementId settlement) =>
+        cfg.Construction is { EmpireStockpile: true } && EmpireQuery.ControlsSettlement(world, viewer, settlement);
+
+    /// <summary>Every input present IN FULL in the purse <paramref name="holders"/> (<see cref="Holders"/>) of
+    /// <paramref name="stocks"/> — checked before any draw: the all-or-nothing rule ConstructionSystem applies to its NEXT
+    /// stocks and the query to the world's. Each input is compared with the purse's whole holding of its good.</summary>
     public static bool MaterialsAvailable(
-        IReadOnlyTable<GoodStockRow> stocks, GoodsConfig goods, SettlementId settlement, ConstructionProjectEntry project)
+        IReadOnlyTable<GoodStockRow> stocks, GoodsConfig goods, SettlementId[] holders, ConstructionProjectEntry project)
     {
         for (int i = 0; i < project.Inputs.Length; i++)
         {
             ProjectInput input = project.Inputs[i];
-            int idx = GoodStockIndex.IndexOf(stocks, settlement, new GoodId(goods.IdOf(input.Good)));
-            if (idx < 0 || stocks[idx].Amount.Value < input.Qty) return false;
+            if (EmpireStockpile.Available(stocks, holders, new GoodId(goods.IdOf(input.Good))) < input.Qty) return false;
         }
         return true;
     }
 
-    /// <summary>The inputs the settlement lacks now, input order (empty when every input is present in full).</summary>
+    /// <summary>The inputs the purse <paramref name="holders"/> (<see cref="Holders"/>) lacks now, input order (empty when
+    /// every input is present in full); <c>Held</c> is the purse's whole holding.</summary>
     public static MaterialShortfall[] Shortfalls(
-        IReadOnlyTable<GoodStockRow> stocks, GoodsConfig goods, SettlementId settlement, ConstructionProjectEntry project)
+        IReadOnlyTable<GoodStockRow> stocks, GoodsConfig goods, SettlementId[] holders, ConstructionProjectEntry project)
     {
         var result = new List<MaterialShortfall>();
         for (int i = 0; i < project.Inputs.Length; i++)
         {
             ProjectInput input = project.Inputs[i];
             var good = new GoodId(goods.IdOf(input.Good));
-            int idx = GoodStockIndex.IndexOf(stocks, settlement, good);
-            long held = idx < 0 ? 0 : stocks[idx].Amount.Value;
+            long held = EmpireStockpile.Available(stocks, holders, good);
             if (held < input.Qty) result.Add(new MaterialShortfall(good, input.Good, input.Qty, held));
         }
         return [.. result];
     }
 
+    /// <summary><see cref="Shortfalls(IReadOnlyTable{GoodStockRow}, GoodsConfig, SettlementId[], ConstructionProjectEntry)"/>
+    /// for <paramref name="settlement"/>'s purse on <paramref name="world"/> — the reading every display uses.</summary>
+    public static MaterialShortfall[] Shortfalls(
+        IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement, ConstructionProjectEntry project)
+    {
+        GoodsConfig goods = cfg.Goods ?? throw new ArgumentException("construction shortfalls need goods content", nameof(cfg));
+        return Shortfalls(world.GoodStocks, goods, Holders(world, cfg, settlement), project);
+    }
+
     /// <summary>
     /// The transient blocker the action surface shows for an AVAILABLE project, or null when it could be
-    /// built this turn: the inputs short ("needs 40 timber (has 12)") and, when the turn's length is known,
-    /// the construction labour short; for a project that founds an institution (ADR-033 D6), the host's
-    /// founding viability first ("needs 4000 adults (has 3100)"). Information, not a disabled future
-    /// control (ADR-033 D2) — each reading is the function ConstructionSystem gates the head with.
+    /// built this turn: the inputs short and, when the turn's length is known, the construction labour short;
+    /// for a project that founds an institution (ADR-033 D6), the host's founding viability first ("needs 4000
+    /// adults (has 3100)"). An input names what the PURSE holds (<see cref="Holders"/>): "needs 40 timber (empire
+    /// has 12)" where the settlement draws on its Empire, "needs 40 timber (has 12)" where it draws on its own stock
+    /// (no controller, or the switch off). Information, not a disabled future control (ADR-033 D2) — each reading
+    /// is the function ConstructionSystem gates the head with.
     /// </summary>
     public static string? Blocker(
-        IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement, ConstructionProjectEntry project, double? dtYears)
+        IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement, ConstructionProjectEntry project, double? dtYears) =>
+        Blocker(world, cfg, settlement, project, dtYears, Holders(world, cfg, settlement), DrawsOnEmpire(world, cfg, settlement));
+
+    /// <summary><see cref="Blocker(IReadOnlyWorldState, SimConfig, SettlementId, ConstructionProjectEntry, double?)"/> as
+    /// <paramref name="viewer"/> may read it (P7): the materials against <see cref="HoldersSeenBy"/> — the Empire's purse
+    /// where the viewer rules the settlement, the settlement's own stock ("has N") where it does not.</summary>
+    public static string? BlockerSeenBy(
+        IReadOnlyWorldState world, SimConfig cfg, PolityId viewer, SettlementId settlement, ConstructionProjectEntry project, double? dtYears) =>
+        Blocker(world, cfg, settlement, project, dtYears,
+            HoldersSeenBy(world, cfg, viewer, settlement), DrawsOnEmpireSeenBy(world, cfg, viewer, settlement));
+
+    private static string? Blocker(
+        IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement, ConstructionProjectEntry project, double? dtYears,
+        SettlementId[] holders, bool empire)
     {
         GoodsConfig goods = cfg.Goods ?? throw new ArgumentException("a construction blocker needs goods content", nameof(cfg));
         var parts = new List<string>();
         if (InstitutionContent.FoundsInstitution(project)
             && InstitutionViability.ToFound(world, cfg, settlement) is { Viable: false } viability)
             parts.Add(InstitutionViability.Shortfall(viability));
-        foreach (MaterialShortfall s in Shortfalls(world.GoodStocks, goods, settlement, project))
-            parts.Add($"{Num(s.Required)} {s.Name} (has {Num(s.Held)})");
+        string holder = empire ? "empire has" : "has";
+        foreach (MaterialShortfall s in Shortfalls(world.GoodStocks, goods, holders, project))
+            parts.Add($"{Num(s.Required)} {s.Name} ({holder} {Num(s.Held)})");
         if (dtYears is { } dt && dt > 0.0)
         {
             double capacity = CapacityAdultYears(world, cfg, settlement, dt);

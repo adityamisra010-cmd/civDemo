@@ -244,7 +244,7 @@ public sealed record FoodStateSection(
     FoodStateKind State,              // RECOMPUTED FoodState.Of(prev, s, cfg)
     FamineReason Reason,              // RECOMPUTED the same call's out parameter; None outside Famine
     double NominalDeficit,            // RECOMPUTED FoodState.DeficitRatio(prev, s) — d, the classifier's input
-    double EffectiveDeficit,          // RECOMPUTED FoodState.EffectiveDeficit(d, state, cfg)
+    double EffectiveDeficit,          // RECOMPUTED FoodState.EffectiveDeficit(prev, s, d, state, cfg) — incl. the granary famine factor
     bool Abandoned,                   // RECOMPUTED FoodState.IsAbandoned(prev, s)
     bool DisasterRowPresent,          // whether prev carried a DisasterRow for this settlement
     int DisasterKind,                 // READ  prev DisasterRow.Kind

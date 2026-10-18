@@ -125,7 +125,8 @@ public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<Cano
         // production path — it is named in the locked block (TurnOne_NoModernDashboard_… pins its reason).
         Assert.Equal(new[] { "Granary" }, m.Construction!.Projects.Select(p => p.Name).ToArray());
         Assert.All(m.Construction.Projects, p => Assert.StartsWith("needs ", p.Blocker));
-        Assert.Contains(m.Construction.Projects, p => p.Blocker == "needs 40 timber (has 0), 20 stone (has 0)");
+        // D-053 §1: the capital is the player's, so its blocker names the EMPIRE's purse (empty at founding).
+        Assert.Contains(m.Construction.Projects, p => p.Blocker == "needs 40 timber (empire has 0), 20 stone (empire has 0)");
 
         // MILITARY: basic fighting — the founding warband — information only.
         Assert.Equal((ActionKind.Standing, (OrderKind?)null), (m.Military!.Capability.Kind, m.Military.Capability.Order));

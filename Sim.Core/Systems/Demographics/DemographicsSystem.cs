@@ -65,7 +65,11 @@ public readonly record struct DemographicsTables(
 ///      STRESS (d ≤ a) starves nobody and suppresses no birth, SEVERE starves
 ///      on the unabsorbed remainder. One per-turn scalar feeds BOTH
 ///      exceptional channels (mortality and fertility suppression, G3(b));
-///      the rebound release gate reads the NOMINAL d == 0.0.
+///      the rebound release gate reads the NOMINAL d == 0.0. M5 item 5: that
+///      scalar is the dead-zone form × the civilization's granary
+///      famine-intensity factor (FoodState.EffectiveDeficit's world overload,
+///      GranaryEffects; ∈ (1 − famineReductionMax, 1], skipped when no granary
+///      stands in the civilization) — organised relief capacity, no grain moves.
 ///      Mortality acts on PRESENT counts (ADR-011 §1): per-capita and
 ///      position-independent — people moved by an earlier system this turn
 ///      die where they stand; the Prev-sized dodge class is structurally
@@ -155,9 +159,14 @@ public sealed class DemographicsSystem : ISimSystem<DemographicsTables>
     private readonly BasketBook _baskets;
     private readonly double[] _cohortWeights;
 
+    /// <summary>M5 item 5: the granary content resolved ONCE at construction (State.GranaryEffects.Bind), so the
+    /// per-settlement effective deficit scans no project names.</summary>
+    private readonly GranaryBinding _granaries;
+
     public DemographicsSystem(SimConfig cfg)
     {
         _cfg = cfg;
+        _granaries = GranaryEffects.Bind(cfg);
         GoodsConfig goods = cfg.Goods
             ?? throw new ArgumentException(
                 "DemographicsSystem requires SimConfig.Goods (goods.json) from T4.21-3.");
@@ -245,8 +254,14 @@ public sealed class DemographicsSystem : ISimSystem<DemographicsTables>
             // gate below (`deficit == 0.0`) is byte-identical: release is a
             // recovery signal (is there any shortfall at all?), not a
             // response magnitude.
+            // M5 item 5 (granaries, EMPIRE-WIDE; D-053 §3): the world overload multiplies the dead-zone form by
+            // the civilization's granary famine-intensity factor (GranaryEffects, from PREV, with the binding
+            // resolved at construction) — organised relief capacity blunts the unabsorbed shortfall (no grain
+            // moves), so BOTH channels below read the reduced dEff and nothing else does. With no granary in the
+            // civilization (or the effects off) the multiplication is skipped: dEff is the dead-zone value bit for
+            // bit, and the kernel computes the identical values.
             FoodStateKind foodState = FoodState.Of(prev, settlement, _cfg, out _);
-            double dEff = FoodState.EffectiveDeficit(deficit, foodState, _cfg);
+            double dEff = FoodState.EffectiveDeficit(prev, settlement, deficit, foodState, _cfg, _granaries);
             double suppression = Math.Max(0.0, 1.0 - d.FamineFertilitySuppressionSlope * dEff);
             // ADR-033 D6 — THE ONE PER-SETTLEMENT HEALTH SEAM (InstitutionEffects.MortalityMultiplier,
             // from PREV): medical universities' coverage, diffused over travel cost, scales every

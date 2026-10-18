@@ -41,7 +41,11 @@ public readonly record struct ProductionTables(Table<GoodStockRow> GoodStocks);
 ///    stock the settlement must craft and replace. Equipped farmers wear tools
 ///    out at ToolWearPerEquippedFarmerPerYear (Ledger sink ToolWear), so the
 ///    bonus DEPLETES: stock raises yield, use consumes stock (law 2 — a
-///    mechanism, not a modifier). Grain keeps reason Harvest and
+///    mechanism, not a modifier). M5 item 5: the REALISED rate also carries
+///    the settlement's LOCAL granary factor (State.GranaryEffects — post-harvest
+///    loss saved by its own granaries; bounded, saturating, 1.0 and skipped
+///    without one or while the settlement still gathers wild food) beside
+///    weather and extraction. Grain keeps reason Harvest and
 ///    LastProducedUnits (food_surplus_ratio and migration's anyFood gate
 ///    depend on the grain row exactly as at M2).
 ///  - HERDING/FISHING → livestock and fish, rate = pool × w_g ×
@@ -93,9 +97,14 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
     /// construction (validation already proved they parse at load).</summary>
     private readonly ClassMobility.Predicate?[] _requires;
 
+    /// <summary>M5 item 5: the granary content resolved ONCE at construction (State.GranaryEffects.Bind — the active
+    /// section and the goods.json project id), so Farm scans no project names per settlement per turn.</summary>
+    private readonly GranaryBinding _granaries;
+
     public ProductionSystem(SimConfig cfg)
     {
         _cfg = cfg;
+        _granaries = GranaryEffects.Bind(cfg);
         GoodsConfig goods = cfg.Goods ?? throw new ArgumentException(
             "ProductionSystem requires SimConfig.Goods (goods.json) — production is the goods economy.");
         _grain = new GoodId(goods.GrainId);
@@ -269,8 +278,10 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
         // CR-003 cultivated yield applies once it does. Disabled or absent: exactly the shipped computation.
         double yieldPerKm2 = _cfg.Farming.YieldPerArableKm2PerYear;
         double perWorker = _cfg.Farming.OutputPerFarmerPerYear;
+        bool wildFood = false;   // M5 item 5: the granary factor below reads the same predicate
         if (_cfg.Farming.PreCultivation is { } pre && LabourActivities.HarvestsWildFood(prev, _cfg, settlement))
         {
+            wildFood = true;
             yieldPerKm2 = pre.YieldPerArableKm2PerYear;
             perWorker = pre.OutputPerGathererPerYear;
         }
@@ -310,6 +321,18 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
         // (once, after the Leontief min and the food multiplier, before dt integration). 1.0
         // exactly when untaxed, so this line is bit-identical to the tree before the port.
         ratePerYear *= extraction;
+
+        // M5 item 5 (granaries, LOCAL; D-053 §3): a granary standing AT THIS settlement saves part of its own CULTIVATED
+        // crop from post-harvest loss (State.GranaryEffects: 1 + farmYieldBonusMax × (1 − e^(−m/farmYieldScale)),
+        // bounded, saturating, from PREV Structures). Same position and the same order as weather and extraction — once,
+        // on the REALISED rate after the Leontief min, before dt integration and before the remainder is added, so it
+        // never touches the land or labour side and never disturbs the D-004 remainder chain. Grain only (the crop that
+        // is stored), never the herding/fishing pathway — and NEVER pre-cultivation gathering: while the settlement
+        // harvests wild food (the predicate that chose the forager rates above) the factor is the literal 1.0. With no
+        // granary here, wild food, or the effects off the multiplication is SKIPPED, so this is the pre-granary
+        // instruction sequence bit for bit.
+        double granaryFactor = GranaryEffects.FarmYieldFactor(prev, _granaries, settlement, wildFood);
+        if (granaryFactor > 1.0) ratePerYear *= granaryFactor;
 
         ref GoodStockRow grain = ref stocks.Ref(grainRow);
         double exact = ratePerYear * ctx.DtYears + grain.ProduceRemainder;

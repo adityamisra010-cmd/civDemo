@@ -18,6 +18,8 @@ public class ExplainGrievanceTests
     [Fact]
     public void Starved_PrimaryIsSustenance_AndChainShowsHarvestBelowEaten()
     {
+        // D-053 §2: the starved rig runs on the per-settlement store (ExplainRigs.Starved states why) — relief would
+        // feed the target from its siblings and move the T1.9 turn pinned below for a reason that is not order delivery.
         (SimConfig cfg, List<WorldState> worlds, int first) = ExplainRigs.Starved(maxTurns: 12);
         Assert.True(first > 0, "rig vacuous: zero farming and herding never produced a deficit within 12 turns");
         Assert.True(first + 1 < worlds.Count, "rig: no Next after the first deficit world");

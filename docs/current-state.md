@@ -1,5 +1,23 @@
 # CURRENT STATE — the routing document
 
+> **2026-10-14: batch 2 (the Director's 2026-10-13 instruction) is implemented UNCOMMITTED on `m5w-integration`, on
+> top of `de86ace`.** Nothing is committed, pushed, merged, tagged or packaged; publication waits for the Director.
+> - **Built:**
+>   - D-053 §1, the empire purse for construction and roads;
+>   - §2, intra-polity grain relief in a shortage;
+>   - §3, the granary effects.
+>   Each has a sim.json switch, shipped ON, and an attribution control (`TestConfigs.PreD053` turns the batch off).
+> - **Records:** `docs/d053-batch2-playtest-rulings.md` (decisions, supersessions, questions for the Director) and
+>   `docs/adr/adr-038-empire-stockpile-food-relief-granaries.md` (technical contract, re-pins).
+> - **Not built:** items 3, 4 and 6 (incremental construction, building/road ratios, the explored-longitude wrap with
+>   Satellites). `docs/adr/cr-021-batch2-items-3-4-6-vs-frozen-decisions.md` is OPEN and escalated.
+> - **No save-format change** (CanonicalSchema v32), and no frozen calibration reference touched.
+>   - The founded golden `937577ff…` is unchanged.
+>   - The AI world moves `aa7a87a9…` → `b2e4f333…` and the driven golden `7bcdc03f…` → `4f4e0b81…`, each with
+>     per-layer attribution in ADR-038 §6.
+>   - The two CR-020 reds are unchanged in kind. Seed 7 now reads 124,483.
+> - Verify these claims against the working tree (gov-4): they describe LOCAL state only.
+
 > **2026-10-12: D-052 recorded, and the two playtest blockers fixed, on `m5w-integration`** (two commits on
 > `f0427d2`, pushed to the new branch `claude/m5-playtest-d052` for the playtest build with the Director's authorization).
 > - `claude/new-session-yavghm` is untouched at `2dc6af2`.

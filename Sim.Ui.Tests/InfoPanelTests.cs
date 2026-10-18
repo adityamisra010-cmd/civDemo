@@ -518,8 +518,13 @@ public class InfoPanelTests : IDisposable
         Assert.NotNull(granary.Effects);
         Assert.Contains("counts toward Age II", granary.Effects);
         Assert.Contains("once a levy exists, eases how heavily it is felt here", granary.Effects);
-        Assert.DoesNotContain("food", granary.Effects!, StringComparison.OrdinalIgnoreCase);   // a granary stores nothing in this build
-        Assert.Contains("does: " + granary.Effects, text);
+        // A granary stores nothing in this build: no food word but one — C1 (D-053 §3): this turn-one capital still gathers
+        // wild food, where the farm factor is 1.0, and the button says exactly that ("no effect while this settlement
+        // gathers wild food").
+        Assert.Contains("no effect while this settlement gathers wild food", granary.Effects);
+        Assert.DoesNotContain("food", granary.Effects!.Replace("gathers wild food", "", StringComparison.Ordinal), StringComparison.OrdinalIgnoreCase);
+        // M5 item 5: the granary's line now also states its harvest and famine effects, so it may wrap: compare across wraps.
+        Assert.Contains("does: " + granary.Effects, text.Replace("\n", " ", StringComparison.Ordinal));
         InfoCard card = InfoQuery.Card(s.World, s.Config, Me, InfoSubject.OfProject(granary.ProjectId, construction.Settlement.Value));
         Assert.Contains("holds no goods", card.RealizedBy);
         Assert.Contains(card.Enables, l => l.Subject is { Kind: InfoKind.AgeMilestone });

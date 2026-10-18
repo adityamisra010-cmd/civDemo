@@ -219,7 +219,13 @@ public class AiEmpireIntegrationTests
         // and 215, stand before the advance; which colony effect brings the Age closure forward is not isolated here;
         // MEASURED on this tree by the agent writing this line): advance 232/233 -> 221/222; 26 and 9 unchanged (before the first
         // founding's delivery at 36). ATTRIBUTION: WithAiFoundingOff_EveryAiPinReturnsItsPreS1cValue returns 232/233.
-        Assert.Equal((26L, 9L, 221L, 222L), (targets[1].Turn, firstBuild.Turn, advance.Turn, advancedAt));
+        // D-053 RE-PIN (integration, 2026-10-14; MEASURED on this tree by the agent writing this line, in-test harness):
+        // first build 9 -> 4; targets 26, advance 221/222 and every later pin of this test (road 134/135, levy 423/424, A3
+        // 423, the eight foundings, 14 settlements) unchanged. CAUSE: the construction purse (D-053 §1) — the AI orders its
+        // first granary at turn 4 at a settlement whose Empire's purse holds the materials, where at turn 9 one settlement's
+        // own stock first did. ATTRIBUTION: the batch off (TestConfigs.PreD053) returns 9; the purse off alone returns 9;
+        // relief off alone and the granary effects off alone return 4 — the purse is the whole of the move.
+        Assert.Equal((26L, 4L, 221L, 222L), (targets[1].Turn, firstBuild.Turn, advance.Turn, advancedAt));
         // R1 RE-PIN (2026-10-03; research-gated recipes — no pottery or bronze before their nodes — move the
         // population and research-point trajectory): levy 547/548 -> 537/538; targets, granary, road, Age unchanged.
         // R4 RE-PIN (2026-10-04, the forager layer; MEASURED): road 141/142 -> 143/144, levy 537/538 -> 546/547.

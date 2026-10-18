@@ -121,6 +121,11 @@ revise it.
 > relief-pooling substitute. In the note above, "Implemented first instead: §4 (pre-bronze toolmaking)" is read as
 > the Workshop guard only: no pre-bronze toolmaking path exists (D-052 §11).
 
+> **2026-10-14 — pointer (text above unchanged).** After the playtest, the Director's 2026-10-13 instruction asked for
+> two parts of §6: empire-wide access for construction and roads, and food allocated by critical need in a shortage.
+> Both are implemented, UNCOMMITTED, with "no partial pooling / no relief-pooling substitute" superseded for those two
+> parts only. See `docs/d053-batch2-playtest-rulings.md` §1, §2 and §5. §6 stays RATIFIED and OPEN for everything else.
+
 ## Not changed by these rulings
 
 Taxation (D-049/D-050), knowledge persistence (D-048), the research engine, the Age gates and the

@@ -316,21 +316,27 @@ public static class AvailableActionsQuery
     // ------------------------------------------------------------------ Construction (OrderKind 4)
 
     /// <summary>Each (settlement, project) ConstructionQuery.IsProjectAvailable admits — the predicate
-    /// ConstructionSystem applies to the order — Id = settlement × 2^32 + project id, with the materials (and,
-    /// when the turn length is known, capacity) the settlement lacks as its blocker. Projects that FOUND an
+    /// ConstructionSystem applies to the order, its purse's claims read from the world's queue plus the pending batch
+    /// (<see cref="ActionQueryContext.Queued"/>) as the intake would queue it — Id = settlement × 2^32 + project id, with the materials the
+    /// settlement's purse lacks (ConstructionQuery.Holders: its Empire's settlements together, or its own stock) and,
+    /// when the turn length is known, the capacity it lacks as its blocker. Projects that FOUND an
     /// institution (the universities, ADR-033 D6) are listed by <see cref="Institutions"/> instead.</summary>
     public static void Construction(
         IReadOnlyWorldState world, SimConfig cfg, PolityId polity, ActionQueryContext context, List<ActionDescriptor> into)
     {
         if (cfg.Goods is not { } goods || goods.Projects is not { Length: > 0 } projects) return;
         ImmutableArray<string> builders = ConstructionBaseline(cfg.Research);
+        // D-053 §1: the purse's claims are read from the world's queue PLUS the turn's pending orders the intake would
+        // accept (ConstructionQuery.QueueWithPending) — so once a workshop is ordered this turn its ten tools are claimed,
+        // and a second workshop the intake would refuse is not offered.
+        IReadOnlyTable<ConstructionQueueRow> claims = ConstructionQuery.QueueWithPending(world, cfg, context.Queued);
         for (int s = 0; s < world.Settlements.Count; s++)
         {
             SettlementId settlement = world.Settlements[s].Id;
             foreach (ConstructionProjectEntry project in projects)
             {
                 if (InstitutionContent.FoundsInstitution(project)) continue;   // the Institutions contributor's
-                if (!ConstructionQuery.IsProjectAvailable(world, cfg, polity, settlement, project.Id)) continue;
+                if (!ConstructionQuery.IsProjectAvailable(world, cfg, polity, settlement, project.Id, claims)) continue;
                 string name = ProjectName(cfg.Research, project);
                 long built = ConstructionQuery.Built(world, settlement, project.Id);
                 int queued = 0;

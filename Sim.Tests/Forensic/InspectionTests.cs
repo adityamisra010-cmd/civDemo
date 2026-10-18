@@ -54,7 +54,7 @@ public class InspectionTests
     /// </summary>
     private const double ArmedLambda = 0.01;
 
-    private static Session Play(string tag, double? hazardPerYear = null)
+    private static Session Play(string tag, double? hazardPerYear = null, bool perSettlementStores = false)
     {
         string dir = Path.Combine(Path.GetTempPath(), "civsim-p3-" + tag);
         if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
@@ -66,6 +66,7 @@ public class InspectionTests
         Sim.Core.Systems.SimConfig cfg = Cfg();
         if (hazardPerYear is { } lambda)
             cfg = cfg with { Disaster = cfg.Disaster with { HazardPerYear = lambda } };
+        if (perSettlementStores) cfg = Sim.Tests.TestUtil.TestConfigs.PreEmpireFoodAllocation(cfg);
 
         WorldState world = Sim.Cli.HeadlessFounding.Found(42, 256, 4);
         using Stream pipe = Sim.Data.DataFiles.OpenPipeline();
@@ -460,7 +461,16 @@ public class InspectionTests
         // λ = 0.01 SET IN-RIG (T4.21-7 — see Play's ArmedLambda note). The
         // shipped hazard is 0.0 under CR-016; the two vacuity guards at the
         // bottom of this test are what would otherwise go quietly dead.
-        using Session s = Play("t421-events", ArmedLambda);
+        // D-053 §2 RE-RIG (2026-10-13): the record must contain FAMINE-by-disaster
+        // settlement-turns — a PER-SETTLEMENT outcome — so the session runs on
+        // TestConfigs.PreEmpireFoodAllocation: intra-polity grain relief removes the
+        // regime only while the polity has spare grain (D-053 §2), and on this
+        // 4-settlement world a struck settlement's siblings have it: on the shipped
+        // config the session records NO FAMINE-by-disaster settlement-turn (MEASURED,
+        // 2026-10-13) and the cross-check below is vacuous. The
+        // forensic lines under test read the record, not the relief rule; the control
+        // reproduces the de86ace session.
+        using Session s = Play("t421-events", ArmedLambda, perSettlementStores: true);
         Answer events = s.Inspector.MajorEvents();
 
         int famineLines = 0, disasterLines = 0, abandonLines = 0, refusedLines = 0;

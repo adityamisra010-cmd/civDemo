@@ -79,7 +79,7 @@ public class FoodFlowUiTests
 
         // The three not-derivable quantities: worded, never numbered.
         Assert.Equal(
-            "  granary capacity / spoilage / overflow, per settlement: " + SettlementInspectorModel.StoreGapReason,
+            "  store capacity / spoilage / overflow, per settlement: " + SettlementInspectorModel.StoreGapReason,
             lines[^1]);
         Assert.StartsWith("not recorded:", SettlementInspectorModel.StoreGapReason, StringComparison.Ordinal);
 
@@ -121,7 +121,7 @@ public class FoodFlowUiTests
         Assert.Contains(lines, l => l == "  food surplus ratio: not recorded");
         Assert.Contains(lines, l => l == SettlementInspectorModel.SurplusRatioLagNote);
         Assert.Equal(
-            "  granary capacity / spoilage / overflow, per settlement: " + SettlementInspectorModel.StoreGapReason,
+            "  store capacity / spoilage / overflow, per settlement: " + SettlementInspectorModel.StoreGapReason,
             lines[^1]);
         Assert.DoesNotContain(lines, l => l.Contains("NaN", StringComparison.Ordinal));
     }

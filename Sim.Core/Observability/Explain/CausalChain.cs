@@ -239,10 +239,10 @@ public sealed class CausalChain
             into.Add(new Link(ChainNode.DeficitRatio, "DeficitRatio", w.ConsumptionDeficits[d].DeficitRatio,
                 LinkKind.Read, from, "ConsumptionDeficits", d,
                 "Unmet fraction of the nutritional requirement, substitution counted once "
-                + "(ConsumptionSystem.cs:183-190). The famine-flight push and the happiness Food factor read this."));
+                + "(ConsumptionSystem.cs:300-307). The famine-flight push and the happiness Food factor read this."));
             into.Add(new Link(ChainNode.NutritionalDemand, "DemandUnits", w.ConsumptionDeficits[d].DemandUnits,
                 LinkKind.Read, from, "ConsumptionDeficits", d,
-                "Person-year-equivalents required this turn (ConsumptionSystem.cs:183-184): a population fact, no lever."));
+                "Person-year-equivalents required this turn (ConsumptionSystem.cs:300-301): a population fact, no lever."));
         }
         else
         {
@@ -271,13 +271,26 @@ public sealed class CausalChain
             + "label PREDICTS the kernel's response — STRESS means the starvation hazard is identically 0. "
             + "The value on this link is the enum ORDINAL, ascending by severity. The cause tables it also "
             + "reads (Disasters, SectorAllocations) are the two links below."));
+        // M5 item 5: the world overload — the value DemographicsSystem integrates (dead-zone form × the civilization's
+        // granary famine-intensity factor), called on this same world, never restated. The factor is APPLIED only when
+        // the dead-zone form is positive and a granary counts (FoodState skips the multiplication otherwise), so the
+        // note prints "factor 1 (not applied)" whenever the dead-zone value is 0 or n is 0.
+        double famineFactor = GranaryEffects.FamineIntensityFactor(w, cfg, s);
+        bool famineApplied = famineFactor < 1.0 && Sim.Core.State.FoodState.EffectiveDeficit(dRatio, kind, cfg) > 0.0;
         into.Add(new Link(ChainNode.EffectiveDeficit, "effective deficit",
-            Sim.Core.State.FoodState.EffectiveDeficit(dRatio, kind, cfg), LinkKind.Recomputed,
+            Sim.Core.State.FoodState.EffectiveDeficit(w, s, dRatio, kind, cfg), LinkKind.Recomputed,
             from, "ConsumptionDeficits", d,
             (d < 0 ? "No row in ConsumptionDeficits: d reads 0 and the effective deficit is 0 with it. " : "")
-            + "FoodState.EffectiveDeficit(d, state, cfg) — starvation mortality's ONE input outside FAMINE: "
+            + "FoodState.EffectiveDeficit(world, settlement, d, state, cfg) — starvation mortality's ONE input outside FAMINE: "
             + "d <= a gives exactly 0 (the cut is absorbed, nobody dies), above a it is (d - a)/(1 - a), and "
-            + "in FAMINE no adaptation is possible so it is d itself. Fertility suppression reads this too "
+            + "in FAMINE no adaptation is possible so it is d itself; that value is then multiplied by the "
+            + "civilization's granary famine-intensity factor 1 - famineReductionMax x (1 - e^(-n/famineReductionScale)), "
+            + "n the granaries standing anywhere in the civilization (GranaryEffects; sim.json granaries): here n = "
+            + GranaryEffects.EmpireGranaries(w, cfg, s).ToString(System.Globalization.CultureInfo.InvariantCulture)
+            + (famineApplied
+                ? ", factor " + famineFactor.ToString("0.0000", System.Globalization.CultureInfo.InvariantCulture)
+                : ", factor 1 (not applied)")
+            + ". Fertility suppression reads this too "
             + "(CR-015 G3(b)); the rebound release gate and every other reader keep the NOMINAL d above."));
 
         int dis = -1;
@@ -303,15 +316,25 @@ public sealed class CausalChain
             GoodStockRow row = w.GoodStocks[g];
             into.Add(new Link(ChainNode.GrainStore, "grain store (post-step)", row.Amount.Value,
                 LinkKind.Read, from, "GoodStocks", g,
-                "GoodStockRow.Amount after harvest, eating, spoilage and granary overflow (ConsumptionSystem.cs:192-203)."));
+                "GoodStockRow.Amount after harvest, eating, intra-polity grain relief (D-053 s2: grain sent to, "
+                + "or received and eaten from, a sibling of the same polity in a shortage), spoilage and granary overflow "
+                + "(ConsumptionSystem)."));
             into.Add(new Link(ChainNode.GrainHarvest, "grain harvest", row.LastProducedUnits,
                 LinkKind.Read, from, "GoodStocks", g,
                 "LastProducedUnits — units credited by Farm this turn (ProductionSystem.cs:243-247), "
-                + "= min(arable × yield, farm labour × output × toolFactor) × weather × dt, whole units."));
+                + "= min(arable × yield, farm labour × output × toolFactor) × weather × extraction × granaries × dt, "
+                + "whole units; granaries = this settlement's LOCAL granary factor 1 + farmYieldBonusMax x "
+                + "(1 - e^(-m/farmYieldScale)), m the granaries standing here, on CULTIVATED grain only (GranaryEffects; "
+                + "1 and skipped without one, or while the settlement still gathers wild food). "
+                + "The factor in force for the NEXT harvest, read from this world: "
+                + FarmFactorReading(w, cfg, s)
+                + "."));
             into.Add(new Link(ChainNode.GrainEaten, "grain eaten", row.LastConsumptionEatenUnits,
                 LinkKind.Read, from, "GoodStocks", g,
-                "LastConsumptionEatenUnits, post-clamp (ConsumptionSystem.cs:224-229). Eaten > Harvest means the "
-                + "store was drawn down; in a standing famine Eaten == Harvest < demand."));
+                "LastConsumptionEatenUnits, post-clamp (ConsumptionSystem.Consume), plus any grain received from its own "
+                + "polity's spare stock and eaten at once (D-053 s2, ConsumptionSystem.RelieveShortages). Eaten > Harvest "
+                + "means the store was drawn down or the settlement was fed by its civilization; in a standing famine "
+                + "with no spare grain anywhere in the polity Eaten == Harvest < demand."));
         }
         else
         {
@@ -758,9 +781,9 @@ public sealed class CausalChain
         }
         GoodStockRow row = prev.GoodStocks[i];
         links.Add(new Link(eatenNode, name + " eaten", row.LastConsumptionEatenUnits, LinkKind.Read,
-            from, "GoodStocks", i, "LastConsumptionEatenUnits, post-clamp (ConsumptionSystem.cs:224-229)."));
+            from, "GoodStocks", i, "LastConsumptionEatenUnits, post-clamp (ConsumptionSystem.cs:477-482)."));
         links.Add(new Link(demandedNode, name + " demanded", row.LastConsumptionDemandUnits, LinkKind.Read,
-            from, "GoodStocks", i, "LastConsumptionDemandUnits, pre-clamp (ConsumptionSystem.cs:222-228)."));
+            from, "GoodStocks", i, "LastConsumptionDemandUnits, pre-clamp (ConsumptionSystem.cs:475-481)."));
         links.Add(new Link(fillNode, name + " fill", NeedsGrievanceSystem.Fill(in row), LinkKind.Recomputed,
             from, "GoodStocks", i,
             row.LastConsumptionDemandUnits <= 0
@@ -768,5 +791,17 @@ public sealed class CausalChain
                   + "discriminates — empty store 0.0, else 1.0 (case 2, NeedsGrievanceSystem.cs:392-393)."
                 : "NeedsGrievanceSystem.Fill on this row: eaten / demanded, clamped to [0,1] "
                   + "(case 3, NeedsGrievanceSystem.cs:394-395)."));
+    }
+
+    /// <summary>M5 item 5: the LOCAL granary factor as the grain-harvest note prints it — the value when it applies,
+    /// otherwise "1 (not applied: ...)" naming why (no granary standing here, or wild food).</summary>
+    private static string FarmFactorReading(IReadOnlyWorldState w, SimConfig cfg, SettlementId s)
+    {
+        double f = GranaryEffects.FarmYieldFactor(w, cfg, s);
+        if (f > 1.0) return f.ToString("0.0000", System.Globalization.CultureInfo.InvariantCulture);
+        if (GranaryEffects.Active(cfg) is null) return "1 (not applied: the granary effects are off)";
+        return GranaryEffects.LocalGranaries(w, cfg, s) <= 0
+            ? "1 (not applied: no granary stands here)"
+            : "1 (not applied: the settlement still gathers wild food)";
     }
 }

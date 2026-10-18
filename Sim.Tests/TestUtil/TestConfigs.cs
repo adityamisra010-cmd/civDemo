@@ -80,35 +80,96 @@ public static class TestConfigs
 
     /// <summary>H2 (2026-10-05) — THE TAX AGE GATE STRIPPED: sim.json governance.taxationMinAge removed, so the tax
     /// edict is gated by the Taxation knowledge alone (the R5 gate). The AI-world attribution control
-    /// (AiEmpireIntegrationTests) runs on it and returns the pre-H2 levy turns.</summary>
-    public static SimConfig PreTaxAge(SimConfig cfg) =>
-        cfg.Governance is { } g ? cfg with { Governance = g with { TaxationMinAge = null } } : cfg;
+    /// (AiEmpireIntegrationTests) runs on it and returns the pre-H2 levy turns. The whole D-053 batch (2026-10-13, newer
+    /// than H2) is stripped with it (<see cref="PreD053"/>) — the R4 rule: an older layer twin strips EVERY newer layer.</summary>
+    public static SimConfig PreTaxAge(SimConfig cfg)
+    {
+        cfg = PreD053(cfg);
+        return cfg.Governance is { } g ? cfg with { Governance = g with { TaxationMinAge = null } } : cfg;
+    }
 
     /// <summary>R4 (2026-10-04) — THE FORAGER LAYER STRIPPED: sim.json farming.preCultivation switched OFF (the
     /// shipped state through R3). It is the NEWEST layer, so every older layer twin (PreR2b, PreTradeKnowledge,
     /// PreRecipeKnowledge) strips it as well and keeps returning its pre-R4 constant; on its own it returns the
-    /// R3 pins byte for byte (IntegratedPinAttributionTests' R4 controls).</summary>
-    public static SimConfig PreForager(SimConfig cfg) =>
-        cfg.Farming.PreCultivation is { } pre
+    /// R3 pins byte for byte (IntegratedPinAttributionTests' R4 controls).
+    /// The D-053 batch (2026-10-13: the construction purse §1, intra-polity grain relief §2, the granary effects §3), by
+    /// the same rule: all three layers are NEWER than R4, so this twin — and through it every older layer twin
+    /// (PreR2b, PreTradeKnowledge, PreRecipeKnowledge, IntegratedPinAttributionTests' PreR1/Unarmed) — strips them too
+    /// (<see cref="PreD053"/>); without that the pre-R4 world would carry post-R4 layers and could not return its R3
+    /// pins. The R4 controls are therefore no longer literally one layer: the twin differs from the live world by the
+    /// forager layer AND the batch, and the batch-only link of the chain is each D-053 track's switch-off control (the
+    /// batch off returns de86ace), with the per-layer turn-exact divergence beside it.</summary>
+    public static SimConfig PreForager(SimConfig cfg)
+    {
+        cfg = PreD053(cfg);
+        return cfg.Farming.PreCultivation is { } pre
             ? cfg with { Farming = cfg.Farming with { PreCultivation = pre with { Enabled = false } } }
             : cfg;
+    }
 
     /// <summary>D-051 ruling 1(b) (2026-10-10) — TIME-AVERAGED DECADE WEATHER STRIPPED: sim.json
     /// harvestVariance.timeAveragedHarvest switched OFF, so a turn's harvest multiplier is again the single point
     /// draw exp(x − σ²/2) with ρ = exp(−dt/τ) and a row-less settlement starts at x = 0. The switch exists only as
     /// this attribution control: on its own it returns the pre-1(b) pins byte for byte
-    /// (IntegratedPinAttributionTests' D-051 1(b) controls).</summary>
+    /// (IntegratedPinAttributionTests' D-051 1(b) controls). The whole D-053 batch (newer than 1(b)) is stripped with it
+    /// (<see cref="PreD053"/>), the R4 rule: an older layer twin strips every newer layer — so the 1(b) controls are
+    /// 1(b) plus the batch, and the batch-only link is each D-053 track's switch-off control.</summary>
     public static SimConfig PreTimeAveragedHarvest(SimConfig cfg) =>
-        cfg with { HarvestVariance = cfg.HarvestVariance with { TimeAveragedHarvest = false } };
+        PreD053(cfg) with { HarvestVariance = cfg.HarvestVariance with { TimeAveragedHarvest = false } };
 
     /// <summary>M5 S1c (2026-10-11) — THE AI FOUNDING POLICY SWITCHED OFF: sim.json colonization.aiFounding.enabled
     /// false, so no AI polity issues a Found Settlement order. On its own it returns every pre-S1c AI pin byte for byte
     /// (AiFoundingAttributionTests; AiEmpireIntegrationTests' S1c control); every other world is untouched by the
-    /// switch (the policy acts only through the orders it adds).</summary>
-    public static SimConfig PreAiFounding(SimConfig cfg) =>
-        cfg.Colonization?.AiFounding is { } ai
+    /// switch (the policy acts only through the orders it adds). The whole D-053 batch (2026-10-13, newer than S1c) is
+    /// stripped with it (<see cref="PreD053"/>), the R4 rule: an older layer twin strips every newer layer.</summary>
+    public static SimConfig PreAiFounding(SimConfig cfg)
+    {
+        cfg = PreD053(cfg);
+        return cfg.Colonization?.AiFounding is { } ai
             ? cfg with { Colonization = cfg.Colonization with { AiFounding = ai with { Enabled = false } } }
             : cfg;
+    }
+
+    /// <summary>D-053 §2 (2026-10-13) — INTRA-POLITY GRAIN RELIEF SWITCHED OFF: sim.json
+    /// consumption.empireFoodAllocation false, so every settlement eats from its own store alone and a hungry
+    /// settlement is never fed from its polity's spare grain. With the batch's other two layers off as well
+    /// (<see cref="PreD053"/>) it returns the pre-relief (de86ace) world byte for byte (EmpireFoodAllocationTests'
+    /// switch-off controls); on the combined tree, the combined world against this twin first differs exactly at the
+    /// first relief (the per-layer proof). Also the config of every rig that
+    /// measures a PER-SETTLEMENT food rule (abandonment famine, the starved explain rigs, the revolt harness):
+    /// relief removes those regimes only while the polity has spare grain.</summary>
+    public static SimConfig PreEmpireFoodAllocation(SimConfig cfg) =>
+        cfg with { Consumption = cfg.Consumption with { EmpireFoodAllocation = false } };
+
+    /// <summary>D-051 §6 applied to construction (D-053 §1, the Director's 2026-10-13 instruction, item 1) — THE CONSTRUCTION PURSE SWITCHED OFF:
+    /// sim.json construction.empireStockpile false, so a construction project is checked against and paid from its own
+    /// settlement's stock alone (ConstructionQuery.Holders = the settlement), exactly as at de86ace. With the batch's other
+    /// two layers off as well (<see cref="PreD053"/>) it returns the pre-purse (de86ace) world byte for byte
+    /// (EmpireConstructionStockpileTests' attribution controls); on the combined tree, the combined world against this twin
+    /// first differs exactly at the delivery of the first construction order the purse changes (the per-layer proof). Roads
+    /// are not switched by it (they drew on the civilization's purse before, ADR-032).</summary>
+    public static SimConfig PreEmpireConstructionStockpile(SimConfig cfg) =>
+        cfg.Construction is { } c ? cfg with { Construction = c with { EmpireStockpile = false } } : cfg;
+
+    /// <summary>M5 item 5 (2026-10-13) — THE GRANARY EFFECTS SWITCHED OFF: sim.json granaries.enabled false, so the local
+    /// farm-output factor and the empire-wide famine-intensity factor are the literal 1.0 and neither ProductionSystem nor
+    /// DemographicsSystem multiplies by them. With the batch's other two layers off as well (<see cref="PreD053"/>) it
+    /// returns the pre-granary-effects (de86ace) pins byte for byte (GranaryAttributionTests); on the combined tree, the
+    /// combined world against this twin first differs exactly one step after a granary first acts (the per-layer proof).
+    /// A world with no granary is untouched by the switch either way.</summary>
+    public static SimConfig PreGranaryEffects(SimConfig cfg) =>
+        cfg.Granaries is { } g ? cfg with { Granaries = g with { Enabled = false } } : cfg;
+
+    /// <summary>D-053 (2026-10-13) — THE BATCH OFF: all three of its layers switched off at once —
+    /// <see cref="PreEmpireConstructionStockpile"/> (§1, the construction purse), <see cref="PreEmpireFoodAllocation"/> (§2,
+    /// intra-polity grain relief) and <see cref="PreGranaryEffects"/> (§3, the granary effects). It returns the base commit
+    /// de86ace's world byte for byte (each track's switch-off control keeps its de86ace literal on it), and it is what
+    /// every OLDER attribution twin strips (the R4 rule: an older layer twin strips every newer layer — PreForager and its
+    /// chain, PreTimeAveragedHarvest, PreTaxAge, PreAiFounding). Which layer moved a pin is the per-layer proof beside each
+    /// switch-off control: the combined world against the combined world with only that layer off, first differing exactly
+    /// at the turn that layer first acts.</summary>
+    public static SimConfig PreD053(SimConfig cfg) =>
+        PreGranaryEffects(PreEmpireFoodAllocation(PreEmpireConstructionStockpile(cfg)));
 
     /// <summary>R1: completes, for EVERY polity of <paramref name="w"/>, the knowledge closure (the named nodes
     /// and all their prerequisite ancestors) of every research-gated goods.json recipe — the world of a

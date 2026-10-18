@@ -364,7 +364,7 @@ public sealed class SessionInspector
 
         var settlementAnswer = new Answer(
             "resource flows (per settlement)", Evidence.Derivable,
-            $"StoreLosses total {losses.ToString(CultureInfo.InvariantCulture)} — ONE residual, FOUR mechanisms",
+            $"StoreLosses total {losses.ToString(CultureInfo.InvariantCulture)} — ONE residual, FIVE mechanisms",
             "There is no settlement dimension on the ledger, so the per-settlement loss is a RESIDUAL of a "
                 + "stated identity, printed here verbatim as the record carries it: "
                 + (identity.Length > 0 ? identity : "(no settlement records in this session)")

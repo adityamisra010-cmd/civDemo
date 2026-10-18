@@ -509,12 +509,22 @@ public class FamineScenarioTests
         // here is the CAUSE, the TIMING and the fact that the twin without the
         // order never reaches FAMINE at that settlement.
         //
-        // THIS ARM USES THE SHIPPED CONFIG DELIBERATELY, and is the reason
-        // mandate item 1(B) is still reachable in play today: with the
-        // famine-class disaster shipping INERT (hazardPerYear 0.0, CR-016) the
-        // ONLY cause in the shipped world is deliberate abandonment, and this
-        // test proves that cause on the SHIPPED config, not on a rig.
-        SimConfig cfg = TestConfigs.Sim();
+        // D-053 §2 RE-RIG (2026-10-13): this rig measures the PER-SETTLEMENT rule
+        // (CR-015: an abandoned settlement in deficit is FAMINE/Abandonment), so it
+        // runs on TestConfigs.PreEmpireFoodAllocation — intra-polity grain relief
+        // removes the regime only while the polity has spare grain (D-053 §2), and
+        // on this 12-settlement world it has: on the shipped config the abandoned
+        // settlement is fed and never classifies FAMINE in the 12 turns (MEASURED,
+        // 2026-10-13), so the rule under test is never exercised.
+        // The control reproduces the de86ace run exactly (no expected value moved).
+        //
+        // WHY MANDATE ITEM 1(B) IS STILL REACHABLE IN PLAY (F-138): with the
+        // famine-class disaster shipping INERT (hazardPerYear 0.0, CR-016) the ONLY
+        // cause in the shipped world is deliberate abandonment, and under relief it
+        // reaches FAMINE once the polity has no spare grain left to send. That is
+        // proved on the SHIPPED config, through the same order, by
+        // EmpireFoodAllocationTests.Shipped_AbandonmentFamine_IsReachable_WhenThePolityHasNoSpareGrain.
+        SimConfig cfg = TestConfigs.PreEmpireFoodAllocation(TestConfigs.Sim());
         var orders = new OrderLog();
         orders.Append(new OrderRecord(1, ActorId: 1, OrderKind.LaborAllocation, TargetId: 0, Amount: 0.0));
         TurnExecutor ordered = Executor(cfg, TestConfigs.Worldgen(), orders);

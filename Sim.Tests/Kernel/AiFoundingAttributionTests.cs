@@ -21,6 +21,12 @@ namespace Sim.Tests.Kernel;
 /// THE WORLD: the canonical founded seed-42 world (1024², twelve settlements) with worldgen aiEmpires overridden to 1,
 /// the production pipeline, and AiOrders appended before every step — exactly `sim run --founded --seed 42 --turns 300
 /// --ai-empires 1` (the AiEmpireIntegrationTests harness, documented there as CLI-identical).
+///
+/// D-053 (2026-10-13; the integration of its three layers, 2026-10-14). The batch is NEWER than S1c and moves the AI world,
+/// so by the R4 rule the control's OFF twin (TestConfigs.PreAiFounding) strips the whole batch too, and the S1c
+/// turn-exact proof runs on the PRE-BATCH pair: the AI founding policy ON with the batch off (TestConfigs.PreD053) against
+/// it OFF with the batch off — exactly the S1c-era worlds, whose hashes are the historical literals below. The live
+/// (shipped) world is the third arm, pinned as S1cTurn300 with its re-pin record.
 /// </summary>
 [Trait("suite", "determinism")]
 public class AiFoundingAttributionTests
@@ -31,9 +37,21 @@ public class AiFoundingAttributionTests
     /// `sim run --founded --seed 42 --turns 300 --ai-empires 1` built from that tree.</summary>
     private const string PreS1cTurn300 = "a416ce4b2386962c4fcd640fc1bf7f56119f529626572859480e8980b4ce6867";
 
-    /// <summary>The same run with the AI founding policy on (this tree; the in-test harness and two CLI processes agree).
-    /// Cause: 7 AI Found Settlement orders by turn 300 (stamped 35, 71, 107, 143, 179, 215, 286).</summary>
-    private const string S1cTurn300 = "aa7a87a98370c24815d478877a3f4f862838fde51a33fd5d0841157ca73066a7";
+    /// <summary>The same run with the AI founding policy on and the D-053 batch off (TestConfigs.PreD053) — the S1c value,
+    /// which is also the base commit de86ace's (MEASURED by `sim run --founded --seed 42 --turns 300 --ai-empires 1` there).
+    /// Cause (vs PreS1cTurn300): 7 AI Found Settlement orders by turn 300 (stamped 35, 71, 107, 143, 179, 215, 286).</summary>
+    private const string S1cPreD053Turn300 = "aa7a87a98370c24815d478877a3f4f862838fde51a33fd5d0841157ca73066a7";
+
+    /// <summary>THE LIVE PIN: the shipped world (every layer on), = `sim run --founded --seed 42 --turns 300 --ai-empires 1`
+    /// on this tree. RE-PIN (integration of the D-053 batch, 2026-10-14; VALUE): aa7a87a98370c248… -> b2e4f333c25aca4a….
+    /// CAUSE: the combined batch — the construction purse (§1: the AI's first granary is ordered at turn 4 from its Empire's
+    /// purse instead of turn 9 from one settlement's own stock, worlds first differ at turn 5) and the granary effects (§3:
+    /// a granary first acts at turn 221, worlds first differ at 222); intra-polity relief (§2) never moves grain on this
+    /// world. ATTRIBUTION (MEASURED on this tree, in-test harness): the batch off (PreD053) returns the OLD value
+    /// aa7a87a98370c248… byte for byte (S1cPreD053Turn300, asserted below); purse off alone fd40bbafc5d9de65…; relief off
+    /// alone b2e4f333… (= the live value: relief does not move it); granary effects off alone f9e69db77f396d00…. The per-layer
+    /// turn-exact proofs are EmpireConstructionStockpileTests' and GranaryAttributionTests' AI-world controls.</summary>
+    private const string S1cTurn300 = "b2e4f333c25aca4acf3cff69fcb0da83e59d18eb90efa8e968dc51a2344597d0";
 
     /// <summary>The turn the first AI Found Settlement order is stamped (state 36 is the first that differs).</summary>
     private const long FirstFoundingStamp = 35;
@@ -49,9 +67,11 @@ public class AiFoundingAttributionTests
     [Fact]
     public void WithTheSwitchOff_TheAiWorldIsThePreS1cWorldByteForByte_AndOnItDivergesExactlyAtTheFirstFoundingsDelivery()
     {
-        SimConfig on = TestConfigs.Sim();
-        SimConfig off = TestConfigs.PreAiFounding(on);
-        Assert.True(on.Colonization!.AiFounding!.Enabled);                 // the shipped content is the ON arm
+        SimConfig shipped = TestConfigs.Sim();
+        SimConfig on = TestConfigs.PreD053(shipped);                      // S1c ON, every newer (D-053) layer off
+        SimConfig off = TestConfigs.PreAiFounding(shipped);               // S1c OFF, the batch off with it (R4)
+        Assert.True(on.Colonization!.AiFounding!.Enabled);                // the S1c switch is ON in the ON arm
+        Assert.False(off.Colonization!.AiFounding!.Enabled);
         WorldgenConfig wg = TestConfigs.Worldgen() with { AiEmpires = 1 };
 
         var offLog = new OrderLog();
@@ -86,6 +106,18 @@ public class AiFoundingAttributionTests
             Assert.Equal(offLog[k++], onLog[i]);
         }
         Assert.True(k == offLog.Count || offLog[k].Turn > firstStamp, "the OFF log has an order the ON log lacks");
-        Assert.Equal(S1cTurn300, WorldHash.ComputeHex(wOn));
+        Assert.Equal(S1cPreD053Turn300, WorldHash.ComputeHex(wOn));
+
+        // THE LIVE ARM: the shipped world, every layer on (the re-pinned S1cTurn300).
+        var liveLog = new OrderLog();
+        TurnExecutor liveExec = Production(shipped, liveLog);
+        WorldState live = WorldFounding.Found(wg, shipped, 42);
+        for (int t = 1; t <= Turns; t++)
+        {
+            AiOrders.Append(liveLog, live, shipped, TestConfigs.Worldgen());
+            live = liveExec.Step(live);
+        }
+        Assert.Equal(S1cTurn300, WorldHash.ComputeHex(live));
+        Assert.NotEqual(S1cPreD053Turn300, S1cTurn300);
     }
 }

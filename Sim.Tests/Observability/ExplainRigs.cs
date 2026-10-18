@@ -83,10 +83,18 @@ internal static class ExplainRigs
     /// <summary>Steps until settlement <see cref="Target"/> shows a positive
     /// deficit, then TWO more turns (so the drawdown turn has a Next), or
     /// <paramref name="maxTurns"/>. Returns the index of the first world with a
-    /// positive deficit, −1 if none appeared.</summary>
+    /// positive deficit, −1 if none appeared.
+    /// D-053 §2 RE-RIG (2026-10-13): the STARVED rig measures what ONE settlement's own store does when its
+    /// food labour is ordered away (the drawdown, its explanation, and the T1.9 turn the order lands), so it
+    /// runs on <see cref="TestConfigs.PreEmpireFoodAllocation"/>: intra-polity grain relief removes the regime
+    /// only while the polity has spare grain (D-053 §2), and on this 4-settlement world the target's three
+    /// siblings have it — on the shipped config the first deficit moves from world 3 to world 7 (MEASURED),
+    /// which is relief, not the order-delivery semantic the turn pins guard. The control reproduces the
+    /// de86ace rig exactly (every pinned value unchanged); the returned config is the one the rig ran on, so
+    /// every explanation is asked about the world its own system produced.</summary>
     public static (SimConfig Cfg, List<WorldState> Worlds, int FirstDeficit) Starved(int maxTurns)
     {
-        SimConfig cfg = TestConfigs.Sim();
+        SimConfig cfg = TestConfigs.PreEmpireFoodAllocation(TestConfigs.Sim());
         OrderLog orders = ZeroFoodOrders(Target);
         WorldState founded = Found(cfg);
         OrderValidation.ValidateAgainstWorld(orders, founded);

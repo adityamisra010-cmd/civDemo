@@ -181,7 +181,7 @@ public static class PlayerViews
             Happiness(world, cfg, id, density),
             Migration(record, name, density, known),
             Work(world, cfg, player, id, controlled && owner.Value == player.Value, density),
-            Structures(world, cfg, id, density),
+            Structures(world, cfg, player, id, density),
             new ViewBlock("Institutions", InstitutionLinesAt(world, cfg, id, name, density, includeSite: false)),
             Units(world, cfg, id, name, player, density, known),
         };
@@ -233,7 +233,7 @@ public static class PlayerViews
 
         var lines = new List<ViewLine>
         {
-            Fig(density, store > 0 ? "Grain is in store" : "The granaries are empty", N(store) + " grain"),
+            Fig(density, store > 0 ? "Grain is in store" : "The grain store is empty", N(store) + " grain"),
             Fig(density, harvest > 0 ? "The last harvest came in" : "No harvest came in", "+" + N(harvest)),
         };
         if (density >= BreakdownFrom && demand > 0)
@@ -393,7 +393,11 @@ public static class PlayerViews
         return new ViewBlock("Work", lines, subjects);
     }
 
-    private static ViewBlock Structures(IReadOnlyWorldState world, SimConfig cfg, SettlementId id, int density)
+    /// <summary>The settlement's structures and queue. The queue head's blocker is read AS THE PLAYER MAY READ IT
+    /// (ConstructionQuery.BlockerSeenBy, P7): against the Empire's purse where the player rules the settlement (D-051 §6,
+    /// D-053 §1), and against the settlement's own stock where it does not — a foreign settlement's pooled figure would sum
+    /// its Empire's other settlements, which the player may not know.</summary>
+    private static ViewBlock Structures(IReadOnlyWorldState world, SimConfig cfg, PolityId player, SettlementId id, int density)
     {
         var lines = new List<ViewLine>();
         var subjects = new List<InfoSubject?>();
@@ -415,7 +419,7 @@ public static class PlayerViews
             if (q == 0 && density >= FiguresFrom)
                 for (int p = 0; p < projects.Length; p++)
                     if (projects[p].Id == queue[q].ProjectId)
-                    { blocker = ConstructionQuery.Blocker(world, cfg, id, projects[p], world.Clock.DtYears); break; }
+                    { blocker = ConstructionQuery.BlockerSeenBy(world, cfg, player, id, projects[p], world.Clock.DtYears); break; }
             lines.Add((q == 0 ? "Being built: " : "Waiting to be built: ") + label + (blocker is null ? "" : " - " + blocker));
             subjects.Add(InfoSubject.OfProject(queue[q].ProjectId, id.Value));
         }
@@ -600,7 +604,7 @@ public static class PlayerViews
         }
         var food = new List<ViewLine>
         {
-            Fig(density, "Grain in your granaries", N(grain)),
+            Fig(density, "Grain in your stores", N(grain)),
             Fig(density, "Last harvest across the empire", "+" + N(harvest)),
             hungry == 0 ? "No settlement of yours went hungry."
                 : (hungry == 1 ? "One settlement" : N(hungry) + " settlements") + " went hungry last turn.",

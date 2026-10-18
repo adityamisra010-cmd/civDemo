@@ -1431,12 +1431,21 @@ public class IntegratedPinAttributionTests
         Assert.Equal(Sim.Tests.Systems.FirstReignTests.PostR1Golden, WorldHash.ComputeHex(world));
     }
 
+    // D-053 (2026-10-13): the batch is NEWER than H2 and MOVES the driven world (relief happens on it — MEASURED, the
+    // relief layer is the whole of the move: the purse and the granary effects leave this world unmoved), so by the R4
+    // rule this control runs on the twin that strips the WHOLE batch (TestConfigs.PreD053) and keeps its historical V31
+    // constant; the live golden is checked on its own run. The founded and first-reign controls above need no twin: the
+    // batch moves neither world (MEASURED — SnapshotTests' and FirstReignTests' pins hold with every layer ON). The driven
+    // control is therefore no longer literally one layer: twin vs live differ by the levy layer AND the batch; the
+    // batch-only link is EmpireFoodAllocationTests.Switch_Off_DrivenGolden_… (and its per-layer proof beside it).
     [Fact]
     public void DrivenGoldenSeed42Turn300_MovedForTheV32LevyLayerAlone()
     {
+        (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, TestUtil.TestConfigs.PreD053(TestUtil.TestConfigs.Sim()));
+        Assert.Equal(V31DrivenGolden, V31(twin));
+        Assert.Equal(0, twin.TaxPolicies.Count);   // the driven log carries only SectorAllocation orders
         (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
-        Assert.Equal(V31DrivenGolden, V31(world));
-        Assert.Equal(0, world.TaxPolicies.Count);   // the driven log carries only SectorAllocation orders
+        Assert.Equal(0, world.TaxPolicies.Count);
         Assert.Equal(DrivenGoldenTests.Golden, WorldHash.ComputeHex(world));
     }
 

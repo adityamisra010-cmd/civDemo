@@ -417,13 +417,13 @@ public class ReadabilityTests(CanonicalTurnOneFixture fx) : IClassFixture<Canoni
         (ActionSurfaceScreen screen, DrawList d, ActionSurfaceModel model) = Surface(fx.Session);
         EraTheme t = screen.Theme;
         ProjectEntry blocked = model.Construction!.Projects.First(p => p.Blocker is not null);
-        Assert.Contains("(has ", blocked.Blocker!, StringComparison.Ordinal);
+        Assert.Contains("(empire has ", blocked.Blocker!, StringComparison.Ordinal);   // D-053 §1: the player's own purse
         List<TextCmd> texts = d.Commands.OfType<TextCmd>().ToList();
         // "not yet:" in the progress family's text ink (≥ 5.5:1), never the pigment (1.88:1 rendered before).
         TextCmd lead = texts.First(c => c.Text == "not");
         Assert.Equal(t.TextInk.Progress, lead.Color);
         // The missing quantity is set bold in the body ink.
-        string qty = blocked.Blocker!.Split(' ')[1];   // "needs 40 timber (has 0)…" → "40"
+        string qty = blocked.Blocker!.Split(' ')[1];   // "needs 40 timber (empire has 0)…" → "40"
         Assert.Contains(texts, c => c.Text == qty && c.Role == FontRole.Heading && c.Color == t.Ink.Text);
         // Nothing on the surface is set below the caption floor.
         foreach (TextCmd c in texts)
@@ -482,7 +482,29 @@ public class ReadabilityTests(CanonicalTurnOneFixture fx) : IClassFixture<Canoni
         Assert.EndsWith(" people", people.Figure, StringComparison.Ordinal);
         PlayerView empire = PlayerViews.Empire(s.World, s.Config, Me, s.Names.Name, density: 1);
         ViewLine grain = empire.Blocks[1].Rows[0];
-        Assert.Equal("Grain in your granaries", grain.Text);
+        Assert.Equal("Grain in your stores", grain.Text);   // M5 item 5 (C5): the grain store, not the granary building
         Assert.NotEqual("", grain.Figure);
+    }
+
+    [Fact]
+    public void TheSettlementFoodLine_NamesTheGrainStore_NotTheGranaryBuilding_InFullAndEmpty()
+    {
+        // M5 item 5 (C5) relabel, pinned exactly: a settlement with no grain reads "The grain store is empty" (the store is
+        // the settlement's grain row; a granary is a BUILDING and holds nothing in this build) — never "The granaries are empty".
+        UiSession s = fx.Session;
+        int cap = EmpireQuery.TryGetCapital(s.World, Me, out SettlementId c) ? c.Value : -1;
+        ViewLine Store(IReadOnlyWorldState w) =>
+            PlayerViews.Settlement(w, s.Config, Me, null, cap, s.Names.Name, density: 1).Blocks.Single(b => b.Heading == "Food").Rows[0];
+        int gi = GoodStockIndex.IndexOf(s.World.GoodStocks, new SettlementId(cap), UiGoods.Grain);
+        Assert.True(gi >= 0 && s.World.GoodStocks[gi].Amount.Value > 0, "the turn-one capital holds grain");
+        Assert.Equal("Grain is in store", Store(s.World).Text);
+
+        WorldState empty = s.World.Clone();
+        long held = empty.GoodStocks[gi].Amount.Value;
+        new Ledger(empty.LedgerFlows).Flow(ref empty.GoodStocks.Ref(gi).Amount, ConservedQuantityIds.OfGood(UiGoods.Grain),
+            ReasonIds.InitialEndowment, held, FlowDirection.Sink, OverdrawPolicy.Throw);
+        ViewLine line = Store(empty);
+        Assert.Equal("The grain store is empty", line.Text);
+        Assert.Equal("0 grain", line.Figure);
     }
 }

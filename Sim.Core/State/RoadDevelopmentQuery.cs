@@ -389,20 +389,10 @@ public static class RoadDevelopmentQuery
         return result;
     }
 
-    /// <summary>The civilization-level holding of <paramref name="good"/>: the sum over its paying settlements.</summary>
-    public static long CivilizationStock(IReadOnlyTable<GoodStockRow> stocks, SettlementId[] payers, GoodId good)
-    {
-        long total = 0;
-        checked
-        {
-            for (int p = 0; p < payers.Length; p++)
-            {
-                int idx = GoodStockIndex.IndexOf(stocks, payers[p], good);
-                if (idx >= 0) total += stocks[idx].Amount.Value;
-            }
-        }
-        return total;
-    }
+    /// <summary>The civilization-level holding of <paramref name="good"/>: the sum over its paying settlements
+    /// (EmpireStockpile.Available — the one purse sum construction reads too; the same checked loop, moved).</summary>
+    public static long CivilizationStock(IReadOnlyTable<GoodStockRow> stocks, SettlementId[] payers, GoodId good) =>
+        EmpireStockpile.Available(stocks, payers, good);
 
     /// <summary>
     /// The proportion of a step's cost the civilization can pay, in [0, 1]: the minimum over its

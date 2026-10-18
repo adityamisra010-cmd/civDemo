@@ -113,7 +113,8 @@ public class TurnOneActionSurfaceTests
         for (int i = 0; i < w.Settlements.Count; i++)
             Assert.Equal(ProjectAvailability.InputUnobtainable, ConstructionQuery.Availability(w, Cfg, Player, w.Settlements[i].Id, 2));
         Assert.All(construction, a => Assert.StartsWith("needs ", a.Blocker));
-        Assert.Contains(construction, a => a.Blocker == "needs 40 timber (has 0), 20 stone (has 0)");
+        // D-053 §1: every settlement here is the player's, so its blocker names the EMPIRE's purse (empty at founding).
+        Assert.Contains(construction, a => a.Blocker == "needs 40 timber (empire has 0), 20 stone (empire has 0)");
 
         // MILITARY: basic fighting — the founding warband — a standing capability with no order.
         ActionDescriptor military = Assert.Single(Of(actions, ActionDomain.Military));

@@ -148,6 +148,8 @@ Consequences disclosed for the playtest:
   - CR-020 §A is ruled by this item: guard, direction and deferral.
 - **D-051 §6, the central stockpile:** deferred until after the playtest. No partial pooling and no relief-pooling
   substitute.
+  > *2026-10-14 pointer (text above unchanged):* superseded for construction/roads and shortage food only by the
+  > Director's 2026-10-13 instruction; see `docs/d053-batch2-playtest-rulings.md` §5 (uncommitted, for review).
 
 ## 12. The Spine's M5 items — deferred
 

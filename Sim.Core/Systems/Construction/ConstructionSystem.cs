@@ -63,6 +63,41 @@ public sealed record ConstructionTables(
 /// check runs BEFORE the first draw, so a project can never consume timber and
 /// then discover the stone is missing.
 ///
+/// THE PURSE (authority: D-051 §6 and D-053 §1 — the Director's 2026-10-13
+/// instruction, item 1: construction and roads draw on the empire stockpile; sim.json
+/// construction.empireStockpile, ON in the shipped content). "Present in full" and the draw read
+/// ConstructionQuery.Holders, computed on PREV — turn-start control — for the
+/// building settlement: the settlement first, then every other settlement its
+/// controller commands, NEAREST-FIRST by exact integer squared site-cell distance,
+/// ties to the LOWER settlement id (EmpireStockpile — ADR-032's road payment order
+/// with both route ends at the builder); a settlement no Empire controls is its own
+/// stockpile. The check sums the holders' rows of each input on this system's NEXT
+/// GoodStocks table; the draw takes each input from the holders in that order, each
+/// giving min(remaining, held) through the Ledger, instantly and losslessly. Switch
+/// off or absent: the building settlement's own stock only, bit-exact. The M4-D gate
+/// is unchanged: the WHOLE cost in the purse or the head waits — no partial draw —
+/// and the capacity is the building settlement's own labour, never the Empire's.
+///
+/// COMPETING PROJECTS (D-051 §6, D-053 §1). Heads are tried one per settlement in
+/// PREV's settlement-table row order, which in every founded or loaded world is
+/// ascending SettlementId (rows are append-only: founding writes ids 0..N-1 in order,
+/// colonization appends max+1, nothing removes a row, and the snapshot keeps row
+/// order) — each against what the earlier heads LEFT: its gates read the NEXT table
+/// after every earlier head's draw. A lower-id head that passes its gates (capacity,
+/// materials in full, founding viability) draws FIRST; a lower-id head that fails a
+/// gate draws nothing and blocks no one, so a higher-id head may then build from the
+/// purse it would have used. Two heads whose combined cost exceeds the purse cannot
+/// both build — no unit is allocated twice and no stock goes negative. Road
+/// development (ADR-032) runs LATER in the pipeline (pipeline.json: construction
+/// before roaddevelopment) and draws from the same NEXT table, so a road order sees
+/// only what construction left.
+///
+/// THE CLAIMS AT INTAKE (D-053 §1; ConstructionQuery's header). The obtainability
+/// guard reads the purse UNCLAIMED — less the whole inputs of every project already
+/// queued in the purse's settlements — and the intake passes it THIS step's queue:
+/// PREV's rows plus every order accepted earlier in the same batch, so two orders of
+/// one batch cannot both count ten tools the purse holds once. Switch off: no claims.
+///
 /// ADR-033 D10 — CAPACITY IS SPENT ONCE. The adult-years a resolved head consumed
 /// are PUBLISHED in the ConstructionLabor table (rebuilt every step: cleared, one
 /// row per settlement that built), and PathBuild subtracts them at the §3.2
@@ -110,7 +145,9 @@ public sealed class ConstructionSystem(SimConfig cfg) : ISimSystem<ConstructionT
             // the relation is never empty, M4-C); goods.json defines the project; and
             // its research entity is knowledge-eligible for the issuer (ADR-028 LOCKED
             // → AVAILABLE). An order failing it changes nothing.
-            if (!ConstructionQuery.IsProjectAvailable(prev, _cfg, order.Actor, settlement, projectId)) continue;
+            // The purse's claims (switch on) are read from THIS step's queue — PREV's
+            // rows plus the orders accepted above — never PREV's alone (see the header).
+            if (!ConstructionQuery.IsProjectAvailable(prev, _cfg, order.Actor, settlement, projectId, queue)) continue;
 
             queue.Add(new ConstructionQueueRow(settlement, NextSlot(queue, settlement), projectId));
         }
@@ -131,35 +168,37 @@ public sealed class ConstructionSystem(SimConfig cfg) : ISimSystem<ConstructionT
 
             // The settlement's construction labour this turn, in adult-years, less
             // housing's published draw (§3.2 one-turn lag), floored at zero — and every
-            // material present IN FULL, checked before any draw — and, for a project
-            // that founds an institution, the host's founding viability. All are the
-            // shared State statics, so the blocker the action surface reports is
-            // computed by the function that gates the build.
+            // material present IN FULL in the settlement's purse (its holders on PREV,
+            // their stocks on NEXT after every earlier head's draw), checked before any
+            // draw — and, for a project that founds an institution, the host's founding
+            // viability. All are the shared State statics, so the blocker the action
+            // surface reports is computed by the function that gates the build.
             if (!(ConstructionQuery.CapacityAdultYears(prev, _cfg, settlement, ctx.DtYears) >= project.LaborRequired)) continue;
-            if (!ConstructionQuery.MaterialsAvailable(ctx.Owned.GoodStocks, _cfg.Goods, settlement, project)) continue;
+            SettlementId[] holders = ConstructionQuery.Holders(prev, _cfg, settlement);
+            if (!ConstructionQuery.MaterialsAvailable(ctx.Owned.GoodStocks, _cfg.Goods, holders, project)) continue;
             if (InstitutionContent.FoundsInstitution(project) && !InstitutionViability.ToFound(prev, _cfg, settlement).Viable) continue;
 
-            Consume(ctx, settlement, project);
+            Consume(ctx, holders, project);
             Complete(ctx.Owned.Structures, settlement, project.Id);
             RemoveAt(queue, head);
             ctx.Owned.Labor.Add(new ConstructionLaborRow(settlement, project.LaborRequired));
         }
     }
 
+    /// <summary>Draws every input, input order, from the purse <paramref name="holders"/> in its draw order (the
+    /// building settlement first — with one holder, exactly the single sink of the pre-purse rule).</summary>
     private void Consume(
-        SimContext<ConstructionTables> ctx, SettlementId settlement, ConstructionProjectEntry project)
+        SimContext<ConstructionTables> ctx, SettlementId[] holders, ConstructionProjectEntry project)
     {
         Table<GoodStockRow> stocks = ctx.Owned.GoodStocks;
         for (int i = 0; i < project.Inputs.Length; i++)
         {
             ProjectInput input = project.Inputs[i];
             var good = new GoodId(_cfg.Goods!.IdOf(input.Good));
-            int idx = FindStock(stocks, settlement, good);
 
             // Throw, not clamp: availability was established above, so a short
             // draw here means the state moved under us and silence would hide it.
-            ctx.Ledger.Flow(ref stocks.Ref(idx).Amount, ConservedQuantityIds.OfGood(good),
-                ReasonIds.ConstructionMaterials, input.Qty, FlowDirection.Sink, OverdrawPolicy.Throw);
+            EmpireStockpile.Draw(ctx.Ledger, stocks, holders, good, input.Qty, ReasonIds.ConstructionMaterials);
         }
     }
 
@@ -222,10 +261,4 @@ public sealed class ConstructionSystem(SimConfig cfg) : ISimSystem<ConstructionT
         for (int i = 0; i < n; i++) queue.Add(kept[i]);
     }
 
-    private static int FindStock(Table<GoodStockRow> stocks, SettlementId s, GoodId good)
-    {
-        for (int i = 0; i < stocks.Count; i++)
-            if (stocks[i].Settlement == s && stocks[i].Good == good) return i;
-        return -1;
-    }
 }

@@ -798,8 +798,14 @@ public static class InfoQuery
         b.Title = ProjectName(c, p);
         b.Kind = "Construction project" + (founds ? " - founds an institution" : "") + (where >= 0 ? " at " + c.Name(where) : "");
         b.What = "Built through the construction queue from " + Materials(p) + " and " + Num(p.LaborRequired) + " adult-years of construction labour.";
-        ProjectAvailability av = where >= 0 ? ConstructionQuery.Availability(c.W, c.Cfg, c.P, new SettlementId(where), p.Id) : ProjectAvailability.UnknownSettlement;
-        string? blocker = av == ProjectAvailability.Available ? ConstructionQuery.Blocker(c.W, c.Cfg, new SettlementId(where), p, c.Q.NextDtYears) : null;
+        // D-053 §1: the purse's claims are the world's queue plus the turn's pending orders the intake would accept — the
+        // queue the listing reads (ConstructionQuery.QueueWithPending), so the card and the listing never disagree.
+        IReadOnlyTable<ConstructionQueueRow> claims = ConstructionQuery.QueueWithPending(c.W, c.Cfg, c.Q.Queued);
+        ProjectAvailability av = where >= 0 ? ConstructionQuery.Availability(c.W, c.Cfg, c.P, new SettlementId(where), p.Id, claims) : ProjectAvailability.UnknownSettlement;
+        string? blocker = av == ProjectAvailability.Available ? ConstructionQuery.BlockerSeenBy(c.W, c.Cfg, c.P, new SettlementId(where), p, c.Q.NextDtYears) : null;
+        // The guard refused because the empire HOLDS the crafted input but its queued projects already claim it: say so.
+        string? claimedReason = av == ProjectAvailability.InputUnobtainable
+            ? ConstructionQuery.ClaimedReason(c.W, c.Cfg, new SettlementId(where), p, claims, c.Name) : null;
         b.Status = av switch
         {
             ProjectAvailability.Available => blocker is null ? InfoStatus.Available : InfoStatus.Blocked,
@@ -811,9 +817,11 @@ public static class InfoQuery
         {
             ProjectAvailability.Available => blocker is null ? "Can be built now." : "You may order it; it waits until it " + blocker + ".",
             ProjectAvailability.NotKnowledgeEligible => "Not yet known.",
-            ProjectAvailability.InputUnobtainable => "Cannot be ordered yet: it needs "
-                + (ConstructionQuery.UnobtainableInput(c.W, c.Cfg, new SettlementId(where), p)?.Name ?? "an input")
-                + ", which " + c.Name(where) + " cannot make yet.",
+            ProjectAvailability.InputUnobtainable => claimedReason is { } held
+                ? "Cannot be ordered yet: it " + held + "."
+                : "Cannot be ordered yet: it needs "
+                    + (ConstructionQuery.UnobtainableInput(c.W, c.Cfg, new SettlementId(where), p, claims)?.Name ?? "an input")
+                    + ", which " + c.Name(where) + " cannot make yet.",
             ProjectAvailability.NotControlled => "You do not rule " + c.Name(where) + ".",
             _ => "No settlement to build it in.",
         };
@@ -842,14 +850,27 @@ public static class InfoQuery
                 b.EnabledBy.Add(new InfoLink("No research needed: known from the start", null, true));
         }
 
-        // REQUIREMENTS: materials (held in the settlement — construction draws its own stock), labour, viability.
+        // REQUIREMENTS: materials (held in the settlement's PURSE — D-051 §6, D-053 §1: construction checks and draws the
+        // Empire's settlements together where the switch is on and an Empire rules it, its own stock otherwise; read as the
+        // viewer may, ConstructionQuery.HoldersSeenBy, so a foreign settlement shows its own stock only — P7), labour, viability.
+        bool empire = where >= 0 && ConstructionQuery.DrawsOnEmpireSeenBy(c.W, c.Cfg, c.P, new SettlementId(where));
+        // A CRAFTED input (tools) is read as the obtainability guard reads it (D-053 §1): Met against the UNCLAIMED holding —
+        // the purse less what the projects queued in it already claim — with a note naming the claims; a raw input keeps the
+        // pooled holding (the guard's raw reading). Only on the viewer's own books (the pooled purse is shown only there).
         foreach (ProjectInput i in p.Inputs)
         {
             int good = c.Cfg.Goods!.IdOf(i.Good);
-            long held = where >= 0 ? Held(c.W, new SettlementId(where), good) : 0;
-            b.Requirements.Add(new InfoLink(Inv(i.Qty) + " " + i.Good, InfoSubject.OfGood(good), held >= i.Qty, "has " + Inv(held) + (where >= 0 ? " at " + c.Name(where) : "")));
+            long held = PurseHeld(c, where, good);
+            string has = (empire ? "empire has " : "has ") + Inv(held);
+            long claimed = empire && ConstructionQuery.IsCraftedGood(c.Cfg.Goods!, good)
+                ? ConstructionQuery.Claimed(claims, c.Cfg.Goods!, ConstructionQuery.Holders(c.W, c.Cfg, new SettlementId(where)), new GoodId(good)) : 0;
+            long usable = held - claimed;
+            string note = has + (!empire && where >= 0 ? " at " + c.Name(where) : "")
+                + (claimed > 0 ? "; " + Inv(claimed) + " claimed by projects queued at " + ClaimedPlaces(c, claims, where, good)
+                    + ", " + Inv(Math.Max(0, usable)) + " unclaimed" : "");
+            b.Requirements.Add(new InfoLink(Inv(i.Qty) + " " + i.Good, InfoSubject.OfGood(good), usable >= i.Qty, note));
             if (held < i.Qty && Chain(c, i.Good, 0, ref b.TreeNode) is { } chain)
-                b.WhyLocked.Add(new InfoLink(Inv(i.Qty) + " " + i.Good + " (has " + Inv(held) + "): " + chain, InfoSubject.OfGood(good), false));
+                b.WhyLocked.Add(new InfoLink(Inv(i.Qty) + " " + i.Good + " (" + has + "): " + chain, InfoSubject.OfGood(good), false));
         }
         double? cap = where >= 0 && c.Q.NextDtYears is { } dt && dt > 0.0 ? ConstructionQuery.CapacityAdultYears(c.W, c.Cfg, new SettlementId(where), dt) : null;
         b.Requirements.Add(new InfoLink(Num(p.LaborRequired) + " adult-years of construction labour", InfoSubject.Sector(Sectors.Construction, where),
@@ -874,12 +895,133 @@ public static class InfoQuery
                 b.Enables.Add(new InfoLink(ut.Name, InfoSubject.OfUniversity(ut.Key), null, "the institution it founds once its building stands"));
         }
         else
-            b.Enables.Add(new InfoLink("Public services under a levy", null, null,
+        {
+            // M5 item 5 (D-053 §3): the granary's two real effects, stated from the very functions the simulation
+            // multiplies by (State.GranaryEffects) — LOCAL farm output and EMPIRE-WIDE famine intensity, each with its
+            // next step, its strict-diminishing horizon and its ceiling. Neither is storage, and the card never says it is.
+            if (p.Id == GranaryEffects.ProjectId(c.Cfg) && GranaryEffects.Active(c.Cfg) is { } granaries)
+            {
+                // The counts are the player's own books only (P7): read where the player rules the settlement.
+                bool own = where >= 0 && EmpireQuery.ControlsSettlement(c.W, c.P, new SettlementId(where));
+                long? m = own ? GranaryEffects.LocalGranaries(c.W, c.Cfg, new SettlementId(where)) : null;
+                long? n = own ? GranaryEffects.EmpireGranaries(c.W, c.Cfg, new SettlementId(where)) : null;
+                // C1: the farm factor is the literal 1.0 while the settlement gathers wild food — say so (own books only).
+                bool? wild = own ? LabourActivities.HarvestsWildFood(c.W, c.Cfg, new SettlementId(where)) : null;
+                b.Enables.Add(new InfoLink(GranaryFarmLabel, null, null, GranaryFarmEffect(granaries, m, wild)));
+                b.Enables.Add(new InfoLink(GranaryFamineLabel, null, null, GranaryFamineEffect(granaries, n)));
+            }
+            b.Enables.Add(new InfoLink(LevyServicesLabel, null, null,
                 "once a tax levy exists, each one built eases how heavily the levy is felt here, as far as your administration reaches"));
+        }
         b.RealizedBy = "ConstructionSystem builds it from the queue. A built structure holds no goods - it is counted, not stocked - and in this build only what is listed under what it enables reads it.";
-        if (b.Status is InfoStatus.Locked or InfoStatus.Blocked) b.Summary = b.Status == InfoStatus.Locked ? "needs " + NeedsList(c, b.WhyLocked) : blocker;
+        if (b.Status is InfoStatus.Locked or InfoStatus.Blocked)
+            b.Summary = b.Status == InfoStatus.Locked ? claimedReason ?? "needs " + NeedsList(c, b.WhyLocked) : blocker;
         if (b.TreeNode < 0) b.TreeNode = ProjectTreeTarget(c, p, where);
     }
+
+    /// <summary>The places (ascending id, by the card's names) whose queued projects claim <paramref name="good"/> in the
+    /// purse of settlement <paramref name="where"/> (ConstructionQuery.ClaimedAt).</summary>
+    private static string ClaimedPlaces(Ctx c, IReadOnlyTable<ConstructionQueueRow> claims, int where, int good)
+    {
+        SettlementId[] at = ConstructionQuery.ClaimedAt(claims, c.Cfg.Goods!, ConstructionQuery.Holders(c.W, c.Cfg, new SettlementId(where)), new GoodId(good));
+        var names = new string[at.Length];
+        for (int i = 0; i < at.Length; i++) names[i] = c.Name(at[i].Value);
+        return string.Join(", ", names);
+    }
+
+    /// <summary>What the purse of settlement <paramref name="where"/> holds of <paramref name="good"/> as the card's viewer
+    /// may read it (ConstructionQuery.HoldersSeenBy — the very holding ConstructionSystem gates and draws on where the
+    /// viewer rules the settlement); 0 with no settlement.</summary>
+    private static long PurseHeld(Ctx c, int where, int good) =>
+        where < 0 ? 0 : EmpireStockpile.Available(c.W.GoodStocks, ConstructionQuery.HoldersSeenBy(c.W, c.Cfg, c.P, new SettlementId(where)), new GoodId(good));
+
+    /// <summary>M5 item 5: the label of a granary card's LOCAL farm-output line (subject-less, in WHAT IT ENABLES).</summary>
+    public const string GranaryFarmLabel = "Farm output here";
+
+    /// <summary>M5 item 5: the label of a granary card's EMPIRE-WIDE famine line (subject-less, in WHAT IT ENABLES).</summary>
+    public const string GranaryFamineLabel = "Famine relief across the civilization";
+
+    /// <summary>The label of a public work's levy-offset line (subject-less, in WHAT IT ENABLES).</summary>
+    public const string LevyServicesLabel = "Public services under a levy";
+
+    /// <summary>
+    /// M5 item 5 (D-053 §3): what a granary does to farm output at the settlement it stands in —
+    /// GranaryEffects.FarmYieldFactor on CULTIVATED grain (never wild food), stated with the current count of STANDING
+    /// granaries <paramref name="m"/> (null when the player does not rule the place: no count is shown), the next
+    /// granary's step, the horizon below which each further one adds strictly less (GranaryEffects.FarmStrictlyLessBelow,
+    /// measured on the factor itself) and the ceiling. Never a storage claim. While the settlement still GATHERS WILD FOOD
+    /// (<paramref name="harvestsWildFood"/> true — LabourActivities.HarvestsWildFood, the predicate ProductionSystem.Farm
+    /// skips the factor on) the factor there is 1.0, so the line says "no effect while this settlement gathers wild food"
+    /// and states the effect only as what it becomes once the settlement cultivates; null (a place the player does not
+    /// rule) states the effect without either claim.
+    /// </summary>
+    public static string GranaryFarmEffect(GranariesConfig g, long? m, bool? harvestsWildFood = null)
+    {
+        string effect = GranaryFarmEffectCultivating(g, m, harvestsWildFood != true);
+        return harvestsWildFood == true ? "no effect while this settlement gathers wild food; once it cultivates: " + effect : effect;
+    }
+
+    private static string GranaryFarmEffectCultivating(GranariesConfig g, long? m, bool inForce)
+    {
+        string cap = "+" + GranaryEffects.Percent(g.FarmYieldBonusMax) + "%";
+        string tail = "each further one adds strictly less below about " + Inv(GranaryEffects.FarmStrictlyLessBelow(g))
+            + " here, nothing that shows after; never more than " + cap + " in all";
+        if (m is not { } built || built <= 0)
+            return "farm output here +" + GranaryEffects.FarmBonusPercent(g, 1) + "% with a first standing granary - it saves part of the "
+                + "cultivated crop lost after the harvest (never wild food); " + tail;
+        string now = "+" + GranaryEffects.FarmBonusPercent(g, built) + "%";
+        string step = "+" + GranaryEffects.Percent(GranaryEffects.FarmYieldFactor(g, built + 1) - GranaryEffects.FarmYieldFactor(g, built)) + "%";
+        return "farm output here " + now + (inForce ? " now" : "") + " from " + Inv(built) + (built == 1 ? " standing granary" : " standing granaries")
+            + "; one more adds " + step + " - " + tail;
+    }
+
+    /// <summary>
+    /// M5 item 5 (D-053 §3): what a granary does to famine across its civilization — GranaryEffects.FamineIntensityFactor
+    /// on the EFFECTIVE deficit, i.e. the shortfall that drives starvation and birth suppression in a severe shortage or a
+    /// famine, stated with the civilization's current count of STANDING granaries <paramref name="n"/> (null: not shown),
+    /// the next granary's step, the strict-diminishing horizon and the ceiling. It claims a cut to that SHORTFALL only:
+    /// lost births do not fall by the same percentage (fertility suppression is already total at dEff ≥ 1/3), and no
+    /// grain moves (organised relief, not stored grain).
+    /// </summary>
+    public static string GranaryFamineEffect(GranariesConfig g, long? n)
+    {
+        string cap = "-" + GranaryEffects.Percent(g.FamineReductionMax) + "%";
+        const string What = "the shortfall behind starvation and birth suppression in a severe shortage or a famine, in every settlement of the civilization";
+        const string How = " - organised relief, no grain moves; births recover only where the eased shortfall falls below the depth that halts them";
+        string tail = "each further one adds strictly less below about " + Inv(GranaryEffects.FamineStrictlyLessBelow(g))
+            + ", nothing that shows after; never more than " + cap + " in all";
+        if (n is not { } built || built <= 0)
+            return What + ": -" + GranaryEffects.FamineReductionPercent(g, 1) + "% with a first standing granary anywhere in it; " + tail + How;
+        string now = "-" + GranaryEffects.FamineReductionPercent(g, built) + "%";
+        string step = "-" + GranaryEffects.Percent(GranaryEffects.FamineIntensityFactor(g, built) - GranaryEffects.FamineIntensityFactor(g, built + 1)) + "%";
+        return What + ": " + now + " now from " + Inv(built) + (built == 1 ? " standing granary" : " standing granaries")
+            + "; one more adds " + step + " - " + tail + How;
+    }
+
+    /// <summary>
+    /// M5 item 5: the build button's brief form of the LOCAL effect, as a multiplier (the action surface states no
+    /// percentages): the RESULTING TOTAL harvest factor the settlement holds with one more STANDING granary —
+    /// <paramref name="m"/> standing there now; queued granaries are not counted — and the ceiling.
+    /// "with one more standing granary here: cultivated harvest x1.03 in total (never above x1.05)". While the settlement
+    /// still gathers wild food (<paramref name="harvestsWildFood"/>; C1 — the factor is 1.0 there) it says so first:
+    /// "no effect while this settlement gathers wild food; once it cultivates, with one more standing granary here: …".
+    /// </summary>
+    public static string GranaryFarmBrief(GranariesConfig g, long m, bool harvestsWildFood = false) =>
+        (harvestsWildFood ? "no effect while this settlement gathers wild food; once it cultivates, " : "")
+        + "with one more standing granary here: cultivated harvest x" + F2(GranaryEffects.FarmYieldFactor(g, Math.Max(0, m) + 1))
+        + " in total (never above x" + F2(1.0 + g.FarmYieldBonusMax) + ")";
+
+    /// <summary>
+    /// M5 item 5: the build button's brief form of the EMPIRE-WIDE effect, as a multiplier: the RESULTING TOTAL
+    /// famine-shortfall factor the civilization holds with one more STANDING granary — <paramref name="n"/> standing in it
+    /// now; queued granaries are not counted — and the floor.
+    /// "with one more standing granary in the civilization: famine shortfall x0.90 in total (never below x0.75)".
+    /// </summary>
+    public static string GranaryFamineBrief(GranariesConfig g, long n) =>
+        "with one more standing granary in the civilization: famine shortfall x" + F2(GranaryEffects.FamineIntensityFactor(g, Math.Max(0, n) + 1))
+        + " in total (never below x" + F2(1.0 - g.FamineReductionMax) + ")";
+
+    private static string F2(double v) => v.ToString("0.00", CultureInfo.InvariantCulture);
 
     private static int ProjectTreeTarget(Ctx c, ConstructionProjectEntry p, int where)
     {
@@ -888,7 +1030,7 @@ public static class InfoQuery
             if (id is not null && r.EntityIndexOf(id) is int e and >= 0 && EntityTreeTarget(c, e) is int t and >= 0) return t;
         foreach (ProjectInput i in p.Inputs)
         {
-            long held = where >= 0 ? Held(c.W, new SettlementId(where), c.Cfg.Goods!.IdOf(i.Good)) : 0;
+            long held = PurseHeld(c, where, c.Cfg.Goods!.IdOf(i.Good));
             if (held >= i.Qty) continue;
             int target = -1;
             if (Chain(c, i.Good, 0, ref target) is not null && target >= 0) return target;

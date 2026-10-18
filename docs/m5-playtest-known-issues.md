@@ -5,6 +5,13 @@ the D-052 implementation pass on `m5w-integration` (two commits on `f0427d2`), p
 `claude/m5-playtest-d052` for the playtest build. `claude/new-session-yavghm` stays at `2dc6af2`. Governing record:
 `docs/d052-m5-integration-audit-rulings.md`.
 
+> **2026-10-14 — batch 2 (D-053), UNCOMMITTED on `m5w-integration`, not pushed and not in any build yet.**
+> - The Director's 2026-10-13 batch adds the empire purse for construction and roads (§7), grain relief in a shortage
+>   (§5), and granary effects (§14).
+> - Items 3, 4 and 6 (incremental construction, building/road ratios, the explored-longitude map wrap) are NOT built:
+>   CR-021 (§13).
+> - Sections 3, 5, 7, 9, 12 and 13 are updated below. Everything else describes the pushed `de86ace` build unchanged.
+
 **Playtest readiness is not M5 exit (D-052 §15).** This list is what the Director should know before playing. M5 stays
 NOT complete; the exit and merge conditions are in D-052 §15.
 
@@ -24,7 +31,7 @@ NOT complete; the exit and merge conditions are in D-052 §15.
 | case | failure | cause |
 |---|---|---|
 | seed 42 | dev migration 8.71773E-05 per decade, below 0.75 × its recorded 0.000248624 | D-051 §1(b) time-averaged weather removes most weather-driven famine flight |
-| seed 7 | dev population 124,455 at turn 1000, above the envelope's 119,000 | the same; seed 7's migration (1.0083E-04, ×0.3497) is also below its floor, hidden because the population check runs first |
+| seed 7 | dev population 124,455 at turn 1000, above the envelope's 119,000 (batch 2: 124,483, from one relief settlement-turn; same assertion, still red) | the same; seed 7's migration (1.0083E-04, ×0.3497) is also below its floor, hidden because the population check runs first |
 
 - Ruled by the Director (D-052 §9, CR-020 §B): time-averaged weather stays ON; every frozen calibration reference is
   preserved; nothing is widened, waived, re-pinned or reverted; calibration is reassessed from measured evidence after
@@ -38,6 +45,8 @@ NOT complete; the exit and merge conditions are in D-052 §15.
 - No availability classes, no common-material floor, no regional richness. Stone rides the raw elevation channel: in
   the earlier playtest 38 % of settlements had effectively no stone and the first granary waited until turn 113.
   Expect some settlements to be slow to build.
+  - *Batch 2:* construction now draws on the whole empire's stock (§7). A stone-poor city builds as soon as the
+    empire holds the stone. A settlement that is NOT in an empire still builds from its own stock only.
 - Every deposit good is "present" at every settlement; there is no per-place scarcity yet.
 
 ## 4. The "now usable" resource shortcut — limitation
@@ -54,6 +63,14 @@ NOT complete; the exit and merge conditions are in D-052 §15.
 - Flight still reads the previous turn's one-turn deficit (§1(a) smoothing is deferred); with time-averaged weather
   the per-decade spread is ~0.19 instead of ~0.30, so famine flight is much rarer than in the `2dc6af2` build.
 - There is no "next turn" food / population forecast (§3).
+- **Batch 2 — grain relief in a shortage (D-053 §2).**
+  - When one of your settlements cannot feed itself and its own store is empty, your empire's spare grain feeds it.
+  - The hungriest settlement (largest unmet share of its need) is fed first; ties go by the previous turn's food state,
+    then the settlement id.
+  - Only grain moves. Donors are drawn nearest-first.
+  - Consequence: one settlement of your empire can no longer starve, abandon farming into FAMINE, or revolt from hunger
+    while the rest of the empire has spare grain. Famine now needs the whole empire to be short.
+  - The urgency ranking uses the nominal deficit. Across food states it is not exactly starvation risk (D-053 §6 Q1).
 
 ## 6. Workshop and tools
 
@@ -64,9 +81,26 @@ NOT complete; the exit and merge conditions are in D-052 §15.
   time if the settlement cannot hold 10 tools (farmers wear tools out), and there is no cancel order. If a queue stalls
   on a Workshop, note the settlement and turn.
 
-## 7. No central stockpile
+## 7. Central stockpile — partly built (batch 2, D-053 §1–§2)
 
-Each settlement uses its own stores (D-051 §6 deferred until after the playtest). No pooling between your settlements.
+- **Construction and roads draw on the empire's stock.** A project in any of your settlements is paid from every
+  settlement your empire controls: the building city first, then the others nearest-first, ties by id.
+  - The blocker says "needs 20 stone (empire has 6)".
+  - Projects are tried in settlement-id order each turn. Roads are paid after buildings from what is left. That fixed
+    order stays until item 4 (ratios) is ruled (CR-021 §B).
+- **Queued projects claim their crafted inputs.** A second Workshop is refused while the empire's only 10 tools are
+  already claimed by a queued one, and the card names the claim.
+- **Still per settlement:**
+  - housing materials;
+  - production recipe inputs;
+  - tool equipping;
+  - trade and prices;
+  - migration's food check;
+  - colony provisions;
+  - livestock and fish.
+  D-051 §6 stays open for these.
+- **Construction is still built whole.** A project waits until the empire holds its full cost, then is built in one
+  turn. There is no partial progress (item 3, CR-021 §A).
 
 ## 8. Units
 
@@ -85,6 +119,9 @@ Each settlement uses its own stores (D-051 §6 deferred until after the playtest
   opens — on stderr with exit code 3, and on Windows in a native error dialog (SDL message box; best-effort, not
   exercised on Windows yet — see §12). Start a new game with this build; the old session files are not changed.
 - Same-build save and resume work as before (replay of the order log, every turn's hash checked).
+- *Batch 2:* sessions recorded by the `de86ace` build stop reproducing at the first turn where a construction waited on
+  stock a sibling held, relief applied, or a granary acted. Measured: the seed-42 one-AI world first differs at turn 5. Expect
+  any AI game, and any game where you built, to be refused. They are refused like any other incompatible session. Start a new game on a batch-2 build.
 - A session recorded under an older SAVE SCHEMA is still resumed by replay with the "RESUMED SESSION" notice (D-008).
 - `--size` maps: founding a settlement (player or AI) on a non-canonical map now reads deposits from that map's own
   cells. Before this pass it read the wrong cells, and could crash End Turn for sites in the bottom rows. That crash was
@@ -125,6 +162,29 @@ Each settlement uses its own stores (D-051 §6 deferred until after the playtest
 
 ## 13. Not in the M5 playtest build (deferred by ruling)
 
+**Batch 2 items not built (CR-021, awaiting the Director):**
+- incremental construction and partial progress (M4-D, schema v33);
+- editable building/road resource ratios (a new per-empire table, v33, and a new order kind);
+- the east-west map wrap gated by explored longitudes, with Satellites revealing the map (no explored-extent state
+  until M6; a true cylinder reopens ADR-032 Final Ruling 3, D-015 and the T3.1(b) ocean ring).
+
+
 Fog of war, scouts and visibility (M6) · the visual milestone: drawn buildings/institutions, Age terrain, richer unit
 art (M6) · movement and Action Points (M7) · the Spine's M5 items budget, authority / bandwidth economy and laws-lite
 (deferred; destination not yet ruled) · D-051 §1(a), §2, §3, §6 and primitive toolmaking (after the playtest).
+
+## 14. Granaries (batch 2, D-053 §3)
+
+- **Local farm output.** A granary raises its own settlement's CULTIVATED grain harvest: +3.2 % for the first,
+  diminishing, never more than +5 %.
+  - It has no effect while the settlement still gathers wild food, and the card says so.
+  - Most early granaries stand in wild-food settlements, so expect no visible harvest change until farming arrives.
+- **Empire-wide famine intensity.** Each granary in the empire eases the starvation-driving shortfall in every one of
+  its settlements: −9.8 % for the first, never more than −25 %.
+  - No grain moves; it stands for organised relief.
+  - It acts only in a severe shortage or a famine. In 300 measured AI turns it never acted, and relief (§5) removes
+    most single-city famines. You may not see it unless your whole empire runs short.
+- **What it does not do.**
+  - A granary does NOT increase storage. The store bound (1.5 years of demand) and spoilage are unchanged.
+  - The settlement food line now says "grain store", not "granaries".
+- **Unchanged.** The Age II "Communal store" milestone and the Age III levy relief.
