@@ -1,6 +1,7 @@
 using Sim.Core;
 using Sim.Core.Kernel;
 using Sim.Core.State;
+using Sim.Core.Systems.Research;
 using Xunit;
 
 namespace Sim.Ui.Tests;
@@ -166,41 +167,56 @@ public class LegacyCancelResumeTests
 
     // ================================================================== refusals, before any write
 
+    /// <summary>
+    /// A SESSION WITHOUT ITS TRACE. D-056 refused one carrying a kind-11 cancel and resumed the rest with the missing-trace
+    /// notice. D-057 (the identity proof) is stricter, by design: with no trace nothing shows that any settlement id names the
+    /// recorded settlement — not even the founding's — so a session whose log names a settlement is refused at the first
+    /// batch that does (here turn 0's granaries, kind 11 or not), with a remedy naming the missing file; only a log that names
+    /// no settlement (a research order alone, no AI) resumes, with the notice. Every arm only reads.
+    /// </summary>
     [Fact]
-    public void AKind11Session_WithNoTrace_IsRefused_AndWithoutKind11ItResumesWithTheMissingTraceNotice()
+    public void ASessionWithNoTrace_IsRefusedAtItsFirstSettlementOrder_AndOneNamingNoSettlementResumesWithTheMissingTraceNotice()
     {
         foreach (bool legacy in new[] { true, false })
         {
             string dir = TempDir(out string log);
             try
             {
-                UiSession live = Played(log, legacy);
+                Played(log, legacy);
                 File.Delete(UiSession.TracePath(log));
                 var before = Snapshot(dir);
-                if (legacy)
-                {
-                    var e = Assert.Throws<OrderValidationException>(() => UiSession.Resume(UiSession.ManifestPath(log), out _));
-                    Assert.Contains("the orders delivered on turn 2 include 1 legacy slot-only cancel order", e.Message);
-                    Assert.Contains("The session has no trace to check that world against", e.Message);
-                }
-                else
-                {
-                    // With no trace the replay runs to the last turn the log names (UiSession.Resume's target rule).
-                    long last = 0;
-                    for (int i = 0; i < live.Orders.Count; i++) last = Math.Max(last, live.Orders[i].Turn);
-                    UiSession resumed = UiSession.Resume(UiSession.ManifestPath(log), out _);
-                    Assert.Equal(UiSession.MissingTraceNotice, resumed.ResumeNotice);
-                    Assert.Equal(last, resumed.World.Clock.Turn);
-                    UiSession replay = Start();
-                    replay.ReplayTo(live.Orders, last);
-                    Assert.Equal(WorldHash.ComputeHex(replay.World), WorldHash.ComputeHex(resumed.World));
-                }
+                var e = Assert.Throws<OrderValidationException>(() => UiSession.Resume(UiSession.ManifestPath(log), out _));
+                Assert.Contains("the orders delivered on turn 0 include EnqueueConstruction (issued by polity 1) for settlement 0", e.Message);
+                Assert.Contains("The session has no trace to show that with", e.Message);
+                Assert.Contains("put its trace file (" + Path.GetFileName(UiSession.TracePath(log)) + ") back beside the manifest", e.Message);
                 AssertUnchanged(dir, before);                                                        // Resume only reads
             }
             finally
             {
                 Directory.Delete(dir, recursive: true);
             }
+        }
+
+        string only = TempDir(out string researchLog);
+        try
+        {
+            UiSession live = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 0);
+            live.ExportManifest(StartedAt, researchLog);
+            Assert.True(ResearchQuery.CheapestAvailable(live.World, live.Config.Research!, Me) is { } node && live.EmitResearchOrder(node));
+            for (int t = 0; t < 3; t++) live.EndTurn();
+            live.Save(researchLog);
+            var before = Snapshot(only);
+            // With no trace the replay runs to the last turn the log names (UiSession.Resume's target rule).
+            UiSession resumed = UiSession.Resume(UiSession.ManifestPath(researchLog), out _);
+            Assert.Equal(UiSession.MissingTraceNotice, resumed.ResumeNotice);
+            UiSession replay = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 0);
+            replay.ReplayTo(live.Orders, resumed.World.Clock.Turn);
+            Assert.Equal(WorldHash.ComputeHex(replay.World), WorldHash.ComputeHex(resumed.World));
+            AssertUnchanged(only, before);
+        }
+        finally
+        {
+            Directory.Delete(only, recursive: true);
         }
     }
 

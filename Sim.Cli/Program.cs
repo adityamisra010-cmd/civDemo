@@ -248,10 +248,41 @@ namespace Sim.Cli
         internal static OrderLog LoadOrders(string path)
         {
             OrderLog log = LoadSessionOrders(path);
+            RefuseOtherSchemasSessionLog(path);   // D-057
             ReplayGuard.RefuseUnverifiable(log, "order log " + path,
                 "Re-issue the cancels with this build (it records the entry each one names, kind 13), or inspect the "
                 + "session they were recorded in with `sim inspect --manifest`, which checks them against its trace.");
             return log;
+        }
+
+        /// <summary>
+        /// D-057 — a bare-log runner given THE LOG OF A SESSION RECORDED UNDER ANOTHER SCHEMA (the `session-X.json` beside
+        /// `orders-X.bin` names it and records another schema version) refuses it, before a world is built or any file is
+        /// opened. The log's orders name that game's settlements and polities by id; these runners found this build's world
+        /// and check no trace, so nothing shows the ids name the recorded entities — and `--emit-session` would turn the
+        /// result into a valid-looking session of this build. `sim inspect` and the game's resume check every order against
+        /// the session's trace (ReplayProof). A log with no session beside it, or one of a session of this schema, is
+        /// replayed as this build's own run: such a runner asserts nothing about a recording (D-057 §4).
+        /// </summary>
+        private static void RefuseOtherSchemasSessionLog(string path)
+        {
+            string name = Path.GetFileName(path);
+            if (!name.StartsWith("orders-", StringComparison.Ordinal) || !name.EndsWith(".bin", StringComparison.Ordinal)) return;
+            string manifestPath = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(path)) ?? "",
+                "session-" + name["orders-".Length..^".bin".Length] + ".json");
+            if (!File.Exists(manifestPath)) return;
+            SessionManifest manifest;
+            using (FileStream file = File.OpenRead(manifestPath)) manifest = SessionManifest.Read(file, manifestPath);
+            if (!string.Equals(manifest.OrdersFile, name, StringComparison.Ordinal)
+                || manifest.SchemaVersion == CanonicalSchema.Version) return;
+            throw new OrderValidationException(
+                $"order log {path} is the log of session {Path.GetFileName(manifestPath)}, recorded under save schema " +
+                $"v{manifest.SchemaVersion.ToString(CultureInfo.InvariantCulture)} (this build is " +
+                $"v{CanonicalSchema.Version.ToString(CultureInfo.InvariantCulture)}). Its orders name that game's settlements " +
+                "and polities by id, and this command replays them into this build's world without checking the session's " +
+                "trace, so it could apply them to different settlements — and a session emitted from it would look like a " +
+                "valid session of this build. Nothing was replayed and no file was written. Inspect the session with `sim " +
+                $"inspect --manifest {manifestPath}` (it checks every order against the session's trace), or resume it in the game.");
         }
 
         /// <summary>A session's order log, for `sim inspect`: loaded and range-validated only — its kind-11 cancels are
@@ -650,13 +681,18 @@ namespace Sim.Cli
                 SessionTrace.Parse([SessionTrace.Line(world, grain)], "replay")[0],
             };
             string recordedBy = $"build {manifest.BuildSha}, {manifest.BuildDate}, schema v{manifest.SchemaVersion.ToString(CultureInfo.InvariantCulture)}";
+            int rosterMax = 0;
+            for (int p = 0; p < turnZero.Polities.Count; p++) rosterMax = Math.Max(rosterMax, turnZero.Polities[p].Id.Value);
+            // D-057: the identity proof — every settlement and polity a batch names must be shown to be the recorded one
+            // (the trace's rows, in the recorded schema's form first), and a kind-11 batch must be delivered to the recorded
+            // world (D-056); otherwise inspect stops here, with nothing written.
+            var proof = new ReplayProof(played, manifest.SchemaVersion, rosterMax, "session " + Path.GetFileName(manifestPath),
+                recordedBy, "Nothing was replayed past that batch and no report file was written. Inspect the session with the "
+                + "build that recorded it (" + recordedBy + ").");
             for (long t = 1; t <= turns; t++)
             {
                 WorldState prev = world;
-                // D-056: a batch carrying a legacy kind-11 cancel is delivered only to the recorded world (the trace's row
-                // for its turn, in any readable schema form); otherwise inspect stops here, with nothing written.
-                ReplayGuard.CheckBeforeDelivery(orders.BatchFor(prev.Clock.Turn), prev, played,
-                    "session " + Path.GetFileName(manifestPath), recordedBy);
+                proof.BeforeDelivery(orders.BatchFor(prev.Clock.Turn), prev);
                 OrderValidation.ValidateAtDelivery(orders.BatchFor(prev.Clock.Turn), turnZero, prev); // ADR-034
                 world = executor.Step(prev);
                 replayed.Add(SessionTrace.Parse([SessionTrace.Line(world, grain)], "replay")[0]);
@@ -666,14 +702,20 @@ namespace Sim.Cli
                 if (t == explainAt) { explainPrev = prev; explainNext = world; }
             }
 
+            proof.Observe(world);   // the last world, which no batch is delivered to
+
             Console.WriteLine();
             // Fix round 1 (D-054, verifier F1): UiSession.Resume's S0 rule, headless — the trace's hashes cover the
             // canonical stream of the schema that recorded them, so across schemas none can equal a replayed one. Comparing
             // them printed "REPRODUCTION FAILED at turn 0", a determinism verdict on a schema difference; the line now says
             // the trace was not checked, and on what map the session was replayed.
+            // D-057: under another READABLE schema the trace IS checked — in that schema's form (ReplayProof), up to the
+            // first turn that differs — and the line says how far the replay reproduces the recorded game.
             Console.WriteLine(hashesChecked
                 ? Divergence(played, replayed)
-                : SessionSchemaNotice.NotChecked(manifest.SchemaVersion));
+                : CanonicalSchema.IsReadable(manifest.SchemaVersion)
+                    ? SessionSchemaNotice.CheckedInRecordedForm(manifest.SchemaVersion, proof.ProvenTurn, proof.FirstDifference, turns)
+                    : SessionSchemaNotice.NotChecked(manifest.SchemaVersion));
 
             long? focus = opts.Get("--turn") is not null ? opts.LongOr("--turn", 0) : null;
             int window = (int)opts.LongOr("--window", 3);

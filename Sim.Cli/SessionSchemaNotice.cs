@@ -17,7 +17,40 @@ public static class SessionSchemaNotice
     /// </summary>
     public static bool HashesChecked(int recordedSchema) => recordedSchema == CanonicalSchema.Version;
 
-    /// <summary>The verdict line for a session whose manifest records schema <paramref name="recorded"/>.</summary>
+    /// <summary>
+    /// D-057 — the verdict line for a session recorded under ANOTHER READABLE schema (<see cref="CanonicalSchema.IsReadable"/>,
+    /// not this build's): `sim inspect` hashes each replayed world as that schema's build hashed it
+    /// (<see cref="WorldHash.ComputeHexAsSchema"/>, through <see cref="ReplayProof"/>) and compares it with the trace, up to
+    /// the first turn that differs. <paramref name="provenTurn"/> is the last turn found equal (−1: none);
+    /// <paramref name="firstDifference"/> the first found to differ (−1: none); <paramref name="lastTurn"/> the trace's last.
+    /// It replaces <see cref="NotChecked"/>'s "no replayed hash can equal a recorded one", which stopped being true when
+    /// D-056 gave this build the older schemas' hash forms.
+    /// </summary>
+    public static string CheckedInRecordedForm(int recorded, long provenTurn, long firstDifference, long lastTurn)
+    {
+        string r = recorded.ToString(CultureInfo.InvariantCulture);
+        string verdict = firstDifference < 0
+            ? (provenTurn == lastTurn
+                ? "the replay reproduces the recorded game through turn " + Inv(lastTurn)
+                : "the replay matches the recorded game through turn " + Inv(provenTurn) + " (the trace holds no row after it)")
+            : firstDifference == 0
+                ? "the replay differs from the recorded game from its founding (turn 0) on"
+                : "the replay matches the recorded game through turn " + Inv(provenTurn) + " and differs from turn "
+                  + Inv(firstDifference) + " on (another build's rules, data or platform: D-008 replays an older session, "
+                  + "it does not promise to reproduce it)";
+        return "trace checked in the v" + r + " form (D-057): the session was recorded under save schema v" + r
+            + " and this build is v" + CanonicalSchema.Version.ToString(CultureInfo.InvariantCulture)
+            + ", so each replayed turn is hashed as a v" + r + " build hashed it; " + verdict
+            + ". Replayed from its seed and orders"
+            + (TopologyFlags.RecordedFlat(recorded) ? " on the flat map v" + r + " used" : "")
+            + "; the rows below are this replay's.";
+    }
+
+    private static string Inv(long value) => value.ToString(CultureInfo.InvariantCulture);
+
+    /// <summary>The verdict line for a session whose manifest records schema <paramref name="recorded"/>, when this build
+    /// cannot hash a world in that schema's form (a schema outside the readable set: a newer build's, or one older than
+    /// v32). For another readable schema the verdict is <see cref="CheckedInRecordedForm"/>.</summary>
     public static string NotChecked(int recorded) =>
         "trace not checked: the session was recorded under save schema v" + recorded.ToString(CultureInfo.InvariantCulture)
         + " and this build is v" + CanonicalSchema.Version.ToString(CultureInfo.InvariantCulture)

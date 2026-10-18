@@ -938,8 +938,12 @@ public sealed class UiSession
         {
             // D-056: the trace goes in whatever the schema — ReplayGuard checks every batch carrying a legacy kind-11
             // cancel against it in any readable form; the every-turn check stays this schema's only.
+            // D-057: and ReplayProof checks, before every batch, that each settlement and polity it names is the recorded
+            // one (the trace's rows in the recorded schema's form).
             session.ReplayTo(saved, target, trace, checkEveryTurn: sameSchema,
-                describedAs: "saved session " + Path.GetFileName(manifestPath), recordedBy: recordedBy);
+                describedAs: "saved session " + Path.GetFileName(manifestPath), recordedBy: recordedBy,
+                recordedSchema: manifest.SchemaVersion,
+                missingTraceFile: trace is null ? manifest.TraceFile : null);
         }
         catch (ResumeDivergedException diverged)   // only with the trace checked, i.e. under this build's schema
         {
@@ -1036,9 +1040,16 @@ public sealed class UiSession
     /// batch is appended, so a refusal leaves the world as the previous step made it. <paramref name="checkEveryTurn"/>
     /// keeps the every-turn hash check (this schema's sessions only — <see cref="Resume"/> passes false for another
     /// schema's, whose trace hashes another stream).
+    ///
+    /// D-057: a RECORDED session — <paramref name="trace"/> given, or <paramref name="missingTraceFile"/> naming the trace
+    /// file a resume could not find ("" when the manifest names none) — is replayed under <see cref="ReplayProof"/>: before
+    /// each batch, every settlement and polity it names must be shown to be the recorded one (the trace's rows, tried in
+    /// <paramref name="recordedSchema"/>'s form first), or the resume is refused with an <see cref="OrderValidationException"/>
+    /// before that batch is appended. With neither (a test's bare replay) only D-056's kind-11 rule applies.
     /// </summary>
     public void ReplayTo(OrderLog saved, long target, IReadOnlyList<SessionTrace.Row>? trace = null,
-        bool checkEveryTurn = true, string describedAs = "this saved session", string? recordedBy = null)
+        bool checkEveryTurn = true, string describedAs = "this saved session", string? recordedBy = null,
+        int recordedSchema = CanonicalSchema.Version, string? missingTraceFile = null)
     {
         ArgumentNullException.ThrowIfNull(saved);
         if (World.Clock.Turn != 0 || Orders.Count != 0)
@@ -1048,11 +1059,24 @@ public sealed class UiSession
                 + Orders.Count.ToString(CultureInfo.InvariantCulture) + " order(s) already logged.");
         WorldState turnZero = World;
         OrderValidation.ValidateAgainstWorld(saved, turnZero);
+        int rosterMax = 0;
+        for (int p = 0; p < turnZero.Polities.Count; p++) rosterMax = Math.Max(rosterMax, turnZero.Polities[p].Id.Value);
+        // D-057: a RECORDED session (a trace, or a resume whose trace file is missing) is replayed under the identity proof;
+        // a bare replay (a test's own log, no trace and no session) asserts nothing about a recording and keeps D-056's rule
+        // only — a kind-11 batch is refused, having no trace to be checked against.
+        ReplayProof? proof = trace is not null || missingTraceFile is not null
+            ? new ReplayProof(trace, recordedSchema, rosterMax, describedAs, recordedBy,
+                trace is not null ? null
+                    : "Nothing was applied and no session file was changed. To continue this session, put its trace file"
+                      + (missingTraceFile!.Length > 0 ? " (" + missingTraceFile + ")" : "") + " back beside the manifest, or open "
+                      + "it with the build that recorded it" + (string.IsNullOrEmpty(recordedBy) ? "" : " (" + recordedBy + ")")
+                      + "; to play this build, start a new game.")
+            : null;
         int next = 0;
         while (World.Clock.Turn < target)
         {
             long turn = World.Clock.Turn;
-            ReplayGuard.CheckBeforeDelivery(saved.BatchFor(turn), World, trace, describedAs, recordedBy); // D-056
+            BeforeDelivery(proof, saved.BatchFor(turn), trace, describedAs, recordedBy); // D-056 (kind 11), D-057 (identity)
             for (; next < saved.Count && saved[next].Turn <= turn; next++)
                 if (saved[next].Turn == turn) Orders.Append(saved[next]);
             OrderValidation.ValidateAtDelivery(Orders.BatchFor(turn), turnZero, World); // ADR-034
@@ -1069,12 +1093,21 @@ public sealed class UiSession
                         break;
                     }
         }
-        ReplayGuard.CheckBeforeDelivery(saved.BatchFor(World.Clock.Turn), World, trace, describedAs, recordedBy); // D-056
+        BeforeDelivery(proof, saved.BatchFor(World.Clock.Turn), trace, describedAs, recordedBy); // the re-queued batch too
         for (; next < saved.Count; next++)
             if (saved[next].Turn == World.Clock.Turn) Orders.Append(saved[next]);
         // The re-queued batch is delivered to exactly this world by the next End Turn (orders the player adds in
         // the meantime do not change it), so it is checked here, while the log is still the saved one.
         OrderValidation.ValidateAtDelivery(Orders.BatchFor(World.Clock.Turn), turnZero, World); // ADR-034
+    }
+
+    /// <summary>The check before a replayed batch: the identity proof for a recorded session (D-057, which applies D-056's
+    /// kind-11 rule itself); D-056's kind-11 rule alone for a bare replay.</summary>
+    private void BeforeDelivery(ReplayProof? proof, OrderBatch batch, IReadOnlyList<SessionTrace.Row>? trace,
+        string describedAs, string? recordedBy)
+    {
+        if (proof is not null) proof.BeforeDelivery(batch, World);
+        else ReplayGuard.CheckBeforeDelivery(batch, World, trace, describedAs, recordedBy);
     }
 
     public void Save(string path)

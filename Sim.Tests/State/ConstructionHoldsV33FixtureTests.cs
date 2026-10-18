@@ -39,8 +39,9 @@ namespace Sim.Tests.State;
 /// Premises (X1): (i) the session replayed under PreReservations reproduces every recorded trace hash through
 /// SchemaProjection.V33; (ii) under the SHIPPED config the replay, projected to v33 (its hold rows stripped), first
 /// differs from the trace at a pinned turn W, where s2's stone draw is lower by exactly s0's set-aside; (iv) `sim inspect
-/// --manifest` (a real process) prints NotChecked(33) and exits 0. Premise (iii) (the UI resume) is Sim.Ui.Tests'
-/// V33SessionResumeTests.
+/// --manifest` (a real process) exits 0 and says so — D-057: it checks the trace in the v33 form, matching through turn
+/// W − 1 and differing from W on (until D-057 it printed NotChecked(33): no trace check). Premise (iii) (the UI resume) is
+/// Sim.Ui.Tests' V33SessionResumeTests.
 /// </summary>
 public class ConstructionHoldsV33FixtureTests
 {
@@ -324,10 +325,13 @@ public class ConstructionHoldsV33FixtureTests
         }
     }
 
-    /// <summary>Premise (iv): `sim inspect --manifest` of the v33 session (a real process) exits 0 and prints the
-    /// not-checked verdict for v33 — the trace is not compared under v34, and nothing claims a reproduction or a failure.</summary>
+    /// <summary>Premise (iv): `sim inspect --manifest` of the v33 session (a real process) exits 0 and — D-057 — checks the
+    /// trace in the v33 form: the replay matches the batch-3 build's rows through turn W − 1 and differs from W on, premise
+    /// (ii)'s turn, found here by the CLI from the recorded hashes alone. This schema's verdicts (a reproduction, a failure)
+    /// are not printed. (Until D-057 the line was NotChecked(33), "no replayed hash can equal a recorded one" — no longer
+    /// true once the build hashes in the v33 form.)</summary>
     [Fact]
-    public void PremiseIV_SimInspect_OfTheV33Session_PrintsNotChecked33_AndExitsZero()
+    public void PremiseIV_SimInspect_OfTheV33Session_ChecksItInTheV33Form_MatchingThroughWMinus1_AndExitsZero()
     {
         string dir = Path.Combine(Path.GetTempPath(), "civsim-v33inspect-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(dir);
@@ -337,7 +341,9 @@ public class ConstructionHoldsV33FixtureTests
             string manifest = Path.Combine(dir, "session-" + Stamp + ".json");
             (int exit, string stdout, string stderr) = CliProcess.Run(Limit, "inspect", "--manifest", manifest);
             Assert.Equal((0, ""), (exit, stderr));
-            Assert.Contains(SessionSchemaNotice.NotChecked(33), CliProcess.Lines(stdout));
+            Assert.Contains(SessionSchemaNotice.CheckedInRecordedForm(33, W - 1, W, LastTurn), CliProcess.Lines(stdout));
+            Assert.Contains("the replay matches the recorded game through turn 2 and differs from turn 3 on", stdout, StringComparison.Ordinal);
+            Assert.DoesNotContain(SessionSchemaNotice.NotChecked(33), stdout, StringComparison.Ordinal);
             Assert.DoesNotContain("reproduction VERIFIED", stdout, StringComparison.Ordinal);
             Assert.DoesNotContain("REPRODUCTION FAILED", stdout, StringComparison.Ordinal);
             // The recipe is the recording build's, named by its stamped identity (the fixture's manifest).

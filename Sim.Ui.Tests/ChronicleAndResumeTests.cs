@@ -229,6 +229,17 @@ public class ChronicleAndResumeTests
     /// <summary>Rewrites every trace line's hash as a build with another canonical stream would have computed it:
     /// WorldHash covers the whole stream, so after a schema bump no line can equal this build's replay. The
     /// stand-in value (64 zeros) is a fixture, not a measured older-schema hash.</summary>
+    /// <summary>D-057: rewrites every trace line's hash as a build of schema <paramref name="version"/> computed it for the
+    /// world of that turn (<see cref="WorldHash.ComputeHexAsSchema"/>; <paramref name="worlds"/>[t] is turn t).</summary>
+    internal static void RecordTraceInSchemaForm(string tracePath, IReadOnlyList<WorldState> worlds, int version)
+    {
+        string[] lines = File.ReadAllLines(tracePath);
+        for (int i = 1; i < lines.Length; i++)
+            if (lines[i].Length > 0)
+                lines[i] = lines[i][..(lines[i].LastIndexOf(',') + 1)] + WorldHash.ComputeHexAsSchema(worlds[i - 1], version);
+        File.WriteAllText(tracePath, string.Join("\n", lines) + "\n");
+    }
+
     internal static void RecordTraceUnderAnotherSchema(string tracePath)
     {
         string[] lines = File.ReadAllLines(tracePath);
@@ -262,10 +273,12 @@ public class ChronicleAndResumeTests
             UiSession live = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1, wrapXOverride: false);
             live.ExportManifest("2026-10-10 12:00:00", log);
             int capital = live.World.Settlements[0].Id.Value;
+            var worlds = new List<WorldState> { live.World };
             for (int t = 0; t < 8; t++)
             {
                 if (t == 2) Assert.True(live.EmitSectorOrders([40, 20, 10, 10, 20], capital));
                 live.EndTurn();
+                worlds.Add(live.World);
             }
             Assert.True(live.EmitSectorOrders([30, 30, 10, 10, 20], capital));   // queued, not yet played
             live.Save(log);
@@ -277,7 +290,18 @@ public class ChronicleAndResumeTests
             // .RecordedFlat(33) is false), and this flat arm would silently change meaning. It is the explicit 32 now; never
             // redefine Version − 1 as flat. The v33 arm is its own test below (a cylinder rebuild).
             int older = 32;
+            // D-057 (2026-10-18) CAUSE BLOCK: the trace was a 64-zero stand-in for "another schema's hashes". This build now
+            // hashes every readable schema's form (D-056) and, before each batch, proves the settlements an order names
+            // against it (ReplayProof) — a trace no form matches says the replay differs from the founding on, and the
+            // resume is refused (the arm just below). Re-rigged with what a v32 build writes — the v32 form, which this build
+            // reproduces from the batch-2 build's own fixture session hash for hash (CliSaveAndSizeMessagesTests) — every
+            // assertion that follows stands.
             RecordTraceUnderAnotherSchema(UiSession.TracePath(log));
+            RecordSchema(manifestPath, older);
+            OrderValidationException unproven = Assert.Throws<OrderValidationException>(() => UiSession.Resume(manifestPath, out _));
+            Assert.Contains("This replay differs from the recorded game from its founding on (turn 0 does not match the saved trace)",
+                unproven.Message, StringComparison.Ordinal);
+            RecordTraceInSchemaForm(UiSession.TracePath(log), worlds, older);
 
             // Control: under THIS build's schema the doctored trace is refused at the first replayed turn — as an
             // incompatible session since D-052 (the owner's change), the check's divergence its inner exception.

@@ -423,7 +423,7 @@ public class CliSaveAndSizeMessagesTests
     /// recipe as the recording build's.
     /// </summary>
     [Fact]
-    public void SimInspect_OfABatch2Session_RebuildsItOnTheFlatMapItWasPlayedOn_AndSaysTheTraceWasNotChecked()
+    public void SimInspect_OfABatch2Session_RebuildsItOnTheFlatMapItWasPlayedOn_AndReproducesItInTheV32Form()
     {
         string src = Path.Combine(AppContext.BaseDirectory, "Fixtures", "v32-session-found");
         string dir = Path.Combine(Path.GetTempPath(), "civsim-b2inspect-" + Guid.NewGuid().ToString("N"));
@@ -437,8 +437,13 @@ public class CliSaveAndSizeMessagesTests
 
             Assert.Equal((0, ""), (exit, stderr));
             Assert.DoesNotContain("REPRODUCTION FAILED", stdout, StringComparison.Ordinal);
-            Assert.Contains(SessionSchemaNotice.NotChecked(32), stdout, StringComparison.Ordinal);
-            Assert.Contains("on the flat map v32 used", SessionSchemaNotice.NotChecked(32), StringComparison.Ordinal);
+            // D-057: the trace is checked in the v32 form, and this build reproduces the batch-2 build's game — its colony
+            // (kind 9) and the order for it included — hash for hash through the last recorded turn. (Until D-057 the line
+            // was NotChecked(32): no trace check.)
+            Assert.Contains(SessionSchemaNotice.CheckedInRecordedForm(32, 8, -1, 8), CliProcess.Lines(stdout));
+            Assert.Contains("the replay reproduces the recorded game through turn 8", stdout, StringComparison.Ordinal);
+            Assert.Contains("on the flat map v32 used", SessionSchemaNotice.CheckedInRecordedForm(32, 8, -1, 8), StringComparison.Ordinal);
+            Assert.DoesNotContain(SessionSchemaNotice.NotChecked(32), stdout, StringComparison.Ordinal);
             // The batch-2 build's own turn-8 row for this session (its `sim inspect` output, README).
             Assert.Contains("       8       80       5,365       +38         5,900        +216      14", CliProcess.Lines(stdout));
 
