@@ -90,4 +90,72 @@ public class SnapshotCorruptInputTests
         Assert.Contains("it carries bytes after its last field (the topology trailer)",
             Assert.Throws<SnapshotFormatException>(() => Snapshot.Load(new MemoryStream(longer))).Message);
     }
+
+    // ================================================================== D-057: malformed fields
+
+    /// <summary>The offset of the one byte where <paramref name="a"/> and <paramref name="b"/> (equal length) differ.</summary>
+    private static int OnlyDifference(byte[] a, byte[] b)
+    {
+        Assert.Equal(a.Length, b.Length);
+        int at = -1;
+        for (int i = 0; i < a.Length; i++)
+            if (a[i] != b[i]) { Assert.Equal(-1, at); at = i; }
+        Assert.True(at >= 0, "the two saves are identical");
+        return at;
+    }
+
+    private static WorldState WithAgeEligibility(bool eligible)
+    {
+        WorldState w = Populated();
+        w.AgeEligibility.Add(new AgeEligibilityRow(new PolityId(1), 2, 5, 1, 1, 2, 2, 3, 2, eligible));
+        return w;
+    }
+
+    private static WorldState WithPolity(CommandSource source)
+    {
+        WorldState w = Populated();
+        w.Polities.Add(new PolityRow(new PolityId(1), source));
+        return w;
+    }
+
+    /// <summary>D-057: a boolean field holds the byte a writer writes — 0 or 1. BinaryReader.ReadBoolean took any non-zero
+    /// byte as true, so a save with a 2 there loaded, and re-saved as another file. The terrain flag (the stream's first
+    /// boolean) and a row's boolean (AgeEligibility.Eligible) are refused for every byte 2..255, and 0 and 1 load
+    /// bit-exactly.</summary>
+    [Fact]
+    public void ABooleanFieldHoldingAnyByteButZeroOrOne_IsRefused()
+    {
+        byte[] no = Save(WithAgeEligibility(false)), yes = Save(WithAgeEligibility(true));
+        int row = OnlyDifference(no, yes);
+        Assert.Equal((0, 1), (no[row], yes[row]));
+        foreach (byte[] ok in new[] { no, yes }) Assert.Equal(ok, Save(Snapshot.Load(new MemoryStream(ok))));
+        const int terrainFlag = RegionCountOffset - 1;
+        Assert.Equal(0, no[terrainFlag]);
+        foreach (int at in new[] { terrainFlag, row })
+            for (int b = 2; b <= 255; b++)
+            {
+                byte[] bad = (byte[])no.Clone();
+                bad[at] = (byte)b;
+                string message = Assert.Throws<SnapshotFormatException>(() => Snapshot.Load(new MemoryStream(bad))).Message;
+                Assert.Contains("save is truncated or corrupt", message);
+                Assert.Contains($"a boolean field holds the byte {b}; a writer writes only 0 or 1", message);
+            }
+    }
+
+    /// <summary>D-057: a polity's command source is one CommandSource defines (AI 0, player 1); any other value was cast and
+    /// loaded as a polity no one commands.</summary>
+    [Theory]
+    [InlineData(2)]
+    [InlineData(-1)]
+    [InlineData(int.MaxValue)]
+    public void APolityCommandSourceNoEnumValueNames_IsRefused(int value)
+    {
+        byte[] ai = Save(WithPolity(CommandSource.Ai)), player = Save(WithPolity(CommandSource.Player));
+        int at = OnlyDifference(ai, player);   // the low byte of the source's int32
+        foreach (byte[] ok in new[] { ai, player }) Assert.Equal(ok, Save(Snapshot.Load(new MemoryStream(ok))));
+        byte[] bad = (byte[])ai.Clone();
+        BinaryPrimitives.WriteInt32LittleEndian(bad.AsSpan(at), value);
+        string message = Assert.Throws<SnapshotFormatException>(() => Snapshot.Load(new MemoryStream(bad))).Message;
+        Assert.Contains($"a polity's command source is {value}; only 0 (AI) and 1 (player) exist", message);
+    }
 }

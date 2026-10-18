@@ -1032,6 +1032,29 @@ public static class CanonicalSchema
         return count;
     }
 
+    /// <summary>
+    /// D-057 — a boolean field, as BinaryWriter.Write(bool) writes it: the byte 0 or 1. BinaryReader.ReadBoolean took any
+    /// non-zero byte as true, so a malformed byte loaded and re-saved as a different file; it is refused instead (the byte
+    /// count and every well-formed save are unchanged).
+    /// </summary>
+    private static bool ReadFlag(BinaryReader reader)
+    {
+        byte b = reader.ReadByte();
+        if (b > 1)
+            throw new InvalidDataException($"a boolean field holds the byte {b.ToString(System.Globalization.CultureInfo.InvariantCulture)}; a writer writes only 0 or 1.");
+        return b == 1;
+    }
+
+    /// <summary>D-057 — a polity's command source: a value <see cref="CommandSource"/> defines (Ai 0, Player 1). Any other
+    /// int was cast and loaded as a polity neither the player nor the AI commands.</summary>
+    private static CommandSource ReadCommandSource(BinaryReader reader)
+    {
+        int value = reader.ReadInt32();
+        if (value != (int)CommandSource.Ai && value != (int)CommandSource.Player)
+            throw new InvalidDataException($"a polity's command source is {value.ToString(System.Globalization.CultureInfo.InvariantCulture)}; only 0 (AI) and 1 (player) exist.");
+        return (CommandSource)value;
+    }
+
     private static WorldState ReadStream(BinaryReader reader, int version, out byte[]? expectedTerrainHash)
     {
         ulong seed = reader.ReadUInt64();
@@ -1040,7 +1063,7 @@ public static class CanonicalSchema
             Clock = new SimClock(reader.ReadInt64(), reader.ReadInt64(), reader.ReadInt64()),
         };
 
-        expectedTerrainHash = reader.ReadBoolean() ? reader.ReadBytes(32) : null;
+        expectedTerrainHash = ReadFlag(reader) ? reader.ReadBytes(32) : null;
 
         int regionCount = ReadCount(reader);
         for (int i = 0; i < regionCount; i++)
@@ -1359,7 +1382,7 @@ public static class CanonicalSchema
         for (int i = 0; i < polityCount; i++)
         {
             var id = new PolityId(reader.ReadInt32());
-            world.Polities.Add(new PolityRow(id, (CommandSource)reader.ReadInt32()));
+            world.Polities.Add(new PolityRow(id, ReadCommandSource(reader)));
         }
 
         int capitalCount = ReadCount(reader);
@@ -1461,7 +1484,7 @@ public static class CanonicalSchema
             world.AgeEligibility.Add(new AgeEligibilityRow(
                 new PolityId(reader.ReadInt32()), reader.ReadInt32(), reader.ReadInt64(),
                 reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32(),
-                reader.ReadInt32(), reader.ReadInt32(), reader.ReadBoolean()));
+                reader.ReadInt32(), reader.ReadInt32(), ReadFlag(reader)));
         }
 
         int ageTransitionCount = ReadCount(reader);
