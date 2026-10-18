@@ -47,7 +47,7 @@ public class CliRevoltPolityProducerTests
 
     /// <summary>FoundedHarnessTests.SessionPcts' labour swings on settlement 0, plus — issued with its 0 % swing — every
     /// other settlement's food labour abandoned while it keeps building (the D-053 §2 re-rig, header).</summary>
-    private static OrderLog PlayerLog(WorldState founded)
+    internal static OrderLog PlayerLog(WorldState founded)
     {
         var log = new OrderLog();
         double[] pcts = FoundedHarnessTests.SessionPcts;   // ADR-035 §7: the re-rigged swing set, shared

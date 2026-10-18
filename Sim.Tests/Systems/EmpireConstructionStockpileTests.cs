@@ -524,10 +524,21 @@ public class EmpireConstructionStockpileTests
     private const string CanBeOrderedNow = "Can be ordered now. Work goes on each turn as far as materials and builders allow; "
         + "what has gone in is never lost while it waits, only if the project is cancelled.";
 
-    /// <summary>D-054 WS1: the card's claims note — counts, never a set-aside.</summary>
+    /// <summary>D-054 WS1: the card's claims note — counts, never a set-aside. D-055 (2026-10-16, track T1b; the Director's
+    /// batch-4 instruction, item 1 — batch-4 design §1.6): RE-PINNED TEXT. With the hold rule on a queue HEAD's claim IS set
+    /// aside, so the parenthetical "(this does not set it aside: …)" became false for it: the count is stated bare and the
+    /// set-asides are named after it (<see cref="SetAsideFor"/>). Batch 3's note is <see cref="CountedBatch3"/>, reproduced
+    /// beside each re-pin under TestConfigs.PreReservations.</summary>
     private static string Counted(long n, string at) => "; " + n.ToString(System.Globalization.CultureInfo.InvariantCulture)
-        + " counted toward projects already queued at " + at
+        + " counted toward projects already queued at " + at;
+
+    /// <summary>Batch 3's claims note (the hold rule off: TestConfigs.PreReservations).</summary>
+    private static string CountedBatch3(long n, string at) => Counted(n, at)
         + " (this does not set it aside: earlier projects in the building order, and road works under the split, can use it first)";
+
+    /// <summary>D-055 (2026-10-16, T1b): the card's set-aside note — what the hold rule sets aside ahead of the entry.</summary>
+    private static string SetAsideFor(long n, string heads) => "; " + n.ToString(System.Globalization.CultureInfo.InvariantCulture)
+        + " set aside for " + heads + ", ahead in the building order";
 
     private static (string, bool?, string?)[] Materials(InfoCard card)
     {
@@ -805,8 +816,13 @@ public class EmpireConstructionStockpileTests
         // The crafted input's line is Met against the UNCLAIMED holding, and its note says so; the raw lines keep the pool.
         // D-054 WS1 (shipped): the note says the claim is a count, not a set-aside; the switch-off note keeps "unclaimed".
         SimConfig whole = TestConfigs.PreIncrementalConstruction(Cfg);
+        // D-055 (2026-10-16, T1b): re-pinned text — S0's workshop is its queue's head, so (the hold rule on) it SETS ASIDE the
+        // ten tools: the note names that set-aside after the count; batch 3's note reproduces under PreReservations (`pre`).
+        SimConfig pre = TestConfigs.PreReservations(Cfg);
         (string, bool?, string?) tools = Materials(card).Single(l => l.Item1 == "10 tools");
-        Assert.Equal(("10 tools", (bool?)false, (string?)("empire has 10" + Counted(10, "S0"))), tools);
+        Assert.Equal(("10 tools", (bool?)false, (string?)("empire has 10" + Counted(10, "S0") + SetAsideFor(10, "S0's Workshop"))), tools);
+        Assert.Equal(("10 tools", (bool?)false, (string?)("empire has 10" + CountedBatch3(10, "S0"))),
+            Materials(WorkshopCard(w, pre, S2)).Single(l => l.Item1 == "10 tools"));
         Assert.Equal(("10 tools", (bool?)false, (string?)"empire has 10; 10 claimed by projects queued at S0, 0 unclaimed"),
             Materials(WorkshopCard(w, whole, S2)).Single(l => l.Item1 == "10 tools"));
         Assert.Equal(("60 timber", (bool?)false, (string?)"empire has 0"), Materials(card).Single(l => l.Item1 == "60 timber"));
@@ -815,8 +831,10 @@ public class EmpireConstructionStockpileTests
         Set(w, S3, Tools, 15);
         InfoCard partly = WorkshopCard(w, Cfg, S2);
         Assert.Equal("Cannot be ordered yet: it needs 10 tools; 10 of the empire's 15 are already claimed by projects queued at S0.", partly.StatusLine);
-        Assert.Equal(("10 tools", (bool?)false, (string?)("empire has 15" + Counted(10, "S0"))),
+        Assert.Equal(("10 tools", (bool?)false, (string?)("empire has 15" + Counted(10, "S0") + SetAsideFor(10, "S0's Workshop"))),
             Materials(partly).Single(l => l.Item1 == "10 tools"));
+        Assert.Equal(("10 tools", (bool?)false, (string?)("empire has 15" + CountedBatch3(10, "S0"))),
+            Materials(WorkshopCard(w, pre, S2)).Single(l => l.Item1 == "10 tools"));
         Assert.Equal(("10 tools", (bool?)false, (string?)"empire has 15; 10 claimed by projects queued at S0, 5 unclaimed"),
             Materials(WorkshopCard(w, whole, S2)).Single(l => l.Item1 == "10 tools"));
         // Two queues claim it: both are named, ascending id.
@@ -830,8 +848,10 @@ public class EmpireConstructionStockpileTests
         Set(w, S3, Tools, 20);
         Assert.Equal(ProjectAvailability.Available, WorkshopAt(w, Cfg, S2));
         InfoCard enough = WorkshopCard(w, Cfg, S2);
-        Assert.Equal(("10 tools", (bool?)true, (string?)("empire has 20" + Counted(10, "S0"))),
+        Assert.Equal(("10 tools", (bool?)true, (string?)("empire has 20" + Counted(10, "S0") + SetAsideFor(10, "S0's Workshop"))),
             Materials(enough).Single(l => l.Item1 == "10 tools"));
+        Assert.Equal(("10 tools", (bool?)true, (string?)("empire has 20" + CountedBatch3(10, "S0"))),
+            Materials(WorkshopCard(w, pre, S2)).Single(l => l.Item1 == "10 tools"));
         Assert.Equal(("10 tools", (bool?)true, (string?)"empire has 20; 10 claimed by projects queued at S0, 10 unclaimed"),
             Materials(WorkshopCard(w, whole, S2)).Single(l => l.Item1 == "10 tools"));
         Assert.Null(ConstructionQuery.ClaimedReason(w, Cfg, S2, Cfg.Goods!.ProjectById(Workshop)!, w.ConstructionQueue, SName));
@@ -1067,11 +1087,11 @@ public class EmpireConstructionStockpileTests
         Assert.Equal((0L, 5L), (Of(ok, S0, Stone), Of(ok, S1, Stone)));
     }
 
-    [Fact]
-    public void ALowerIdHeadThatFailsAGate_DrawsNothing_AndBlocksNoHigherIdHead()
+    /// <summary>The gate rig: two granaries queued with no progress rows (EnqueuedTurn −1 for both, so the tie goes to the
+    /// lower settlement id: S1 first); S1 has no builders, S2 every builder; the purse holds exactly one granary's 40 timber
+    /// and 20 stone, at S3.</summary>
+    private static WorldState GateWorld()
     {
-        // Finding A6 (the wording): heads are tried in ascending id, each against what earlier heads left; a lower-id head
-        // that PASSES its gates draws first — one that fails a gate (here: no builders at S1) draws nothing and blocks no one.
         WorldState w = TieWorld(Solo());
         NoBuilders(w, S1);
         AllBuilders(w, S2);
@@ -1079,12 +1099,52 @@ public class EmpireConstructionStockpileTests
         Set(w, S3, Stone, 20);
         w.ConstructionQueue.Add(new ConstructionQueueRow(S1, 0, Granary));
         w.ConstructionQueue.Add(new ConstructionQueueRow(S2, 0, Granary));
+        return w;
+    }
 
+    /// <summary>
+    /// Finding A6 (the wording): heads are tried in ascending order, each against what earlier heads left; a head that
+    /// fails a gate (here: no builders at S1) draws nothing.
+    ///
+    /// D-055 RE-PIN (2026-10-16; the Director's batch-4 instruction, item 1 — "projects must not consume resources reserved
+    /// by other projects"; batch-4 design §1.7, a DEFECT pin; MEASURED on this tree by the agent writing this line). This
+    /// test was <c>ALowerIdHeadThatFailsAGate_DrawsNothing_AndBlocksNoHigherIdHead</c>: S2 took the purse's 40 timber and 20
+    /// stone and completed while S1, first in the building order, waited for builders — built (S1, S2) = (0, 1), S3 left
+    /// (0, 0), one queue row. That is the batch-3 defect (D-054 Q17). CAUSE: the hold rule (sim.json
+    /// construction.reservations; ConstructionQuery.HoldsWalk) — "no builders" with adults present is a VALID wait (the
+    /// player's labour allocation, not a released reservation), so S1 draws nothing and SETS ASIDE its whole need of the
+    /// Empire purse; S2 waits, HeldForEarlier naming S1. NEW: built (0, 0), S3 keeps (40, 20), two queue rows, published holds
+    /// (purse 1) timber 40 and stone 20. ATTRIBUTION: the old values reproduce under TestConfigs.PreReservations, the batch-3
+    /// rule (<see cref="ALowerIdHeadThatFailsAGate_UnderPreReservations_DrawsNothing_AndBlocksNoHigherIdHead"/>).
+    /// </summary>
+    [Fact]
+    public void ALowerIdHeadThatFailsAGate_DrawsNothing_ButSetsAsideItsNeed_AndTheHigherIdHeadWaits()
+    {
+        WorldState w = GateWorld();
         WorldState next = ConstructionOnly(Cfg, null).Step(w);
+        Assert.Equal((0L, 0L), (Built(next, S1), Built(next, S2)));
+        Assert.Equal((40L, 20L), (Of(next, S3, Timber), Of(next, S3, Stone)));
+        Assert.Equal(2, next.ConstructionQueue.Count);
+        int purse = Reservations.PolityPurse(Player);
+        Assert.Equal([new ConstructionHoldRow(purse, Timber, 40), new ConstructionHoldRow(purse, Stone, 20)], next.ConstructionHolds.Rows());
+        HeadStatusReport waiting = ConstructionQuery.HeadStatus(w, Cfg, S2, null, 10.0)!;
+        Assert.Equal((HeadLimitKind.Materials, MaterialCause.HeldForEarlier), (waiting.Resolution.Limit, waiting.Cause));
+        Assert.Equal(new QueueEntryRef(S1, 0, Granary), waiting.Holder);
+        AssertConserved(next);
+    }
+
+    /// <summary>D-055 (2026-10-16) — the PreReservations twin of
+    /// <see cref="ALowerIdHeadThatFailsAGate_DrawsNothing_ButSetsAsideItsNeed_AndTheHigherIdHeadWaits"/>: the batch-3 pin,
+    /// unchanged.</summary>
+    [Fact]
+    public void ALowerIdHeadThatFailsAGate_UnderPreReservations_DrawsNothing_AndBlocksNoHigherIdHead()
+    {
+        WorldState next = ConstructionOnly(TestConfigs.PreReservations(Cfg), null).Step(GateWorld());
         Assert.Equal((0L, 1L), (Built(next, S1), Built(next, S2)));
         Assert.Equal((0L, 0L), (Of(next, S3, Timber), Of(next, S3, Stone)));
         ConstructionQueueRow waiting = Assert.Single(next.ConstructionQueue.Rows());
         Assert.Equal(S1, waiting.Settlement);
+        Assert.Equal(0, next.ConstructionHolds.Count);
         AssertConserved(next);
     }
 

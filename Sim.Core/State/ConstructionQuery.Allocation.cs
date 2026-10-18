@@ -10,15 +10,16 @@ namespace Sim.Core.State;
 /// <see cref="AllocationSplit"/> (<c>Splits</c>, aligned with Goods); and the GRANTS heads draw within
 /// (<c>BuildingGrants</c>, indexed by good id — G_b for an eligible good, long.MaxValue for any other — or null when the
 /// split cannot bind: b = 100). The FORECAST of the step, indexed by good id: <c>BuildingDraws</c> what the Empire's heads
-/// draw within those grants (D_b where nothing binds), and <c>RoadCharges</c> what road development would charge the road
-/// order on what building work leaves (S − BuildingDraws; all zeros without a road order). <c>RoadPaysNothingFromItsShare</c>
-/// — THE STARVATION GUARD fired: the split would have held materials back from building work for a road order that, on
-/// what building work would leave it, pays nothing at all, so it withholds nothing (its RoadDemand is 0 and every grant is
-/// D_b).
+/// draw within those grants, <c>BuildingHolds</c> (D-055) what they SET ASIDE within them (all zeros with the hold rule
+/// off; draws + holds = D_b where nothing binds), and <c>RoadCharges</c> what road development would charge the road order
+/// on what building work neither draws nor sets aside (S − BuildingDraws − BuildingHolds; all zeros without a road order).
+/// <c>RoadPaysNothingFromItsShare</c> — THE STARVATION GUARD fired: the split would have held materials back from building
+/// work for a road order that, on what building work would leave it, pays nothing at all, so it withholds nothing (its
+/// RoadDemand is 0 and every grant is D_b).
 /// </summary>
 public sealed record EmpireAllocation(
     PolityId Polity, int BuildingsPercent, OrderRecord? RoadOrder, int[] Goods, AllocationSplit[] Splits, long[]? BuildingGrants,
-    long[] BuildingDraws, long[] RoadCharges, bool RoadPaysNothingFromItsShare = false)
+    long[] BuildingDraws, long[] RoadCharges, bool RoadPaysNothingFromItsShare = false, long[]? BuildingHolds = null)
 {
     /// <summary>The split of good <paramref name="good"/>, or null when it is not an eligible good.</summary>
     public AllocationSplit? SplitOf(int good)
@@ -29,6 +30,10 @@ public sealed record EmpireAllocation(
 
     /// <summary>What building work is forecast to draw of good <paramref name="good"/> this step (0 for an unknown id).</summary>
     public long BuildingDrawOf(int good) => good >= 0 && good < BuildingDraws.Length ? BuildingDraws[good] : 0;
+
+    /// <summary>D-055: what building work is forecast to SET ASIDE of good <paramref name="good"/> this step — the waiting
+    /// heads' remaining needs within the grant (0 for an unknown id, and with the hold rule off).</summary>
+    public long BuildingHoldOf(int good) => BuildingHolds is { } h && good >= 0 && good < h.Length ? h[good] : 0;
 
     /// <summary>What road development is forecast to charge of good <paramref name="good"/> this step, on what building work
     /// leaves (0 for an unknown id).</summary>
@@ -76,24 +81,29 @@ public static partial class ConstructionQuery
     /// THE SPLIT OF ONE EMPIRE FOR ONE STEP (D-054 WS2; <see cref="ResourceAllocation"/>'s header), at building share
     /// <paramref name="buildingsPercent"/> and with the road order <paramref name="roadOrder"/> (null: none). Null when the
     /// split does not apply — the switch is off, the world has no Controls (no Empire purse to split), or the Empire
-    /// controls no settlement. Per good of the Empire's purse (every settlement it controls on <paramref name="prev"/>):
+    /// controls no settlement. Per good of the Empire's purse (every settlement it controls on <paramref name="prev"/> — with
+    /// the hold rule on, less any place another Empire's purse owns, <see cref="EmpirePursePlaces"/>: the road works' own payer
+    /// set, so S, D_r and the road forecast count only what this Empire's road works can draw; T1a round 2):
     /// <list type="bullet">
     /// <item>S — the purse's holding in <paramref name="stocks"/> (ConstructionSystem: its NEXT stocks before any head
     ///   draws);</item>
-    /// <item>D_b — what the Empire's OWN queue heads in <paramref name="queue"/>/<paramref name="progress"/> would draw with
-    ///   no split: each resolved by <see cref="ResolveHead"/> in THE BUILDING ORDER (<see cref="HeadsInBuildingOrder"/>,
-    ///   gates applied) against what the earlier ones left of S — the Empire's purse is no other head's, so this is exactly
-    ///   what they would draw;</item>
-    /// <item>D_r — <see cref="RoadDevelopmentQuery.SimulateCharges"/> of the road order against S (0 without one);</item>
+    /// <item>D_b — BUILDING WORK'S CLAIM (D-055): what the Empire's OWN queue heads in <paramref name="queue"/>/
+    ///   <paramref name="progress"/> would DRAW and SET ASIDE with no split (Budget = S): THE walk (<see cref="HoldsWalk"/>,
+    ///   the Empire's purse only — no other head draws on it), in THE BUILDING ORDER, gates and releases applied. A waiting
+    ///   head contributes its remaining need. With the hold rule off (TestConfigs.PreReservations) the set-asides are 0 and
+    ///   D_b is the draws alone, batch 3 exactly;</item>
+    /// <item>D_r — <see cref="RoadDevelopmentQuery.SimulateCharges"/> of the road order against S (0 without one) —
+    ///   unchanged by D-055;</item>
     /// <item>the split, <see cref="ResourceAllocation.Split"/>, of each ELIGIBLE good.</item>
     /// </list>
-    /// THE FORECAST: the heads are resolved again within the grants (each against the least of what is left of S and of
-    /// its grant — exactly the step's own resolution, since no other head draws on this purse), giving
-    /// <see cref="EmpireAllocation.BuildingDraws"/>, and the road order's charges on what they leave,
+    /// THE FORECAST: the walk again within the grants — the step's own walk on this purse, the holds spending the grant too
+    /// — giving <see cref="EmpireAllocation.BuildingDraws"/> and <see cref="EmpireAllocation.BuildingHolds"/>, and the road
+    /// order's charges on what building work neither draws nor sets aside (S − drawn − held),
     /// <see cref="EmpireAllocation.RoadCharges"/>.
     /// THE STARVATION GUARD: a road order that can pay nothing withholds nothing. It holds at S by construction (D_r = 0
     /// there gives G_b = min(D_b, S)); and when the split holds anything back from building work but road development
-    /// would charge NOTHING on what building work then leaves it — ADR-032's min-ratio can floor a step to nothing, e.g. a
+    /// would charge NOTHING on what building work then leaves it (S − drawn − held) — ADR-032's min-ratio can floor a step
+    /// to nothing, e.g. a
     /// two-tool charge on a quarter of its timber — the split is recomputed with D_r = 0, so building work takes D_b and
     /// road works, finding less, still pay nothing (the charge never rises as the holding falls).
     /// The grants are null at b = 100 (G_b = min(D_b, S) never binds). A pure function: it reads and allocates only.
@@ -104,7 +114,7 @@ public static partial class ConstructionQuery
         IReadOnlyTable<GoodStockRow> stocks, int buildingsPercent, OrderRecord? roadOrder, double dtYears)
     {
         if (!ResourceAllocation.Enabled(cfg) || cfg.Goods is not { } goods || prev.Controls.Count == 0) return null;
-        SettlementId[] purse = RoadDevelopmentQuery.PayingSettlements(prev, polity);
+        SettlementId[] purse = EmpirePursePlaces(prev, cfg, polity, RoadDevelopmentQuery.PayingSettlements(prev, polity));
         if (purse.Length == 0) return null;
 
         int width = MaxGoodId(goods) + 1;
@@ -115,9 +125,10 @@ public static partial class ConstructionQuery
             if (id >= 0) supply[id] = EmpireStockpile.Available(stocks, purse, new GoodId(id));
         }
 
-        // D_b: the Empire's own heads, oldest order first, each against what the earlier ones left (no split).
-        ConstructionQueueRow[] heads = HeadsInBuildingOrder(prev, queue, progress);
-        long[] demand = OwnHeadDraws(prev, cfg, goods, polity, heads, queue, progress, stocks, dtYears, supply, grants: null);
+        // D_b: the Empire's own heads' CLAIM — draws and set-asides — oldest order first (no split; D-055).
+        (long[] d0, long[] h0) = OwnHeadClaims(prev, cfg, polity, queue, progress, stocks, dtYears, width, grant: null);
+        var demand = new long[width];
+        for (int g = 0; g < width; g++) demand[g] = checked(d0[g] + h0[g]);
 
         // D_r: road development's own charges for the delivered order, against S.
         long[] roads = roadOrder is { } order
@@ -127,53 +138,45 @@ public static partial class ConstructionQuery
         int[] ids = ResourceAllocation.EligibleGoodIds(cfg);
         (AllocationSplit[] splits, long[]? grants) = SplitAll(ids, width, supply, demand, roads, buildingsPercent);
 
-        // The forecast: what the heads draw within the grants, and what the road order is charged on what they leave.
-        long[] drawn = grants is null || !AnyHoldsBack(splits)
-            ? demand
-            : OwnHeadDraws(prev, cfg, goods, polity, heads, queue, progress, stocks, dtYears, supply, grants);
-        long[] charges = RoadChargesOnRemainder(prev, cfg, polity, roadOrder, supply, drawn);
+        // The forecast: what the heads draw and set aside within the grants (the step's own walk on this purse), and what
+        // the road order is charged on what building work neither draws nor sets aside.
+        (long[] drawn, long[] held) = grants is null || !AnyHoldsBack(splits)
+            ? (d0, h0)
+            : OwnHeadClaims(prev, cfg, polity, queue, progress, stocks, dtYears, width, grants);
+        long[] charges = RoadChargesOnRemainder(prev, cfg, polity, roadOrder, supply, drawn, held);
 
         // The starvation guard on what the split leaves road works.
         bool guarded = false;
         if (grants is not null && roadOrder is not null && AnyHoldsBack(splits) && AllZero(charges))
         {
             (splits, grants) = SplitAll(ids, width, supply, demand, new long[width], buildingsPercent);
-            drawn = demand;
-            charges = RoadChargesOnRemainder(prev, cfg, polity, roadOrder, supply, drawn);
+            (drawn, held) = (d0, h0);
+            charges = RoadChargesOnRemainder(prev, cfg, polity, roadOrder, supply, drawn, held);
             guarded = true;
         }
-        return new EmpireAllocation(polity, buildingsPercent, roadOrder, ids, splits, grants, drawn, charges, guarded);
+        return new EmpireAllocation(polity, buildingsPercent, roadOrder, ids, splits, grants, drawn, charges, guarded, held);
     }
 
-    /// <summary>What the heads of <paramref name="polity"/> among <paramref name="heads"/> (the building order) draw of each
-    /// good id from its purse holding <paramref name="supply"/>: each resolved by <see cref="ResolveHead"/> against the least
-    /// of what the earlier ones left of the supply and (when <paramref name="grants"/> is given) of the grants.</summary>
-    private static long[] OwnHeadDraws(
-        IReadOnlyWorldState prev, SimConfig cfg, GoodsConfig goods, PolityId polity, ConstructionQueueRow[] heads,
-        IReadOnlyTable<ConstructionQueueRow> queue, IReadOnlyTable<ConstructionProgressRow> progress,
-        IReadOnlyTable<GoodStockRow> stocks, double dtYears, long[] supply, long[]? grants)
+    /// <summary>BUILDING WORK'S CLAIM on <paramref name="polity"/>'s purse (D-055; formerly the draws alone): what its heads
+    /// DRAW and SET ASIDE of each good id — THE walk (<see cref="HoldsWalk"/>) over its purse only, within
+    /// <paramref name="grant"/> (null: no split, the budget is the holding S). Set-asides are 0 with the hold rule
+    /// off.</summary>
+    private static (long[] Drawn, long[] Held) OwnHeadClaims(
+        IReadOnlyWorldState prev, SimConfig cfg, PolityId polity, IReadOnlyTable<ConstructionQueueRow> queue,
+        IReadOnlyTable<ConstructionProgressRow> progress, IReadOnlyTable<GoodStockRow> stocks, double dtYears, int width,
+        long[]? grant)
     {
-        int width = supply.Length;
-        var left = (long[])supply.Clone();
-        var budget = new long[width];
+        HoldsWalkResult walk = HoldsWalkOf(prev, cfg, polity, queue, progress, stocks, dtYears, grant);
         var drawn = new long[width];
-        for (int h = 0; h < heads.Length; h++)
+        var held = new long[width];
+        int k = walk.IndexOfPurse(Reservations.PolityPurse(polity));
+        if (k < 0) return (drawn, held);
+        for (int g = 0; g < width && g < walk.Drawn[k].Length; g++)
         {
-            if (!EmpireQuery.TryGetController(prev, heads[h].Settlement, out PolityId controller)
-                || controller.Value != polity.Value) continue;
-            for (int g = 0; g < width; g++)
-                budget[g] = grants is null || g >= grants.Length ? left[g] : Math.Min(left[g], grants[g] - drawn[g]);
-            HeadResolution? r = ResolveHead(prev, cfg, heads[h].Settlement, queue, progress, stocks, dtYears, budget);
-            if (r is null || !r.Progresses || r.Project is not { } project) continue;
-            for (int i = 0; i < project.Inputs.Length; i++)
-            {
-                int g = goods.IdOf(project.Inputs[i].Good);
-                if (g < 0 || g >= width) continue;
-                left[g] -= r.Draws[i];
-                drawn[g] += r.Draws[i];
-            }
+            drawn[g] = walk.Drawn[k][g];
+            held[g] = walk.Held[k][g];
         }
-        return drawn;
+        return (drawn, held);
     }
 
     /// <summary>Each eligible good's split (aligned with <paramref name="ids"/>) and the grants by good id (long.MaxValue
@@ -198,13 +201,14 @@ public static partial class ConstructionQuery
     }
 
     /// <summary>The road order's charges (<see cref="RoadDevelopmentQuery.SimulateCharges"/>) on the purse's holding less
-    /// building work's draws; all zeros without a road order.</summary>
+    /// building work's draws and (D-055) set-asides — what road development itself will find; all zeros without a road
+    /// order.</summary>
     private static long[] RoadChargesOnRemainder(
-        IReadOnlyWorldState prev, SimConfig cfg, PolityId polity, OrderRecord? roadOrder, long[] supply, long[] drawn)
+        IReadOnlyWorldState prev, SimConfig cfg, PolityId polity, OrderRecord? roadOrder, long[] supply, long[] drawn, long[] held)
     {
         if (roadOrder is not { } order) return new long[supply.Length];
         var remainder = new long[supply.Length];
-        for (int g = 0; g < remainder.Length; g++) remainder[g] = supply[g] - drawn[g];
+        for (int g = 0; g < remainder.Length; g++) remainder[g] = checked(supply[g] - drawn[g] - held[g]);
         return RoadDevelopmentQuery.SimulateCharges(prev, cfg, polity, order.Amount, remainder);
     }
 
@@ -269,8 +273,11 @@ public static partial class ConstructionQuery
         return null;
     }
 
-    /// <summary>Spends a resolved head's draws from its Empire's working grants (no-op without a cap).</summary>
-    public static void SpendGrants(long[]? grants, GoodsConfig goods, ConstructionProjectEntry project, long[] draws)
+    /// <summary>Spends a resolved head's draws (project-input order) from its Empire's working grants, and (D-055) its
+    /// set-asides <paramref name="holds"/> (by good id) — holds spend the grant too, so road works keep min(D_r, E_r)
+    /// (no-op without a cap; a long.MaxValue grant is uncapped). <see cref="HoldsWalk"/> keeps the grant less the draws (its
+    /// counterfactual A0) and the budget less draws and holds.</summary>
+    public static void SpendGrants(long[]? grants, GoodsConfig goods, ConstructionProjectEntry project, long[] draws, long[]? holds = null)
     {
         if (grants is null) return;
         for (int i = 0; i < project.Inputs.Length; i++)
@@ -278,5 +285,8 @@ public static partial class ConstructionQuery
             int g = goods.IdOf(project.Inputs[i].Good);
             if (g >= 0 && g < grants.Length && grants[g] != long.MaxValue) grants[g] -= draws[i];
         }
+        if (holds is null) return;
+        for (int g = 0; g < holds.Length && g < grants.Length; g++)
+            if (grants[g] != long.MaxValue) grants[g] = checked(grants[g] - holds[g]);
     }
 }

@@ -211,7 +211,7 @@ public static class AvailableActionsQuery
         Research(world, cfg, polity, actions);
         Age(world, cfg, polity, context, actions);
         Construction(world, cfg, polity, context, actions);
-        Roads(world, cfg, polity, actions);
+        Roads(world, cfg, polity, context, actions);
         Military(world, cfg, polity, actions);
         Governance(world, cfg, polity, actions);
         Institutions(world, cfg, polity, context, actions);
@@ -343,6 +343,7 @@ public static class AvailableActionsQuery
         // accept (ConstructionQuery.QueueWithPending) — so once a workshop is ordered this turn its ten tools are claimed,
         // and a second workshop the intake would refuse is not offered.
         IReadOnlyTable<ConstructionQueueRow> claims = ConstructionQuery.QueueWithPending(world, cfg, context.Queued, out IReadOnlyTable<ConstructionProgressRow> claimsProgress);
+        SetAsideReading? holds = null;   // D-055: read once, when the first project is listed
         for (int s = 0; s < world.Settlements.Count; s++)
         {
             SettlementId settlement = world.Settlements[s].Id;
@@ -360,7 +361,8 @@ public static class AvailableActionsQuery
                     ActionDomain.Construction, ((long)settlement.Value << 32) | (uint)project.Id, ActionKind.Order,
                     $"construction.{Inv(settlement.Value)}.{project.Name}", $"Build {name}", OrderKind.EnqueueConstruction,
                     [SettlementTarget(settlement), new ActionTarget(ActionTargetKind.Project, project.Id, name)],
-                    ConstructionQuery.Blocker(world, cfg, settlement, project, context.NextDtYears),
+                    ConstructionQuery.Blocker(world, cfg, settlement, project, context.NextDtYears, 0,
+                        NewOrderSetAside(world, cfg, context, settlement, ref holds)),
                     ProjectProvenance(world, cfg.Research, polity, project, builders), detail));
             }
         }
@@ -428,12 +430,32 @@ public static class AvailableActionsQuery
         return ids.ToImmutable();
     }
 
+    /// <summary>
+    /// D-055 (batch-4 design §1.6, T1b): what a would-be NEW order of a project at <paramref name="settlement"/> finds SET ASIDE
+    /// in its purse — every set-aside of the purse (SetAsideQuery.HeldIn: every head is ahead of a new order in the building
+    /// order), from THE walk on the world and the turn's pending orders (SetAsideQuery.Read, read once per contributor call
+    /// into <paramref name="reading"/>). Null with the hold rule off (Reservations.Enabled): the blocker is batch 3's.
+    /// </summary>
+    private static long[]? NewOrderSetAside(
+        IReadOnlyWorldState world, SimConfig cfg, ActionQueryContext context, SettlementId settlement, ref SetAsideReading? reading)
+    {
+        if (!Reservations.Enabled(cfg)) return null;
+        reading ??= SetAsideQuery.Read(world, cfg, context.Queued, context.NextDtYears ?? world.Clock.DtYears);
+        return SetAsideQuery.HeldIn(reading.Walk, ConstructionQuery.PurseKey(world, cfg, settlement));
+    }
+
     // ------------------------------------------------------------------ Roads (OrderKind 8)
 
     /// <summary>Develop roads (Id = the target class's edge type) when RoadDevelopmentQuery.Plan — the selection
     /// RoadDevelopmentSystem applies — is non-empty: some route is eligible for a class the issuer knows. Targets
     /// = the plan's routes in rank order; blocker = the first route's cost when the issuer can pay none of it.</summary>
-    public static void Roads(IReadOnlyWorldState world, SimConfig cfg, PolityId polity, List<ActionDescriptor> into)
+    public static void Roads(IReadOnlyWorldState world, SimConfig cfg, PolityId polity, List<ActionDescriptor> into) =>
+        Roads(world, cfg, polity, ActionQueryContext.None, into);
+
+    /// <summary><see cref="Roads(IReadOnlyWorldState, SimConfig, PolityId, List{ActionDescriptor})"/> for the step
+    /// <paramref name="context"/> describes (its pending orders and dt): the blocker subtracts what that step's construction
+    /// will set aside (T1b fix round, 2026-10-17, finding F2).</summary>
+    public static void Roads(IReadOnlyWorldState world, SimConfig cfg, PolityId polity, ActionQueryContext context, List<ActionDescriptor> into)
     {
         if (cfg.Roads is not { } roads || cfg.Research is not { } research || cfg.Goods is not { } goods) return;
         RoadDevelopmentStep[] plan = RoadDevelopmentQuery.Plan(world, research, roads, goods, polity, 100.0);
@@ -450,9 +472,28 @@ public static class AvailableActionsQuery
                 Detail: $"{Num(r.LengthKm)} km · usage {Inv(r.Usage)} · {Percent(r.StartFraction)} modernized · needs {Costs(goods, step.Cost)}"));
         }
         RoadDevelopmentStep first = plan[0];
-        SettlementId[] payers = RoadDevelopmentQuery.PayingSettlements(world, polity, first.Route.A, first.Route.B);
-        string? blocker = RoadDevelopmentQuery.AffordableFraction(world.GoodStocks, payers, first.Cost) > 0.0
-            ? null : "needs " + Costs(goods, first.Cost) + " for the first route";
+        // D-055 (T1b; T1a round 2's open item): the payers road development itself draws on — with the hold rule on, the
+        // issuer's places less any another Empire's purse owns (ConstructionQuery.EmpirePursePlaces) — and what they hold less
+        // what construction sets aside within them (RoadDevelopmentQuery.SetAsideWithin). T1b fix round (2026-10-17, finding
+        // F2): the set-asides are THIS step's — the walk on the world and the context's pending orders (SetAsideQuery.StepTable;
+        // the step runs construction before road development), so a pending cancel of a holder releases them and a pending
+        // enqueue adds its own, as the step will; an estimate, like every queue reading. The rule off: PayingSettlements and
+        // the whole holding, batch 3 exactly.
+        SettlementId[] payers = ConstructionQuery.EmpirePursePlaces(world, cfg, polity,
+            RoadDevelopmentQuery.PayingSettlements(world, polity, first.Route.A, first.Route.B));
+        long[] have = RoadDevelopmentQuery.Holdings(world.GoodStocks, payers, first.Cost);
+        IReadOnlyTable<ConstructionHoldRow> setAsides = SetAsideQuery.StepTable(world, cfg, context.Queued, context.NextDtYears ?? world.Clock.DtYears);
+        var asideParts = new List<string>();
+        for (int m = 0; m < first.Cost.Length; m++)
+        {
+            long[]? keep = null;
+            long aside = RoadDevelopmentQuery.SetAsideWithin(world, cfg, setAsides, payers, first.Cost[m].Good, ref keep);
+            have[m] = Math.Max(0, have[m] - aside);
+            if (aside > 0) asideParts.Add(Inv(aside) + " " + goods.ById(first.Cost[m].Good.Value).Name);
+        }
+        string? blocker = RoadDevelopmentQuery.AffordableFraction(first.Cost, have) > 0.0
+            ? null : "needs " + Costs(goods, first.Cost) + " for the first route"
+                + (asideParts.Count == 0 ? "" : " (set aside for building projects: " + string.Join(", ", asideParts) + ")");
 
         int entity = roads.ClassOf(targetClass)?.Entity is { } eid ? research.EntityIndexOf(eid) : -1;
         ActionProvenance provenance = ActionProvenance.None;
@@ -486,7 +527,9 @@ public static class AvailableActionsQuery
         int b = Sim.Core.State.ResourceAllocation.EffectivePercent(world, polity);
         if (!ConstructionQuery.AllocationOrderValid(world, cfg, Sim.Core.State.ResourceAllocation.Order(world, polity, b))) return;
         string detail = b == Sim.Core.State.ResourceAllocation.DefaultBuildingsPercent
-            ? "building first (default): road works get only what building work leaves"
+            ? Reservations.Enabled(cfg)
+                ? "building first (default): road works get only what is left after building work uses or sets aside what it needs"
+                : "building first (default): road works get only what building work leaves"
             : "on a turn road works are ordered, building work is guaranteed " + Inv(b) + " shares in 100 and road works "
               + Inv(100 - b) + "; whatever one side does not need, the other may use";
         into.Add(new ActionDescriptor(
@@ -583,6 +626,7 @@ public static class AvailableActionsQuery
     {
         if (cfg.Goods is not { } goods || goods.Projects is not { Length: > 0 } projects || cfg.Research is not { } research) return;
         ImmutableArray<string> builders = ConstructionBaseline(research);
+        SetAsideReading? holds = null;   // D-055: read once, when the first founding is listed
         for (int s = 0; s < world.Settlements.Count; s++)
         {
             SettlementId settlement = world.Settlements[s].Id;
@@ -621,7 +665,8 @@ public static class AvailableActionsQuery
                     ActionDomain.Institutions, ((long)settlement.Value << 32) | (uint)project.Id, ActionKind.Order,
                     $"institutions.{Inv(settlement.Value)}.{type.Id}", $"Found {type.Name}", OrderKind.EnqueueConstruction,
                     [SettlementTarget(settlement), new ActionTarget(ActionTargetKind.Project, project.Id, type.Name)],
-                    ConstructionQuery.Blocker(world, cfg, settlement, project, context.NextDtYears),
+                    ConstructionQuery.Blocker(world, cfg, settlement, project, context.NextDtYears, 0,
+                        NewOrderSetAside(world, cfg, context, settlement, ref holds)),
                     Provenance(builders, entities.ToImmutable(), nodes), detail));
             }
         }

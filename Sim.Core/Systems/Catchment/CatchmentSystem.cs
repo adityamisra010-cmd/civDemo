@@ -149,30 +149,35 @@ public sealed class CatchmentSystem(SimConfig cfg) : ISimSystem<CatchmentTables>
         }
 
         // T2.5 (D-016 piggyback): pairwise settlement travel costs, recomputed
-        // on exactly the same events as the catchments themselves. One FULL
-        // (uncapped) Dijkstra per settlement over lattice + network fast
+        // on exactly the same events as the catchments themselves. One
+        // uncapped Dijkstra per settlement over lattice + network fast
         // lanes; an unreached destination stores PositiveInfinity — the
         // by-construction zero-flow sentinel migration relies on. Rows in
         // ascending (From, To) order, From ≠ To.
+        // Batch 4 (D-055, O5): each Dijkstra stops once every OTHER settlement's origin is settled
+        // (Pathfinder.DistancesTo) instead of flooding the whole component — the same cost bit for bit at each origin
+        // the batch-3 full isochrone read (its pops up to the stop are the same, and a settled cost never changes),
+        // and +∞ where that isochrone did not reach (the search then runs to exhaustion, as before).
         Table<SettlementDistanceRow> distances = ctx.Owned.Distances;
         distances.Clear();
-        var costs = new double[prev.Settlements.Count][];
-        for (int s = 0; s < prev.Settlements.Count; s++)
+        int settlementCount = prev.Settlements.Count;
+        var others = new int[settlementCount - 1];
+        var costs = new double[settlementCount][];     // costs[from][k]: to the k-th settlement other than from, ascending
+        for (int s = 0; s < settlementCount; s++)
         {
-            Pathfinder.IsochroneResult full = Pathfinder.Isochrone(
-                lattice, prev, origins[s], double.MaxValue);
-            var field = new double[lattice.NodeCount];
-            Array.Fill(field, double.PositiveInfinity);
-            for (int i = 0; i < full.Reached.Length; i++) field[full.Reached[i]] = full.Costs[i];
-            costs[s] = field;
+            int k = 0;
+            for (int t = 0; t < settlementCount; t++)
+                if (t != s) others[k++] = origins[t];
+            costs[s] = Pathfinder.DistancesTo(lattice, prev, origins[s], others);
         }
-        for (int from = 0; from < prev.Settlements.Count; from++)
+        for (int from = 0; from < settlementCount; from++)
         {
-            for (int to = 0; to < prev.Settlements.Count; to++)
+            int k = 0;
+            for (int to = 0; to < settlementCount; to++)
             {
                 if (from == to) continue;
                 distances.Add(new SettlementDistanceRow(
-                    prev.Settlements[from].Id, prev.Settlements[to].Id, costs[from][origins[to]]));
+                    prev.Settlements[from].Id, prev.Settlements[to].Id, costs[from][k++]));
             }
         }
     }

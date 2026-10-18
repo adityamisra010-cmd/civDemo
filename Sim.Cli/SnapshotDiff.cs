@@ -54,7 +54,7 @@ public static class SnapshotDiff
     private static Field L(string n) => new(n, Kind.Int64);
     private static Field D(string n) => new(n, Kind.Double);
 
-    /// <summary>CanonicalSchema.Write blocks 3..60, in stream order (v33). Every entry
+    /// <summary>CanonicalSchema.Write blocks 3..61, in stream order (v34). Every entry
     /// is (field, width class) exactly as the writer emits it; widths must sum
     /// to the schema's *RowWidth constants (SnapshotDiffTests proves the sum).</summary>
     public static readonly Table[] Layout =
@@ -145,23 +145,35 @@ public static class SnapshotDiff
         // v33 (WS1/WS2, ADR-039): per-entry construction progress; the per-Empire building/roads split.
         new("ConstructionProgress", [I("Settlement"), I("Slot"), I("ProjectId"), L("EnqueuedTurn"), L("Progress")]),
         new("ResourceAllocations", [I("Polity"), I("BuildingsPercent")]),
+        // v34 (D-055): each purse's set-aside units per good this step.
+        new("ConstructionHolds", [I("Purse"), I("Good"), L("Units")]),
     ];
 
     /// <summary>The number of trailing <see cref="Layout"/> blocks schema v33 appended (absent from a v32 stream).</summary>
     private const int V33Blocks = 2;
 
+    /// <summary>The number of trailing <see cref="Layout"/> blocks schema v34 appended (absent from v32 and v33 streams).</summary>
+    private const int V34Blocks = 1;
+
     /// <summary>
-    /// THE LAYOUT OF A STREAM OF <paramref name="version"/> (ADR-039: the walk dispatches on the save's header version):
-    /// this build's <see cref="Layout"/> for v33, the same less the two v33 blocks for v32 (a v32 stream ends after
-    /// section 58, the levy's grievance table). Any other version is refused, as Snapshot.Load refuses it.
+    /// THE LAYOUT OF A STREAM OF <paramref name="version"/> (ADR-039: the walk dispatches on the save's header version;
+    /// D-055: the readable SET, CanonicalSchema.IsReadable): this build's <see cref="Layout"/> for v34; the same less the
+    /// v34 block for v33 (a v33 stream ends after section 60, ResourceAllocations); less the v34 block and the two v33
+    /// blocks for v32 (a v32 stream ends after section 58, the levy's grievance table). Any other version is refused, as
+    /// Snapshot.Load refuses it.
     /// </summary>
-    public static Table[] LayoutFor(int version) => version switch
+    public static Table[] LayoutFor(int version)
     {
-        CanonicalSchema.Version => Layout,
-        CanonicalSchema.OldestReadableVersion => Layout[..^V33Blocks],
-        _ => throw new ArgumentOutOfRangeException(nameof(version), version,
-            $"sim diff walks canonical streams of version {CanonicalSchema.OldestReadableVersion} and {CanonicalSchema.Version} only."),
-    };
+        if (!CanonicalSchema.IsReadable(version))
+            throw new ArgumentOutOfRangeException(nameof(version), version,
+                $"sim diff walks canonical streams of version 32, 33 and {CanonicalSchema.Version} only.");
+        return version switch
+        {
+            32 => Layout[..^(V33Blocks + V34Blocks)],
+            33 => Layout[..^V34Blocks],
+            _ => Layout,   // CanonicalSchema.Version, the one other member of the readable set
+        };
+    }
 
     /// <summary>A field that compares unequal. Row is -1 for the header block
     /// and for a table's row-count prefix.</summary>
@@ -181,7 +193,8 @@ public static class SnapshotDiff
     /// <summary>
     /// Compares two raw canonical STREAMS, each walked with the layout of its own schema <paramref name="versionA"/> /
     /// <paramref name="versionB"/> (<see cref="LayoutFor"/>). A block one stream's version lacks reads as zero rows on
-    /// that side (a v32 stream has no ConstructionProgress), so a v32 and a v33 stream of one world differ only there.
+    /// that side (a v32 stream has no ConstructionProgress, a v33 stream no ConstructionHolds), so a v32 or v33 stream
+    /// and the migrated v34 stream of one world differ only there.
     /// </summary>
     public static Result CompareStreams(byte[] bytesA, int versionA, byte[] bytesB, int versionB)
     {

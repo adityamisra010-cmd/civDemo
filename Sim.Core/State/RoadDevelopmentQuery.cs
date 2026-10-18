@@ -400,6 +400,63 @@ public static class RoadDevelopmentQuery
         return result;
     }
 
+    /// <summary>
+    /// D-055 — WHAT ROAD WORKS MAY NOT USE (the batch-4 design §1.5): the units of <paramref name="good"/> construction SET
+    /// ASIDE (<paramref name="holds"/>: the NEXT ConstructionHolds table, handed read-only — SystemCatalog's ownership record;
+    /// in the shipped pipeline order it holds THIS step's set-asides, construction having run first) in every purse whose
+    /// holder set lies within <paramref name="payers"/>: an Empire purse (key ≥ 0) whose own places on <paramref name="prev"/>
+    /// are all payers (the issuer's own purse), and the single-settlement purse (key −1 − id) of every payer — purse off, a
+    /// stateless payer, a world with no Controls, where road works pay from every settlement. An Empire purse's places are
+    /// the places its polity controls less those another Empire's purse owns (<see cref="ConstructionQuery.EmpirePursePlaces"/>,
+    /// the disjoint-holder rule — they differ only in a world with two control rows for one place; T1a round 2). The sum is
+    /// subtracted from the charge-time holding. A single-settlement purse's units are tied to its settlement, so they are
+    /// also added to <paramref name="keep"/> (aligned with the payers; allocated on the first such row): that donor gives at
+    /// most its stock less them. An Empire purse's set-aside is fungible across its settlements, so it caps the aggregate
+    /// only. 0 (and no floors) for an empty table — and, whatever the table holds, with the hold rule off
+    /// (<see cref="Reservations.Enabled"/> false: batch 3 in any pipeline order).
+    /// </summary>
+    public static long SetAsideWithin(
+        IReadOnlyWorldState prev, SimConfig cfg, IReadOnlyTable<ConstructionHoldRow> holds, SettlementId[] payers, GoodId good,
+        ref long[]? keep)
+    {
+        if (!Reservations.Enabled(cfg)) return 0;
+        long total = 0;
+        for (int i = 0; i < holds.Count; i++)
+        {
+            ConstructionHoldRow row = holds[i];
+            if (row.Good != good.Value) continue;
+            if (row.Purse < 0)
+            {
+                int p = IndexOf(payers, -1 - row.Purse);
+                if (p < 0) continue;
+                keep ??= new long[payers.Length];
+                keep[p] = checked(keep[p] + row.Units);
+                total = checked(total + row.Units);
+            }
+            else if (PurseWithin(prev, cfg, row.Purse, payers)) total = checked(total + row.Units);
+        }
+        return total;
+    }
+
+    /// <summary>Whether every place of Empire purse <paramref name="purse"/> — the settlements that polity controls on
+    /// <paramref name="world"/>, less those another Empire's purse owns (<see cref="ConstructionQuery.EmpirePursePlaces"/>) —
+    /// is one of <paramref name="payers"/>.</summary>
+    private static bool PurseWithin(IReadOnlyWorldState world, SimConfig cfg, int purse, SettlementId[] payers)
+    {
+        if (world.Controls.Count == 0) return false;
+        var polity = new PolityId(purse);
+        SettlementId[] members = ConstructionQuery.EmpirePursePlaces(world, cfg, polity, PayingSettlements(world, polity));
+        if (members.Length == 0) return false;
+        for (int i = 0; i < members.Length; i++) if (IndexOf(payers, members[i].Value) < 0) return false;
+        return true;
+    }
+
+    private static int IndexOf(SettlementId[] ids, int id)
+    {
+        for (int i = 0; i < ids.Length; i++) if (ids[i].Value == id) return i;
+        return -1;
+    }
+
     /// <summary>The civilization-level holding of <paramref name="good"/>: the sum over its paying settlements
     /// (EmpireStockpile.Available — the one purse sum construction reads too; the same checked loop, moved).</summary>
     public static long CivilizationStock(IReadOnlyTable<GoodStockRow> stocks, SettlementId[] payers, GoodId good) =>

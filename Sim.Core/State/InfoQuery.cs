@@ -830,7 +830,36 @@ public static class InfoQuery
         ConstructionQueueRow? ownClaim = incremental && queued is { } qe
             && ConstructionQuery.IndexOfSlot(claims, qe.Settlement, qe.Slot) is var at && at >= 0 && claims[at].ProjectId == qe.ProjectId
             ? qe : null;
-        string? blocker = av == ProjectAvailability.Available ? ConstructionQuery.BlockerSeenBy(c.W, c.Cfg, c.P, new SettlementId(where), p, c.Q.NextDtYears, progress) : null;
+        // D-055 (batch-4 design §1.6, T1b): what the hold rule SETS ASIDE ahead of this entry — THE walk on the world and the
+        // pending orders (SetAsideQuery.Read, HeadStatus's own setup), on the viewer's OWN books only (P7: a foreign purse's
+        // set-asides are never read). For the entry when it is its settlement's head in the walk: the earlier heads of its
+        // purse — their draws and set-asides for Met and for the blocker, named apart (T1b fix round, finding F4: the blocker
+        // read the set-asides alone, so a head Met could not cover had no wait line); for a would-be new order (or a queued
+        // entry behind its settlement's head): every set-aside of the purse. Only where the settlement's purse is the viewer's
+        // OWN (SetAsideQuery.ViewersOwnPurse — fix round, finding F8: in a world with two control rows for one place, a higher
+        // controller never reads the lowest controller's purse). Null with the rule off: batch 3's card exactly.
+        SetAsideReading? holds = null;
+        long[] aheadMet = [], aheadHeld = [], aheadDrawn = [];
+        int holdBefore = -1, holdPurse = 0;
+        if (incremental && where >= 0 && Reservations.Enabled(c.Cfg) && SetAsideQuery.ViewersOwnPurse(c.W, c.Cfg, c.P, new SettlementId(where)))
+        {
+            holds = SetAsideQuery.Read(c.W, c.Cfg, c.Q.Queued, c.Q.NextDtYears ?? c.W.Clock.DtYears);
+            holdPurse = ConstructionQuery.PurseKey(c.W, c.Cfg, new SettlementId(where));
+            int h = SetAsideQuery.HeadIndexOf(holds.Walk, new SettlementId(where));
+            if (h >= 0 && queued is { } qh && holds.Walk.Heads[h].Entry == qh)
+            {
+                holdBefore = h;
+                aheadMet = SetAsideQuery.Ahead(holds.Walk, h, withDraws: true);
+                aheadHeld = SetAsideQuery.Ahead(holds.Walk, h, withDraws: false);
+                aheadDrawn = SetAsideQuery.DrawnAhead(holds.Walk, h);
+            }
+            else aheadMet = aheadHeld = SetAsideQuery.HeldIn(holds.Walk, holdPurse);
+        }
+        string? blocker = av == ProjectAvailability.Available
+            ? holds is null
+                ? ConstructionQuery.BlockerSeenBy(c.W, c.Cfg, c.P, new SettlementId(where), p, c.Q.NextDtYears, progress)
+                : ConstructionQuery.BlockerSeenBy(c.W, c.Cfg, c.P, new SettlementId(where), p, c.Q.NextDtYears, progress, aheadHeld, aheadDrawn)
+            : null;
         // The guard refused because the empire HOLDS the crafted input but its queued projects already claim it: say so.
         string? claimedReason = av == ProjectAvailability.InputUnobtainable
             ? ConstructionQuery.ClaimedReason(c.W, c.Cfg, new SettlementId(where), p, claims, claimsProgress, c.Name) : null;
@@ -898,16 +927,30 @@ public static class InfoQuery
                 ? ConstructionQuery.Claimed(claims, claimsProgress, c.Cfg.Goods!, ConstructionQuery.Holders(c.W, c.Cfg, new SettlementId(where)), new GoodId(good)) : 0;
             long own = claimed > 0 && ownClaim is { } oc
                 ? ConstructionQuery.Remaining(ConstructionQuery.InputOf(c.Cfg.Goods!, p, new GoodId(good)), ConstructionQuery.ProgressOf(claimsProgress, oc)) : 0;
-            long usable = held - (claimed - own);
-            // WS1: claims are counts, not set-asides — the card says so in those words (never "reserved").
+            // D-055: what the hold rule takes ahead of this entry (0 with the rule off, or on a foreign settlement); the
+            // claims (counts, read by the guard) and the set-asides overlap — a head's claim IS its set-aside — so Met reads the
+            // larger of the two deductions, never their sum.
+            long aside = SetAsideQuery.At(aheadMet, good);
+            long usable = held - Math.Max(claimed - own, aside);
+            // WS1: claims are counts, not set-asides — the card says so in those words (never "reserved"). D-055: with the hold
+            // rule on, a head's claim IS set aside, so the count is stated bare and the set-asides are named after it — but only
+            // for the part of the claim the purse sets aside (T1b fix round, finding F9): a claim nothing sets aside (a non-head
+            // entry's) keeps batch 3's words, a partly covered one says how much is not set aside. On a purse that is not the
+            // viewer's own (holds null) nothing is said of set-asides.
+            long purseAside = holds is null ? -1 : SetAsideQuery.At(SetAsideQuery.HeldIn(holds.Walk, holdPurse), good);
+            const string canUse = ": earlier projects in the building order, and road works under the split, can use it first)";
+            string notSetAside = !Reservations.Enabled(c.Cfg) || purseAside == 0 ? " (this does not set it aside" + canUse
+                : purseAside > 0 && purseAside < claimed ? " (" + Inv(claimed - purseAside) + " of it is not set aside" + canUse
+                : "";
             string note = has + (!empire && where >= 0 ? " at " + c.Name(where) : "")
                 + (claimed > 0
                     ? incremental
                         ? "; " + Inv(claimed) + " counted toward projects already queued at " + ClaimedPlaces(c, claims, claimsProgress, where, good)
-                            + " (this does not set it aside: earlier projects in the building order, and road works under the split, can use it first)"
+                            + notSetAside
                         : "; " + Inv(claimed) + " claimed by projects queued at " + ClaimedPlaces(c, claims, claimsProgress, where, good)
                             + ", " + Inv(Math.Max(0, usable)) + " unclaimed"
-                    : "");
+                    : "")
+                + (holds is not null ? SetAsideNote(c, holds.Walk, holdPurse, good, holdBefore) : "");
             string label = incremental && progress > 0
                 ? Inv(i.Qty) + " " + i.Good + " - " + Inv(ConstructionQuery.Delivered(i.Qty, progress)) + " in, " + Inv(need) + " to go"
                 : Inv(i.Qty) + " " + i.Good;
@@ -979,6 +1022,39 @@ public static class InfoQuery
         if (b.Status is InfoStatus.Locked or InfoStatus.Blocked)
             b.Summary = b.Status == InfoStatus.Locked ? claimedReason ?? "needs " + NeedsList(c, b.WhyLocked) : blocker;
         if (b.TreeNode < 0) b.TreeNode = ProjectTreeTarget(c, p, where);
+    }
+
+    /// <summary>
+    /// D-055 (batch-4 design §1.6, T1b): the card note naming what the hold rule SETS ASIDE of <paramref name="good"/> ahead of
+    /// the card's entry — "; 22 set aside for S0's granary, ahead in the building order" (several heads: "…for S0's granary
+    /// and S2's workshop, …", in the building order) — the heads of <paramref name="purse"/> among the first
+    /// <paramref name="before"/> heads of the walk (all of them for −1: a would-be new order). For a queued head (before ≥ 0;
+    /// T1b fix round, finding F4) what the heads ahead DRAW this step is named first, since its Met counts it: "; 5 used this
+    /// turn by S0's Granary and 10 set aside for S1's Granary, ahead in the building order". "" when there is neither.
+    /// </summary>
+    private static string SetAsideNote(Ctx c, HoldsWalkResult walk, int purse, int good, int before)
+    {
+        string used = before >= 0 ? Units(c, SetAsideQuery.Drawers(walk, purse, good, before), " used this turn by ") : "";
+        string aside = Units(c, SetAsideQuery.Holders(walk, purse, good, before), " set aside for ");
+        if (used.Length == 0 && aside.Length == 0) return "";
+        return "; " + (used.Length > 0 && aside.Length > 0 ? used + " and " + aside : used + aside) + ", ahead in the building order";
+    }
+
+    /// <summary>"22 set aside for S0's granary and S2's workshop" — the heads' units summed and their names in the building
+    /// order, joined by <paramref name="verb"/>; "" for no head.</summary>
+    private static string Units(Ctx c, (QueueEntryRef Head, long Units)[] heads, string verb)
+    {
+        if (heads.Length == 0) return "";
+        long total = 0;
+        var names = new List<string>(heads.Length);
+        foreach ((QueueEntryRef head, long units) in heads)
+        {
+            total = checked(total + units);
+            ConstructionProjectEntry? project = c.Cfg.Goods!.ProjectById(head.ProjectId);
+            names.Add(c.Name(head.Settlement.Value) + "'s " + (project is null ? "project " + Inv(head.ProjectId) : ProjectName(c, project)));
+        }
+        string list = names.Count == 1 ? names[0] : string.Join(", ", names.GetRange(0, names.Count - 1)) + " and " + names[^1];
+        return Inv(total) + verb + list;
     }
 
     /// <summary>The places (ascending id, by the card's names) whose queued projects claim <paramref name="good"/> in the
@@ -1634,7 +1710,9 @@ public static class InfoQuery
         if (!ResourceAllocation.Enabled(c.Cfg)) { b.Inert("building/roads material split (sim.json construction.allocationRatios)"); return; }
         int pct = ResourceAllocation.EffectivePercent(c.W, c.P);
         string inForce = pct == ResourceAllocation.DefaultBuildingsPercent
-            ? "Building first (default): road works get only what building work leaves."
+            ? Reservations.Enabled(c.Cfg)
+                ? "Building first (default): road works get only what is left after building work uses or sets aside what it needs."
+                : "Building first (default): road works get only what building work leaves."
             : "In force: building work keeps " + SplitShares(pct) + ".";
         b.Action = Find(c, ActionDomain.ResourceAllocation, 1);
         if (b.Action is not null)

@@ -108,11 +108,22 @@ public sealed record SimConfig(
 /// is an Empire purse's), and the rule is inert under any such combination built in code. False or absent: building
 /// work first, road works get what it leaves, exactly as with WS1 alone — the attribution control
 /// (TestConfigs.PreAllocationRatios), never a gameplay setting.
+///
+/// <c>Reservations</c> (D-055 — the Director's batch-4 instruction, item 1: projects must not consume resources reserved
+/// by other projects; true in the shipped sim.json): MATERIAL RESERVATIONS ACROSS TURNS — each queue head sets aside what
+/// it still needs, and the set-asides are published per purse and good in the ConstructionHolds table (schema v34, section
+/// 61; State.Reservations), which construction CLEARS at the start of every step whatever this switch says. The LOADER
+/// REFUSES it without <c>Incremental</c> (a hold is the remaining need of a part-built head; the whole-or-wait gate has
+/// none). The Empire purse is NOT required: the purse key follows the holder set (ConstructionQuery.Holders), so with
+/// <c>EmpireStockpile</c> off every purse is a single settlement's. False or absent: nothing is set aside and nothing is
+/// published — the batch-3 rule exactly, plus the empty section-61 count prefix — the attribution control
+/// (TestConfigs.PreReservations), never a gameplay setting.
 /// </summary>
 public sealed record ConstructionConfig(
     [property: JsonPropertyName("empireStockpile")] bool EmpireStockpile = false,
     [property: JsonPropertyName("incremental")] bool Incremental = false,
-    [property: JsonPropertyName("allocationRatios")] bool AllocationRatios = false);
+    [property: JsonPropertyName("allocationRatios")] bool AllocationRatios = false,
+    [property: JsonPropertyName("reservations")] bool Reservations = false);
 
 /// <summary>
 /// M5 item 5 (D-053 §3) — THE GRANARY EFFECTS' CONTENT (<see cref="State.GranaryEffects"/>). Two distinct, bounded,
@@ -1155,6 +1166,11 @@ public static class SimConfigLoader
                 $"incremental construction (a whole-or-wait head capped below its cost could never build) and the Empire " +
                 $"purse (the split is an Empire's), got incremental {(construction.Incremental ? "true" : "false")}, " +
                 $"empireStockpile {(construction.EmpireStockpile ? "true" : "false")}.");
+        if (cfg.Construction is { Reservations: true, Incremental: false })
+            throw new SimConfigException(
+                "construction.reservations requires construction.incremental to be true (D-055): a reservation sets aside " +
+                "the remaining need of a part-built queue head, and the whole-or-wait rule (incremental false) has no " +
+                "part-built head to hold for, got incremental false.");
         if (cfg.Colonization is { } colonization
             && !(colonization.OrderPartyFraction > 0.0 && colonization.OrderPartyFraction < 1.0))
             throw new SimConfigException(

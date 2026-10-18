@@ -1,5 +1,82 @@
 # CURRENT STATE — the routing document
 
+> **2026-10-18: batch 4 (the Director's instruction "Batch 4 — Independent Audit Remediation") is applied UNCOMMITTED
+> on `m5w-integration`, on top of the uncommitted batch-3 tree (`de86ace` + the batch-2 base + `b3-final-v9`).**
+> - **State.** LOCAL only, in the integration worktree's working tree. It is NOT committed, NOT merged, NOT pushed, NOT
+>   tagged and NOT packaged ("No commit, push, merge, tag or publication is authorised"). M5 stays NOT complete
+>   (D-052 §15). LOCAL, REPORTED, REMOTE and MAIN are four different states (gov-4 §2): no batch-4 commit exists, so no
+>   remote branch and not `main` carries batch 4 — nor batches 2 and 3, which are uncommitted too. This entry and
+>   D-055 are REPORTED state: the "MEASURED" results below are scratch-only, and every claim is to be verified against
+>   the tree.
+>   - Verify before relying on it: in the working tree, `Sim.Core/Kernel/CanonicalSchema.cs` must read
+>     `public const int Version = 34;` and `Sim.Core/State/Reservations.cs` must exist. If not, batch 4 is not applied
+>     there and this entry describes nothing.
+>   - Verify that the code is the validated code: at the root, run
+>     `git ls-files -co --exclude-standard -- ':!docs' | LC_ALL=C sort -u | while IFS= read -r f; do [ -f "$f" ] && sha256sum "$f"; done | sha256sum`.
+>     It must print `736862e6aaa85795df6d0fff67a874efcfbda4202251621900813e9097cc1207` (770 files outside `docs/`;
+>     D-055 §8). If it does not, the code there is not the code the results below were measured on.
+>   - This entry was written at the batch's integration (records stage, 2026-10-17) on a scratch clone of the merged
+>     tree: the six track patches combined, work tree `6a9f6dc9…` before the records (D-055's provenance names each
+>     patch and its sha256). It was updated 2026-10-18 (the integration's update stage) when T3's final revision
+>     replaced the merged one: code tree `06eae6ba…`; and at the fix stage (2026-10-18), which corrected records and
+>     made two comment-only source edits (D-055's provenance, "the fixed tree"); and last at the records-finalize stage
+>     (2026-10-18, docs only), which added D-055 §8's result table and brought the MEASURED lines below up to date. It
+>     reaches the worktree together with the code it describes, so it was written before that application and does
+>     not report it.
+> - **Built** (records: `docs/d055-batch4-reservations-attribution-allocation-ci-persistence-pathfinding.md` for the
+>   decisions, supersessions, measurements, moved pins and limitations; `docs/adr/adr-040-schema-v34-construction-holds-pathfinder-surface-and-cli.md`
+>   for the contract):
+>   - **Item 1, material reservations across turns.** Every unreleased construction queue head SETS ASIDE its remaining
+>     need from its purse, oldest order first; later heads and road works may not use it. Released only when the
+>     reservation is invalid (unknown project, no labour adults, `NoConfig` viability). Switch: `sim.json`
+>     `construction.reservations`, shipped ON; control `TestConfigs.PreReservations`. The player is told in one term,
+>     "set aside".
+>   - **Item 2, W1 F7 closed:** turn-exact attribution on the shipped cylinder of every behavioural feature previously
+>     proven only on flat rigs, with seam rigs for the five distance-reading features (`CylinderAttribution*Tests`); the
+>     pure layout byte strips get no cylinder twin, each with its reason (D-055 §3).
+>   - **Item 3:** the ci.yml step "Allocation split, binding, cross-process (D-055)", with `sim run --from-save`,
+>     `--split-report` and `sim split-check`. The check re-derives every reported step's split and walk (P11, P12)
+>     instead of reading them back, and judges that a split change binds in its own delivery step against the run
+>     without it (PT).
+>   - **Item 4:** the persistence and lifecycle matrix, closed with recorded gaps (D-055 §5).
+>   - **Item 5:** the 13.8 % finding corrected (+9.2–9.4 % against a same-day flat control, seed 42's A* search size), and
+>     the byte-identical optimisations O1–O6 (60-turn bench −44 % to −54 % per seed, measured on base-b3 + T5; all of
+>     batch 4 against base-b3, −36.5 % to −47.0 %, D-055 §8).
+> - **Contract changes (ADR-040).** Schema **v34**: section 61 `ConstructionHolds` (16-byte rows); the readable versions
+>   are {32, 33, 34}; a v33 save loads with the table empty. No order kind added. `TurnExecutor.cs` changes by comments
+>   only; the construction → roaddevelopment read is order-as-data in `SystemCatalog` (D-055 §11).
+> - **Moved pins** (each with a dated D-055 cause block and its old value reproduced under `PreReservations`, D-055 §7).
+>   The founded golden `40115e28…` → `0f29efc7…` (and ci.yml `FOUNDED_GOLDEN`), toy `222280e5…` → `2e6d4461…`, driven
+>   `fa1ce900…` → `eb88663a…`, first reign `bccc8aed…` → `f7ca60a5…`, AI `91836bcf…` → `25f4799d…`: the v34 layout alone.
+>   Behaviour: three DEFECT pins, two split pins, `TwoHeadsAndARoad`, and the save/load battery's save points
+>   (1, 26, 2, 26) → (1, 26, 23, 24). Text pins for the "set aside" wording.
+> - **Calibration.** No frozen item touched. The two CR-020 reds keep batch 3's values exactly (seed 42 8.35755E-05; seed
+>   7 123,950) in every track's full run and in the integration's (D-055 §8).
+> - **MEASURED: scratch-only** (D-055 §8; gov-4 §9, a result, not a certification). None of it ran on the worktree.
+>   - Each track's full Sim.Tests on its own tree: only the two CR-020 reds, plus, under host load, the wall-clock
+>     `PopulationTests.ProductionPipeline_PerPhaseBench_Reported`, which passed when re-run alone.
+>   - The integration validated the combined tree (`4602ed4d…`, patch `e4b607ed…`). It re-ran the code-dependent checks
+>     on the fixed tree (`30fed100…`, patch `2e2353eb…`; comment-only source edits). Results: build 0 warnings; the three
+>     gates and the three research `--check`s OK; FULL Sim.Tests 2,577, of which 2,562 passed, 13 were skipped and 2
+>     failed, exactly the CR-020 pair; FULL Sim.Ui.Tests 1,019 / 1,019; the determinism, topology and pathfinding,
+>     save/load and migration, allocation and reservation filters all passed; `--smoke --monkey 300` 0 FAIL.
+>   - The ci.yml cross-process step (T0.9) and the allocation step, extracted and run locally: exit 0. With and without
+>     T5, the whole run is identical. The nightly (20 seeds × 650 turns) equals batch 3's on every compared field
+>     (`worldHash` excluded), and `corridors.log` is byte-identical. `sim bench`, 60 turns: 36.5–47.0 % faster per seed
+>     than base-b3 (load 1.80–7.66). New failures: none.
+> - **NOT measured in the repository's records:** anything on the integration worktree itself, because the worktree
+>   validation after this application is reported in the batch-4 report, not in the repository; CI on any batch-4 commit
+>   (none exists; the ci.yml steps ran only locally); the Windows build; the GPU seam and a person reading the holds UI
+>   (manual).
+> - **Open for the Director:** D-054 §10 Q1–Q13, Q15, Q18 and Q19 (Q14 is answered, Q16 corrected and Q17 resolved by
+>   batch 4). Batch 4 escalated nothing; its limitations are D-055 §9.
+> - **Batch-4 dated notes** were appended at the END of: D-054, ADR-039, ADR-032, ADR-005 (2026-10-16), the m5w plan,
+>   `docs/queue.md`, `docs/m5-playtest-known-issues.md` and `docs/m5-playability-gate.md` (§3.14, §3.15 and the §6
+>   regeneration). No earlier text was rewritten (D-054 §10 Q19 is unruled), except the gate doc's §6 generated totals
+>   line (117594 → 117608 frames), regenerated by the gate's own command and recorded in that document's file-end
+>   notes.
+> - Verify these claims against the working tree (gov-4). They describe LOCAL state only.
+
 > **2026-10-15: batch 3 (the Director's 2026-10-14 instruction) is implemented, LOCAL and UNCOMMITTED, on top of the
 > uncommitted batch-2 tree of the `m5w-integration` worktree (`de86ace`).**
 > - **State.** LOCAL only, in the integration worktree's working tree. It is NOT committed, NOT merged, NOT pushed, NOT

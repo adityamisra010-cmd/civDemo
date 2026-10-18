@@ -16,6 +16,7 @@ return args.Length == 0 ? Cli.Usage() : args[0] switch
     "worldgen" => Cli.Guard(() => Cli.WorldgenCmd(args)),
     "corridors" => Cli.Guard(() => Cli.CorridorsCmd(args)),
     "research" => Cli.Guard(() => ResearchCli.Run(args)),
+    "split-check" => Cli.Guard(() => SplitCheckCli.Run(args)),
     _ => Cli.Usage($"unknown command '{args[0]}'"),
 };
 
@@ -51,7 +52,12 @@ namespace Sim.Cli
                 usage:
                   sim run --seed S --turns N [--founded [--size PX] [--settlements N] [--ai-empires N]]
                           [--report] [--save-at K --save PATH] [--orders PATH]
-                          [--hash-log PATH] [--emit-session DIR]
+                          [--hash-log PATH] [--emit-session DIR] [--split-report PATH]
+                  sim run --from-save SAVE --turns N [--size PX] [--ai-empires N] [--seed S] [--founded]
+                          [--report] [--save-at K --save PATH] [--orders PATH]
+                          [--hash-log PATH] [--split-report PATH]
+                  sim split-check REPORT [--control CONTROL] [--expect-hold-at K]
+                                  [--twin TWIN --order-at T:B]
                   sim hash SAVEFILE [--size PX]
                   sim diff A.bin B.bin [--size PX]
                   sim replay --seed S --orders PATH --turns N
@@ -114,9 +120,41 @@ namespace Sim.Cli
                 both canonical streams in schema order and reports the first
                 divergent table/row/field (doubles as R text + 64-bit pattern)
                 and a per-table summary; exit 0 identical, 1 different. A
-                schema-v32 save is migrated on load (terrain flat, the two v33
-                tables empty) and says so in one line on stderr; stdout is
-                unchanged in shape.
+                schema-v32 or schema-v33 save is migrated on load and says so
+                in one line on stderr; stdout is unchanged in shape. v32: its
+                terrain is regenerated flat and the three tables added since
+                v32 (ConstructionProgress, ResourceAllocations,
+                ConstructionHolds) are added empty. v33: ConstructionHolds is
+                added empty.
+
+                --from-save continues a saved world in this process (D-055):
+                --turns N more steps; --save-at is an absolute turn after the
+                save's. The seed and the world kind are the save's (--seed and
+                --founded are refused if they contradict it); --size is needed
+                for a save made at a non-canonical size; --ai-empires, if given,
+                must equal the number of AI Empires the save was founded with
+                (AI polities a revolt founded are not counted); --settlements and
+                --emit-session are refused: a continued run writes no session
+                record. --orders must be the PLAYER's log: its records stamped
+                before the save's turn are dropped, and a log with any record
+                stamped at or after that turn by a polity other than the player
+                is refused (an emitted run log whose AI orders reach the save's
+                turn: the continued run issues them itself, so they would be
+                delivered twice). Order validation reads the regenerated
+                founding world, as the uninterrupted run does.
+
+                --split-report PATH (founded worlds only) writes, per step and
+                per Empire, the building/roads split and the D-055 set-asides as
+                construction computed them beside what building work and road
+                works actually drew (JSONL, split-report/v1). It changes no
+                state: the hashes and saves are the same without it.
+                split-check judges such a report (properties P0-P12; --control:
+                the report of the default-split twin run from the same world;
+                --expect-hold-at K: world K holds a set-aside that binds a
+                younger head; --twin TWIN --order-at T:B: TWIN is the run
+                without the kind-12 order stamped T that set b = B, and the
+                order changed building work's draw in its own step) and exits
+                1 naming every property that fails.
                 """);
             return 1;
         }
@@ -213,7 +251,9 @@ namespace Sim.Cli
         {
             var opts = Options.Parse(args, flags: ["--report", "--founded"],
                 valued: ["--seed", "--turns", "--save-at", "--save", "--orders", "--hash-log", "--size",
-                         "--settlements", "--emit-session", "--ai-empires"]);
+                         "--settlements", "--emit-session", "--ai-empires", "--from-save", "--split-report"]);
+            // D-055 / ADR-040: continue a saved world in this process (FromSave's header states every rule).
+            if (opts.Get("--from-save") is { } fromSave) return FromSave.Run(opts, fromSave);
             ulong seed = opts.Seed();
             int turns = opts.Turns();
             bool founded = opts.Has("--founded");
@@ -228,6 +268,8 @@ namespace Sim.Cli
                 throw new CliUsageException("--save requires --save-at K");
             if (saveAt == 0 || saveAt > turns)
                 throw new CliUsageException($"--save-at must be in 1..{turns}, got {saveAt}");
+            if (opts.Get("--split-report") is not null && !founded)
+                throw new CliUsageException("--split-report requires --founded (the M0 toy world has no Empire to split for)");
 
             OrderLog? loaded = opts.Get("--orders") is { } op ? LoadOrders(op) : null;
             WorldState world = StartWorld(seed, founded, sizePx, settlements, aiEmpires);
@@ -256,7 +298,33 @@ namespace Sim.Cli
 
             var hashLog = opts.Get("--hash-log") is not null ? new List<string>(turns) : null;
             using SessionEmitter? session = Emitter(opts, seed, founded, sizePx, settlements, aiEmpires, orders, world);
+            using Stream? report = opts.Get("--split-report") is { } reportPath ? File.Create(reportPath) : null;
+            Sim.Core.Observability.SplitProbe? probe = report is not null ? new(report, SimCfg()) : null;
 
+            world = Steps(turns, world, turnZero, executor, loaded, orders, aiCfg, aiWorldgen, hashLog, session, probe, saveAt, savePath);
+            CloseEmitter(session);
+
+            if (hashLog is not null) WriteHashLog(opts.Get("--hash-log")!, hashLog);
+            Console.WriteLine($"run complete: seed {seed}, {turns} turns, hash {WorldHash.ComputeHex(world)}");
+            if (opts.Has("--report")) Report(world);
+            return 0;
+        }
+
+        /// <summary>
+        /// THE STEP LOOP of `sim run` — a run from founding and a continued one (`--from-save`, D-055 / ADR-040) alike:
+        /// <paramref name="turns"/> steps from <paramref name="world"/>. A founded run (<paramref name="aiCfg"/> set) feeds the
+        /// executor's RUN LOG <paramref name="orders"/>, before each step, the loaded log's rows for that turn and then the AI's
+        /// orders (ADR-033 D5); ADR-034's delivery check reads <paramref name="turnZero"/>. The save is written when the
+        /// stepped world's turn is <paramref name="saveAt"/> (an absolute turn: for a run from founding, the step index).
+        /// <paramref name="probe"/>, when given (`--split-report`), observes each step through the executor's read-only window
+        /// on the batch the executor delivers (its log's batch for the turn) — it changes no state, so the hashes and the save
+        /// are the same with and without it.
+        /// </summary>
+        internal static WorldState Steps(
+            int turns, WorldState world, WorldState turnZero, TurnExecutor executor, OrderLog? loaded, OrderLog? orders,
+            Sim.Core.Systems.SimConfig? aiCfg, Sim.Core.Worldgen.WorldgenConfig? aiWorldgen, List<string>? hashLog,
+            SessionEmitter? session, Sim.Core.Observability.SplitProbe? probe, long saveAt, string? savePath)
+        {
             for (int t = 1; t <= turns; t++)
             {
                 WorldState previous = world;
@@ -270,21 +338,18 @@ namespace Sim.Cli
                     AiOrders.Append(orders!, previous, aiCfg, aiWorldgen!);
                 }
                 if (loaded is not null) OrderValidation.ValidateAtDelivery(loaded.BatchFor(previous.Clock.Turn), turnZero, previous); // ADR-034
-                world = executor.Step(previous);
+                world = probe is null
+                    ? executor.Step(previous)
+                    : probe.Step(executor, previous, orders?.BatchFor(previous.Clock.Turn) ?? OrderBatch.Empty);
                 hashLog?.Add(WorldHash.ComputeHex(world));
                 session?.Observe(previous, world);
-                if (t == saveAt)
+                if (world.Clock.Turn == saveAt)
                 {
                     using var save = File.Create(savePath!);
                     Snapshot.Save(world, save);
                 }
             }
-            CloseEmitter(session);
-
-            if (hashLog is not null) WriteHashLog(opts.Get("--hash-log")!, hashLog);
-            Console.WriteLine($"run complete: seed {seed}, {turns} turns, hash {WorldHash.ComputeHex(world)}");
-            if (opts.Has("--report")) Report(world);
-            return 0;
+            return world;
         }
 
         /// <summary>
@@ -1161,7 +1226,7 @@ namespace Sim.Cli
 
         // --- helpers ----------------------------------------------------------
 
-        private static void Report(WorldState world)
+        internal static void Report(WorldState world)
         {
             var biomass = ConservationAuditor.AuditQuantity(world, ConservedQuantityIds.Biomass);
             var goods = ConservationAuditor.AuditQuantity(world, ConservedQuantityIds.ToyGood);
@@ -1170,7 +1235,7 @@ namespace Sim.Cli
             Console.WriteLine($"toyGood: stocks {goods.StockTotal} (conserved: {goods.IsConserved})");
         }
 
-        private static void WriteHashLog(string path, List<string> lines)
+        internal static void WriteHashLog(string path, List<string> lines)
             => File.WriteAllText(path, string.Join("\n", lines) + "\n"); // fixed \n: byte-identical across runs
 
         private static double TicksToMs(long ticks)

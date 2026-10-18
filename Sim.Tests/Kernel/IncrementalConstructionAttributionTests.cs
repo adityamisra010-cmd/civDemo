@@ -56,15 +56,52 @@ public class IncrementalConstructionAttributionTests
         Assert.False(ConstructionQuery.Incremental(TestConfigs.PreD054Sim(shipped)));
         // The switch twin changes the switch — and WS2's, which needs it (D-054: the loader refuses allocationRatios without
         // incremental) — and nothing else in the construction block.
-        Assert.Equal(shipped.Construction with { Incremental = false, AllocationRatios = false },
+        // D-055 (2026-10-16) CAUSE BLOCK: the expected block gains Reservations = false. Cause: the D-055 reservations
+        // switch (sim.json construction.reservations, shipped true) is NEWER than WS1, so by the R4 rule this twin strips
+        // it too (the loader refuses reservations without incremental). Nothing else in the block moved.
+        Assert.Equal(shipped.Construction with { Incremental = false, AllocationRatios = false, Reservations = false },
             TestConfigs.PreIncrementalConstruction(shipped).Construction);
-        // The R4 rule: every older SimConfig twin strips the newer D-054 batch too.
+        // The R4 rule: every older SimConfig twin strips the newer D-054 batch too — and the D-055 reservations switch.
         foreach (SimConfig twin in new[]
                  {
+                     TestConfigs.PreIncrementalConstruction(shipped), TestConfigs.PreD054Sim(shipped),
                      TestConfigs.PreD053(shipped), TestConfigs.PreForager(shipped), TestConfigs.PreR2b(shipped),
                      TestConfigs.PreTimeAveragedHarvest(shipped), TestConfigs.PreTaxAge(shipped), TestConfigs.PreAiFounding(shipped),
+                     TestConfigs.PreTradeKnowledge(shipped), TestConfigs.PreRecipeKnowledge(shipped),
                  })
+        {
             Assert.False(ConstructionQuery.Incremental(twin));
+            Assert.False(twin.Construction!.Reservations);
+            Assert.False(Reservations.Enabled(twin));
+        }
+    }
+
+    /// <summary>
+    /// D-055 (2026-10-16) — THE SHIPPED CONTENT SWITCHES RESERVATIONS ON, and the twin enumeration of the batch-4 design
+    /// (X2): <see cref="TestConfigs.PreReservations"/> changes exactly that switch; the SINGLE-LAYER helpers keep it on
+    /// (PreEmpireConstructionStockpile, PreEmpireFoodAllocation, PreGranaryEffects and PreAllocationRatios — the last the
+    /// recorded R4 exception: the split's default must equal its absence); the chained twins strip it (above).
+    /// </summary>
+    [Fact]
+    public void TheShippedContent_SwitchesReservationsOn_ThePreReservationsTwinChangesOnlyIt_AndTheSingleLayerHelpersKeepIt()
+    {
+        SimConfig shipped = Shipped;
+        Assert.True(shipped.Construction!.Reservations);                      // sim.json construction.reservations
+        Assert.True(Reservations.Enabled(shipped));
+        SimConfig off = TestConfigs.PreReservations(shipped);
+        Assert.Equal(shipped.Construction with { Reservations = false }, off.Construction);
+        Assert.Equal(shipped with { Construction = off.Construction }, off);  // nothing else in the config moved
+        Assert.False(Reservations.Enabled(off));
+        foreach (SimConfig single in new[]
+                 {
+                     TestConfigs.PreEmpireConstructionStockpile(shipped), TestConfigs.PreEmpireFoodAllocation(shipped),
+                     TestConfigs.PreGranaryEffects(shipped), TestConfigs.PreAllocationRatios(shipped),
+                 })
+            Assert.True(Reservations.Enabled(single));
+        // The predicate needs incremental construction too: a code-built config with the switch on and incremental off is
+        // inert (the loader refuses it — ConstructionHoldsSchemaV34Tests.TheLoader_RefusesReservationsWithoutIncrementalConstruction_AndDoesNotRequireTheEmpirePurse).
+        Assert.False(Reservations.Enabled(shipped with { Construction = shipped.Construction with { Incremental = false } }));
+        Assert.False(Reservations.Enabled(shipped with { Construction = null }));
     }
 
     [Fact]

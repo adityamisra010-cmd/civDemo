@@ -106,6 +106,53 @@ public static class EmpireStockpile
                 $"empire stockpile: the holders' holding of good {good.Value} was checked but did not cover the charge ({left} of {qty} undrawn).");
     }
 
+    /// <summary>
+    /// D-055 (road works, §1.5 of the batch-4 design): <see cref="Draw(Ledger, Table{GoodStockRow}, SettlementId[], GoodId, long, ReasonId)"/>
+    /// with a per-holder floor — holder p gives at most its row's amount less <paramref name="keep"/>[p] (the units its OWN
+    /// single-settlement purse sets aside for a construction head), never below it. Null <paramref name="keep"/>: the plain
+    /// draw, unit for unit. Refuses BEFORE the first flow when the holders' free units cannot cover the quantity, and checks
+    /// after the loop that the whole quantity was drawn — never a silent short charge.
+    /// </summary>
+    public static void Draw(
+        Ledger ledger, Table<GoodStockRow> stocks, SettlementId[] holders, GoodId good, long qty, ReasonId reason, long[]? keep)
+    {
+        if (keep is null)
+        {
+            Draw(ledger, stocks, holders, good, qty, reason);
+            return;
+        }
+        if (keep.Length != holders.Length)
+            throw new ArgumentException($"empire stockpile: {keep.Length} floors for {holders.Length} holders.", nameof(keep));
+        if (qty < 0) throw new ArgumentOutOfRangeException(nameof(qty), qty, "a draw is never negative.");
+        long free = 0;
+        checked
+        {
+            for (int p = 0; p < holders.Length; p++)
+            {
+                int idx = GoodStockIndex.IndexOf(stocks, holders[p], good);
+                if (idx >= 0) free += Math.Max(0, stocks[idx].Amount.Value - keep[p]);
+            }
+        }
+        if (free < qty)
+            throw new LedgerOverdrawException(
+                $"empire stockpile: drawing {qty} of good {good.Value} exceeds the {free} its {holders.Length} holder(s) hold beyond their set-asides.");
+
+        long left = qty;
+        for (int p = 0; p < holders.Length && left > 0; p++)
+        {
+            int idx = GoodStockIndex.IndexOf(stocks, holders[p], good);
+            if (idx < 0) continue;
+            long take = Math.Min(left, Math.Max(0, stocks[idx].Amount.Value - keep[p]));
+            if (take <= 0) continue;
+            ledger.Flow(ref stocks.Ref(idx).Amount, ConservedQuantityIds.OfGood(good),
+                reason, take, FlowDirection.Sink, OverdrawPolicy.Throw);
+            left -= take;
+        }
+        if (left != 0)
+            throw new InvalidOperationException(
+                $"empire stockpile: the holders' free holding of good {good.Value} was checked but did not cover the charge ({left} of {qty} undrawn).");
+    }
+
     private static bool Contains(SettlementId[] ids, SettlementId id)
     {
         for (int i = 0; i < ids.Length; i++) if (ids[i].Value == id.Value) return true;

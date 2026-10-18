@@ -83,6 +83,23 @@ public static class MapTopology
         return d;
     }
 
+    /// <summary>
+    /// Batch 4 (D-055, O4): <see cref="Dx"/> for two columns ALREADY ON THE MAP — <paramref name="x1"/> and
+    /// <paramref name="x2"/> in [0, <paramref name="size"/>) — with branches only, no modulo. For such columns
+    /// x2 − x1 lies in (−size, size), where Dx's <c>d %= size</c> is the identity, so the two remaining steps are Dx's
+    /// own: + size when negative, then − size when past size / 2 (INTEGER division — the +size/2 east tie of an even
+    /// size included). It equals Dx exactly on that domain (MapTopologyBranchDxTests: every (x1, x2) at sizes 2..12, 63,
+    /// 64 and 256, both flags); outside it the caller must use Dx. The A* heuristic calls it once per push.
+    /// </summary>
+    public static int DxOnMap(int x1, int x2, int size, bool wrap)
+    {
+        int d = x2 - x1;
+        if (!wrap) return d;
+        if (d < 0) d += size;
+        if (d > size / 2) d -= size;
+        return d;
+    }
+
     /// <summary>|<see cref="Dx"/>| — the x distance in columns, the short way round when wrapped.</summary>
     public static int AbsDx(int x1, int x2, int size, bool wrap)
     {

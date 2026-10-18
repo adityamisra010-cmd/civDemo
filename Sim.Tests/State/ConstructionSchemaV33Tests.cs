@@ -42,7 +42,10 @@ public class ConstructionSchemaV33Tests
     [Fact]
     public void SchemaV33_PopulatedProgressAndAllocations_LengthRoundTripAndHashExact()
     {
-        Assert.Equal(33, CanonicalSchema.Version);
+        // D-055 (2026-10-16) CAUSE BLOCK: Version 33 -> 34, and every tail offset below moves by the 4-byte count prefix of
+        // the EMPTY section 61 (ConstructionHolds) that v34 appends after ResourceAllocations — the layout alone; no v33
+        // row changed width (ExpectedLength's row arithmetic is unchanged). `end` is where the v33 stream ended.
+        Assert.Equal(34, CanonicalSchema.Version);
         Assert.Equal(32, CanonicalSchema.OldestReadableVersion);
         WorldState world = Populated();
         byte[] bytes = Stream(world);
@@ -50,11 +53,13 @@ public class ConstructionSchemaV33Tests
         // The rows' own contribution: 3 queue rows × 12, 3 progress rows × 28, 3 allocation rows × 8.
         Assert.Equal(3 * 12 + 3 * 28 + 3 * 8, CanonicalSchema.ExpectedLength(world) - CanonicalSchema.ExpectedLength(new WorldState(33)));
 
-        // ResourceAllocations is the LAST block, ConstructionProgress the one before it: tail offsets.
-        Assert.Equal(100, BitConverter.ToInt32(bytes, bytes.Length - 4));
-        Assert.Equal(1, BitConverter.ToInt32(bytes, bytes.Length - 8));
-        Assert.Equal(3, BitConverter.ToInt32(bytes, bytes.Length - 4 - 3 * 8));            // allocation count prefix
-        int progressEnd = bytes.Length - 4 - 3 * 8;
+        // The empty v34 block is the LAST 4 bytes; before it, ResourceAllocations, and ConstructionProgress before that.
+        Assert.Equal(0, BitConverter.ToInt32(bytes, bytes.Length - 4));                    // ConstructionHolds count prefix: 0
+        int end = bytes.Length - 4;
+        Assert.Equal(100, BitConverter.ToInt32(bytes, end - 4));
+        Assert.Equal(1, BitConverter.ToInt32(bytes, end - 8));
+        Assert.Equal(3, BitConverter.ToInt32(bytes, end - 4 - 3 * 8));                     // allocation count prefix
+        int progressEnd = end - 4 - 3 * 8;
         Assert.Equal(0L, BitConverter.ToInt64(bytes, progressEnd - 8));                    // the last progress row's Progress
         Assert.Equal(long.MaxValue, BitConverter.ToInt64(bytes, progressEnd - 16));        // its EnqueuedTurn
         Assert.Equal(int.MaxValue, BitConverter.ToInt32(bytes, progressEnd - 20));         // its ProjectId
@@ -283,12 +288,15 @@ public class ConstructionSchemaV33Tests
         Assert.Contains("two construction queue entries of settlement 0, slot 0", e.Message);
     }
 
+    /// <summary>D-055 (2026-10-16) CAUSE BLOCK: was "…ButThirtyTwoAndThirtyThree…" with the list {31, 34, 0, 27}; v34 is
+    /// this build's schema now (CanonicalSchema.IsReadable: {32, 33, 34}), so the list is {31, 35, 0, 27} — the version
+    /// above the readable set takes 34's place. Re-rigged, not re-pinned: the refused set's shape is unchanged.</summary>
     [Fact]
-    public void Load_RefusesEveryVersionButThirtyTwoAndThirtyThree_WithTheD008Message()
+    public void Load_RefusesEveryVersionButThirtyTwoThirtyThreeAndThirtyFour_WithTheD008Message()
     {
         using var ms = new MemoryStream();
         Snapshot.Save(new WorldState(5), ms);
-        foreach (int v in new[] { 31, 34, 0, 27 })
+        foreach (int v in new[] { 31, 35, 0, 27 })
         {
             byte[] bytes = ms.ToArray();
             BitConverter.GetBytes(v).CopyTo(bytes, 8);
@@ -375,11 +383,14 @@ public class ConstructionSchemaV33Tests
         Assert.Equal(2, q.Length);
         Assert.Equal((0, 1, 1, 1), (q[0].Slot, q[1].Slot, q[0].ProjectId, q[1].ProjectId));
         Assert.Equal((0L, -1L), (ConstructionQuery.ProgressOf(w, q[0]), ConstructionQuery.EnqueuedTurnOf(w.ConstructionProgress, q[0])));
-        // Re-saved, it is a v33 file whose v32 projection is unchanged.
+        // Re-saved, it is a file of THIS build's schema whose v32 projection is unchanged. D-055 (2026-10-16) CAUSE BLOCK:
+        // the header was the literal 33 — this build's schema then; it is v34 now (CanonicalSchema.Version), the layout
+        // alone (the v32 projection below, which also drops the empty section 61, is unchanged).
         using var ms = new MemoryStream();
         Snapshot.Save(w, ms);
         WorldState again = Snapshot.Load(new MemoryStream(ms.ToArray()), FixtureTerrain());
-        Assert.Equal(33, BitConverter.ToInt32(ms.ToArray(), 8));
+        Assert.Equal(CanonicalSchema.Version, BitConverter.ToInt32(ms.ToArray(), 8));
+        Assert.Equal(34, CanonicalSchema.Version);
         Assert.Equal(V32FixtureHash, SchemaProjection.V32(again));
     }
 
@@ -397,6 +408,13 @@ public class ConstructionSchemaV33Tests
         Assert.Single(ConstructionQuery.Queue(next, new SettlementId(0)));
     }
 
+    /// <summary>
+    /// D-055 (2026-10-16) CAUSE BLOCK (X1 (b)): the v32 walk is `Layout.Length − 3 + 1` tables (was − 2 + 1: v34 appended a
+    /// third block a v32 stream lacks), and the cross-version walk no longer compares the v32 stream with a stream THIS
+    /// build serialized (that is v34 now) labelled 33 — the v33 stream is the REAL v33 fixture the batch-3 build wrote
+    /// (Fixtures/README-v33-fixture.md). Each stream is walked to its own end by its own header version; a v32 or v33
+    /// stream and its migrated v34 stream differ only by the blocks the newer schema appended (empty on the old side).
+    /// </summary>
     [Fact]
     public void SnapshotDiff_WalksAV32StreamAndAV33Stream_EachByItsHeaderVersion()
     {
@@ -406,14 +424,25 @@ public class ConstructionSchemaV33Tests
         SnapshotDiff.Result self = SnapshotDiff.CompareStreams(v32Stream, version, v32Stream, version);
         Assert.True(self.Identical);
         Assert.Equal(v32Stream.Length, self.BytesWalkedA);
-        Assert.Equal(SnapshotDiff.Layout.Length - 2 + 1, self.Tables.Count);
+        Assert.Equal(SnapshotDiff.Layout.Length - 3 + 1, self.Tables.Count);
 
         WorldState migrated = Snapshot.Load(new MemoryStream(file), FixtureTerrain());
-        byte[] v33Stream = SchemaProjection.Serialize(migrated);
-        SnapshotDiff.Result cross = SnapshotDiff.CompareStreams(v32Stream, 32, v33Stream, 33);
-        Assert.True(cross.First is null, "a v32 stream and its migrated v33 stream differ only by the two empty v33 blocks");
-        Assert.Equal(v33Stream.Length, cross.BytesWalkedB);
+        byte[] v34Stream = SchemaProjection.Serialize(migrated);
+        SnapshotDiff.Result cross = SnapshotDiff.CompareStreams(v32Stream, 32, v34Stream, 34);
+        Assert.True(cross.First is null, "a v32 stream and its migrated v34 stream differ only by the three empty appended blocks");
+        Assert.Equal(v34Stream.Length, cross.BytesWalkedB);
         Assert.Equal(v32Stream.Length, cross.BytesWalkedA);
+
+        // The REAL v33 stream (the batch-3 build's save): walked to its end as v33, against the v32 stream as v32.
+        byte[] v33File = ConstructionHoldsV33FixtureTests.FixtureFile();
+        Assert.Equal(33, BitConverter.ToInt32(v33File, 8));
+        byte[] v33Stream = v33File[(8 + 4 + 8 + 8)..^4];                       // header | stream | topology trailer
+        SnapshotDiff.Result v32v33 = SnapshotDiff.CompareStreams(v32Stream, 32, v33Stream, 33);
+        Assert.Equal(v32Stream.Length, v32v33.BytesWalkedA);
+        Assert.Equal(v33Stream.Length, v32v33.BytesWalkedB);
+        Assert.Equal(SnapshotDiff.Layout.Length - 1 + 1, v32v33.Tables.Count);   // the v33 walk, the longer of the two
+        Assert.False(v32v33.Identical);                                          // two different worlds (flat turn 40, cylinder turn 2)
         Assert.Throws<ArgumentOutOfRangeException>(() => SnapshotDiff.LayoutFor(31));
+        Assert.Throws<ArgumentOutOfRangeException>(() => SnapshotDiff.LayoutFor(35));
     }
 }

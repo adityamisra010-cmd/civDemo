@@ -198,4 +198,17 @@ public sealed class TraversalLattice
         double length = ax != bx && ay != by ? DiagonalFactor : 1.0;
         return (_nodeCost[a] + _nodeCost[b]) * 0.5 * length;
     }
+
+    /// <summary>
+    /// Batch 4 (D-055, O4/O6): <see cref="StepCost"/> for a step whose direction the caller already knows —
+    /// <paramref name="diagonal"/> is true for the four diagonal offsets of the fixed W, E, N, S, NW, NE, SW, SE
+    /// enumeration (direction index ≥ 4). It is the same expression on the same operands in the same order, so it
+    /// returns StepCost(a, b)'s double bit for bit whenever <paramref name="diagonal"/> equals StepCost's own test
+    /// (both coordinates differ): a diagonal offset changes x and y (x ± 1 is another column on a flat lattice and on a
+    /// cylinder of at least <see cref="MapTopology.MinWrapSize"/> columns, the seam step included), and a cardinal one
+    /// changes exactly one. The pathfinder's expansions call it to skip StepCost's two Coords divisions per relaxation;
+    /// LegacyPathfinderDifferentialTests pins the equality on every node and direction, seam steps included.
+    /// </summary>
+    public double StepCostKnown(int a, int b, bool diagonal) =>
+        (_nodeCost[a] + _nodeCost[b]) * 0.5 * (diagonal ? DiagonalFactor : 1.0);
 }

@@ -380,61 +380,160 @@ public class IncrementalConstructionTests
         AssertConserved(t3);
     }
 
-    [Fact]
-    public void AGatedEarlierHead_TakesNothing_AndTheLaterHeadUsesThePurse()
+    /// <summary>The gated-head rig: S1, the OLDER order (turn 0), has no builders; S0 (turn 1) has every builder; the
+    /// player's purse holds 40 timber at S2, and 20 stone arrive there before step 2 → 3.</summary>
+    private static (WorldState Before, WorldState After) GatedEarlierHead(SimConfig cfg)
     {
         WorldState w = Solo();
         NoBuilders(w, S1);                                                    // S1, the older order, has no builders
         AllBuilders(w, S0);
         Set(w, S2, Timber, 40);
-        TurnExecutor exec = ConstructionOnly(Cfg, Log(Enqueue(0, Player, S1), Enqueue(1, Player, S0)));
+        TurnExecutor exec = ConstructionOnly(cfg, Log(Enqueue(0, Player, S1), Enqueue(1, Player, S0)));
         WorldState t2 = exec.Run(w, 2);
         Set(t2, S2, Stone, 20);
-        WorldState t3 = exec.Step(t2);
+        return (t2, exec.Step(t2));
+    }
+
+    /// <summary>
+    /// D-055 RE-PIN (2026-10-16; the Director's batch-4 instruction, item 1 — "projects must not consume resources reserved
+    /// by other projects"; batch-4 design §1.7, a DEFECT pin; MEASURED on this tree by the agent writing this line). This
+    /// test was <c>AGatedEarlierHead_TakesNothing_AndTheLaterHeadUsesThePurse</c>: the older head S1 had no builders, drew
+    /// nothing, and the younger S0 took the purse's 40 timber and 20 stone and completed — built (S1, S0) = (0, 1), S2 left
+    /// (0, 0): exactly the batch-3 defect the instruction names (D-054 Q17). CAUSE: the hold rule (sim.json
+    /// construction.reservations; ConstructionQuery.HoldsWalk). S1's head is a VALID wait — no builders, adults present, the
+    /// player's labour allocation — so it draws nothing and SETS ASIDE its remaining need of the player's purse, 40 timber and
+    /// 20 stone; S0 waits, HeldForEarlier naming S1. NEW: built (0, 0), both heads at p = 0, S2 keeps (40, 20), the published
+    /// holds (purse 1) timber 40 and stone 20. ATTRIBUTION: the old values reproduce under TestConfigs.PreReservations, the
+    /// batch-3 rule (<see cref="AGatedEarlierHead_UnderPreReservations_TakesNothing_AndTheLaterHeadUsesThePurse"/>).
+    /// </summary>
+    [Fact]
+    public void AGatedEarlierHead_TakesNothing_ButSetsAsideItsNeed_AndTheLaterHeadWaits()
+    {
+        (WorldState t2, WorldState t3) = GatedEarlierHead(Cfg);
+        Assert.Equal((0L, 0L), (Built(t3, S1), Built(t3, S0)));
+        Assert.Equal((0L, 0L), (P(t3, S1), P(t3, S0)));
+        Assert.Equal((40L, 20L), (Of(t3, S2, Timber), Of(t3, S2, Stone)));
+        int purse = Reservations.PolityPurse(Player);
+        Assert.Equal([new ConstructionHoldRow(purse, Timber, 40), new ConstructionHoldRow(purse, Stone, 20)], t3.ConstructionHolds.Rows());
+        HeadStatusReport younger = ConstructionQuery.HeadStatus(t2, Cfg, S0, null, 10.0)!;
+        Assert.Equal((HeadLimitKind.Materials, MaterialCause.HeldForEarlier), (younger.Resolution.Limit, younger.Cause));
+        Assert.Equal(new QueueEntryRef(S1, 0, Granary), younger.Holder);
+        HeadStatusReport older = ConstructionQuery.HeadStatus(t2, Cfg, S1, null, 10.0)!;
+        Assert.Equal((HeadLimitKind.Labour, false, HoldRelease.None), (older.Resolution.Limit, older.Resolution.NoLabourAdults, older.Release));
+        AssertConserved(t3);
+    }
+
+    /// <summary>D-055 (2026-10-16) — the PreReservations twin of
+    /// <see cref="AGatedEarlierHead_TakesNothing_ButSetsAsideItsNeed_AndTheLaterHeadWaits"/>: the batch-3 pin, unchanged.</summary>
+    [Fact]
+    public void AGatedEarlierHead_UnderPreReservations_TakesNothing_AndTheLaterHeadUsesThePurse()
+    {
+        (_, WorldState t3) = GatedEarlierHead(TestConfigs.PreReservations(Cfg));
         Assert.Equal((0L, 1L), (Built(t3, S1), Built(t3, S0)));
         Assert.Equal(0, P(t3, S1));
         Assert.Equal((0L, 0L), (Of(t3, S2, Timber), Of(t3, S2, Stone)));
+        Assert.Equal(0, t3.ConstructionHolds.Count);
     }
 
-    [Fact]
-    public void ProjectsDoNotConsumeResourcesReservedByOtherProjects()
+    /// <summary>The reservation rig of <see cref="ProjectsDoNotConsumeResourcesReservedByOtherProjects"/>: S3 (the HIGH id)
+    /// ordered at turn 0 at a pace of 250,000 a step, S0 (the LOW id) at turn 1 with builders to spare, 200 timber at S1,
+    /// one scarce purse of 12 stone set before step 2 → 3, and S3 cancelled by an order stamped turn 3.</summary>
+    private static (WorldState T2, WorldState T3, TurnExecutor Exec, SimConfig Cfg) Reserved(SimConfig cfg0)
     {
-        // D-054's definition of "reserved" (Director WS1 item 5): a project never consumes (a) what another project has
-        // already had delivered — sunk — nor (b) what an EARLIER project in the building order takes this step.
-        // S3 (the HIGH id) ordered at turn 0 at a pace of 250,000 a step; S0 (the LOW id) at turn 1 with builders to spare.
         WorldState w = Solo();
         Share(w, S3, 1.0);
         AllBuilders(w, S0);
         double c3 = C(w, S3, 10.0);
-        SimConfig cfg = WithWorks(Cfg, 4.0 * c3);
+        SimConfig cfg = WithWorks(cfg0, 4.0 * c3);
         Set(w, S1, Timber, 200);
         TurnExecutor exec = ConstructionOnly(cfg, Log(Enqueue(0, Player, S3, Works), Enqueue(1, Player, S0), Cancel(3, Player, S3, 0)));
         WorldState t2 = exec.Run(w, 2);                                       // both queued, no stone yet
         Assert.Equal((0L, 0L), (P(t2, S3), P(t2, S0)));
         Set(t2, S1, Stone, 12);                                               // ONE scarce purse of 12 stone
+        return (t2, exec.Step(t2), exec, cfg);
+    }
 
-        WorldState t3 = exec.Step(t2);
-        // (b): S3, earlier in the building order, takes its 5 first (delivered(20, 250,000) = 5); S0 uses only the 7 left.
+    /// <summary>
+    /// D-054's definition of "reserved" (Director WS1 item 5): a project never consumes (a) what another project has already
+    /// had delivered — sunk — nor (b) what an EARLIER project in the building order takes this step.
+    ///
+    /// D-055 RE-PIN of step (b), step (a) RE-ASSERTED (2026-10-16; the Director's batch-4 instruction, item 1 — the
+    /// requirement this test is named for, now including what an earlier project still NEEDS; batch-4 design §1.7, a DEFECT
+    /// pin; MEASURED on this tree by the agent writing this line). OLD (b): S3 took its 5 stone and S0 the 7 left — P(S0) =
+    /// 350,000, stone 0, timber 176, 12 stone sunk. That left S3, which advances at a labour pace and still needs 15 stone,
+    /// with nothing for its next step: the defect. CAUSE: the hold rule (sim.json construction.reservations;
+    /// ConstructionQuery.HoldsWalk) — S3, earlier in the building order, draws its 5 and then SETS ASIDE min(its remaining
+    /// 15, the 7 left) = 7 stone and its remaining 30 timber; S0 can draw no stone, so it does not move and sets aside its
+    /// own 40 timber of the 160 left. NEW (b): P(S3) = 250,000, P(S0) = 0, the 7 stone stay (set aside), timber 200 − 10 =
+    /// 190, 5 stone sunk; published holds (purse 1) timber 30 + 40 = 70, stone 7. Step (a) is unchanged in meaning: the
+    /// cancel (stamped turn 3) forfeits S3's 5 sunk stone — with the purse emptied, nothing returns and S0 still cannot
+    /// move (P(S0) 0 → 0; 5 stone sunk in all, 12 before). ATTRIBUTION: the old values of both steps reproduce under
+    /// TestConfigs.PreReservations, the batch-3 rule
+    /// (<see cref="ProjectsDoNotConsumeResourcesReservedByOtherProjects_UnderPreReservations_IsBatch3"/>).
+    /// </summary>
+    [Fact]
+    public void ProjectsDoNotConsumeResourcesReservedByOtherProjects()
+    {
+        (WorldState t2, WorldState t3, TurnExecutor exec, SimConfig cfg) = Reserved(Cfg);
+        // (b): S3, earlier in the building order, takes its 5 first (delivered(20, 250,000) = 5) and sets aside the 7 left.
         Assert.Equal(250_000, P(t3, S3));
-        Assert.Equal(350_000, P(t3, S0));                                     // floor(7 × N / 20)
-        Assert.Equal(0, Of(t3, S1, Stone));
-        Assert.Equal(200 - 10 - 14, Of(t3, S1, Timber));                      // S3 ceil(40 × .25) = 10, S0 ceil(40 × .35) = 14
-        Assert.Equal(12, Sunk(t3, Stone) - Sunk(t2, Stone));
+        Assert.Equal(0, P(t3, S0));
+        Assert.Equal(7, Of(t3, S1, Stone));
+        Assert.Equal(200 - 10, Of(t3, S1, Timber));                           // S3 ceil(40 × .25) = 10; S0 draws nothing
+        Assert.Equal(5, Sunk(t3, Stone) - Sunk(t2, Stone));
+        int purse = Reservations.PolityPurse(Player);
+        Assert.Equal([new ConstructionHoldRow(purse, Timber, 30 + 40), new ConstructionHoldRow(purse, Stone, 7)], t3.ConstructionHolds.Rows());
+        HeadStatusReport younger = ConstructionQuery.HeadStatus(t2, cfg, S0, null, 10.0)!;
+        Assert.Equal((MaterialCause.HeldForEarlier, Stone, 7L), (younger.Cause, younger.Resolution.LimitGood, younger.SetAsideAhead));
+        Assert.Equal(new QueueEntryRef(S3, 0, Works), younger.Holder);
 
         // (a): cancelling S3 (stamped turn 3) forfeits its 5 stone: they never return to the purse and S0 cannot use them.
         Set(t3, S1, Stone, 0);
         WorldState t4 = exec.Step(t3);
         Assert.Empty(ConstructionQuery.Queue(t4, S3));
         Assert.Equal(0, TotalOf(t4, Stone));
-        Assert.Equal(350_000, P(t4, S0));                                     // S0 did not advance on S3's sunk stone
-        Assert.Equal(12, Sunk(t4, Stone) - Sunk(t2, Stone));
+        Assert.Equal(0, P(t4, S0));                                           // S0 did not advance on S3's sunk stone
+        Assert.Equal(5, Sunk(t4, Stone) - Sunk(t2, Stone));
+        Assert.Equal([new ConstructionHoldRow(purse, Timber, 40)], t4.ConstructionHolds.Rows());   // S0 alone now holds
         AssertConserved(t4);
     }
 
+    /// <summary>D-055 (2026-10-16) — the PreReservations twin of <see cref="ProjectsDoNotConsumeResourcesReservedByOtherProjects"/>:
+    /// both steps' batch-3 pins, unchanged.</summary>
     [Fact]
-    public void TwoHeadsAndARoad_InOneStep_NoUnitSpentTwice_NoNegativeStock_TheLedgerBalances()
+    public void ProjectsDoNotConsumeResourcesReservedByOtherProjects_UnderPreReservations_IsBatch3()
+    {
+        (WorldState t2, WorldState t3, TurnExecutor exec, _) = Reserved(TestConfigs.PreReservations(Cfg));
+        Assert.Equal(250_000, P(t3, S3));
+        Assert.Equal(350_000, P(t3, S0));                                     // floor(7 × N / 20)
+        Assert.Equal(0, Of(t3, S1, Stone));
+        Assert.Equal(200 - 10 - 14, Of(t3, S1, Timber));                      // S3 ceil(40 × .25) = 10, S0 ceil(40 × .35) = 14
+        Assert.Equal(12, Sunk(t3, Stone) - Sunk(t2, Stone));
+        Set(t3, S1, Stone, 0);
+        WorldState t4 = exec.Step(t3);
+        Assert.Empty(ConstructionQuery.Queue(t4, S3));
+        Assert.Equal(0, TotalOf(t4, Stone));
+        Assert.Equal(350_000, P(t4, S0));
+        Assert.Equal(12, Sunk(t4, Stone) - Sunk(t2, Stone));
+        Assert.Equal(0, t4.ConstructionHolds.Count);
+        AssertConserved(t4);
+    }
+
+    /// <summary>
+    /// D-055 (2026-10-16; batch-4 design §1.7, a behaviour candidate: "exact road units"; MEASURED on this tree by the agent
+    /// writing this line). Batch 3 bounded the road's spend (0 &lt; units ≤ half) and never pinned it. Now pinned in both
+    /// arms: with the hold rule (shipped) S3's works, a head that advanced 250,000 and still needs 30 timber and 15 stone,
+    /// SET ASIDE that need after their draw, so road works — later in the same step — get half − 30 = 30 timber (0 →
+    /// 0.25 of the route) and the published holds are (purse 1) timber 30, stone 15; under TestConfigs.PreReservations (the
+    /// batch-3 rule) the road takes the whole leftover, half = 60 timber (0 → 0.5), and nothing is held.
+    /// </summary>
+    [Theory]
+    [InlineData(true, 30L, 0.25)]
+    [InlineData(false, 60L, 0.5)]
+    public void TwoHeadsAndARoad_InOneStep_NoUnitSpentTwice_NoNegativeStock_TheLedgerBalances(bool reservations, long roadUnits, double after)
     {
         // pipeline.json: construction BEFORE roaddevelopment, both on next.GoodStocks. Route S0–S1, the trackway known.
+        SimConfig shipped = reservations ? Cfg : TestConfigs.PreReservations(Cfg);
         WorldState w = Solo();
         for (int s = 0; s < 4; s++)
             w.Settlements[s] = w.Settlements[s] with { SiteCell = w.Terrain!.Index(new[] { 100, 130, 100, 150 }[s], new[] { 100, 100, 105, 150 }[s]) };
@@ -444,11 +543,12 @@ public class IncrementalConstructionTests
         w.ResearchCompleted.Add(new ResearchCompletedRow(Player, Research.Nodes[Research.IndexOfId("track_road")].Key));
         AllBuilders(w, S1);
         AllBuilders(w, S3);
-        SimConfig cfg = WithWorks(Cfg, 4.0 * C(w, S3, 10.0));                // S3's works: 250,000 units a step
+        SimConfig cfg = WithWorks(shipped, 4.0 * C(w, S3, 10.0));            // S3's works: 250,000 units a step
         RoadDevelopmentStep step = Assert.Single(RoadDevelopmentQuery.Plan(w, Research, cfg.Roads!, cfg.Goods!, Player, 100.0));
         long road = Assert.Single(step.Cost).Units;                           // timber per km × length
         long half = road / 2;
         Assert.True(half > 0, "anti-vacuity: the road costs timber");
+        Assert.Equal(120, road);                                              // MEASURED: 60 is half; the works still need 30
         Set(w, S2, Timber, 40 + 10 + half);                                   // the granary's 40, the works' first 10, half the road
         Set(w, S2, Stone, 40);
         var both = new SystemRegistration[] { SystemCatalog.Construction(cfg), SystemCatalog.RoadDevelopment(cfg) };
@@ -462,8 +562,13 @@ public class IncrementalConstructionTests
         Assert.Equal(stone0 - 25, TotalOf(next, Stone));
         RoadDevelopmentRow dev = Assert.Single(next.RoadDevelopments.Rows());
         Assert.True(dev.MaterialUnits > 0 && dev.MaterialUnits <= half, $"the road spent {dev.MaterialUnits} of the {half} building work left");
+        Assert.Equal((roadUnits, after), (dev.MaterialUnits, dev.ProgressAfter));
         Assert.Equal(timber0 - 50 - dev.MaterialUnits, TotalOf(next, Timber));
         Assert.Equal(50 + dev.MaterialUnits, Sunk(next, Timber) - sunk0);     // every unit spent once, through the Ledger
+        int purse = Reservations.PolityPurse(Player);
+        Assert.Equal(reservations ? new[] { new ConstructionHoldRow(purse, Timber, 30), new ConstructionHoldRow(purse, Stone, 15) }
+            : Array.Empty<ConstructionHoldRow>(), next.ConstructionHolds.Rows());
+        if (reservations) Assert.Equal(30, TotalOf(next, Timber));            // exactly the works' set-aside is left
         AssertConserved(next);
     }
 }

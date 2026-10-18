@@ -1197,3 +1197,42 @@ tree and is obsolete); Q17 and Q18 are NEW (verifier WS1-RESV, the nits round's 
 
     Does gov-4 §6 allow a dated note inside a frozen body when the text it supersedes is kept as written, or should
     these notes move to file-end dated notes? Moving them would change no content, only where it sits.
+
+---
+
+## Dated note — 2026-10-17 (D-055, the Director's batch-4 instruction; appended at the file's end, the text above is unchanged)
+
+D-054 §10 Q19 is unruled, so this note sits at the file's end and nothing above is rewritten. Record:
+`docs/d055-batch4-reservations-attribution-allocation-ci-persistence-pathfinding.md` (D-055); contract:
+`docs/adr/adr-040-schema-v34-construction-holds-pathfinder-surface-and-cli.md` (ADR-040).
+
+- **§1 "Reservation (Director item 5)" — SUPERSEDED for queue heads.** "The claims (each queued entry's REMAINING needs)
+  are advisory. … they set nothing aside" no longer holds for a settlement's queue HEAD: with `sim.json`
+  `construction.reservations` (shipped on) every unreleased head SETS ASIDE its remaining need from its purse, in the
+  building order, and later heads and road works may not use it (D-055 §1). Non-head entries still only claim. The
+  "(a) sunk materials" half stands. The verifier's probe described under "Consequence" (a younger head emptying the purse
+  an older, waiting head needs) is the defect the instruction names; under the rule the younger head waits.
+- **§10 Q17 — RESOLVED** by the instruction ("Do not ask the Director to resolve this already-established requirement"):
+  an earlier head's unmet remaining need bounds later heads' draws from the same purse (D-055 §1, §10).
+- **§2 — building demand** is now building work's claim (draws plus set-asides, D_b = `OwnHeadClaims`), and the forecast
+  road charge and the starvation guard run on S less the forecast draws and set-asides. D_r and the split's formulas are
+  unchanged (D-055 §1.6).
+- **§4 — schema.** v33 is no longer current: schema v34 appends section 61 `ConstructionHolds`; the readable versions are
+  {32, 33, 34}, and a v33 save loads with `ConstructionHolds` empty (ADR-040 §2–§3).
+- **§6 bench paragraph and §10 Q16 — CORRECTED.** The +13.8 % compared the cylinder with batch 2's ROUND-1 median; against
+  a same-day flat control the cylinder costs +9.2–9.4 %, and that part is seed 42's A* search size (its shared PathBuild
+  target lies farther from the settlements), not the road network, which is the same size. Over seeds 1–10 the cylinder
+  settles 5 % fewer A* nodes, and the wrap arithmetic is inside the noise. The byte-identical optimisations O1–O6 cut the
+  60-turn bench by 44–54 % per seed, measured on base-b3 + T5 without the hold rule (D-055 §6). The integrated batch-4
+  tree (`4602ed4d…`; all of batch 4 against base-b3, at host load 1.80–7.66) ran the 60-turn bench 36.5–47.0 % faster
+  per seed, 40.8 % over the five seeds' summed medians (D-055 §8, §10). (Tree qualifier added at the integration's fix
+  stage, 2026-10-18.)
+- **§7 / §9 and §10 Q14 — ANSWERED.** The four kept-flat re-rigs: revolt and order refusal (the `FoundedHarnessTests`
+  ordered twin's subject), the decay sample and the explain-starved sample now have cylinder proofs; the
+  `NonCanonicalSizeFoundingTests` recipe stays flat (the cylinder refuses non-stride sizes). The flat originals are
+  unchanged (D-055 §3).
+- **§5 item 13 — the m5w plan's reservations.** v34 is taken by batch 4, so S2a's known extent moves to **v35** and S3's
+  Action Points state to **v36** (the m5w plan carries a dated note). Batch 4 adds no order kind.
+- **§2's "Cross-process coverage. No lasting CI leg makes the split BIND"** (and its `docs/queue.md` line) is closed by the
+  ci.yml step "Allocation split, binding, cross-process (D-055)" (D-055 §4).
+- **Unchanged by batch 4:** Q1–Q13, Q15, Q18 and Q19 stay open as written.

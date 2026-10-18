@@ -118,10 +118,13 @@ public sealed record ProjectEntry(
 /// <c>GoneIn</c> the figures line ("16 of 40 timber, 8 of 20 stone and 0.8 of 2 adult-years have gone in"; head with p &gt; 0);
 /// <c>Status</c> the head's status from ConstructionQuery.HeadStatus (an estimate); <c>Forfeit</c> what a cancel loses
 /// ("16 timber, 8 stone, 0.8 adult-years"; p &gt; 0); <c>Cancel</c> the query's cancel descriptor (committed, cancellable);
-/// <c>Position</c> the place in the settlement's queue at End Turn (1 = first in line; 0 for a cancelled entry).</summary>
+/// <c>Position</c> the place in the settlement's queue at End Turn (1 = first in line; 0 for a cancelled entry). D-055:
+/// <c>SetAside</c> what the head sets aside while it waits ("sets aside 22 timber and 11 stone while it waits; projects
+/// ordered later wait for it" — HoldText.SetAsideLine; null when it sets nothing aside).</summary>
 public sealed record QueueEntry(
     int Slot, int ProjectId, string Name, long Progress = 0, bool Head = false, bool Committed = true, bool CancelPending = false,
-    string? GoneIn = null, string? Status = null, string? Forfeit = null, ActionDescriptor? Cancel = null, int Position = 1);
+    string? GoneIn = null, string? Status = null, string? Forfeit = null, ActionDescriptor? Cancel = null, int Position = 1,
+    string? SetAside = null);
 
 /// <summary>This turn's construction labour in adult-years: the construction share's whole pool, what housing
 /// took (its published draw, a one-turn lag) and what is left for projects and path-making.
@@ -148,10 +151,12 @@ public sealed record RouteEntry(
     string Cost);
 
 /// <summary>Road development for the best class the Empire knows: the ranked routes, the first route's
-/// blocker, whether a development is already ordered this turn.</summary>
+/// blocker, whether a development is already ordered this turn. D-055 (T1b fix round, finding F2): <c>Pending</c> and
+/// <c>DtYears</c> — the player's pending orders and the coming step's length, so the roads preview reads what that step's
+/// construction will set aside (ActionSurface.RoadPlan) even without the Materials block.</summary>
 public sealed record RoadsBlock(
     int TargetClass, string ClassName, ImmutableArray<RouteEntry> Routes, string? Blocker, string? LearnedFrom,
-    double? OrderedPercent, ActionDescriptor Action);
+    double? OrderedPercent, ActionDescriptor Action, IReadOnlyList<OrderRecord>? Pending = null, double? DtYears = null);
 
 /// <summary>What a road development of a given percentage would do now — an ESTIMATE on current stocks. WS2 (D-054): with
 /// the building/roads split in force, <c>AfterBuilding</c> is the share of the order that would be paid from what
@@ -159,10 +164,14 @@ public sealed record RoadsBlock(
 /// system's own arithmetic), <c>LeftLine</c> says it in words ("after building work, about 25 of
 /// the 60 timber needed is left: about two-fifths of it would be paid this turn"), and <c>Warning</c> is the default
 /// split's "Building work may take up to X stone first under the current split - change it under Materials" (null when
-/// building work takes nothing the order needs). All three are null without the split.</summary>
+/// building work takes nothing the order needs). All three are null without the split. D-055: with the hold rule on, what
+/// building work takes counts what it SETS ASIDE too (the split's BuildingHolds), and <c>SetAside</c> names the projects
+/// that set aside goods the order needs ("40 timber is set aside for Alpha's granary; road works may not use it" —
+/// HoldText.RoadsLine; null when nothing is). The payers are the Empire's own purse places
+/// (ConstructionQuery.EmpirePursePlaces — the set road development draws on).</summary>
 public sealed record RoadPlanPreview(
     double Percent, int Routes, string Cost, double Affordable, ImmutableArray<string> Payers, ImmutableArray<string> RouteLabels,
-    double? AfterBuilding = null, string? LeftLine = null, string? Warning = null);
+    double? AfterBuilding = null, string? LeftLine = null, string? Warning = null, string? SetAside = null);
 
 /// <summary>
 /// WS2 (D-054) — THE MATERIALS BLOCK: the Empire's building/roads split, present iff the query lists its descriptor
@@ -297,7 +306,7 @@ public static class ActionSurface
             Research(input, actions),
             Age(input, actions),
             construction,
-            Roads(input, actions),
+            Roads(input, actions, context.NextDtYears ?? input.World.Clock.DtYears),
             Military(input, actions),
             Governance(input, actions),
             Standing(actions),
@@ -659,6 +668,24 @@ public static class ActionSurface
         HeadStatusReport? status = rows.Count > 0 ? ConstructionQuery.HeadStatus(w, cfg, settlement, input.Queued, dtYears) : null;
         bool empire = ConstructionQuery.DrawsOnEmpire(w, cfg, settlement);
         string building = BuildingLabel(input);
+        // D-055: a head waiting on units SET ASIDE for an earlier head names it — its own status (its reason, the remedy) and
+        // where it stands in the building order (EnqueuedTurn, from the same pending book). The holder is of the head's OWN
+        // purse (HoldsWalk names no other), so this reads the player's own books only (P7).
+        // T1b fix round (finding F7): with what the heads ahead of it DRAW of its binding good this step, from the same walk.
+        HoldContext? hold = null;
+        if (status is { Cause: MaterialCause.HeldForEarlier, Holder: { } holder } && rows.Count > 0)
+        {
+            HoldsWalkResult walk = SetAsideQuery.Read(w, cfg, input.Queued, dtYears).Walk;
+            int at = SetAsideQuery.HeadIndexOf(walk, settlement);
+            long used = at >= 0 ? SetAsideQuery.At(SetAsideQuery.DrawnAhead(walk, at), status.Resolution.LimitGood) : 0;
+            hold = new HoldContext(ConstructionQuery.HeadStatus(w, cfg, holder.Settlement, input.Queued, dtYears),
+                ConstructionQuery.EnqueuedTurnOf(progress, new ConstructionQueueRow(holder.Settlement, holder.Slot, holder.ProjectId)),
+                ConstructionQuery.EnqueuedTurnOf(progress, rows[0]), used);
+        }
+        // The head's own set-aside line, and under a building/roads split of b < 100 (the pending kind-12 orders applied) that
+        // the split lets road works use the rest.
+        bool split = ResourceAllocation.Enabled(cfg) && ResourceAllocation.EffectivePercent(
+            ConstructionQuery.AllocationsWith(w, cfg, w.ResourceAllocations, input.Queued), input.Player) < ResourceAllocation.DefaultBuildingsPercent;
         for (int i = 0; i < rows.Count; i++)
         {
             ConstructionQueueRow row = rows[i];
@@ -667,19 +694,24 @@ public static class ActionSurface
             bool committed = Contains(w.ConstructionQueue, row);
             long pr = ConstructionQuery.ProgressOf(progress, row);
             bool head = i == 0;
-            string? line = head && status is not null ? ConstructionStatusText.Status(status, cfg, empire, input.Name(settlement.Value), input.Name, building) : null;
+            string? line = head && status is not null ? ConstructionStatusText.Status(status, cfg, empire, input.Name(settlement.Value), input.Name, building, hold) : null;
             ActionDescriptor? cancel = committed ? FindCancel(actions, settlement, row.Slot) : null;
             queue.Add(new QueueEntry(row.Slot, row.ProjectId, name, pr, head, committed, false,
                 head && pr > 0 && p is not null ? ConstructionQuery.GoneIn(goods, p, pr) : null, line,
-                pr > 0 && p is not null ? ConstructionQuery.Forfeit(p, pr) : null, cancel, i + 1));
+                pr > 0 && p is not null ? ConstructionQuery.Forfeit(p, pr) : null, cancel, i + 1,
+                head && status is not null ? HoldText.SetAsideLine(status, cfg, split) : null));
             if (head) headBlocker = status is { Resolution.Progresses: false } ? line : null;
             if (head) lastTurn = ConstructionStatusText.LastTurn(input.Previous, w, cfg, row);
             if (committed) continue;
             if (head)
             {
                 string uses = status is { Resolution: { Progresses: true, Project: { } hp } r } ? UpTo(hp, r) : "what its builders and the purse allow";
-                ordered.Add(name + " ordered - it is first in line, so at End Turn it starts and may use up to " + uses
-                    + "; later, cancelling loses what went in");
+                // D-055, T1b fix round (finding F11): a new head whose units are set aside for an earlier one does not start.
+                ordered.Add(status is { Cause: MaterialCause.HeldForEarlier, Resolution: { Progresses: false, LimitGood: >= 0 } held }
+                    ? name + " ordered - it is first in line, but at End Turn it waits for " + goods.ById(held.LimitGood).Name
+                      + " set aside for earlier projects; later, cancelling loses what went in"
+                    : name + " ordered - it is first in line, so at End Turn it starts and may use up to " + uses
+                      + "; later, cancelling loses what went in");
             }
             else ordered.Add(name + " ordered - joins the queue " + ConstructionStatusText.Ordinal(i + 1) + "; nothing is used until it is first in line");
         }
@@ -751,7 +783,7 @@ public static class ActionSurface
 
     // ------------------------------------------------------------------ roads (read only: transport is frozen)
 
-    private static RoadsBlock? Roads(ActionSurfaceInput input, ImmutableArray<ActionDescriptor> actions)
+    private static RoadsBlock? Roads(ActionSurfaceInput input, ImmutableArray<ActionDescriptor> actions, double dtYears)
     {
         ActionDescriptor? road = null;
         foreach (ActionDescriptor a in actions) if (a.Domain == ActionDomain.Roads && a.Order == OrderKind.DevelopRoads) { road = a; break; }
@@ -774,7 +806,7 @@ public static class ActionSurface
         string className = road.Label.StartsWith("Develop roads (", StringComparison.Ordinal) && road.Label.EndsWith(')')
             ? road.Label["Develop roads (".Length..^1] : road.Label;
         return new RoadsBlock((int)road.Id, className, routes.MoveToImmutable(), road.Blocker,
-            road.Provenance.Researched ? string.Join(", ", road.Provenance.NodeNames) : null, ordered, road);
+            road.Provenance.Researched ? string.Join(", ", road.Provenance.NodeNames) : null, ordered, road, input.Queued, dtYears);
     }
 
     /// <summary>What a DevelopRoads of <paramref name="percent"/>% would select now and cost — read through
@@ -797,13 +829,28 @@ public static class ActionSurface
     /// </summary>
     public static RoadPlanPreview RoadPlan(
         IReadOnlyWorldState world, SimConfig cfg, PolityId player, double percent, Func<int, string> name,
-        AllocationBlock? split, bool numerals)
+        AllocationBlock? split, bool numerals) =>
+        RoadPlan(world, cfg, player, percent, name, split, numerals, split?.Pending, split?.DtYears);
+
+    /// <summary>
+    /// <see cref="RoadPlan(IReadOnlyWorldState, SimConfig, PolityId, double, Func{int, string}, AllocationBlock?, bool)"/> for the
+    /// step <paramref name="pending"/> and <paramref name="dtYears"/> describe (the player's pending orders; the step's length,
+    /// the world's own when null) — D-055, T1b fix round (finding F2): the basic preview's holding is less what THAT step's
+    /// construction will set aside within the payers (SetAsideQuery.StepTable), as the road blocker's is, so a pending cancel
+    /// of a holder or a pending enqueue reads as the step will do it. The screen passes the Roads block's own.
+    /// </summary>
+    public static RoadPlanPreview RoadPlan(
+        IReadOnlyWorldState world, SimConfig cfg, PolityId player, double percent, Func<int, string> name,
+        AllocationBlock? split, bool numerals, IReadOnlyList<OrderRecord>? pending, double? dtYears)
     {
-        RoadPlanPreview basic = RoadPlanCore(world, cfg, player, percent, name, out RoadMaterialCost[] sum);
+        RoadPlanPreview basic = RoadPlanCore(world, cfg, player, percent, name, pending, dtYears ?? world.Clock.DtYears, out RoadMaterialCost[] sum);
         if (split is null || sum.Length == 0 || cfg.Goods is not { } goods) return basic;
         AllocationView? view = ResourceAllocationQuery.ForEmpire(world, cfg, player, split.Pending, split.DtYears, roadDraftPercent: percent);
         if (view is null) return basic;
-        SettlementId[] purse = RoadDevelopmentQuery.PayingSettlements(world, player);
+        // D-055: the Empire's own purse places (the set road development and the split's S count; T1a round 2), and what
+        // building work takes counts what it SETS ASIDE as well as what it draws (0 with the hold rule off: batch 3).
+        SettlementId[] purse = ConstructionQuery.EmpirePursePlaces(world, cfg, player, RoadDevelopmentQuery.PayingSettlements(world, player));
+        bool holds = Reservations.Enabled(cfg);
         var left = new long[sum.Length];
         int binding = -1;
         double worst = double.PositiveInfinity, after = 1.0;
@@ -813,7 +860,7 @@ public static class ActionSurface
         {
             int g = sum[m].Good.Value;
             long have = EmpireStockpile.Available(world.GoodStocks, purse, sum[m].Good);
-            long building = view.Split.BuildingDrawOf(g);
+            long building = checked(view.Split.BuildingDrawOf(g) + view.Split.BuildingHoldOf(g));
             left[m] = Math.Max(0, have - building);
             double ratio = sum[m].Units <= 0 ? double.PositiveInfinity : (double)left[m] / sum[m].Units;
             if (ratio < worst) { worst = ratio; binding = m; }
@@ -829,17 +876,28 @@ public static class ActionSurface
         string share = numerals && after < 1.0 && after > 0.0
             ? AllocationText.SharePercent(paidUnits, neededUnits)
             : AllocationText.ShareWords(after);
+        string afterWhat = holds ? "after what building work uses or sets aside, " : "after building work, ";
         string leftLine = after >= 1.0
-            ? "after building work, everything this order needs is left: all of it would be paid this turn"
-            : "after building work, about " + Inv(left[binding]) + " of the " + Inv(sum[binding].Units) + " "
+            ? afterWhat + "everything this order needs is left: all of it would be paid this turn"
+            : afterWhat + "about " + Inv(left[binding]) + " of the " + Inv(sum[binding].Units) + " "
               + goods.ById(sum[binding].Good.Value).Name + " needed is left: " + share + " would be paid this turn";
         string? warning = taken.Count == 0 ? null
             : "Building work may take up to " + AllocationText.List(taken) + " first under the current split - change it under Materials";
-        return basic with { AfterBuilding = after, LeftLine = leftLine, Warning = warning };
+        // D-055: name the projects that set aside what the order needs — the split forecast's own walk, head by head.
+        string? setAside = null;
+        if (holds)
+        {
+            var ids = new int[sum.Length];
+            for (int m = 0; m < sum.Length; m++) ids[m] = sum[m].Good.Value;
+            HoldsWalkHead[] heads = SetAsideQuery.HeadsUnder(world, cfg, player, split.Pending, split.DtYears, SetAsideQuery.ForecastGrants(view.Split));
+            setAside = HoldText.RoadsLine(heads, ids, cfg, name);
+        }
+        return basic with { AfterBuilding = after, LeftLine = leftLine, Warning = warning, SetAside = setAside };
     }
 
     private static RoadPlanPreview RoadPlanCore(
-        IReadOnlyWorldState world, SimConfig cfg, PolityId player, double percent, Func<int, string> name, out RoadMaterialCost[] summed)
+        IReadOnlyWorldState world, SimConfig cfg, PolityId player, double percent, Func<int, string> name,
+        IReadOnlyList<OrderRecord>? pending, double dtYears, out RoadMaterialCost[] summed)
     {
         summed = [];
         RoadDevelopmentStep[] plan = RoadOrderFactory.Preview(world, cfg, player, percent);
@@ -858,8 +916,21 @@ public static class ActionSurface
         }
         RoadMaterialCost[] sum = [.. total];
         summed = sum;
-        SettlementId[] payers = RoadDevelopmentQuery.PayingSettlements(world, player, plan[0].Route.A, plan[0].Route.B);
-        double affordable = RoadDevelopmentQuery.AffordableFraction(world.GoodStocks, payers, sum);
+        // D-055 (T1b; T1a round 2's open item): the payers road development itself draws on — the Empire's own purse places
+        // (ConstructionQuery.EmpirePursePlaces) — and their holding less what construction sets aside within them
+        // (RoadDevelopmentQuery.SetAsideWithin). T1b fix round (finding F2): THIS step's set-asides — the walk on the world
+        // and the pending orders (SetAsideQuery.StepTable), not the last step's published table — so the preview says what the
+        // step will do. The rule off: PayingSettlements and the whole holding (batch 3).
+        SettlementId[] payers = ConstructionQuery.EmpirePursePlaces(world, cfg, player,
+            RoadDevelopmentQuery.PayingSettlements(world, player, plan[0].Route.A, plan[0].Route.B));
+        long[] have = RoadDevelopmentQuery.Holdings(world.GoodStocks, payers, sum);
+        IReadOnlyTable<ConstructionHoldRow> setAsides = SetAsideQuery.StepTable(world, cfg, pending, dtYears);
+        for (int m = 0; m < sum.Length; m++)
+        {
+            long[]? keep = null;
+            have[m] = Math.Max(0, have[m] - RoadDevelopmentQuery.SetAsideWithin(world, cfg, setAsides, payers, sum[m].Good, ref keep));
+        }
+        double affordable = RoadDevelopmentQuery.AffordableFraction(sum, have);
         var payerNames = ImmutableArray.CreateBuilder<string>(payers.Length);
         foreach (SettlementId p in payers) payerNames.Add(name(p.Value));
         return new RoadPlanPreview(percent, plan.Length, Costs(goods, sum), affordable, payerNames.MoveToImmutable(), labels.MoveToImmutable());

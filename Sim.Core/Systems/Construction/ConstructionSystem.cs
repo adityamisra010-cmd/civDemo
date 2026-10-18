@@ -10,7 +10,8 @@ namespace Sim.Core.Systems.Construction;
 public sealed record ConstructionTables(
     Table<ConstructionQueueRow> Queue, Table<StructureRow> Structures,
     Table<GoodStockRow> GoodStocks, Table<ConstructionLaborRow> Labor,
-    Table<ConstructionProgressRow> Progress, Table<ResourceAllocationRow> Allocations);
+    Table<ConstructionProgressRow> Progress, Table<ResourceAllocationRow> Allocations,
+    Table<ConstructionHoldRow> Holds);
 
 /// <summary>
 /// M4-D — THE SETTLEMENT CONSTRUCTION QUEUE; WS1 (D-054 — the Director's 2026-10-14 instruction, workstream 1) — BUILT
@@ -20,7 +21,10 @@ public sealed record ConstructionTables(
 /// in batch 2 — the attribution control only.
 ///
 /// THE STEP, in this FIXED order (all signals from PREV except the tables this system owns, which it reads NEXT):
-///  1. ctx.Owned.Labor.Clear() — the published labour is rebuilt from this step's work (ADR-033 D10).
+///  1. ctx.Owned.Labor.Clear() — the published labour is rebuilt from this step's work (ADR-033 D10). ctx.Owned.Holds.Clear()
+///     — D-055 (schema v34): the published set-asides (ConstructionHoldRow) are cleared at the start of EVERY step, whatever
+///     sim.json construction.reservations says, so a hold row loaded from a save or left by the previous step is never an
+///     input: with reservations off nothing is published again, and the step ends with the table empty.
 ///  2. SetResourceAllocation (kind 12) upserts, in log order — WS2 (sim.json construction.allocationRatios): each order
 ///     ConstructionQuery.AllocationOrderValid admits (the switch on; a roster Empire setting its OWN split; a whole share
 ///     in [0, 100]) upserts its Empire's ResourceAllocationRow in the NEXT table — the last valid order wins, and an order
@@ -47,18 +51,22 @@ public sealed record ConstructionTables(
 ///     draw exactly as with the split off. A road order that road development would charge nothing on what building work
 ///     leaves it withholds nothing (the starvation guard: G_b = min(D_b, S)). Housing is not under the split (it draws its
 ///     own settlement's timber, earlier).
-///  6. RESOLVE THE HEADS IN THE BUILDING ORDER (ConstructionQuery.HeadsInBuildingOrder): only each settlement's head —
-///     its lowest slot — progresses, OLDEST ORDER FIRST (EnqueuedTurn ascending, −1 for an entry with no progress row;
-///     then SettlementId; then Slot). Each head is resolved by ConstructionQuery.ResolveHead — THE resolver the UI's
-///     estimate also calls — against the NEXT stocks after every earlier head's draw, and draws exactly
-///     Delivered(c, p') − Delivered(c, p) of each input through EmpireStockpile.Draw (Ledger.Flow sinks under
-///     ReasonIds.ConstructionMaterials, the batch-2 donor order).
+///  6. RESOLVE THE HEADS IN THE BUILDING ORDER through THE HOLDS WALK (ConstructionQuery.HoldsWalk — D-055; the one pure
+///     function HeadStatus and the split's forecast call too): only each settlement's head — its lowest slot —
+///     progresses, OLDEST ORDER FIRST (ConstructionQuery.HeadsInBuildingOrder: EnqueuedTurn ascending, −1 for an entry with
+///     no progress row; then SettlementId; then Slot). Each head is resolved by ConstructionQuery.ResolveHead — THE
+///     resolver — against its PURSE'S BUDGET: the purse's NEXT holding (within the grant under a split) less every earlier
+///     head's draw AND set-aside (RESERVATION below); it draws exactly Delivered(c, p') − Delivered(c, p) of each input
+///     through EmpireStockpile.Draw (Ledger.Flow sinks under ReasonIds.ConstructionMaterials, the batch-2 donor order).
 ///  7. COMPLETION: a head reaching p' = N is completed in the same step — Structures + 1 (StructureRow), its queue row and
 ///     progress row removed exactly once. Its effects begin as any completed structure's always did: institution
 ///     founding the next step (InstitutionsSystem), the granary factors from the next production step.
-///  8. The progress/queue invariant is asserted (ConstructionQuery.ProgressInvariantViolation, the statement Snapshot.Load
-///     also applies: unique slots, progress in [0, N − 1], one progress row per entry, each matched by its queue row), and
-///     the split invariant (ResourceAllocation.InvariantViolation: shares in [0, 100], one row per Empire).
+///  8. D-055: the set-asides are PUBLISHED (ConstructionHolds, one row per (purse, good) with units, ascending), and the
+///     hold invariants (i)–(vi) asserted (ConstructionQuery.HoldsInvariantViolation). Then the progress/queue invariant
+///     (ConstructionQuery.ProgressInvariantViolation, the statement Snapshot.Load also applies: unique slots, progress in
+///     [0, N − 1], one progress row per entry, each matched by its queue row), the split invariant
+///     (ResourceAllocation.InvariantViolation: shares in [0, 100], one row per Empire) and the table's structural
+///     invariant (Reservations.InvariantViolation: ascending (Purse, Good), Units > 0, Good ≥ 0).
 /// All in-step reads — the intake guard, the claims, the resolution — use the NEXT/owned queue and progress tables;
 /// ProjectId is matched on every read, and in resolution a mismatch throws (a bug: forfeited progress survived).
 ///
@@ -85,11 +93,37 @@ public sealed record ConstructionTables(
 /// input, an unknown project) is reported as such; the player sees why and may cancel, and the AI cancels its own
 /// (AiConstructionPolicy).
 ///
-/// RESERVATION (Director WS1-5, D-054). A project never consumes (a) materials already delivered to another project —
-/// they left the purse through the Ledger and are sunk — nor (b) what a project EARLIER in the building order takes this
-/// step: this step's material is served oldest order first, and a later project uses only what earlier ones left. The
-/// CLAIMS (ConstructionQuery.Claimed: each queued entry's remaining needs) stay advisory — the crafted-input guard, the
-/// AI's ordering and the display read them; they set nothing aside.
+/// RESERVATION (Director WS1-5, D-054; D-055 — the Director's batch-4 instruction, item 1, which also resolves D-054 Q17:
+/// projects must not consume resources reserved by other projects, ACROSS TURNS). A project never consumes (a) materials
+/// already delivered to another project — they left the purse through the Ledger and are sunk — nor (b) what a project
+/// EARLIER in the building order takes this step, nor (c) what an earlier project SETS ASIDE: with sim.json
+/// construction.reservations on (shipped; Reservations.Enabled), every queue HEAD — at any progress, 0 included — that is
+/// not RELEASED holds its remaining need, in the building order, per PURSE and good. THE WALK, per purse key and good:
+/// Budget starts at the purse's NEXT holding S (or the building grant G_b under a split); each head in order is resolved
+/// against Budget (a head that cannot advance draws 0), Budget −= its draw, then it sets aside
+/// hold = min(Σ over its inputs of that good of Remaining(c, p'), Budget) and Budget −= hold. The draw is subtracted
+/// BEFORE the hold, so draws + holds never exceed the budget and no hold names a unit that is not there. THE PURSE KEY is
+/// the holder set the head draws from (ConstructionQuery.Holders on PREV): its controller's polity id when
+/// construction.empireStockpile is on and an Empire controls it, otherwise −1 − settlementId (purse off, a stateless
+/// settlement, a world with no Controls). PRIORITY: the building order — all integer keys, total. RELEASED (the reservation
+/// is INVALID: the holder can never progress in any future state; read from PREV and the content, independently of the
+/// resolver's check order — ConstructionQuery.ReleaseOf): (a) its project left the content; (b) its settlement has no
+/// labour adults (Sim.Core never removes a settlement: a destroyed or abandoned one is depopulated); (c) it founds an
+/// institution whose viability fails for want of an institutions configuration. VALID BUT POSSIBLY LONG waits keep
+/// holding: materials short, no builders (the player's labour split), a market viability failure, an unobtainable crafted
+/// input (research can open a recipe); the player sees the holder, the reason and the remedy, and the AI cancels its own
+/// structural stalls as before. Holds are recomputed from scratch every step — no stale reservation state: a cancel (kind
+/// 11, applied before the walk) releases in its delivery step and later heads use the units in that step; a completion
+/// leaves need 0 after its final draw, so the leftover is used in the same walk, and the slot it promotes holds from the
+/// NEXT step (a cancel's promoted slot holds in the SAME step); a re-enqueue is a new entry (EnqueuedTurn = its stamp
+/// turn, p = 0) that holds only once it is a head, behind every older head; a revolt moves the hold to the new
+/// controller's purse from the next step (the key is read on PREV). Holds bind exactly two things — later construction
+/// heads and road works (ROAD DEVELOPMENT below) — and move no goods: only Ledger draws move goods; production,
+/// consumption, trade, housing and every other consumer are not bound, and the next walk recomputes from what exists. The
+/// oldest unreleased head of every purse is resolved against the whole budget, so a hold never blocks it and no cycle can
+/// form. Non-head entries never hold: their remaining needs stay CLAIMS (ConstructionQuery.Claimed) — counts the
+/// crafted-input guard, the AI's ordering and the display read, never set-asides. Switch off (TestConfigs.PreReservations):
+/// nothing is set aside or published — batch 3 exactly.
 ///
 /// CAPACITY comes from the EXISTING sector allocation, in the EXISTING unit: construction share × labour adults × dtYears
 /// = adult-years (ConstructionQuery.CapacityAdultYears), the same quantity PathBuild and Housing draw from. Housing's
@@ -99,16 +133,22 @@ public sealed record ConstructionTables(
 /// — turn-start control — for the building settlement: the settlement first, then every other settlement its controller
 /// commands, nearest-first, ties to the lower id (EmpireStockpile); a settlement no Empire controls is its own stockpile.
 /// The resolver reads the holders' rows on this system's NEXT GoodStocks; the draw takes each input from them in that
-/// order. The capacity is always the building settlement's own labour.
+/// order. The capacity is always the building settlement's own labour. With the hold rule on, the walk and the draw use
+/// ConstructionQuery.PurseHolders — Holders less every place whose own purse key is another's — so purses never share a
+/// unit: they differ only in a world with two control rows for one place (D-037's cardinality is unenforced), whose stock
+/// then belongs to its LOWEST controller's purse alone (D-055 fix round, finding T1a-L1-T1a-V1-F1).
 ///
 /// CONTROLLER CHANGE (the existing convention, explicit): the queue and its progress belong to the SETTLEMENT and stay
 /// with it when control changes — the new controller's purse pays from then on (the holders are read on PREV), and the
 /// new controller may cancel; the old one no longer can.
 ///
 /// ROAD DEVELOPMENT (ADR-032) runs LATER in the pipeline (pipeline.json: construction before roaddevelopment) and draws
-/// from the same NEXT table, so a road order sees only what building work left; no unit is spent twice. Under an
-/// Empire's split (WS2) building work left at least min(D_r, E_r) of every eligible good for it; at b = 100 (the default)
-/// building work goes first and road works get what it leaves.
+/// from the same NEXT table, so a road order sees only what building work left; no unit is spent twice. D-055: it reads
+/// this step's published set-asides (ConstructionHolds, handed to it read-only — SystemCatalog's ownership record; order
+/// is data, and the shipped order is pinned by a test) and uses only what building work neither drew nor set aside. Under an Empire's split (WS2) the holds spend the grant too (Budget starts at G_b), so
+/// building work left at least min(D_r, E_r) of every eligible good for road works; a head's need beyond the grant is not
+/// held, as the player's split says. At b = 100 (the default) building work goes first — draws AND set-asides — and road
+/// works get what is neither drawn nor set aside.
 ///
 /// THE CLAIMS AT INTAKE (D-053 §1; ConstructionQuery's header). The obtainability guard reads the purse UNCLAIMED — less
 /// the REMAINING inputs of every entry queued in the purse's settlements — and the intake passes it THIS step's queue and
@@ -149,8 +189,11 @@ public sealed class ConstructionSystem(SimConfig cfg) : ISimSystem<ConstructionT
         Table<ConstructionProgressRow> progress = ctx.Owned.Progress;
         bool incremental = ConstructionQuery.Incremental(_cfg);
 
-        // 1. The published labour is rebuilt from this step's work (ADR-033 D10).
+        // 1. The published labour is rebuilt from this step's work (ADR-033 D10); the published holds (D-055, schema v34)
+        //    are cleared at the start of EVERY step whatever the reservations switch says — never an input to
+        //    construction.
         ctx.Owned.Labor.Clear();
+        ctx.Owned.Holds.Clear();
 
         // 2. SetResourceAllocation (kind 12, WS2), in log order: each order the predicate admits (the switch on, a roster
         //    Empire setting its OWN split, a whole share in [0, 100]) upserts its Empire's row; the last valid one wins.
@@ -205,6 +248,8 @@ public sealed class ConstructionSystem(SimConfig cfg) : ISimSystem<ConstructionT
         AssertInvariant(queue, progress);
         if (ResourceAllocation.InvariantViolation(ctx.Owned.Allocations) is { } split)
             throw new InvalidOperationException("construction: " + split + " (the v33 invariant).");
+        if (Reservations.InvariantViolation(ctx.Owned.Holds) is { } holds)
+            throw new InvalidOperationException("construction: " + holds + " (the v34 invariant).");
     }
 
     /// <summary>Steps 5–7 with incremental construction on (the header).</summary>
@@ -221,22 +266,25 @@ public sealed class ConstructionSystem(SimConfig cfg) : ISimSystem<ConstructionT
         long[]?[] grants = ConstructionQuery.GrantsLeft(ConstructionQuery.StepAllocations(
             prev, _cfg, queue, progress, stocks, ctx.Owned.Allocations, RoadDevelopmentQuery.Orders(ctx.Orders), ctx.DtYears));
 
-        ConstructionQueueRow[] heads = ConstructionQuery.HeadsInBuildingOrder(prev, queue, progress);
-        for (int h = 0; h < heads.Length; h++)
+        // 6. THE HOLDS WALK (D-055; ConstructionQuery.HoldsWalk — the one function HeadStatus and the split's forecast call
+        //    too): every head in the building order resolved against its purse's budget, with the release predicate, the
+        //    set-asides and the draws. Pure: it carries its draws on a scratch copy; the step applies them below.
+        HoldsWalkResult walk = ConstructionQuery.HoldsWalk(
+            prev, _cfg, queue, progress, stocks, ctx.DtYears, grants, strict: true);
+        for (int h = 0; h < walk.Heads.Length; h++)
         {
-            SettlementId settlement = heads[h].Settlement;
-            long[]? grant = ConstructionQuery.GrantsFor(prev, grants, settlement);
-            HeadResolution? r = ConstructionQuery.ResolveHead(
-                prev, _cfg, settlement, queue, progress, stocks, ctx.DtYears, budget: grant, strict: true);
-            if (r is null || !r.Progresses || r.Project is not { } project) continue;
-            ConstructionQuery.SpendGrants(grant, goods, project, r.Draws);
+            HeadResolution r = walk.Heads[h].Resolution;
+            SettlementId settlement = r.Entry.Settlement;
+            if (!r.Progresses || r.Project is not { } project) continue;
 
-            SettlementId[] holders = ConstructionQuery.Holders(prev, _cfg, settlement);
+            // The walk's own places (ConstructionQuery.PurseHolders: Holders less any place keyed to another purse — they differ
+            // only in a world with two control rows for one place; Holders exactly with the rule off).
+            SettlementId[] holders = ConstructionQuery.PurseHolders(prev, _cfg, settlement);
             for (int i = 0; i < project.Inputs.Length; i++)
             {
                 if (r.Draws[i] == 0) continue;
-                // Throw, not clamp: the resolver bounded every draw by the units available, so a short draw here means
-                // the state moved under us and silence would hide it.
+                // Throw, not clamp: the walk bounded every draw by the units available, so a short draw here means the
+                // state moved under us and silence would hide it.
                 EmpireStockpile.Draw(ctx.Ledger, stocks, holders, new GoodId(goods.IdOf(project.Inputs[i].Good)),
                     r.Draws[i], ReasonIds.ConstructionMaterials);
             }
@@ -255,6 +303,14 @@ public sealed class ConstructionSystem(SimConfig cfg) : ISimSystem<ConstructionT
             else   // an entry with no row (a v32 entry): its first progress appends one, keeping its order key −1
                 progress.Add(new ConstructionProgressRow(settlement, r.Entry.Slot, r.Entry.ProjectId, -1, r.ProgressAfter));
         }
+
+        // 7. D-055: publish the set-asides (sorted by (Purse, Good); nothing with the rule off) and assert the hold
+        //    invariants (i)–(vi) on the stocks construction leaves.
+        if (!walk.Enabled) return;
+        ConstructionHoldRow[] rows = walk.Rows();
+        for (int i = 0; i < rows.Length; i++) ctx.Owned.Holds.Add(rows[i]);
+        if (ConstructionQuery.HoldsInvariantViolation(walk, goods, stocks, ctx.Owned.Holds) is { } broken)
+            throw new InvalidOperationException("construction: " + broken + " (the D-055 hold invariant).");
     }
 
     /// <summary>THE SWITCH OFF: M4-D's whole-or-nothing gate, exactly as in batch 2 (the header).</summary>

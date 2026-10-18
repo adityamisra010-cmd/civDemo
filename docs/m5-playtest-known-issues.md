@@ -353,3 +353,71 @@ a river cross it). Note the seed, size, turn and window size of anything odd, an
 10. **A size the cylinder refuses.** Launch with `--size 250`. No game window may open. The error dialog ("civ-sim:
     this world cannot be created") and stderr must show the "this world is a cylinder …" message quoted in §11, and
     the launch must end with exit code 2. The dialog is not yet observed on Windows (§12).
+
+---
+
+## Dated note — 2026-10-17: batch 4 (D-055) — known issues and playtest checklist items (appended at the file's end; the sections above are unchanged)
+
+Batch 4 (the Director's batch-4 instruction) is UNCOMMITTED on top of batch 3, not pushed and not in any build yet.
+Records: `docs/d055-batch4-reservations-attribution-allocation-ci-persistence-pathfinding.md` (D-055) and ADR-040. This
+note sits at the file's end because D-054 §10 Q19 (where dated notes may sit) is unruled; it supersedes the lines of §15
+and §16 it names.
+
+### Known issues (batch 4)
+
+- **§15's last bullet no longer holds** ("A younger project can take what an older, waiting one still needs", D-054 Q17).
+  Every project at the head of its settlement's queue now SETS ASIDE what it still needs from the empire's purse, oldest
+  order first, even while it waits (for builders, for another material, for its town to sustain it). Younger projects
+  and road works may not use it. It is released only when the project can never be built (its project is unknown, its
+  settlement has no working adults, or it is an institution the game has no institutions configuration for) — and at once
+  when you cancel it.
+- **Head-of-line wait.** One long wait now holds up every younger project of the same purse. Measured: in the save/load
+  battery's variant a younger granary waits 20 turns (200 years at 10-year turns) behind the capital's university, where
+  batch 3 built it at once. The waiting project's line names the holder, why the holder waits and the remedy: give
+  Building a share in Labour at the holder's settlement, or cancel the holder (a cancelled holder's set-aside is released
+  in the same End Turn; cancelling still refunds nothing). Under a split below 100, road works may use what the split
+  does not grant building work.
+- **Road works wait too.** A road order is paid only from what building work neither uses nor sets aside (the default
+  split, 100, is "building first"). In the scripted save/load battery a waiting university set aside the player's whole
+  timber, so two road orders paid nothing until it was built.
+- **Priority is the order's age, not progress.** When a project completes or is cancelled, the next one in that
+  settlement's queue takes its own order's place: if it was ordered EARLIER than a part-built project waiting elsewhere, it
+  goes first and may use what that project had set aside.
+- **One word for it.** A project's reservation is always "set aside"; "held" keeps its older meanings (what your
+  settlements hold, and "… held for road works …" under the split). The settlement view's own line for its head still
+  reads "waiting for stone" without naming the holder; the construction queue's line and the project card name it.
+- **Old (batch-3, schema-v33) sessions** resume by replay under batch-4 rules, with the resume notice and without the
+  trace check, so the game can come back different from the turn a set-aside first binds. Such a resume can be REFUSED
+  when the replay no longer founds a colony a later recorded order names (ADR-034), and a recorded Cancel (settlement,
+  slot) can remove a different queue entry if the slots shifted (D-055 §9). Batch-2 sessions behave as §9 and §15 say.
+- **Speed.** §15's "about +14 % per turn" is corrected: the cause was seed 42's path search (its shared road target lies
+  farther away on the cylinder), not the road network; across seeds 1–10 the cylinder is not slower. Batch 4's
+  byte-identical pathfinding changes made the 60-turn bench 44–54 % faster per seed (measured on batch 3 + those changes);
+  the hold rule adds about 0.15 ms a turn to construction. The final build's bench is the integration's (D-055 §8).
+- **Not verified for this build:** everything batch 4 measured so far ran on scratch clones (D-055 §8); the allocation
+  CI leg has not run on GitHub (nothing is pushed); the GPU seam remains the manual checklist's (§16).
+
+### Playtest checklist additions (batch 4) — continuing §16
+
+11. **A project that waits holds its materials.**
+    - Order a Granary at settlement A and, in Labour, give A's Building no share; End Turn.
+    - Order a Granary at another settlement B that has builders, in a turn when the empire holds no more stone or timber
+      than A still needs; End Turn.
+    - B's queue line must read like "waiting for stone: … set aside for A's Granary, ordered earlier (turn T), ahead in
+      the building order - it has no builders (give Building a share in Labour at A, or cancel it)".
+    - A's row must add, in the soft ink, "sets aside … while it waits; projects ordered later wait for it".
+    - The EMPIRE view's Realm block must show "Set aside for projects: …" for your own empire only.
+    - Give A builders back: A's project progresses the next End Turn. Or cancel A ("Lose it"): B uses the units in that
+      same End Turn.
+12. **Plates and cards.** With A still waiting, the Build plate for a third project must read "will wait for: … (empire
+    has N; M set aside for earlier projects)", and the project card's note must name A's project ("M set aside for A's
+    Granary, ahead in the building order").
+13. **Roads beside a set-aside** (once a road class is known). Order a road while A waits. The roads preview must read
+    "after what building work uses or sets aside, about N of the M … needed is left: …" and, in a soft caption line,
+    "… is set aside for A's Granary; road works may not use it". Set the split below 100 (the Materials control): A's row
+    must add "; the split lets road works use the rest".
+14. **Numeral-free eras (Ages I–III):** no "%" in any of the new lines.
+15. **Quit and resume** with A waiting and a split set (`app\Sim.Ui.exe --resume runs\<session-dir>`): the set-aside lines,
+    the queue and the split must come back unchanged.
+16. **The words.** Nowhere may a project's reservation be called "held" or "reserved"; "held" appears only for what
+    settlements hold and for the split's road share.

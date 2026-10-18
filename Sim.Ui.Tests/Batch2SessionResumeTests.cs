@@ -40,15 +40,17 @@ public class Batch2SessionResumeTests
 
     /// <summary>THE v32 PROJECTION (Sim.Tests' SchemaProjection.V32, restated: this project does not reference Sim.Tests):
     /// v33 appended two tables after section 58, so a world with both empty serializes to the v32 stream plus two empty
-    /// count prefixes (8 zero bytes); its v32 hash is the SHA-256 of the stream without them.</summary>
+    /// count prefixes (8 zero bytes); its v32 hash is the SHA-256 of the stream without them.
+    /// D-055 (2026-10-16) CAUSE BLOCK (X1 (d)): v34 appends a third table, ConstructionHolds (section 61), so the
+    /// projection asserts it empty too and drops 12 bytes (8 + 4) — the layout alone; nothing else changed.</summary>
     private static string HashAtSchemaV32(WorldState world)
     {
-        Assert.Equal((0, 0), (world.ConstructionProgress.Count, world.ResourceAllocations.Count));
+        Assert.Equal((0, 0, 0), (world.ConstructionProgress.Count, world.ResourceAllocations.Count, world.ConstructionHolds.Count));
         using var buffer = new MemoryStream();
         using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true)) CanonicalSchema.Write(world, writer);
         byte[] full = buffer.ToArray();
-        for (int i = full.Length - 8; i < full.Length; i++) Assert.Equal(0, full[i]);
-        return Convert.ToHexStringLower(SHA256.HashData(full.AsSpan(0, full.Length - 8)));
+        for (int i = full.Length - 12; i < full.Length; i++) Assert.Equal(0, full[i]);
+        return Convert.ToHexStringLower(SHA256.HashData(full.AsSpan(0, full.Length - 12)));
     }
 
     [Fact]

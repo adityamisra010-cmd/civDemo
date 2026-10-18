@@ -640,6 +640,8 @@ public static class PlayerViews
         };
         if (EmpireQuery.TryGetCapital(world, player, out SettlementId capital))
             realm.Add("The capital is " + name(capital.Value) + ".");
+        // D-055: what the player's OWN purse has set aside for its queued projects (the published table; P7 — no other purse).
+        if (HoldText.EmpireSummary(world, cfg, player) is { } setAside) realm.Add(setAside);
 
         // Grain.
         long grain = 0, harvest = 0;
@@ -729,7 +731,7 @@ public static class PlayerViews
         // the ResourceAllocation descriptor (batch 3 R3, C2 review F10; it was "a road class above the dirt path is known",
         // which also showed the line to an Empire with no route to develop and so no control to change it).
         if (MaterialsSplitListed(world, cfg, player))
-            roads.Add(AllocationText.EmpireLine(ResourceAllocation.EffectivePercent(world, player)));
+            roads.Add(AllocationText.EmpireLine(ResourceAllocation.EffectivePercent(world, player), Reservations.Enabled(cfg)));
 
         // Arms.
         int units = 0;

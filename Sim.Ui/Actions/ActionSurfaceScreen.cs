@@ -943,6 +943,9 @@ public sealed partial class ActionSurfaceScreen
             }
             if (q.Status is { } status)
                 y = Wrapped(d, m, status, x + Sp(8), y, w - Sp(8), Second, status.StartsWith("waiting", StringComparison.Ordinal) ? t.TextInk.Progress : t.TextInk.Active);
+            // D-055: what the head sets aside while it waits — the Second role (the Body size on this surface), soft ink.
+            if (q.SetAside is { } aside)
+                y = Wrapped(d, m, aside, x + Sp(8), y, w - Sp(8), Second, t.Ink.TextSoft);
             if (_cancelArmed.Settlement == c.Settlement.Value && _cancelArmed.Slot == q.Slot && q.Forfeit is { } lose)
                 y = Wrapped(d, m, "Cancelling loses what has gone in: " + lose + ". Nothing is refunded.", x + Sp(8), y, w - Sp(8), Second, t.TextInk.Danger);
             else if (q.Committed && q.Cancel is not null && q.Progress == 0)
@@ -980,7 +983,8 @@ public sealed partial class ActionSurfaceScreen
         const string title = "Materials for building and roads";
         Info(HeadingRect(m, title, x, y, w, flat), InfoSubject.MaterialsSplit, title);
         y = Heading(d, m, title, x, y, w, flat, 960);
-        if (ab.IsDefault) y = Wrapped(d, m, AllocationText.DefaultLine, x, y, w, Body, t.Ink.Text, FontRole.Heading);
+        if (ab.IsDefault)
+            y = Wrapped(d, m, _cfg is { } cfg ? AllocationText.DefaultLineFor(cfg) : AllocationText.DefaultLine, x, y, w, Body, t.Ink.Text, FontRole.Heading);
         // Batch 3 R3 (C2 review F6): the explanation is an explanation — the Caption role (the WS1 UI rule), in the soft ink.
         y = Wrapped(d, m, AllocationText.Explanation(ab.BuildingsPercent, ab.Goods), x, y, w, Caption, t.Ink.TextSoft) + Sp(4);
 
@@ -1044,7 +1048,7 @@ public sealed partial class ActionSurfaceScreen
             {
                 // WS2: with the building/roads split, what the order would be paid from is what building work's predicted
                 // draw leaves (the Materials block's split, this draft as the road order).
-                _roadPreview ??= ActionSurface.RoadPlan(_world, _cfg, _player, _roadDraft, _name, model.Allocation, spec.Numerals);
+                _roadPreview ??= ActionSurface.RoadPlan(_world, _cfg, _player, _roadDraft, _name, model.Allocation, spec.Numerals, rb.Pending, rb.DtYears);
                 RoadPlanPreview p = _roadPreview;
                 string payers = p.Payers.Length <= 3 ? string.Join(", ", p.Payers)
                     : p.Payers[0] + ", " + p.Payers[1] + ", " + p.Payers[2] + " and " + (p.Payers.Length - 3).ToString(CultureInfo.InvariantCulture) + " more";
@@ -1055,6 +1059,8 @@ public sealed partial class ActionSurfaceScreen
                     + ". Our settlements nearest the route pay first: " + payers + ".";
                 y = Wrapped(d, m, line, x, y, w, Second, t.Ink.Text);
                 if (p.Warning is { } warn) y = Wrapped(d, m, warn + ".", x, y, w, Second, t.TextInk.Progress);
+                // D-055: the projects that set aside what the order needs — the Caption role, soft ink (batch-4 design §1.6).
+                if (p.SetAside is { } aside) y = Wrapped(d, m, aside + ".", x, y, w, Caption, t.Ink.TextSoft);
                 y = Wrapped(d, m, p.LeftLine is not null
                     ? "An estimate on current stocks: this turn's production arrives before building work, and buildings draw before roads, within their share."
                     : "An estimate: production uses tools before roads are built in the same turn.", x, y, w, Caption, t.Ink.TextSoft);

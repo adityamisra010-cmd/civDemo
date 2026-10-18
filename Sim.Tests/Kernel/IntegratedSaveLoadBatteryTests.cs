@@ -33,13 +33,15 @@ namespace Sim.Tests.Kernel;
 /// Every save point is located by measuring the uninterrupted run (non-vacuity is asserted).
 /// </summary>
 [Trait("suite", "determinism")]
-public class IntegratedSaveLoadBatteryTests
+public partial class IntegratedSaveLoadBatteryTests
 {
     /// <summary>Batch 3 (D-054, integration R1): the battery's configuration — the SimConfig, the dev worldgen the world is
     /// founded with, and the production worldgen the pipeline and the AI are built with. <see cref="Shipped"/> is THE rig;
     /// the save-point attribution control (<see cref="TheSavePoints_MovedForTheCylinderAndIncrementalConstruction_EachLayerAloneMovesItsOwnPin"/>)
-    /// records the same script with one batch-3 layer switched off.</summary>
-    internal sealed record Rig(SimConfig Cfg, WorldgenConfig Dev, WorldgenConfig Production);
+    /// records the same script with one batch-3 layer switched off.
+    /// D-055 (2026-10-16): <c>Extra</c> — orders a variant adds to the player's script each turn (null for every pinned run;
+    /// the battery variant TheBatteryVariant_AYoungerGranaryWaitsBehindTheUniversitysSetAside_… passes one).</summary>
+    internal sealed record Rig(SimConfig Cfg, WorldgenConfig Dev, WorldgenConfig Production, Func<IReadOnlyWorldState, OrderRecord[]>? Extra = null);
 
     private static readonly Rig Shipped = new(UniversityRigs.Cfg(adultsPerUniversity: 100), TestConfigs.DevWorldgen(), TestConfigs.Worldgen());
     private static readonly SimConfig Cfg = Shipped.Cfg;
@@ -120,8 +122,16 @@ public class IntegratedSaveLoadBatteryTests
         UniversityRigs.Grant(w, Research, Player, known.Distinct().ToArray());
         GovernanceRigs.EnterAge(w, Player, EntryAge);
         UniversityRigs.Materials(w, rig.Cfg, Capital(w));
-        // Road purse rig: the player's timber is cut to a little, through the Ledger, so the turn-0 road
-        // order can afford only PART of its first route (the order ends there; the second order continues it).
+        // Road purse rig: the player's timber is cut to a little, through the Ledger, so the first road order that pays can
+        // afford only PART of its first route (the order ends there). A later order pays only once a holding is free:
+        // with the hold rule off (TestConfigs.PreReservations, batch 3) the turn-1 order part-builds route 1 (0 -> 0.755),
+        // the turn-12 order pays nothing, and the order once the university stands (turn 23) completes it; with WS1 off
+        // (PreIncrementalConstruction) the turn-12 order completes it.
+        // D-055 (2026-10-16): with the hold rule on, the capital's university sets that timber aside from world 2 on, so
+        // the turn-1 and turn-12 orders pay nothing and the script's road order once the university stands (PlayerOrders,
+        // turn 22) is the one that part-builds the first route (0 -> 0.62); no later order continues it within the 40 turns,
+        // so the route stays part-built in the shipped run. (Fix round 2026-10-16, finding T1a-L3-T1a-L3-F6: the old "the
+        // second order continues it" held in no run — MEASURED per arm, t1a-out/fix/battery/probe-battery-clean.txt.)
         var timber = new GoodId(rig.Cfg.Goods!.IdOf("timber"));
         for (int i = 0; i < w.GoodStocks.Count; i++)
         {
@@ -174,6 +184,17 @@ public class IntegratedSaveLoadBatteryTests
             log.Append(ConstructionQuery.EnqueueOrder(w, Player, cap, UniversityProject));
         }
         if (t == RoadTurn || t == RoadAgainTurn) log.Append(RoadDevelopmentQuery.DevelopOrder(w, Player, 100.0));
+        // D-055 (2026-10-16): THE ROAD ORDER ONCE THE UNIVERSITY STANDS — after RoadAgainTurn, the first turn the capital's
+        // queue is empty (its university is built) and no road development the player decided after RoadAgainTurn exists,
+        // the player orders the roads again (re-issued each turn until one pays). Why: under the hold rule (sim.json
+        // construction.reservations) the capital's university, a valid long wait, SETS ASIDE every unit of the player's
+        // timber from world 2 to world 21 (its need is 1,800), so the turn-1 and turn-12 orders pay nothing and the battery
+        // would never reach its "partial road" save point. MEASURED (2026-10-16, by the agent writing this line): shipped,
+        // the order is issued at turn 22 and part-builds route 1 (152 units, 0 -> 0.62) in world 23; in EVERY arm with the
+        // rule off (TestConfigs.PreReservations, PreIncrementalConstruction, both with the flat world) it fires only after
+        // that arm's university stands (turn 23 or 32) and moves no measured save point (the attribution control below).
+        if (t > RoadAgainTurn && ConstructionQuery.Queue(w, Capital(w)).Length == 0 && !RoadDecidedAfter(w, RoadAgainTurn))
+            log.Append(RoadDevelopmentQuery.DevelopOrder(w, Player, 100.0));
         if (t == AgeTurn) log.Append(AgeQuery.AdvanceOrder(w, Player, EntryAge + 1, Ages.Surges[0].Key));
         if (t == TaxTurn) log.Append(Governance.TaxOrder(t, Player, 10.0));
         if (t == ClearTurn) log.Append(ResearchQuery.ClearTargetOrder(w, Player));
@@ -198,6 +219,15 @@ public class IntegratedSaveLoadBatteryTests
             log.Append(OrderRecord.From(t, Player, OrderKind.SetResourceAllocation, Player.Value, AllocationPercent));
     }
 
+    /// <summary>D-055: some road development the player decided after <paramref name="turn"/> is in the world's log
+    /// (RoadDevelopments is append-only: one row per route an order paid for).</summary>
+    private static bool RoadDecidedAfter(IReadOnlyWorldState w, long turn)
+    {
+        for (int i = 0; i < w.RoadDevelopments.Count; i++)
+            if (w.RoadDevelopments[i].Polity == Player && w.RoadDevelopments[i].Turn > turn) return true;
+        return false;
+    }
+
     /// <summary>A Found Settlement order from <paramref name="source"/> to its nearest LEGAL site (FoundingRigs'
     /// stable ring scan over THE predicate, FoundingQuery.Check) — a pure function of the world.</summary>
     private static OrderRecord FoundFrom(IReadOnlyWorldState w, SettlementId source, Rig rig)
@@ -219,6 +249,8 @@ public class IntegratedSaveLoadBatteryTests
     private static void OneTurnOfOrders(OrderLog log, IReadOnlyWorldState w, Rig rig)
     {
         PlayerOrders(log, w, rig);
+        if (rig.Extra is { } extra)
+            foreach (OrderRecord o in extra(w)) log.Append(o);
         AiOrders.Append(log, w, rig.Cfg, rig.Production);
     }
 
@@ -423,7 +455,38 @@ public class IntegratedSaveLoadBatteryTests
         // WS1 off alone (TestConfigs.PreIncrementalConstruction, the cylinder on) -> (1, 26, 2, 34); the cylinder off alone
         // (TestConfigs.PreCylinderWorldgen, WS1 on) -> (1, 27, 2, 26); both off -> (1, 27, 2, 34) = OLD; WS2 off alone
         // (TestConfigs.PreAllocationRatios) -> the NEW values (the kind-12 order is at turn 38, after every save point).
-        Assert.Equal((1, 26, 2, 26), SavePoints(run.Worlds));
+        // D-055 RE-PIN (2026-10-16; the Director's batch-4 instruction, item 1 — projects must not consume resources reserved
+        // by other projects, and road works may use only what building work neither draws nor sets aside; batch-4 design
+        // §1.5 and §1.7, a behaviour candidate; VALUE, MEASURED on this tree by the agent writing this line):
+        // (1, 26, 2, 26) -> (1, 26, 23, 24) — the partial road 2 -> 23 and the university first mid-maturation 26 -> 24;
+        // mid-research 1 and the first completion 26 unchanged. CAUSE: the hold rule (sim.json construction.reservations).
+        // From world 2 the capital's university — queued at turn 0, the head from world 1, a VALID long wait (it waits on
+        // viability in 8 steps and on materials in the rest) — sets aside its remaining need, which exceeds the player's
+        // whole timber purse in every world to 21 (world 2: all 185 of 185). So the turn-1 road order, which batch 3 paid 185
+        // units (0 -> 0.755 of route 1, world 2), pays nothing, and neither does the turn-12 order: road works may use only
+        // what building work neither draws nor sets aside. The university keeps those 185 units, completes in step 21 -> 22
+        // (batch 3: 22 -> 23) and matures from world 24 (batch 3: 26). The script's road order once the university stands
+        // (turn 22, above) is the first that pays: route 1, 152 units, 0 -> 0.62, world 23. ATTRIBUTION (MEASURED): under
+        // TestConfigs.PreReservations the tuple is (1, 26, 2, 26), batch 3's
+        // (TheSavePoints_UnderPreReservations_AreBatch3s_AndNoWorldHoldsARow), and the reservations arm of
+        // TheSavePoints_MovedForTheCylinderAndIncrementalConstruction_EachLayerAloneMovesItsOwnPin shows the layer alone moves
+        // the two save points.
+        Assert.Equal((1, 26, 23, 24), SavePoints(run.Worlds));
+
+        // D-055, turn-exact on the run itself: the university's set-aside binds the road orders. World 2 (the turn-1 order's
+        // effect) holds every unit of the player's timber set aside and no road row; no road row exists before world 23;
+        // world 23 holds exactly the turn-22 order's row.
+        var timber = new GoodId(Cfg.Goods!.IdOf("timber"));
+        long purseTimber = EmpireStockpile.Available(run.Worlds[2].GoodStocks, ConstructionQuery.Holders(run.Worlds[2], Cfg, Capital(run.Worlds[2])), timber);
+        Assert.Equal(185, purseTimber);
+        Assert.Contains(new ConstructionHoldRow(Reservations.PolityPurse(Player), timber.Value, purseTimber), Sim.Tests.Systems.TableRows.Rows(run.Worlds[2].ConstructionHolds));
+        for (int k = 0; k <= 22; k++) Assert.Equal(0, run.Worlds[k].RoadDevelopments.Count);
+        RoadDevelopmentRow road = Assert.Single(Sim.Tests.Systems.TableRows.Rows(run.Worlds[23].RoadDevelopments));
+        Assert.Equal((22L, Player, 152L, 0.0), (road.Turn, road.Polity, road.MaterialUnits, road.ProgressBefore));
+        Assert.True(road.ProgressAfter is > 0.0 and < 1.0, $"the turn-22 order part-builds its route ({road.ProgressAfter})");
+        OrderRecord[] roadOrders = Enumerable.Range(0, run.Log.Count).Select(i => run.Log[i])
+            .Where(o => o.ActorId == Player.Value && o.Kind == OrderKind.DevelopRoads).ToArray();
+        Assert.Equal([RoadTurn, RoadAgainTurn, 22L], roadOrders.Select(o => o.Turn).ToArray());
     }
 
     /// <summary>
@@ -432,6 +495,17 @@ public class IntegratedSaveLoadBatteryTests
     /// for two layers. The SAME script recorded with one layer off at a time: the cylinder alone moves the first completion
     /// (27 -> 26), WS1 incremental construction alone moves the university's first mid-maturation (34 -> 26), both off is the
     /// batch-2 tuple, and WS2 (allocation ratios) moves no save point.
+    ///
+    /// D-055 (2026-10-16; batch-4 design §1.7: "add a reservations arm"; MEASURED on this tree by the agent writing this
+    /// line) — THE THIRD LAYER, RESERVATIONS (sim.json construction.reservations), moved the shipped tuple (1, 26, 2, 26) ->
+    /// (1, 26, 23, 24). The R4 chain strips it with WS1 (TestConfigs.PreIncrementalConstruction switches reservations off
+    /// too), so the WS1-off and both-off arms are batch 3's, unchanged; the arms that keep WS1 on moved with it. The arms:
+    /// WS1 off (and with it reservations; the cylinder on) (1, 26, 2, 34), unchanged; the cylinder off alone (WS1 and
+    /// reservations on) (1, 27, 2, 26) -> (1, 27, 23, 24); both off (1, 27, 2, 34), unchanged — the batch-2 tuple; WS2 off
+    /// alone (1, 26, 2, 26) -> (1, 26, 23, 24), the shipped tuple again — WS2 still moves no save point. NEW ARMS:
+    /// reservations off alone (TestConfigs.PreReservations) -> (1, 26, 2, 26), batch 3's shipped tuple — the layer alone moves
+    /// the partial road 2 -> 23 and the university's maturation 26 -> 24; reservations off on the flat world -> (1, 27, 2, 26),
+    /// batch 3's cylinder-off arm — the cylinder still moves only the completion, 27 -> 26.
     /// </summary>
     [Fact]
     public void TheSavePoints_MovedForTheCylinderAndIncrementalConstruction_EachLayerAloneMovesItsOwnPin()
@@ -440,11 +514,17 @@ public class IntegratedSaveLoadBatteryTests
         Rig ws1Off = Shipped with { Cfg = TestConfigs.PreIncrementalConstruction(Shipped.Cfg) };
         Rig ws2Off = Shipped with { Cfg = TestConfigs.PreAllocationRatios(Shipped.Cfg) };
         Rig bothOff = flat with { Cfg = TestConfigs.PreIncrementalConstruction(Shipped.Cfg) };
+        Rig reservationsOff = Shipped with { Cfg = TestConfigs.PreReservations(Shipped.Cfg) };
+        Rig flatReservationsOff = flat with { Cfg = TestConfigs.PreReservations(Shipped.Cfg) };
         Assert.False(Record(flat).Worlds[0].Terrain!.WrapX);
+        Assert.False(Reservations.Enabled(ws1Off.Cfg));                       // the R4 chain strips the D-055 layer with WS1
+        Assert.True(Reservations.Enabled(ws2Off.Cfg));                        // the single-layer helper keeps it (X2)
         Assert.Equal((1, 26, 2, 34), SavePoints(Record(ws1Off).Worlds));     // the cylinder alone: completion 27 -> 26
-        Assert.Equal((1, 27, 2, 26), SavePoints(Record(flat).Worlds));       // WS1 alone: university maturing 34 -> 26
+        Assert.Equal((1, 27, 23, 24), SavePoints(Record(flat).Worlds));      // WS1 + reservations: maturing 34 -> 24, road 2 -> 23
         Assert.Equal((1, 27, 2, 34), SavePoints(Record(bothOff).Worlds));    // the batch-2 tuple
-        Assert.Equal((1, 26, 2, 26), SavePoints(Record(ws2Off).Worlds));     // WS2 moves no save point
+        Assert.Equal((1, 26, 23, 24), SavePoints(Record(ws2Off).Worlds));    // WS2 moves no save point
+        Assert.Equal((1, 26, 2, 26), SavePoints(Record(reservationsOff).Worlds));      // D-055 alone: road 2 -> 23, maturing 26 -> 24
+        Assert.Equal((1, 27, 2, 26), SavePoints(Record(flatReservationsOff).Worlds));  // batch 3's cylinder-off arm
     }
 
     /// <summary>
@@ -524,13 +604,31 @@ public class IntegratedSaveLoadBatteryTests
     /// the four measured save points, and both sides of the Age, tax, Found Settlement, cancel and allocation orders.
     /// HAND-KEPT: a save test added to this battery later must add the worlds it saves here, or the part-built save point
     /// below may pick a construction state that test already saves.</summary>
-    private static int[] OtherSaveTurns()
+    private static int[] OtherSaveTurns() => OtherSaveTurns(Run.Value.Worlds);
+
+    /// <summary><see cref="OtherSaveTurns()"/> for any recorded run of the script (D-055: the PreReservations twin of the
+    /// part-built save point measures its own run).</summary>
+    private static int[] OtherSaveTurns(List<WorldState> worlds)
     {
-        (int research, int completion, int road, int maturing) = SavePoints(Run.Value.Worlds);
+        (int research, int completion, int road, int maturing) = SavePoints(worlds);
         return [1, research, completion, road, maturing,
             (int)AgeTurn, (int)AgeTurn + 1, (int)TaxTurn, (int)TaxTurn + 1,
             (int)FoundTurn, (int)FoundTurn + 1, (int)FromColonyTurn, (int)FromColonyTurn + 1,
             (int)CancelTurn, (int)CancelTurn + 1, (int)AllocationTurn, (int)AllocationTurn + 1];
+    }
+
+    /// <summary>The part-built save point of a recorded run: the first world holding a part-built head whose
+    /// ConstructionProgress table differs from the table of EVERY other save point's world (see below).</summary>
+    private static int PartBuiltSavePoint(List<WorldState> worlds)
+    {
+        int[] others = OtherSaveTurns(worlds);
+        bool NewProgressTable(IReadOnlyWorldState w)
+        {
+            foreach (int o in others) if (SameProgressTable(worlds[o], w)) return false;
+            return true;
+        }
+        return First(worlds, (_, w) => PartBuiltHead(w) && NewProgressTable(w),
+            "a part-built construction head whose progress table no other save point saves");
     }
 
     /// <summary>
@@ -555,23 +653,27 @@ public class IntegratedSaveLoadBatteryTests
     /// whose ConstructionProgress table differs from the table of EVERY other save point's world. MEASURED on this tree
     /// (a probe dump of every world's table, removed after): worlds 6 and 7 hold p = 145,000; worlds 8 to 10 hold 231,666;
     /// so the save point is world 8 (p = 231,666), whose table no other save world holds. The mutant above now fails here.
+    ///
+    /// D-055 RE-PIN (2026-10-16; the Director's batch-4 instruction, item 1; batch-4 design §1.7, the battery; VALUE,
+    /// MEASURED on this tree by the agent writing this line): the save point stays world 8, its progress 231,666 ->
+    /// 306,111. CAUSE: the hold rule (sim.json construction.reservations) — the university keeps the 185 timber the turn-1
+    /// road order took in batch 3 (set aside from world 2, see TheScriptedRun_…), so it is part-built from world 3 at
+    /// 107,777 (batch 3: 32,777) and every later table moves: worlds 3 and 4 (AgeTurn, AgeTurn + 1) hold 107,777, world 5
+    /// (TaxTurn) 182,777, worlds 6 and 7 220,000 (6 is TaxTurn + 1, so world 7's table is again already saved), world 8
+    /// 306,111 — the first table no other save world (now 1, 3, 4, 5, 6, 23, 24, 26, 35–39) holds. ATTRIBUTION: under
+    /// TestConfigs.PreReservations the same predicate picks world 8 at 231,666, batch 3's
+    /// (TheSavePoints_UnderPreReservations_AreBatch3s_AndNoWorldHoldsARow).
     /// </summary>
     [Fact]
     public void SaveLoad_MidPartBuiltConstructionHead()
     {
         int[] others = OtherSaveTurns();
         List<WorldState> worlds = Run.Value.Worlds;
-        bool NewProgressTable(IReadOnlyWorldState w)
-        {
-            foreach (int o in others) if (SameProgressTable(worlds[o], w)) return false;
-            return true;
-        }
-        int k = First((_, w) => PartBuiltHead(w) && NewProgressTable(w),
-            "a part-built construction head whose progress table no other save point saves");
+        int k = PartBuiltSavePoint(worlds);
         Assert.Equal(8, k);
         Assert.True(PartBuiltHead(worlds[k]));
         Assert.DoesNotContain(k, others);
-        Assert.Equal(231_666L, Assert.Single(Sim.Tests.Systems.TableRows.Rows(worlds[k].ConstructionProgress)).Progress);
+        Assert.Equal(306_111L, Assert.Single(Sim.Tests.Systems.TableRows.Rows(worlds[k].ConstructionProgress)).Progress);
         foreach (int o in others) Assert.False(SameProgressTable(worlds[o], worlds[k]), $"world {o} already holds world {k}'s progress table");
         Assert.True(SameProgressTable(worlds[6], worlds[7]), "anti-vacuity: world 7's table is world 6's (the reason world 7 no longer qualifies)");
         SaveLoadContinue(k, "part-built head");
@@ -611,5 +713,72 @@ public class IntegratedSaveLoadBatteryTests
         SaveLoadContinue((int)FoundTurn + 1, "colony founded, catchment pending");
         SaveLoadContinue((int)FromColonyTurn, "found from the colony issued, not yet delivered", issued: true);
         SaveLoadContinue((int)FromColonyTurn + 1, "second colony founded");
+    }
+
+    /// <summary>
+    /// D-055 (2026-10-16; the batch-4 design §1.8 #24, review L2-09c) — THE BATTERY VARIANT: the scripted run plus ONE
+    /// younger player granary, ordered at turn 1 at the player's other holding, behind the capital's university (slot 1,
+    /// the head from world 1, EnqueuedTurn 0). The university is a VALID long wait — it advances at its builders' pace and
+    /// waits on materials and viability — so it holds its remaining need of the shared purse every step (1,800 timber and
+    /// 1,200 stone; it never holds less than the purse has of either), and the younger granary waits behind it. MEASURED on
+    /// this tree (2026-10-16, by the agent writing this line): the granary's entry stands at p = 0 in worlds 2 to 21 — TWENTY
+    /// steps — and completes in step 21 → 22, the step the university completes and its leftovers reach the next head in the
+    /// same walk. With TestConfigs.PreReservations (the batch-3 rule) the granary is built in step 1 → 2: no wait at all.
+    /// The head-of-line wait is the documented cost of the Director's rule (D-055 limitations; m5-playtest-known-issues).
+    /// </summary>
+    [Fact]
+    public void TheBatteryVariant_AYoungerGranaryWaitsBehindTheUniversitysSetAside_TwentySteps_AndUnderPreReservationsBuildsAtOnce()
+    {
+        static OrderRecord[] Younger(IReadOnlyWorldState w) =>
+            w.Clock.Turn == 1 ? [ConstructionQuery.EnqueueOrder(w, Player, OtherHolding(w), Granary)] : [];
+        Uninterrupted run = Record(Shipped with { Extra = Younger });
+        Uninterrupted pre = Record(Shipped with { Cfg = TestConfigs.PreReservations(Shipped.Cfg), Extra = Younger });
+        SettlementId other = OtherHolding(run.Worlds[0]);
+        var entry = new ConstructionQueueRow(other, 0, Granary);
+        var universityEntry = new ConstructionQueueRow(Capital(run.Worlds[0]), 1, UniversityProject);
+
+        // PREMISE: the batch-3 rule builds the younger granary at once.
+        Assert.Equal(1L, ConstructionQuery.Built(pre.Worlds[2], other, Granary));
+        Assert.Equal(0, ConstructionQuery.Built(pre.Worlds[1], other, Granary));
+
+        for (int k = 2; k <= 21; k++)
+        {
+            WorldState w = run.Worlds[k];
+            Assert.True(ConstructionQuery.ProgressIndex(w.ConstructionProgress, entry) >= 0, $"world {k}: the granary is queued");
+            Assert.Equal(0L, ConstructionQuery.ProgressOf(w, entry));                                   // it waits ...
+            Assert.Equal(0L, ConstructionQuery.Built(w, other, Granary));
+            Assert.True(ConstructionQuery.ProgressIndex(w.ConstructionProgress, universityEntry) >= 0, $"world {k}: the university is the older head");
+            Assert.True(w.ConstructionHolds.Count > 0, $"world {k}: the university sets materials aside");   // ... behind a hold
+        }
+        WorldState built = run.Worlds[22];
+        Assert.Equal(1L, ConstructionQuery.Built(built, other, Granary));                               // twenty steps later
+        Assert.Equal(1L, ConstructionQuery.Built(built, Capital(built), UniversityProject));            // in the university's step
+        Assert.Equal(0, built.ConstructionHolds.Count);
+    }
+
+    /// <summary>
+    /// D-055 (2026-10-16; §1.8 #25, X2) — THE SWITCH OFF IS BATCH 3 ON THE BATTERY: the scripted run under
+    /// TestConfigs.PreReservations publishes no hold row in any world and reaches batch 3's measured save points
+    /// (1, 26, 2, 26) — the tuple TheScriptedRun_IssuesEveryOrderKind_AndReachesEverySavePoint pinned before D-055.
+    /// Step 3 (2026-10-16, MEASURED by the agent writing this line): the same holds with the script's D-055 road order once
+    /// the university stands (here issued at turn 23, after the batch-3 university completes in step 22 -> 23): the turn-1
+    /// order pays batch 3's 185 units (0 -> 0.755) in world 2, and the part-built save point is batch 3's world 8 at
+    /// 231,666 — the old values of the three battery pins D-055 moved.
+    /// </summary>
+    [Fact]
+    public void TheSavePoints_UnderPreReservations_AreBatch3s_AndNoWorldHoldsARow()
+    {
+        Uninterrupted pre = Record(Shipped with { Cfg = TestConfigs.PreReservations(Shipped.Cfg) });
+        Assert.False(Reservations.Enabled(TestConfigs.PreReservations(Shipped.Cfg)));
+        Assert.True(Reservations.Enabled(Shipped.Cfg));
+        foreach (WorldState w in pre.Worlds) Assert.Equal(0, w.ConstructionHolds.Count);
+        Assert.Equal((1, 26, 2, 26), SavePoints(pre.Worlds));
+        RoadDevelopmentRow first = Assert.Single(Sim.Tests.Systems.TableRows.Rows(pre.Worlds[2].RoadDevelopments));
+        Assert.Equal((RoadTurn, 185L, 0.0), (first.Turn, first.MaterialUnits, first.ProgressBefore));
+        Assert.True(first.ProgressAfter is > 0.75 and < 0.76, $"batch 3's turn-1 road: {first.ProgressAfter}");
+        int k = PartBuiltSavePoint(pre.Worlds);
+        Assert.Equal((8, 231_666L), (k, Assert.Single(Sim.Tests.Systems.TableRows.Rows(pre.Worlds[k].ConstructionProgress)).Progress));
+        Assert.Contains(Enumerable.Range(0, pre.Log.Count).Select(i => pre.Log[i]),
+            o => o.ActorId == Player.Value && o.Kind == OrderKind.DevelopRoads && o.Turn == 23);
     }
 }

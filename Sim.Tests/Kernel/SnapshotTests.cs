@@ -319,7 +319,16 @@ public class SnapshotTests
         //         and D054PairAttributionTests.WithBothHalvesOff_EveryBatch2ReferenceReproducesByteForByte_ThroughTheV32Projection
         //         ("toy"): the v32 projection (SchemaProjection.V32, asserting 0 v33 rows) returns OLD byte for byte.
         //   DERIVED TWICE: this in-test harness and the built CLI (`sim run --seed 42 --turns 200 --hash-log`) agree.
-        const string golden = "222280e50f5675575469d07ac11c243717db441ce89e4cd536ca873cb9fc5cd3";
+        // D-055 RE-PIN (2026-10-16; the Director's batch-4 instruction, item 1) — SCHEMA v34, THE v34 LAYOUT ALONE, MEASURED
+        // on this tree by the agent writing this line (ADR-015 §6).
+        //   OLD  222280e50f5675575469d07ac11c243717db441ce89e4cd536ca873cb9fc5cd3
+        //   NEW  2e6d446161e165475c753a8962f5b8f9e0845807c911f41be5ba5d982bed5ef7
+        //   CAUSE v33 -> v34 appends ConstructionHolds (section 61), EMPTY here (the toy pipeline runs no construction
+        //         system), so the entire movement is one four-byte zero count prefix. No behaviour moved.
+        //   CONTROL ReservationsLayoutAttributionTests.ToyGoldenSeed42Turn200_MovedForTheV34LayoutAlone: the v33 projection
+        //         (SchemaProjection.V33, asserting 0 hold rows) returns OLD byte for byte, and the stream ends in 4 zero bytes.
+        //   DERIVED TWICE: this in-test harness and the built CLI (`sim run --seed 42 --turns 200`) agree.
+        const string golden = ToyGoldenHash;
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -1067,6 +1076,17 @@ public class SnapshotTests
         //         .FoundedGoldenSeed42Turn300_MovedForTheV33LayoutAlone (flat: raw 8bca9f77… != OLD, v32 = OLD).
         //   DERIVED TWICE: this in-test harness and the built CLI (`sim run --founded --seed 42 --turns 300 --hash-log`, two
         //         separate processes, byte-identical logs). ci.yml FOUNDED_GOLDEN moves with it (CiPinAgreementTests).
+        // D-055 RE-PIN (2026-10-16; the Director's batch-4 instruction, item 1) — SCHEMA v34, THE v34 LAYOUT ALONE, MEASURED
+        // on this tree by the agent writing this line (ADR-015 §6).
+        //   OLD  40115e28af11273b9e25c62d93817c48d6c9afe736a60a2ebc6e00428836f1b0
+        //   NEW  0f29efc733024c451b7ebc2e8435fdd8a6032d158922430cb290778a98056d3c
+        //   CAUSE v33 -> v34 appends ConstructionHolds (section 61), EMPTY here (no order log: no queue head, nothing set
+        //         aside), so the entire movement is one four-byte zero count prefix. No behaviour moved.
+        //   CONTROL ReservationsLayoutAttributionTests.FoundedGoldenSeed42Turn300_MovedForTheV34LayoutAlone: the v33
+        //         projection (SchemaProjection.V33, asserting 0 hold rows) returns OLD byte for byte. The batch-2 reference
+        //         stays reachable through the PreD054 pair + SchemaProjection.V32 (D054PairAttributionTests).
+        //   DERIVED TWICE: this in-test harness and the built CLI (`sim run --founded --seed 42 --turns 300 --hash-log`, two
+        //         separate processes, byte-identical logs). ci.yml FOUNDED_GOLDEN moves with it (CiPinAgreementTests).
         const string golden = FoundedGoldenHash;
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101
@@ -1111,7 +1131,13 @@ public class SnapshotTests
     // ADR-035 §7 (P-F2, founding composition) RE-PIN (VALUE): 8cbafbb803705b26… -> e9e089bbce9f2049…. CAUSE: founding cohort noise at demographic scale (CV ~ 1/sqrt(n_c)) instead of RC-1's per-cohort ±0.69; the settlement-common size factor is unchanged.
     // D-051 1(b) (2026-10-10, time-averaged decade weather) RE-PIN (VALUE): e9e089bbce9f2049… -> 937577ffb0e73c2b…. CAUSE: a turn's harvest multiplier is the time-average of the yearly weather process over the turn's yearly sub-steps (mean unchanged, per-decade log-spread ~0.29 -> ~0.19) and a new settlement joins the weather at a stationary draw. CONTROL: TestConfigs.PreTimeAveragedHarvest returns the old value byte for byte (IntegratedPinAttributionTests.*_MovedForTheTimeAveragedHarvestAlone).
     // BATCH 3 / D-054 (integration R1, 2026-10-14) RE-PIN (VALUE + LAYOUT): 937577ffb0e73c2b… -> 40115e28af11273b…. CAUSE: the v33 layout (two EMPTY appended tables) and the cylinder (worldgen.json topology.wrapX; the world differs from turn 0); WS1/WS2 do not act. CONTROLS: D054PairAttributionTests (both halves off + v32 = OLD), WrapAttributionTests (the cylinder off alone + v32 = OLD), IncrementalConstructionAttributionTests (the layout alone), and FoundedGoldenHashAtV32 (the cylinder alone). Full record on FoundedGolden_Seed42Turn300_MatchesPinnedConstant.
-    internal const string FoundedGoldenHash = "40115e28af11273b9e25c62d93817c48d6c9afe736a60a2ebc6e00428836f1b0";
+    // D-055 (2026-10-16) RE-PIN (LAYOUT ALONE): 40115e28af11273b… -> 0f29efc733024c45…. CAUSE: schema v34 appends ConstructionHolds, EMPTY here — one four-byte zero count prefix. CONTROL: ReservationsLayoutAttributionTests.FoundedGoldenSeed42Turn300_MovedForTheV34LayoutAlone (SchemaProjection.V33 = OLD). ci.yml FOUNDED_GOLDEN moves with it.
+    internal const string FoundedGoldenHash = "0f29efc733024c451b7ebc2e8435fdd8a6032d158922430cb290778a98056d3c";
+
+    /// <summary>THE toy golden (seed 42, turn 200; history on GoldenHash_Seed42Turn200_MatchesPinnedConstant). A named
+    /// constant since D-055 (2026-10-16) so its v34 layout companion (ReservationsLayoutAttributionTests) compares with it.</summary>
+    // D-055 (2026-10-16) RE-PIN (LAYOUT ALONE): 222280e50f567557… -> 2e6d446161e16547…. CAUSE: schema v34 appends ConstructionHolds, EMPTY here — one four-byte zero count prefix. CONTROL: ReservationsLayoutAttributionTests.ToyGoldenSeed42Turn200_MovedForTheV34LayoutAlone (SchemaProjection.V33 = OLD).
+    internal const string ToyGoldenHash = "2e6d446161e165475c753a8962f5b8f9e0845807c911f41be5ba5d982bed5ef7";
 
     /// <summary>Batch 3 (D-054, integration R1, 2026-10-14): THE CYLINDER-ALONE LINK — the founded golden's world through
     /// the v32 projection (SchemaProjection.V32: the two v33 tables dropped, asserted EMPTY). It equals the founded golden

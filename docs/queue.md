@@ -1504,3 +1504,49 @@
 - **Batch 3 integration — `FamineScenarioTests.S_Seed42_NoFamineWithoutCause`'s ρ report now prints the CYLINDRICAL
   seed-42 world.** It is no longer directly comparable with `docs/t4.21-1-foundations-audit.md` §4's flat series. That
   frozen record is left as written (gov-4 §6).
+
+## Dated note — 2026-10-17: batch 4 (D-055) entries (appended at the file's end; the entries above are unchanged)
+
+- **Batch 4 / D-055 (records, 2026-10-17) — pointer.** The decisions, limitations and measurements are in
+  `docs/d055-batch4-reservations-attribution-allocation-ci-persistence-pathfinding.md`; the contract is ADR-040. Batch 4
+  escalated nothing (the instruction: "choose the smallest deterministic rule … and document it"). The lines below are
+  what batch 4 left unbuilt or unpinned on purpose. None is implemented.
+- **Batch 3 WS2's "no lasting cross-process CI leg makes the split BIND" (above) — CLOSED by batch 4.** The ci.yml step
+  "Allocation split, binding, cross-process (D-055)" makes b = 30 bind on stone, serves competing granaries in key order,
+  moves surplus both ways, binds a set-aside, cancels and re-enqueues a part-built head, changes the split to 70 in a
+  step where the new share binds (judged against the run without that order), and continues saves across processes
+  (D-055 §4). It has not yet run on GitHub (nothing is pushed); it was reproduced locally.
+- **Batch 4 item 3 — `sim run --from-save` cannot tell the founding AI count of a world founded with more Empires than
+  settlements once a revolt has founded an AI polity** (both kinds hold no capital); such a save is refused. Revisit if a
+  CI leg ever needs one. (Updated 2026-10-18 for T3's final revision, which regenerates turn zero with the founding AI
+  count read from the Capitals table, so a save made after a revolt otherwise continues; this line replaces the
+  2026-10-17 one, which said every save with a revolt-born AI polity was refused.)
+- **Batch 4 item 3 — the allocation leg exercises no starvation-guarded step.** No step of S42-ALLOC-H is guarded, so
+  split-check's guarded branch of P11 is judged on a doctored fixture row only and removing the guard leaves the step's
+  outputs unchanged; the guard is pinned in process (`ResourceAllocationTests`, `ConstructionReservationTests`; D-055 §4).
+  A guarded window in the leg would move the scenario's pins for a rule already pinned semantically; not added.
+- **Batch 4 item 3 — two re-enqueue continuations are measured locally, not in the ci.yml step.** Continuing from the
+  issue-turn save 132 and from a save at 133 holding the re-enqueued entry both passed locally; adding them to the step
+  (two more `--from-save` runs, about 20 s) would move `AllocationCiLegTests`' pinned command list. In this scenario the
+  re-enqueued entry is the only head after 133, so its persisted key orders nothing there.
+- **Batch 4 item 1 (T1b) — a better way NOT taken: show "the split lets road works use the rest" only when the grant
+  actually caps the set-aside.** Today the holder's clause is shown whenever the Empire's split, in force or ordered this
+  turn, is below 100 (D-055 §1.9). The review's narrower trigger was judged a better way, not a defect.
+- **Batch 4 item 1 — doubly-controlled places on the AI's road policy.** With the rule on, construction, road works, the
+  split, the road blocker and the roads previews treat a place with two control rows as its lowest controller's alone
+  (`ConstructionQuery.EmpirePursePlaces`), but `RoadDevelopmentPolicy` (the AI's road choice) still lists every place with
+  a control row (`PayingSettlements`). No shipped rule creates such a world; D-037's control cardinality stays
+  documented-but-unenforced (`Snapshot.Load` accepts it).
+- **Batch 4 item 1 (T1b) — the settlement view's own-head line** (`PlayerViews.Structures` /
+  `ConstructionStatusText.WaitingFor`) still reads "waiting for stone" without naming the holder; the action surface and
+  the project card name it.
+- **Batch 4 item 5 — not done (state, or not byte-identical):** O7 (pooled scratch arrays, e.g. RelaxCappedFrom's per-call
+  arrays, about 499.9 MB allocated per 60-turn bench run in colonisation) and O9 (a lattice per terrain) are state and
+  would each need an ADR; O8 (an indexed heap) is deferred; a tighter heuristic, a reverse search or skipped searches are
+  not byte-identical and would need a ruling and a re-pin.
+- **Batch 4 item 5 — the O5 early exit has no test.** `Pathfinder.DistancesTo` stopping once every passable target is
+  settled changes no result, so only `sim bench` sees it, through the catchment phase's time (disabled: 4,851–5,595 ms
+  against 3,700–4,240 ms, seed 42, 60 turns; the allocation column does not move). A test pin would need public
+  instrumentation in the hot loop.
+- **Batch 4 item 4 — `sim replay` has no `--save-at`.** Cross-process replay is pinned by hash-log equality; the turn-exact
+  semantics are pinned on the in-process replayed run and on `sim run` saves at consecutive turns.

@@ -5,9 +5,14 @@ namespace Sim.Core.Systems.Roads;
 
 /// <summary>Tables owned by <see cref="RoadDevelopmentSystem"/> (ADR-003 ownership by construction).
 /// GoodStocks is the SANCTIONED SHARED STOCK — this system is its SIXTH holder (SystemCatalog
-/// records the field-level split: Amount via Ledger SINK only, reason ConstructionMaterials).</summary>
+/// records the field-level split: Amount via Ledger SINK only, reason ConstructionMaterials).
+/// <c>Holds</c> (D-055, schema v34) is NOT owned: it is construction's NEXT ConstructionHolds table, handed READ-ONLY
+/// (SystemCatalog's ownership record; construction is its sole writer). ORDER IS DATA: it is read as it stands when this
+/// system runs — in the shipped pipeline.json, after construction, so THIS step's set-asides; in a non-shipped order, the
+/// previous step's published set-asides carried into NEXT, or a loaded save's.</summary>
 public sealed record RoadDevelopmentTables(
-    Table<TransportEdgeRow> Edges, Table<RoadDevelopmentRow> Log, Table<GoodStockRow> GoodStocks);
+    Table<TransportEdgeRow> Edges, Table<RoadDevelopmentRow> Log, Table<GoodStockRow> GoodStocks,
+    IReadOnlyTable<ConstructionHoldRow> Holds);
 
 /// <summary>
 /// ADR-032 — THE ONE AUTHORITATIVE ROAD-DEVELOPMENT OPERATION (the Director's final transport
@@ -45,7 +50,17 @@ public sealed record RoadDevelopmentTables(
 /// most its grant G_b of each good — its guaranteed share plus the road share this order did not need — so what this
 /// order finds is at least min(its charge, the road share) of every good; with no split row (b = 100) building work
 /// went first and this order pays from what it left, as before. This system itself is unchanged by the split: it
-/// charges exactly as it always did, against what it finds.
+/// charges exactly as it always did, against what it finds. D-055: what it finds EXCLUDES what construction set aside
+/// (its published ConstructionHolds, read-only; in the shipped pipeline order construction ran earlier in the step, so
+/// these are this step's set-asides): the charge-time holding is the payers' stock less the set-asides of every purse
+/// whose holder set lies within the payers (RoadDevelopmentQuery.SetAsideWithin — the issuer's Empire purse, plus each
+/// payer's own purse in a purse-off or Controls-less world), and a donor in a single-settlement purse gives at most its
+/// stock less its own set-aside (an Empire purse's set-aside is fungible: it caps the aggregate). THE PAYERS are the
+/// issuer's places less any place ANOTHER Empire's purse owns (ConstructionQuery.EmpirePursePlaces — construction's
+/// disjoint-holder rule: a place with two control rows belongs to its LOWEST controller's purse alone, so a higher
+/// controller's road works neither count nor draw it; T1a round 2). ADR-032's min-ratio charge and donor order are
+/// otherwise unchanged. With the hold rule off (reservations off) the table is ignored and the payers are every place the
+/// issuer controls: batch 3, in any pipeline order.
 ///
 /// WHAT IT NEVER DOES. It never runs without an order. It never charges for the free baseline
 /// (DirtPath costs nothing; ruling 2). Research completion builds nothing: it only widens what
@@ -95,15 +110,23 @@ public sealed class RoadDevelopmentSystem(SimConfig cfg) : ISimSystem<RoadDevelo
         {
             RoadDevelopmentStep step = plan[p];
             RouteStatus route = step.Route;
-            // Ruling 1 (final): draw nearest-first to THIS route, ties by settlement id.
-            SettlementId[] payers = RoadDevelopmentQuery.PayingSettlements(prev, polity, route.A, route.B);
+            // Ruling 1 (final): draw nearest-first to THIS route, ties by settlement id. D-055 (T1a round 2): with the hold
+            // rule on, less any place another Empire's purse owns (a doubly-controlled place is its lowest controller's).
+            SettlementId[] payers = ConstructionQuery.EmpirePursePlaces(
+                prev, _cfg, polity, RoadDevelopmentQuery.PayingSettlements(prev, polity, route.A, route.B));
 
             // Units charged: the full cost, or floor(p × units) per good, and the modernization those units buy — the
             // minimum charged/full ratio — so a partial step is never free and never more than paid for. THE one charge
             // arithmetic (RoadDevelopmentQuery.ChargeStep), on what the payers hold before anything of the step is drawn;
             // the construction system's split forecast (RoadDevelopmentQuery.SimulateCharges, D-054 WS2) runs the same.
-            RoadStepCharge charged = RoadDevelopmentQuery.ChargeStep(
-                step.Cost, RoadDevelopmentQuery.Holdings(owned.GoodStocks, payers, step.Cost), route.StartFraction);
+            // D-055: what construction SET ASIDE in the payers' purses is not road works' to use — subtracted from the
+            // holding (RoadDevelopmentQuery.SetAsideWithin), and a single-settlement purse's units also floor that donor's
+            // draw. The rule off, or an empty holds table: batch 3.
+            long[] have = RoadDevelopmentQuery.Holdings(owned.GoodStocks, payers, step.Cost);
+            var keeps = new long[]?[step.Cost.Length];
+            for (int m = 0; m < step.Cost.Length; m++)
+                have[m] = Math.Max(0, have[m] - RoadDevelopmentQuery.SetAsideWithin(prev, _cfg, owned.Holds, payers, step.Cost[m].Good, ref keeps[m]));
+            RoadStepCharge charged = RoadDevelopmentQuery.ChargeStep(step.Cost, have, route.StartFraction);
             if (!charged.Paid) return;   // nothing affordable: the order ends here
             bool complete = charged.Complete;
 
@@ -111,7 +134,7 @@ public sealed class RoadDevelopmentSystem(SimConfig cfg) : ISimSystem<RoadDevelo
             for (int m = 0; m < step.Cost.Length; m++)
             {
                 units += charged.Charges[m];
-                Draw(ctx, owned.GoodStocks, payers, step.Cost[m].Good, charged.Charges[m]);
+                Draw(ctx, owned.GoodStocks, payers, step.Cost[m].Good, charged.Charges[m], keeps[m]);
             }
 
             double before = route.StartFraction;
@@ -160,8 +183,8 @@ public sealed class RoadDevelopmentSystem(SimConfig cfg) : ISimSystem<RoadDevelo
     /// the given (nearest-first) order through the Ledger (a sink per row touched) — EmpireStockpile.Draw, the one
     /// purse draw construction uses too (the same loop that lived here, moved unchanged: each payer in order gives
     /// min(remaining, held)). The caller has checked the total; a short purse throws before any flow.</summary>
-    private static void Draw(SimContext<RoadDevelopmentTables> ctx, Table<GoodStockRow> stocks, SettlementId[] payers, GoodId good, long units) =>
-        EmpireStockpile.Draw(ctx.Ledger, stocks, payers, good, units, ReasonIds.ConstructionMaterials);
+    private static void Draw(SimContext<RoadDevelopmentTables> ctx, Table<GoodStockRow> stocks, SettlementId[] payers, GoodId good, long units, long[]? keep) =>
+        EmpireStockpile.Draw(ctx.Ledger, stocks, payers, good, units, ReasonIds.ConstructionMaterials, keep);
 
     private static int IndexOfEdge(Table<TransportEdgeRow> edges, int id)
     {

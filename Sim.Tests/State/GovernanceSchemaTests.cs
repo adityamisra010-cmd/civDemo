@@ -27,7 +27,7 @@ public class GovernanceSchemaTests
     [Fact]
     public void SchemaV30_PopulatedTaxPolicyTable_LengthRoundTripAndHashExact()
     {
-        Assert.Equal(33, CanonicalSchema.Version);   // v31: ADR-033 D6/D10 Institutions + ConstructionLabor (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations)
+        Assert.Equal(34, CanonicalSchema.Version);   // v31: ADR-033 D6/D10 Institutions + ConstructionLabor (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins)
         WorldState world = Populated();
 
         using var ms = new MemoryStream();
@@ -73,12 +73,14 @@ public class GovernanceSchemaTests
         // populated stream ends with their two zero count prefixes (8 bytes) right after the last row's rate bits.
         // H2 (v32, 2026-10-05): TaxGrievances follows those, also EMPTY here — one more zero prefix (12 bytes in all).
         // D-054 (v33, 2026-10-14): ConstructionProgress and ResourceAllocations follow, EMPTY here — two more (20 in all).
+        // D-055 (v34, 2026-10-16) CAUSE BLOCK: ConstructionHolds follows those, EMPTY here — one more (24 in all). The
+        // layout alone; was 5 × 4.
         var empty = new WorldState(30);
         using var ms = new MemoryStream();
         using (var writer = new BinaryWriter(ms, System.Text.Encoding.UTF8, leaveOpen: true))
             CanonicalSchema.Write(a, writer);
         byte[] bytes = ms.ToArray();
-        const int V31Trailer = 5 * 4;
+        const int V31Trailer = 6 * 4;
         Assert.All(bytes[^V31Trailer..], b => Assert.Equal(0, b));
         Assert.Equal(BitConverter.DoubleToInt64Bits(a.TaxPolicies[3].Rate), BitConverter.ToInt64(bytes, bytes.Length - V31Trailer - 8));
         Assert.Equal(int.MaxValue, BitConverter.ToInt32(bytes, bytes.Length - V31Trailer - 12));

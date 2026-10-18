@@ -12,7 +12,8 @@ namespace Sim.Ui.ViewModel;
 /// stand at End Turn, pending cancels and enqueues applied), while the settlement view describes the COMMITTED queue and
 /// passes none. So until End Turn delivers a pending order, the settlement view's status can differ from the action
 /// surface's (e.g. a pending cancel of the head). No percentage in any era: figures are "N of M" (the research precedent).
-/// Never "reserved".
+/// Never "reserved". D-055 (2026-10-16): a project's reservation is "set aside" (HoldText — one term); "hold" here keeps the
+/// building/roads split's meaning only ("road works hold the rest").
 /// </summary>
 public static class ConstructionStatusText
 {
@@ -35,9 +36,12 @@ public static class ConstructionStatusText
     /// The status line of a head (<paramref name="r"/>): what the coming End Turn does to it, or why it waits —
     /// "waiting for stone: the empire has none", "waiting for stone: Alpha's Workshop, ordered earlier, takes the empire's
     /// 12 first", "waiting: no builders here - give Building a share in Labour", "waiting: the town cannot yet sustain it".
-    /// <paramref name="buildingLabel"/> is the construction sector's knowledge-derived label (LabourActivities).
+    /// <paramref name="buildingLabel"/> is the construction sector's knowledge-derived label (LabourActivities). D-055: a head
+    /// whose units are SET ASIDE for an earlier head (MaterialCause.HeldForEarlier) reads <see cref="HoldText.HeldForEarlier"/>
+    /// — the holder, where it stands in the building order (<paramref name="hold"/>), its own reason and the remedy.
     /// </summary>
-    public static string Status(HeadStatusReport r, SimConfig cfg, bool empire, string here, Func<int, string> name, string buildingLabel)
+    public static string Status(
+        HeadStatusReport r, SimConfig cfg, bool empire, string here, Func<int, string> name, string buildingLabel, HoldContext? hold = null)
     {
         HeadResolution res = r.Resolution;
         GoodsConfig? goods = cfg.Goods;
@@ -65,6 +69,7 @@ public static class ConstructionStatusText
                     + (empire ? "the empire's " : here + "'s ") + Inv(r.HeldAtStart) + " first",
                 MaterialCause.HeldForRoads => "waiting for " + good + ": road works hold the rest of this turn's " + good
                     + " under the building/roads split",
+                MaterialCause.HeldForEarlier => HoldText.HeldForEarlier(r, cfg, empire, here, name, buildingLabel, hold),
                 _ => "waiting for " + good + ": not enough yet",
             },
         };

@@ -165,11 +165,35 @@ public static class CanonicalSchema
     /// state and no split existed under v32), and Snapshot.Load dispatches on the header version (32 or 33); the v33
     /// SNAPSHOT also carries an int32 topology trailer after this stream (Snapshot's header doc) — not part of the
     /// canonical stream, so the world hash never sees it.
-    public const int Version = 33;
+    /// v34 (D-055 — the Director's batch-4 instruction, item 1: projects must not consume resources reserved by other
+    /// projects; it takes v34 before m5w S2a and S3, which move to v35 and v36 under the "first to land" rule):
+    /// ConstructionHolds (section 61: Purse, Good, Units; 16 bytes — each purse's set-aside units per good, rebuilt by
+    /// ConstructionSystem every step and cleared at its start whatever the switch; rows in ascending (Purse, Good), Units
+    /// &gt; 0) appended after ResourceAllocations. No existing row changed width. A world with no hold carries one empty
+    /// count prefix and nothing else. THE READABLE VERSIONS ARE THE SET {32, 33, 34} (<see cref="IsReadable"/>, the one
+    /// helper every stream reader gates on — this reader, Snapshot.Load, Sim.Cli's SaveFiles and SnapshotDiff.LayoutFor): a
+    /// v33 stream stops after section 60 and a v32 stream after section 58, every missing table left EMPTY — exact for the
+    /// v33 → v34 migration IN THE SHIPPED PIPELINE ORDER, where construction rebuilds the table before road development
+    /// reads it (construction before roaddevelopment, pinned by
+    /// ConstructionHoldsSchemaV34Tests.TheShippedPipeline_RunsConstructionBeforeRoadDevelopment; in an order that runs road
+    /// development first, the first step after a v33 load reads an empty table where a v34 save of the same state carries
+    /// rows — SystemCatalog.RoadDevelopment's ownership paragraph), and, for v32, because no partial construction state and
+    /// no split existed. The snapshot's topology trailer is unchanged (v33 and v34 carry it).
+    public const int Version = 34;
 
-    /// <summary>The oldest stream version <see cref="Read(BinaryReader, int, out byte[])"/> migrates (v32: the last
-    /// version without the two v33 tables).</summary>
+    /// <summary>The oldest member of the readable set (<see cref="IsReadable"/>): v32, the last version without the v33
+    /// tables. Gates never compare with it directly — they ask <see cref="IsReadable"/>.</summary>
     public const int OldestReadableVersion = 32;
+
+    /// <summary>
+    /// D-055 (v34) — THE READABLE STREAM VERSIONS, as ONE predicate: the set {32, 33, 34} — this build's
+    /// <see cref="Version"/> and the two older streams it migrates exactly (v33: ConstructionHolds left empty; v32: the
+    /// three tables appended since left empty). Every reader that decides whether it can take a stream asks this, so the
+    /// set changes in one place: <see cref="Read(BinaryReader, int, out byte[])"/>, Snapshot.Load, Sim.Cli's
+    /// SaveFiles.MigrationNote and SnapshotDiff.LayoutFor. Any other version is refused (Snapshot.Load with the D-008
+    /// message: seed + order-log replay is the recovery path).
+    /// </summary>
+    public static bool IsReadable(int version) => version is 32 or 33 or Version;
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
     private const int CountPrefixWidth = 4;              // int row count per table
@@ -234,6 +258,7 @@ public static class CanonicalSchema
     private const int TaxGrievanceRowWidth = 4 + 4 + 8;             // Settlement, Class, Value bits (v32)
     private const int ConstructionProgressRowWidth = 4 + 4 + 4 + 8 + 8; // Settlement, Slot, ProjectId, EnqueuedTurn, Progress (v33)
     private const int ResourceAllocationRowWidth = 4 + 4;           // Polity, BuildingsPercent (v33)
+    private const int ConstructionHoldRowWidth = 4 + 4 + 8;         // Purse, Good, Units (v34)
     private const int SeedWidth = 8;
     private const int ClockWidth = 8 + 8 + 8;            // Turn, SimDays, DtDays
 
@@ -924,23 +949,37 @@ public static class CanonicalSchema
             writer.Write(row.Polity.Value);
             writer.Write(row.BuildingsPercent);
         }
+
+        // 61. ConstructionHolds (v34, D-055: each purse's set-aside units per good this step; rebuilt every step)
+        writer.Write(world.ConstructionHolds.Count);
+        for (int i = 0; i < world.ConstructionHolds.Count; i++)
+        {
+            ConstructionHoldRow row = world.ConstructionHolds[i];
+            writer.Write(row.Purse);
+            writer.Write(row.Good);
+            writer.Write(row.Units);
+        }
     }
 
     /// <summary>Reads a state stream written by <see cref="Write"/> (same order, field by field).</summary>
     public static WorldState Read(BinaryReader reader) => Read(reader, out _);
 
     /// <summary>
-    /// THE MIGRATING READER (v33, ADR-039): reads a stream of schema <paramref name="version"/> — this build's
-    /// <see cref="Version"/>, or <see cref="OldestReadableVersion"/> (32), whose stream ends after section 58: the two
-    /// v33 tables are then left EMPTY, which is exact (under v32 no entry had partial progress and no Empire had a
-    /// split; a queued entry with no progress row reads p = 0, ordered as EnqueuedTurn = −1). Any other version is
-    /// refused (Snapshot.Load names the D-008 recovery path first).
+    /// THE MIGRATING READER (v33, ADR-039; v34, D-055): reads a stream of schema <paramref name="version"/>, any member of
+    /// the readable set (<see cref="IsReadable"/>: 32, 33, 34). A v33 stream ends after section 60: ConstructionHolds is
+    /// left EMPTY, which is exact in the shipped pipeline order — construction clears and rebuilds it before road development
+    /// reads it (pinned by ConstructionHoldsSchemaV34Tests.TheShippedPipeline_RunsConstructionBeforeRoadDevelopment); in an
+    /// order that runs road development first, the first step after a v33 load sees no set-asides where a v34 save of the
+    /// same state would carry its rows (SystemCatalog.RoadDevelopment's ownership paragraph). A v32 stream ends after
+    /// section 58: the two v33 tables are left empty too, which is exact (under v32 no entry had partial progress and no
+    /// Empire had a split; a queued entry with no progress row reads p = 0, ordered as EnqueuedTurn = −1). Any other
+    /// version is refused (Snapshot.Load names the D-008 recovery path first).
     /// </summary>
     public static WorldState Read(BinaryReader reader, int version, out byte[]? expectedTerrainHash)
     {
-        if (version != Version && version != OldestReadableVersion)
+        if (!IsReadable(version))
             throw new ArgumentOutOfRangeException(nameof(version), version,
-                $"this build reads canonical streams of version {OldestReadableVersion} and {Version} only.");
+                $"this build reads canonical streams of version 32, 33 and {Version} only.");
         return ReadStream(reader, version, out expectedTerrainHash);
     }
 
@@ -1483,6 +1522,13 @@ public static class CanonicalSchema
         for (int i = 0; i < allocationCount; i++)
             world.ResourceAllocations.Add(new ResourceAllocationRow(new PolityId(reader.ReadInt32()), reader.ReadInt32()));
 
+        // v33 streams end here (the v33 → v34 migration: ConstructionHolds stays empty — see Read(reader, version, …)).
+        if (version < 34) return world;
+
+        int holdCount = reader.ReadInt32();
+        for (int i = 0; i < holdCount; i++)
+            world.ConstructionHolds.Add(new ConstructionHoldRow(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt64()));
+
         return world;
     }
 
@@ -1553,5 +1599,6 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.ConstructionLabor.Count * ConstructionLaborRowWidth
         + CountPrefixWidth + (long)world.TaxGrievances.Count * TaxGrievanceRowWidth
         + CountPrefixWidth + (long)world.ConstructionProgress.Count * ConstructionProgressRowWidth
-        + CountPrefixWidth + (long)world.ResourceAllocations.Count * ResourceAllocationRowWidth;
+        + CountPrefixWidth + (long)world.ResourceAllocations.Count * ResourceAllocationRowWidth
+        + CountPrefixWidth + (long)world.ConstructionHolds.Count * ConstructionHoldRowWidth;
 }

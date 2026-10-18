@@ -18,6 +18,16 @@ public sealed class SnapshotFormatException(string message) : Exception(message)
 /// partial progress and no Empire had a split), and it loads as a FLAT world (wrap 0), so the caller must supply a flat
 /// TerrainSet. Every other version is refused with the D-008 message: seed + order-log replay remains the recovery
 /// path between milestones.
+///
+/// D-055 (schema v34): THE v34 FILE LAYOUT is the v33 one with the canonical stream running to section 61
+/// (ConstructionHolds). <see cref="Load"/> accepts the readable SET {32, 33, 34} (CanonicalSchema.IsReadable, the one
+/// helper): a v33 file's stream ends after section 60 and its ConstructionHolds table is left empty — exact IN THE SHIPPED
+/// PIPELINE ORDER (construction before roaddevelopment, pinned by
+/// ConstructionHoldsSchemaV34Tests.TheShippedPipeline_RunsConstructionBeforeRoadDevelopment), where construction clears
+/// and rebuilds that table before road development reads it; in an order that runs road development first, road works in
+/// the first step after a v33 load see no set-asides where a v34 save of the same state would carry its rows
+/// (SystemCatalog.RoadDevelopment's ownership paragraph) — and it carries the topology trailer as a v34 file does. A loaded ConstructionHolds table that no rule could have written (unsorted or duplicate (Purse, Good) keys,
+/// Units ≤ 0, Good &lt; 0) is refused (State.Reservations.InvariantViolation).
 /// </summary>
 public static class Snapshot
 {
@@ -52,10 +62,10 @@ public static class Snapshot
                 "not a civ-sim save: bad magic (expected CIVSNAP header).");
 
         int version = reader.ReadInt32();
-        if (version != CanonicalSchema.Version && version != CanonicalSchema.OldestReadableVersion)
+        if (!CanonicalSchema.IsReadable(version))
             throw new SnapshotFormatException(
                 $"save is schema version {version}, this build reads only versions " +
-                $"{CanonicalSchema.OldestReadableVersion} (migrated) and {CanonicalSchema.Version}; saves break " +
+                $"32 and 33 (migrated) and {CanonicalSchema.Version}; saves break " +
                 "between milestones by design (D-008) — no migration exists for this version. Re-derive the world " +
                 "via seed + order-log replay.");
 
@@ -64,7 +74,7 @@ public static class Snapshot
 
         WorldState world = CanonicalSchema.Read(reader, version, out byte[]? expectedTerrainHash);
 
-        // The v33 topology trailer (ADR-039); a v32 save has none and is flat.
+        // The topology trailer (ADR-039; v33 and v34 alike); a v32 save has none and is flat.
         int topology = 0;
         if (version >= 33)
         {
@@ -136,5 +146,11 @@ public static class Snapshot
             throw new SnapshotFormatException("save is corrupt: " + broken + " (schema v33 invariant).");
         if (ResourceAllocation.InvariantViolation(world.ResourceAllocations) is { } split)
             throw new SnapshotFormatException("save is corrupt: " + split + " (schema v33 invariant).");
+        // D-055 (v34): the published holds as only construction writes them — ascending unique (Purse, Good), Units > 0,
+        // Good ≥ 0. In the shipped pipeline order the table is never an input (construction rebuilds it before road
+        // development reads it; in an order that runs road development first it is read as loaded — SystemCatalog.
+        // RoadDevelopment), and a save no rule wrote is refused rather than loaded, as the progress and split tables are.
+        if (Reservations.InvariantViolation(world.ConstructionHolds) is { } holds)
+            throw new SnapshotFormatException("save is corrupt: " + holds + " (schema v34 invariant).");
     }
 }

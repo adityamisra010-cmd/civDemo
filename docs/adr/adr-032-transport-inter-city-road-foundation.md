@@ -473,3 +473,27 @@ decision that prohibits wrapping").
 - **§12.1.** The "exact INTEGER squared pixel distance, on the terrain raster" behind the nearest-first payment order is
   now the wrapped squared distance (`MapTopology.SquaredPx`).
 - **Flat worlds.** With `topology.wrapX` false both are byte-identical to the rule above.
+
+---
+
+**Dated note, 2026-10-17 (D-055, ADR-040; appended, the text above is unchanged): the road charge now subtracts what
+construction SETS ASIDE.** The Director's batch-4 instruction (item 1: "projects must not consume resources reserved by
+other projects") makes every unreleased construction queue head set aside its remaining need from its purse
+(`sim.json` `construction.reservations`, shipped on; D-055 §1). Road works are one of the two things a set-aside binds.
+- **The charge.** The charge-time holding a road order is charged against (§10.3–§10.4) is now the payers' stock LESS the
+  set-asides of every purse whose holder set lies within the payers (`RoadDevelopmentQuery.SetAsideWithin`, reading the
+  `ConstructionHolds` table read-only). An Empire purse lies within the payers when every place it holds is a payer; a
+  single-settlement purse when its settlement is.
+- **The donors.** A donor in a single-settlement purse gives at most its stock less its own set-aside
+  (`EmpireStockpile.Draw` with a per-holder floor); an Empire purse's set-aside is capped on the aggregate.
+- **The payers** are, with the rule on, the issuer's own purse places (`ConstructionQuery.EmpirePursePlaces`): a place
+  with two control rows belongs to its lowest controller's purse alone (D-055 §1.2). In every world with one control
+  row per place they are `PayingSettlements` exactly.
+- **Unchanged:** the min-ratio partial-affordability charge, §12.1's nearest-first payment order, §12.2 and §12.3, and
+  the building/roads split's grants (D-054 §2; D-055 §1.6).
+- **When it binds.** In the shipped pipeline construction runs before road development, so road works honour THIS step's
+  set-asides. In a hand-built order road development reads the table as it stands (the previous step's, or a loaded
+  save's): order is data, no kernel guard (ADR-040 §4). With the rule off nothing is subtracted, in any order (batch 3).
+- **Measured** (D-055 §7): `IncrementalConstructionTests.TwoHeadsAndARoad_…` pays 30 units where batch 3 paid 60, and in
+  the save/load battery a waiting university sets aside the player's whole timber purse, so the turn-1 and turn-12 road
+  orders pay nothing.

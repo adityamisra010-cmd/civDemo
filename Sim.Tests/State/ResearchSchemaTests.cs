@@ -41,7 +41,7 @@ public class ResearchSchemaTests
     [Fact]
     public void SchemaV26_PopulatedResearchTables_LengthAndRoundTripExact()
     {
-        Assert.Equal(33, CanonicalSchema.Version);   // v31: ADR-033 D6/D10 Institutions + ConstructionLabor (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations)
+        Assert.Equal(34, CanonicalSchema.Version);   // v31: ADR-033 D6/D10 Institutions + ConstructionLabor (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins)
         WorldState world = Populated();
 
         using var ms = new MemoryStream();

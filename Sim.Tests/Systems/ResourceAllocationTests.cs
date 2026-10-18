@@ -397,31 +397,51 @@ public class ResourceAllocationTests
         Assert.Null(step[1]);                                                    // the rival: no row, building first
     }
 
-    [Fact]
-    public void BuildingDemand_UnderAShortageInTheEmpire_IsWhatItsHeadsWouldDraw_NotTheSumOfTheirNeeds()
+    /// <summary>
+    /// c2 verifier F3. 50 timber for two granaries (40 timber, 20 stone each): with no split the first takes 40 timber and
+    /// 20 stone, the second the last 10 timber and ceil(20 × 10 / 40) = 5 stone — so the heads DRAW 50 timber and 25 stone,
+    /// never the 80 and 40 both need, exactly what the switch-off step draws. At b = 50 with the 60-timber road: E_b = 25,
+    /// E_r = 25 &lt; 60, so G_b = 25 &lt; D_b — the split holds 25 timber back, and says so.
+    ///
+    /// D-055 RE-STATEMENT (2026-10-16; the Director's batch-4 instruction, item 1; batch-4 design §1.3 and §1.7, a WS2 pin
+    /// moved by D_b = claims [L2-05]; MEASURED on this tree by the agent writing this line). This test was
+    /// <c>BuildingDemand_UnderAShortageInTheEmpire_IsWhatItsHeadsWouldDraw_NotTheSumOfTheirNeeds</c>, and pinned the stone
+    /// split (Supply, D_b, G_b, HoldsBack) = (1000, 25, 25, False) and the UI's (50, 25). CAUSE: building demand D_b is now
+    /// what the heads would DRAW OR SET ASIDE (ConstructionQuery.OwnHeadClaims, through HoldsWalk with no split): the second
+    /// granary, at 250,000 after its 10 timber and 5 stone, sets aside its remaining 15 stone (the purse has 975 left) and no
+    /// timber (none is left) — stone D_b = 20 + 5 + 15 = 40, timber D_b = 40 + 10 + 0 = 50, still never the 80 and 40 both
+    /// need. NEW: stone (1000, 40, 40, False), the UI's (50, 40); the timber split and the step are unchanged (the step's
+    /// draws are D_b's draws within the grant; at b = 50 the first head takes the 25 timber grant, 625,000). ATTRIBUTION: the
+    /// old figures reproduce under TestConfigs.PreReservations, the batch-3 rule (the second arm, <c>reservations: false</c>).
+    /// </summary>
+    [Theory]
+    [InlineData(true, 40L)]
+    [InlineData(false, 25L)]
+    public void BuildingDemand_UnderAShortageInTheEmpire_IsWhatItsHeadsWouldDrawOrSetAside_NotTheSumOfTheirNeeds(bool reservations, long stoneDemand)
     {
-        // c2 verifier F3. 50 timber for two granaries (40 timber, 20 stone each): with no split the first takes 40 timber
-        // and 20 stone, the second the last 10 timber and ceil(20 × 10 / 40) = 5 stone — so D_b is 50 timber and 25 stone,
-        // never the 80 and 40 both need, and equals what the switch-off step draws. At b = 50 with the 60-timber road:
-        // E_b = 25, E_r = 25 < 60, so G_b = 25 < D_b — the split holds 25 timber back, and says so.
+        SimConfig shipped = reservations ? Shipped : TestConfigs.PreReservations(Shipped);
+        SimConfig off = TestConfigs.PreAllocationRatios(shipped);
         WorldState w = Rig(timber: 50);
         OrderRecord[] orders = [Split(0, 50), Roads(0)];
-        WorldState offBuilt = new TurnExecutor(ResearchRigs.FlatEra(10.0), [SystemCatalog.Construction(Off)], Log(orders)).Step(w);
+        WorldState offBuilt = new TurnExecutor(ResearchRigs.FlatEra(10.0), [SystemCatalog.Construction(off)], Log(orders)).Step(w);
         Assert.Equal((50L, 25L), (TotalOf(w, Timber) - TotalOf(offBuilt, Timber), TotalOf(w, Stone) - TotalOf(offBuilt, Stone)));
+        // The switch-off step's set-aside is the difference: the second granary's remaining 15 stone (none with the rule off).
+        Assert.Equal(reservations ? new[] { new ConstructionHoldRow(Reservations.PolityPurse(Player), Stone, 15) }
+            : Array.Empty<ConstructionHoldRow>(), offBuilt.ConstructionHolds.Rows());
 
-        Table<ResourceAllocationRow> rows = ConstructionQuery.AllocationsWith(w, Shipped, w.ResourceAllocations, orders);
-        EmpireAllocation alloc = ConstructionQuery.StepAllocations(w, Shipped, w.ConstructionQueue, w.ConstructionProgress, w.GoodStocks,
+        Table<ResourceAllocationRow> rows = ConstructionQuery.AllocationsWith(w, shipped, w.ResourceAllocations, orders);
+        EmpireAllocation alloc = ConstructionQuery.StepAllocations(w, shipped, w.ConstructionQueue, w.ConstructionProgress, w.GoodStocks,
             rows, orders, 10.0)![0]!;
         AllocationSplit timber = alloc.SplitOf(Timber)!.Value, stone = alloc.SplitOf(Stone)!.Value;
         Assert.Equal((50L, 50L, 25L, 25L, true), (timber.Supply, timber.BuildingDemand, timber.BuildingCap, timber.BuildingGrant, timber.HoldsBack));
-        Assert.Equal((1000L, 25L, 25L, false), (stone.Supply, stone.BuildingDemand, stone.BuildingGrant, stone.HoldsBack));
+        Assert.Equal((1000L, stoneDemand, stoneDemand, false), (stone.Supply, stone.BuildingDemand, stone.BuildingGrant, stone.HoldsBack));
 
         // The UI's figures are the same reading.
-        AllocationView view = ResourceAllocationQuery.ForEmpire(w, Shipped, Player, orders, 10.0)!;
-        Assert.Equal((50L, 25L), (view.Split.SplitOf(Timber)!.Value.BuildingDemand, view.Split.SplitOf(Stone)!.Value.BuildingDemand));
+        AllocationView view = ResourceAllocationQuery.ForEmpire(w, shipped, Player, orders, 10.0)!;
+        Assert.Equal((50L, stoneDemand), (view.Split.SplitOf(Timber)!.Value.BuildingDemand, view.Split.SplitOf(Stone)!.Value.BuildingDemand));
 
         // ... and the step: building work takes its 25 timber (S0's head, 25 of 40), the road the 25 left of its 60.
-        WorldState next = BuildAndRoads(Shipped, Log(orders)).Step(w);
+        WorldState next = BuildAndRoads(shipped, Log(orders)).Step(w);
         Assert.Equal((625_000L, 0L, RoadCharge(25, Road), 25 - RoadCharge(25, Road)),
             (P(next, S0), P(next, S1), RoadUnits(next), TotalOf(next, Timber)));
         AssertConserved(next);
@@ -436,23 +456,39 @@ public class ResourceAllocationTests
         public int Int(int n) => (int)(Next() % (ulong)n);
     }
 
-    [Fact]
-    public void TheForecastIsTheStep_TwoEmpires_RandomSplitsHeadsAndRoads_ConservedAndGuarded()
+    /// <summary>
+    /// Two Empires (S0, S2 the player's; S1, S3 the rival's), each with its own route (no shared edge, so each road order's
+    /// plan is the same on PREV and NEXT), a trackway needing 1 timber and 0.05 tools per km, a head at every settlement (a
+    /// granary or a 30-timber/10-stone test project), random stocks, and random splits and road orders for both, four steps
+    /// a trial. Every step, for every Empire with a split: S is its purse; D_b is exactly what the switch-off step draws from
+    /// it AND SETS ASIDE (D-055); the forecast building draw is exactly what building work draws, within the grant; the
+    /// forecast road charge is exactly what road development draws, at least min(D_r, E_r) is left for it; and where the
+    /// guard fired, the road draws nothing and building work drew the switch-off draw. An Empire with no split draws as with
+    /// the switch off. The Ledger audit holds and no stock goes negative.
+    ///
+    /// D-055 RE-STATEMENT (2026-10-16; the Director's batch-4 instruction, item 1; batch-4 design §1.3 and §1.7, a WS2 pin
+    /// moved by D_b = claims [L2-05]; MEASURED on this tree by the agent writing this line). The batch-3 check
+    /// <c>(x.Supply, x.BuildingDemand) == (s0, offDraw)</c> failed on the D-055 tree at its first step ("Expected (33, 26)
+    /// Actual (33, 30)"). CAUSE: D_b is now building work's CLAIM — the heads' draws plus what they set aside with no split
+    /// (ConstructionQuery.OwnHeadClaims through HoldsWalk) — and the 4 units are a waiting head's set-aside. RESTATED: D_b ==
+    /// offDraw + offHeld, where offHeld is the purse's set-aside the switch-off step itself publishes (its
+    /// ConstructionHolds rows for that purse and good). With the rule off (TestConfigs.PreReservations, the second arm)
+    /// nothing is published, offHeld is 0 at every step, and the check is batch 3's exactly — the old pin reproduces. The
+    /// D-055 properties of the split (draws + holds ≤ G_b, holds ≤ the holding after draws, S − d − h ≥ min(D_r, E_r), the
+    /// oldest head unblocked) are ConstructionReservationTests' property test (#20).
+    /// </summary>
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void TheForecastIsTheStep_TwoEmpires_RandomSplitsHeadsAndRoads_ConservedAndGuarded(bool reservations)
     {
-        // Two Empires (S0, S2 the player's; S1, S3 the rival's), each with its own route (no shared edge, so each road
-        // order's plan is the same on PREV and NEXT), a trackway needing 1 timber and 0.05 tools per km, a head at every
-        // settlement (a granary or a 30-timber/10-stone test project), random stocks, and random splits and road orders for
-        // both, four steps a trial. Every step, for every Empire with a split: S is its purse; D_b is exactly what the
-        // switch-off step draws from it; the forecast building draw is exactly what building work draws, within the grant;
-        // the forecast road charge is exactly what road development draws, at least min(D_r, E_r) is left for it; and where
-        // the guard fired, the road draws nothing and building work drew D_b. An Empire with no split draws as with the
-        // switch off. The Ledger audit holds and no stock goes negative.
         SimConfig cfg = WithWorks(TrackwayCosting(new RoadMaterialConfig("timber", 1.0), new RoadMaterialConfig("tools", 0.05)),
             labor: 0.5, timber: 30, stone: 10);
+        if (!reservations) cfg = TestConfigs.PreReservations(cfg);
         SimConfig off = TestConfigs.PreAllocationRatios(cfg);
         var rng = new XorShift(2026);
         int[] goods = [Timber, Stone, Tools];
-        int bound = 0, guardedSteps = 0, roadPaid = 0;
+        int bound = 0, guardedSteps = 0, roadPaid = 0, setAside = 0;
         for (int trial = 0; trial < 50; trial++)
         {
             WorldState w = Duo();
@@ -506,6 +542,11 @@ public class ResourceAllocationTests
                     {
                         long s0 = Purse(w, g), buildDraw = s0 - Purse(built, g), offDraw = s0 - Purse(builtOff, g);
                         long roadDraw = Purse(built, g) - Purse(next, g);
+                        long offHeld = 0;
+                        for (int i = 0; i < builtOff.ConstructionHolds.Count; i++)
+                            if (builtOff.ConstructionHolds[i].Purse == Reservations.PolityPurse(p) && builtOff.ConstructionHolds[i].Good == g)
+                                offHeld += builtOff.ConstructionHolds[i].Units;
+                        if (!reservations) Assert.Equal(0, offHeld);                // the batch-3 rule sets nothing aside
                         Assert.True(Purse(next, g) >= 0, "no stock goes negative");
                         if (step[k] is not { } a)
                         {
@@ -514,7 +555,8 @@ public class ResourceAllocationTests
                             continue;
                         }
                         AllocationSplit x = a.SplitOf(g)!.Value;
-                        Assert.Equal((s0, offDraw), (x.Supply, x.BuildingDemand));
+                        Assert.Equal((s0, offDraw + offHeld), (x.Supply, x.BuildingDemand));
+                        if (offHeld > 0) setAside++;
                         Assert.Equal(buildDraw, a.BuildingDrawOf(g));
                         Assert.Equal(roadDraw, a.RoadChargeOf(g));
                         Assert.True(buildDraw <= x.BuildingGrant, "building work draws within its grant");
@@ -531,6 +573,7 @@ public class ResourceAllocationTests
         Assert.True(bound > 20, $"anti-vacuity: the split held materials back {bound} times");
         Assert.True(guardedSteps > 3, $"anti-vacuity: the guard fired {guardedSteps} times");
         Assert.True(roadPaid > 20, $"anti-vacuity: road works were paid {roadPaid} times");
+        if (reservations) Assert.True(setAside > 20, $"anti-vacuity: D_b included a set-aside {setAside} times");
     }
 
     [Fact]
@@ -871,6 +914,11 @@ public class ResourceAllocationTests
         Assert.Contains(fragment, e.Message);
 
         doc["construction"]!["allocationRatios"] = false;                        // without the split, the same block loads
+        // D-055 (2026-10-16) CAUSE BLOCK: the shipped block now also carries reservations true, which the loader refuses
+        // without incremental (SimConfigLoader, D-055) — so the "same block loads" arm switches it off as well. MEASURED
+        // before this line was added: the incremental-false rows threw "construction.reservations requires
+        // construction.incremental to be true (D-055) …" here. The split's own refusal above is unchanged.
+        doc["construction"]!["reservations"] = false;
         Assert.False(SimConfigLoader.Load(doc.ToJsonString()).Construction!.AllocationRatios);
         doc["construction"]!["incremental"] = true;
         doc["construction"]!["empireStockpile"] = true;

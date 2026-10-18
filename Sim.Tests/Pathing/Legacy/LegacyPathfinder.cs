@@ -1,0 +1,626 @@
+// ======================================================================================================================
+// LEGACY ORACLE — the batch-3 Sim.Core/Pathing/Pathfinder.cs, copied VERBATIM (batch 4, D-055, T5) from the base-b3 tree
+// (sha256 a125fda93bf597e0bd72576e4e2b894c97869043c5a5c584bcaad5c9986c268c). It is the reference the batch-4 optimised
+// Pathfinder (O3 CSR overlay, O4 inline A*, O5 DistancesTo, O6 StepCostKnown) must equal bit for bit
+// (LegacyPathfinderDifferentialTests). It includes the private MinHeap, LegCosts and the jagged BuildOverlay.
+// NEVER EDIT THE BODY: a change here moves the oracle with the code under test. The ONLY departures from the
+// base file, each needed to compile it as a second class beside the shipped one or to reach it from the tests:
+//   1. this comment block;
+//   2. `using Sim.Core.Pathing;` added (the class left that namespace);
+//   3. `namespace Sim.Core.Pathing;` -> `namespace Sim.Tests.Pathing.Legacy;`;
+//   4. `public static class Pathfinder` -> `public static class LegacyPathfinder`;
+//   5. `private static double Heuristic(` and `private static (...) BuildOverlay(` -> `internal static` (the
+//      differential tests call them directly).
+// ======================================================================================================================
+using Sim.Core.Pathing;
+using Sim.Core.State;
+
+namespace Sim.Tests.Pathing.Legacy;
+
+/// <summary>
+/// Pure pathfinding and isochrone queries over (lattice, network tables).
+///
+/// PURITY MANDATE (T1.3): these are pure functions over their inputs — NO
+/// persistent caches, NO memoization. A cache is state, and state is determinism
+/// surface (it would need cloning, hashing, and invalidation discipline); defer
+/// any caching until a profiling gate demands it, and then only via ADR.
+///
+/// DETERMINISM MANDATE (m1 spec §3): the priority queue orders by the composite
+/// key (f, node id) — a total order; never insertion order, never a bare fractional
+/// priority. All adjacency enumeration is in fixed offset order; the network
+/// overlay is built in edge-table row order.
+///
+/// TOPOLOGY (batch 3 WS3): on a wrapped lattice (<see cref="TraversalLattice.WrapX"/>) every neighbour enumeration
+/// here — Expand, the Isochrone boundary scan, RelaxCappedFrom, LegCosts — steps across the east-west seam through
+/// <see cref="MapTopology.NeighbourX"/>, and the A* heuristic and the lane bound measure the short way round
+/// (<see cref="MapTopology.Dx"/>). On a flat lattice each is the pre-batch-3 arithmetic exactly.
+///
+/// COMPLEXITY: A* / Dijkstra are O(E log V) with V = lattice nodes (65,536 at
+/// the 256² default), E ≈ 8V lattice steps + 2·edges overlay; the binary heap
+/// gives the log factor. Isochrone is Dijkstra truncated at the budget.
+/// </summary>
+public static class LegacyPathfinder
+{
+    public readonly record struct PathResult(bool Found, int[] Nodes, double TotalCost);
+
+    public sealed class IsochroneResult
+    {
+        /// <summary>Reached lattice nodes in ascending id order.</summary>
+        public required int[] Reached { get; init; }
+
+        /// <summary>Travel cost per reached node (parallel to Reached).</summary>
+        public required double[] Costs { get; init; }
+
+        /// <summary>Reached nodes with at least one passable unreached neighbor, ascending id.</summary>
+        public required int[] Boundary { get; init; }
+    }
+
+    // Fixed neighbor offsets: W, E, N, S, NW, NE, SW, SE (cardinals first).
+    private static readonly int[] Dx = [-1, 1, 0, 0, -1, 1, -1, 1];
+    private static readonly int[] Dy = [0, 0, -1, 1, -1, -1, 1, 1];
+
+    /// <summary>
+    /// A* over the lattice + network fast lanes.
+    ///
+    /// HEURISTIC ADMISSIBILITY: h(n) = straightLineDistance(n, goal) in stride
+    /// units × effMinCostPerUnit, where effMinCostPerUnit is the minimum of
+    /// (a) the cheapest passable lattice node cost (a lattice step a→b costs
+    /// mean(cost_a, cost_b) × length ≥ MinNodeCost × length), and (b) over every
+    /// network edge, Cost / straightLineDistance(A,B) (so traversing an edge
+    /// also costs ≥ its endpoints' straight-line distance × effMin). Any path's
+    /// total cost is therefore ≥ its total geometric length × effMin, and by the
+    /// triangle inequality that length ≥ straight-line distance to the goal —
+    /// h never overestimates, so A* returns optimal costs (the Dijkstra
+    /// equivalence test binds this empirically).
+    /// WS3: on a wrapped lattice "straight-line distance" is the distance ON THE
+    /// CYLINDER (x the short way round, <see cref="MapTopology.Dx"/>) in both h and
+    /// the lane bound. That is a metric (the triangle inequality holds on the
+    /// cylinder), a seam step has the same length 1 or √2 it has inside the map,
+    /// and every lane's cost ≥ its wrapped endpoint distance × effMin — so the
+    /// argument above carries over unchanged and h stays admissible and
+    /// consistent. (The raw flat dx would OVERESTIMATE across the seam.)
+    /// </summary>
+    public static PathResult FindPath(
+        TraversalLattice lattice, IReadOnlyWorldState world, int fromNode, int toNode)
+    {
+        int n = lattice.NodeCount;
+        if (!lattice.IsPassable(fromNode) || !lattice.IsPassable(toNode))
+            return new PathResult(false, [], 0.0);
+
+        (int[][] overlayTargets, double[][] overlayCosts, double minEdgePerUnit) =
+            BuildOverlay(lattice, world);
+        double effMin = Math.Min(lattice.MinNodeCost, minEdgePerUnit);
+
+        var g = new double[n];
+        var cameFrom = new int[n];
+        var closed = new bool[n];
+        Array.Fill(g, double.MaxValue);
+        Array.Fill(cameFrom, -1);
+
+        (int gx, int gy) = lattice.Coords(toNode);
+        var open = new MinHeap(256);
+        g[fromNode] = 0.0;
+        open.Push(Heuristic(lattice, fromNode, gx, gy, effMin), fromNode);
+
+        while (open.Count > 0)
+        {
+            (_, int current) = open.Pop();
+            if (closed[current]) continue; // stale entry (lazy deletion)
+            closed[current] = true;
+            if (current == toNode) break;
+
+            Expand(lattice, overlayTargets, overlayCosts, current, g, cameFrom, closed,
+                (node, tentative) => open.Push(
+                    tentative + Heuristic(lattice, node, gx, gy, effMin), node));
+        }
+
+        if (g[toNode] == double.MaxValue) return new PathResult(false, [], 0.0);
+
+        var path = new List<int>();
+        for (int c = toNode; c != -1; c = cameFrom[c]) path.Add(c);
+        path.Reverse();
+        return new PathResult(true, [.. path], g[toNode]);
+    }
+
+    /// <summary>
+    /// Isochrone(origin, budget): Dijkstra truncated at the budget. The reached
+    /// set is contiguous by construction (a flood from the origin) and monotone
+    /// in the budget (a larger budget settles a superset).
+    /// This is the D-016 catchment recompute entry point: call it ONLY on the
+    /// catchment-invalidating events (network changed — T1.6 PathBuild;
+    /// settlement changed — T1.4; terrain changed — never in M1), never per-turn.
+    /// </summary>
+    public static IsochroneResult Isochrone(
+        TraversalLattice lattice, IReadOnlyWorldState world, int origin, double budget)
+    {
+        int n = lattice.NodeCount;
+        (int[][] overlayTargets, double[][] overlayCosts, _) = BuildOverlay(lattice, world);
+
+        var g = new double[n];
+        var closed = new bool[n];
+        Array.Fill(g, double.MaxValue);
+
+        var open = new MinHeap(256);
+        if (lattice.IsPassable(origin))
+        {
+            g[origin] = 0.0;
+            open.Push(0.0, origin);
+        }
+
+        while (open.Count > 0)
+        {
+            (double cost, int current) = open.Pop();
+            if (closed[current]) continue;
+            if (cost > budget) break; // heap is monotone: everything further is over budget
+            closed[current] = true;
+
+            Expand(lattice, overlayTargets, overlayCosts, current, g, null, closed,
+                (node, tentative) => { if (tentative <= budget) open.Push(tentative, node); });
+        }
+
+        var reached = new List<int>();
+        for (int i = 0; i < n; i++) if (closed[i]) reached.Add(i);
+
+        var boundary = new List<int>();
+        foreach (int i in reached)
+        {
+            (int x, int y) = lattice.Coords(i);
+            for (int d = 0; d < 8; d++)
+            {
+                int nx = MapTopology.NeighbourX(x, Dx[d], lattice.Size, lattice.WrapX), ny = y + Dy[d];
+                if (nx < 0 || ny < 0 || ny >= lattice.Size) continue;
+                int nb = ny * lattice.Size + nx;
+                if (!closed[nb] && lattice.IsPassable(nb)) { boundary.Add(i); break; }
+            }
+        }
+
+        var costs = new double[reached.Count];
+        for (int i = 0; i < reached.Count; i++) costs[i] = g[reached[i]];
+        return new IsochroneResult { Reached = [.. reached], Costs = costs, Boundary = [.. boundary] };
+    }
+
+    /// <summary>
+    /// The catchment PARTITION (T2.3, m2 spec §3): every settlement origin
+    /// claims lattice nodes by the composite key (travel cost, settlement
+    /// id) — one owner array cell, so no node is ever claimed twice BY
+    /// CONSTRUCTION. Ties (two sources reaching a node at bit-equal cost) go
+    /// to the lower settlement INDEX (== lower SettlementId in founding pick
+    /// order). Uses the same lattice + network overlay expansion as Isochrone
+    /// (fast lanes shape the borders too). Owner is −1 for unreached/
+    /// over-budget nodes. Since T3.8 the algorithm is one capped Dijkstra per
+    /// source merged at settle time (the per-budget overload explains why);
+    /// with all budgets equal that computes exactly what T2.3's single
+    /// multi-source pass computed.
+    /// </summary>
+    public readonly struct PartitionResult
+    {
+        public required int[] Owner { get; init; }   // settlement INDEX per node; −1 unclaimed
+        public required double[] Cost { get; init; } // travel cost per node (MaxValue unclaimed)
+    }
+
+    public static PartitionResult Partition(
+        TraversalLattice lattice, IReadOnlyWorldState world, ReadOnlySpan<int> origins, double budget)
+    {
+        Span<double> budgets = origins.Length <= 64
+            ? stackalloc double[origins.Length] : new double[origins.Length];
+        budgets.Fill(budget);
+        return Partition(lattice, world, origins, budgets);
+    }
+
+    /// <summary>
+    /// T3.8: as above with a PER-SOURCE budget (the settlement-size catchment
+    /// bonus). SEMANTICS — the T2.3 witness is the spec: each source's reach
+    /// is its OWN capped Dijkstra field, independent of every rival, and a
+    /// node goes to the composite (travel cost, settlement index) key among
+    /// the sources whose field reaches it within their own budget. Produce may
+    /// therefore TRANSIT territory another settlement claims — M3 has no
+    /// polity borders (walls are D-037's business, not the hinterland's).
+    ///
+    /// Implemented as one capped Dijkstra PER SOURCE merged at settle time,
+    /// deliberately NOT one multi-source pass: a single-label multi-source
+    /// formulation is exact only under EQUAL budgets (a refused tentative is
+    /// refused for every source alike), and under UNEQUAL budgets it truncates
+    /// a larger-budget source's field behind a nearer smaller-budget rival —
+    /// the rival holds the node's only label, then exhausts at its budget, and
+    /// the larger-budget source never propagates through (label-stealing).
+    /// Measured: PartitionUnequalBudgetTests runs the single-label formulation
+    /// inline as a mutant and shows the divergence this implementation exists
+    /// to avoid, then pins Partition == per-source witness node-for-node.
+    /// </summary>
+    public static PartitionResult Partition(
+        TraversalLattice lattice, IReadOnlyWorldState world, ReadOnlySpan<int> origins,
+        ReadOnlySpan<double> budgets)
+    {
+        int n = lattice.NodeCount;
+        (int[][] overlayTargets, double[][] overlayCosts, _) = BuildOverlay(lattice, world);
+
+        var g = new double[n];      // best composite cost per node (MaxValue unclaimed)
+        var owner = new int[n];     // winning settlement INDEX per node (−1 unclaimed)
+        Array.Fill(g, double.MaxValue);
+        Array.Fill(owner, -1);
+
+        // Scratch reused across sources. Total relax work is the sum of the
+        // per-source balls — what the old union pass did plus the overlap
+        // between balls (small at D-025 spacing) — plus one O(n) clear pair
+        // per source. Recompute is D-016-gated, never per-turn.
+        var dist = new double[n];
+        var closed = new bool[n];
+
+        for (int s = 0; s < origins.Length; s++)
+        {
+            int origin = origins[s];
+            if (!lattice.IsPassable(origin)) continue;
+            double budget = budgets[s];
+
+            Array.Fill(dist, double.MaxValue);
+            Array.Clear(closed);
+            var open = new MinHeap(256);
+            dist[origin] = 0.0;
+            open.Push(0.0, origin);
+
+            while (open.Count > 0)
+            {
+                (double cost, int current) = open.Pop();
+                if (closed[current]) continue;
+                if (cost > budget) break; // heap is monotone: everything further is over THIS budget
+                closed[current] = true;
+
+                // Claim at settle time by the composite key (cost, settlement
+                // index): strictly better cost wins; bit-equal cost keeps the
+                // lower index (s ascends, so the first writer holds ties —
+                // including two settlements forced onto one origin node, which
+                // D-025 spacing forbids but the key resolves anyway).
+                if (cost < g[current] || (cost == g[current] && s < owner[current]))
+                {
+                    g[current] = cost;
+                    owner[current] = s;
+                }
+
+                Expand(lattice, overlayTargets, overlayCosts, current, dist, null, closed,
+                    (node, tentative) => { if (tentative <= budget) open.Push(tentative, node); });
+            }
+        }
+
+        return new PartitionResult { Owner = owner, Cost = g };
+    }
+
+    /// <summary>
+    /// D-025 spacing support (T2.3): capped Dijkstra from one origin over RAW
+    /// terrain (no network overlay — spacing is a worldgen property), relaxing
+    /// <paramref name="minCost"/> in place: minCost[node] ← min(existing,
+    /// travel cost from this origin). Nodes beyond the cap are untouched —
+    /// the caller treats them as infinitely far (the prefilter stage).
+    /// </summary>
+    public static void RelaxCappedFrom(
+        TraversalLattice lattice, int origin, double cap, double[] minCost)
+    {
+        int n = lattice.NodeCount;
+        var g = new double[n];
+        var closed = new bool[n];
+        Array.Fill(g, double.MaxValue);
+
+        var open = new MinHeap(256);
+        if (lattice.IsPassable(origin))
+        {
+            g[origin] = 0.0;
+            open.Push(0.0, origin);
+        }
+        while (open.Count > 0)
+        {
+            (double cost, int current) = open.Pop();
+            if (closed[current]) continue;
+            if (cost > cap) break;
+            closed[current] = true;
+            if (cost < minCost[current]) minCost[current] = cost;
+
+            (int x, int y) = lattice.Coords(current);
+            for (int d = 0; d < 8; d++)
+            {
+                int nx = MapTopology.NeighbourX(x, Dx[d], lattice.Size, lattice.WrapX), ny = y + Dy[d];
+                if (nx < 0 || ny < 0 || ny >= lattice.Size) continue;
+                int nb = ny * lattice.Size + nx;
+                if (closed[nb] || !lattice.IsPassable(nb)) continue;
+                double tentative = g[current] + lattice.StepCost(current, nb);
+                if (tentative < g[nb])
+                {
+                    g[nb] = tentative;
+                    if (tentative <= cap) open.Push(tentative, nb);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// M5 S1a — THE COST OF EACH LEG of a lattice path, under exactly the edge
+    /// set <see cref="FindPath"/> expands (the shared <c>Expand</c>): a
+    /// lattice STEP between 8-neighbours costs <see cref="TraversalLattice.StepCost"/>,
+    /// and a LANE costs its overlay cost (<c>BuildOverlay</c>: PathBuild's
+    /// network fast lanes and ADR-032's travelled road routes, one definition).
+    /// Where several edges join the same two nodes the leg costs the CHEAPEST,
+    /// because that is the value A*'s strictly-better relaxation leaves: from
+    /// one parent, g[child] = min over its edges of (g[parent] + cost), and
+    /// IEEE rounding is monotone, so that equals g[parent] + min(cost) bit for
+    /// bit. Summing the legs from 0 along a FindPath result therefore
+    /// reproduces A*'s own g at every node of the path — and its TotalCost —
+    /// exactly (RouteQueryTests measures it). This is not a second movement
+    /// model: there is no cost here that Expand does not charge.
+    ///
+    /// Leg k joins nodes[k] and nodes[k+1]. Throws when a node is out of range
+    /// or impassable, or when two consecutive nodes are joined by no edge —
+    /// such a sequence is not a path this pathfinder could return.
+    /// </summary>
+    public static double[] LegCosts(
+        TraversalLattice lattice, IReadOnlyWorldState world, ReadOnlySpan<int> nodes)
+    {
+        var legs = new double[nodes.Length > 1 ? nodes.Length - 1 : 0];
+        for (int k = 0; k < nodes.Length; k++)
+            if ((uint)nodes[k] >= (uint)lattice.NodeCount || !lattice.IsPassable(nodes[k]))
+                throw new ArgumentException(
+                    $"node {nodes[k]} at position {k} is not a passable lattice node", nameof(nodes));
+        if (legs.Length == 0) return legs;
+
+        (int[][] overlayTargets, double[][] overlayCosts, _) = BuildOverlay(lattice, world);
+        for (int k = 0; k < legs.Length; k++)
+        {
+            int a = nodes[k], b = nodes[k + 1];
+            bool joined = false;
+            double best = 0.0;
+            // The order Expand relaxes in: the lattice step first, then each lane
+            // in adjacency order, a lane replacing only a STRICTLY cheaper cost.
+            (int ax, int ay) = lattice.Coords(a);
+            (int bx, int by) = lattice.Coords(b);
+            // WS3: the lattice step exactly as Expand enumerates it — x adjacency the short way round on a wrapped
+            // lattice (columns 0 and Size − 1 are neighbours), so RouteQuery.Find's exact-sum check holds across the seam.
+            if (a != b && MapTopology.AbsDx(ax, bx, lattice.Size, lattice.WrapX) <= 1 && Math.Abs(ay - by) <= 1)
+            {
+                best = lattice.StepCost(a, b);
+                joined = true;
+            }
+            int[] targets = overlayTargets[a];
+            double[] costs = overlayCosts[a];
+            for (int e = 0; e < targets.Length; e++)
+            {
+                if (targets[e] != b) continue;
+                if (!joined || costs[e] < best) best = costs[e];
+                joined = true;
+            }
+            if (!joined)
+                throw new ArgumentException(
+                    $"nodes {a} and {b} (positions {k}, {k + 1}) are joined by no lattice step and no lane",
+                    nameof(nodes));
+            legs[k] = best;
+        }
+        return legs;
+    }
+
+    // --- shared expansion ------------------------------------------------------
+
+    private static void Expand(
+        TraversalLattice lattice, int[][] overlayTargets, double[][] overlayCosts,
+        int current, double[] g, int[]? cameFrom, bool[] closed, Action<int, double> push)
+    {
+        (int x, int y) = lattice.Coords(current);
+        for (int d = 0; d < 8; d++)
+        {
+            int nx = MapTopology.NeighbourX(x, Dx[d], lattice.Size, lattice.WrapX), ny = y + Dy[d];
+            if (nx < 0 || ny < 0 || ny >= lattice.Size) continue;
+            int nb = ny * lattice.Size + nx;
+            if (closed[nb] || !lattice.IsPassable(nb)) continue;
+            Relax(current, nb, g[current] + lattice.StepCost(current, nb), g, cameFrom, push);
+        }
+
+        int[] targets = overlayTargets[current];
+        double[] costs = overlayCosts[current];
+        for (int e = 0; e < targets.Length; e++)
+        {
+            int nb = targets[e];
+            if (closed[nb] || !lattice.IsPassable(nb)) continue;
+            Relax(current, nb, g[current] + costs[e], g, cameFrom, push);
+        }
+    }
+
+    private static void Relax(
+        int from, int to, double tentative, double[] g, int[]? cameFrom, Action<int, double> push)
+    {
+        // Strictly-better only: with the (key, id) total order on the heap the
+        // expansion sequence is deterministic, so the surviving parent is too.
+        if (tentative < g[to])
+        {
+            g[to] = tentative;
+            if (cameFrom is not null) cameFrom[to] = from;
+            push(to, tentative);
+        }
+    }
+
+    internal static double Heuristic(TraversalLattice lattice, int node, int gx, int gy, double effMin)
+    {
+        (int x, int y) = lattice.Coords(node);
+        // WS3: the x term the short way round on a wrapped lattice (flat: x − gx's magnitude, as before).
+        double dx = MapTopology.Dx(gx, x, lattice.Size, lattice.WrapX), dy = y - gy;
+        return Math.Sqrt(dx * dx + dy * dy) * effMin;
+    }
+
+    /// <summary>
+    /// Per-call network overlay (pure — rebuilt from the tables each query):
+    /// adjacency per lattice node, both directions — first PathBuild's lattice
+    /// fast lanes (NetworkEdges, row order), then (ADR-032) every travelled
+    /// inter-city ROUTE in TransportEdges (row order) as a lane between its two
+    /// settlements' origin lattice nodes, costed by the ONE road-performance
+    /// definition: <see cref="RoadPerformance.TravelCostUnits"/> — the route's
+    /// LengthKm × its stored effective (interpolated) cost factor, in cost units.
+    /// A better or further-modernized road is a cheaper lane, so road class shapes
+    /// catchments, pairwise travel costs and PathBuild routing; with no route rows
+    /// the overlay is exactly the pre-ADR-032 one.
+    /// Also returns the minimum lane cost per straight-line stride unit for the
+    /// heuristic's admissibility bound (road lanes included).
+    /// </summary>
+    internal static (int[][] Targets, double[][] Costs, double MinEdgePerUnit) BuildOverlay(
+        TraversalLattice lattice, IReadOnlyWorldState world)
+    {
+        int n = lattice.NodeCount;
+        var counts = new int[n];
+        int edgeCount = world.NetworkEdges.Count;
+
+        // Resolve network node id → lattice anchor (id-indexed lookup array).
+        var anchor = new int[world.NetworkNodes.Count == 0 ? 0 : MaxNodeId(world) + 1];
+        for (int i = 0; i < world.NetworkNodes.Count; i++)
+        {
+            NetworkNodeRow row = world.NetworkNodes[i];
+            anchor[row.Id.Value] = row.LatticeNode;
+        }
+
+        // ADR-032 road lanes: settlement endpoints → origin lattice nodes, and the cost.
+        int roadCount = world.TransportEdges.Count;
+        int[] roadA = roadCount == 0 ? [] : new int[roadCount];
+        int[] roadB = roadCount == 0 ? [] : new int[roadCount];
+        double[] roadCost = roadCount == 0 ? [] : new double[roadCount];
+        if (roadCount > 0)
+        {
+            // W1 fix F9: the TERRAIN's size — the raster the site cells index. Size × Stride restated it, and on a flat
+            // world the stride does not divide (250 px: 62 × 4 = 248) read every site as a 248-px cell, anchoring each
+            // travelled road lane to the wrong lattice nodes (NonStrideLatticeGeometryTests). A terrain-less (toy)
+            // world's lattice is its own raster.
+            int terrainSize = world.Terrain?.Size ?? lattice.Size * lattice.Stride;
+            for (int i = 0; i < roadCount; i++)
+            {
+                TransportEdgeRow r = world.TransportEdges[i];
+                roadA[i] = -1;
+                if (!RoadPerformance.IsTravelled(r)) continue;
+                int sa = SiteOf(world, r.A), sb = SiteOf(world, r.B);
+                if (sa < 0 || sb < 0) continue;
+                int a = LatticeMap.OriginLatticeNode(lattice, terrainSize, sa);
+                int b = LatticeMap.OriginLatticeNode(lattice, terrainSize, sb);
+                if (a == b) continue;
+                roadA[i] = a;
+                roadB[i] = b;
+                roadCost[i] = RoadPerformance.TravelCostUnits(r, LatticeGeometry.KmPerCostUnitOnIdealGround(lattice));
+            }
+        }
+
+        double minEdgePerUnit = double.MaxValue;
+        for (int i = 0; i < edgeCount; i++)
+        {
+            NetworkEdgeRow e = world.NetworkEdges[i];
+            counts[anchor[e.A.Value]]++;
+            counts[anchor[e.B.Value]]++;
+            MinPerUnit(lattice, anchor[e.A.Value], anchor[e.B.Value], e.Cost, ref minEdgePerUnit);
+        }
+        for (int i = 0; i < roadCount; i++)
+        {
+            if (roadA[i] < 0) continue;
+            counts[roadA[i]]++;
+            counts[roadB[i]]++;
+            MinPerUnit(lattice, roadA[i], roadB[i], roadCost[i], ref minEdgePerUnit);
+        }
+
+        var targets = new int[n][];
+        var costs = new double[n][];
+        var empty = Array.Empty<int>();
+        var emptyCosts = Array.Empty<double>();
+        for (int i = 0; i < n; i++)
+        {
+            targets[i] = counts[i] == 0 ? empty : new int[counts[i]];
+            costs[i] = counts[i] == 0 ? emptyCosts : new double[counts[i]];
+        }
+        var fill = new int[n];
+        for (int i = 0; i < edgeCount; i++)
+        {
+            NetworkEdgeRow e = world.NetworkEdges[i];
+            int a = anchor[e.A.Value], b = anchor[e.B.Value];
+            targets[a][fill[a]] = b; costs[a][fill[a]++] = e.Cost;
+            targets[b][fill[b]] = a; costs[b][fill[b]++] = e.Cost;
+        }
+        for (int i = 0; i < roadCount; i++)
+        {
+            if (roadA[i] < 0) continue;
+            int a = roadA[i], b = roadB[i];
+            targets[a][fill[a]] = b; costs[a][fill[a]++] = roadCost[i];
+            targets[b][fill[b]] = a; costs[b][fill[b]++] = roadCost[i];
+        }
+        return (targets, costs, minEdgePerUnit);
+    }
+
+    private static void MinPerUnit(TraversalLattice lattice, int a, int b, double cost, ref double min)
+    {
+        (int ax, int ay) = lattice.Coords(a);
+        (int bx, int by) = lattice.Coords(b);
+        // WS3: the endpoints' distance on the cylinder — consistent with Heuristic (flat: ax − bx's magnitude, as before).
+        double dx = MapTopology.Dx(bx, ax, lattice.Size, lattice.WrapX), dy = ay - by;
+        double dist = Math.Sqrt(dx * dx + dy * dy);
+        if (dist > 0.0)
+        {
+            double perUnit = cost / dist;
+            if (perUnit < min) min = perUnit;
+        }
+    }
+
+    private static int SiteOf(IReadOnlyWorldState world, SettlementId id)
+    {
+        for (int i = 0; i < world.Settlements.Count; i++)
+            if (world.Settlements[i].Id.Value == id.Value) return world.Settlements[i].SiteCell;
+        return -1;
+    }
+
+    private static int MaxNodeId(IReadOnlyWorldState world)
+    {
+        int max = 0;
+        for (int i = 0; i < world.NetworkNodes.Count; i++)
+            if (world.NetworkNodes[i].Id.Value > max) max = world.NetworkNodes[i].Id.Value;
+        return max;
+    }
+
+    // --- deterministic binary min-heap on (key, id) — the T1.3 mandate ---------
+
+    private sealed class MinHeap(int capacity)
+    {
+        private double[] _keys = new double[capacity];
+        private int[] _ids = new int[capacity];
+        public int Count { get; private set; }
+
+        public void Push(double key, int id)
+        {
+            if (Count == _keys.Length)
+            {
+                Array.Resize(ref _keys, _keys.Length * 2);
+                Array.Resize(ref _ids, _ids.Length * 2);
+            }
+            int c = Count++;
+            _keys[c] = key; _ids[c] = id;
+            while (c > 0)
+            {
+                int parent = (c - 1) / 2;
+                if (!Less(c, parent)) break;
+                Swap(c, parent);
+                c = parent;
+            }
+        }
+
+        public (double Key, int Id) Pop()
+        {
+            (double key, int id) = (_keys[0], _ids[0]);
+            Count--;
+            _keys[0] = _keys[Count]; _ids[0] = _ids[Count];
+            int c = 0;
+            while (true)
+            {
+                int l = 2 * c + 1, r = l + 1, smallest = c;
+                if (l < Count && Less(l, smallest)) smallest = l;
+                if (r < Count && Less(r, smallest)) smallest = r;
+                if (smallest == c) break;
+                Swap(c, smallest);
+                c = smallest;
+            }
+            return (key, id);
+        }
+
+        // Composite (key, id): a total order — never a bare fractional priority.
+        private bool Less(int a, int b) =>
+            _keys[a] < _keys[b] || (_keys[a] == _keys[b] && _ids[a] < _ids[b]);
+
+        private void Swap(int a, int b)
+        {
+            (_keys[a], _keys[b]) = (_keys[b], _keys[a]);
+            (_ids[a], _ids[b]) = (_ids[b], _ids[a]);
+        }
+    }
+}

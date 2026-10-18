@@ -30,7 +30,8 @@ public class FirstReignTests
     // ADR-035 §7 (P-F2, founding composition) RE-PIN (VALUE): 0272b21fbd14bce1… -> 6720be6a8ed7261c…. CAUSE: founding cohort noise at demographic scale (CV ~ 1/sqrt(n_c)) instead of RC-1's per-cohort ±0.69; the settlement-common size factor is unchanged.
     // D-051 1(b) (2026-10-10, time-averaged decade weather) RE-PIN (VALUE): 6720be6a8ed7261c… -> 467f2cb6f5e8ff81…. CAUSE: a turn's harvest multiplier is the time-average of the yearly weather process over the turn's yearly sub-steps (mean unchanged, per-decade log-spread ~0.29 -> ~0.19) and a new settlement joins the weather at a stationary draw. CONTROL: TestConfigs.PreTimeAveragedHarvest returns the old value byte for byte (IntegratedPinAttributionTests.*_MovedForTheTimeAveragedHarvestAlone).
     // BATCH 3 / D-054 RE-PIN (integration R1, 2026-10-14; VALUE + LAYOUT): 467f2cb6f5e8ff81… -> bccc8aed902d2587…. CAUSE: the v33 layout (two EMPTY appended tables) AND the cylinder (worldgen.json topology.wrapX — the terrain is folded into the hash, so the worlds differ from turn 0); WS1 and WS2 do not act (no construction order in the log). ATTRIBUTION (history on FirstReign_PostFix_HarvestDiesWithThePeople_NoFoodMountain): D054PairAttributionTests ("first-reign"), IncrementalConstructionAttributionTests.ToyGoldenSeed42Turn200_AndFirstReignTurn40_MovedForTheV33LayoutAlone, and the cylinder-alone link <see cref="PostR1GoldenAtV32"/>.
-    internal const string PostR1Golden = "bccc8aed902d25873373926c3aa16a71f226dae01b0bbd3004bc004a48f8d2fa";
+    // D-055 (2026-10-16) RE-PIN (LAYOUT ALONE): bccc8aed902d2587… -> f7ca60a52362a7da…. CAUSE: schema v34 appends ConstructionHolds, EMPTY here (the first-reign log carries no construction order) — one four-byte zero count prefix. CONTROL: ReservationsLayoutAttributionTests.FirstReignTurn40_MovedForTheV34LayoutAlone (SchemaProjection.V33 = OLD).
+    internal const string PostR1Golden = "f7ca60a52362a7da30c73be82ad8ecd56aeeb68f932b2ad98d8d3e76e3219057";
 
     /// <summary>Batch 3 (D-054, integration R1, 2026-10-14): THE CYLINDER-ALONE LINK — <see cref="PostR1Golden"/>'s world
     /// through the v32 projection (SchemaProjection.V32: the two v33 tables dropped, asserted EMPTY). It equals the turn-40
@@ -560,6 +561,15 @@ public class FirstReignTests
         //         .ToyGoldenSeed42Turn200_AndFirstReignTurn40_MovedForTheV33LayoutAlone (flat: raw != OLD, v32 = OLD), and the
         //         cylinder-alone link asserted below (v32 of THIS world = 101bbdd7…, W1's cylinder-only value).
         //   The SHAPE asserts below were run on the new trajectory and pass unchanged.
+        // D-055 RE-PIN (2026-10-16; the Director's batch-4 instruction, item 1) — SCHEMA v34, THE v34 LAYOUT ALONE, MEASURED
+        // on this tree by the agent writing this line (ADR-015 §6).
+        //   OLD  bccc8aed902d25873373926c3aa16a71f226dae01b0bbd3004bc004a48f8d2fa
+        //   NEW  f7ca60a52362a7da30c73be82ad8ecd56aeeb68f932b2ad98d8d3e76e3219057
+        //   CAUSE v33 -> v34 appends ConstructionHolds (section 61), EMPTY here (the first-reign log carries no construction
+        //         order), so the entire movement is one four-byte zero count prefix. No behaviour moved; the SHAPE asserts
+        //         below are unchanged.
+        //   CONTROL ReservationsLayoutAttributionTests.FirstReignTurn40_MovedForTheV34LayoutAlone: the v33 projection
+        //         (SchemaProjection.V33, asserting 0 hold rows) returns OLD byte for byte.
         Assert.Equal(PostR1Golden, WorldHash.ComputeHex(final));
         Assert.Equal(PostR1GoldenAtV32, SchemaProjection.V32(final));   // the layout is the whole raw/v32 difference
 

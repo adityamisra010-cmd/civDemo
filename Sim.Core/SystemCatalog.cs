@@ -57,7 +57,10 @@ namespace Sim.Core;
 ///     only, reason ConstructionMaterials, on the rows its roads.classes materials
 ///     name, at the ISSUING civilization's controlled settlements nearest-first to
 ///     the route, ties by id (ADR-032 final ruling 1; drawn through EmpireStockpile.Draw,
-///     the purse draw construction shares) — never a source, no remainder field.
+///     the purse draw construction shares) — never a source, no remainder field. D-055 (T1a round
+///     2): with the hold rule on, less any place another Empire's purse owns
+///     (ConstructionQuery.EmpirePursePlaces — a place with two control rows is its lowest
+///     controller's alone), and never below what construction set aside (ConstructionHolds, below).
 ///     It runs only on a turn carrying a DevelopRoads order.
 ///   TRADE (T3.6, the third holder) owns: Amount via Ledger.TRANSFER ONLY —
 ///     conserving cross-settlement moves within a good, never a source or
@@ -104,6 +107,20 @@ namespace Sim.Core;
 ///     from PREV), copied from the parent's PREV row; it never touches another row.
 ///   AGETRANSITION upserts rows only for polities on PREV's roster, from their
 ///     AdvanceAge orders — so it never reads or writes the row revolt appended.
+///
+/// SANCTIONED SHARED TABLE — ConstructionHolds (D-055, schema v34), split by WRITER and READER, ORDER AS DATA — the
+/// GoodStocks share's pattern above: one NEXT table handed out here to two systems, their order in pipeline.json, and no
+/// kernel change or kernel guard (the kernel is frozen; the kernel spec's interaction matrix, P-26/Q-66, is still absent,
+/// so this paragraph and ADR-040 are the record):
+///   CONSTRUCTION is the table's SOLE WRITER: it clears it at the start of every step whatever sim.json
+///     construction.reservations says, and publishes the step's set-asides (with the rule on).
+///   ROAD DEVELOPMENT is handed the same NEXT table READ-ONLY (IReadOnlyTable) and never writes it. It reads the table AS
+///     IT STANDS WHEN ROAD DEVELOPMENT RUNS. The SHIPPED pipeline.json runs construction (10th) before roaddevelopment
+///     (22nd) — pinned by a test that loads the shipped file — so road works honour what the queue heads set aside in the
+///     SAME step. In any other order (a hand-built pipeline) road development reads what NEXT holds at that point of the
+///     step: the previous step's published set-asides, carried into NEXT by the kernel's PREV → NEXT copy, or a loaded
+///     save's rows (construction, running later, then clears and rebuilds the table) — pinned by a test on a reversed
+///     hand-built pipeline. With the rule off road development ignores the table (batch 3) in any order.
 /// </summary>
 public static class SystemCatalog
 {
@@ -244,7 +261,7 @@ public static class SystemCatalog
         return new SystemRegistration(ConstructionSystem.WellKnownId, ConstructionSystem.Name,
             (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<ConstructionTables>(
                 prev, new ConstructionTables(next.ConstructionQueue, next.Structures, next.GoodStocks, next.ConstructionLabor,
-                    next.ConstructionProgress, next.ResourceAllocations),
+                    next.ConstructionProgress, next.ResourceAllocations, next.ConstructionHolds),
                 rng, ConstructionSystem.WellKnownId, dtDays, dtYears, orders,
                 new Ledger(next.LedgerFlows))));
     }
@@ -421,13 +438,20 @@ public static class SystemCatalog
 
     /// <summary>ADR-032: the one authoritative road-development operation (DevelopRoads, player
     /// and AI alike). SOLE OWNER of TransportEdges and RoadDevelopments; sixth holder of the
-    /// GoodStocks share (see the ownership record above). Inert without roads tuning.</summary>
+    /// GoodStocks share (see the ownership record above). Inert without roads tuning.
+    ///
+    /// D-055 (schema v34): road development is also handed construction's NEXT ConstructionHolds READ-ONLY (an
+    /// IReadOnlyTable; construction is its sole writer — the ownership record above), so road works can honour what the
+    /// queue heads set aside. ORDER IS DATA: it reads the table as it stands when road development runs. The shipped
+    /// pipeline.json runs construction (10th) before roaddevelopment (22nd), so there it reads THIS step's set-asides; in a
+    /// non-shipped order it reads the previous step's published set-asides carried into NEXT, or a loaded save's.</summary>
     public static SystemRegistration RoadDevelopment(SimConfig cfg)
     {
         var system = new Systems.Roads.RoadDevelopmentSystem(cfg);
         return new SystemRegistration(Systems.Roads.RoadDevelopmentSystem.WellKnownId, Systems.Roads.RoadDevelopmentSystem.Name,
             (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<Systems.Roads.RoadDevelopmentTables>(
-                prev, new Systems.Roads.RoadDevelopmentTables(next.TransportEdges, next.RoadDevelopments, next.GoodStocks),
+                prev, new Systems.Roads.RoadDevelopmentTables(next.TransportEdges, next.RoadDevelopments, next.GoodStocks,
+                    next.ConstructionHolds),
                 rng, Systems.Roads.RoadDevelopmentSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 

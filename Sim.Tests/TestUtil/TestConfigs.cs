@@ -3,7 +3,20 @@ using Sim.Core.Worldgen;
 
 namespace Sim.Tests.TestUtil;
 
-/// <summary>Canonical data-file configs, loaded fresh per call (records are immutable).</summary>
+/// <summary>Canonical data-file configs, loaded fresh per call (records are immutable).
+///
+/// D-055 (2026-10-16) — THE RESERVATIONS SWITCH (sim.json construction.reservations, schema v34) AND THE TWINS. Its
+/// attribution control is <see cref="PreReservations"/>. By the R4 rule (an older layer twin strips every NEWER layer)
+/// the CHAINED twins strip it: <see cref="PreIncrementalConstruction"/> (the loader refuses reservations without
+/// incremental), and through it <see cref="PreD054Sim"/>, <see cref="PreD053"/> and every older chained twin
+/// (PreForager, PreR2b, PreTradeKnowledge, PreRecipeKnowledge, PreTimeAveragedHarvest, PreTaxAge, PreAiFounding). The
+/// SINGLE-LAYER helpers keep reservations ON — <see cref="PreEmpireConstructionStockpile"/>,
+/// <see cref="PreEmpireFoodAllocation"/>, <see cref="PreGranaryEffects"/> and <see cref="PreAllocationRatios"/> (and
+/// the F7 single-switch helpers, <see cref="SingleSwitchTwins"/>): each switches exactly one layer off. <see cref="PreAllocationRatios"/> is the RECORDED
+/// R4 EXCEPTION (D-055): although reservations are newer than the split, the split's twin keeps them, because the split's
+/// default (b = 100) must equal its absence and holds are not part of the split — a reservations-stripping twin would
+/// make "no split" differ from "the default split" wherever a hold row is published. Do not "fix" it into the chain.
+/// </summary>
 public static class TestConfigs
 {
     /// <summary>The canonical four-file config (ADR-029: research.json rides with it,
@@ -177,16 +190,30 @@ public static class TestConfigs
     /// no progress row is written, the AI neither cancels stalled heads nor applies its WS1 ordering checks, and the
     /// construction blocker keeps its per-turn labour clause. It also switches off WS2 (the building/roads split, which
     /// needs incremental construction: the loader refuses allocationRatios without it). With it, a world's v32 projection
-    /// (SchemaProjection.HashAtSchemaV32) returns the batch-2 references byte for byte.</summary>
+    /// (SchemaProjection.HashAtSchemaV32) returns the batch-2 references byte for byte. D-055 (2026-10-16): it switches
+    /// off reservations too (the newer layer, the R4 rule; the loader refuses reservations without incremental), so it
+    /// still returns them exactly as before.</summary>
     public static SimConfig PreIncrementalConstruction(SimConfig cfg) =>
-        cfg.Construction is { } c ? cfg with { Construction = c with { Incremental = false, AllocationRatios = false } } : cfg;
+        cfg.Construction is { } c
+            ? cfg with { Construction = c with { Incremental = false, AllocationRatios = false, Reservations = false } }
+            : cfg;
 
     /// <summary>D-054 WS2 (2026-10-14) — THE BUILDING/ROADS SPLIT SWITCHED OFF: sim.json construction.allocationRatios
     /// false, so kind-12 orders are ignored at delivery, no ResourceAllocationRow is written, and building work goes first
     /// with road works getting what it leaves (WS1 alone). A world whose Empires never set a split (every AI world, and
-    /// every world with no kind-12 order) is byte-identical with it on or off: the default b = 100 cannot bind.</summary>
+    /// every world with no kind-12 order) is byte-identical with it on or off: the default b = 100 cannot bind. D-055: it
+    /// keeps reservations ON — the recorded R4 exception (the class header).</summary>
     public static SimConfig PreAllocationRatios(SimConfig cfg) =>
         cfg.Construction is { } c ? cfg with { Construction = c with { AllocationRatios = false } } : cfg;
+
+    /// <summary>D-055 (2026-10-16; the Director's batch-4 instruction, item 1) — RESERVATIONS SWITCHED OFF: sim.json
+    /// construction.reservations false, so construction clears ConstructionHolds every step and publishes nothing, building
+    /// demand reverts to the heads' draws only, and road development subtracts nothing — the batch-3 rule exactly. A world
+    /// stepped under it is batch 3's world plus the empty section-61 count prefix, so its v33 projection
+    /// (SchemaProjection.V33) is the batch-3 hash byte for byte: every pin a hold moves is attributed through it. A
+    /// single-layer twin (only the reservations switch changes).</summary>
+    public static SimConfig PreReservations(SimConfig cfg) =>
+        cfg.Construction is { } c ? cfg with { Construction = c with { Reservations = false } } : cfg;
 
     /// <summary>D-054 (2026-10-14) — THE SIMCONFIG HALF OF THE BATCH OFF: WS1 and WS2 switched off. The worldgen half (the
     /// cylinder, WS3) is <see cref="PreD054Worldgen(WorldgenConfig)"/>: PreD054 is a PAIR, and a control that founds a world

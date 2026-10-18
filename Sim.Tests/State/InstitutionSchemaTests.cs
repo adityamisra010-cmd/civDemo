@@ -31,7 +31,7 @@ public class InstitutionSchemaTests
     [Fact]
     public void SchemaV31_PopulatedInstitutionTables_LengthRoundTripAndHashExact()
     {
-        Assert.Equal(33, CanonicalSchema.Version);   // v32: H2 TaxGrievances (v33: D-054 ConstructionProgress + ResourceAllocations)
+        Assert.Equal(34, CanonicalSchema.Version);   // v32: H2 TaxGrievances (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins)
         WorldState world = Populated();
 
         using var ms = new MemoryStream();
@@ -88,11 +88,13 @@ public class InstitutionSchemaTests
         // H2 (v32, 2026-10-05): one table now follows them — TaxGrievances, EMPTY here — so the v31 blocks end 4
         // bytes (its zero count prefix) before the stream does. D-054 (v33): two more EMPTY tables follow it —
         // ConstructionProgress and ResourceAllocations — so the v31 blocks end 12 bytes before the stream does.
+        // D-055 (v34, 2026-10-16) CAUSE BLOCK: ConstructionHolds follows those, EMPTY here — the v31 blocks now end 16 bytes
+        // before the stream does (was 3 × 4). The layout alone.
         using var ms = new MemoryStream();
         using (var writer = new BinaryWriter(ms, System.Text.Encoding.UTF8, leaveOpen: true))
             CanonicalSchema.Write(a, writer);
         byte[] bytes = ms.ToArray();
-        const int v32Trailer = 3 * 4;
+        const int v32Trailer = 4 * 4;
         Assert.All(bytes[^v32Trailer..], x => Assert.Equal(0, x));
         int end = bytes.Length - v32Trailer;
         Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0), BitConverter.ToInt64(bytes, end - 8));

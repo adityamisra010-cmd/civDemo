@@ -1221,3 +1221,15 @@ bump to land", is met by the Director's 2026-10-14 batch 3 (ADR-039).
   OF SCOPE FOR NOW".
 
 Record: `docs/d054-batch3-incremental-construction-allocation-cylinder.md`.
+
+## 2026-10-17 — batch 4 (D-055) took schema v34 (dated note; sections above kept as written)
+
+The 2026-10-15 note above moved S2a's known extent to v34. The Director's batch-4 instruction (D-055) has now taken v34:
+- **v34 is taken:** section 61 `ConstructionHolds` (the material reservations of construction queue heads; ADR-040).
+- **S2a's known extent therefore takes v35, and S3's Action Points state takes v36.** Where the S3 section says "v34 if S2a
+  took v33", read v36 after S2a's v35.
+- **No order kind was taken.** Kind 9 is unchanged, and kind 10 stays reserved for MoveFormation.
+- **The readable versions are now the set {32, 33, 34}** (`CanonicalSchema.IsReadable`; ADR-040 §3).
+- **Batch 4 built no fog or extent state** either.
+
+Record: `docs/d055-batch4-reservations-attribution-allocation-ci-persistence-pathfinding.md`.

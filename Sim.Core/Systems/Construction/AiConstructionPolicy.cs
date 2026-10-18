@@ -47,8 +47,9 @@ namespace Sim.Core.Systems.Construction;
 /// orders two projects one purse can pay for only once, and never queues one that would only block its queue: on the
 /// stocks it decides on, each project it orders is covered in full AFTER every claim already queued in the Empire (each
 /// entry's remaining needs) and every order before it. What can still make an AI head wait is its builders' pace, a
-/// university host's founding viability, earlier projects in the building order and road works using the units first
-/// (claims set nothing aside — ConstructionSystem's header), and stocks the step moves before construction runs (pipeline
+/// university host's founding viability, earlier projects in the building order drawing or (D-055) SETTING ASIDE the
+/// units first (each unreleased queue head holds its remaining need — ConstructionSystem's header; claims of non-head
+/// entries stay counts), road works under the player's split, and stocks the step moves before construction runs (pipeline
 /// order, as for any order). With the switch off, a settlement's purse is itself, its
 /// queue is empty (the AI orders only into an empty queue) and it receives at most one order a turn, so the
 /// reservation subtracts nothing: the pre-purse orders, bit-exact.</item>
@@ -70,6 +71,9 @@ namespace Sim.Core.Systems.Construction;
 /// university's site needs builders able to move it at all this turn — floor(C / L × N) ≥ 1, i.e. one progress unit
 /// (was: capacity ≥ the whole laborRequired this turn, the M4-D gate). With the switch off, none of this applies: the
 /// batch-2 orders, bit-exact.</item>
+/// D-055: the AI does NOT read ConstructionQuery.HoldsWalk. Its prudence (an idle queue and the whole remaining cost,
+/// claims ⊇ holds) and its structural-stall cancel (ConstructionQuery.StructuralStall, resolved with no competition and no
+/// holds) are unchanged, so it never cancels a head merely because an older head sets its inputs aside.
 /// Deterministic and tie-free: integer table and content order, composite keys with integer tie-breaks
 /// (tie-dense tests: InstitutionAiTests). Strategic construction is later AI work. Player-commanded polities
 /// are never touched.

@@ -796,6 +796,28 @@ public record struct ConstructionProgressRow(
 public record struct ResourceAllocationRow(PolityId Polity, int BuildingsPercent);
 
 /// <summary>
+/// D-055 (schema v34; the Director's batch-4 instruction, item 1: projects must not consume resources reserved by other
+/// projects) — ONE PURSE'S SET-ASIDE OF ONE GOOD: the <c>Units</c> of good <c>Good</c> that the construction queue heads
+/// drawing on purse <c>Purse</c> set aside this step for what they still need (a "hold"). Owned by ConstructionSystem: the
+/// table is CLEARED at the start of EVERY construction step, whatever sim.json construction.reservations says, and rebuilt
+/// at the end of the step's walk when reservations are on — the per-step publication pattern of ConstructionLaborRow
+/// (section 57). It is never an input to construction: road development reads it read-only (SystemCatalog's ownership
+/// record — order is data: in the shipped pipeline.json it runs later in the SAME step, after construction rebuilt it),
+/// and the UI reads it for display.
+///
+/// <c>Purse</c> is the identity of the holder set a head draws from (ConstructionQuery.Holders): ≥ 0 is a polity id (an
+/// Empire purse); &lt; 0 is −1 − settlementId (a single-settlement purse: purse-off, a stateless settlement, a world
+/// without control rows) — State.Reservations.SettlementPurse / PolityPurse.
+///
+/// INVARIANT (State.Reservations.InvariantViolation, asserted by Snapshot.Load and at the end of every construction step):
+/// rows in strictly ascending (Purse, Good), compared as integers — so no key appears twice; Units &gt; 0 (a purse holding
+/// nothing of a good has no row); Good ≥ 0. The goods-registry bound needs content and is checked where content is
+/// available (the end-of-step invariant), not at load. Not a conserved stock: a count of units already in the purse's
+/// GoodStocks rows, never units of its own — holds move no goods; only Ledger draws do.
+/// </summary>
+public record struct ConstructionHoldRow(int Purse, int Good, long Units);
+
+/// <summary>
 /// M4-D — a completed structure, counted per (settlement, project).
 ///
 /// NOT a Conserved stock, and that is a considered choice rather than an
@@ -1238,6 +1260,10 @@ public interface IReadOnlyWorldState
 
     /// <summary>WS2 (v33): each Empire's building/roads material split (absence = 100) — owned by ConstructionSystem.</summary>
     IReadOnlyTable<ResourceAllocationRow> ResourceAllocations { get; }
+
+    /// <summary>D-055 (v34): each purse's set-aside units per good this step — owned by ConstructionSystem, cleared every
+    /// construction step; never a simulation input.</summary>
+    IReadOnlyTable<ConstructionHoldRow> ConstructionHolds { get; }
 }
 
 /// <summary>
@@ -1441,6 +1467,9 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>WS2 (v33): each Empire's building/roads material split — owned by ConstructionSystem.</summary>
     public Table<ResourceAllocationRow> ResourceAllocations { get; }
 
+    /// <summary>D-055 (v34): each purse's set-aside units per good this step — owned by ConstructionSystem.</summary>
+    public Table<ConstructionHoldRow> ConstructionHolds { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
@@ -1501,6 +1530,7 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<TaxGrievanceRow> IReadOnlyWorldState.TaxGrievances => TaxGrievances;
     IReadOnlyTable<ConstructionProgressRow> IReadOnlyWorldState.ConstructionProgress => ConstructionProgress;
     IReadOnlyTable<ResourceAllocationRow> IReadOnlyWorldState.ResourceAllocations => ResourceAllocations;
+    IReadOnlyTable<ConstructionHoldRow> IReadOnlyWorldState.ConstructionHolds => ConstructionHolds;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -1565,6 +1595,7 @@ public sealed class WorldState : IReadOnlyWorldState
         TaxGrievances = new Table<TaxGrievanceRow>();
         ConstructionProgress = new Table<ConstructionProgressRow>();
         ResourceAllocations = new Table<ResourceAllocationRow>();
+        ConstructionHolds = new Table<ConstructionHoldRow>();
     }
 
     private WorldState(
@@ -1599,7 +1630,8 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<TaxPolicyRow> taxPolicies,
         Table<InstitutionRow> institutions, Table<ConstructionLaborRow> constructionLabor,
         Table<TaxGrievanceRow> taxGrievances,
-        Table<ConstructionProgressRow> constructionProgress, Table<ResourceAllocationRow> resourceAllocations)
+        Table<ConstructionProgressRow> constructionProgress, Table<ResourceAllocationRow> resourceAllocations,
+        Table<ConstructionHoldRow> constructionHolds)
     {
         Seed = seed;
         Clock = clock;
@@ -1663,6 +1695,7 @@ public sealed class WorldState : IReadOnlyWorldState
         TaxGrievances = taxGrievances;
         ConstructionProgress = constructionProgress;
         ResourceAllocations = resourceAllocations;
+        ConstructionHolds = constructionHolds;
     }
 
     /// <summary>
@@ -1688,7 +1721,7 @@ public sealed class WorldState : IReadOnlyWorldState
             AgeStates.Clone(), AgeEligibility.Clone(), AgeTransitions.Clone(), MilitaryUnits.Clone(),
             UnitConversions.Clone(), TransportEdges.Clone(), RoadDevelopments.Clone(),
             TaxPolicies.Clone(), Institutions.Clone(), ConstructionLabor.Clone(), TaxGrievances.Clone(),
-            ConstructionProgress.Clone(), ResourceAllocations.Clone())
+            ConstructionProgress.Clone(), ResourceAllocations.Clone(), ConstructionHolds.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };

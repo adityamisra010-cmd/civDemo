@@ -87,9 +87,11 @@ public readonly record struct MaterialShortfall(GoodId Good, string Name, long R
 /// earlier in the same batch, so two orders of one batch cannot both count the same unclaimed units, and the action surface
 /// passes the world's queue with the player's pending cancels and the pending orders the intake would accept applied
 /// (<see cref="QueueWithPending(IReadOnlyWorldState, SimConfig, IReadOnlyList{OrderRecord}?, out IReadOnlyTable{ConstructionProgressRow})"/>).
-/// CLAIMS ARE COUNTS, NOT SET-ASIDES (WS1, D-054): they never stop a project earlier in the building order, or road works,
-/// from using the units this step (the reservation rule is ConstructionSystem's header). Switch off: no claims, the
-/// pre-change reading bit-exact. THE GUARD IS
+/// CLAIMS ARE COUNTS (WS1, D-054), READ BY THE GUARD, THE AI AND THE DISPLAY. They set nothing aside themselves. D-055
+/// (the Director's batch-4 instruction, item 1): each queue HEAD that is not released HOLDS its remaining need, per purse
+/// and good, in the building order — later heads and road works may not use those units (<see cref="HoldsWalk"/>; the
+/// rule, the release predicate, the purse key and the release table are ConstructionSystem's header); a NON-head entry's
+/// remaining need stays a claim only. Switch off: no claims, the pre-change reading bit-exact. THE GUARD IS
 /// STILL A REACHABILITY TEST, not an affordability test: an intermediate (bronze) held unclaimed in ANY amount above zero
 /// makes its chain producible, as before — a partial holding that cannot make the whole input remains the pre-existing
 /// gap, and raw inputs and capacity stay transient blockers.
@@ -259,7 +261,7 @@ public static partial class ConstructionQuery
     /// table — that project's REMAINING input of the good (WS1, D-054): its whole input (<see cref="InputOf"/>) less what has
     /// already gone in at the entry's progress in <paramref name="progress"/> (<see cref="Delivered"/>; an entry with no
     /// matching progress row has delivered nothing). A row whose project the content no longer defines claims nothing. The
-    /// exact long sum. Claims are counts, not set-asides (the header).
+    /// exact long sum. Claims are counts (the header); a HEAD's set-aside is <see cref="HoldsWalk"/>'s (D-055).
     /// </summary>
     public static long Claimed(
         IReadOnlyTable<ConstructionQueueRow> queue, IReadOnlyTable<ConstructionProgressRow> progress, GoodsConfig goods,
@@ -641,9 +643,49 @@ public static partial class ConstructionQuery
         Blocker(world, cfg, settlement, project, dtYears,
             HoldersSeenBy(world, cfg, viewer, settlement), DrawsOnEmpireSeenBy(world, cfg, viewer, settlement), progress);
 
+    /// <summary>
+    /// D-055 (batch-4 design §1.6, T1b): <see cref="Blocker(IReadOnlyWorldState, SimConfig, SettlementId, ConstructionProjectEntry, double?, long)"/>
+    /// judged against what the hold rule leaves the entry — <paramref name="setAside"/>, by good id, the units of its purse SET
+    /// ASIDE for projects ahead of it in the building order (SetAsideQuery: every set-aside for a would-be new order, the
+    /// earlier heads' for a queued head; null or all zeros: the reading above, exactly). An input is short when the purse's
+    /// holding less its set-aside is below the need, and its clause says so: "40 timber (empire has 52; 40 set aside for
+    /// earlier projects)".
+    /// </summary>
+    public static string? Blocker(
+        IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement, ConstructionProjectEntry project, double? dtYears,
+        long progress, long[]? setAside) =>
+        Blocker(world, cfg, settlement, project, dtYears, Holders(world, cfg, settlement), DrawsOnEmpire(world, cfg, settlement), progress, setAside);
+
+    /// <summary><see cref="BlockerSeenBy(IReadOnlyWorldState, SimConfig, PolityId, SettlementId, ConstructionProjectEntry, double?, long)"/>
+    /// with the set-asides ahead of the entry (D-055) — read only on the viewer's OWN books (P7): where the settlement's purse
+    /// is not the viewer's own (SetAsideQuery.ViewersOwnPurse — T1b fix round, finding F8: it does not rule the place, or
+    /// another Empire's purse owns it), <paramref name="setAside"/> is ignored and the settlement's own stock is the reading,
+    /// as above.</summary>
+    public static string? BlockerSeenBy(
+        IReadOnlyWorldState world, SimConfig cfg, PolityId viewer, SettlementId settlement, ConstructionProjectEntry project, double? dtYears,
+        long progress, long[]? setAside) =>
+        BlockerSeenBy(world, cfg, viewer, settlement, project, dtYears, progress, setAside, usedAhead: null);
+
+    /// <summary>
+    /// The blocker of a QUEUED HEAD (T1b fix round, 2026-10-17, finding F4): judged against the purse less what the heads ahead
+    /// of it DRAW this step (<paramref name="usedAhead"/>, by good id) and SET ASIDE (<paramref name="setAside"/>) — the very
+    /// deduction its card's Met reads (design §1.6: "the purse minus earlier heads' draws and holds") — each named apart:
+    /// "4 stone (empire has 15; 5 used this turn by earlier projects, 10 set aside for earlier projects)". Both null: the
+    /// reading above, exactly. On the viewer's OWN purse only (P7), as above.
+    /// </summary>
+    public static string? BlockerSeenBy(
+        IReadOnlyWorldState world, SimConfig cfg, PolityId viewer, SettlementId settlement, ConstructionProjectEntry project, double? dtYears,
+        long progress, long[]? setAside, long[]? usedAhead)
+    {
+        bool own = SetAsideQuery.ViewersOwnPurse(world, cfg, viewer, settlement);
+        return Blocker(world, cfg, settlement, project, dtYears,
+            HoldersSeenBy(world, cfg, viewer, settlement), DrawsOnEmpireSeenBy(world, cfg, viewer, settlement), progress,
+            own ? setAside : null, own ? usedAhead : null);
+    }
+
     private static string? Blocker(
         IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement, ConstructionProjectEntry project, double? dtYears,
-        SettlementId[] holders, bool empire, long progress)
+        SettlementId[] holders, bool empire, long progress, long[]? setAside = null, long[]? usedAhead = null)
     {
         GoodsConfig goods = cfg.Goods ?? throw new ArgumentException("a construction blocker needs goods content", nameof(cfg));
         bool incremental = Incremental(cfg);
@@ -652,8 +694,25 @@ public static partial class ConstructionQuery
             && InstitutionViability.ToFound(world, cfg, settlement) is { Viable: false } viability)
             parts.Add(InstitutionViability.Shortfall(viability));
         string holder = empire ? "empire has" : "has";
-        foreach (MaterialShortfall s in Shortfalls(world.GoodStocks, goods, holders, project, incremental ? progress : 0))
-            parts.Add($"{Num(s.Required)} {s.Name} ({holder} {Num(s.Held)})");
+        if (setAside is null && usedAhead is null)
+            foreach (MaterialShortfall s in Shortfalls(world.GoodStocks, goods, holders, project, incremental ? progress : 0))
+                parts.Add($"{Num(s.Required)} {s.Name} ({holder} {Num(s.Held)})");
+        else
+            foreach (ProjectInput input in project.Inputs)
+            {
+                // D-055: the holding less what is set aside for projects ahead (the Shortfalls reading when that is 0) — and,
+                // for a queued head (T1b fix round, finding F4), less what the heads ahead of it draw this step, named apart.
+                int good = goods.IdOf(input.Good);
+                long need = Remaining(input.Qty, incremental ? progress : 0);
+                long held = EmpireStockpile.Available(world.GoodStocks, holders, new GoodId(good));
+                long aside = setAside is not null && good >= 0 && good < setAside.Length ? Math.Max(0, setAside[good]) : 0;
+                long used = usedAhead is not null && good >= 0 && good < usedAhead.Length ? Math.Max(0, usedAhead[good]) : 0;
+                if (checked(held - used - aside) >= need) continue;
+                string why = used > 0 && aside > 0 ? $"; {Num(used)} used this turn by earlier projects, {Num(aside)} set aside for earlier projects"
+                    : used > 0 ? $"; {Num(used)} used this turn by earlier projects"
+                    : aside > 0 ? $"; {Num(aside)} set aside for earlier projects" : "";
+                parts.Add($"{Num(need)} {input.Good} ({holder} {Num(held)}{why})");
+            }
         if (!incremental && dtYears is { } dt && dt > 0.0)
         {
             double capacity = CapacityAdultYears(world, cfg, settlement, dt);

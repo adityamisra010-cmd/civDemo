@@ -37,6 +37,10 @@ public enum MaterialCause
     HeldForRoads = 3,
     /// <summary>The purse holds some, but fewer than the head's builders could put in this step.</summary>
     Short = 4,
+    /// <summary>D-055: units of the good ARE in the purse, but they are SET ASIDE for heads earlier in the building order
+    /// (the holds of <see cref="ConstructionQuery.HoldsWalk"/>): resolved ignoring those set-asides the head would get
+    /// further. <see cref="HeadStatusReport.Holder"/> names the earliest of them.</summary>
+    HeldForEarlier = 5,
 }
 
 /// <summary>One queue entry, named by its settlement, slot and project.</summary>
@@ -69,10 +73,15 @@ public sealed record HeadResolution(
 }
 
 /// <summary>A head's resolution as the UI ESTIMATES it on the current world and the player's pending orders
-/// (<see cref="ConstructionQuery.HeadStatus"/>): the same resolver, plus who took a missing good first.</summary>
+/// (<see cref="ConstructionQuery.HeadStatus"/>): the same walk (<see cref="ConstructionQuery.HoldsWalk"/>), plus who took a
+/// missing good first. D-055: <see cref="Holder"/> — for <see cref="MaterialCause.HeldForEarlier"/>, the earliest earlier
+/// head of its purse that sets the binding good aside; <see cref="SetAsideAhead"/> — the units of the binding good earlier
+/// heads of its purse set aside; <see cref="SetAside"/> — what THIS head sets aside of each good (by good id; empty with
+/// the rule off); <see cref="Release"/> — why its set-aside is released, if it is.</summary>
 public sealed record HeadStatusReport(
     HeadResolution Resolution, MaterialCause Cause, QueueEntryRef[] TakenBy, long HeldAtStart, int PlaceInOrder,
-    QueueEntryRef[] Order);
+    QueueEntryRef[] Order, QueueEntryRef? Holder = null, long SetAsideAhead = 0, long[]? SetAside = null,
+    HoldRelease Release = HoldRelease.None);
 
 public static partial class ConstructionQuery
 {
@@ -327,8 +336,9 @@ public static partial class ConstructionQuery
     /// <paramref name="stocks"/> hold in its purse (<see cref="Holders"/> on <paramref name="prev"/>), capped per good by
     /// <paramref name="budget"/> (WS2: what is left of the Empire's BUILDING GRANT this step, indexed by good id; null = no
     /// cap). Null when the queue is empty.
-    /// ConstructionSystem calls it with its NEXT tables and the real budget, after every earlier head's draw; the UI's
-    /// <see cref="HeadStatus"/> calls it on the current world (an ESTIMATE). The rule, in its checking order:
+    /// <see cref="HoldsWalk"/> calls it for every head — ConstructionSystem's step on its NEXT tables, the UI's
+    /// <see cref="HeadStatus"/> on the current world (an ESTIMATE) — against the head's purse's budget after every earlier
+    /// head's draw and (D-055) set-aside. The rule, in its checking order:
     /// <list type="number">
     /// <item>A project the content no longer defines waits (<see cref="HeadLimitKind.UnknownProject"/>).</item>
     /// <item>A project that founds an institution waits while its host cannot found one more (InstitutionViability.ToFound
@@ -349,6 +359,15 @@ public static partial class ConstructionQuery
     /// </summary>
     public static HeadResolution? ResolveHead(
         IReadOnlyWorldState prev, SimConfig cfg, SettlementId settlement,
+        IReadOnlyTable<ConstructionQueueRow> queue, IReadOnlyTable<ConstructionProgressRow> progress,
+        IReadOnlyTable<GoodStockRow> stocks, double dtYears, long[]? budget, bool strict = false) =>
+        ResolveHeadIn(prev, cfg, settlement, Holders(prev, cfg, settlement), queue, progress, stocks, dtYears, budget, strict);
+
+    /// <summary><see cref="ResolveHead"/> against the purse <paramref name="holders"/> — the units they hold and the recipe
+    /// purse of the obtainability reading. <see cref="HoldsWalk"/> passes <see cref="PurseHolders"/> (D-055 fix round: the
+    /// purse's own places, disjoint across purses); every other caller passes <see cref="Holders"/>, unchanged.</summary>
+    private static HeadResolution? ResolveHeadIn(
+        IReadOnlyWorldState prev, SimConfig cfg, SettlementId settlement, SettlementId[] holders,
         IReadOnlyTable<ConstructionQueueRow> queue, IReadOnlyTable<ConstructionProgressRow> progress,
         IReadOnlyTable<GoodStockRow> stocks, double dtYears, long[]? budget, bool strict = false)
     {
@@ -380,7 +399,6 @@ public static partial class ConstructionQuery
             return new HeadResolution(entry, project, p, p, none, 0.0, HeadLimitKind.Labour, -1, 0,
                 InstitutionStaffing.LabourAdults(prev, cfg, settlement) <= 0.0);
 
-        SettlementId[] holders = Holders(prev, cfg, settlement);
         long target = p + dp;
         long pMat = ProgressUnits;
         int binding = -1;
@@ -411,17 +429,17 @@ public static partial class ConstructionQuery
         ProjectInput limiting = project.Inputs[binding];
         int limitGood = goods.IdOf(limiting.Good);
         long shortBy = Delivered(limiting.Qty, target) - Delivered(limiting.Qty, p) - bindingAvailable;
-        HeadLimitKind kind = after == p && CraftedUnobtainable(prev, cfg, settlement, limitGood)
+        HeadLimitKind kind = after == p && CraftedUnobtainable(prev, cfg, settlement, limitGood, holders)
             ? HeadLimitKind.Unobtainable : HeadLimitKind.Materials;
         return new HeadResolution(entry, project, p, after, draws, labour, kind, limitGood, shortBy, false, bindingHeld);
     }
 
     /// <summary>Whether good <paramref name="id"/> is CRAFTED and no recipe chain available in the settlement now can make
     /// it (the obtainability guard's recipe reading, with no claims: what the purse holds, not what is spoken for).</summary>
-    private static bool CraftedUnobtainable(IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement, int id)
+    private static bool CraftedUnobtainable(IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement, int id, SettlementId[] holders)
     {
         if (cfg.Goods is not { } goods || id < 0 || !IsCrafted(goods, id)) return false;
-        var purse = new Purse(world, goods, Holders(world, cfg, settlement), null, NoProgress);
+        var purse = new Purse(world, goods, holders, null, NoProgress);
         bool[]? knowledge = CraftingQuery.KnowledgeOf(world, cfg.Research, settlement);
         var visiting = new bool[MaxGoodId(goods) + 1];
         return !MadeByAvailableRecipe(world, cfg, goods, settlement, purse, id, knowledge, visiting);
@@ -431,7 +449,11 @@ public static partial class ConstructionQuery
     /// THE BUILDING ORDER (WS1, D-054 — the reservation rule's priority): the queue HEADS of <paramref name="queue"/>, one
     /// per settlement of <paramref name="world"/> with a non-empty queue, OLDEST ORDER FIRST — composite key (EnqueuedTurn
     /// ascending, −1 for an entry with no progress row; SettlementId ascending; Slot ascending), all integers, unique per
-    /// head (one head per settlement), so the order is total and deterministic.
+    /// head (one head per settlement), so the order is total and deterministic. Priority is the ORDER'S AGE, not building
+    /// progress (D-055; T1a round 2): a PROMOTED SLOT — the next entry of a settlement whose head completed (from the next
+    /// step) or was cancelled (in the same step) — takes its own order's place in the building order, so an entry ordered
+    /// earlier than a part-built waiting head elsewhere in the same purse outranks it and may draw the units that head set
+    /// aside the step before; one ordered later stays behind it.
     /// </summary>
     public static ConstructionQueueRow[] HeadsInBuildingOrder(
         IReadOnlyWorldState world, IReadOnlyTable<ConstructionQueueRow> queue, IReadOnlyTable<ConstructionProgressRow> progress)
@@ -456,73 +478,39 @@ public static partial class ConstructionQuery
     }
 
     /// <summary>
-    /// THE HEAD'S STATUS AS THE UI ESTIMATES IT (WS1; ADR-033 D2): the turn's building work replayed on a scratch copy of
-    /// the CURRENT world's stocks — the player's <paramref name="pending"/> cancels and enqueues applied first, exactly as
-    /// the intake will (<see cref="PendingBook"/>),
-    /// then every head in the building order (<see cref="HeadsInBuildingOrder"/>) resolved by <see cref="ResolveHead"/> and
-    /// drawn through <see cref="EmpireStockpile.Draw"/> (into a scratch ledger) until <paramref name="settlement"/>'s head is
-    /// reached. An ESTIMATE: the real step resolves on the stocks production, consumption, trade and housing leave earlier
-    /// in the same step. WS2: each Empire's building/roads split is applied as the step applies it (the pending kind-12
-    /// orders upserted, the road order the pending batch delivers — ConstructionSystem's step 5 on these stocks). A
-    /// materials-limited head's <see cref="HeadStatusReport.Cause"/> is EmpireHasNone when its purse held none of the
-    /// good at turn start, HeldForRoads when the split's grant held the rest of it for road works, TakenByEarlier (naming
-    /// the heads) when earlier heads took units of it from its purse, else Short. Null when the settlement's queue (with
-    /// the pending orders) is empty.
+    /// THE HEAD'S STATUS AS THE UI ESTIMATES IT (WS1; ADR-033 D2; D-055): the turn's building work replayed on the CURRENT
+    /// world's stocks by THE walk the step runs (<see cref="HoldsWalk"/> — the one function, so the release predicate, the
+    /// set-asides and the labels are the step's own) — the player's <paramref name="pending"/> cancels and enqueues applied
+    /// first, exactly as the intake will (<see cref="PendingBook"/>), and each Empire's building/roads split applied as the
+    /// step applies it (the pending kind-12 orders upserted, the road order the pending batch delivers — ConstructionSystem's
+    /// step 5 on these stocks). An ESTIMATE: the real step resolves on the stocks production, consumption, trade and housing
+    /// leave earlier in the same step. A materials-limited head's <see cref="HeadStatusReport.Cause"/> is EmpireHasNone when
+    /// its purse held none of the good at turn start; HeldForEarlier (naming the earliest holder) when units are there but
+    /// set aside for heads earlier in the building order; HeldForRoads when the split's grant held the rest of it for road
+    /// works; TakenByEarlier (naming the heads) when earlier heads took units of it from its purse; else Short (with the
+    /// hold rule off — TestConfigs.PreReservations — exactly batch 3's labels). Null when the settlement's queue (with the
+    /// pending orders) is empty.
     /// </summary>
     public static HeadStatusReport? HeadStatus(
         IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement, IReadOnlyList<OrderRecord>? pending, double dtYears)
     {
         IReadOnlyTable<ConstructionQueueRow> queue = PendingBook(world, cfg, pending, out IReadOnlyTable<ConstructionProgressRow> progress);
         if (HeadIndex(queue, settlement) < 0) return null;
-        ConstructionQueueRow[] order = HeadsInBuildingOrder(world, queue, progress);
-        var refs = new QueueEntryRef[order.Length];
-        for (int i = 0; i < order.Length; i++) refs[i] = new QueueEntryRef(order[i].Settlement, order[i].Slot, order[i].ProjectId);
-
-        var stocks = new Table<GoodStockRow>(world.GoodStocks.Count);
-        for (int i = 0; i < world.GoodStocks.Count; i++) stocks.Add(world.GoodStocks[i]);
-        var scratch = new Ledger(new Table<LedgerFlowRow>());
-        SettlementId[] mine = Holders(world, cfg, settlement);
-        var takenBy = new List<(QueueEntryRef Head, int Good, long Units)>();
-
-        // WS2: the building/roads split as the step will apply it — the pending kind-12 orders upserted first, the road
-        // order the pending batch delivers, the split computed before any head draws (ConstructionSystem's step 5).
-        long[]?[] grants = GrantsLeft(StepAllocations(world, cfg, queue, progress, stocks,
+        long[]?[] grants = GrantsLeft(StepAllocations(world, cfg, queue, progress, world.GoodStocks,
             AllocationsWith(world, cfg, world.ResourceAllocations, pending), pending ?? [], dtYears));
-
-        for (int h = 0; h < order.Length; h++)
+        HoldsWalkResult walk = HoldsWalk(world, cfg, queue, progress, world.GoodStocks, dtYears, grants);
+        var refs = new QueueEntryRef[walk.Heads.Length];
+        for (int i = 0; i < refs.Length; i++)
+            refs[i] = new QueueEntryRef(walk.Heads[i].Entry.Settlement, walk.Heads[i].Entry.Slot, walk.Heads[i].Entry.ProjectId);
+        for (int h = 0; h < walk.Heads.Length; h++)
         {
-            SettlementId at = order[h].Settlement;
-            long[]? grant = GrantsFor(world, grants, at);
-            HeadResolution? r = ResolveHead(world, cfg, at, queue, progress, stocks, dtYears, budget: grant);
-            if (r is null) continue;
-            if (at == settlement)
-            {
-                MaterialCause cause = MaterialCause.None;
-                long held = 0;
-                var who = new List<QueueEntryRef>();
-                if (r.Limit is (HeadLimitKind.Materials or HeadLimitKind.Unobtainable) && r.LimitGood >= 0)
-                {
-                    held = EmpireStockpile.Available(world.GoodStocks, mine, new GoodId(r.LimitGood));
-                    foreach ((QueueEntryRef head, int good, long units) in takenBy)
-                        if (good == r.LimitGood && units > 0 && !who.Contains(head)) who.Add(head);
-                    cause = held <= 0 ? MaterialCause.EmpireHasNone
-                        : r.HeldForRoads ? MaterialCause.HeldForRoads
-                        : who.Count > 0 ? MaterialCause.TakenByEarlier : MaterialCause.Short;
-                }
-                return new HeadStatusReport(r, cause, [.. who], held, h, refs);
-            }
-            if (!r.Progresses || r.Project is not { } project || cfg.Goods is not { } goods) continue;
-            SpendGrants(grant, goods, project, r.Draws);
-            SettlementId[] holders = Holders(world, cfg, at);
-            for (int i = 0; i < project.Inputs.Length; i++)
-            {
-                if (r.Draws[i] <= 0) continue;
-                var good = new GoodId(goods.IdOf(project.Inputs[i].Good));
-                long before = EmpireStockpile.Available(stocks, mine, good);
-                EmpireStockpile.Draw(scratch, stocks, holders, good, r.Draws[i], ReasonIds.ConstructionMaterials);
-                long taken = before - EmpireStockpile.Available(stocks, mine, good);
-                if (taken > 0) takenBy.Add((refs[h], good.Value, taken));
-            }
+            HoldsWalkHead head = walk.Heads[h];
+            if (head.Entry.Settlement != settlement) continue;
+            HeadResolution r = head.Resolution;
+            long held = r.Limit is (HeadLimitKind.Materials or HeadLimitKind.Unobtainable) && r.LimitGood >= 0
+                ? EmpireStockpile.Available(world.GoodStocks, PurseHolders(world, cfg, settlement), new GoodId(r.LimitGood)) : 0;
+            return new HeadStatusReport(r, head.Cause, head.TakenBy, held, h, refs, head.Holder, head.SetAsideAhead,
+                walk.Enabled ? head.Holds : [], head.Release);
         }
         return null;
     }

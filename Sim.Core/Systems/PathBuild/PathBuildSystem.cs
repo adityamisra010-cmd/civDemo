@@ -122,6 +122,19 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
             return;
 
         TraversalLattice? lattice = null; // built lazily: most turns never need it
+
+        // Batch 4 (D-055, O1/O2): the step runs in two passes. Pass 1 (below) banks every settlement's accrual and fixes
+        // its frontier, in settlement order, exactly as before; it records the settlements that go on to build. Then
+        // their TARGETS are chosen together (Targets: the block fertility once per step, each passable component flooded
+        // once), and pass 2 lays their segments in the same settlement order. That is the batch-3 sequence of effects:
+        // a settlement's target reads only the lattice, the immutable terrain, its own frontier as pass 1 leaves it (no
+        // other settlement's segments move it) and PREV's catchments — nothing a segment writes — and pass 1 reads
+        // nothing pass 2 writes (pass 2 never adds a progress row, and it changes only the builders' own rows and the
+        // network tables). PathBuildStepWiringTests pins this wiring: builder k's own frontier component, its own
+        // catchment, and pass 2 in settlement order.
+        var builderRows = new int[prev.Settlements.Count];   // progress-row index per builder, settlement order
+        var builderIds = new SettlementId[prev.Settlements.Count];
+        int builderCount = 0;
         for (int s = 0; s < prev.Settlements.Count; s++)
         {
             SettlementRow settlement = prev.Settlements[s];
@@ -184,28 +197,42 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
                 progress.FrontierNode = LatticeMap.OriginLatticeNode(
                     lattice, prev.Terrain.Size, settlement.SiteCell);
 
-            BuildSegments(ctx, prev, lattice, settlement.Id, ref progress);
+            builderRows[builderCount] = progressIdx;
+            builderIds[builderCount] = settlement.Id;
+            builderCount++;
+        }
+        if (builderCount == 0) return; // no settlement builds this step (and no lattice was built)
+
+        // The targets, from each builder's frontier and its PREV catchment (stable within the turn — the catchment
+        // itself only recomputes next turn, D-016).
+        var frontiers = new int[builderCount];
+        var catchments = new bool[builderCount][];
+        for (int k = 0; k < builderCount; k++)
+        {
+            frontiers[k] = ctx.Owned.Progress[builderRows[k]].FrontierNode;
+            bool[] inCatchment = new bool[lattice!.NodeCount];
+            for (int i = 0; i < prev.CatchmentNodes.Count; i++)
+            {
+                if (prev.CatchmentNodes[i].Settlement == builderIds[k])
+                    inCatchment[prev.CatchmentNodes[i].LatticeNode] = true;
+            }
+            catchments[k] = inCatchment;
+        }
+        int[] targets = Targets(lattice!, prev.Terrain, frontiers, catchments);
+
+        for (int k = 0; k < builderCount; k++)
+        {
+            ref PathProgressRow progress = ref ctx.Owned.Progress.Ref(builderRows[k]);
+            BuildSegments(ctx, prev, lattice!, targets[k], ref progress);
         }
     }
 
     private void BuildSegments(
         SimContext<PathBuildTables> ctx, IReadOnlyWorldState prev, TraversalLattice lattice,
-        SettlementId settlement, ref PathProgressRow progress)
+        int target, ref PathProgressRow progress)
     {
-        // Catchment-unreached set from PREV (stable within the turn — the
-        // catchment itself only recomputes next turn, D-016).
-        bool[] inCatchment = new bool[lattice.NodeCount];
-        for (int i = 0; i < prev.CatchmentNodes.Count; i++)
-        {
-            if (prev.CatchmentNodes[i].Settlement == settlement)
-                inCatchment[prev.CatchmentNodes[i].LatticeNode] = true;
-        }
-
-        // Candidates must share the frontier's passable component: the global
-        // best may sit across the sea (unreachable until boats, later
-        // milestones) and must not stall the build loop forever.
-        bool[] reachable = PassableComponent(lattice, progress.FrontierNode);
-        int target = ChooseTarget(lattice, prev.Terrain!, inCatchment, reachable);
+        // The target (Targets): the best catchment-unreached node of the frontier's passable component, or −1 when
+        // every eligible node is already reached.
         if (target < 0) return;
 
         // Safety bound: a frontier can advance at most once per lattice node.
@@ -265,6 +292,52 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
         return ChooseTarget(lattice, nodeFertility, excluded, eligible);
     }
 
+    /// <summary>
+    /// Batch 4 (D-055, O1/O2; ADR-040) — THE BUILD TARGETS of one PathBuild step, one per frontier:
+    /// <c>Targets(…)[i] == ChooseTarget(lattice, terrain, catchments[i], PassableComponent(lattice, frontiers[i]))</c>,
+    /// the per-settlement call it replaces, entry for entry. Candidates must share the frontier's passable component:
+    /// the global best may sit across the sea (unreachable until boats, later milestones) and must not stall the build
+    /// loop forever; <paramref name="catchments"/>[i] is the settlement's own catchment (excluded).
+    /// Two things are computed once per call instead of once per frontier:
+    /// - O1: every lattice node's block fertility (<see cref="LatticeMap.BlockMeanFertility"/>), a pure function of
+    ///   the immutable terrain and the lattice — the same doubles feed the same (fertility DESC, id ASC) argmax;
+    /// - O2: the passable component. A frontier lying in a component already flooded in this call reuses that array:
+    ///   8-adjacency (the seam step included) is symmetric, so every member of a component floods to the same node set.
+    ///   The array is READ-ONLY after its flood (ChooseTarget only reads its eligible set).
+    /// Both are locals of this call: nothing is kept across calls or steps and nothing is shared with another system
+    /// (the purity mandate, T1.3). Pure and public: LegacyPathBuildTargetsTests compares it with the batch-3 per-call
+    /// code for every settlement over the first turns of seeds 42 and 16 and on multi-component lattices.
+    /// </summary>
+    public static int[] Targets(
+        TraversalLattice lattice, TerrainSet terrain, ReadOnlySpan<int> frontiers, IReadOnlyList<bool[]> catchments)
+    {
+        if (catchments.Count != frontiers.Length)
+            throw new ArgumentException("one catchment per frontier", nameof(catchments));
+        var targets = new int[frontiers.Length];
+        if (frontiers.Length == 0) return targets;
+
+        var nodeFertility = new double[lattice.NodeCount];
+        for (int node = 0; node < lattice.NodeCount; node++)
+            nodeFertility[node] = LatticeMap.BlockMeanFertility(terrain, lattice, node);
+
+        var components = new List<bool[]>(); // the components flooded in this call, in flood order
+        for (int i = 0; i < frontiers.Length; i++)
+        {
+            int frontier = frontiers[i];
+            bool[]? reachable = null;
+            for (int c = 0; c < components.Count; c++)
+                if (components[c][frontier]) { reachable = components[c]; break; }
+            if (reachable is null)
+            {
+                reachable = PassableComponent(lattice, frontier);
+                // An impassable frontier floods nothing; its empty set can never be matched, so it is not kept.
+                if (reachable[frontier]) components.Add(reachable);
+            }
+            targets[i] = ChooseTarget(lattice, nodeFertility, catchments[i], reachable);
+        }
+        return targets;
+    }
+
     /// <summary>Primitive overload (the tie-dense test surface): fertility per lattice node.</summary>
     public static int ChooseTarget(
         TraversalLattice lattice, ReadOnlySpan<double> nodeFertility, bool[] excluded, bool[] eligible)
@@ -287,7 +360,9 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
     /// <summary>
     /// Passable 8-neighbor flood from <paramref name="origin"/> — fixed
     /// expansion order (ascending queue, W/E/N/S then diagonals), deterministic
-    /// by construction. Pure; recomputed per build call (not state, not a cache).
+    /// by construction. Pure; not state, not a cache. Batch 4 (D-055, O2): PathBuild's step no longer floods it once
+    /// per settlement — <see cref="Targets"/> floods each passable component at most once per step and lets every
+    /// frontier inside it read that array (a local of the call, read-only after the flood, never kept across steps).
     /// WS3: x neighbours wrap on a wrapped lattice (<see cref="MapTopology.NeighbourX"/>),
     /// so the component reaches across the east-west seam exactly as Expand does.
     /// </summary>
@@ -401,6 +476,8 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
         // Interface completeness only (forwarded, never read here).
         public IReadOnlyTable<ConstructionProgressRow> ConstructionProgress => prev.ConstructionProgress;
         public IReadOnlyTable<ResourceAllocationRow> ResourceAllocations => prev.ResourceAllocations;
+        // Interface completeness only (forwarded, never read here; D-055 schema v34).
+        public IReadOnlyTable<ConstructionHoldRow> ConstructionHolds => prev.ConstructionHolds;
     }
 
     private static void Upsert(Table<SectorAllocationRow> allocations, SectorAllocationRow row)

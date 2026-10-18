@@ -61,8 +61,15 @@ public class AiFoundingAttributionTests
     /// CONTROLS: D054PairAttributionTests ("ai": both halves off + v32 = OLD), WrapAttributionTests.WithTheCylinderOff_TheAiWorldIsTheBatch2AiWorld
     /// (the cylinder off alone + v32 = OLD), IncrementalConstructionAttributionTests.AiWorldSeed42Turn300_MovedForTheV33LayoutAlone_TheIncrementalRuleNeverActsThere
     /// (flat: WS1 on/off byte-identical every turn, v32 = OLD). `sim run --founded --seed 42 --turns 300 --ai-empires 1` on
-    /// this tree prints the NEW value.</summary>
-    private const string S1cTurn300 = "91836bcf92b14914489e3435f64f4104da8637883f0b615475be8233602f20f1";
+    /// this tree prints the NEW value.
+    /// D-055 RE-PIN (2026-10-16; the Director's batch-4 instruction, item 1; LAYOUT ALONE, MEASURED on this tree by the
+    /// agent writing this line): 91836bcf92b14914… -> 25f4799d581d8de7…. CAUSE: schema v34 appends ConstructionHolds
+    /// (section 61), EMPTY at turn 300 and at every step before it (asserted: no step of this world ends with a hold row —
+    /// the AI finishes every head in its delivery step), so the entire movement is one four-byte zero count prefix.
+    /// CONTROL: ReservationsLayoutAttributionTests.AiWorldSeed42Turn300_MovedForTheV34LayoutAlone — the v33 projection
+    /// (SchemaProjection.V33, asserting 0 hold rows) returns OLD byte for byte, and the PreReservations twin gives the same
+    /// world. `sim run --founded --seed 42 --turns 300 --ai-empires 1` on this tree prints the NEW value.</summary>
+    internal const string S1cTurn300 = "25f4799d581d8de72dc15d487bcba54cb9db399208aba065963eb1f257e9fd10";
 
     /// <summary>Batch 3 (D-054, integration R1): THE CYLINDER-ALONE LINK — the live AI world through the v32 projection
     /// (the two v33 tables dropped, asserted EMPTY): the AI hash the W1 stage measured with the cylinder and no v33 layout.</summary>

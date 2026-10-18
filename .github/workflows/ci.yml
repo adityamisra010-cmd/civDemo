@@ -202,7 +202,13 @@ jobs:
           # projection return 937577ff… byte for byte), WrapAttributionTests (the cylinder off alone + v32 =
           # 937577ff…), IncrementalConstructionAttributionTests (the v33 layout alone), and
           # SnapshotTests.FoundedGoldenHashAtV32 (the live world's v32 projection, 0549049d…, the cylinder alone).
-          FOUNDED_GOLDEN=40115e28af11273b9e25c62d93817c48d6c9afe736a60a2ebc6e00428836f1b0
+          # D-055 RE-PIN (2026-10-16; the Director's batch-4 instruction, item 1): 40115e28… -> 0f29efc7… — the
+          # schema-v34 LAYOUT ALONE: v34 appends one EMPTY ConstructionHolds table (this order-less world queues
+          # nothing, so nothing is set aside: one zero count prefix). Derived twice on this tree (in-test harness;
+          # two CLI processes, byte-identical logs, last line the value below). CONTROL:
+          # ReservationsLayoutAttributionTests.FoundedGoldenSeed42Turn300_MovedForTheV34LayoutAlone (the v33
+          # projection, SchemaProjection.V33, returns 40115e28… byte for byte).
+          FOUNDED_GOLDEN=0f29efc733024c451b7ebc2e8435fdd8a6032d158922430cb290778a98056d3c
           if [ "$(tail -n 1 f-run-a.log)" != "$FOUNDED_GOLDEN" ]; then
             echo "FOUNDED RUN DIVERGED FROM PINNED GOLDEN:"
             echo "  expected $FOUNDED_GOLDEN"
@@ -317,6 +323,111 @@ jobs:
           $CLI inspect --manifest ai-a/session-*.json --turn 600 | tee ai-inspect.log
           grep -q "reproduction VERIFIED" ai-inspect.log
           echo "ai-empire leg: two processes, replay and inspect agree over 600 turns"
+
+      - name: Allocation split, binding, cross-process (D-055)
+        run: |
+          # D-055 / ADR-040 (batch 4, item 3): the building/roads split (kind 12) made to BIND, and checked on what each
+          # step DID -- across processes and a save/load -- not only that its order was accepted and serialized.
+          # Scenario S42-ALLOC-H (gen-sample-orders.py --allocation): seed 42, founded, no AI Empire (the player rules all
+          # 12 settlements). Sim.Tests AllocationCiLegTests re-measures every premise named here on the same founded
+          # world and pins this step's literals; AllocationScenarioTests pins the split and the set-asides turn-exact.
+          #   P = 116  the pre-split world (stone_dry completed in step 115 -> 116; b = 30 is stamped 116)
+          #   X = 117  the first binding step: stone build + holds = G_b < D_b; the b = 100 control claims more there
+          #   W = 128  the first head HELD FOR AN EARLIER HEAD: settlement 4's older granary, part-built, has no builders
+          #            and sets aside what it still needs inside the 30 % share; the granaries ordered at 128 wait for it
+          #   K = 130  the save point, inside that hold window: a head part-built to a progress that is not a multiple of
+          #            1,000, a NON-EMPTY ConstructionHolds table binding a younger head, the b = 30 row, a route part-modernized
+          #   V = 132  kind 11 cancels the part-built head and kind 4 re-enqueues the project, in one batch
+          #   136      kind 12 changes b to 70 IN THE BATCH that queues granaries at settlements 0, 2 and 4: in that very
+          #            step building work draws 70 % of the stone (51 of 73), the twin without the order 30 % (21);   H = 140
+          # The split-report observer and `sim split-check` are Sim.Core/Observability (SplitProbe, SplitReportCheck).
+          CLI="dotnet Sim.Cli/bin/Release/net10.0/Sim.Cli.dll"
+          python3 scripts/gen-sample-orders.py alloc.bin 140 --allocation
+          python3 scripts/gen-sample-orders.py alloc-ctl.bin 140 --allocation --no-split
+          python3 scripts/gen-sample-orders.py alloc-no11.bin 140 --allocation --drop 132:11
+          python3 scripts/gen-sample-orders.py alloc-no12.bin 140 --allocation --drop 136:12
+          # The logs are byte for byte the ones AllocationCiLegTests serializes from its own table (same sha256 there).
+          sha256sum -c - <<'SHA'
+          f3741edb5b8a59a87f9791f4a9706629a10b648a0068551a526921aa5a5aff71  alloc.bin
+          fac83e76fdb46ede8e8a52f8a43fbda0b39a330cff688e3052676eac974e9298  alloc-ctl.bin
+          1764f09cb795849a96d692437661ad22ac03d3dfa2bc34e7e6520fbc57b663ba  alloc-no11.bin
+          315233d53701dfec6c129c528f8e5ba2d40c47461d6f85fac79ffe1badfa0eed  alloc-no12.bin
+          SHA
+
+          # A0: founding -> the pre-split world P (one process).
+          $CLI run --founded --seed 42 --turns 116 --orders alloc.bin --hash-log alloc-a0.log --save-at 116 --save alloc-116.civsnap
+          # A: P -> H in a NEW process from that save, with the split report; it writes save_K.
+          $CLI run --from-save alloc-116.civsnap --turns 24 --orders alloc.bin --hash-log alloc-a.log --split-report alloc-a.rep --save-at 130 --save alloc-130.civsnap
+          # A': the same WITHOUT --split-report: the observer changes no hash and no save.
+          $CLI run --from-save alloc-116.civsnap --turns 24 --orders alloc.bin --hash-log alloc-a1.log --save-at 130 --save alloc-130-a1.civsnap
+          if ! cmp alloc-a.log alloc-a1.log || ! cmp alloc-130.civsnap alloc-130-a1.civsnap; then
+            echo "ALLOCATION: --split-report CHANGED A HASH OR THE SAVE"
+            exit 1
+          fi
+          cat alloc-a0.log alloc-a.log > alloc-full.log          # line n = world n, 1..140
+          # B: K -> H from save_K in another process; it writes the save at kind 12's issue turn (136). Its hash log and
+          # its split report must be A's tail (rows from step 130 -> 131: what B's own walk published from the loaded world).
+          $CLI run --from-save alloc-130.civsnap --turns 10 --orders alloc.bin --hash-log alloc-b.log --split-report alloc-b.rep --save-at 136 --save alloc-136.civsnap
+          if ! diff alloc-b.log <(sed -n 131,140p alloc-full.log) > alloc-b.diff || ! diff alloc-b.rep <(tail -n 10 alloc-a.rep) >> alloc-b.diff; then
+            echo "ALLOCATION: THE CONTINUATION FROM save_K IS NOT A's TAIL:"
+            head -n 5 alloc-b.diff
+            exit 1
+          fi
+          # The control: the b = 100 twin (no kind 12) branched from the SAME pre-split world.
+          $CLI run --from-save alloc-116.civsnap --turns 24 --orders alloc-ctl.bin --hash-log alloc-c.log --split-report alloc-c.rep
+          # sim replay of the generated log equals A0 + A (no AI polity by H, so no AI order is missing from the log).
+          $CLI replay --founded --seed 42 --turns 140 --orders alloc.bin --hash-log alloc-replayed.log
+          if ! diff alloc-full.log alloc-replayed.log > alloc-replay.diff; then
+            echo "ALLOCATION REPLAY DIVERGENCE -- first divergent turn:"
+            head -n 5 alloc-replay.diff
+            exit 1
+          fi
+          # save_K read back by OTHER processes: `sim hash` equals line K, and `sim diff` (A's save against A''s) finds it
+          # identical with a NON-EMPTY ConstructionHolds table (schema v34 section 61) -- the set-aside survived the save.
+          if [ "$($CLI hash alloc-130.civsnap)" != "$(sed -n 130p alloc-full.log)" ]; then
+            echo "ALLOCATION: sim hash of save_K is not line 130 of the run's hash log"
+            exit 1
+          fi
+          $CLI diff alloc-130.civsnap alloc-130-a1.civsnap | tee alloc-130.diff
+          holds=$(awk '$1 == "ConstructionHolds" { print $2 }' alloc-130.diff)
+          if [ "${holds:-0}" -le 0 ]; then
+            echo "ALLOCATION: save_K holds no set-aside (ConstructionHolds rows: ${holds:-none})"
+            exit 1
+          fi
+          # Kinds 11 and 12, turn-exact: the save at each issue turn hashes to its line, and a twin run without the order
+          # equals the run through that turn and differs at the next.
+          $CLI run --from-save alloc-130.civsnap --turns 2 --orders alloc.bin --hash-log alloc-v.log --save-at 132 --save alloc-132.civsnap
+          $CLI run --from-save alloc-130.civsnap --turns 3 --orders alloc-no11.bin --hash-log alloc-t11.log
+          $CLI run --from-save alloc-130.civsnap --turns 7 --orders alloc-no12.bin --hash-log alloc-t12.log --split-report alloc-t12.rep
+          if [ "$(cat alloc-v.log)" != "$(sed -n 131,132p alloc-full.log)" ] \
+             || [ "$($CLI hash alloc-132.civsnap)" != "$(sed -n 132p alloc-full.log)" ] \
+             || [ "$($CLI hash alloc-136.civsnap)" != "$(sed -n 136p alloc-full.log)" ]; then
+            echo "ALLOCATION: a save at an issue turn (132, 136) does not hash to its line"
+            exit 1
+          fi
+          if [ "$(head -n 2 alloc-t11.log)" != "$(sed -n 131,132p alloc-full.log)" ] || [ "$(sed -n 3p alloc-t11.log)" = "$(sed -n 133p alloc-full.log)" ]; then
+            echo "ALLOCATION KIND 11 DELIVERY: expected the twin equal through world 132 and different at 133"
+            exit 1
+          fi
+          if [ "$(head -n 6 alloc-t12.log)" != "$(sed -n 131,136p alloc-full.log)" ] || [ "$(sed -n 7p alloc-t12.log)" = "$(sed -n 137p alloc-full.log)" ]; then
+            echo "ALLOCATION KIND 12 DELIVERY: expected the twin equal through world 136 and different at 137"
+            exit 1
+          fi
+          # The judgement (sim split-check: P0-P12, PK, PT; exit 1 names every failed property). P11 re-derives every row's
+          # split from S, b, D_b and D_r; P12 re-walks every row's heads in the building order against the grant, and holds
+          # every head reported limited by materials to a budget short of its need (a walk that lets heads only set aside
+          # fails it). NOT EXERCISED HERE: the starvation guard (a road order that can pay nothing on what the split leaves
+          # withholds nothing) -- no step of this scenario is guarded (every report has "guarded":false), so P11's guarded
+          # branch is judged on a doctored fixture row only and removing the guard leaves this step's outputs unchanged; the
+          # guard is pinned in process by Sim.Tests ResourceAllocationTests (StarvationGuard_*, TheForecastIsTheStep_*) and
+          # ConstructionReservationTests (TheStarvationGuard_*, ThePropertyTest_*).
+          $CLI split-check alloc-a.rep --expect-hold-at 130
+          $CLI split-check alloc-a.rep --control alloc-c.rep
+          $CLI split-check alloc-b.rep --expect-hold-at 131   # the process that LOADED save_K published the set-aside too
+          # PT: the b = 70 order changed BUILDING WORK'S DRAW in its own delivery step (136 -> 137), against the twin without it
+          # (the same purse and claims there, the twin's rows before 136 = A's byte for byte, the twin's own step the rule's).
+          $CLI split-check alloc-a.rep --twin alloc-t12.rep --order-at 136:70
+          echo "allocation leg: the split binds, holds bind younger heads, A' = A, B = A's tail, replay, hashes and twins agree, and the b = 70 order changed spending in its own step"
 
   calibration:
     # T2.8: the calibration battery as its own TIME-BOXED job — corridor

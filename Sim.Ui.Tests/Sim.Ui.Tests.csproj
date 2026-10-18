@@ -24,6 +24,9 @@
     <!-- Fix round 1 (D-054, verifier F1): the REAL batch-2 (schema v32) session Sim.Tests checks in
          (Sim.Tests/Fixtures/v32-session-found/README.md) — the UI resume test reads the same files. -->
     <None Include="..\Sim.Tests\Fixtures\v32-session-found\*" LinkBase="Fixtures\v32-session-found" CopyToOutputDirectory="PreserveNewest" />
+    <!-- D-055 (schema v34): the batch-3 build's v33 session (Sim.Tests/Fixtures/README-v33-fixture.md) — the UI resume of a
+         v33 session under v34 reads the same files. -->
+    <None Include="..\Sim.Tests\Fixtures\v33-session-q17\*" LinkBase="Fixtures\v33-session-q17" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

@@ -272,7 +272,11 @@ public class ChronicleAndResumeTests
             live.ExportTrace(UiSession.TracePath(log));
             string manifestPath = UiSession.ManifestPath(log);
 
-            int older = CanonicalSchema.Version - 1;
+            // D-055 (2026-10-16) CAUSE BLOCK (X1 (h)): was `older = CanonicalSchema.Version - 1`, which meant v32 — the flat
+            // schema — only while this build was v33. Under v34 it would mean v33, a CYLINDER schema (TopologyFlags
+            // .RecordedFlat(33) is false), and this flat arm would silently change meaning. It is the explicit 32 now; never
+            // redefine Version − 1 as flat. The v33 arm is its own test below (a cylinder rebuild).
+            int older = 32;
             RecordTraceUnderAnotherSchema(UiSession.TracePath(log));
 
             // Control: under THIS build's schema the doctored trace is refused at the first replayed turn — as an
@@ -515,7 +519,9 @@ public class ResumeNoticeUiTests
         {
             (UiSession live, string manifestPath) = Record(Path.Combine(dir, "older"), flat: true);
 
-            int older = CanonicalSchema.Version - 1;
+            // D-055 (2026-10-16) CAUSE BLOCK (X1 (h)): was `older = CanonicalSchema.Version - 1` (v32 while this build was
+            // v33); the flat arm is the explicit 32 now, and the v33 (cylinder) arm is its own test below.
+            int older = 32;
             ChronicleAndResumeTests.RecordSchema(manifestPath, older);
             ChronicleAndResumeTests.RecordTraceUnderAnotherSchema(UiSession.TracePath(Path.Combine(dir, "older", "orders-20261010-120000-s256-n4.bin")));
             UiSession resumed = UiSession.Resume(manifestPath, out _);
@@ -543,6 +549,47 @@ public class ResumeNoticeUiTests
             using (var h = Sim.Ui.Headless.UiFrameHarness.Start(own, Path.Combine(dir, "ui-own"), Assets()))
             {
                 Assert.False(h.Ui.Notices.Visible);
+                Assert.Empty(h.Problems);
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    /// <summary>
+    /// D-055 (2026-10-16; X1 (h)) — THE v33 ARM: a session recorded under schema v33 (the batch-3 schema, the first
+    /// cylinder one) and resumed by this v34 build. It is a CYLINDER rebuild (TopologyFlags.RecordedFlat(33) is false, so
+    /// the shipped worldgen founds it, as it was founded), its notice's second line is the cylinder one ("Resumed by
+    /// replaying its seed and orders (D-008).", not the flat-map line), and its trace is NOT checked: the trace's hashes
+    /// are doctored (every one replaced) and the resume still succeeds. The session is recorded by this build on the
+    /// cylinder and relabelled v33 — its world is this build's, so the resumed world equals the live one. (The real
+    /// batch-3 session is Sim.Ui.Tests' V33SessionResumeTests.)
+    /// </summary>
+    [Fact]
+    public void ASessionResumedUnderSchemaV33_IsACylinderRebuild_WithTheCylinderNoticeLine_AndItsTraceIsNotChecked()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "s0-schema-v33-"
+            + Environment.ProcessId.ToString(System.Globalization.CultureInfo.InvariantCulture) + "-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            (UiSession live, string manifestPath) = Record(Path.Combine(dir, "v33"), flat: false);
+            Assert.True(live.World.Terrain!.WrapX);
+            ChronicleAndResumeTests.RecordSchema(manifestPath, 33);
+            ChronicleAndResumeTests.RecordTraceUnderAnotherSchema(UiSession.TracePath(Path.Combine(dir, "v33", "orders-20261010-120000-s256-n4.bin")));
+            UiSession resumed = UiSession.Resume(manifestPath, out _);
+            Assert.True(resumed.World.Terrain!.WrapX);                                   // a cylinder rebuild
+            Assert.Equal(WorldHash.ComputeHex(live.World), WorldHash.ComputeHex(resumed.World));
+            Assert.Equal(UiSession.SchemaMismatchNotice(33, CanonicalSchema.Version), resumed.ResumeNotice);
+            Assert.Equal(4, resumed.ResumeNotice.Count);
+            Assert.Equal("Recorded under save schema v33; this build is v34.", resumed.ResumeNotice[0]);
+            Assert.Equal("Resumed by replaying its seed and orders (D-008).", resumed.ResumeNotice[1]);
+            Assert.Equal("The saved trace was not checked against this replay.", resumed.ResumeNotice[2]);
+            using (var h = Sim.Ui.Headless.UiFrameHarness.Start(resumed, Path.Combine(dir, "ui-v33"), Assets()))
+            {
+                Assert.True(h.Ui.Notices.Visible);
+                Assert.Equal(UiSession.SchemaMismatchNotice(33, CanonicalSchema.Version), h.Ui.Notices.Lines);
                 Assert.Empty(h.Problems);
             }
         }

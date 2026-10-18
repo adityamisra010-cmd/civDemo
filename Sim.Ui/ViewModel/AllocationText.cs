@@ -9,7 +9,8 @@ namespace Sim.Ui.ViewModel;
 /// construction and roads blocks and the EMPIRE view, so each says the same thing of the same reading
 /// (State.ResourceAllocation's rule). The shares are GUARANTEED SHARES of what the empire holds when building work starts —
 /// never amounts spent regardless of need — and the wording says so. Never "reserved". The numeral-free eras (A1–A3) get
-/// "shares in 10" and words for fractions, never a percent sign; the numeral eras may print percentages.
+/// "shares in 10" and words for fractions, never a percent sign; the numeral eras may print percentages. D-055 (2026-10-16):
+/// a project's reservation is "set aside" (HoldText); "held" here means the split's share for road works only.
 /// </summary>
 public static class AllocationText
 {
@@ -36,8 +37,16 @@ public static class AllocationText
         return string.Join(", ", head) + " and " + parts[^1];
     }
 
-    /// <summary>The default's line: "Building first (default): road works get only what building work leaves."</summary>
-    public const string DefaultLine = "Building first (default): road works get only what building work leaves.";
+    /// <summary>The default's line (D-055, the hold rule on): "Building first (default): road works get only what is left after
+    /// building work uses or sets aside what it needs."</summary>
+    public const string DefaultLine = "Building first (default): road works get only what is left after building work uses or sets aside what it needs.";
+
+    /// <summary>The default's line with the hold rule off (TestConfigs.PreReservations — batch 3's words exactly).</summary>
+    public const string DefaultLineWithoutHolds = "Building first (default): road works get only what building work leaves.";
+
+    /// <summary>The default's line for <paramref name="cfg"/>: <see cref="DefaultLine"/> with the hold rule on
+    /// (Reservations.Enabled), <see cref="DefaultLineWithoutHolds"/> with it off.</summary>
+    public static string DefaultLineFor(SimConfig cfg) => Reservations.Enabled(cfg) ? DefaultLine : DefaultLineWithoutHolds;
 
     /// <summary>The block's explanation: the two guaranteed shares with spill-over, the turns without road works, the
     /// dwellings' own draw. At the default (b = 100) the shares are not restated (the default line says it).</summary>
@@ -71,9 +80,13 @@ public static class AllocationText
         + " - applies at End Turn, to this turn's work";
 
     /// <summary>The EMPIRE view's read-only line: "Materials when roads are ordered: building work keeps 7 shares in 10,
-    /// road works 3 (default: building first)".</summary>
-    public static string EmpireLine(int b) => b == ResourceAllocation.DefaultBuildingsPercent
-        ? "Materials when roads are ordered: building first (default) - road works get only what building work leaves"
+    /// road works 3 (default: building first)"; at the default, D-055 (<paramref name="setsAside"/>: the hold rule on)
+    /// "… building first (default) - road works get only what is left after building work uses or sets aside what it needs",
+    /// batch 3's "… - road works get only what building work leaves" with it off.</summary>
+    public static string EmpireLine(int b, bool setsAside = true) => b == ResourceAllocation.DefaultBuildingsPercent
+        ? setsAside
+            ? "Materials when roads are ordered: building first (default) - road works get only what is left after building work uses or sets aside what it needs"
+            : "Materials when roads are ordered: building first (default) - road works get only what building work leaves"
         : "Materials when roads are ordered: building work keeps " + BuildingShares(b) + ", road works " + RoadShares(b)
           + " (default: building first)";
 
@@ -105,13 +118,23 @@ public static class AllocationText
     /// turn, building work may use everything it needs.", the default's "building first" line, the starvation guard's "The
     /// road works ordered this turn could pay nothing from their share: …", or "This turn building work
     /// may use up to: 42 timber, 18 stone - the rest is held for road works under the split (an estimate on current
-    /// stocks)." Null when the split does not apply.
+    /// stocks)." Null when the split does not apply. D-055 (the hold rule on): the no-road and default lines say that building
+    /// work uses OR SETS ASIDE what it needs, oldest order first — "With no road works ordered this turn, building work may use
+    /// or set aside everything it needs, oldest order first." and "Building first (default): this turn building work may use
+    /// or set aside everything it needs, oldest order first, and road works get what is left."; batch 3's words with it off.
     /// </summary>
     public static string? ConstructionLine(AllocationView? view, SimConfig cfg)
     {
         if (view is null) return null;
-        if (view.RoadOrder is null) return "With no road works ordered this turn, building work may use everything it needs.";
-        if (view.IsDefault) return "Building first (default): this turn building work may use everything it needs, and road works get what it leaves.";
+        bool holds = Reservations.Enabled(cfg);
+        if (view.RoadOrder is null)
+            return holds
+                ? "With no road works ordered this turn, building work may use or set aside everything it needs, oldest order first."
+                : "With no road works ordered this turn, building work may use everything it needs.";
+        if (view.IsDefault)
+            return holds
+                ? "Building first (default): this turn building work may use or set aside everything it needs, oldest order first, and road works get what is left."
+                : "Building first (default): this turn building work may use everything it needs, and road works get what it leaves.";
         if (view.Split.RoadPaysNothingFromItsShare)
             return "The road works ordered this turn could pay nothing from their share: building work may use everything it needs.";
         var parts = new List<string>();

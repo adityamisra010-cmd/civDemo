@@ -416,3 +416,50 @@ produce, above all the `SeamWorld` fixture: a land strip crossing x = 0 / W − 
   - Progress quantized to 1,000 on load was an equivalent mutant for `SaveLoad_MidPartBuiltConstructionHead` alone
     while it saved world 7 (p = 145,000); the battery's Age and Tax saves (p = 32,777 and 107,777) killed it. Since
     final-round fix 1 the test saves world 8 (p = 231,666) and kills it alone (D-054 §8).
+
+## Note (2026-10-16, D-055; batch 4 track T2) — correction to §8: not every `IncrementalConstructionAttributionTests` world is flat
+
+§8's list of single-layer controls describes `IncrementalConstructionAttributionTests` as "the SimConfig half; its worlds
+are founded flat". That parenthesis is wrong for one of the class's facts. The text above stays as written (this note is
+append-only); the note supersedes the parenthesis for that fact only.
+
+- **Flat or terrain-less, as §8 says.** The golden reproductions are flat or have no terrain:
+  - `FoundedGoldenSeed42Turn300_…`, `DrivenGoldenSeed42Turn300_…` and `AiWorldSeed42Turn300_…` found on
+    `TestConfigs.PreD054Worldgen()`, the flat pre-batch-3 world;
+  - `ToyGoldenSeed42Turn200_AndFirstReignTurn40_…` runs the terrain-less toy world, and its first-reign leg is flat.
+- **On the cylinder.** The per-layer turn-exact proof `PerLayer_IncrementalConstruction_APlayersGranaryDivergesExactlyAtTheFirstStepItIsPartBuilt`
+  founds and steps `TestConfigs.DevWorldgen()`. That is worldgen.json as shipped, at 256 px with four settlements, so
+  `topology.wrapX` is true. 256 is a multiple of the 4-px lattice stride, so the shipped mode applies: the world is the
+  cylinder.
+  - VERIFIED: `CylinderAttributionDevStarvedTests` founds the same `DevWorldgen()` through the F7 harness, whose `Run`
+    asserts `Terrain.WrapX` on every arm, and passes on base-b3 + T1a + T2. The tested revision (its tree hash) and the
+    run are recorded in D-055's T2 notes.
+- **What this changes.** The incremental-construction layer had a turn-exact attribution on the shipped cylinder before
+  batch 4. Its AI-world absence (D-055 F7 rig #14) and the reservations switch built on it (rig #16) are the
+  `CylinderAttribution*` rigs listed in D-055.
+
+## Note (2026-10-17, D-055; batch 4 integration) — schema v34 follows v33; what in this ADR it changes
+
+Appended at the file's end; the text above stays as written (D-054 §10 Q19 is unruled). The contract for v34 is
+`docs/adr/adr-040-schema-v34-construction-holds-pathfinder-surface-and-cli.md` (ADR-040); the decisions are D-055.
+
+- **v33 is no longer the current schema.** `CanonicalSchema.Version` is 34: section 61 `ConstructionHolds` (16-byte rows)
+  is appended after section 60. §2's two tables, their rows, their invariant and order kinds 11 and 12 are unchanged, and
+  the order log's wire format is unchanged (batch 4 adds no order kind).
+- **The readable versions are the set {32, 33, 34}** (`CanonicalSchema.IsReadable`). `OldestReadableVersion` stays 32, but no
+  gate compares with it any more. §7's "accepts version 33, and version 32" now reads: accepts 34, 33 and 32; a v33 stream
+  is migrated with `ConstructionHolds` empty, and a v32 stream with all three later tables empty and its terrain flat.
+  The migration notes the loader prints are D-055 §2's texts ("migrated from save schema v32: …" / "… v33: …"), no longer
+  §7's "migrated to v33 on load (D-054)".
+- **Messages that named "v33" as this build's schema** now name v34, and a v33 session is now an older-schema session:
+  `sim inspect` prints NotChecked(33) for it, and its UI resume takes the D-008 path (a cylinder rebuild,
+  `TopologyFlags.FirstCylinderSchema` still 33, so `RecordedFlat` is unchanged). The re-pinned message tests are
+  `CliSaveAndSizeMessagesTests` (incl. `TheReproduceLine_IsThisBuildsReplay_FromV34…`) and
+  `ResumeNoticeUiTests.ASessionResumedUnderSchemaV33_IsACylinderRebuild_WithTheCylinderNoticeLine_AndItsTraceIsNotChecked`.
+- **§8, the PreD054 pair:** `PreD054Sim` strips the D-055 reservations layer as well (through `PreIncrementalConstruction`,
+  the R4 rule); `PreAllocationRatios` keeps it (the recorded R4 exception, D-055 §1.1). With the pair and
+  `SchemaProjection.V32`, the batch-2 references still reproduce byte for byte (`D054PairAttributionTests`, passing on the
+  merged batch-4 tree).
+- **§8's "its worlds are founded flat"** is corrected by the 2026-10-16 note above (track T2); it is not repeated here.
+- **§10:** the cross-process coverage gains the allocation leg (D-055 §4), which asserts a non-empty `ConstructionHolds`
+  across three processes.

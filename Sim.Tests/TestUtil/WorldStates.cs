@@ -99,6 +99,7 @@ public static class WorldStates
         if (!TableEquals(a.TaxGrievances, b.TaxGrievances)) return false;
         if (!TableEquals(a.ConstructionProgress, b.ConstructionProgress)) return false;   // v33 (D-054 WS1)
         if (!TableEquals(a.ResourceAllocations, b.ResourceAllocations)) return false;     // v33 (D-054 WS2)
+        if (!TableEquals(a.ConstructionHolds, b.ConstructionHolds)) return false;         // v34 (D-055)
         return true;
     }
 

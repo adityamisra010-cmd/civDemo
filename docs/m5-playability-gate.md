@@ -2466,7 +2466,7 @@ none
 
 #### Totals
 
-13 states, 3190 checks: 2988 pass, 202 not offered, 0 fail; 0 frame defects; 117594 frames; 5200 monkey actions; largest single draw list 106774 vertices.
+13 states, 3190 checks: 2988 pass, 202 not offered, 0 fail; 0 frame defects; 117608 frames; 5200 monkey actions; largest single draw list 106774 vertices.
 
 ## 7. Defects the gate found, and their fixes
 
@@ -2534,3 +2534,69 @@ dotnet Sim.Ui/bin/Release/net10.0/Sim.Ui.dll --smoke-control-prefix        # mus
 dotnet Sim.Ui/bin/Release/net10.0/Sim.Ui.dll --frame-cost --rounds 15
 dotnet test Sim.Ui.Tests -c Release --filter "FullyQualifiedName~PlayabilityGateTests|FullyQualifiedName~ResearchScreenRenderTests"
 ```
+
+---
+
+## Dated notes (appended at the file's end)
+
+Later changes to the sections above are recorded here, at the end of the file, and the sections keep their words as written
+(D-054 §10 Q19 is unruled: batch 4 writes file-end dated notes only).
+
+> **DATED NOTE 2026-10-16 (D-055, batch 4, track T1b): §3.14, the construction queue — what a project SETS ASIDE.** D-055
+> (the Director's batch-4 instruction, item 1; sim.json `construction.reservations`, shipped on) has a head that waits keep
+> back what it still needs from its purse, oldest order first, so a younger head cannot use it. POLICY's construction block
+> says so in one term: a project's units are "set aside" for it ("held" keeps its older meanings, possession and the
+> building/roads split). A head waiting on units set aside for an earlier head names the holder, where it stands in the
+> building order, the holder's own reason and the remedy — "waiting for timber: 12 of the empire's 22 are set aside for
+> Alpha's Granary, ordered earlier (turn 1), ahead in the building order, and 10 are used this turn by projects ahead of it -
+> it is being built a little each turn (give Building a larger share in Labour at Alpha to finish it sooner, or cancel it)"
+> (a holder built only as far as one of its goods allows: "it is being built only as far as its stone allows (cancel it
+> to free them)"); "ordered the same turn, first in the building order" on a tie; no turn for a migrated entry, and two
+> migrated entries read "first in the building order" only — where it read "waiting for timber: not enough yet". A head
+> short of a good nobody sets aside is told that good, as before ("waiting for stone: the empire has none"). The holder's
+> row adds, in the soft ink, "sets aside 22 timber and 11 stone while it waits; projects ordered later wait for it" ("… for
+> the rest of its work; …" when it advances this turn; "; the split lets road works use the rest" under a split below 100).
+> A Build or Found plate whose materials are set aside for earlier projects leads with "will wait for:" and names the
+> set-aside ("40 timber (empire has 50; 22 set aside for earlier projects)"); the project card's Met lines read the purse
+> less what is set aside ahead of the entry — for a queued head also what the heads ahead of it use this turn — and its note
+> names them ("empire has 50; 22 set aside for Alpha's Granary, ahead in the building order"; "empire has 15; 5 used this
+> turn by Alpha's Granary and 10 set aside for Beta's Granary, …"), as does its "It will wait for" line. A new order held
+> behind a set-aside reads "… ordered - it is first in line, but at End Turn it waits for timber set aside for earlier
+> projects; …". The EMPIRE view's Realm block adds "Set aside for projects: 22 timber, 11 stone"
+> (the viewer's own purse only). The block's no-road and default lines now read "With no road works ordered this turn,
+> building work may use or set aside everything it needs, oldest order first." and "Building first (default): this turn
+> building work may use or set aside everything it needs, oldest order first, and road works get what is left."
+> **No new control, so no new row:** the three rows above are unchanged, and Cancel is the remedy the waiting head's line
+> names (a cancelled holder's set-aside is released in the same step). With `construction.reservations` off every line
+> reads as written above. Pinned by `ConstructionHoldsUiTests`, `SetAsideReadingTests`,
+> `KnowledgeLeakTests.AForeignHeldHead_YieldsNoHoldText_WhileTheHoldersOwnBooksNameIt` and the re-pinned
+> `ResourceAllocationUiTests` text pins. Record: D-055.
+
+> **DATED NOTE 2026-10-16 (D-055, batch 4, track T1b): §3.15, materials for building and roads.** The default line quoted in
+> §3.15 now reads "Building first (default): road works get only what is left after building work uses or sets aside what it
+> needs." — the same words on the EMPIRE view's "Materials when roads are ordered" line, on the split's card and in the
+> Materials descriptor. The Roads preview counts what building work SETS ASIDE as well as what it draws: its line starts
+> "after what building work uses or sets aside, about N of the M timber needed is left: …", the default split's warning
+> ("Building work may take up to N … first") counts set-asides, and a Caption line in the soft ink names the projects ("22
+> timber is set aside for Alpha's Granary; road works may not use it"). The road works' payers are those road development
+> draws on (the issuer's own purse places), less what this turn's construction will set aside within them (the turn's
+> pending orders applied: a pending cancel of a holder releases its set-aside, a pending order adds its own), and the road
+> blocker says so ("needs 60 timber for the first route (set aside for building projects: 40 timber)"). "Held" keeps the split's meaning ("…
+> the rest is held for road works …"); a project's reservation is always "set aside". **No new control, so no new row:** the
+> three rows above are unchanged. With `construction.reservations` off every line reads as written above. Record: D-055.
+
+> **DATED NOTE 2026-10-17 (D-055, batch 4, track T1b): §6, the coverage table.** §6 was regenerated by the gate's own command
+> (`Sim.Ui --smoke --report`, headings one level down) on track T1b's scratch tree (base-b3 + T1a + T1b): no row, state or
+> verdict changed against the batch-3 table; only the totals' frame count moved (117594 to 117608 at T1b's step 2; T1b's
+> fix round regenerated it again and reproduced the table exactly, SMOKE PASSED, 0 FAIL). The batch-4 integration
+> regenerates §6 again on the merged tree, which supersedes this note's figures. (Moved here from §6's
+> own paragraph, which keeps its batch-3 words: in-body dated notes wait on D-054 Q19.)
+
+> **DATED NOTE 2026-10-17 (D-055, batch 4 integration): §6 regenerated on the merged batch-4 tree — unchanged.** The
+> integration ran the gate's own command, `dotnet Sim.Ui/bin/Release/net10.0/Sim.Ui.dll --smoke --report <file>`, on the
+> Release build of the merged tree (the six batch-4 tracks combined; Sim.Core.dll `f6ee95ce…`, Sim.Ui.dll `04a0c514…`):
+> SMOKE PASSED — "13 states, 3190 checks: 2988 pass, 202 not offered, 0 FAIL; 0 problems; 117608 frames, 5200 monkey
+> actions; largest draw list 106774 vertices" (256 s). With its headings one level down the report equals §6's generated
+> block line for line, so the block above is left as it stands: no row, state, verdict or total changed, and the frame
+> count is the one T1b's note above records. This is the regeneration that note announces. The §3.14 and §3.15 notes
+> above (track T1b) stand; batch 4 adds no control, so no row.

@@ -26,8 +26,10 @@ public sealed class SystemRegistration
     }
 }
 
-/// <summary>Receives per-phase timing from an observed Step (bench only; sim
-/// behavior never depends on these values).</summary>
+/// <summary>Receives per-phase timing, and the read-only work-in-progress state,
+/// from an observed Step: the bench (`sim bench`) and the read-only split report
+/// (`sim run --split-report`, Observability/SplitProbe — D-055 / ADR-040). Sim
+/// behavior never depends on these values or on any observer.</summary>
 public interface ITurnObserver
 {
     void OnPhase(string phase, long elapsedTimestampTicks, long allocatedBytes);
@@ -43,7 +45,8 @@ public interface ITurnObserver
     /// <see cref="IReadOnlyWorldState"/> so an observer cannot write, and the
     /// default body is empty so no existing observer and no production path is
     /// altered by its existence. When `observer` is null — which is every
-    /// canonical, golden, CLI and replay path — neither this nor
+    /// canonical, golden and replay path, and every CLI run but `sim bench`
+    /// and `sim run --split-report` — neither this nor
     /// <see cref="OnPhase"/> is reached at all.
     /// </summary>
     void OnPhaseState(string phase, IReadOnlyWorldState next) { }

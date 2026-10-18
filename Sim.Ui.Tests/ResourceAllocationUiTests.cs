@@ -32,6 +32,10 @@ public class ResourceAllocationUiTests
     private static readonly SimConfig Cfg = UiFounding.ProductionConfig();
     private static readonly int Timber = Cfg.Goods!.IdOf("timber"), Stone = Cfg.Goods!.IdOf("stone");
 
+    /// <summary>D-055 (2026-10-16, T1b): the attribution control of the re-pinned texts — the shipped config with the hold rule
+    /// off (Sim.Tests' TestConfigs.PreReservations, the same one-field change).</summary>
+    private static readonly SimConfig PreHolds = Cfg with { Construction = Cfg.Construction! with { Reservations = false } };
+
     private static readonly Lazy<WorldState> RoadWorld = new(() =>
     {
         WorldState w = UiFounding.Found(42, 256, 4);
@@ -111,6 +115,20 @@ public class ResourceAllocationUiTests
     }
 
     private static string All(List<TextCmd> texts) => string.Join(" ", texts.Select(t => t.Text));
+
+    /// <summary>The surface PAINTED under <paramref name="cfg"/> (ActionSurface.ForSession's input with that config) — the
+    /// attribution control of a re-pinned painted text (D-055, T1b fix round, review L2-F3/F4).</summary>
+    private static List<TextCmd> PaintUnder(UiSession s, SimConfig cfg)
+    {
+        EraTheme th = EraThemes.For(UiEras.Of(s.World, cfg.Ages, Me));
+        ActionSurfaceModel model = ActionSurface.Build(new ActionSurfaceInput(s.World, s.PreviousWorld, cfg, UiSession.ProductionEra(), Me,
+            Capital(s.World).Value, s.QueuedOrders(), id => s.Names.Name(id), th));
+        var screen = new ActionSurfaceScreen { Theme = th };
+        screen.Refresh(model, s.World, cfg, Me, id => s.Names.Name(id));
+        var d = new DrawList();
+        screen.Paint(d, ApproxTextMeasure.Instance, 0, 0, 452);
+        return d.Commands.OfType<TextCmd>().ToList();
+    }
 
     /// <summary>The texts painted in the Materials block: from its heading down to the Roads heading.</summary>
     private static List<TextCmd> MaterialsTexts(List<TextCmd> texts)
@@ -245,7 +263,17 @@ public class ResourceAllocationUiTests
         (_, ActionSurfaceModel m, List<TextCmd> texts) = Paint(s);
         Assert.True(m.Allocation!.IsDefault);
         string block = string.Join(" ", MaterialsTexts(texts).Select(t => t.Text));
-        Assert.Contains("Building first (default): road works get only what building work leaves.", block, StringComparison.Ordinal);
+        // D-055 (2026-10-16, track T1b; the Director's batch-4 instruction, item 1 — batch-4 design §1.6, review L4-10): RE-PINNED
+        // TEXT. With the hold rule on, building work USES OR SETS ASIDE what it needs (a waiting head's remaining need is set
+        // aside), so the line says so; batch 3's words reproduce under the control (PreHolds = TestConfigs.PreReservations:
+        // the hold rule off), asserted beside it.
+        Assert.Contains("Building first (default): road works get only what is left after building work uses or sets aside what it needs.", block, StringComparison.Ordinal);
+        Assert.Equal("Building first (default): road works get only what building work leaves.", AllocationText.DefaultLineFor(PreHolds));
+        // T1b fix round (2026-10-17, review L2-F3): the control is the PAINTED block — batch 3's line is what the screen paints
+        // with the hold rule off (not only what the helper returns).
+        string blockPre = string.Join(" ", MaterialsTexts(PaintUnder(s, PreHolds)).Select(t => t.Text));
+        Assert.Contains("Building first (default): road works get only what building work leaves.", blockPre, StringComparison.Ordinal);
+        Assert.DoesNotContain("uses or sets aside", blockPre, StringComparison.Ordinal);
         Assert.Contains("Whatever one side does not need, the other may use.", block, StringComparison.Ordinal);
         Assert.Contains("On turns without road works, building work may use all of it.", block, StringComparison.Ordinal);
         Assert.Contains("Dwellings take their own settlement's timber before either.", block, StringComparison.Ordinal);
@@ -271,10 +299,20 @@ public class ResourceAllocationUiTests
         Assert.True(road > 0, "anti-vacuity: the road order costs timber");
 
         UiSession s = Session(Materials(road + 40));
-        Assert.Equal("With no road works ordered this turn, building work may use everything it needs.", Paint(s).Model.Construction!.MaterialsLine);
-        Assert.True(s.EmitRoadOrder(100.0));
-        Assert.Equal("Building first (default): this turn building work may use everything it needs, and road works get what it leaves.",
+        // D-055 (2026-10-16, track T1b; the Director's batch-4 instruction, item 1 — batch-4 design §1.6, review L4-10): RE-PINNED
+        // TEXT. With the hold rule on, building work USES OR SETS ASIDE what it needs (a waiting head's remaining need is set
+        // aside), so the line says so; batch 3's words reproduce under the control (PreHolds = TestConfigs.PreReservations:
+        // the hold rule off), asserted beside it.
+        double dt0 = ActionQueryContext.ForNextStep(s.World, UiSession.ProductionEra()).NextDtYears!.Value;
+        Assert.Equal("With no road works ordered this turn, building work may use or set aside everything it needs, oldest order first.",
             Paint(s).Model.Construction!.MaterialsLine);
+        Assert.Equal("With no road works ordered this turn, building work may use everything it needs.",
+            AllocationText.ConstructionLine(ResourceAllocationQuery.ForEmpire(s.World, s.Config, Me, s.QueuedOrders(), dt0), PreHolds));
+        Assert.True(s.EmitRoadOrder(100.0));
+        Assert.Equal("Building first (default): this turn building work may use or set aside everything it needs, oldest order first, and road works get what is left.",
+            Paint(s).Model.Construction!.MaterialsLine);
+        Assert.Equal("Building first (default): this turn building work may use everything it needs, and road works get what it leaves.",
+            AllocationText.ConstructionLine(ResourceAllocationQuery.ForEmpire(s.World, s.Config, Me, s.QueuedOrders(), dt0), PreHolds));
         Assert.True(s.EmitAllocationOrder(0));
         (_, ActionSurfaceModel m, List<TextCmd> texts) = Paint(s);
         // b = 0: building work may take only what the road does not need — the 40 over the road's cost.
@@ -319,8 +357,15 @@ public class ResourceAllocationUiTests
         // Default (building first): building work takes its 80 first, so 40 short of the road is left.
         RoadPlanPreview p = ActionSurface.RoadPlan(s.World, s.Config, Me, 100.0, id => s.Names.Name(id), m.Allocation, numerals: false);
         Assert.Equal((double)(road - 40) / road, p.AfterBuilding!.Value, 12);
-        Assert.StartsWith("after building work, about " + (road - 40).ToString(System.Globalization.CultureInfo.InvariantCulture)
+        // D-055 (2026-10-16, track T1b; the Director's batch-4 instruction, item 1 — batch-4 design §1.6, review L4-10): RE-PINNED
+        // TEXT. With the hold rule on, building work USES OR SETS ASIDE what it needs (a waiting head's remaining need is set
+        // aside), so the line says so; batch 3's words reproduce under the control (PreHolds = TestConfigs.PreReservations:
+        // the hold rule off), asserted beside it.
+        Assert.StartsWith("after what building work uses or sets aside, about " + (road - 40).ToString(System.Globalization.CultureInfo.InvariantCulture)
             + " of the " + road.ToString(System.Globalization.CultureInfo.InvariantCulture) + " timber needed is left: about ", p.LeftLine, StringComparison.Ordinal);
+        Assert.StartsWith("after building work, about " + (road - 40).ToString(System.Globalization.CultureInfo.InvariantCulture)
+            + " of the " + road.ToString(System.Globalization.CultureInfo.InvariantCulture) + " timber needed is left: about ",
+            ActionSurface.RoadPlan(s.World, PreHolds, Me, 100.0, id => s.Names.Name(id), m.Allocation, numerals: false).LeftLine, StringComparison.Ordinal);
         Assert.EndsWith(" of it would be paid this turn", p.LeftLine, StringComparison.Ordinal);
         Assert.DoesNotContain("%", p.LeftLine, StringComparison.Ordinal);                            // words, not numerals, at A1
         Assert.Equal("Building work may take up to 80 timber first under the current split - change it under Materials", p.Warning);
@@ -332,13 +377,24 @@ public class ResourceAllocationUiTests
         (_, m, _) = Paint(s);
         RoadPlanPreview zero = ActionSurface.RoadPlan(s.World, s.Config, Me, 100.0, id => s.Names.Name(id), m.Allocation, numerals: false);
         Assert.Equal(1.0, zero.AfterBuilding);
-        Assert.Equal("after building work, everything this order needs is left: all of it would be paid this turn", zero.LeftLine);
+        // D-055 (2026-10-16, track T1b; the Director's batch-4 instruction, item 1 — batch-4 design §1.6, review L4-10): RE-PINNED
+        // TEXT. With the hold rule on, building work USES OR SETS ASIDE what it needs (a waiting head's remaining need is set
+        // aside), so the line says so; batch 3's words reproduce under the control (PreHolds = TestConfigs.PreReservations:
+        // the hold rule off), asserted beside it.
+        Assert.Equal("after what building work uses or sets aside, everything this order needs is left: all of it would be paid this turn", zero.LeftLine);
+        Assert.Equal("after building work, everything this order needs is left: all of it would be paid this turn",
+            ActionSurface.RoadPlan(s.World, PreHolds, Me, 100.0, id => s.Names.Name(id), m.Allocation, numerals: false).LeftLine);   // the control
         Assert.Null(zero.Warning);
 
         // The painted Roads block carries the preview, the new caveat, and no "(affordable)".
         (_, _, List<TextCmd> texts) = Paint(s);
         string all = All(texts);
-        Assert.Contains("after building work,", all, StringComparison.Ordinal);
+        // D-055 (2026-10-16, track T1b; the Director's batch-4 instruction, item 1 — batch-4 design §1.6, review L4-10): RE-PINNED
+        // TEXT. With the hold rule on, building work USES OR SETS ASIDE what it needs (a waiting head's remaining need is set
+        // aside), so the line says so; batch 3's words reproduce under the control (PreHolds = TestConfigs.PreReservations:
+        // the hold rule off), asserted beside it.
+        Assert.Contains("after what building work uses or sets aside,", all, StringComparison.Ordinal);
+        Assert.Contains("after building work,", All(PaintUnder(s, PreHolds)), StringComparison.Ordinal);                   // the control (T1b fix round, L2-F4)
         Assert.Contains("buildings draw before roads, within their share", all, StringComparison.Ordinal);
         Assert.DoesNotContain("(affordable)", all, StringComparison.Ordinal);
     }
@@ -349,9 +405,21 @@ public class ResourceAllocationUiTests
         UiSession s = Session();
         static IEnumerable<string> Lines(UiSession x) =>
             PlayerViews.Empire(x.World, x.Config, Me, x.Names.Name, 3).Blocks.SelectMany(b => b.Lines);
-        Assert.Contains("Materials when roads are ordered: building first (default) - road works get only what building work leaves", Lines(s));
+        // D-055 (2026-10-16, track T1b; the Director's batch-4 instruction, item 1 — batch-4 design §1.6, review L4-10): RE-PINNED
+        // TEXT. With the hold rule on, building work USES OR SETS ASIDE what it needs (a waiting head's remaining need is set
+        // aside), so the line says so; batch 3's words reproduce under the control (PreHolds = TestConfigs.PreReservations:
+        // the hold rule off), asserted beside it.
+        Assert.Contains("Materials when roads are ordered: building first (default) - road works get only what is left after building work uses or sets aside what it needs", Lines(s));
+        Assert.Contains("Materials when roads are ordered: building first (default) - road works get only what building work leaves",
+            PlayerViews.Empire(s.World, PreHolds, Me, s.Names.Name, 3).Blocks.SelectMany(b => b.Lines));
         Assert.True(s.EmitAllocationOrder(70));
-        Assert.Contains("Materials when roads are ordered: building first (default) - road works get only what building work leaves", Lines(s));   // queued, not in force
+        // D-055 (2026-10-16, track T1b; the Director's batch-4 instruction, item 1 — batch-4 design §1.6, review L4-10): RE-PINNED
+        // TEXT. With the hold rule on, building work USES OR SETS ASIDE what it needs (a waiting head's remaining need is set
+        // aside), so the line says so; batch 3's words reproduce under the control (PreHolds = TestConfigs.PreReservations:
+        // the hold rule off), asserted beside it.
+        Assert.Contains("Materials when roads are ordered: building first (default) - road works get only what is left after building work uses or sets aside what it needs", Lines(s));   // queued, not in force
+        Assert.Contains("Materials when roads are ordered: building first (default) - road works get only what building work leaves",
+            PlayerViews.Empire(s.World, PreHolds, Me, s.Names.Name, 3).Blocks.SelectMany(b => b.Lines));                       // the control (T1b fix round, L2-F4)
         s.EndTurn();
         Assert.Contains("Materials when roads are ordered: building work keeps 7 shares in 10, road works 3 (default: building first)", Lines(s));
         Assert.DoesNotContain(Lines(s), l => l.StartsWith("Materials when", StringComparison.Ordinal) && l.Contains('%', StringComparison.Ordinal));
@@ -406,8 +474,16 @@ public class ResourceAllocationUiTests
             [leftTimber, totalTools]) > 0.0, "the summed cost's affordable share is not nothing");
         RoadPlanPreview p = ActionSurface.RoadPlan(s.World, cfg, Me, 100.0, id => s.Names.Name(id), block, numerals: false);
         Assert.Equal(0.0, p.AfterBuilding);
-        Assert.Equal("after building work, about " + Inv(leftTimber) + " of the " + Inv(totalTimber)
+        // D-055 (2026-10-16, track T1b; the Director's batch-4 instruction, item 1 — batch-4 design §1.6, review L4-10): RE-PINNED
+        // TEXT. With the hold rule on, building work USES OR SETS ASIDE what it needs (a waiting head's remaining need is set
+        // aside), so the line says so; batch 3's words reproduce under the control (PreHolds = TestConfigs.PreReservations:
+        // the hold rule off), asserted beside it.
+        Assert.Equal("after what building work uses or sets aside, about " + Inv(leftTimber) + " of the " + Inv(totalTimber)
             + " timber needed is left: none of it would be paid this turn", p.LeftLine);
+        SimConfig preCfg = cfg with { Construction = cfg.Construction! with { Reservations = false } };
+        Assert.Equal("after building work, about " + Inv(leftTimber) + " of the " + Inv(totalTimber)
+            + " timber needed is left: none of it would be paid this turn",
+            ActionSurface.RoadPlan(s.World, preCfg, Me, 100.0, id => s.Names.Name(id), block, numerals: false).LeftLine);
         RoadPlanPreview numerals = ActionSurface.RoadPlan(s.World, cfg, Me, 100.0, id => s.Names.Name(id), block, numerals: true);
         Assert.EndsWith(": none of it would be paid this turn", numerals.LeftLine, StringComparison.Ordinal);
 

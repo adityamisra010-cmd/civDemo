@@ -35,7 +35,7 @@ namespace Sim.Ui.Tests;
 /// guard here reads the same allowlist and is exact.
 /// </summary>
 [Collection("ImGui context")]
-public class KnowledgeLeakTests : IDisposable
+public partial class KnowledgeLeakTests : IDisposable
 {
     private static readonly PolityId Player = UiPlayer.Empire;
     private static readonly PolityId Hidden = new(2);

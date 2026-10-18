@@ -17,6 +17,9 @@ namespace Sim.Cli;
 /// reads); a v33 save is regenerated with the shipped worldgen and the topology its trailer records (fix round 1,
 /// verifier F2). A v33 save that fails to load under its trailer's topology but loads intact with the trailer's wrap bit
 /// flipped is refused as a corrupt trailer, naming the bit (<see cref="TrailerTopologyMismatch"/>; final nits, RC1-2).
+///
+/// D-055 (schema v34): a v34 save is regenerated exactly as a v33 one (the trailer names its topology); a v33 save loads
+/// migrated (ConstructionHolds added empty) and says so on STDERR (<see cref="MigrationNote"/>).
 /// </summary>
 public static class SaveFiles
 {
@@ -31,7 +34,7 @@ public static class SaveFiles
     public static WorldState Load(string path, long sizePx) => Load(path, sizePx, out _);
 
     /// <summary>As <see cref="Load(string, long)"/>; <paramref name="migrationNote"/> is the one-line
-    /// <see cref="MigrationNote"/> for a save this build MIGRATED on load (a schema-v32 file), null for a current one.
+    /// <see cref="MigrationNote"/> for a save this build MIGRATED on load (a schema-v32 or v33 file), null for a current one.
     /// `sim hash` and `sim diff` print it to STDERR — never stdout, which stays exactly the hash / the diff.</summary>
     public static WorldState Load(string path, long sizePx, out string? migrationNote)
     {
@@ -116,22 +119,30 @@ public static class SaveFiles
     }
 
     /// <summary>
-    /// D-054 (batch-3 integration, verifier F10(d)) — WHAT THE CLI SAYS WHEN IT MIGRATED A SAVE: one line for a header
-    /// <paramref name="version"/> of <see cref="CanonicalSchema.OldestReadableVersion"/> (32, the one older schema this
-    /// build loads, migrated), naming the projection the load applied — the terrain regenerated FLAT and the two v33
-    /// tables added EMPTY (CanonicalSchema.Read's exact migration) — and that the hash printed is therefore the v33
-    /// hash, not the one the v32 build printed for the same file (the v32 hash is the v33 world with those two empty
-    /// tables stripped: the test suite's SchemaProjection.V32). Null for a current save, and for any version this build
-    /// does not load (Snapshot.Load refuses it, and the CLI prints that refusal instead).
+    /// D-054 (batch-3 integration, verifier F10(d)); D-055 (schema v34, X1 (g)) — WHAT THE CLI SAYS WHEN IT MIGRATED A
+    /// SAVE: one line for a header <paramref name="version"/> this build loads MIGRATED — an older member of the readable
+    /// set (CanonicalSchema.IsReadable: 32 or 33) — naming the projection the load applied (CanonicalSchema.Read's exact
+    /// migration: the tables appended since that schema added EMPTY; for v32 also the terrain regenerated FLAT) and that
+    /// the hash printed is therefore this build's (v34) hash, not the one the recording build printed for the same file
+    /// (that is the v34 world with those empty tables stripped: the test suite's SchemaProjection.V32 / V33). Null for a
+    /// current save, and for any version this build does not load (Snapshot.Load refuses it, and the CLI prints that
+    /// refusal instead). After "note: &lt;path&gt;: ", the v33 text is X1 (g)'s verbatim (its code formatting dropped); the v32
+    /// text is X1 (g)'s followed by one more sentence kept from batch 3's note (verifier F10(d), pinned by
+    /// CliSaveAndSizeMessagesTests): the terrain regenerated flat and the queued entries at progress 0, ordered as enqueued on
+    /// turn −1 — a recorded departure from X1 (g) (D-055 fix round, finding T1a-L2-V2-03).
     /// </summary>
-    public static string? MigrationNote(string path, int version) =>
-        version != CanonicalSchema.OldestReadableVersion ? null
-            : "note: " + path + " is a schema-v" + version.ToString(System.Globalization.CultureInfo.InvariantCulture)
-              + " save, migrated to v" + CanonicalSchema.Version.ToString(System.Globalization.CultureInfo.InvariantCulture)
-              + " on load (D-054): its terrain regenerated flat (no v32 world was a cylinder) and the two v33 tables"
-              + " (ConstructionProgress, ResourceAllocations) added empty - queued entries at progress 0, ordered as"
-              + " enqueued on turn -1. The hash printed is the v33 hash of the migrated world; the v32 build printed"
-              + " the hash of the same world without those two empty tables.";
+    public static string? MigrationNote(string path, int version)
+    {
+        if (!CanonicalSchema.IsReadable(version) || version == CanonicalSchema.Version) return null;
+        string current = CanonicalSchema.Version.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        return version == 32
+            ? "note: " + path + ": migrated from save schema v32: the three tables added since v32 (ConstructionProgress,"
+              + " ResourceAllocations, ConstructionHolds) were added empty; the hash printed is the v" + current
+              + " hash (SchemaProjection.V32 gives the v32 build's). Its terrain was regenerated flat (no v32 world was a"
+              + " cylinder) and its queued entries are at progress 0, ordered as enqueued on turn -1."
+            : "note: " + path + ": migrated from save schema v33: ConstructionHolds was added empty; the hash printed is"
+              + " the v" + current + " hash (SchemaProjection.V33 gives the v33 build's).";
+    }
 
     /// <summary>The worldgen a save of header version <paramref name="version"/> is regenerated with: the shipped
     /// <paramref name="shipped"/> config (with the `--size` override), and its topology the one the save records — for a
