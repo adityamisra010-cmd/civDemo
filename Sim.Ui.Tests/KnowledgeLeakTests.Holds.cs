@@ -15,8 +15,8 @@ public partial class KnowledgeLeakTests
     /// TEXT. In the one-AI rig the hidden polity's first settlement A holds a part-built granary (ordered at turn 0, p 437,500,
     /// no builders) that sets aside its Empire's 22 timber and 11 stone, and its second settlement B a younger granary
     /// (ordered at turn 1, all builders) that waits on it — the hold state construction publishes for that purse. Seen by the
-    /// PLAYER through the ALL-KNOWN view (the strongest case: both places known), nothing names it: B's settlement view says
-    /// what is being built and nothing more, the granary card at B (requirements, status) and the EMPIRE view say nothing of
+    /// PLAYER through the ALL-KNOWN view (the strongest case: both places known), nothing names it: B's settlement view is closed books (D-060; it said
+    /// what is being built before D-060), the granary card at B (requirements, status) and the EMPIRE view say nothing of
     /// a set-aside. CONTROL: the same rig through the hidden polity's OWN books names it — its card's note "… set aside for
     /// A's Granary …" and its EMPIRE view's "Set aside for projects: 22 timber, 11 stone" — so the absence is the filter, not
     /// an empty rig. Mutants: the card reads the set-asides whatever the viewer rules; the EMPIRE summary sums every purse.
@@ -56,7 +56,7 @@ public partial class KnowledgeLeakTests
 
         string Seen(PolityId viewer)
         {
-            PlayerKnowledge k = PlayerKnowledge.Of(w);
+            PlayerKnowledge k = PlayerKnowledge.Of(w, viewer);
             InfoCard card = InfoQuery.Card(w, r.Config, viewer, InfoSubject.OfProject(granary, b.Value), new ActionQueryContext(null, dt), r.Name);
             var parts = new List<string> { card.StatusLine ?? "", card.Summary ?? "" };
             foreach (InfoLink l in card.Requirements) parts.Add(l.Label + "|" + l.Note);
@@ -67,7 +67,9 @@ public partial class KnowledgeLeakTests
 
         string player = Seen(Player);
         Assert.DoesNotContain("set aside", player, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("Being built: granary", player, StringComparison.Ordinal);
+        // D-060: B is a known rival — its view is closed books (before D-060 it said "Being built: granary").
+        Assert.Contains(PlayerKnowledge.NotYoursLine, player, StringComparison.Ordinal);
+        Assert.DoesNotContain("Being built", player, StringComparison.Ordinal);
 
         string own = Seen(Hidden);
         Assert.Contains("22 set aside for " + r.Name(a.Value) + "'s Granary, ahead in the building order", own, StringComparison.Ordinal);

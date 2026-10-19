@@ -409,9 +409,10 @@ public partial class KnowledgeLeakTests : IDisposable
         foreach (string category in ka.Keys)
             Assert.True(ka[category] == kb[category], "the stubbed player sees the hidden polity through: " + category);
 
-        // POSITIVE CONTROL: all-known, the same perturbation reaches every category it can reach (Tab cycles ids, which
-        // the perturbation does not change).
-        SortedDictionary<string, string> ca = Readers(a, All(a), r, maxS, maxU), cb = Readers(b, All(b), r, maxS, maxU);
+        // POSITIVE CONTROL: all-known WITH THE BOOKS OPEN (the developer view — D-060 closes a known rival's books to the
+        // production view, which D060_* pins), the same perturbation reaches every category it can reach (Tab cycles ids,
+        // which the perturbation does not change).
+        SortedDictionary<string, string> ca = Readers(a, All(a).ForDeveloper(), r, maxS, maxU), cb = Readers(b, All(b).ForDeveloper(), r, maxS, maxU);
         foreach (string category in ca.Keys)
         {
             if (category == "tab") { Assert.Equal(ca[category], cb[category]); continue; }
@@ -630,10 +631,13 @@ public partial class KnowledgeLeakTests : IDisposable
         // No name of a hidden settlement is drawn anywhere.
         foreach (int id in KnowledgeStubs.SettlementsOf(a, Hidden))
             foreach (string text in fa) Assert.False(HasWord(text, r.Name(id)), r.Name(id) + " drawn: " + text);
-        // POSITIVE CONTROL: the all-known UI over the same two worlds draws a difference.
+        // POSITIVE CONTROL: the all-known UI over the same world draws what the stub hides (the hidden polity's names). Before
+        // D-060 the control was "the all-known UI over the two worlds draws a difference": that difference was the rival's
+        // books (its founding figures in the annals), which D-060 closes to the production view — D060_TheRealUi_* is the
+        // metamorphic test of that, with its own positive control on the player's own books.
         List<string> ca = Frames(UiSession.StartFrom(r.Next.Clone(), 42), Path.Combine(_root, "ca"));
-        List<string> cb = Frames(UiSession.StartFrom(PerturbedNext(), 42), Path.Combine(_root, "cb"));
-        Assert.NotEqual(ca, cb);
+        Assert.NotEqual(fa, ca);
+        Assert.Contains(KnowledgeStubs.SettlementsOf(a, Hidden), id => ca.Any(text => HasWord(text, r.Name(id))));
     }
 
     [Fact]
@@ -737,18 +741,19 @@ public partial class KnowledgeLeakTests : IDisposable
 
         string Structures(WorldState world, SettlementId at) =>
             Block(PlayerViews.Settlement(world, whole, Player, null, at.Value, r.Name, 3, KnowledgeStubs.Over(world, Player, mask)), "Structures");
-        string before = Structures(w, a);
-        Assert.Contains("granary - needs 40 timber (has 0), 20 stone (has 2)", before, StringComparison.Ordinal);
+        // D-060: A is a known RIVAL — its view is closed books (no Structures block at all, so neither its own stock nor its
+        // hidden sibling's is read). Before D-060 its head line read A's own stock ("20 stone (has 2)").
+        string Foreign(WorldState world) => View(PlayerViews.Settlement(world, whole, Player, null, a.Value, r.Name, 3, KnowledgeStubs.Over(world, Player, mask)));
+        string before = Foreign(w);
+        Assert.Contains(PlayerKnowledge.NotYoursLine, before, StringComparison.Ordinal);
+        Assert.DoesNotContain("Structures:", before, StringComparison.Ordinal);
+        Assert.DoesNotContain("stone", before, StringComparison.Ordinal);
 
         WorldState moved = w.Clone();
-        SetStock(moved, b, stone, 17);                                    // ONLY the hidden settlement's stock moves
+        SetStock(moved, b, stone, 17);                                    // the hidden settlement's stock moves
         SetStock(moved, b, timber, 9);
-        Assert.Equal(before, Structures(moved, a));
-
-        // CONTROL 1: A's own stock is read — the line is live.
-        WorldState own = w.Clone();
-        SetStock(own, a, stone, 7);
-        Assert.Contains("20 stone (has 7)", Structures(own, a), StringComparison.Ordinal);
+        SetStock(moved, a, stone, 7);                                     // and A's own
+        Assert.Equal(before, Foreign(moved));
         // CONTROL 2: the player's own queue head reads the player's Empire — a sibling's stock moves it.
         SettlementId[] mine = LabourActivities.ControlledSettlements(w, Player);
         Assert.True(mine.Length >= 2, "the rig needs two of the player's settlements");
@@ -793,15 +798,18 @@ public partial class KnowledgeLeakTests : IDisposable
 
         string Structures(WorldState world, SettlementId at) =>
             Block(PlayerViews.Settlement(world, r.Config, Player, null, at.Value, r.Name, 3, KnowledgeStubs.Over(world, Player, mask)), "Structures");
-        string before = Structures(w, a);
-        Assert.Contains("Being built: granary", before, StringComparison.Ordinal);
+        // D-060: a known rival's view is closed books — not even what is being built is listed (its queue is its books).
+        string Foreign(WorldState world) => View(PlayerViews.Settlement(world, r.Config, Player, null, a.Value, r.Name, 3, KnowledgeStubs.Over(world, Player, mask)));
+        string before = Foreign(w);
+        Assert.Contains(PlayerKnowledge.NotYoursLine, before, StringComparison.Ordinal);
+        Assert.DoesNotContain("granary", before, StringComparison.Ordinal);
         Assert.DoesNotContain("waiting", before, StringComparison.Ordinal);
         Assert.DoesNotContain("stone", before, StringComparison.Ordinal);
         WorldState moved = w.Clone();
         SetStock(moved, b, stone, 17);
         SetStock(moved, a, stone, 19);
         SetStock(moved, a, timber, 40);
-        Assert.Equal(before, Structures(moved, a));
+        Assert.Equal(before, Foreign(moved));
 
         SettlementId[] mine = LabourActivities.ControlledSettlements(w, Player);
         Assert.True(mine.Length >= 2, "the rig needs two of the player's settlements");
@@ -1039,9 +1047,14 @@ public partial class KnowledgeLeakTests : IDisposable
         string s1 = Views(1.0, Stub), s2 = Views(2.0, Stub);
         Assert.Equal(s1, s2);
         foreach (int id in hidden) Assert.False(HasWord(s1, r.Name(id)), "the migration view names hidden " + r.Name(id) + ": " + s1);
+        // The control: all-known, the comparison NAMES the hidden settlement (D-060: without its reading — a known rival's
+        // attractiveness is computed from its books, so the production view's line does not move with it) ...
         string c1 = Views(1.0, All), c2 = Views(2.0, All);
-        Assert.NotEqual(c1, c2);
         Assert.Contains(hidden, id => c1.Contains(r.Name(id) + " looks more attractive", StringComparison.Ordinal));
+        Assert.Equal(c1, c2);
+        // ... and with the books open (the developer view) the reading is shown and moves with it.
+        string d1 = Views(1.0, w => All(w).ForDeveloper()), d2 = Views(2.0, w => All(w).ForDeveloper());
+        Assert.NotEqual(d1, d2);
     }
 
     // ================================================================== a selection that a step hides (P7 review, finding 2)
@@ -1082,7 +1095,8 @@ public partial class KnowledgeLeakTests : IDisposable
             Assert.Null(ScreenModels.Settlement(s, id));
             Assert.NotNull(ScreenModels.Settlement(all, id));                                       // control
             Assert.Equal(PolicyText(ScreenModels.Policy(s, -1)), PolicyText(ScreenModels.Policy(s, id)));
-            policyRead |= PolicyText(ScreenModels.Policy(all, id)) != PolicyText(ScreenModels.Policy(all, -1));
+            // D-060: the labour record is the settlement's books — a known rival's reads as no selection all-known too.
+            Assert.Equal(PolicyText(ScreenModels.Policy(all, -1)), PolicyText(ScreenModels.Policy(all, id)));
             Assert.Equal(NoteOf(s, -1), NoteOf(s, id));
             noteRead |= NoteOf(all, id) is { } note && note.Contains(all.Names.Name(id), StringComparison.Ordinal);
             foreach (TrendMetric m in TrendsModel.Metrics(s.Config.Registries.Classes))
@@ -1098,7 +1112,10 @@ public partial class KnowledgeLeakTests : IDisposable
                 priceRead |= all.History.Price(id, g.Id, all.Knowledge).Length > 0;
             }
         }
-        Assert.True(policyRead, "the all-known labour record of a rival settlement reads as no selection - the control is void");
+        // The labour record's control (D-060): the player's OWN settlement's record is read.
+        foreach (int id in KnowledgeStubs.SettlementsOf(all.World, Player))
+            policyRead |= PolicyText(ScreenModels.Policy(all, id)) != PolicyText(ScreenModels.Policy(all, -1));
+        Assert.True(policyRead, "the labour record of the player's own settlement reads as no selection - the control is void");
         Assert.True(noteRead, "the all-known action surface never named a rival selection - the control is void");
         Assert.True(priceRead, "no rival settlement has a price series all-known - the control is void");
     }
@@ -1566,8 +1583,12 @@ public partial class KnowledgeLeakTests : IDisposable
 
         // POSITIVE CONTROL, per component.
         Assert.Equal(ca.Parts.Keys.ToArray(), sa.Parts.Keys.ToArray());
+        // D-060: a known rival formation's card shows only public fields (identity, owner, station, position), so the
+        // perturbation of its experience does not reach the all-known card — the one blind component, by design. Its stub
+        // comparison is still not vacuous: all-known, the click on the rival's token opens its card; under the stub it does not.
         string[] blind = [.. ca.Parts.Keys.Where(c => ca.Parts[c] == cb.Parts[c])];
-        Assert.True(blind.Length == 0, "the perturbation does not reach " + string.Join(", ", blind) + " - the comparison above proves nothing for it");
+        Assert.True(blind.SequenceEqual(["unit card"]), "the perturbation does not reach " + string.Join(", ", blind) + " - the comparison above proves nothing for it");
+        Assert.NotEqual(ca.Parts["unit card"], sa.Parts["unit card"]);
         Assert.NotEqual(ca.Parts["projection"], sa.Parts["projection"]);
         Assert.NotEqual(ca.Parts["tokens"], sa.Parts["tokens"]);
     }

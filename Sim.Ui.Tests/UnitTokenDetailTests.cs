@@ -425,7 +425,8 @@ public class UnitTokenDetailTests : IDisposable
             (r => r with { Y = 46.0 }, ["Position"], []),
             (r => r with { Identity = Families.FamilyById("heavy_infantry")!.Line[2].Key }, ["AgeForm", "Line", "Title"], ["NextAge"]),
             (r => r with { Location = new SettlementId(Base.Value.World.Settlements[0].Id.Value) }, ["Station"], []),
-            (r => r with { Owner = Rival(Base.Value.World) }, ["Mine", "Owner"], ["NextAge"]),
+            // D-060: a rival's formation's experience and army are its owner's books — the change of owner closes them.
+            (r => r with { Owner = Rival(Base.Value.World) }, ["Mine", "Owner", "Experience", "Army"], ["NextAge"]),
         ];
         static Dictionary<string, string> Lines(UnitCard c) => new()
         {
@@ -473,8 +474,18 @@ public class UnitTokenDetailTests : IDisposable
                 Assert.DoesNotContain(line, c => c is >= '0' and <= '9');
             Assert.Equal("7", new string([.. card.Movement.Where(c => c is >= '0' and <= '9')]));     // "(M7)" and nothing else
             Assert.Equal("7", new string([.. card.Limitation.Where(c => c is >= '0' and <= '9')]));   // "(milestone M7)"
-            Assert.Equal("Experience: 0.0 - nothing earns it yet", card.Experience);   // the founded value, as recorded
-            Assert.StartsWith("Army: none", card.Army, StringComparison.Ordinal);
+            if (card.Mine)
+            {
+                Assert.Equal("Experience: 0.0 - nothing earns it yet", card.Experience);   // the founded value, as recorded
+                Assert.StartsWith("Army: none", card.Army, StringComparison.Ordinal);
+            }
+            else
+            {
+                // D-060: a rival's formation's recorded fields are its owner's books — no figure.
+                Assert.Equal(UnitCardModel.RivalRecordText, card.Experience);
+                Assert.Equal("", card.Army);
+                Assert.DoesNotContain(card.Experience, c => c is >= '0' and <= '9');
+            }
             Assert.NotEmpty(rowLines);
         }
     }
@@ -592,8 +603,11 @@ public class UnitTokenDetailTests : IDisposable
         Assert.Equal(pa.Units.Count + 1, pb.Units.Count);
         UnitCard ca = UnitCardModel.Build(a, Cfg, h.Id, Me, Name)!, cb = UnitCardModel.Build(b, Cfg, h.Id, Me, Name)!;
         Assert.NotEqual(ca.Title, cb.Title);
-        Assert.NotEqual(ca.Experience, cb.Experience);
-        Assert.NotEqual(ca.Army, cb.Army);
+        // D-060: all-known, a RIVAL formation's experience and army are still closed (its owner's books) — the control for
+        // those two fields is the player's own formation (TheCard_ShowsOnlyWhatTheRowAndTheContentHold_FieldByField).
+        Assert.Equal(UnitCardModel.RivalRecordText, ca.Experience);
+        Assert.Equal(ca.Experience, cb.Experience);
+        Assert.Equal(ca.Army, cb.Army);
     }
 
     // ================================================================== the real UI
