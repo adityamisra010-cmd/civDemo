@@ -39,6 +39,7 @@ public static class UiArgs
         + "  --action-preview [DIR]         the action surface (default action-surface-preview)\n"
         + "  --r2a-preview [DIR]            research R2a states (default r2-previews)\n"
         + "  --player-views-preview [DIR]   the Settlement, Empire and Institutions views (default player-views-preview)\n"
+        + "  --resources-preview [DIR]      PNGs of real frames: the resource strip and its card, RESOURCES (default resources-preview)\n"
         + "Assets:\n"
         + "  --audit-assets [ROOT]          report which manifest keys resolve to real art\n"
         + "  --generate-placeholder-assets [ROOT]   write any missing placeholder art\n"

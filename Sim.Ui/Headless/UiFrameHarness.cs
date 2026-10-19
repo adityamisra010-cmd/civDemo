@@ -295,6 +295,42 @@ public sealed class UiFrameHarness : IDisposable
         return true;
     }
 
+    /// <summary>P6 (moved here from the gate for the resources view's tests): scrolls the context panel's body (the wheel
+    /// over it, Shift + wheel sideways — as a player does) until the first control whose name starts with
+    /// <paramref name="prefix"/> lies wholly inside the visible body; null when the panel draws no such control (or it
+    /// cannot be brought into view).</summary>
+    public UiControl? ScrollContextTo(string prefix)
+    {
+        ViewModel.PanelRect p = Ui.ContextRect;
+        double top = ViewModel.ChromeGeometry.ContentTop(new ViewModel.ChromeElement(p, ViewModel.RulePlacement.UnderHeaderRow), ImGuiNET.ImGui.GetFrameHeight(), Ui.Scale) + 2,
+            bottom = p.Y + p.Height - Sim.Ui.Art.UiTheme.WindowPaddingPx.Y * Ui.Scale - 6,
+            left = p.X + 4, right = p.X + p.Width - 20;
+        for (int k = 0; k < 80; k++)
+        {
+            UiControl? found = null;
+            foreach (UiControl c in Ui.Controls.Last)
+                if (c.Name.StartsWith(prefix, StringComparison.Ordinal)) { found = c; break; }
+            if (found is not { } ctl) return null;
+            if (ctl.Y0 < top || ctl.Y1 > bottom) Wheel(p.X + p.Width / 2, p.Y + p.Height / 2, ctl.Y0 < top ? 1 : -1);
+            // Sideways only when too little of it shows to aim at (a full-width row runs past the edge by design: Aim
+            // clicks near its start).
+            else if (ctl.X0 > right - 24) WheelWith(p.X + p.Width / 2, p.Y + p.Height / 2, -1, Keys.LeftShift);
+            else if (ctl.X1 < left + 24) WheelWith(p.X + p.Width / 2, p.Y + p.Height / 2, 1, Keys.LeftShift);
+            else return ctl;
+        }
+        return null;
+    }
+
+    /// <summary>Scrolls the context panel to the control named <paramref name="name"/> (see <see cref="ScrollContextTo"/>)
+    /// and clicks it; false when it is not drawn.</summary>
+    public bool ClickInContext(string name)
+    {
+        if (ScrollContextTo(name) is not { } ctl) return false;
+        (double x, double y) = Aim(ctl);
+        Click(x, y);
+        return true;
+    }
+
     /// <summary>Where a player clicks a control: its centre, or — for a full-width row that runs past the edge of
     /// its panel or of the screen (the TURN audit lines carry a horizontal scrollbar) — a point near its start.</summary>
     public (double X, double Y) Aim(UiControl c)

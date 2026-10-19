@@ -106,7 +106,7 @@ public class PlayabilityGateTests : IDisposable
         Assert.True(r.Ok, string.Join("\n", r.Problems) + "\n" + r.Details());
         Assert.True(r.Count(GateResult.Pass) > 120, "pass rows " + r.Count(GateResult.Pass));
         // Every player section, the research screen, the Age panel, the map and the formation were exercised.
-        foreach (string control in new[] { "nav:Place", "nav:Empire", "nav:Policy", "nav:Institutions", "nav:Annals", "nav:Trends",
+        foreach (string control in new[] { "nav:Place", "nav:Empire", "nav:Policy", "nav:Institutions", "nav:Annals", "nav:Resources",
                      "band-research (open)", "K key (close / open)", "tab:Civics", "lens:Industry", "lane collapse / expand (Technology)",
                      "scroll through the whole tree (Civics)", "band-age (opens the Age panel)", "end-turn", "Space (End Turn)",
                      "select capital", "select formation (click token)", "unit card states the M7 limitation", "wheel zoom to Settlement" })
@@ -499,12 +499,12 @@ public class PlayabilityGateTests : IDisposable
     /// <summary>
     /// REVIEW FINDING (coverage credited controls the press never reached). With POLICY open the action surface is ONE
     /// invisible item the height of the painted surface (about 2,000 px at 1280x800), so its laid-out rect runs under the
-    /// command bar: the old rule credited <c>control:action-surface</c> to a press on <c>nav:Trends</c>. A press reaches
+    /// command bar: the old rule credited <c>control:action-surface</c> to a press on <c>nav:Resources</c>. A press reaches
     /// what ImGui routed it to — the command bar's button, in the window on top — and nothing else.
     /// </summary>
     [Theory]
-    [InlineData(1280, 800, "nav:Trends")]
-    [InlineData(PanelLayout.MinWindowWidth, PanelLayout.MinWindowHeight, "nav:Trends")]
+    [InlineData(1280, 800, "nav:Resources")]
+    [InlineData(PanelLayout.MinWindowWidth, PanelLayout.MinWindowHeight, "nav:Resources")]
     [InlineData(PanelLayout.MinWindowWidth, PanelLayout.MinWindowHeight, "nav:Annals")]
     public void Coverage_ACommandBarPress_WithPolicyOpen_DoesNotCoverTheActionSurfaceBeneathIt(int width, int height, string nav)
     {

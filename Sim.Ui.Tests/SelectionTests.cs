@@ -315,7 +315,7 @@ public class SelectionTests
         Assert.Equal("pop 400  (child 164 / adult 225 / elder 11)", hud.PopulationLine);
         Assert.Equal("food 6000  (last harvest +0)", hud.FoodLine);
         Assert.Equal("labor 55% farm / 15% herd / 10% mine / 12% craft / 8% build", hud.SplitLine); // T3.5b default mix
-        Assert.Equal("world pop 1600  (4 settlements)", hud.WorldLine);
+        Assert.Equal("empire pop 1600  (4 settlements)", hud.WorldLine);   // M5 resources view: own empire (every settlement here is the player's)
         Assert.Equal(2, hud.SettlementId);
     }
 

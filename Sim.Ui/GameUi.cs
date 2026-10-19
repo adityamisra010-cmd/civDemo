@@ -61,7 +61,6 @@ public sealed partial class GameUi
     // screen's only mode, and it is UI state — nothing in the simulation reads
     // it, and opening a panel emits no order.
     private Section _openSection = Section.None;
-    private bool _trendWorldScope = true;
     private bool _annalsShowAll;
     private HudModel _hud = null!;
 
@@ -266,7 +265,6 @@ public sealed partial class GameUi
     public const float LegendMaxWidth = 340f;
     public bool PolicyRecordOpen => _policyRecord;
     public bool AnnalsShowAll => _annalsShowAll;
-    public bool TrendWorldScope => _trendWorldScope;
     public int TrendIndex => _trendIndex;
     public bool ShowHappinessFactors => _showHappinessFactors;
     /// <summary>The unfolded happiness factor (developer SETTLEMENT / Grievance), or -1.</summary>
@@ -473,8 +471,9 @@ public sealed partial class GameUi
                 ActionQueryContext.ForNextStep(_world, _eraTable).NextDtYears) : null;
         _empireView = PlayerViews.Empire(_world, _session.Config, UiPlayer.Empire, names, density, known);
         _institutionsView = PlayerViews.Institutions(_world, _session.Config, UiPlayer.Empire, names, density);
-        _trendMetrics = TrendsModel.Metrics(_displayCfg.Registries.Classes);
+        _trendMetrics = TrendsModel.ResourceMetrics(_displayCfg.Registries.Classes);   // M5 resources view: + "stores"
         if (_trendIndex >= _trendMetrics.Count) _trendIndex = 0;
+        RefreshStores();   // M5 resources view: the player's own stores (the strip, its cards, RESOURCES)
 
 
         // T3.9a: the read-only market/needs displays, recomputed on the same
@@ -1172,6 +1171,8 @@ public sealed partial class GameUi
         DrawPlacementBar();   // M5 S1d: the placement mode's bar (Confirm / Cancel) over the top of the map
         DrawCommandBar();
         if (modal) ImGui.EndDisabled();
+        if (!modal) DrawStoresCard();   // M5 resources view: the strip group's hover card, over the chrome
+        else { _stripHover = null; StripHover = null; StripCardLines = []; }
         if (!modal) DrawInfoHint();   // M5 polish: the Age panel's regions, then the hover hint
 
         if (_fonts is not null) ImGui.PopFont();
@@ -1347,8 +1348,18 @@ public sealed partial class GameUi
             FigureWidth(0, details) + itemGap + FigureWidth(1, details) + groupGap + FigureWidth(2, details) + itemGap + FigureWidth(3, details)
             + groupGap + ChipWidth(research, _researchFigure.Idle) + (ageText.Length > 0 ? itemGap + ChipWidth(ageText, false) : 0f);
         float room = band.Width - 2f * margin;
-        bool details = true;
-        if (Total(true, age) > room) { details = false; age = _ageFigure.Short; }
+        // M5 resources view: the resource strip after FOOD (its own group). A band too narrow for it all drops the
+        // settlement count and the Age's name first (as before), then the strip's labels to their first letters.
+        float dataPx = RolePx(Sim.Ui.Theme.TypeRole.Data, Sim.Ui.Render.FontRole.Numeric);
+        ImFontPtr? dataFont = RoleFont(Sim.Ui.Theme.TypeRole.Data, Sim.Ui.Render.FontRole.Numeric);
+        float dataAscent = dataFont is { } df ? df.Ascent * dataPx / df.FontSize : dataPx * 0.8f;
+        float stripValueY = top + kpiAscent - dataAscent;
+        float stripMarkW = 16f * s;
+        bool hasStrip = StripGroups().Length > 0;
+        float Strip(bool labels) => hasStrip ? StripWidth(labels, capPx, dataPx, gap, itemGap, stripMarkW) + groupGap : 0f;
+        bool details = true, stripLabels = true;
+        if (Total(true, age) + Strip(true) > room) { details = false; age = _ageFigure.Short; }
+        if (Total(false, age) + Strip(true) > room) stripLabels = false;
 
         float x = band.X + margin + 4f * s;
         for (int i = 0; i < figures.Length; i++)
@@ -1370,6 +1381,14 @@ public sealed partial class GameUi
             }
             x += i == 1 || i == figures.Length - 1 ? groupGap : itemGap;
             if (i == 1 || i == figures.Length - 1) Separator(dl, x - groupGap / 2f, band.Y + top + 2f * s, band.Y + top + kpiPx - 2f * s);
+        }
+
+        // M5 resources view: the resource strip — the player's own empire stores, by group, each with its change mark.
+        if (hasStrip)
+        {
+            x = DrawResourceStrip(dl, x, band.Y, top, labelY, stripValueY, capPx, dataPx, gap, itemGap, stripMarkW, stripLabels, kpiPx);
+            x += groupGap;
+            Separator(dl, x - groupGap / 2f, band.Y + top + 2f * s, band.Y + top + kpiPx - 2f * s);
         }
 
         // The research chip — the band's way into the trees.
@@ -1935,7 +1954,7 @@ public sealed partial class GameUi
             case Section.Institutions: DrawPlayerView(_institutionsView, ""); break;
             case Section.Policy: DrawPolicySection(); break;
             case Section.Annals: DrawAnnalsSection(); break;
-            case Section.Trends: DrawTrendsSection(); break;
+            case Section.Resources: DrawResourcesSection(); break;
             case Section.Developer: DrawDeveloperSection(); break;
             // A developer surface opened directly (a route resolved with the toggle on lands on DEV, so these
             // are reached only through DrawDeveloperSection's tabs).
@@ -2477,70 +2496,6 @@ public sealed partial class GameUi
         ImGui.PopTextWrapPos();
         if (ImGui.GetScrollY() >= ImGui.GetScrollMaxY() - 1f) ImGui.SetScrollHereY(1f);
         ImGui.EndChild();
-    }
-
-    /// <summary>
-    /// TRENDS — ONE graph, with the metric and the scope chosen rather than six
-    /// thumbnails competing. T4.19 lane B (B2): the metrics are every SeriesKey
-    /// of the observation history (grievance per class) with world or
-    /// settlement scope, plus the price series the T3.9a HistoryBuffer alone
-    /// carries. Same graph, one implementation.
-    /// </summary>
-    private void DrawTrendsSection()
-    {
-        float rowX = 0f;
-        for (int i = 0; i < _trendMetrics.Count; i++)
-        {
-            if (WrapButton(_trendMetrics[i].ButtonLabel, "trend-" + i.ToString(
-                    System.Globalization.CultureInfo.InvariantCulture), _trendIndex == i, ref rowX))
-                _trendIndex = i;
-        }
-
-        ImGui.Spacing();
-        bool worldScope = RadioButton("world##trend-world", _trendWorldScope);
-        Controls.Record("trend-world");
-        if (worldScope) _trendWorldScope = true;
-        ImGui.SameLine();
-        bool placeScope = RadioButton((_selected >= 0 ? _session.Names.Name(_selected) : "(no selection)") + "##trend-place",
-                !_trendWorldScope);
-        Controls.Record("trend-place");
-        if (placeScope)
-        {
-            _trendWorldScope = false;
-        }
-
-        ImGui.Spacing();
-        if (_trendMetrics.Count == 0) { Text("no data"); return; }
-        TrendMetric metric = _trendMetrics[_trendIndex];
-        if (metric.IsPrice)
-        {
-            // Prices: the observation history has no price series (§7), so the
-            // T3.9a buffer keeps them — per (settlement, good), never world.
-            Text("price of the good selected under SETTLEMENT / Economy, this settlement");
-            float[] prices = _session.History.Price(_selected, _selectedGood, _session.Knowledge);   // P7: never a hidden one
-            PlotDomain priceDomain = TrendAxisModel.PriceDomain(prices);
-            PushDataFont();
-            Text(TrendAxisModel.AxisLabel(priceDomain, ToDoubles(prices)));
-            Text(TrendAxisModel.BandNote(PlotBand.Neutral));
-            PopDataFont();
-            PlotLarge("##trend", prices, priceDomain, PlotBand.Neutral);
-            return;
-        }
-        double[] series = _trendWorldScope
-            ? TrendsModel.World(_session.Observations, metric.Key, metric.ClassId, _session.Knowledge)   // P7: known settlements
-            : TrendsModel.Settlement(_session.Observations, _selected, metric.Key, metric.ClassId, _session.Knowledge);   // P7: never a hidden one
-        PlotDomain domain = TrendAxisModel.Domain(metric.Key, series);
-        PlotBand band = TrendAxisModel.Band(
-            metric.Key, series.Length == 0 ? double.NaN : series[^1]);
-        PushDataFont();
-        Text(TrendsModel.LastValueLine(series));
-        Text(TrendAxisModel.AxisLabel(domain, series));
-        Text(TrendAxisModel.BandNote(band));
-        PopDataFont();
-        ImGui.PushTextWrapPos(0f);
-        Text(TrendsModel.ScopeNote(metric.Key, _trendWorldScope));
-        ImGui.PopTextWrapPos();
-        PlotLarge("##trend", TrendsModel.ForPlot(series), domain, band);
     }
 
     /// <summary>BUILD — the glass-box footer. Diagnostic rather than play

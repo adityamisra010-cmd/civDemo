@@ -498,3 +498,28 @@ and §16 it names.
 - **No world hash moved.** The chronicle is a UI-side observer: its events and lines live in neither `WorldState`, the
   snapshot nor `WorldHash`, and the CLI does not load `chronicle.json`. `sim run --founded --seed 42 --ai-empires 1
   --turns 60` gives the same final hash before and after the change (`827d9b00…3878a0`).
+
+## Dated note — 2026-10-19: the resources view (branch `b5-res`; appended, the sections above are unchanged)
+
+- **Built** on the Director's go-ahead ("yes build resources view … make it my empire specific. i should not be able to
+  see other empire's data. trends and resource view get merged into the same view/button"). Details:
+  `docs/m5-resources-view-proposal.md` §6.
+  - **Resource strip** in the top bar after FOOD: Food stores · Materials · Goods, your empire's totals, each with a
+    rising / falling mark. Rest the pointer on one for its card: per good, the change since last turn, what is set aside
+    for projects, and your largest stores.
+  - **RESOURCES** replaces TRENDS (same button slot, key 6). It holds the stores table (goods × your settlements, with
+    the change and the set-aside) and the trend graph, for your own settlements only. Click a good in the table to
+    chart its stores.
+- **Known limitations:**
+  - The top bar's POPULATION, FOOD and settlement count now count your own empire only (follow-up the same day). FOOD
+    is your grain; FOOD STORES adds livestock and fish.
+  - Selecting a rival settlement still shows its card (population, grain, happiness, grievance). Recorded for a ruling
+    (proposal §6).
+  - At the smallest window the strip's labels shorten to their first letters (F, M, G); the card names them.
+  - A trend starts at your first played turn. The stores graph has no turn-0 point (the record keeps no opening stock
+    of every good).
+  - A save resumed by replay rebuilds the history; nothing is stored in the save.
+- **Playtest checklist addition (continuing §16):**
+  21. **Resources.** Play three turns. Check that the strip's figures match the RESOURCES table's Empire column, and
+      that each card's goods add up to its group. Select a rival's settlement and open RESOURCES: nothing of it is
+      shown, and the place scope asks for one of yours.

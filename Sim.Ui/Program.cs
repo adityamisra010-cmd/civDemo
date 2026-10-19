@@ -120,6 +120,18 @@ if (Array.IndexOf(args, "--action-preview") >= 0)
     return;
 }
 
+// --resources-preview [dir] (M5 resources view): REAL frames of the game's UI (the headless harness on the one-AI world,
+// three End Turns) rasterized to PNG — the status band's resource strip with a hover card, the band at the smallest window,
+// and the RESOURCES view (stores, then the trend graph) — and exit.
+if (Array.IndexOf(args, "--resources-preview") >= 0)
+{
+    int at = Array.IndexOf(args, "--resources-preview");
+    string dir = at + 1 < args.Length && !args[at + 1].StartsWith("--") ? args[at + 1] : "resources-preview";
+    foreach (string p in Sim.Ui.Headless.ResourcesPreview.Run(dir))
+        Console.WriteLine($"resources preview: {Path.GetFullPath(p)}");
+    return;
+}
+
 // --player-views-preview [dir] (ADR-033 D9): paint the SETTLEMENT, EMPIRE and INSTITUTIONS player views from
 // real sessions (turn 1 at Age I; a developed Age III state with a university) to SVG and exit.
 if (Array.IndexOf(args, "--player-views-preview") >= 0)

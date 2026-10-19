@@ -161,6 +161,10 @@ public sealed class UiSession
     /// captured per observed turn alongside the chronicle.</summary>
     public ViewModel.HistoryBuffer History { get; } = new();
 
+    /// <summary>M5 resources view: which settlements were the player's on each observed turn (UI-side, rebuilt by replay) —
+    /// the RESOURCES view's trends sum a turn's records over these only, never a foreign settlement's.</summary>
+    public ViewModel.OwnershipHistory Ownership { get; } = new();
+
     /// <summary>
     /// M5 map workstream P7 — WHAT THE PLAYER KNOWS of <see cref="World"/>, rebuilt after every step (and at the start) from
     /// the Sim.Core knowledge seam: <see cref="PlayerKnowledge.Of(IReadOnlyWorldState)"/>, all-known until S2a stores an
@@ -209,6 +213,7 @@ public sealed class UiSession
         _chronicle = new Sim.Core.Chronicle.ChronicleCollector(_chronicleCfg, _simCfg);
         ObserveChronicle(); // founding events fire on first sight
         History.Capture(World, Knowledge); // the founding sample (turn 0)
+        Ownership.Capture(World, UiPlayer.Empire);   // the resources view: the player's settlements at the founding
         CaptureTrace();         // turn 0 — the world before any order lands
     }
 
@@ -592,6 +597,7 @@ public sealed class UiSession
         _events.Observe(prev, World, _simCfg, Names.Name, _annals, Knowledge);
         NowUsableHistory.Observe(prev, World, _simCfg, UiPlayer.Empire);   // P10: the 'now usable' shortcuts this step fired
         History.Capture(World, Knowledge);
+        Ownership.Capture(World, UiPlayer.Empire);   // the resources view: the player's settlements after the step
         CaptureTrace();
     }
 

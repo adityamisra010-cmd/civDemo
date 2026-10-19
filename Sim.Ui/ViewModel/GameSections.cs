@@ -44,8 +44,11 @@ public enum Section
     /// <summary>The chronicle, newest last.</summary>
     Annals = 5,
 
-    /// <summary>One graph surface with a selectable metric.</summary>
-    Trends = 6,
+    /// <summary>M5 resources view (the Director, 2026-10-19: "trends and resource view get merged into the same
+    /// view/button"): the player's OWN empire — its stores, goods × its settlements with what is set aside, and the trend
+    /// graph over its own settlements only. It replaces TRENDS in the same slot and on the same key (6); nothing of a
+    /// foreign empire is drawn in it.</summary>
+    Resources = 6,
 
     /// <summary>Build identity, seed, camera, art provenance, session files —
     /// the glass-box footer, diagnostic rather than play information.</summary>
@@ -88,12 +91,12 @@ public enum SettlementTab
 public static class GameSections
 {
     /// <summary>ADR-033 D9 — the PLAYER's command bar, in navigation order: the place, the empire, what
-    /// I can do, the institutions, the history, the trends. Every section here speaks plain language; none is
+    /// I can do, the institutions, the history, the resources (the former trends). Every section here speaks plain language; none is
     /// a record dump.</summary>
     public static IReadOnlyList<Section> PlayerOrder { get; } =
     [
         Section.Place, Section.Empire, Section.Policy, Section.Institutions,
-        Section.Annals, Section.Trends,
+        Section.Annals, Section.Resources,
     ];
 
     /// <summary>ADR-033 D9 — the developer surfaces, kept intact, reached as the tabs of
@@ -109,7 +112,7 @@ public static class GameSections
     public static IReadOnlyList<Section> Order { get; } =
     [
         Section.Place, Section.Empire, Section.Policy, Section.Institutions,
-        Section.Annals, Section.Trends, Section.Developer,
+        Section.Annals, Section.Resources, Section.Developer,
     ];
 
     /// <summary>The command bar's roster: the player sections, plus DEV when the developer toggle is on.
@@ -154,7 +157,7 @@ public static class GameSections
         Section.Policy => "POLICY",
         Section.Economy => "ECONOMY",
         Section.Annals => "ANNALS",
-        Section.Trends => "TRENDS",
+        Section.Resources => "RESOURCES",
         Section.More => "BUILD",
         Section.Place => "SETTLEMENT",
         Section.Empire => "EMPIRE",
@@ -172,7 +175,7 @@ public static class GameSections
         Section.Policy => "Policy",
         Section.Economy => "Economy tables",
         Section.Annals => "Annals",
-        Section.Trends => "Trends",
+        Section.Resources => "Your resources",
         Section.More => "Build",
         Section.Place => "Settlement",
         Section.Empire => "Empire",
