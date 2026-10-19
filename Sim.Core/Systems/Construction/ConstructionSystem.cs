@@ -61,6 +61,14 @@ public sealed record ConstructionTables(
 ///  7. COMPLETION: a head reaching p' = N is completed in the same step — Structures + 1 (StructureRow), its queue row and
 ///     progress row removed exactly once. Its effects begin as any completed structure's always did: institution
 ///     founding the next step (InstitutionsSystem), the granary factors from the next production step.
+///     D-058 (the Director's ruling of 2026-10-19, "build one at a time … 7 built, 1 under construction, 1 not started";
+///     sim.json construction.continueWithinTurn, shipped on): construction stays SEQUENTIAL, but a step's capacity is not
+///     capped at one project — the walk carries what a completing head leaves of its settlement's capacity to the NEXT
+///     entry of the same queue, which is resolved IN THE SAME STEP at its own order's place in the building order (the
+///     walk's step 6, under every rule a head is under: the budget older heads left, its set-aside), and so on until the
+///     capacity or the materials run out. This step applies the walk's heads in order, so a settlement can complete several
+///     entries and leave the next part-built; its published labour (ADR-033 D10) is ONE row, the sum of what they used.
+///     Switch off (TestConfigs.PreContinueWithinTurn): one head per settlement per step, the batch-4 rule.
 ///  8. D-055: the set-asides are PUBLISHED (ConstructionHolds, one row per (purse, good) with units, ascending), and the
 ///     hold invariants (i)–(vi) asserted (ConstructionQuery.HoldsInvariantViolation). Then the progress/queue invariant
 ///     (ConstructionQuery.ProgressInvariantViolation, the statement Snapshot.Load also applies: unique slots, progress in
@@ -115,7 +123,8 @@ public sealed record ConstructionTables(
 /// structural stalls as before. Holds are recomputed from scratch every step — no stale reservation state: a cancel (kind
 /// 11, applied before the walk) releases in its delivery step and later heads use the units in that step; a completion
 /// leaves need 0 after its final draw, so the leftover is used in the same walk, and the slot it promotes holds from the
-/// NEXT step (a cancel's promoted slot holds in the SAME step); a re-enqueue is a new entry (EnqueuedTurn = its stamp
+/// NEXT step (a cancel's promoted slot holds in the SAME step) — D-058: with continueWithinTurn on, a slot a completion
+/// promotes is a head IN THE SAME STEP whenever the leftover capacity moves it one unit, and holds there; a re-enqueue is a new entry (EnqueuedTurn = its stamp
 /// turn, p = 0) that holds only once it is a head, behind every older head; a revolt moves the hold to the new
 /// controller's purse from the next step (the key is read on PREV). Holds bind exactly two things — later construction
 /// heads and road works (ROAD DEVELOPMENT below) — and move no goods: only Ledger draws move goods; production,
@@ -291,7 +300,7 @@ public sealed class ConstructionSystem(SimConfig cfg) : ISimSystem<ConstructionT
                 EmpireStockpile.Draw(ctx.Ledger, stocks, holders, new GoodId(goods.IdOf(project.Inputs[i].Good)),
                     r.Draws[i], ReasonIds.ConstructionMaterials);
             }
-            ctx.Owned.Labor.Add(new ConstructionLaborRow(settlement, r.LaborUsed));
+            AddLabour(ctx.Owned.Labor, settlement, r.LaborUsed);
 
             if (r.Completes)
             {
@@ -350,6 +359,20 @@ public sealed class ConstructionSystem(SimConfig cfg) : ISimSystem<ConstructionT
             ConstructionQuery.RemoveEntry(queue, ctx.Owned.Progress, settlement, queue[head].Slot);
             ctx.Owned.Labor.Add(new ConstructionLaborRow(settlement, project.LaborRequired));
         }
+    }
+
+    /// <summary>The published labour (ADR-033 D10): ONE row per settlement whose queue progressed this step. D-058: when a
+    /// completion's leftover capacity carried the settlement's next entry forward in the same step, its row is the sum of
+    /// what those entries used, in the walk's order — never more than the settlement's capacity, up to double rounding.</summary>
+    private static void AddLabour(Table<ConstructionLaborRow> labor, SettlementId settlement, double used)
+    {
+        for (int i = 0; i < labor.Count; i++)
+        {
+            if (labor[i].Settlement != settlement) continue;
+            labor[i] = labor[i] with { LastLaborUsed = labor[i].LastLaborUsed + used };
+            return;
+        }
+        labor.Add(new ConstructionLaborRow(settlement, used));
     }
 
     private static void Complete(Table<StructureRow> structures, SettlementId settlement, int projectId)

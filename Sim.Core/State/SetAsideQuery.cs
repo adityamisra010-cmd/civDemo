@@ -72,6 +72,14 @@ public static class SetAsideQuery
         return -1;
     }
 
+    /// <summary>D-058: the index in <paramref name="walk"/>.Heads of the walked entry <paramref name="entry"/> — its settlement's
+    /// head, or an entry a completion promotes within the step — or −1 when the walk does not reach it.</summary>
+    public static int EntryIndexOf(HoldsWalkResult walk, ConstructionQueueRow entry)
+    {
+        for (int h = 0; h < walk.Heads.Length; h++) if (walk.Heads[h].Entry == entry) return h;
+        return -1;
+    }
+
     /// <summary>
     /// What the heads AHEAD of head <paramref name="head"/> (an index in <paramref name="walk"/>.Heads) in its own purse take
     /// of each good, by good id: their set-asides, plus their draws when <paramref name="withDraws"/> — the card's reading of

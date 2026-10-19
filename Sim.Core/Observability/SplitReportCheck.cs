@@ -42,7 +42,12 @@ public sealed record SplitTwin(IReadOnlyList<SplitReportRow> Rows, long OrderTur
 ///   exactly G_b. Where G_b &lt; D_b this is the design's "scarcity means build + holds = G_b &lt; D_b" (fixer round,
 ///   finding T3-L2-T3-V2-F2); where G_b = D_b it also catches an under-spend scarcity cannot see (set-asides counted twice).
 ///   A run with the hold rule OFF would fail it legitimately (no set-asides: a head held back by another good draws less of
-///   this one), so <see cref="SplitProbe"/> refuses that configuration and every report is a D-055 report.</item>
+///   this one), so <see cref="SplitProbe"/> refuses that configuration and every report is a D-055 report. D-058
+///   (2026-10-19, the Director's "build one at a time" ruling): a completing head's leftover capacity carries its queue's
+///   next entry into the same walk, so the set of heads walked depends on whether a head completes — on every good — and
+///   the walk under the grant can reach fewer entries than the claim's walk on S. The clause is therefore checked as build
+///   + holds = min(G_b, R), R the row's own unreleased heads' needs (the telescoped walk), which is G_b whenever R ≥ G_b —
+///   always under D-055 alone.</item>
 /// <item>P3 (the availability guarantee): with a road order and the guard not fired, S − build − holds ≥ min(D_r, E_r).</item>
 /// <item>P4 (scarcity binds): some split step's good has build + holds = G_b &lt; D_b (that it is spent at every such step
 ///   is P2's).</item>
@@ -206,10 +211,18 @@ public static class SplitReportCheck
             if (v1 is not null) into.Add((1, v1));
 
             long claimed = checked(g.Build + g.Holds);
+            // D-058 (2026-10-19): the walk spends min(G_b, R), R the row's unreleased heads' needs of the good — Σ min(need,
+            // left) telescopes to min(Σ need, start). Under D-055 alone R ≥ D_b ≥ G_b, so this is "the whole grant"; with a
+            // completion's leftover capacity carried to the next entry, a walk under the grant can reach fewer entries than
+            // the claim's walk on S did (another good stopped a head short of completion), and then it spends exactly R.
+            long need = 0;
+            for (int h = 0; h < r.Heads.Length; h++)
+                if (r.Heads[h].Release == NotReleased && r.Heads[h].GoodOf(g.Id) is { } hn) need = checked(need + hn.Need);
+            long spends = Math.Min(g.Gb, need);
             string? v2 = checked(g.Eb + g.Er) != g.S ? $"{at}: the shares E_b = {g.Eb} and E_r = {g.Er} do not split the purse S = {g.S}"
                 : claimed > g.Gb ? $"{at}: building work drew {g.Build} and set aside {g.Holds}, more than its grant G_b = {g.Gb}"
-                : claimed < g.Gb ? $"{at}: building work drew {g.Build} and set aside {g.Holds}, less than its grant G_b = {g.Gb} " +
-                                   $"(D_b = {g.Db}): the D-055 walk spends the whole grant"
+                : claimed < spends ? $"{at}: building work drew {g.Build} and set aside {g.Holds}, less than min(its grant G_b = {g.Gb}, " +
+                                   $"its heads' need {need}) = {spends} (D_b = {g.Db}): the walk spends the whole grant its heads need"
                 : g.Gb > g.Db ? $"{at}: the grant G_b = {g.Gb} exceeds the claim D_b = {g.Db}"
                 : g.Gb > g.Cap ? $"{at}: the grant G_b = {g.Gb} exceeds the cap {g.Cap}"
                 : checked(claimed + g.Road) > g.S ? $"{at}: build {g.Build} + holds {g.Holds} + road {g.Road} exceed the purse S = {g.S}"

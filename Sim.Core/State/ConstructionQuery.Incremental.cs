@@ -100,6 +100,11 @@ public static partial class ConstructionQuery
     /// <summary>Whether construction is incremental (sim.json construction.incremental, WS1). Off: the M4-D gate.</summary>
     public static bool Incremental(SimConfig cfg) => cfg.Construction is { Incremental: true };
 
+    /// <summary>Whether a completing head's leftover capacity continues to the next entry of its queue in the same step
+    /// (sim.json construction.continueWithinTurn, D-058; it needs <see cref="Incremental"/>). Off: one head per settlement
+    /// per step, the batch-4 rule.</summary>
+    public static bool ContinuesWithinTurn(SimConfig cfg) => cfg.Construction is { Incremental: true, ContinueWithinTurn: true };
+
     /// <summary>THE LOCKSTEP (materials first): the units of an input of cost <paramref name="cost"/> delivered at progress
     /// <paramref name="progress"/> — ceil(cost × p / N) in exact long arithmetic (the loader bounds cost by
     /// <see cref="MaxInputQty"/>). 0 at p = 0, exactly <paramref name="cost"/> at p = N, monotone in p.</summary>
@@ -445,7 +450,23 @@ public static partial class ConstructionQuery
     {
         int head = HeadIndex(queue, settlement);
         if (head < 0) return null;
-        ConstructionQueueRow entry = queue[head];
+        return ResolveEntryIn(prev, cfg, queue[head], holders, progress, stocks, dtYears, capacityLeft: null, budget, strict);
+    }
+
+    /// <summary>
+    /// <see cref="ResolveHeadIn"/> for ONE NAMED ENTRY <paramref name="entry"/> of <paramref name="entry"/>.Settlement's queue —
+    /// the queue's head, or (D-058, the Director's 2026-10-19 ruling "build one at a time") the entry a completion promotes
+    /// WITHIN the step — with the settlement's construction capacity this step <paramref name="capacityLeft"/> (adult-years;
+    /// null: the whole of <see cref="CapacityAdultYears"/>, exactly the head's reading). <see cref="HoldsWalk"/> passes a
+    /// promoted entry what the entries completed before it in the same step left of that capacity; the rule is otherwise
+    /// the head's, unchanged.
+    /// </summary>
+    private static HeadResolution ResolveEntryIn(
+        IReadOnlyWorldState prev, SimConfig cfg, ConstructionQueueRow entry, SettlementId[] holders,
+        IReadOnlyTable<ConstructionProgressRow> progress, IReadOnlyTable<GoodStockRow> stocks, double dtYears,
+        double? capacityLeft, long[]? budget, bool strict)
+    {
+        SettlementId settlement = entry.Settlement;
         if (strict)
         {
             for (int i = 0; i < progress.Count; i++)
@@ -465,7 +486,7 @@ public static partial class ConstructionQuery
         if (InstitutionContent.FoundsInstitution(project) && !InstitutionViability.ToFound(prev, cfg, settlement).Viable)
             return new HeadResolution(entry, project, p, p, none, 0.0, HeadLimitKind.Viability, -1, 0, false);
 
-        double capacity = CapacityAdultYears(prev, cfg, settlement, dtYears);
+        double capacity = capacityLeft ?? CapacityAdultYears(prev, cfg, settlement, dtYears);
         long dp = LabourBound(capacity, project.LaborRequired, p);
         if (dp <= 0)
             return new HeadResolution(entry, project, p, p, none, 0.0, HeadLimitKind.Labour, -1, 0,
@@ -537,16 +558,20 @@ public static partial class ConstructionQuery
             if (head < 0) continue;
             heads.Add((EnqueuedTurnOf(progress, queue[head]), queue[head]));
         }
-        heads.Sort(static (a, b) =>
-        {
-            int c = a.Turn.CompareTo(b.Turn);
-            if (c != 0) return c;
-            c = a.Entry.Settlement.Value.CompareTo(b.Entry.Settlement.Value);
-            return c != 0 ? c : a.Entry.Slot.CompareTo(b.Entry.Slot);
-        });
+        heads.Sort(static (a, b) => CompareBuildingOrder(a.Turn, a.Entry, b.Turn, b.Entry));
         var result = new ConstructionQueueRow[heads.Count];
         for (int i = 0; i < result.Length; i++) result[i] = heads[i].Entry;
         return result;
+    }
+
+    /// <summary>THE BUILDING ORDER'S COMPOSITE KEY (<see cref="HeadsInBuildingOrder"/>; D-058's in-step promotion uses the same
+    /// comparison): EnqueuedTurn, then SettlementId, then Slot — integers only, total, no tie left.</summary>
+    internal static int CompareBuildingOrder(long turnA, ConstructionQueueRow a, long turnB, ConstructionQueueRow b)
+    {
+        int c = turnA.CompareTo(turnB);
+        if (c != 0) return c;
+        c = a.Settlement.Value.CompareTo(b.Settlement.Value);
+        return c != 0 ? c : a.Slot.CompareTo(b.Slot);
     }
 
     /// <summary>

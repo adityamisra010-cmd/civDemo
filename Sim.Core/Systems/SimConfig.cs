@@ -118,12 +118,24 @@ public sealed record SimConfig(
 /// <c>EmpireStockpile</c> off every purse is a single settlement's. False or absent: nothing is set aside and nothing is
 /// published — the batch-3 rule exactly, plus the empty section-61 count prefix — the attribution control
 /// (TestConfigs.PreReservations), never a gameplay setting.
+///
+/// <c>ContinueWithinTurn</c> (D-058 — the Director's ruling of 2026-10-19, "Build one at a time, so that if 6 can be built
+/// and an order of 9 is given, and in that turn, resources are available for 1 more and then some, it should show in the
+/// next turn as 7 built, 1 under construction, 1 not started"; true in the shipped sim.json): construction stays
+/// SEQUENTIAL — one project of a settlement's queue at a time, in queue order — but the settlement's building capacity of
+/// ONE step is no longer capped at one project: when the head completes, what is left of that step's capacity continues
+/// to the next entry, which is resolved in the same step at its own order's place in the building order, under the same
+/// set-aside rules as any head (ConstructionQuery.HoldsWalk). The LOADER REFUSES it without <c>Incremental</c> (the
+/// whole-or-wait gate has no partial capacity to carry). False or absent: the promoted entry is a head from the NEXT
+/// step and the completing step's leftover capacity reaches PathBuild's bank only — the batch-4 rule exactly — the
+/// attribution control (TestConfigs.PreContinueWithinTurn), never a gameplay setting.
 /// </summary>
 public sealed record ConstructionConfig(
     [property: JsonPropertyName("empireStockpile")] bool EmpireStockpile = false,
     [property: JsonPropertyName("incremental")] bool Incremental = false,
     [property: JsonPropertyName("allocationRatios")] bool AllocationRatios = false,
-    [property: JsonPropertyName("reservations")] bool Reservations = false);
+    [property: JsonPropertyName("reservations")] bool Reservations = false,
+    [property: JsonPropertyName("continueWithinTurn")] bool ContinueWithinTurn = false);
 
 /// <summary>
 /// M5 item 5 (D-053 §3) — THE GRANARY EFFECTS' CONTENT (<see cref="State.GranaryEffects"/>). Two distinct, bounded,
@@ -1171,6 +1183,11 @@ public static class SimConfigLoader
                 "construction.reservations requires construction.incremental to be true (D-055): a reservation sets aside " +
                 "the remaining need of a part-built queue head, and the whole-or-wait rule (incremental false) has no " +
                 "part-built head to hold for, got incremental false.");
+        if (cfg.Construction is { ContinueWithinTurn: true, Incremental: false })
+            throw new SimConfigException(
+                "construction.continueWithinTurn requires construction.incremental to be true (D-058): it carries the " +
+                "capacity a completing queue head leaves to the next entry in the same turn, and the whole-or-wait rule " +
+                "(incremental false) has no partial capacity to carry, got incremental false.");
         if (cfg.Colonization is { } colonization
             && !(colonization.OrderPartyFraction > 0.0 && colonization.OrderPartyFraction < 1.0))
             throw new SimConfigException(

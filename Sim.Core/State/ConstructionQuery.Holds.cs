@@ -211,6 +211,11 @@ public static partial class ConstructionQuery
     ///   physically left; and <see cref="HeadLimitKind.Unobtainable"/> stands only when what is physically left, ignoring
     ///   set-asides and the grant, cannot move the head and the crafted input's recipe chain is unreachable.</item>
     /// </list>
+    /// D-058 (the Director's ruling of 2026-10-19; <see cref="ContinuesWithinTurn"/>): a head that COMPLETES passes what is
+    /// left of its settlement's capacity to the next entry of its queue, which joins the walk IN THE SAME STEP at its own
+    /// place in the building order and is resolved, labelled and holds like any head (see the loop); the walk's heads are
+    /// therefore the queue heads plus those continuations, still in the building order. Off (TestConfigs.PreContinueWithinTurn):
+    /// one head per settlement, batch 4.
     /// With the hold rule off (<see cref="Reservations.Enabled"/> false — TestConfigs.PreReservations) nothing is set
     /// aside, each head resolves against its Empire's grant less the earlier draws exactly as batch 3 did, and the labels
     /// are batch 3's. The oldest unreleased head of every purse is resolved against the whole starting budget, so a hold
@@ -240,17 +245,24 @@ public static partial class ConstructionQuery
         if (cfg.Goods is not { } goods) return new HoldsWalkResult(on, [], [], [], [], [], []);
         int width = MaxGoodId(goods) + 1;
 
-        // The heads in the building order, each with its purse key (only the one purse when asked).
+        // The heads in the building order, each with its purse key (only the one purse when asked), its order key (the
+        // building order's EnqueuedTurn) and the capacity it is resolved with (null: the settlement's whole capacity this
+        // step — every head that starts the walk; D-058: a promoted entry carries what its queue's completed entries left).
         ConstructionQueueRow[] all = HeadsInBuildingOrder(prev, queue, progress);
         var heads = new List<ConstructionQueueRow>(all.Length);
         var keys = new List<int>(all.Length);
+        var turns = new List<long>(all.Length);
+        var capacities = new List<double?>(all.Length);
         for (int h = 0; h < all.Length; h++)
         {
             int key = PurseKey(prev, cfg, all[h].Settlement);
             if (only is { } k && key != k) continue;
             heads.Add(all[h]);
             keys.Add(key);
+            turns.Add(EnqueuedTurnOf(progress, all[h]));
+            capacities.Add(null);
         }
+        bool chain = ContinuesWithinTurn(cfg);
 
         if (heads.Count == 0) return new HoldsWalkResult(on, [], [], [], [], [], []);   // no head: nothing to walk or copy
 
@@ -293,21 +305,23 @@ public static partial class ConstructionQuery
         var scratch = new Table<GoodStockRow>(stocks.Count);
         for (int i = 0; i < stocks.Count; i++) scratch.Add(stocks[i]);
         var ledger = new Ledger(new Table<LedgerFlowRow>());
-        var result = new HoldsWalkHead[heads.Count];
-        var refs = new QueueEntryRef[heads.Count];
-        for (int h = 0; h < heads.Count; h++) refs[h] = new QueueEntryRef(heads[h].Settlement, heads[h].Slot, heads[h].ProjectId);
+        var result = new List<HoldsWalkHead>(heads.Count);
+        var refs = new List<QueueEntryRef>(heads.Count);
+        for (int h = 0; h < heads.Count; h++) refs.Add(new QueueEntryRef(heads[h].Settlement, heads[h].Slot, heads[h].ProjectId));
 
+        // heads.Count grows while the walk runs (D-058: a promoted entry is inserted at its own order's place, always after h).
         for (int h = 0; h < heads.Count; h++)
         {
             SettlementId at = heads[h].Settlement;
             int k = Array.BinarySearch(purses, keys[h]);
             SettlementId[] holders = PurseHolders(prev, cfg, at);   // = Holders with the rule off: batch 3
             HoldRelease release = ReleaseOf(prev, cfg, heads[h]);
+            ConstructionQueueRow entry = heads[h];
+            double? capacity = capacities[h];
             // ON: the purse's budget (the grant where a split binds, less every earlier draw and set-aside). OFF: batch 3 —
             // the Empire's grant less the earlier draws (null: no cap; the scratch stocks are what is physically left).
             long[]? against = on ? (long[])budget[k].Clone() : (long[]?)grantLeft[k]?.Clone();
-            HeadResolution r = ResolveHeadIn(prev, cfg, at, holders, queue, progress, scratch, dtYears, against, strict)
-                ?? throw new InvalidOperationException("construction: a head of the building order has no queue entry.");
+            HeadResolution r = ResolveEntryIn(prev, cfg, entry, holders, progress, scratch, dtYears, capacity, against, strict);
             var draws = new long[width];
             var holds = new long[width];
             if (r.Project is { } project)
@@ -338,13 +352,13 @@ public static partial class ConstructionQuery
                     // materials-limited, whichever good the budget made bind.
                     if (r.ProgressAfter == r.ProgressBefore)
                     {
-                        HeadResolution physical = ResolveHeadIn(prev, cfg, at, holders, queue, progress, scratch, dtYears, null)!;
+                        HeadResolution physical = ResolveEntryIn(prev, cfg, entry, holders, progress, scratch, dtYears, capacity, null, strict: false);
                         if (physical.Limit == HeadLimitKind.Unobtainable)
                             r = r with { Limit = HeadLimitKind.Unobtainable, LimitGood = physical.LimitGood, Short = physical.Short, HeldForRoads = false };
                         else if (r.Limit == HeadLimitKind.Unobtainable)
                             r = r with { Limit = HeadLimitKind.Materials };   // what is physically left could move it: not structural
                     }
-                    HeadResolution r0 = ResolveHeadIn(prev, cfg, at, holders, queue, progress, scratch, dtYears, grantLeft[k])!;
+                    HeadResolution r0 = ResolveEntryIn(prev, cfg, entry, holders, progress, scratch, dtYears, capacity, grantLeft[k], strict: false);
                     heldForEarlier = r0.ProgressAfter > r.ProgressAfter;
                     heldForRoads = !heldForEarlier && r0.HeldForRoads;
                     r = r with { HeldForRoads = heldForRoads };
@@ -400,10 +414,54 @@ public static partial class ConstructionQuery
                 drawn[k][g] = checked(drawn[k][g] + draws[g]);
                 held[k][g] = checked(held[k][g] + holds[g]);
             }
-            result[h] = new HoldsWalkHead(heads[h], keys[h], release, r, draws, holds, against ?? Unbounded(width), cause,
-                [.. takenBy], holder, ahead);
+            result.Add(new HoldsWalkHead(heads[h], keys[h], release, r, draws, holds, against ?? Unbounded(width), cause,
+                [.. takenBy], holder, ahead));
+
+            // D-058 — ONE AT A TIME, BUT NOT ONE A TURN (the Director's ruling of 2026-10-19). A head that COMPLETES leaves
+            // the rest of its settlement's capacity this step, C − L × (N − p) / N adult-years, to the NEXT entry of the same
+            // queue (the lowest slot above it): it becomes a head IN THIS STEP and is inserted into the walk at its OWN
+            // order's place — the building order's composite integer key (EnqueuedTurn, SettlementId, Slot), never progress
+            // and never a double — so it is resolved against exactly what every older head of its purse drew and set aside,
+            // may spend only what a head in that place may spend, and as a head sets aside its remaining need (it holds in
+            // this step, as a cancel's promoted slot does). Its key is above the completed head's (within one queue, slots
+            // are issued in order-age order), so it always lands after h and every head already walked stays where it was.
+            // Not continued: a project that founds an institution (its host's viability is read on PREV, which cannot
+            // count a founding completed this step — it is the head next step, as before), and an entry the leftover
+            // capacity cannot move by one progress unit (it is not started: the head next step, as before). Switch off
+            // (TestConfigs.PreContinueWithinTurn): the batch-4 walk exactly.
+            if (chain && r.Completes
+                && NextEntryAfter(queue, entry) is { } promoted
+                && goods.ProjectById(promoted.ProjectId) is { } next && !InstitutionContent.FoundsInstitution(next))
+            {
+                double left = (capacity ?? CapacityAdultYears(prev, cfg, at, dtYears)) - r.LaborUsed;
+                if (LabourBound(left, next.LaborRequired, ProgressOf(progress, promoted)) > 0)
+                {
+                    long turn = EnqueuedTurnOf(progress, promoted);
+                    int pos = h + 1;
+                    while (pos < heads.Count && CompareBuildingOrder(turns[pos], heads[pos], turn, promoted) < 0) pos++;
+                    heads.Insert(pos, promoted);
+                    keys.Insert(pos, keys[h]);
+                    turns.Insert(pos, turn);
+                    capacities.Insert(pos, left);
+                    refs.Insert(pos, new QueueEntryRef(promoted.Settlement, promoted.Slot, promoted.ProjectId));
+                }
+            }
         }
-        return new HoldsWalkResult(on, result, purses, holderSets, start, drawn, held);
+        return new HoldsWalkResult(on, [.. result], purses, holderSets, start, drawn, held);
+    }
+
+    /// <summary>D-058: the entry of <paramref name="entry"/>'s settlement queued directly behind it — the lowest slot above
+    /// <paramref name="entry"/>.Slot — or null when it is the last.</summary>
+    private static ConstructionQueueRow? NextEntryAfter(IReadOnlyTable<ConstructionQueueRow> queue, ConstructionQueueRow entry)
+    {
+        int best = -1;
+        for (int i = 0; i < queue.Count; i++)
+        {
+            ConstructionQueueRow row = queue[i];
+            if (row.Settlement != entry.Settlement || row.Slot <= entry.Slot) continue;
+            if (best < 0 || row.Slot < queue[best].Slot) best = i;
+        }
+        return best < 0 ? null : queue[best];
     }
 
     private static long[] Unbounded(int width)
