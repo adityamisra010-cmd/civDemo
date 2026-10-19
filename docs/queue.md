@@ -1587,3 +1587,20 @@
   4. **Related, seen in the same playtest.** Sessions sit flat in one `runs\` folder, while checklist items 19–20 speak
      of "a session directory". A folder per session would make a session one thing to copy, back up or zip. Take it up
      with the same change.
+- **Director, 2026-10-19, same day:** "figure out a code/encryption to reduce the size of telemetry. Make internalized
+  codes. Each turn then becomes one single cell." **Design measured (prototype only, nothing built):**
+  - **Encoding, not encryption:** a codebook sheet (337 rows) plus one coded cell per turn. Field names become
+    positions, id names become their ids, an empty value means the codebook default, and the settlement-shared
+    migration table is written once per turn. Lossless: decoding returns the original line byte for byte.
+  - **Measured (chars per turn; Excel's cell limit is 32,767):**
+    - seed 42, 1 AI, 600 turns: 153,087 median, 190,689 max → 13,127 median, 18,557 max;
+    - seed 7, 2 AI, 300 turns: 161,190 / 214,809 → 13,788 / 17,828;
+    - the Director's own Windows session (68 turns): ~96,000 → 8,877 median, 10,096 max.
+    1,268/1,268 lines round-trip byte-identical; 98 adversarial edge cases pass. The coded cells are smaller than
+    gzip+base64 of the same lines.
+  - **Limit:** the cell grows with settlement count, ≈8.5 K chars per settlement raw and ≈650 coded. Measured break at
+    ≈49 settlements; a 600-turn two-AI game is projected at ≈40 (INFERRED). M6 needs a defined continuation cell for
+    larger worlds.
+  - **For the M6 spec:** export beside the JSONL (the JSONL stays the record); the exporter decodes every cell and
+    refuses on any mismatch; reuse the writer's exact double text; ship the prototype's cells as goldens for the C#
+    port; codebook header "EMPTY never means 0".
