@@ -1558,3 +1558,32 @@
 - **D-057 — partial emitted sessions.** A bare-log `--emit-session` run that ADR-034 refuses mid-run leaves its partial
   directory (manifest, log, forensic, telemetry; no trace). D-057 makes it unresumable when its log names a settlement,
   but the CLI could remove what it wrote, or write to a temporary directory and rename it at the end.
+
+## Dated note — 2026-10-19: M6 agenda — one-file session export (appended at the file's end; the entries above are unchanged)
+
+- **Director, 2026-10-19 (M5 playtest), verbatim:** "we need to change the runs format a bit. Make it all into one
+  single excel sheet if possible. Since both claude and gpt do not accept more than 5 files at a time. Merge it all into
+  one single excel in M6. add this into future agenda". **Milestone: M6** (`docs/milestones.md`, the 2026-10-19 note).
+  Agenda only — nothing is built for it in M5.
+- **Why.** One played session writes six files with one stamp, flat into `runs\` (`UiSession.SessionLogPath`,
+  `UiSession.cs:862`): `orders-*.bin` (binary order log), `session-*.json` (manifest), `trace-*.csv`,
+  `chronicle-*.txt`, `telemetry-*.jsonl` and `forensic-*.jsonl`. A resume whose replay was not checked turn by turn
+  adds `*.as-recorded.*` copies (D-056). That is more files than an assistant takes in one upload.
+- **What is asked.** One `.xlsx` workbook per session holding all of it, one sheet per file: the manifest's fields;
+  the order log decoded to rows (turn, issuer, kind name, target, amount); the trace; the chronicle; the telemetry; the
+  forensic record.
+- **Questions for the M6 spec (not decided here):**
+  1. **Export beside the record, or a new record format.** Resume reads the binary log, the manifest and the trace
+     (D-008, D-052 §13, ADR-034, ADR-042). Replacing them changes the session-record contract and needs an ADR; writing
+     the workbook as an extra file next to the six does not. The upload problem is solved either way, since the one
+     workbook is all that needs uploading.
+  2. **Size.** Telemetry is the large file: measured 546,614 bytes for a 6-turn, 1-AI CLI session (the PT-10 pack,
+     2026-10-19). An Excel sheet holds at most 1,048,576 rows and 32,767 characters per cell, so a long game's
+     telemetry may need splitting across sheets or summarising, and assistants also cap upload size.
+  3. **Where it is written.** Sim.Ui on save or exit, and a CLI command for an existing session directory, including
+     sessions of older readable schemas (v32–v34). Never in Sim.Core (no I/O there; Law 6). Numbers and dates in
+     InvariantCulture. Writing `.xlsx` needs a library (OpenXML SDK, ClosedXML) or hand-written SpreadsheetML; a new
+     dependency needs review.
+  4. **Related, seen in the same playtest.** Sessions sit flat in one `runs\` folder, while checklist items 19–20 speak
+     of "a session directory". A folder per session would make a session one thing to copy, back up or zip. Take it up
+     with the same change.

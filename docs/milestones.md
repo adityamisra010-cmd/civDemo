@@ -37,6 +37,11 @@ section marked itself superseded. Reworded; the meaning is unchanged.)*
 > - The M5 Dependencies items "budget", "authority" and "laws-lite" are deferred out of the M5 playtest build. Their
 >   destination is not yet ruled (D-052 §12).
 
+> **2026-10-19 — Director (M5 playtest).** **M6** also carries a one-file session export: everything a session writes
+> to `runs\` in a single Excel workbook, so that a whole session can be handed to an AI assistant that accepts at most
+> five files. The request, the measured facts and the questions for the M6 spec are in `docs/queue.md` (dated note
+> 2026-10-19).
+
 ### Dependencies
 
 M0 → … → M11+ is the **build order**, but later systems are not isolated layers bolted on top:
