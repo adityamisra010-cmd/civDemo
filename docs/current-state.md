@@ -1,5 +1,14 @@
 # CURRENT STATE — the routing document
 
+> **2026-10-19: D-058 resolves the two CR-020 calibration reds on branch `b5-calib` (LOCAL; NOT pushed, NOT
+> merged).** This is the Director's 2026-10-19 instruction ("CI main test run, full authorization, resolve the issue
+> best you can"), applied as CR-020 §B option 1.
+> - The re-record covers `Dev_MalthusCorridors_AllInBand`'s per-seed recorded dev migration values and its population
+>   envelope.
+> - Test-only: no world hash, golden or CI pin moved.
+> - Record: `docs/d058-calibration-rerecord-d051-regime.md`.
+> - Verify against the tree (gov-4) before relying on this entry.
+
 > **2026-10-18 (later): D-057 continues D-056 on `claude/new-session-yavghm` (LOCAL, development clone
 > `/home/user/m5w/dev`; NOT pushed, NOT merged, NOT published).** Records:
 > - `docs/d057-identity-proof-and-validated-handoff.md` (decisions, compatibility impact, the coupling map, the priority
