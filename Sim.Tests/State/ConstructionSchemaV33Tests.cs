@@ -403,9 +403,16 @@ public class ConstructionSchemaV33Tests
         IncrementalConstructionTests.AllBuilders(w, new SettlementId(0));
         IncrementalConstructionTests.Set(w, new SettlementId(0), IncrementalConstructionTests.Timber, 1000);
         IncrementalConstructionTests.Set(w, new SettlementId(0), IncrementalConstructionTests.Stone, 1000);
+        // D-058 (2026-10-19) CAUSE BLOCK. The Director's "build one at a time … 7 built, 1 under construction, 1 not started"
+        // ruling carries the head's leftover capacity to the queue's next entry in the same step: with the materials and
+        // all builders the second migrated granary (also keyed −1) completes in this step too — MEASURED on this tree: 2
+        // built, the queue empty (was 1 built, one entry left). The batch-4 value is kept under PreContinueWithinTurn.
         WorldState next = IncrementalConstructionTests.ConstructionOnly(TestConfigs.Sim(), null).Step(w);
-        Assert.Equal(1L, ConstructionQuery.Built(next, new SettlementId(0), head.ProjectId) - ConstructionQuery.Built(w, new SettlementId(0), head.ProjectId));
-        Assert.Single(ConstructionQuery.Queue(next, new SettlementId(0)));
+        Assert.Equal(2L, ConstructionQuery.Built(next, new SettlementId(0), head.ProjectId) - ConstructionQuery.Built(w, new SettlementId(0), head.ProjectId));
+        Assert.Empty(ConstructionQuery.Queue(next, new SettlementId(0)));
+        WorldState pre = IncrementalConstructionTests.ConstructionOnly(TestConfigs.PreContinueWithinTurn(TestConfigs.Sim()), null).Step(w);
+        Assert.Equal(1L, ConstructionQuery.Built(pre, new SettlementId(0), head.ProjectId) - ConstructionQuery.Built(w, new SettlementId(0), head.ProjectId));
+        Assert.Single(ConstructionQuery.Queue(pre, new SettlementId(0)));
     }
 
     /// <summary>

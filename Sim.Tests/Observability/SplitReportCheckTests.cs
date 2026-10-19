@@ -204,8 +204,11 @@ public class SplitReportCheckTests
         SplitCheckResult s = SplitReportCheck.Check(scarce, Control(), 120);
         AssertFails("P2", s);
         // T3 round 2: P12 re-walks the heads and names the head that took less than the rule gives it (min(20, 18 - 1) = 17).
-        Assert.Equal(["P2: step 118->119 (polity 1) stone: building work drew 13 and set aside 0, less than its grant G_b = 18 " +
-                      "(D_b = 21): the D-055 walk spends the whole grant",
+        // D-058 (2026-10-19) CAUSE BLOCK: P2's clause is now build + holds = min(G_b, R), R the row's unreleased heads' need
+        // (SplitReportCheck's P2 note: with a completion's leftover capacity carried to the next entry the walk can reach
+        // fewer entries than the claim's), so its message names R; here R = 1 + 20 = 21 ≥ G_b and the verdict is unchanged.
+        Assert.Equal(["P2: step 118->119 (polity 1) stone: building work drew 13 and set aside 0, less than min(its grant G_b = 18, " +
+                      "its heads' need 21) = 18 (D_b = 21): the walk spends the whole grant its heads need",
                       "P12: step 118->119 (polity 1) stone: head s2:0 (enqueued 117) drew 12 and set aside 0, but the D-055 walk gives " +
                       "an unreleased head min(its need, what the heads ahead left) = min(20, 17) = 17"], s.Failures);
         // P4 still has its other binding steps (118 alone dropped out): the existence form never saw the under-spend.
@@ -219,10 +222,34 @@ public class SplitReportCheckTests
             WithGood(a, 117, "timber", g => g with { Holds = g.Holds - 2, ForecastHolds = g.ForecastHolds - 2 }),
             117, 2, 0, "timber", g => g with { Hold = g.Hold - 2 });
         SplitCheckResult n = SplitReportCheck.Check(notScarce, Control(), 120);
-        Assert.Equal(["P2: step 117->118 (polity 1) timber: building work drew 38 and set aside 40, less than its grant G_b = 80 " +
-                      "(D_b = 80): the D-055 walk spends the whole grant",
+        Assert.Equal(["P2: step 117->118 (polity 1) timber: building work drew 38 and set aside 40, less than min(its grant G_b = 80, " +
+                      "its heads' need 80) = 80 (D_b = 80): the walk spends the whole grant its heads need",
                       "P12: step 117->118 (polity 1) timber: head s2:0 (enqueued 117) drew 0 and set aside 38, but the D-055 walk gives " +
                       "an unreleased head min(its need, what the heads ahead left) = min(40, 40) = 40"], n.Failures);
+    }
+
+    /// <summary>
+    /// D-058 (2026-10-19) — P2 AS min(G_b, R). With a completion's leftover capacity carried to the queue's next entry in the
+    /// same step, the walk under the grant can reach fewer entries than the claim's walk on S, so its heads may need less
+    /// than the grant: the step then spends exactly R, their need, and that is not an under-spend. Step 117->118 timber (G_b =
+    /// D_b = 80; s0:0 draws 38 and sets aside 2, s2:0 sets aside 40) doctored so s2:0 needs 5 less and sets aside 5 less
+    /// (R = 75 &lt; G_b): P2 and P12 pass. The same row with the need left at 40 is the under-spend (b) above, and fails.
+    /// </summary>
+    [Fact]
+    public void P2_AStepWhoseHeadsNeedLessThanTheGrant_SpendsTheirNeed_AndPasses()
+    {
+        SplitReportRow[] a = A();
+        SplitReportRow[] lessNeed = WithHeadGood(
+            WithGood(a, 117, "timber", g => g with { Holds = g.Holds - 5, ForecastHolds = g.ForecastHolds - 5 }),
+            117, 2, 0, "timber", g => g with { Hold = g.Hold - 5, Need = g.Need - 5 });
+        SplitCheckResult r = SplitReportCheck.Check(lessNeed, Control(), 120);
+        Assert.False(r.Failed("P2"), string.Join("\n", r.Failures));
+        Assert.False(r.Failed("P12"), string.Join("\n", r.Failures));
+        // One unit short of that need is an under-spend again.
+        SplitReportRow[] under = WithHeadGood(
+            WithGood(a, 117, "timber", g => g with { Holds = g.Holds - 6, ForecastHolds = g.ForecastHolds - 6 }),
+            117, 2, 0, "timber", g => g with { Hold = g.Hold - 6, Need = g.Need - 5 });
+        AssertFails("P2", SplitReportCheck.Check(under, Control(), 120));
     }
 
     [Fact]

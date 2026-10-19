@@ -195,7 +195,7 @@ public static class TestConfigs
     /// still returns them exactly as before.</summary>
     public static SimConfig PreIncrementalConstruction(SimConfig cfg) =>
         cfg.Construction is { } c
-            ? cfg with { Construction = c with { Incremental = false, AllocationRatios = false, Reservations = false } }
+            ? cfg with { Construction = c with { Incremental = false, AllocationRatios = false, Reservations = false, ContinueWithinTurn = false } }
             : cfg;
 
     /// <summary>D-054 WS2 (2026-10-14) — THE BUILDING/ROADS SPLIT SWITCHED OFF: sim.json construction.allocationRatios
@@ -211,9 +211,19 @@ public static class TestConfigs
     /// demand reverts to the heads' draws only, and road development subtracts nothing — the batch-3 rule exactly. A world
     /// stepped under it is batch 3's world plus the empty section-61 count prefix, so its v33 projection
     /// (SchemaProjection.V33) is the batch-3 hash byte for byte: every pin a hold moves is attributed through it. A
-    /// single-layer twin (only the reservations switch changes).</summary>
+    /// single-layer twin (only the reservations switch changes). D-058 (2026-10-19): by the R4 rule (an older layer twin
+    /// strips every newer layer) it also switches off the newer continueWithinTurn layer, so a PreReservations world is
+    /// still batch 3's byte for byte.</summary>
     public static SimConfig PreReservations(SimConfig cfg) =>
-        cfg.Construction is { } c ? cfg with { Construction = c with { Reservations = false } } : cfg;
+        cfg.Construction is { } c ? cfg with { Construction = c with { Reservations = false, ContinueWithinTurn = false } } : cfg;
+
+    /// <summary>D-058 (2026-10-19; the Director's ruling "build one at a time … 7 built, 1 under construction, 1 not
+    /// started") — CONTINUATION WITHIN THE TURN SWITCHED OFF: sim.json construction.continueWithinTurn false, so a completing
+    /// head's leftover capacity never reaches the next entry of its queue in the same step (the promoted entry is a head from
+    /// the NEXT step) — the batch-4 rule exactly. A SINGLE-LAYER twin (only this switch changes): every pin D-058 moves is
+    /// attributed through it.</summary>
+    public static SimConfig PreContinueWithinTurn(SimConfig cfg) =>
+        cfg.Construction is { } c ? cfg with { Construction = c with { ContinueWithinTurn = false } } : cfg;
 
     /// <summary>D-054 (2026-10-14) — THE SIMCONFIG HALF OF THE BATCH OFF: WS1 and WS2 switched off. The worldgen half (the
     /// cylinder, WS3) is <see cref="PreD054Worldgen(WorldgenConfig)"/>: PreD054 is a PAIR, and a control that founds a world

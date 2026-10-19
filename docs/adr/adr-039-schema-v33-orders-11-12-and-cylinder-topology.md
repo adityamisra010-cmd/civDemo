@@ -463,3 +463,20 @@ Appended at the file's end; the text above stays as written (D-054 §10 Q19 is u
 - **§8's "its worlds are founded flat"** is corrected by the 2026-10-16 note above (track T2); it is not repeated here.
 - **§10:** the cross-process coverage gains the allocation leg (D-055 §4), which asserts a non-empty `ConstructionHolds`
   across three processes.
+
+## Note (2026-10-19, D-058) — a turn's construction capacity carries down the queue; what in this ADR it changes
+
+Appended at the file's end; the text above stays as written. Decisions: `docs/d058-build-one-at-a-time-capacity-carries-within-the-turn.md`.
+
+- **The Director's ruling** ("Build one at a time … it should show in the next turn as 7 build, 1 under construction, 1
+  not started"). The v33 tables are unchanged: `ConstructionProgress` rows, their invariant (p in [0, N − 1], one row
+  per entry) and order kinds 11/12 (and D-056's 13). What changes is how many entries one step may move. When a head
+  completes, the settlement's leftover capacity carries its queue's next entry into the same step, at that entry's own
+  place in the building order and under the D-055 set-aside rules. A step can therefore complete several entries of one
+  queue and leave the next part-built. Switch: `sim.json construction.continueWithinTurn` (shipped on; the loader
+  refuses it without `incremental`); control `TestConfigs.PreContinueWithinTurn`.
+- **Schema.** No version, section, row or field change: schema stays v34, IoVersion 1, readable set {32, 33, 34}.
+- **`ConstructionLabor`** (v31) stays one row per settlement; with a continuation it is the sum of what the step's
+  entries used.
+- **Hashes.** Any world in which a completing head has a queued successor and capacity left now differs from the
+  batch-4 world from that step on. No golden of the suite or of ci.yml moved (D-058 §7).

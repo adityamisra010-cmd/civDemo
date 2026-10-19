@@ -1604,3 +1604,5 @@
   - **For the M6 spec:** export beside the JSONL (the JSONL stays the record); the exporter decodes every cell and
     refuses on any mismatch; reuse the writer's exact double text; ship the prototype's cells as goldens for the C#
     port; codebook header "EMPTY never means 0".
+
+- 2026-10-19 (D-058): the construction queue shows no in-turn forecast of how far a continuation (a completed head's leftover capacity carried to the next entry) will get; the result appears after End Turn. A UI estimate line per continued entry would close it.

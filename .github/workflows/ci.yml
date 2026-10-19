@@ -298,6 +298,12 @@ jobs:
           # log holds 275 orders of kinds exactly {3..9, 11, 12}; the player's kind-11 orders stand at 11 and 12 and
           # its kind-12 orders at 40 and 200 — delivered and applied: a save at 40 holds no ResourceAllocations row,
           # one at 41 holds the 30 % row, and the row changes between the saves at 200 and 201 (sim diff).
+          # D-058 (2026-10-19; the Director's "build one at a time" ruling: a step's construction capacity carries past a
+          # completed head to the next entry of its queue). The three turn-10 granaries were all built in step 10 -> 11, so
+          # the turn-11 cancel named nothing (MEASURED: world 12 identical with and without it). The generator now queues
+          # 12 granaries at turn 10 and cancels the LAST, a non-head entry at delivery; Sim.Tests
+          # MixLegConstructionPremiseTests pins that premise in process. The AI stamps and the order count measured above
+          # are batch 3's and are NOT re-measured by D-058 (no assertion of this step reads them).
           python3 scripts/gen-sample-orders.py mix-orders.bin 600 --founded-mix
           $CLI run --founded --seed 42 --turns 600 --ai-empires 1 --orders mix-orders.bin --hash-log ai-a.log --emit-session ai-a
           $CLI run --founded --seed 42 --turns 600 --ai-empires 1 --orders mix-orders.bin --hash-log ai-b.log --emit-session ai-b

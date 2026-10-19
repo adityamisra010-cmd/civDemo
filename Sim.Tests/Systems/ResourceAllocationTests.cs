@@ -919,6 +919,8 @@ public class ResourceAllocationTests
         // before this line was added: the incremental-false rows threw "construction.reservations requires
         // construction.incremental to be true (D-055) …" here. The split's own refusal above is unchanged.
         doc["construction"]!["reservations"] = false;
+        // D-058 (2026-10-19) CAUSE BLOCK: likewise continueWithinTurn, which the loader refuses without incremental (D-058).
+        doc["construction"]!["continueWithinTurn"] = false;
         Assert.False(SimConfigLoader.Load(doc.ToJsonString()).Construction!.AllocationRatios);
         doc["construction"]!["incremental"] = true;
         doc["construction"]!["empireStockpile"] = true;

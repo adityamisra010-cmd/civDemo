@@ -151,7 +151,11 @@ public class AllocationCiLegTests(AllocationScenarioRun run)
         SplitGoodFigures s = run.Row(X).GoodOf(Stone)!;
         Assert.Equal("stone", s.Good);
         Assert.True(s.Build + s.Holds == s.Gb && s.Gb < s.Db, $"step {X}: build {s.Build} + holds {s.Holds} = G_b {s.Gb} < D_b {s.Db}");
-        Assert.Equal((64L, 19L, 40L, 19L, 0L), (s.S, s.Gb, s.Db, s.Build, s.Holds));
+        // D-058 (2026-10-19) RE-PIN: D_b 40 -> 64. Cause: the Director's "build one at a time" ruling — the claim's walk on S
+        // now carries settlement 0's leftover capacity into its slots 1 and 2 in the same step (AllocationScenarioTests'
+        // Stone_ summary; the batch-4 value 40 is reproduced on the PreContinueWithinTurn twin). The step's own spending is
+        // unchanged: G_b = build = 19.
+        Assert.Equal((64L, 19L, 64L, 19L, 0L), (s.S, s.Gb, s.Db, s.Build, s.Holds));
 
         // Two settlements' heads, both ordered at 117, walked in the building order (EnqueuedTurn, SettlementId, Slot):
         // settlement 0's is served, settlement 2's waits although it needs stone.
@@ -167,7 +171,10 @@ public class AllocationCiLegTests(AllocationScenarioRun run)
         // Re-pinned 2026-10-17 (T3 round 2; cause: the granaries queued with the b = 70 order bind under the NEW share at 136).
         // Old list 117 118 119 121 122 128 129 130 132 — reproduced on this build from the round-1 log (t3-out/r2/repin/).
         long[] binding = run.Rows.Where(r => Binding(r) is not null).Select(r => r.Turn).ToArray();
-        Assert.Equal(new long[] { 117, 118, 119, 121, 122, 128, 129, 130, 132, 136 }, binding);
+        // D-058 (2026-10-19) RE-PIN: 120 joins (settlement 2's head, no longer served at 119, claims more than the grant) and
+        // 132 leaves (settlement 2's granaries ordered at 128 completed together at 131). Batch-4 list, reproduced on the
+        // twin: 117 118 119 121 122 128 129 130 132 136.
+        Assert.Equal(new long[] { 117, 118, 119, 120, 121, 122, 128, 129, 130, 136 }, binding);
     }
 
     [Fact]
@@ -177,12 +184,16 @@ public class AllocationCiLegTests(AllocationScenarioRun run)
         SplitGoodFigures y = run.Row(Y).GoodOf(Stone)!;
         Assert.NotEmpty(run.Row(Y).Heads);
         Assert.True(y.Db < y.Eb && y.Road > y.Er, $"step {Y}: D_b {y.Db} < E_b {y.Eb} and road {y.Road} > E_r {y.Er}");
-        Assert.Equal((63L, 18L, 45L, 4L, 58L), (y.S, y.Eb, y.Er, y.Db, y.Road));
+        // D-058 (2026-10-19) RE-PIN: Y moved 120 -> 123 (AllocationScenario.Y). Batch-4 values at 120, reproduced on the twin:
+        // (63, 18, 45, 4, 58).
+        Assert.Equal((67L, 20L, 47L, 7L, 60L), (y.S, y.Eb, y.Er, y.Db, y.Road));
         // Z: road works need less than their share and building work's claim above its own share uses the rest.
         SplitGoodFigures z = run.Row(Z).GoodOf(Stone)!;
         Assert.True(z.Db > z.Eb && z.Dr < z.Er && z.Build + z.Holds > z.Eb,
             $"step {Z}: D_b {z.Db} > E_b {z.Eb}, D_r {z.Dr} < E_r {z.Er}, build + holds {z.Build + z.Holds} > E_b");
-        Assert.Equal((84L, 25L, 59L, 31L, 12L, 72L, 31L), (z.S, z.Eb, z.Er, z.Db, z.Dr, z.Cap, z.Build + z.Holds));
+        // D-058 (2026-10-19) RE-PIN: D_b and build + holds 31 -> 51 (settlement 2's two granaries ordered at 128 complete
+        // together in this step). Batch-4 values, reproduced on the twin: (84, 25, 59, 31, 12, 72, 31).
+        Assert.Equal((84L, 25L, 59L, 51L, 12L, 72L, 51L), (z.S, z.Eb, z.Er, z.Db, z.Dr, z.Cap, z.Build + z.Holds));
         // Both are the FIRST such steps with a head (P5 has no witness before Z).
         Assert.Equal(Z, run.Rows.First(r => r.GoodOf(Stone) is { } g && g.Db > g.Eb && g.Dr < g.Er && g.Build + g.Holds > g.Eb).Turn);
         Assert.Equal(Y, run.Rows.First(r => r.Heads.Length > 0 && r.GoodOf(Stone) is { } g && g.Db < g.Eb && g.Road > g.Er).Turn);
@@ -223,12 +234,20 @@ public class AllocationCiLegTests(AllocationScenarioRun run)
         SplitGoodFigures s = w.GoodOf(Stone)!;
         Assert.True(s.Dr >= s.Er && s.Gb == s.Eb && s.Start == s.Gb, $"step {W}: D_r {s.Dr} >= E_r {s.Er}, G_b {s.Gb} = E_b {s.Eb} = start {s.Start}");
         Assert.True(s.Holds > 0 && s.Holds + s.Build == s.Gb && s.Road >= s.Er, $"step {W}: holds {s.Holds} + build {s.Build} = G_b {s.Gb}; road {s.Road} >= E_r {s.Er}");
-        Assert.Equal((81L, 24L, 57L, 51L, 13L, 11L, 57L), (s.S, s.Eb, s.Er, s.Db, s.Build, s.Holds, s.Road));
+        // D-058 (2026-10-19) RE-PIN: D_b 51 -> 81 (the claim's walk on S continues settlement 0's and 2's queues). Batch-4
+        // values, reproduced on the twin: (81, 24, 57, 51, 13, 11, 57). The step's spending is unchanged.
+        Assert.Equal((81L, 24L, 57L, 81L, 13L, 11L, 57L), (s.S, s.Eb, s.Er, s.Db, s.Build, s.Holds, s.Road));
         // Without the split (the control, the same step) the purse covers the set-aside AND the younger heads: the hold
         // binds here because the split confines building work to its share.
         SplitGoodFigures c = run.ControlRow(W).GoodOf(Stone)!;
-        Assert.Equal((40L, 11L), (c.Build, c.Holds));
-        Assert.Empty(HeldHeads(run.ControlRow(W)));
+        // D-058 (2026-10-19) RE-PIN: the control's build 40 -> 70 (every younger head continues). Batch-4: (40, 11).
+        Assert.Equal((70L, 11L), (c.Build, c.Holds));
+        // D-058 (2026-10-19) RE-PIN — was Assert.Empty: every head that STARTED the control's step still fits in the whole
+        // purse (the 128 heads at settlements 0 and 2 are served), but the Director's "build one at a time" ruling carries
+        // settlement 2's completed head's leftover capacity to its slot 1 in the same step, and THAT continuation — ordered at
+        // 128, behind settlement 4's set-aside — is held for it once the purse runs out (MEASURED: s2:1, 0 -> 500,000). The
+        // batch-4 control had no held head here (AllocationScenarioD058AttributionTests).
+        Assert.Equal(new[] { (2, 1, 128L) }, HeldHeads(run.ControlRow(W)).Select(h => (h.Settlement, h.Slot, h.Enqueued)).ToArray());
     }
 
     [Fact]
@@ -243,12 +262,15 @@ public class AllocationCiLegTests(AllocationScenarioRun run)
         ConstructionProgressRow before = All(run.World(V).ConstructionProgress).Single(r => r.Settlement.Value == Third);
         Assert.Equal((0, 126L, 422_236L), (before.Slot, before.EnqueuedTurn, before.Progress));
         // After it: one entry at settlement 4, the re-enqueued project, keyed by V's stamp turn, at progress 0 — no refund,
-        // no inherited place: it is walked AFTER settlement 2's head ordered at 128, and sets aside only what is left.
+        // no inherited place, and it sets aside only what is left.
         ConstructionProgressRow after = All(run.World(V + 1).ConstructionProgress).Single(r => r.Settlement.Value == Third);
         Assert.Equal((0, Granary, V, 0L), (after.Slot, after.ProjectId, after.EnqueuedTurn, after.Progress));
-        Assert.Equal(new[] { (2, 128L), (Third, V) }, run.Row(V).Heads.Select(h => (h.Settlement, h.Enqueued)).ToArray());
-        Assert.Equal((20L, 0L), (run.Row(V).Heads[0].GoodOf(Stone)!.Draw, run.Row(V).Heads[0].GoodOf(Stone)!.Hold));
-        Assert.Equal((0L, 18L), (run.Row(V).Heads[1].GoodOf(Stone)!.Draw, run.Row(V).Heads[1].GoodOf(Stone)!.Hold));
+        // D-058 (2026-10-19) RE-PIN. Batch 4: it was walked AFTER settlement 2's head ordered at 128, which drew 20, and set
+        // aside the 18 left (reproduced on the PreContinueWithinTurn twin). Under the Director's "build one at a time" ruling
+        // settlement 2's two granaries ordered at 128 completed together in step 131 -> 132, so at V the re-enqueued entry is
+        // the only head and sets aside its whole 20.
+        Assert.Equal(new[] { (Third, V) }, run.Row(V).Heads.Select(h => (h.Settlement, h.Enqueued)).ToArray());
+        Assert.Equal((0L, 20L), (run.Row(V).Heads[0].GoodOf(Stone)!.Draw, run.Row(V).Heads[0].GoodOf(Stone)!.Hold));
     }
 
     [Fact]
@@ -279,7 +301,9 @@ public class AllocationCiLegTests(AllocationScenarioRun run)
         Assert.Equal(run.Row(P).GoodOf(Stone)!.S, run.ControlRow(P).GoodOf(Stone)!.S);
         Assert.All(run.ControlRows, r => Assert.Equal(100, r.BuildingsPercent));
         SplitGoodFigures a = run.Row(X).GoodOf(Stone)!, c = run.ControlRow(X).GoodOf(Stone)!;
-        Assert.Equal((64L, 40L, 0L, 24L), (c.S, c.Build, c.Holds, c.Road));
+        // D-058 (2026-10-19) RE-PIN: the control's build 40 -> 64 and road 24 -> 0 (b = 100: settlement 0's continuations take
+        // the whole purse). Batch-4 values, reproduced on the twin: (64, 40, 0, 24).
+        Assert.Equal((64L, 64L, 0L, 0L), (c.S, c.Build, c.Holds, c.Road));
         Assert.True(c.Build + c.Holds > a.Build + a.Holds, $"step {X}: the control claims {c.Build + c.Holds}, the split run {a.Build + a.Holds}");
         // Its worlds differ from A's from the first step (A's world P+1 holds the b = 30 row).
         Assert.NotEqual(run.Hashes[P + 1], run.ControlHashes[1]);

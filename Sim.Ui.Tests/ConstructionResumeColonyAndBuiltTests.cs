@@ -27,6 +27,8 @@ namespace Sim.Ui.Tests;
 public class ConstructionResumeColonyAndBuiltTests
 {
     private const int Granary = 1;
+    private const int Granaries = 7;                                               // D-058: the colony's order (was 2)
+    private static readonly ConstructionQueueRow Cancelled = new(new SettlementId(Colony), Granaries - 1, Granary);
     private const int FoundTurn = 2, FoundSource = 0, FoundSite = 349391, Colony = 12;
     private const string StartedAt = "2026-10-16 12:00:00";
     private static readonly SettlementId S0 = new(0), S2 = new(2), ColonyId = new(Colony);
@@ -62,7 +64,9 @@ public class ConstructionResumeColonyAndBuiltTests
     }
 
     /// <summary>The colony session at turn 4: colony 12 founded (state 3), two granaries ordered there at turn 3 (the first
-    /// built in that step, the second — slot 1 — waiting at p = 0), and the cancel of slot 1 issued at turn 4 (pending).</summary>
+    /// built in that step, the second — slot 1 — waiting at p = 0), and the cancel of slot 1 issued at turn 4 (pending).
+    /// D-058 (2026-10-19): seven granaries now — five built in step 3 → 4, slot 5 at 200,000, slot 6 at p = 0 — and the cancel
+    /// names slot 6; after it the colony has six granaries and no entry (the method's cause block).</summary>
     private static UiSession ColonySession(string log)
     {
         UiSession live = UiSession.Start(42);
@@ -74,12 +78,17 @@ public class ConstructionResumeColonyAndBuiltTests
         live.Orders.Append(FoundingQuery.FoundOrder(live.World, UiPlayer.Empire, S0, FoundSite));
         live.EndTurn();                                                                                   // 3
         Assert.True(EmpireQuery.ControlsSettlement(live.World, UiPlayer.Empire, ColonyId), "the colony stands at 3");
-        Assert.True(live.EmitConstructionOrder(Colony, Granary));
-        Assert.True(live.EmitConstructionOrder(Colony, Granary));
+        // D-058 (2026-10-19) CAUSE BLOCK — was two granaries, world 4 holding slot 1 at p = 0 behind the one built, and the
+        // cancel of slot 1. Under the Director's "build one at a time … 7 built, 1 under construction, 1 not started" ruling
+        // the colony builds about 5.2 granaries' worth in step 3 → 4 (MEASURED, the CLI's identical founding:
+        // CliConstructionLifecycleTests), so both were built and world 4 held nothing to cancel. Seven give the Director's
+        // shape: five built, slot 5 part-built at 200,000, slot 6 not started — and slot 6 is cancelled.
+        for (int i = 0; i < Granaries; i++) Assert.True(live.EmitConstructionOrder(Colony, Granary));
         live.EndTurn();                                                                                   // 4
-        Assert.Equal([new ConstructionQueueRow(ColonyId, 1, Granary)], ConstructionQuery.Queue(live.World, ColonyId));
-        Assert.Equal(1L, ConstructionQuery.Built(live.World, ColonyId, Granary));
-        Assert.True(live.EmitCancelConstruction(Colony, 1));
+        Assert.Equal([new ConstructionQueueRow(ColonyId, Granaries - 2, Granary), Cancelled], ConstructionQuery.Queue(live.World, ColonyId));
+        Assert.Equal(200_000L, ConstructionQuery.ProgressOf(live.World, new ConstructionQueueRow(ColonyId, Granaries - 2, Granary)));
+        Assert.Equal(5L, ConstructionQuery.Built(live.World, ColonyId, Granary));
+        Assert.True(live.EmitCancelConstruction(Colony, Granaries - 1));
         return live;
     }
 
@@ -99,7 +108,7 @@ public class ConstructionResumeColonyAndBuiltTests
         {
             UiSession live = ColonySession(log);
             // D-056: the emitter's cancel is kind 13, carrying the colony entry's identity (slot 1, the granary, its order turn).
-            OrderRecord cancel = ConstructionQuery.CancelOrder(live.World, UiPlayer.Empire, ColonyId, 1);
+            OrderRecord cancel = ConstructionQuery.CancelOrder(live.World, UiPlayer.Empire, ColonyId, Granaries - 1);
             Assert.Equal((4L, OrderKind.CancelConstructionEntry, Colony), (cancel.Turn, cancel.Kind, cancel.TargetId));
             Assert.Contains(cancel, live.QueuedOrders());
             UiSession resumed = SaveAndResume(live, log);
@@ -118,8 +127,8 @@ public class ConstructionResumeColonyAndBuiltTests
             foreach (UiSession s in new[] { live, resumed, fresh4 })
             {
                 Assert.Empty(ConstructionQuery.Queue(s.World, ColonyId));
-                Assert.Equal(-1, ConstructionQuery.ProgressIndex(s.World.ConstructionProgress, new ConstructionQueueRow(ColonyId, 1, Granary)));
-                Assert.Equal(1L, ConstructionQuery.Built(s.World, ColonyId, Granary));
+                Assert.Equal(-1, ConstructionQuery.ProgressIndex(s.World.ConstructionProgress, Cancelled));
+                Assert.Equal(6L, ConstructionQuery.Built(s.World, ColonyId, Granary));   // D-058: the part-built one completed (was 1)
                 Assert.Equal(WorldHash.ComputeHex(live.World), WorldHash.ComputeHex(s.World));
             }
             live.Save(log);

@@ -26,8 +26,76 @@ public class AllocationScenarioTests(AllocationScenarioRun run)
     private static readonly TimeSpan Limit = TimeSpan.FromMinutes(4);
 
     /// <summary>Stone, every step P..H−1: (b, S, E_b, E_r, D_b, D_r, cap, G_b, build, holds, road). Road works were ordered
-    /// every step (100 % to 125, 1 % from 126); the starvation guard never fired.</summary>
+    /// every step (100 % to 125, 1 % from 126); the starvation guard never fired.
+    /// D-058 (2026-10-19) RE-PIN. Cause: the Director's "build one at a time … 7 built, 1 under construction, 1 not
+    /// started" ruling carries a completing head's leftover capacity to its queue's next entry in the same step. FIRST
+    /// DIFFERING WORLD 119 (MEASURED: worlds 0..118 of this run and of the PreContinueWithinTurn twin are hash-identical):
+    /// in step 118 → 119 settlement 0's first granary completes on its last stone, and its slot 1 — ordered at 117 like
+    /// settlement 2's head, so ahead of it by settlement id — continues in that step and takes the 17 stone the batch-4 rule
+    /// gave settlement 2's head (AllocationScenarioD058AttributionTests pins both sides). D_b, the claim's walk on S, now
+    /// counts the continuations from 117 on. The batch-4 table is <see cref="StoneBatch4"/>, reproduced on the twin.</summary>
     private static readonly (long Turn, int B, long S, long Eb, long Er, long Db, long Dr, long Cap, long Gb, long Build, long Holds, long Road)[] Stone_ =
+    [
+        (116, 30, 4913, 1473, 3440, 0, 4913, 1473, 0, 0, 0, 4913),
+        (117, 30, 64, 19, 45, 64, 63, 19, 19, 19, 0, 45),   // X: the first binding step
+        (118, 30, 61, 18, 43, 61, 61, 18, 18, 18, 0, 43),
+        (119, 30, 66, 19, 47, 66, 66, 19, 19, 19, 0, 47),
+        (120, 30, 63, 18, 45, 63, 63, 18, 18, 18, 0, 45),   // (D-058: was Y) the grant is spent: settlement 2's head is served
+        (121, 30, 67, 20, 47, 46, 67, 20, 20, 20, 0, 47),
+        (122, 30, 66, 19, 47, 26, 66, 19, 19, 19, 0, 47),
+        (123, 30, 67, 20, 47, 7, 67, 20, 7, 7, 0, 60),   // Y (D-058: was 120): building's unused share to road works
+        (124, 30, 68, 20, 48, 0, 68, 20, 0, 0, 0, 68),
+        (125, 30, 67, 20, 47, 0, 67, 20, 0, 0, 0, 67),
+        (126, 30, 70, 21, 49, 20, 70, 21, 20, 9, 11, 50),   // settlement 4's paced head draws 9, sets aside 11
+        (127, 30, 81, 24, 57, 11, 81, 24, 11, 0, 11, 70),
+        (128, 30, 81, 24, 57, 81, 81, 24, 24, 13, 11, 57),   // W: the set-aside binds the younger heads
+        (129, 30, 81, 24, 57, 78, 81, 24, 24, 13, 11, 57),
+        (130, 30, 84, 25, 59, 65, 68, 25, 25, 14, 11, 59),   // from K
+        (131, 30, 84, 25, 59, 51, 12, 72, 51, 40, 11, 12),   // Z: road works' unused share to building work
+        (132, 30, 107, 32, 75, 20, 107, 32, 20, 0, 20, 87),   // V: the cancel releases the 11; the new head sets aside its 20
+        (133, 30, 91, 27, 64, 20, 91, 27, 20, 0, 20, 71),
+        (134, 30, 97, 29, 68, 20, 97, 29, 20, 0, 20, 77),
+        (135, 30, 95, 28, 67, 20, 95, 28, 20, 20, 0, 75),   // settlement 4's builders are back: built
+        (136, 70, 73, 51, 22, 60, 73, 51, 51, 51, 0, 22),   // b = 70 in its delivery step: building work draws E_b = 51
+        (137, 70, 76, 53, 23, 9, 76, 53, 9, 9, 0, 67),
+        (138, 70, 79, 55, 24, 0, 79, 55, 0, 0, 0, 79),
+        (139, 70, 75, 52, 23, 0, 75, 52, 0, 0, 0, 75),
+    ];
+
+    /// <summary>The batch-4 heads of the hold window (D-055), kept as the D-058 attribution twin's pins: (step, [settlement:slot
+    /// enqueued before->after limit | stone draw, hold, cause, holder]).</summary>
+    internal static readonly (long Turn, string[] Heads)[] HeadsBatch4 =
+    [
+        (126, ["4:0 e126 0->418976 None | 9 11 None -"]),
+        (127, ["4:0 e126 418976->422236 None | 0 11 None -"]),
+        (128, ["4:0 e126 422236->422236 Labour | 0 11 None -",
+               "0:0 e128 0->650000 Materials | 13 0 HeldForEarlier 4:0",
+               "2:0 e128 0->0 Materials | 0 0 HeldForEarlier 4:0"]),
+        (129, ["4:0 e126 422236->422236 Labour | 0 11 None -",
+               "0:0 e128 650000->1000000 None | 7 0 None -",
+               "2:0 e128 0->300000 Materials | 6 0 HeldForEarlier 4:0"]),
+        (130, ["4:0 e126 422236->422236 Labour | 0 11 None -",
+               "0:1 e128 0->700000 Materials | 14 0 HeldForEarlier 4:0",
+               "2:0 e128 300000->300000 Materials | 0 0 HeldForEarlier 4:0"]),
+        (131, ["4:0 e126 422236->422236 Labour | 0 11 None -",
+               "0:1 e128 700000->1000000 None | 6 0 None -",
+               "2:0 e128 300000->1000000 None | 14 0 None -"]),
+        (132, ["2:1 e128 0->1000000 None | 20 0 None -",
+               "4:0 e132 0->0 Labour | 0 18 None -"]),
+        (133, ["4:0 e132 0->0 Labour | 0 20 None -"]),
+        (134, ["4:0 e132 0->0 Labour | 0 20 None -"]),
+        (135, ["4:0 e132 0->1000000 None | 20 0 None -"]),
+        // T3 round 2 (2026-10-17): the granaries queued with the b = 70 order, walked in the building order (all stamped
+        // 136: settlement id decides) within the NEW grant 51 — 20, 20, then 11 of settlement 4's 20 (HeldForRoads: the
+        // split's grant, not a set-aside, holds the rest back).
+        (136, ["0:0 e136 0->1000000 None | 20 0 None -",
+               "2:0 e136 0->1000000 None | 20 0 None -",
+               "4:0 e136 0->550000 Materials | 11 0 HeldForRoads -"]),
+        (137, ["4:0 e136 550000->1000000 None | 9 0 None -"]),
+    ];
+
+    /// <summary>The batch-4 stone table (D-055, T3 round 2), kept as the D-058 attribution twin's pins.</summary>
+    internal static readonly (long Turn, int B, long S, long Eb, long Er, long Db, long Dr, long Cap, long Gb, long Build, long Holds, long Road)[] StoneBatch4 =
     [
         (116, 30, 4913, 1473, 3440, 0, 4913, 1473, 0, 0, 0, 4913),   // no head: road works use building's share too
         (117, 30, 64, 19, 45, 40, 63, 19, 19, 19, 0, 45),            // X: the first binding step
@@ -79,7 +147,7 @@ public class AllocationScenarioTests(AllocationScenarioRun run)
     [Fact]
     public void TheHeads_TheirDrawsSetAsidesAndCauses_AreTurnExact_InTheHoldWindow()
     {
-        // (step, [settlement:slot enqueued before->after limit | stone draw, hold, cause, holder])
+        // D-058 (2026-10-19) RE-PIN (cause: Stone_'s summary). The batch-4 list is HeadsBatch4, reproduced on the twin.
         (long Turn, string[] Heads)[] expected =
         [
             (126, ["4:0 e126 0->418976 None | 9 11 None -"]),
@@ -89,21 +157,18 @@ public class AllocationScenarioTests(AllocationScenarioRun run)
                    "2:0 e128 0->0 Materials | 0 0 HeldForEarlier 4:0"]),
             (129, ["4:0 e126 422236->422236 Labour | 0 11 None -",
                    "0:0 e128 650000->1000000 None | 7 0 None -",
-                   "2:0 e128 0->300000 Materials | 6 0 HeldForEarlier 4:0"]),
+                   "0:1 e128 0->300000 Materials | 6 0 HeldForEarlier 4:0",
+                   "2:0 e128 0->0 Materials | 0 0 HeldForEarlier 4:0"]),
             (130, ["4:0 e126 422236->422236 Labour | 0 11 None -",
-                   "0:1 e128 0->700000 Materials | 14 0 HeldForEarlier 4:0",
-                   "2:0 e128 300000->300000 Materials | 0 0 HeldForEarlier 4:0"]),
+                   "0:1 e128 300000->1000000 None | 14 0 None -",
+                   "2:0 e128 0->0 Materials | 0 0 HeldForEarlier 4:0"]),
             (131, ["4:0 e126 422236->422236 Labour | 0 11 None -",
-                   "0:1 e128 700000->1000000 None | 6 0 None -",
-                   "2:0 e128 300000->1000000 None | 14 0 None -"]),
-            (132, ["2:1 e128 0->1000000 None | 20 0 None -",
-                   "4:0 e132 0->0 Labour | 0 18 None -"]),
+                   "2:0 e128 0->1000000 None | 20 0 None -",
+                   "2:1 e128 0->1000000 None | 20 0 None -"]),
+            (132, ["4:0 e132 0->0 Labour | 0 20 None -"]),
             (133, ["4:0 e132 0->0 Labour | 0 20 None -"]),
             (134, ["4:0 e132 0->0 Labour | 0 20 None -"]),
             (135, ["4:0 e132 0->1000000 None | 20 0 None -"]),
-            // T3 round 2 (2026-10-17): the granaries queued with the b = 70 order, walked in the building order (all stamped
-            // 136: settlement id decides) within the NEW grant 51 — 20, 20, then 11 of settlement 4's 20 (HeldForRoads: the
-            // split's grant, not a set-aside, holds the rest back).
             (136, ["0:0 e136 0->1000000 None | 20 0 None -",
                    "2:0 e136 0->1000000 None | 20 0 None -",
                    "4:0 e136 0->550000 Materials | 11 0 HeldForRoads -"]),
@@ -129,10 +194,10 @@ public class AllocationScenarioTests(AllocationScenarioRun run)
             (127, [(Timber, 23), (Stone, 11)]),
             (128, [(Timber, 23), (Stone, 11)]),
             (129, [(Timber, 77), (Stone, 11)]),
-            (130, [(Timber, 51), (Stone, 11)]),
+            (130, [(Timber, 91), (Stone, 11)]),    // D-058 (cause: Stone_'s summary): 51 under the batch-4 rule
             (131, [(Timber, 63), (Stone, 11)]),
             (132, [(Timber, 23), (Stone, 11)]),
-            (133, [(Timber, 40), (Stone, 18)]),
+            (133, [(Timber, 40), (Stone, 20)]),    // D-058: 18 under the batch-4 rule (V's re-enqueued head now holds its whole 20)
             (134, [(Timber, 40), (Stone, 20)]),
             (135, [(Timber, 40), (Stone, 20)]),
             (136, []),
@@ -149,8 +214,11 @@ public class AllocationScenarioTests(AllocationScenarioRun run)
             (127, ["4:0 126 418976"]),
             (128, ["4:0 126 422236"]),
             (129, ["4:0 126 422236", "0:0 128 650000", "0:1 128 0", "2:0 128 0", "2:1 128 0"]),
-            (130, ["4:0 126 422236", "0:1 128 0", "2:0 128 300000", "2:1 128 0"]),
-            (132, ["4:0 126 422236", "2:1 128 0"]),
+            // D-058 (cause: Stone_'s summary): 130 was ["4:0 126 422236", "0:1 128 0", "2:0 128 300000", "2:1 128 0"] and 132
+            // ["4:0 126 422236", "2:1 128 0"] under the batch-4 rule — settlement 0's slot 1 now continues at 129 and settlement
+            // 2's two granaries complete together at 131.
+            (130, ["4:0 126 422236", "0:1 128 300000", "2:0 128 0", "2:1 128 0"]),
+            (132, ["4:0 126 422236"]),
             (133, ["4:0 132 0"]),
             (136, []),
             (137, ["4:0 136 550000"]),             // T3 round 2: the granaries at 0 and 2 completed in step 136 -> 137
@@ -161,7 +229,7 @@ public class AllocationScenarioTests(AllocationScenarioRun run)
                 .Select(r => $"{r.Settlement.Value}:{r.Slot} {r.EnqueuedTurn} {r.Progress}").ToArray());
 
         // The building order's servings, from the Structures table: granaries built at settlements 0, 2 and 4.
-        Assert.Equal((5L, 4L, 0L), Built(run.World(Z + 1)));
+        Assert.Equal((5L, 5L, 0L), Built(run.World(Z + 1)));    // D-058: (5, 4, 0) under the batch-4 rule
         // Re-pinned 2026-10-17 (T3 round 2; cause: the three granaries queued at 136, all built by H). Old value (5, 5, 1),
         // reproduced on this build from the round-1 log (t3-out/r2/repin/).
         Assert.Equal((6L, 6L, 2L), Built(run.World(H)));
@@ -228,8 +296,10 @@ public class AllocationScenarioTests(AllocationScenarioRun run)
         // The judgement the ci.yml step runs on the same pair (`split-check alloc-a.rep --twin alloc-t12.rep --order-at 136:70`).
         SplitCheckResult pt = SplitReportCheck.Check(run.Rows, twin: new SplitTwin(twinRows, Seventy, 70));
         Assert.True(pt.Passed, string.Join("\n", pt.Failures));
+        // D-058 (2026-10-19): the timber E_b was 310121 under the batch-4 rule — the purse's timber at 136 moved by one unit
+        // after the different construction draws of 118..131 (cause: Stone_'s summary). Every stone figure is unchanged.
         Assert.Equal("the kind-12 order at 136 (PT): b 30 -> 70 in step 136->137; building work drew, against the twin without it: " +
-                     "stone 51 vs 21 (E_b 51 vs 21, G_b 51 vs 21), timber 102 vs 42 (E_b 310121 vs 132909, G_b 120 vs 120)", pt.Findings[^1]);
+                     "stone 51 vs 21 (E_b 51 vs 21, G_b 51 vs 21), timber 102 vs 42 (E_b 310122 vs 132909, G_b 120 vs 120)", pt.Findings[^1]);
     }
 
     [Fact]
@@ -287,10 +357,14 @@ public class AllocationScenarioTests(AllocationScenarioRun run)
         // The b = 100 twin from world P: building work is served first and road works get what is left.
         (long Turn, long S, long Db, long Gb, long Build, long Holds, long Road)[] expected =
         [
-            (117, 64, 40, 40, 40, 0, 24),
-            (118, 61, 40, 40, 40, 0, 21),
-            (119, 66, 40, 40, 40, 0, 26),
-            (128, 81, 51, 51, 40, 11, 30),     // the set-aside and both younger heads fit in the whole purse
+            // D-058 (2026-10-19) RE-PIN (cause: Stone_'s summary; the control first differs at world 118 — MEASURED — where
+            // b = 100 lets settlement 0's continuations take the whole purse in step 117 → 118). Batch-4 rows, reproduced on
+            // the twin (AllocationScenarioD058AttributionTests): (117, 64, 40, 40, 40, 0, 24), (118, 61, 40, 40, 40, 0, 21),
+            // (119, 66, 40, 40, 40, 0, 26), (128, 81, 51, 51, 40, 11, 30).
+            (117, 64, 64, 64, 64, 0, 0),
+            (118, 61, 56, 56, 56, 0, 5),
+            (119, 66, 0, 0, 0, 0, 66),         // every granary of window 2 already built: no head
+            (128, 81, 81, 81, 70, 11, 0),      // the set-aside and every younger head fit in the whole purse
         ];
         foreach (var e in expected)
         {

@@ -845,8 +845,9 @@ public static class InfoQuery
         {
             holds = SetAsideQuery.Read(c.W, c.Cfg, c.Q.Queued, c.Q.NextDtYears ?? c.W.Clock.DtYears);
             holdPurse = ConstructionQuery.PurseKey(c.W, c.Cfg, new SettlementId(where));
-            int h = SetAsideQuery.HeadIndexOf(holds.Walk, new SettlementId(where));
-            if (h >= 0 && queued is { } qh && holds.Walk.Heads[h].Entry == qh)
+            // D-058: the queued entry's own place in the walk — its settlement's head, or an entry promoted within the step.
+            int h = queued is { } qe0 ? SetAsideQuery.EntryIndexOf(holds.Walk, qe0) : -1;
+            if (h >= 0)
             {
                 holdBefore = h;
                 aheadMet = SetAsideQuery.Ahead(holds.Walk, h, withDraws: true);

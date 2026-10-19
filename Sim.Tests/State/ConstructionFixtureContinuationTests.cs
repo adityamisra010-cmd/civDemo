@@ -291,7 +291,8 @@ public class ConstructionFixtureContinuationTests
     /// Saved there (v34) and continued on three arms (never saved, Snapshot.Load, SaveFiles.Load): with 13 more stone it
     /// completes in step 41 → 42 drawing exactly Remaining(20, 350,000) = 13 stone and Remaining(40, 350,000) = 26 timber,
     /// keeping −1 until its row is removed; slot 1 (row-less, −1) is then the head, and sets aside its timber from the step
-    /// after (the promoted slot of a completion holds from the NEXT step).
+    /// after (the promoted slot of a completion holds from the NEXT step). D-058 (2026-10-19): with the completion's leftover
+    /// capacity carried to slot 1 in the same step, it sets aside its timber already in the completing step.
     /// </summary>
     [Fact]
     public void V32_A_PartOfTheStone_TheMigratedHeadsFirstProgressAppendsItsRowKeepingMinusOne_AndTheKeySurvivesTheSaveToCompletion()
@@ -312,7 +313,11 @@ public class ConstructionFixtureContinuationTests
             C.Sunk(c[1], Stone) - C.Sunk(t41, Stone), C.Sunk(c[1], Timber) - C.Sunk(t41, Timber)), "completed with exactly the remainder");
         Eq((0, true), (c[1].ConstructionProgress.Count, Queued(c[1], Slot(S0, 1))), "slot 1 heads, row-less");
         Eq(-1L, ConstructionQuery.EnqueuedTurnOf(c[1].ConstructionProgress, Slot(S0, 1)), "slot 1's key");
-        Eq((0L, 0L), (Held(c[1], Timber), Held(c[1], Stone)), "the promoted slot holds nothing in the completing step");
+        // D-058 (2026-10-19) CAUSE BLOCK: was (0, 0), "the promoted slot holds nothing in the completing step". Under the
+        // Director's "build one at a time" ruling slot 0's completion passes its leftover capacity to slot 1 IN THE SAME
+        // STEP: slot 1 is walked as a head there, finds no stone (it draws nothing and stays row-less) and sets aside its 40
+        // timber already in the completing step — MEASURED on this tree: (40, 0). (0, 0) stands under PreContinueWithinTurn.
+        Eq((40L, 0L), (Held(c[1], Timber), Held(c[1], Stone)), "the promoted slot holds its timber in the completing step (D-058)");
         Eq((40L, 0L), (Held(c[2], Timber), Held(c[2], Stone)), "from the next step it sets aside its timber (the purse has no stone)");
         Eq((1L, 0), (ConstructionQuery.Built(c[2], S0, Granary) - ConstructionQuery.Built(t41, S0, Granary), c[2].ConstructionProgress.Count), "slot 1 waits for stone, row-less");
     }
@@ -399,7 +404,11 @@ public class ConstructionFixtureContinuationTests
         WorldState[] c = Arms(V32Arms(), V32Shipped, log, 4);
         long built0 = ConstructionQuery.Built(c[0], S0, Granary);
         Eq((0.0, 0.6), (ShareOf(c[0], S0), ShareOf(c[1], S0)), "the share row, turn-exact");
-        Eq((0L, 1L, 2L, 2L), (ConstructionQuery.Built(c[1], S0, Granary) - built0, ConstructionQuery.Built(c[2], S0, Granary) - built0,
+        // D-058 (2026-10-19) CAUSE BLOCK — was (0, 1, 2, 2): slot 0 in 41 → 42, slot 1 in 42 → 43. Under the Director's
+        // "build one at a time … 7 built, 1 under construction, 1 not started" ruling slot 0's leftover capacity carries slot
+        // 1 forward in the same step and the rich purse completes it: MEASURED on this tree (0, 2, 2, 2) — both in 41 → 42,
+        // still one after the other, each exactly once. (0, 1, 2, 2) stands under TestConfigs.PreContinueWithinTurn.
+        Eq((0L, 2L, 2L, 2L), (ConstructionQuery.Built(c[1], S0, Granary) - built0, ConstructionQuery.Built(c[2], S0, Granary) - built0,
             ConstructionQuery.Built(c[3], S0, Granary) - built0, ConstructionQuery.Built(c[4], S0, Granary) - built0), "built 41..44");
         Eq((40L, 0L, 0L), (Held(c[1], Timber), Held(c[2], Timber), Held(c[3], Timber)), "set aside at 41, then none");
         Eq((false, false), (Queued(c[3], Slot(S0, 0)), Queued(c[3], Slot(S0, 1))), "the queue is empty at 43");
@@ -449,8 +458,13 @@ public class ConstructionFixtureContinuationTests
         Assert.Equal(new[] { (0, -1L, 0L, false), (1, -1L, 0L, false) }, Entries(c[0], S0));
         Assert.Equal(new[] { (1, -1L, 0L, false), (2, 40L, 0L, true) }, Entries(c[1], S0));
         Eq((40L, 20L, 0L), (Held(c[1], Timber), Held(c[1], Stone), ConstructionQuery.Built(c[1], S0, Granary) - built0), "state 41: slot 1's need set aside, nothing built");
-        Assert.Equal(new[] { (2, 40L, 0L, true) }, Entries(c[2], S0));
-        Eq(1L, ConstructionQuery.Built(c[2], S0, Granary) - built0, "state 42: slot 1 built first");
+        // D-058 (2026-10-19) CAUSE BLOCK — was: state 42 holds the new entry (key 40) with slot 1 built first, and the new
+        // entry is built in 42 → 43. Under the Director's "build one at a time" ruling slot 1's leftover capacity carries the
+        // new entry into the same step 41 → 42 — still after slot 1, and still keyed 40 (its own row) — and it completes
+        // there: MEASURED on this tree, state 42 holds no entry and two granaries. The old sequence stands under
+        // TestConfigs.PreContinueWithinTurn.
+        Assert.Empty(Entries(c[2], S0));
+        Eq(2L, ConstructionQuery.Built(c[2], S0, Granary) - built0, "state 42: slot 1 built first, then the re-enqueued granary in the same step");
         Assert.Empty(Entries(c[3], S0));
         Eq(2L, ConstructionQuery.Built(c[3], S0, Granary) - built0, "state 43: the re-enqueued granary built");
         // Control: the kind 3 alone keeps both migrated slots at 41.
@@ -519,7 +533,11 @@ public class ConstructionFixtureContinuationTests
         Eq(((100L, 0L), (100L, 0L)), (split[0], split[1]), "b = 0: (road, building) timber in 40 -> 41 and 41 -> 42");
         Eq((0L, 0L), (ConstructionQuery.ProgressOf(c[2], Slot(S0, 0)), ConstructionQuery.Built(c[2], S0, Granary) - ConstructionQuery.Built(c[0], S0, Granary)), "the migrated heads wait");
         (WorldState[] k, (long Road, long Build)[] control) = SplitRun(V32Arms(), K32, bZero: false);
-        Eq(((60L, 40L), (60L, 40L)), (control[0], control[1]), "control (no row): building first");
+        // D-058 (2026-10-19) CAUSE BLOCK — was ((60, 40), (60, 40)): slot 0 built in 40 → 41 and slot 1 in 41 → 42, 40 timber
+        // each. Under the Director's "build one at a time" ruling slot 0's leftover capacity carries slot 1 into the same
+        // step, so building first takes 80 of the 100 timber in 40 → 41 (both built) and the road the other 20, and in
+        // 41 → 42 nothing is queued and the road takes all 100 — MEASURED on this tree. The b = 0 arm above is unchanged.
+        Eq(((20L, 80L), (100L, 0L)), (control[0], control[1]), "control (no row): building first");
         Eq((0, 2L), (k[2].ResourceAllocations.Count, ConstructionQuery.Built(k[2], S0, Granary) - ConstructionQuery.Built(k[0], S0, Granary)), "control: both migrated granaries built");
     }
 

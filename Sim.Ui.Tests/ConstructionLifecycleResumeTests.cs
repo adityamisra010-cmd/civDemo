@@ -86,7 +86,9 @@ public class ConstructionLifecycleResumeTests
     private static TurnExecutor Twin(bool reservations, OrderLog orders)
     {
         SimConfig c = UiFounding.ProductionConfig();
-        return Production(reservations ? c : c with { Construction = c.Construction! with { Reservations = false } }, orders);
+        // D-058 (2026-10-19) CAUSE BLOCK: TestConfigs.PreReservations now also switches off the newer continueWithinTurn
+        // layer (the R4 rule: the batch-3 rule had no in-step continuation), so the restatement does too.
+        return Production(reservations ? c : c with { Construction = c.Construction! with { Reservations = false, ContinueWithinTurn = false } }, orders);
     }
 
     private static ConstructionQueueRow[] Queue(IReadOnlyWorldState w, SettlementId s) => ConstructionQuery.Queue(w, s);
@@ -276,6 +278,8 @@ public class ConstructionLifecycleResumeTests
     // ================================================================== a head waiting for materials, resumed
 
     /// <summary>
+    /// D-058 (2026-10-19): the figures below are batch 4's; under the Director's "build one at a time" ruling s0's second
+    /// granary is CONTINUED in step 2 → 3 (to 150,000) and s2 waits at 0, held for it, until turn 6 — the body's cause blocks.
     /// A PART-BUILT HEAD WAITING FOR MATERIALS (Δp = 0) ACROSS A RESUME. s0 orders two granaries at turn 0, s2 one at turn
     /// 1; s0's builders go at turn 2. s0's first granary completes in step 2 → 3 and its second (ordered at turn 0, so OLDER
     /// than s2's) heads from step 3 → 4 with no builders: it sets aside its whole 20 stone as the purse fills, and s2 —
@@ -298,10 +302,15 @@ public class ConstructionLifecycleResumeTests
             live.EndTurn();                                                                   // 2
             Assert.True(live.EmitSectorOrders(NoBuilders, S0.Value));
             live.EndTurn();                                                                   // 3
-            Assert.Equal(150_000, P(live.World, S2));
-            Assert.Equal(new[] { (1, 0L, 0L) }, Entries(live.World, S0));                           // s0's second granary heads
+            // D-058 (2026-10-19) CAUSE BLOCK — was: s2 at 150,000 and s0's second granary heading at p = 0 at turn 3. Under the
+            // Director's "build one at a time" ruling s0's first granary completes in step 2 → 3 with builders to spare, so
+            // its second (ordered at turn 0, OLDER than s2's) continues in that same step and takes the stone s2 got under
+            // the batch-4 rule: MEASURED, s0's slot 1 at 150,000 and s2 still at 0 at turn 3. From turn 3 s0 has no builders:
+            // its part-built second granary sets aside what it still needs (17 stone) and s2 waits behind it.
+            Assert.Equal(0, P(live.World, S2));
+            Assert.Equal(new[] { (1, 0L, 150_000L) }, Entries(live.World, S0));                     // s0's second granary heads, part-built
             live.EndTurn();                                                                   // 4
-            Assert.Equal(150_000, P(live.World, S2));                                         // premise: it waited in 3 → 4
+            Assert.Equal(0, P(live.World, S2));                                               // premise: it waited in 3 → 4
 
             UiSession resumed = SaveAndResume(live, log);
             Assert.Empty(resumed.ResumeNotice);
@@ -310,19 +319,21 @@ public class ConstructionLifecycleResumeTests
             live.EndTurn();
             resumed.EndTurn();
             Assert.Equal(WorldHash.ComputeHex(live.World), WorldHash.ComputeHex(resumed.World));
-            Assert.Equal(150_000, P(resumed.World, S2));                                      // Δp = 0 again, after the resume
+            Assert.Equal(0, P(resumed.World, S2));                                            // Δp = 0 again, after the resume
             Assert.Equal(Sunk(at4, stone), Sunk(resumed.World, stone));                        // nothing drawn
             Assert.Equal(17, Held(resumed.World, stone));
             HeadStatusReport s2 = ConstructionQuery.HeadStatus(resumed.World, resumed.Config, S2, null, 10.0)!;
             Assert.Equal((MaterialCause.HeldForEarlier, (QueueEntryRef?)new QueueEntryRef(S0, 1, Granary)), (s2.Cause, s2.Holder));
 
             WorldState pre = Twin(false, resumed.Orders).Step(at4);                            // the binding premise
-            Assert.Equal((1L, 0), (ConstructionQuery.Built(pre, S2, Granary), Queue(pre, S2).Length));
+            // D-058: the premise was "the PreReservations step completes s2's granary"; with s0's continuation having taken s2's
+            // earlier stone, the twin's step takes s2 from 0 to 850,000 (MEASURED) — it moves, where the hold rule keeps it at 0.
+            Assert.Equal((0L, 850_000L), (ConstructionQuery.Built(pre, S2, Granary), P(pre, S2)));
 
             live.EndTurn();
             resumed.EndTurn();
             Assert.Equal(WorldHash.ComputeHex(live.World), WorldHash.ComputeHex(resumed.World));
-            Assert.Equal((500_000L, 20L), (P(resumed.World, S2), Held(resumed.World, stone)));
+            Assert.Equal((500_000L, 17L), (P(resumed.World, S2), Held(resumed.World, stone)));   // D-058: s0's slot 1 needs 17 (was 20)
         }
         finally
         {
@@ -533,7 +544,8 @@ public class ConstructionLifecycleResumeTests
             // use (the legacy arm writes the slot-only order the batch-3 factory wrote), the AI's appended each turn, a trace
             // line per turn in the v33 form.
             SimConfig c = UiFounding.ProductionConfig();
-            SimConfig batch3 = c with { Construction = c.Construction! with { Reservations = false } };
+            // D-058 (2026-10-19) CAUSE BLOCK: the batch-3 rule had no in-step continuation either (ContinueWithinTurn false).
+            SimConfig batch3 = c with { Construction = c.Construction! with { Reservations = false, ContinueWithinTurn = false } };
             WorldState w = UiFounding.Found(42, 256, 4, 1);
             var recorded = new OrderLog();
             TurnExecutor exec = Production(batch3, recorded);

@@ -43,8 +43,10 @@ internal static class AllocationScenario
     /// <summary>The first binding step (the step from turn X): stone build + holds = G_b &lt; D_b.</summary>
     internal const long X = 117;
 
-    /// <summary>Building work's unused share used by road works, with heads in the queue (D_b &lt; E_b, road &gt; E_r).</summary>
-    internal const long Y = 120;
+    /// <summary>Building work's unused share used by road works, with heads in the queue (D_b &lt; E_b, road &gt; E_r). D-058
+    /// (2026-10-19): 123 — was 120, where settlement 2's head now claims more than the grant (the Director's "build one at a
+    /// time" ruling; 120 is reproduced on the PreContinueWithinTurn twin, AllocationScenarioD058AttributionTests).</summary>
+    internal const long Y = 123;
 
     /// <summary>The first head HELD FOR AN EARLIER HEAD (the step from turn W).</summary>
     internal const long W = 128;
@@ -191,7 +193,7 @@ internal static class AllocationScenario
 /// </summary>
 public sealed class AllocationScenarioRun
 {
-    internal SimConfig Cfg { get; } = AllocationScenario.CliConfig();
+    internal SimConfig Cfg { get; }
     internal OrderLog Log { get; } = AllocationScenario.Log(AllocationScenario.Orders());
     internal OrderLog ControlLog { get; } = AllocationScenario.Log(AllocationScenario.Orders(split: false));
 
@@ -225,8 +227,13 @@ public sealed class AllocationScenarioRun
     internal int[] ControlPolityCounts { get; }
     internal int[] ControlSettlementCounts { get; }
 
-    public AllocationScenarioRun()
+    public AllocationScenarioRun() : this(AllocationScenario.CliConfig()) { }
+
+    /// <summary>D-058 (2026-10-19): the same run under another configuration — the attribution twin
+    /// (TestConfigs.PreContinueWithinTurn of the CLI's configuration, <see cref="AllocationScenarioPreD058Run"/>).</summary>
+    internal AllocationScenarioRun(SimConfig cfg)
     {
+        Cfg = cfg;
         const long p = AllocationScenario.P, h = AllocationScenario.H;
         TurnZero = HeadlessFounding.Found(AllocationScenario.Seed);
         OrderValidation.ValidateAgainstWorld(Log, TurnZero);
@@ -319,4 +326,20 @@ public sealed class AllocationScenarioRun
 public sealed class AllocationScenarioCollection : ICollectionFixture<AllocationScenarioRun>
 {
     public const string Name = "S42-ALLOC-H";
+}
+
+/// <summary>
+/// D-058 (2026-10-19) — THE SCENARIO UNDER THE BATCH-4 CONSTRUCTION RULE: the same founding, orders and executor with
+/// sim.json construction.continueWithinTurn switched off (TestConfigs.PreContinueWithinTurn, a single-layer twin), so a
+/// completing head's leftover capacity never reaches its queue's next entry in the same step. Every scenario literal the
+/// Director's "build one at a time" ruling moved is reproduced on it (AllocationScenarioD058AttributionTests).
+/// </summary>
+public sealed class AllocationScenarioPreD058Run() : AllocationScenarioRunHolder(new AllocationScenarioRun(
+    Sim.Tests.TestUtil.TestConfigs.PreContinueWithinTurn(AllocationScenario.CliConfig())));
+
+/// <summary>Holds one <see cref="AllocationScenarioRun"/> built with a non-default configuration (an xUnit fixture needs a
+/// public parameterless constructor).</summary>
+public abstract class AllocationScenarioRunHolder(AllocationScenarioRun run)
+{
+    internal AllocationScenarioRun Run { get; } = run;
 }
