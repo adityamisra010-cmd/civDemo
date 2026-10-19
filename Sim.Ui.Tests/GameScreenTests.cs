@@ -75,11 +75,11 @@ public class GameScreenTests
         // mirrors cannot name different sections.
         Assert.Equal(
             new[] { Section.Place, Section.Empire, Section.Policy, Section.Institutions,
-                    Section.Annals, Section.Trends },
+                    Section.Annals, Section.Resources },
             GameSections.Roster(developer: false).ToArray());
         Assert.Equal(
             new[] { Section.Place, Section.Empire, Section.Policy, Section.Institutions,
-                    Section.Annals, Section.Trends, Section.Developer },
+                    Section.Annals, Section.Resources, Section.Developer },
             GameSections.Order.ToArray());
         for (int digit = 1; digit <= 6; digit++)
             Assert.Equal(GameSections.PlayerOrder[digit - 1], GameSections.ForDigit(digit, developer: false));
@@ -88,12 +88,12 @@ public class GameScreenTests
         Assert.Equal(Section.None, GameSections.ForDigit(0));
         Assert.Equal(Section.None, GameSections.ForDigit(8));
         // A digit OPENS; an unbound digit leaves the state alone; it never closes.
-        Assert.Equal(Section.Trends, GameSections.OnDigit(Section.Policy, 6, developer: false));
+        Assert.Equal(Section.Resources, GameSections.OnDigit(Section.Policy, 6, developer: false));
         Assert.Equal(Section.Policy, GameSections.OnDigit(Section.Policy, 7, developer: false));
         Assert.Equal(Section.Policy, GameSections.OnDigit(Section.Policy, 3, developer: false));
         // Escape closes an open panel and reports that it did; with nothing
         // open it reports nothing closed (the caller's exit path).
-        Assert.Equal((Section.None, true), GameSections.OnEscape(Section.Trends));
+        Assert.Equal((Section.None, true), GameSections.OnEscape(Section.Resources));
         Assert.Equal((Section.None, false), GameSections.OnEscape(Section.None));
     }
 

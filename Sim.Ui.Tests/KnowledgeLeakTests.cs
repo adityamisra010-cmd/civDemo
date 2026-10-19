@@ -1148,7 +1148,7 @@ public partial class KnowledgeLeakTests : IDisposable
         h.Idle(3);
         texts.Add("== Policy, labour record");
         texts.AddRange(h.Ui.FrameText.Texts());
-        Assert.True(h.ClickControl("nav:Trends"));
+        Assert.True(h.ClickControl("nav:Resources"));
         Assert.True(h.ClickControl("trend-place"));
         h.Idle(3);
         texts.Add("== Trends, settlement scope");

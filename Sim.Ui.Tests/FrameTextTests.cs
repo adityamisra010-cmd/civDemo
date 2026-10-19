@@ -155,8 +155,8 @@ public class FrameTextTests : IDisposable
 
         h.ClickControl("nav:Empire");
         Assert.Contains(h.Ui.FrameText.Last, e => e.Surface == FrameSurface.Context && e.Source == FrameTextSource.ImGuiText);
-        h.ClickControl("nav:Trends");
-        Assert.Contains(h.Ui.FrameText.Last, e => e.Surface == FrameSurface.Context && e.Source == FrameTextSource.WidgetLabel && e.Text == "world");
+        h.ClickControl("nav:Resources");
+        Assert.Contains(h.Ui.FrameText.Last, e => e.Surface == FrameSurface.Context && e.Source == FrameTextSource.WidgetLabel && e.Text == "your empire");   // M5 resources view: the scope radio (was "world")
         Assert.Empty(h.Problems);
     }
 
@@ -415,7 +415,7 @@ public class FrameTextTests : IDisposable
         h.ClickControl("labour-record");
         for (int k = 0; k < 20; k++) h.Wheel(h.Ui.ContextRect.X + 100, h.Ui.ContextRect.Y + 300, -3);
         Look("POLICY, labour record open, scrolled");
-        h.ClickControl("nav:Trends");
+        h.ClickControl("nav:Resources");
         h.ClickControl("trend-place");
         Look("TRENDS, settlement scope");
         for (int i = 0; i < h.Ui.TrendMetrics.Count; i++)

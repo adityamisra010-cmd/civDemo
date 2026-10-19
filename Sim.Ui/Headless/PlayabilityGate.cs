@@ -191,6 +191,7 @@ public static partial class PlayabilityGate
                 run.Sweep();
                 if (state.MonkeyInPlacement) run.EnterForMonkey();   // M5 S1d
                 run.Monkey(o.MonkeySteps, o.MonkeySeed);
+                run.AfterMonkey();   // M5 resources view: a strip group the monkey's End Turns filled
                 run.Coverage();
             }
             catch (Exception e)
@@ -590,6 +591,8 @@ public static partial class PlayabilityGate
             CloseEverything();
             Figures();
             CloseEverything();
+            Strip();             // M5 resources view: the resource strip and its hover cards
+            CloseEverything();
             Territory();
             Research();
             CloseEverything();
@@ -630,6 +633,11 @@ public static partial class PlayabilityGate
             CloseEverything();
             NowUsableRows();   // P10: a shortcut the End Turns fired (or the one still offered) is pressed again
             CloseEverything();
+            Strip();           // M5 resources view: a strip group the End Turns filled (stores grow with the turns)
+            CloseEverything();
+            h.ClickControl("nav:Resources");
+            Resources();       // M5 resources view: the stores rows of goods the End Turns brought in
+            CloseEverything();
             if (!_devHadTurn)
             {
                 Developer();
@@ -651,7 +659,7 @@ public static partial class PlayabilityGate
                     return Expect(Ui.OpenSection == section, "open section is " + Ui.OpenSection);
                 });
                 if (section == Section.Annals) Annals();
-                if (section == Section.Trends) Trends();
+                if (section == Section.Resources) Resources();
                 Check("command bar", nav + " (again: closes)", () =>
                 {
                     h.ClickControl(nav);
@@ -680,20 +688,78 @@ public static partial class PlayabilityGate
             });
         }
 
-        private void Trends()
+        /// <summary>M5 resources view: RESOURCES — every stores row (it charts its good), every trend metric, the two scopes.</summary>
+        private void Resources()
         {
+            StoreGood[] shown = Ui.Stores?.Shown ?? [];
+            foreach (StoreGood good in shown)
+            {
+                int id = good.Good;
+                string control = GameUi.StoreRowControl(id);
+                Check("resources", control, () =>
+                {
+                    if (!ClickInContext(control)) return (GateResult.Fail, "stores row not drawn");
+                    bool charted = Ui.TrendIndex >= 0 && Ui.TrendIndex < Ui.TrendMetrics.Count && Ui.TrendMetrics[Ui.TrendIndex].IsStock;
+                    return Expect(Ui.StoreGood == id && charted, "store good " + Ui.StoreGood + ", metric " + Ui.TrendIndex);
+                });
+            }
+            if (shown.Length == 0)
+                Row("resources", "store-<good> (stores row)", GateResult.NotOffered, "the player's settlements hold no goods: the table draws no row");
             for (int i = 0; i < Ui.TrendMetrics.Count; i++)
             {
                 int k = i;
                 string id = "trend-" + k.ToString(CultureInfo.InvariantCulture);
-                Check("trends", id, () =>
+                Check("resources", id, () =>
                 {
-                    if (!h.ClickControl(id)) return (GateResult.Fail, "metric button not drawn");
+                    if (!ClickInContext(id)) return (GateResult.Fail, "metric button not drawn");
                     return Expect(Ui.TrendIndex == k, "trend index " + Ui.TrendIndex);
                 });
             }
-            Check("trends", "trend-place", () => { h.ClickControl("trend-place"); return Expect(!Ui.TrendWorldScope, "scope still world"); });
-            Check("trends", "trend-world", () => { h.ClickControl("trend-world"); return Expect(Ui.TrendWorldScope, "scope still settlement"); });
+            Check("resources", "trend-place", () => { ClickInContext("trend-place"); return Expect(!Ui.TrendEmpireScope, "scope still the empire"); });
+            Check("resources", "trend-empire", () => { ClickInContext("trend-empire"); return Expect(Ui.TrendEmpireScope, "scope still the settlement"); });
+            ScrollContextHome();
+        }
+
+        private bool ClickInContext(string name) => h.ClickInContext(name);
+
+        /// <summary>M5 resources view: after the monkey (its End Turns may fill a strip group no row has pressed), the
+        /// strip's rows once more, with the area suffix " (after the monkey)".</summary>
+        public void AfterMonkey()
+        {
+            _phase = " (after the monkey)";
+            CloseEverything();
+            Strip();
+            CloseEverything();
+            _phase = "";
+        }
+
+        /// <summary>M5 resources view: the status band's resource strip — each group's click opens RESOURCES, and resting
+        /// the pointer on it paints its hover card (the player's own stores only).</summary>
+        private void Strip()
+        {
+            foreach (StoreGroup group in new[] { StoreGroup.Food, StoreGroup.Materials, StoreGroup.Goods })
+            {
+                string control = GameUi.StripControl(group);
+                Check("status band", control, () =>
+                {
+                    CloseEverything();
+                    if (Ui.Stores?.Group(group) is null)
+                        return (GateResult.NotOffered, "the player's settlements hold no " + group.ToString().ToLowerInvariant() + ": the strip draws no such group");
+                    if (!h.ClickControl(control)) return (GateResult.Fail, "not drawn");
+                    return Expect(Ui.OpenSection == Section.Resources, "open section is " + Ui.OpenSection);
+                });
+                Check("status band", control + " (hover card)", () =>
+                {
+                    CloseEverything();
+                    if (Ui.Stores?.Group(group) is null)
+                        return (GateResult.NotOffered, "the player's settlements hold no " + group.ToString().ToLowerInvariant() + ": the strip draws no such group");
+                    if (Ui.Controls.Find(control) is not { } c) return (GateResult.Fail, "not drawn");
+                    h.MoveTo((c.X0 + c.X1) / 2.0, (c.Y0 + c.Y1) / 2.0);
+                    bool shown = Ui.StripHover == group && Ui.StripCardLines.Count > 1;
+                    h.MoveTo(Ui.ContextRect.X - 40, Ui.StatusRect.Y + Ui.StatusRect.Height + 200);
+                    return Expect(shown && Ui.StripHover is null, "hover card " + (shown ? "did not close" : "not painted"));
+                });
+            }
         }
 
         private void Figures()
@@ -1660,27 +1726,7 @@ public static partial class PlayabilityGate
         /// <summary>P6: scrolls the context panel's body (the wheel over it, Shift + wheel sideways — as a player does)
         /// until the first control whose name starts with <paramref name="prefix"/> lies wholly inside the visible body;
         /// null when the panel draws no such control (or it cannot be brought into view).</summary>
-        private UiControl? ScrollToControl(string prefix)
-        {
-            PanelRect p = Ui.ContextRect;
-            double top = ChromeGeometry.ContentTop(new ChromeElement(p, RulePlacement.UnderHeaderRow), ImGuiNET.ImGui.GetFrameHeight(), Ui.Scale) + 2,
-                bottom = p.Y + p.Height - Sim.Ui.Art.UiTheme.WindowPaddingPx.Y * Ui.Scale - 6,
-                left = p.X + 4, right = p.X + p.Width - 20;
-            for (int k = 0; k < 80; k++)
-            {
-                UiControl? found = null;
-                foreach (UiControl c in Ui.Controls.Last)
-                    if (c.Name.StartsWith(prefix, StringComparison.Ordinal)) { found = c; break; }
-                if (found is not { } ctl) return null;
-                if (ctl.Y0 < top || ctl.Y1 > bottom) h.Wheel(p.X + p.Width / 2, p.Y + p.Height / 2, ctl.Y0 < top ? 1 : -1);
-                // Sideways only when too little of it shows to aim at (a full-width row runs past the edge by design:
-                // UiFrameHarness.Aim clicks near its start).
-                else if (ctl.X0 > right - 24) h.WheelWith(p.X + p.Width / 2, p.Y + p.Height / 2, -1, Keys.LeftShift);
-                else if (ctl.X1 < left + 24) h.WheelWith(p.X + p.Width / 2, p.Y + p.Height / 2, 1, Keys.LeftShift);
-                else return ctl;
-            }
-            return null;
-        }
+        private UiControl? ScrollToControl(string prefix) => h.ScrollContextTo(prefix);
 
         /// <summary>P6: scrolls the context panel's body back to its top-left corner.</summary>
         private void ScrollContextHome()
