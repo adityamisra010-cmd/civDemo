@@ -146,3 +146,23 @@ Tests: `ResourcesViewTests` and `KnowledgeLeakTests.Resources.cs`; gate rows in 
   "i should not be able to see other empire's data". The 2026-10-19 audit confirms each one shows a rival's private
   figures, gated only by "known" (`PlayerKnowledge.IsHiddenSettlement`), never by "own"
   (`PolityKnowledge.ReadsInternals`). The fix is recorded in a later dated note.
+
+## 8. Status note — 2026-10-19 (later; dated, §1–§7 unchanged): §6's ruling items are fixed (D-060)
+
+The items §6 recorded for a ruling, and §7 called defects, are fixed on branch `b6-rival` (LOCAL). Record:
+`docs/d060-rival-internals-isolation.md`.
+- **The selection card of a selected rival** shows its name, owner and "Not your settlement - its figures are not known
+  to you." — no population, grain, harvest, happiness or grievance.
+  - Test: `D060_AKnownRivalsBooks_DoNotReachTheSurface_UnderTheProductionView_WhileThePlayersOwnDo` (case L1 selection card).
+  - Test: `D060_TheRealUi_WithAKnownRivalSelected_DrawsItsNameAndOwner_AndNothingOfItsBooks`.
+- **The SETTLEMENT view** (case L2), **the needs panel** (L3), **the market panel** (L4) and **the unit card** (L7 unit
+  card: experience and army only; identity and station stay public): the same Theory, one case each.
+- **The EMPIRE view's trade lines** were audited and are already safe. They list only flows with one end in the
+  player's own settlements, naming the partner. No foreign price, stock or foreign-to-foreign flow is read (D-060 §7,
+  L7b).
+- **Also fixed** (not in §6):
+  - POLICY's labour record of a rival;
+  - the map's Settlement-zoom labels (L7 map projection);
+  - a rival source's founding card (L6);
+  - the ANNALS panel: `D060_TheAnnalsView_…` and `D060_TheStateChronicle_…`.
+- **DEV stays world-wide** by decision; `D060_TheDeveloperView_…` pins it.

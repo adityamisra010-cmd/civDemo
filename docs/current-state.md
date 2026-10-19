@@ -1,5 +1,37 @@
 # CURRENT STATE — the routing document
 
+> **2026-10-19 (latest): D-060 closes a known rival's books on every player surface — branch `b6-rival` (clone
+> `/home/user/m5w/b6-rival`, base `77d8c30`; LOCAL commits only — NOT pushed, NOT merged).**
+> This is the Director's instruction "i should not be able to see other empire's data". It fixes the open defect named
+> in the entry below.
+> - **Record:** `docs/d060-rival-internals-isolation.md`.
+> - **The rule.** Player surfaces now ask `PlayerKnowledge.ReadsInternals`, the UI wrapper over the existing
+>   `PolityKnowledge.ReadsInternals`, instead of "known" alone. They are:
+>   - the selection card;
+>   - the SETTLEMENT view;
+>   - POLICY's labour record;
+>   - the needs and market models;
+>   - the unit card's experience and army;
+>   - the map's Settlement-zoom labels and labour ring;
+>   - the ANNALS panel;
+>   - the founding card.
+>
+>   A rival shows its name, its owner and "Not your settlement - its figures are not known to you."
+> - **Decided scope.**
+>   - The F12 DEV panels stay world-wide, labelled "Developer view - shows every empire.".
+>   - The session files, chronicle export included, are unchanged.
+> - **Evidence.**
+>   - Sim.Ui.Tests: 1,080 / 0 failed.
+>   - Sim.Tests: 2,635 / 0 failed / 13 skipped.
+>   - Release build: 0 warnings.
+>   - Seed-42 one-AI 60-turn hash unchanged, `827d9b00…3878a0`.
+>   - Both smokes: SMOKE PASSED.
+> - **Unchanged.** No Sim.Core system, order, save, schema or hash changed. The one Sim.Core edit is InfoQuery's founding
+>   card, a read-only query.
+> - **Residual.** The drawn token still sizes with a rival's population (public as drawn). A settlement captured from a
+>   rival shows its pre-capture price history. See D-060 §9.
+> - Verify against the tree (gov-4) before relying on this entry.
+
 > **2026-10-19 (later) — status correction; supersedes the "LOCAL", "NOT pushed" and "NOT merged" wording of the D-059
 > and D-058 entries directly below (they are kept as written).**
 > - **Merged and pushed.** D-058 (`b5-cons`), D-059 (`b5-calib`), the resources view (`b5-res`) and the chronicle fix

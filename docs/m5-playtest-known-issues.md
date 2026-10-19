@@ -563,3 +563,30 @@ and §16 it names.
   instruction ("i should not be able to see other empire's data"). The fix is recorded in a later dated note.
 - **Record numbering.** The merge commit `bd33657` calls the calibration re-record "D-058"; it is D-059 (renumbered in
   `6d1988f`).
+
+## Dated note — 2026-10-19 (later): D-060, a known rival's figures are closed on every player surface (branch `b6-rival`, LOCAL)
+
+- **Fixed (test evidence: `Sim.Ui.Tests/KnowledgeLeakTests.Rivals.cs`).** This is the "Open defect at `6d1988f`
+  (rival data)" above. A selected rival settlement — or a free one — now shows only its name and who holds it, plus the
+  line "Not your settlement - its figures are not known to you." on these surfaces:
+  - the selection card;
+  - the SETTLEMENT view;
+  - POLICY's labour record;
+  - the needs and market panels' models.
+
+  The same applies to:
+  - the map's Settlement-zoom labels (no people/dwellings line, size tier, labour caption, labour ring or notables);
+  - a rival formation's card (no experience or army);
+  - a Found Settlement card of a rival source (no party or provisions);
+  - the ANNALS panel: a rival's founding without its figure, and none of its private events.
+
+  The rule is the existing `PolityKnowledge.ReadsInternals`. Record: `docs/d060-rival-internals-isolation.md`.
+- **Unchanged by decision.**
+  - The F12 DEV panels stay world-wide; they now say "Developer view - shows every empire.".
+  - The session files stay world-wide; chronicle-*.txt is byte-identical to before.
+- **Not fixed (residual).**
+  - The drawn map token of a rival still sizes with its population and dwellings: it is public as drawn.
+  - RESOURCES' place-scope price graph of a settlement captured from a rival shows its pre-capture prices.
+- **Human check.** Select a rival settlement (Tab or click). The card shows its name, "Held by the empire of 2" and the
+  not-your-settlement line. SETTLEMENT and POLICY › labour record say the same. Zoom in on it: no people line is drawn
+  under its name.
