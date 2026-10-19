@@ -3,6 +3,10 @@
 **Status: IMPLEMENTED 2026-10-19 on branch `b5-cons` (clone `/home/user/m5w/b5-cons`), LOCAL only — not pushed, not
 merged, not published.** It awaits the Director's acceptance like every packet. Base: `827337e`.
 
+> **Status note — 2026-10-19 (later; supersedes the "LOCAL … not pushed, not merged" status above, which is kept as written):**
+> merged into `claude/new-session-yavghm` at `6d1988f` and pushed to that branch; CI run 39270568141 is green on every
+> required job. Not on `main`. The Director's acceptance is still pending.
+
 ## 1. The ruling (verbatim, 2026-10-19)
 
 > "Build one at a time, so that if 6 can be built and an order of 9 is give, and in that turn, resources are available

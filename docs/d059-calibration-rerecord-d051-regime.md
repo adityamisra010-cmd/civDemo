@@ -6,6 +6,10 @@ supersedes the hold in D-052 §9 / CR-020 §B ("nothing is re-pinned") for the t
 else. CR-020 §B's own recommendation (option 1, re-record) is the resolution adopted. Every number here was MEASURED by
 the agent writing this record, on this branch's base `827337e`, .NET 10.0.112.
 
+> **Status note — 2026-10-19 (later; supersedes the "LOCAL … not pushed, not merged" status above, which is kept as written):**
+> merged into `claude/new-session-yavghm` at `6d1988f` and pushed to that branch; CI run 39270568141 is green on every
+> required job. Not on `main`. The Director's acceptance is still pending.
+
 ## 1. The two red cases (reproduced)
 
 `CalibrationBatteryTests.Dev_MalthusCorridors_AllInBand` (`Sim.Tests/Systems/CalibrationBatteryTests.cs`), dev

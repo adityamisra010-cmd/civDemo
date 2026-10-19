@@ -1,5 +1,21 @@
 # CURRENT STATE — the routing document
 
+> **2026-10-19 (later) — status correction; supersedes the "LOCAL", "NOT pushed" and "NOT merged" wording of the D-059
+> and D-058 entries directly below (they are kept as written).**
+> - **Merged and pushed.** D-058 (`b5-cons`), D-059 (`b5-calib`), the resources view (`b5-res`) and the chronicle fix
+>   (`b5-chron`) are merged into `claude/new-session-yavghm` at `6d1988f27195c1ad30898eb651c4f4fdaa16ca23`, which is
+>   pushed to that branch on GitHub. `main` is unchanged at `93270cd`. Nothing is merged to `main`, tagged or released.
+> - **CI on `6d1988f`** (run 39270568141):
+>   - `build-and-test` success: Sim.Tests 2,635 passed / 0 failed / 13 skipped; Sim.Ui.Tests 1,069 / 1,069;
+>   - `calibration`, `determinism`, `determinism-xproc`: success;
+>   - `calibration-nightly`: skipped (it runs on the schedule only).
+> - **Windows build** (run 39270568128): `ui-artifact` success, artifact `sim-ui-win-x64-6d1988f` (expires
+>   2026-11-18). `windows-smoke` success: 13 states, 3,862 checks, 0 FAIL, SMOKE PASSED, exit 0.
+> - **Human evidence covers build `231485e` only** (PT-01 to PT-03, 2026-10-19). The changes after it are NOT yet
+>   accepted by the Director: D-058, D-059, the resources view, the chronicle fix and `Continue last game.cmd`.
+> - **Open at `6d1988f`:** a selected rival settlement still shows its internals (population, grain, harvest, happiness,
+>   grievance; audit of 2026-10-19). M5 is NOT closed (D-052 §15).
+
 > **2026-10-19: D-059 resolves the two CR-020 calibration reds on branch `b5-calib` (LOCAL; NOT pushed, NOT
 > merged).** This is the Director's 2026-10-19 instruction ("CI main test run, full authorization, resolve the issue
 > best you can"), applied as CR-020 §B option 1.

@@ -548,3 +548,18 @@ and §16 it names.
   one turn now diverges at that turn, and its resume is refused with the incompatibility dialog. The Director's 68-turn
   session of 2026-10-19 is NOT affected: its replay is identical under both rules on all 68 turns.
 - **Still open.** The queue gives no in-turn forecast of how far the continuation will get.
+
+## Dated note — 2026-10-19 (later): status of the 2026-10-19 sections above (appended; the sections above are unchanged)
+
+- **Merged and pushed.** The D1 launcher, the chronicle fix, the resources view (said above to be on branch `b5-res`),
+  D-058 (said above to be fixed LOCALLY on `b5-cons`) and D-059 are all in `claude/new-session-yavghm` at `6d1988f`,
+  pushed to that branch. `main` is unchanged. "Fixed in the next build" (D1) means builds `827337e` and `6d1988f`.
+- **Evidence on `6d1988f`.** CI run 39270568141 is green on every required job. The Windows build
+  `sim-ui-win-x64-6d1988f` passed `windows-smoke` (3,862 checks, 0 FAIL). §2's calibration cases are green in CI.
+- **Not yet played.** None of these changes has been tried by the Director. The human checks are listed in the
+  post-playtest acceptance checklist.
+- **Open defect at `6d1988f` (rival data).** Selecting a rival settlement still shows its internals: the selection card, the
+  SETTLEMENT view, the needs and market panels, and the annals' figures. This is against the Director's 2026-10-19
+  instruction ("i should not be able to see other empire's data"). The fix is recorded in a later dated note.
+- **Record numbering.** The merge commit `bd33657` calls the calibration re-record "D-058"; it is D-059 (renumbered in
+  `6d1988f`).

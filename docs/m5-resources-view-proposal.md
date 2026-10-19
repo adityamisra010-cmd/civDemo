@@ -136,3 +136,13 @@ Tests: `ResourcesViewTests` and `KnowledgeLeakTests.Resources.cs`; gate rows in 
   settlement at a time.
 - **The SETTLEMENT view, the market and needs panels and the unit card** of a selected rival behave the same way.
 - **The EMPIRE view's trade lines** name known foreign partners of the player's own flows.
+
+## 7. Status note — 2026-10-19 (later; dated, §1–§6 unchanged)
+
+- **Merged and pushed** in `claude/new-session-yavghm` at `6d1988f`; not on `main`. The Director has not tried it yet.
+- **§5's construction question is ruled.** D-058 (`docs/d058-build-one-at-a-time-capacity-carries-within-the-turn.md`):
+  one project at a time, with the turn's leftover capacity carried down the queue within the same turn.
+- **§6's "recorded for a ruling" items are defects, not open questions.** The Director's instruction already rules them:
+  "i should not be able to see other empire's data". The 2026-10-19 audit confirms each one shows a rival's private
+  figures, gated only by "known" (`PlayerKnowledge.IsHiddenSettlement`), never by "own"
+  (`PolityKnowledge.ReadsInternals`). The fix is recorded in a later dated note.
