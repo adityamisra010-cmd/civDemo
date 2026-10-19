@@ -1,6 +1,8 @@
 # Resources view — proposal (Director's playtest feedback, 2026-10-19)
 
-**Status: PROPOSAL, awaiting the Director's go-ahead. Nothing is built.**
+**Status: IMPLEMENTED (2026-10-19, branch `b5-res`), UI only.** The Director's go-ahead, verbatim: "yes build resources
+view. Remove the trends thing actually. Or make it my empire specific. i should not be able to see other empire's data.
+trends and resource view get merged into the same view/button." What was built is §6; §1–§5 keep their words as proposed.
 
 ## 1. The feedback
 
@@ -70,3 +72,49 @@ answers "where is my stone?" in one place.
   - (a) keep one-at-a-time and say so on the queue ("builds one project at a time");
   - (b) parallel building split by the Building share;
   - (c) a per-settlement "work crews" count unlocked by research.
+
+## 6. What was built (2026-10-19)
+
+**What TRENDS showed, and what of it was foreign.** TRENDS (bottom bar, key 6) drew one graph. Its metrics were
+population, food, deficit, happiness, grievance per class, inflow, outflow, births, deaths, harvest, eaten, dwellings
+(`TrendsModel.Metrics`, from the observation history) and a price (the `HistoryBuffer`). Its WORLD scope summed (or
+averaged) every settlement the player KNOWS (`TrendsModel.World` with `PlayerKnowledge`). Under the production view —
+all-known until S2a — that is every settlement of every Empire. Its settlement scope and its price graphed whatever
+settlement was selected, a rival's included. So every world-scope series, and any rival selection, showed foreign data.
+
+**Built (Sim.Ui only; no Sim.Core system, order, save or hash changed):**
+
+- **Resource strip** in the status band after FOOD: `Food stores · Materials · Goods`. Each is the empire total of its
+  shown goods with a rising / falling / steady mark (a shape, not a glyph) against the start of last turn. Goods come
+  from goods.json categories (food / raw / processed). A good is shown when the empire holds some now, held some at the
+  start of last turn, or has some set aside. A narrow band drops the settlement count and the Age's name first, then
+  the strip's labels to their first letters. Each group is a control (`strip:Food`, `strip:Materials`, `strip:Goods`)
+  that opens RESOURCES.
+- **Hover card** under a group while the pointer rests on it. Per good it shows the empire total, the change since last
+  turn, the amount set aside for projects (`SetAsideQuery.ViewerTotals`: the player's own purse) and the three largest
+  holding settlements of the player's. It is painted like the info hint (`StoresCard`).
+- **RESOURCES** replaces TRENDS in the same slot and on the same key (6) (`Section.Resources`, button "RESOURCES").
+  - **Stores table:** one row per shown good, with the empire total, the change, the set-aside and one column per
+    settlement of the player's. Under it are the building/roads split's line (exactly where the EMPIRE view shows it)
+    and a note on what "set aside" means.
+  - **Each row is a control** (`store-<good id>`) that charts that good's stores.
+  - **Trend graph, the player's own empire only:** the former metrics plus "stores". Scope is `trend-empire` or
+    `trend-place`; the place scope applies to one of the player's settlements only.
+  - **Own settlements, turn by turn.** The empire series sums a turn's records over the settlements that were the
+    player's on that turn (`UiSession.Ownership`, UI-side, rebuilt by replay). A settlement taken from a rival brings no
+    foreign past.
+  - **Nothing foreign is drawn.** The view's world scope and rival selections are gone, not hidden by a toggle.
+- **"Own" means the control relation** — the places the player's Empire controls (the set `EmpireStockpile.Holders`
+  pools). The totals are `EmpireStockpile.Available` sums.
+- **No `Settlements` row is read**, so the read-isolation allowlist is unchanged.
+- **Counts only:** no "%" in any era.
+
+Tests: `ResourcesViewTests` and `KnowledgeLeakTests.Resources.cs`; gate rows in `docs/m5-playability-gate.md`. Previews:
+`Sim.Ui --resources-preview DIR` writes PNGs of real frames (`FrameRaster`).
+
+**Not changed, recorded for a ruling:**
+
+- The status band's POPULATION and FOOD figures still sum every settlement the player KNOWS (`HudModel.From`), which is
+  every Empire's while all-known. They are not the empire's own.
+- The EMPIRE view's trade lines likewise name known foreign partners.
+
