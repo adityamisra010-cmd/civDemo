@@ -185,4 +185,20 @@ Moved (every one re-pinned with a dated D-058 cause block in place; the batch-4 
 - No UI forecast says how far a continuation will get this turn; the queue shows the result after End Turn.
 - A continuation's label (HeadStatus) is computed but the head line describes only the head.
 - Windows build, GitHub CI and a human playtest were not run. The mix leg's 600-turn AI stamps were not re-measured.
-- Bench and suite figures are in the handoff report.
+
+## 10. Results (MEASURED on this tree, 2026-10-19, Linux; scratch results, not a certification — gov-4 §9)
+
+- `dotnet build -c Release`: 0 warnings, 0 errors. Gates: check-banned-constructs, check-read-isolation and
+  check-readonly-proof all OK.
+- Sim.Tests: 2,643 tests, 2,628 passed, 13 skipped, 2 failed. The two are exactly CR-020's
+  `Dev_MalthusCorridors_AllInBand`: seed 42 8.35755E-05 and seed 7 123,950, the base's values.
+- Sim.Ui.Tests: 1,040 / 1,040.
+- `Sim.Ui --smoke --ai-empires 1 --monkey 300`: SMOKE PASSED — 2,692 checks, 0 FAIL, 0 problems.
+- `sim bench --seed 42 --turns 60 --founded`, three alternating rounds, quiet host (load about 1):
+
+  | Build | Total, ms (3 runs) | Construction phase |
+  |---|---|---|
+  | base `827337e` | 7,482 / 7,174 / 6,999 | 12–17 ms, 31,400 B |
+  | this tree | 7,022 / 7,113 / 6,780 | 12.6–12.7 ms, 35,240 B |
+
+  There is no measurable time change. The construction phase allocates 3,840 B more over 60 turns (the walk's lists).
