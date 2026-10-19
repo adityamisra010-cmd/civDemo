@@ -23,6 +23,12 @@ cancel_target below); the legacy slot-only kind 11 is no longer written, and a b
 log carrying one is refused by every CLI runner. The first granary completes in step 10->11
 (measured on the seed-42 world), so at the turn-11 cancel's delivery slot 1 is the head
 and slot 2 is a genuine NON-HEAD entry (a cancel of slot 1 would have removed the head).
+D-058 (2026-10-19; the Director's "build one at a time ... 7 built, 1 under construction,
+1 not started" ruling): one step now builds as many granaries as its capacity and the
+purse allow, so the three were all built in step 10->11 and the turn-11 cancel named
+nothing (measured). The log now queues MIX_GRANARIES (12) at turn 10 and the turn-11
+cancel names the LAST of them, a non-head entry at delivery -- pinned in process by
+Sim.Tests MixLegConstructionPremiseTests.
 D-054 WS2: SetResourceAllocation (kind 12) by the player for itself (TargetId 1):
 building 30 shares in 100 at turn 40, 70 at turn 200 (when the run reaches them) --
 the standing split is upserted and recomputed every step from then on.
@@ -69,6 +75,8 @@ def cancel_target(slot, project, enqueued_turn):
     return slot + (1 << 18) * (project + (1 << 16) * (enqueued_turn + 1))   # an exact int; "<qiiid" packs it as a double
 
 
+MIX_GRANARIES = 12  # D-058: --founded-mix's turn-10 granaries (keep in step with MixLegConstructionPremiseTests)
+
 argv = sys.argv[1:]
 drop = None
 if "--drop" in argv:  # --drop TURN:KIND (batch 4: the --allocation twins)
@@ -103,10 +111,11 @@ elif mix:
     for turn in range(0, max_turn, 20):
         records.append((turn, 1, 3, (0 << 3) | 4, [10.0, 30.0, 20.0][(turn // 20) % 3]))
         if turn <= 10 < turn + 20:
-            records.append((10, 1, 4, 0, 1.0))
-            records.append((10, 1, 4, 0, 1.0))    # D-054 WS1: a second granary, slot 1
-            records.append((10, 1, 4, 0, 1.0))    # and a third, slot 2
-            records.append((11, 1, 13, 0, cancel_target(2, 1, 10)))   # kind 13: slot 2 -- non-head at delivery (slot 1 is head then)
+            # D-054 WS1: granaries queue behind the first. D-058 (2026-10-19): MIX_GRANARIES of them (was 3) -- one step now
+            # builds as many as its capacity and materials allow, so the turn-11 cancel of the LAST slot is a non-head entry
+            # only behind enough of them (Sim.Tests MixLegConstructionPremiseTests pins it).
+            records += [(10, 1, 4, 0, 1.0)] * MIX_GRANARIES
+            records.append((11, 1, 13, 0, cancel_target(MIX_GRANARIES - 1, 1, 10)))   # kind 13: the last slot -- non-head at delivery
             records.append((12, 1, 13, 0, cancel_target(7, 1, 12)))   # kind 13: no such entry -- ignored at delivery
         if turn <= 150 < turn + 20:
             records.append((150, 1, 6, -1, 0.0))
