@@ -130,12 +130,16 @@ public static class ScreenModels
             sector => labels[sector]);
     }
 
-    /// <summary>The POLICY section's labour record for the selection. P7 review: a settlement the session's
+    /// <summary>The POLICY section's labour record for the selection. D-060: a settlement whose books the player may not read
+    /// (<see cref="PlayerKnowledge.ReadsInternals"/>) reads as no selection. P7 review: a settlement the session's
     /// <see cref="PlayerKnowledge"/> hides reads as no selection (id −1: no policy state, no change).</summary>
     public static PolicyView Policy(UiSession session, int selected)
     {
         ArgumentNullException.ThrowIfNull(session);
         if (session.Knowledge.IsHiddenSettlement(selected)) selected = -1;
+        // D-060: the labour record (declared vs effective shares, their history) is the settlement's books — POLICY is a
+        // player surface, so a known rival's record reads as no selection too.
+        if (selected >= 0 && session.Knowledge.KnowsSettlement(selected) && !session.Knowledge.ReadsInternals(selected)) selected = -1;
         IObservationHistory history = session.Observations;
         return new PolicyView(
             PolicyHistoryModel.CurrentLines(PolicyHistoryModel.Latest(history.PolicyStates, selected)),

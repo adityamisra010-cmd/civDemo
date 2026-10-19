@@ -1563,16 +1563,24 @@ public static class InfoQuery
         b.Action = action;
 
         bool mine = EmpireQuery.ControlsSettlement(c.W, c.P, id);
+        // D-060: the party and its provisions are figures of the source's BOOKS (its people, its grain store) — read only
+        // where the viewer may read them (PolityKnowledge.ReadsInternals); another empire's source names neither.
+        bool books = c.K.ReadsInternals(id);
         long party = 0, provisions = 0;
-        FoundingVerdict departure = FoundingQuery.Departure(c.W.Buckets, c.W.GoodStocks, c.Cfg, id, null, out party);
-        if (c.Cfg.Goods is { } goods) provisions = FoundingQuery.ProvisionsShare(c.W.GoodStocks, c.W.Buckets, id, new GoodId(goods.GrainId), party);
+        FoundingVerdict departure = books ? FoundingQuery.Departure(c.W.Buckets, c.W.GoodStocks, c.Cfg, id, null, out party) : FoundingVerdict.NotControlled;
+        if (books && c.Cfg.Goods is { } goods) provisions = FoundingQuery.ProvisionsShare(c.W.GoodStocks, c.W.Buckets, id, new GoodId(goods.GrainId), party);
         bool queued = c.Q.Queued is { } q && AvailableActionsQuery.FoundingQueued(q, c.P, id);
         string grain = GoodName(c.Cfg.Goods, c.Cfg.Goods?.GrainId ?? -1);
         b.Requirements.Add(new InfoLink(from + " is yours", null, mine));
-        b.Requirements.Add(new InfoLink("A party: " + N0(party) + " people would leave", null, mine ? party >= 1 : null,
-            "FoundingQuery.AllocateParty: " + Pct(FoundingQuery.PartyFraction(c.Cfg)) + " of the source's people, every group keeping one."));
-        b.Requirements.Add(new InfoLink("Provisions: " + N0(provisions) + " " + grain + " would go with them", null, mine && party >= 1 ? provisions >= 1 : null,
-            "FoundingQuery.ProvisionsShare: the party's per-head share of the source's grain store."));
+        if (books)
+        {
+            b.Requirements.Add(new InfoLink("A party: " + N0(party) + " people would leave", null, mine ? party >= 1 : null,
+                "FoundingQuery.AllocateParty: " + Pct(FoundingQuery.PartyFraction(c.Cfg)) + " of the source's people, every group keeping one."));
+            b.Requirements.Add(new InfoLink("Provisions: " + N0(provisions) + " " + grain + " would go with them", null, mine && party >= 1 ? provisions >= 1 : null,
+                "FoundingQuery.ProvisionsShare: the party's per-head share of the source's grain store."));
+        }
+        else b.Requirements.Add(new InfoLink("A party and its provisions: not known to you", null, null,
+            from + "'s people and grain store are its own empire's books."));
         b.Requirements.Add(new InfoLink("The place: chosen on the map", null, null,
             "Each place's card judges the rest - on the map, land, at or above the siting floor, no settlement there or too near, in no catchment, a land route from " + from + "."));
 

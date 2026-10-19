@@ -36,9 +36,15 @@ public sealed class StateChronicle
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
 
     /// <summary>Appends to <paramref name="annals"/> the events of the step <paramref name="prev"/> → <paramref name="next"/>
-    /// that <paramref name="knowledge"/> admits (null: every event).</summary>
+    /// that <paramref name="knowledge"/> admits (null: every event).
+    /// D-060: with <paramref name="playerBooks"/> (the in-game ANNALS view; UiSession's session record passes false), an
+    /// event that tells another empire's BOOKS is left out — a rival's tax levy, an institution maturing, a merchant class
+    /// emerging or a segment rising or subsiding at a settlement whose books the player may not read
+    /// (<see cref="PlayerKnowledge.ReadsInternals"/>). Its PUBLIC events stay: an Age entered (the banner on the map), a
+    /// road built, a structure completed and an institution founded (each drawn on the map), a change of ruler, a
+    /// re-equipment of formations the player knows.</summary>
     public void Observe(IReadOnlyWorldState prev, IReadOnlyWorldState next, SimConfig cfg, Func<int, string> name, List<string> annals,
-        PlayerKnowledge? knowledge = null)
+        PlayerKnowledge? knowledge = null, bool playerBooks = false)
     {
         ArgumentNullException.ThrowIfNull(prev);
         ArgumentNullException.ThrowIfNull(next);
@@ -48,6 +54,10 @@ public sealed class StateChronicle
         // P7: the subjects an event names must all be known to the player.
         bool S(SettlementId s) => knowledge is null || !knowledge.IsHiddenSettlement(s.Value);
         bool P(PolityId p) => knowledge is null || knowledge.KnowsPolity(p.Value);
+        // D-060: the books of a settlement / a polity's own policy, told only in the player's view when they are its own.
+        PlayerKnowledge? reader = playerBooks ? knowledge ?? PlayerKnowledge.Of(next) : null;
+        bool Books(SettlementId s) => reader is null || reader.ReadsInternals(s.Value);
+        bool OwnPolicy(PolityId p) => reader is null || p.Value == reader.Player.Value;
 
         for (int pi = 0; pi < next.Polities.Count; pi++)
         {
@@ -69,7 +79,8 @@ public sealed class StateChronicle
                 if (a1 != a0)
                     annals.Add(y + Polity(p) + " entered the " + AgeName(ages, a1) + " age.");
             }
-            // Tax levy changed.
+            // Tax levy changed (D-060: a rival's levy is its own policy — not told in the player's view).
+            if (!OwnPolicy(p)) continue;
             double r0 = Governance.HasPolicy(prev, p) ? Governance.NominalTaxRate(prev, p) : 0.0;
             double r1 = Governance.HasPolicy(next, p) ? Governance.NominalTaxRate(next, p) : 0.0;
             if (r1 != r0)
@@ -115,7 +126,7 @@ public sealed class StateChronicle
             for (int k = 0; k < prev.Institutions.Count; k++) if (prev.Institutions[k].Id == row.Id) { at = k; break; }
             if (at < 0)
                 annals.Add(y + "the " + type + " was founded at " + name(row.Settlement.Value) + ".");
-            else if (InstitutionsQuery.Stage(cfg, row.Maturity) == InstitutionLifecycle.Mature
+            else if (Books(row.Settlement) && InstitutionsQuery.Stage(cfg, row.Maturity) == InstitutionLifecycle.Mature
                      && InstitutionsQuery.Stage(cfg, prev.Institutions[at].Maturity) != InstitutionLifecycle.Mature)
                 annals.Add(y + "the " + type + " at " + name(row.Settlement.Value) + " came to maturity.");
         }
@@ -135,6 +146,7 @@ public sealed class StateChronicle
                 annals.Add(y + name(s.Value) + (has
                     ? " passed from " + Polity(was) + " to " + Polity(now) + "."
                     : " rose up and threw off the rule of " + Polity(was) + "."));
+            if (!Books(s)) continue;   // D-060: its classes and their risings are its books
             if (merchant >= 0 && ClassCount(prev, s, merchant) == 0 && ClassCount(next, s, merchant) > 0)
                 annals.Add(y + "a merchant class emerged in " + name(s.Value) + ".");
 

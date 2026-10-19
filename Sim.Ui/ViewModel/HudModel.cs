@@ -40,7 +40,11 @@ public sealed record HudModel(
     // the selection card's happiness (SettlementHappiness.Of, the public
     // reader, when a config is given; NaN otherwise — "—", never a fabricated
     // score).
-    long WorldFood = 0, double Happiness = double.NaN)
+    long WorldFood = 0, double Happiness = double.NaN,
+    // D-060: whether the player may read the selected settlement's books (PlayerKnowledge.ReadsInternals). False for a
+    // known settlement the player does not rule: the selection card then shows its public identity (TitleLine,
+    // OwnerLine) and PlayerKnowledge.NotYoursLine, and every figure above is left at its zero — never read.
+    bool ReadsInternals = true, string OwnerLine = "")
 {
     /// <summary>Builds the HUD for one selected settlement. An id not present
     /// in the world (or an empty world) yields the zeros the panel can render
@@ -61,9 +65,14 @@ public sealed record HudModel(
         PlayerKnowledge known = knowledge ?? PlayerKnowledge.Of(world);
         if (known.IsHiddenSettlement(selectedSettlementId)) { selectedSettlementId = -1; settlementName = null; }   // P7: as if none
         var selected = new SettlementId(selectedSettlementId);
-        bool exists = false;
+        bool stands = false;
         for (int i = 0; i < world.Settlements.Count; i++)
-            if (world.Settlements[i].Id == selected) { exists = true; break; }
+            if (world.Settlements[i].Id == selected) { stands = true; break; }
+        // D-060: a known settlement the player does not rule keeps its public identity (the name, who holds it) and its
+        // books stay closed — no row of its people, stocks, labour, needs, grievance or happiness is read below.
+        bool books = !stands || known.ReadsInternals(selectedSettlementId);
+        bool exists = stands && books;
+        string ownerLine = !stands ? "" : OwnerWords(world, selected, known.Player);
 
         long children = 0, adults = 0, elders = 0, food = 0, lastHarvest = 0;
         // Never-ordered default: all farming (Sectors.Default), so the HUD
@@ -175,8 +184,21 @@ public sealed record HudModel(
             GrievanceValue: grievance,
             SettlementName: settlementName,
             WorldFood: worldFood,
-            Happiness: happiness);
+            Happiness: happiness,
+            ReadsInternals: books,
+            OwnerLine: ownerLine);
     }
+
+    /// <summary>D-060: who holds settlement <paramref name="id"/> in the player's words — public identity (the territory
+    /// the map draws says the same). "Yours", "Held by the empire of N" or "Free people, under no empire".</summary>
+    public static string OwnerWords(IReadOnlyWorldState world, SettlementId id, PolityId player) =>
+        !EmpireQuery.TryGetController(world, id, out PolityId owner) ? "Free people, under no empire"
+        : owner.Value == player.Value ? "Yours"
+        : "Held by " + StateChronicle.Polity(owner);
+
+    /// <summary>D-060: the selection card's rows when <see cref="ReadsInternals"/> is false — public identity and the
+    /// closed-books line, no figure.</summary>
+    public IReadOnlyList<string> ClosedBooksLines => [OwnerLine, PlayerKnowledge.NotYoursLine];
 
     /// <summary>T4.19 lane B: the status band's clickable figures, split so
     /// each can be a Selectable of its own — the population figure routes to

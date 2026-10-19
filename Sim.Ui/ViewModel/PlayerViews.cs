@@ -176,6 +176,17 @@ public static class PlayerViews
             : "held by empire " + owner.Value.ToString(CultureInfo.InvariantCulture);
         string title = name(settlementId);
 
+        // D-060 (the Director, 2026-10-19: "i should not be able to see other empire's data"): a known settlement the player
+        // does not rule shows its PUBLIC identity — its name (the title), who holds it (the subtitle) — and the formations
+        // the player knows to stand there (each also drawn on the map), and nothing of its books: no people, food, housing,
+        // happiness, migration, labour, structures, queue or institutions block is built, so none of those rows is read.
+        if (!known.ReadsInternals(settlementId))
+            return new PlayerView(title,
+            [
+                new ViewBlock("", new ViewLine[] { PlayerKnowledge.NotYoursLine }),
+                Units(world, cfg, id, name, player, density, known),
+            ]) { Subtitle = ownerWord };
+
         var blocks = new List<ViewBlock>
         {
             People(world, record, id, density),
@@ -369,9 +380,11 @@ public static class PlayerViews
                 if (known.IsHiddenSettlement(a.Settlement)) continue;   // P7: the comparison names known places only
                 if (a.Value > best || (a.Value == best && a.Settlement < bestId)) { best = a.Value; bestId = a.Settlement; }
             }
+            // D-060: the other place's reading is computed from ITS books — named, never figured, when they are closed.
             if (bestId != int.MaxValue)
                 lines.Add(m.PullAttractiveness >= best
                     ? "This is the most attractive place to live nearby, so it draws people."
+                    : !known.ReadsInternals(bestId) ? name(bestId) + " looks more attractive, which draws people away."
                     : Fig(density, name(bestId) + " looks more attractive, which draws people away",
                         F2(best) + " against " + F2(m.PullAttractiveness)));
         }
@@ -481,8 +494,10 @@ public static class PlayerViews
             subjects.Add(InfoSubject.OfFormation(u.Id));
             string unit = fam?.IdentityByKey(u.Identity)?.Name ?? fam?.FamilyByKey(u.Family)?.Name ?? "Formation";
             string whose = u.Owner.Value == player.Value ? "Your" : "The empire of " + u.Owner.Value.ToString(CultureInfo.InvariantCulture) + "'s";
-            lines.Add(Fig(density, whose + " " + unit + " is stationed here",
-                "experience " + u.Experience.ToString("0.0", CultureInfo.InvariantCulture)));
+            // D-060: a formation's recorded experience is its owner's books — a rival's formation is named, never figured.
+            lines.Add(u.Owner.Value == player.Value
+                ? Fig(density, whose + " " + unit + " is stationed here", "experience " + u.Experience.ToString("0.0", CultureInfo.InvariantCulture))
+                : whose + " " + unit + " is stationed here");
         }
         if (lines.Count == 0) lines.Add("No formations are stationed here.");
         return new ViewBlock("Units", lines, subjects);

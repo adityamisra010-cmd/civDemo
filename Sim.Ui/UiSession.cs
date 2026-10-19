@@ -30,6 +30,9 @@ public sealed class UiSession
     private readonly Sim.Core.Chronicle.ChronicleConfig _chronicleCfg;
     private readonly Sim.Core.Chronicle.ChronicleCollector _chronicle;
     private readonly List<string> _annals = [];
+    // D-060: the in-game ANNALS view — _annals with another empire's books left out (UiSession.PlayerAnnal). The session
+    // record (ExportChronicle, chronicle-*.txt) stays _annals: the scope decision keeps the session files world-wide.
+    private readonly List<string> _playerAnnals = [];
     private int _renderedEvents;
     // Item 3: the annal events the Sim.Core chronicle does not detect, derived UI-side from (prev, next).
     private readonly ViewModel.StateChronicle _events = new();
@@ -38,8 +41,13 @@ public sealed class UiSession
     /// registry, never sim rows).</summary>
     public Sim.Core.Chronicle.NameRegistry Names { get; private set; }
 
-    /// <summary>The annals, oldest first (the panel renders newest LAST).</summary>
-    public IReadOnlyList<string> AnnalLines => _annals;
+    /// <summary>The annals AS THE PLAYER READS THEM (the ANNALS panel), oldest first (the panel renders newest LAST).
+    /// D-060: another empire's private figures are not told here — see <see cref="PlayerAnnal"/>.</summary>
+    public IReadOnlyList<string> AnnalLines => _playerAnnals;
+
+    /// <summary>D-060: the annals of the SESSION RECORD — what <see cref="ExportChronicle"/> writes to chronicle-*.txt,
+    /// world-wide (subject to P7's hidden-settlement filter only), as before D-060.</summary>
+    public IReadOnlyList<string> RecordAnnalLines => _annals;
 
     // THE SESSION RECORD (T4.17). The seed and overrides are kept because a
     // session log without them is UNREPLAYABLE — the world cannot be rebuilt,
@@ -225,9 +233,30 @@ public sealed class UiSession
             // P7: the annals are filtered by SUBJECT — an event at a settlement the player does not know is never told.
             // The collector itself still observes every settlement (its tracking state is the same with or without fog).
             if (!AdmitsAnnal(Knowledge, _chronicle.Events[_renderedEvents])) continue;
-            _annals.Add(Sim.Core.Chronicle.ChronicleProse.Render(
-                _chronicle.Events[_renderedEvents], _chronicleCfg, Names));
+            string line = Sim.Core.Chronicle.ChronicleProse.Render(_chronicle.Events[_renderedEvents], _chronicleCfg, Names);
+            _annals.Add(line);
+            if (PlayerAnnal(Knowledge, _chronicle.Events[_renderedEvents], line, Names.Name) is { } told) _playerAnnals.Add(told);
         }
+    }
+
+    /// <summary>
+    /// D-060 — a core chronicle event AS THE PLAYER READS IT. Every core event carries a figure of its settlement's books
+    /// (a founding's people, a famine's shortfall share and deaths, an extinction's last people, the artisans' count, a
+    /// migration's count and share, a disaster's loss, a shortfall's share and years). At a settlement whose books the
+    /// player reads (<see cref="PlayerKnowledge.ReadsInternals"/>) the line is the chronicle's own (<paramref name="line"/>).
+    /// At any other: a FOUNDING is public — the place, its name and that it was founded — and is told without its figure
+    /// ("In the year Y, NAME was founded."); every other event is the settlement's books and is not told (null). A rival's
+    /// extinction is left out too: the stricter reading (its last people are a figure, and the map keeps its token).
+    /// </summary>
+    public static string? PlayerAnnal(PlayerKnowledge knowledge, Sim.Core.Chronicle.ChronicleEvent e, string line, Func<int, string> name)
+    {
+        ArgumentNullException.ThrowIfNull(knowledge);
+        ArgumentNullException.ThrowIfNull(name);
+        if (knowledge.IsHiddenSettlement(e.SettlementId)) return null;   // P7
+        if (!knowledge.KnowsSettlement(e.SettlementId) || knowledge.ReadsInternals(e.SettlementId)) return line;
+        if (e.Type != Sim.Core.Chronicle.ChronicleEventType.Founding) return null;
+        return "In the year " + ((long)Math.Round(e.Year)).ToString(System.Globalization.CultureInfo.InvariantCulture)
+            + ", " + name(e.SettlementId) + " was founded.";
     }
 
     /// <summary>P7: whether a core chronicle event reaches the player's annals — its subject settlement is not one the
@@ -595,6 +624,7 @@ public sealed class UiSession
         Knowledge = _knowledgeOf(World);   // P7: what the player knows of the world the step produced
         ObserveChronicle();
         _events.Observe(prev, World, _simCfg, Names.Name, _annals, Knowledge);
+        _events.Observe(prev, World, _simCfg, Names.Name, _playerAnnals, Knowledge, playerBooks: true);   // D-060: the ANNALS view
         NowUsableHistory.Observe(prev, World, _simCfg, UiPlayer.Empire);   // P10: the 'now usable' shortcuts this step fired
         History.Capture(World, Knowledge);
         Ownership.Capture(World, UiPlayer.Empire);   // the resources view: the player's settlements after the step
@@ -851,8 +881,10 @@ public sealed class UiSession
                 GatesState: "not-recorded — no gate-verdict producer exists in this build"));
     }
 
-    /// <summary>Exports the annals — EXACTLY the panel's lines, one per line,
-    /// fixed \n (byte-identical across identical runs).</summary>
+    /// <summary>Exports the annals of the SESSION RECORD (<see cref="RecordAnnalLines"/>), one per line,
+    /// fixed \n (byte-identical across identical runs). D-060: world-wide, as before — the scope decision keeps the
+    /// session files the replay/forensic record; the in-game ANNALS panel (<see cref="AnnalLines"/>) is the filtered view.
+    /// Where the player rules every settlement the two are identical.</summary>
     public void ExportChronicle(string path)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);

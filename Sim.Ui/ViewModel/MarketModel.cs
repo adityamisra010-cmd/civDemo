@@ -65,6 +65,16 @@ public sealed record PriceBreakdown(
 
 public static class MarketModel
 {
+    /// <summary>D-060: whether the market of <paramref name="settlementId"/> may be read — not a hidden settlement (P7), and
+    /// not one whose books are closed to the player (<see cref="PlayerKnowledge.ReadsInternals"/>). An id no settlement
+    /// has stays the reader's own concern (zero rows, as before).</summary>
+    internal static bool BooksOpen(IReadOnlyWorldState world, int settlementId, PlayerKnowledge? knowledge)
+    {
+        PlayerKnowledge k = knowledge ?? PlayerKnowledge.Of(world);
+        if (k.IsHiddenSettlement(settlementId)) return false;
+        return !k.KnowsSettlement(settlementId) || k.ReadsInternals(settlementId);
+    }
+
     /// <summary>Builds the goods table for one settlement, registry order.
     /// An id not present in the world yields rows with zero stock and no
     /// price — the panel renders them harmlessly (selection is pure UI state
@@ -74,7 +84,9 @@ public static class MarketModel
     public static IReadOnlyList<MarketGoodRow> Rows(
         IReadOnlyWorldState world, int settlementId, GoodsConfig goods, PlayerKnowledge? knowledge = null)
     {
-        if ((knowledge ?? PlayerKnowledge.Of(world)).IsHiddenSettlement(settlementId)) settlementId = -1;
+        // D-060: a settlement whose books the player may not read (a hidden one, and a known rival's) reads as none — its
+        // stocks, prices and price terms are never read. The DEV panel passes the developer view (D-060 §5).
+        if (!BooksOpen(world, settlementId, knowledge)) settlementId = -1;
         var settlement = new SettlementId(settlementId);
         var rows = new List<MarketGoodRow>(goods.Goods.Length);
         foreach (GoodEntry entry in goods.Goods)
@@ -113,7 +125,7 @@ public static class MarketModel
     public static PriceBreakdown? Breakdown(
         IReadOnlyWorldState world, int settlementId, int goodId, GoodsConfig goods, PlayerKnowledge? knowledge = null)
     {
-        if ((knowledge ?? PlayerKnowledge.Of(world)).IsHiddenSettlement(settlementId)) return null;   // P7: never read
+        if (!BooksOpen(world, settlementId, knowledge)) return null;   // P7, D-060: never read
         var settlement = new SettlementId(settlementId);
         var good = new GoodId(goodId);
         for (int i = 0; i < world.PriceTerms.Count; i++)

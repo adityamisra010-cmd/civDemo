@@ -79,6 +79,9 @@ public static class UnitCardModel
     public const string MovementText =
         "Movement: not simulated in this build — scheduled for the Battle Layer (M7), awaiting the Director's ruling";
 
+    /// <summary>D-060: the recorded-fields line of a rival's formation (in place of its experience and army lines).</summary>
+    public const string RivalRecordText = "Experience and army: not known to you - it is not your formation";
+
     /// <summary>The card's statement of the limitation (the same words for every formation).</summary>
     public const string LimitationText =
         "Movement and battle arrive with the Battle Layer (milestone M7). This formation cannot be moved or given "
@@ -123,8 +126,10 @@ public static class UnitCardModel
         {
             Position = PositionText(unit),
             PositionAddsToStation = !AtStationSite(world, unit),
-            Experience = ExperienceText(unit.Experience),
-            Army = ArmyText(unit.Army),
+            // D-060: a formation's recorded experience and army membership are its owner's books — a rival's card names the
+            // formation, its owner, its line and Age form and where it stands (all of it drawn on the map), never those.
+            Experience = mine ? ExperienceText(unit.Experience) : RivalRecordText,
+            Army = mine ? ArmyText(unit.Army) : "",
             NotSimulated = NotSimulatedLines,
             Movement = MovementText,
         };

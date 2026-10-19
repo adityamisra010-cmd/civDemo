@@ -26,6 +26,8 @@ public sealed class PlayerKnowledge
     private readonly bool[] _settlement;   // by settlement id: KnowsSettlement
     private readonly bool[] _exists;       // by settlement id: a settlement row has it
     private readonly bool[] _polity;       // by polity id: KnowsPolity
+    private readonly bool[] _books;        // by settlement id: the seam's ReadsInternals (D-060)
+    private readonly bool _developer;      // D-060: the F12 developer instrument's view — every KNOWN settlement's books
 
     /// <summary>The seam this view was built from.</summary>
     public PolityKnowledge Core { get; }
@@ -44,18 +46,31 @@ public sealed class PlayerKnowledge
         for (int i = 0; i < world.Settlements.Count; i++) maxId = Math.Max(maxId, world.Settlements[i].Id.Value);
         _settlement = new bool[maxId + 1];
         _exists = new bool[maxId + 1];
+        _books = new bool[maxId + 1];
         for (int i = 0; i < world.Settlements.Count; i++)
         {
             SettlementId id = world.Settlements[i].Id;
             if (id.Value < 0) continue;
             _exists[id.Value] = true;
             _settlement[id.Value] = core.KnowsSettlement(id);
+            _books[id.Value] = core.ReadsInternals(id);
         }
         int maxPolity = core.Polity.Value;
         for (int i = 0; i < world.Polities.Count; i++) maxPolity = Math.Max(maxPolity, world.Polities[i].Id.Value);
         for (int i = 0; i < world.Controls.Count; i++) maxPolity = Math.Max(maxPolity, world.Controls[i].Polity.Value);
         _polity = new bool[Math.Max(0, maxPolity) + 1];
         for (int p = 0; p < _polity.Length; p++) _polity[p] = core.KnowsPolity(new PolityId(p));
+    }
+
+    private PlayerKnowledge(PlayerKnowledge of)
+    {
+        _world = of._world;
+        Core = of.Core;
+        _settlement = of._settlement;
+        _exists = of._exists;
+        _polity = of._polity;
+        _books = of._books;
+        _developer = true;
     }
 
     /// <summary>What the player's Empire knows of <paramref name="world"/> — THE production view.</summary>
@@ -91,6 +106,34 @@ public sealed class PlayerKnowledge
     /// id no settlement row has is not hidden (a stale or extinct id stays the reader's own concern, as before P7).
     /// </summary>
     public bool IsHiddenSettlement(int id) => (uint)id < (uint)_exists.Length && _exists[id] && !_settlement[id];
+
+    /// <summary>
+    /// D-060 (the Director, 2026-10-19: "i should not be able to see other empire's data") — whether the player may read
+    /// settlement <paramref name="id"/>'s BOOKS: its people, stocks, harvest, happiness, grievance, needs, prices, labour,
+    /// queue internals, deposits. The UI wrapper over the ONE rule, <see cref="PolityKnowledge.ReadsInternals"/>: a
+    /// settlement's books are its controller's (every settlement in a world with no control rows). False for a settlement
+    /// the player does not know and for an id no settlement has. KNOWING a settlement (<see cref="KnowsSettlement"/>: its
+    /// name, site, owner, its token on the map) is a different, weaker question — a known rival is known, and its books are
+    /// still closed. Every player-facing reader of a settlement's private figures asks THIS, never
+    /// <see cref="IsHiddenSettlement"/> alone (the pre-D-060 gate, which let a known rival's figures through).
+    /// </summary>
+    public bool ReadsInternals(int id) =>
+        (uint)id < (uint)_settlement.Length && _settlement[id] && (_developer || _books[id]);
+
+    /// <summary>D-060: the line a player-facing surface shows in place of a settlement's figures when
+    /// <see cref="ReadsInternals"/> is false (no figure, no "%" — it holds in every era).</summary>
+    public const string NotYoursLine = "Not your settlement - its figures are not known to you.";
+
+    /// <summary>
+    /// D-060 scope decision: THE F12 DEVELOPER INSTRUMENT'S view — the same knowledge, except that it reads the books of
+    /// every settlement the player KNOWS (a hidden one stays hidden). Built ONLY by GameUi for the DEV panels (developer
+    /// toggle, off by default; the audits and the TURN ledger check need every empire's figures) — the source guard in
+    /// Sim.Ui.Tests (RivalInternalsLeakTests) pins that no other file calls it. Never handed to a player surface.
+    /// </summary>
+    public PlayerKnowledge ForDeveloper() => _developer ? this : new PlayerKnowledge(this);
+
+    /// <summary>Whether this is the F12 developer instrument's view (<see cref="ForDeveloper"/>).</summary>
+    public bool IsDeveloperView => _developer;
 
     /// <summary>Whether the player knows formation <paramref name="unit"/>.</summary>
     public bool KnowsUnit(in MilitaryUnitRow unit) => Core.KnowsUnit(unit);

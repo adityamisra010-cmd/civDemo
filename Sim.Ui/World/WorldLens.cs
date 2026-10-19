@@ -49,7 +49,13 @@ public sealed record SettlementLensView(
     // Integration item 5: the knowledge-derived label of the LARGEST sector (LabourActivities — what the
     // controller's knowledge calls it, never "farming" before farming is known); null when uncontrolled or
     // never allocated. Ties: the lowest sector index, as the caption's own rule.
-    string? TopSectorLabel = null);
+    string? TopSectorLabel = null,
+    // D-060: whether the player may read this settlement's books (PlayerKnowledge.ReadsInternals). False for a known
+    // settlement the player does not rule: the projection then carries no labour split, top-sector label, notables,
+    // active classes or size tier for it, and the lens prints no "N people - N dwellings" line, no size-tier line and no
+    // labour caption under its name. Its token — the footprint, dwelling blocks, structures and institutions as drawn —
+    // is the map as drawn (public), so Population and Dwellings stay for the geometry.
+    bool ReadsInternals = true);
 
 /// <summary>One institution marker the lens drew: a structure kind (Key "structure:{projectId}") or an
 /// institution type from <see cref="InstitutionMarkerSource"/> (Key "institution:{typeKey}") in a
@@ -288,12 +294,15 @@ public sealed class WorldProjection
                 foreach (LabourActivity act in LabourActivities.For(world, cfg, controller))
                     if (act.Settlement == id && act.Sector == top) { topLabel = act.Label; break; }
             }
+            // D-060: a known settlement the player does not rule keeps its token; its books are not carried.
+            bool books = known.ReadsInternals(id.Value);
+            if (!books) { sectors = null; topLabel = null; notables = 0; classes = 0; tier = 0; }
             int cell = row.SiteCell;
             IReadOnlyList<InstitutionView> held = institutions(world, cfg, id);
             if (held.Count > 0) anyInstitution = true;
             settlements.Add(new SettlementLensView(
                 id.Value, name(id.Value), cell % size + 0.5, cell / size + 0.5, ctl, capital, ctl == player.Value,
-                pop, dwellings, tier, age, structures, sectors, roadsHere, notables, classes, held, topLabel));
+                pop, dwellings, tier, age, structures, sectors, roadsHere, notables, classes, held, topLabel, books));
         }
 
         var units = new List<UnitLensView>();
@@ -1476,7 +1485,7 @@ public static class WorldLens
         double data = _type.Size(TypeRole.Data, FontRole.Numeric), second = _type.Size(TypeRole.Secondary, FontRole.Body);
         double caps = _type.Size(TypeRole.Caption, FontRole.Caps);
         double aPop = detail.Alpha(WorldLayer.PopulationScale), aDensity = detail.Alpha(WorldLayer.InfrastructureDensity);
-        if (aPop > 0)
+        if (aPop > 0 && s.ReadsInternals)   // D-060: a rival's people and dwellings are its books — not printed
         {
             int at = d.Commands.Count;
             _type.Label(d, sx, ly, s.Population.ToString("#,0", CultureInfo.InvariantCulture) + " people  -  " + s.Dwellings.ToString("#,0", CultureInfo.InvariantCulture) + " dwellings", TypeRole.Data, FontRole.Numeric, ink, TextAlign.Center);
@@ -1484,7 +1493,7 @@ public static class WorldLens
             ly += data * 1.3;
         }
         charge(MapLayer.SettlementMarkers, WorldLayer.PopulationScale);
-        if (aDensity > 0)
+        if (aDensity > 0 && s.ReadsInternals)   // D-060: nor its size tier
         {
             int at = d.Commands.Count;
             _type.Label(d, sx, ly, s.RoadsInCatchment.ToString(CultureInfo.InvariantCulture) + " path link(s) in catchment  -  size tier " + s.SizeTier.ToString(CultureInfo.InvariantCulture), TypeRole.Secondary, FontRole.Body, ink, TextAlign.Center);
@@ -1492,7 +1501,7 @@ public static class WorldLens
             ly += second * 1.3;
         }
         charge(MapLayer.SettlementMarkers, WorldLayer.InfrastructureDensity);
-        bool production = detail.Alpha(WorldLayer.ProductionSignals) > 0 && settlement > 0;
+        bool production = detail.Alpha(WorldLayer.ProductionSignals) > 0 && settlement > 0 && s.ReadsInternals;   // D-060: nor its labour
         int caption = d.Commands.Count;
         if (production && s.Sectors is null)
             _type.Label(d, sx, ly, "labour split: default (no allocation ordered)", TypeRole.Caption, FontRole.Caps, ink, TextAlign.Center);

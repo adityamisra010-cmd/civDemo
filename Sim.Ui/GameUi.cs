@@ -63,6 +63,10 @@ public sealed partial class GameUi
     private Section _openSection = Section.None;
     private bool _annalsShowAll;
     private HudModel _hud = null!;
+    // D-060 scope decision: the F12 DEV panels stay world-wide (a developer instrument, off by default) — their HUD lines,
+    // market and needs read through PlayerKnowledge.ForDeveloper(); every player surface reads _hud (closed books for a
+    // settlement the player does not rule).
+    private HudModel _devHud = null!;
 
     // T4.19 lane B: the glass-box panels' UI-ONLY state — which SETTLEMENT tab
     // is open, which audit lines / contributors / factors are unfolded, which
@@ -455,6 +459,9 @@ public sealed partial class GameUi
         if (_unitCard is null) _selectedUnit = -1;
         _hud = HudModel.From(_world, _selected, _needs,
             _selected >= 0 ? _session.Names.Name(_selected) : null, _session.Config, known);
+        PlayerKnowledge developer = known.ForDeveloper();   // D-060: the DEV panels only (see _devHud)
+        _devHud = HudModel.From(_world, _selected, _needs,
+            _selected >= 0 ? _session.Names.Name(_selected) : null, _session.Config, developer);
 
         // T4.19 lane B: the glass-box view models, rebuilt on the same cadence
         // (selection change / End Turn) — pure reads over the observation
@@ -482,8 +489,9 @@ public sealed partial class GameUi
         if (_selectedGood == 0)
             foreach (Sim.Core.Systems.GoodEntry g in goods.Goods)
                 if (!g.Numeraire) { _selectedGood = g.Id; break; }
-        _marketRows = MarketModel.Rows(_world, _selected, goods, known);
-        _needsBlocks = NeedsPanelModel.Blocks(_world, _selected, _needs, _displayCfg.Registries.Classes, known);
+        // D-060: drawn only in DEV > RECORDS (the developer instrument), so read through the developer view.
+        _marketRows = MarketModel.Rows(_world, _selected, goods, developer);
+        _needsBlocks = NeedsPanelModel.Blocks(_world, _selected, _needs, _displayCfg.Registries.Classes, developer);
 
         // ADR-033 D1/D2: the action surface, from the query, in the era the interface presents (the target
         // theme: a new Age's controls take over at once; its colours fade in with the frame theme).
@@ -1510,7 +1518,11 @@ public sealed partial class GameUi
 
     /// <summary>The rows the selection card shows: the HUD's figure lines (the food/population stream owns their
     /// wording), each routed to the panel that decomposes it.</summary>
-    private (string Text, ExplainFigure Route)[] SelectionRows() =>
+    /// <remarks>D-060: a known settlement the player does not rule shows its public identity — who holds it — and
+    /// <see cref="PlayerKnowledge.NotYoursLine"/>, unrouted: no figure of it is on the card, so there is nothing to explain.</remarks>
+    private (string Text, ExplainFigure? Route)[] SelectionRows() => !_hud.ReadsInternals
+        ? [(_hud.ClosedBooksLines[0], null), (_hud.ClosedBooksLines[1], null)]
+        :
     [
         (_hud.PopulationLine, ExplainFigure.SettlementPopulation),
         (_hud.FoodLine, ExplainFigure.SettlementFood),
@@ -1537,7 +1549,7 @@ public sealed partial class GameUi
         float rowGap = 6f * s, wrap = width - 2f * padX;
         var element = new ChromeElement(_selectionRect with { Width = width }, RulePlacement.UnderHeaderRow);
         float content = ChromeGeometry.ContentTop(element, frameH, s) - element.Panel.Y;
-        (string Text, ExplainFigure Route)[] rows = SelectionRows();
+        (string Text, ExplainFigure? Route)[] rows = SelectionRows();
         ImFontPtr? data = RoleFont(Sim.Ui.Theme.TypeRole.Data, Sim.Ui.Render.FontRole.Numeric);
         float h = content;
         // P1: folded, the card is its title row and rule — the settlement's name, and the control that unfolds it.
@@ -1575,7 +1587,9 @@ public sealed partial class GameUi
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new System.Numerics.Vector2(ImGui.GetStyle().ItemSpacing.X, rowGap));
         ImGui.PushTextWrapPos(width - padX);
         PushRole(Sim.Ui.Theme.TypeRole.Data, Sim.Ui.Render.FontRole.Numeric);
-        foreach ((string text, ExplainFigure route) in rows) Figure(text, route);
+        foreach ((string text, ExplainFigure? route) in rows)
+            if (route is { } r) Figure(text, r);
+            else Text(text);
         PopRole();
         ImGui.PopTextWrapPos();
         ImGui.PopStyleVar();
@@ -2046,6 +2060,7 @@ public sealed partial class GameUi
     /// </summary>
     private void DrawDeveloperSection()
     {
+        Text(DeveloperViewLine);   // D-060: the developer instrument says what it is
         float rowX = 0f;
         foreach (Section tab in GameSections.DeveloperTabs)
         {
@@ -2055,6 +2070,10 @@ public sealed partial class GameUi
         ImGui.Separator();
         DrawDeveloperTab(_developerTab);
     }
+
+    /// <summary>D-060: the DEV panel's first line — the F12 instrument reads every empire's figures (the scope decision of
+    /// docs/d060-rival-internals-isolation.md §5); no player surface does.</summary>
+    public const string DeveloperViewLine = "Developer view - shows every empire.";
 
     private void DrawDeveloperTab(Section tab)
     {
@@ -2211,7 +2230,7 @@ public sealed partial class GameUi
     private void DrawSettlementOverview()
     {
         // The T4.18 card figures first (live world), then the record's headline.
-        DataLines([_hud.PopulationLine, _hud.FoodLine, _hud.HappinessLine, _hud.GrievanceLine]);
+        DataLines([_devHud.PopulationLine, _devHud.FoodLine, _devHud.HappinessLine, _devHud.GrievanceLine]);
         ImGui.Separator();
         DrawRecordTab(_settlementView?.Overview);
     }
@@ -2231,7 +2250,7 @@ public sealed partial class GameUi
 
     private void DrawSettlementFood()
     {
-        DataLines([_hud.FoodLine]);
+        DataLines([_devHud.FoodLine]);
         DrawRecordTab(_settlementView?.Food);
         // T4.20: the food-flow block, ADDITIVE and below the store account.
         ImGui.Separator();
@@ -2254,7 +2273,7 @@ public sealed partial class GameUi
         }
         ImGui.Separator();
         PriceBreakdown? breakdown = _selected >= 0
-            ? MarketModel.Breakdown(_world, _selected, _selectedGood, _displayCfg.Goods!, _session.Knowledge)
+            ? MarketModel.Breakdown(_world, _selected, _selectedGood, _displayCfg.Goods!, _session.Knowledge.ForDeveloper())
             : null;
         if (breakdown is null)
         {
@@ -2425,6 +2444,7 @@ public sealed partial class GameUi
         PopRole();
         if (!_policyRecord) return;
         Text(_hud.TitleLine);
+        if (!_hud.ReadsInternals) { Text(PlayerKnowledge.NotYoursLine); return; }   // D-060: its labour record is its books
         foreach (PolicyEntry policy in PolicyHistoryModel.Policies)
             Text(policy.Name + " - " + policy.Note);
         Text("CURRENT  (declared vs effective, currently running)");
