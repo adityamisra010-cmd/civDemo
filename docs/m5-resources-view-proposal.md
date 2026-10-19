@@ -112,9 +112,27 @@ settlement was selected, a rival's included. So every world-scope series, and an
 Tests: `ResourcesViewTests` and `KnowledgeLeakTests.Resources.cs`; gate rows in `docs/m5-playability-gate.md`. Previews:
 `Sim.Ui --resources-preview DIR` writes PNGs of real frames (`FrameRaster`).
 
-**Not changed, recorded for a ruling:**
+**Follow-up the same day (the Director's instruction covers the top bar):**
 
-- The status band's POPULATION and FOOD figures still sum every settlement the player KNOWS (`HudModel.From`), which is
-  every Empire's while all-known. They are not the empire's own.
-- The EMPIRE view's trade lines likewise name known foreign partners.
+- **The status band's POPULATION, FOOD and settlement count now read the player's OWN empire.** They use the strip's set,
+  `EmpireStores.OwnSettlements` = `RoadDevelopmentQuery.PayingSettlements`: the control relation, or every settlement in
+  a toy world with no control rows. Before, they summed every settlement the player KNEW (`HudModel.From`), which is every
+  Empire's while all-known. FOOD is now the grain of your own settlements, so it equals the grain line of the Food stores
+  card.
+- **The rest of the band was audited.**
+  - TURN and YEAR: the clock, not a sum.
+  - Research chip: the player's own research.
+  - Age chip: the player's own capital and Age.
+  - The strip: own.
+  - DEV's "last turn" digest: developer-only, deliberately world-wide (the TURN audit).
+  - **No other always-visible figure sums foreign settlements.**
+- **Click routes.** A click on POPULATION / FOOD routes the player to the EMPIRE view (own). With DEV on it routes to the
+  TURN audit's world accounts, a developer surface, unchanged.
 
+**Recorded for a ruling (not changed):**
+
+- **The selection card of a selected rival settlement** shows its population (by age band), grain store, last harvest,
+  happiness and grievance. The player can select any KNOWN settlement (P7), so a rival's internals are visible one
+  settlement at a time.
+- **The SETTLEMENT view, the market and needs panels and the unit card** of a selected rival behave the same way.
+- **The EMPIRE view's trade lines** name known foreign partners of the player's own flows.

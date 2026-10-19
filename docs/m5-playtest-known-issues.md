@@ -491,9 +491,10 @@ and §16 it names.
     the change and the set-aside) and the trend graph, for your own settlements only. Click a good in the table to
     chart its stores.
 - **Known limitations:**
-  - The top bar's POPULATION and FOOD figures are unchanged. They still count every settlement you know, a rival's
-    included, so FOOD (grain, every known settlement) is not your FOOD STORES (grain, livestock and fish, yours only).
-    Recorded for a ruling.
+  - The top bar's POPULATION, FOOD and settlement count now count your own empire only (follow-up the same day). FOOD
+    is your grain; FOOD STORES adds livestock and fish.
+  - Selecting a rival settlement still shows its card (population, grain, happiness, grievance). Recorded for a ruling
+    (proposal §6).
   - At the smallest window the strip's labels shorten to their first letters (F, M, G); the card names them.
   - A trend starts at your first played turn. The stores graph has no turn-0 point (the record keeps no opening stock
     of every good).
