@@ -888,20 +888,25 @@ public class GlassBoxUiTests
         WorldState world = session.World;
         int first = world.Settlements[0].Id.Value;
 
-        long grain = 0;
+        // M5 resources view: the band's food is the grain of the player's OWN settlements (the control relation).
+        long grain = 0, all = 0;
         for (int i = 0; i < world.GoodStocks.Count; i++)
-            if (world.GoodStocks[i].Good == UiGoods.Grain) grain += world.GoodStocks[i].Amount.Value;
+        {
+            if (world.GoodStocks[i].Good != UiGoods.Grain) continue;
+            all += world.GoodStocks[i].Amount.Value;
+            if (EmpireQuery.ControlsSettlement(world, UiPlayer.Empire, world.GoodStocks[i].Settlement)) grain += world.GoodStocks[i].Amount.Value;
+        }
         HudModel withCfg = HudModel.From(world, first, null, null, session.Config);
         Assert.Equal(grain, withCfg.WorldFood);
         Assert.Equal("food " + grain.ToString(System.Globalization.CultureInfo.InvariantCulture), withCfg.WorldFoodFigure);
-        Assert.Equal(session.Observations.Observations[^1].Turn.Grain.Closing, withCfg.WorldFood);
+        Assert.Equal(session.Observations.Observations[^1].Turn.Grain.Closing, all);   // the TURN account stays the world's
         Assert.Equal(SettlementHappiness.Of(world, new SettlementId(first), session.Config), withCfg.Happiness);
         Assert.StartsWith("happiness ", withCfg.HappinessLine);
         Assert.NotEqual("happiness —", withCfg.HappinessLine);
 
         HudModel withoutCfg = HudModel.From(world, first);
         Assert.Equal("happiness —", withoutCfg.HappinessLine);
-        Assert.Equal("world pop " + withCfg.WorldPopulation.ToString(System.Globalization.CultureInfo.InvariantCulture),
+        Assert.Equal("empire pop " + withCfg.WorldPopulation.ToString(System.Globalization.CultureInfo.InvariantCulture),
             withCfg.WorldPopulationFigure);
     }
 

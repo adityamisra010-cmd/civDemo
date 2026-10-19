@@ -18,7 +18,7 @@
 Sim.Ui/ViewModel/PlayerKnowledge.cs | seam | the per-turn view over the Sim.Core seam: it enumerates settlements to cache KnowsSettlement
 Sim.Ui/World/WorldLens.cs | routed | WorldProjection.Build: the observer; hidden settlements, formations, territory, paths and routes are never visited
 Sim.Ui/ViewModel/SettlementSelection.cs | routed | Tab cycles known settlements only; the opening selection is the first known one
-Sim.Ui/ViewModel/HudModel.cs | routed | world totals sum known settlements; a hidden selection reads as none
+Sim.Ui/ViewModel/HudModel.cs | routed | a hidden selection reads as none; the band totals (population, food, settlement count) read the player's OWN settlements only (EmpireStores.OwnSettlements), never a foreign one
 Sim.Ui/ViewModel/PlayerViews.cs | routed | a hidden settlement reads as absent; formations, migration and trade lines name known subjects only
 Sim.Ui/ViewModel/StateChronicle.cs | routed | annal events are kept only when every settlement and polity they name is known
 Sim.Ui/ViewModel/UnitCardModel.cs | routed | an unknown formation has no card

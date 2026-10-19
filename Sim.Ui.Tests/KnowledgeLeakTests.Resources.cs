@@ -204,4 +204,65 @@ public partial class KnowledgeLeakTests
         PerturbOwn(c, 50);
         Assert.NotEqual(fa, ResourcesFrames(UiSession.StartFrom(c, 42), Path.Combine(_root, "res-c")));
     }
+
+    // ================================================================== the status band's POPULATION / FOOD / settlements
+
+    /// <summary>The band's always-visible figures as HudModel gives them (selection-independent).</summary>
+    private static string BandText(HudModel h) => string.Join("|", h.WorldPopulationValue, h.SettlementCountDetail, h.WorldFoodValue,
+        h.WorldLine, h.WorldFoodFigure, h.WorldPopulationFigure, h.SettlementCountFigure);
+
+    /// <summary>
+    /// M5 resources view follow-up (the Director: "i should not be able to see other empire's data" covers the top bar):
+    /// THE BAND'S POPULATION, FOOD AND SETTLEMENT COUNT ARE IDENTICAL WHATEVER A FOREIGN EMPIRE HOLDS, through the ALL-KNOWN
+    /// production view — for no selection and every selection of the player's own; and the real UI's status-band text is
+    /// identical. CONTROLS: the perturbation moved the rival's people and grain; the player's own stocks and people move the
+    /// band.
+    /// </summary>
+    [Fact]
+    public void TheBandTotals_AreIdentical_WhateverAForeignEmpireHolds_EvenAllKnown()
+    {
+        Rig r = Played.Value;
+        WorldState a = r.Next.Clone(), b = PerturbedNext();
+        foreach (int id in KnowledgeStubs.SettlementsOf(a, Hidden)) Assert.True(All(a).KnowsSettlement(id));   // known, not owned
+        var selections = new List<int> { -1 };
+        selections.AddRange(EmpireStores.OwnSettlements(a, Player));
+        foreach (int sel in selections)
+        {
+            string ta = BandText(HudModel.From(a, sel, r.Config.Needs, null, r.Config, All(a)));
+            string tb = BandText(HudModel.From(b, sel, r.Config.Needs, null, r.Config, All(b)));
+            Assert.Equal(ta, tb);
+        }
+        // CONTROL 1: the rival's people and grain moved.
+        long Sum(WorldState w, bool people)
+        {
+            long n = 0;
+            foreach (int id in KnowledgeStubs.SettlementsOf(w, Hidden))
+            {
+                if (people) { for (int i = 0; i < w.Buckets.Count; i++) if (w.Buckets[i].Settlement.Value == id) n += w.Buckets[i].Count.Value; }
+                else for (int i = 0; i < w.GoodStocks.Count; i++)
+                    if (w.GoodStocks[i].Settlement.Value == id && w.GoodStocks[i].Good == UiGoods.Grain) n += w.GoodStocks[i].Amount.Value;
+            }
+            return n;
+        }
+        Assert.NotEqual(Sum(a, true), Sum(b, true));
+        Assert.NotEqual(Sum(a, false), Sum(b, false));
+        // CONTROL 2: the player's own grain moves the band.
+        WorldState c = r.Next.Clone();
+        PerturbOwn(c, 50);
+        Assert.NotEqual(BandText(HudModel.From(a, -1, null, null, r.Config, All(a))), BandText(HudModel.From(c, -1, null, null, r.Config, All(c))));
+
+        // The real UI's status band (every text it draws), all-known, over the two worlds.
+        List<string> Band(WorldState w, string dir)
+        {
+            using UiFrameHarness h = UiFrameHarness.Start(UiSession.StartFrom(w, 42), Path.Combine(_root, dir), Assets());
+            h.Idle(3);
+            Assert.Empty(h.Problems);
+            return [.. h.Ui.FrameText.Texts(FrameSurface.Status)];
+        }
+        List<string> fa = Band(r.Next.Clone(), "band-a");
+        Assert.Equal(fa, Band(PerturbedNext(), "band-b"));
+        WorldState c2 = r.Next.Clone();
+        PerturbOwn(c2, 50);
+        Assert.NotEqual(fa, Band(c2, "band-c"));   // CONTROL
+    }
 }

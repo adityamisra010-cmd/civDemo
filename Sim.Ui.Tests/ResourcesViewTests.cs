@@ -100,6 +100,32 @@ public sealed class ResourcesViewTests : IDisposable
         Assert.Equal(EmpireQuery.ControlledCount(w, Me), st.Settlements.Length);
     }
 
+    /// <summary>M5 resources view follow-up: the status band's POPULATION, FOOD and settlement count are exact sums over the
+    /// player's OWN settlements on the populated one-AI world — never the known world (the rival holds people and grain) —
+    /// and FOOD equals the strip's grain.</summary>
+    [Fact]
+    public void TheBandTotals_AreExactOwnSums_OnAPopulatedMultiEmpireWorld()
+    {
+        UiSession s = Played.Value;
+        IReadOnlyWorldState w = s.World;
+        long pop = 0, allPop = 0;
+        for (int i = 0; i < w.Buckets.Count; i++)
+        {
+            allPop += w.Buckets[i].Count.Value;
+            if (EmpireQuery.ControlsSettlement(w, Me, w.Buckets[i].Settlement)) pop += w.Buckets[i].Count.Value;
+        }
+        HudModel hud = HudModel.From(w, -1, null, null, s.Config, s.Knowledge);
+        Assert.Equal(pop, hud.WorldPopulation);
+        Assert.Equal(Oracle(w, s.Config.Goods!.GrainId, Me), hud.WorldFood);
+        Assert.Equal(EmpireQuery.ControlledCount(w, Me), hud.SettlementCount);
+        Assert.Equal(EmpireStores.Build(w, s.PreviousWorld, s.Config, Me).Good(s.Config.Goods!.GrainId)!.Total, hud.WorldFood);
+        // PREMISE: the known world is larger (the rival is known and populated) — the old reading would differ.
+        Assert.True(allPop > pop);
+        Assert.True(Oracle(w, s.Config.Goods!.GrainId, Me, own: false) > 0);
+        Assert.True(w.Settlements.Count > hud.SettlementCount);
+        Assert.Equal(hud.SettlementCount == 1 ? "1 settlement" : hud.SettlementCount.ToString(CultureInfo.InvariantCulture) + " settlements", hud.SettlementCountDetail);
+    }
+
     [Fact]
     public void ChangeSinceLastTurn_IsExact_AcrossAStep_AndAbsentBeforeTheFirst()
     {

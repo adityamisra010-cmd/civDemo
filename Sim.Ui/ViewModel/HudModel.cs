@@ -52,7 +52,8 @@ public sealed record HudModel(
     /// P7: <paramref name="knowledge"/> is what the player knows (null = <see cref="PlayerKnowledge.Of(IReadOnlyWorldState)"/>,
     /// all-known until S2a). The WORLD totals — population, food, the settlement count — are sums over the settlements
     /// the player knows (the dataGap default: the fog ruling may change what a world total means); a selected settlement
-    /// the player does not know reads as one that is not there.</summary>
+    /// the player does not know reads as one that is not there. M5 resources view (2026-10-19): the "world" totals are now the
+    /// player's OWN empire (<see cref="EmpireStores.OwnSettlements"/>; the property names are kept), not every known settlement.</summary>
     public static HudModel From(
         IReadOnlyWorldState world, int selectedSettlementId, NeedsConfig? needs = null,
         string? settlementName = null, SimConfig? cfg = null, PlayerKnowledge? knowledge = null)
@@ -92,17 +93,18 @@ public sealed record HudModel(
             }
         }
 
-        // P7: the world totals leave out every row of a settlement the player does not know (all-known: every row, as before).
+        // M5 resources view (the Director, 2026-10-19: "i should not be able to see other empire's data"): the status band's
+        // POPULATION, FOOD and settlement count are the player's OWN empire — the settlements its Empire controls
+        // (EmpireStores.OwnSettlements, the strip's set) — never a sum over a rival's, known or not. Food is the grain the
+        // empire's settlements hold (EmpireStockpile.Available: each settlement's first grain row, exact long).
+        int[] own = EmpireStores.OwnSettlements(world, known.Player);
+        var ownIds = new SettlementId[own.Length];
+        for (int i = 0; i < own.Length; i++) ownIds[i] = new SettlementId(own[i]);
         long worldPop = 0;
         for (int i = 0; i < world.Buckets.Count; i++)
-            if (!known.IsHiddenSettlement(world.Buckets[i].Settlement.Value)) worldPop += world.Buckets[i].Count.Value;
-        long worldFood = 0;
-        for (int i = 0; i < world.GoodStocks.Count; i++)
-            if (world.GoodStocks[i].Good == UiGoods.Grain && !known.IsHiddenSettlement(world.GoodStocks[i].Settlement.Value))
-                worldFood += world.GoodStocks[i].Amount.Value;
-        int settlementCount = 0;
-        for (int i = 0; i < world.Settlements.Count; i++)
-            if (!known.IsHiddenSettlement(world.Settlements[i].Id.Value)) settlementCount++;
+            if (Array.BinarySearch(own, world.Buckets[i].Settlement.Value) >= 0) worldPop += world.Buckets[i].Count.Value;
+        long worldFood = EmpireStockpile.Available(world.GoodStocks, ownIds, UiGoods.Grain);
+        int settlementCount = own.Length;
         double happiness = exists && cfg is not null
             ? SettlementHappiness.Of(world, selected, cfg) : double.NaN;
 
@@ -180,7 +182,7 @@ public sealed record HudModel(
     /// each can be a Selectable of its own — the population figure routes to
     /// the TURN population account, the food figure to the grain account.</summary>
     public string WorldPopulationFigure =>
-        string.Create(CultureInfo.InvariantCulture, $"world pop {WorldPopulation}");
+        string.Create(CultureInfo.InvariantCulture, $"empire pop {WorldPopulation}");
 
     public string SettlementCountFigure =>
         string.Create(CultureInfo.InvariantCulture, $"({SettlementCount} settlements)");
@@ -232,7 +234,7 @@ public sealed record HudModel(
 
     public string WorldLine =>
         string.Create(CultureInfo.InvariantCulture,
-            $"world pop {WorldPopulation}  ({SettlementCount} settlements)");
+            $"empire pop {WorldPopulation}  ({SettlementCount} settlements)");
 
     public string ClockLine =>
         string.Create(CultureInfo.InvariantCulture, $"turn {PlayerTurn.Current(Turn)}   year {Year}");

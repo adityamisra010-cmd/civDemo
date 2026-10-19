@@ -49,10 +49,10 @@ public enum StoreTrend
 /// read them. A pure function of (the world now, the world the last End Turn stepped from, the config, the player).
 ///
 /// <para><b>Own empire only.</b> The player's settlements are the places the player's Empire controls — the control relation
-/// (<c>ControlRow</c>, D-042 §5), the same set <c>EmpireStockpile.Holders</c> pools for the player's purse and the EMPIRE view
-/// counts. The rows read are those settlements' <c>GoodStocks</c> rows and the player's OWN set-asides
+/// (<c>ControlRow</c>, D-042 §5; <see cref="OwnSettlements"/>), the same set <c>EmpireStockpile.Holders</c> pools for the
+/// player's purse and the EMPIRE view counts. The rows read are those settlements' <c>GoodStocks</c> rows and the player's OWN set-asides
 /// (<see cref="SetAsideQuery.ViewerTotals"/>, P7: no other purse). No foreign settlement's row, no foreign polity's purse,
-/// and no settlement row at all (<c>Settlements</c> is never enumerated) is read — what the player knows of a rival is not
+/// and no settlement row of the UI's own (the Sim.Core query enumerates them) is read — what the player knows of a rival is not
 /// what the player owns.</para>
 ///
 /// <para><b>Totals</b> are exact long sums, each settlement's FIRST row of the good (<see cref="EmpireStockpile.Available"/> —
@@ -80,19 +80,16 @@ public sealed record EmpireStores(int[] Settlements, StoreGood[] AllGoods, long[
     }
 
     /// <summary>The player's settlements: the places the Empire <paramref name="player"/> controls (ControlRow), ascending
-    /// id, each once. Never reads the settlement table.</summary>
+    /// id — <see cref="RoadDevelopmentQuery.PayingSettlements(IReadOnlyWorldState, PolityId)"/>, the civilization's resource
+    /// base (in a hand-built world with no control rows at all, every settlement: there is no other Empire). The strip, the
+    /// cards, RESOURCES and the status band's POPULATION / FOOD / settlement count all read this one set.</summary>
     public static int[] OwnSettlements(IReadOnlyWorldState world, PolityId player)
     {
         ArgumentNullException.ThrowIfNull(world);
-        var ids = new List<int>();
-        for (int i = 0; i < world.Controls.Count; i++)
-        {
-            ControlRow row = world.Controls[i];
-            if (row.Polity.Value != player.Value || row.Place.Value < 0) continue;
-            if (!ids.Contains(row.Place.Value)) ids.Add(row.Place.Value);
-        }
-        ids.Sort();
-        return [.. ids];
+        SettlementId[] ids = RoadDevelopmentQuery.PayingSettlements(world, player);
+        var result = new int[ids.Length];
+        for (int i = 0; i < ids.Length; i++) result[i] = ids[i].Value;
+        return result;
     }
 
     /// <summary>The strip group of a goods.json category.</summary>
