@@ -38,7 +38,7 @@ NOT complete; the exit and merge conditions are in D-052 §15.
 
 ## 2. Two calibration tests are RED (ruled; disclosed)
 
-> **2026-10-19 — SUPERSEDED: both cases are GREEN (D-058).** On the Director's instruction of 2026-10-19 ("CI main
+> **2026-10-19 — SUPERSEDED: both cases are GREEN (D-059).** On the Director's instruction of 2026-10-19 ("CI main
 > test run, full authorization, resolve the issue best you can"), CR-020 §B option 1 is applied: the two per-seed
 > recorded dev migration values and the in-test dev population envelope are re-recorded under the D-051 §1(b) regime.
 > - seed 42: 2.486239574664698E-04 → 8.357547346004101E-05.
@@ -49,7 +49,7 @@ NOT complete; the exit and merge conditions are in D-052 §15.
 > change). Re-measured on `827337e` (Release): seed 42 8.35755E-05 and seed 7 123,950, as below. Seed 7's masked
 > migration now reads 8.36797E-05, not 1.0083E-04: the cylinder (D-054) and the food relief (D-053) also moved it.
 > Decomposition, rejected alternatives and the construction-change check are in
-> `docs/d058-calibration-rerecord-d051-regime.md`. The table below is kept as the historical record.
+> `docs/d059-calibration-rerecord-d051-regime.md`. The table below is kept as the historical record.
 
 `CalibrationBatteryTests.Dev_MalthusCorridors_AllInBand` fails for two seeds:
 

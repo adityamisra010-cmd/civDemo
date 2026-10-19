@@ -258,9 +258,9 @@ public class CalibrationBatteryTests
     // floor 0.001 (the quarantined regime): a wild-food world has a lower,
     // flatter carrying surface, so land differentials drive more movement.
     // Layer control: switch OFF returns the T4.21-7 values above. Band unmoved.
-    // D-058 RE-PIN (2026-10-19, the Director's authorization "CI main test run, full
+    // D-059 RE-PIN (2026-10-19, the Director's authorization "CI main test run, full
     // authorization, resolve the issue best you can", superseding D-052 §9's hold;
-    // docs/d058-calibration-rerecord-d051-regime.md). Measured by the agent writing
+    // docs/d059-calibration-rerecord-d051-regime.md). Measured by the agent writing
     // this line, dev preset, 1000 turns, decomposed with the layer twins:
     //   seed 42  R4 2.486239574664698E-04 | pre-1(b) chained, flat 2.5154E-04
     //            | +D-051 §1(b) 8.7177E-05 (x0.347) | +D-053 8.7177E-05 (x1.000)
@@ -785,7 +785,7 @@ public class CalibrationBatteryTests
         // final 80,937 (peak = final, starvation 0), seed 7 final 105,841
         // (peak = final, starvation 0) — the slower forager growth curve.
         // Envelope [71k, 119k] keeps ~12 % margins on both. Was [82k, 138k].
-        // D-058 RE-PIN (2026-10-19, the Director's full authorization; ONE dominant
+        // D-059 RE-PIN (2026-10-19, the Director's full authorization; ONE dominant
         // ruled cause, D-051 §1(b) time-averaged weather, plus the cylinder).
         // Measured by the agent writing this line, 1000 dev turns, layer twins:
         //   seed 42  pre-1(b) flat 82,976 | +1(b) 98,208 | +D-053 98,208

@@ -1,4 +1,4 @@
-# D-058 — The dev Malthus corridor's recorded values, re-recorded under the D-051 §1(b) regime
+# D-059 — The dev Malthus corridor's recorded values, re-recorded under the D-051 §1(b) regime
 
 **Status: IMPLEMENTED 2026-10-19 on branch `b5-calib` (LOCAL; not pushed, not merged).** Authority: the Director,
 2026-10-19, verbatim: *"CI main test run, full authorization, resolve the issue best you can."* That instruction

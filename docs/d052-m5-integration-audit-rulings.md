@@ -229,7 +229,7 @@ and does not say whether the M5 exit waits for them. Both stay open for the M5 e
   v34.
 - Record: `docs/d054-batch3-incremental-construction-allocation-cylinder.md` §5 items 6 and 13.
 
-## Pointer added 2026-10-19 (D-058; dated note, historical text kept)
+## Pointer added 2026-10-19 (D-059; dated note, historical text kept)
 
 - **§9's "nothing is re-pinned" and "the two failing tests stay red" are superseded.** The Director's 2026-10-19
   instruction ("CI main test run, full authorization, resolve the issue best you can") authorises CR-020 §B option 1.
@@ -239,4 +239,4 @@ and does not say whether the M5 exit waits for them. Both stay open for the M5 e
   - 1(b) stays ON;
   - the `corridors.json` bands and the 0.75 tooth are preserved;
   - nothing is waived, skipped or reverted.
-- Record: `docs/d058-calibration-rerecord-d051-regime.md`.
+- Record: `docs/d059-calibration-rerecord-d051-regime.md`.

@@ -147,7 +147,7 @@ reconciliation horizon 900 → 1000; FoodFlow founded arm 300 → 700 turns, ren
 frontier-key rig runs on the pre-1(b) control, its property being cache keying); no schema change. The two
 `Dev_MalthusCorridors_AllInBand` cases (seeds 42, 7) are left RED and named here.
 
-## Pointer added 2026-10-19 (D-058; dated note, historical text kept)
+## Pointer added 2026-10-19 (D-059; dated note, historical text kept)
 
 - **§B is resolved by option 1.** The Director's 2026-10-19 instruction ("CI main test run, full authorization,
   resolve the issue best you can") supersedes the §B hold.
@@ -157,4 +157,4 @@ frontier-key rig runs on the pre-1(b) control, its property being cache keying);
 - Bands, the 0.75 tooth and every other tooth are unchanged, and no hash moved.
 - The re-measurement adds two more ruled causes: the D-054 cylinder (seed 42 ×0.959, seed 7 ×0.847) and the D-053
   food relief (seed 7 ×0.980).
-- Record: `docs/d058-calibration-rerecord-d051-regime.md`.
+- Record: `docs/d059-calibration-rerecord-d051-regime.md`.
