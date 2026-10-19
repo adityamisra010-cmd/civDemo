@@ -34,24 +34,19 @@ public static class ChronicleProse
             .Replace("{name}", names.Name(e.SettlementId));
         line = e.Type switch
         {
-            ChronicleEventType.Founding => line
-                .Replace("{population}", Whole(e.Magnitude1)),
+            ChronicleEventType.Founding => Count(line, "population", e.Magnitude1),
             // {reason} binds the RECORDED FamineReason ordinal (M2), so the
             // annals name the cause CR-015 made the classifier carry and cannot
             // name one detection never recorded.
             ChronicleEventType.FamineOnset => line
-                .Replace("{deficitPct}", Whole(e.Magnitude1 * 100.0))
+                .Replace("{deficitPct}", Share(e.Magnitude1))
                 .Replace("{reason}", Reason(e.Magnitude2)),
-            ChronicleEventType.FamineEnd => line
-                .Replace("{years}", Whole(e.Magnitude1))
-                .Replace("{deaths}", Whole(e.Magnitude2)),
-            ChronicleEventType.Extinction => line
-                .Replace("{lastPopulation}", Whole(e.Magnitude1)),
-            ChronicleEventType.FirstArtisans => line
-                .Replace("{count}", Whole(e.Magnitude1)),
-            ChronicleEventType.MigrationSurge => line
-                .Replace("{count}", Whole(e.Magnitude1))
-                .Replace("{sharePct}", Whole(e.Magnitude2 * 100.0)),
+            ChronicleEventType.FamineEnd =>
+                Count(Count(line, "years", e.Magnitude1), "deaths", e.Magnitude2),
+            ChronicleEventType.Extinction => Count(line, "lastPopulation", e.Magnitude1),
+            ChronicleEventType.FirstArtisans => Count(line, "count", e.Magnitude1),
+            ChronicleEventType.MigrationSurge => Count(line, "count", e.Magnitude1)
+                .Replace("{sharePct}", Share(e.Magnitude2)),
             // T4.21-6: {severityPct} is still SUBSTITUTABLE, but the shipped
             // template no longer uses it. The Disaster event fires on the rising
             // edge of FoodState.IsStruck, and at canonical dt 10 with
@@ -63,12 +58,11 @@ public static class ChronicleProse
             // every canonical-era disaster. {lossPct}, from AppliedMultiplier,
             // carries the magnitude and is the one the reader can act on.
             ChronicleEventType.Disaster => line
-                .Replace("{severityPct}", Whole(e.Magnitude1 * 100.0))
-                .Replace("{lossPct}", Whole((1.0 - e.Magnitude2) * 100.0)),
+                .Replace("{severityPct}", Share(e.Magnitude1))
+                .Replace("{lossPct}", Share(1.0 - e.Magnitude2)),
             ChronicleEventType.FoodShortfallOnset => line
-                .Replace("{deficitPct}", Whole(e.Magnitude1 * 100.0)),
-            ChronicleEventType.FoodShortfallEnd => line
-                .Replace("{years}", Whole(e.Magnitude1)),
+                .Replace("{deficitPct}", Share(e.Magnitude1)),
+            ChronicleEventType.FoodShortfallEnd => Count(line, "years", e.Magnitude1),
             _ => line,
         };
 
@@ -98,4 +92,55 @@ public static class ChronicleProse
 
     private static string Whole(double v) =>
         ((long)Math.Round(v)).ToString(CultureInfo.InvariantCulture);
+
+    /// <summary>
+    /// A fraction as "N of every hundred" — the {...Pct} placeholders.
+    /// M5 playtest (Director, 2026-10-19): the shortfall event fires on the
+    /// deficit crossing ZERO (CR-015, no band — deliberately), so a real
+    /// deficit of 0.0367 in a hundred rounded to "0 of every hundred measures
+    /// of need went unmet" under a line that says the stores ran short. The
+    /// rounding may not cross a semantic boundary the event asserts: a share
+    /// above 0 that rounds to 0 reads "fewer than 1", and a share below the
+    /// whole that rounds to 100 reads "more than 99". The event set is
+    /// untouched; only its wording is honest.
+    /// </summary>
+    private static string Share(double fraction)
+    {
+        double pct = fraction * 100.0;
+        long whole = (long)Math.Round(pct);
+        if (whole == 0 && pct > 0.0) return "fewer than 1";
+        if (whole == 100 && pct < 100.0) return "more than 99";
+        return whole.ToString(CultureInfo.InvariantCulture);
+    }
+
+    /// <summary>
+    /// Binds a count placeholder {key} to the whole number, and every
+    /// {key:singular|plural} selector in the template to the form that number
+    /// takes — singular exactly when the RENDERED number is 1 (so a magnitude
+    /// of 0.6 that prints "1" reads singular too). M5 playtest (Director,
+    /// 2026-10-19): "1 masters and hands". A selector without exactly one '|'
+    /// is a malformed template and throws, like an unbound placeholder.
+    /// </summary>
+    private static string Count(string line, string key, double magnitude)
+    {
+        long n = (long)Math.Round(magnitude);
+        line = line.Replace("{" + key + "}", n.ToString(CultureInfo.InvariantCulture));
+        string open = "{" + key + ":";
+        int at = line.IndexOf(open, StringComparison.Ordinal);
+        while (at >= 0)
+        {
+            int close = line.IndexOf('}', at);
+            if (close < 0)
+                throw new InvalidDataException($"chronicle template: unterminated selector for {{{key}}} in '{line}'");
+            string body = line.Substring(at + open.Length, close - at - open.Length);
+            int bar = body.IndexOf('|');
+            if (bar < 0 || body.IndexOf('|', bar + 1) >= 0)
+                throw new InvalidDataException(
+                    $"chronicle template: selector for {{{key}}} must read {{{key}:singular|plural}}: '{line}'");
+            string form = n == 1 ? body.Substring(0, bar) : body.Substring(bar + 1);
+            line = line.Substring(0, at) + form + line.Substring(close + 1);
+            at = line.IndexOf(open, at + form.Length, StringComparison.Ordinal);
+        }
+        return line;
+    }
 }

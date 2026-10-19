@@ -55,4 +55,31 @@ public class AnnalsTests
             Assert.Contains(name, hud.TitleLine);
         }
     }
+
+    /// <summary>
+    /// M5 playtest (Director, 2026-10-19) — the two defective lines, reproduced
+    /// from REAL inputs through the real UI seam: seed 42, one AI Empire,
+    /// canonical size, no player orders. Measured on this world before the fix:
+    /// "In 60, the stores at Pishemul ran short: 0 of every hundred measures of
+    /// need went unmet." (deficit ratio 0.000367) and "In 70, the first artisans
+    /// set up their workshops at Pishemul, 1 masters and hands." The events
+    /// still fire (the chronicle is UI-side and the event set did not change);
+    /// only their wording is now honest and grammatical.
+    /// </summary>
+    [Fact]
+    public void Annals_Seed42OneAiEmpire_ShortfallAndSingleArtisan_ReadHonestly()
+    {
+        var session = Sim.Ui.UiSession.Start(42, aiEmpiresOverride: 1);
+        for (int t = 1; t <= 7; t++) session.EndTurn();
+        Assert.Contains("In 60, the stores at Pishemul ran short: fewer than 1 of every hundred measures of need went unmet.",
+            session.AnnalLines);
+        Assert.Contains("In 70, the first artisan set up a workshop at Pishemul, 1 master.", session.AnnalLines);
+        Assert.Contains("In 70, the first artisan set up a workshop at Shekasur, 1 master.", session.AnnalLines);
+        foreach (string line in session.AnnalLines)
+        {
+            Assert.DoesNotContain(" 0 of every hundred measures of need", line, StringComparison.Ordinal);
+            Assert.DoesNotContain(" 1 masters", line, StringComparison.Ordinal);
+            Assert.DoesNotContain(" 1 souls", line, StringComparison.Ordinal);
+        }
+    }
 }

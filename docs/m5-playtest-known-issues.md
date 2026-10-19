@@ -478,3 +478,23 @@ and §16 it names.
 - **Chronicle wording seen in the session (open):**
   - "ran short: 0 of every hundred measures of need went unmet" — the share rounds to 0;
   - "1 masters and hands" — no singular.
+
+## Dated note — 2026-10-19: the two chronicle wording defects, traced and fixed (appended; the sections above are unchanged)
+
+- **"ran short: 0 of every hundred measures of need went unmet" (years 60, 330, 460 in the Director's session).**
+  - **Root cause:** the FOOD SHORTFALL onset fires when the deficit ratio crosses ZERO
+    (`ChronicleCollector.cs`, `bool shortfall = deficit > 0.0;` — CR-015 / T4.21-5 deliberately has no band), but the
+    renderer printed the share with `Whole()`, which rounds to the nearest whole number. A real deficit of 0.037 in a
+    hundred (Pishemul, turn 6, ratio 0.000367, measured on seed 42 with one AI Empire) printed as "0".
+  - **The fix (wording only):** every `{...Pct}` share now reads "fewer than 1" when a positive share rounds to 0, and
+    "more than 99" when a share short of the whole rounds to 100. The event threshold was NOT raised: zero is the ratified
+    CR-015 semantic, pinned by a test.
+- **"1 masters and hands" (Pishemul, Shekasur, Gisabul, Shagepi, Libur).**
+  - **Root cause:** the first-artisans event fires on the first turn any adult of a non-peasant class exists, so a single
+    adult is a real first artisan; the template was plural-only.
+  - **The fix:** templates now carry `{count:singular|plural}` selectors, chosen by the printed number. The line reads
+    "the first artisan set up a workshop at Pishemul, 1 master". The same treatment applies to every count that can be 1:
+    founding and extinction souls, migration souls, famine years and deaths, and lean years.
+- **No world hash moved.** The chronicle is a UI-side observer: its events and lines live in neither `WorldState`, the
+  snapshot nor `WorldHash`, and the CLI does not load `chronicle.json`. `sim run --founded --seed 42 --ai-empires 1
+  --turns 60` gives the same final hash before and after the change (`827d9b00…3878a0`).
