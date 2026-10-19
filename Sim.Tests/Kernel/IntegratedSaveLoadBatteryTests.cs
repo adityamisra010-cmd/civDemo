@@ -70,6 +70,15 @@ public partial class IntegratedSaveLoadBatteryTests
     /// TheSavePoints_MovedForTheCylinderAndIncrementalConstruction_EachLayerAloneMovesItsOwnPin, all before turn 35, so
     /// these orders still move no pin.</summary>
     private const long BuildTurn = 36, CancelTurn = 37, AllocationTurn = 38;
+
+    /// <summary>D-058 (2026-10-19) CAUSE BLOCK — was three granaries. Under the Director's "build one at a time … 7 built, 1
+    /// under construction, 1 not started" ruling a step's capacity is no longer capped at one project: MEASURED on this tree
+    /// (seed 42), settlement 2's capacity at turn 36 is about 400 granaries' labour, so all three granaries were built in step
+    /// 36 → 37 and world 37 held no entry to cancel (the batch-4 sequence — slot 0 built, slots 1 and 2 waiting — stands
+    /// under TestConfigs.PreContinueWithinTurn). With seven the purse's stone is what binds, the Director's own shape:
+    /// MEASURED, five are built in step 36 → 37, slot 5 is part-built (150,000) and slot 6 is not started — the turn-37
+    /// order cancels that NON-HEAD last entry. All after the last measured save point: no save-point pin moves.</summary>
+    private const int BuildCount = 7;
     private const double AllocationPercent = 30.0;
 
     /// <summary>H2: the Age the player is rigged into at turn 0 — one below the tax edict's Age, so the scripted
@@ -212,7 +221,7 @@ public partial class IntegratedSaveLoadBatteryTests
         if (t == FoundTurn) log.Append(FoundFrom(w, OtherHolding(w), rig));
         if (t == FromColonyTurn) log.Append(FoundFrom(w, ColonyOf(w), rig));
         if (t == BuildTurn)
-            for (int i = 0; i < 3; i++) log.Append(ConstructionQuery.EnqueueOrder(w, Player, OtherHolding(w), Granary));
+            for (int i = 0; i < BuildCount; i++) log.Append(ConstructionQuery.EnqueueOrder(w, Player, OtherHolding(w), Granary));
         if (t == CancelTurn && ConstructionQuery.Queue(w, OtherHolding(w)) is { Length: >= 2 } queued)
             log.Append(ConstructionQuery.CancelOrder(w, Player, OtherHolding(w), queued[^1].Slot));
         if (t == AllocationTurn)

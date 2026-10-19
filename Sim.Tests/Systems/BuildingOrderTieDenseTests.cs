@@ -129,7 +129,16 @@ public class BuildingOrderTieDenseTests
         Set(w, new SettlementId(Settlements - 1), Timber, 40L * Settlements);   // the HIGHEST id holds the purse
         Set(w, new SettlementId(Settlements - 1), Stone, 20L * Completing + Left);
 
-        WorldState next = ConstructionOnly(Cfg, null).Step(w);
+        // D-058 (2026-10-19) CAUSE BLOCK. The Director's ruling "build one at a time … 7 built, 1 under construction, 1 not
+        // started" carries a completing head's leftover capacity to its queue's next entry IN THE SAME STEP, at that
+        // entry's own place in the building order. With turn = 3 every later entry is keyed turn + 1 = 4, behind all twenty
+        // heads, and the stone is gone by then: nothing below moves. With turn = −1 (migrated v32 entries, no progress
+        // row) every entry of every queue keys −1, so settlement s's later entry (−1, s, slot + 1) outranks settlement
+        // s + 1's head and is served before it: MEASURED (this tree, before this block) settlement 0 built 2, not 1. The
+        // −1 arm's batch-4 pins are kept under TestConfigs.PreContinueWithinTurn (the head key's tie-break, this test's
+        // subject); the shipped arm is checked against the oracle below.
+        if (turn < 0) ChainedTieArm(w);
+        WorldState next = ConstructionOnly(turn < 0 ? TestConfigs.PreContinueWithinTurn(Cfg) : Cfg, null).Step(w);
 
         for (int s = 0; s < Settlements; s++)
         {
@@ -156,6 +165,59 @@ public class BuildingOrderTieDenseTests
         Assert.Equal(0L, TotalOf(next, Stone));
         Assert.Equal(20L * Completing + Left, Sunk(next, Stone) - Sunk(w, Stone));
         Assert.Equal(40L * Settlements - (40L * Completing + 14), TotalOf(next, Timber));   // ceil(40 × 0.35) = 14
+        AssertConserved(next);
+    }
+
+    /// <summary>
+    /// D-058, the shipped rule on the −1 arm (every entry keyed −1): an INDEPENDENT oracle of the walk on the one scarce good
+    /// (stone; timber is ample and never limits a draw here). In the building order — settlement ascending, then slot —
+    /// each settlement's head is served from the stone left; a head that completes passes C − L (its settlement's capacity
+    /// less the granary's labour) to the later entry, which then advances min(floor((C − L) / L × N), the stone bound) and
+    /// sets aside what it still needs of the stone left; a head that does not complete passes nothing. The step must build
+    /// and part-build exactly what the oracle serves, settlement by settlement, and draw exactly the stone it serves.
+    /// </summary>
+    private static void ChainedTieArm(WorldState w)
+    {
+        double labour = Cfg.Goods!.ProjectById(Granary)!.LaborRequired;
+        long stone = 20L * Completing + Left, drawn = 0;
+        var built = new long[Settlements];
+        var part = new long[Settlements];          // the progress of the entry the queue keeps as its head
+        for (int s = 0; s < Settlements; s++)
+        {
+            long head = stone >= 20 ? N : stone * N / 20;
+            long take = ConstructionQuery.Delivered(20, head);
+            stone -= take;
+            drawn += take;
+            if (head < N)
+            {
+                part[s] = head;
+                stone -= Math.Min(20 - take, stone);            // its set-aside
+                continue;
+            }
+            built[s] = 1;
+            double left = C(w, new SettlementId(s), 10.0) - ConstructionQuery.LabourBetween(labour, 0, N);
+            long dp = ConstructionQuery.LabourBound(left, labour, 0);
+            if (dp <= 0) continue;                               // not started: the head next step
+            long second = Math.Min(dp, stone >= 20 ? N : stone * N / 20);
+            long take2 = ConstructionQuery.Delivered(20, second);
+            stone -= take2;
+            drawn += take2;
+            if (second == N) { built[s] = 2; continue; }
+            part[s] = second;
+            stone -= Math.Min(20 - take2, stone);
+        }
+        Assert.True(built[0] == 2, "anti-vacuity: the oracle continues settlement 0's later entry in the same step");
+
+        WorldState next = ConstructionOnly(Cfg, null).Step(w);
+        for (int s = 0; s < Settlements; s++)
+        {
+            var id = new SettlementId(s);
+            Assert.Equal(built[s], Built(next, id));
+            ConstructionQueueRow[] q = ConstructionQuery.Queue(next, id);
+            Assert.Equal(2 - (int)built[s], q.Length);
+            if (q.Length > 0) Assert.Equal(part[s], ConstructionQuery.ProgressOf(next, q[0]));
+        }
+        Assert.Equal(drawn, Sunk(next, Stone) - Sunk(w, Stone));
         AssertConserved(next);
     }
 

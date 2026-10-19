@@ -255,6 +255,10 @@ public class ConstructionHoldsSchemaV34Tests
         Assert.Contains("construction.reservations requires construction.incremental to be true (D-055)", e.Message);
         Assert.Contains("got incremental false", e.Message);
 
+        // D-058 (2026-10-19) CAUSE BLOCK: the shipped block now also carries continueWithinTurn true, which the loader refuses
+        // without incremental (SimConfigLoader, D-058) — so the "same block loads" arm switches it off as well. The
+        // reservations refusal above is unchanged (it is checked first).
+        doc["construction"]!["continueWithinTurn"] = false;
         doc["construction"]!["reservations"] = false;                            // the same block without reservations loads
         Assert.False(SimConfigLoader.Load(doc.ToJsonString()).Construction!.Reservations);
 

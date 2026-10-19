@@ -59,7 +59,10 @@ public class IncrementalConstructionAttributionTests
         // D-055 (2026-10-16) CAUSE BLOCK: the expected block gains Reservations = false. Cause: the D-055 reservations
         // switch (sim.json construction.reservations, shipped true) is NEWER than WS1, so by the R4 rule this twin strips
         // it too (the loader refuses reservations without incremental). Nothing else in the block moved.
-        Assert.Equal(shipped.Construction with { Incremental = false, AllocationRatios = false, Reservations = false },
+        // D-058 (2026-10-19) CAUSE BLOCK: the expected block gains ContinueWithinTurn = false. Cause: the D-058 switch
+        // (sim.json construction.continueWithinTurn, shipped true; the Director's "build one at a time" ruling) is newer
+        // still, and the loader refuses it without incremental, so by the R4 rule this twin strips it as well.
+        Assert.Equal(shipped.Construction with { Incremental = false, AllocationRatios = false, Reservations = false, ContinueWithinTurn = false },
             TestConfigs.PreIncrementalConstruction(shipped).Construction);
         // The R4 rule: every older SimConfig twin strips the newer D-054 batch too — and the D-055 reservations switch.
         foreach (SimConfig twin in new[]
@@ -89,7 +92,11 @@ public class IncrementalConstructionAttributionTests
         Assert.True(shipped.Construction!.Reservations);                      // sim.json construction.reservations
         Assert.True(Reservations.Enabled(shipped));
         SimConfig off = TestConfigs.PreReservations(shipped);
-        Assert.Equal(shipped.Construction with { Reservations = false }, off.Construction);
+        // D-058 (2026-10-19) CAUSE BLOCK: the expected block gains ContinueWithinTurn = false. Cause: the D-058 switch is
+        // NEWER than reservations, so by the R4 rule this twin strips it too — a PreReservations world stays batch 3's
+        // byte for byte (its v33 projection). The single-layer helpers below keep both; PreContinueWithinTurn is D-058's
+        // own single-layer twin (ContinueWithinTurnTests).
+        Assert.Equal(shipped.Construction with { Reservations = false, ContinueWithinTurn = false }, off.Construction);
         Assert.Equal(shipped with { Construction = off.Construction }, off);  // nothing else in the config moved
         Assert.False(Reservations.Enabled(off));
         foreach (SimConfig single in new[]

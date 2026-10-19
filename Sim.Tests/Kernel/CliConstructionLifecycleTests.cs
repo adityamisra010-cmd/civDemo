@@ -271,15 +271,21 @@ public class CliConstructionLifecycleTests
     /// (11), in state 3.</summary>
     private static readonly OrderRecord FoundColony = new(2, 1, OrderKind.FoundSettlement, 0, 349391.0);
     private const int Colony = 12;
+    private const int ColonyGranaries = 7;
 
     private static string ColonyOrders(string dir, bool found)
     {
         var log = new OrderLog();
         if (found) log.Append(FoundColony);
-        log.Append(new OrderRecord(3, 1, OrderKind.EnqueueConstruction, Colony, Granary));
-        log.Append(new OrderRecord(3, 1, OrderKind.EnqueueConstruction, Colony, Granary));
+        // D-058 (2026-10-19) CAUSE BLOCK — was two granaries and a cancel of slot 1. Under the Director's "build one at a
+        // time … 7 built, 1 under construction, 1 not started" ruling a step's capacity is no longer capped at one project:
+        // MEASURED on this tree (in process, the CLI's founded world and content), the colony builds 5 granaries and a fifth
+        // of a sixth in step 3 → 4, so with two both were built and world 4 held nothing to cancel (the batch-4 world 4 —
+        // one built, slot 1 waiting — stands under TestConfigs.PreContinueWithinTurn). Seven granaries give world 4 the
+        // Director's shape: 5 built, slot 5 part-built at 200,000, slot 6 not started — and slot 6 is cancelled.
+        for (int i = 0; i < ColonyGranaries; i++) log.Append(new OrderRecord(3, 1, OrderKind.EnqueueConstruction, Colony, Granary));
         log.Append(new OrderRecord(4, 1, OrderKind.CancelConstructionEntry, Colony,
-            OrderLog.PackCancelTarget(new CancelTarget(1, Granary, 3))));   // D-056: slot 1, the granary ordered at 3
+            OrderLog.PackCancelTarget(new CancelTarget(ColonyGranaries - 1, Granary, 3))));   // D-056: the last slot, ordered at 3
         string path = Path.Combine(dir, "colony-" + (found ? "found" : "forged") + ".bin");
         using (FileStream f = File.Create(path)) log.Save(f);
         return path;
@@ -295,6 +301,8 @@ public class CliConstructionLifecycleTests
     /// 3), world 5 does not — the cancel was delivered by step 4 → 5 — and the colony still has exactly the one granary. `sim replay` of the emitted run log reproduces the run's hash log in another process.
     /// With the founding order removed (the log a replay under other rules would meet if the colony were never founded) the
     /// run is REFUSED at delivery: exit 2 and the ADR-034 diagnostic naming the EnqueueConstruction and settlement 12.
+    /// D-058 (2026-10-19): seven granaries now, the cancel naming the last; world 4 holds five built, slot 5 at 200,000 and
+    /// slot 6 at p = 0; world 5 holds six built and no entry (the code's cause block).
     /// </summary>
     [Fact]
     public void ACancelTargetingADeferredColonyId_IsAcceptedByRunAndReplay_AndRemovesTheColonysEntryTurnExact_AndWithoutTheColonyIsRefused()
@@ -312,14 +320,16 @@ public class CliConstructionLifecycleTests
             Assert.True(exit == 0, $"sim run exited {exit}: {stderr}");
 
             WorldState w4 = SaveFiles.Load(s4, -1), w5 = SaveFiles.Load(s5, -1);
-            var entry = new ConstructionQueueRow(new SettlementId(Colony), 1, Granary);
+            var entry = new ConstructionQueueRow(new SettlementId(Colony), ColonyGranaries - 1, Granary);
+            var part = new ConstructionQueueRow(new SettlementId(Colony), ColonyGranaries - 2, Granary);
             Assert.True(w4.Settlements.Count > Colony && EmpireQuery.ControlsSettlement(w4, Player, new SettlementId(Colony)), "the colony stands at 4");
-            Assert.Equal([entry], ConstructionQuery.Queue(w4, new SettlementId(Colony)));
-            Assert.Equal((3L, 0L, 1L), (ConstructionQuery.EnqueuedTurnOf(w4.ConstructionProgress, entry), ConstructionQuery.ProgressOf(w4, entry),
+            Assert.Equal([part, entry], ConstructionQuery.Queue(w4, new SettlementId(Colony)));
+            Assert.Equal((3L, 0L, 5L), (ConstructionQuery.EnqueuedTurnOf(w4.ConstructionProgress, entry), ConstructionQuery.ProgressOf(w4, entry),
                 ConstructionQuery.Built(w4, new SettlementId(Colony), Granary)));
+            Assert.Equal(200_000L, ConstructionQuery.ProgressOf(w4, part));     // under construction; the cancelled one not started
             Assert.Empty(ConstructionQuery.Queue(w5, new SettlementId(Colony)));
             Assert.Equal(-1, ConstructionQuery.ProgressIndex(w5.ConstructionProgress, entry));
-            Assert.Equal(1L, ConstructionQuery.Built(w5, new SettlementId(Colony), Granary));
+            Assert.Equal(6L, ConstructionQuery.Built(w5, new SettlementId(Colony), Granary));   // the part-built one completed; the cancelled one never
             Assert.Equal(File.ReadAllLines(h)[4], WorldHash.ComputeHex(w5));
 
             string runLog = Assert.Single(Directory.GetFiles(session, "orders-*.bin"));

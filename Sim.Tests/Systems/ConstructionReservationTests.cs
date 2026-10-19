@@ -396,10 +396,17 @@ public class ConstructionReservationTests
     }
 
     /// <summary>#9 COMPLETION: a head that completes leaves need 0 after its final draw, so the leftover goes to later heads in
-    /// the same walk; the slot it promotes is not a head when the walk starts and holds from the NEXT step.</summary>
+    /// the same walk; the slot it promotes is not a head when the walk starts and holds from the NEXT step.
+    /// D-058 (2026-10-19) CAUSE BLOCK: the Director's "build one at a time … 7 built, 1 under construction, 1 not started"
+    /// ruling carries the completing head's leftover capacity to the promoted slot IN THE SAME STEP, so "holds from the NEXT
+    /// step" is now the switch-off rule: this test's figures below are pinned under TestConfigs.PreContinueWithinTurn (the
+    /// batch-4 rule exactly; MEASURED on the shipped rule, S0 reached 0, not 521,739 — the promoted slot, keyed (0, S1, 1)
+    /// ahead of S0's (1, S0, 0), took the leftover first). The shipped rule's figures are
+    /// <see cref="ACompletion_D058_ThePromotedSlotContinuesInTheSameStep_AtItsOwnOrdersPlace"/>.</summary>
     [Fact]
     public void ACompletion_FreesTheLeftoverInTheSameWalk_AndThePromotedSlotHoldsFromTheNextStep()
     {
+        SimConfig Shipped = TestConfigs.PreContinueWithinTurn(ConstructionReservationTests.Shipped);
         WorldState w = Solo();
         AllBuilders(w, S1);
         AllBuilders(w, S0);
@@ -429,6 +436,33 @@ public class ConstructionReservationTests
         Assert.Equal((0L, 521_739L), (P(t2, S1), P(t2, S0)));
         Assert.Equal([Row(PlayerPurse, Timber, 19), Row(PlayerPurse, Stone, 8)], Holds(t2));
         AssertConserved(t2);
+    }
+
+    /// <summary>
+    /// #9, THE SHIPPED RULE (D-058, the Director's ruling of 2026-10-19). The same world as #9: S1's slot 0 (ordered turn 0,
+    /// p = 750,000) completes on its last 10 timber and 5 stone; its leftover capacity carries slot 1 (ordered turn 0) into the
+    /// SAME walk at its own place — (0, S1, 1) is ahead of S0's works (1, S0, 0) — against what is left, 25 timber and 12
+    /// stone: p' = min(floor(25N/40), floor(12N/20)) = 600,000, drawing ceil(24) = 24 timber and 12 stone, and it sets aside
+    /// min(16, 1) = 1 timber. S0's works, last, find nothing. Turn-exact.
+    /// </summary>
+    [Fact]
+    public void ACompletion_D058_ThePromotedSlotContinuesInTheSameStep_AtItsOwnOrdersPlace()
+    {
+        WorldState w = Solo();
+        AllBuilders(w, S1);
+        AllBuilders(w, S0);
+        Head(w, S1, 0, Granary, 750_000);
+        Head(w, S1, 0, Granary);
+        Head(w, S0, 1, Works);
+        Set(w, S2, Timber, 35);
+        Set(w, S2, Stone, 17);
+        WorldState t1 = Step(w, Shipped);
+        Assert.Equal(1L, Built(t1, S1));
+        Assert.Equal(new ConstructionQueueRow(S1, 1, Granary), Assert.Single(ConstructionQuery.Queue(t1, S1)));
+        Assert.Equal((600_000L, 0L), (P(t1, S1), P(t1, S0)));
+        Assert.Equal((1L, 0L), (TotalOf(t1, Timber), TotalOf(t1, Stone)));
+        Assert.Equal([Row(PlayerPurse, Timber, 1)], Holds(t1));
+        AssertConserved(t1);
     }
 
     /// <summary>#10 RE-ENQUEUE in one batch (a cancel and an enqueue of the same project): the new entry's key is the STAMP
@@ -483,6 +517,13 @@ public class ConstructionReservationTests
     public void APromotedSlot_TakesItsOwnOrdersPlace_OrderedEarlierItOutranksAPartBuiltHead_OrderedLaterItStaysBehind(
         bool cancelled, long promotedTurn)
     {
+        // D-058 (2026-10-19) CAUSE BLOCK: under the Director's "build one at a time" ruling a COMPLETION's promoted slot is
+        // walked in the completing step itself (its leftover capacity carried), so the completion rows' "promoted for step
+        // 1 → 2" premise is the switch-off rule: they run under TestConfigs.PreContinueWithinTurn (MEASURED on the shipped
+        // rule, row (false, 1): step 0 → 1 already gave the promoted entry the 22 / 11 — A held (0, 0), not (22, 11)). The
+        // shipped rule's same-step priority is pinned by ContinueWithinTurnTests.TheContinuingEntry_TakesItsOwnOrdersPlace_InTheSameStep.
+        // The cancel rows are unchanged (a cancel promotes before the walk under either rule).
+        SimConfig Cfg = cancelled ? IncrementalConstructionTests.Cfg : TestConfigs.PreContinueWithinTurn(IncrementalConstructionTests.Cfg);
         WorldState w = Solo();
         Head(w, S1, 3, Granary, 437_500);                 // A: remaining 22 timber, 11 stone
         NoBuilders(w, S1);
