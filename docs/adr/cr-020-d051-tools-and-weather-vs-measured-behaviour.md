@@ -146,3 +146,15 @@ save points, first dwelling decay 149 → 201); three rigs that needed weather f
 reconciliation horizon 900 → 1000; FoodFlow founded arm 300 → 700 turns, renamed `Founded700_…`; Colonization
 frontier-key rig runs on the pre-1(b) control, its property being cache keying); no schema change. The two
 `Dev_MalthusCorridors_AllInBand` cases (seeds 42, 7) are left RED and named here.
+
+## Pointer added 2026-10-19 (D-058; dated note, historical text kept)
+
+- **§B is resolved by option 1.** The Director's 2026-10-19 instruction ("CI main test run, full authorization,
+  resolve the issue best you can") supersedes the §B hold.
+- The per-seed recorded dev migration values and the in-test population envelope are re-recorded on the shipped tree:
+  - 8.357547346004101E-05 / 8.367965454628822E-05;
+  - [86,000, 139,000].
+- Bands, the 0.75 tooth and every other tooth are unchanged, and no hash moved.
+- The re-measurement adds two more ruled causes: the D-054 cylinder (seed 42 ×0.959, seed 7 ×0.847) and the D-053
+  food relief (seed 7 ×0.980).
+- Record: `docs/d058-calibration-rerecord-d051-regime.md`.
