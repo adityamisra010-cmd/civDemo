@@ -459,3 +459,22 @@ and §16 it names.
     dialog naming the trace file. The original directory is untouched.
 20. **Damaged log.** Copy a session directory, truncate its `orders-*.bin` (any length), and `--resume` the copy. Expect
     the "one of its files cannot be read" dialog, not a crash.
+
+## Dated note — 2026-10-19: Director's playtest of build 231485e (appended; the sections above are unchanged)
+
+- **Continuing a game (D1, fixed in the next build).**
+  - **The defect:** `Play civ-sim.cmd` always starts a NEW game.
+  - **The fix:** the zip root now also carries `Continue last game.cmd`, which runs `app\Sim.Ui.exe --resume runs`
+    and so reopens the game started last (the newest `session-*.json`).
+  - **If you started a game by accident,** "Continue" reopens that one. Resume a specific game from a terminal:
+    `app\Sim.Ui.exe --resume runs\session-<stamp>.json`.
+- **Results:** PT-01 (launch, 68 turns played), PT-02 (resume at turn 68: same turn, population, food, Labour and
+  research) and PT-03 (three projects, cancel the middle one, resume) passed on the Director's machine. The playtest
+  was closed there by the Director.
+- **Feedback recorded for decisions:**
+  - a resources view (`docs/m5-resources-view-proposal.md`);
+  - projects building one at a time per settlement (same file, §5);
+  - the one-file session export and telemetry encoding (`docs/m6-session-export/`).
+- **Chronicle wording seen in the session (open):**
+  - "ran short: 0 of every hundred measures of need went unmet" — the share rounds to 0;
+  - "1 masters and hands" — no singular.

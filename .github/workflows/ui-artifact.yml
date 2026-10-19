@@ -88,6 +88,15 @@ jobs:
           cat "publish/sim-ui-win-x64/Play civ-sim.cmd"
           grep -q -- '--ai-empires 1' "publish/sim-ui-win-x64/Play civ-sim.cmd" \
             || { echo "launcher does not pass --ai-empires 1"; exit 1; }
+          # M5 playtest D1 (Director, 2026-10-19: "when i closed the game and reopened it, it basically started a new
+          # game entirely"): the second launcher CONTINUES the latest game. `--resume runs` loads the newest
+          # session-*.json in runs\ (UiArgs.ResolveManifest: the stamps sort by launch time), i.e. the game started
+          # last; a refused or unreadable session reports itself in the error dialog as any --resume does.
+          printf '@echo off\r\ncd /d "%%~dp0"\r\nstart "" "app\\Sim.Ui.exe" --resume runs\r\n' \
+            > "publish/sim-ui-win-x64/Continue last game.cmd"
+          cat "publish/sim-ui-win-x64/Continue last game.cmd"
+          grep -q -- '--resume runs' "publish/sim-ui-win-x64/Continue last game.cmd" \
+            || { echo "continue launcher does not pass --resume runs"; exit 1; }
 
       - name: Assert the publish is complete (director hardening, T1.7)
         # An empty or partial publish must never go green: the exe and every
@@ -104,6 +113,7 @@ jobs:
             test -f "publish/sim-ui-win-x64/app/$f" || { echo "MISSING: app/$f"; exit 1; }
           done
           test -f "publish/sim-ui-win-x64/Play civ-sim.cmd" || { echo "MISSING: launcher"; exit 1; }
+          test -f "publish/sim-ui-win-x64/Continue last game.cmd" || { echo "MISSING: continue launcher"; exit 1; }
           test -d "publish/sim-ui-win-x64/app/assets" || { echo "MISSING: app/assets"; exit 1; }
           echo "zip root: $(ls publish/sim-ui-win-x64 | tr '\n' ' ')"
           echo "app/ contains $(ls publish/sim-ui-win-x64/app | wc -l) files, $(du -sh publish/sim-ui-win-x64/app | cut -f1)"
