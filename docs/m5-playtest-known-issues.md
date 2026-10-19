@@ -478,3 +478,15 @@ and §16 it names.
 - **Chronicle wording seen in the session (open):**
   - "ran short: 0 of every hundred measures of need went unmet" — the share rounds to 0;
   - "1 masters and hands" — no singular.
+
+## 2026-10-19 — D-058: projects completed one per turn (the Director's ruling), fixed LOCALLY on `b5-cons`
+
+- **The defect.** Three granaries ordered at one settlement completed one per turn even when a turn's capacity could have
+  finished more (PT-03 feedback, `docs/m5-resources-view-proposal.md` §5).
+- **The fix** (`docs/d058-build-one-at-a-time-capacity-carries-within-the-turn.md`). Construction stays one project at a
+  time, but a turn's leftover building capacity now continues down the queue in the same End Turn. Example: with nine
+  ordered and capacity for seven and a bit, the next turn shows 7 built, 1 under construction and 1 not started.
+- **Compatibility.** A session recorded by an earlier build in which a settlement could have finished two projects in
+  one turn now diverges at that turn, and its resume is refused with the incompatibility dialog. The Director's 68-turn
+  session of 2026-10-19 is NOT affected: its replay is identical under both rules on all 68 turns.
+- **Still open.** The queue gives no in-turn forecast of how far the continuation will get.

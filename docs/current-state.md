@@ -1,5 +1,19 @@
 # CURRENT STATE — the routing document
 
+> **2026-10-19: D-058, the Director's ruling "build one at a time … 7 built, 1 under construction, 1 not started", is
+> implemented on branch `b5-cons` (clone `/home/user/m5w/b5-cons`; LOCAL commits only — NOT pushed, NOT merged).**
+> Records: `docs/d058-build-one-at-a-time-capacity-carries-within-the-turn.md`, and dated notes appended to ADR-039 and
+> `docs/m5-playtest-known-issues.md`.
+> - **What changed.** When a construction head completes, the settlement's leftover capacity that turn carries its queue's
+>   next entry into the same step, at its own place in the building order and under the D-055 set-aside rules
+>   (`ConstructionQuery.HoldsWalk`). Switch: `sim.json construction.continueWithinTurn` (shipped on); control
+>   `TestConfigs.PreContinueWithinTurn`. `SplitReportCheck` P2 is restated as build + holds = min(G_b, R).
+> - **Unchanged.** Schema v34; no kernel file; no golden hash of the suite or ci.yml.
+> - **Moved scenario pins.** S42-ALLOC-H, the save/load battery, the colony cancel, the v32 fixture and the ci.yml mix
+>   leg's generator; each is attributed in D-058 §7.
+> - **Compatibility.** The Director's 68-turn session of 2026-10-19 is unaffected (identical old/new replay, 68/68).
+> - Verify against the tree (gov-4) before relying on this entry.
+
 > **2026-10-18 (later): D-057 continues D-056 on `claude/new-session-yavghm` (LOCAL, development clone
 > `/home/user/m5w/dev`; NOT pushed, NOT merged, NOT published).** Records:
 > - `docs/d057-identity-proof-and-validated-handoff.md` (decisions, compatibility impact, the coupling map, the priority
