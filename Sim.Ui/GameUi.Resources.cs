@@ -41,6 +41,8 @@ public sealed partial class GameUi
 
     // The player's stores, rebuilt with the HUD (selection change, End Turn, every order).
     private EmpireStores? _stores;
+    // Whether _stores carries the next-turn figures (built lazily: only RESOURCES and the hover card show them).
+    private bool _storesHaveNext;
     // The building/roads split's line, shown where the EMPIRE view shows it (null when that view shows none).
     private string? _storesSplitLine;
     // The good the stores metric charts (a good id; the first shown good until the player picks a row).
@@ -72,7 +74,8 @@ public sealed partial class GameUi
     /// <summary>Rebuilds the stores (RefreshHud's cadence).</summary>
     private void RefreshStores()
     {
-        _stores = EmpireStores.Build(_world, _session.PreviousWorld, _session.Config, UiPlayer.Empire);
+        _stores = EmpireStores.Build(_world, _session.PreviousWorld, _session.Config, UiPlayer.Empire, _session.Unlocked);
+        _storesHaveNext = false;
         _storesSplitLine = PlayerViews.MaterialsSplitListed(_world, _session.Config, UiPlayer.Empire)
             ? AllocationText.EmpireLine(Sim.Core.State.ResourceAllocation.EffectivePercent(_world, UiPlayer.Empire),
                 Sim.Core.State.Reservations.Enabled(_session.Config))
@@ -81,6 +84,17 @@ public sealed partial class GameUi
         bool stillShown = false;
         foreach (StoreGood g in shown) if (g.Good == _storeGood) stillShown = true;
         if (!stillShown) _storeGood = shown.Length > 0 ? shown[0].Good : -1;
+    }
+
+    /// <summary>Adds the next-turn figures to the stores (Director playtest 2026-10-20): the stores the next turn opens with
+    /// if the turn is ended now — <see cref="UiSession.PreviewNextWorld"/>, the production step run on a copy, without the
+    /// AI's orders. Built once per refresh, when RESOURCES or a hover card first needs them.</summary>
+    private void EnsureStoresNext()
+    {
+        if (_storesHaveNext || _stores is null) return;
+        _stores = EmpireStores.Build(_world, _session.PreviousWorld, _session.Config, UiPlayer.Empire, _session.Unlocked,
+            _session.PreviewNextWorld());
+        _storesHaveNext = true;
     }
 
     /// <summary>Whether <paramref name="settlement"/> is one of the player's settlements now.</summary>
@@ -161,7 +175,9 @@ public sealed partial class GameUi
         StripCardLines = [];
         StoreGroup? hover = _stripHover;
         _stripHover = null;
-        if (hover is not { } group || _stores?.Group(group) is not { } g) return;
+        if (hover is not { } group) return;
+        EnsureStoresNext();
+        if (_stores?.Group(group) is not { } g) return;
         _surface = FrameSurface.Status;
         IReadOnlyList<string> lines = EmpireStores.CardLines(g, id => _session.Names.Name(id));
         var d = new Sim.Ui.Render.DrawList();
@@ -190,6 +206,7 @@ public sealed partial class GameUi
     private void DrawStoresTable()
     {
         HeadingRow("Stores of your empire");
+        EnsureStoresNext();
         if (_stores is not { } st || st.Settlements.Length == 0)
         {
             Text("Your empire holds no settlement.");
@@ -203,12 +220,14 @@ public sealed partial class GameUi
         }
         Func<int, string> name = _session.Names.Name;
         float pad = 14f * Scale;
-        string[] heads = new string[4 + st.Settlements.Length];
+        const int Fixed = 5;
+        string[] heads = new string[Fixed + st.Settlements.Length];
         heads[0] = "Good";
         heads[1] = "Empire";
         heads[2] = "Change";
         heads[3] = "Set aside";
-        for (int c = 0; c < st.Settlements.Length; c++) heads[4 + c] = name(st.Settlements[c]);
+        heads[4] = "Next turn";
+        for (int c = 0; c < st.Settlements.Length; c++) heads[Fixed + c] = name(st.Settlements[c]);
         var widths = new float[heads.Length];
         for (int c = 0; c < heads.Length; c++) widths[c] = ImGui.CalcTextSize(heads[c]).X;
         var cells = new string[shown.Length][];
@@ -221,7 +240,8 @@ public sealed partial class GameUi
             cells[r][1] = EmpireStores.Figure(g.Total);
             cells[r][2] = EmpireStores.ChangeText(g.HasPrevious, g.Change);
             cells[r][3] = g.SetAside > 0 ? EmpireStores.Figure(g.SetAside) : "-";
-            for (int c = 0; c < st.Settlements.Length; c++) cells[r][4 + c] = EmpireStores.Figure(st.Amounts[gi][c]);
+            cells[r][4] = g.HasNext ? EmpireStores.NextText(g.Next) : "-";
+            for (int c = 0; c < st.Settlements.Length; c++) cells[r][Fixed + c] = EmpireStores.Figure(st.Amounts[gi][c]);
             for (int c = 0; c < heads.Length; c++) widths[c] = Math.Max(widths[c], ImGui.CalcTextSize(cells[r][c]).X);
         }
         var colX = new float[heads.Length];
@@ -259,7 +279,8 @@ public sealed partial class GameUi
             ? "Set aside: what your queued projects keep back from your stores until they are built; other projects and road works may not use it."
             : "Nothing is set aside for projects.");
         if (_storesSplitLine is { } split) Text(split);
-        Text("Change: since the start of last turn. Click a good to chart its stores below.");
+        Text("Change: since the start of last turn. Next turn: your stores if you end the turn now (your orders, building and "
+            + "upkeep included; rivals' moves are not known). Click a good to chart its stores below.");
         ImGui.PopTextWrapPos();
     }
 

@@ -18,10 +18,14 @@ public readonly record struct StoreHolder(int Settlement, long Amount);
 /// <summary>
 /// One good of the player's empire: the empire's stores (<see cref="Total"/>), the stores at the start of the last turn
 /// (<see cref="Previous"/>; meaningful only when <see cref="HasPrevious"/>), what the player's own purse has set aside for
-/// projects (<see cref="SetAside"/>), and the player's settlements holding it, largest first.
+/// projects (<see cref="SetAside"/>), and the player's settlements holding it, largest first. <see cref="Unlocked"/>: the
+/// empire has held some of it earlier in this game (<see cref="ResourceCatalogue"/>). <see cref="Next"/> (meaningful only
+/// when <see cref="HasNext"/>): the empire's stores the next turn opens with if the player ends the turn now
+/// (<see cref="UiSession.PreviewNextWorld"/>).
 /// </summary>
 public sealed record StoreGood(
-    int Good, string Name, StoreGroup Group, long Total, long Previous, bool HasPrevious, long SetAside, StoreHolder[] Holders)
+    int Good, string Name, StoreGroup Group, long Total, long Previous, bool HasPrevious, long SetAside, StoreHolder[] Holders,
+    bool Unlocked = false, long Next = 0, bool HasNext = false)
 {
     /// <summary>The change since last turn (0 before the first turn).</summary>
     public long Change => HasPrevious ? Total - Previous : 0;
@@ -60,8 +64,10 @@ public enum StoreTrend
 /// the last End Turn stepped from (the empire as it was then: a settlement won or lost counts in the change).</para>
 ///
 /// <para><b>Which goods are shown.</b> A good is shown when the empire holds some of it now, held some at the start of the
-/// last turn (so a good that just ran out reads 0 with a falling mark rather than vanishing), or has some set aside. A good
-/// the player has never held is not shown — the Stone Age strip stays short. Holding a good is how the player comes to use
+/// last turn, or has some set aside — and (Director playtest 2026-10-20) whenever it has been UNLOCKED in this game
+/// (<see cref="ResourceCatalogue"/>: held at the founding or after any turn), so a good whose stores run down to 0 keeps
+/// its row and reads 0 for the rest of the game. A good the player has never held is not shown — the Stone Age strip stays
+/// short. Holding a good is how the player comes to use
 /// it (extraction is endowment-bound, a recipe needs its knowledge), so no research rule is restated here. Arrays are
 /// indexed in goods.json order; no dictionary, no LINQ. Counts only, never a percentage (the numeral-free eras).</para>
 /// </summary>
@@ -101,8 +107,12 @@ public sealed record EmpireStores(int[] Settlements, StoreGood[] AllGoods, long[
     };
 
     /// <summary>Builds the player's stores. <paramref name="previous"/> is the world the last End Turn stepped from (null
-    /// before the first turn: no change is shown).</summary>
-    public static EmpireStores Build(IReadOnlyWorldState world, IReadOnlyWorldState? previous, SimConfig cfg, PolityId player)
+    /// before the first turn: no change is shown). <paramref name="unlocked"/> is the game's catalogue (null: none — only
+    /// the held-now rule shows a good). <paramref name="next"/> is the world End Turn would produce now
+    /// (<see cref="UiSession.PreviewNextWorld"/>; null: no next-turn figure); its stores are summed over the settlements
+    /// that are the player's IN that world, exactly as the next turn's own table will sum them.</summary>
+    public static EmpireStores Build(IReadOnlyWorldState world, IReadOnlyWorldState? previous, SimConfig cfg, PolityId player,
+        ResourceCatalogue? unlocked = null, IReadOnlyWorldState? next = null)
     {
         ArgumentNullException.ThrowIfNull(world);
         ArgumentNullException.ThrowIfNull(cfg);
@@ -116,6 +126,13 @@ public sealed record EmpireStores(int[] Settlements, StoreGood[] AllGoods, long[
             prevIds = new SettlementId[p.Length];
             for (int i = 0; i < p.Length; i++) prevIds[i] = new SettlementId(p[i]);
         }
+        SettlementId[] nextIds = [];
+        if (next is not null)
+        {
+            int[] n = OwnSettlements(next, player);
+            nextIds = new SettlementId[n.Length];
+            for (int i = 0; i < n.Length; i++) nextIds[i] = new SettlementId(n[i]);
+        }
         (int Good, long Units)[] setAside = SetAsideQuery.ViewerTotals(world, cfg, player);
 
         IReadOnlyList<GoodEntry> goods = cfg.Goods is { } gc ? gc.Goods : [];
@@ -127,6 +144,7 @@ public sealed record EmpireStores(int[] Settlements, StoreGood[] AllGoods, long[
             var gid = new GoodId(entry.Id);
             long total = EmpireStockpile.Available(world.GoodStocks, ownIds, gid);
             long prevTotal = previous is null ? 0 : EmpireStockpile.Available(previous.GoodStocks, prevIds, gid);
+            long nextTotal = next is null ? 0 : EmpireStockpile.Available(next.GoodStocks, nextIds, gid);
             long aside = 0;
             for (int k = 0; k < setAside.Length; k++) if (setAside[k].Good == entry.Id) aside = setAside[k].Units;
             amounts[g] = new long[own.Length];
@@ -140,7 +158,8 @@ public sealed record EmpireStores(int[] Settlements, StoreGood[] AllGoods, long[
             }
             // Largest first; ties to the lower settlement id (an integer composite key — no double is compared).
             holders.Sort((a, b) => a.Amount != b.Amount ? b.Amount.CompareTo(a.Amount) : a.Settlement.CompareTo(b.Settlement));
-            all[g] = new StoreGood(entry.Id, entry.Name, GroupOf(entry.Category), total, prevTotal, previous is not null, aside, [.. holders]);
+            all[g] = new StoreGood(entry.Id, entry.Name, GroupOf(entry.Category), total, prevTotal, previous is not null, aside, [.. holders],
+                unlocked is not null && unlocked.IsUnlocked(entry.Id), nextTotal, next is not null);
         }
 
         var groups = new List<StoreGroupSummary>();
@@ -160,8 +179,10 @@ public sealed record EmpireStores(int[] Settlements, StoreGood[] AllGoods, long[
         return new EmpireStores(own, all, amounts, [.. groups]);
     }
 
-    /// <summary>Whether a good is shown (see the header): held now, held at the start of the last turn, or set aside.</summary>
-    public static bool IsShown(StoreGood good) => good.Total > 0 || (good.HasPrevious && good.Previous > 0) || good.SetAside > 0;
+    /// <summary>Whether a good is shown (see the header): unlocked in this game, held now, held at the start of the last
+    /// turn, or set aside. Never "held now" alone: a stock of exactly 0 is a figure, not a missing good.</summary>
+    public static bool IsShown(StoreGood good) =>
+        good.Unlocked || good.Total > 0 || (good.HasPrevious && good.Previous > 0) || good.SetAside > 0;
 
     /// <summary>The group summary of <paramref name="group"/>, or null when none of its goods is shown.</summary>
     public StoreGroupSummary? Group(StoreGroup group)
@@ -238,6 +259,7 @@ public sealed record EmpireStores(int[] Settlements, StoreGood[] AllGoods, long[
         string line = good.Name + ": " + N(good.Total);
         if (good.HasPrevious) line += good.Change == 0 ? " (no change since last turn)" : " (" + ChangeText(true, good.Change) + " since last turn)";
         if (good.SetAside > 0) line += "; " + N(good.SetAside) + " set aside for projects";
+        if (good.HasNext) line += "; " + NextText(good.Next) + " next turn";
         if (good.Holders.Length > 0)
         {
             var parts = new List<string>();
@@ -249,6 +271,9 @@ public sealed record EmpireStores(int[] Settlements, StoreGood[] AllGoods, long[
         else line += "; none in store";
         return line;
     }
+
+    /// <summary>The next-turn figure: the stores the next turn opens with if the turn is ended now.</summary>
+    public static string NextText(long next) => N(next);
 
     /// <summary>A figure for the stores table.</summary>
     public static string Figure(long v) => N(v);

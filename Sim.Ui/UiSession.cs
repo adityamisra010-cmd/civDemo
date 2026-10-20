@@ -173,6 +173,48 @@ public sealed class UiSession
     /// the RESOURCES view's trends sum a turn's records over these only, never a foreign settlement's.</summary>
     public ViewModel.OwnershipHistory Ownership { get; } = new();
 
+    /// <summary>Director playtest 2026-10-20 — the goods the player has unlocked in THIS game (held at the founding or after
+    /// any step): the resources view keeps their rows even at 0. Filled by the founding capture and the one Step path, so
+    /// a resume's replay rebuilds it; UI-side only, no file, no hash.</summary>
+    public ViewModel.ResourceCatalogue Unlocked { get; } = new();
+
+    // The preview cache: the world PreviewNextWorld last produced, and the (world, order count) it was produced for.
+    private WorldState? _preview;
+    private WorldState? _previewFrom;
+    private int _previewOrders = -1;
+    private EraTable? _previewEra;
+    private SystemRegistration[]? _previewPipeline;
+
+    /// <summary>
+    /// Director playtest 2026-10-20 — THE WORLD THE NEXT TURN OPENS WITH IF THE PLAYER ENDS THE TURN NOW, for the resources
+    /// view's next-turn figure. It is the simulation's own accounting, not an estimate: the PRODUCTION step
+    /// (<see cref="BuildProductionExecutor"/>'s era and pipeline) run on the current world with this turn's queued orders,
+    /// so construction charges, set-asides, project priority, affordability and capacity carry-over (D-058), harvest,
+    /// consumption and trade all apply exactly as End Turn applies them, each once.
+    ///
+    /// <para><b>The AI's orders are NOT included</b>: they are a rival's decisions the player has not seen (D-060), so they
+    /// are never computed for a preview. With no AI polity the preview equals the next turn exactly; with one, it differs
+    /// only where an AI order of this turn reaches the player's own stores.</para>
+    ///
+    /// <para><b>Read-only.</b> <see cref="TurnExecutor.Step(WorldState)"/> never mutates its input; the preview steps a
+    /// separate order log holding a copy of this turn's orders, so neither <see cref="World"/>, <see cref="Orders"/> nor any
+    /// recorded file changes, and End Turn's world and hash are the same whether a preview ran or not. Cached until the world
+    /// or the order count changes.</para>
+    /// </summary>
+    public IReadOnlyWorldState PreviewNextWorld()
+    {
+        if (_preview is not null && ReferenceEquals(_previewFrom, World) && _previewOrders == Orders.Count) return _preview;
+        long turn = World.Clock.Turn;
+        _previewEra ??= ProductionEra();
+        _previewPipeline ??= ProductionPipeline();
+        var log = new OrderLog();
+        for (int i = 0; i < Orders.Count; i++) if (Orders[i].Turn == turn) log.Append(Orders[i]);
+        _preview = new TurnExecutor(_previewEra, _previewPipeline, log).Step(World);
+        _previewFrom = World;
+        _previewOrders = Orders.Count;
+        return _preview;
+    }
+
     /// <summary>
     /// M5 map workstream P7 — WHAT THE PLAYER KNOWS of <see cref="World"/>, rebuilt after every step (and at the start) from
     /// the Sim.Core knowledge seam: <see cref="PlayerKnowledge.Of(IReadOnlyWorldState)"/>, all-known until S2a stores an
@@ -222,6 +264,7 @@ public sealed class UiSession
         ObserveChronicle(); // founding events fire on first sight
         History.Capture(World, Knowledge); // the founding sample (turn 0)
         Ownership.Capture(World, UiPlayer.Empire);   // the resources view: the player's settlements at the founding
+        Unlocked.Capture(World, _simCfg, UiPlayer.Empire);   // the resources view: the goods unlocked at the founding
         CaptureTrace();         // turn 0 — the world before any order lands
     }
 
@@ -628,6 +671,7 @@ public sealed class UiSession
         NowUsableHistory.Observe(prev, World, _simCfg, UiPlayer.Empire);   // P10: the 'now usable' shortcuts this step fired
         History.Capture(World, Knowledge);
         Ownership.Capture(World, UiPlayer.Empire);   // the resources view: the player's settlements after the step
+        Unlocked.Capture(World, _simCfg, UiPlayer.Empire);   // the resources view: goods unlocked by the step stay unlocked
         CaptureTrace();
     }
 
