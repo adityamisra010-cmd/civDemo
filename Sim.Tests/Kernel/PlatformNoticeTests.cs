@@ -152,6 +152,36 @@ public class PlatformNoticeTests
         }
     }
 
+    /// <summary>
+    /// Fix round 2 (D-054, verifier RC1-1, 2026-10-15) — NO HASH COMPARISON, NOTHING TO CLASSIFY. `sim inspect` of a
+    /// session recorded under another schema compares no hashes (its verdict is SessionSchemaNotice.NotChecked), yet on
+    /// fix round 1's tree it printed "a hash mismatch below is a determinism finding." for a reference session and the
+    /// "EXPECTED to report REPRODUCTION FAILED from turn 2" NOTICE for a win-x64 one (MEASURED). Every line after the
+    /// plain platform line classifies that comparison, so with <c>hashesChecked: false</c> only that line prints — in
+    /// every case — and it is exactly the line the checked case starts with.
+    /// </summary>
+    [Fact]
+    public void WhenNoHashIsCompared_OnlyThePlainPlatformLinePrints_InEveryCase()
+    {
+        foreach ((string m, string r) in new[]
+        {
+            (Ref, Ref), ("ubuntu.24.04-x64", "ubuntu.24.04-x64"), ("win-x64", Ref), (Ref, "win-x64"),
+            ("win-x64", "win-x64"), ("win-x64", "osx-arm64"), (SessionManifest.PlatformNotRecorded, Ref),
+            (SessionManifest.PlatformNotRecorded, "win-x64"),
+        })
+        {
+            string checkedText = PlatformNotice.For(m, r);
+            string bare = PlatformNotice.For(m, r, hashesChecked: false);
+            Assert.Contains('\n', checkedText);                                   // every checked case says more…
+            Assert.DoesNotContain('\n', bare);                                    // …the unchecked one says only:
+            Assert.Equal(checkedText[..checkedText.IndexOf('\n')], bare);         // the plain platform line
+            Assert.DoesNotContain("NOTICE", bare);
+            Assert.DoesNotContain("determinism finding", bare);
+            Assert.DoesNotContain("REPRODUCTION FAILED", bare);
+            Assert.Contains("reference is linux-x64 (ADR-022)", bare);
+        }
+    }
+
     private static int Count(string text, string needle)
     {
         int n = 0;

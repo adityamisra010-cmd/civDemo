@@ -24,7 +24,8 @@ public class HydrologyTests
         // to obtain the conditioned routing surface and flow targets.
         var elevation = t.Elevation.ToArray();
         var water = t.Water.ToArray();
-        Hydrology.Result h = Hydrology.Compute(elevation, water, t.Size, cfg.Rivers);
+        // Batch 3 WS3: the same topology the terrain was generated on (the shipped world is a cylinder).
+        Hydrology.Result h = Hydrology.Compute(elevation, water, t.Size, cfg.Rivers, t.WrapX);
 
         Assert.True(t.RiverPolylineCount > 0, "no rivers generated");
         for (int p = 0; p < t.RiverPolylineCount; p++)
@@ -41,11 +42,19 @@ public class HydrologyTests
                 Assert.Equal(line[i], h.FlowTarget[line[i - 1]]);
             }
 
-            // The mouth terminates in water or the documented border sink.
+            // The mouth terminates in water or the documented border sink — on a cylinder (batch 3 WS3) a border
+            // sink is a POLE cell only: the east and west edges are not borders.
             int mouth = line[^1];
             int target = h.FlowTarget[mouth];
             Assert.True(target == -1 || water[target] >= 0.5,
                 $"polyline {p} mouth {mouth} does not terminate at sea or border sink");
+            if (target == -1)
+            {
+                int mx = mouth % t.Size, my = mouth / t.Size;
+                bool pole = my == 0 || my == t.Size - 1;
+                Assert.True(t.WrapX ? pole : pole || mx == 0 || mx == t.Size - 1,
+                    $"polyline {p} mouth {mouth} is a terminal sink off the {(t.WrapX ? "poles" : "border")}");
+            }
         }
     }
 

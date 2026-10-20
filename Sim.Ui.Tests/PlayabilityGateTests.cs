@@ -1,0 +1,677 @@
+using System.Diagnostics;
+using ImGuiNET;
+using Microsoft.Xna.Framework.Input;
+using Xunit;
+using Sim.Core.Kernel;
+using Sim.Core.State;
+using Sim.Ui.Headless;
+using Sim.Ui.ViewModel;
+using Sim.Ui.World;
+
+namespace Sim.Ui.Tests;
+
+/// <summary>
+/// THE M5 PLAYABILITY GATE (Director §2, §15; M5 hardening H1). The previous build passed 473 UI tests and crashed
+/// on the first click of Research, because no test ever drove the live ImGui UI. These tests drive it: the real
+/// per-frame UI (<see cref="GameUi"/>) in a real native ImGui context (<see cref="UiFrameHarness"/>) with clicks,
+/// keys, wheel and drags where the player would make them.
+///
+/// The FULL gate runs as a SEPARATE PROCESS (<c>Sim.Ui --smoke</c>): a native ImGui assertion aborts the process,
+/// which in-process would take the whole test host down with it and report nothing useful. The scenario logic also
+/// runs in-process here where it is safe (the renderer capability is declared, so a past-16-bit list cannot abort).
+/// </summary>
+[Collection("ImGui context")]
+public class PlayabilityGateTests : IDisposable
+{
+    private static string Assets() => Path.Combine(AppContext.BaseDirectory, "assets");
+
+    private readonly string _root = Path.Combine(Path.GetTempPath(),
+        "sim-ui-gate-tests-" + Environment.ProcessId.ToString(System.Globalization.CultureInfo.InvariantCulture) + "-" + Guid.NewGuid().ToString("N"));
+
+    /// <summary>The session files the harness writes (order log, chronicle, trace, telemetry) go here.</summary>
+    private string WorkDir(string name) => Path.Combine(_root, name);
+
+    public void Dispose()
+    {
+        try { if (Directory.Exists(_root)) Directory.Delete(_root, recursive: true); }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
+        GC.SuppressFinalize(this);
+    }
+
+    private static (int Exit, string Out, string Err) RunSimUi(TimeSpan limit, params string[] args)
+    {
+        var psi = new ProcessStartInfo("dotnet")
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            WorkingDirectory = AppContext.BaseDirectory,
+        };
+        psi.ArgumentList.Add(Path.Combine(AppContext.BaseDirectory, "Sim.Ui.dll"));
+        foreach (string a in args) psi.ArgumentList.Add(a);
+        using Process p = Process.Start(psi)!;
+        Task<string> o = p.StandardOutput.ReadToEndAsync(), e = p.StandardError.ReadToEndAsync();
+        try
+        {
+            if (!p.WaitForExit(limit))
+            {
+                p.Kill(entireProcessTree: true);
+                throw new TimeoutException("Sim.Ui " + string.Join(' ', args) + " did not finish in " + limit + " (non-termination)");
+            }
+            return (p.ExitCode, o.Result, e.Result);
+        }
+        finally
+        {
+            // An aborted run (the control) cannot clean its own work directory.
+            string work = Path.Combine(Path.GetTempPath(), "sim-ui-smoke-" + p.Id.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            try { if (Directory.Exists(work)) Directory.Delete(work, recursive: true); } catch (IOException) { } catch (UnauthorizedAccessException) { }
+        }
+    }
+
+    // ------------------------------------------------------------------ out of process
+
+    [Fact]
+    public void Smoke_AsASeparateProcess_EveryStateEveryControl_Passes()
+    {
+        (int exit, string output, string err) = RunSimUi(TimeSpan.FromMinutes(20), "--smoke", "--monkey", "200");
+        Assert.True(exit == 0, "exit " + exit + "\n" + Tail(output) + "\n" + Tail(err));
+        Assert.Contains("SMOKE PASSED", output, StringComparison.Ordinal);
+        Assert.Contains("0 FAIL; 0 problems", output, StringComparison.Ordinal);
+        foreach (string state in new[] { "A1 turn 1", "one AI", "target set", "research done", "tax available", "age advance", "colony+revolt" })
+            Assert.Contains("state: " + state + " - building", output, StringComparison.Ordinal);
+    }
+
+    /// <summary>THE CONTROL: the same live UI with the pre-fix renderer configuration (RendererHasVtxOffset NOT
+    /// declared), opened on Research in a maximised 1920×1080 window and moved over the tree, ABORTS with the exact assertion
+    /// the Director hit. So the gate can see the crash — and passes above only because it is fixed.</summary>
+    [Fact]
+    public void Control_PreFixRendererConfiguration_AbortsOnTheResearchScreen_WithImGuis16BitAssertion()
+    {
+        (int exit, string output, string err) = RunSimUi(TimeSpan.FromMinutes(5), "--smoke-control-prefix");
+        Assert.NotEqual(0, exit);
+        Assert.DoesNotContain("CONTROL DID NOT REPRODUCE", output, StringComparison.Ordinal);
+        Assert.Contains("opening Research", output, StringComparison.Ordinal);
+        Assert.Contains("Too many vertices in ImDrawList using 16-bit indices", output + err, StringComparison.Ordinal);
+    }
+
+    private static string Tail(string s) => s.Length <= 6000 ? s : s[^6000..];
+
+    // ------------------------------------------------------------------ in process
+
+    [Fact]
+    public void Gate_A1TurnOne_InProcess_EveryDrawnControlPasses_NoFrameDefect()
+    {
+        GateReport r = PlayabilityGate.Run(new GateOptions(Assets(), WorkDir("a1"), MonkeySteps: 150, OnlyStates: ["A1 turn 1"]));
+        Assert.True(r.Ok, string.Join("\n", r.Problems) + "\n" + r.Details());
+        Assert.True(r.Count(GateResult.Pass) > 120, "pass rows " + r.Count(GateResult.Pass));
+        // Every player section, the research screen, the Age panel, the map and the formation were exercised.
+        foreach (string control in new[] { "nav:Place", "nav:Empire", "nav:Policy", "nav:Institutions", "nav:Annals", "nav:Resources",
+                     "band-research (open)", "K key (close / open)", "tab:Civics", "lens:Industry", "lane collapse / expand (Technology)",
+                     "scroll through the whole tree (Civics)", "band-age (opens the Age panel)", "end-turn", "Space (End Turn)",
+                     "select capital", "select formation (click token)", "unit card states the M7 limitation", "wheel zoom to Settlement" })
+            Assert.Contains(r.Rows, row => row.Control == control && row.Result == GateResult.Pass);
+        // P6: the coverage check ran and passed — every control, hit kind and inspectable kind drawn in the state was
+        // pressed by a passing row — and a row's coverage is what it pressed.
+        Assert.Contains(r.Rows, row => row.Area == "coverage" && row.Result == GateResult.Pass
+            && row.Control == "every drawn control, hit kind and inspectable kind has a gate row");
+        Assert.DoesNotContain(r.Rows, row => row.Area == "coverage" && row.Result != GateResult.Pass);
+        Assert.Contains(r.Rows, row => row.Control == "nav:Policy" && row.Covers.Contains("control:nav:Policy"));
+        Assert.Contains(r.Rows, row => row.Control == "tab:Civics" && row.Covers.Contains("hit:research.Tab"));
+        Assert.Contains(r.Rows, row => row.Control.StartsWith("shift-click LabourSector", StringComparison.Ordinal) && row.Covers.Contains("info:LabourSector"));
+        Assert.DoesNotContain(r.Rows, row => row.Area == "monkey" && row.Covers.Count > 0);   // the monkey asserts nothing: it covers nothing
+    }
+
+    /// <summary>The Director's click, through the real UI in a maximised window: the status band's research figure
+    /// opens the tree; moving over it takes the background list past 65,535 vertices — the frames the pre-fix
+    /// renderer aborted on — and every one of them passes the 16-bit contract now. (M5 polish UR-2, deliberately: at
+    /// the default 1280×800 the calmer card texture keeps the tree under the old limit — 62,618 at most — so the
+    /// test opens the 1920×1080 window, where the tree passes it as it opens.)</summary>
+    [Fact]
+    public void ResearchClick_ThroughTheLiveUi_MaximisedWindow_HoverPassesTheOldLimit_AndEveryFrameIsValid()
+    {
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("click"), Assets(), width: 1920, height: 1080);
+        Assert.True(h.ClickControl("band-research"));
+        Assert.True(h.Ui.ProgressionOpen);
+        for (int y = 180; y < 800; y += 40)
+            for (int x = 0; x < 876; x += 48) h.MoveTo(x, y);
+        Assert.Empty(h.Problems);
+        Assert.True(h.MaxListVertices > ushort.MaxValue, "max " + h.MaxListVertices);
+    }
+
+    /// <summary>The chrome follows the window: at the design size it is exactly PanelLayout; maximised, the command
+    /// bar sits on the bottom edge and the context panel on the right edge, and their controls work there.</summary>
+    [Fact]
+    public void Chrome_FollowsTheWindow_DesignSizeUnchanged_MaximisedAnchoredToTheEdges()
+    {
+        using (UiFrameHarness small = UiFrameHarness.Start(UiSession.Start(42), WorkDir("chrome-1280"), Assets()))
+        {
+            Assert.Equal(PanelLayout.Status, small.Ui.StatusRect);
+            Assert.Equal(PanelLayout.Command, small.Ui.CommandRect);
+            Assert.Equal(PanelLayout.Context, small.Ui.ContextRect);
+            UiControl end = small.Ui.Controls.Find("end-turn")!.Value;
+            Assert.Equal(ChromeGeometry.EndTurnButton.Y, end.Y0, 0.5);
+        }
+        using UiFrameHarness big = UiFrameHarness.Start(UiSession.Start(42), WorkDir("chrome-1920"), Assets(), width: 1920, height: 1009);
+        Assert.Equal(1920f, big.Ui.StatusRect.Width);
+        Assert.Equal(1009f - PanelLayout.Command.Height, big.Ui.CommandRect.Y);
+        // UR-3: the context panel's width follows the window (a quarter of it, 420–560 px): 480 at 1920.
+        Assert.Equal(PanelLayout.ContextWidth(1920f), big.Ui.ContextRect.Width);
+        Assert.Equal(480f, big.Ui.ContextRect.Width);
+        Assert.Equal(1920f - PanelLayout.ContextWidth(1920f) - PanelLayout.Margin, big.Ui.ContextRect.X);
+        Assert.Equal(1009f - PanelLayout.Status.Height - PanelLayout.Command.Height - 2 * PanelLayout.Margin, big.Ui.ContextRect.Height);
+        UiControl bigEnd = big.Ui.Controls.Find("end-turn")!.Value;
+        Assert.Equal(big.Ui.CommandRect.Y + (ChromeGeometry.EndTurnButton.Y - PanelLayout.Command.Y), bigEnd.Y0, 0.5);
+        Assert.True(big.ClickControl("nav:Policy"));
+        Assert.Equal(Section.Policy, big.Ui.OpenSection);
+        UiControl close = big.Ui.Controls.Find("close")!.Value;
+        Assert.True(close.X1 <= 1920 - PanelLayout.Margin && close.X0 > big.Ui.ContextRect.X);
+        long turn = big.Ui.World.Clock.Turn;
+        Assert.True(big.ClickControl("end-turn"));
+        Assert.Equal(turn + 1, big.Ui.World.Clock.Turn);
+        Assert.Empty(big.Problems);
+    }
+
+    /// <summary>The context panel's body is one scrolling child for every section: a section opens at its top,
+    /// not at the scroll the previous section was left at (found by the gate: POLICY scrolled to its end opened
+    /// the developer TURN tab with its own tab row scrolled out of sight).</summary>
+    [Fact]
+    public void ContextPanel_ANewSectionOpensAtItsTop_NotAtThePreviousSectionsScroll()
+    {
+        UiSession s = UiSession.Start(42);
+        s.EndTurn();   // a played turn: the TURN audit is long enough to scroll
+        using UiFrameHarness h = UiFrameHarness.Start(s, WorkDir("scroll"), Assets());
+        Assert.True(h.ClickControl("nav:Policy"));
+        PanelRect p = h.Ui.ContextRect;
+        for (int k = 0; k < 40; k++) h.Wheel(p.X + p.Width / 2, p.Y + p.Height / 2, -3);
+        h.Key(Keys.F12);
+        Assert.True(h.ClickControl("nav:Developer"));
+        float top = ChromeGeometry.ContentTop(ChromeGeometry.Context, ImGui.GetFrameHeight());
+        UiControl tab = h.Ui.Controls.Find("dev-Turn")!.Value;
+        Assert.True(tab.Y0 >= top - 1, "the DEV tab row opened scrolled out of sight: y " + tab.Y0 + " above " + top);
+        Assert.Empty(h.Problems);
+    }
+
+    /// <summary>The ADVANCE AGE flow is modal: it darkens the whole window, so the chrome under it must not answer
+    /// clicks (found by the gate's review: End Turn and the section buttons stayed live beneath the backdrop, so a
+    /// click "outside the dialog" ended the turn under it).</summary>
+    [Fact]
+    public void AgeFlow_IsModal_TheChromeBeneathItDoesNotAnswerClicks()
+    {
+        PlayabilityGate.GateState state = PlayabilityGate.States(null).First(st => st.Name == "age advance");
+        using UiFrameHarness h = UiFrameHarness.Start(state.Build(), WorkDir("modal"), Assets());
+        Assert.True(h.ClickControl("band-age"));
+        Sim.Ui.Ages.AgeHitRegion open = h.Ui.Age.Hits.First(x => x.Kind == Sim.Ui.Ages.AgeHit.OpenAdvance);
+        h.Click(open.Rect.CenterX, open.Rect.CenterY);
+        Assert.True(h.Ui.Age.FlowOpen);
+        long turn = h.Ui.World.Clock.Turn;
+        UiControl end = h.Ui.Controls.Find("end-turn")!.Value;
+        h.Click(end.CenterX, end.CenterY);
+        UiControl nav = h.Ui.Controls.Find("nav:Policy")!.Value;
+        h.Click(nav.CenterX, nav.CenterY);
+        Assert.Equal(turn, h.Ui.World.Clock.Turn);
+        Assert.Equal(Section.None, h.Ui.OpenSection);
+        Assert.True(h.Ui.Age.FlowOpen);
+        h.Key(Keys.Escape);   // the flow's own way out
+        Assert.False(h.Ui.Age.FlowOpen);
+        Assert.Empty(h.Problems);
+    }
+
+    /// <summary>Escape closes the open panel first and exits only when nothing is open — the Age panel included
+    /// (it used to fall through to "nothing open" and ask the window to exit).</summary>
+    [Fact]
+    public void Escape_ClosesTheAgePanel_ItDoesNotExitTheGame()
+    {
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("esc-age"), Assets());
+        Assert.True(h.ClickControl("band-age"));
+        Assert.True(h.Ui.AgePanelOpen);
+        h.Key(Keys.Escape);
+        Assert.False(h.Ui.AgePanelOpen);
+        Assert.Equal(0, h.ExitRequests);
+        h.Key(Keys.Escape);
+        Assert.Equal(1, h.ExitRequests);   // now nothing is open: Escape is the window's exit, as before
+    }
+
+    /// <summary>The docked Age panel sits under the selection card, in the column the formation card uses, and
+    /// overlaps no chrome window.</summary>
+    [Fact]
+    public void AgePanel_SitsBelowTheSelectionCard()
+    {
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("age-rect"), Assets());
+        Sim.Ui.Render.RectD r = h.Ui.AgePanelBounds;
+        // UR-3: the selection card's height is its measured content; the column starts under the card AS DRAWN.
+        Assert.True(r.Y >= h.Ui.SelectionRect.Y + h.Ui.SelectionRect.Height, "Age panel top " + r.Y);
+        Assert.Equal(h.Ui.UnitCardRect.Y, (float)r.Y);
+        Assert.True(r.Bottom <= h.Ui.CommandRect.Y, "Age panel bottom " + r.Bottom);
+    }
+
+    // ------------------------------------------------------------------ duplicate ids are seen
+
+    /// <summary>The gate's id-conflict detection has teeth: two widgets sharing an id are reported by the control
+    /// register (exhaustively) and by ImGui 1.91's own hover-time detector (its error tooltip).</summary>
+    [Fact]
+    public void DuplicateImGuiIds_AreReportedByBothDetectors()
+    {
+        using var gui = new HeadlessImGui(Assets());
+        Assert.True(ImGui.GetIO().ConfigDebugHighlightIdConflicts);
+        var controls = new UiControls();
+        var mouse = new MouseState(40, 50, 0, ButtonState.Released, ButtonState.Released, ButtonState.Released, ButtonState.Released, ButtonState.Released);
+        bool tooltip = false;
+        for (int f = 0; f < 8; f++)   // ImGui's warning shows from the ~5th hovered frame
+        {
+            gui.BeginFrame(mouse, default, 1.0 / 60);
+            controls.BeginFrame();
+            ImGui.SetNextWindowPos(new System.Numerics.Vector2(10, 10));
+            ImGui.Begin("probe");
+            ImGui.Button("same"); controls.Record("first");
+            ImGui.Button("same"); controls.Record("second");
+            ImGui.End();
+            controls.EndFrame();
+            gui.EndFrame();
+            tooltip |= gui.LastTooltipWindows.Count > 0;
+        }
+        Assert.Single(controls.Duplicates);
+        Assert.Contains("first / second", controls.Duplicates[0], StringComparison.Ordinal);
+        Assert.True(tooltip, "ImGui's own conflict tooltip was not seen");
+    }
+
+    // ------------------------------------------------------------------ the warband (Director §3)
+
+    [Fact]
+    public void Warband_ClickingItsToken_SelectsIt_AndTheCardStatesItCannotMoveUntilTheBattleLayer()
+    {
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("warband"), Assets());
+        MilitaryUnitRow unit = MilitaryQuery.Units(h.Ui.World, UiPlayer.Empire)[0];
+        CameraFocus.CenterOn(h.Ui.Camera, h.Ui.World, unit.Location.Value, h.Ui.MapRect);
+        h.Idle(2);
+        UnitPlacement at = Placement(h, unit.Id);
+        h.Click(at.X, at.Y);
+
+        Assert.Equal(unit.Id, h.Ui.SelectedUnit);
+        UnitCard card = h.Ui.UnitCard!;
+        Assert.Equal("Warband", card.Title);
+        Assert.True(card.Mine);
+        Assert.Equal("Heavy Infantry / Line Infantry", card.Family);
+        Assert.Equal("Warband -> Axe warriors -> Bronze-armed infantry", card.Line);
+        Assert.Equal("Its Age I form: Warband", card.AgeForm);
+        Assert.StartsWith("Stationed at ", card.Station, StringComparison.Ordinal);
+        Assert.StartsWith("At the next Age (", card.NextAge, StringComparison.Ordinal);
+        Assert.EndsWith("becomes Axe warriors", card.NextAge, StringComparison.Ordinal);
+        Assert.Contains("Battle Layer (milestone M7)", card.Limitation, StringComparison.Ordinal);
+        Assert.Contains("cannot be moved or given orders yet", card.Limitation, StringComparison.Ordinal);
+
+        // The card's ONLY control is its close button: no control pretends to move the formation.
+        var onCard = new List<string>();
+        foreach (UiControl c in h.Ui.Controls.Last)
+            if (c.X0 >= h.Ui.UnitCardRect.X && c.X1 <= h.Ui.UnitCardRect.X + h.Ui.UnitCardRect.Width
+                && c.Y0 >= h.Ui.UnitCardRect.Y && c.Y1 <= h.Ui.UnitCardRect.Y + h.Ui.UnitCardRect.Height)
+                onCard.Add(c.Name);
+        Assert.Equal(["unit-close"], onCard);
+        Assert.Empty(h.Problems);
+    }
+
+    [Fact]
+    public void Warband_NothingTheMapOffersMovesIt_AndNoOrderIsWritten()
+    {
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("warband-still"), Assets());
+        MilitaryUnitRow unit = MilitaryQuery.Units(h.Ui.World, UiPlayer.Empire)[0];
+        CameraFocus.CenterOn(h.Ui.Camera, h.Ui.World, unit.Location.Value, h.Ui.MapRect);
+        h.Idle(2);
+        UnitPlacement at = Placement(h, unit.Id);
+        int orders = h.Ui.Session.Orders.Count;
+        h.Click(at.X, at.Y);
+        // What a player would try: drag the token, right-click elsewhere, click a destination.
+        h.Drag(at.X, at.Y, at.X + 150, at.Y + 90);
+        h.RightClick(at.X + 200, at.Y + 120);
+        h.Click(at.X + 180, at.Y - 60);
+        h.ClickControl("end-turn");
+        MilitaryUnitRow after = MilitaryQuery.Units(h.Ui.World, UiPlayer.Empire)[0];
+        Assert.Equal((unit.Location, unit.X, unit.Y), (after.Location, after.X, after.Y));
+        // The only order the session holds is none: the token click and the gestures emit nothing.
+        Assert.Equal(orders, h.Ui.Session.Orders.Count);
+        // (F3: the former pin on the kernel's order vocabulary was dropped — the unit not moving is the property.)
+    }
+
+    [Fact]
+    public void NarrowWindow_AtTheMinimumSize_TheCommandBarFits_AndBelowItTheHarnessFlagsTheOverflow()
+    {
+        PlayabilityGate.GateState state = PlayabilityGate.States(null).First(st => st.Name == "narrow window");
+        Assert.Equal((PanelLayout.MinWindowWidth, PanelLayout.MinWindowHeight), (state.Width, state.Height));
+        using (UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("narrow-min"), Assets(),
+                   width: PanelLayout.MinWindowWidth, height: PanelLayout.MinWindowHeight))
+        {
+            h.Idle(3);
+            UiControl territory = h.Ui.Controls.Find("territory")!.Value;
+            Assert.True(territory.X1 <= PanelLayout.MinWindowWidth, "territory toggle ends at " + territory.X1);
+            Assert.Empty(h.Problems);
+        }
+        // UR-3: the measured row tightens rather than overflows, so the old floor-less case (1024 px) now FITS…
+        using (UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("narrow-1024"), Assets(), width: 1024, height: 640))
+        {
+            h.Idle(2);
+            Assert.DoesNotContain(h.Problems, p => p.Contains("outside", StringComparison.Ordinal));
+        }
+        // …and the control moves below what even the tightened row can hold (800 px; the tightened row's toggle ends
+        // at 857.6 px, measured): the harness must call it out.
+        using (UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("narrow-800"), Assets(), width: 800, height: 640))
+        {
+            h.Idle(2);
+            Assert.Contains(h.Problems, p => p.Contains("'territory' outside", StringComparison.Ordinal));
+        }
+    }
+
+    [Fact]
+    public void Warband_Card_ClosesWithItsButton_WithEscape_AndWhenASettlementIsChosen_AndGivesWayToTheAgePanel()
+    {
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("warband-close"), Assets());
+        MilitaryUnitRow unit = MilitaryQuery.Units(h.Ui.World, UiPlayer.Empire)[0];
+        void Select()
+        {
+            CameraFocus.CenterOn(h.Ui.Camera, h.Ui.World, unit.Location.Value, h.Ui.MapRect);
+            h.Idle(2);
+            UnitPlacement at = Placement(h, unit.Id);
+            h.Click(at.X, at.Y);
+            Assert.Equal(unit.Id, h.Ui.SelectedUnit);
+        }
+        Select();
+        Assert.True(h.ClickControl("unit-close"));
+        Assert.Equal(-1, h.Ui.SelectedUnit);
+
+        Select();
+        h.Key(Keys.Escape);
+        Assert.Equal(-1, h.Ui.SelectedUnit);
+        Assert.Equal(0, h.ExitRequests);   // the first Escape closes the card, it does not exit
+
+        Select();
+        Assert.True(h.ClickControl("band-age"));
+        Assert.True(h.Ui.AgePanelOpen);
+        Assert.Equal(-1, h.Ui.SelectedUnit);   // one left-column surface at a time
+
+        h.ClickControl("band-age");
+        Select();
+        Assert.False(h.Ui.AgePanelOpen);
+        // Choosing a settlement puts the formation card away.
+        SettlementRow row = h.Ui.World.Settlements[0];
+        CameraFocus.CenterOn(h.Ui.Camera, h.Ui.World, row.Id.Value, h.Ui.MapRect);
+        h.Idle(2);
+        LineGeometry.Vertex pos = OverlayMeshes.SettlementPosition(row, h.Ui.World.Terrain!.Size);
+        (double sx, double sy) = h.Ui.Camera.WorldToScreen(pos.X, pos.Y, h.Ui.MapRect);
+        h.Click(sx, sy);
+        Assert.Equal(-1, h.Ui.SelectedUnit);
+        Assert.Empty(h.Problems);
+    }
+
+    [Fact]
+    public void UnitHitTest_IsTheTokenRectTheLensDrew_PlusAGrip()
+    {
+        var frame = new LensFrame(WorldZoom.Regional, [], [7], [], new int[16], [], [], [new UnitPlacement(7, 100, 100, 0)]);
+        double s = UnitSelection.TokenSize(WorldZoom.Regional);
+        Assert.Equal(7, UnitSelection.HitTest(frame, 100, 100));
+        Assert.Equal(7, UnitSelection.HitTest(frame, 100 + s + UnitSelection.GripPx, 100));
+        Assert.Equal(-1, UnitSelection.HitTest(frame, 100 + s + UnitSelection.GripPx + 1, 100));
+        Assert.Equal(-1, UnitSelection.HitTest(frame, 100, 100 + s * 0.75 + UnitSelection.GripPx + 1));
+        Assert.Equal(-1, UnitSelection.HitTest(null, 100, 100));
+    }
+
+    // ------------------------------------------------------------------ P6: control coverage
+
+    [Fact]
+    public void Coverage_Family_DigitRunsRead_Hash_AndTheAuditLinesAreOneFamily()
+    {
+        Assert.Equal("where-pop-#", UiCoverage.Family("where-pop-12"));
+        Assert.Equal("need-#-#", UiCoverage.Family("need-1-12"));
+        Assert.Equal("lever-need-#-#", UiCoverage.Family("lever-need-0-3"));
+        Assert.Equal("good#", UiCoverage.Family("good3"));
+        Assert.Equal("audit-*", UiCoverage.Family("audit-grain"));
+        Assert.Equal("nav:Policy", UiCoverage.Family("nav:Policy"));
+        Assert.Equal("control:fig:WorldFood", UiCoverage.ControlKey("fig:WorldFood"));
+    }
+
+    [Fact]
+    public void Coverage_Allowlist_EveryEntryIsAKeyWithAReason()
+    {
+        var keys = new HashSet<string>(StringComparer.Ordinal);
+        foreach (CoverageAllowance a in UiCoverage.Allowlist)
+        {
+            Assert.True(a.Key.StartsWith(UiCoverage.ControlPrefix, StringComparison.Ordinal) || a.Key.StartsWith(UiCoverage.HitPrefix, StringComparison.Ordinal)
+                || a.Key.StartsWith(UiCoverage.InfoPrefix, StringComparison.Ordinal), a.Key);
+            Assert.False(string.IsNullOrWhiteSpace(a.Reason), a.Key);
+            Assert.True(keys.Add(a.Key), "duplicate " + a.Key);
+        }
+    }
+
+    /// <summary>THE ACCEPTANCE FIXTURE: a control recorded in a real ImGui frame through the real register, with no gate
+    /// row, fails the coverage check; a PASSING row that pressed it covers it (and only it); a not-offered or failed row
+    /// covers nothing; an allowlist entry excuses it.</summary>
+    [Fact]
+    public void Coverage_AFixtureControlRecordedWithoutAGateRow_FailsTheCheck()
+    {
+        var seen = new SortedSet<string>(StringComparer.Ordinal);
+        using (var gui = new HeadlessImGui(Assets()))
+        {
+            var controls = new UiControls();
+            gui.BeginFrame(new MouseState(), new KeyboardState(), 1.0 / 60.0);
+            controls.BeginFrame();
+            ImGui.Begin("##fixture", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoSavedSettings);
+            ImGui.Button("fixture##fixture-control");
+            controls.Record("fixture-control");
+            ImGui.Button("row##fixture-row-12");
+            controls.Record("fixture-row-12");
+            ImGui.End();
+            controls.EndFrame();
+            gui.EndFrame();
+            UiCoverage.Controls(controls, seen);
+        }
+        Assert.Equal(["control:fixture-control", "control:fixture-row-#"], seen);
+        Assert.Equal(["control:fixture-control", "control:fixture-row-#"], UiCoverage.Uncovered(seen, [], []));
+        var pressed = new GateRow("fixture", "area", "a row that pressed the control", GateResult.Pass, "") { Covers = ["control:fixture-control"] };
+        Assert.Equal(["control:fixture-row-#"], UiCoverage.Uncovered(seen, [pressed], []));
+        Assert.Equal(["control:fixture-control", "control:fixture-row-#"],
+            UiCoverage.Uncovered(seen, [pressed with { Result = GateResult.NotOffered }, pressed with { Result = GateResult.Fail }], []));
+        Assert.Empty(UiCoverage.Uncovered(seen, [pressed], [new CoverageAllowance("control:fixture-row-#", "fixture")]));
+    }
+
+    /// <summary>A press records what it reached: a plain press the control ImGui activated (and the region a painted
+    /// screen's own Click resolved), a Shift press only the inspectable kind (it inspects, it does not click); what any
+    /// frame drew is Seen.</summary>
+    [Fact]
+    public void Coverage_APressCoversWhatItReached_AShiftPressOnlyTheInspectableKind()
+    {
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("presses"), Assets());
+        Assert.True(h.ClickControl("territory"));
+        Assert.False(h.Presses[^1].Shift);
+        Assert.Equal(["control:territory"], h.Presses[^1].Reached);
+        Assert.True(h.ClickControl("nav:Policy"));
+        Assert.Contains(h.Seen, k => k.StartsWith("hit:policy.", StringComparison.Ordinal));
+        Assert.Contains("info:LabourSector", h.Seen);
+        Sim.Ui.Info.InfoHit row = h.Ui.InfoRegistry.First(InfoKind.LabourSector)!.Value;
+        h.ShiftClick(row.Rect.CenterX, row.Rect.CenterY);
+        Assert.True(h.Presses[^1].Shift);
+        Assert.Equal(["info:LabourSector"], h.Presses[^1].Reached);
+        Assert.Contains("control:info-close", h.Seen);
+        Assert.Empty(h.Problems);
+    }
+
+    /// <summary>Whether the control's LAID-OUT rect (ImGui's item rect, unclipped) contains the point: the geometric rule
+    /// the coverage used before the review fix. The tests below assert it holds, so each one exercises the defect.</summary>
+    private static bool LaidOutOver(UiControl c, (double X, double Y) p) => p.X >= c.X0 && p.X < c.X1 && p.Y >= c.Y0 && p.Y < c.Y1;
+
+    /// <summary>
+    /// REVIEW FINDING (coverage credited controls the press never reached). With POLICY open the action surface is ONE
+    /// invisible item the height of the painted surface (about 2,000 px at 1280x800), so its laid-out rect runs under the
+    /// command bar: the old rule credited <c>control:action-surface</c> to a press on <c>nav:Resources</c>. A press reaches
+    /// what ImGui routed it to — the command bar's button, in the window on top — and nothing else.
+    /// </summary>
+    [Theory]
+    [InlineData(1280, 800, "nav:Resources")]
+    [InlineData(PanelLayout.MinWindowWidth, PanelLayout.MinWindowHeight, "nav:Resources")]
+    [InlineData(PanelLayout.MinWindowWidth, PanelLayout.MinWindowHeight, "nav:Annals")]
+    public void Coverage_ACommandBarPress_WithPolicyOpen_DoesNotCoverTheActionSurfaceBeneathIt(int width, int height, string nav)
+    {
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("bar-over-surface"), Assets(), width: width, height: height);
+        Assert.True(h.ClickControl("end-turn"));
+        Assert.True(h.ClickControl("nav:Policy"));
+        UiControl surface = h.Ui.Controls.Find("action-surface")!.Value;
+        UiControl button = h.Ui.Controls.Find(nav)!.Value;
+        (double X, double Y) aim = h.Aim(button);
+        Assert.True(LaidOutOver(surface, aim), nav + " is not under the surface's laid-out rect (y " + surface.Y0 + ".." + surface.Y1 + ")");
+        h.Click(aim.X, aim.Y);
+        Assert.Equal(nav, "nav:" + h.Ui.OpenSection);   // the press did reach the button
+        Assert.Equal(["control:" + nav], h.Presses[^1].Reached);
+        Assert.Empty(h.Problems);
+    }
+
+    /// <summary>A control scrolled out of its panel is not reached: POLICY scrolled down, the action surface's laid-out
+    /// rect runs up past the context body's top, out of the panel, over the chrome above it; a press there on another
+    /// window's control (a status-band control, or the panel's own close button) reaches that control only.</summary>
+    [Fact]
+    public void Coverage_AControlScrolledOutOfItsPanel_IsNotReached()
+    {
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("scrolled-away"), Assets());
+        Assert.True(h.ClickControl("nav:Policy"));
+        for (int k = 0; k < 20; k++) h.Wheel(h.Ui.ContextRect.X + 100, h.Ui.ContextRect.Y + 300, -3);
+        UiControl surface = h.Ui.Controls.Find("action-surface")!.Value;
+        PanelRect ctx = h.Ui.ContextRect;
+        Assert.True(surface.Y0 < ctx.Y, "POLICY did not scroll its surface past the panel's top (y " + surface.Y0 + ")");
+        UiControl? over = null;
+        foreach (UiControl c in h.Ui.Controls.Last)
+            if (c.Name != "action-surface" && (c.Name == "close" || h.Aim(c).Y < ctx.Y) && LaidOutOver(surface, h.Aim(c))) { over = c; break; }
+        Assert.True(over is not null, "no control lies under the scrolled-away part of the surface (x " + surface.X0 + ".." + surface.X1 + ")");
+        (double X, double Y) aim = h.Aim(over.Value);
+        h.Click(aim.X, aim.Y);
+        Assert.Equal([UiCoverage.ControlKey(over.Value.Name)], h.Presses[^1].Reached);
+        Assert.Empty(h.Problems);
+    }
+
+    /// <summary>A press on the action surface reaches the surface and exactly the region ITS OWN Click resolved (the last
+    /// painted region under the point), not every region whose rect holds it; the next press, elsewhere, credits nothing
+    /// of the surface (a screen's click is credited once, to the press that made it).</summary>
+    [Fact]
+    public void Coverage_APressOnTheActionSurface_ReachesExactlyTheRegionItsClickResolved()
+    {
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("surface-press"), Assets());
+        Assert.True(h.ClickControl("nav:Policy"));
+        PanelRect ctx = h.Ui.ContextRect;
+        Sim.Ui.Actions.ActionHit? target = null;
+        foreach (Sim.Ui.Actions.ActionHit a in h.Ui.Actions.Hits)
+            if (a.Kind == Sim.Ui.Actions.ActionHitKind.LabourSlot && a.Rect.CenterY > ctx.Y + 80 && a.Rect.CenterY < ctx.Y + ctx.Height - 40) { target = a; break; }
+        Assert.NotNull(target);
+        double x = target.Value.Rect.CenterX, y = target.Value.Rect.CenterY;
+        // The region the surface's Click answers with: the LAST painted region under the point.
+        Sim.Ui.Actions.ActionHitKind expected = target.Value.Kind;
+        foreach (Sim.Ui.Actions.ActionHit a in h.Ui.Actions.Hits) if (a.Rect.Contains(x, y)) expected = a.Kind;
+        long before = h.Ui.Actions.LastClick.Serial;
+        h.Click(x, y);
+        Assert.Equal(before + 1, h.Ui.Actions.LastClick.Serial);
+        Assert.Equal(expected, h.Ui.Actions.LastClick.Kind);
+        Assert.Equal(["control:action-surface", "hit:policy." + expected], h.Presses[^1].Reached);
+        Assert.True(h.ClickControl("territory"));
+        Assert.Equal(["control:territory"], h.Presses[^1].Reached);
+        Assert.Empty(h.Problems);
+    }
+
+    /// <summary>A control DISABLED under the modal ADVANCE AGE flow is not reached: in the "age advance" state the gate's
+    /// "flow is modal" row presses End Turn and POLICY under the open flow — it passes (nothing answered) and covers
+    /// nothing (the old rule credited both). The state's coverage check still passes.</summary>
+    [Fact]
+    public void Coverage_ControlsDisabledUnderTheModalAgeFlow_AreNotReached()
+    {
+        GateReport r = PlayabilityGate.Run(new GateOptions(Assets(), WorkDir("modal"), MonkeySteps: 0, OnlyStates: ["age advance"]));
+        GateRow modal = Assert.Single(r.Rows, row => row.Control == "flow is modal (the chrome beneath does not answer)");
+        Assert.Equal(GateResult.Pass, modal.Result);
+        Assert.Empty(modal.Covers);
+        Assert.Contains(r.Rows, row => row.Control == "ADVANCE AGE (opens the flow)" && row.Result == GateResult.Pass
+            && row.Covers.Contains("control:band-age") && row.Covers.Contains("hit:age.OpenAdvance"));
+        Assert.Contains(r.Rows, row => row.Area == "coverage" && row.Result == GateResult.Pass
+            && row.Control == "every drawn control, hit kind and inspectable kind has a gate row");
+        Assert.True(r.Ok, string.Join("\n", r.Problems) + "\n" + r.Details());
+    }
+
+    // ------------------------------------------------------------------ P6: the camera rows
+
+    private static readonly string[] CameraRowNames =
+    [
+        "W A S D (pan)", "drag pan", "wheel zoom to Regional", "wheel zoom to Settlement", "wheel zoom out to World",
+        "centre on a settlement (CameraFocus.CenterOn)",
+        // P1: folding a panel is looking too — the map takes the space back, the game is untouched.
+        "fold the context panel (its fold button)", "unfold the context panel (its tab)",
+        "fold the selection card", "unfold the selection card", "H (fold every panel, then unfold them)",
+        // P3: showing and hiding the map legend is looking too.
+        "legend (show: its tab)", "legend (hide: its tab)", "L (legend: show, then hide)",
+    ];
+
+    [Fact]
+    public void CameraRows_Pass_AndLookingChangesNeitherTheWorldNorTheQueuedOrders()
+    {
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("camera"), Assets());
+        string hash = WorldHash.ComputeHex(h.Ui.Session.World);
+        IReadOnlyList<GateRow> rows = PlayabilityGate.CameraRows(h, "camera");
+        foreach (string name in CameraRowNames) Assert.Contains(rows, r => r.Control == name);
+        Assert.Contains(rows, r => r.Control == "select capital");
+        Assert.All(rows, r => Assert.True(r.Result == GateResult.Pass, r.Control + ": " + r.Result + " " + r.Detail));
+        Assert.Equal(hash, WorldHash.ComputeHex(h.Ui.Session.World));
+        Assert.Empty(h.Ui.Session.QueuedOrders());
+        Assert.Empty(h.Problems);
+    }
+
+    /// <summary>
+    /// Batch 3 R3 (W2 review F5) — THE W A S D ROW ON A CYLINDER CHECKS DIRECTION: D must pan the view EAST and A WEST, by the
+    /// camera's shortest wrapped delta (it said only "x changed", so a D that panned west passed — MEASURED: with the keys'
+    /// signs swapped in GameUi every camera row still passed). The verdict across the seam goes by direction, not by the
+    /// coordinate's jump; the live rows (CameraRows_Pass…) hold it on the shipped game.
+    /// </summary>
+    [Fact]
+    public void TheWrapPanVerdict_WantsDEastAndAWest_ByTheShortestWrappedDelta()
+    {
+        var cam = new Camera(1024, wrapX: true);
+        Assert.Null(PlayabilityGate.WrapPanProblem(cam, 100, 110, 95));
+        Assert.Null(PlayabilityGate.WrapPanProblem(cam, 1020, 4, 1018));        // D east across the seam (x jumps 1020 -> 4)
+        Assert.Null(PlayabilityGate.WrapPanProblem(cam, 6, 20, 1022));          // A west across the seam (x jumps 20 -> 1022)
+        Assert.Contains("D moved x by -10.0", PlayabilityGate.WrapPanProblem(cam, 100, 90, 85), StringComparison.Ordinal);   // D west
+        Assert.Contains("A by 10.0", PlayabilityGate.WrapPanProblem(cam, 100, 110, 120), StringComparison.Ordinal);          // A east
+        Assert.NotNull(PlayabilityGate.WrapPanProblem(cam, 4, 1020, 1010));     // D WEST across the seam: x grew, the view went west
+        Assert.NotNull(PlayabilityGate.WrapPanProblem(cam, 100, 100, 100));     // nothing moved
+        Assert.NotNull(PlayabilityGate.WrapPanProblem(cam, 100, 110, 110));     // A did nothing
+    }
+
+    /// <summary>THE MUTANT (ADR-015): a camera operation that QUEUES AN ORDER — the verification seam runs a labour order
+    /// inside every camera row, after its input. The world hash cannot see it (an order changes nothing until the step);
+    /// the queued-order leg of every camera row does.</summary>
+    [Fact]
+    public void CameraRows_AMutantCameraOperationThatQueuesAnOrder_FailsEveryCameraRow()
+    {
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("camera-queue"), Assets());
+        Assert.True(EmpireQuery.TryGetCapital(h.Ui.World, UiPlayer.Empire, out SettlementId capital));
+        IReadOnlyList<GateRow> rows = PlayabilityGate.CameraRows(h, "mutant",
+            s => Assert.True(s.EmitSectorOrders([20, 20, 20, 20, 20], capital.Value)));
+        foreach (string name in CameraRowNames) Assert.Contains(rows, r => r.Control == name);
+        Assert.All(rows, r =>
+        {
+            Assert.True(r.Result == GateResult.Fail, r.Control + " passed under the mutant");
+            Assert.Contains("queued orders", r.Detail, StringComparison.Ordinal);
+            Assert.Contains("SectorAllocation", r.Detail, StringComparison.Ordinal);
+            Assert.DoesNotContain("world hash", r.Detail, StringComparison.Ordinal);
+        });
+    }
+
+    /// <summary>THE SECOND MUTANT: a camera operation that steps the world — the queued list may well be equal (empty
+    /// before, empty after); the world-hash leg of every camera row catches it.</summary>
+    [Fact]
+    public void CameraRows_AMutantCameraOperationThatStepsTheWorld_IsCaughtByTheHashLeg()
+    {
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("camera-step"), Assets());
+        IReadOnlyList<GateRow> rows = PlayabilityGate.CameraRows(h, "mutant", s => s.EndTurn());
+        foreach (string name in CameraRowNames) Assert.Contains(rows, r => r.Control == name);
+        Assert.All(rows, r =>
+        {
+            Assert.True(r.Result == GateResult.Fail, r.Control + " passed under the mutant");
+            Assert.Contains("world hash", r.Detail, StringComparison.Ordinal);
+        });
+    }
+
+    private static UnitPlacement Placement(UiFrameHarness h, int unit)
+    {
+        foreach (UnitPlacement p in h.Ui.LensFrame!.UnitPlacements) if (p.Id == unit) return p;
+        throw new InvalidOperationException("formation " + unit + " not drawn");
+    }
+}

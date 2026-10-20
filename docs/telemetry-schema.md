@@ -111,7 +111,7 @@ by construction.
 | `flows.settlementsFounded` | DIFF | `next.Settlements.Count − prev.Settlements.Count` |
 | `flows.controlLost` | DIFF | `ControlRow` (Polity, Place) present in prev and absent in next |
 | `flows.tradeUnits`, `.tradeFlowCount` | SUMMED / READ | `TradeFlowRow.Quantity`, `TradeFlows.Count` on next |
-| `flows.unattributedGrainTransfer` | — | true when any NON-founded settlement's `food.storeLosses < 0` this turn: the honest appropriation detector (§3 below) |
+| `flows.unattributedGrainTransfer` | — | true when any NON-founded settlement's `food.storeLosses < 0` this turn WITHOUT the intra-polity relief signature: the honest appropriation detector (§3 below). With `consumption.empireFoodAllocation` ON (D-053 §2) a negative is excluded when — and only when — its `grainClosing` is 0, its `eaten` > 0, it had a controller on PREV, and the `storeLosses` of every record that polity controlled on PREV sum to ≥ 0 (`Observer.AppropriationDetected`); with the switch OFF every negative counts, as before. A raid (stateless raider), grain crossing a polity boundary, or an inbound transfer that leaves grain in the store still sets it |
 | `orders[] {index, turn, actor, kind, targetId, settlement, sector, amount}` | READ | `OrderRecord` rows with `Turn == prev.Clock.Turn`; `index` = position in the OrderLog; `settlement`/`sector` decoded per `OrderKind` doc (SectorAllocation: `targetId >> 3`, `& 7`) |
 | `policy[] {settlement, shares[5]}` | RECOMP | `Sectors.Share` on the PREV `SectorAllocationRow` — the row Production/Housing/PathBuild read this step; `Sectors.Default` when no row (ProductionSystem.cs:148, HousingSystem.cs:146, PathBuildSystem.cs:125) |
 | `causes {populationDelta, populationExplained, grainDelta, grainExplained}` | DIFF | delta = closing − opening; explained = the account's named legs. Equal whenever the account reconciles — an identity, not a finding |
@@ -177,7 +177,7 @@ is why the rig is the founding world.
 | `grainOpening`, `grainClosing` | READ | grain `GoodStockRow.Amount`, prev / next |
 | `harvest` | READ | grain `LastProducedUnits` on next — the Harvest source's amount (ProductionSystem.cs:244-247) |
 | `eaten` | READ | grain `LastConsumptionEatenUnits` on next — the Eaten sink's amount (ConsumptionSystem.Consume) |
-| `storeLosses` | RESIDUAL | `grainOpening + harvest − eaten − grainClosing`; absorbs spoilage + granary overflow (per settlement by nothing, §8 gap 2), appropriation transfers (§8 gap 4), colony provisions (§8 gap 3) |
+| `storeLosses` | RESIDUAL | `grainOpening + harvest − eaten − grainClosing`; absorbs spoilage + granary overflow (per settlement by nothing, §8 gap 2), appropriation transfers (§8 gap 4), colony provisions (§8 gap 3), and — D-053 §2, `consumption.empireFoodAllocation` — intra-polity grain relief (positive at a donor; NEGATIVE at a recipient, which ate the grain it received, so its `eaten` includes it and its granary closes at 0) |
 | `storeLossesIdentity` | — | `Observer.StoreLossesIdentity` |
 | `demandUnits`, `deficitRatio` | READ | `ConsumptionDeficitRow` (next); 0 / 0.0 when no row (founding record) |
 | `foodGoods[] {good, name, produced, demand, eaten}` | READ | the goods of `BasketBook.FoodGoods` — those carrying a Sustenance basket line, ascending by good id (grain, livestock, fish on shipped data): `LastProducedUnits`, `LastConsumptionDemandUnits`, `LastConsumptionEatenUnits` on next. T4.20 moved this from goods.json's `"category":"food"` string, a second rule that merely agreed on shipped data, to the simulation's own rule |
@@ -190,9 +190,18 @@ is why the rig is the founding world.
 the founding world (founding turn included — without the colony's negative
 record the prev settlements over-count by exactly the provisions); per-settlement
 harvest / eaten / openings / closings sum to the ledger legs; no non-founded
-settlement is ever negative and `unattributedGrainTransfer` is never set on
-these worlds (>2,500 settlement-turns with positive loss — 2,895 measured,
-driven). **Appropriation, honestly:** no raid rule is re-derived. A raid is an
+record is negative on the founded world, and `unattributedGrainTransfer` is
+never set on any of these worlds (>2,500 settlement-turns with positive loss —
+2,895 measured, driven). **Intra-polity grain relief (D-053 §2), the one
+admitted negative:** on the driven world a non-founded record may be negative
+ONLY with the relief signature — `grainClosing` 0, a controller, `eaten` > 0,
+and its polity's residuals summing to ≥ 0 (a transfer inside one polity nets to
+zero within it) — and such a negative does NOT set the label. Exactly: a
+relieved settlement with nothing of its own records `storeLosses = −eaten`, its
+siblings carry the grant, and the turn is not labelled
+(`StoreLossTests.ARelievedSettlement_…`); the same negative IS labelled when its
+settlement is stateless, when it is credited to a polity whose residuals then
+sum below 0, or with the switch off (`StoreLossTests.TheDetector_…`). **Appropriation, honestly:** no raid rule is re-derived. A raid is an
 unrecorded transfer, so the raider's residual goes negative while the world sum
 still closes; the turn is LABELLED (`flows.unattributedGrainTransfer`). Teeth: a
 50-grain `Ledger.Transfer` between two stocks gives −50 / +50, the label, and a
@@ -264,7 +273,7 @@ the `disasterPending*` block, which is next-side and named so.
 | `state` | RECOMP | `FoodState.Of(prev, s, cfg)` — `Normal` / `Stress` / `Severe` / `Famine`, as the enum NAME |
 | `famineReason` | RECOMP | the same call's out parameter — `None` / `Disaster` / `Abandonment` / `Both` |
 | `nominalDeficit` | RECOMP | `FoodState.DeficitRatio(prev, s)` — `d`, the classifier's input (0 when the row is absent, as every system reads it) |
-| `effectiveDeficit` | RECOMP | `FoodState.EffectiveDeficit(d, state, cfg)` — exactly 0 inside the dead zone, `d` itself in FAMINE |
+| `effectiveDeficit` | RECOMP | `FoodState.EffectiveDeficit(prev, s, d, state, cfg)` — the dead-zone form `FoodState.EffectiveDeficit(d, state, cfg)` (exactly 0 inside the dead zone, `d` itself in FAMINE) × the civilization's granary famine-intensity factor (`GranaryEffects.FamineIntensityFactor`, D-053 §3; the literal 1 — and the multiplication skipped — when the civilization holds no granary or `granaries.enabled` is off), the value `DemographicsSystem` integrated on the same PREV |
 | `abandoned` | RECOMP | `FoodState.IsAbandoned(prev, s)` — the RAW sector row in force, the field `ProductionSystem` reads |
 | `disasterRowPresent`, `disasterKind`, `disasterSeverity`, `disasterRemainingYears` | READ | `prev.Disasters[s]` |
 | `disasterMultiplierThisStep` | READ | `prev.Disasters[s].Multiplier` — what Production multiplied the two food rates by in THIS step (`WorldState.cs` `DisasterRow`). FORWARD-looking, and **not** what `state`/`famineReason` are decided on. Named `disasterMultiplierApplied` until T4.21-6, where the name was found to collide with the field below; `telemetry/v3` is new in T4.21-5 and no artifact outside this packet carries the old key, so `ReadableSchemas` is unchanged |

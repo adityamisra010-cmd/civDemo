@@ -1,5 +1,8 @@
 # ARCH-P / ARCH-Q — CONFLICTS REQUIRING A RULING, AND QUESTIONS REQUIRING A DECISION
 
+> **Superseded 2026-10-03 (Director roadmap rebase).** The authoritative ladder is now: M0 Kernel · M1 Walking Skeleton · M2 Demography / Food · M3 Production / Markets · M4 Empire / Strategic Foundation · M5 Governing Gameplay (current, being finished) · M6 Knowledge / Research / Technology (next) · M7 Battle Layer · M8 Politics / Diplomacy · M9 Society · M10 Integrated Civilization Simulation · M11+ Depth & Content Expansion. Knowledge/research/technology is **M6** and precedes the Battle Layer (**M7**), which consumes M6's authoritative technology/capability state. Canonical record: `docs/milestones.md` §"Roadmap rebase 2026-10-03". The text below is retained as history.
+
+
 **DESIGN-PHASE SYNTHESIS. Nothing here is resolved, and nothing here proposes an answer.** This
 document consolidates and de-duplicates every conflict and every open question surfaced by the five
 decision-recovery lanes, the M4 closure audit, the density-breach verification lane, and the six

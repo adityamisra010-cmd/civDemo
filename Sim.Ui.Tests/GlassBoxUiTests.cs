@@ -20,6 +20,13 @@ namespace Sim.Ui.Tests;
 /// zero farming and zero herding at turn 0 (the ExplainRigs construction,
 /// through the UI's own EmitSectorOrders) and steps until its deficit is
 /// positive, then once more so the drawdown turn has a Next.
+/// D-053 §2 RE-RIG (2026-10-13): the STARVED rig is a ONE-settlement world
+/// (256², N = 1, seed 42). Intra-polity grain relief feeds a starving settlement
+/// while its polity has spare grain, so on the N = 4 world its three siblings fed
+/// it and the rig lost its regime (MEASURED: first deficit on turn 7, not 2, and no
+/// class emptied); UiSession has no config seam for the per-settlement store, so
+/// the rig is instead one whose polity has NO spare grain by construction — a
+/// polity of one settlement has no sibling to draw on.
 /// </summary>
 public class GlassBoxUiTests
 {
@@ -32,9 +39,12 @@ public class GlassBoxUiTests
 
     /// <summary>Settlement 0 starved through the UI's order path; returns the
     /// session on the turn AFTER the first positive deficit.</summary>
-    private static Sim.Ui.UiSession Starved(out int firstDeficitTurn)
+    private static Sim.Ui.UiSession Starved(out int firstDeficitTurn, bool? wrapXOverride = null)
     {
-        var session = Sim.Ui.UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4);
+        // D-053 §2: N = 1, a polity with no spare grain by construction (class header).
+        // Batch 3 (D-054): wrapXOverride is UiSession.Start's topology seam — null is the shipped world (the cylinder); the
+        // grievance pin's attribution twin passes false (the flat world).
+        var session = Sim.Ui.UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 1, wrapXOverride: wrapXOverride);
         int target = session.World.Settlements[0].Id.Value;
         int[] weights = [0, 0, 45, 45, 10];
         Assert.True(session.EmitSectorOrders(weights, target));
@@ -47,6 +57,7 @@ public class GlassBoxUiTests
         }
         Assert.True(firstDeficitTurn > 0, "settlement 0 never showed a deficit in 12 turns");
         session.EndTurn();
+        Assert.Equal(1, session.World.Settlements.Count);   // still a polity of one: relief had no sibling to draw on
         return session;
     }
 
@@ -356,8 +367,11 @@ public class GlassBoxUiTests
         // avert (the other, abandonment, is the two food sliders at zero and is
         // therefore levered). Pinned so a node turning None (or levered) is a
         // visible change here.
-        Assert.Equal(9, none);
-        Assert.Equal(Enum.GetValues<ChainNode>().Length - 9, levered);
+        // M5 R2b: + DignitySatisfaction and EffectiveTaxRate — set by the tax edict, a policy order, not a slider.
+        // F1 (2026-10-05): + DeclaredTaxRate, AdministrativeReach, ServiceOffset, LevyGrievance — the rest of the shipped
+        // felt-burden formula and the levy-grievance stock, none of them a slider.
+        Assert.Equal(15, none);
+        Assert.Equal(Enum.GetValues<ChainNode>().Length - 15, levered);
         Assert.True(Levers.For(ChainNode.DisasterMultiplierApplied).IsNone);
         Assert.False(Levers.For(ChainNode.Abandoned).IsNone);
     }
@@ -365,6 +379,7 @@ public class GlassBoxUiTests
     [Fact]
     public void Grievance_OnTheStarvedSession_PrimaryIsSustenanceAndFirst_ChainCarriesGaps_LeverIsFarming()
     {
+        // D-053 §2: the starved session is the one-settlement world (class header) — every value below is unchanged on it.
         Sim.Ui.UiSession session = Starved(out int firstDeficit);
         int target = session.World.Settlements[0].Id.Value;
         SettlementView? view = ScreenModels.Settlement(session, target);
@@ -385,8 +400,8 @@ public class GlassBoxUiTests
         Assert.Single(peasants.Contributors, c => c.IsPrimary);
         Assert.Contains("primary grievance: Sustenance", peasants.PrimaryLine);
         Assert.Contains("reproduces exactly", peasants.AccrualLine);
-        Assert.Equal(3, peasants.Contributors.Count);          // the three bound needs
-        Assert.Equal(5, peasants.NotSimulated.Count);          // the five unbound, listed not omitted
+        Assert.Equal(4, peasants.Contributors.Count);          // the four bound needs (M5 R2b: + Dignity)
+        Assert.Equal(4, peasants.NotSimulated.Count);          // the four unbound, listed not omitted
         Assert.All(peasants.NotSimulated, line => Assert.Contains("not yet simulated", line));
 
         // The Sustenance chain: the ordered zero farming read back, the tool
@@ -445,7 +460,13 @@ public class GlassBoxUiTests
         Assert.Equal(
             dRatio.Text.Split("  ")[2], dEff.Text.Split("  ")[2]);
         Assert.Contains(primary.Chain, l => l.Text.Contains("weather") && l.Lever.IsNone && l.Lever.Text.Contains("condition, not a control"));
-        Assert.Contains(primary.Chain, l => l.Text.Contains("farming share") && !l.Lever.IsNone && l.Lever.Text.StartsWith("lever: labour allocation - farming ("));
+        // Integration item 5 (deliberate change): the lever is still the FARMING sector, but it is named by
+        // the label the player knows it under (LabourActivities); before cereal cultivation that is not
+        // "farming", which the player has not yet learned.
+        Assert.Contains(primary.Chain, l => l.Text.Contains("farming share") && !l.Lever.IsNone
+            && l.Lever.Sectors.SequenceEqual(new[] { Sim.Core.State.Sectors.Farming })
+            && l.Lever.Text.StartsWith(GrievanceViewModel.AllocationPrefix, StringComparison.Ordinal)
+            && !l.Lever.Text.StartsWith(GrievanceViewModel.AllocationPrefix + "farming (", StringComparison.Ordinal));
 
         // Happiness sits at the top with both factors and their chains.
         Assert.StartsWith("happiness ", grievance.HappinessLine);
@@ -471,19 +492,44 @@ public class GlassBoxUiTests
     [Fact]
     public void Grievance_AClassThatEmptiedThisStep_IsShownByThePrevMembershipRule_NotHidden()
     {
+        // The rule (every assert) is GrievanceShownByPrevMembership; the emptying-turn pin and its history are here.
+        // T4.21-2 ∥ T4.21-3 MERGE RE-PIN, MEASURED ON THE MERGED TREE by the agent writing this line: the emptying turn is
+        // 11 (was 5). R4: 11 -> 7. ADR-035: 7 -> 6 -> 9. D-053 §2 RE-RIG: 9 -> 10 (the one-settlement world). (Each entry's
+        // cause is written in full in GrievanceShownByPrevMembership's history below.)
+        // BATCH 3 / D-054 RE-PIN (integration R1, 2026-10-14; VALUE, MEASURED on this tree by the agent writing this line):
+        // the emptying turn 10 -> 11; Peasants still empty inside the 12-turn loop, and the rule (PREV membership decides
+        // what is shown) holds — every later assert passes. CAUSE: the CYLINDER alone (worldgen.json topology.wrapX — the
+        // 256-px one-settlement world regenerates x-periodic, so the starved settlement runs down one turn more slowly).
+        // ATTRIBUTION: Grievance_WithTheCylinderOff_EmptiesAtTheBatch2Turn (UiSession.Start(..., wrapXOverride: false), the
+        // flat world, everything else shipped) returns 10.
+        GrievanceShownByPrevMembership(wrapXOverride: null, expectedEmptyingTurn: 11);
+    }
+
+    /// <summary>BATCH 3 / D-054 ATTRIBUTION CONTROL (integration R1, 2026-10-14) for the emptying-turn pin of
+    /// <see cref="Grievance_AClassThatEmptiedThisStep_IsShownByThePrevMembershipRule_NotHidden"/>: the same starved session on
+    /// the FLAT world (wrapXOverride: false; the sim half — WS1, WS2 — as shipped) empties at the batch-2 turn 10, and the
+    /// rule holds there too.</summary>
+    [Fact]
+    public void Grievance_WithTheCylinderOff_EmptiesAtTheBatch2Turn() =>
+        GrievanceShownByPrevMembership(wrapXOverride: false, expectedEmptyingTurn: 10);
+
+    private static void GrievanceShownByPrevMembership(bool? wrapXOverride, long expectedEmptyingTurn)
+    {
         // The starved settlement runs down: stepped past the Starved rig, its
         // Peasants go 1 -> 0. The needs system iterated PREV's member to write
         // the row on next, so the query explains the class with ClassPopulation
         // by PREV — and the tab must use the same rule: the class is SHOWN with
         // the G the system wrote for it (reproduces exactly), not hidden
         // because next has nobody.
+        // D-053 §2: the starved session is the one-settlement world (class header); the turn below moved with the rig.
         // T4.21-2 ∥ T4.21-3 MERGE RE-PIN, MEASURED ON THE MERGED TREE by the
         // agent writing this line: the emptying turn is 11 (was 5). What decides
         // it is the joint trajectory of ADR-025's bounded migration and
         // ADR-026's effective deficit — the settlement runs down more slowly —
         // and the loop's 12-turn ceiling still contains it. The rule this test
         // pins (PREV membership decides what is shown) is untouched.
-        Sim.Ui.UiSession session = Starved(out _);
+        Sim.Ui.UiSession session = Starved(out _, wrapXOverride);
+        Assert.Equal(wrapXOverride ?? true, session.World.Terrain!.WrapX);
         int target = session.World.Settlements[0].Id.Value;
         var id = new SettlementId(target);
         Sim.Core.Systems.ClassEntry[] classes = session.Config.Registries.Classes;
@@ -505,7 +551,17 @@ public class GlassBoxUiTests
             }
         }
         Assert.Equal(classes[0].Id, emptiedClass);                       // Peasants
-        Assert.Equal(11, session.Observations.LastTurn);
+        // R4 RE-PIN (2026-10-04, the forager layer; MEASURED): the emptying turn is 7 (was 11) — the starved
+        // settlement runs down faster on wild food. The rule pinned is untouched.
+        // ADR-035 RE-PIN (2026-10-07; MEASURED on each commit's tree): P-F1 leaves it at 7; P-F0 (the founding death
+        // remainder) 7 -> 6; P-F2 (founding composition) 6 -> 9. Missed by those commits (Sim.Ui.Tests was run on the
+        // final tree only) and re-pinned here. The rule pinned is untouched.
+        // D-053 §2 RE-RIG (2026-10-13; MEASURED): the starved session is now the ONE-settlement world (class header),
+        // where relief cannot act — no sibling exists (asserted below) — and its emptying turn is 10. The move 9 -> 10 is
+        // the rig's world (N = 1 instead of N = 4), not relief: on the N = 4 world relief fed the settlement and no class
+        // emptied inside the loop at all. The rule pinned is untouched.
+        Assert.Equal(1, session.World.Settlements.Count);
+        Assert.Equal(expectedEmptyingTurn, session.Observations.LastTurn);   // batch 3 / D-054: 10 -> 11 (the cylinder; see the caller)
 
         // Next has NOBODY of that class in the settlement, yet its grievance row stands.
         var explanation = GrievanceExplanation.For(session.PreviousWorld!, session.World, session.Config, id, new ClassId(emptiedClass));
@@ -540,7 +596,7 @@ public class GlassBoxUiTests
     [Fact]
     public void PolicyHistory_RendersAChangeWithOldNewActorAndOrderIndex()
     {
-        var change = new PolicyChange(24, 230.0, 3, Sectors.Farming, 0.55, 0.73, LaborOrderFactory.UiActorId, 104);
+        var change = new PolicyChange(24, 230.0, 3, Sectors.Farming, 0.55, 0.73, UiPlayer.ActorId, 104);
         Assert.Equal("turn 24 · farming 55% -> 73% · player · order #104", PolicyHistoryModel.ChangeLine(change));
         var orphan = new PolicyChange(5, 40.0, 3, Sectors.Crafting, 0.12, 0.0, -1, -1);
         Assert.Equal("turn 5 · crafting 12% -> 0% · unattributed · no order", PolicyHistoryModel.ChangeLine(orphan));
@@ -694,12 +750,42 @@ public class GlassBoxUiTests
     // WHERE → click → centre
     // ------------------------------------------------------------------
 
+    /// <summary>WS3 — RESTATED AS A WRAP ASSERTION (batch 3): this dev world is a cylinder, and the game's camera on it wraps
+    /// (<see cref="Camera.WrapX"/>). There is no east or west edge, so EVERY settlement lands exactly at the viewport's
+    /// centre in x, at every zoom from the floor to the maximum; only the poles clamp y. The flat camera's rule — an x edge
+    /// that stops the centring — is kept below for the flat camera, which flat worlds still use.</summary>
+    [Fact]
+    public void CameraFocus_OnTheCylinder_LandsEverySettlementAtTheCentreInX_YOrClampedAtThePoles()
+    {
+        WorldState world = Sim.Ui.UiSession.Start(42, 256, 4).World;
+        Assert.True(world.Terrain!.WrapX);
+        const int vw = 512, vh = 384;
+        int size = world.Terrain.Size;
+        foreach (double zoom in new[] { 0.0, 4.0, Camera.MaxZoom })   // 0: the floor
+            for (int i = 0; i < world.Settlements.Count; i++)
+            {
+                var cam = new Camera(size, wrapX: true) { WindowWidth = vw };
+                cam.Clamp(vw, vh);
+                Assert.Equal((double)vw / size, cam.Zoom);
+                if (zoom > 0) cam.ZoomAt(0, 0, zoom / cam.Zoom, vw, vh);
+                double halfH = vh / 2.0 / cam.Zoom;
+                Assert.True(CameraFocus.CenterOn(cam, world, world.Settlements[i].Id.Value, vw, vh));
+                LineGeometry.Vertex pos = OverlayMeshes.SettlementPosition(world.Settlements[i], size);
+                (double sx, double sy) = cam.WorldToScreenNearest(pos.X, pos.Y, Camera.Window(vw, vh));
+                Assert.Equal(vw / 2.0, sx, 9);   // x: always the centre — a cylinder has no x edge
+                Assert.Equal(pos.X, cam.CenterX, 9);
+                bool interiorY = pos.Y >= halfH && pos.Y <= size - halfH;
+                if (interiorY) Assert.Equal(vh / 2.0, sy, 9); else Assert.True(cam.CenterY == halfH || cam.CenterY == size - halfH);
+            }
+    }
+
     [Fact]
     public void CameraFocus_LandsTheSettlementAtTheViewportCentre_OrClampedAtTheWorldsEdge()
     {
         WorldState world = Sim.Ui.UiSession.Start(42, 256, 4).World;
         const int vw = 512, vh = 384;
         int size = world.Terrain!.Size;
+        // The FLAT camera's rule (the camera flat worlds use; WS3: this dev world is a cylinder, whose camera is pinned above).
 
         // Zoomed in far enough that the world is wider than the viewport on
         // both axes: an interior settlement lands EXACTLY at the centre; one
@@ -802,20 +888,25 @@ public class GlassBoxUiTests
         WorldState world = session.World;
         int first = world.Settlements[0].Id.Value;
 
-        long grain = 0;
+        // M5 resources view: the band's food is the grain of the player's OWN settlements (the control relation).
+        long grain = 0, all = 0;
         for (int i = 0; i < world.GoodStocks.Count; i++)
-            if (world.GoodStocks[i].Good == UiGoods.Grain) grain += world.GoodStocks[i].Amount.Value;
+        {
+            if (world.GoodStocks[i].Good != UiGoods.Grain) continue;
+            all += world.GoodStocks[i].Amount.Value;
+            if (EmpireQuery.ControlsSettlement(world, UiPlayer.Empire, world.GoodStocks[i].Settlement)) grain += world.GoodStocks[i].Amount.Value;
+        }
         HudModel withCfg = HudModel.From(world, first, null, null, session.Config);
         Assert.Equal(grain, withCfg.WorldFood);
         Assert.Equal("food " + grain.ToString(System.Globalization.CultureInfo.InvariantCulture), withCfg.WorldFoodFigure);
-        Assert.Equal(session.Observations.Observations[^1].Turn.Grain.Closing, withCfg.WorldFood);
+        Assert.Equal(session.Observations.Observations[^1].Turn.Grain.Closing, all);   // the TURN account stays the world's
         Assert.Equal(SettlementHappiness.Of(world, new SettlementId(first), session.Config), withCfg.Happiness);
         Assert.StartsWith("happiness ", withCfg.HappinessLine);
         Assert.NotEqual("happiness —", withCfg.HappinessLine);
 
         HudModel withoutCfg = HudModel.From(world, first);
         Assert.Equal("happiness —", withoutCfg.HappinessLine);
-        Assert.Equal("world pop " + withCfg.WorldPopulation.ToString(System.Globalization.CultureInfo.InvariantCulture),
+        Assert.Equal("empire pop " + withCfg.WorldPopulation.ToString(System.Globalization.CultureInfo.InvariantCulture),
             withCfg.WorldPopulationFigure);
     }
 

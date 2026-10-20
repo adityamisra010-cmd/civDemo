@@ -30,9 +30,10 @@ public readonly record struct Lever(OrderKind? Kind, int[] Sectors, string Reaso
 /// lever here is that order, by sector, or None. <see cref="OrderKind.EnqueueConstruction"/>
 /// (M4-D) exists but reaches no node in any need chain: a completed structure
 /// feeds no need, and the queue only COMPETES for the construction pool
-/// (ConstructionSystem.CapacityMeets subtracts housing's draw, never the
-/// reverse) — so it is not listed as a lever for Shelter, because pulling it
-/// cannot raise a dwelling count.
+/// (ConstructionQuery.CapacityAdultYears subtracts housing's draw, never the
+/// reverse; D-054 WS1 spends it as a pace, ConstructionQuery.LabourBound) — so it
+/// is not listed as a lever for Shelter, because pulling it cannot raise a
+/// dwelling count.
 ///
 /// WHERE THERE IS NO LEVER THE TABLE SAYS SO. Weather, arable land, deposit
 /// abundance and population are conditions; grain imports do not exist (grain
@@ -66,7 +67,9 @@ public static class Levers
             Sectors.Farming, Sectors.Herding),
         ChainNode.EffectiveDeficit => Lever.Allocation(
             "The adapted form of the deficit above, so the same two pools reach it; the absorbable shortfall itself "
-            + "is a tuning constant (sim.json foodState.adaptationAbsorbableShortfall), not an order.",
+            + "is a tuning constant (sim.json foodState.adaptationAbsorbableShortfall), not an order. Granaries built "
+            + "anywhere in the civilization (a construction order) soften it, with diminishing returns and a ceiling "
+            + "(sim.json granaries.famineReductionMax).",
             Sectors.Farming, Sectors.Herding),
         ChainNode.DisasterMultiplierApplied => Lever.None(
             "A rare famine-class crop failure (DisasterSystem): drawn from a per-year hazard against a settlement's "
@@ -140,6 +143,14 @@ public static class Levers
             "What recipes wanted from labour alone: the crafting share sets it.", Sectors.Crafting),
         ChainNode.RecipeLabourCap => Lever.Allocation(
             "Transient (not recorded); its stored input is the crafting pool.", Sectors.Crafting),
+
+        // --- Dignity (M5 R2b, D-035-D) ----------------------------------
+        ChainNode.DignitySatisfaction or ChainNode.EffectiveTaxRate => Lever.None(
+            "Set by the tax edict (SetTaxRate, a policy order — not a labour slider) and by administrative reach; no allocation moves it."),
+        ChainNode.DeclaredTaxRate => Lever.None("The tax edict (SetTaxRate, a policy order), not a labour slider."),
+        ChainNode.AdministrativeReach => Lever.None("Distance from the capital over the road network; no allocation moves it."),
+        ChainNode.ServiceOffset => Lever.None("Public works and institutions built here, read through the state's reach; no allocation moves it."),
+        ChainNode.LevyGrievance => Lever.None("Accumulated from the felt levy; cut the levy (a policy order) and it decays — no allocation moves it."),
 
         // --- unbound ----------------------------------------------------
         ChainNode.NotSimulated => Lever.None("Not yet simulated: nothing reaches a need that is not computed."),

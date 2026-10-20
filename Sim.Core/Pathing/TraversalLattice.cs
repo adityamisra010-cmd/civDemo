@@ -60,6 +60,14 @@ public sealed class TraversalLattice
     public int Stride { get; }
     public double KmPerNode { get; }
 
+    /// <summary>
+    /// Batch 3 WS3: the lattice's east-west topology — copied from <see cref="TerrainSet.WrapX"/> at
+    /// <see cref="Build"/> (a parameter of <see cref="FromCosts"/>). When true, column 0 and column Size − 1 are
+    /// 8-adjacent (<see cref="MapTopology.NeighbourX"/>): every expansion, flood, heuristic and leg cost of the
+    /// pathfinder crosses the seam. y never wraps.
+    /// </summary>
+    public bool WrapX { get; }
+
     private readonly double[] _nodeCost;
     private readonly bool[] _passable;
 
@@ -74,11 +82,13 @@ public sealed class TraversalLattice
     /// <summary>The global minimum node cost over passable nodes (heuristic input).</summary>
     public double MinNodeCost { get; }
 
-    private TraversalLattice(int size, int stride, double kmPerNode, double[] nodeCost, bool[] passable)
+    private TraversalLattice(int size, int stride, double kmPerNode, double[] nodeCost, bool[] passable, bool wrapX)
     {
+        MapTopology.RequireWrapSize(size, wrapX);
         Size = size;
         Stride = stride;
         KmPerNode = kmPerNode;
+        WrapX = wrapX;
         _nodeCost = nodeCost;
         _passable = passable;
 
@@ -88,6 +98,11 @@ public sealed class TraversalLattice
         MinNodeCost = min == double.MaxValue ? 0.0 : min;
     }
 
+    /// <summary>The stride every system builds the lattice with (m1 spec §3 stride-4 sampling; 16 km nodes at the
+    /// canonical 4 km/px). Named so a reader of the lattice's geometry (the P7 knowledge grid, the world lens) states the
+    /// same number rather than a copy of it.</summary>
+    public const int DefaultStride = 4;
+
     /// <summary>
     /// Build the lattice over <paramref name="terrain"/>. <paramref name="riverCostFactor"/>
     /// is the TUNE constant `transport.riverCostFactor` — river traversal cost as a
@@ -95,7 +110,7 @@ public sealed class TraversalLattice
     /// be identical for every consumer in a world, and a defaulted value is how two call
     /// sites end up on two different lattices.
     /// </summary>
-    public static TraversalLattice Build(TerrainSet terrain, double riverCostFactor, int stride = 4)
+    public static TraversalLattice Build(TerrainSet terrain, double riverCostFactor, int stride = DefaultStride)
     {
         if (!(riverCostFactor > 0.0 && riverCostFactor <= 1.0))
             throw new ArgumentOutOfRangeException(nameof(riverCostFactor),
@@ -103,6 +118,13 @@ public sealed class TraversalLattice
                 "transport.riverCostFactor must be in (0,1] — a river must be cheaper than "
                 + "ideal ground to be a corridor at all, and cannot be free.");
 
+        // WS3: a wrapped lattice must tile the map exactly — the seam joins its last column to its first, so terrain
+        // columns past the last whole block (a size the stride does not divide) would sit between them unseen.
+        if (terrain.WrapX && terrain.Size % stride != 0)
+            throw new ArgumentException(
+                "a wrapped (cylindrical) terrain of " + terrain.Size.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                + " px is not divisible by the lattice stride " + stride.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                + "; the seam would skip the trailing columns.", nameof(terrain));
         int size = terrain.Size / stride;
         var nodeCost = new double[size * size];
         var passable = new bool[size * size];
@@ -137,7 +159,7 @@ public sealed class TraversalLattice
                 passable[node] = waterSum / cells < 0.5;
             }
         }
-        return new TraversalLattice(size, stride, terrain.KmPerPx * stride, nodeCost, passable);
+        return new TraversalLattice(size, stride, terrain.KmPerPx * stride, nodeCost, passable, terrain.WrapX);
     }
 
     /// <summary>
@@ -153,17 +175,21 @@ public sealed class TraversalLattice
     public static double Blend(double blockMeanCost, double span, double riverCostFactor) =>
         (1.0 - span) * blockMeanCost + span * riverCostFactor;
 
-    /// <summary>Test factory: a handcrafted lattice with explicit costs/passability.</summary>
-    public static TraversalLattice FromCosts(int size, double[] nodeCost, bool[] passable, double kmPerNode = 1.0)
+    /// <summary>Test factory: a handcrafted lattice with explicit costs/passability. <paramref name="wrapX"/> (WS3) makes
+    /// it a cylinder (needs size ≥ <see cref="MapTopology.MinWrapSize"/>); the default is the flat lattice it always was.</summary>
+    public static TraversalLattice FromCosts(int size, double[] nodeCost, bool[] passable, double kmPerNode = 1.0, bool wrapX = false)
     {
         if (nodeCost.Length != size * size || passable.Length != size * size)
             throw new ArgumentException("nodeCost and passable must be size*size long");
-        return new TraversalLattice(size, 1, kmPerNode, nodeCost, passable);
+        return new TraversalLattice(size, 1, kmPerNode, nodeCost, passable, wrapX);
     }
 
     /// <summary>
     /// Cost of one lattice step a→b (must be 8-neighbors): mean node cost times
     /// step length in stride units (1 cardinal, DiagonalFactor diagonal).
+    /// WS3: a seam step (column 0 ↔ column Size − 1 on a wrapped lattice) is a true
+    /// neighbour step and is costed by the same rule — it is diagonal iff both
+    /// coordinates differ, which holds across the seam exactly as inside the map.
     /// </summary>
     public double StepCost(int a, int b)
     {
@@ -172,4 +198,17 @@ public sealed class TraversalLattice
         double length = ax != bx && ay != by ? DiagonalFactor : 1.0;
         return (_nodeCost[a] + _nodeCost[b]) * 0.5 * length;
     }
+
+    /// <summary>
+    /// Batch 4 (D-055, O4/O6): <see cref="StepCost"/> for a step whose direction the caller already knows —
+    /// <paramref name="diagonal"/> is true for the four diagonal offsets of the fixed W, E, N, S, NW, NE, SW, SE
+    /// enumeration (direction index ≥ 4). It is the same expression on the same operands in the same order, so it
+    /// returns StepCost(a, b)'s double bit for bit whenever <paramref name="diagonal"/> equals StepCost's own test
+    /// (both coordinates differ): a diagonal offset changes x and y (x ± 1 is another column on a flat lattice and on a
+    /// cylinder of at least <see cref="MapTopology.MinWrapSize"/> columns, the seam step included), and a cardinal one
+    /// changes exactly one. The pathfinder's expansions call it to skip StepCost's two Coords divisions per relaxation;
+    /// LegacyPathfinderDifferentialTests pins the equality on every node and direction, seam steps included.
+    /// </summary>
+    public double StepCostKnown(int a, int b, bool diagonal) =>
+        (_nodeCost[a] + _nodeCost[b]) * 0.5 * (diagonal ? DiagonalFactor : 1.0);
 }

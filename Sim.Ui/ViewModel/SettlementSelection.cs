@@ -1,4 +1,6 @@
 using Sim.Core.State;
+using Sim.Ui.Render;
+using Sim.Ui.World;
 
 namespace Sim.Ui.ViewModel;
 
@@ -7,12 +9,13 @@ namespace Sim.Ui.ViewModel;
 /// Selection is UI STATE ONLY: it never touches WorldState, never serializes,
 /// never affects the sim except through the orders the HUD emits for it.
 ///
-/// HIT RADIUS, zoom-aware by construction: markers render at a CONSTANT
-/// screen size (14 px — SimUiGame draws them in the untransformed screen-space
-/// pass), so the hit test uses a constant SCREEN radius (marker half-size + a
-/// 4 px slop ring). In world units that radius shrinks as the camera zooms in
-/// — clickable at the world-fit minimum zoom, precise at 32× — which is
-/// exactly the behavior "zoom-aware" names.
+/// P3 (M5 map workstream): THE CLICK HITS WHAT WAS DRAWN. The targets are the
+/// rects the world lens actually painted last frame (<see cref="LensFrame.SettlementHits"/>):
+/// each settlement's footprint — the population mark at World zoom, the built
+/// footprint closer, so the target grows with the footprint (up to 150 px) — and
+/// its name plate wherever the lens set it. The legacy targets this replaces (a
+/// constant 22 px circle about the site cell, and name rects measured to the
+/// right of a 20 px marker the map no longer draws) are deleted.
 /// </summary>
 public static class SettlementSelection
 {
@@ -22,75 +25,63 @@ public static class SettlementSelection
     /// WCAG 2.5.5 Target Size (Enhanced); the previous effective target
     /// (22 px: 7 px half-marker + 4 px slop, doubled) sat below even WCAG
     /// 2.5.8's 24 px AA minimum, and the director's practice judgement is
-    /// that it failed. The radius is DERIVED from the named standard —
-    /// target diameter / 2 — not tuned to feel.
+    /// that it failed. The target is DERIVED from the named standard,
+    /// not tuned to feel: a footprint painted smaller is grown to it.
     /// </summary>
     public const double MinTargetDiameterPx = 44.0;
 
-    /// <summary>Marker screen diameter (must match SimUiGame's markerPx).
-    /// A VISUAL choice, deliberately smaller than the hit target: the ink is
-    /// the affordance; the target size is the standard's.</summary>
-    public const double MarkerScreenPx = 20.0;
-
-    /// <summary>Hit radius in screen px, derived from the named target
-    /// standard — no longer marker-size + slop.</summary>
+    /// <summary>Half the minimum target: a footprint's target reaches at least
+    /// this far from its mark's centre along each axis.</summary>
     public const double HitRadiusPx = MinTargetDiameterPx / 2.0;
 
-    /// <summary>A settlement name label's screen rectangle, computed by the
-    /// RENDERER (which owns font metrics) and handed IN, so this view-model
-    /// stays pure — no ImGui type crosses this boundary. Aligned by
-    /// settlement ROW index with the world's settlement table.</summary>
-    public readonly record struct LabelRect(double X0, double Y0, double X1, double Y1)
+    /// <summary>The click target of a painted footprint: the footprint's box, grown
+    /// about its centre to at least <see cref="MinTargetDiameterPx"/> a side (D-A2).
+    /// The mark is the affordance; the target size is the standard's.</summary>
+    public static RectD Target(RectD footprint)
     {
-        public bool Contains(double x, double y) => x >= X0 && x <= X1 && y >= Y0 && y <= Y1;
+        double w = Math.Max(footprint.W, MinTargetDiameterPx), h = Math.Max(footprint.H, MinTargetDiameterPx);
+        return new RectD(footprint.CenterX - w / 2, footprint.CenterY - h / 2, w, h);
     }
+
+    /// <summary>Whether (x, y) lies in <paramref name="r"/>, edges included (a click on the
+    /// plate's or the target's outline is a click on it).</summary>
+    public static bool Inside(RectD r, double x, double y) => x >= r.X && x <= r.Right && y >= r.Y && y <= r.Bottom;
+
+    /// <summary>The settlement under a screen click in the last painted lens frame, or −1
+    /// (no frame painted yet: −1).</summary>
+    public static int HitTest(LensFrame? frame, double clickSx, double clickSy) =>
+        frame is null ? -1 : HitTest(frame.SettlementHits, clickSx, clickSy);
 
     /// <summary>
     /// The settlement under a screen click, or −1.
     ///
-    /// ADMISSION is by either shape: within <see cref="HitRadiusPx"/> of the
-    /// marker centre, or inside the settlement's own label rect (D-A2: the
-    /// label region was previously dead to the mouse).
+    /// ADMISSION is by either painted shape: inside the footprint's target
+    /// (<see cref="Target"/>) or inside the settlement's name plate.
     ///
-    /// RANKING is always the composite key (marker-centre screen distance
+    /// RANKING is always the composite key (mark-centre screen distance
     /// ASC, settlement id ASC), regardless of which shape admitted the
-    /// candidate. Stated rule for every overlap: a click inside two label
-    /// rects, or inside one marker's radius and another settlement's label,
-    /// selects the settlement whose MARKER CENTRE is nearer; a bit-exact
+    /// candidate. Stated rule for every overlap: a click inside two name
+    /// plates, or inside one footprint and another settlement's plate,
+    /// selects the settlement whose MARK CENTRE is nearer; a bit-exact
     /// distance tie selects the lower id. One continuous key, not a
-    /// shape-priority rule, so the ordering is total and stable — the
-    /// constitution's (score, id) tie-break, pinned by a tie-dense test.
+    /// shape-priority rule, so the ordering is total and stable — whatever
+    /// the order of <paramref name="hits"/> — the constitution's (score, id)
+    /// tie-break, pinned by a tie-dense test.
     /// </summary>
-    public static int HitTest(
-        IReadOnlyWorldState world, Camera camera, double clickSx, double clickSy,
-        int viewportW, int viewportH,
-        System.Collections.Generic.IReadOnlyList<LabelRect>? labelRects = null)
+    public static int HitTest(IReadOnlyList<SettlementHit> hits, double clickSx, double clickSy)
     {
-        if (world.Terrain is null) return -1;
-        int terrainSize = world.Terrain.Size;
-
         int bestId = -1;
         double bestDistSq = double.PositiveInfinity;
-        for (int i = 0; i < world.Settlements.Count; i++)
+        for (int i = 0; i < hits.Count; i++)
         {
-            LineGeometry.Vertex pos =
-                OverlayMeshes.SettlementPosition(world.Settlements[i], terrainSize);
-            (double sx, double sy) = camera.WorldToScreen(pos.X, pos.Y, viewportW, viewportH);
-            double dx = sx - clickSx, dy = sy - clickSy;
+            SettlementHit h = hits[i];
+            if (!Inside(Target(h.Footprint), clickSx, clickSy) && !Inside(h.NamePlate, clickSx, clickSy)) continue;
+            double dx = h.X - clickSx, dy = h.Y - clickSy;
             double distSq = dx * dx + dy * dy;
-
-            bool admitted = distSq <= HitRadiusPx * HitRadiusPx
-                || (labelRects is not null && i < labelRects.Count
-                    && labelRects[i].Contains(clickSx, clickSy));
-            if (!admitted) continue;
-
-            int id = world.Settlements[i].Id.Value;
-            // Explicit (distance ASC, id ASC) — the tie-break no longer leans
-            // on rows happening to ascend by id.
-            if (distSq < bestDistSq || (distSq == bestDistSq && (bestId < 0 || id < bestId)))
+            if (bestId < 0 || distSq < bestDistSq || (distSq == bestDistSq && h.Id < bestId))
             {
                 bestDistSq = distSq;
-                bestId = id;
+                bestId = h.Id;
             }
         }
         return bestId;
@@ -101,18 +92,33 @@ public static class SettlementSelection
     /// wrapping; with none selected (−1) or an unknown id, the first settlement.
     /// Settlement rows are in ascending id order by founding construction, but
     /// the scan derives the successor from the IDS, not the row order.
+    /// P7: only settlements the player KNOWS are cycled (<paramref name="knowledge"/>; null =
+    /// <see cref="PlayerKnowledge.Of(IReadOnlyWorldState)"/>, all-known until S2a) — Tab never
+    /// reaches a hidden settlement, and with none known it returns −1.
     /// </summary>
-    public static int CycleNext(IReadOnlyWorldState world, int currentId)
+    public static int CycleNext(IReadOnlyWorldState world, int currentId, PlayerKnowledge? knowledge = null)
     {
         if (world.Settlements.Count == 0) return -1;
+        PlayerKnowledge known = knowledge ?? PlayerKnowledge.Of(world);
 
         int lowest = int.MaxValue, bestAbove = int.MaxValue;
         for (int i = 0; i < world.Settlements.Count; i++)
         {
             int id = world.Settlements[i].Id.Value;
+            if (!known.KnowsSettlement(id)) continue;
             if (id < lowest) lowest = id;
             if (id > currentId && id < bestAbove) bestAbove = id;
         }
+        if (lowest == int.MaxValue) return -1;
         return bestAbove != int.MaxValue ? bestAbove : lowest;
+    }
+
+    /// <summary>P7: the selection a session opens on — the first settlement row the player knows (all-known: row 0,
+    /// as before), or −1.</summary>
+    public static int Opening(IReadOnlyWorldState world, PlayerKnowledge knowledge)
+    {
+        for (int i = 0; i < world.Settlements.Count; i++)
+            if (knowledge.KnowsSettlement(world.Settlements[i].Id.Value)) return world.Settlements[i].Id.Value;
+        return -1;
     }
 }

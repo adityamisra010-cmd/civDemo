@@ -77,6 +77,192 @@ namespace Sim.Tests.Kernel;
 /// which is the measurement showing the two packets stayed inside the founded
 /// worlds' migration and demographics instead of leaking anywhere they had no
 /// business being.
+///
+/// ADR-029 (D-044) ADDS A FOURTH LAYER: schema v26 appends the seven research
+/// tables — ResearchTargets, ResearchProgress, ResearchCompleted, ResearchEurekas,
+/// ResearchCostModifiers and (addendum A) ResearchCredits and ResearchExposures —
+/// AFTER Disasters, and the production pipeline gains
+/// the ResearchSystem as its last entry. The system writes ONLY those tables. No
+/// other system reads them, and the system draws no RNG and records no ledger flow.
+/// Under the curated Eurekas of addendum A an order-less world writes NO research
+/// row in 300 turns (measured), so each research control also runs a research-DRIVEN
+/// arm, a target chosen whenever one is free, which does. <see cref="StripResearch"/> clears
+/// the seven tables, and <see cref="HashAtSchemaV25"/> also drops their seven empty
+/// count prefixes. The PRE-PACKET pins — the values on main at 93270cd — must
+/// return BYTE FOR BYTE on every pinned world. Any leak of research into
+/// population, food, trade, migration or anything else would survive the strip and
+/// break them. Every older control in this file strips the research layer too and
+/// drops its seven prefixes, so every constant it carries is UNMOVED by this packet.
+///
+/// ADR-035 (P-F1, founding-turn harvest) RE-MEASURED EVERY FOUNDED / DRIVEN / FIRST-REIGN CONSTANT BELOW (BEHAVIOUR, one cause: an absent catchment row is an unmeasured land side, so the founding turn harvests (labour-limited) instead of harvesting zero; turn 2 no longer reads N_lim = 0.).
+/// Measured on that commit's tree by the agent writing this line; the strips still separate their layers, but no
+/// stripped value returns a pre-ADR-035 (P-F1, founding-turn harvest) pin. Old -> new (16-hex prefixes):
+///   02c7f9eb0d08bf0a… -> 685f39c8e87be2da…
+///   0460e6e916d1b2bb… -> 27fca538e9b9be22…
+///   1368df9fb3d233b1… -> 06fd665d17fedcf9…
+///   1588d1c4a9597a5c… -> 4aab29e95f39b3b8…
+///   158bdd4cd2ee9cc3… -> a90be19c30924388…
+///   15c63d6564ff8092… -> 7f4d6a3ebbab4e4b…
+///   23b0db02a8e2cfef… -> 689b69e7702b6c8a…
+///   259c13cf27ea3bed… -> 4116a0c5535a1b6a…
+///   3613dcc4aa059755… -> dc2ff415a857df6b…
+///   364760291d6dd691… -> 0b8268d9949be027…
+///   38de16bab469505e… -> d7a3c5ba00c0313e…
+///   3a9f007aeeb6dcd9… -> c3f0635213306771…
+///   4291b3e15006e3f1… -> a65a24b742237bee…
+///   464aac3d5ece3ea9… -> fa8d2cc5811b1a36…
+///   481d37170d7f70f3… -> 0af5f3101f59154d…
+///   58e4c47cca90b2e4… -> 6183391c6da69699…
+///   638d7a0914f0475f… -> 9551e3a1d4b3ea99…
+///   64820f83239f005e… -> 8d5657d2043c797c…
+///   65d53a01ffe1b3e9… -> e983c416ac52f74e…
+///   680a20c5616520f2… -> 31bffbe34abf3d93…
+///   68c629b66badfa71… -> c8e22b49a80cdad9…
+///   6c901bab51b34819… -> 16c8b2062ab6c965…
+///   74306d6a574b6a68… -> db9e0f35a0a54111…
+///   74a97abc39d11910… -> 314d42680a0f14bf…
+///   75124c12e61f8999… -> de9bf8c08cf55672…
+///   7aa20e40f4d3ba9f… -> 93756ec9c8c5ec68…
+///   97d89a9afd9ed784… -> d26c53cc94522135…
+///   98ee3a7acdcad9a9… -> 1339be6cf6f254a1…
+///   b2c0032f9e0a7266… -> 6b7261eacd17c3e3…
+///   c20bb5a688c132ad… -> e186250043a1aa43…
+///   c805ca10e1e24ae6… -> e9f5f73379cf6f14…
+///   dacf3c34824a8667… -> 0d1103ffddac7f15…
+///   db7c7a0907ad4335… -> 1f3a31573b05455a…
+///   e3d472c6de20e703… -> e901150904d66946…
+///   e4279f655c5c25d8… -> 09de018d00555750…
+///   efeec45dbb387ddd… -> f40ba5c39e5eecb9…
+///   f94b01eb509853e2… -> 70c58da639e83df1…
+///   fc5d2646bdb8bf18… -> d4e40301486266c8…
+///
+/// ADR-035 §6 (P-F0, founding death remainder) RE-MEASURED EVERY FOUNDED / DRIVEN / FIRST-REIGN CONSTANT BELOW (BEHAVIOUR, one cause: a new bucket row's D-004 death accumulator is seeded at 0.5, so the first integer reconciliation rounds instead of flooring (the turn-1 phantom survivors are gone).).
+/// Measured on that commit's tree by the agent writing this line; the strips still separate their layers, but no
+/// stripped value returns a pre-ADR-035 §6 (P-F0, founding death remainder) pin. Old -> new (16-hex prefixes):
+///   06fd665d17fedcf9… -> 63865fe79cb4a61a…
+///   09de018d00555750… -> 1b50efabaeba7388…
+///   0af5f3101f59154d… -> 6e2583b65d2410f8…
+///   0b8268d9949be027… -> f0887401409f5e59…
+///   0d1103ffddac7f15… -> 5ce8c62ebc2b9eca…
+///   1339be6cf6f254a1… -> 6eb28e4f7de2529d…
+///   16c8b2062ab6c965… -> 3982c2f5434fb12b…
+///   1f3a31573b05455a… -> 633c778dca6831b6…
+///   27fca538e9b9be22… -> ffec140b76cb4de1…
+///   314d42680a0f14bf… -> 346a2dafe70e1569…
+///   31bffbe34abf3d93… -> 2cdd0faf8cfd6cb3…
+///   4116a0c5535a1b6a… -> cfc5c4b639a8555c…
+///   4aab29e95f39b3b8… -> 27159f00b3cbbf89…
+///   6183391c6da69699… -> 404cc27c06c417ca…
+///   685f39c8e87be2da… -> b7d067735340b2bb…
+///   689b69e7702b6c8a… -> b71fea551d024798…
+///   6b7261eacd17c3e3… -> 2c94049c958c2a8c…
+///   70c58da639e83df1… -> 62ac1518b0daf103…
+///   7f4d6a3ebbab4e4b… -> 3ff4db18e2fe9205…
+///   8d5657d2043c797c… -> 9ebece4c7ed96da3…
+///   93756ec9c8c5ec68… -> afc650595e696cf5…
+///   9551e3a1d4b3ea99… -> 608e8a527c850a05…
+///   a65a24b742237bee… -> e62b53343aad5efd…
+///   a90be19c30924388… -> 527385ff349dbb4c…
+///   c3f0635213306771… -> 0616a52724cb3685…
+///   c8e22b49a80cdad9… -> 90b7815fb63e4f62…
+///   d26c53cc94522135… -> 5eee047cba9e4537…
+///   d4e40301486266c8… -> c0f319c48831c35d…
+///   d7a3c5ba00c0313e… -> 917437d80adcbc64…
+///   db9e0f35a0a54111… -> 3f300220a2e81381…
+///   dc2ff415a857df6b… -> 788ffe859918263c…
+///   de9bf8c08cf55672… -> c4f434a0a1f4361f…
+///   e186250043a1aa43… -> 63df2cb846f6146b…
+///   e901150904d66946… -> 1716ad2a5eea5154…
+///   e983c416ac52f74e… -> 9ceb9c3383372626…
+///   e9f5f73379cf6f14… -> 55d28172e13fe19d…
+///   f40ba5c39e5eecb9… -> 7b94dbf1b9bf905b…
+///   fa8d2cc5811b1a36… -> d988353f11837816…
+///
+/// ADR-035 §7 (P-F2, founding composition) RE-MEASURED EVERY FOUNDED / DRIVEN / FIRST-REIGN CONSTANT BELOW (BEHAVIOUR, one cause: founding cohort noise at demographic scale (CV ~ 1/sqrt(n_c)) instead of RC-1's per-cohort ±0.69; the settlement-common size factor is unchanged.).
+/// Measured on that commit's tree by the agent writing this line; the strips still separate their layers, but no
+/// stripped value returns a pre-ADR-035 §7 (P-F2, founding composition) pin. Old -> new (16-hex prefixes):
+///   0616a52724cb3685… -> b252a66db4ca2a03…
+///   1716ad2a5eea5154… -> 1256f051a0747724…
+///   1b50efabaeba7388… -> 8ea1b956ef550ca5…
+///   27159f00b3cbbf89… -> 431f2f48a0031017…
+///   2c94049c958c2a8c… -> b14899eb23a9704f…
+///   2cdd0faf8cfd6cb3… -> 6a6ac746181c47f1…
+///   346a2dafe70e1569… -> 62ee79880d95ebeb…
+///   3982c2f5434fb12b… -> c4833d844a1c10b2…
+///   3f300220a2e81381… -> 9fe68e4ef8cc7327…
+///   3ff4db18e2fe9205… -> db52e65e932503dc…
+///   404cc27c06c417ca… -> b20df92d2e2ed05a…
+///   527385ff349dbb4c… -> 8bc2299e796cae8d…
+///   55d28172e13fe19d… -> 7813772b2cee6d5f…
+///   5ce8c62ebc2b9eca… -> 0939beb30ae683d3…
+///   5eee047cba9e4537… -> 64bb34959bb3d186…
+///   608e8a527c850a05… -> 65f5e942fd4b58c9…
+///   62ac1518b0daf103… -> aa5ae46d574a1e23…
+///   633c778dca6831b6… -> 17464c3f152e89c8…
+///   63865fe79cb4a61a… -> 6153222490f6d9a8…
+///   63df2cb846f6146b… -> b31684a74926d97f…
+///   6e2583b65d2410f8… -> b6013cb54fffaa91…
+///   6eb28e4f7de2529d… -> a3a57867172c09a8…
+///   788ffe859918263c… -> 653c5c0ece72b390…
+///   7b94dbf1b9bf905b… -> d47b7e3d1bb81bce…
+///   90b7815fb63e4f62… -> 922ed0c1dfa427cc…
+///   917437d80adcbc64… -> 8cd5db52cfc2a4e1…
+///   9ceb9c3383372626… -> bce1a3a8a7ab61a4…
+///   9ebece4c7ed96da3… -> 6f82a998c06113fe…
+///   afc650595e696cf5… -> 6dcc265b9e8d68b6…
+///   b71fea551d024798… -> 05da2ccea08c6e91…
+///   b7d067735340b2bb… -> 416c0ebe3237b25d…
+///   c0f319c48831c35d… -> 4cdad2ddce909e40…
+///   c4f434a0a1f4361f… -> 91439b05e8a8c440…
+///   cfc5c4b639a8555c… -> 080315066ef7b142…
+///   d988353f11837816… -> 320884dd6f6d3d61…
+///   e62b53343aad5efd… -> df85224cb7a2ab5f…
+///   f0887401409f5e59… -> b94886cfb24df556…
+///   ffec140b76cb4de1… -> 811b119acf46f50e…
+///
+/// D-051 RULING 1(b) (2026-10-10, time-averaged decade weather) RE-MEASURED EVERY FOUNDED / DRIVEN / FIRST-REIGN CONSTANT BELOW (BEHAVIOUR, one cause: a turn's harvest multiplier is the time-average of the yearly weather process over the turn's yearly sub-steps, and a new settlement joins the weather at a stationary draw; mean unchanged, per-decade log-spread ~0.29 -> ~0.19).
+/// Measured on this tree by the agent writing this line; the strips still separate their layers, but no stripped value
+/// returns a pre-1(b) pin. The cause is attributed by the config twin TestConfigs.PreTimeAveragedHarvest, which returns the
+/// pre-1(b) founded, first-reign and driven pins byte for byte (*_MovedForTheTimeAveragedHarvestAlone, end of file).
+/// Old -> new (16-hex prefixes):
+///   05da2ccea08c6e91… -> 24bdc655d8aba2ec…
+///   080315066ef7b142… -> 7aaa807b52e26b2e…
+///   0939beb30ae683d3… -> bd7b6b232d27e6fb…
+///   1256f051a0747724… -> b28fb83727f50fed…
+///   17464c3f152e89c8… -> fa0493ece0057649…
+///   320884dd6f6d3d61… -> 17105b1f871ef985…
+///   416c0ebe3237b25d… -> f9d2d8b32f9a4f65…
+///   431f2f48a0031017… -> 2f72ec211b38193d…
+///   4cdad2ddce909e40… -> 2c95e3331f09f528…
+///   6153222490f6d9a8… -> 0a7c5c5c5910245f…
+///   62ee79880d95ebeb… -> 4bf64e67049b8f01…
+///   64bb34959bb3d186… -> b784eadf6b7c9e3b…
+///   653c5c0ece72b390… -> 71ca4e65df90e405…
+///   65f5e942fd4b58c9… -> 9308cd36f9a80fd7…
+///   6a6ac746181c47f1… -> 3ed34a0ecb417725…
+///   6dcc265b9e8d68b6… -> 438b9ac882f2d9a1…
+///   6f82a998c06113fe… -> 14365a5c75296190…
+///   7813772b2cee6d5f… -> 2fbff5cbb41f429b…
+///   811b119acf46f50e… -> 66bcd40e56f5620e…
+///   8bc2299e796cae8d… -> fd4306ffccdb6cce…
+///   8cd5db52cfc2a4e1… -> 003a7e49a9359dd6…
+///   8ea1b956ef550ca5… -> 52f480ba1c4d0774…
+///   91439b05e8a8c440… -> f14c03f81db56510…
+///   922ed0c1dfa427cc… -> ab380feba01c6e76…
+///   9fe68e4ef8cc7327… -> 246ff3f5b6199015…
+///   a3a57867172c09a8… -> 7d5e626004fb895f…
+///   aa5ae46d574a1e23… -> fe22abb415892680…
+///   b14899eb23a9704f… -> 9c8380a27a4ba1fc…
+///   b20df92d2e2ed05a… -> ac38d4ea209dfa25…
+///   b252a66db4ca2a03… -> 98d0e2675da9ebc7…
+///   b31684a74926d97f… -> 4c30b3d68e1e4606…
+///   b6013cb54fffaa91… -> a5d44cc8c88a9797…
+///   b94886cfb24df556… -> 5c9344e4d8946a9f…
+///   bce1a3a8a7ab61a4… -> b871cefee40eaa5a…
+///   c4833d844a1c10b2… -> 2f9fddefde4e1943…
+///   d47b7e3d1bb81bce… -> 03b86400c4e54084…
+///   db52e65e932503dc… -> ed3794e7f8db2e90…
+///   df85224cb7a2ab5f… -> 1694047ed455d28e…
 /// </summary>
 public class IntegratedPinAttributionTests
 {
@@ -96,7 +282,7 @@ public class IntegratedPinAttributionTests
     /// OLD (T4.21-2 alone) 789585bed857ae94888ee8edbdc18b1ee5c9222c23695109b86e7002271b194d;
     /// OLD (T4.21-3 alone) 23cdc7042bf2972ba13b52e9e6bb26a8fc526a74ba61284c93208bb73efadffd.
     internal const string CapacityFloorFixAtSchemaV22 =
-        "e3d472c6de20e7032a71e78133c7108d34340f70f7f8c1fc036420c8bf6d04b2";
+        "b28fb83727f50fed8042a0cc94d8a3c4285328326a12987644d66d7f4b86c079";
 
     /// <summary>Bytes one empty table contributes to the stream: its count prefix.</summary>
     private const int EmptyTableBytes = 4;
@@ -117,6 +303,14 @@ public class IntegratedPinAttributionTests
     private static string HashWithoutM4(WorldState world, int dropTrailingTables)
     {
         WorldState stripped = world.Clone();
+        StripV34AssertingEmpty(stripped);
+        StripV33AssertingEmpty(stripped);
+        StripLevy(stripped);
+        StripInstitutions(stripped);
+        StripGovernance(stripped);
+        StripRoads(stripped);
+        StripAges(stripped);
+        StripResearch(stripped);
         StripDisaster(stripped);
         stripped.Polities.Clear();
         stripped.Controls.Clear();
@@ -130,7 +324,7 @@ public class IntegratedPinAttributionTests
             CanonicalSchema.Write(stripped, writer);
         }
 
-        return HashDroppingTrailer(buffer.ToArray(), dropTrailingTables);
+        return HashDroppingTrailer(buffer.ToArray(), dropTrailingTables + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount);
     }
 
     private static string HashDroppingTrailer(byte[] full, int dropTrailingTables)
@@ -170,13 +364,338 @@ public class IntegratedPinAttributionTests
     }
 
     /// <summary>The stream as T4.4's v22 — before M4 touched the schema at all.
-    /// Five trailing empty tables since v25: Polities, Capitals (v23),
-    /// ConstructionQueue, Structures (v24), Disasters (v25).</summary>
-    private static string HashAtSchemaV22(WorldState world) => HashWithoutM4(world, 5);
+    /// Ten trailing empty tables since v26: Polities, Capitals (v23),
+    /// ConstructionQueue, Structures (v24), Disasters (v25) and the seven research
+    /// tables (v26).</summary>
+    private static string HashAtSchemaV22(WorldState world) => HashWithoutM4(world, 5 + ResearchTableCount);
 
     /// <summary>The stream as v23 — M4-A's tables present but empty, i.e. the
     /// tree exactly as it stood before M4-C's founding wrote them.</summary>
-    private static string HashAtSchemaV23(WorldState world) => HashWithoutM4(world, 3);
+    private static string HashAtSchemaV23(WorldState world) => HashWithoutM4(world, 3 + ResearchTableCount);
+
+    /// <summary>ADR-029: the seven v26 research tables, appended after Disasters (two of
+    /// them, ResearchCredits and ResearchExposures, by addendum A).</summary>
+    private const int ResearchTableCount = 7;
+
+    /// <summary>ADR-031: the five v28 Age/military tables, appended after ResearchExposures.
+    /// Every pin in this file predates v28, so every control strips them and drops their
+    /// five count prefixes first (the two Age systems draw no RNG and write no ledger flow;
+    /// founding formations are tokens), then asks its original question unchanged.</summary>
+    private const int AgeTableCount = 5;
+
+    private static int StripAges(WorldState stripped)
+    {
+        int removed = stripped.AgeStates.Count + stripped.AgeEligibility.Count + stripped.AgeTransitions.Count
+            + stripped.MilitaryUnits.Count + stripped.UnitConversions.Count;
+        stripped.AgeStates.Clear();
+        stripped.AgeEligibility.Clear();
+        stripped.AgeTransitions.Clear();
+        stripped.MilitaryUnits.Clear();
+        stripped.UnitConversions.Clear();
+        return removed;
+    }
+
+    /// <summary>The stream as v26 — the tree exactly as it stood BEFORE ADR-031: the Age/military
+    /// rows removed, the five empty v28 prefixes dropped, nothing else touched.</summary>
+    internal static string HashAtSchemaV26(WorldState world, out int ageRowsRemoved)
+    {
+        WorldState stripped = world.Clone();
+        StripV34AssertingEmpty(stripped);
+        StripV33AssertingEmpty(stripped);
+        StripLevy(stripped);
+        StripInstitutions(stripped);
+        StripGovernance(stripped);
+        StripRoads(stripped);
+        ageRowsRemoved = StripAges(stripped);
+        using var buffer = new MemoryStream();
+        using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(stripped, writer);
+        }
+        return HashDroppingTrailer(buffer.ToArray(), AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount);
+    }
+
+    /// <summary>ADR-032: the two v29 transport tables, appended after UnitConversions. Every pin in
+    /// this file predates v29, so every control strips them and drops their two count prefixes
+    /// first, then asks its original question unchanged.</summary>
+    private const int RoadTableCount = 2;
+
+    private static int StripRoads(WorldState stripped)
+    {
+        int removed = stripped.TransportEdges.Count + stripped.RoadDevelopments.Count;
+        stripped.TransportEdges.Clear();
+        stripped.RoadDevelopments.Clear();
+        return removed;
+    }
+
+    /// <summary>The stream as v28 — the tree exactly as it stood BEFORE ADR-032: the transport rows
+    /// removed, the two empty v29 prefixes dropped, nothing else touched.</summary>
+    internal static string HashAtSchemaV28(WorldState world, out int roadRowsRemoved)
+    {
+        WorldState stripped = world.Clone();
+        StripV34AssertingEmpty(stripped);
+        StripV33AssertingEmpty(stripped);
+        StripLevy(stripped);
+        StripInstitutions(stripped);
+        StripGovernance(stripped);
+        roadRowsRemoved = StripRoads(stripped);
+        using var buffer = new MemoryStream();
+        using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(stripped, writer);
+        }
+        return HashDroppingTrailer(buffer.ToArray(), RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount);
+    }
+
+    /// <summary>ADR-033 D4: the one v30 governance table (TaxPolicies), appended after
+    /// RoadDevelopments. Every pin in this file predates v30, so every control strips the
+    /// governance layer and drops its count prefix first, then asks its original question
+    /// unchanged.</summary>
+    private const int GovernanceTableCount = 1;
+
+    /// <summary>
+    /// ADR-033 D4: remove the governing loop's ENTIRE footprint in the stream, IN PLACE — the
+    /// TaxPolicies rows (none exist in an order-less or tax-less world; cleared regardless so a
+    /// populated world strips the same way) and the reach GovernanceSystem writes into
+    /// ControlRow.Strength, restored to the 1.0 every control row carried before v30 (founding and
+    /// colonization write exactly 1.0 and, before the port, nothing else ever wrote the field).
+    /// GovernanceSystem draws no RNG and writes no ledger flow, and Strength is read only by the
+    /// tax readers, so with no tax levied this IS the whole delta. Returns how many Strength
+    /// fields were restored, so a caller can tell a populated strip from a vacuous one.
+    /// </summary>
+    private static int StripGovernance(WorldState stripped)
+    {
+        stripped.TaxPolicies.Clear();
+        int restored = 0;
+        for (int i = 0; i < stripped.Controls.Count; i++)
+        {
+            ControlRow row = stripped.Controls[i];
+            if (BitConverter.DoubleToInt64Bits(row.Strength) == BitConverter.DoubleToInt64Bits(1.0)) continue;
+            stripped.Controls[i] = row with { Strength = 1.0 };
+            restored++;
+        }
+        return restored;
+    }
+
+    /// <summary>The stream as v29 — the tree exactly as it stood BEFORE ADR-033 D4: the tax rows
+    /// removed, every Strength back at 1.0, the empty v30 prefix dropped, nothing else touched.</summary>
+    internal static string HashAtSchemaV29(WorldState world, out int strengthsRestored)
+    {
+        WorldState stripped = world.Clone();
+        StripV34AssertingEmpty(stripped);
+        StripV33AssertingEmpty(stripped);
+        StripLevy(stripped);
+        StripInstitutions(stripped);
+        strengthsRestored = StripGovernance(stripped);
+        using var buffer = new MemoryStream();
+        using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(stripped, writer);
+        }
+        return HashDroppingTrailer(buffer.ToArray(), GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount);
+    }
+
+    /// <summary>ADR-033 D6 + D10: the two v31 tables (Institutions, ConstructionLabor), appended after
+    /// TaxPolicies. Every pin in this file predates v31, so every control strips the institutions layer and drops
+    /// its two count prefixes first, then asks its original question unchanged.</summary>
+    private const int InstitutionTableCount = 2;
+
+    /// <summary>
+    /// ADR-033 D6 + D10: remove the institutions layer's ENTIRE footprint in the stream, IN PLACE — the
+    /// Institutions rows, the ConstructionLabor rows (D10, rebuilt every step; a row only where a project was
+    /// built) and the ResearchCostModifiers rows InstitutionsSystem now rebuilds every step (empty in any world
+    /// with no university, exactly as the table was empty before it had a writer). InstitutionsSystem draws no
+    /// RNG and writes no ledger flow; with no institution the labour reader returns the raw adult count and the
+    /// mortality seam the literal 1.0, and with no completed project PathBuild subtracts nothing — so in a world
+    /// with neither, these rows (none) and two count prefixes are the whole delta. Returns how many rows were
+    /// removed.
+    /// </summary>
+    private static int StripInstitutions(WorldState stripped)
+    {
+        int removed = stripped.Institutions.Count + stripped.ConstructionLabor.Count + stripped.ResearchCostModifiers.Count;
+        stripped.Institutions.Clear();
+        stripped.ConstructionLabor.Clear();
+        stripped.ResearchCostModifiers.Clear();
+        return removed;
+    }
+
+    /// <summary>The stream as v30 — the tree exactly as it stood BEFORE ADR-033 D6/D10: the institutions layer
+    /// removed, the two empty v31 prefixes dropped, nothing else touched.</summary>
+    internal static string HashAtSchemaV30(WorldState world, out int institutionRowsRemoved)
+    {
+        WorldState stripped = world.Clone();
+        StripV34AssertingEmpty(stripped);
+        StripV33AssertingEmpty(stripped);
+        StripLevy(stripped);
+        institutionRowsRemoved = StripInstitutions(stripped);
+        using var buffer = new MemoryStream();
+        using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(stripped, writer);
+        }
+        return HashDroppingTrailer(buffer.ToArray(), InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount);
+    }
+
+    /// <summary>H2 (2026-10-05): the one v32 table (TaxGrievances — the levy's grievance per population segment),
+    /// appended after ConstructionLabor. Every pin in this file predates v32, so every control strips it and drops its
+    /// count prefix first, then asks its original question unchanged.</summary>
+    private const int LevyTableCount = 1;
+
+    /// <summary>H2: clear the TaxGrievances rows IN PLACE (the layer's entire footprint in the stream: rows exist only
+    /// where a levy has been felt, so an untaxed world holds none). Returns how many rows were removed.</summary>
+    private static int StripLevy(WorldState stripped)
+    {
+        int removed = stripped.TaxGrievances.Count;
+        stripped.TaxGrievances.Clear();
+        return removed;
+    }
+
+    /// <summary>The stream as v31 — the tree exactly as it stood BEFORE H2's schema change: the levy-grievance rows
+    /// removed, the empty v32 prefix dropped, nothing else touched.</summary>
+    internal static string HashAtSchemaV31(WorldState world, out int levyRowsRemoved)
+    {
+        WorldState stripped = world.Clone();
+        StripV34AssertingEmpty(stripped);
+        StripV33AssertingEmpty(stripped);
+        levyRowsRemoved = StripLevy(stripped);
+        using var buffer = new MemoryStream();
+        using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(stripped, writer);
+        }
+        return HashDroppingTrailer(buffer.ToArray(), LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount);
+    }
+
+    /// <summary>A pre-v32 pin's comparison form: the v31 stream of an UNTAXED run (no levy-grievance row to strip —
+    /// asserted, so the comparison can never hide a behavioural change behind the strip).</summary>
+    private static string V31(WorldState world)
+    {
+        string hash = HashAtSchemaV31(world, out int removed);
+        Assert.Equal(0, removed);
+        return hash;
+    }
+
+    /// <summary>D-054 (batch 3; C2 review F7, integration R1 2026-10-14): the v33 strip every chain helper below v33 starts
+    /// with, ASSERTING it removed no row — exactly as <see cref="TestUtil.SchemaProjection.V32"/> does. A ConstructionProgress
+    /// or ResourceAllocations row is a behaviour change (WS1 / WS2), never a layout one, so a pre-v33 pin must never be
+    /// compared through a strip that hid one. Pinned by <see cref="EveryOlderSchemaProjection_RefusesAWorldWithAV33Row_AsTheV32ProjectionDoes"/>.</summary>
+    private static void StripV33AssertingEmpty(WorldState stripped)
+    {
+        int removed = TestUtil.SchemaProjection.StripV33(stripped);
+        Assert.True(removed == 0,
+            $"the v33 strip removed {removed} row(s): a part-built head or a material split is behaviour, not layout — a pre-v33 pin cannot be compared through it");
+    }
+
+    /// <summary>D-055 (2026-10-16; X1 (c)): the v34 strip every chain helper below v34 starts with, BEFORE the v33 strip —
+    /// ConstructionHolds (section 61) is the last table in the stream — ASSERTING it removed no row, exactly as
+    /// <see cref="TestUtil.SchemaProjection.V33"/> does. A published hold is BEHAVIOUR (the D-055 reservations rule), never
+    /// layout, so a pre-v34 pin must never be compared through a strip that hid one. Each helper then drops one more empty
+    /// count prefix (<see cref="TestUtil.SchemaProjection.V34TableCount"/>). Pinned by
+    /// <see cref="EveryOlderSchemaProjection_RefusesAWorldWithAV33Row_AsTheV32ProjectionDoes"/> (its hold-row arm).</summary>
+    private static void StripV34AssertingEmpty(WorldState stripped)
+    {
+        int removed = TestUtil.SchemaProjection.StripV34(stripped);
+        Assert.True(removed == 0,
+            $"the v34 strip removed {removed} row(s): a set-aside (hold) is behaviour, not layout — a pre-v34 pin cannot be compared through it");
+    }
+
+    /// <summary>
+    /// D-054 (batch 3; C2 review F7, integration R1 2026-10-14): EVERY OLDER-SCHEMA PROJECTION REFUSES A POPULATED v33 TABLE.
+    /// Each chain helper below v33 strips ConstructionProgress and ResourceAllocations before asking its original question —
+    /// and a row there is a BEHAVIOUR change (a part-built head under WS1, an empire's material split under WS2), never a
+    /// layout one, so a projection that cleared it silently would let a pre-v33 pin hide exactly the change it must see
+    /// (MEASURED by the reviewer: on the v32 fixture world WS1 changes ONLY the ConstructionProgress table). So each helper
+    /// asserts its v33 strip removed nothing, as <see cref="TestUtil.SchemaProjection.V32"/> does. Both tables, every helper,
+    /// and a positive control: the same world with the row removed projects cleanly through all of them.
+    /// </summary>
+    /// <remarks>D-055 (2026-10-16) CAUSE BLOCK (X1 (c)): extended, not re-pinned — schema v34 appends ConstructionHolds, so
+    /// every helper also refuses a HOLD row (a third arm), and the v33 projection (<see cref="TestUtil.SchemaProjection.V33"/>)
+    /// joins the list for that arm alone: it keeps the two v33 tables (they ARE v33 layout) and refuses only a hold.</remarks>
+    [Fact]
+    public void EveryOlderSchemaProjection_RefusesAWorldWithAV33Row_AsTheV32ProjectionDoes()
+    {
+        var helpers = new (string Name, Func<WorldState, string> Project)[]
+        {
+            ("v22", HashAtSchemaV22), ("v23", HashAtSchemaV23),
+            ("v24", w => HashAtSchemaV24(w, out _)), ("v25", w => HashAtSchemaV25(w, out _)),
+            ("v26", w => HashAtSchemaV26(w, out _)), ("v28", w => HashAtSchemaV28(w, out _)),
+            ("v29", w => HashAtSchemaV29(w, out _)), ("v30", w => HashAtSchemaV30(w, out _)),
+            ("v31", w => HashAtSchemaV31(w, out _)), ("v32", TestUtil.SchemaProjection.V32),
+        };
+        WorldState clean = SnapshotTests.CanonicalExecutor().Run(SnapshotTests.Genesis(42), 3);
+        Assert.Equal(0, clean.ConstructionProgress.Count + clean.ResourceAllocations.Count + clean.ConstructionHolds.Count);
+        WorldState progress = clean.Clone();
+        progress.ConstructionProgress.Add(new ConstructionProgressRow(new SettlementId(0), 0, 1, 2, 1));
+        WorldState split = clean.Clone();
+        split.ResourceAllocations.Add(new ResourceAllocationRow(new PolityId(1), 30));
+        WorldState held = clean.Clone();
+        held.ConstructionHolds.Add(new ConstructionHoldRow(1, 3, 12));
+        foreach ((string name, Func<WorldState, string> project) in helpers)
+        {
+            _ = project(clean);   // the positive control: a v33-empty world projects
+            Assert.True(Throws(() => project(progress)), $"{name}: a ConstructionProgress row was stripped silently");
+            Assert.True(Throws(() => project(split)), $"{name}: a ResourceAllocations row was stripped silently");
+            Assert.True(Throws(() => project(held)), $"{name}: a ConstructionHolds row was stripped silently");
+        }
+        // The v33 projection: a v33 row is layout it keeps (projects); a hold row is refused.
+        _ = TestUtil.SchemaProjection.V33(clean);
+        _ = TestUtil.SchemaProjection.V33(progress);
+        _ = TestUtil.SchemaProjection.V33(split);
+        Assert.True(Throws(() => TestUtil.SchemaProjection.V33(held)), "v33: a ConstructionHolds row was stripped silently");
+
+        static bool Throws(Action a)
+        {
+            try { a(); return false; }
+            catch (Xunit.Sdk.XunitException) { return true; }
+        }
+    }
+
+    /// <summary>
+    /// ADR-029: clear the seven research tables IN PLACE. It returns how many rows
+    /// were removed, so a caller can tell a populated strip from a vacuous one. The
+    /// research system owns nothing else, draws no RNG and writes no ledger flow, so
+    /// these tables are its entire footprint in the stream.
+    /// </summary>
+    private static int StripResearch(WorldState stripped)
+    {
+        int removed = stripped.ResearchTargets.Count + stripped.ResearchProgress.Count
+            + stripped.ResearchCompleted.Count + stripped.ResearchEurekas.Count
+            + stripped.ResearchCostModifiers.Count + stripped.ResearchCredits.Count
+            + stripped.ResearchExposures.Count;
+        stripped.ResearchTargets.Clear();
+        stripped.ResearchProgress.Clear();
+        stripped.ResearchCompleted.Clear();
+        stripped.ResearchEurekas.Clear();
+        stripped.ResearchCostModifiers.Clear();
+        stripped.ResearchCredits.Clear();
+        stripped.ResearchExposures.Clear();
+        return removed;
+    }
+
+    /// <summary>
+    /// The stream as v25 — the tree exactly as it stood BEFORE the research packet
+    /// (main at 93270cd): the research rows removed, the seven empty v26 prefixes
+    /// dropped, and NOTHING ELSE touched. The pre-packet pin must return byte for
+    /// byte, or research changed something outside its own tables.
+    /// </summary>
+    private static string HashAtSchemaV25(WorldState world, out int researchRowsRemoved)
+    {
+        WorldState stripped = world.Clone();
+        StripV34AssertingEmpty(stripped);
+        StripV33AssertingEmpty(stripped);
+        StripLevy(stripped);
+        StripInstitutions(stripped);
+        StripGovernance(stripped);
+        StripRoads(stripped);
+        StripAges(stripped);
+        researchRowsRemoved = StripResearch(stripped);
+        using var buffer = new MemoryStream();
+        using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            CanonicalSchema.Write(stripped, writer);
+        }
+        return HashDroppingTrailer(buffer.ToArray(), ResearchTableCount + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount);
+    }
 
     /// <summary>
     /// The stream as v24 — the tree exactly as it stood BEFORE T4.21-1: the
@@ -187,13 +706,21 @@ public class IntegratedPinAttributionTests
     private static string HashAtSchemaV24(WorldState world, out int disasterStreamsRemoved)
     {
         WorldState stripped = world.Clone();
+        StripV34AssertingEmpty(stripped);
+        StripV33AssertingEmpty(stripped);
+        StripLevy(stripped);
+        StripInstitutions(stripped);
+        StripGovernance(stripped);
+        StripRoads(stripped);
+        StripAges(stripped);
+        StripResearch(stripped);
         disasterStreamsRemoved = StripDisaster(stripped);
         using var buffer = new MemoryStream();
         using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true))
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), 1);
+        return HashDroppingTrailer(buffer.ToArray(), 1 + ResearchTableCount + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount);
     }
 
     /// <summary>
@@ -227,9 +754,30 @@ public class IntegratedPinAttributionTests
     /// RE-ARMING fails here too — and if it is ruled, these constants stay put
     /// while the behavioural goldens move, which is the whole point.
     /// </summary>
+    /// <summary>R1: the canonical config with the recipe-knowledge links removed (TestConfigs.PreRecipeKnowledge).
+    /// EVERY layer control in this file runs on it, so each constant it carries is UNMOVED by R1 (the T4.21-4
+    /// precedent: a layout control must not be asked to absorb a behaviour change); R1's own controls at the
+    /// end of the file prove the twin returns the pre-R1 pins byte for byte.
+    /// R2a: the twin is also PRE-R2a (TestConfigs.PreTradeKnowledge: no trade node/entity, trade ungated, no
+    /// city-state research), and M5 R2b: with every R2b layer stripped too (TestConfigs.PreR2b — weather
+    /// geography, unrest/Dignity, Age military realization), so every older control stays unmoved; the R2a, R2b
+    /// and R2c (merged) controls are at the end of the file.</summary>
+    private static Sim.Core.Systems.SimConfig PreR1() =>
+        TestUtil.TestConfigs.PreRecipeKnowledge(TestUtil.TestConfigs.PreTradeKnowledge(TestUtil.TestConfigs.PreR2b(TestUtil.TestConfigs.Sim())));
+
+    /// <summary>M5 R2b: the canonical config with only the R2b layers stripped — on the merged tree, the R2a world.</summary>
+    private static Sim.Core.Systems.SimConfig PreR2b() => TestUtil.TestConfigs.PreR2b(TestUtil.TestConfigs.Sim());
+
+    /// <summary>R2a: the canonical config with only the R2a trade-knowledge layer stripped — on the merged tree, the R2b world.</summary>
+    private static Sim.Core.Systems.SimConfig PreR2a() => TestUtil.TestConfigs.PreTradeKnowledge(TestUtil.TestConfigs.Sim());
+
+    /// <summary>R2c: both R2 layers stripped — the R1 world (m5-integration @ f1fe76f).</summary>
+    private static Sim.Core.Systems.SimConfig PreR2() =>
+        TestUtil.TestConfigs.PreTradeKnowledge(TestUtil.TestConfigs.PreR2b(TestUtil.TestConfigs.Sim()));
+
     private static Sim.Core.Systems.SimConfig Unarmed()
     {
-        Sim.Core.Systems.SimConfig shipped = TestUtil.TestConfigs.Sim();
+        Sim.Core.Systems.SimConfig shipped = PreR1();
         Assert.Equal(0.0, shipped.Disaster.HazardPerYear);   // inert, T4.21-7 / CR-016
         return shipped with { Disaster = shipped.Disaster with { HazardPerYear = 0.0 } };
     }
@@ -263,17 +811,17 @@ public class IntegratedPinAttributionTests
         // both packets; header). OLD (pre-packet) f886efbd159f5717848534efe3af61b826fa599d742e5e244d7afafa067bce22;
         // OLD (T4.21-2 alone) 05eb271cfec6226716d58eb6ca10859ae2f7a91273b0978574509d96fbb806c3;
         // OLD (T4.21-3 alone) c870354f478551a199617e7525e51fd06bffa22f9ccaeb2015956f117c6f4828.
-        const string mainValue = "364760291d6dd6917cd38ad79dd10da8d23255bbe2280da3b91f0e4eab194100";
+        const string mainValue = "5c9344e4d8946a9fd436fde5ed2abea18016963a637ce35f3554e1e55de53865";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
         var executor = new TurnExecutor(
             EraTableLoader.Load(eraStream),
             PipelineLoader.Load(pipeStream, SystemCatalog.All(
-                Unarmed(), TestUtil.TestConfigs.Worldgen())));
+                Unarmed(), TestUtil.TestConfigs.PreD054Worldgen())));
         WorldState world = executor.Run(
             Sim.Core.Worldgen.WorldFounding.Found(
-                TestUtil.TestConfigs.Worldgen(), Unarmed(), 42), 300);
+                TestUtil.TestConfigs.PreD054Worldgen(), Unarmed(), 42), 300);
 
         Assert.Equal(mainValue, HashAtSchemaV22(world));
 
@@ -288,7 +836,7 @@ public class IntegratedPinAttributionTests
         // both packets; header). OLD (pre-packet) e48d9bcd8883204bb2efa4843923c49a30de86fae9269e7354e6d2018bf8e1f7;
         // OLD (T4.21-2 alone) f49815f0d222a8a269a042611bc110486527d5112e3262fe591f7524266872ab;
         // OLD (T4.21-3 alone) bbbb9aece1b981f74fba310d0b0e40a3764bee0192a357018a64f8e7ed1e5e63.
-        const string beforeM4C = "97d89a9afd9ed784e0162b63614d62300a29b046ae61b7017f67b2076121f433";
+        const string beforeM4C = "b784eadf6b7c9e3b0070513499e20bbd268d320526abae1b8d3ea4abbda09215";
         Assert.Equal(beforeM4C, HashAtSchemaV23(world));
 
         // ...and the rows really are there, so the strip is not vacuous.
@@ -314,9 +862,9 @@ public class IntegratedPinAttributionTests
         // both packets; header). OLD (pre-packet) 69d6cf178fa536e0582874eacf7adec9fbcbc686c5e14a12292f935aa2694550;
         // OLD (T4.21-2 alone) 7cb35cbdc92e3bf0419dcd091343126acb801eb0a7bc0576627c561af47ca2e1;
         // OLD (T4.21-3 alone) f424daa7da78568c23f475dd0b24dce31ee3b15f8ccf7d50fbf2713e0300d325.
-        const string mainValue = "23b0db02a8e2cfef199598bde7b69ebc1e5df09b7516dab5903df3784aacf43c";
+        const string mainValue = "24bdc655d8aba2ec0168a4fe70b69334d6f0fe8af054242f595aa743a4183aad";
 
-        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _);
+        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1(), TestUtil.TestConfigs.PreD054Worldgen());
         Assert.Equal(mainValue, HashAtSchemaV22(world));
 
         // M4-C LAYER — this world is FOUNDED too, so it also carries Empire rows.
@@ -325,7 +873,7 @@ public class IntegratedPinAttributionTests
         // both packets; header). OLD (pre-packet) 4e7d2e69e7c5ed72444501bed84c341b50a0d77c25d123ead36498ce9b280d7b;
         // OLD (T4.21-2 alone) e877c79683265a6dd09055861541c731ecfdfed2eee0188cb6939974541cf6f5;
         // OLD (T4.21-3 alone) 89bb4b64a8c7d664c6d89d843c0255463ee49171c4d12707b4cabac181e537ee.
-        const string beforeM4C = "fc5d2646bdb8bf1831376eb09b9389bdf8ea059def5dab3ed67b8357d65d6fe9";
+        const string beforeM4C = "2c95e3331f09f5283c2ece72529086cc1e6940204b26bc0f08ecb14aab996546";
         Assert.Equal(beforeM4C, HashAtSchemaV23(world));
         Assert.Equal(1, world.Polities.Count);
         Assert.Equal(world.Settlements.Count, world.Controls.Count);
@@ -356,7 +904,7 @@ public class IntegratedPinAttributionTests
         // be measured at all. Both constants below re-measured on this tree via
         // HashAtSchemaV22 / HashAtSchemaV23; the founded, FirstReign and
         // synthetic controls in this file are UNMOVED (run, not assumed).
-        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, Unarmed());
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, Unarmed(), TestUtil.TestConfigs.PreD054Worldgen());
         string atV22 = HashAtSchemaV22(world);
 
         Assert.NotEqual(mainPinBeforeTheFix, atV22);
@@ -369,7 +917,7 @@ public class IntegratedPinAttributionTests
         // both packets; header). OLD (pre-packet) cf93e0fed26a3e28e9e971498f8240c1534a5a8aa97391fe030adeaf76d4fa75;
         // OLD (T4.21-2 alone) bdf29a88dcec3385d9bd6ccb8938877ef88459629b10eccf33707e45dcdb0c15;
         // OLD (T4.21-3 alone) edb812c3b2940498e779c0f81002f69db74b7b5023e5f78a72cb8e35d152a9c0.
-        const string beforeM4C = "6c901bab51b34819c5a961a48d9d18daa36c334419711c3a1ec35af85d99c445";
+        const string beforeM4C = "2f9fddefde4e1943763009a3f1acb690ef2f8a5501ecf380491c1eef834a071f";
         Assert.Equal(beforeM4C, HashAtSchemaV23(world));
         Assert.Equal(1, world.Polities.Count);
         Assert.Equal(world.Settlements.Count, world.Controls.Count);
@@ -394,7 +942,7 @@ public class IntegratedPinAttributionTests
         Assert.Equal(beforeT421, HashAtSchemaV24(world, out int removed));
         Assert.Equal(0, removed);
         Assert.Equal(0, world.Disasters.Count);
-        Assert.Equal(25, CanonicalSchema.Version);
+        Assert.Equal(34, CanonicalSchema.Version);   // v31: ADR-033 D6/D10 Institutions + ConstructionLabor (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins)
     }
 
     [Fact]
@@ -420,17 +968,17 @@ public class IntegratedPinAttributionTests
         // attributed there.
         // OLD (T4.21-2 alone) 7ee73714b054cd3250a0c9a37a59677581cb74a0469e20b29e9bcde65fc05ed6;
         // OLD (T4.21-3 alone) 776616ce4e78ca8cff586a891cf495840b9e48df1e9d29bc9b5e5ecede21b566.
-        const string beforeT421 = "1588d1c4a9597a5c69291908236a48869fe8b4bf1ccc4d6b0ee4d639def41372";
+        const string beforeT421 = "2f72ec211b38193d67bb4afed8cb50ad526f91d78e8bc49e9cd9b6313139d963";
 
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
         var executor = new TurnExecutor(
             EraTableLoader.Load(eraStream),
             PipelineLoader.Load(pipeStream, SystemCatalog.All(
-                Unarmed(), TestUtil.TestConfigs.Worldgen())));
+                Unarmed(), TestUtil.TestConfigs.PreD054Worldgen())));
         WorldState world = executor.Run(
             Sim.Core.Worldgen.WorldFounding.Found(
-                TestUtil.TestConfigs.Worldgen(), Unarmed(), 42), 300);
+                TestUtil.TestConfigs.PreD054Worldgen(), Unarmed(), 42), 300);
 
         Assert.Equal(beforeT421, HashAtSchemaV24(world, out int removed));
         Assert.Equal(world.Settlements.Count, removed);   // one disaster stream per settlement — not vacuous
@@ -455,9 +1003,9 @@ public class IntegratedPinAttributionTests
         // OLD (pre-packet) 5ee8119e365ad04bdfc45f791a8962bb0fb616016ad1616c67b9c74c2d81e9a;
         // OLD (T4.21-2 alone) 8e23b4b32e3a1e0257df6af8fd482d8f5cb177345bb3378f2b4061ac8a561e72;
         // OLD (T4.21-3 alone) 77454c587a98f8fadb2ad055ca00509612f32a2a7aa73762e2418e0da30ebdfb.
-        const string beforeT421 = "c20bb5a688c132ad050a741d495bfc7497c0c9772f4aeaf79b37cd33ecee1109";
+        const string beforeT421 = "4c30b3d68e1e4606d3ba59935f1601af5be522f7bb752a8c7c37568f89cde0ea";
 
-        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _);
+        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1(), TestUtil.TestConfigs.PreD054Worldgen());
         Assert.Equal(beforeT421, HashAtSchemaV24(world, out int removed));
         Assert.True(removed >= 1, "no disaster stream rows to strip — control vacuous");
         Assert.Equal(0, world.Disasters.Count);
@@ -472,11 +1020,579 @@ public class IntegratedPinAttributionTests
         // OLD (pre-packet) 76f82629abbffbc3c0897d2cfab7933e890a5441697dfdb82a59cd64d74163a6;
         // OLD (T4.21-2 alone) cee0c2c0… (see docs/t4.21-2-record.md §2);
         // OLD (T4.21-3 alone) d6a0554e6c419cc6b8f3bd364b30f9721fb9b1ad1fb00675f265ae309ab1f1a1.
-        const string beforeT421 = "38de16bab469505e4a4b1966681da8bfd9103a4a96d3bb7c09951496aa0479fe";
+        const string beforeT421 = "003a7e49a9359dd65f16c27052c50be41957a2b479d6ebc7b666b67c9b0c3700";
 
-        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, Unarmed());
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, Unarmed(), TestUtil.TestConfigs.PreD054Worldgen());
         Assert.Equal(beforeT421, HashAtSchemaV24(world, out int removed));
         Assert.Equal(world.Settlements.Count, removed);
         Assert.Equal(0, world.Disasters.Count);
+    }
+
+    // ======================================================================
+    // ADR-029 — THE LAYOUT CONTROL FOR SCHEMA v26 + THE RESEARCH ROWS
+    // ======================================================================
+    // Each constant below is the value the world's own golden carried on main at
+    // 93270cd, before the research packet. The strip returning it BYTE FOR BYTE is
+    // the measurement that the research layer is the ENTIRE delta.
+
+    [Fact]
+    public void GoldenHashSeed42Turn200_MovedForTheV26ResearchTrailerAlone()
+    {
+        // The toy pipeline runs no research system: its whole movement is seven empty
+        // count prefixes (SnapshotTests.GoldenHash on main).
+        const string beforeResearch = "b6df7edd362e15de908526c6343f50f920f3a344b7dac703aaad7671c41adaa1";
+        WorldState world = SnapshotTests.CanonicalExecutor().Run(SnapshotTests.Genesis(42), 200);
+        Assert.Equal(beforeResearch, HashAtSchemaV25(world, out int removed));
+        Assert.Equal(0, removed);
+    }
+
+    [Fact]
+    public void FoundedGoldenSeed42Turn300_MovedForTheResearchLayerAlone()
+    {
+        // SnapshotTests.FoundedGolden and ci.yml's FOUNDED_GOLDEN on main.
+        const string beforeResearch = "fa0493ece0057649f2896413c91f1fe52f754346b6d8d53b52ffdfae159ae533";
+        using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
+        using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
+        var executor = new TurnExecutor(
+            EraTableLoader.Load(eraStream),
+            PipelineLoader.Load(pipeStream, SystemCatalog.All(
+                Unarmed(), TestUtil.TestConfigs.PreD054Worldgen())));
+        WorldState world = executor.Run(
+            Sim.Core.Worldgen.WorldFounding.Found(
+                TestUtil.TestConfigs.PreD054Worldgen(), Unarmed(), 42), 300);
+        Assert.Equal(beforeResearch, HashAtSchemaV25(world, out _));
+        Assert.Equal(0, world.ResearchTargets.Count);    // nobody chose a target
+        Assert.Equal(0, world.ResearchCompleted.Count);
+        // MEASURED (research finalization, addendum A): with no order, none of the 18 evaluable
+        // curated Eurekas holds on an available node within 300 turns, so the order-less arm
+        // writes NO research row and its strip is vacuous on its own. The research-DRIVEN arm
+        // below supplies the teeth: the same world with a target chosen every time one is free.
+        WorldState researched = RunWithResearchDriver(
+            Sim.Core.Worldgen.WorldFounding.Found(TestUtil.TestConfigs.PreD054Worldgen(), Unarmed(), 42),
+            new OrderLog(), Unarmed(), 300, researchFrom: 0);
+        Assert.Equal(beforeResearch, HashAtSchemaV25(researched, out int removed));
+        Assert.True(removed > 0, "no research rows to strip — control vacuous");
+        Assert.True(researched.ResearchCompleted.Count > 0, "research completed nothing — control vacuous");
+    }
+
+    /// <summary>
+    /// Runs a founded world with the measurement driver of ResearchDeterminismTests appending a
+    /// SetResearchTarget for the cheapest available node whenever the player has no target,
+    /// from turn <paramref name="researchFrom"/> on, on top of whatever <paramref name="orders"/>
+    /// already holds. Research writes only its own
+    /// tables, so the stripped stream must equal the pre-research pin byte for byte.
+    /// </summary>
+    private static WorldState RunWithResearchDriver(WorldState world, OrderLog orders, Sim.Core.Systems.SimConfig cfg, int turns, int researchFrom)
+    {
+        Sim.Core.Systems.Research.ResearchContent content = TestUtil.TestConfigs.Research();
+        var player = new PolityId(1);
+        using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
+        using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
+        var executor = new TurnExecutor(
+            EraTableLoader.Load(eraStream),
+            PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg, TestUtil.TestConfigs.PreD054Worldgen())), orders);
+        for (int t = 0; t < turns; t++)
+        {
+            if (world.Clock.Turn >= researchFrom && !ResearchQuery.TryGetTarget(world, player, out _)
+                && ResearchQuery.CheapestAvailable(world, content, player) is { } pick)
+                orders.Append(OrderRecord.From(world.Clock.Turn, player, OrderKind.SetResearchTarget, pick.Value, 0.0));
+            world = executor.Step(world);
+        }
+        return world;
+    }
+
+    [Fact]
+    public void FirstReignTurn40_MovedForTheResearchLayerAlone()
+    {
+        // FirstReignTests' golden on main.
+        const string beforeResearch = "bd7b6b232d27e6fb40f3716fc2d85a4956017e5047617923aebb89ee663646a2";
+        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1(), TestUtil.TestConfigs.PreD054Worldgen());
+        Assert.Equal(beforeResearch, HashAtSchemaV25(world, out _));
+    }
+
+    [Fact]
+    public void DrivenGoldenSeed42Turn300_MovedForTheResearchLayerAlone()
+    {
+        // DrivenGoldenTests' golden on main.
+        const string beforeResearch = "7d5e626004fb895f0f410503392bd0b3b03d73f76bf6429d24593073da63003e";
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, Unarmed(), TestUtil.TestConfigs.PreD054Worldgen());
+        Assert.Equal(beforeResearch, HashAtSchemaV25(world, out _));
+        // The order-less research arm writes no research row (measured; see the founded control),
+        // so the teeth are the same driven world with the research driver added to its orders.
+        WorldState founded = Sim.Core.Worldgen.WorldFounding.Found(TestUtil.TestConfigs.PreD054Worldgen(), Unarmed(), 42);
+        WorldState researched = RunWithResearchDriver(founded,
+            DrivenGoldenTests.DrivingOrders(founded.Settlements.Count), Unarmed(), 300,
+            researchFrom: 2); // the log is append-only in turn order, and its batch is stamped turn 2
+        Assert.Equal(beforeResearch, HashAtSchemaV25(researched, out int removed));
+        Assert.True(removed > 0, "no research rows to strip — control vacuous");
+        Assert.True(researched.ResearchCompleted.Count > 0, "research completed nothing — control vacuous");
+    }
+    // ======================================================================
+    // ADR-031 — THE LAYOUT CONTROL FOR SCHEMA v28 (Ages and military formations)
+    // ======================================================================
+    // Each constant is the pin as it stood on this branch at 3e5647f, BEFORE ADR-031.
+    // Stripping the five Age/military tables and dropping their count prefixes must return
+    // it BYTE FOR BYTE: the Age systems draw no RNG, write no ledger flow, and the founding
+    // formations are tokens — so the v28 tables are the ENTIRE cause of every re-pin.
+
+    [Fact]
+    public void GoldenHashSeed42Turn200_MovedForTheV28AgeTrailerAlone()
+    {
+        const string beforeAges = "c7bb78dc2164b335c87a819e6e2084ab4d0ddc5f4932597cece5eaac9c6052e8";
+        WorldState world = SnapshotTests.CanonicalExecutor().Run(SnapshotTests.Genesis(42), 200);
+        Assert.Equal(beforeAges, HashAtSchemaV26(world, out int removed));
+        Assert.Equal(0, removed); // the toy pipeline runs no Age system and founds no formation
+    }
+
+    [Fact]
+    public void FoundedGoldenSeed42Turn300_MovedForTheAgeLayerAlone()
+    {
+        const string beforeAges = "52f480ba1c4d07747bdaf013049bf1f6e48092644c59001dd834afe05283b3fd";
+        WorldState world = SnapshotTests.RunFoundedGolden(PreR1(), TestUtil.TestConfigs.PreD054Worldgen());
+        Assert.Equal(beforeAges, HashAtSchemaV26(world, out int removed));
+        Assert.True(removed > 0, "no Age/military rows to strip — control vacuous");
+        Assert.Equal(1, world.MilitaryUnits.Count); // the founding warband, unconverted: nobody advanced
+    }
+
+    [Fact]
+    public void FirstReignTurn40_MovedForTheAgeLayerAlone()
+    {
+        const string beforeAges = "1694047ed455d28eb43471d6f6b535f2a23bd41b3cb211dd8c8fac13e44d1a5c";
+        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1(), TestUtil.TestConfigs.PreD054Worldgen());
+        Assert.Equal(beforeAges, HashAtSchemaV26(world, out int removed));
+        Assert.True(removed > 0, "no Age/military rows to strip — control vacuous");
+    }
+
+    [Fact]
+    public void DrivenGoldenSeed42Turn300_MovedForTheAgeLayerAlone()
+    {
+        const string beforeAges = "17105b1f871ef985cf3f627d26d95f928b53a5b91114730a3c74f7f7dafd075e";
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, PreR1(), TestUtil.TestConfigs.PreD054Worldgen());
+        Assert.Equal(beforeAges, HashAtSchemaV26(world, out int removed));
+        Assert.True(removed > 0, "no Age/military rows to strip — control vacuous");
+    }
+
+    // ======================================================================
+    // ADR-032 — THE LAYOUT CONTROL FOR SCHEMA v29 (the inter-city transport graph)
+    // ======================================================================
+    // Each constant is the pin as it stood on this branch at c8ceb5f, BEFORE ADR-032.
+    // Stripping the two transport tables and dropping their count prefixes must return it
+    // BYTE FOR BYTE. None of these runs issues a DevelopRoads order, so the tables are EMPTY
+    // (removed == 0 is the point, not a vacuity): RoadDevelopmentSystem returns at its first
+    // loop, draws no RNG and writes no ledger flow, and the research content change (motor_road,
+    // the dry-dock requirement, the track_road wording) moved no research choice either — the
+    // two empty prefixes are the ENTIRE cause of every re-pin.
+
+    [Fact]
+    public void GoldenHashSeed42Turn200_MovedForTheV29TransportTrailerAlone()
+    {
+        const string beforeRoads = "498635bf3c2673b9b544582e17774381b7a785903d7ed320e2dd8e44ddfd4296";
+        WorldState world = SnapshotTests.CanonicalExecutor().Run(SnapshotTests.Genesis(42), 200);
+        Assert.Equal(beforeRoads, HashAtSchemaV28(world, out int removed));
+        Assert.Equal(0, removed);
+    }
+
+    [Fact]
+    public void FoundedGoldenSeed42Turn300_MovedForTheTransportLayoutAlone()
+    {
+        const string beforeRoads = "ed3794e7f8db2e909a68f2a39101c2eb24a97552934b8077eb2e05ff910bbb44";
+        WorldState world = SnapshotTests.RunFoundedGolden(PreR1(), TestUtil.TestConfigs.PreD054Worldgen());
+        Assert.Equal(beforeRoads, HashAtSchemaV28(world, out int removed));
+        Assert.Equal(0, removed); // no order log: no road is ever developed
+    }
+
+    [Fact]
+    public void FirstReignTurn40_MovedForTheTransportLayoutAlone()
+    {
+        const string beforeRoads = "7aaa807b52e26b2e2a94d01f448108bbb251a107e6e52cbb6264d44301d5fbd8";
+        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1(), TestUtil.TestConfigs.PreD054Worldgen());
+        Assert.Equal(beforeRoads, HashAtSchemaV28(world, out int removed));
+        Assert.Equal(0, removed); // the first-reign log carries no DevelopRoads order
+    }
+
+    [Fact]
+    public void DrivenGoldenSeed42Turn300_MovedForTheTransportLayoutAlone()
+    {
+        const string beforeRoads = "fe22abb415892680514b635d9abebb136b0a07b616c9b525116659e0937e5a51";
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, PreR1(), TestUtil.TestConfigs.PreD054Worldgen());
+        Assert.Equal(beforeRoads, HashAtSchemaV28(world, out int removed));
+        Assert.Equal(0, removed); // the driven log carries no DevelopRoads order
+    }
+
+    // ======================================================================
+    // ADR-033 D4 — THE LAYER CONTROL FOR SCHEMA v30 (the M5 governing loop)
+    // ======================================================================
+    // Each constant is the pin as it stood on m5-integration at ffbb6f8, BEFORE the governing loop
+    // was ported (schema v29). Stripping the governance layer — the TaxPolicies rows, the reach
+    // GovernanceSystem writes into ControlRow.Strength (restored to the 1.0 founding and colonization
+    // wrote), and the empty v30 count prefix — must return it BYTE FOR BYTE. None of these runs
+    // levies a tax (no SetTaxRate order; and none could pass the research gate), so the effective tax
+    // rate is exactly 0 everywhere, production multiplies by exactly 1.0, happiness by exactly 1.0,
+    // and the new table plus the Strength writes are the ENTIRE cause of every re-pin. GovernanceSystem
+    // draws no RNG and writes no ledger flow. A leak of the governing loop into population, food,
+    // migration, trade or anything else would survive the strip and break these.
+
+    [Fact]
+    public void GoldenHashSeed42Turn200_MovedForTheV30GovernanceTrailerAlone()
+    {
+        // The toy pipeline runs no governance system and the synthetic world has no control rows:
+        // its whole movement is one empty count prefix.
+        const string beforeGovernance = "4c051fd40e9b86610ea7e2245daaff55d6503074ace491a986b41959f4f73151";
+        WorldState world = SnapshotTests.CanonicalExecutor().Run(SnapshotTests.Genesis(42), 200);
+        Assert.Equal(beforeGovernance, HashAtSchemaV29(world, out int restored));
+        Assert.Equal(0, restored);
+        Assert.Equal(0, world.TaxPolicies.Count);
+    }
+
+    [Fact]
+    public void FoundedGoldenSeed42Turn300_MovedForTheGovernanceLayerAlone()
+    {
+        const string beforeGovernance = "9c8380a27a4ba1fc2b0ca110f6faa6b963140a743f0861c59681350852474a9d";
+        WorldState world = SnapshotTests.RunFoundedGolden(PreR1(), TestUtil.TestConfigs.PreD054Worldgen());
+        Assert.Equal(beforeGovernance, HashAtSchemaV29(world, out int restored));
+        // Non-vacuous: the founded world's non-capital settlements carry a computed reach < 1.
+        Assert.True(restored > 0, "no Strength differed from 1.0 — the reach computation is invisible and the control vacuous");
+        Assert.Equal(0, world.TaxPolicies.Count);   // no order log: no tax is ever levied
+    }
+
+    [Fact]
+    public void FirstReignTurn40_MovedForTheGovernanceLayerAlone()
+    {
+        const string beforeGovernance = "2fbff5cbb41f429b9aadfd6f7ad6053927cc78fc9b32ca11a48bff77fe6cb422";
+        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1(), TestUtil.TestConfigs.PreD054Worldgen());
+        Assert.Equal(beforeGovernance, HashAtSchemaV29(world, out _));
+        Assert.Equal(0, world.TaxPolicies.Count);   // the first-reign log carries no SetTaxRate order
+    }
+
+    [Fact]
+    public void DrivenGoldenSeed42Turn300_MovedForTheGovernanceLayerAlone()
+    {
+        const string beforeGovernance = "66bcd40e56f5620e803eb296d649fd53a9e1ae390fc737b15c58e7243b807477";
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, PreR1(), TestUtil.TestConfigs.PreD054Worldgen());
+        Assert.Equal(beforeGovernance, HashAtSchemaV29(world, out int restored));
+        Assert.True(restored > 0, "no Strength differed from 1.0 — control vacuous");
+        Assert.Equal(0, world.TaxPolicies.Count);   // the driven log carries no SetTaxRate order
+    }
+
+    // ======================================================================
+    // ADR-033 D6 + D10 — THE LAYER CONTROL FOR SCHEMA v31 (institutions; construction spent once)
+    // ======================================================================
+    // Each constant is the pin as it stood on m5-integration at 5e7fa35, BEFORE the institutions layer (schema
+    // v30). Stripping it — the Institutions and ConstructionLabor rows, the ResearchCostModifiers rows its system
+    // now rebuilds, and the two empty v31 count prefixes — must return it BYTE FOR BYTE. None of these runs
+    // founds a university (no EnqueueConstruction order of a university project; none could pass the knowledge
+    // gate) and none completes any construction project (no EnqueueConstruction at all), so: the labour reader
+    // returns the raw adult count (production, housing, paths and capacity unchanged bit for bit), the mortality
+    // seam returns the literal 1.0 (demographics unchanged), PathBuild subtracts no construction labour (D10 null
+    // arm), and the cost-modifier table stays empty. removed == 0 is the point, not a vacuity (the ADR-032
+    // precedent): a leak of the layer into population, food, paths, research or anything else would survive the
+    // strip and break these.
+
+    [Fact]
+    public void GoldenHashSeed42Turn200_MovedForTheV31InstitutionsTrailerAlone()
+    {
+        // The toy pipeline runs no institutions or construction system: its whole movement is two empty prefixes.
+        const string beforeInstitutions = "bbcac0469b61ff494fee410179f937e62505fa23ad183afce00d89b8c3f8333c";
+        WorldState world = SnapshotTests.CanonicalExecutor().Run(SnapshotTests.Genesis(42), 200);
+        Assert.Equal(beforeInstitutions, HashAtSchemaV30(world, out int removed));
+        Assert.Equal(0, removed);
+    }
+
+    [Fact]
+    public void FoundedGoldenSeed42Turn300_MovedForTheInstitutionsLayoutAlone()
+    {
+        const string beforeInstitutions = "14365a5c7529619011a77375972377419144b3013fea1e20e822f3a6290a1dc9";
+        WorldState world = SnapshotTests.RunFoundedGolden(PreR1(), TestUtil.TestConfigs.PreD054Worldgen());
+        Assert.Equal(beforeInstitutions, HashAtSchemaV30(world, out int removed));
+        Assert.Equal(0, removed);   // no order log: nothing is built, no university is founded
+        Assert.Equal(0, world.Structures.Count);
+    }
+
+    [Fact]
+    public void FirstReignTurn40_MovedForTheInstitutionsLayoutAlone()
+    {
+        const string beforeInstitutions = "71ca4e65df90e40540d43c262036f1a8d0eb9f5f3a9eb33c75166165e83f7636";
+        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1(), TestUtil.TestConfigs.PreD054Worldgen());
+        Assert.Equal(beforeInstitutions, HashAtSchemaV30(world, out int removed));
+        Assert.Equal(0, removed);   // the first-reign log carries no EnqueueConstruction order
+    }
+
+    [Fact]
+    public void DrivenGoldenSeed42Turn300_MovedForTheInstitutionsLayoutAlone()
+    {
+        const string beforeInstitutions = "9308cd36f9a80fd7acbe90fc2e43112c2f9c482c15209ba6495f53c721b6b700";
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, PreR1(), TestUtil.TestConfigs.PreD054Worldgen());
+        Assert.Equal(beforeInstitutions, HashAtSchemaV30(world, out int removed));
+        Assert.Equal(0, removed);   // the driven log carries only SectorAllocation orders
+    }
+    // ======================================================================
+    // R1 (research → gameplay unlock pipeline, 2026-10-03) — THE RECIPE-KNOWLEDGE LAYER
+    // ======================================================================
+    // R1 links each goods.json recipe to a research.json recipe entity, and ProductionSystem runs a recipe only
+    // when its entity is knowledge-eligible for the settlement's controller (CraftingQuery). pottery-firing
+    // requires pottery_open_fired and bronze-casting tin_bronze; none of these runs completes either node, so
+    // from turn 1 no settlement fires pottery or casts bronze (and toolmaking, which reads bronze, has none).
+    // That is BEHAVIOUR, so no strip of state can return the old pins: the control is the CONTENT twin. Removing
+    // the four recipe links (TestConfigs.PreRecipeKnowledge — a pure data change, the T4.21-4 precedent) must
+    // return each pre-R1 pin BYTE FOR BYTE: the links are the entire delta, and nothing else in the R1 commit
+    // set moves simulation output. Each OLD constant is the pin on m5-integration at ac13c3d.
+
+    [Fact]
+    public void FoundedGoldenSeed42Turn300_MovedForTheRecipeKnowledgeLayerAlone()
+    {
+        const string preR1 = "246ff3f5b619901551417ce5ba097e02ea68d2735a9457dace29df4ab494fcf4";
+        Assert.Equal(preR1, V31(SnapshotTests.RunFoundedGolden(PreR1(), TestUtil.TestConfigs.PreD054Worldgen())));
+        string now = V31(SnapshotTests.RunFoundedGolden(PreR2(), TestUtil.TestConfigs.PreD054Worldgen()));
+        Assert.True(now == PostR1FoundedGolden, "R1 founded hash " + now);
+    }
+
+    [Fact]
+    public void FirstReignTurn40_MovedForTheRecipeKnowledgeLayerAlone()
+    {
+        const string preR1 = "a5d44cc8c88a97975e7e598bea283c8d8516bbd0ed07f6b02e166172f894a244";
+        Assert.Equal(preR1, V31(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR1(), TestUtil.TestConfigs.PreD054Worldgen())));
+        string now = V31(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR2(), TestUtil.TestConfigs.PreD054Worldgen()));
+        Assert.True(now == PostR1FirstReignGolden, "R1 first-reign hash " + now);
+    }
+
+    [Fact]
+    public void DrivenGoldenSeed42Turn300_MovedForTheRecipeKnowledgeLayerAlone()
+    {
+        const string preR1 = "b871cefee40eaa5af58af6da2ececac297fd3b64f3eaa40abd57abab835424c1";
+        (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, PreR1(), TestUtil.TestConfigs.PreD054Worldgen());
+        Assert.Equal(preR1, V31(twin));
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, PreR2(), TestUtil.TestConfigs.PreD054Worldgen());
+        string now = V31(world);
+        Assert.True(now == PostR1DrivenGolden, "R1 driven hash " + now);
+    }
+
+    // ======================================================================
+    // M5 R2b (governance and weather fixes, 2026-10-03) — THREE BEHAVIOURAL LAYERS
+    // ======================================================================
+    // (1) WEATHER GEOGRAPHY: the harvest-weather kernel reads straight-line site distance, not road-aware travel
+    //     cost; (2) UNREST: Dignity bound to the tax burden (D-035-D) and grievance → protest/discharge/uprising
+    //     (D-021 unrest-lite); (3) AGE MILITARY REALIZATION: formations facts count only identities realized at the
+    //     Age being entered. All three are BEHAVIOUR (or a published eligibility row), so the control is the
+    //     CONTENT/CONFIG twin (TestConfigs.PreR2b), which must return each R1 pin BYTE FOR BYTE: the three layers
+    //     are the entire delta. Each OLD constant is the pin on m5-integration at f1fe76f.
+
+    internal const string PostR1FoundedGolden = "ab380feba01c6e76d1901c3441a23097fad3fd8f066551c930b79c8e6fd1066c";
+    internal const string PostR1FirstReignGolden = "fd4306ffccdb6cceee3c7db9e10cc895c5d5a917df8a8e10b1eac5254cf5ae66";
+    internal const string PostR1DrivenGolden = "438b9ac882f2d9a18f3a76e2cee265a0420870f1a13f4d3d54234d27b3ae5ff3";
+
+    // R2c (merge of R2a + R2b, 2026-10-03): on the merged tree each stream's layer is stripped separately and
+    // jointly. MEASURED: R2a moves only the driven pin; R2b moves all three; the two layers compose without
+    // interaction on these pins (stripping one returns exactly the other stream's own pin).
+    internal const string R2aOnlyDrivenGolden = "f14c03f81db5651030b3ba22168273f8e47c12d7b8c16f24eedae418d87fcd48";
+    internal const string R2bOnlyFoundedGolden = "0a7c5c5c5910245fd0ef05bdcbde69282772697316788e0167ff7db34bfe5927";
+    internal const string R2bOnlyFirstReignGolden = "3ed34a0ecb417725896deb65d6cd7626a43a57c9b6f3526794eb52201207b1d8";
+    internal const string R2bOnlyDrivenGolden = "ac38d4ea209dfa2560b50bad9aff989306166e86b12f00aca7172463601333ce";
+
+    [Fact]
+    public void FoundedGoldenSeed42Turn300_MovedForTheR2bLayersAlone()
+    {
+        Assert.Equal(PostR1FoundedGolden, V31(SnapshotTests.RunFoundedGolden(PreR2b(), TestUtil.TestConfigs.PreD054Worldgen())));
+        Assert.Equal(PostR1FoundedGolden, V31(SnapshotTests.RunFoundedGolden(PreR2(), TestUtil.TestConfigs.PreD054Worldgen())));
+        Assert.Equal(SnapshotTests.PreD054FoundedGoldenHash, TestUtil.SchemaProjection.V32(SnapshotTests.RunFoundedGolden(TestUtil.TestConfigs.PreD054Sim(TestUtil.TestConfigs.Sim()), TestUtil.TestConfigs.PreD054Worldgen())));
+    }
+
+    [Fact]
+    public void FirstReignTurn40_MovedForTheR2bLayersAlone()
+    {
+        Assert.Equal(PostR1FirstReignGolden, V31(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR2b(), TestUtil.TestConfigs.PreD054Worldgen())));
+        Assert.Equal(PostR1FirstReignGolden, V31(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR2(), TestUtil.TestConfigs.PreD054Worldgen())));
+        Assert.Equal(Sim.Tests.Systems.FirstReignTests.PreD054Golden, TestUtil.SchemaProjection.V32(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, TestUtil.TestConfigs.PreD054Sim(TestUtil.TestConfigs.Sim()), TestUtil.TestConfigs.PreD054Worldgen())));
+    }
+
+    [Fact]
+    public void DrivenGoldenSeed42Turn300_MovedForTheR2bLayersAlone()
+    {
+        (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, PreR2b(), TestUtil.TestConfigs.PreD054Worldgen());
+        Assert.Equal(R2aOnlyDrivenGolden, V31(twin));
+        (WorldState both, _) = DrivenGoldenTests.RunDriven(300, PreR2(), TestUtil.TestConfigs.PreD054Worldgen());
+        Assert.Equal(PostR1DrivenGolden, V31(both));
+    }
+
+    [Fact]
+    public void FoundedAndFirstReign_UnmovedByTheTradeKnowledgeLayer()
+    {
+        Assert.Equal(R2bOnlyFoundedGolden, V31(SnapshotTests.RunFoundedGolden(PreR2a(), TestUtil.TestConfigs.PreD054Worldgen())));
+        Assert.Equal(R2bOnlyFirstReignGolden, V31(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreR2a(), TestUtil.TestConfigs.PreD054Worldgen())));
+    }
+
+    [Fact]
+    public void DrivenGoldenSeed42Turn300_MovedForTheTradeKnowledgeLayerAlone()
+    {
+        (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, PreR2a(), TestUtil.TestConfigs.PreD054Worldgen());
+        Assert.Equal(R2bOnlyDrivenGolden, V31(twin));
+        // Which part of the layer: the TRADE GATE alone (node, entity and city-state research kept; only
+        // sim.json trade.entity removed) returns the R2b-only pin too — the gate is the entire R2a cause here.
+        Sim.Core.Systems.SimConfig ungated = TestUtil.TestConfigs.PreForager(TestUtil.TestConfigs.Sim());
+        (WorldState gateOnly, _) = DrivenGoldenTests.RunDriven(300, ungated with { Trade = ungated.Trade with { Entity = null } }, TestUtil.TestConfigs.PreD054Worldgen());
+        Assert.Equal(R2bOnlyDrivenGolden, V31(gateOnly));
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, TestUtil.TestConfigs.PreForager(TestUtil.TestConfigs.Sim()), TestUtil.TestConfigs.PreD054Worldgen());
+        Assert.Equal(R3DrivenGolden, V31(world));
+    }
+
+    // ======================================================================
+    // R4 (M5 closure, 2026-10-04) — THE FORAGER LAYER
+    // ======================================================================
+    // sim.json farming.preCultivation ships ON (2.0 / 4.3). BEHAVIOUR, so the control is the CONFIG twin
+    // TestConfigs.PreForager (switch OFF), which must return each R3 pin BYTE FOR BYTE: the switch is the entire
+    // delta on these pins. The same tree's two other R4 changes are proven inert here by the same equality: the
+    // consumption substitution-credit fix (only a negative staple request differs, and none occurs) and the tax
+    // burden offset (no run levies a tax, so Dignity reads exactly 1.0). Every older control strips the forager
+    // layer too (TestConfigs), so its constant is unmoved. OLD constants are the pins on m5-integration @ 12754e3.
+
+    internal const string R3FoundedGolden = "0a7c5c5c5910245fd0ef05bdcbde69282772697316788e0167ff7db34bfe5927";
+    internal const string R3FirstReignGolden = "3ed34a0ecb417725896deb65d6cd7626a43a57c9b6f3526794eb52201207b1d8";
+    internal const string R3DrivenGolden = "03b86400c4e54084521950d8c00bdcb37c2af7aea69f0ae4f926617f367473a0";
+
+    [Fact]
+    public void FoundedGoldenSeed42Turn300_MovedForTheForagerLayerAlone()
+    {
+        Assert.Equal(R3FoundedGolden, V31(SnapshotTests.RunFoundedGolden(TestUtil.TestConfigs.PreForager(TestUtil.TestConfigs.Sim()), TestUtil.TestConfigs.PreD054Worldgen())));
+        Assert.Equal(SnapshotTests.PreD054FoundedGoldenHash, TestUtil.SchemaProjection.V32(SnapshotTests.RunFoundedGolden(TestUtil.TestConfigs.PreD054Sim(TestUtil.TestConfigs.Sim()), TestUtil.TestConfigs.PreD054Worldgen())));
+    }
+
+    [Fact]
+    public void FirstReignTurn40_MovedForTheForagerLayerAlone()
+    {
+        Assert.Equal(R3FirstReignGolden, V31(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, TestUtil.TestConfigs.PreForager(TestUtil.TestConfigs.Sim()), TestUtil.TestConfigs.PreD054Worldgen())));
+        Assert.Equal(Sim.Tests.Systems.FirstReignTests.PreD054Golden, TestUtil.SchemaProjection.V32(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, TestUtil.TestConfigs.PreD054Sim(TestUtil.TestConfigs.Sim()), TestUtil.TestConfigs.PreD054Worldgen())));
+    }
+
+    [Fact]
+    public void DrivenGoldenSeed42Turn300_MovedForTheForagerLayerAlone()
+    {
+        (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, TestUtil.TestConfigs.PreForager(TestUtil.TestConfigs.Sim()), TestUtil.TestConfigs.PreD054Worldgen());
+        Assert.Equal(R3DrivenGolden, V31(twin));
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, TestUtil.TestConfigs.PreD054Sim(TestUtil.TestConfigs.Sim()), TestUtil.TestConfigs.PreD054Worldgen());
+        Assert.Equal(DrivenGoldenTests.PreD054Golden, TestUtil.SchemaProjection.V32(world));
+    }
+
+    // ======================================================================
+    // H2 (Director 2026-10-05, docs/d049-taxation-and-revolt-model.md) — THE LAYER CONTROL FOR SCHEMA v32
+    // (taxation as accumulated pressure per population segment; segment revolt)
+    // ======================================================================
+    // Each constant is the pin as it stood on m5h-h2-tax-revolt at ece2a7b (= main's pins at 9bb7423: the Age half
+    // of the tax gate and the revolt-Age inheritance move none of these runs — none levies, none advances an Age).
+    // The H2 model REPLACES the old revolt rule (a declared 100 % levy at full reach read happiness 0 and was
+    // revolt-ready) with a levy-grievance stock per (settlement, class), and reads it in happiness, legitimacy,
+    // output and revolt. None of these runs levies a tax (no SetTaxRate order; the toy and founded runs have no order
+    // log, the first-reign and driven logs carry none), so on every one of them the old rule and the new one are the
+    // SAME FUNCTION: the effective rate is exactly 0, no TaxGrievance row is ever written, the levy pressure reads
+    // exactly 0, happiness multiplies by exactly 1.0, the protest/rebel output factor is exactly 1.0, the Dignity
+    // satisfaction is exactly 1.0 (as before), and revolt's provision reading IS the old happiness reading. So the
+    // old-rule twin of each run is the run itself, and the entire movement must be the one EMPTY v32 count prefix:
+    // stripping the (asserted absent) rows and dropping that prefix returns each OLD pin BYTE FOR BYTE. Any leak of
+    // the new model into an untaxed world — a row written, a reading moved, a revolt fired — survives the strip and
+    // breaks these. The model's behaviour under a levy is pinned semantically (TaxPressureTests A–H, UnrestTests,
+    // GovernanceTests, TaxAgeGateTests) and is outside every golden: no golden run taxes.
+
+    internal const string V31ToyGolden = "0af7143fb69809fc58653ae99178ff11c8d020137b78443ac1bae46b21c8b269";
+    internal const string V31FoundedGolden = "f9d2d8b32f9a4f65e1011eb927a2c4249b99021e1db42a3eaeef311f72d3f680";
+    internal const string V31FirstReignGolden = "4bf64e67049b8f01fbfacaf08e0700b51011e8dbb40948f26b3a634ceec89db9";
+    internal const string V31DrivenGolden = "98d0e2675da9ebc7bfb6f0f8e0c49cc60cc7b776809ee38db8b7f8cbb4349422";
+
+    [Fact]
+    public void GoldenHashSeed42Turn200_MovedForTheV32LevyTrailerAlone()
+    {
+        WorldState world = SnapshotTests.CanonicalExecutor().Run(SnapshotTests.Genesis(42), 200);
+        Assert.Equal(V31ToyGolden, V31(world));
+        Assert.Equal(0, world.TaxPolicies.Count);
+        Assert.Equal(34, CanonicalSchema.Version);   // v33: D-054 ConstructionProgress + ResourceAllocations (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins)
+    }
+
+    [Fact]
+    public void FoundedGoldenSeed42Turn300_MovedForTheV32LevyLayerAlone()
+    {
+        WorldState world = SnapshotTests.RunFoundedGolden(TestUtil.TestConfigs.PreD054Sim(TestUtil.TestConfigs.Sim()), TestUtil.TestConfigs.PreD054Worldgen());
+        Assert.Equal(V31FoundedGolden, V31(world));
+        Assert.Equal(0, world.TaxPolicies.Count);   // no order log: no levy, so no levy grievance anywhere
+        Assert.Equal(SnapshotTests.PreD054FoundedGoldenHash, TestUtil.SchemaProjection.V32(world));
+    }
+
+    [Fact]
+    public void FirstReignTurn40_MovedForTheV32LevyLayerAlone()
+    {
+        WorldState world = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, TestUtil.TestConfigs.PreD054Sim(TestUtil.TestConfigs.Sim()), TestUtil.TestConfigs.PreD054Worldgen());
+        Assert.Equal(V31FirstReignGolden, V31(world));
+        Assert.Equal(0, world.TaxPolicies.Count);   // the first-reign log carries no SetTaxRate order
+        Assert.Equal(Sim.Tests.Systems.FirstReignTests.PreD054Golden, TestUtil.SchemaProjection.V32(world));
+    }
+
+    // D-053 (2026-10-13): the batch is NEWER than H2 and MOVES the driven world (relief happens on it — MEASURED, the
+    // relief layer is the whole of the move: the purse and the granary effects leave this world unmoved), so by the R4
+    // rule this control runs on the twin that strips the WHOLE batch (TestConfigs.PreD053) and keeps its historical V31
+    // constant; the live golden is checked on its own run. The founded and first-reign controls above need no twin: the
+    // batch moves neither world (MEASURED — SnapshotTests' and FirstReignTests' pins hold with every layer ON). The driven
+    // control is therefore no longer literally one layer: twin vs live differ by the levy layer AND the batch; the
+    // batch-only link is EmpireFoodAllocationTests.Switch_Off_DrivenGolden_… (and its per-layer proof beside it).
+    [Fact]
+    public void DrivenGoldenSeed42Turn300_MovedForTheV32LevyLayerAlone()
+    {
+        (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, TestUtil.TestConfigs.PreD053(TestUtil.TestConfigs.Sim()), TestUtil.TestConfigs.PreD054Worldgen());
+        Assert.Equal(V31DrivenGolden, V31(twin));
+        Assert.Equal(0, twin.TaxPolicies.Count);   // the driven log carries only SectorAllocation orders
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, TestUtil.TestConfigs.PreD054Sim(TestUtil.TestConfigs.Sim()), TestUtil.TestConfigs.PreD054Worldgen());
+        Assert.Equal(0, world.TaxPolicies.Count);
+        Assert.Equal(DrivenGoldenTests.PreD054Golden, TestUtil.SchemaProjection.V32(world));
+    }
+
+    // ======================================================================
+    // D-051 RULING 1(b) (Director 2026-10-10, docs/d051-m5-polish-rulings.md) — TIME-AVERAGED DECADE WEATHER
+    // ======================================================================
+    // A turn's harvest multiplier is the time-average of the yearly weather process over the turn's
+    // max(1, round(dt)) yearly sub-steps, and a settlement with no weather row starts at a stationary draw.
+    // BEHAVIOUR, and weather feeds food, so every founded / first-reign / driven pin moves, including every
+    // layer-stripped variant above (re-measured on this tree; header). The control is the CONFIG twin
+    // TestConfigs.PreTimeAveragedHarvest (sim.json harvestVariance.timeAveragedHarvest OFF), which must return
+    // each pre-1(b) pin BYTE FOR BYTE: the time-averaging is the entire delta. OLD constants are the pins on this
+    // branch's base commit 1ecbc0b.
+
+    internal const string PreTimeAveragedFoundedGolden = "e9e089bbce9f204904b73946f11b59061d925f5eb19b6b42f3a6a0f5b47a0126";
+    internal const string PreTimeAveragedFirstReignGolden = "6720be6a8ed7261c302b39d3802d9831ecd99955a503317e080f5ce3efcff238";
+    internal const string PreTimeAveragedDrivenGolden = "5a8c6c648daa451786159b11b49abb2f91ef45f3e2152413c71feb81a91b9e62";
+
+    private static Sim.Core.Systems.SimConfig PreTimeAveraged()
+    {
+        Sim.Core.Systems.SimConfig shipped = TestUtil.TestConfigs.Sim();
+        Assert.True(shipped.HarvestVariance.TimeAveragedHarvest);   // 1(b) ships ON; the twin is the control
+        Sim.Core.Systems.SimConfig twin = TestUtil.TestConfigs.PreTimeAveragedHarvest(shipped);
+        Assert.False(twin.HarvestVariance.TimeAveragedHarvest);
+        return twin;
+    }
+
+    [Fact]
+    public void FoundedGoldenSeed42Turn300_MovedForTheTimeAveragedHarvestAlone()
+    {
+        // D-054 (batch 3, schema v33 + the cylinder): the PreD054 PAIR — founded flat (TestConfigs.PreD054Worldgen) and
+        // compared through the v32 projection (the pre-1(b) literals are v32 measurements); the "now" leg is the batch-2
+        // world (both halves off: PreD054Sim + PreD054Worldgen), whose v32 hash is the batch-2 golden.
+        Assert.Equal(PreTimeAveragedFoundedGolden, TestUtil.SchemaProjection.V32(SnapshotTests.RunFoundedGolden(PreTimeAveraged(), TestUtil.TestConfigs.PreD054Worldgen())));
+        string now = TestUtil.SchemaProjection.V32(SnapshotTests.RunFoundedGolden(TestUtil.TestConfigs.PreD054Sim(TestUtil.TestConfigs.Sim()), TestUtil.TestConfigs.PreD054Worldgen()));
+        Assert.NotEqual(PreTimeAveragedFoundedGolden, now);
+        Assert.Equal(SnapshotTests.PreD054FoundedGoldenHash, now);
+    }
+
+    [Fact]
+    public void FirstReignTurn40_MovedForTheTimeAveragedHarvestAlone()
+    {
+        Assert.Equal(PreTimeAveragedFirstReignGolden, TestUtil.SchemaProjection.V32(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, PreTimeAveraged(), TestUtil.TestConfigs.PreD054Worldgen())));
+        string now = TestUtil.SchemaProjection.V32(Sim.Tests.Systems.FirstReignTests.Replay(40, out _, TestUtil.TestConfigs.PreD054Sim(TestUtil.TestConfigs.Sim()), TestUtil.TestConfigs.PreD054Worldgen()));
+        Assert.NotEqual(PreTimeAveragedFirstReignGolden, now);
+        Assert.Equal(Sim.Tests.Systems.FirstReignTests.PreD054Golden, now);
+    }
+
+    [Fact]
+    public void DrivenGoldenSeed42Turn300_MovedForTheTimeAveragedHarvestAlone()
+    {
+        (WorldState twin, _) = DrivenGoldenTests.RunDriven(300, PreTimeAveraged(), TestUtil.TestConfigs.PreD054Worldgen());
+        Assert.Equal(PreTimeAveragedDrivenGolden, TestUtil.SchemaProjection.V32(twin));
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, TestUtil.TestConfigs.PreD054Sim(TestUtil.TestConfigs.Sim()), TestUtil.TestConfigs.PreD054Worldgen());
+        string now = TestUtil.SchemaProjection.V32(world);
+        Assert.NotEqual(PreTimeAveragedDrivenGolden, now);
+        Assert.Equal(DrivenGoldenTests.PreD054Golden, now);
     }
 }

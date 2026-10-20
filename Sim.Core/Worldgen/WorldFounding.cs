@@ -26,18 +26,51 @@ public static class WorldFounding
     public static WorldState Found(
         WorldgenConfig cfg, SimConfig simCfg, ulong seed, int? settlementsOverride = null)
     {
-        var world = new WorldState(seed)
-        {
-            Terrain = Worldgen.Generate(cfg, seed),
-        };
+        TerrainSet terrain = Worldgen.Generate(cfg, seed);
 
         int count = settlementsOverride ?? cfg.Siting.SettlementCount;
         if (count < 1) throw new ArgumentOutOfRangeException(nameof(settlementsOverride),
             $"settlement count must be >= 1, got {count}");
         int[] sites = SettlementSiting.ChooseSites(
-            world.Terrain!, cfg.Siting, count, simCfg.Transport.RiverCostFactor, seed);
-        for (int s = 0; s < sites.Length; s++)
-            world.Settlements.Add(new SettlementRow(new SettlementId(s), sites[s], FoundedTurn: 0));
+            terrain, cfg.Siting, count, simCfg.Transport.RiverCostFactor, seed);
+        return Assemble(terrain, sites, cfg, simCfg, seed);
+    }
+
+    /// <summary>
+    /// Batch 3 WS3 — THE TEST AND TOOL FOUNDING ENTRY (recorded under ADR-008 with <see cref="TerrainSet.FromLayers"/>):
+    /// founds a world on an explicit <paramref name="terrain"/> with settlement i at <paramref name="siteCells"/>[i] —
+    /// everything after siting is <see cref="Found"/>'s own code (Found calls this with the generated terrain and the
+    /// argmax sites through the same assembly, so the two cannot drift). Its use is a rig whose terrain and sites
+    /// worldgen cannot be asked for: the SeamWorld fixture's land strip across the east-west seam, with a settlement on
+    /// each side. The game never calls it. Every site must be a distinct land cell of the map.
+    /// </summary>
+    public static WorldState FoundOn(
+        TerrainSet terrain, ReadOnlySpan<int> siteCells, WorldgenConfig cfg, SimConfig simCfg, ulong seed)
+    {
+        ArgumentNullException.ThrowIfNull(terrain);
+        if (siteCells.Length < 1) throw new ArgumentException("a founded world needs at least one settlement", nameof(siteCells));
+        for (int s = 0; s < siteCells.Length; s++)
+        {
+            int c = siteCells[s];
+            if ((uint)c >= (uint)(terrain.Size * terrain.Size) || terrain.Water[c] >= 0.5
+                || SettlementSiting.IsOccupied(siteCells[..s], c))
+                throw new ArgumentException(
+                    $"site {s} (cell {c}) is not a distinct land cell of the {terrain.Size}-px map", nameof(siteCells));
+        }
+        return Assemble(terrain, siteCells, cfg, simCfg, seed);
+    }
+
+    /// <summary>Everything founding does after the terrain and the sites are fixed — <see cref="Found"/>'s body, unchanged
+    /// (it takes the sites as given: turn-zero siting's own guarantees are ChooseSites').</summary>
+    private static WorldState Assemble(
+        TerrainSet terrain, ReadOnlySpan<int> siteCells, WorldgenConfig cfg, SimConfig simCfg, ulong seed)
+    {
+        var world = new WorldState(seed)
+        {
+            Terrain = terrain,
+        };
+        for (int s = 0; s < siteCells.Length; s++)
+            world.Settlements.Add(new SettlementRow(new SettlementId(s), siteCells[s], FoundedTurn: 0));
 
         // Network revision 0 (D-016): PathBuild takes over incrementing at T1.6;
         // CatchmentSystem recomputes only when this counter moves.
@@ -87,7 +120,7 @@ public static class WorldFounding
                             int row = world.Buckets.Add(new BucketRow(
                                 settlement, new CultureId(culture.Id), new ReligionId(religion.Id),
                                 new ClassId(reg.Classes[cls].Id), cohort, Conserved.Zero,
-                                birthRemainder: 0.0, deathRemainder: 0.0,
+                                birthRemainder: 0.0, deathRemainder: FoundingDeathRemainder,
                                 starvationRemainder: 0.0, agingRemainder: 0.0));
                             long endowed = cls == 0
                                 ? Jittered(founding.CohortCounts[cohort],
@@ -222,7 +255,44 @@ public static class WorldFounding
         }
 
         FoundInitialEmpire(world, cfg.AiEmpires);
+        FoundInitialFormations(world, simCfg);
         return world;
+    }
+
+    /// <summary>
+    /// ADR-031 (D-047 Parts 2-3; research.json baseline.basic_military): every founded
+    /// Empire that holds a capital fields unit-families.json founding.formationsPerPolity
+    /// formations of the founding identity (the warband), stationed at its capital, in roster
+    /// order, with ids 1, 2, … A FORMATION TOKEN ONLY: it draws no people from the buckets
+    /// and no goods from any stock, so founding conserves exactly what it did before (law 1).
+    /// Position is the capital's site in terrain pixel coordinates (the continuous x/y frame of
+    /// D-047 ruling 17). Without unit-family content nothing is founded, so worlds built from a
+    /// config without unit-families.json are unchanged.
+    /// </summary>
+    private static void FoundInitialFormations(WorldState world, SimConfig simCfg)
+    {
+        if (simCfg.UnitFamilies is not { } families) return;
+        Systems.Ages.UnitIdentity identity = families.FoundingIdentity;
+        int size = world.Terrain?.Size ?? 1;
+        int nextId = 1;
+        for (int p = 0; p < world.Polities.Count; p++)
+        {
+            PolityId polity = world.Polities[p].Id;
+            if (!EmpireQuery.TryGetCapital(world, polity, out SettlementId capital)) continue;
+            int site = 0;
+            for (int s = 0; s < world.Settlements.Count; s++)
+                if (world.Settlements[s].Id.Value == capital.Value) site = world.Settlements[s].SiteCell;
+            for (int k = 0; k < families.FormationsPerPolity; k++)
+            {
+                // WS3: the continuous X is written through the topology's normalisation, so a formation's
+                // position is ONE place in [0, size) on a cylinder — never a second copy one circumference on.
+                // (A site cell's column is already in range: this is the normalisation guard every future
+                // writer of X — M7 movement — must also pass through.)
+                world.MilitaryUnits.Add(new MilitaryUnitRow(
+                    nextId++, polity, identity.FamilyKey, identity.Key, capital,
+                    Pathing.MapTopology.WrapCoord(site % size, size), site / size, Experience: 0.0, Army: 0));
+            }
+        }
     }
 
     /// <summary>
@@ -290,7 +360,8 @@ public static class WorldFounding
         {
             var holder = new PolityId(1 + (s % polities));
             // Strength 1.0: uncontested control of one's own founding. The field
-            // is T4.3's SLOT and no system computes or decays it yet.
+            // is T4.3's SLOT; since ADR-033 D4 GovernanceSystem rewrites it as the
+            // administrative reach on its first step (this 1.0 is turn 0's value).
             world.Controls.Add(new ControlRow(holder, world.Settlements[s].Id, 1.0));
         }
 
@@ -321,11 +392,30 @@ public static class WorldFounding
     /// site cell itself is inside the disc, so a settlement whose hinterland is
     /// entirely water (impossible for a sited settlement, which requires land)
     /// would still divide by at least one.
+    ///
+    /// M5 S1a: public (no behaviour change) — the deposit FIELD. Evaluated at a
+    /// settlement's site cell with <see cref="HinterlandRadiusPx"/> it is exactly
+    /// the pair <see cref="AddDepositsForSite"/> wrote that settlement's deposits
+    /// from; evaluated anywhere else it is what a settlement founded there would
+    /// get, before the per-good spread. The radius is in PIXELS.
+    ///
+    /// M5 playtest blocker (D-052): the disc is indexed by the TERRAIN's own size
+    /// (<see cref="TerrainSet.Size"/>), never by <paramref name="cfg"/>'s sizePx.
+    /// A world founded at a non-canonical size (`--size`, the 256-px dev preset)
+    /// is stepped by a pipeline whose ColonizationSystem holds worldgen.json's
+    /// 1024-px config; indexed by that config's size, a colony's disc was read
+    /// from other cells and, for a site in a 256-px map's bottom rows, past the
+    /// raster (IndexOutOfRangeException at End Turn). Where the two sizes agree —
+    /// every canonical world, every consistently configured rig — the cells read,
+    /// and so the means, are bit-identical to before. <paramref name="cfg"/> is no
+    /// longer read here; it stays in the signature so every caller keeps naming
+    /// the config its radius (<see cref="HinterlandRadiusPx"/>) comes from.
     /// </summary>
-    private static (double Moisture, double Elevation) HinterlandMeans(
+    public static (double Moisture, double Elevation) HinterlandMeans(
         TerrainSet t, WorldgenConfig cfg, int site, double radiusPx)
     {
-        int size = cfg.SizePx;
+        int size = t.Size;
+        bool wrap = t.WrapX;
         int cx = site % size, cy = site / size;
         int r = (int)radiusPx;
         double r2 = radiusPx * radiusPx;
@@ -337,8 +427,12 @@ public static class WorldFounding
             if (y < 0 || y >= size) continue;
             for (int dx = -r; dx <= r; dx++)
             {
-                int x = cx + dx;
-                if (x < 0 || x >= size) continue;
+                // WS3: on a cylinder the disc wraps the seam; a column is visited once, at its shortest offset
+                // (a disc wider than the map never counts a column twice). Flat: off-map columns are skipped,
+                // and an interior disc reads the same cells in the same order as before.
+                int x = Pathing.MapTopology.NeighbourX(cx, dx, size, wrap);
+                if (x < 0) continue;
+                if (wrap && Pathing.MapTopology.Dx(cx, x, size, wrap) != dx) continue;
                 if (dx * dx + dy * dy > r2) continue;
                 int cell = y * size + x;
                 double land = t.Elevation[cell] - t.SeaLevel;
@@ -352,6 +446,34 @@ public static class WorldFounding
             ? (t.Moisture[site], Math.Max(0.0, t.Elevation[site] - t.SeaLevel))
             : (sumM / n, sumE / n);
     }
+
+    /// <summary>
+    /// The hinterland disc radius in PIXELS: catchment.hinterlandRadiusKm ÷
+    /// kmPerPx (50 / 4 = 12.5 at the canonical config). M5 S1a: the ONE
+    /// expression <see cref="AddDepositsForSite"/> uses, named so a read-only
+    /// caller of <see cref="HinterlandMeans"/> cannot evaluate a different disc.
+    /// </summary>
+    public static double HinterlandRadiusPx(WorldgenConfig cfg, Systems.SimConfig simCfg) =>
+        simCfg.Catchment.HinterlandRadiusKm / cfg.KmPerPx;
+
+    /// <summary>
+    /// The deposit CHANNEL a good's abundance is drawn from (goods.json
+    /// `depositChannel`), as a function of the two hinterland means:
+    /// "moisture" → the moisture mean; "elevation" → the elevation-above-sea
+    /// mean; anything else (the water-proximity channel) → moisture mean
+    /// SQUARED — the square of the mean, not the mean of the square, and not
+    /// the Water raster. M5 S1a: extracted unchanged from
+    /// <see cref="AddDepositsForSite"/> so a read-only field shares the switch.
+    /// </summary>
+    public static double DepositChannelValue(string channel, double meanMoisture, double meanElevation) =>
+        channel switch
+        {
+            "moisture" => meanMoisture,
+            "elevation" => meanElevation,
+            // water proximity: 1 at the shore, fading with the same
+            // moisture curve (clay pits, fish grounds hug the water).
+            _ => meanMoisture * meanMoisture,
+        };
 
     /// <summary>Slot base for per-good deposit rolls (cohorts 0..15, food 100,
     /// settlement factor 200; deposits 300+goodId).</summary>
@@ -377,18 +499,46 @@ public static class WorldFounding
     /// <summary>Slot index of the settlement-COMMON endowment factor.</summary>
     private const int SettlementSlot = 200;
 
+    /// <summary>
+    /// ADR-035 §6 (P-F0) — THE SEED VALUE OF A NEW BUCKET ROW'S D-004 DEATH ACCUMULATOR: 0.5, not 0.0. The
+    /// remainder of a floored flow is, in its stationary state, spread over [0, 1) with mean 1/2; seeding it at 0
+    /// makes the row's FIRST integer reconciliation a pure floor, which leaves about 8 people per settlement alive
+    /// who died in the exact micro-state. They sit in the small high-mortality elder rows and die on turn 2 (the
+    /// "D-004 warm-up" half of the turn-2 dip, measured −24 of seed 42's −94 by the population audit's skeptic).
+    /// Seeded at its stationary mean the first reconciliation ROUNDS, deterministically, as every later one does
+    /// on average. Only the death accumulator is seeded: the measured warm-up is the death remainder alone (birth-
+    /// and aging-only arms do not move turn 2). Shared by ColonizationSystem for a colony's new rows, so turn-zero
+    /// founding and frontier founding cannot drift.
+    /// </summary>
+    public const double FoundingDeathRemainder = 0.5;
+
     private static long Jittered(long baseUnits, double amp, ulong seed, int settlement, int slot)
     {
         if (amp <= 0.0 || baseUnits == 0) return baseUnits;
-        // TWO components, both amplitude amp: a settlement-COMMON factor (all
-        // of one settlement's slots scale together, so founding TOTALS spread
-        // by ±amp — independent per-cohort noise alone cancels to ±amp/√16
-        // in the total, which is no variation at all) and a per-slot factor
-        // (age structures and the food:people ratio differ too).
+        // TWO components (ADR-035 §3 / P-F2):
+        //
+        // (1) a settlement-COMMON factor, amplitude amp (RC-1, ADR-017: the founding-SIZE reference class,
+        //     Neolithic settlement sizes and village-fission founder groups, CV 0.4 = amp/√3): all of one
+        //     settlement's slots scale together, so founding TOTALS spread by ±amp.
+        //
+        // (2) a per-cohort factor at DEMOGRAPHIC scale. Reference class: a founder group drawn from a
+        //     population at its stable age structure — a multinomial draw of n founders over the stable
+        //     shares p_c, whose cohort count has sd √(n·p_c·(1−p_c)) ≈ √n_c, i.e. a coefficient of
+        //     variation CV_c ≈ 1/√n_c with n_c the cohort's EXPECTED count (Poisson limit). A uniform
+        //     u ∈ [−1,1] realises CV = a/√3, so a_c = √(3/n_c), capped at 1 so the factor stays in [0, 2]
+        //     and mean-preserving. Before ADR-035 this factor borrowed RC-1's ±0.69 (CV 0.4) for every
+        //     cohort, a SIZE reference class applied to age COMPOSITION: a 57-person cohort varied ±39
+        //     people, against ±7.5 for a real founder group, and the resulting off-stable pyramids caused
+        //     the turn-2 world dip measured in the M5 polish population audit.
+        //
+        // Age structures and the food:people ratio still differ between settlements — at the scale real
+        // founder groups differ, not at the scale settlement sizes differ.
         double us = U(seed, settlement, SettlementSlot);
         double uc = U(seed, settlement, slot);
+        double expected = baseUnits * (1.0 + amp * us);
+        double ampCohort = expected > 0.0 ? Math.Min(1.0, Math.Sqrt(3.0 / expected)) : 0.0;
         long jittered = ConservedMath.WholeUnits(
-            Math.Round(baseUnits * (1.0 + amp * us) * (1.0 + amp * uc)),
+            Math.Round(expected * (1.0 + ampCohort * uc)),
             $"founding endowment (settlement {settlement}, slot {slot})");
         return Math.Max(0L, jittered);
     }
@@ -417,19 +567,12 @@ public static class WorldFounding
         Systems.SimConfig simCfg, Systems.GoodsConfig goods,
         SettlementId settlement, int siteCell, ulong seed, int variationSlot)
     {
-        double radiusPx = simCfg.Catchment.HinterlandRadiusKm / cfg.KmPerPx;
+        double radiusPx = HinterlandRadiusPx(cfg, simCfg);
         (double meanMoisture, double meanElevation) = HinterlandMeans(terrain, cfg, siteCell, radiusPx);
         foreach (GoodEntry g in goods.Goods)
         {
             if (g.DepositChannel is null) continue;
-            double channel = g.DepositChannel switch
-            {
-                "moisture" => meanMoisture,
-                "elevation" => meanElevation,
-                // water proximity: 1 at the shore, fading with the same
-                // moisture curve (clay pits, fish grounds hug the water).
-                _ => meanMoisture * meanMoisture,
-            };
+            double channel = DepositChannelValue(g.DepositChannel, meanMoisture, meanElevation);
             double spread = 1.0 + g.DepositSpread * U(seed, variationSlot, DepositSlotBase + g.Id);
             deposits.Add(new DepositRow(
                 settlement, new GoodId(g.Id), Math.Max(0.0, channel * spread)));

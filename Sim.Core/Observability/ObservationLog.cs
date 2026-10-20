@@ -56,6 +56,13 @@ public interface IObservationHistory
 
     IReadOnlyList<PolicyChange> PolicyChanges { get; }
     IReadOnlyList<PolicyState> PolicyStates { get; }
+
+    /// <summary>ADR-033 D4: the second policy — declared tax-rate changes per Empire. Defaulted so
+    /// a history that records no tax (a fake or a pre-M5 reader) reads empty, never a guess.</summary>
+    IReadOnlyList<TaxPolicyChange> TaxPolicyChanges => Array.Empty<TaxPolicyChange>();
+
+    /// <summary>ADR-033 D4: the declared tax rate in force per Empire per observed turn.</summary>
+    IReadOnlyList<TaxPolicyState> TaxPolicyStates => Array.Empty<TaxPolicyState>();
 }
 
 /// <summary>
@@ -75,10 +82,14 @@ public sealed class ObservationLog : IObservationHistory
     private readonly List<TurnObservation> _observations = [];
     private readonly List<PolicyChange> _changes = [];
     private readonly List<PolicyState> _states = [];
+    private readonly List<TaxPolicyChange> _taxChanges = [];
+    private readonly List<TaxPolicyState> _taxStates = [];
 
     public IReadOnlyList<TurnObservation> Observations => _observations;
     public IReadOnlyList<PolicyChange> PolicyChanges => _changes;
     public IReadOnlyList<PolicyState> PolicyStates => _states;
+    public IReadOnlyList<TaxPolicyChange> TaxPolicyChanges => _taxChanges;
+    public IReadOnlyList<TaxPolicyState> TaxPolicyStates => _taxStates;
 
     public long FirstTurn => _observations.Count == 0 ? -1 : _observations[0].Turn.Turn;
     public long LastTurn => _observations.Count == 0 ? -1 : _observations[^1].Turn.Turn;
@@ -101,6 +112,7 @@ public sealed class ObservationLog : IObservationHistory
         TurnObservation observation = Observer.Observe(prev, next, cfg, ordersApplied);
         _observations.Add(observation);
         PolicyHistory.Observe(prev, next, ordersApplied, _changes, _states);
+        PolicyHistory.ObserveTax(prev, next, ordersApplied, _taxChanges, _taxStates);
         return observation;
     }
 

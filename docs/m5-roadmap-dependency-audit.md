@@ -1,5 +1,9 @@
 # MILESTONE ROADMAP — DEPENDENCY AUDIT AND PROPOSED REORDERING
 
+> **Superseded 2026-10-03 (Director roadmap rebase).** The authoritative ladder is now: M0 Kernel · M1 Walking Skeleton · M2 Demography / Food · M3 Production / Markets · M4 Empire / Strategic Foundation · M5 Governing Gameplay (current, being finished) · M6 Knowledge / Research / Technology (next) · M7 Battle Layer · M8 Politics / Diplomacy · M9 Society · M10 Integrated Civilization Simulation · M11+ Depth & Content Expansion. Knowledge/research/technology is **M6** and precedes the Battle Layer (**M7**), which consumes M6's authoritative technology/capability state. Canonical record: `docs/milestones.md` §"Roadmap rebase 2026-10-03". The text below is retained as history.
+> In this audit, "M6 Battle Layer" now reads M7 and "M7 knowledge / capability layer" now reads M6.
+
+
 **DESIGN DOCUMENT. Nothing implemented, nothing certified, no frozen document
 edited.** Companion records: `docs/m5-research-technology-institutions-placeholder.md`
 (scope), `docs/m5-temporal-control-and-player-agency-placeholder.md` (temporal),

@@ -1,5 +1,14 @@
 # ARCHITECTURE I — CLIMATE · ENVIRONMENT · POLLUTION
 
+> **Superseded 2026-10-03 (Director roadmap rebase); pointer appended 2026-10-06, M5 polish pass.** The authoritative
+> ladder is now: M0 Kernel · M1 Walking Skeleton · M2 Demography / Food · M3 Production / Markets · M4 Empire / Strategic
+> Foundation · M5 Governing Gameplay (current, being finished) · M6 Knowledge / Research / Technology (next) · M7 Battle
+> Layer · M8 Politics / Diplomacy · M9 Society · M10 Integrated Civilization Simulation · M11+ Depth & Content Expansion.
+> The Spine placements quoted below are the original v3 column: Health & disease (Spine M8) is now **M9 Society**;
+> Environment & climate (Spine M9) is not individually placed by the rebase (its milestone is set by the spec that
+> takes it up).
+> Canonical record: `docs/milestones.md` §"Roadmap rebase 2026-10-03". The text below is retained as history.
+
 **DESIGN PHASE. NOTHING IMPLEMENTED.** No production code, schema, golden, corridor,
 quarantine or ratified/frozen document was touched. No milestone spec was written or
 amended. No packet was scoped. No ruling is made here.

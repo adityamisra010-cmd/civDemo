@@ -73,6 +73,33 @@ public static class WorldStates
         // entry above it — a comparer blind to a table makes every StateEquals
         // assertion about it vacuous.
         if (!TableEquals(a.Disasters, b.Disasters)) return false;
+        // ADR-029: the seven research tables, added WITH the tables for the same reason
+        // as every entry above (ResearchSchemaTests proves each one is compared).
+        if (!TableEquals(a.ResearchTargets, b.ResearchTargets)) return false;
+        if (!TableEquals(a.ResearchProgress, b.ResearchProgress)) return false;
+        if (!TableEquals(a.ResearchCompleted, b.ResearchCompleted)) return false;
+        if (!TableEquals(a.ResearchEurekas, b.ResearchEurekas)) return false;
+        if (!TableEquals(a.ResearchCostModifiers, b.ResearchCostModifiers)) return false;
+        if (!TableEquals(a.ResearchCredits, b.ResearchCredits)) return false;
+        if (!TableEquals(a.ResearchExposures, b.ResearchExposures)) return false;
+        if (!TableEquals(a.AgeStates, b.AgeStates)) return false;
+        if (!TableEquals(a.AgeEligibility, b.AgeEligibility)) return false;
+        if (!TableEquals(a.AgeTransitions, b.AgeTransitions)) return false;
+        if (!TableEquals(a.MilitaryUnits, b.MilitaryUnits)) return false;
+        if (!TableEquals(a.UnitConversions, b.UnitConversions)) return false;
+        if (!TableEquals(a.TransportEdges, b.TransportEdges)) return false;
+        if (!TableEquals(a.RoadDevelopments, b.RoadDevelopments)) return false;
+        // ADR-033 D4 (v30): tax policy, added WITH the table — a comparer that skips a
+        // table makes every StateEquals assertion about it vacuous.
+        if (!TableEquals(a.TaxPolicies, b.TaxPolicies)) return false;
+        // ADR-033 D6/D10 (v31): institutions and the published construction labour, added WITH the tables
+        // (InstitutionSchemaTests proves each one is compared).
+        if (!TableEquals(a.Institutions, b.Institutions)) return false;
+        if (!TableEquals(a.ConstructionLabor, b.ConstructionLabor)) return false;
+        if (!TableEquals(a.TaxGrievances, b.TaxGrievances)) return false;
+        if (!TableEquals(a.ConstructionProgress, b.ConstructionProgress)) return false;   // v33 (D-054 WS1)
+        if (!TableEquals(a.ResourceAllocations, b.ResourceAllocations)) return false;     // v33 (D-054 WS2)
+        if (!TableEquals(a.ConstructionHolds, b.ConstructionHolds)) return false;         // v34 (D-055)
         return true;
     }
 

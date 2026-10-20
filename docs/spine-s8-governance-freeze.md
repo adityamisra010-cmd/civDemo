@@ -15,6 +15,10 @@
 - Kernel code contract: `ISimSystem`, `SimContext`, double-buffer model, `Ledger` API, RNG regime, snapshot/hash format, banned-constructs list.
 - All CLOSED decision-log entries: D-001…D-008, D-011 (dual-resolver battle contract), D-009/D-010 (three-layer world, bucket+notables population), D-018 (class/needs frame).
 - The milestone ladder order M0→M11+ and each milestone's exit-criteria *definitions*.
+  *(2026-10-03, Director roadmap rebase — an explicit Director amendment of the frozen order: M5 Governing Gameplay · M6
+  Knowledge / Research / Technology · M7 Battle Layer · M8 Politics / Diplomacy · M9 Society · M10 Integrated Civilization Simulation ·
+  M11+ Depth & Content Expansion. The rebased order is itself frozen. "Ancient Vertical Slice" / "Era Expansions" are obsolete names; the "slice gate" and
+  "Post-Slice" queue now refer to the M10 Integrated Civilization Simulation gate. Ages are a simulation dimension, not milestones. Record: `docs/milestones.md` §"Roadmap rebase 2026-10-03".)*
 
 **LIVING (change freely, no procedure):**
 - All data files and every `TUNE` parameter — tuning is play, not amendment.

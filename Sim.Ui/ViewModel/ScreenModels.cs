@@ -59,11 +59,13 @@ public static class ScreenModels
     /// <summary>The selected settlement's tabs from its latest record and the
     /// explain queries. Null when no turn has been observed or the settlement
     /// has no record on the latest turn.</summary>
+    /// <remarks>P7 review: a settlement the session's <see cref="PlayerKnowledge"/> hides reads as no selection (null).</remarks>
     public static SettlementView? Settlement(UiSession session, int selected)
     {
         ArgumentNullException.ThrowIfNull(session);
         IObservationHistory history = session.Observations;
-        if (history.Observations.Count == 0 || selected < 0) return null;
+        PlayerKnowledge known = session.Knowledge;
+        if (history.Observations.Count == 0 || selected < 0 || known.IsHiddenSettlement(selected)) return null;
         // D6: bind the record AND its turn length to ONE observation. Reading
         // DtYears from Observations[^1] while the record came from At(turn)
         // is correct only while the two are the same object; dtYears varies
@@ -117,13 +119,27 @@ public static class ScreenModels
             if (pop == 0) continue;
             explanations.Add(GrievanceExplanation.For(prev, next, cfg, id, cls));
         }
+        // Item 5: the lever names each sector by the label the player knows it under (LabourActivities, the
+        // settlement's controller's knowledge), never the registry name of a sector not yet known as such.
+        string[] labels = (string[])SectorBarModel.SectorNames.Clone();
+        if (EmpireQuery.TryGetController(next, id, out PolityId owner))
+            foreach (LabourActivity a in LabourActivities.For(next, cfg, owner))
+                if (a.Settlement == id && a.Sector >= 0 && a.Sector < labels.Length) labels[a.Sector] = a.Label.ToLowerInvariant();
         return GrievanceViewModel.Build(happiness, explanations,
-            (classId, needId) => CausalChain.ForNeed(prev, next, cfg, id, new ClassId(classId), needId));
+            (classId, needId) => CausalChain.ForNeed(prev, next, cfg, id, new ClassId(classId), needId),
+            sector => labels[sector]);
     }
 
+    /// <summary>The POLICY section's labour record for the selection. D-060: a settlement whose books the player may not read
+    /// (<see cref="PlayerKnowledge.ReadsInternals"/>) reads as no selection. P7 review: a settlement the session's
+    /// <see cref="PlayerKnowledge"/> hides reads as no selection (id −1: no policy state, no change).</summary>
     public static PolicyView Policy(UiSession session, int selected)
     {
         ArgumentNullException.ThrowIfNull(session);
+        if (session.Knowledge.IsHiddenSettlement(selected)) selected = -1;
+        // D-060: the labour record (declared vs effective shares, their history) is the settlement's books — POLICY is a
+        // player surface, so a known rival's record reads as no selection too.
+        if (selected >= 0 && session.Knowledge.KnowsSettlement(selected) && !session.Knowledge.ReadsInternals(selected)) selected = -1;
         IObservationHistory history = session.Observations;
         return new PolicyView(
             PolicyHistoryModel.CurrentLines(PolicyHistoryModel.Latest(history.PolicyStates, selected)),

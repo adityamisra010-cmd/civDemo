@@ -63,7 +63,7 @@ public sealed class ImGuiRenderer
     {
         _game = game;
         _device = game.GraphicsDevice;
-        if (ownsContext) ImGui.CreateContext();
+        PrepareContext(ownsContext);
         RebuildFontAtlas();
         game.Window.TextInput += (_, e) =>
         {
@@ -71,7 +71,22 @@ public sealed class ImGuiRenderer
         };
     }
 
-    /// <summary>Uploads the ImGui font atlas as a Texture2D and binds it.</summary>
+    /// <summary>The device-free half of construction: creates the ImGui context when the renderer owns it,
+    /// then declares this renderer's capabilities on the CURRENT context. M5 hardening H1 (the Research-screen
+    /// crash): the declaration includes <c>RendererHasVtxOffset</c>, so ImGui may let a draw list grow past
+    /// 65,535 vertices by rebasing its 16-bit indices instead of asserting; RenderDrawData applies the offset
+    /// (ImGuiDrawData.Plan). Factored out so the headless harness runs the SAME setup the windowed game does and
+    /// tests can pin it without a GPU (ImGuiRendererSetupTests).</summary>
+    public static void PrepareContext(bool ownsContext)
+    {
+        if (ownsContext) ImGui.CreateContext();
+        ImGuiDrawData.Configure(ImGui.GetIO());
+    }
+
+    private IntPtr _fontTextureId;
+
+    /// <summary>Uploads the ImGui font atlas as a Texture2D and binds it, replacing (and disposing) the texture of a
+    /// previous atlas — the UI-scale change rebuilds the atlas at new sizes (M5 polish UR-1).</summary>
     public unsafe void RebuildFontAtlas()
     {
         ImGuiIOPtr io = ImGui.GetIO();
@@ -81,7 +96,9 @@ public sealed class ImGuiRenderer
 
         var fontTexture = new Texture2D(_device, width, height, false, SurfaceFormat.Color);
         fontTexture.SetData(pixels);
-        io.Fonts.SetTexID(BindTexture(fontTexture));
+        if (_fontTextureId != IntPtr.Zero && _boundTextures.Remove(_fontTextureId, out Texture2D? old)) old.Dispose();
+        _fontTextureId = BindTexture(fontTexture);
+        io.Fonts.SetTexID(_fontTextureId);
         io.Fonts.ClearTexData();
     }
 
@@ -103,41 +120,12 @@ public sealed class ImGuiRenderer
         io.DisplayFramebufferScale = System.Numerics.Vector2.One;
 
         if (_game.IsActive)
-        {
-            MouseState mouse = Mouse.GetState();
-            io.AddMousePosEvent(mouse.X, mouse.Y);
-            io.AddMouseButtonEvent(0, mouse.LeftButton == ButtonState.Pressed);
-            io.AddMouseButtonEvent(1, mouse.RightButton == ButtonState.Pressed);
-            io.AddMouseButtonEvent(2, mouse.MiddleButton == ButtonState.Pressed);
-            io.AddMouseWheelEvent(0f, (mouse.ScrollWheelValue - _lastScroll) / 120f);
-            _lastScroll = mouse.ScrollWheelValue;
-
-            KeyboardState keyboard = Keyboard.GetState();
-            foreach ((Keys key, ImGuiKey imguiKey) in KeyMap)
-                io.AddKeyEvent(imguiKey, keyboard.IsKeyDown(key));
-            io.AddKeyEvent(ImGuiKey.ModCtrl,
-                keyboard.IsKeyDown(Keys.LeftControl) || keyboard.IsKeyDown(Keys.RightControl));
-            io.AddKeyEvent(ImGuiKey.ModShift,
-                keyboard.IsKeyDown(Keys.LeftShift) || keyboard.IsKeyDown(Keys.RightShift));
-            io.AddKeyEvent(ImGuiKey.ModAlt,
-                keyboard.IsKeyDown(Keys.LeftAlt) || keyboard.IsKeyDown(Keys.RightAlt));
-        }
+            ImGuiInput.Feed(io, Mouse.GetState(), Keyboard.GetState(), ref _lastScroll);
 
         ImGui.NewFrame();
     }
 
     private int _lastScroll;
-
-    private static readonly (Keys, ImGuiKey)[] KeyMap =
-    [
-        (Keys.Tab, ImGuiKey.Tab), (Keys.Left, ImGuiKey.LeftArrow), (Keys.Right, ImGuiKey.RightArrow),
-        (Keys.Up, ImGuiKey.UpArrow), (Keys.Down, ImGuiKey.DownArrow), (Keys.PageUp, ImGuiKey.PageUp),
-        (Keys.PageDown, ImGuiKey.PageDown), (Keys.Home, ImGuiKey.Home), (Keys.End, ImGuiKey.End),
-        (Keys.Delete, ImGuiKey.Delete), (Keys.Back, ImGuiKey.Backspace), (Keys.Enter, ImGuiKey.Enter),
-        (Keys.Escape, ImGuiKey.Escape), (Keys.Space, ImGuiKey.Space), (Keys.A, ImGuiKey.A),
-        (Keys.C, ImGuiKey.C), (Keys.V, ImGuiKey.V), (Keys.X, ImGuiKey.X), (Keys.Y, ImGuiKey.Y),
-        (Keys.Z, ImGuiKey.Z),
-    ];
 
     /// <summary>Renders the ImGui draw data accumulated since BeforeLayout.</summary>
     public void AfterLayout()
@@ -178,33 +166,26 @@ public sealed class ImGuiRenderer
         _device.SetVertexBuffer(_vertexBuffer);
         _device.Indices = _indexBuffer;
 
-        int vtxOffset = 0, idxOffset = 0;
-        for (int listIndex = 0; listIndex < drawData.CmdListsCount; listIndex++)
+        // One draw call per ImGui command, base vertex = list start + cmd.VtxOffset (ImGuiDrawData.Plan — the
+        // same plan the headless harness validates index by index).
+        foreach (ImGuiDrawCall call in ImGuiDrawData.Plan(drawData))
         {
-            ImDrawListPtr drawList = drawData.CmdLists[listIndex];
-            for (int cmdIndex = 0; cmdIndex < drawList.CmdBuffer.Size; cmdIndex++)
+            if (!_boundTextures.TryGetValue(call.TextureId, out Texture2D? texture)) continue;
+
+            _device.ScissorRectangle = new Rectangle(
+                (int)call.ClipX0, (int)call.ClipY0,
+                (int)(call.ClipX1 - call.ClipX0), (int)(call.ClipY1 - call.ClipY0));
+            _effect!.Texture = texture;
+
+            foreach (EffectPass pass in _effect.CurrentTechnique.Passes)
             {
-                ImDrawCmdPtr cmd = drawList.CmdBuffer[cmdIndex];
-                if (cmd.ElemCount == 0) continue;
-                if (!_boundTextures.TryGetValue(cmd.TextureId, out Texture2D? texture)) continue;
-
-                _device.ScissorRectangle = new Rectangle(
-                    (int)cmd.ClipRect.X, (int)cmd.ClipRect.Y,
-                    (int)(cmd.ClipRect.Z - cmd.ClipRect.X), (int)(cmd.ClipRect.W - cmd.ClipRect.Y));
-                _effect!.Texture = texture;
-
-                foreach (EffectPass pass in _effect.CurrentTechnique.Passes)
-                {
-                    pass.Apply();
-                    _device.DrawIndexedPrimitives(
-                        PrimitiveType.TriangleList,
-                        baseVertex: vtxOffset + (int)cmd.VtxOffset,
-                        startIndex: idxOffset + (int)cmd.IdxOffset,
-                        primitiveCount: (int)cmd.ElemCount / 3);
-                }
+                pass.Apply();
+                _device.DrawIndexedPrimitives(
+                    PrimitiveType.TriangleList,
+                    baseVertex: call.BaseVertex,
+                    startIndex: call.StartIndex,
+                    primitiveCount: call.PrimitiveCount);
             }
-            vtxOffset += drawList.VtxBuffer.Size;
-            idxOffset += drawList.IdxBuffer.Size;
         }
 
         _device.Viewport = lastViewport;

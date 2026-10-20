@@ -82,12 +82,13 @@ public class WorldReconciliationTests
         TurnRecord t2 = log.At(2)!.Turn;
         Assert.True(t2.Population.Births > 0, "no births on turn 2");
         Assert.True(t2.Population.NaturalDeaths > 0, "no deaths on turn 2");
-        // MEASURED, and what decides it is the vacancy bound's null arm
-        // (ADR-025 §3.5c): on turn 2 every destination reads a zero vacancy —
-        // turn 1 is the endowment turn with zero harvest, so N_lim = 0 for that
-        // one turn — and the bound refuses every gap flow world-wide; turn 3
-        // moves 252 (merged tree; 256 on the T4.21-2 branch alone).
-        Assert.Equal(0, t2.Flows.MigrantsMoved);
+        // ADR-035 (closes the ADR-025 §2.4a deviation): turn 1 now HARVESTS (the
+        // row-absent land side is unmeasured, not zero), so turn 2 no longer reads
+        // N_lim = 0 and the vacancy bound no longer refuses every gap flow — the
+        // first migration turn returns to 2, which is RULE 2's acceptance criterion.
+        // (Before ADR-035: 0 on turn 2, 252 on turn 3.)
+        Assert.True(t2.Flows.MigrantsMoved > 0, "no migration on turn 2 — the founding-turn harvest is zero again");
+        Assert.True(log.At(1)!.Turn.Grain.Harvest > 0, "no harvest on the founding turn (ADR-035)");
         Assert.True(log.At(3)!.Turn.Flows.MigrantsMoved > 0, "no migration on turn 3");
         Assert.True(t2.Grain.Harvest > 0, "no harvest on turn 2");
         Assert.True(t2.Grain.Spoilage > 0, "no spoilage on turn 2");
@@ -114,7 +115,13 @@ public class WorldReconciliationTests
         // disaster-fallout.md is what would put one there).
         for (int t = 1; t <= 300; t++)
             Assert.Equal(0, log.At(t)!.Turn.Population.Starvation);
-        Assert.True(log.At(28)!.Turn.Flows.TradeUnits > 0, "no trade on turn 28");
+        // R1 (2026-10-03): pottery firing and bronze casting are research-gated, and this order-free world
+        // completes no research — so it crafts only cloth and (bronze-less) no tools, and NO TRADE OCCURS in
+        // 300 turns (MEASURED on this tree by the agent writing this line; first trade was turn 28 before R1).
+        // The absence is PINNED; trade reconciliation keeps its positive coverage in the driven world below
+        // (first trade turn 7, measured).
+        for (int t = 1; t <= 300; t++)
+            Assert.Equal(0, log.At(t)!.Turn.Flows.TradeUnits);
         Assert.True(log.At(1)!.Turn.Dwellings.Built > 0, "nothing built on turn 1");
         Assert.Equal(0, t2.Flows.SettlementsFounded);
         Assert.Equal(12, log.At(300)!.Settlements.Length);
@@ -129,15 +136,14 @@ public class WorldReconciliationTests
         TurnRecord t2 = log.At(2)!.Turn;
         // THE AIM IS UNCHANGED — the driven world must exercise all five flows
         // early — and it is RE-AIMED AT THE TURNS THAT ACTUALLY DO, measured on
-        // the merged tree: four of them on turn 2, migration on turn 3. What
-        // decides the fifth is the vacancy bound's null arm (ADR-025 §3.5c): the
-        // founded world's turn-1 harvest is zero ⇒ N_lim = 0 ⇒ V = 0 on turn 2,
-        // so every gap flow is refused world-wide for that one turn (see the
-        // founded pin above; docs/queue.md carries it as a measured finding).
+        // the merged tree: four of them on turn 2, migration on turn 3. ADR-035
+        // restores the fifth on turn 2: the founded world's turn-1 harvest is no
+        // longer zero, so N_lim > 0 on turn 2 and gap flows are admitted (see the
+        // founded pin above; the ADR-025 §2.4a deviation is closed).
         Assert.True(t2.Population.Births > 0 && t2.Population.NaturalDeaths > 0
             && t2.Grain.Harvest > 0 && t2.Grain.Spoilage > 0,
             "turn 2 of the driven world does not carry the four non-migration flows");
-        Assert.Equal(0, t2.Flows.MigrantsMoved);
+        Assert.True(t2.Flows.MigrantsMoved > 0, "no migration on turn 2 of the driven world (ADR-035)");
         Assert.True(log.At(3)!.Turn.Flows.MigrantsMoved > 0, "no migration on turn 3 of the driven world");
         // The first-starvation sample, MEASURED at both values of λ: 7
         // pre-packet -> 8 on the merged T4.21-2 + T4.21-3 tree -> 7 again with
@@ -147,8 +153,26 @@ public class WorldReconciliationTests
         // founded world the DRIVEN world starves without a disaster — its orders
         // drive settlements into deficit — so this is a positive sample at every
         // λ and only the TURN moves. Trade on 7 holds throughout.
-        Assert.True(log.At(8)!.Turn.Population.Starvation > 0, "no starvation on turn 8");
-        Assert.True(log.At(7)!.Turn.Flows.TradeUnits > 0, "no trade on turn 7");
+        // D-053 §2 RE-RIG (2026-10-13): the starvation sample is a PER-SETTLEMENT
+        // regime — the driving orders starve particular settlements — and intra-
+        // polity grain relief removes it while the polity has spare grain: on the
+        // shipped driven world NOBODY starves in 300 turns (MEASURED, 2026-10-13;
+        // this assert failed "no starvation on turn 8"). The sample moves to the same
+        // driven run on TestConfigs.PreEmpireFoodAllocation (the de86ace run, its
+        // turn unchanged), which is reconciled every turn as well; the every-turn
+        // reconciliation and the samples relief does not touch stay on the SHIPPED
+        // world, so reconciliation is proven WITH relief and the starvation flow
+        // keeps its positive coverage. (The dwelling-decay sample below moves with it,
+        // for the same measured reason.)
+        ObservationLog perSettlementStores = ObservedWorlds.DrivenPerSettlementStores300.Value.Log;
+        AssertEveryTurnReconciles(perSettlementStores, "driven, per-settlement stores");
+        Assert.True(perSettlementStores.At(8)!.Turn.Population.Starvation > 0, "no starvation on turn 8 (per-settlement stores)");
+        // R2a (2026-10-03): trade between settlements is a research unlock and this run researches nothing, so NO
+        // TRADE OCCURS in 300 driven turns (MEASURED on this tree by the agent writing this line; first trade was
+        // turn 7). The absence is PINNED; trade's positive coverage is TradeResearchUnlockTests.T02 (the realm
+        // that knows Trade moves goods) — the goods accounts above reconcile every turn either way.
+        for (int t = 1; t <= 300; t++)
+            Assert.Equal(0, log.At(t)!.Turn.Flows.TradeUnits);
         // T4.19-A (CR-014 ruled): the first-decay sample RE-MEASURED, 25 -> 48.
         // The 25 was read on the pre-lane-C founding vector (measured on the
         // lane-obs tree 8f59166, where it still holds). On lane C's vector the
@@ -174,15 +198,37 @@ public class WorldReconciliationTests
         // the dwellings account's non-vacuity is carried by the Built assert
         // above. What decides it is the joint trajectory of ADR-025 and ADR-026
         // (goldens) and, for the famine half, the CR-016 ruling.
-        for (int t = 1; t <= 300; t++)
-            Assert.Equal(0, log.At(t)!.Turn.Dwellings.Decayed);
+        // R4 (2026-10-04, the forager layer, MEASURED on this tree by the agent writing this line): the decay
+        // sample RETURNS. Wild-food harvests leave settlements leaner, homes empty and decay is observed again:
+        // first on turn 162, 85 dwellings across 22 of the 300 turns. The positive sample is restored.
+        // ADR-035 RE-PIN (2026-10-07, the founding-turn harvest; MEASURED on this tree by the agent writing this
+        // line): first decay 162 -> 148, 85 dwellings across 28 of the 300 turns. The positive sample stays.
+        // ADR-035 §6 RE-PIN (P-F0, the founding death remainder; MEASURED): first decay 148 -> 150, 81 dwellings
+        // across 24 of the 300 turns.
+        // ADR-035 §7 RE-PIN (2026-10-07, P-F2: founding cohort noise at demographic scale; MEASURED): first decay 150 -> 149, 86 dwellings across 27 of the 300 turns.
+        // D-051 1(b) RE-PIN (2026-10-10, time-averaged decade weather; MEASURED on this tree by the agent writing this
+        // line): first decay 149 -> 201, 44 dwellings across 14 of the 300 turns. Fewer weather-driven shortfalls empty
+        // fewer homes, so decay arrives later and rarer; the positive sample stays (starvation on 8, migration on 2 and
+        // 3 unchanged).
+        // D-053 §2 RE-RIG (2026-10-13; MEASURED): decay comes from homes famine emptied, and relief removes those famines
+        // while the polity has spare grain — on the shipped driven world NO dwelling decays in 300 turns. So this sample
+        // moves, unchanged (first decay 201), to the per-settlement-store run, beside the starvation sample above; the
+        // shipped world's dwellings account is still reconciled on every turn (AssertEveryTurnReconciles above).
+        Assert.Equal(0, perSettlementStores.At(200)!.Turn.Dwellings.Decayed);
+        for (int t = 1; t < 201; t++)
+            Assert.Equal(0, perSettlementStores.At(t)!.Turn.Dwellings.Decayed);
+        Assert.True(perSettlementStores.At(201)!.Turn.Dwellings.Decayed > 0, "no dwelling decay on turn 201 (per-settlement stores)");
         // The driven world's goods economy is live: crafted goods are produced
         // AND consumed as inputs, which is what makes the per-good accounts
         // non-trivial (pottery on turn 5, MEASURED on the merged tree: 1829
         // produced, 845 eaten, 0 sunk as inputs; 1464 / 638 pre-packet).
-        GoodAccount pottery = Array.Find(log.At(5)!.Turn.Goods, g => g.Name == "pottery")!;
-        Assert.True(pottery.Produced > 0 && pottery.Eaten + pottery.InputsConsumed > 0,
-            "pottery neither produced nor consumed on turn 5");
+        // R1 RE-AIM (2026-10-03): pottery is research-gated and this run researches nothing, so the crafted
+        // account sampled is CLOTH (weaving is a baseline recipe) — MEASURED on this tree: 1627 produced,
+        // 964 eaten on turn 5; pottery produced 0.
+        GoodAccount cloth = Array.Find(log.At(5)!.Turn.Goods, g => g.Name == "cloth")!;
+        Assert.True(cloth.Produced > 0 && cloth.Eaten + cloth.InputsConsumed > 0,
+            "cloth neither produced nor consumed on turn 5");
+        Assert.Equal(0, Array.Find(log.At(5)!.Turn.Goods, g => g.Name == "pottery")!.Produced);
     }
 
     [Fact]

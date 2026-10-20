@@ -22,3 +22,6 @@ Thumbs.db
 # Verification worktrees (ADR-015 §6 — one per verifying agent, never committed)
 wt4c/
 wt*/
+
+# Python bytecode (the research scripts)
+__pycache__/

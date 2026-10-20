@@ -1,5 +1,8 @@
 # ARCH-O — ARCHITECTURAL INVARIANTS (mandate Part 20)
 
+> **Superseded 2026-10-03 (Director roadmap rebase).** Milestone ladder is now M5 Governing Gameplay (current) · M6 Knowledge / Research / Technology · M7 Battle Layer · M8 Politics / Diplomacy · M9 Society · M10 Integrated Civilization Simulation · M11+ Depth & Content Expansion; "slice" references below are history. Record: `docs/milestones.md` §"Roadmap rebase 2026-10-03".
+
+
 **DESIGN, NOT IMPLEMENTATION.** This document states invariants. It implements nothing, changes no
 schema, writes no M5 code, merges nothing, and edits no existing document. Created under the
 Director's 2026-09-19 mandate as OUTPUT O of the synthesis lane.

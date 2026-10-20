@@ -40,29 +40,78 @@ public class FoundedHarnessTests
     /// pinned, not assumed.</summary>
     private const int EraBoundaryTurn = 250;
 
-    private static TurnExecutor FreshExecutor(OrderLog? orders = null)
+    private static TurnExecutor FreshExecutor(OrderLog? orders = null, SimConfig? cfg = null)
     {
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline(); // PRODUCTION preset
         return new TurnExecutor(
             EraTableLoader.Load(eraStream),
-            PipelineLoader.Load(pipeStream, SystemCatalog.All(TestConfigs.Sim())),
+            PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg ?? TestConfigs.Sim())),
             orders);
     }
 
     /// <summary>Fresh 1024² founded world — everything constructed anew (twin
     /// equality therefore also proves founding + system statelessness).</summary>
-    private static WorldState FreshFounded() =>
-        WorldFounding.Found(TestConfigs.Worldgen(), TestConfigs.Sim(), Seed);
+    private static WorldState FreshFounded(SimConfig? cfg = null, WorldgenConfig? worldgen = null) =>
+        WorldFounding.Found(worldgen ?? TestConfigs.Worldgen(), cfg ?? TestConfigs.Sim(), Seed);
 
-    /// <summary>Orders shaped like a real session: labor swings incl. both boundaries.</summary>
+    /// <summary>D-053 §2 RE-RIG (2026-10-13): the config of the ORDERED TWIN, whose turn-exact pins measure a
+    /// PER-SETTLEMENT rule — settlement 0, starved by its own labour orders, revolts at <see cref="RevoltTurn"/> and
+    /// every later order is refused. Intra-polity grain relief removes that regime only while the polity has spare
+    /// grain (D-053 §2): on the shipped config settlement 0's eleven siblings feed it and it never revolts in 300 turns
+    /// (MEASURED, 2026-10-13: the twin's revolt pin failed "Expected: Not 1, Actual: 1"). So the twin runs on
+    /// TestConfigs.PreEmpireFoodAllocation, which reproduces the de86ace run exactly (RevoltTurn unchanged). The other
+    /// ordered legs (replay, conservation, save/load) stay on the SHIPPED config: there the same SessionLog drives
+    /// relief instead of revolt, so the determinism harness covers both.</summary>
+    private static SimConfig OrderedTwinConfig() => TestConfigs.PreEmpireFoodAllocation(TestConfigs.Sim());
+
+    /// <summary>Batch 3 (D-054, W1 fix F5): "the de86ace run" the ordered twin reproduces is also the FLAT world — the
+    /// batch-2 twin strips every newer layer (the R4 rule), the cylinder (worldgen.json topology.wrapX) included. On the
+    /// cylindrical world settlement 0 is not starved into revolt by <see cref="SessionLog"/> (MEASURED: the revolt pin
+    /// failed "Expected: Not 1, Actual: 1"), so the twin founds flat and <see cref="RevoltTurn"/> stands.
+    /// Integration R1 (2026-10-14) — the premise RE-MEASURED on the merged tree (this config, <see cref="SessionLog"/>, 300
+    /// turns): FLAT — settlement 0 revolts at turn 39, the 4 orders landing after it (80, 30, 100, 45 %) are refused, 341
+    /// network edges; the CYLINDER — no revolt in 300 turns, 318 edges. Kept flat on purpose: the config is a batch-2 layer
+    /// twin, so the R4 rule strips the newer worldgen layer with it, and the property pinned (a revolted settlement's later
+    /// orders are refused, turn-exactly) is topology-independent; the shipped config's ordered legs (replay, conservation,
+    /// save/load) stay on the cylinder.</summary>
+    private static WorldgenConfig OrderedTwinWorldgen() => TestConfigs.PreD054Worldgen();
+
+    /// <summary>Orders shaped like a real session: labor swings incl. both boundaries.
+    /// ADR-033 D2: the swings starve settlement 0 into revolt at <see cref="RevoltTurn"/>, so the orders landing
+    /// after it are refused — the ordered twin exercises refusal too. D-053 §2: that holds on the per-settlement store
+    /// (<see cref="OrderedTwinConfig"/>); on the shipped config relief feeds settlement 0 instead.</summary>
     private static OrderLog SessionLog()
     {
         var log = new OrderLog();
-        double[] pcts = [60.0, 30.0, 80.0, 0.0, 100.0, 45.0];
-        for (int i = 0; i < pcts.Length; i++)
-            log.Append(new OrderRecord(3 + i * 30, ActorId: 1, OrderKind.LaborAllocation, 0, pcts[i]));
+        for (int i = 0; i < SessionPcts.Length; i++)
+            log.Append(new OrderRecord(3 + i * 30, ActorId: 1, OrderKind.LaborAllocation, 0, SessionPcts[i]));
         return log;
+    }
+
+    // ADR-035 §7 RE-RIG (2026-10-07, P-F2; MEASURED): with founding age composition at demographic scale, the old
+    // swing set [60, 30, 80, 0, 100, 45] no longer starves settlement 0 into revolt in 300 turns (the 0 % order
+    // lands at 94 and the 100 % one at 124 rescues it), which would leave the twin without its refusal leg and
+    // CliRevoltPolityProducerTests without a revolt. The 0 % swing moves to the second slot (issued 33, lands 34):
+    // [60, 0, ...] revolts settlement 0 at 39, so the 80, 30, 100 and 45 % orders after it are all REFUSED — both
+    // boundaries (0 and 100) still appear in the log.
+    internal static readonly double[] SessionPcts = [60.0, 0.0, 80.0, 30.0, 100.0, 45.0];
+
+    /// <summary>The turn settlement 0 revolts on this world under <see cref="SessionLog"/> and
+    /// <see cref="OrderedTwinConfig"/> (MEASURED; history on FoundedOrderedTwin_HashIdentical_EveryTurn).</summary>
+    internal const int RevoltTurn = 39;
+
+    /// <summary>The farming share in force at <paramref name="turn"/>: the last order landing (issue turn + 1) at or
+    /// before it and before the revolt — orders landing at or after the revolt are refused.</summary>
+    private static double LastObeyedFarming(int turn)
+    {
+        double farming = -1.0;
+        for (int k = 0; k < SessionPcts.Length; k++)
+        {
+            int landing = 4 + k * 30;
+            if (landing <= turn && landing < RevoltTurn) farming = SessionPcts[k] / 100.0;
+        }
+        return farming;
     }
 
     [Fact]
@@ -83,18 +132,50 @@ public class FoundedHarnessTests
     [Fact]
     public void FoundedOrderedTwin_HashIdentical_EveryTurn()
     {
-        TurnExecutor execA = FreshExecutor(SessionLog()), execB = FreshExecutor(SessionLog());
-        WorldState a = FreshFounded(), b = FreshFounded();
+        // D-053 §2: the twin's revolt and refusal pins measure the per-settlement rule — OrderedTwinConfig states why.
+        SimConfig cfg = OrderedTwinConfig();
+        TurnExecutor execA = FreshExecutor(SessionLog(), cfg), execB = FreshExecutor(SessionLog(), cfg);
+        WorldState a = FreshFounded(cfg, OrderedTwinWorldgen()), b = FreshFounded(cfg, OrderedTwinWorldgen());
+        var settlement0 = new SettlementId(0);
         for (int t = 1; t <= Turns; t++)
         {
             a = execA.Step(a);
             b = execB.Step(b);
             Assert.Equal(WorldHash.ComputeHex(a), WorldHash.ComputeHex(b));
+            // R4 RE-AIM (2026-10-04, the forager layer; MEASURED on this tree by the agent writing this line).
+            // Previously (ADR-033 D2, 2026-10-02): the turn-93 0% order landed at 94 and settlement 0 revolted at
+            // 97. With turn-1 food gathered wild, the turn-33 30% order (landing at 34) already starved settlement 0,
+            // unfed and unhoused, into revolt at turn 58; the 80%, 0%, 100% and 45% orders after it were REFUSED
+            // (RevoltSystem: it stops obeying). Turn-exact, on the twin.
+            // ADR-035 RE-PIN (2026-10-07; MEASURED on each commit by the agent writing this line): P-F1 (the
+            // founding-turn harvest) moved the revolt 58 -> 63; P-F0 (the founding death remainder) 63 -> 97 — the
+            // 30 % and 80 % swings no longer starve it, and the turn-93 0 % order (landing at 94) does, as before R4;
+            // P-F2 (founding composition) re-rigs the swing set (see SessionPcts): the 0 % order lands at 34, revolt 39.
+            // The pin is now written over RevoltTurn: every order landing BEFORE the revolt is obeyed on its landing
+            // turn, every order after it is refused (the allocation stays at the last obeyed order).
+            for (int k = 0; k < SessionPcts.Length; k++)
+            {
+                int landing = 4 + k * 30;
+                if (t == landing) Assert.Equal(LastObeyedFarming(landing), a.SectorAllocations[0].Farming);
+            }
+            if (t == RevoltTurn - 1) Assert.True(EmpireQuery.ControlsSettlement(a, new PolityId(1), settlement0));
+            // R3 (Director R2-final §2): the revolted place becomes a NEW AI polity at once.
+            if (t == RevoltTurn)
+            {
+                Assert.True(EmpireQuery.TryGetController(a, settlement0, out PolityId founded));
+                Assert.NotEqual(1, founded.Value);
+                Assert.True(EmpireQuery.TryGetCommandSource(a, founded, out CommandSource src) && src == CommandSource.Ai);
+            }
         }
-        // Anti-vacuity (adversarial pass): prove the ORDERS actually fired —
-        // the last SessionLog order (45%) must be the live allocation. Edges
-        // alone can't prove it (path labor exists without orders too).
-        Assert.Equal(0.45, a.SectorAllocations[0].Farming);
+        // Anti-vacuity (adversarial pass): prove the ORDERS actually fired. Edges
+        // alone can't prove it (path labor exists without orders too). Since
+        // ADR-033 D2 the live allocation is the LAST order its issuer was entitled
+        // to give; orders after the revolt target a settlement polity 1 no longer rules.
+        Assert.Equal(settlement0, a.SectorAllocations[0].Settlement);
+        double lastFarming = LastObeyedFarming(Turns);
+        Assert.Equal(lastFarming, a.SectorAllocations[0].Farming);
+        Assert.Equal(1.0 - lastFarming, a.SectorAllocations[0].Construction, 12);
+        Assert.True(RevoltTurn > 4 + 30 && RevoltTurn <= Turns, "the revolt no longer falls inside the ordered run — re-aim the rig");
         Assert.True(a.NetworkEdges.Count > 0, "ordered run built nothing — vacuous twin");
     }
 

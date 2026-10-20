@@ -68,6 +68,16 @@ public static class LatticeGeometry
         lattice.KmPerNode;
 
     /// <summary>
+    /// ADR-032: the same quantity read straight from the terrain, for consumers that
+    /// need the scale but no lattice (the road-development length of a baseline pair).
+    /// Identical by construction to <see cref="KmPerCostUnitOnIdealGround(TraversalLattice)"/>
+    /// of <c>TraversalLattice.Build(terrain, _, stride)</c>, whose KmPerNode is KmPerPx × stride;
+    /// the default stride is Build's default, the one every system uses.
+    /// </summary>
+    public static double KmPerCostUnitOnIdealGround(Worldgen.TerrainSet terrain, int stride = 4) =>
+        terrain.KmPerPx * stride;
+
+    /// <summary>
     /// The one km→cost conversion: a travel budget stated as an IDEAL-GROUND
     /// radius in km becomes the pathfinder's cost budget. Real reach is shorter
     /// through difficult country and longer along fast lanes — by construction.

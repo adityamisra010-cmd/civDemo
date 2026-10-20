@@ -42,6 +42,7 @@ public class ExplainChainAndLeverTests
         // bounds-checked like every other table's — and deleting it would
         // re-introduce the exact defect the merge found.
         "Disasters" => w.Disasters.Count,
+        "TaxGrievances" => w.TaxGrievances.Count,   // F1: the Dignity chain's levy-grievance link
         _ => throw new InvalidOperationException($"link cites unknown table '{table}'"),
     };
 

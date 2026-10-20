@@ -44,9 +44,9 @@ namespace Sim.Core.State;
 /// stubbed at 1.0, which would silently claim every settlement is well watered.
 /// CLOTHING/comfort exists only as a basket-bound need computed inside the needs
 /// system, so taking it would cross the D-021 line above; it is deferred with
-/// the same reasoning. TAXATION does not exist on this tree in any form (M5
-/// owns it) and is not invented here. Adding a factor later is one entry in
-/// <see cref="Factors"/> and its weight — the extension seam is the array.
+/// the same reasoning. TAXATION (M5, ADR-033 D4) is not a provision but a burden on
+/// provision, so it MULTIPLIES the aggregate (<see cref="TaxSufficiency"/>) instead of
+/// joining <see cref="Factors"/>; a new provision factor is one entry there plus its weight.
 ///
 /// AGGREGATION IS NON-COMPENSATORY, and reuses the ratified equation rather than
 /// inventing a second one: <see cref="NeedsAggregation.Aggregate"/>, D-035-B's
@@ -63,9 +63,12 @@ public static class SettlementHappiness
     public const double Max = 100.0;
 
     /// <summary>
-    /// The revolt threshold (director ruling): happiness of exactly zero is a
-    /// CONFIRMED revolt condition. Zero is reachable only when every factor is
-    /// zero — an unfed, unhoused population — so this is not a near-miss band.
+    /// The revolt threshold (director ruling): a PROVISION reading of exactly zero is a
+    /// CONFIRMED revolt condition. Zero is reachable only at total deprivation (an unfed,
+    /// unhoused population) — not a band. H2 (Director 2026-10-05 §4): the tax no longer
+    /// reaches this corner — "a 100 % levy at full reach reads zero" was a direct tax → revolt
+    /// path and is REJECTED; the levy acts on revolt only through the accumulated segment
+    /// pressure (<see cref="Unrest.IsUprising"/>).
     /// </summary>
     public const double RevoltThreshold = 0.0;
 
@@ -159,14 +162,52 @@ public static class SettlementHappiness
     }
 
     /// <summary>
-    /// The settlement's happiness in [0, 100].
+    /// THE TAX BURDEN ON WELFARE, as a sufficiency in [0, 1] that MULTIPLIES the normalised reading in
+    /// <see cref="Of"/>. H2 (Director 2026-10-05 §4: "higher taxation should GRADUALLY reduce
+    /// happiness/legitimacy … the effects must accumulate over multiple turns"; RATIFIED in
+    /// docs/d049-taxation-and-revolt-model.md): it is one minus the ACCUMULATED levy pressure,
+    /// <see cref="Unrest.LevyPressure"/> — the population-weighted levy grievance of the settlement's segments over
+    /// the uprising level — NOT one minus the edict's rate. So happiness and legitimacy fall as a levy's pressure
+    /// builds over turns, offset by provision, services and reach exactly as that pressure is, recover as it decays
+    /// after a cut, and a 100 % edict no longer zeroes them on the next turn. ADR-033 D4's first form (1 − effective
+    /// rate) is the SUPERSEDED reading.
+    ///
+    /// AN UNTAXED SETTLEMENT READS EXACTLY 1.0 — no levy grievance has ever been felt (an untaxed world holds no
+    /// TaxGrievance row), so the pressure is exactly 0 — and 1.0 is the identity of the multiplication it enters,
+    /// so every untaxed world's happiness is bit-identical to the reading before the port.
+    ///
+    /// WHY A MULTIPLIER AND NOT A THIRD CES FACTOR (the regression M5B's first cut shipped and its
+    /// suite caught): a third factor sitting at 1.0 lifts the floor-anchored aggregate off its
+    /// floor, so an unfed, unhoused, untaxed settlement scored 2.31 instead of 0 and the ruled
+    /// revolt condition (happiness == 0) became unreachable. As a multiplier, total deprivation
+    /// still lands on exactly 0 at EVERY rate, and the burden is felt in proportion at every level
+    /// of provision rather than being bought off by a full granary. A coefficient inside a
+    /// resolution equation (law 2), not a free-floating <c>happiness -= rate</c>. It reads 0 only when every
+    /// segment of the settlement has RISEN, and even then it fires no revolt: revolt reads the provision reading
+    /// (<see cref="IsRevoltReady"/>) and the segment uprising (<see cref="Unrest.IsUprising"/>), never this.
+    /// </summary>
+    public static double TaxSufficiency(IReadOnlyWorldState world, SettlementId settlement, SimConfig cfg)
+        => Math.Clamp(1.0 - Unrest.LevyPressure(world, settlement, cfg), 0.0, 1.0);
+
+    /// <summary>
+    /// The settlement's happiness in [0, 100]: the CES provision reading, scaled by the tax burden.
     ///
     /// Weights come from the needs registry so that food and shelter carry the
     /// same relative importance here as they do in D-018's ladder — happiness
     /// re-uses the ratified weighting instead of inventing a second opinion
     /// about how much a roof matters. Aggregation is D-035-B's CES.
     /// </summary>
-    public static double Of(IReadOnlyWorldState world, SettlementId settlement, SimConfig cfg)
+    public static double Of(IReadOnlyWorldState world, SettlementId settlement, SimConfig cfg) =>
+        // The tax burden scales the provision reading (TaxSufficiency). Untaxed it is exactly 1.0, so
+        // Clamp(provision × 1.0) is bit-identical to the pre-port value (the provision is already in [0, Max]).
+        Math.Clamp(Provision(world, settlement, cfg) * TaxSufficiency(world, settlement, cfg), 0.0, Max);
+
+    /// <summary>
+    /// THE PROVISION READING in [0, 100]: the normalised D-035-B CES of the provision factors (food, housing) — the
+    /// settlement's material condition before any tax burden. 0 only at total deprivation (unfed AND unhoused). It is
+    /// what the deprivation revolt condition reads (<see cref="IsRevoltReady"/>).
+    /// </summary>
+    public static double Provision(IReadOnlyWorldState world, SettlementId settlement, SimConfig cfg)
     {
         Span<double> factors = stackalloc double[FactorCount];
         Factors(world, settlement, cfg, factors);
@@ -212,14 +253,16 @@ public static class SettlementHappiness
     }
 
     /// <summary>
-    /// D-021's revolt condition (director ruling): happiness at zero. Published
-    /// as a PREDICATE rather than executed here — this type reads the world and
-    /// never writes it. Executing the revolt (losing control of the settlement)
-    /// belongs to the system that owns the control relation, not to a reader.
+    /// D-021's revolt condition (director ruling): the PROVISION reading at zero — total deprivation, an unfed and
+    /// unhoused population. Published as a PREDICATE rather than executed here — this type reads the world and
+    /// never writes it. Executing the revolt (losing control of the settlement) belongs to the system that owns the
+    /// control relation, not to a reader. H2 (Director 2026-10-05 §4): reads <see cref="Provision"/>, not
+    /// <see cref="Of"/> — the tax burden never fires this corner (the rejected "100 % at full reach" revolt).
+    /// Untaxed, Of and Provision are bit-identical, so every untaxed world revolts exactly as before.
     /// </summary>
     public static bool IsRevoltReady(
         IReadOnlyWorldState world, SettlementId settlement, SimConfig cfg)
-        => Of(world, settlement, cfg) <= RevoltThreshold;
+        => Provision(world, settlement, cfg) <= RevoltThreshold;
 
     // d018's frozen ladder ids. Named constants rather than literals so the
     // registry lookup below reads as what it is.

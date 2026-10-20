@@ -54,16 +54,22 @@ public class FoodFlowTests
             }
         }
         Assert.True(surplus > 100, $"{world}: only {surplus} surplus settlement-turns");
-        // MEASURED on this tree: founded-300 carries 32 deficit settlement-turns,
-        // driven-300 many more. The floor is set to the smaller measured figure so
+        // MEASURED on this tree: founded-700 carries 30 deficit settlement-turns
+        // (D-051 1(b); founded-300 carried 32 when this floor was set), driven-300 1029. The floor is set to the smaller measured figure so
         // the test stays non-vacuous on both arms without pinning either.
         Assert.True(deficit > 20, $"{world}: only {deficit} deficit settlement-turns");
         Assert.True(multiGood > 100, $"{world}: only {multiGood} settlement-turns produced more than one food good");
     }
 
+    // D-051 1(b) RE-AIM (2026-10-10, time-averaged decade weather; MEASURED on this tree by the agent writing this line):
+    // the order-free founded world at 300 turns now carries only 2 deficit settlement-turns (75 on the pre-1(b) twin;
+    // seeds 1 / 2 / 3 / 7 carry 9 / 6 / 6 / 6) — the single-year droughts that produced them are averaged away, which is
+    // the ruling's intent. The identity needs BOTH signs, so the founded arm runs the same world (seed 42, shipped
+    // config, no orders) to 700 turns, where Malthusian pressure produces 30 deficit settlement-turns (22 at 600). The
+    // identity, the floors and the driven arm are unchanged; only the founded horizon moved.
     [Fact]
-    public void Founded300_BalanceIsExactlyProducedMinusRequired()
-        => AssertBalanceIdentity(ObservedWorlds.Founded300.Value.Log, "founded");
+    public void Founded700_BalanceIsExactlyProducedMinusRequired()
+        => AssertBalanceIdentity(ObservedWorlds.FoundedRun(700).Log, "founded");
 
     [Fact]
     public void Driven300_BalanceIsExactlyProducedMinusRequired()

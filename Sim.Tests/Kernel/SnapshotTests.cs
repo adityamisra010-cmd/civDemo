@@ -238,7 +238,97 @@ public class SnapshotTests
         //   NOT A BEHAVIOUR CHANGE: FoodState and FoodHeadroom are statics nothing
         //         in the pipeline calls; ProductionSystem multiplies by 1.0 exactly
         //         without a strike, and hazardPerYear ships at 0.
-        const string golden = "b6df7edd362e15de908526c6343f50f920f3a344b7dac703aaad7671c41adaa1";
+        // ADR-029 RE-PIN — SCHEMA v26, LAYOUT ONLY, MEASURED on this tree by the
+        // agent writing this line.
+        //   OLD  b6df7edd362e15de908526c6343f50f920f3a344b7dac703aaad7671c41adaa1
+        //   NEW  1ba352429d018fa6ce3998f3115d9f8fa58cff59eebeeb3a1a092f99b8cdc4c4
+        //   CAUSE v25 -> v26 appends the five research tables (ResearchTargets,
+        //         ResearchProgress, ResearchCompleted, ResearchEurekas,
+        //         ResearchCostModifiers). The toy pipeline runs no ResearchSystem,
+        //         so all five are EMPTY here: the entire movement is five four-byte
+        //         zero count prefixes.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
+        //         .GoldenHashSeed42Turn200_MovedForTheV26ResearchTrailerAlone drops
+        //         those twenty bytes on this exact world and returns the OLD value
+        //         byte for byte; the v22 (0f94b4ad…) and v24 (eec82711…) controls
+        //         are UNMOVED.
+        //   DERIVED TWICE: this in-test harness and the built CLI
+        //         (`sim run --seed 42 --turns 200`) agree on the NEW value.
+        // RESEARCH FINALIZATION RE-PIN (ADR-029 addendum A; D-046) — MEASURED on this tree by the agent
+        // writing this line. Research rows and layout only; not architectural truth.
+        //   OLD  1ba352429d018fa6ce3998f3115d9f8fa58cff59eebeeb3a1a092f99b8cdc4c4
+        //   NEW  c7bb78dc2164b335c87a819e6e2084ab4d0ddc5f4932597cece5eaac9c6052e8
+        //   CAUSE v26 (changed in place, never on main) appends ResearchCredits and
+        //         ResearchExposures. The toy pipeline runs no ResearchSystem, so both are
+        //         EMPTY here: the entire movement is two more four-byte zero count prefixes.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
+        //         .GoldenHashSeed42Turn200_MovedForTheV26ResearchTrailerAlone drops all
+        //         seven research prefixes and returns main's b6df7edd… byte for byte.
+        //   DERIVED TWICE: this in-test harness and the built CLI
+        //         (`sim run --seed 42 --turns 200 --hash-log`) agree on the NEW value.
+        // ADR-031 RE-PIN — SCHEMA v28, MEASURED on this tree by the agent writing this line.
+        //   OLD  c7bb78dc2164b335c87a819e6e2084ab4d0ddc5f4932597cece5eaac9c6052e8
+        //   NEW  498635bf3c2673b9b544582e17774381b7a785903d7ed320e2dd8e44ddfd4296
+        //   CAUSE v26 -> v28 appends AgeStates, AgeEligibility, AgeTransitions, MilitaryUnits,
+        //         UnitConversions (and, on founded worlds, the founding warband + per-turn
+        //         eligibility rows). No behaviour moved: IntegratedPinAttribution.GoldenHashSeed42Turn200_MovedForTheV28AgeTrailerAlone
+        //         strips the five tables, drops their prefixes and returns OLD byte for byte.
+        // ADR-032 RE-PIN — SCHEMA v29, MEASURED on this tree by the agent writing this line.
+        //   OLD  498635bf3c2673b9b544582e17774381b7a785903d7ed320e2dd8e44ddfd4296
+        //   NEW  4c051fd40e9b86610ea7e2245daaff55d6503074ace491a986b41959f4f73151
+        //   CAUSE v28 -> v29 appends TransportEdges and RoadDevelopments (both EMPTY here: no
+        //         DevelopRoads order in this run). No behaviour moved: IntegratedPinAttribution.GoldenHashSeed42Turn200_MovedForTheV29TransportTrailerAlone
+        //         strips the two tables, drops their prefixes and returns OLD byte for byte.
+        // ADR-033 D4 RE-PIN (2026-10-02) — SCHEMA v30, MEASURED on this tree by the agent writing this line.
+        //   OLD  4c051fd40e9b86610ea7e2245daaff55d6503074ace491a986b41959f4f73151
+        //   NEW  bbcac0469b61ff494fee410179f937e62505fa23ad183afce00d89b8c3f8333c
+        //   CAUSE v29 -> v30 appends TaxPolicies (EMPTY here: the toy pipeline runs no governance
+        //         system and this synthetic world has no control rows), so the entire movement is one
+        //         four-byte zero count prefix. IntegratedPinAttribution.GoldenHashSeed42Turn200_MovedForTheV30GovernanceTrailerAlone
+        //         drops it and returns OLD byte for byte.
+        //   DERIVED TWICE: this in-test harness and the built CLI
+        //         (`sim run --seed 42 --turns 200 --hash-log`) agree on the NEW value.
+        // ADR-033 D6 RE-PIN (2026-10-02) — SCHEMA v31, MEASURED on this tree by the agent writing this line.
+        //   OLD  bbcac0469b61ff494fee410179f937e62505fa23ad183afce00d89b8c3f8333c
+        //   NEW  0af7143fb69809fc58653ae99178ff11c8d020137b78443ac1bae46b21c8b269
+        //   CAUSE v30 -> v31 appends Institutions and ConstructionLabor (both EMPTY here: the toy
+        //         pipeline runs neither the institutions nor the construction system), so the entire
+        //         movement is two four-byte zero count prefixes.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution.GoldenHashSeed42Turn200_MovedForTheV31InstitutionsTrailerAlone
+        //         drops them and returns OLD byte for byte (removed == 0).
+        //   DERIVED TWICE: this in-test harness and the built CLI
+        //         (`sim run --seed 42 --turns 200 --hash-log`) agree on the NEW value.
+        // H2 RE-PIN (2026-10-05) — SCHEMA v32 (TaxGrievances, the levy's grievance per population segment), MEASURED on
+        // this tree by the agent writing this line (ADR-015 §6).
+        //   OLD  0af7143fb69809fc58653ae99178ff11c8d020137b78443ac1bae46b21c8b269
+        //   NEW  5994e97838d275d3dd2a82cc6d0df1e23c70d2a9bbe412f4ba44538e043db180
+        //   CAUSE v31 -> v32 appends TaxGrievances, EMPTY here (the toy pipeline runs no governance and no needs
+        //         system; nothing is levied), so the entire movement is one four-byte zero count prefix.
+        //   CONTROL IntegratedPinAttributionTests.*_MovedForTheV32Levy*: the asserted-absent levy rows stripped and the
+        //           empty v32 count prefix dropped return OLD byte for byte (docs/d049-taxation-and-revolt-model.md §8).
+        //   DERIVED TWICE: this in-test harness and the built CLI (`sim run --seed 42 --turns 200 --hash-log`) agree.
+        // BATCH 3 / D-054 RE-PIN (integration R1, 2026-10-14) — SCHEMA v33, THE v33 LAYOUT ALONE, MEASURED on this tree by
+        // the agent writing this line (ADR-015 §6).
+        //   OLD  5994e97838d275d3dd2a82cc6d0df1e23c70d2a9bbe412f4ba44538e043db180
+        //   NEW  222280e50f5675575469d07ac11c243717db441ce89e4cd536ca873cb9fc5cd3
+        //   CAUSE v32 -> v33 appends ConstructionProgress and ResourceAllocations (D-054 WS1/WS2), both EMPTY here (the
+        //         toy pipeline runs no construction system and this world has no polity), so the entire movement is two
+        //         four-byte zero count prefixes. WS1 and WS2 do not act; the cylinder (worldgen.json topology.wrapX) cannot
+        //         reach this world — it has no terrain.
+        //   CONTROLS IncrementalConstructionAttributionTests.ToyGoldenSeed42Turn200_AndFirstReignTurn40_MovedForTheV33LayoutAlone
+        //         and D054PairAttributionTests.WithBothHalvesOff_EveryBatch2ReferenceReproducesByteForByte_ThroughTheV32Projection
+        //         ("toy"): the v32 projection (SchemaProjection.V32, asserting 0 v33 rows) returns OLD byte for byte.
+        //   DERIVED TWICE: this in-test harness and the built CLI (`sim run --seed 42 --turns 200 --hash-log`) agree.
+        // D-055 RE-PIN (2026-10-16; the Director's batch-4 instruction, item 1) — SCHEMA v34, THE v34 LAYOUT ALONE, MEASURED
+        // on this tree by the agent writing this line (ADR-015 §6).
+        //   OLD  222280e50f5675575469d07ac11c243717db441ce89e4cd536ca873cb9fc5cd3
+        //   NEW  2e6d446161e165475c753a8962f5b8f9e0845807c911f41be5ba5d982bed5ef7
+        //   CAUSE v33 -> v34 appends ConstructionHolds (section 61), EMPTY here (the toy pipeline runs no construction
+        //         system), so the entire movement is one four-byte zero count prefix. No behaviour moved.
+        //   CONTROL ReservationsLayoutAttributionTests.ToyGoldenSeed42Turn200_MovedForTheV34LayoutAlone: the v33 projection
+        //         (SchemaProjection.V33, asserting 0 hold rows) returns OLD byte for byte, and the stream ends in 4 zero bytes.
+        //   DERIVED TWICE: this in-test harness and the built CLI (`sim run --seed 42 --turns 200`) agree.
+        const string golden = ToyGoldenHash;
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
@@ -823,7 +913,181 @@ public class SnapshotTests
         //         separate processes, byte-identical logs), and ci.yml's
         //         FOUNDED_GOLDEN moves back with it in this same commit.
         //   NOT A SCHEMA CHANGE: v25; no table, row or field joined or left.
-        const string golden = "db7c7a0907ad43353b1a44f1a957a407c0ce89ecbb2bf105b170b4b316cc82d9";
+        // ADR-029 RE-PIN — SCHEMA v26 + THE RESEARCH ROWS, MEASURED on this tree by
+        // the agent writing this line (ADR-015 §6).
+        //   OLD  db7c7a0907ad43353b1a44f1a957a407c0ce89ecbb2bf105b170b4b316cc82d9
+        //   NEW  740799216ebd1c30f2ababc0a729237bc78a6e720d00278e1cb913fb132fe5a6
+        //   CAUSE (1) v25 -> v26 appends the five research tables — five count
+        //         prefixes; (2) ResearchSystem, now last in pipeline.json, writes
+        //         rows into its OWN tables in this order-less world: with no target
+        //         no CLP lands anywhere (D-044 R20-D), but Eurekas whose condition
+        //         holds on an AVAILABLE root fire (e.g. knapping_oldowan's
+        //         "knappable stone" = stock_stone > 0), crediting a quarter of the
+        //         node's cost. Nothing else: the system draws no RNG, writes no ledger
+        //         flow, and no other system reads a research table.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
+        //         .FoundedGoldenSeed42Turn300_MovedForTheResearchLayerAlone clears
+        //         the five tables and drops their prefixes on this exact world and
+        //         returns the OLD value BYTE FOR BYTE, and asserts the strip is not
+        //         vacuous. Every older control in that file strips the research
+        //         layer as well and is UNMOVED. Any leak of research into
+        //         population, food, trade or migration would survive the strip.
+        //   DERIVED TWICE: this in-test harness and the built CLI
+        //         (`sim run --founded --seed 42 --turns 300 --hash-log`, two
+        //         separate processes, byte-identical logs) agree on the NEW value.
+        //   ci.yml's FOUNDED_GOLDEN moves in the same commit.
+        // D-045 RE-PIN (2026-10-01) — INTENTIONAL GAMEPLAY CHANGE, research rows only, MEASURED
+        // on this tree by the agent writing this line.
+        //   OLD  740799216ebd1c30f2ababc0a729237bc78a6e720d00278e1cb913fb132fe5a6
+        //   NEW  25a9b0af5b2a5530261fc0003ec09c7be3ad16c6581a08a2262380356b1dbdc0
+        //   CAUSE D-045: calibrated costs, the 40 % partial-Eureka credit and the
+        //         ResearchEurekaRow Condition field change the research rows of this
+        //         order-less world (Eureka credit on available roots). Not architectural truth.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution.FoundedGoldenSeed42Turn300_MovedForTheResearchLayerAlone
+        //         still strips them and returns main's value byte for byte.
+        // RESEARCH FINALIZATION RE-PIN (ADR-029 addendum A; D-046) — MEASURED on this tree by the agent
+        // writing this line. Research rows and layout only; not architectural truth.
+        //   OLD  25a9b0af5b2a5530261fc0003ec09c7be3ad16c6581a08a2262380356b1dbdc0
+        //   NEW  e4279f655c5c25d8de3652d37d966984f9ee1611736bf0c546d85fb77fdfbb18
+        //   CAUSE (1) layout: two more empty v26 count prefixes (ResearchCredits,
+        //         ResearchExposures); (2) rows: under the curated Eurekas no evaluable
+        //         condition holds on an available node of this order-less world, so it
+        //         now writes NO research row at turn 300 (measured: all seven tables
+        //         empty), where the D-045 world carried Eureka credit on its roots.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
+        //         .FoundedGoldenSeed42Turn300_MovedForTheResearchLayerAlone strips the
+        //         seven tables and returns main's db7c7a09… byte for byte — for this
+        //         world AND for the same world with a research driver choosing targets
+        //         (the non-vacuous arm: research rows present and stripped).
+        //   DERIVED TWICE: this in-test harness and the built CLI
+        //         (`sim run --founded --seed 42 --turns 300 --hash-log`, two separate
+        //         processes, byte-identical logs) agree on the NEW value.
+        //   ci.yml's FOUNDED_GOLDEN moves in the same commit.
+        // ADR-031 RE-PIN — SCHEMA v28, MEASURED on this tree by the agent writing this line.
+        //   OLD  e4279f655c5c25d8de3652d37d966984f9ee1611736bf0c546d85fb77fdfbb18
+        //   NEW  15c63d6564ff8092cae67bc90518b525655a6a38f67723beb44930aa8af83fcd
+        //   CAUSE v26 -> v28 appends AgeStates, AgeEligibility, AgeTransitions, MilitaryUnits,
+        //         UnitConversions (and, on founded worlds, the founding warband + per-turn
+        //         eligibility rows). No behaviour moved: IntegratedPinAttribution.FoundedGoldenSeed42Turn300_MovedForTheAgeLayerAlone
+        //         strips the five tables, drops their prefixes and returns OLD byte for byte.
+        // ADR-032 RE-PIN — SCHEMA v29, MEASURED on this tree by the agent writing this line.
+        //   OLD  15c63d6564ff8092cae67bc90518b525655a6a38f67723beb44930aa8af83fcd
+        //   NEW  b2c0032f9e0a726627e85e6b4856ff454624d7f89d11492ae8cf963ae2a50ea0
+        //   CAUSE v28 -> v29 appends TransportEdges and RoadDevelopments (both EMPTY here: no
+        //         DevelopRoads order in this run). No behaviour moved: IntegratedPinAttribution.FoundedGoldenSeed42Turn300_MovedForTheTransportLayoutAlone (also derived by two CLI processes, byte-identical logs; ci.yml FOUNDED_GOLDEN moves in the same commit)
+        //         strips the two tables, drops their prefixes and returns OLD byte for byte.
+        // ADR-033 D4 RE-PIN (2026-10-02) — SCHEMA v30 + THE STORED REACH, MEASURED on this tree by the
+        // agent writing this line (ADR-015 §6).
+        //   OLD  b2c0032f9e0a726627e85e6b4856ff454624d7f89d11492ae8cf963ae2a50ea0
+        //   NEW  64820f83239f005e84ef2965a5564ff46a513434d550ad43a449a58fff5f17ce
+        //   CAUSE (1) v29 -> v30 appends TaxPolicies (EMPTY: no order log, so no tax is ever levied);
+        //         (2) GovernanceSystem (SystemId 22, after revolt) rewrites every ControlRow.Strength
+        //         as the administrative reach exp(-travelCost / 25) from the capital over PREV
+        //         SettlementDistances: 11 of the 12 rows read below 1.0 at turn 300 (0.097 to 0.82).
+        //         Only the tax readers read Strength, and with no levy the effective rate is exactly
+        //         0, so production and happiness multiply by exactly 1.0 — no behaviour moved.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution.FoundedGoldenSeed42Turn300_MovedForTheGovernanceLayerAlone
+        //         clears TaxPolicies, restores every Strength to 1.0, drops the prefix and returns OLD
+        //         byte for byte (and asserts the strip is non-vacuous); every older control strips the
+        //         governance layer as well and is UNMOVED.
+        //   DERIVED TWICE: this in-test harness and the built CLI
+        //         (`sim run --founded --seed 42 --turns 300 --hash-log`, two separate processes,
+        //         byte-identical logs) agree on the NEW value. ci.yml's FOUNDED_GOLDEN moves in the
+        //         same commit, and CiPinAgreementTests now compares it to THIS constant
+        //         (FoundedGoldenHash) exactly — m5-full-build left ci.yml behind and the old
+        //         Assert.Contains guard passed on a stale "OLD" comment.
+        // ADR-033 D6 + D10 RE-PIN (2026-10-02) — SCHEMA v31, MEASURED on this tree by the agent writing
+        // this line (ADR-015 §6).
+        //   OLD  64820f83239f005e84ef2965a5564ff46a513434d550ad43a449a58fff5f17ce
+        //   NEW  74306d6a574b6a680e454eb385f88e9df2d6a74c5c16fd9af64930c3cdc55c1c
+        //   CAUSE v30 -> v31 appends Institutions and ConstructionLabor (both EMPTY: with no order log
+        //         nothing is built and no university is founded), so the movement is two four-byte zero
+        //         count prefixes. With no institution the labour reader returns the raw adult count, the
+        //         mortality seam the literal 1.0, PathBuild subtracts no construction labour and the cost
+        //         modifiers stay empty — no behaviour moved.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution.FoundedGoldenSeed42Turn300_MovedForTheInstitutionsLayoutAlone
+        //         strips the layer, drops the two prefixes and returns OLD byte for byte (removed == 0).
+        //   DERIVED TWICE: this in-test harness and the built CLI
+        //         (`sim run --founded --seed 42 --turns 300 --hash-log`, two separate processes,
+        //         byte-identical logs) agree on the NEW value. ci.yml's FOUNDED_GOLDEN moves in the same
+        //         commit (CiPinAgreementTests).
+        // R1 RE-PIN (2026-10-03) — RESEARCH-GATED RECIPES (BEHAVIOUR), MEASURED on this tree by the agent
+        // writing this line (ADR-015 §6).
+        //   OLD  74306d6a574b6a680e454eb385f88e9df2d6a74c5c16fd9af64930c3cdc55c1c
+        //   NEW  68c629b66badfa717514e91c6efe9aaa2f8874d272d21afcee283fe1d85ce655
+        //   CAUSE goods.json recipes now link research.json recipe entities, and ProductionSystem runs a
+        //         recipe only when the settlement controller's knowledge makes it eligible (CraftingQuery):
+        //         pottery-firing needs pottery_open_fired, bronze-casting tin_bronze. This run completes
+        //         neither, so no pottery is fired and no bronze cast (toolmaking then has no bronze). The
+        //         schema is unchanged.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution.FoundedGoldenSeed42Turn300_MovedForTheRecipeKnowledgeLayerAlone
+        //         runs the content twin with the four recipe links removed (TestConfigs.PreRecipeKnowledge)
+        //         and returns OLD byte for byte; every older layer control runs on that twin and is UNMOVED.
+        //   MEASURED by this in-test harness and the built CLI (`sim run --founded --seed 42 --turns 300 --hash-log`,
+        //         two separate processes, byte-identical logs); ci.yml FOUNDED_GOLDEN moves in the same commit.
+        // M5 R2b RE-PIN (2026-10-03) — GOVERNANCE + WEATHER FIXES (BEHAVIOUR), MEASURED on this tree by the agent
+        // writing this line (ADR-015 §6).
+        //   OLD  68c629b66badfa717514e91c6efe9aaa2f8874d272d21afcee283fe1d85ce655
+        //   NEW  1368df9fb3d233b12263cabcfd6291dcd3fad8295f0a645a070813dea6aa467b
+        //   CAUSE all three R2b layers move it (each stripped alone still moves the hash): the harvest-weather kernel
+        //           reads geographic distance; Dignity is bound (untaxed it reads 1.0 but enters the CES aggregate, so
+        //           grievance values move — no protest fires, nobody is levied); the AgeEligibility rows no longer count
+        //           the founding warband. No levy, no uprising, no revolt in this run.
+        //   CONTROL TestConfigs.PreR2b (weather spatialDistance travelCost + Dignity unbound and no unrest section +
+        //           formations facts without minIdentityAge) returns OLD byte for byte
+        //           (IntegratedPinAttributionTests.*_MovedForTheR2bLayersAlone).
+        //   ci.yml FOUNDED_GOLDEN moves in the same commit.
+        // R4 RE-PIN (2026-10-04) — THE FORAGER LAYER (sim.json farming.preCultivation ON at 2.0 / 4.3; BEHAVIOUR),
+        // MEASURED on this tree by the agent writing this line (ADR-015 §6).
+        //   OLD  1368df9fb3d233b12263cabcfd6291dcd3fad8295f0a645a070813dea6aa467b
+        //   NEW  02c7f9eb0d08bf0ab31e6a9b0afb64041e4283e1fc4af1d4fbc94c8fa7b10ef2
+        //   CAUSE turn-1 food is gathered at forager rates until the farming capability is known (no polity researches
+        //           it in this run), so harvests, stores and everything downstream move. The R4 ledger fix and the
+        //           tax-burden offset do not move it (untaxed; no negative staple request occurs).
+        //   CONTROL TestConfigs.PreForager (switch OFF) returns OLD byte for byte
+        //           (IntegratedPinAttributionTests.*_MovedForTheForagerLayerAlone).
+        //   ci.yml FOUNDED_GOLDEN moves in the same commit.
+        // H2 RE-PIN (2026-10-05) — SCHEMA v32 (TaxGrievances, the levy's grievance per population segment), MEASURED on
+        // this tree by the agent writing this line (ADR-015 §6).
+        //   OLD  02c7f9eb0d08bf0ab31e6a9b0afb64041e4283e1fc4af1d4fbc94c8fa7b10ef2
+        //   NEW  07c6ec45902428d210361719fa1fbf90de5aacd3baf3f18c09aebdccb64f2c61
+        //   CAUSE v31 -> v32 appends TaxGrievances, EMPTY here (no order log: no levy, so no levy grievance is ever
+        //         felt; the new model reads exactly the old values on an untaxed world), so the entire movement is one
+        //         four-byte zero count prefix. No behaviour moved.
+        //   CONTROL IntegratedPinAttributionTests.*_MovedForTheV32Levy*: the asserted-absent levy rows stripped and the
+        //           empty v32 count prefix dropped return OLD byte for byte (docs/d049-taxation-and-revolt-model.md §8).
+        //   DERIVED TWICE: this in-test harness and the built CLI (`sim run --founded --seed 42 --turns 300 --hash-log`).
+        //   ci.yml FOUNDED_GOLDEN moves in the same commit.
+        // BATCH 3 / D-054 RE-PIN (integration R1, 2026-10-14) — THE v33 LAYOUT + THE CYLINDER, MEASURED on this tree by the
+        // agent writing this line (ADR-015 §6).
+        //   OLD  937577ffb0e73c2b051d8d7832cfb5028c2154d01c9afef4d976b71ccb5e7f54
+        //   NEW  40115e28af11273b9e25c62d93817c48d6c9afe736a60a2ebc6e00428836f1b0
+        //   CAUSE (1) v32 -> v33 appends ConstructionProgress and ResourceAllocations (D-054 WS1/WS2), both EMPTY here: with
+        //         no order log nothing is queued part-built and no split is set — two four-byte zero count prefixes;
+        //         (2) the shipped world is a CYLINDER (worldgen.json topology.wrapX, D-054 WS3): the 1024² terrain regenerates
+        //         x-periodic and its content hash is folded into every world hash (CanonicalSchema position 2b), so the run
+        //         differs from TURN 0. WS1 (incremental construction) and WS2 (allocation ratios) do not act.
+        //   ATTRIBUTION, MEASURED (in-test harness): the sim half off on the cylinder (TestConfigs.PreD054Sim) -> the SAME raw
+        //         40115e28… (WS1/WS2 move nothing); the v32 projection of THIS world -> 0549049d92f6c59d… = the W1 stage's
+        //         cylinder-only golden (asserted below as FoundedGoldenHashAtV32: the layout is the whole raw/v32 difference).
+        //   CONTROLS D054PairAttributionTests.WithBothHalvesOff_EveryBatch2ReferenceReproducesByteForByte_ThroughTheV32Projection
+        //         ("founded": both halves off + v32 = OLD); WrapAttributionTests.WithTheCylinderOff_TheFoundedGoldenIsTheBatch2Golden_AndOnItDiffersFromTurnZero
+        //         (the cylinder off alone + v32 = OLD; first divergent turn 0); IncrementalConstructionAttributionTests
+        //         .FoundedGoldenSeed42Turn300_MovedForTheV33LayoutAlone (flat: raw 8bca9f77… != OLD, v32 = OLD).
+        //   DERIVED TWICE: this in-test harness and the built CLI (`sim run --founded --seed 42 --turns 300 --hash-log`, two
+        //         separate processes, byte-identical logs). ci.yml FOUNDED_GOLDEN moves with it (CiPinAgreementTests).
+        // D-055 RE-PIN (2026-10-16; the Director's batch-4 instruction, item 1) — SCHEMA v34, THE v34 LAYOUT ALONE, MEASURED
+        // on this tree by the agent writing this line (ADR-015 §6).
+        //   OLD  40115e28af11273b9e25c62d93817c48d6c9afe736a60a2ebc6e00428836f1b0
+        //   NEW  0f29efc733024c451b7ebc2e8435fdd8a6032d158922430cb290778a98056d3c
+        //   CAUSE v33 -> v34 appends ConstructionHolds (section 61), EMPTY here (no order log: no queue head, nothing set
+        //         aside), so the entire movement is one four-byte zero count prefix. No behaviour moved.
+        //   CONTROL ReservationsLayoutAttributionTests.FoundedGoldenSeed42Turn300_MovedForTheV34LayoutAlone: the v33
+        //         projection (SchemaProjection.V33, asserting 0 hold rows) returns OLD byte for byte. The batch-2 reference
+        //         stays reachable through the PreD054 pair + SchemaProjection.V32 (D054PairAttributionTests).
+        //   DERIVED TWICE: this in-test harness and the built CLI (`sim run --founded --seed 42 --turns 300 --hash-log`, two
+        //         separate processes, byte-identical logs). ci.yml FOUNDED_GOLDEN moves with it (CiPinAgreementTests).
+        const string golden = FoundedGoldenHash;
         // T4.5 RE-PIN (VALUE, ONE cause — herding now responds to weather).
         //   OLD (main, T4.7's pin)  d5b4a90ef7150bbca7ef71d5f3e457ae11304f08a516fb064c7fb97fcea09101
         //   NEW (T4.5 rebased)      c0e3c8422c58e8443ac117142fa7ac70578022c43ce51b5a3bed68c4595d254a
@@ -851,16 +1115,60 @@ public class SnapshotTests
         //         the whole of the movement.
         //   NOT A SCHEMA CHANGE: no table joined or left the stream.
         //   ci.yml's FOUNDED_GOLDEN is updated in the same commit.
+        WorldState world = RunFoundedGolden();
+        Assert.Equal(golden, WorldHash.ComputeHex(world));
+        Assert.Equal(FoundedGoldenHashAtV32, SchemaProjection.V32(world));   // batch 3: the cylinder-alone link (no v33 row)
+    }
+
+    /// <summary>
+    /// THE founded golden (see FoundedGolden_Seed42Turn300_MatchesPinnedConstant for its history).
+    /// A named constant since ADR-033 D4 so CiPinAgreementTests can compare ci.yml's FOUNDED_GOLDEN
+    /// to the pinned value EXACTLY rather than "the suite file contains it somewhere" — the guard
+    /// m5-full-build's stale CI pin passed vacuously, because the old value survived in an OLD comment.
+    /// </summary>
+    // ADR-035 (P-F1, founding-turn harvest) RE-PIN (VALUE): 07c6ec45902428d2… -> 33d05c5bf9c6ee57…. CAUSE: an absent catchment row is an unmeasured land side, so the founding turn harvests (labour-limited) instead of harvesting zero; turn 2 no longer reads N_lim = 0.
+    // ADR-035 §6 (P-F0, founding death remainder) RE-PIN (VALUE): 33d05c5bf9c6ee57… -> 8cbafbb803705b26…. CAUSE: a new bucket row's D-004 death accumulator is seeded at 0.5, so the first integer reconciliation rounds instead of flooring (the turn-1 phantom survivors are gone).
+    // ADR-035 §7 (P-F2, founding composition) RE-PIN (VALUE): 8cbafbb803705b26… -> e9e089bbce9f2049…. CAUSE: founding cohort noise at demographic scale (CV ~ 1/sqrt(n_c)) instead of RC-1's per-cohort ±0.69; the settlement-common size factor is unchanged.
+    // D-051 1(b) (2026-10-10, time-averaged decade weather) RE-PIN (VALUE): e9e089bbce9f2049… -> 937577ffb0e73c2b…. CAUSE: a turn's harvest multiplier is the time-average of the yearly weather process over the turn's yearly sub-steps (mean unchanged, per-decade log-spread ~0.29 -> ~0.19) and a new settlement joins the weather at a stationary draw. CONTROL: TestConfigs.PreTimeAveragedHarvest returns the old value byte for byte (IntegratedPinAttributionTests.*_MovedForTheTimeAveragedHarvestAlone).
+    // BATCH 3 / D-054 (integration R1, 2026-10-14) RE-PIN (VALUE + LAYOUT): 937577ffb0e73c2b… -> 40115e28af11273b…. CAUSE: the v33 layout (two EMPTY appended tables) and the cylinder (worldgen.json topology.wrapX; the world differs from turn 0); WS1/WS2 do not act. CONTROLS: D054PairAttributionTests (both halves off + v32 = OLD), WrapAttributionTests (the cylinder off alone + v32 = OLD), IncrementalConstructionAttributionTests (the layout alone), and FoundedGoldenHashAtV32 (the cylinder alone). Full record on FoundedGolden_Seed42Turn300_MatchesPinnedConstant.
+    // D-055 (2026-10-16) RE-PIN (LAYOUT ALONE): 40115e28af11273b… -> 0f29efc733024c45…. CAUSE: schema v34 appends ConstructionHolds, EMPTY here — one four-byte zero count prefix. CONTROL: ReservationsLayoutAttributionTests.FoundedGoldenSeed42Turn300_MovedForTheV34LayoutAlone (SchemaProjection.V33 = OLD). ci.yml FOUNDED_GOLDEN moves with it.
+    internal const string FoundedGoldenHash = "0f29efc733024c451b7ebc2e8435fdd8a6032d158922430cb290778a98056d3c";
+
+    /// <summary>THE toy golden (seed 42, turn 200; history on GoldenHash_Seed42Turn200_MatchesPinnedConstant). A named
+    /// constant since D-055 (2026-10-16) so its v34 layout companion (ReservationsLayoutAttributionTests) compares with it.</summary>
+    // D-055 (2026-10-16) RE-PIN (LAYOUT ALONE): 222280e50f567557… -> 2e6d446161e16547…. CAUSE: schema v34 appends ConstructionHolds, EMPTY here — one four-byte zero count prefix. CONTROL: ReservationsLayoutAttributionTests.ToyGoldenSeed42Turn200_MovedForTheV34LayoutAlone (SchemaProjection.V33 = OLD).
+    internal const string ToyGoldenHash = "2e6d446161e165475c753a8962f5b8f9e0845807c911f41be5ba5d982bed5ef7";
+
+    /// <summary>Batch 3 (D-054, integration R1, 2026-10-14): THE CYLINDER-ALONE LINK — the founded golden's world through
+    /// the v32 projection (SchemaProjection.V32: the two v33 tables dropped, asserted EMPTY). It equals the founded golden
+    /// the W1 stage measured with the cylinder and without the v33 layout (0549049d…), so the raw re-pin factors exactly into
+    /// the layout (this projection) and the cylinder (this value against <see cref="PreD054FoundedGoldenHash"/>).</summary>
+    internal const string FoundedGoldenHashAtV32 = "0549049d92f6c59d65a01111485cca4d938f36cfa0696a5fa8575811194fb6c9";
+
+    /// <summary>Batch 3 (D-054): the founded golden with the batch's worldgen layer off (founded flat,
+    /// TestConfigs.PreD054Worldgen) — the batch-2 value of <see cref="FoundedGoldenHash"/>, where every pre-batch-3
+    /// attribution chain of this world (IntegratedPinAttributionTests, the D-053 switch-off controls) now ends. The
+    /// cylinder moves the live pin from turn 0 (the terrain is folded into every hash); WrapAttributionTests is that
+    /// control. Integration (2026-10-14): BOTH halves of the PreD054 pair (PreD054Sim + PreD054Worldgen) and the v32 projection (SchemaProjection.V32 — schema v33 appended two tables) give it; D054PairAttributionTests pins that.</summary>
+    internal const string PreD054FoundedGoldenHash = "937577ffb0e73c2b051d8d7832cfb5028c2154d01c9afef4d976b71ccb5e7f54";
+
+    /// <summary>The founded golden's world: canonical 1024² N = 12, seed 42, 300 no-order turns.
+    /// <paramref name="worldgen"/> (batch 3, D-054): the worldgen the world is founded with — default the shipped one;
+    /// an attribution control passes <see cref="TestUtil.TestConfigs.PreD054Worldgen()"/> (the flat, pre-cylinder world).</summary>
+    internal static WorldState RunFoundedGolden(
+        Sim.Core.Systems.SimConfig? cfgOverride = null, Sim.Core.Worldgen.WorldgenConfig? worldgen = null)
+    {
+        Sim.Core.Systems.SimConfig cfg = cfgOverride ?? TestUtil.TestConfigs.Sim();
+        Sim.Core.Worldgen.WorldgenConfig wg = worldgen ?? TestUtil.TestConfigs.Worldgen();
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
         var executor = new TurnExecutor(
             EraTableLoader.Load(eraStream),
             PipelineLoader.Load(pipeStream, SystemCatalog.All(
-                TestUtil.TestConfigs.Sim(), TestUtil.TestConfigs.Worldgen())));
-        WorldState world = executor.Run(
+                cfg, wg)));
+        return executor.Run(
             Sim.Core.Worldgen.WorldFounding.Found(
-                TestUtil.TestConfigs.Worldgen(), TestUtil.TestConfigs.Sim(), 42), 300);
-        Assert.Equal(golden, WorldHash.ComputeHex(world));
+                wg, cfg, 42), 300);
     }
 
     [Fact]

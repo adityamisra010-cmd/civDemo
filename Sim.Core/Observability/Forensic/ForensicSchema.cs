@@ -109,37 +109,52 @@ public static class ForensicSchema
     /// than believed. What the simulation exposes publicly is what this layer
     /// reports and nothing more: SettlementHappiness.Of (the authoritative
     /// value), .Factors (the two factor values), .FoodSufficiency,
-    /// .HousingSufficiency, .IsRevoltReady, .RevoltThreshold, and the READ
-    /// branch labels that follow from which rows are PRESENT. The per-factor
-    /// weights, the normalisation, the floor and the span are NOT public, and
-    /// copying them into an observer would be exactly the drifting second
-    /// implementation the observability contract forbids. So a happiness value
-    /// other than an exact 0 or 100 is reported, not decomposed.
+    /// .HousingSufficiency, .TaxSufficiency (ADR-033 D4: the M5 tax-burden
+    /// multiplier, recorded as telemetry/v4 social.tax; since H2 1 − the accumulated levy pressure),
+    /// .Provision (H2: the reading before the burden, what revolt reads), .IsRevoltReady,
+    /// .RevoltThreshold, and the READ branch labels that follow from which rows
+    /// are PRESENT. The per-factor weights, the normalisation, the floor and the
+    /// span are NOT public, and copying them into an observer would be exactly the
+    /// drifting second implementation the observability contract forbids. So a
+    /// happiness value other than an exact 0 or 100 is reported, not decomposed
+    /// (beyond the public tax multiplier).
+    /// ADR-033 D4 MOVED THE CITED LINES (TaxSufficiency was inserted after
+    /// HousingSufficiency): re-cited below against the file as it now stands.
+    /// H2 (2026-10-05) MOVED THEM AGAIN: the provision reading became the public Provision (the locals live
+    /// there now) and Of multiplies it by TaxSufficiency; re-cited against the file as it now stands.
     /// </summary>
     public const string HappinessDecompositionWhy =
-        "Sim.Core/State/SettlementHappiness.cs: WeightOf is `private static` (:234); the need-id mapping is "
-        + "`private const int SustenanceNeedId` (:226) and `ShelterNeedId` (:227); and the floor, the span "
-        + "and the normalisation are inline locals inside Of (:169-219), reachable through no public member. "
+        "Sim.Core/State/SettlementHappiness.cs: WeightOf is `private static` (:277); the need-id mapping is "
+        + "`private const int SustenanceNeedId` (:269) and `ShelterNeedId` (:270); and the floor, the span "
+        + "and the normalisation are inline locals inside Provision (:210-253), reachable through no public member. "
         + "Raw factor, normalised factor, per-factor weight, per-factor contribution and the aggregate are "
-        + "therefore NOT DERIVABLE from any public function on stored state. This layer reports the "
-        + "authoritative value from SettlementHappiness.Of, the factor values from .Factors, and the branch "
-        + "labels that follow from row presence. It does not manufacture a decomposition.";
+        + "therefore NOT DERIVABLE from any public function on stored state. What IS public is the provision "
+        + "reading itself (Provision) and the M5 tax burden, TaxSufficiency (:189-190) = 1 − the ACCUMULATED levy "
+        + "pressure (State.Unrest.LevyPressure, H2 2026-10-05: the population-weighted levy grievance of the "
+        + "settlement's segments over the uprising level), which Of (:200-203) multiplies the provision reading by "
+        + "and the record carries (telemetry/v4 social.tax). This layer reports the authoritative value from "
+        + "SettlementHappiness.Of, the factor values from .Factors, the tax scale from .TaxSufficiency, and the "
+        + "branch labels that follow from row presence. It does not manufacture a decomposition.";
 
     /// <summary>Token for the granary/StoreLosses limitation.</summary>
     public const string LimitStoreLosses = "store-losses-unsplit";
 
     /// <summary>
-    /// StoreLosses is ONE residual absorbing FOUR mechanisms. Its identity is
+    /// StoreLosses is ONE residual absorbing FIVE mechanisms (D-053 §2 added
+    /// intra-polity grain relief to the four). Its identity is
     /// carried on the record itself (SettlementRecord.FoodSection), and the
     /// split is not available: ConsumptionSystem.BoundStore is `private static`
-    /// and its annualGrainDemand argument is built AT THE CALL SITE from two
-    /// transient locals, so no public function can be called with it.
+    /// and its annualGrainDemand argument is built from two transient locals
+    /// (now in EatOwnStore), and a relief grant is a transient local of
+    /// RelieveShortages, so no public function can be called with either.
     /// </summary>
     public const string StoreLossesWhy =
         "StoreLosses is a RESIDUAL of a stated identity and absorbs spoilage, granary overflow, "
-        + "appropriation and colony provisions in ONE number. ConsumptionSystem.BoundStore is `private "
-        + "static` (:285) and its annualGrainDemand argument is assembled at the call site (:200-203) from "
-        + "transient locals, so the split cannot be recomputed through any public function. World level is "
+        + "appropriation, colony provisions and intra-polity grain relief (D-053 s2) in ONE number. "
+        + "ConsumptionSystem.BoundStore is `private "
+        + "static` (:538) and its annualGrainDemand argument is assembled in EatOwnStore (:310-311) from "
+        + "transient locals, and each relief grant is a transient local of the private RelieveShortages "
+        + "(:413), so the split cannot be recomputed through any public function. World level is "
         + "exact by ledger reason; the per-settlement split is not recorded.";
 
     /// <summary>Token for the AI limitation.</summary>

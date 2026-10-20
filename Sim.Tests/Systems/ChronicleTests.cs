@@ -493,6 +493,137 @@ public class ChronicleTests
         Assert.Contains("217", endLine);  // the dead
     }
 
+    // --- M5 playtest (Director, 2026-10-19): the rounded-zero share and the
+    // count of one. Both lines are from the Director's real seed-42 session;
+    // the magnitudes below are the ones measured on that world (seed 42, one
+    // AI Empire, canonical size: Pishemul's shortfall onset at turn 6 carried a
+    // deficit ratio of 0.0003673769287288758; five settlements' first artisans
+    // were a single adult). The EVENTS were right — CR-015 makes any deficit
+    // above zero a shortfall, and one adult artisan is a first artisan — the
+    // PROSE was wrong: Whole() rounded 0.037 to "0", and the template was
+    // plural-only.
+
+    private const double PishemulDeficit = 0.0003673769287288758;
+
+    [Fact]
+    public void Prose_ShortfallBelowHalfAPercent_NeverReadsZero_FromTheCollector()
+    {
+        ChronicleConfig cfg = Config();
+        ChronicleCollector c = Collector(cfg);
+        WorldState world = Rig();
+        NameRegistry names = NameRegistry.Build(cfg, 42, world);
+        c.Observe(world);
+        Advance(world);
+        SetDeficit(world, 0, PishemulDeficit);
+        c.Observe(world);
+        ChronicleEvent onset = Assert.Single(OfType(c, ChronicleEventType.FoodShortfallOnset));
+        Assert.Equal(PishemulDeficit, onset.Magnitude1); // the event set is unchanged: it still fires
+
+        string line = ChronicleProse.Render(onset, cfg, names);
+        Assert.Equal("In 10, the stores at " + names.Name(0)
+            + " ran short: fewer than 1 of every hundred measures of need went unmet.", line);
+        Assert.DoesNotContain(" 0 of every hundred", line, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Prose_EveryShare_RoundingNeverCrossesZeroOrTheWhole()
+    {
+        ChronicleConfig cfg = Config();
+        WorldState world = Rig();
+        NameRegistry names = NameRegistry.Build(cfg, 42, world);
+        string R(ChronicleEventType t, double m1, double m2) =>
+            ChronicleProse.Render(new ChronicleEvent(t, 1, 10.0, 0, m1, m2), cfg, names);
+
+        // Every {...Pct} placeholder the shipped templates use.
+        Assert.Contains(": fewer than 1 of every hundred",
+            R(ChronicleEventType.FamineOnset, PishemulDeficit, (double)(int)FamineReason.Disaster), StringComparison.Ordinal);
+        Assert.Contains("- fewer than 1 of every hundred",
+            R(ChronicleEventType.Disaster, 0.0, 0.996), StringComparison.Ordinal);       // loss 0.4%
+        Assert.Contains("- more than 99 of every hundred",
+            R(ChronicleEventType.Disaster, 0.0, 0.004), StringComparison.Ordinal);       // loss 99.6%
+        Assert.Contains("- 100 of every hundred",
+            R(ChronicleEventType.Disaster, 0.0, 0.0), StringComparison.Ordinal);         // total loss is total
+        Assert.Contains("- fewer than 1 of every hundred who lived there",
+            R(ChronicleEventType.MigrationSurge, 3.0, 0.004), StringComparison.Ordinal); // a re-tuned threshold
+        Assert.Contains(": more than 99 of every hundred",
+            R(ChronicleEventType.FoodShortfallOnset, 0.996, 0.0), StringComparison.Ordinal);
+        // Boundaries: just under half a percent rounds to 0 and reads "fewer
+        // than 1"; just over reads 1; the ordinary case is unchanged.
+        Assert.Contains(": fewer than 1 of every", R(ChronicleEventType.FoodShortfallOnset, 0.0049, 0.0), StringComparison.Ordinal);
+        Assert.Contains(": 1 of every", R(ChronicleEventType.FoodShortfallOnset, 0.006, 0.0), StringComparison.Ordinal);
+        Assert.Contains(": 7 of every", R(ChronicleEventType.FoodShortfallOnset, 0.07, 0.0), StringComparison.Ordinal);
+        // A share that is genuinely zero still says zero (a famine with no
+        // nominal deficit — abandonment — is not "fewer than 1").
+        Assert.Contains(": 0 of every", R(ChronicleEventType.FamineOnset, 0.0, (double)(int)FamineReason.Abandonment), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Prose_FirstArtisans_ASingleAdult_ReadsSingular_FromTheCollector()
+    {
+        ChronicleConfig cfg = Config();
+        var c = Collector(cfg);
+        WorldState world = Rig();
+        NameRegistry names = NameRegistry.Build(cfg, 42, world);
+        c.Observe(world);
+        int adultRow = world.Buckets.Add(new BucketRow(
+            new SettlementId(0), new CultureId(1), new ReligionId(1), new ClassId(2),
+            6, Conserved.Zero, 0.0, 0.0, 0.0, 0.0));
+        new Ledger(world.LedgerFlows).Flow(ref world.Buckets.Ref(adultRow).Count, ConservedQuantityIds.Population,
+            ReasonIds.InitialEndowment, 1, FlowDirection.Source, OverdrawPolicy.Throw);
+        Advance(world);
+        c.Observe(world);
+        ChronicleEvent e = Assert.Single(OfType(c, ChronicleEventType.FirstArtisans));
+        Assert.Equal(1.0, e.Magnitude1);
+
+        Assert.Equal("In 10, the first artisan set up a workshop at " + names.Name(0) + ", 1 master.",
+            ChronicleProse.Render(e, cfg, names));
+        Assert.Equal("In 10, the first artisans set up their workshops at " + names.Name(0) + ", 2 masters and hands.",
+            ChronicleProse.Render(e with { Magnitude1 = 2.0 }, cfg, names));
+    }
+
+    [Fact]
+    public void Prose_EveryCountTemplate_IsGrammaticalAtOne_AndUnchangedAtMany()
+    {
+        ChronicleConfig cfg = Config();
+        WorldState world = Rig();
+        NameRegistry names = NameRegistry.Build(cfg, 42, world);
+        string n = names.Name(0);
+        string R(ChronicleEventType t, double m1, double m2) =>
+            ChronicleProse.Render(new ChronicleEvent(t, 1, 10.0, 0, m1, m2), cfg, names);
+
+        Assert.Equal($"In the year 10, {n} was founded, 1 soul strong.", R(ChronicleEventType.Founding, 1, 0));
+        Assert.Equal($"In the year 10, {n} was founded, 40 souls strong.", R(ChronicleEventType.Founding, 40, 0));
+        Assert.Equal($"In 10, the famine at {n} lifted after 1 year; 1 was dead of it.", R(ChronicleEventType.FamineEnd, 1, 1));
+        Assert.Equal($"In 10, the famine at {n} lifted after 30 years; 217 were dead of it.", R(ChronicleEventType.FamineEnd, 30, 217));
+        Assert.Equal($"In 10, the famine at {n} lifted after 10 years; 0 were dead of it.", R(ChronicleEventType.FamineEnd, 10, 0));
+        Assert.Equal($"In 10, {n} fell silent - the last 1 soul perished, and no smoke rose again.", R(ChronicleEventType.Extinction, 1, 0));
+        Assert.Equal($"In 10, {n} fell silent - the last 300 souls perished, and no smoke rose again.", R(ChronicleEventType.Extinction, 300, 0));
+        Assert.Equal($"In 10, 1 soul quit {n} in a single season - 5 of every hundred who lived there.", R(ChronicleEventType.MigrationSurge, 1, 0.05));
+        Assert.Equal($"In 10, 42 souls quit {n} in a single season - 6 of every hundred who lived there.", R(ChronicleEventType.MigrationSurge, 42, 0.06));
+        Assert.Equal($"In 10, {n} ate its fill again after 1 lean year.", R(ChronicleEventType.FoodShortfallEnd, 1, 0));
+        Assert.Equal($"In 10, {n} ate its fill again after 40 lean years.", R(ChronicleEventType.FoodShortfallEnd, 40, 0));
+        // Singular follows the PRINTED number: 0.6 prints "1".
+        Assert.Contains(", 1 master.", R(ChronicleEventType.FirstArtisans, 0.6, 0), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Prose_MalformedCountSelector_Throws()
+    {
+        ChronicleConfig cfg = Config();
+        WorldState world = Rig();
+        NameRegistry names = NameRegistry.Build(cfg, 42, world);
+        var e = new ChronicleEvent(ChronicleEventType.FirstArtisans, 1, 10.0, 0, 1.0, 0.0);
+        foreach (string bad in new[] { "{count} {count:master}.", "{count} {count:a|b|c}.", "{count} {count:a|b" })
+        {
+            var c2 = cfg with { Templates = cfg.Templates with { FirstArtisans = bad } };
+            Assert.Throws<InvalidDataException>(() => ChronicleProse.Render(e, c2, names));
+        }
+        // A selector for a count the event never recorded is an unbound placeholder.
+        var c3 = cfg with { Templates = cfg.Templates with { FoodShortfallOnset = "{name} {count:a|b}" } };
+        Assert.Throws<InvalidDataException>(() => ChronicleProse.Render(
+            new ChronicleEvent(ChronicleEventType.FoodShortfallOnset, 1, 10.0, 0, 0.1, 0.0), c3, names));
+    }
+
     [Fact]
     public void Prose_UnknownPlaceholder_Throws_NoInventedFacts()
     {

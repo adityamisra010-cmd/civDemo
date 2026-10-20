@@ -155,6 +155,8 @@ must be **relations**, with recognition keyed by **(recogniser, recognised)**.
 **D2. The transport packet** — sea travel as an **edge type** (B3, B4), alongside water routes
 (Q-A), draught animals (Q-C) and route improvement (Q-E). One conversation; still OPEN.
 
+*(2026-10-03 Director roadmap rebase: knowledge is now **M6** and precedes the M7 Battle Layer; politics stays **M8**. D3 below therefore reads M6.)*
+
 **D3. M7 (knowledge)** — map extent and discovery mechanics. Under the D-011 §6 resequence
 (battle layer inserted as M6) knowledge is **M7** and politics **M8**
 (`docs/d011-battle-layer-addendum.md:47-57`). **GOV-2 §1c** records the Spine's system inventory as

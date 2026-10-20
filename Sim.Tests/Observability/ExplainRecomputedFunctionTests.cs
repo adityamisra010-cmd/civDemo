@@ -82,6 +82,8 @@ public class ExplainRecomputedFunctionTests
     [Fact]
     public void ChainFill_IsTheSystemsFill_OnTheStarvedWorld()
     {
+        // D-053 §2: the starved rig runs on the per-settlement store (ExplainRigs.Starved states why) — relief would
+        // feed the target from its siblings and move this T1.9 turn for a reason that is not order delivery.
         (SimConfig cfg, List<WorldState> worlds, int first) = ExplainRigs.Starved(maxTurns: 12);
         Assert.Equal(3, first);
         WorldState prev = worlds[first], next = worlds[first + 1];
@@ -134,10 +136,19 @@ public class ExplainRecomputedFunctionTests
         // The fill identity below is what is asserted, the literals only say
         // which world it was measured on.)
         int g = GoodStockIndex.IndexOf(prev.GoodStocks, Target, grain);
-        Assert.Equal(531, prev.GoodStocks[g].LastConsumptionEatenUnits);
-        Assert.Equal(3548, prev.GoodStocks[g].LastConsumptionDemandUnits);
+        // ADR-035 §6 RE-PIN (2026-10-07, P-F0: the founding death remainder seeded at 0.5; MEASURED): eaten 531 -> 523.
+        // ADR-035 §7 RE-PIN (2026-10-07, P-F2: founding cohort noise at demographic scale; MEASURED): eaten 523 -> 513.
+        // D-051 1(b) RE-PIN (2026-10-10, time-averaged decade weather; MEASURED): eaten 513 -> 456 — the store the target
+        // carries into the drawdown turn is the harvest of time-averaged weather.
+        Assert.Equal(456, prev.GoodStocks[g].LastConsumptionEatenUnits);
+        // ADR-035 RE-PIN (VALUE, one cause: the founding-turn harvest): demand 3548 -> 3776 MEASURED, 531 eaten
+        // unchanged — the target carries more people into the drawdown turn.
+        // ADR-035 §6 RE-PIN (2026-10-07, P-F0: the founding death remainder seeded at 0.5; MEASURED): demand 3776 -> 3751.
+        // ADR-035 §7 RE-PIN (2026-10-07, P-F2: founding cohort noise at demographic scale; MEASURED): demand 3751 -> 3671.
+        Assert.Equal(3671, prev.GoodStocks[g].LastConsumptionDemandUnits);
         Link grainFill = Labelled(sustenance.Links, ChainNode.FoodGoodFill, ExplainRowsName(cfg, grain) + " fill");
-        Assert.Equal(531.0 / 3548.0, grainFill.Value);
+        // D-051 1(b) RE-PIN (2026-10-10; MEASURED): demand 3671 unchanged, eaten 513 -> 456 (above), so the fill is 456/3671.
+        Assert.Equal(456.0 / 3671.0, grainFill.Value);
         // ...and the satisfaction the SYSTEM published from that fill is below 1.
         Link s = ExplainGrievanceTests.Single(sustenance.Links, ChainNode.SustenanceSatisfaction);
         Assert.Equal(LinkKind.Read, s.Kind);

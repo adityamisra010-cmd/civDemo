@@ -15,6 +15,7 @@ using Sim.Core.Systems.Growth;
 using Sim.Core.Systems.Migration;
 using Sim.Core.Systems.NeedsGrievance;
 using Sim.Core.Systems.PathBuild;
+using Sim.Core.Systems.Research;
 using Sim.Core.Systems.Trade;
 using Sim.Core.Systems.Weather;
 
@@ -42,15 +43,40 @@ namespace Sim.Core;
 ///     every produced row, LastProducedUnits on every row (zeroed each step),
 ///     and ConsumeRemainder on the TOOLS row and on every RECIPE-INPUT row.
 ///   CONSUMPTION owns: Amount via Ledger (reason Eaten) and ConsumeRemainder on
-///     the GRAIN row.
+///     the GRAIN row. Intra-polity grain relief in a shortage (D-053 §2, a partial
+///     step toward D-051 §6; consumption.empireFoodAllocation): it ALSO moves
+///     grain by Ledger.TRANSFER between the GRAIN rows of settlements one polity
+///     controls (grain still held to a sibling whose grain row is empty and whose
+///     requirement is unmet, which eats it at once, Eaten) — conserving, never a
+///     source, after Production and Appropriation and before its own
+///     spoilage/overflow sinks; no remainder field is touched by it.
 ///   HOUSING (T3.8, the FOURTH holder) owns: Amount via Ledger SINK only, reason
 ///     HousingMaterials, on the TIMBER and CLAY rows (build + upkeep draws) —
 ///     never a source, never another good, no remainder field touched.
+///   ROAD DEVELOPMENT (ADR-032, the SIXTH holder) owns: Amount via Ledger SINK
+///     only, reason ConstructionMaterials, on the rows its roads.classes materials
+///     name, at the ISSUING civilization's controlled settlements nearest-first to
+///     the route, ties by id (ADR-032 final ruling 1; drawn through EmpireStockpile.Draw,
+///     the purse draw construction shares) — never a source, no remainder field. D-055 (T1a round
+///     2): with the hold rule on, less any place another Empire's purse owns
+///     (ConstructionQuery.EmpirePursePlaces — a place with two control rows is its lowest
+///     controller's alone), and never below what construction set aside (ConstructionHolds, below).
+///     It runs only on a turn carrying a DevelopRoads order.
 ///   TRADE (T3.6, the third holder) owns: Amount via Ledger.TRANSFER ONLY —
 ///     conserving cross-settlement moves within a good, never a source or
 ///     sink, and NO remainder field (whole units only; sub-unit intent is
 ///     dropped, not banked — a banked trade remainder would be new serialized
 ///     state the mandate does not ask for). Trade touches no other field.
+///   COLONIZATION (T4.4 — handed next.GoodStocks since T4.4 but first recorded
+///     here at M5 S1b / ADR-036, when the Found Settlement order made it a
+///     second founding path; T4.5 Appropriation, a grain-transfer holder, is
+///     likewise unrecorded in this paragraph and is not this packet's to add) owns: Amount via Ledger.TRANSFER
+///     ONLY, on the GRAIN row, from the founding source to the new settlement
+///     (the provisions share, FoundingQuery.ProvisionsShare — one arithmetic for
+///     the emergent B1 path and the order path) — never a source or sink, no
+///     remainder field. It also APPENDS one row per good for each settlement it
+///     founds, at Amount 0, before any transfer; it touches no existing row's
+///     other fields.
 ///
 /// THE COLLISION THIS RECORD EXISTS TO CATCH (T3.3 adversarial finding — the
 /// paragraph had gone stale and still named Farming, mis-assigning
@@ -60,6 +86,41 @@ namespace Sim.Core;
 /// data-only goods.json edit — puts two systems on one accumulator with two
 /// different meanings, and each turn's carry would clobber the other's. Whoever
 /// adds that recipe must split the field or serialize the two writers.
+///
+/// SANCTIONED SHARED TABLE — Controls (M4 T4.4/T4.13; ADR-033 D4 adds the third
+/// holder), split at FIELD level and by pipeline order (colonization → revolt →
+/// governance):
+///   COLONIZATION APPENDS rows — a colony inherits its parent's controller, at
+///     the founding Strength 1.0, whether it was founded by emergent B1 or by a
+///     Found Settlement order (ADR-036) — and touches no existing row.
+///   REVOLT REMOVES rows (a settlement at zero happiness stops obeying),
+///     preserving the relative order of every surviving row, then (R3) APPENDS one
+///     row per revolted settlement for the new AI polity it founds (Strength 1.0).
+///   GOVERNANCE (ADR-033 D4) rewrites ONLY the Strength field of the rows that
+///     exist when it runs, as the administrative reach computed on PREV — never
+///     adds or removes a row, never touches Polity or Place.
+///
+/// SANCTIONED SHARED TABLE — AgeStates (H2, Director 2026-10-05 §8: a revolt-born
+/// polity inherits its parent's current Age), split by row KEY and pipeline order
+/// (revolt → agetransition), exactly as ResearchCompleted is:
+///   REVOLT APPENDS one row only for a polity it CREATES this step (a key absent
+///     from PREV), copied from the parent's PREV row; it never touches another row.
+///   AGETRANSITION upserts rows only for polities on PREV's roster, from their
+///     AdvanceAge orders — so it never reads or writes the row revolt appended.
+///
+/// SANCTIONED SHARED TABLE — ConstructionHolds (D-055, schema v34), split by WRITER and READER, ORDER AS DATA — the
+/// GoodStocks share's pattern above: one NEXT table handed out here to two systems, their order in pipeline.json, and no
+/// kernel change or kernel guard (the kernel is frozen; the kernel spec's interaction matrix, P-26/Q-66, is still absent,
+/// so this paragraph and ADR-040 are the record):
+///   CONSTRUCTION is the table's SOLE WRITER: it clears it at the start of every step whatever sim.json
+///     construction.reservations says, and publishes the step's set-asides (with the rule on).
+///   ROAD DEVELOPMENT is handed the same NEXT table READ-ONLY (IReadOnlyTable) and never writes it. It reads the table AS
+///     IT STANDS WHEN ROAD DEVELOPMENT RUNS. The SHIPPED pipeline.json runs construction (10th) before roaddevelopment
+///     (22nd) — pinned by a test that loads the shipped file — so road works honour what the queue heads set aside in the
+///     SAME step. In any other order (a hand-built pipeline) road development reads what NEXT holds at that point of the
+///     step: the previous step's published set-asides, carried into NEXT by the kernel's PREV → NEXT copy, or a loaded
+///     save's rows (construction, running later, then clears and rebuilds the table) — pinned by a test on a reversed
+///     hand-built pipeline. With the rule off road development ignores the table (batch 3) in any order.
 /// </summary>
 public static class SystemCatalog
 {
@@ -188,14 +249,19 @@ public static class SystemCatalog
     }
 
     /// <summary>M4-D: the settlement construction queue — FIFTH holder of the
-    /// GoodStocks share (see the ownership record above). It draws materials the
-    /// same way housing does, under its own reason.</summary>
+    /// GoodStocks share (see the ownership record above). It draws materials
+    /// through Ledger SINKS only, under its own reason (ConstructionMaterials), from
+    /// the building settlement's purse (EmpireStockpile, sim.json
+    /// construction.empireStockpile): the rows of the settlements its controller
+    /// commands, the builder first then nearest-first, or the builder's own rows
+    /// alone — never a source, no remainder field.</summary>
     public static SystemRegistration Construction(SimConfig cfg)
     {
         var system = new ConstructionSystem(cfg);
         return new SystemRegistration(ConstructionSystem.WellKnownId, ConstructionSystem.Name,
             (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<ConstructionTables>(
-                prev, new ConstructionTables(next.ConstructionQueue, next.Structures, next.GoodStocks),
+                prev, new ConstructionTables(next.ConstructionQueue, next.Structures, next.GoodStocks, next.ConstructionLabor,
+                    next.ConstructionProgress, next.ResourceAllocations, next.ConstructionHolds),
                 rng, ConstructionSystem.WellKnownId, dtDays, dtYears, orders,
                 new Ledger(next.LedgerFlows))));
     }
@@ -222,7 +288,7 @@ public static class SystemCatalog
         var system = new NeedsGrievanceSystem(cfg);
         return new SystemRegistration(NeedsGrievanceSystem.WellKnownId, NeedsGrievanceSystem.Name,
             (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<NeedsGrievanceTables>(
-                prev, new NeedsGrievanceTables(next.NeedSatisfactions, next.Grievances), rng,
+                prev, new NeedsGrievanceTables(next.NeedSatisfactions, next.Grievances, next.TaxGrievances), rng,
                 NeedsGrievanceSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 
@@ -288,7 +354,8 @@ public static class SystemCatalog
 
     /// <summary>M4: revolt — a settlement at zero happiness loses its control
     /// relation. Shares the `Controls` table with Colonization (which appends on
-    /// inheritance); the header above records it as a sanctioned shared table.</summary>
+    /// inheritance) and Governance (which rewrites Strength); the header above
+    /// records it as a sanctioned shared table.</summary>
     public static SystemRegistration Revolt(SimConfig cfg)
     {
         var system = new Systems.Revolt.RevoltSystem(cfg);
@@ -296,8 +363,27 @@ public static class SystemCatalog
             Systems.Revolt.RevoltSystem.WellKnownId, Systems.Revolt.RevoltSystem.Name,
             (prev, next, rng, dtDays, dtYears, orders) => system.Step(
                 new SimContext<Systems.Revolt.RevoltTables>(
-                    prev, new Systems.Revolt.RevoltTables(next.Controls), rng,
+                    prev, new Systems.Revolt.RevoltTables(next.Controls, next.Polities, next.ResearchCompleted, next.AgeStates), rng,
                     Systems.Revolt.RevoltSystem.WellKnownId,
+                    dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
+    }
+
+    /// <summary>ADR-033 D4 (the M5 governing loop, SystemId 22): enacts SetTaxRate orders that
+    /// pass the tax gate (Governance.CanLevyTax on PREV: the Taxation knowledge AND the minimum
+    /// Age, H2) into the TaxPolicies table it owns, and rewrites
+    /// ControlRow.Strength as the administrative reach — the THIRD holder of the shared
+    /// `Controls` table, field-level split recorded in the header above (it runs after
+    /// Colonization and Revolt and touches only Strength). Inert without a governance
+    /// section in the config.</summary>
+    public static SystemRegistration Governance(SimConfig cfg)
+    {
+        var system = new Systems.Governance.GovernanceSystem(cfg);
+        return new SystemRegistration(
+            Systems.Governance.GovernanceSystem.WellKnownId, Systems.Governance.GovernanceSystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system.Step(
+                new SimContext<Systems.Governance.GovernanceTables>(
+                    prev, new Systems.Governance.GovernanceTables(next.TaxPolicies, next.Controls), rng,
+                    Systems.Governance.GovernanceSystem.WellKnownId,
                     dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 
@@ -311,6 +397,86 @@ public static class SystemCatalog
                 PathBuildSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 
+    /// <summary>ADR-029 (D-044): the research engine. It owns the research state
+    /// (target, progress, completed knowledge, fired Eurekas). It READS the
+    /// specialized-university cost factors from Prev and is not handed them, because
+    /// their writer is the institutions system (ADR-033 D6: <see cref="Institutions"/>).
+    /// Inert when the config carries no research content.</summary>
+    public static SystemRegistration Research(SimConfig cfg)
+    {
+        var system = new ResearchSystem(cfg.Research);
+        return new SystemRegistration(ResearchSystem.WellKnownId, ResearchSystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<ResearchTables>(
+                prev, new ResearchTables(next.ResearchTargets, next.ResearchProgress,
+                    next.ResearchCompleted, next.ResearchEurekas, next.ResearchCredits),
+                rng, ResearchSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
+    }
+
+    /// <summary>ADR-031 (D-047 ruling 12): the thin Age evaluator. Owns only the published
+    /// next-Age eligibility summary. Inert without Age content.</summary>
+    public static SystemRegistration AgeEligibility(SimConfig cfg)
+    {
+        var system = new Systems.Ages.AgeEligibilitySystem(cfg.Ages);
+        return new SystemRegistration(Systems.Ages.AgeEligibilitySystem.WellKnownId, Systems.Ages.AgeEligibilitySystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<Systems.Ages.AgeEligibilityTables>(
+                prev, new Systems.Ages.AgeEligibilityTables(next.AgeEligibility),
+                rng, Systems.Ages.AgeEligibilitySystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
+    }
+
+    /// <summary>ADR-031 (D-047 rulings 13, 14, 18): explicit Age advancement, the surge record,
+    /// and the automatic free modernization of the advancing polity's formations. SOLE OWNER of
+    /// MilitaryUnits (worldgen founds the rows; no other system writes them) — modernization is
+    /// part of the transition instant, see the system's header. Inert without Age content.</summary>
+    public static SystemRegistration AgeTransition(SimConfig cfg)
+    {
+        var system = new Systems.Ages.AgeTransitionSystem(cfg.Ages, cfg.UnitFamilies);
+        return new SystemRegistration(Systems.Ages.AgeTransitionSystem.WellKnownId, Systems.Ages.AgeTransitionSystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<Systems.Ages.AgeTransitionTables>(
+                prev, new Systems.Ages.AgeTransitionTables(next.AgeStates, next.AgeTransitions, next.MilitaryUnits, next.UnitConversions),
+                rng, Systems.Ages.AgeTransitionSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
+    }
+
+    /// <summary>ADR-032: the one authoritative road-development operation (DevelopRoads, player
+    /// and AI alike). SOLE OWNER of TransportEdges and RoadDevelopments; sixth holder of the
+    /// GoodStocks share (see the ownership record above). Inert without roads tuning.
+    ///
+    /// D-055 (schema v34): road development is also handed construction's NEXT ConstructionHolds READ-ONLY (an
+    /// IReadOnlyTable; construction is its sole writer — the ownership record above), so road works can honour what the
+    /// queue heads set aside.
+    /// D-056 (2026-10-18; supersedes D-055's "order is data" for this read): THE READ IS A DECLARED SAME-STEP EDGE —
+    /// <see cref="SystemRegistration.ReadsThisStepFrom"/> = construction, whenever the hold rule applies
+    /// (<see cref="Reservations.Enabled"/>; with it off road development ignores the table and declares nothing) — and the
+    /// executor refuses a pipeline that runs road development before construction (TurnExecutor's constructor). Every
+    /// pipeline that composes therefore reads THIS step's set-asides, which is what the shipped pipeline.json (construction
+    /// 10th, roaddevelopment 22nd) always did; the order in which a road-first pipeline read the previous step's or a
+    /// loaded save's rows is gone, and with it the one order in which the v33 → v34 migration was not exact. A pipeline
+    /// without construction (test compositions only) reads the table as the world carries it.</summary>
+    public static SystemRegistration RoadDevelopment(SimConfig cfg)
+    {
+        var system = new Systems.Roads.RoadDevelopmentSystem(cfg);
+        return new SystemRegistration(Systems.Roads.RoadDevelopmentSystem.WellKnownId, Systems.Roads.RoadDevelopmentSystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<Systems.Roads.RoadDevelopmentTables>(
+                prev, new Systems.Roads.RoadDevelopmentTables(next.TransportEdges, next.RoadDevelopments, next.GoodStocks,
+                    next.ConstructionHolds),
+                rng, Systems.Roads.RoadDevelopmentSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))),
+            Reservations.Enabled(cfg) ? [Systems.Construction.ConstructionSystem.Name] : null);
+    }
+
+    /// <summary>ADR-033 D6 (SystemId 28): universities as real institutions — founds an institution row for
+    /// every university building ConstructionSystem completed, matures it while its host is viable, and
+    /// REBUILDS the specialized-university cost seam (ResearchCostModifiers, ADR-029 §9) from the maturities.
+    /// SOLE OWNER of Institutions and of ResearchCostModifiers (ResearchSystem only reads the latter, from
+    /// Prev). Reads Structures, Controls, Buckets, Variables and the roster from Prev only. Inert without an
+    /// institutions section.</summary>
+    public static SystemRegistration Institutions(SimConfig cfg)
+    {
+        var system = new Systems.Institutions.InstitutionsSystem(cfg);
+        return new SystemRegistration(Systems.Institutions.InstitutionsSystem.WellKnownId, Systems.Institutions.InstitutionsSystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<Systems.Institutions.InstitutionsTables>(
+                prev, new Systems.Institutions.InstitutionsTables(next.Institutions, next.ResearchCostModifiers),
+                rng, Systems.Institutions.InstitutionsSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
+    }
+
     /// <summary>
     /// All systems that exist at the current milestone — M1 production systems
     /// first, retired T0.x toys last (still registered: the toy preset and the
@@ -318,6 +484,7 @@ public static class SystemCatalog
     /// </summary>
     public static SystemRegistration[] All(SimConfig cfg, Worldgen.WorldgenConfig? worldgen = null) =>
         [Catchment(cfg), HarvestWeather(cfg), Disaster(cfg), Production(cfg), Appropriation(cfg), Consumption(cfg), Price(cfg), TradeArbitrage(cfg),
-         Housing(cfg), Construction(cfg), ClassMobility(cfg), Migration(cfg), Colonization(cfg, worldgen), Revolt(cfg), Demographics(cfg), NeedsGrievance(cfg), PathBuild(cfg),
+         Housing(cfg), Construction(cfg), ClassMobility(cfg), Migration(cfg), Colonization(cfg, worldgen), Revolt(cfg), Governance(cfg), Demographics(cfg), NeedsGrievance(cfg), PathBuild(cfg),
+         Research(cfg), AgeEligibility(cfg), AgeTransition(cfg), RoadDevelopment(cfg), Institutions(cfg),
          Weather(), Growth(), Trade()];
 }

@@ -34,12 +34,261 @@ public sealed record SimConfig(
     // explicit famine-class production shock.
     [property: JsonPropertyName("foodState")] FoodStateConfig FoodState,
     [property: JsonPropertyName("disaster")] DisasterConfig Disaster,
+    // ADR-032: inter-city road classes, development cost placeholder and the
+    // travel-time hook. OPTIONAL: absent leaves RoadDevelopmentSystem inert (toy
+    // and hand-written configs); the canonical sim.json carries it.
+    [property: JsonPropertyName("roads")] RoadsConfig? Roads,
     // T2.6: the D-018 needs registry rides ITS OWN data file (needs.json) but
     // travels with SimConfig so system construction stays single-config —
     // attached by SimConfigLoader.Load(sim, needs), never parsed from sim.json.
     [property: JsonIgnore] NeedsConfig? Needs = null,
     // T3.2: the D-031 goods registry rides goods.json, attached the same way.
-    [property: JsonIgnore] GoodsConfig? Goods = null);
+    [property: JsonIgnore] GoodsConfig? Goods = null,
+    // ADR-029 (D-044): the research graph rides research.json, attached the same
+    // way by the four-stream Load. Null leaves the ResearchSystem inert.
+    [property: JsonIgnore] Research.ResearchContent? Research = null,
+    // ADR-031 (D-047): the Ages (ages.json) and the unit-family graph
+    // (unit-families.json), attached by the six-stream Load. Null leaves the two
+    // Age systems inert and founds no formations.
+    [property: JsonIgnore] Ages.AgeContent? Ages = null,
+    [property: JsonIgnore] Ages.UnitFamilyContent? UnitFamilies = null,
+    // ADR-033 D4 (the M5 governing loop): administrative reach, the extraction response,
+    // the tax gate (taxationRequires, its research half; taxationMinAge, its Age half, H2)
+    // and the AI tax valve. OPTIONAL and in the DEFAULTED TAIL
+    // (Roads above is positional): absent, the governing loop is INERT — GovernanceSystem
+    // applies no SetTaxRate, leaves ControlRow.Strength as founding wrote it, and every
+    // Governance reader returns the neutral value (no tax, extraction ×1, burden ×1). Toy and
+    // hand-written configs therefore run the full catalog unchanged; the canonical sim.json
+    // carries the section.
+    [property: JsonPropertyName("governance")] GovernanceConfig? Governance = null,
+    // ADR-033 D6 (institutions; docs/institutions-universities.md): the university lifecycle's tuning —
+    // maturation, viability, staffing, the research-cost and health effects. OPTIONAL and in the
+    // defaulted tail: absent, InstitutionsSystem is INERT (founds nothing, writes no cost factor), the
+    // staffing reader returns the raw adult count and the mortality seam returns 1.0, so toy and
+    // hand-written configs run the full catalog unchanged; the canonical sim.json carries the section.
+    [property: JsonPropertyName("institutions")] InstitutionsConfig? Institutions = null,
+    // ADR-036 (D-051 §5, the Found Settlement order): the party fraction. OPTIONAL and in the defaulted tail:
+    // absent, no Found Settlement order can form a party (FoundingQuery answers NoParty) and the order is inert;
+    // emergent D-037 B1 colonization never reads it. The canonical sim.json carries the section.
+    [property: JsonPropertyName("colonization")] ColonizationConfig? Colonization = null,
+    // D-051 §6 applied to construction (the empire purse; EmpireStockpile / ConstructionQuery.Holders; authority D-051 §6
+    // and D-053 §1, the Director's 2026-10-13 instruction, item 1). OPTIONAL and in
+    // the defaulted tail: absent (or empireStockpile false), a construction project draws on its own settlement's stock
+    // alone — the pre-change rule, bit-exact. The canonical sim.json carries the section, ON.
+    [property: JsonPropertyName("construction")] ConstructionConfig? Construction = null,
+    // M5 item 5 (granaries): the two granary effects — the LOCAL farm-output factor and the EMPIRE-WIDE famine-intensity
+    // factor (State.GranaryEffects). OPTIONAL and in the defaulted tail: absent (or enabled false) both factors are the
+    // literal 1.0 and neither ProductionSystem nor DemographicsSystem multiplies by them, so toy and hand-written configs
+    // (and the attribution control TestConfigs.PreGranaryEffects) run exactly as before. The canonical sim.json carries it.
+    [property: JsonPropertyName("granaries")] GranariesConfig? Granaries = null);
+
+/// <summary>
+/// D-051 §6 applied to construction (authority: D-051 §6 and D-053 §1 — the Director's 2026-10-13 instruction, item 1:
+/// construction and roads draw on the empire stockpile) — the construction queue's content switch. <c>EmpireStockpile</c> (true in the
+/// shipped sim.json): a settlement an Empire controls builds from the goods of EVERY settlement that Empire controls,
+/// drawn instantly and losslessly in a stated donor order (Sim.Core/State/EmpireStockpile.cs); a stateless settlement
+/// builds from its own; the obtainability guard reads that purse UNCLAIMED (less every queued project's inputs,
+/// ConstructionQuery.Claimed). False or absent: the settlement's own stock only and no claims, exactly as before — the attribution control
+/// (TestConfigs.PreEmpireConstructionStockpile), never a gameplay setting. Roads already drew on the civilization's
+/// purse (ADR-032) and are not switched by it.
+///
+/// <c>Incremental</c> (WS1, D-054 — the Director's 2026-10-14 instruction, workstream 1; true in the shipped sim.json):
+/// INCREMENTAL CONSTRUCTION — a queue head progresses a little each turn as far as its builders and the next units of
+/// its materials allow, the materials leaving the purse in lockstep with the work, and what has gone in is never lost
+/// while it waits (ConstructionSystem's header; progress in ConstructionProgressRow, schema v33). False or absent: M4-D's
+/// whole-or-nothing gate exactly as before (batch 2) — the attribution control (TestConfigs.PreIncrementalConstruction),
+/// never a gameplay setting.
+///
+/// <c>AllocationRatios</c> (WS2, D-054 — the Director's 2026-10-14 instruction, workstream 2; true in the shipped
+/// sim.json): EDITABLE BUILDING/ROADS MATERIAL SPLIT — each Empire's standing BuildingsPercent b (ResourceAllocationRow,
+/// order kind 12; absent = 100, building first) guarantees building work b shares in 100 and road works the rest of each
+/// eligible good the Empire's purse holds when building work starts, on a turn the Empire's road order is delivered;
+/// whatever one side does not need, the other may use (State.ResourceAllocation). The LOADER REFUSES it without
+/// <c>Incremental</c> and <c>EmpireStockpile</c> (a whole-or-wait head capped to a share could never build, and the split
+/// is an Empire purse's), and the rule is inert under any such combination built in code. False or absent: building
+/// work first, road works get what it leaves, exactly as with WS1 alone — the attribution control
+/// (TestConfigs.PreAllocationRatios), never a gameplay setting.
+///
+/// <c>Reservations</c> (D-055 — the Director's batch-4 instruction, item 1: projects must not consume resources reserved
+/// by other projects; true in the shipped sim.json): MATERIAL RESERVATIONS ACROSS TURNS — each queue head sets aside what
+/// it still needs, and the set-asides are published per purse and good in the ConstructionHolds table (schema v34, section
+/// 61; State.Reservations), which construction CLEARS at the start of every step whatever this switch says. The LOADER
+/// REFUSES it without <c>Incremental</c> (a hold is the remaining need of a part-built head; the whole-or-wait gate has
+/// none). The Empire purse is NOT required: the purse key follows the holder set (ConstructionQuery.Holders), so with
+/// <c>EmpireStockpile</c> off every purse is a single settlement's. False or absent: nothing is set aside and nothing is
+/// published — the batch-3 rule exactly, plus the empty section-61 count prefix — the attribution control
+/// (TestConfigs.PreReservations), never a gameplay setting.
+///
+/// <c>ContinueWithinTurn</c> (D-058 — the Director's ruling of 2026-10-19, "Build one at a time, so that if 6 can be built
+/// and an order of 9 is given, and in that turn, resources are available for 1 more and then some, it should show in the
+/// next turn as 7 built, 1 under construction, 1 not started"; true in the shipped sim.json): construction stays
+/// SEQUENTIAL — one project of a settlement's queue at a time, in queue order — but the settlement's building capacity of
+/// ONE step is no longer capped at one project: when the head completes, what is left of that step's capacity continues
+/// to the next entry, which is resolved in the same step at its own order's place in the building order, under the same
+/// set-aside rules as any head (ConstructionQuery.HoldsWalk). The LOADER REFUSES it without <c>Incremental</c> (the
+/// whole-or-wait gate has no partial capacity to carry). False or absent: the promoted entry is a head from the NEXT
+/// step and the completing step's leftover capacity reaches PathBuild's bank only — the batch-4 rule exactly — the
+/// attribution control (TestConfigs.PreContinueWithinTurn), never a gameplay setting.
+/// </summary>
+public sealed record ConstructionConfig(
+    [property: JsonPropertyName("empireStockpile")] bool EmpireStockpile = false,
+    [property: JsonPropertyName("incremental")] bool Incremental = false,
+    [property: JsonPropertyName("allocationRatios")] bool AllocationRatios = false,
+    [property: JsonPropertyName("reservations")] bool Reservations = false,
+    [property: JsonPropertyName("continueWithinTurn")] bool ContinueWithinTurn = false);
+
+/// <summary>
+/// M5 item 5 (D-053 §3) — THE GRANARY EFFECTS' CONTENT (<see cref="State.GranaryEffects"/>). Two distinct, bounded,
+/// saturating effects of the goods.json project <c>Project</c> names, each the ADR-028 / InstitutionEffects curve
+/// S = 1 − e^(−x):
+/// <list type="bullet">
+/// <item><c>Enabled</c> (true): THE SWITCH. False (or the section absent) makes both factors the literal 1.0 and skips
+///   both multiplications, which reproduces the pre-granary-effects world byte for byte (TestConfigs.PreGranaryEffects,
+///   GranaryAttributionTests).</item>
+/// <item><c>Project</c> ("granary"): the goods.json project whose built Structures count — data, never a code literal
+///   (the ages.json <c>structures</c> fact names projects the same way).</item>
+/// <item><c>FarmYieldBonusMax</c> (0.05, TUNE) / <c>FarmYieldScale</c> (1.0): LOCAL. ProductionSystem.Farm multiplies the
+///   settlement's REALISED CULTIVATED grain rate by 1 + max × (1 − e^(−m/scale)), m = granaries standing AT that
+///   settlement — the part of its own crop a dedicated store saves from post-harvest loss; never applied while the
+///   settlement still harvests wild food. 0.05 recovers at most about half of the ×0.90 storage, vermin and threshing
+///   loss ADR-013 deducts inside the derived yield (threshing loss stays). The maximum is in [0, 1); the factor never
+///   exceeds 1 + max.</item>
+/// <item><c>FamineReductionMax</c> (0.25, TUNE) / <c>FamineReductionScale</c> (2.0, TUNE): EMPIRE-WIDE. DemographicsSystem
+///   multiplies the EFFECTIVE deficit (the one input of starvation mortality and fertility suppression) by
+///   1 − max × (1 − e^(−n/scale)), n = granaries standing anywhere in the settlement's civilization (its own count
+///   when stateless; an absolute count, independent of the civilization's size) — organised relief capacity, NOT
+///   stored grain: no grain moves. The maximum is in [0, 1), so the factor stays in [1 − max, 1]: the effective
+///   deficit is never inverted and never raised.</item>
+/// </list>
+/// Reference classes and labels (DERIVED / IDENTITY / TUNE) in sim.json <c>granaries._doc</c>. Neither effect touches
+/// the store: spoilage (consumption.grainSpoilagePerYear) and the store bound (granaryYearsOfDemand) are unchanged.
+/// </summary>
+public sealed record GranariesConfig(
+    [property: JsonPropertyName("enabled"), JsonRequired] bool Enabled,
+    [property: JsonPropertyName("project"), JsonRequired] string Project,
+    [property: JsonPropertyName("farmYieldBonusMax"), JsonRequired] double FarmYieldBonusMax,
+    [property: JsonPropertyName("farmYieldScale"), JsonRequired] double FarmYieldScale,
+    [property: JsonPropertyName("famineReductionMax"), JsonRequired] double FamineReductionMax,
+    [property: JsonPropertyName("famineReductionScale"), JsonRequired] double FamineReductionScale);
+
+/// <summary>
+/// ADR-036 (PROPOSED) — the Found Settlement order's one content number. <c>OrderPartyFraction</c> (TUNE, in (0, 1)):
+/// the party is this fraction of the SOURCE settlement's population, floored to whole people and allocated per
+/// bucket (FoundingQuery.AllocateParty), never emptying a non-empty bucket. The fixed five-field OrderRecord cannot
+/// carry a party size (TargetId = source, Amount = site), so the size is content, not an order payload. It is read
+/// ONLY on the order path: emergent D-037 B1 founding sizes its party from migration's unplaced demand and is
+/// untouched (T4.4 §8 standing prohibition on any B1 threshold or TUNE). Reference class in sim.json
+/// <c>colonization._doc</c>.
+/// </summary>
+public sealed record ColonizationConfig(
+    [property: JsonPropertyName("orderPartyFraction"), JsonRequired] double OrderPartyFraction,
+    // M5 S1c (ADR-036 §8): the AI founding policy's switch and trigger thresholds. OPTIONAL: absent, the policy
+    // is INERT (no AI polity ever issues a Found Settlement order), so toy and hand-written configs are untouched.
+    [property: JsonPropertyName("aiFounding")] AiFoundingConfig? AiFounding = null);
+
+/// <summary>
+/// M5 S1c (ADR-036 §8) — THE AI FOUNDING POLICY'S CONTENT (Sim.Core/Systems/Colonization/AiFoundingPolicy.cs).
+/// Every number is TUNE; each reference class is in sim.json <c>colonization.aiFounding._doc</c>, fixed before measuring.
+/// <list type="bullet">
+/// <item><c>Enabled</c> (true): THE SWITCH. False reproduces every pre-S1c world byte for byte — the policy then
+///   issues nothing, and nothing else reads this section (the attribution control,
+///   AiFoundingAttributionTests).</item>
+/// <item><c>MinSourcePopulation</c> (500 people): an AI settlement sends colonists only at or above this size —
+///   DERIVED as the turn-zero founding size (founding.cohortCounts, 400) ÷ (1 − orderPartyFraction 0.2), so the
+///   source keeps at least a newly founded settlement's population once the party has left.</item>
+/// <item><c>MinYearsBetweenFoundings</c> (350 years): at most one new settlement per AI polity in this many years —
+///   anchored to the Age ladder's own expansion milestones (a4_expansion 14, a6_towns 18), which a polity holding 6
+///   of the canonical 12 at founding reaches at this pace by about the historical Iron Age. A DURATION in years
+///   (law 3), measured as a LOWER bound (turns elapsed × the current turn length: the era table only ever shortens
+///   turns), so it never opens early.</item>
+/// </list>
+/// </summary>
+public sealed record AiFoundingConfig(
+    [property: JsonPropertyName("enabled"), JsonRequired] bool Enabled,
+    [property: JsonPropertyName("minSourcePopulation"), JsonRequired] long MinSourcePopulation,
+    [property: JsonPropertyName("minYearsBetweenFoundings"), JsonRequired] double MinYearsBetweenFoundings);
+
+/// <summary>ADR-033 D6 — the institutions section of sim.json. Today it carries the five specialized
+/// universities' tuning only; other institution types follow the same lifecycle later (out of scope).</summary>
+public sealed record InstitutionsConfig(
+    [property: JsonPropertyName("universities"), JsonRequired] UniversitiesConfig Universities);
+
+/// <summary>
+/// ADR-033 D6 — THE UNIVERSITY LIFECYCLE'S TUNING (every number TUNE; each reference class is in
+/// docs/institutions-universities.md and sim.json <c>institutions._doc</c>, fixed before measuring).
+/// <list type="bullet">
+/// <item><c>MaturityTauYears</c> (16): e-fold of the maturity gap while viable, M' = 1 − (1 − M)e^(−dt/τ).</item>
+/// <item><c>DecayTauYears</c> (21.7): e-fold of maturity while NOT viable, M' = M e^(−dt/τ).</item>
+/// <item><c>MatureAt</c> (0.95): the MATURE reading of the stored maturity (1 − e⁻³).</item>
+/// <item><c>StaffShareAtMaturity</c> (0.05): the share of its market (<c>AdultsPerUniversity</c>) a fully
+///   mature university withdraws from labour — σ × A_u = 100 adults per instance, so a host never loses more
+///   than σ of its adults while the market term holds.</item>
+/// <item><c>AdultsPerUniversity</c> (2,000): the host market each university instance needs.</item>
+/// <item><c>FoundingFoodSurplusRatio</c> (1.3) / <c>SustainingFoodSurplusRatio</c> (1.1): the content's
+///   specialist (Artisans) emerge / recede thresholds, applied to founding and to maturation.</item>
+/// <item><c>MaxResearchCostReduction</c> (1/3): the ceiling of one specialty's cost discount on its branch,
+///   factor = 1 − this × (1 − e^(−X)).</item>
+/// <item><c>SaturatedAt</c> (0.95): the SATURATED reading of the effect curve, S(X) ≥ this.</item>
+/// <item><c>HealthType</c> ("medical_university"): the type whose maturity heals; data, not code.</item>
+/// <item><c>MaxMortalityReduction</c> (0.10): the ceiling of the base-mortality reduction.</item>
+/// <item><c>HealthDecayCostUnits</c> (25.0): e-fold of medical coverage over SettlementDistances travel cost.</item>
+/// </list>
+/// </summary>
+public sealed record UniversitiesConfig(
+    [property: JsonPropertyName("maturityTauYears"), JsonRequired] double MaturityTauYears,
+    [property: JsonPropertyName("decayTauYears"), JsonRequired] double DecayTauYears,
+    [property: JsonPropertyName("matureAt"), JsonRequired] double MatureAt,
+    [property: JsonPropertyName("staffShareAtMaturity"), JsonRequired] double StaffShareAtMaturity,
+    [property: JsonPropertyName("adultsPerUniversity"), JsonRequired] long AdultsPerUniversity,
+    [property: JsonPropertyName("foundingFoodSurplusRatio"), JsonRequired] double FoundingFoodSurplusRatio,
+    [property: JsonPropertyName("sustainingFoodSurplusRatio"), JsonRequired] double SustainingFoodSurplusRatio,
+    [property: JsonPropertyName("maxResearchCostReduction"), JsonRequired] double MaxResearchCostReduction,
+    [property: JsonPropertyName("saturatedAt"), JsonRequired] double SaturatedAt,
+    [property: JsonPropertyName("healthType"), JsonRequired] string HealthType,
+    [property: JsonPropertyName("maxMortalityReduction"), JsonRequired] double MaxMortalityReduction,
+    [property: JsonPropertyName("healthDecayCostUnits"), JsonRequired] double HealthDecayCostUnits);
+
+/// <summary>
+/// ADR-033 D4 — THE GOVERNING LOOP'S TUNING (ported from <c>m5-full-build</c>, whose AI constants
+/// were code literals and are data here). Every number is TUNE; the two loop constants are
+/// denominated against shipped quantities rather than chosen freely — see sim.json
+/// <c>governance._doc</c> for the full provenance.
+///
+/// <c>AuthorityDecayCostUnits</c>: the e-fold of ADMINISTRATIVE REACH in SettlementDistances
+/// travel-cost units — reach = exp(−travelCost / this) from the capital, the functional form and
+/// the 25.0 of <c>migration.dampingDecayCostUnits</c> (D-040 C3: a distance term over the network
+/// graph, travel cost and not Euclidean distance). <c>TaxExtractionResponseMax</c>: output
+/// multiplier = 1 + this × effectiveRate, framed by <c>production.toolYieldBonusMax</c> (0.3); 0.0
+/// disables the economic arm. <c>TaxationRequires</c>: the RESEARCH GATE of the tax edict, one
+/// requires-expression over research.json node ids in the research dialect (AND / OR / nested,
+/// no NOT, no comparisons), validated against research.json when the four-stream load attaches it
+/// and evaluated by the existing knowledge evaluator (<see cref="State.Governance.CanLevyTax"/>).
+/// <c>Ai</c>: the AI tax valve's constants (<see cref="GovernanceAiConfig"/>).
+/// <c>TaxationMinAge</c> (H2, Director 2026-10-05 §7; docs/d049-taxation-and-revolt-model.md): THE AGE HALF of
+/// the tax gate — the edict is operational only for a polity whose CURRENT Age (ages.json key, computed state,
+/// law 4) is at least this. Optional: absent = no Age requirement (the pre-H2 gate, knowledge only). Evaluated
+/// inside <see cref="State.Governance.CanLevyTax"/>, never by a caller.
+/// </summary>
+public sealed record GovernanceConfig(
+    [property: JsonPropertyName("authorityDecayCostUnits"), JsonRequired] double AuthorityDecayCostUnits,
+    [property: JsonPropertyName("taxExtractionResponseMax"), JsonRequired] double TaxExtractionResponseMax,
+    [property: JsonPropertyName("taxationRequires"), JsonRequired] string TaxationRequires,
+    [property: JsonPropertyName("ai"), JsonRequired] GovernanceAiConfig Ai,
+    [property: JsonPropertyName("taxationMinAge")] int? TaxationMinAge = null);
+
+/// <summary>
+/// ADR-033 D4 — THE AI TAX VALVE (D-021 valve 6, "the state acts by default"), the four constants
+/// <c>m5-full-build</c>'s AiGovernance carried as literals (60 / 35 / 5 / 40). An AI Empire RAISES
+/// its declared rate by <c>StepPercent</c> while its legitimacy is ≥ <c>ComfortableLegitimacy</c>,
+/// LOWERS it while legitimacy is &lt; <c>TroubledLegitimacy</c>, holds in the dead band between
+/// (the hysteresis that stops a one-step oscillation), and never declares more than
+/// <c>MaxRatePercent</c>. Legitimacies are on the 0..100 happiness scale; rates are percentages.
+/// </summary>
+public sealed record GovernanceAiConfig(
+    [property: JsonPropertyName("comfortableLegitimacy"), JsonRequired] double ComfortableLegitimacy,
+    [property: JsonPropertyName("troubledLegitimacy"), JsonRequired] double TroubledLegitimacy,
+    [property: JsonPropertyName("stepPercent"), JsonRequired] double StepPercent,
+    [property: JsonPropertyName("maxRatePercent"), JsonRequired] double MaxRatePercent);
 
 /// <summary>
 /// Farming tuning — Leontief production (T1.8 director-sanctioned spec
@@ -60,7 +309,21 @@ public sealed record SimConfig(
 /// </summary>
 public sealed record FarmingConfig(
     [property: JsonPropertyName("yieldPerArableKm2PerYear"), JsonRequired] double YieldPerArableKm2PerYear,
-    [property: JsonPropertyName("outputPerFarmerPerYear"), JsonRequired] double OutputPerFarmerPerYear);
+    [property: JsonPropertyName("outputPerFarmerPerYear"), JsonRequired] double OutputPerFarmerPerYear,
+    [property: JsonPropertyName("preCultivation")] PreCultivationConfig? PreCultivation = null);
+
+/// <summary>
+/// R2a (Director decision 8) — THE PRE-CULTIVATION FOOD YIELD, an ISOLATED CONTENT SWITCH. When
+/// <see cref="Enabled"/>, a settlement whose knowledge (SettlementKnowledge.MaskOf) does not make the Farming
+/// sector's researched identity (research.json sectorActivities: activity.farming, mode "replaces") eligible
+/// harvests WILD FOOD at these rates instead of the CR-003 domesticated-cereal yield; the cultivated yield applies
+/// once the farming capability exists for the settlement. Values are DERIVED from a forager reference class
+/// stated in sim.json before any measurement (CR-003 §5.1). Disabled (or absent) = the shipped founding economy.
+/// </summary>
+public sealed record PreCultivationConfig(
+    [property: JsonPropertyName("enabled"), JsonRequired] bool Enabled,
+    [property: JsonPropertyName("yieldPerArableKm2PerYear"), JsonRequired] double YieldPerArableKm2PerYear,
+    [property: JsonPropertyName("outputPerGathererPerYear"), JsonRequired] double OutputPerGathererPerYear);
 
 /// <summary>
 /// Catchment tuning (T3.2b). A settlement's catchment is its ECONOMIC
@@ -119,6 +382,55 @@ public sealed record TransportConfig(
     [property: JsonPropertyName("riverCostFactor"), JsonRequired] double RiverCostFactor);
 
 /// <summary>
+/// ADR-032 — inter-city road tuning. EVERY NUMBER IS TUNE, a deterministic PLACEHOLDER
+/// (the Director's ruling 12: no ratified cost or speed formula exists yet). One entry per
+/// road-family class, DirtPath (the free baseline) included so the travel-time hook has a
+/// baseline speed and capacity. Read by RoadDevelopmentSystem (eligibility, cost, and the
+/// effective performance it writes onto each route through <see cref="State.RoadPerformance"/>)
+/// and by <see cref="State.TransportQuery"/> (baseline speed and capacity of the travel-time
+/// hook). Pathfinding reads the WRITTEN effective performance, never this config.
+///
+/// <c>BaselineKmPerDay</c>: freight speed over the free baseline (DirtPath) on IDEAL ground,
+/// calibrated to the Director's figure "5000 t of steel over 3000 km takes ~3 in-game months"
+/// on bad roads: 3000 km / ~90 days = 33.3 km/day. <c>MaxRouteKm</c>: the longest baseline
+/// pair (ideal-ground-equivalent km) treated as an inter-city route — beyond it two places are
+/// not neighbours a road would join directly.
+/// </summary>
+public sealed record RoadsConfig(
+    [property: JsonPropertyName("baselineKmPerDay"), JsonRequired] double BaselineKmPerDay,
+    [property: JsonPropertyName("maxRouteKm"), JsonRequired] double MaxRouteKm,
+    [property: JsonPropertyName("classes"), JsonRequired] RoadClassConfig[] Classes)
+{
+    /// <summary>The entry for <paramref name="edgeType"/>, or null.</summary>
+    public RoadClassConfig? ClassOf(int edgeType)
+    {
+        for (int i = 0; i < Classes.Length; i++)
+            if (Classes[i].EdgeType == edgeType) return Classes[i];
+        return null;
+    }
+}
+
+/// <summary>
+/// ADR-032 — one road class. <c>Entity</c>: the research.json infrastructure entity whose
+/// knowledge-eligibility makes the class buildable (null only for DirtPath, the baseline).
+/// <c>SpeedFactor</c> in (0,1]: the class's travel cost per km as a fraction of the baseline's
+/// (lower = faster; DirtPath 1). <c>CapacityTonnesPerYear</c>: freight throughput of one edge.
+/// <c>MaterialsPerKm</c>: goods consumed per km to build the class from nothing; an upgrade
+/// pays only the per-good DIFFERENCE to the class it replaces (never negative).
+/// </summary>
+public sealed record RoadClassConfig(
+    [property: JsonPropertyName("edgeType"), JsonRequired] int EdgeType,
+    [property: JsonPropertyName("entity")] string? Entity,
+    [property: JsonPropertyName("speedFactor"), JsonRequired] double SpeedFactor,
+    [property: JsonPropertyName("capacityTonnesPerYear"), JsonRequired] long CapacityTonnesPerYear,
+    [property: JsonPropertyName("materialsPerKm"), JsonRequired] RoadMaterialConfig[] MaterialsPerKm);
+
+/// <summary>ADR-032 — <c>Qty</c> units of goods.json good <c>Good</c> per km of road.</summary>
+public sealed record RoadMaterialConfig(
+    [property: JsonPropertyName("good"), JsonRequired] string Good,
+    [property: JsonPropertyName("qty"), JsonRequired] double Qty);
+
+/// <summary>
 /// Per-cohort consumption weights (T2.1): food per person per sim-year for each
 /// of the 16 five-year cohorts (D-015 constants, cohortized). Exactly
 /// Cohorts.Count entries, validated at load.
@@ -135,7 +447,17 @@ public sealed record ConsumptionConfig(
     // THE SETTLEMENT'S OWN ANNUAL GRAIN DEMAND so it scales with population and
     // introduces no per-world constant. DERIVED from agrarian household storage
     // carrying "one to a few years"; midpoint taken. Manifest 1b.
-    [property: JsonPropertyName("granaryYearsOfDemand"), JsonRequired] double GranaryYearsOfDemand);
+    [property: JsonPropertyName("granaryYearsOfDemand"), JsonRequired] double GranaryYearsOfDemand,
+    // INTRA-POLITY GRAIN RELIEF IN A SHORTAGE — D-053 §2 (the Director's 2026-10-13 instruction, item 2;
+    // D-053 §5: it supersedes D-052 §11's "no relief-pooling substitute" for this item), a partial step toward
+    // D-051 §6's ratified central stockpile, NOT that stockpile. true (shipped) = a settlement a polity controls
+    // whose grain row is EMPTY after its own eating and whose requirement is still unmet draws on the grain its
+    // polity's other settlements still hold, divided among the claimants by max-min water-filling on the
+    // NOMINAL deficit u/R (FoodRelief; not the effective deficit — ConsumptionSystem's header states why) and
+    // drawn nearest-first (ADR-032's order), BEFORE spoilage and the granary bound, which stay per settlement.
+    // IDENTITY, not TUNE: the rule has no coefficient. false or ABSENT = the per-settlement store, byte for byte
+    // — RETAINED as the golden-attribution control (TestConfigs.PreEmpireFoodAllocation; EmpireFoodAllocationTests).
+    [property: JsonPropertyName("empireFoodAllocation")] bool EmpireFoodAllocation = false);
 
 /// <summary>
 /// Cohort demographic profiles (T2.1, D-026), all per-sim-year, all TUNE
@@ -399,8 +721,10 @@ public sealed record PriceConfig(
 ///   "regional bad years are the point". At 0.6 a bad year is mostly shared
 ///   with neighbours and partly local.
 /// SpatialRangeCostUnits — CHOSEN 40.0 cost units. Never derived. The e-folding
-///   distance of the weather field, in the same travel-cost units as
-///   SettlementDistances. Settlements a short journey apart share weather
+///   distance of the weather field, in IDEAL-GROUND travel-cost units applied to the
+///   GEOGRAPHIC straight-line distance between site cells (km / KmPerCostUnit — M5 R2b:
+///   weather does not follow roads, so the road-aware SettlementDistances are no longer
+///   read; a terrain-less toy keeps its hand-written table). Settlements a short journey apart share weather
 ///   strongly; settlements across the map share it weakly. Frame: a weather
 ///   system spans a region, not a continent.
 /// </summary>
@@ -408,7 +732,22 @@ public sealed record HarvestVarianceConfig(
     [property: JsonPropertyName("sigmaLogYield"), JsonRequired] double SigmaLogYield,
     [property: JsonPropertyName("correlationTimeYears"), JsonRequired] double CorrelationTimeYears,
     [property: JsonPropertyName("spatialSharedFraction"), JsonRequired] double SpatialSharedFraction,
-    [property: JsonPropertyName("spatialRangeCostUnits"), JsonRequired] double SpatialRangeCostUnits);
+    [property: JsonPropertyName("spatialRangeCostUnits"), JsonRequired] double SpatialRangeCostUnits,
+    // M5 R2b: the distance the spatial kernel reads. Absent / "geographic" (shipped) = straight-line
+    // site-to-site distance (GeographicDistance). "travelCost" = the pre-R2b road-aware SettlementDistances,
+    // RETAINED ONLY as the attribution control (IntegratedPinAttributionTests strips the R2b layer with
+    // it; the T4.21-4 content-twin precedent). Any other value fails the load.
+    [property: JsonPropertyName("spatialDistance")] string? SpatialDistance = null,
+    // D-051 ruling 1(b) (2026-10-10): true (shipped, and the default when absent) = a turn's harvest multiplier is
+    // the TIME-AVERAGE of the yearly weather process over the turn's s = max(1, round(dt)) yearly sub-steps, and a
+    // settlement with no weather row starts at a stationary draw. false = the pre-1(b) single point draw per turn
+    // (x = 0 start), bit-exact, RETAINED ONLY as the golden-attribution control (TestConfigs.PreTimeAveragedHarvest;
+    // IntegratedPinAttributionTests proves it returns the pre-1(b) pins byte for byte).
+    [property: JsonPropertyName("timeAveragedHarvest")] bool TimeAveragedHarvest = true)
+{
+    /// <summary>True when the kernel reads the legacy road-aware travel costs (attribution control only).</summary>
+    [JsonIgnore] public bool LegacyTravelCostKernel => string.Equals(SpatialDistance, "travelCost", StringComparison.Ordinal);
+}
 
 /// <summary>
 /// T4.21-1 (CR-015 §3.1/§3.2) — the food-state classification's one constant.
@@ -572,9 +911,13 @@ public sealed record MigrationConfig(
 ///   anchor on rough routes — the right direction (overland trade harder in
 ///   the mountains, easier along rivers/paths where edges are cheap).
 /// </summary>
+/// R2a — <c>Entity</c>: the research entity (research.json, kind activity) whose knowledge eligibility makes
+/// trade BETWEEN settlements legal (State.TradeQuery.CanTrade; Director decision 1). Data, not code: no node id
+/// appears in C#. Null = ungated (the pre-R2a behaviour, kept for content without it).
 public sealed record TradeConfig(
     [property: JsonPropertyName("gapClosingFraction"), JsonRequired] double GapClosingFraction,
-    [property: JsonPropertyName("costPerBulkCostUnit"), JsonRequired] double CostPerBulkCostUnit);
+    [property: JsonPropertyName("costPerBulkCostUnit"), JsonRequired] double CostPerBulkCostUnit,
+    [property: JsonPropertyName("entity")] string? Entity = null);
 
 /// <summary>
 /// T3.8 housing tuning (director ruling: maintenance, not abstract decay).
@@ -627,12 +970,52 @@ public static class SimConfigLoader
     /// goods.json (the D-031 registry, attached as SimConfig.Goods). Systems
     /// that bind goods (Farming, Consumption at M3) refuse construction
     /// without it.</summary>
-    public static SimConfig Load(Stream simJson, Stream needsJson, Stream goodsJson) =>
-        ValidateNeedsAgainstRegistries(Load(simJson) with
+    public static SimConfig Load(Stream simJson, Stream needsJson, Stream goodsJson)
+    {
+        SimConfig cfg = ValidateNeedsAgainstRegistries(Load(simJson) with
         {
             Needs = NeedsConfigLoader.Load(needsJson),
             Goods = GoodsConfigLoader.Load(goodsJson),
         });
+        ValidateGranariesAgainstContent(cfg);
+        return cfg;
+    }
+
+    /// <summary>ADR-029: canonical four-file load — the three-file load plus
+    /// research.json (the Technology and Civics graph, D-044), attached as
+    /// SimConfig.Research. The research content is validated against the goods
+    /// registry it names in Eureka conditions (stock_&lt;good&gt;).</summary>
+    public static SimConfig Load(Stream simJson, Stream needsJson, Stream goodsJson, Stream researchJson)
+    {
+        SimConfig cfg = Load(simJson, needsJson, goodsJson);
+        cfg = cfg with { Research = Systems.Research.ResearchContentLoader.Load(researchJson, cfg.Goods) };
+        ValidateRoadsAgainstContent(cfg);
+        ValidateGovernanceAgainstContent(cfg);
+        ValidateTradeAgainstContent(cfg);
+        ValidateProjectsAgainstContent(cfg.Goods, cfg.Research);
+        ValidateInstitutionsAgainstContent(cfg);
+        return cfg;
+    }
+
+    /// <summary>ADR-031: canonical six-file load — the four-file load plus ages.json and
+    /// unit-families.json, attached as SimConfig.Ages and SimConfig.UnitFamilies. Unit
+    /// families are validated against research.json's unit entities; every milestone fact
+    /// against the research, goods, class and family content it names.</summary>
+    public static SimConfig Load(Stream simJson, Stream needsJson, Stream goodsJson, Stream researchJson,
+        Stream agesJson, Stream unitFamiliesJson)
+    {
+        SimConfig cfg = Load(simJson, needsJson, goodsJson, researchJson);
+        return WithProgression(cfg, agesJson, unitFamiliesJson);
+    }
+
+    /// <summary>ADR-031: attaches ages.json and unit-families.json to an already-loaded config
+    /// (validated against its research, goods and class registries).</summary>
+    public static SimConfig WithProgression(SimConfig cfg, Stream agesJson, Stream unitFamiliesJson)
+    {
+        Ages.UnitFamilyContent families = Ages.UnitFamilyContentLoader.Load(unitFamiliesJson, cfg.Research);
+        Ages.AgeContent ages = Ages.AgeContentLoader.Load(agesJson, cfg.Research, cfg.Goods, cfg.Registries, families);
+        return cfg with { Ages = ages, UnitFamilies = families };
+    }
 
     /// <summary>
     /// T3.5b item 4 — the two cross-file guards, at the only point where
@@ -726,9 +1109,18 @@ public static class SimConfigLoader
         }
         if (cfg is null) throw new SimConfigException("sim config is empty.");
 
+        if (cfg.HarvestVariance is { SpatialDistance: { } spatial } && spatial != "geographic" && spatial != "travelCost")
+            throw new SimConfigException(
+                $"harvestVariance.spatialDistance must be \"geographic\" (shipped) or \"travelCost\" (the pre-R2b attribution control), got \"{spatial}\".");
+
         if (cfg.Farming is null) throw new SimConfigException("farming is missing.");
         RequireRate("farming.yieldPerArableKm2PerYear", cfg.Farming.YieldPerArableKm2PerYear);
         RequireRate("farming.outputPerFarmerPerYear", cfg.Farming.OutputPerFarmerPerYear);
+        if (cfg.Farming.PreCultivation is { } pre)
+        {
+            RequireRate("farming.preCultivation.yieldPerArableKm2PerYear", pre.YieldPerArableKm2PerYear);
+            RequireRate("farming.preCultivation.outputPerGathererPerYear", pre.OutputPerGathererPerYear);
+        }
 
         if (cfg.Catchment is null) throw new SimConfigException("catchment is missing.");
         if (!(cfg.Catchment.HinterlandRadiusKm > 0.0)
@@ -774,6 +1166,44 @@ public static class SimConfigLoader
             throw new SimConfigException(
                 $"transport.riverCostFactor must be in (0,1] (a river must be cheaper than ideal "
                 + $"ground to be a corridor, and cannot be free), got {Inv(cfg.Transport.RiverCostFactor)}.");
+
+        if (cfg.Roads is not null) ValidateRoads(cfg.Roads);
+        if (cfg.Governance is not null) ValidateGovernance(cfg.Governance);
+        if (cfg.Institutions is not null) ValidateInstitutions(cfg.Institutions);
+        if (cfg.Granaries is not null) ValidateGranaries(cfg.Granaries);
+        if (cfg.Construction is { AllocationRatios: true } construction && !(construction.Incremental && construction.EmpireStockpile))
+            throw new SimConfigException(
+                "construction.allocationRatios requires construction.incremental and construction.empireStockpile to be " +
+                "true (D-054 WS2): the building/roads split caps a head's share of the Empire's purse, so it needs " +
+                $"incremental construction (a whole-or-wait head capped below its cost could never build) and the Empire " +
+                $"purse (the split is an Empire's), got incremental {(construction.Incremental ? "true" : "false")}, " +
+                $"empireStockpile {(construction.EmpireStockpile ? "true" : "false")}.");
+        if (cfg.Construction is { Reservations: true, Incremental: false })
+            throw new SimConfigException(
+                "construction.reservations requires construction.incremental to be true (D-055): a reservation sets aside " +
+                "the remaining need of a part-built queue head, and the whole-or-wait rule (incremental false) has no " +
+                "part-built head to hold for, got incremental false.");
+        if (cfg.Construction is { ContinueWithinTurn: true, Incremental: false })
+            throw new SimConfigException(
+                "construction.continueWithinTurn requires construction.incremental to be true (D-058): it carries the " +
+                "capacity a completing queue head leaves to the next entry in the same turn, and the whole-or-wait rule " +
+                "(incremental false) has no partial capacity to carry, got incremental false.");
+        if (cfg.Colonization is { } colonization
+            && !(colonization.OrderPartyFraction > 0.0 && colonization.OrderPartyFraction < 1.0))
+            throw new SimConfigException(
+                "colonization.orderPartyFraction must be in (0,1) — a party is some of the source's people and " +
+                $"never all of them (ADR-036), got {Inv(colonization.OrderPartyFraction)}.");
+        if (cfg.Colonization?.AiFounding is { } aiFounding)
+        {
+            if (aiFounding.MinSourcePopulation < 1)
+                throw new SimConfigException(
+                    "colonization.aiFounding.minSourcePopulation must be >= 1 person (ADR-036 §8), got " +
+                    $"{aiFounding.MinSourcePopulation.ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
+            if (!(aiFounding.MinYearsBetweenFoundings >= 0.0) || !double.IsFinite(aiFounding.MinYearsBetweenFoundings))
+                throw new SimConfigException(
+                    "colonization.aiFounding.minYearsBetweenFoundings must be a finite number of years >= 0 " +
+                    $"(ADR-036 §8), got {Inv(aiFounding.MinYearsBetweenFoundings)}.");
+        }
 
         if (cfg.Founding is null) throw new SimConfigException("founding is missing.");
         if (cfg.Founding.CohortCounts is null || cfg.Founding.CohortCounts.Length != State.Cohorts.Count)
@@ -980,6 +1410,285 @@ public static class SimConfigLoader
         // touches ("never NaN" is an acceptance criterion, so it is a load error).
         if (double.IsNaN(value) || double.IsInfinity(value) || value < 0.0)
             throw new SimConfigException($"{name} must be a finite value >= 0, got {Inv(value)}.");
+    }
+
+    /// <summary>
+    /// ADR-033 D3: every construction project's research entity (goods.json projects[].entity) exists in
+    /// research.json and is something a construction queue can build — a building, an institution or
+    /// infrastructure (a unit is recruited and an activity is labour, never queued). Checked where goods.json
+    /// and research.json meet; a project with no entity has no knowledge requirement. Public so the canonical
+    /// content can be checked from a config assembled without the four-file load.
+    /// </summary>
+    public static void ValidateProjectsAgainstContent(GoodsConfig? goods, Research.ResearchContent? research)
+    {
+        if (goods is null || research is null) return;
+        // R1: a recipe's entity link names a research.json entity of kind recipe (CraftingQuery gates on it).
+        foreach (RecipeEntry r in goods.Recipes)
+        {
+            if (r.Entity is null) continue;
+            int e = research.EntityIndexOf(r.Entity);
+            if (e < 0)
+                throw new SimConfigException($"goods.json recipes: '{r.Name}' names entity '{r.Entity}', which research.json does not define.");
+            if (research.Entities[e].Kind != Research.ResearchEntityKind.Recipe)
+                throw new SimConfigException($"goods.json recipes: '{r.Name}' names entity '{r.Entity}' of kind {research.Entities[e].Kind} — " +
+                                             "a recipe's knowledge entity is a recipe.");
+        }
+        if (goods.Projects is null) return;
+        foreach (ConstructionProjectEntry p in goods.Projects)
+        {
+            if (p.Entity is null) continue;
+            int e = research.EntityIndexOf(p.Entity);
+            if (e < 0)
+                throw new SimConfigException($"goods.json projects: '{p.Name}' names entity '{p.Entity}', which research.json does not define.");
+            Research.ResearchEntityKind kind = research.Entities[e].Kind;
+            if (kind is not (Research.ResearchEntityKind.Building or Research.ResearchEntityKind.Institution
+                or Research.ResearchEntityKind.Infrastructure))
+                throw new SimConfigException($"goods.json projects: '{p.Name}' names entity '{p.Entity}' of kind {kind} — a " +
+                                             "construction project realizes a building, an institution or infrastructure.");
+        }
+        // ADR-033 D6: a project that FOUNDS an institution names an institution entity and a university type
+        // research.json defines (one project per type is checked by the goods loader).
+        foreach (ConstructionProjectEntry p in goods.Projects)
+        {
+            if (p.Founds is not { } founds) continue;
+            int e = research.EntityIndexOf(founds.Entity);
+            if (e < 0)
+                throw new SimConfigException($"goods.json projects: '{p.Name}' founds entity '{founds.Entity}', which research.json does not define.");
+            if (research.Entities[e].Kind != Research.ResearchEntityKind.Institution)
+                throw new SimConfigException($"goods.json projects: '{p.Name}' founds entity '{founds.Entity}' of kind {research.Entities[e].Kind} — " +
+                                             "what a project founds is an institution.");
+            bool known = false;
+            foreach (Research.UniversityType u in research.UniversityTypes)
+                if (string.Equals(u.Id, founds.UniversityType, StringComparison.Ordinal)) { known = true; break; }
+            if (!known)
+                throw new SimConfigException($"goods.json projects: '{p.Name}' founds university type '{founds.UniversityType}', which " +
+                                             "research.json universityTypes does not define.");
+        }
+    }
+
+    /// <summary>ADR-033 D6: the university tuning — positive finite time constants, fractions in their
+    /// ranges (a cost reduction strictly below 1 so every factor stays in (0, 1], ADR-029 §9), the
+    /// sustaining surplus threshold not above the founding one (the hysteresis), a positive market and a
+    /// positive finite diffusion e-fold.</summary>
+    private static void ValidateInstitutions(InstitutionsConfig cfg)
+    {
+        UniversitiesConfig? u = cfg.Universities;
+        if (u is null) throw new SimConfigException("institutions.universities is missing.");
+        const string p = "institutions.universities.";
+        if (!(u.MaturityTauYears > 0.0) || !double.IsFinite(u.MaturityTauYears))
+            throw new SimConfigException($"{p}maturityTauYears must be a finite value > 0, got {Inv(u.MaturityTauYears)}.");
+        if (!(u.DecayTauYears > 0.0) || !double.IsFinite(u.DecayTauYears))
+            throw new SimConfigException($"{p}decayTauYears must be a finite value > 0, got {Inv(u.DecayTauYears)}.");
+        if (!(u.MatureAt > 0.0 && u.MatureAt < 1.0))
+            throw new SimConfigException($"{p}matureAt must be in (0,1) — maturity approaches 1 asymptotically, got {Inv(u.MatureAt)}.");
+        if (!(u.StaffShareAtMaturity >= 0.0 && u.StaffShareAtMaturity <= 1.0))
+            throw new SimConfigException($"{p}staffShareAtMaturity must be in [0,1], got {Inv(u.StaffShareAtMaturity)}.");
+        if (u.AdultsPerUniversity <= 0)
+            throw new SimConfigException($"{p}adultsPerUniversity must be > 0 (the host market of one university).");
+        if (!(u.SustainingFoodSurplusRatio >= 0.0) || !double.IsFinite(u.SustainingFoodSurplusRatio))
+            throw new SimConfigException($"{p}sustainingFoodSurplusRatio must be a finite value >= 0, got {Inv(u.SustainingFoodSurplusRatio)}.");
+        if (!(u.FoundingFoodSurplusRatio >= u.SustainingFoodSurplusRatio) || !double.IsFinite(u.FoundingFoodSurplusRatio))
+            throw new SimConfigException($"{p}foundingFoodSurplusRatio must be finite and >= sustainingFoodSurplusRatio (founding " +
+                                         $"is the harder test), got {Inv(u.FoundingFoodSurplusRatio)}.");
+        if (!(u.MaxResearchCostReduction >= 0.0 && u.MaxResearchCostReduction < 1.0))
+            throw new SimConfigException($"{p}maxResearchCostReduction must be in [0,1) so every factor stays in (0,1] " +
+                                         $"(ADR-029 §9), got {Inv(u.MaxResearchCostReduction)}.");
+        if (!(u.SaturatedAt > 0.0 && u.SaturatedAt < 1.0))
+            throw new SimConfigException($"{p}saturatedAt must be in (0,1), got {Inv(u.SaturatedAt)}.");
+        if (string.IsNullOrWhiteSpace(u.HealthType))
+            throw new SimConfigException($"{p}healthType must name a research.json university type id.");
+        if (!(u.MaxMortalityReduction >= 0.0 && u.MaxMortalityReduction < 1.0))
+            throw new SimConfigException($"{p}maxMortalityReduction must be in [0,1), got {Inv(u.MaxMortalityReduction)}.");
+        if (!(u.HealthDecayCostUnits > 0.0) || !double.IsFinite(u.HealthDecayCostUnits))
+            throw new SimConfigException($"{p}healthDecayCostUnits must be a finite value > 0, got {Inv(u.HealthDecayCostUnits)}.");
+    }
+
+    /// <summary>M5 item 5: the granary effects' tuning — a named project, both ceilings in [0, 1) (the famine factor
+    /// 1 − max × S stays in (0, 1], so the effective deficit is never inverted and never raised; the farm factor
+    /// 1 + max × S stays below 2), and positive finite e-fold scales.</summary>
+    private static void ValidateGranaries(GranariesConfig g)
+    {
+        const string p = "granaries.";
+        if (string.IsNullOrWhiteSpace(g.Project))
+            throw new SimConfigException($"{p}project must name a goods.json construction project.");
+        if (!(g.FarmYieldBonusMax >= 0.0 && g.FarmYieldBonusMax < 1.0))
+            throw new SimConfigException($"{p}farmYieldBonusMax must be in [0,1) — the share of the delivered harvest a " +
+                                         $"granary can save from post-harvest loss, got {Inv(g.FarmYieldBonusMax)}.");
+        if (!(g.FarmYieldScale > 0.0) || !double.IsFinite(g.FarmYieldScale))
+            throw new SimConfigException($"{p}farmYieldScale must be a finite value > 0, got {Inv(g.FarmYieldScale)}.");
+        if (!(g.FamineReductionMax >= 0.0 && g.FamineReductionMax < 1.0))
+            throw new SimConfigException($"{p}famineReductionMax must be in [0,1) so the famine factor stays in (0,1] and " +
+                                         $"the effective deficit is never inverted, got {Inv(g.FamineReductionMax)}.");
+        if (!(g.FamineReductionScale > 0.0) || !double.IsFinite(g.FamineReductionScale))
+            throw new SimConfigException($"{p}famineReductionScale must be a finite value > 0, got {Inv(g.FamineReductionScale)}.");
+    }
+
+    /// <summary>M5 item 5: the granaries section names a goods.json construction project — checked where sim.json and
+    /// goods.json meet. Public so a config assembled without the canonical load can be checked.</summary>
+    public static void ValidateGranariesAgainstContent(SimConfig cfg)
+    {
+        if (cfg.Granaries is not { } g || cfg.Goods is null) return;
+        foreach (ConstructionProjectEntry p in cfg.Goods.Projects ?? [])
+            if (string.Equals(p.Name, g.Project, StringComparison.Ordinal)) return;
+        throw new SimConfigException($"granaries.project '{g.Project}' is not a goods.json projects name.");
+    }
+
+    /// <summary>ADR-033 D6: the health type names a research.json university type.</summary>
+    private static void ValidateInstitutionsAgainstContent(SimConfig cfg)
+    {
+        if (cfg.Institutions is null || cfg.Research is null) return;
+        string health = cfg.Institutions.Universities.HealthType;
+        foreach (Research.UniversityType u in cfg.Research.UniversityTypes)
+            if (string.Equals(u.Id, health, StringComparison.Ordinal)) return;
+        throw new SimConfigException($"institutions.universities.healthType '{health}' is not a research.json universityTypes id.");
+    }
+
+    /// <summary>ADR-032: every road class's research entity exists in research.json and every
+    /// material names a goods.json good — checked where the three files meet.</summary>
+    private static void ValidateRoadsAgainstContent(SimConfig cfg)
+    {
+        if (cfg.Roads is null || cfg.Research is null || cfg.Goods is null) return;
+        foreach (RoadClassConfig c in cfg.Roads.Classes)
+        {
+            if (c.Entity is not null && cfg.Research.EntityIndexOf(c.Entity) < 0)
+                throw new SimConfigException($"roads.classes: edgeType {c.EdgeType} names entity '{c.Entity}', which research.json does not define.");
+            foreach (RoadMaterialConfig m in c.MaterialsPerKm)
+                if (cfg.Goods.IdOf(m.Good) < 0)
+                    throw new SimConfigException($"roads.classes: edgeType {c.EdgeType} names good '{m.Good}', which goods.json does not define.");
+        }
+    }
+
+    /// <summary>ADR-033 D4: the governing loop's tuning — a positive finite reach e-fold, a finite
+    /// non-negative extraction response, a non-empty taxation requirement, and the AI valve's
+    /// constants on their scales with a real dead band (troubled strictly below comfortable).</summary>
+    private static void ValidateGovernance(GovernanceConfig g)
+    {
+        if (!(g.AuthorityDecayCostUnits > 0.0) || !double.IsFinite(g.AuthorityDecayCostUnits))
+            throw new SimConfigException(
+                $"governance.authorityDecayCostUnits must be a finite value > 0 (it is the e-fold of administrative reach), got {Inv(g.AuthorityDecayCostUnits)}.");
+        RequireRate("governance.taxExtractionResponseMax", g.TaxExtractionResponseMax);
+        if (string.IsNullOrWhiteSpace(g.TaxationRequires))
+            throw new SimConfigException(
+                "governance.taxationRequires is empty — the tax edict is research-gated (ADR-033 D4); name the research.json node ids that make it available.");
+        if (g.TaxationMinAge is { } minAge && !(minAge >= 1 && minAge <= Ages.AgeContent.AgeCount))
+            throw new SimConfigException(
+                $"governance.taxationMinAge must be an ages.json key in [1,{Ages.AgeContent.AgeCount}] (the Age from which the tax edict is operational), got {minAge}.");
+        GovernanceAiConfig? ai = g.Ai;
+        if (ai is null) throw new SimConfigException("governance.ai is missing.");
+        if (!(ai.ComfortableLegitimacy >= 0.0 && ai.ComfortableLegitimacy <= 100.0))
+            throw new SimConfigException($"governance.ai.comfortableLegitimacy must be in [0,100], got {Inv(ai.ComfortableLegitimacy)}.");
+        if (!(ai.TroubledLegitimacy >= 0.0 && ai.TroubledLegitimacy < ai.ComfortableLegitimacy))
+            throw new SimConfigException(
+                $"governance.ai.troubledLegitimacy must be in [0, comfortableLegitimacy) — the dead band between the two is what stops the AI oscillating — got {Inv(ai.TroubledLegitimacy)}.");
+        if (!(ai.StepPercent > 0.0 && ai.StepPercent <= 100.0))
+            throw new SimConfigException($"governance.ai.stepPercent must be in (0,100], got {Inv(ai.StepPercent)}.");
+        if (!(ai.MaxRatePercent >= 0.0 && ai.MaxRatePercent <= 100.0))
+            throw new SimConfigException($"governance.ai.maxRatePercent must be in [0,100] (a legal SetTaxRate percentage), got {Inv(ai.MaxRatePercent)}.");
+    }
+
+    /// <summary>ADR-033 D4: the taxation requirement names real research.json nodes and is a valid
+    /// knowledge expression — parsed by the research dialect's own parser where sim.json and
+    /// research.json meet, so a typo fails the load instead of silently never unlocking taxation.</summary>
+    private static void ValidateTradeAgainstContent(SimConfig cfg)
+    {
+        if (cfg.Trade.Entity is not { } entity || cfg.Research is null) return;
+        int e = cfg.Research.EntityIndexOf(entity);
+        if (e < 0)
+            throw new SimConfigException($"sim.json trade.entity '{entity}' is not a research.json entity — trade would never become legal.");
+        if (cfg.Research.Entities[e].Kind != Systems.Research.ResearchEntityKind.Activity)
+            throw new SimConfigException($"sim.json trade.entity '{entity}' is a {cfg.Research.Entities[e].Kind}, not an activity.");
+    }
+
+    private static void ValidateGovernanceAgainstContent(SimConfig cfg)
+    {
+        if (cfg.Governance is null || cfg.Research is null) return;
+        ClassMobility.Predicate requirement;
+        try
+        {
+            requirement = Systems.Research.ResearchContentLoader.ParseRequirement(
+                cfg.Research, cfg.Governance.TaxationRequires, "governance.taxationRequires");
+        }
+        catch (Systems.Research.ResearchContentException e)
+        {
+            throw new SimConfigException($"sim.json {e.Message}", e);
+        }
+        // F1 (2026-10-05, d049 §15): the Age half of the tax gate (sim.json governance.taxationMinAge) and the Age the
+        // gate's research nodes are tagged with (research.json "age") are two statements of one fact (Director §7:
+        // Taxation is an A3 capability). They must not disagree in the direction that matters: the edict can never be
+        // declared operational in an Age EARLIER than the earliest Age at which its knowledge requirement can be met.
+        if (cfg.Governance.TaxationMinAge is { } minAge)
+        {
+            int earliest = EarliestRequirementAge(cfg.Research, requirement);
+            if (minAge < earliest)
+                throw new SimConfigException(
+                    $"sim.json governance.taxationMinAge = {minAge} is earlier than the Age of the research its gate needs "
+                    + $"(governance.taxationRequires '{cfg.Governance.TaxationRequires}' is satisfiable from A{earliest} by research.json's "
+                    + "node Age tags); the tax edict cannot be operational before the knowledge that makes it exists.");
+        }
+    }
+
+    /// <summary>F1: the earliest Age (1-based) at which <paramref name="requirement"/> can hold if every research node
+    /// tagged with that Age or earlier is known — AND takes the latest of its sides, OR the earliest (State.ResearchQuery.RequirementMet
+    /// over the Age tags). A node whose tag is not "A&lt;n&gt;" counts as Age 1. Unsatisfiable → int.MaxValue.</summary>
+    public static int EarliestRequirementAge(Systems.Research.ResearchContent research, ClassMobility.Predicate requirement)
+    {
+        ArgumentNullException.ThrowIfNull(research);
+        ArgumentNullException.ThrowIfNull(requirement);
+        var known = new bool[research.Nodes.Count];
+        for (int age = 1; age <= Ages.AgeContent.AgeCount; age++)
+        {
+            for (int n = 0; n < known.Length; n++) known[n] = NodeAge(research.Nodes[n].Age) <= age;
+            // The existing knowledge evaluator (node atoms AND entity atoms), as the live gate evaluates it.
+            if (State.ResearchQuery.RequirementMet(research, requirement, known)) return age;
+        }
+        return int.MaxValue;
+    }
+
+    private static int NodeAge(string tag) =>
+        tag.Length > 1 && tag[0] == 'A'
+        && int.TryParse(tag.AsSpan(1), System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out int n)
+            ? n : 1;
+
+    /// <summary>ADR-032: every road class once, DirtPath present with no entity, factors in (0,1],
+    /// capacities and material quantities non-negative, finite speeds.</summary>
+    private static void ValidateRoads(RoadsConfig roads)
+    {
+        if (!(roads.BaselineKmPerDay > 0.0) || !double.IsFinite(roads.BaselineKmPerDay))
+            throw new SimConfigException($"roads.baselineKmPerDay must be a finite value > 0, got {Inv(roads.BaselineKmPerDay)}.");
+        if (!(roads.MaxRouteKm > 0.0) || !double.IsFinite(roads.MaxRouteKm))
+            throw new SimConfigException($"roads.maxRouteKm must be a finite value > 0, got {Inv(roads.MaxRouteKm)}.");
+        if (roads.Classes is null || roads.Classes.Length == 0) throw new SimConfigException("roads.classes is missing.");
+        foreach (int t in State.EdgeTypes.RoadClasses)
+        {
+            int n = 0;
+            foreach (RoadClassConfig c in roads.Classes) if (c.EdgeType == t) n++;
+            if (n != 1) throw new SimConfigException($"roads.classes must define edgeType {t} exactly once, found {n}.");
+        }
+        foreach (RoadClassConfig c in roads.Classes)
+        {
+            if (!State.EdgeTypes.IsRoadClass(c.EdgeType))
+                throw new SimConfigException($"roads.classes: edgeType {c.EdgeType} is not a road class.");
+            if ((c.EdgeType == State.EdgeTypes.DirtPath) != (c.Entity is null))
+                throw new SimConfigException($"roads.classes: edgeType {c.EdgeType} — only DirtPath (the free baseline) has no research entity.");
+            if (!(c.SpeedFactor > 0.0 && c.SpeedFactor <= 1.0))
+                throw new SimConfigException($"roads.classes: edgeType {c.EdgeType} speedFactor must be in (0,1], got {Inv(c.SpeedFactor)}.");
+            if (c.CapacityTonnesPerYear <= 0)
+                throw new SimConfigException($"roads.classes: edgeType {c.EdgeType} capacityTonnesPerYear must be > 0.");
+            if (c.MaterialsPerKm is null) throw new SimConfigException($"roads.classes: edgeType {c.EdgeType} materialsPerKm is missing.");
+            foreach (RoadMaterialConfig m in c.MaterialsPerKm)
+                if (m.Good is null || !(m.Qty >= 0.0) || !double.IsFinite(m.Qty))
+                    throw new SimConfigException($"roads.classes: edgeType {c.EdgeType} has an invalid material entry.");
+            if (c.EdgeType == State.EdgeTypes.DirtPath && c.MaterialsPerKm.Length != 0)
+                throw new SimConfigException("roads.classes: DirtPath is the FREE baseline — it must cost nothing.");
+        }
+        // The Director's ruling 22: DirtPath < Trackway < BuiltRoad < PavedRoad < MacadamRoad <
+        // Highway in travel performance — speedFactor (a cost per km) STRICTLY decreasing.
+        for (int i = 1; i < State.EdgeTypes.RoadClasses.Length; i++)
+        {
+            RoadClassConfig lo = roads.ClassOf(State.EdgeTypes.RoadClasses[i - 1])!, hi = roads.ClassOf(State.EdgeTypes.RoadClasses[i])!;
+            if (!(hi.SpeedFactor < lo.SpeedFactor))
+                throw new SimConfigException($"roads.classes: edgeType {hi.EdgeType} must be strictly faster (lower speedFactor) than edgeType {lo.EdgeType}.");
+        }
     }
 
     private static string Inv(double v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);

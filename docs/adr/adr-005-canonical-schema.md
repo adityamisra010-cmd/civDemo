@@ -40,3 +40,32 @@ target, amount} records; `TurnExecutor` consumes `BatchFor(Prev.Clock.Turn)` int
 `OrderBatch`. Turn semantics: an order with Turn = t is delivered to the step
 executing from turn-t state. M0 defines exactly one order kind (SetRainBias,
 consumed by WeatherSystem) to prove the pipe end-to-end.
+
+## Dated note — 2026-10-15 (D-054, ADR-039; appended, the decision above is unchanged)
+
+"version mismatch rejected outright (D-008: no migration)" is superseded for ONE step only.
+- Schema v33 (incremental construction, the building/roads split) is the first schema with an EXPLICIT migration.
+  `Snapshot.Load` reads a v32 save through `CanonicalSchema.Read(reader, 32, …)`, which leaves the two appended tables
+  empty and treats the world as flat.
+- The v33 snapshot also carries an int32 topology trailer after the stream. The trailer is outside the stream and the
+  hash.
+- Every other version mismatch is still refused with the D-008 message.
+- Contract: `docs/adr/adr-039-schema-v33-orders-11-12-and-cylinder-topology.md` §2, §4 and §7.
+
+## Dated note — 2026-10-16 (D-055, schema v34; appended, the decision above is unchanged)
+
+Schema v34 (D-055 — the Director's batch-4 instruction, item 1: material reservations across turns) appends ONE table,
+section 61 `ConstructionHolds` (Purse, Good, Units; 16 bytes), after ResourceAllocations. No existing row changed width.
+- The readable versions are the SET {32, 33, 34}, through one helper, `CanonicalSchema.IsReadable` (CanonicalSchema.Read,
+  Snapshot.Load, Sim.Cli's SaveFiles.MigrationNote and SnapshotDiff.LayoutFor). A v33 stream stops after section 60 and a
+  v32 stream after section 58; every missing table is left empty. The v33 → v34 step is exact IN THE SHIPPED PIPELINE
+  ORDER (construction before roaddevelopment, pinned by
+  `ConstructionHoldsSchemaV34Tests.TheShippedPipeline_RunsConstructionBeforeRoadDevelopment`), because ConstructionSystem
+  clears the table at the start of every step and rebuilds it before road development reads it. In an order that runs
+  road development first, road works in the first step after a v33 load see no set-asides, while a v34 save of the same
+  state would carry its rows (`SystemCatalog.RoadDevelopment`'s ownership paragraph; pinned by
+  `ConstructionReservationTests.TheV33Migration_IsExactInTheShippedOrder_ARoadFirstOrderReadsTheMigratedWorldsEmptyTable`).
+- `Snapshot.Load` refuses a ConstructionHolds table no rule writes (unsorted or duplicate (Purse, Good), Units ≤ 0,
+  Good < 0) with `SnapshotFormatException`.
+- Every other version is still refused with the D-008 message. The topology trailer is unchanged (v33 and v34 carry it).
+- Contract: D-055 and ADR-040 (assembled at the batch-4 integration).

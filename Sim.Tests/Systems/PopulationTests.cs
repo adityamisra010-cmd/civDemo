@@ -95,7 +95,8 @@ public class PopulationTests
     {
         // Farming disabled by config — the unfed world eats only its founding store.
         SimConfig cfg = TestConfigs.Sim();
-        cfg = cfg with { Farming = cfg.Farming with { YieldPerArableKm2PerYear = 0.0 } };
+        // R4: the forager switch ships ON, so wild food is a harvest too — switch it off with the cultivated yield.
+        cfg = cfg with { Farming = cfg.Farming with { YieldPerArableKm2PerYear = 0.0, PreCultivation = null } };
         TurnExecutor exec = ProductionExecutor(cfg);
         WorldState world = Founded(cfg);
         long founding = TotalPop(world);
@@ -105,6 +106,12 @@ public class PopulationTests
         {
             world = exec.Step(world);
             AssertRowsSaneAndAuditExact(world, t);
+            // ADR-035 yield-0 arm: turn 1 is the ROW-ABSENT turn (no catchment summary in PREV), where
+            // the land side is unmeasured. With yield 0 it must stay 0 — never ∞ × 0 = NaN, never a
+            // phantom labour-limited harvest. Every turn, the founding one included, harvests nothing.
+            for (int i = 0; i < world.GoodStocks.Count; i++)
+                if (world.GoodStocks[i].Good.Value == cfg.Goods!.GrainId)
+                    Assert.Equal(0L, world.GoodStocks[i].LastProducedUnits);
 
             long store = world.GoodStocks[0].Amount.Value;
             if (firstZeroFoodTurn < 0 && store == 0) firstZeroFoodTurn = t;
@@ -466,7 +473,13 @@ public class PopulationTests
             world.SectorAllocations.Add(new SectorAllocationRow(
                 world.Settlements[i].Id, Farming: 1.0, Herding: 0.0,
                 Extraction: 0.0, Crafting: 0.0, Construction: 0.0));
-        for (int t = 1; t <= 900; t++) world = exec.Step(world);
+        // D-051 1(b) RE-AIM (2026-10-10, time-averaged decade weather; MEASURED on this tree by the agent writing this
+        // line): 900 -> 1000 turns, the T3.1 re-stretch precedent. Time-averaging the decade harvest removes the
+        // single-year droughts that used to tip this rig over the forager land ceiling early, so on seed 42 the first
+        // starvation moves past the old horizon to turn 914 (11,348 starved by turn 1200). The rig, its seed and every
+        // assertion below are unchanged; only the horizon is long enough again for all four Population flows to occur.
+        // (Seeds 1 / 2 / 7 starve first at 656 / 711 / 787 on the same rig.)
+        for (int t = 1; t <= 1000; t++) world = exec.Step(world);
 
         long popEndow = 0, births = 0, deaths = 0, starved = 0;
         long foodEndow = 0, harvest = 0, eaten = 0, spoiled = 0, granaryOverflow = 0;
@@ -506,7 +519,7 @@ public class PopulationTests
         for (int i = 0; i < world.GoodStocks.Count; i++) storeTotal += world.GoodStocks[i].Amount.Value;
         Assert.Equal(storeTotal, foodFromLedger);            // food-exact
         Assert.True(births > 0 && deaths > 0 && harvest > 0 && eaten > 0,
-            "reconciliation is vacuous — some flow never occurred in 900 turns");
+            "reconciliation is vacuous — some flow never occurred in 1000 turns");
         // CR-003 QUARANTINE — RE-INSTATED BY T4.21-7, AND WHY, WITH BOTH
         // MEASUREMENTS. The original T3.2b quarantine recorded that the
         // Starvation flow never occurs on the pre-Malthusian dev world, so
@@ -531,7 +544,19 @@ public class PopulationTests
         // moment the rate is ruled non-zero — one data edit — this quarantine
         // fires, and it must then be deleted and the guard restored again.
         // CR-003 itself is untouched and stays open.
-        Cr003Quarantine.FamineGuardStillDisarmed(starved > 0, "starved > 0 in 900 turns");
+        //
+        // R4 (2026-10-04, forager switch ON at 2.0 / 4.3): RESOLVED FOR THIS
+        // RIG, the T4.21-4 precedent. This rig pins ALL labour to food, so
+        // the labour side never binds and the FORAGER LAND CEILING (2.0 per
+        // fertility-weighted km², 13x below the cultivated 26.0) is reached
+        // inside 900 turns: starvation occurs (measured by the agent writing
+        // this line; the quarantine fired). The original guard is restored.
+        // The calibration battery's dev worlds, with the shipped sector mix,
+        // still starve NOBODY (Dev_MalthusCorridors), so CR-003 and its
+        // battery quarantine stay open and untouched. Layer control: with the
+        // switch OFF this rig is the pre-R4 world and the quarantine reading
+        // above (STARVED 0) holds again.
+        Assert.True(starved > 0, "starved > 0 in 1000 turns — the forager land ceiling no longer binds in the all-food rig");
     }
 
     // --- bench report -------------------------------------------------------

@@ -148,8 +148,11 @@ public class ConstructionTests
         TopUp(world, place, "timber", 5_000_000);
         TopUp(world, place, "stone", 5_000_000);
 
+        // Director 2026-10-10 (D-051 §4): a workshop ORDER is now refused at founding (its tools have no production
+        // path), so the stalled head is placed in the queue directly — the state a save from before the guard holds.
+        // Queue-head resolution is unchanged, and this test still pins it.
+        world.ConstructionQueue.Add(new ConstructionQueueRow(place, 0, Workshop));
         var orders = new OrderLog();
-        orders.Append(Enqueue(0, player, place, Workshop));
         orders.Append(Enqueue(0, player, place, Granary));
         WorldState next = Executor(orders).Run(world, 3);
 

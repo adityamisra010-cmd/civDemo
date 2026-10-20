@@ -45,7 +45,7 @@ public class TelemetryTests
                 Assert.DoesNotContain("ObservationLog", File.ReadAllText(file));
             }
         }
-        Assert.Equal(25, CanonicalSchema.Version);   // nothing here is serialized into the schema (v25 is T4.21-1's Disasters table)
+        Assert.Equal(34, CanonicalSchema.Version);   // nothing here is serialized into the schema (v26 is ADR-029's research tables) (v31: ADR-033 D6/D10 Institutions + ConstructionLabor) (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins)
     }
 
     [Fact]
@@ -173,7 +173,7 @@ public class TelemetryTests
         // (3) NOT IN THE SCHEMA. The canonical version is T4.21-1's v25 and this
         // packet did not touch it; neither the section types nor their JSON keys
         // appear in the serializer or in WorldState.
-        Assert.Equal(25, CanonicalSchema.Version);
+        Assert.Equal(34, CanonicalSchema.Version);   // v31: ADR-033 D6/D10 Institutions + ConstructionLabor (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins)
         string root = RepoPaths.Root();
         foreach (string file in new[] { "Sim.Core/Kernel/CanonicalSchema.cs", "Sim.Core/State/WorldState.cs" })
         {
@@ -189,7 +189,7 @@ public class TelemetryTests
         using var line = new MemoryStream();
         TelemetryWriter.WriteTurn(line, Observer.Observe(prev, next, TestConfigs.Sim(), []));
         string text2 = System.Text.Encoding.UTF8.GetString(line.ToArray());
-        Assert.Contains("\"schema\":\"telemetry/v3\"", text2, StringComparison.Ordinal);
+        Assert.Contains("\"schema\":\"telemetry/v4\"", text2, StringComparison.Ordinal);   // ADR-033 D4 moved the tag (social.tax)
         foreach (string key in new[]
                  { "\"foodState\"", "\"state\"", "\"famineReason\"", "\"effectiveDeficit\"", "\"abandoned\"",
                    "\"disasterMultiplierThisStep\"", "\"disasterAppliedMultiplier\"",

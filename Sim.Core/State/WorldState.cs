@@ -434,8 +434,10 @@ public record struct SmoothedAttractivenessRow(SettlementId Settlement, double V
 /// <summary>
 /// T3.4b (CR-003 ruling §3): per-settlement harvest weather. LogDeviation is the
 /// AR(1) state in LOG space — it lives in the row so it clones and snapshots
-/// (systems are stateless). Multiplier is exp(LogDeviation − σ²/2), the
-/// mean-one factor applied to realised farm output this turn.
+/// (systems are stateless). Multiplier is the mean-one factor applied to realised farm output this
+/// turn: since D-051 ruling 1(b) (2026-10-10) the TIME-AVERAGE of exp(x − σ²/2) over the turn's yearly
+/// sub-steps, so it is no longer exp(LogDeviation − σ²/2) of the carried end-of-turn state (they
+/// coincide only when the turn is one sub-step, dt < 1.5 years).
 ///
 /// MEAN ONE IS THE POINT. E[exp(x)] = exp(σ²/2) for x ~ N(0, σ²), so the −σ²/2
 /// correction makes E[Multiplier] exactly 1. Weather changes the VARIANCE of
@@ -604,6 +606,15 @@ public record struct ClaimRow(PolityId Polity, SettlementId Place, double Streng
 /// loyalty computation exists yet — this field is written by nothing in
 /// this packet, and nothing in this packet enforces the one-or-none
 /// cardinality either (no system exists yet to violate it).
+///
+/// ADR-033 D4 (M5 governing loop, v30): <c>Strength</c> IS NOW THE ADMINISTRATIVE REACH and
+/// has exactly ONE computer, GovernanceSystem, which rewrites it every step as
+/// exp(−travelCost / authorityDecayCostUnits) from the controller's capital over PREV
+/// SettlementDistances (road-aware; D-040 C3/C6) — 1.0 at the capital, 0.0 with no capital or
+/// no route on record. Founding and colonization still write the initial 1.0, which governance
+/// overwrites on its first step. It is the ONE stored reach: the effective tax rate reads it
+/// (<see cref="Governance.EffectiveTaxRate"/>) and nothing recomputes reach beside it. Without
+/// a governance section in the config the loop is inert and the field keeps what founding wrote.
 /// </summary>
 public record struct ControlRow(PolityId Polity, SettlementId Place, double Strength);
 
@@ -628,7 +639,7 @@ public record struct ControlRow(PolityId Polity, SettlementId Place, double Stre
 /// defection is auditable rather than a silent field flip.
 ///
 /// DELIBERATELY ABSENT: competence, traits, experience, and every battle field.
-/// Those parameterize the AutoResolver, which is M6 (m4-spec §1.6, "Strategic war
+/// Those parameterize the AutoResolver, which is M7 Battle Layer (m4-spec §1.6, "Strategic war
 /// is AutoResolver ONLY at M4" — and the resolver itself is deferred). This row
 /// carries identity, place, allegiance and the person. Nothing else.
 /// </summary>
@@ -663,7 +674,7 @@ public struct NotableRow(
 /// (T4.3 PROHIBITED 2), which could only express "recognised by someone" or
 /// a single counterparty, not the many-to-many asymmetric relation D-037
 /// requires. Row PRESENCE is the fact: no payload beyond the two keys is
-/// needed at T4.3 (D-037 C7's diplomatic consequences are a later, M7
+/// needed at T4.3 (D-037 C7's diplomatic consequences are a later, M8
 /// packet).
 /// </summary>
 public record struct RecognitionRow(PolityId Recogniser, PolityId Recognised);
@@ -731,15 +742,80 @@ public record struct CapitalRow(PolityId Polity, SettlementId Place);
 /// Ordering is the SLOT, an explicit integer, not row position — rows are
 /// appended and removed over time and "wherever the row happens to sit" is not
 /// an order anyone can rely on across a save. Head of a settlement's queue is
-/// its lowest slot. Slots are assigned strictly increasing per settlement and
-/// are never reused, so insertion order is total and deterministic.
+/// its lowest slot. A new entry takes one past the settlement's highest slot
+/// CURRENTLY queued, so slots increase strictly while the queue is non-empty and
+/// insertion order is total and deterministic; once a settlement's queue EMPTIES
+/// its next entry takes slot 0 again (slots ARE reused — an earlier version of
+/// this comment said otherwise, which was never true). Reuse is safe because every
+/// reader matches an entry's progress on (Settlement, Slot, ProjectId) and
+/// ConstructionSystem removes an entry's progress row with the entry itself
+/// (<see cref="ConstructionProgressRow"/>, the invariant there).
 ///
-/// There is NO progress field here, deliberately: no percent, no turns
-/// remaining, no completion turn. A project either has its materials and its
-/// labour this turn and is built whole, or it waits unchanged. Duration is
-/// emergent from what the settlement can marshal, never a stored timer.
+/// THE ENTRY CARRIES NO PROGRESS FIELD; its progress lives beside it in
+/// <see cref="ConstructionProgressRow"/> (schema v33, WS1 — D-054 supersedes M4-D's
+/// "built whole or waits"). Keeping this row's 12-byte layout unchanged leaves
+/// every caller of its constructor untouched. Duration is still emergent from what
+/// the settlement can marshal — labour and materials each turn — never a stored
+/// timer.
 /// </summary>
 public record struct ConstructionQueueRow(SettlementId Settlement, int Slot, int ProjectId);
+
+/// <summary>
+/// WS1 (schema v33; D-054 — the Director's 2026-10-14 instruction, workstream 1, superseding M4-D's
+/// "built whole or waits") — HOW FAR ONE QUEUED ENTRY HAS BEEN BUILT. Owned by ConstructionSystem.
+///
+/// <c>Progress</c> is an integer p in [0, N), N = ConstructionQuery.ProgressUnits (1,000,000): the
+/// fraction p / N of the project's labour has been done and, for each input of cost c, exactly
+/// ceil(c × p / N) units have been delivered (ConstructionQuery.Delivered — materials FIRST: no
+/// progress without the next unit of every input). A completed entry (p = N) is removed with its
+/// queue row in the step it completes, so no stored row ever holds N. Delivered materials left their
+/// good stocks through the Ledger as the work went in: they are SUNK, never a stock held here.
+/// <c>EnqueuedTurn</c> is the turn whose batch carried the accepted order (PREV's clock in the step
+/// that enqueued it) — the building order's FIFO key, oldest first (ConstructionSystem's header).
+///
+/// INVARIANT: every row has a <see cref="ConstructionQueueRow"/> with the same (Settlement, Slot,
+/// ProjectId), at most one row per (Settlement, Slot), and Progress in [0, N − 1]; queue slots are
+/// unique per settlement. The converse is optional: a queue entry with no row has p = 0 and is ordered as
+/// EnqueuedTurn = −1 (every entry of a v32 save, which had no partial state to carry). Asserted at
+/// the end of every construction step and by Snapshot.Load, through the one statement
+/// ConstructionQuery.ProgressInvariantViolation. Row order: appended at enqueue in intake
+/// order (or at an absent-row entry's first progress), updated in place, removed preserving the
+/// relative order of the rest. Not a conserved stock: a measure of work, not of goods or people.
+/// </summary>
+public record struct ConstructionProgressRow(
+    SettlementId Settlement, int Slot, int ProjectId, long EnqueuedTurn, long Progress);
+
+/// <summary>
+/// WS2 (schema v33; D-054) — ONE EMPIRE'S BUILDING/ROADS MATERIAL SPLIT: the whole-number share
+/// <c>BuildingsPercent</c> in [0, 100] of the empire purse that building projects are guaranteed on a
+/// turn road works are ordered (roads get 100 − it). Owned by ConstructionSystem, upserted by the
+/// SetResourceAllocation order (kind 12). ABSENCE OF A ROW IS THE DEFAULT 100 — building first, road
+/// works get what building work leaves (the batch-2 rule). The table is part of the v33 layout from
+/// the first v33 build; its semantics are WS2's (ConstructionSystem's header).
+/// </summary>
+public record struct ResourceAllocationRow(PolityId Polity, int BuildingsPercent);
+
+/// <summary>
+/// D-055 (schema v34; the Director's batch-4 instruction, item 1: projects must not consume resources reserved by other
+/// projects) — ONE PURSE'S SET-ASIDE OF ONE GOOD: the <c>Units</c> of good <c>Good</c> that the construction queue heads
+/// drawing on purse <c>Purse</c> set aside this step for what they still need (a "hold"). Owned by ConstructionSystem: the
+/// table is CLEARED at the start of EVERY construction step, whatever sim.json construction.reservations says, and rebuilt
+/// at the end of the step's walk when reservations are on — the per-step publication pattern of ConstructionLaborRow
+/// (section 57). It is never an input to construction: road development reads it read-only (SystemCatalog's ownership
+/// record — order is data: in the shipped pipeline.json it runs later in the SAME step, after construction rebuilt it),
+/// and the UI reads it for display.
+///
+/// <c>Purse</c> is the identity of the holder set a head draws from (ConstructionQuery.Holders): ≥ 0 is a polity id (an
+/// Empire purse); &lt; 0 is −1 − settlementId (a single-settlement purse: purse-off, a stateless settlement, a world
+/// without control rows) — State.Reservations.SettlementPurse / PolityPurse.
+///
+/// INVARIANT (State.Reservations.InvariantViolation, asserted by Snapshot.Load and at the end of every construction step):
+/// rows in strictly ascending (Purse, Good), compared as integers — so no key appears twice; Units &gt; 0 (a purse holding
+/// nothing of a good has no row); Good ≥ 0. The goods-registry bound needs content and is checked where content is
+/// available (the end-of-step invariant), not at load. Not a conserved stock: a count of units already in the purse's
+/// GoodStocks rows, never units of its own — holds move no goods; only Ledger draws do.
+/// </summary>
+public record struct ConstructionHoldRow(int Purse, int Good, long Units);
 
 /// <summary>
 /// M4-D — a completed structure, counted per (settlement, project).
@@ -780,6 +856,281 @@ public record struct StructureRow(SettlementId Settlement, int ProjectId, long C
 public record struct DisasterRow(
     SettlementId Settlement, int Kind, double Severity, double RemainingYears,
     double Multiplier, double AppliedMultiplier);
+
+// ---------------------------------------------------------------------------
+// ADR-029 / D-044 — RESEARCH STATE (schema v26). The minimum authoritative
+// research state (D-044 R18): the active target, per-node partial progress,
+// the completed-knowledge set, the fired-Eureka set and (addendum A) the
+// acceleration-credit provenance; ResearchExposures is an input seam. Everything else —
+// availability, subtree opening, effective cost, RP throughput — is DERIVED
+// from these rows and research.json by ResearchQuery and is never stored.
+// None of it is people, money or goods, so none of it touches the Ledger (law 1):
+// RP and progress are rates/quantities of the research domain, stored as doubles
+// (law 7), the PathProgressRow.Banked precedent.
+// ---------------------------------------------------------------------------
+
+/// <summary>
+/// ADR-029: a polity's ONE active research target (D-044 R9) — a Technology or a
+/// Civics node; one pool serves both trees (R2, R12). Owned by ResearchSystem.
+/// At most one row per polity; ABSENCE means no target, and the RP throughput of
+/// a polity with no target reaches no node and is not stored anywhere (R20-D: no
+/// general bank). Set and cleared only by the SetResearchTarget order (D-042 §6.2:
+/// a persistent directive, not re-issued every turn); cleared by the system when
+/// the target completes.
+/// </summary>
+public record struct ResearchTargetRow(PolityId Polity, ResearchNodeId Node);
+
+/// <summary>
+/// ADR-029: RP invested in one node by one polity that has NOT completed it
+/// (D-044 R9: partial progress is kept per node; switching target never erases
+/// it). Owned by ResearchSystem. Created lazily on the first credit — the active
+/// target's RP or an acceleration credit — and removed when the node completes (completion is
+/// then the fact; the progress is not needed to rebuild anything). Progress is in
+/// RP, the same unit as the node's cost, and never exceeds the node's effective
+/// cost at the time it was credited.
+/// </summary>
+public record struct ResearchProgressRow(PolityId Polity, ResearchNodeId Node, double Progress);
+
+/// <summary>
+/// ADR-029: one node in one polity's completed knowledge (D-044 R1, R11: the
+/// knowledge base IS the set of completed Technology and Civics nodes). Owned by
+/// ResearchSystem. ROW PRESENCE IS THE FACT (the RecognitionRow idiom); rows are
+/// appended in completion order and never removed — knowledge acquired by the
+/// civilization remains (R1). Completion is idempotent: the system never adds a
+/// second row for the same (polity, node).
+/// </summary>
+public record struct ResearchCompletedRow(PolityId Polity, ResearchNodeId Node);
+
+/// <summary>
+/// ADR-029: one fired Eureka — the Eureka at index <c>Eureka</c> of the node's
+/// list in research.json (D-044 R10). Each Eureka carries one condition. Owned by
+/// ResearchSystem. Row presence is the fact; a fired Eureka never fires again, so its
+/// credit is applied exactly once (finalization ruling: idempotence).
+/// </summary>
+public record struct ResearchEurekaRow(PolityId Polity, ResearchNodeId Node, int Eureka);
+
+/// <summary>
+/// ADR-029 addendum A — ACCELERATION-CREDIT PROVENANCE. The cumulative credit one source
+/// (<c>Source</c> = <see cref="Sim.Core.Systems.Research.AccelerationSource"/>: 1 Eureka,
+/// 2 foreign exposure) has added to one node of one polity. All sources draw on ONE pool:
+/// their sum per node never exceeds accelerationCreditCeilingFraction × BaseCost (0.40).
+/// Owned by ResearchSystem; kept after completion so the Glass Box can say how a node was
+/// paid for. Created on a source's first credit to the node.
+/// </summary>
+public record struct ResearchCreditRow(PolityId Polity, ResearchNodeId Node, int Source, double Amount);
+
+/// <summary>
+/// ADR-029 addendum A — THE FOREIGN-EXPOSURE SEAM (finalization ruling 4). The CUMULATIVE
+/// foreign-exposure credit offered to one polity for one node (contact, trade, diffusion).
+/// THIS IS AN INPUT CONTRACT, NOT RESEARCH STATE: its writer is a future contact/diffusion
+/// system, and NO SYSTEM WRITES IT YET (the ResearchCostModifierRow precedent). ResearchSystem
+/// reads it from Prev and credits the offered amount not yet credited, from the shared pool,
+/// capped at the pool's headroom and the remaining EffectiveCost — so an offer is never paid
+/// twice and never overflows.
+/// </summary>
+public record struct ResearchExposureRow(PolityId Polity, ResearchNodeId Node, double Offered);
+
+/// <summary>
+/// ADR-029 §9 — THE SPECIALIZED-UNIVERSITY COST SEAM (D-044 R5). One polity's
+/// effective cost factor for the subtree its specialized-university type serves.
+/// <c>UniversityType</c> is the type's stable key in research.json
+/// (universityTypes[].key). <c>Factor</c> is a multiplicative factor on BaseCost,
+/// in (0, 1]: EffectiveCost = BaseCost × Π Factor over this polity's rows whose
+/// type serves the node's subtree, taken in table order.
+///
+/// THIS IS AN INPUT CONTRACT, NOT RESEARCH STATE. Its writer is the future
+/// institutions system, which establishes and matures universities. Diminishing
+/// returns, maturity and local viability (ADR-028 DD-13, DD-14) belong in that
+/// writer's computation of Factor. No such system exists, so NO SYSTEM WRITES
+/// THIS TABLE: the ClaimRow / RecognitionRow precedent of a schema that precedes
+/// its owner. ResearchSystem only reads it, from Prev. In the shipped world it is
+/// always empty, so EffectiveCost == BaseCost. The formula that maps universities
+/// to Factor is NOT ratified (R5), and nothing here invents one. D-021: the first
+/// writer closes the research → university loop and owes its brake (ADR-029 §9).
+/// ADR-033 D6 (schema v31): THE WRITER NOW EXISTS. InstitutionsSystem rebuilds this table
+/// every step from the maturities of the polity's universities — Factor = 1 − maxResearch-
+/// CostReduction × (1 − e^−X), X the maturity-weighted count of the type — and ships the
+/// D-021 brake with it (staff withdrawn from labour; docs/institutions-universities.md §7).
+/// The formula is a TUNE implementation choice under R5, not a ratification of one.
+/// </summary>
+public record struct ResearchCostModifierRow(PolityId Polity, int UniversityType, double Factor);
+
+/// <summary>
+/// ADR-031 (D-047 rulings 12-14; ledger §10) — ONE POLITY'S AGE. Owned by
+/// AgeTransitionSystem. <c>Age</c> is the ratified Age number 1..9 (ages.json key).
+/// ABSENCE OF A ROW MEANS THE FOUNDING AGE (ages.json foundingAge, A1): a row is
+/// written on the polity's first advance, so every pre-existing world reads
+/// correctly with no backfill. Age is COMPUTED STATE (law 4): it changes only when
+/// the polity's milestone requirements hold over published state AND the polity
+/// issues an AdvanceAge order; it never decreases (ledger §10.1).
+/// <c>EnteredTurn</c> is the first turn whose state shows this Age. <c>Surge</c> is the
+/// chosen surge emphasis key (ages.json surges[].key) and <c>SurgeStartTurn</c> the
+/// turn it began. The surge is stored and queryable; NO numeric effect is applied by
+/// any system (ledger §10.5/§27 defer the formula).
+/// </summary>
+public record struct AgeStateRow(PolityId Polity, int Age, long EnteredTurn, int Surge, long SurgeStartTurn);
+
+/// <summary>
+/// ADR-031 — the published eligibility of one polity for its NEXT Age, owned by
+/// AgeEligibilitySystem (the thin evaluator of D-047 ruling 12). Rebuilt every step,
+/// one row per roster polity below the last Age, in roster order. The facts are read
+/// from PREV (state at turn <c>EvaluatedTurn</c>); the Age they are evaluated against
+/// is the polity's Age in NEXT (an AdvanceAge applied this step is accounted for).
+/// <c>CategoryMask</c> has bit (k-1) set for every category key k covered by a HELD
+/// supporting milestone. Live, per-milestone status is <see cref="AgeQuery"/>.
+/// </summary>
+public record struct AgeEligibilityRow(
+    PolityId Polity, int NextAge, long EvaluatedTurn, int CoreMet, int CoreTotal,
+    int SupportingMet, int SupportingRequired, int CategoryMask, int CategoriesRequired, bool Eligible);
+
+/// <summary>
+/// ADR-031 — ONE AGE TRANSITION (Glass Box log, append-only), owned by
+/// AgeTransitionSystem. The decision was the AdvanceAge order stamped
+/// <c>DecisionTurn</c>; the transition takes effect in the state of
+/// <c>EffectiveTurn</c> = DecisionTurn + 1 (the next turn begins under the new Age;
+/// the deciding turn is not altered retroactively).
+/// </summary>
+public record struct AgeTransitionRow(
+    PolityId Polity, int FromAge, int ToAge, int Surge, long DecisionTurn, long EffectiveTurn);
+
+/// <summary>
+/// ADR-031 (D-047 Parts 2-3; D-043 B5) — ONE MILITARY FORMATION. Minimal state:
+/// identity (<c>Id</c>, stable, never reused), owner, its unit FAMILY and current
+/// IDENTITY (unit-families.json keys), location (the settlement it is stationed at,
+/// or -1 in the field) and continuous position (terrain pixel coordinates, the
+/// D-047 ruling 17 x/y frame), experience and army membership (<c>Army</c> 0 = none).
+/// NOT A CONSERVED CARRIER: a formation holds no people and no goods (the
+/// population stays in Buckets; equipment is declarative), so free modernization
+/// conjures nothing (law 1; CR-017 §4). Owned by AgeTransitionSystem, the only
+/// writer, which converts formations on Age transition (ruling 18). Founded by
+/// worldgen (baseline.basic_military). Recruitment, movement, supply and combat are
+/// later milestones (D-011).
+/// </summary>
+public record struct MilitaryUnitRow(
+    int Id, PolityId Owner, int Family, int Identity, SettlementId Location,
+    double X, double Y, double Experience, int Army);
+
+/// <summary>
+/// ADR-031 — ONE MODERNIZATION OUTCOME (Glass Box log, append-only), owned by
+/// AgeTransitionSystem. Written for EVERY formation of a polity at each Age
+/// transition, including the preserved ones, so "why is this unit still a warband"
+/// is answerable. <c>Outcome</c>: 1 converted to the family successor, 2 converted
+/// to the family's explicit generic successor (another family), 3 preserved (no
+/// successor yet), 4 preserved (family does not auto-modernize).
+/// </summary>
+public record struct UnitConversionRow(
+    long Turn, int Unit, PolityId Owner, int FromFamily, int FromIdentity, int ToFamily, int ToIdentity,
+    int FromAge, int ToAge, int Outcome);
+
+/// <summary>
+/// ADR-032 — ONE PHYSICAL INTER-SETTLEMENT TRANSPORT ROUTE (an edge of the built multigraph).
+/// Owned by RoadDevelopmentSystem. <c>Id</c> identifies the PHYSICAL route, stable and never
+/// reused; a route is MODERNIZED IN PLACE (the Director's final ruling 6) — upgrading never
+/// creates a second row. Any number of rows MAY join the same two settlements when they are
+/// genuinely separate physical routes (ruling 11); nothing assumes one edge per pair.
+/// <c>A</c> &lt; <c>B</c> (normalized endpoints).
+/// <para><c>EdgeType</c> is the road class FULLY achieved (<see cref="EdgeTypes"/>);
+/// <c>TargetClass</c> the class the route is being modernized toward (== EdgeType when no
+/// modernization is under way); <c>Modernization</c> the fraction [0, 1) of the
+/// EdgeType → TargetClass upgrade performed (proportional, ruling 7 — reaching 1 promotes
+/// EdgeType to TargetClass and resets it to 0). <c>CostFactor</c> is the EFFECTIVE travel-cost
+/// multiplier per km (relative to the free baseline, lower = faster) interpolated by
+/// <see cref="RoadPerformance"/> — the ONE road-performance value Pathfinder, catchments and
+/// TransportQuery.EstimateFreight all read (ruling 8). <c>CapacityTonnesPerYear</c> is the
+/// effective (interpolated) freight capacity — a physical attribute, read by no route choice
+/// (ruling 19).</para>
+/// <c>Mode</c> the transport mode (<see cref="TransportModes"/>), <c>State</c> the construction
+/// state (<see cref="TransportEdgeStates"/>), <c>LengthKm</c> the ideal-ground-equivalent length
+/// fixed when the route row was first written. <c>Condition</c> is a NEUTRAL, READ-ONLY
+/// PLACEHOLDER (ruling 18): written 0, read by no system. NO OWNER FIELD (ruling 12).
+/// The free baseline DirtPath with no development is NOT a row — it is PathBuild's
+/// NetworkEdges plus the pairwise baseline cost (SettlementDistances).
+/// </summary>
+public record struct TransportEdgeRow(
+    int Id, SettlementId A, SettlementId B, int EdgeType, int Mode, int State,
+    long CapacityTonnesPerYear, double LengthKm, int Condition, long BuiltTurn, long UpgradedTurn,
+    int TargetClass, double Modernization, double CostFactor);
+
+/// <summary>
+/// ADR-032 — ONE ROAD-DEVELOPMENT ACTION (Glass Box log, append-only), owned by
+/// RoadDevelopmentSystem: which route the DevelopRoads order of <c>Polity</c> (the ISSUER, who
+/// paid — not an owner) modernized on <c>Turn</c> (the decision turn; the effect exists in the
+/// state of Turn + 1), at what <c>Usage</c> rank key, from which fully-achieved class toward
+/// which target class, whether it modernized an existing route row (<c>Kind</c> 1) or a bare
+/// baseline path whose route row it first wrote (<c>Kind</c> 2), the modernization fraction
+/// before and after, and the material units it consumed through the Ledger.
+/// </summary>
+public record struct RoadDevelopmentRow(
+    long Turn, PolityId Polity, int Edge, SettlementId A, SettlementId B,
+    int FromClass, int ToClass, int Kind, long Usage, long MaterialUnits,
+    double ProgressBefore, double ProgressAfter);
+
+/// <summary>
+/// ADR-033 D4 (the M5 governing loop, ported from <c>m5-full-build</c>) — ONE EMPIRE'S TAX
+/// POLICY. A standing governance decision, owned by GovernanceSystem (SetTaxRate, order kind 5).
+///
+/// <c>Rate</c> is the NOMINAL rate the Empire has declared, a dimensionless fraction in [0, 1]:
+/// what the state ASKS for. What a settlement actually bears is that rate scaled by the
+/// settlement's administrative reach, which is <see cref="ControlRow.Strength"/> — the ONE
+/// stored reach (<see cref="Governance.EffectiveTaxRate"/>). The nominal and the effective rate
+/// are different quantities and are never conflated.
+///
+/// ABSENCE OF A ROW IS THE NEVER-LEGISLATED DEFAULT OF ZERO (the <see cref="SectorAllocationRow"/>
+/// precedent): an Empire that never issued a valid SetTaxRate levies nothing, so every world
+/// founded before v30 behaves exactly as it did.
+///
+/// WHAT THIS ROW IS NOT (CR-008: "tax is a policy on flows; no treasury"): not a treasury, not
+/// a receipt, not a stock and not an owner. No good moves because of it and nothing accumulates
+/// in it; goods stay physically localized in <see cref="GoodStockRow"/>. Keyed by POLITY: taxation
+/// is an Empire-level decision applying to everything the Empire controls.
+/// </summary>
+public record struct TaxPolicyRow(PolityId Polity, double Rate);
+
+/// <summary>
+/// ADR-033 D6 (schema v31) — ONE FOUNDED INSTITUTION INSTANCE: today one of the five specialized
+/// universities (D-047 ruling 9), founded through the construction queue and matured by
+/// InstitutionsSystem, its ONLY writer (docs/institutions-universities.md).
+///
+/// <c>Id</c> is stable and never reused (one past the highest id the table has held; rows are not
+/// removed in this pass). <c>Polity</c> is the OWNER — the controller of <c>Settlement</c> when the
+/// institution was founded (0 when it was founded in a stateless settlement): the research effect
+/// accrues to it. It is not a second copy of control: a later change of the settlement's controller
+/// changes <see cref="ControlRow"/>, not this row (transfer on conquest is later work).
+/// <c>Type</c> is the research.json <c>universityTypes[].key</c>. <c>FoundedTurn</c> is the turn of the
+/// first state that contains the row. <c>Maturity</c> ∈ [0, 1] is THE stored quantity of ADR-028 §3
+/// (ACTIVE below matureAt, MATURE at or above it): staffing, viability, every effect and the saturation
+/// reading are DERIVED from it and from published state — nothing else about an institution is stored.
+/// Not a conserved carrier: an institution holds no people and no goods (its scholars stay in Buckets;
+/// its materials left GoodStocks through the Ledger when ConstructionSystem built it).
+/// </summary>
+public record struct InstitutionRow(
+    int Id, PolityId Polity, SettlementId Settlement, int Type, long FoundedTurn, double Maturity);
+
+/// <summary>
+/// ADR-033 D10 (schema v31) — THE CONSTRUCTION LABOUR A SETTLEMENT'S QUEUE CONSUMED THIS STEP, in
+/// adult-years. Owned by ConstructionSystem; REBUILT every step (cleared first, a row only where the
+/// queue's head consumed labour — the TradeFlows / Disasters precedent; absence reads 0). With incremental
+/// construction (WS1, sim.json construction.incremental) it is the labour the head's progress used this
+/// step, L × (p' − p) / N, written only when the head progressed; with the switch off, the project's
+/// whole laborRequired in the step it was built. PathBuild subtracts it at the standard §3.2 one-turn
+/// lag exactly as it subtracts <see cref="HousingRow.LastLaborUsed"/>, so construction capacity is spent
+/// once: labour the queue used is not also banked toward dirt paths, while capacity the head did NOT use
+/// still reaches PathBuild's bank. Observational, not a stock.
+/// </summary>
+public record struct ConstructionLaborRow(SettlementId Settlement, double LastLaborUsed);
+
+/// <summary>
+/// H2 (schema v32; Director 2026-10-05 §4–§6, RATIFIED in docs/d049-taxation-and-revolt-model.md) — THE LEVY'S
+/// GRIEVANCE OF ONE POPULATION SEGMENT: the accumulated tax pressure held by the members of one class in one
+/// settlement (a D-010 "grievance stock" whose source is "taxation pain"). A double stock — NOT conserved, never
+/// Ledger (law 1 governs people, money and goods; grievance is manufactured and destroyed). Owned by
+/// NeedsGrievanceSystem, which integrates it per year with dtYears exactly as it integrates the needs grievance:
+/// T' = T + accrual(felt levy) × dt − decay × T × dt. Rows appear only where a levy has been felt (an untaxed
+/// world holds none) and persist while the memory decays; a class with no members, and an extinct settlement, hold
+/// zero (the T2.13 / T3.5b ghost-grievance rule). Read by the simulation ONLY through <see cref="Unrest"/> (the
+/// read-isolation gate).
+/// </summary>
+public record struct TaxGrievanceRow(SettlementId Settlement, ClassId Class, double Value);
 
 /// <summary>
 /// Read-only view of the world (kernel contract §3.1). Systems read the previous
@@ -848,6 +1199,71 @@ public interface IReadOnlyWorldState
 
     /// <summary>T4.21-1: per-settlement famine-class production shocks — owned by DisasterSystem.</summary>
     IReadOnlyTable<DisasterRow> Disasters { get; }
+
+    /// <summary>ADR-029: each polity's one active research target — owned by ResearchSystem.</summary>
+    IReadOnlyTable<ResearchTargetRow> ResearchTargets { get; }
+
+    /// <summary>ADR-029: per-(polity, node) partial research progress — owned by ResearchSystem.</summary>
+    IReadOnlyTable<ResearchProgressRow> ResearchProgress { get; }
+
+    /// <summary>ADR-029: the completed-knowledge set — owned by ResearchSystem.</summary>
+    IReadOnlyTable<ResearchCompletedRow> ResearchCompleted { get; }
+
+    /// <summary>ADR-029: fired Eurekas — owned by ResearchSystem.</summary>
+    IReadOnlyTable<ResearchEurekaRow> ResearchEurekas { get; }
+
+    /// <summary>ADR-029 §9: specialized-university cost factors — an input contract for the
+    /// future institutions system; no system writes it yet.</summary>
+    IReadOnlyTable<ResearchCostModifierRow> ResearchCostModifiers { get; }
+
+    /// <summary>ADR-029 addendum A: acceleration-credit provenance per source — owned by ResearchSystem.</summary>
+    IReadOnlyTable<ResearchCreditRow> ResearchCredits { get; }
+
+    /// <summary>ADR-029 addendum A: offered foreign-exposure credit — an input contract; no system writes it yet.</summary>
+    IReadOnlyTable<ResearchExposureRow> ResearchExposures { get; }
+
+    /// <summary>ADR-031: each polity's Age (absence = founding Age) — owned by AgeTransitionSystem.</summary>
+    IReadOnlyTable<AgeStateRow> AgeStates { get; }
+
+    /// <summary>ADR-031: published next-Age eligibility — owned by AgeEligibilitySystem.</summary>
+    IReadOnlyTable<AgeEligibilityRow> AgeEligibility { get; }
+
+    /// <summary>ADR-031: the Age-transition log — owned by AgeTransitionSystem.</summary>
+    IReadOnlyTable<AgeTransitionRow> AgeTransitions { get; }
+
+    /// <summary>ADR-031: military formations — owned by AgeTransitionSystem; founded by worldgen.</summary>
+    IReadOnlyTable<MilitaryUnitRow> MilitaryUnits { get; }
+
+    /// <summary>ADR-031: the unit-modernization log — owned by AgeTransitionSystem.</summary>
+    IReadOnlyTable<UnitConversionRow> UnitConversions { get; }
+
+    /// <summary>ADR-032: built inter-settlement transport edges (a multigraph) — owned by RoadDevelopmentSystem.</summary>
+    IReadOnlyTable<TransportEdgeRow> TransportEdges { get; }
+
+    /// <summary>ADR-032: the road-development log — owned by RoadDevelopmentSystem.</summary>
+    IReadOnlyTable<RoadDevelopmentRow> RoadDevelopments { get; }
+
+    /// <summary>ADR-033 D4: standing tax policy per Empire (absence = the zero default) — owned by GovernanceSystem.</summary>
+    IReadOnlyTable<TaxPolicyRow> TaxPolicies { get; }
+
+    /// <summary>ADR-033 D6 (v31): founded institution instances — owned by InstitutionsSystem.</summary>
+    IReadOnlyTable<InstitutionRow> Institutions { get; }
+
+    /// <summary>ADR-033 D10 (v31): construction labour consumed this step — owned by ConstructionSystem.</summary>
+    IReadOnlyTable<ConstructionLaborRow> ConstructionLabor { get; }
+
+    /// <summary>H2 (v32): the levy's grievance per (settlement, class) segment — owned by NeedsGrievanceSystem.</summary>
+    IReadOnlyTable<TaxGrievanceRow> TaxGrievances { get; }
+
+    /// <summary>WS1 (v33): per-entry construction progress (absence = 0) — owned by ConstructionSystem.</summary>
+    IReadOnlyTable<ConstructionProgressRow> ConstructionProgress { get; }
+
+    /// <summary>WS2 (v33): each Empire's building/roads material split (absence = 100) — owned by ConstructionSystem.</summary>
+    IReadOnlyTable<ResourceAllocationRow> ResourceAllocations { get; }
+
+    /// <summary>D-055 (v34): each purse's set-aside units per good this step — owned by ConstructionSystem, cleared every
+    /// construction step; never a simulation input.</summary>
+    IReadOnlyTable<ConstructionHoldRow> ConstructionHolds { get; }
 }
 
 /// <summary>
@@ -991,6 +1407,69 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>T4.21-1 (CR-015 §3.3): famine-class production shocks — owned by DisasterSystem.</summary>
     public Table<DisasterRow> Disasters { get; }
 
+    /// <summary>ADR-029: each polity's one active research target — owned by ResearchSystem.</summary>
+    public Table<ResearchTargetRow> ResearchTargets { get; }
+
+    /// <summary>ADR-029: per-(polity, node) partial research progress — owned by ResearchSystem.</summary>
+    public Table<ResearchProgressRow> ResearchProgress { get; }
+
+    /// <summary>ADR-029: the completed-knowledge set — owned by ResearchSystem.</summary>
+    public Table<ResearchCompletedRow> ResearchCompleted { get; }
+
+    /// <summary>ADR-029: fired Eurekas — owned by ResearchSystem.</summary>
+    public Table<ResearchEurekaRow> ResearchEurekas { get; }
+
+    /// <summary>ADR-029 §9: specialized-university cost factors — no system writes it yet.</summary>
+    public Table<ResearchCostModifierRow> ResearchCostModifiers { get; }
+
+    /// <summary>ADR-029 addendum A: acceleration-credit provenance per source — owned by ResearchSystem.</summary>
+    public Table<ResearchCreditRow> ResearchCredits { get; }
+
+    /// <summary>ADR-029 addendum A: offered foreign-exposure credit — no system writes it yet.</summary>
+    public Table<ResearchExposureRow> ResearchExposures { get; }
+
+    /// <summary>ADR-031: each polity's Age (absence = founding Age) — owned by AgeTransitionSystem.</summary>
+    public Table<AgeStateRow> AgeStates { get; }
+
+    /// <summary>ADR-031: published next-Age eligibility — owned by AgeEligibilitySystem.</summary>
+    public Table<AgeEligibilityRow> AgeEligibility { get; }
+
+    /// <summary>ADR-031: the Age-transition log — owned by AgeTransitionSystem.</summary>
+    public Table<AgeTransitionRow> AgeTransitions { get; }
+
+    /// <summary>ADR-031: military formations — owned by AgeTransitionSystem; founded by worldgen.</summary>
+    public Table<MilitaryUnitRow> MilitaryUnits { get; }
+
+    /// <summary>ADR-031: the unit-modernization log — owned by AgeTransitionSystem.</summary>
+    public Table<UnitConversionRow> UnitConversions { get; }
+
+    /// <summary>ADR-032: built inter-settlement transport edges (a multigraph) — owned by RoadDevelopmentSystem.</summary>
+    public Table<TransportEdgeRow> TransportEdges { get; }
+
+    /// <summary>ADR-032: the road-development log — owned by RoadDevelopmentSystem.</summary>
+    public Table<RoadDevelopmentRow> RoadDevelopments { get; }
+
+    /// <summary>ADR-033 D4: standing tax policy per Empire — owned by GovernanceSystem.</summary>
+    public Table<TaxPolicyRow> TaxPolicies { get; }
+
+    /// <summary>ADR-033 D6 (v31): founded institution instances — owned by InstitutionsSystem.</summary>
+    public Table<InstitutionRow> Institutions { get; }
+
+    /// <summary>ADR-033 D10 (v31): construction labour consumed this step — owned by ConstructionSystem.</summary>
+    public Table<ConstructionLaborRow> ConstructionLabor { get; }
+
+    /// <summary>H2 (v32): the levy's grievance per (settlement, class) segment — owned by NeedsGrievanceSystem.</summary>
+    public Table<TaxGrievanceRow> TaxGrievances { get; }
+
+    /// <summary>WS1 (v33): per-entry construction progress — owned by ConstructionSystem.</summary>
+    public Table<ConstructionProgressRow> ConstructionProgress { get; }
+
+    /// <summary>WS2 (v33): each Empire's building/roads material split — owned by ConstructionSystem.</summary>
+    public Table<ResourceAllocationRow> ResourceAllocations { get; }
+
+    /// <summary>D-055 (v34): each purse's set-aside units per good this step — owned by ConstructionSystem.</summary>
+    public Table<ConstructionHoldRow> ConstructionHolds { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
@@ -1031,6 +1510,27 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<ConstructionQueueRow> IReadOnlyWorldState.ConstructionQueue => ConstructionQueue;
     IReadOnlyTable<StructureRow> IReadOnlyWorldState.Structures => Structures;
     IReadOnlyTable<DisasterRow> IReadOnlyWorldState.Disasters => Disasters;
+    IReadOnlyTable<ResearchTargetRow> IReadOnlyWorldState.ResearchTargets => ResearchTargets;
+    IReadOnlyTable<ResearchProgressRow> IReadOnlyWorldState.ResearchProgress => ResearchProgress;
+    IReadOnlyTable<ResearchCompletedRow> IReadOnlyWorldState.ResearchCompleted => ResearchCompleted;
+    IReadOnlyTable<ResearchEurekaRow> IReadOnlyWorldState.ResearchEurekas => ResearchEurekas;
+    IReadOnlyTable<ResearchCostModifierRow> IReadOnlyWorldState.ResearchCostModifiers => ResearchCostModifiers;
+    IReadOnlyTable<ResearchCreditRow> IReadOnlyWorldState.ResearchCredits => ResearchCredits;
+    IReadOnlyTable<ResearchExposureRow> IReadOnlyWorldState.ResearchExposures => ResearchExposures;
+    IReadOnlyTable<AgeStateRow> IReadOnlyWorldState.AgeStates => AgeStates;
+    IReadOnlyTable<AgeEligibilityRow> IReadOnlyWorldState.AgeEligibility => AgeEligibility;
+    IReadOnlyTable<AgeTransitionRow> IReadOnlyWorldState.AgeTransitions => AgeTransitions;
+    IReadOnlyTable<MilitaryUnitRow> IReadOnlyWorldState.MilitaryUnits => MilitaryUnits;
+    IReadOnlyTable<UnitConversionRow> IReadOnlyWorldState.UnitConversions => UnitConversions;
+    IReadOnlyTable<TransportEdgeRow> IReadOnlyWorldState.TransportEdges => TransportEdges;
+    IReadOnlyTable<RoadDevelopmentRow> IReadOnlyWorldState.RoadDevelopments => RoadDevelopments;
+    IReadOnlyTable<TaxPolicyRow> IReadOnlyWorldState.TaxPolicies => TaxPolicies;
+    IReadOnlyTable<InstitutionRow> IReadOnlyWorldState.Institutions => Institutions;
+    IReadOnlyTable<ConstructionLaborRow> IReadOnlyWorldState.ConstructionLabor => ConstructionLabor;
+    IReadOnlyTable<TaxGrievanceRow> IReadOnlyWorldState.TaxGrievances => TaxGrievances;
+    IReadOnlyTable<ConstructionProgressRow> IReadOnlyWorldState.ConstructionProgress => ConstructionProgress;
+    IReadOnlyTable<ResourceAllocationRow> IReadOnlyWorldState.ResourceAllocations => ResourceAllocations;
+    IReadOnlyTable<ConstructionHoldRow> IReadOnlyWorldState.ConstructionHolds => ConstructionHolds;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -1075,6 +1575,27 @@ public sealed class WorldState : IReadOnlyWorldState
         ConstructionQueue = new Table<ConstructionQueueRow>();
         Structures = new Table<StructureRow>();
         Disasters = new Table<DisasterRow>();
+        ResearchTargets = new Table<ResearchTargetRow>();
+        ResearchProgress = new Table<ResearchProgressRow>();
+        ResearchCompleted = new Table<ResearchCompletedRow>();
+        ResearchEurekas = new Table<ResearchEurekaRow>();
+        ResearchCostModifiers = new Table<ResearchCostModifierRow>();
+        ResearchCredits = new Table<ResearchCreditRow>();
+        ResearchExposures = new Table<ResearchExposureRow>();
+        AgeStates = new Table<AgeStateRow>();
+        AgeEligibility = new Table<AgeEligibilityRow>();
+        AgeTransitions = new Table<AgeTransitionRow>();
+        MilitaryUnits = new Table<MilitaryUnitRow>();
+        UnitConversions = new Table<UnitConversionRow>();
+        TransportEdges = new Table<TransportEdgeRow>();
+        RoadDevelopments = new Table<RoadDevelopmentRow>();
+        TaxPolicies = new Table<TaxPolicyRow>();
+        Institutions = new Table<InstitutionRow>();
+        ConstructionLabor = new Table<ConstructionLaborRow>();
+        TaxGrievances = new Table<TaxGrievanceRow>();
+        ConstructionProgress = new Table<ConstructionProgressRow>();
+        ResourceAllocations = new Table<ResourceAllocationRow>();
+        ConstructionHolds = new Table<ConstructionHoldRow>();
     }
 
     private WorldState(
@@ -1097,7 +1618,20 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<RecognitionRow> recognitions, Table<NotableRow> notables,
         Table<PolityRow> polities, Table<CapitalRow> capitals,
         Table<ConstructionQueueRow> constructionQueue, Table<StructureRow> structures,
-        Table<DisasterRow> disasters)
+        Table<DisasterRow> disasters,
+        Table<ResearchTargetRow> researchTargets, Table<ResearchProgressRow> researchProgress,
+        Table<ResearchCompletedRow> researchCompleted, Table<ResearchEurekaRow> researchEurekas,
+        Table<ResearchCostModifierRow> researchCostModifiers, Table<ResearchCreditRow> researchCredits,
+        Table<ResearchExposureRow> researchExposures,
+        Table<AgeStateRow> ageStates, Table<AgeEligibilityRow> ageEligibility,
+        Table<AgeTransitionRow> ageTransitions, Table<MilitaryUnitRow> militaryUnits,
+        Table<UnitConversionRow> unitConversions,
+        Table<TransportEdgeRow> transportEdges, Table<RoadDevelopmentRow> roadDevelopments,
+        Table<TaxPolicyRow> taxPolicies,
+        Table<InstitutionRow> institutions, Table<ConstructionLaborRow> constructionLabor,
+        Table<TaxGrievanceRow> taxGrievances,
+        Table<ConstructionProgressRow> constructionProgress, Table<ResourceAllocationRow> resourceAllocations,
+        Table<ConstructionHoldRow> constructionHolds)
     {
         Seed = seed;
         Clock = clock;
@@ -1141,6 +1675,27 @@ public sealed class WorldState : IReadOnlyWorldState
         ConstructionQueue = constructionQueue;
         Structures = structures;
         Disasters = disasters;
+        ResearchTargets = researchTargets;
+        ResearchProgress = researchProgress;
+        ResearchCompleted = researchCompleted;
+        ResearchEurekas = researchEurekas;
+        ResearchCostModifiers = researchCostModifiers;
+        ResearchCredits = researchCredits;
+        ResearchExposures = researchExposures;
+        AgeStates = ageStates;
+        AgeEligibility = ageEligibility;
+        AgeTransitions = ageTransitions;
+        MilitaryUnits = militaryUnits;
+        UnitConversions = unitConversions;
+        TransportEdges = transportEdges;
+        RoadDevelopments = roadDevelopments;
+        TaxPolicies = taxPolicies;
+        Institutions = institutions;
+        ConstructionLabor = constructionLabor;
+        TaxGrievances = taxGrievances;
+        ConstructionProgress = constructionProgress;
+        ResourceAllocations = resourceAllocations;
+        ConstructionHolds = constructionHolds;
     }
 
     /// <summary>
@@ -1160,7 +1715,13 @@ public sealed class WorldState : IReadOnlyWorldState
             HarvestWeather.Clone(), TradeFlows.Clone(), Housing.Clone(),
             Claims.Clone(), Controls.Clone(), Recognitions.Clone(), Notables.Clone(),
             Polities.Clone(), Capitals.Clone(),
-            ConstructionQueue.Clone(), Structures.Clone(), Disasters.Clone())
+            ConstructionQueue.Clone(), Structures.Clone(), Disasters.Clone(),
+            ResearchTargets.Clone(), ResearchProgress.Clone(), ResearchCompleted.Clone(),
+            ResearchEurekas.Clone(), ResearchCostModifiers.Clone(), ResearchCredits.Clone(), ResearchExposures.Clone(),
+            AgeStates.Clone(), AgeEligibility.Clone(), AgeTransitions.Clone(), MilitaryUnits.Clone(),
+            UnitConversions.Clone(), TransportEdges.Clone(), RoadDevelopments.Clone(),
+            TaxPolicies.Clone(), Institutions.Clone(), ConstructionLabor.Clone(), TaxGrievances.Clone(),
+            ConstructionProgress.Clone(), ResourceAllocations.Clone(), ConstructionHolds.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };

@@ -1,0 +1,209 @@
+using System.Globalization;
+using System.Text;
+using Sim.Ui.Art;
+using Rgba = Sim.Ui.Art.ParchmentPalette.Rgba;
+
+namespace Sim.Ui.Render;
+
+/// <summary>
+/// THE SVG BACKEND — replays a <see cref="DrawList"/> as a standalone SVG document, for
+/// headless previews and screenshots (MonoGame cannot open a GL context in the build
+/// container, so the in-engine path cannot be captured there). Output is
+/// deterministic: invariant number formatting and first-use ordering throughout.
+/// </summary>
+public static class SvgWriter
+{
+    /// <param name="fontDirectory">Directory holding EBGaramond-Variable.ttf,
+    /// IBMPlexSerif-Regular.ttf and IBMPlexSans-Regular.ttf (assets/fonts); null falls back to
+    /// generic faces. A RELATIVE directory is emitted as a relative URL (resolved against the SVG's own
+    /// location — what the preview runs pass, via <see cref="FontDirectoryFor"/>, so a committed preview's
+    /// bytes do not depend on the checkout path); an absolute one as an absolute file URI.</param>
+    public static string Write(DrawList list, double width, double height, string? fontDirectory = null)
+    {
+        var sb = new StringBuilder();
+        var symbols = new StringBuilder();
+        int clipId = 0;
+        int openGroups = 0;
+
+        sb.Append(CultureInfo.InvariantCulture,
+            $"<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"{N(width)}\" height=\"{N(height)}\" viewBox=\"0 0 {N(width)} {N(height)}\">\n");
+        sb.Append("<style>\n");
+        if (fontDirectory is not null)
+        {
+            string garamond = FontUrl(fontDirectory, "EBGaramond-Variable.ttf");
+            string plex = FontUrl(fontDirectory, "IBMPlexSerif-Regular.ttf");
+            string sans = FontUrl(fontDirectory, "IBMPlexSans-Regular.ttf");
+            sb.Append(CultureInfo.InvariantCulture, $"@font-face {{ font-family: 'EB Garamond'; src: url('{garamond}'); font-weight: 400 800; }}\n");
+            sb.Append(CultureInfo.InvariantCulture, $"@font-face {{ font-family: 'IBM Plex Serif'; src: url('{plex}'); }}\n");
+            sb.Append(CultureInfo.InvariantCulture, $"@font-face {{ font-family: 'IBM Plex Sans'; src: url('{sans}'); }}\n");
+        }
+        sb.Append(".b { font-family: 'EB Garamond', Georgia, serif; }\n");
+        sb.Append(".h { font-family: 'EB Garamond', Georgia, serif; font-weight: 600; }\n");
+        sb.Append(".c { font-family: 'EB Garamond', Georgia, serif; font-weight: 600; letter-spacing: 0.06em; }\n");
+        sb.Append(".n { font-family: 'IBM Plex Serif', Georgia, serif; }\n");
+        sb.Append("</style>\n");
+        int defsAt = sb.Length;
+
+        foreach (DrawCmd cmd in list.Commands)
+        {
+            switch (cmd)
+            {
+                case RectCmd r:
+                    sb.Append(CultureInfo.InvariantCulture, $"<rect x=\"{N(r.Rect.X)}\" y=\"{N(r.Rect.Y)}\" width=\"{N(r.Rect.W)}\" height=\"{N(r.Rect.H)}\"");
+                    if (r.Radius > 0) sb.Append(CultureInfo.InvariantCulture, $" rx=\"{N(r.Radius)}\"");
+                    Fill(sb, r.Fill);
+                    Stroke(sb, r.Stroke, r.StrokeWidth, null);
+                    sb.Append("/>\n");
+                    break;
+                case LineCmd l:
+                    sb.Append(CultureInfo.InvariantCulture, $"<line x1=\"{N(l.X0)}\" y1=\"{N(l.Y0)}\" x2=\"{N(l.X1)}\" y2=\"{N(l.Y1)}\"");
+                    Stroke(sb, l.Color, l.Width, l.Dash);
+                    sb.Append(" stroke-linecap=\"round\"/>\n");
+                    break;
+                case BezierCmd b:
+                    sb.Append(CultureInfo.InvariantCulture,
+                        $"<path d=\"M{N(b.P0.X)} {N(b.P0.Y)} C{N(b.P1.X)} {N(b.P1.Y)} {N(b.P2.X)} {N(b.P2.Y)} {N(b.P3.X)} {N(b.P3.Y)}\" fill=\"none\"");
+                    Stroke(sb, b.Color, b.Width, b.Dash);
+                    sb.Append(" stroke-linecap=\"round\"/>\n");
+                    break;
+                case PolygonCmd p:
+                    sb.Append("<polygon points=\"");
+                    for (int i = 0; i < p.Points.Length; i++)
+                        sb.Append(CultureInfo.InvariantCulture, $"{(i > 0 ? " " : "")}{N(p.Points[i].X)},{N(p.Points[i].Y)}");
+                    sb.Append('"');
+                    Fill(sb, p.Fill);
+                    sb.Append("/>\n");
+                    break;
+                case PolylineCmd pl:
+                    if (pl.Points.Length < 2) break;
+                    sb.Append(pl.Closed ? "<polygon points=\"" : "<polyline points=\"");
+                    for (int i = 0; i < pl.Points.Length; i++)
+                        sb.Append(CultureInfo.InvariantCulture, $"{(i > 0 ? " " : "")}{N(pl.Points[i].X)},{N(pl.Points[i].Y)}");
+                    sb.Append("\" fill=\"none\"");
+                    Stroke(sb, pl.Color, pl.Width, null);
+                    sb.Append(" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n");
+                    break;
+                case CircleCmd c:
+                    sb.Append(CultureInfo.InvariantCulture, $"<circle cx=\"{N(c.Cx)}\" cy=\"{N(c.Cy)}\" r=\"{N(c.R)}\"");
+                    Fill(sb, c.Fill);
+                    Stroke(sb, c.Stroke, c.StrokeWidth, null);
+                    sb.Append("/>\n");
+                    break;
+                case ArcCmd a:
+                {
+                    double sweep = System.Math.Clamp(a.SweepDeg, 0, 359.99);
+                    (double x0, double y0) = Polar(a.Cx, a.Cy, a.R, a.StartDeg);
+                    (double x1, double y1) = Polar(a.Cx, a.Cy, a.R, a.StartDeg + sweep);
+                    sb.Append(CultureInfo.InvariantCulture,
+                        $"<path d=\"M{N(x0)} {N(y0)} A{N(a.R)} {N(a.R)} 0 {(sweep > 180 ? 1 : 0)} 1 {N(x1)} {N(y1)}\" fill=\"none\"");
+                    Stroke(sb, a.Color, a.Width, null);
+                    sb.Append("/>\n");
+                    break;
+                }
+                case TextCmd t:
+                {
+                    string anchor = t.Align switch { TextAlign.Center => "middle", TextAlign.Right => "end", _ => "start" };
+                    if (t.Style is TextStyle st)
+                    {
+                        // Set in the era theme's style. SVG letter-spacing also follows the LAST
+                        // glyph; the ImGui backend and the measures track only between glyphs, so
+                        // an anchored run is shifted back by the trailing amount to land where they do.
+                        double track = st.TrackingPx(t.Size);
+                        double x = t.X + (t.Align == TextAlign.Right ? track : t.Align == TextAlign.Center ? track / 2 : 0);
+                        sb.Append(CultureInfo.InvariantCulture,
+                            $"<text x=\"{N(x)}\" y=\"{N(t.Y + t.Size * 0.82)}\" font-size=\"{N(t.Size)}\" text-anchor=\"{anchor}\" font-family=\"{Family(st.Face)}\" font-weight=\"{st.Weight}\"");
+                        if (track != 0) sb.Append(CultureInfo.InvariantCulture, $" letter-spacing=\"{N(track)}\"");
+                        Fill(sb, t.Color);
+                        sb.Append('>').Append(Escape(st.Apply(t.Text))).Append("</text>\n");
+                        break;
+                    }
+                    string cls = t.Role switch { FontRole.Heading or FontRole.Title => "h", FontRole.Caps => "c", FontRole.Numeric => "n", _ => "b" };
+                    sb.Append(CultureInfo.InvariantCulture,
+                        $"<text class=\"{cls}\" x=\"{N(t.X)}\" y=\"{N(t.Y + t.Size * 0.82)}\" font-size=\"{N(t.Size)}\" text-anchor=\"{anchor}\"");
+                    Fill(sb, t.Color);
+                    sb.Append('>').Append(Escape(t.Text)).Append("</text>\n");
+                    break;
+                }
+                case ClipPushCmd cp:
+                {
+                    string id = "c" + (clipId++).ToString(CultureInfo.InvariantCulture);
+                    symbols.Append(CultureInfo.InvariantCulture,
+                        $"<clipPath id=\"{id}\"><rect x=\"{N(cp.Rect.X)}\" y=\"{N(cp.Rect.Y)}\" width=\"{N(cp.Rect.W)}\" height=\"{N(cp.Rect.H)}\"/></clipPath>\n");
+                    sb.Append(CultureInfo.InvariantCulture, $"<g clip-path=\"url(#{id})\">\n");
+                    openGroups++;
+                    break;
+                }
+                case ClipPopCmd:
+                    if (openGroups > 0) { sb.Append("</g>\n"); openGroups--; }
+                    break;
+            }
+        }
+        while (openGroups-- > 0) sb.Append("</g>\n");
+        sb.Append("</svg>\n");
+        sb.Insert(defsAt, "<defs>\n" + symbols + "</defs>\n");
+        return sb.ToString();
+    }
+
+    /// <summary>F3 (M5 hardening): the font directory as the preview runs pass it to <see cref="Write"/> — relative
+    /// to the directory the SVG is written to, with '/' separators, so the @font-face URLs (and so the preview
+    /// hashes) are the same from any checkout and the PNG renders (headless Chromium on the file://) still resolve
+    /// them. Null stays null; a font directory with no relative route (another drive) stays absolute.</summary>
+    public static string? FontDirectoryFor(string? fontDirectory, string svgDirectory)
+    {
+        if (fontDirectory is null) return null;
+        string rel = Path.GetRelativePath(Path.GetFullPath(svgDirectory), Path.GetFullPath(fontDirectory));
+        return Path.IsPathRooted(rel) ? rel : rel.Replace('\\', '/');
+    }
+
+    private static string FontUrl(string fontDirectory, string file)
+    {
+        if (Path.IsPathRooted(fontDirectory))
+            return new Uri(Path.Combine(Path.GetFullPath(fontDirectory), file)).AbsoluteUri;
+        string rel = fontDirectory.Replace('\\', '/').TrimEnd('/');
+        string joined = rel.Length == 0 || rel == "." ? file : rel + "/" + file;
+        var sb = new StringBuilder();
+        foreach (string seg in joined.Split('/'))
+        {
+            if (sb.Length > 0) sb.Append('/');
+            sb.Append(Uri.EscapeDataString(seg));
+        }
+        return sb.ToString();
+    }
+
+    /// <summary>The CSS family stack for a face (the @font-face names above, then a fallback).</summary>
+    private static string Family(TypeFace face) => face switch
+    {
+        TypeFace.PlexSerif => "'IBM Plex Serif', Georgia, serif",
+        TypeFace.PlexSans => "'IBM Plex Sans', Arial, sans-serif",
+        _ => "'EB Garamond', Georgia, serif",
+    };
+
+    private static (double, double) Polar(double cx, double cy, double r, double deg)
+    {
+        double a = deg * System.Math.PI / 180.0;
+        return (cx + System.Math.Sin(a) * r, cy - System.Math.Cos(a) * r);
+    }
+
+    private static void Fill(StringBuilder sb, Rgba? c)
+    {
+        if (c is not Rgba f) { sb.Append(" fill=\"none\""); return; }
+        sb.Append(CultureInfo.InvariantCulture, $" fill=\"{Hex(f)}\"");
+        if (f.A < 255) sb.Append(CultureInfo.InvariantCulture, $" fill-opacity=\"{N(f.A / 255.0)}\"");
+    }
+
+    private static void Stroke(StringBuilder sb, Rgba? c, double width, (double On, double Off)? dash)
+    {
+        if (c is not Rgba s) return;
+        sb.Append(CultureInfo.InvariantCulture, $" stroke=\"{Hex(s)}\" stroke-width=\"{N(width)}\"");
+        if (s.A < 255) sb.Append(CultureInfo.InvariantCulture, $" stroke-opacity=\"{N(s.A / 255.0)}\"");
+        if (dash is (double on, double off)) sb.Append(CultureInfo.InvariantCulture, $" stroke-dasharray=\"{N(on)} {N(off)}\"");
+    }
+
+    private static string Hex(Rgba c) => $"#{c.R:X2}{c.G:X2}{c.B:X2}";
+
+    private static string N(double v) =>
+        (System.Math.Round(v, 2) + 0.0).ToString("0.##", CultureInfo.InvariantCulture);
+
+    private static string Escape(string s) =>
+        s.Replace("&", "&amp;", StringComparison.Ordinal).Replace("<", "&lt;", StringComparison.Ordinal).Replace(">", "&gt;", StringComparison.Ordinal);
+}

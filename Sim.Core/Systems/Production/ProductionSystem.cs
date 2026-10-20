@@ -41,7 +41,11 @@ public readonly record struct ProductionTables(Table<GoodStockRow> GoodStocks);
 ///    stock the settlement must craft and replace. Equipped farmers wear tools
 ///    out at ToolWearPerEquippedFarmerPerYear (Ledger sink ToolWear), so the
 ///    bonus DEPLETES: stock raises yield, use consumes stock (law 2 — a
-///    mechanism, not a modifier). Grain keeps reason Harvest and
+///    mechanism, not a modifier). M5 item 5: the REALISED rate also carries
+///    the settlement's LOCAL granary factor (State.GranaryEffects — post-harvest
+///    loss saved by its own granaries; bounded, saturating, 1.0 and skipped
+///    without one or while the settlement still gathers wild food) beside
+///    weather and extraction. Grain keeps reason Harvest and
 ///    LastProducedUnits (food_surplus_ratio and migration's anyFood gate
 ///    depend on the grain row exactly as at M2).
 ///  - HERDING/FISHING → livestock and fish, rate = pool × w_g ×
@@ -93,9 +97,14 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
     /// construction (validation already proved they parse at load).</summary>
     private readonly ClassMobility.Predicate?[] _requires;
 
+    /// <summary>M5 item 5: the granary content resolved ONCE at construction (State.GranaryEffects.Bind — the active
+    /// section and the goods.json project id), so Farm scans no project names per settlement per turn.</summary>
+    private readonly GranaryBinding _granaries;
+
     public ProductionSystem(SimConfig cfg)
     {
         _cfg = cfg;
+        _granaries = GranaryEffects.Bind(cfg);
         GoodsConfig goods = cfg.Goods ?? throw new ArgumentException(
             "ProductionSystem requires SimConfig.Goods (goods.json) — production is the goods economy.");
         _grain = new GoodId(goods.GrainId);
@@ -152,7 +161,11 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
                 { shares = prev.SectorAllocations[i]; break; }
             }
 
-            long adults = BandViews.Adults(prev.Buckets, settlement);
+            // ADR-033 D6: production labour = adults − institutional staff, BEFORE the sector
+            // shares apply — read through the one labour reader (InstitutionStaffing) every
+            // sector pool uses. Scholars are real adults withdrawn from work, never created or
+            // destroyed; with no institution this is exactly the adult count, bit for bit.
+            double adults = InstitutionStaffing.LabourAdults(prev, _cfg, settlement);
 
             // T4.21-1 (CR-015 §3.3): ONE food multiplier per settlement — the
             // harvest-weather multiplier times the disaster multiplier, both
@@ -162,9 +175,34 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
             // bit, so a world without a strike produces exactly as before.
             double foodMultiplier = HarvestWeatherFor(prev, settlement) * DisasterFor(prev, settlement);
 
+            // ADR-033 D4 (the M5 governing loop, re-anchored from m5-full-build onto this
+            // tree): EXTRACTION. A state that taxes harder works its realm harder — corvée,
+            // quotas, levied labour — so realised output rises with the EFFECTIVE tax rate
+            // (the controller's declared rate × the stored reach, ControlRow.Strength, both read
+            // from PREV). ONE multiplier per settlement, computed once like the food multiplier
+            // and applied at the three sites M5B applied it — farming, the deposit sectors
+            // (herding/fishing AND extraction), crafting — each ONCE, on the realised rate,
+            // before dt integration and before the remainder is added, so it can never be
+            // applied twice and never disturbs the D-004 remainder chain. It is a separate
+            // factor from the food multiplier, not folded into it: extraction is not a food
+            // shock and also reaches ore, stone and craft output. Untaxed (and with no
+            // governance section) it is EXACTLY 1.0, so x × 1.0 == x bit for bit.
+            // M5 R2b (D-021 unrest-lite): the same factor also carries PROTEST's output drag
+            // (State.Unrest.OutputFactor, from PREV) — Governance.OutputMultiplier = extraction ×
+            // (1 − r × withheld). H2: "withheld" is per population segment — its protesting members
+            // hold back dragMax × protest of their levied work, its rebels (past the segment's tipping
+            // point) all of it — weighted by the segments' shares. A quiet settlement's factor is EXACTLY
+            // 1.0, so the product is the extraction multiplier bit for bit.
+            double extraction = State.Governance.OutputMultiplier(prev, settlement, _cfg);
+            // F1 (2026-10-05, d049 §15): FOOD carries the same factor floored at the untaxed baseline — rebels and
+            // protesters withhold the levied work, never their own subsistence (Governance.FoodOutputMultiplier; equal
+            // to `extraction` bit for bit whenever there is no drag).
+            double foodExtraction = State.Governance.FoodOutputMultiplier(prev, settlement, _cfg);
+
             Farm(ctx, prev, stocks, settlement,
                 farmLabor: Sectors.Share(shares, Sectors.Farming) * adults,
-                foodMultiplier: foodMultiplier);
+                foodMultiplier: foodMultiplier,
+                extraction: foodExtraction);
             // T4.5 (D-037 B3): the HERDING food pathway now carries the SAME
             // harvest-weather multiplier farming already carried. D-037 B3 asks
             // for exactly this coupling and no other: "Steppe raiding
@@ -181,21 +219,25 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
                 pool: Sectors.Share(shares, Sectors.Herding) * adults,
                 perWorkerPerYear: _cfg.Production.OutputPerHerderPerYear,
                 foodSector: true,
-                weather: foodMultiplier);
+                weather: foodMultiplier,
+                extraction: foodExtraction);
             FromDeposits(ctx, prev, stocks, settlement,
                 pool: Sectors.Share(shares, Sectors.Extraction) * adults,
                 perWorkerPerYear: _cfg.Production.OutputPerExtractorPerYear,
                 foodSector: false,
-                weather: 1.0);
+                weather: 1.0,
+                extraction: extraction);
             Craft(ctx, prev, stocks, goods, settlement,
-                pool: Sectors.Share(shares, Sectors.Crafting) * adults);
+                pool: Sectors.Share(shares, Sectors.Crafting) * adults,
+                extraction: extraction);
         }
     }
 
     /// <summary>Farming: the Leontief with the REAL tool factor + tool wear.</summary>
     private void Farm(
         SimContext<ProductionTables> ctx, IReadOnlyWorldState prev,
-        Table<GoodStockRow> stocks, SettlementId settlement, double farmLabor, double foodMultiplier)
+        Table<GoodStockRow> stocks, SettlementId settlement, double farmLabor, double foodMultiplier,
+        double extraction)
     {
         int grainRow = GoodStockIndex.IndexOf(stocks, settlement, _grain);
         if (grainRow < 0) return; // founding never endowed a store — nothing to credit
@@ -209,10 +251,11 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
         if (!(farmLabor > 0.0)) return; // NaN fails this too
 
         double arableKm2 = 0.0;
+        bool haveCatchment = false;
         for (int i = 0; i < prev.CatchmentSummaries.Count; i++)
         {
             if (prev.CatchmentSummaries[i].Settlement == settlement)
-            { arableKm2 = prev.CatchmentSummaries[i].EffectiveArableKm2; break; }
+            { arableKm2 = prev.CatchmentSummaries[i].EffectiveArableKm2; haveCatchment = true; break; }
         }
 
         // Tools equip farmers from the PREV tool stock (one-turn lag like every
@@ -229,8 +272,30 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
             ? Math.Min(1.0, prevToolStock / toolsToEquip) : 0.0;
         double toolFactor = 1.0 + _cfg.Production.ToolYieldBonusMax * equipRatio;
 
-        double landSide = arableKm2 * _cfg.Farming.YieldPerArableKm2PerYear;
-        double laborSide = farmLabor * _cfg.Farming.OutputPerFarmerPerYear * toolFactor;
+        // R2a (Director decision 8; isolated content switch farming.preCultivation): before the farming
+        // capability exists for the settlement (its knowledge — SettlementKnowledge.MaskOf — does not make the
+        // Farming sector's researched identity eligible), the sector harvests WILD FOOD at the forager rates; the
+        // CR-003 cultivated yield applies once it does. Disabled or absent: exactly the shipped computation.
+        double yieldPerKm2 = _cfg.Farming.YieldPerArableKm2PerYear;
+        double perWorker = _cfg.Farming.OutputPerFarmerPerYear;
+        bool wildFood = false;   // M5 item 5: the granary factor below reads the same predicate
+        if (_cfg.Farming.PreCultivation is { } pre && LabourActivities.HarvestsWildFood(prev, _cfg, settlement))
+        {
+            wildFood = true;
+            yieldPerKm2 = pre.YieldPerArableKm2PerYear;
+            perWorker = pre.OutputPerGathererPerYear;
+        }
+        // ADR-035 (closes the ADR-025 §2.4a deviation): with NO catchment summary row in PREV — the
+        // founding turn, or a colony's first stepped turn; CatchmentSystem.IsStale gives the row on the
+        // next turn — the land side is UNMEASURED, not zero: it does not bind, and the harvest is
+        // labour-limited. This mirrors FoodHeadroom's null arm (row absence ⇒ unmeasured). Keyed on ROW
+        // ABSENCE ONLY: a present row with arable 0 stays 0 (the abandoned-settlement semantics). A
+        // yield of 0 (farming disabled) keeps the land side at 0 — never ∞ × 0 = NaN, never a phantom
+        // labour-limited harvest.
+        double landSide = haveCatchment
+            ? arableKm2 * yieldPerKm2
+            : (yieldPerKm2 > 0.0 ? double.PositiveInfinity : 0.0);
+        double laborSide = farmLabor * perWorker * toolFactor;
         double ratePerYear = Math.Min(landSide, laborSide);
 
         // T3.4b (CR-003 ruling §3): weather multiplies REALISED OUTPUT, applied
@@ -251,6 +316,23 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
         // min, before dt integration. Without a strike it IS the weather
         // multiplier (w × 1.0 == w), so this line is bit-identical to T3.4b's.
         ratePerYear *= foodMultiplier;
+
+        // ADR-033 D4: the tax EXTRACTION multiplier, in the same position and the same order
+        // (once, after the Leontief min and the food multiplier, before dt integration). 1.0
+        // exactly when untaxed, so this line is bit-identical to the tree before the port.
+        ratePerYear *= extraction;
+
+        // M5 item 5 (granaries, LOCAL; D-053 §3): a granary standing AT THIS settlement saves part of its own CULTIVATED
+        // crop from post-harvest loss (State.GranaryEffects: 1 + farmYieldBonusMax × (1 − e^(−m/farmYieldScale)),
+        // bounded, saturating, from PREV Structures). Same position and the same order as weather and extraction — once,
+        // on the REALISED rate after the Leontief min, before dt integration and before the remainder is added, so it
+        // never touches the land or labour side and never disturbs the D-004 remainder chain. Grain only (the crop that
+        // is stored), never the herding/fishing pathway — and NEVER pre-cultivation gathering: while the settlement
+        // harvests wild food (the predicate that chose the forager rates above) the factor is the literal 1.0. With no
+        // granary here, wild food, or the effects off the multiplication is SKIPPED, so this is the pre-granary
+        // instruction sequence bit for bit.
+        double granaryFactor = GranaryEffects.FarmYieldFactor(prev, _granaries, settlement, wildFood);
+        if (granaryFactor > 1.0) ratePerYear *= granaryFactor;
 
         ref GoodStockRow grain = ref stocks.Ref(grainRow);
         double exact = ratePerYear * ctx.DtYears + grain.ProduceRemainder;
@@ -287,7 +369,7 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
     private void FromDeposits(
         SimContext<ProductionTables> ctx, IReadOnlyWorldState prev,
         Table<GoodStockRow> stocks, SettlementId settlement,
-        double pool, double perWorkerPerYear, bool foodSector, double weather)
+        double pool, double perWorkerPerYear, bool foodSector, double weather, double extraction)
     {
         if (pool <= 0.0) return;
 
@@ -317,7 +399,9 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
             // before the remainder is added, so a drought cannot be applied
             // twice and cannot disturb the D-004 remainder chain. Extraction
             // passes 1.0, so this expression is bit-identical there.
-            double ratePerYear = workers * perWorkerPerYear * d.Abundance * weather;
+            // ADR-033 D4: the tax EXTRACTION multiplier joins the rate in the same
+            // position, once, for both deposit sectors; 1.0 exactly when untaxed.
+            double ratePerYear = workers * perWorkerPerYear * d.Abundance * weather * extraction;
 
             ref GoodStockRow stock = ref stocks.Ref(row);
             double exact = ratePerYear * ctx.DtYears + stock.ProduceRemainder;
@@ -381,18 +465,21 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
     private void Craft(
         SimContext<ProductionTables> ctx, IReadOnlyWorldState prev,
         Table<GoodStockRow> stocks, GoodsConfig goods,
-        SettlementId settlement, double pool)
+        SettlementId settlement, double pool, double extraction)
     {
         if (pool <= 0.0 || goods.Recipes.Length == 0) return;
 
-        // Availability: the D-020 gate against PREV published variables —
-        // identical wiring to ClassMobility's emergence evaluation.
+        // Availability: THE recipe predicate (CraftingQuery.IsRecipeAvailable, R1) on PREV — the
+        // recipe's research entity knowledge-eligible for the settlement's controller (content-declared,
+        // goods.json recipes[].entity; a null requirement is baseline) AND the D-020 gate against PREV
+        // published variables (identical wiring to ClassMobility's emergence evaluation). The labour
+        // and action surfaces call the same function, so they can never list a recipe this step refuses.
+        bool[]? knowledge = CraftingQuery.KnowledgeOf(prev, _cfg.Research, settlement);
         Span<bool> available = stackalloc bool[goods.Recipes.Length];
         int availableCount = 0;
         for (int r = 0; r < goods.Recipes.Length; r++)
         {
-            available[r] = _requires[r] is not { } predicate
-                || predicate.Evaluate(varId => ReadVariable(prev, settlement, varId));
+            available[r] = CraftingQuery.IsRecipeAvailable(prev, _cfg.Research, settlement, goods.Recipes[r], knowledge, _requires[r]);
             if (available[r]) availableCount++;
         }
         if (availableCount == 0) return;
@@ -415,7 +502,11 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
             // every input's stock — Leontief over labor and materials.
             double laborCapPerYear = recipe.LaborPerOutput > 0.0
                 ? laborPerRecipe / recipe.LaborPerOutput : double.PositiveInfinity;
-            double exactOutput = laborCapPerYear * ctx.DtYears * recipe.Output.Qty;
+            // ADR-033 D4: extraction applies to crafted output too — the same compelled effort,
+            // on the LABOUR-allowed output BEFORE the input caps below bind, so a levy cannot
+            // conjure output the materials do not support (the Leontief input caps still hold).
+            // 1.0 exactly when untaxed, so this expression is bit-identical there.
+            double exactOutput = laborCapPerYear * ctx.DtYears * recipe.Output.Qty * extraction;
 
             // T3.4 (D-033): publish the input demand this recipe WANTED, from
             // labor alone, BEFORE any input cap binds. Demand that went unmet

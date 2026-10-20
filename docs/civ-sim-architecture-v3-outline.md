@@ -95,11 +95,34 @@ Template trimmed from 16 to 12 fields: Purpose & realism target · Fidelity tier
 | Chronicle engine | continuous | lite→T1 | event log with names ships at M2 |
 | Calibration battery | continuous | T1 | corridors added as systems land |
 
+> *Superseded 2026-10-03 (Director roadmap rebase):* the milestone column above is the original v3 placement. Under the
+> current ladder knowledge & diffusion is **M6**, the battle layer **M7**, politics/institutions & diplomacy **M8**,
+> religion/culture/health **M9**, Integrated Civilization Simulation **M10**, Depth & Content Expansion **M11+**. See `docs/milestones.md`.
+> *(2026-10-06, M5 polish pass: this note was moved here from between the Characters/notables and Finance rows,
+> where it split the table so that the last four rows did not render; its text above is unchanged.)* Rows not mapped
+> by the note — Environment & climate (M9), Military full (M9+), Espionage (M10+), Characters/notables (M10+), Finance
+> and Media/nationalism ("era exp.") — are not individually placed by the rebase; "era exp." is an obsolete label, and
+> each such system's milestone is set by the spec that takes it up (the M11+ sequence is intentionally open).
+
 **Market solver mandate (closing v2's most dangerous under-specification):** no global Walrasian equilibrium. Each regional market holds a local price per good; prices adjust by damped excess-demand steps with clamps; arbitrage flows between connected markets close gaps at transport-cost thresholds. This is Victoria-3-class local-price architecture: stable, incremental, explainable, and implementable by an agent in bounded sessions. Global-equilibrium solving is permanently anti-scoped.
 
 ---
 
 ## TIER 2 — BUILD SPINE (milestones; every one ends runnable + tested; autoplay green from M2)
+
+> **Superseded 2026-10-03 (Director roadmap rebase).** The Director has re-sequenced the ladder (explicitly authorizing this edit to the frozen Spine):
+> M0 Kernel · M1 Walking Skeleton · M2 Demography / Food · M3 Production / Markets · M4 Empire / Strategic Foundation · M5 Governing Gameplay (current, being finished) · M6 Knowledge / Research / Technology (next) · M7 Battle Layer · M8 Politics / Diplomacy · M9 Society · M10 Integrated Civilization Simulation · M11+ Depth & Content Expansion.
+> M5 establishes the governing/gameplay foundation; **M6** establishes the authoritative
+> research/knowledge/capability vocabulary (Technology and Civics trees, RP, prerequisites, Eureka,
+> persistent knowledge, capability acquisition, research→capability→realization, diffusion,
+> universities, Age integration, legal-action exposure and simulation-side rejection); **M7 Battle
+> Layer** consumes M6's technology/capability state (no parallel tech vocabulary); M8 politics &
+> diplomacy; M9 society; M10 Integrated Civilization Simulation; M11+ Depth & Content Expansion. Full record and M6 scope:
+> `docs/milestones.md` §"Roadmap rebase 2026-10-03". "Ancient Vertical Slice" and "Era expansions" are obsolete milestone names: M10 integrates and validates the whole
+> model across all nine Ages A1–A9 as one simulation (ancient content is not a prerequisite for later Ages), and M11+ adds
+> depth, not "later Ages". **Ages are a simulation dimension, not development milestones** — never "build A1 → validate A1 →
+> build A2". The original v3 ladder below (and the
+> placement column of the system table above) is retained unedited as history.
 
 - **M0 — Kernel.** Turn executor, state tables, RNG registry, determinism harness (same seed ⇒ identical hash over 1,000 turns), CLI runner, CI with conservation property tests. *No game.*
 - **M1 — Walking skeleton (the big restructure).** Small generated map, one settlement, minimal pop+food loop, end-turn button, crude map + 3 numbers + 1 decision. **Playable-ugly inside weeks, not months.** v2 deferred playability to M5; for a motivation-funded solo project that is fatal.

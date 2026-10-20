@@ -19,6 +19,14 @@ jobs:
       - name: Read-isolation check (T2.6 — grievance read by nothing but UI/chronicle)
         run: ./scripts/check-read-isolation.sh
 
+      - name: Research content audit is current (ADR-029 addendum A — the content is authored)
+        run: python3 scripts/research-content-audit.py --check
+
+      - name: Research calibration report is current (provisional — ADR-029 addendum A, ADR-030)
+        run: python3 scripts/research-calibration-report.py --check
+      - name: Research → gameplay unlock audit is current (R1 — every node's content-declared consequence)
+        run: python3 scripts/research-gameplay-unlock-audit.py --check
+
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:
@@ -143,7 +151,64 @@ jobs:
           # pre-arming one, returned BYTE FOR BYTE. Re-derived by REPRODUCING
           # THIS STEP on the disarmed tree: the two CLI processes above, built
           # from this tree, both logs byte-identical, last line the value below.
-          FOUNDED_GOLDEN=db7c7a0907ad43353b1a44f1a957a407c0ce89ecbb2bf105b170b4b316cc82d9
+          # ADR-029: schema v26 (research tables) + ResearchSystem's own rows
+          # (Eurekas on available roots in this order-less world). Derived twice on
+          # this tree — the in-test harness and two CLI processes with byte-identical
+          # logs; IntegratedPinAttributionTests strips the research layer and returns
+          # the previous value (db7c7a09…) byte for byte.
+          # Research finalization (ADR-029 addendum A): two more empty v26 count
+          # prefixes, and this order-less world now writes no research row. Derived
+          # twice on this tree (in-test harness; two CLI processes, byte-identical
+          # logs); the research strip still returns db7c7a09… byte for byte.
+          # ADR-032: schema v29 appends two EMPTY transport tables (no DevelopRoads order in
+          # this order-less world). Derived twice on this tree (in-test harness; two CLI
+          # processes, byte-identical logs); IntegratedPinAttributionTests strips the two
+          # tables and returns the previous value (15c63d65…) byte for byte.
+          # ADR-033 D4 (2026-10-02): schema v30 appends one EMPTY TaxPolicies table (no tax is levied in
+          # this order-less world) and GovernanceSystem writes the administrative reach into
+          # ControlRow.Strength. Derived twice on this tree (in-test harness; two CLI processes,
+          # byte-identical logs); IntegratedPinAttributionTests strips the governance layer and returns
+          # the previous value (b2c0032f…) byte for byte. CiPinAgreementTests now compares this value to
+          # SnapshotTests.FoundedGoldenHash EXACTLY (m5-full-build left it behind under a Contains guard).
+          # ADR-033 D6 + D10 (2026-10-02): schema v31 appends two EMPTY tables (Institutions,
+          # ConstructionLabor — nothing is built in this order-less world). Derived twice on this tree
+          # (in-test harness; two CLI processes, byte-identical logs); IntegratedPinAttributionTests
+          # strips the institutions layer and returns the previous value (64820f83…) byte for byte.
+          # R1 (2026-10-03): research-gated recipes (BEHAVIOUR: no pottery fired or bronze cast before
+          # pottery_open_fired / tin_bronze). Derived twice on this tree (in-test harness; two CLI
+          # processes, byte-identical logs); IntegratedPinAttributionTests' recipe-knowledge control runs
+          # the content twin without the recipe links and returns the previous value (74306d6a…) byte for byte.
+          # M5 R2b RE-PIN (2026-10-03): 68c629b6… -> 1368df9f… — weather over geographic distance, Dignity bound to
+          # the tax burden (untaxed: grievance values only), Age military milestones no longer count the founding
+          # warband. TestConfigs.PreR2b returns 68c629b6… byte for byte (IntegratedPinAttributionTests).
+          # R4 RE-PIN (2026-10-04): 1368df9f… -> 02c7f9eb… — the forager layer (farming.preCultivation ON at
+          # 2.0 / 4.3). TestConfigs.PreForager returns 1368df9f… byte for byte (IntegratedPinAttributionTests).
+          # H2 RE-PIN (2026-10-05): 02c7f9eb… -> 07c6ec45… — schema v32 appends one EMPTY TaxGrievances table (no
+          # levy in this order-less world; the levy-pressure model reads the old values exactly when untaxed). Derived
+          # twice on this tree (in-test harness; CLI processes); IntegratedPinAttributionTests strips the v32 layer and
+          # returns 02c7f9eb… byte for byte (docs/d049-taxation-and-revolt-model.md §8).
+          # D-051 1(b) RE-PIN (2026-10-10): e9e089bb… -> 937577ff… — time-averaged decade weather (a turn's harvest
+          # multiplier is the mean of its yearly sub-step multipliers; a new settlement starts at a stationary draw).
+          # Derived twice on this tree (in-test harness; two CLI processes, byte-identical logs);
+          # TestConfigs.PreTimeAveragedHarvest returns e9e089bb… byte for byte (IntegratedPinAttributionTests).
+          # BATCH 3 / D-054 RE-PIN (integration R1, 2026-10-14): 937577ff… -> 40115e28… — two causes, each
+          # measured: (1) schema v33 appends two EMPTY tables (ConstructionProgress, ResourceAllocations — this
+          # order-less world queues nothing part-built and sets no split: two zero count prefixes); (2) the
+          # world is a CYLINDER (worldgen.json topology.wrapX): the terrain regenerates x-periodic and its
+          # content hash is folded into every world hash, so the run differs from turn 0. WS1 (incremental
+          # construction) and WS2 (allocation ratios) do not act: TestConfigs.PreD054Sim on the cylinder gives
+          # the same 40115e28…. Derived twice on this tree (in-test harness; two CLI processes, byte-identical
+          # logs, last line the value below). CONTROLS: D054PairAttributionTests (both halves off + the v32
+          # projection return 937577ff… byte for byte), WrapAttributionTests (the cylinder off alone + v32 =
+          # 937577ff…), IncrementalConstructionAttributionTests (the v33 layout alone), and
+          # SnapshotTests.FoundedGoldenHashAtV32 (the live world's v32 projection, 0549049d…, the cylinder alone).
+          # D-055 RE-PIN (2026-10-16; the Director's batch-4 instruction, item 1): 40115e28… -> 0f29efc7… — the
+          # schema-v34 LAYOUT ALONE: v34 appends one EMPTY ConstructionHolds table (this order-less world queues
+          # nothing, so nothing is set aside: one zero count prefix). Derived twice on this tree (in-test harness;
+          # two CLI processes, byte-identical logs, last line the value below). CONTROL:
+          # ReservationsLayoutAttributionTests.FoundedGoldenSeed42Turn300_MovedForTheV34LayoutAlone (the v33
+          # projection, SchemaProjection.V33, returns 40115e28… byte for byte).
+          FOUNDED_GOLDEN=0f29efc733024c451b7ebc2e8435fdd8a6032d158922430cb290778a98056d3c
           if [ "$(tail -n 1 f-run-a.log)" != "$FOUNDED_GOLDEN" ]; then
             echo "FOUNDED RUN DIVERGED FROM PINNED GOLDEN:"
             echo "  expected $FOUNDED_GOLDEN"
@@ -151,6 +216,22 @@ jobs:
             exit 1
           fi
           echo "founded run matches the pinned golden"
+
+          # Batch 3 WS3 (D-054, integration R1 2026-10-14): THE SEAM, CROSS-PROCESS. The world is a cylinder
+          # (worldgen.json topology.wrapX), so every seam-crossing distance, route, neighbour and flow is
+          # computed through the wrapped topology. Seed 42 is a cylinder too, but seed 16 is the canonical seed
+          # whose LAND crosses the seam (123 rows with land on both edge columns) and whose settlement 3 -> 6
+          # travel route crosses it (SeamCrossingShippedWorldTests pins that route and its cost); its founded
+          # 300-turn run must be byte-identical in two separate processes, like seed 42's above.
+          $CLI run --founded --seed 16 --turns 300 --hash-log s16-run-a.log
+          $CLI run --founded --seed 16 --turns 300 --hash-log s16-run-b.log
+          if ! diff s16-run-a.log s16-run-b.log > s16-xproc.diff; then
+            echo "SEAM-SEED (16) CROSS-PROCESS DIVERGENCE — first divergent turn:"
+            head -n 5 s16-xproc.diff
+            exit 1
+          fi
+          [ "$(wc -l < s16-run-a.log)" -eq 300 ] || { echo "seed-16 hash log is not 300 turns"; exit 1; }
+          echo "seam seed 16: two processes byte-identical over 300 turns"
 
           $CLI run --founded --seed 42 --turns 300 --orders founded-orders.bin --hash-log f-ordered.log
           $CLI replay --founded --seed 42 --turns 300 --orders founded-orders.bin --hash-log f-replayed.log
@@ -160,6 +241,201 @@ jobs:
             exit 1
           fi
           echo "founded replay: byte-identical to the ordered run over 300 turns"
+
+          # M5 S1b (ADR-036): the FOUND SETTLEMENT leg. Two OrderKind 9 orders on the founded seed-42 world
+          # (gen-sample-orders.py --found): turn 2 from settlement 0, turn 5 FROM the colony that order founds
+          # (settlement 12, above the turn-0 maximum: the ADR-034 deferral). Two processes must agree byte for
+          # byte (hash logs and run logs), the orders must have FOUNDED turn-exactly (the hash log equals the
+          # orderless founded run through turn 2 — the first order is delivered on the step from 2 — and differs
+          # at turn 3), `sim replay` of the run log must reproduce every hash and `sim inspect` must verify the
+          # record. FoundSettlementCiLegTests pins the script's literals as legal-and-founding in the suite.
+          python3 scripts/gen-sample-orders.py found-orders.bin 300 --found
+          $CLI run --founded --seed 42 --turns 300 --orders found-orders.bin --hash-log found-a.log --emit-session found-a
+          $CLI run --founded --seed 42 --turns 300 --orders found-orders.bin --hash-log found-b.log --emit-session found-b
+          if ! diff found-a.log found-b.log > found-xproc.diff || ! cmp found-a/orders-*.bin found-b/orders-*.bin; then
+            echo "FOUND-SETTLEMENT CROSS-PROCESS DIVERGENCE:"
+            head -n 5 found-xproc.diff
+            exit 1
+          fi
+          if [ "$(head -n 2 found-a.log)" != "$(head -n 2 f-run-a.log)" ] || [ "$(sed -n 3p found-a.log)" = "$(sed -n 3p f-run-a.log)" ]; then
+            echo "FOUND-SETTLEMENT DELIVERY: expected the orderless hashes through turn 2 and a founding in turn 3"
+            exit 1
+          fi
+          $CLI replay --founded --seed 42 --turns 300 --orders found-a/orders-*.bin --hash-log found-replayed.log
+          if ! diff found-a.log found-replayed.log > found-replay.diff; then
+            echo "FOUND-SETTLEMENT REPLAY DIVERGENCE — first divergent turn:"
+            head -n 5 found-replay.diff
+            exit 1
+          fi
+          $CLI inspect --manifest found-a/session-*.json --turn 300 | tee found-inspect.log
+          grep -q "reproduction VERIFIED" found-inspect.log
+          echo "found-settlement leg: two processes, turn-exact delivery, replay and inspect agree over 300 turns"
+
+          # M5 integration (audit E4): the founded world with ONE AI Empire. The player's
+          # orders (kinds 3, 4, 6 and — D-054 — 11, CancelConstruction, and 12, SetResourceAllocation: gen-sample-orders.py --founded-mix) are merged with the
+          # AI's (kinds 4-9: construction, tax, research, Age, roads, and — M5 S1c, ADR-036 §8 — Found Settlement;
+          # H2 (2026-10-05): the AI levies at 466, on its first A3 turn (A3 decided 465), since the tax edict needs A3;
+          # 369 at R5 while still in A2, 549 before; 600 turns kept) into the RUN LOG --emit-session writes.
+          # S1c RE-DERIVATION (2026-10-11; two CLI processes from this tree, byte-identical hash logs and run logs):
+          # the AI issues 11 Found Settlement orders in 600 turns (stamped 35, 71, 107, 143, 179, 215, 286, 357, 428,
+          # 499, 570), advances to A2 at 221 and to A3 at 422, orders its first road at 134 and levies at 423 on its
+          # first A3 turn. Pre-S1c on the base tree (3d8aacc): A2 232, A3 451, road 140, levy 452 — the 466/465 above
+          # is the H2-time value, superseded by the ADR-035 and D-051 1(b) re-pins and never updated here. The kind
+          # D-056 (2026-10-18): the cancels are now kind 13 (CancelConstructionEntry, the identity cancel) — kind 11 is no
+          # longer written, and every CLI runner refuses a bare log that carries one; read "13" for "11" below. The kind
+          # check below therefore covers 3..9, plus 11 (D-054 WS1: the player's two CancelConstruction orders — slot 2 of
+          # three granaries ordered at turn 10, a non-head entry when the turn-11 order is delivered, and a slot that does
+          # not exist; gen-sample-orders.py states the measured turn sequence) and 12 (D-054 WS2: the player's
+          # SetResourceAllocation orders, building 30 shares in 100 at turn 40 and 70 at turn 200). Kind 10
+          # is RESERVED (MoveFormation, M7) and is never written. Batch 3 (integration R1, 2026-10-14): the
+          # check is EXACT — the run log's kinds must be {3..9, 11, 12}, no more and no fewer (a stray kind
+          # would be a producer writing an order this leg does not cover). Two processes must agree
+          # byte for byte (hash logs and run logs), `sim replay` of that run log (no AI
+          # producer) must reproduce every hash, and `sim inspect` must verify the record.
+          # BATCH 3 RE-MEASUREMENT (integration R1, 2026-10-14; this step run locally from this tree, the world a
+          # cylinder): the AI's eleven Found Settlement stamps are unchanged (35 … 570), it decides A2 at 221 and A3
+          # at 421, orders its first road at 134 and levies at 422 (one turn earlier than on the flat world); the run
+          # log holds 275 orders of kinds exactly {3..9, 11, 12}; the player's kind-11 orders stand at 11 and 12 and
+          # its kind-12 orders at 40 and 200 — delivered and applied: a save at 40 holds no ResourceAllocations row,
+          # one at 41 holds the 30 % row, and the row changes between the saves at 200 and 201 (sim diff).
+          # D-058 (2026-10-19; the Director's "build one at a time" ruling: a step's construction capacity carries past a
+          # completed head to the next entry of its queue). The three turn-10 granaries were all built in step 10 -> 11, so
+          # the turn-11 cancel named nothing (MEASURED: world 12 identical with and without it). The generator now queues
+          # 12 granaries at turn 10 and cancels the LAST, a non-head entry at delivery; Sim.Tests
+          # MixLegConstructionPremiseTests pins that premise in process. The AI stamps and the order count measured above
+          # are batch 3's and are NOT re-measured by D-058 (no assertion of this step reads them).
+          python3 scripts/gen-sample-orders.py mix-orders.bin 600 --founded-mix
+          $CLI run --founded --seed 42 --turns 600 --ai-empires 1 --orders mix-orders.bin --hash-log ai-a.log --emit-session ai-a
+          $CLI run --founded --seed 42 --turns 600 --ai-empires 1 --orders mix-orders.bin --hash-log ai-b.log --emit-session ai-b
+          if ! diff ai-a.log ai-b.log > ai-xproc.diff || ! cmp ai-a/orders-*.bin ai-b/orders-*.bin; then
+            echo "AI-EMPIRE CROSS-PROCESS DIVERGENCE:"
+            head -n 5 ai-xproc.diff
+            exit 1
+          fi
+          python3 - ai-a/orders-*.bin <<'PY'
+          import struct, sys
+          b = open(sys.argv[1], "rb").read()
+          n = struct.unpack_from("<i", b, 12)[0]
+          kinds = {struct.unpack_from("<qiiid", b, 16 + 28 * i)[2] for i in range(n)}
+          expected = set(range(3, 10)) | {12, 13}   # 10 is reserved (MoveFormation, M7); 11 is legacy (D-056)
+          print(f"run log: {n} orders, kinds {sorted(kinds)}")
+          if kinds != expected:
+              sys.exit(f"order kinds never issued: {sorted(expected - kinds)}; unexpected kinds: {sorted(kinds - expected)}")
+          PY
+          $CLI replay --founded --seed 42 --turns 600 --ai-empires 1 --orders ai-a/orders-*.bin --hash-log ai-replayed.log
+          if ! diff ai-a.log ai-replayed.log > ai-replay.diff; then
+            echo "AI-EMPIRE REPLAY DIVERGENCE — first divergent turn:"
+            head -n 5 ai-replay.diff
+            exit 1
+          fi
+          $CLI inspect --manifest ai-a/session-*.json --turn 600 | tee ai-inspect.log
+          grep -q "reproduction VERIFIED" ai-inspect.log
+          echo "ai-empire leg: two processes, replay and inspect agree over 600 turns"
+
+      - name: Allocation split, binding, cross-process (D-055)
+        run: |
+          # D-055 / ADR-040 (batch 4, item 3): the building/roads split (kind 12) made to BIND, and checked on what each
+          # step DID -- across processes and a save/load -- not only that its order was accepted and serialized.
+          # Scenario S42-ALLOC-H (gen-sample-orders.py --allocation): seed 42, founded, no AI Empire (the player rules all
+          # 12 settlements). Sim.Tests AllocationCiLegTests re-measures every premise named here on the same founded
+          # world and pins this step's literals; AllocationScenarioTests pins the split and the set-asides turn-exact.
+          #   P = 116  the pre-split world (stone_dry completed in step 115 -> 116; b = 30 is stamped 116)
+          #   X = 117  the first binding step: stone build + holds = G_b < D_b; the b = 100 control claims more there
+          #   W = 128  the first head HELD FOR AN EARLIER HEAD: settlement 4's older granary, part-built, has no builders
+          #            and sets aside what it still needs inside the 30 % share; the granaries ordered at 128 wait for it
+          #   K = 130  the save point, inside that hold window: a head part-built to a progress that is not a multiple of
+          #            1,000, a NON-EMPTY ConstructionHolds table binding a younger head, the b = 30 row, a route part-modernized
+          #   V = 132  kind 13 (D-056: the identity cancel) cancels the part-built head and kind 4 re-enqueues the project, in one batch
+          #   136      kind 12 changes b to 70 IN THE BATCH that queues granaries at settlements 0, 2 and 4: in that very
+          #            step building work draws 70 % of the stone (51 of 73), the twin without the order 30 % (21);   H = 140
+          # The split-report observer and `sim split-check` are Sim.Core/Observability (SplitProbe, SplitReportCheck).
+          CLI="dotnet Sim.Cli/bin/Release/net10.0/Sim.Cli.dll"
+          python3 scripts/gen-sample-orders.py alloc.bin 140 --allocation
+          python3 scripts/gen-sample-orders.py alloc-ctl.bin 140 --allocation --no-split
+          python3 scripts/gen-sample-orders.py alloc-no13.bin 140 --allocation --drop 132:13
+          python3 scripts/gen-sample-orders.py alloc-no12.bin 140 --allocation --drop 136:12
+          # The logs are byte for byte the ones AllocationCiLegTests serializes from its own table (same sha256 there).
+          sha256sum -c - <<'SHA'
+          6dcb634a97220103c3212eb24ee91a11b29f6d97d95cbb7cbe2209bfcb6e5cb7  alloc.bin
+          b6133403e3920aa9bcfc9e1f95be8b3cb4bfea9fcc6f73d4ca05581d5dc76eb5  alloc-ctl.bin
+          1764f09cb795849a96d692437661ad22ac03d3dfa2bc34e7e6520fbc57b663ba  alloc-no13.bin
+          18e14dc2f9a23c5d3aa0a9d00c90e71cef995cc18898eedbffe168c881247e97  alloc-no12.bin
+          SHA
+
+          # A0: founding -> the pre-split world P (one process).
+          $CLI run --founded --seed 42 --turns 116 --orders alloc.bin --hash-log alloc-a0.log --save-at 116 --save alloc-116.civsnap
+          # A: P -> H in a NEW process from that save, with the split report; it writes save_K.
+          $CLI run --from-save alloc-116.civsnap --turns 24 --orders alloc.bin --hash-log alloc-a.log --split-report alloc-a.rep --save-at 130 --save alloc-130.civsnap
+          # A': the same WITHOUT --split-report: the observer changes no hash and no save.
+          $CLI run --from-save alloc-116.civsnap --turns 24 --orders alloc.bin --hash-log alloc-a1.log --save-at 130 --save alloc-130-a1.civsnap
+          if ! cmp alloc-a.log alloc-a1.log || ! cmp alloc-130.civsnap alloc-130-a1.civsnap; then
+            echo "ALLOCATION: --split-report CHANGED A HASH OR THE SAVE"
+            exit 1
+          fi
+          cat alloc-a0.log alloc-a.log > alloc-full.log          # line n = world n, 1..140
+          # B: K -> H from save_K in another process; it writes the save at kind 12's issue turn (136). Its hash log and
+          # its split report must be A's tail (rows from step 130 -> 131: what B's own walk published from the loaded world).
+          $CLI run --from-save alloc-130.civsnap --turns 10 --orders alloc.bin --hash-log alloc-b.log --split-report alloc-b.rep --save-at 136 --save alloc-136.civsnap
+          if ! diff alloc-b.log <(sed -n 131,140p alloc-full.log) > alloc-b.diff || ! diff alloc-b.rep <(tail -n 10 alloc-a.rep) >> alloc-b.diff; then
+            echo "ALLOCATION: THE CONTINUATION FROM save_K IS NOT A's TAIL:"
+            head -n 5 alloc-b.diff
+            exit 1
+          fi
+          # The control: the b = 100 twin (no kind 12) branched from the SAME pre-split world.
+          $CLI run --from-save alloc-116.civsnap --turns 24 --orders alloc-ctl.bin --hash-log alloc-c.log --split-report alloc-c.rep
+          # sim replay of the generated log equals A0 + A (no AI polity by H, so no AI order is missing from the log).
+          $CLI replay --founded --seed 42 --turns 140 --orders alloc.bin --hash-log alloc-replayed.log
+          if ! diff alloc-full.log alloc-replayed.log > alloc-replay.diff; then
+            echo "ALLOCATION REPLAY DIVERGENCE -- first divergent turn:"
+            head -n 5 alloc-replay.diff
+            exit 1
+          fi
+          # save_K read back by OTHER processes: `sim hash` equals line K, and `sim diff` (A's save against A''s) finds it
+          # identical with a NON-EMPTY ConstructionHolds table (schema v34 section 61) -- the set-aside survived the save.
+          if [ "$($CLI hash alloc-130.civsnap)" != "$(sed -n 130p alloc-full.log)" ]; then
+            echo "ALLOCATION: sim hash of save_K is not line 130 of the run's hash log"
+            exit 1
+          fi
+          $CLI diff alloc-130.civsnap alloc-130-a1.civsnap | tee alloc-130.diff
+          holds=$(awk '$1 == "ConstructionHolds" { print $2 }' alloc-130.diff)
+          if [ "${holds:-0}" -le 0 ]; then
+            echo "ALLOCATION: save_K holds no set-aside (ConstructionHolds rows: ${holds:-none})"
+            exit 1
+          fi
+          # Kinds 13 and 12, turn-exact: the save at each issue turn hashes to its line, and a twin run without the order
+          # equals the run through that turn and differs at the next.
+          $CLI run --from-save alloc-130.civsnap --turns 2 --orders alloc.bin --hash-log alloc-v.log --save-at 132 --save alloc-132.civsnap
+          $CLI run --from-save alloc-130.civsnap --turns 3 --orders alloc-no13.bin --hash-log alloc-t13.log
+          $CLI run --from-save alloc-130.civsnap --turns 7 --orders alloc-no12.bin --hash-log alloc-t12.log --split-report alloc-t12.rep
+          if [ "$(cat alloc-v.log)" != "$(sed -n 131,132p alloc-full.log)" ] \
+             || [ "$($CLI hash alloc-132.civsnap)" != "$(sed -n 132p alloc-full.log)" ] \
+             || [ "$($CLI hash alloc-136.civsnap)" != "$(sed -n 136p alloc-full.log)" ]; then
+            echo "ALLOCATION: a save at an issue turn (132, 136) does not hash to its line"
+            exit 1
+          fi
+          if [ "$(head -n 2 alloc-t13.log)" != "$(sed -n 131,132p alloc-full.log)" ] || [ "$(sed -n 3p alloc-t13.log)" = "$(sed -n 133p alloc-full.log)" ]; then
+            echo "ALLOCATION KIND 13 DELIVERY: expected the twin equal through world 132 and different at 133"
+            exit 1
+          fi
+          if [ "$(head -n 6 alloc-t12.log)" != "$(sed -n 131,136p alloc-full.log)" ] || [ "$(sed -n 7p alloc-t12.log)" = "$(sed -n 137p alloc-full.log)" ]; then
+            echo "ALLOCATION KIND 12 DELIVERY: expected the twin equal through world 136 and different at 137"
+            exit 1
+          fi
+          # The judgement (sim split-check: P0-P12, PK, PT; exit 1 names every failed property). P11 re-derives every row's
+          # split from S, b, D_b and D_r; P12 re-walks every row's heads in the building order against the grant, and holds
+          # every head reported limited by materials to a budget short of its need (a walk that lets heads only set aside
+          # fails it). NOT EXERCISED HERE: the starvation guard (a road order that can pay nothing on what the split leaves
+          # withholds nothing) -- no step of this scenario is guarded (every report has "guarded":false), so P11's guarded
+          # branch is judged on a doctored fixture row only and removing the guard leaves this step's outputs unchanged; the
+          # guard is pinned in process by Sim.Tests ResourceAllocationTests (StarvationGuard_*, TheForecastIsTheStep_*) and
+          # ConstructionReservationTests (TheStarvationGuard_*, ThePropertyTest_*).
+          $CLI split-check alloc-a.rep --expect-hold-at 130
+          $CLI split-check alloc-a.rep --control alloc-c.rep
+          $CLI split-check alloc-b.rep --expect-hold-at 131   # the process that LOADED save_K published the set-aside too
+          # PT: the b = 70 order changed BUILDING WORK'S DRAW in its own delivery step (136 -> 137), against the twin without it
+          # (the same purse and claims there, the twin's rows before 136 = A's byte for byte, the twin's own step the rule's).
+          $CLI split-check alloc-a.rep --twin alloc-t12.rep --order-at 136:70
+          echo "allocation leg: the split binds, holds bind younger heads, A' = A, B = A's tail, replay, hashes and twins agree, and the b = 70 order changed spending in its own step"
 
   calibration:
     # T2.8: the calibration battery as its own TIME-BOXED job — corridor

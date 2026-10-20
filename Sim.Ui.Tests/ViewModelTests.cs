@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using Sim.Core.Systems;
 using Sim.Core.Worldgen;
+using Sim.Ui.Render;
 using Sim.Ui.ViewModel;
 using Xunit;
 
@@ -68,6 +69,213 @@ public class CameraTests
         Assert.Equal(Camera.MaxZoom, cam.Zoom);
         cam.ZoomAt(0, 0, 1e-12, W, H);
         Assert.Equal(cam.MinZoom(W, H), cam.Zoom);
+    }
+
+    // ------------------------------------------------------------------ P1: the map rect (an offset viewport)
+
+    /// <summary>The design window's map rects (PanelLayout): the band between the bars, and that band left of an open
+    /// context panel — the rect's origin is NOT the window's (it starts under the 52 px status band).</summary>
+    private static readonly RectD Band = PanelLayout.ClearMapRect;
+    private static readonly RectD BandWithPanel = PanelLayout.MapRectWithContextOpen;
+
+    [Fact]
+    public void MapRect_ScreenToWorld_RoundTrips_ThroughWorldToScreen_InsideTheRect()
+    {
+        foreach (RectD map in new[] { Band, BandWithPanel, new RectD(37.5, 91.25, 611, 433) })
+        {
+            var cam = new Camera(1024);
+            cam.ZoomAt(map.CenterX, map.CenterY, 2.5, map);
+            cam.Pan(37, -90, map);
+            foreach ((double sx, double sy) in new[] { (map.X + 1, map.Y + 1), (map.CenterX, map.CenterY), (map.Right - 1, map.Bottom - 1), (map.X + 0.3 * map.W, map.Y + 0.8 * map.H) })
+            {
+                (double wx, double wy) = cam.ScreenToWorld(sx, sy, map);
+                (double bx, double by) = cam.WorldToScreen(wx, wy, map);
+                Assert.Equal(sx, bx, 9);
+                Assert.Equal(sy, by, 9);
+            }
+            // The rect's centre shows the camera's centre: the origin offset is part of the projection.
+            (double cx, double cy) = cam.WorldToScreen(cam.CenterX, cam.CenterY, map);
+            Assert.Equal(map.CenterX, cx, 12);
+            Assert.Equal(map.CenterY, cy, 12);
+        }
+    }
+
+    [Fact]
+    public void MapRect_ZoomAt_KeepsTheWorldPointUnderTheCursorFixed_WithAnOffsetOrigin()
+    {
+        RectD map = BandWithPanel;
+        var cam = new Camera(1024);
+        cam.ZoomAt(map.CenterX, map.CenterY, 3.0, map);   // zoomed in: the clamp never reaches these cursors' world points
+        foreach ((double sx, double sy, double f) in new[] { (300.0, 400.0, 1.6), (700.0, 120.0, 1.25), (120.0, 600.0, 1 / 1.3) })
+        {
+            (double bx, double by) = cam.ScreenToWorld(sx, sy, map);
+            cam.ZoomAt(sx, sy, f, map);
+            (double ax, double ay) = cam.ScreenToWorld(sx, sy, map);
+            Assert.Equal(bx, ax, 9);
+            Assert.Equal(by, ay, 9);
+        }
+    }
+
+    /// <summary>THE FIT-TO-MAPRECT PIN: at the fit zoom the whole world is inside the map rect — no world under the
+    /// status band, the command bar or an open context panel — and it spans the rect's shorter side exactly. The
+    /// control: the pre-P1 camera fitted the WINDOW, and its fit put world rows under a bar at every one of these
+    /// windows (112 px of world height at 1280x800).</summary>
+    [Theory]
+    [InlineData(1280, 800, 1.0)]
+    [InlineData(1920, 1009, 1.0)]
+    [InlineData(2560, 1440, 1.375)]
+    [InlineData(1080, 640, 1.0)]
+    [InlineData(1080, 1000, 1.0)]   // tall enough that the panel-open rect is narrower than it is high
+    public void MapRect_AtTheFit_NoWorldSitsUnderTheBars_AndTheWholeWorldIsInTheRect(int w, int h, double scale)
+    {
+        float s = (float)scale;
+        var status = new PanelRect("##status", 0, 0, w, 52 * s);
+        var command = new PanelRect("##command", 0, h - 60 * s, w, 60 * s);
+        float cw = PanelLayout.ContextWidth(w, s);
+        var context = new PanelRect("##context", w - cw - 12 * s, 64 * s, cw, h - 112 * s - 24 * s);
+        foreach (PanelRect? panel in new PanelRect?[] { null, context })
+        {
+            RectD map = PanelLayout.MapRect(w, h, status, command, panel);
+            var cam = new Camera(1024);
+            cam.ZoomAt(map.CenterX, map.CenterY, 1e-12, map);   // slam to the fit
+            Assert.Equal(cam.MinZoom(map), cam.Zoom);
+            for (int pass = 0; pass < 2; pass++)
+            {
+                (double x0, double y0) = cam.WorldToScreen(0, 0, map);
+                (double x1, double y1) = cam.WorldToScreen(1024, 1024, map);
+                Assert.True(y0 >= map.Y - 1e-9 && y1 <= map.Bottom + 1e-9, $"world rows under a bar at {w}x{h}: {y0}..{y1} vs {map.Y}..{map.Bottom}");
+                Assert.True(x0 >= map.X - 1e-9 && x1 <= map.Right + 1e-9, $"world columns outside the map rect at {w}x{h}: {x0}..{x1} vs {map.X}..{map.Right}");
+                Assert.Equal(Math.Min(map.W, map.H), x1 - x0, 9);   // a FIT: the shorter side, exactly
+                cam.Pan(1e6, -1e6, map);                             // and a fitted world cannot be panned off it
+            }
+        }
+        var old = new Camera(1024);
+        old.ZoomAt(0, 0, 1e-12, w, h);
+        double oy0 = old.WorldToScreen(0, 0, w, h).Y, oy1 = old.WorldToScreen(1024, 1024, w, h).Y;
+        Assert.True(oy0 < status.Height || oy1 > command.Y, $"control: the window fit kept the world off the bars ({oy0}..{oy1})");
+    }
+
+    [Fact]
+    public void MapRect_Clamp_KeepsTheRectOverTheWorld_AndEveryEdgeOfTheWorldReachesTheClearMap()
+    {
+        RectD map = BandWithPanel;
+        var cam = new Camera(1024);
+        cam.ZoomAt(map.CenterX, map.CenterY, 4.0, map);
+        cam.Pan(1e9, 1e9, map);   // toward the world's top-left
+        (double tlx, double tly) = cam.WorldToScreen(0, 0, map);
+        Assert.Equal(map.X, tlx, 9);   // the world's corner at the clear map's corner, not under the status band
+        Assert.Equal(map.Y, tly, 9);
+        cam.Pan(-1e9, -1e9, map);
+        (double brx, double bry) = cam.WorldToScreen(1024, 1024, map);
+        Assert.Equal(map.Right, brx, 9);   // the world's right edge at the panel's edge, not under it
+        Assert.Equal(map.Bottom, bry, 9);  // its bottom edge on the command bar's top edge
+        // The control: the window clamp parked the world's corner at the window's (0, 0) — under the status band.
+        var old = new Camera(1024);
+        old.ZoomAt(640, 400, 4.0, W, H);
+        old.Pan(1e9, 1e9, W, H);
+        Assert.Equal(0.0, old.WorldToScreen(0, 0, W, H).Y, 9);
+    }
+
+    /// <summary>"Opening the context panel re-fits the view without moving the world point under the cursor": at the
+    /// same zoom the reframe moves nothing at all — every world point keeps its screen position — while the map rect
+    /// narrows to the panel's edge.</summary>
+    [Fact]
+    public void Reframe_OpeningThePanel_KeepsTheWorldPointUnderTheCursor_AndTheWholePicture()
+    {
+        var cam = new Camera(1024);
+        cam.ZoomAt(Band.CenterX, Band.CenterY, 3.0, Band);
+        cam.Pan(-40, 25, Band);
+        (double X, double Y)[] probes = [(300, 400), (100, 90), (820, 700), (512, 512)];
+        var before = new (double X, double Y)[probes.Length];
+        for (int i = 0; i < probes.Length; i++) before[i] = cam.ScreenToWorld(probes[i].X, probes[i].Y, Band);
+        double zoom = cam.Zoom;
+
+        cam.Reframe(Band, BandWithPanel, 300, 400);
+
+        Assert.Equal(zoom, cam.Zoom);
+        for (int i = 0; i < probes.Length; i++)
+        {
+            (double wx, double wy) = cam.ScreenToWorld(probes[i].X, probes[i].Y, BandWithPanel);
+            Assert.Equal(before[i].X, wx, 9);
+            Assert.Equal(before[i].Y, wy, 9);
+        }
+        // And closing it again is the same identity the other way.
+        cam.Reframe(BandWithPanel, Band, 300, 400);
+        (double bx, double by) = cam.ScreenToWorld(300, 400, Band);
+        Assert.Equal(before[0].X, bx, 9);
+        Assert.Equal(before[0].Y, by, 9);
+    }
+
+    /// <summary>A view at the fit RE-FITS: when the rect narrows (a panel opens in a tall window) the zoom falls to the
+    /// new fit and the whole world is framed in the new rect; when it widens again the zoom rises back to that fit.
+    /// A zoom below a new, larger fit is raised to it.</summary>
+    [Fact]
+    public void Reframe_AFitViewReFitsTheNewRect_AndAZoomBelowTheNewFitIsRaisedToIt()
+    {
+        var status = new PanelRect("##status", 0, 0, 1080, 52);
+        var command = new PanelRect("##command", 0, 940, 1080, 60);
+        RectD wide = PanelLayout.MapRect(1080, 1000, status, command, null);                                     // 1080 x 888
+        RectD narrow = PanelLayout.MapRect(1080, 1000, status, command, new PanelRect("##context", 648, 64, 420, 864)); // 648 x 888
+        var cam = new Camera(1024);
+        cam.Clamp(wide);
+        cam.ZoomAt(500, 500, 1e-12, wide);
+        Assert.Equal(888 / 1024.0, cam.Zoom, 12);
+
+        cam.Reframe(wide, narrow, 900, 500);   // the cursor over the panel that just opened
+        Assert.Equal(cam.MinZoom(narrow), cam.Zoom);
+        Assert.Equal(648 / 1024.0, cam.Zoom, 12);
+        (double x0, double y0) = cam.WorldToScreen(0, 0, narrow);
+        (double x1, double y1) = cam.WorldToScreen(1024, 1024, narrow);
+        Assert.True(x0 >= narrow.X - 1e-9 && x1 <= narrow.Right + 1e-9 && y0 >= narrow.Y - 1e-9 && y1 <= narrow.Bottom + 1e-9);
+
+        cam.Reframe(narrow, wide, 300, 300);
+        Assert.Equal(cam.MinZoom(wide), cam.Zoom);
+
+        var below = new Camera(1024);
+        below.ZoomAt(300, 300, 1e-12, narrow);
+        below.ZoomAt(300, 300, 1.1, narrow);   // above the narrow fit, below the wide one
+        Assert.True(below.Zoom < below.MinZoom(wide));
+        below.Reframe(narrow, wide, 300, 300);
+        Assert.Equal(below.MinZoom(wide), below.Zoom);
+    }
+
+    /// <summary>The render matrix is built from <see cref="Camera.Transform"/>: it must be WorldToScreen, exactly.</summary>
+    [Fact]
+    public void Transform_IsWorldToScreen_ThroughTheMapRect()
+    {
+        foreach (RectD map in new[] { Band, BandWithPanel, Camera.Window(W, H) })
+        {
+            var cam = new Camera(1024);
+            cam.ZoomAt(map.CenterX + 50, map.CenterY - 30, 2.75, map);
+            (double scale, double ox, double oy) = cam.Transform(map);
+            foreach ((double wx, double wy) in new[] { (0.0, 0.0), (1024.0, 1024.0), (333.3, 701.9), (cam.CenterX, cam.CenterY) })
+            {
+                (double sx, double sy) = cam.WorldToScreen(wx, wy, map);
+                Assert.Equal(sx, wx * scale + ox, 9);
+                Assert.Equal(sy, wy * scale + oy, 9);
+            }
+        }
+    }
+
+    /// <summary>The (width, height) overloads ARE the rect at the window's origin — bit for bit, through a run of every
+    /// operation — so every headless paint and preview that frames the full window computes what it did before P1.</summary>
+    [Fact]
+    public void WindowOverloads_AreTheMapRectAtTheOrigin_BitForBit()
+    {
+        var a = new Camera(1024);
+        var b = new Camera(1024);
+        RectD win = Camera.Window(W, H);
+        a.ZoomAt(400, 300, 2.5, W, H); b.ZoomAt(400, 300, 2.5, win);
+        a.Pan(37, -90, W, H); b.Pan(37, -90, win);
+        a.ZoomAt(1100, 700, 1 / 1.7, W, H); b.ZoomAt(1100, 700, 1 / 1.7, win);
+        a.Pan(-1e5, 3, W, H); b.Pan(-1e5, 3, win);
+        a.Clamp(W, H); b.Clamp(win);
+        Assert.Equal(a.Zoom, b.Zoom);
+        Assert.Equal(a.CenterX, b.CenterX);
+        Assert.Equal(a.CenterY, b.CenterY);
+        Assert.Equal(a.MinZoom(W, H), b.MinZoom(win));
+        Assert.Equal(a.ScreenToWorld(777, 123, W, H), b.ScreenToWorld(777, 123, win));
+        Assert.Equal(a.WorldToScreen(5, 1000, W, H), b.WorldToScreen(5, 1000, win));
     }
 }
 

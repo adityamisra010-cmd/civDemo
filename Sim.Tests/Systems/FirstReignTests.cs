@@ -24,17 +24,40 @@ public class FirstReignTests
         return OrderLog.Load(stream);
     }
 
-    internal static WorldState Replay(int turns, out List<(long Pop, long Food, long Harvest)> trajectory)
+    /// <summary>The first-reign turn-40 pin (history on FirstReign_PostFix_HarvestDiesWithThePeople_NoFoodMountain).</summary>
+    // ADR-035 (P-F1, founding-turn harvest) RE-PIN (VALUE): 27dd99c66bb7bb13… -> 8f3f86b76a8a0357…. CAUSE: an absent catchment row is an unmeasured land side, so the founding turn harvests (labour-limited) instead of harvesting zero; turn 2 no longer reads N_lim = 0.
+    // ADR-035 §6 (P-F0, founding death remainder) RE-PIN (VALUE): 8f3f86b76a8a0357… -> 0272b21fbd14bce1…. CAUSE: a new bucket row's D-004 death accumulator is seeded at 0.5, so the first integer reconciliation rounds instead of flooring (the turn-1 phantom survivors are gone).
+    // ADR-035 §7 (P-F2, founding composition) RE-PIN (VALUE): 0272b21fbd14bce1… -> 6720be6a8ed7261c…. CAUSE: founding cohort noise at demographic scale (CV ~ 1/sqrt(n_c)) instead of RC-1's per-cohort ±0.69; the settlement-common size factor is unchanged.
+    // D-051 1(b) (2026-10-10, time-averaged decade weather) RE-PIN (VALUE): 6720be6a8ed7261c… -> 467f2cb6f5e8ff81…. CAUSE: a turn's harvest multiplier is the time-average of the yearly weather process over the turn's yearly sub-steps (mean unchanged, per-decade log-spread ~0.29 -> ~0.19) and a new settlement joins the weather at a stationary draw. CONTROL: TestConfigs.PreTimeAveragedHarvest returns the old value byte for byte (IntegratedPinAttributionTests.*_MovedForTheTimeAveragedHarvestAlone).
+    // BATCH 3 / D-054 RE-PIN (integration R1, 2026-10-14; VALUE + LAYOUT): 467f2cb6f5e8ff81… -> bccc8aed902d2587…. CAUSE: the v33 layout (two EMPTY appended tables) AND the cylinder (worldgen.json topology.wrapX — the terrain is folded into the hash, so the worlds differ from turn 0); WS1 and WS2 do not act (no construction order in the log). ATTRIBUTION (history on FirstReign_PostFix_HarvestDiesWithThePeople_NoFoodMountain): D054PairAttributionTests ("first-reign"), IncrementalConstructionAttributionTests.ToyGoldenSeed42Turn200_AndFirstReignTurn40_MovedForTheV33LayoutAlone, and the cylinder-alone link <see cref="PostR1GoldenAtV32"/>.
+    // D-055 (2026-10-16) RE-PIN (LAYOUT ALONE): bccc8aed902d2587… -> f7ca60a52362a7da…. CAUSE: schema v34 appends ConstructionHolds, EMPTY here (the first-reign log carries no construction order) — one four-byte zero count prefix. CONTROL: ReservationsLayoutAttributionTests.FirstReignTurn40_MovedForTheV34LayoutAlone (SchemaProjection.V33 = OLD).
+    internal const string PostR1Golden = "f7ca60a52362a7da30c73be82ad8ecd56aeeb68f932b2ad98d8d3e76e3219057";
+
+    /// <summary>Batch 3 (D-054, integration R1, 2026-10-14): THE CYLINDER-ALONE LINK — <see cref="PostR1Golden"/>'s world
+    /// through the v32 projection (SchemaProjection.V32: the two v33 tables dropped, asserted EMPTY). It equals the turn-40
+    /// hash the W1 stage measured with the cylinder and no v33 layout (101bbdd7…), so the raw re-pin factors exactly into
+    /// the layout (this projection) and the cylinder (this value against <see cref="PreD054Golden"/>).</summary>
+    internal const string PostR1GoldenAtV32 = "101bbdd7924ef430747f64a0ebbdb307fc4fd82571d9a916fd77d23e62f465cb";
+
+    /// <summary>Batch 3 (D-054): the first-reign turn-40 hash with the batch's worldgen layer off (founded flat,
+    /// TestConfigs.PreD054Worldgen) — the batch-2 value of <see cref="PostR1Golden"/>, where every pre-batch-3 attribution
+    /// chain of this world (IntegratedPinAttributionTests) now ends. The cylinder moves the live pin from turn 0 (the
+    /// terrain is folded into every hash); WrapAttributionTests is that control. Integration (2026-10-14): BOTH halves of the PreD054 pair (PreD054Sim + PreD054Worldgen) and the v32 projection (SchemaProjection.V32 — schema v33 appended two tables) give it; D054PairAttributionTests pins that.</summary>
+    internal const string PreD054Golden = "467f2cb6f5e8ff8171840de57dc44999d2f0347b3b8af8c9ef8451e199d22abb";
+
+    internal static WorldState Replay(int turns, out List<(long Pop, long Food, long Harvest)> trajectory, SimConfig? cfgOverride = null,
+        WorldgenConfig? worldgen = null)
     {
-        SimConfig cfg = TestConfigs.Sim();
+        SimConfig cfg = cfgOverride ?? TestConfigs.Sim();
+        WorldgenConfig wg = worldgen ?? TestConfigs.Worldgen();   // D-054: attribution controls found flat (PreD054Worldgen)
         using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
         var exec = new TurnExecutor(
             EraTableLoader.Load(eraStream),
-            PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg, TestConfigs.Worldgen())), Fixture());
+            PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg, wg)), Fixture());
         // FULL 1024², N = 1 via the D-029 flag (T2.3): the fixture is a
         // single-settlement director session and replays at --settlements 1.
-        WorldState world = WorldFounding.Found(TestConfigs.Worldgen(), cfg, 42, settlementsOverride: 1);
+        WorldState world = WorldFounding.Found(wg, cfg, 42, settlementsOverride: 1);
         OrderValidation.ValidateAgainstWorld(Fixture(), world);
 
         trajectory = [];
@@ -434,8 +457,121 @@ public class FirstReignTests
         //   THE SHAPE ASSERTS BELOW ARE UNCHANGED AND RE-VERIFIED BY RUNNING
         //         THEM on the merged tree: the dead world still dies inside the
         //         session's shape and the ghost mountain stays absent.
-        const string golden = "dacf3c34824a866726861be64480da4b7fe913a8a80bd4a72f51bc282ec1fe3e";
-        Assert.Equal(golden, WorldHash.ComputeHex(final));
+        // ADR-029 RE-PIN — SCHEMA v26 + THE RESEARCH ROWS, MEASURED on this tree by
+        // the agent writing this line.
+        //   OLD  dacf3c34824a866726861be64480da4b7fe913a8a80bd4a72f51bc282ec1fe3e
+        //   NEW  37fd4ba7d3d53bd01125bb57d2daa1395b67c679e1a0a86c6e3a1af1046dda58
+        //   CAUSE five v26 count prefixes plus ResearchSystem's own rows (the
+        //         director's fixture carries no research order). The SHAPE ASSERTS
+        //         BELOW ARE UNCHANGED and pass on this tree: research feeds nothing
+        //         back, so the dead world dies exactly as before.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
+        //         .FirstReignTurn40_MovedForTheResearchLayerAlone returns the OLD
+        //         value byte for byte.
+        // RESEARCH FINALIZATION RE-PIN (ADR-029 addendum A; D-046) — MEASURED on this tree by the agent
+        // writing this line. Research rows and layout only; not architectural truth.
+        //   OLD  37fd4ba7d3d53bd01125bb57d2daa1395b67c679e1a0a86c6e3a1af1046dda58
+        //   NEW  4291b3e15006e3f110cba311114326bc811c0c7de4295ec2db27184f51d62db7
+        //   CAUSE two more empty count prefixes, and no research row at turn 40
+        //         (measured: all seven research tables empty). The SHAPE ASSERTS BELOW
+        //         ARE UNCHANGED and pass on this tree: research feeds nothing back.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
+        //         .FirstReignTurn40_MovedForTheResearchLayerAlone returns main's
+        //         dacf3c34… byte for byte.
+        //   MEASURED by the in-test harness (FirstReignTests.Replay(40)).
+        // ADR-031 RE-PIN — SCHEMA v28, MEASURED on this tree by the agent writing this line.
+        //   OLD  4291b3e15006e3f110cba311114326bc811c0c7de4295ec2db27184f51d62db7
+        //   NEW  259c13cf27ea3bed62cd8a0018469a85858b51f546486acb8046dc3577014050
+        //   CAUSE v26 -> v28 appends AgeStates, AgeEligibility, AgeTransitions, MilitaryUnits,
+        //         UnitConversions (and, on founded worlds, the founding warband + per-turn
+        //         eligibility rows). No behaviour moved: IntegratedPinAttribution.FirstReignTurn40_MovedForTheAgeLayerAlone
+        //         strips the five tables, drops their prefixes and returns OLD byte for byte.
+        // ADR-032 RE-PIN — SCHEMA v29, MEASURED on this tree by the agent writing this line.
+        //   OLD  259c13cf27ea3bed62cd8a0018469a85858b51f546486acb8046dc3577014050
+        //   NEW  c805ca10e1e24ae686f5a0d59564e77ceecb9fd50de5aad51489887fc61455c3
+        //   CAUSE v28 -> v29 appends TransportEdges and RoadDevelopments (both EMPTY here: no
+        //         DevelopRoads order in this run). No behaviour moved: IntegratedPinAttribution.FirstReignTurn40_MovedForTheTransportLayoutAlone
+        //         strips the two tables, drops their prefixes and returns OLD byte for byte.
+        // ADR-033 D4 RE-PIN (2026-10-02) — SCHEMA v30, MEASURED on this tree by the agent writing this line.
+        //   OLD  c805ca10e1e24ae686f5a0d59564e77ceecb9fd50de5aad51489887fc61455c3
+        //   NEW  3613dcc4aa059755fc9eb4ab8b353879c93d428d7915bac673b44f4a83366ba3
+        //   CAUSE v29 -> v30 appends TaxPolicies (EMPTY: the first-reign log carries no SetTaxRate).
+        //         The lone settlement is the capital, whose reach is exactly 1.0 — the Strength its
+        //         founding wrote — so the one empty count prefix is the entire movement:
+        //         IntegratedPinAttribution.FirstReignTurn40_MovedForTheGovernanceLayerAlone returns
+        //         OLD byte for byte.
+        //   MEASURED by the in-test harness (FirstReignTests.Replay(40)).
+        // ADR-033 D6 + D10 RE-PIN (2026-10-02) — SCHEMA v31, MEASURED on this tree by the agent writing this line.
+        //   OLD  3613dcc4aa059755fc9eb4ab8b353879c93d428d7915bac673b44f4a83366ba3
+        //   NEW  481d37170d7f70f35950a358cbb831c2c78f668642cdd529f7dbfd806853ef87
+        //   CAUSE v30 -> v31 appends Institutions and ConstructionLabor (both EMPTY: the first-reign
+        //         log carries no EnqueueConstruction), so two four-byte zero count prefixes are the entire
+        //         movement: IntegratedPinAttribution.FirstReignTurn40_MovedForTheInstitutionsLayoutAlone
+        //         returns OLD byte for byte (removed == 0).
+        //   MEASURED by the in-test harness (FirstReignTests.Replay(40)).
+        // R1 RE-PIN (2026-10-03) — RESEARCH-GATED RECIPES (BEHAVIOUR), MEASURED on this tree by the agent
+        // writing this line (ADR-015 §6).
+        //   OLD  481d37170d7f70f35950a358cbb831c2c78f668642cdd529f7dbfd806853ef87
+        //   NEW  158bdd4cd2ee9cc363a3ae423bec0c16fa3ba92b4e4459c390eeeac58f2e6465
+        //   CAUSE goods.json recipes now link research.json recipe entities, and ProductionSystem runs a
+        //         recipe only when the settlement controller's knowledge makes it eligible (CraftingQuery):
+        //         pottery-firing needs pottery_open_fired, bronze-casting tin_bronze. This run completes
+        //         neither, so no pottery is fired and no bronze cast (toolmaking then has no bronze). The
+        //         schema is unchanged.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution.FirstReignTurn40_MovedForTheRecipeKnowledgeLayerAlone
+        //         runs the content twin with the four recipe links removed (TestConfigs.PreRecipeKnowledge)
+        //         and returns OLD byte for byte; every older layer control runs on that twin and is UNMOVED.
+        //   MEASURED by the in-test harness (FirstReignTests.Replay(40)).
+        // M5 R2b RE-PIN (2026-10-03) — GOVERNANCE + WEATHER FIXES (BEHAVIOUR), MEASURED on this tree by the agent
+        // writing this line (ADR-015 §6).
+        //   OLD  158bdd4cd2ee9cc363a3ae423bec0c16fa3ba92b4e4459c390eeeac58f2e6465
+        //   NEW  680a20c5616520f2fbc3b2df97bb99f49ad2adf86edf3f45b0fe7beefaff2b8d
+        //   CAUSE the Age-military layer ALONE (measured: stripping only it returns OLD; the weather and unrest
+        //           twins each leave the new value — one settlement has no neighbour to correlate with and no levy):
+        //           the published AgeEligibility row no longer counts the founding warband.
+        //   CONTROL TestConfigs.PreR2b (weather spatialDistance travelCost + Dignity unbound and no unrest section +
+        //           formations facts without minIdentityAge) returns OLD byte for byte
+        //           (IntegratedPinAttributionTests.*_MovedForTheR2bLayersAlone).
+        // R4 RE-PIN (2026-10-04) — THE FORAGER LAYER (farming.preCultivation ON at 2.0 / 4.3; BEHAVIOUR), MEASURED on this
+        // tree by the agent writing this line. OLD 680a20c5616520f2fbc3b2df97bb99f49ad2adf86edf3f45b0fe7beefaff2b8d -> NEW 74a97abc39d1191061a2c39748c870faf62d308a8d2cc7b3d28feff8b35e4419. CAUSE wild-food harvest
+        // rates until farming is known. CONTROL TestConfigs.PreForager returns OLD byte for byte
+        // (IntegratedPinAttributionTests.*_MovedForTheForagerLayerAlone).
+        // H2 RE-PIN (2026-10-05) — SCHEMA v32 (TaxGrievances, the levy's grievance per population segment), MEASURED on
+        // this tree by the agent writing this line (ADR-015 §6).
+        //   OLD  74a97abc39d1191061a2c39748c870faf62d308a8d2cc7b3d28feff8b35e4419
+        //   NEW  27dd99c66bb7bb13363bd694eeb1b9a1d8b11bfb094c44f27e21f259656baa8a
+        //   CAUSE v31 -> v32 appends TaxGrievances, EMPTY here (the first-reign log carries no SetTaxRate order),
+        //         so the entire movement is one four-byte zero count prefix. No behaviour moved.
+        //   CONTROL IntegratedPinAttributionTests.*_MovedForTheV32Levy*: the asserted-absent levy rows stripped and the
+        //           empty v32 count prefix dropped return OLD byte for byte (docs/d049-taxation-and-revolt-model.md §8).
+        //   MEASURED by the in-test harness (FirstReignTests.Replay(40)).
+        // BATCH 3 / D-054 RE-PIN (integration R1, 2026-10-14) — THE v33 LAYOUT + THE CYLINDER, MEASURED on this tree by the
+        // agent writing this line (ADR-015 §6).
+        //   OLD  467f2cb6f5e8ff8171840de57dc44999d2f0347b3b8af8c9ef8451e199d22abb
+        //   NEW  bccc8aed902d25873373926c3aa16a71f226dae01b0bbd3004bc004a48f8d2fa
+        //   CAUSE (1) v32 -> v33 appends ConstructionProgress and ResourceAllocations, both EMPTY here (the first-reign log
+        //         carries no construction or allocation order); (2) the shipped world is a CYLINDER (worldgen.json
+        //         topology.wrapX): the 1024² terrain regenerates x-periodic and its content hash is folded into every world
+        //         hash, so the run differs from turn 0. WS1 (incremental construction) and WS2 (allocation ratios) do not act.
+        //   ATTRIBUTION, MEASURED (in-test harness, four arms): shipped -> raw bccc8aed…, v32 101bbdd7…; the sim half off
+        //         (TestConfigs.PreD054Sim) on the cylinder -> the SAME raw bccc8aed… (WS1/WS2 move nothing); the cylinder off
+        //         (TestConfigs.PreD054Worldgen) with the sim half on -> raw 96d7346d…, v32 467f2cb6… = OLD; both off -> v32 OLD.
+        //   CONTROLS D054PairAttributionTests.WithBothHalvesOff_EveryBatch2ReferenceReproducesByteForByte_ThroughTheV32Projection
+        //         ("first-reign": both halves off + v32 = OLD), IncrementalConstructionAttributionTests
+        //         .ToyGoldenSeed42Turn200_AndFirstReignTurn40_MovedForTheV33LayoutAlone (flat: raw != OLD, v32 = OLD), and the
+        //         cylinder-alone link asserted below (v32 of THIS world = 101bbdd7…, W1's cylinder-only value).
+        //   The SHAPE asserts below were run on the new trajectory and pass unchanged.
+        // D-055 RE-PIN (2026-10-16; the Director's batch-4 instruction, item 1) — SCHEMA v34, THE v34 LAYOUT ALONE, MEASURED
+        // on this tree by the agent writing this line (ADR-015 §6).
+        //   OLD  bccc8aed902d25873373926c3aa16a71f226dae01b0bbd3004bc004a48f8d2fa
+        //   NEW  f7ca60a52362a7da30c73be82ad8ecd56aeeb68f932b2ad98d8d3e76e3219057
+        //   CAUSE v33 -> v34 appends ConstructionHolds (section 61), EMPTY here (the first-reign log carries no construction
+        //         order), so the entire movement is one four-byte zero count prefix. No behaviour moved; the SHAPE asserts
+        //         below are unchanged.
+        //   CONTROL ReservationsLayoutAttributionTests.FirstReignTurn40_MovedForTheV34LayoutAlone: the v33 projection
+        //         (SchemaProjection.V33, asserting 0 hold rows) returns OLD byte for byte.
+        Assert.Equal(PostR1Golden, WorldHash.ComputeHex(final));
+        Assert.Equal(PostR1GoldenAtV32, SchemaProjection.V32(final));   // the layout is the whole raw/v32 difference
 
         // SHAPE ASSERTS — the anti-blind-repin guard (adversarial pass): they
         // assert trajectory SEMANTICS, so a ghost-harvest revert plus a

@@ -30,6 +30,18 @@ namespace Sim.Ui.Art;
 /// wall-clock. Rows are independent, so the parallel bake is byte-identical
 /// to the serial one (pinned by test). Sim.Ui sits outside the determinism
 /// surface (ADR-009); this is engineering hygiene, not a law-5 obligation.
+///
+/// BATCH 3 WS3 — THE CYLINDER (<see cref="TerrainSet.WrapX"/>). The game draws this sheet with a U-wrapped sampler
+/// (SimUiGame), so its last column must meet its first without a seam:
+///   * every field sample is x-PERIODIC (<see cref="Sample"/>, <see cref="SampleF"/>, <see cref="IsWaterAt(ReadOnlySpan{double}, int, double, double, bool)"/>,
+///     <see cref="DisplayedTexel(double, int, int, bool)"/>), and the coast's chamfer distance sees its x neighbours across
+///     the seam (<see cref="CoastDistance(ReadOnlySpan{double}, int, bool)"/>) — the coast ink and the engraved sea run on;
+///   * the wash tiles and the paper are sampled at a world-space UV whose span (627 px for the shipped art) divides no world
+///     width, so over the last <see cref="SeamFadePx"/> world px the textured colour CROSS-FADES (smoothstep) into the colour
+///     the same texel would take one circumference west — the colour the first columns continue from. This works for any
+///     --size, where a span that had to divide every world width could not. Only the cross-fade band's last columns differ
+///     from a flat bake's arithmetic; the band is visible only as a slight softening of the paper's grain over it.
+/// A FLAT terrain takes exactly the pre-WS3 arithmetic: its bake is byte-identical (pinned).
 /// </summary>
 public static class ParchmentBaker
 {
@@ -96,7 +108,9 @@ public static class ParchmentBaker
         double landSpan = maxElev > sea ? maxElev - sea : 1.0;
         double depthSpan = sea > minElev ? sea - minElev : 1.0;
 
-        float[] coastDistance = CoastDistance(waterMask, n);
+        bool wrap = terrain.WrapX;   // WS3: an x-periodic sheet (see the type's remarks); flat: the pre-WS3 bake exactly
+        float[] coastDistance = wrap ? CoastDistance(waterMask, n, wrapX: true) : CoastDistance(waterMask, n);
+        double fade = wrap ? SeamFadePx(n) : 0.0;
         ArtImage paper = art.ParchmentFor(worldSeed);
         double paperSpan = o.PaperWorldSpanPx ?? Math.Max(64.0, paper.Width / (double)ss);
         double paperMean = Luminance(ParchmentPalette.PaperMid);
@@ -121,6 +135,13 @@ public static class ParchmentBaker
             for (int x = 0; x < size; x++)
             {
                 double wx = (x + 0.5) / ss - 0.5;
+
+                if (wrap)
+                {
+                    WrappedTexel(pixels, (y * size + x) * 4, wx, wy, n, o, weights, elevationCopy, waterCopy, moistureCopy,
+                        fertilityCopy, coastDistance, tiles, tileSpans, paper, paperSpan, paperMean, sea, landSpan, depthSpan, fade);
+                    continue;
+                }
 
                 double elev = Sample(elevationCopy, n, wx, wy);
                 bool isWater = IsWaterAt(waterCopy, n, wx, wy);
@@ -201,6 +222,105 @@ public static class ParchmentBaker
         return new Result(size, pixels, ms, n);
     }
 
+    /// <summary>WS3: the width in world px of the seam cross-fade at the sheet's eastern edge: 32 px, or a quarter of a
+    /// world narrower than 128 px.</summary>
+    public static double SeamFadePx(int worldSizePx) => Math.Min(32.0, worldSizePx / 4.0);
+
+    /// <summary>
+    /// WS3: ONE TEXEL of a wrapped sheet at world (<paramref name="wx"/>, <paramref name="wy"/>) — the flat texel's pipeline
+    /// with x-periodic field samples, the textured colour (washes, break-up, paper) cross-faded over the last
+    /// <paramref name="fade"/> world px into its value one circumference west (<see cref="Textured"/>), then the coast ink.
+    /// </summary>
+    private static void WrappedTexel(byte[] pixels, int off, double wx, double wy, int n, Options o, Span<double> weights,
+        double[] elevation, double[] water, double[] moisture, double[] fertility, float[] coastDistance,
+        ArtImage[] tiles, double[] tileSpans, ArtImage paper, double paperSpan, double paperMean,
+        double sea, double landSpan, double depthSpan, double fade)
+    {
+        double elev = Sample(elevation, n, wx, wy, wrapX: true);
+        bool isWater = IsWaterAt(water, n, wx, wy, wrapX: true);
+        TerrainSplat.Weights(
+            (elev - sea) / landSpan, (sea - elev) / depthSpan,
+            Sample(moisture, n, wx, wy, wrapX: true), Sample(fertility, n, wx, wy, wrapX: true),
+            isWater, weights);
+        int dominant = 0;
+        double dominantWeight = 0.0;
+        for (int c = 0; c < weights.Length; c++)
+            if (weights[c] > dominantWeight) { dominantWeight = weights[c]; dominant = c; }
+
+        (double r, double g, double b) = Textured(wx, wy, o, weights, dominant, tiles, tileSpans, paper, paperSpan, paperMean);
+        double start = n - fade;
+        if (fade > 0 && wx > start)
+        {
+            // The seam: blend toward the colour the texel takes one circumference west — where the sheet's first columns
+            // continue from — reaching it at the edge (smoothstep, so the band starts and ends without a crease).
+            double t = Math.Min(1.0, (wx - start) / fade);
+            t = t * t * (3.0 - 2.0 * t);
+            (double r2, double g2, double b2) = Textured(wx - n, wy, o, weights, dominant, tiles, tileSpans, paper, paperSpan, paperMean);
+            r = r * (1.0 - t) + r2 * t;
+            g = g * (1.0 - t) + g2 * t;
+            b = b * (1.0 - t) + b2 * t;
+        }
+
+        double dist = SampleF(coastDistance, n, wx, wy, wrapX: true);
+        if (!isWater && dist <= o.CoastInkPx)
+        {
+            double k = 1.0 - dist / o.CoastInkPx;
+            double ink = 0.72 * k * k;
+            r += (ParchmentPalette.InkPrimary.R - r) * ink;
+            g += (ParchmentPalette.InkPrimary.G - g) * ink;
+            b += (ParchmentPalette.InkPrimary.B - b) * ink;
+        }
+        else if (isWater && dist <= o.EngravedBandPx)
+        {
+            double phase = dist / (o.EngravedBandPx / 3.0);
+            double line = Math.Max(0.0, 1.0 - Math.Abs(phase - Math.Round(phase)) * 6.0);
+            double fadeOut = 1.0 - dist / o.EngravedBandPx;
+            double ink = 0.16 * line * fadeOut * fadeOut;
+            r += (ParchmentPalette.InkSoft.R - r) * ink;
+            g += (ParchmentPalette.InkSoft.G - g) * ink;
+            b += (ParchmentPalette.InkSoft.B - b) * ink;
+        }
+
+        pixels[off] = TerrainSplat.Byte(r);
+        pixels[off + 1] = TerrainSplat.Byte(g);
+        pixels[off + 2] = TerrainSplat.Byte(b);
+        pixels[off + 3] = 255;
+    }
+
+    /// <summary>WS3: the UV-dependent half of a texel — the weighted wash blend, the dominant wash's break-up sample and the
+    /// paper's print-through — at world-space UV x <paramref name="ux"/> (the flat bake's own arithmetic, in its order).</summary>
+    private static (double R, double G, double B) Textured(double ux, double wy, Options o, ReadOnlySpan<double> weights, int dominant,
+        ArtImage[] tiles, double[] tileSpans, ArtImage paper, double paperSpan, double paperMean)
+    {
+        double r = 0, g = 0, b = 0;
+        for (int c = 0; c < weights.Length; c++)
+        {
+            double w = weights[c];
+            if (w < 0.02) continue;
+            ParchmentPalette.Rgba s = o.CrossFadeSeams
+                ? tiles[c].SampleWrappedCrossFaded(ux / tileSpans[c], wy / tileSpans[c])
+                : tiles[c].SampleWrapped(ux / tileSpans[c], wy / tileSpans[c]);
+            r += s.R * w; g += s.G * w; b += s.B * w;
+        }
+        double sampled = 0.0;
+        for (int c = 0; c < weights.Length; c++) if (weights[c] >= 0.02) sampled += weights[c];
+        if (sampled > 0.0) { r /= sampled; g /= sampled; b /= sampled; }
+        else { ParchmentPalette.Rgba f = TerrainSplat.Blend(weights); r = f.R; g = f.G; b = f.B; }
+
+        ParchmentPalette.Rgba breakUp = tiles[dominant].SampleWrappedCrossFaded(
+            ux / tileSpans[dominant] * 0.371 + 0.19, wy / tileSpans[dominant] * 0.371 + 0.57);
+        const double BreakUpMix = 0.30;
+        r = r * (1.0 - BreakUpMix) + breakUp.R * BreakUpMix;
+        g = g * (1.0 - BreakUpMix) + breakUp.G * BreakUpMix;
+        b = b * (1.0 - BreakUpMix) + breakUp.B * BreakUpMix;
+
+        ParchmentPalette.Rgba paperTexel = o.CrossFadeSeams
+            ? paper.SampleWrappedCrossFaded(ux / paperSpan, wy / paperSpan)
+            : paper.SampleWrapped(ux / paperSpan, wy / paperSpan);
+        double paperFactor = 1.0 + o.PaperInfluence * (Luminance(paperTexel) - paperMean) / paperMean;
+        return (r * paperFactor, g * paperFactor, b * paperFactor);
+    }
+
     /// <summary>
     /// THE LAND/WATER HARD GATE (director's coastal-defect ruling): the paint
     /// decision at a continuous world position is the SIM'S CELL-LEVEL MASK —
@@ -222,6 +342,16 @@ public static class ParchmentBaker
         return water[my * n + mx] >= 0.5;
     }
 
+    /// <summary>WS3: <see cref="IsWaterAt(ReadOnlySpan{double}, int, double, double)"/> on a wrapped terrain — the nearest
+    /// cell's column NORMALISED (the cell across the seam), y clamped; flat (<paramref name="wrapX"/> false): exactly it.</summary>
+    public static bool IsWaterAt(ReadOnlySpan<double> water, int n, double wx, double wy, bool wrapX)
+    {
+        if (!wrapX) return IsWaterAt(water, n, wx, wy);
+        int mx = Sim.Core.Pathing.MapTopology.WrapX((long)Math.Floor(wx + 0.5), n);
+        int my = Math.Clamp((int)Math.Floor(wy + 0.5), 0, n - 1);
+        return water[my * n + mx] >= 0.5;
+    }
+
     /// <summary>
     /// Which atlas texel the world-space draw displays at a world position —
     /// the render-side half of the coastline contract, kept as pure math so
@@ -238,6 +368,81 @@ public static class ParchmentBaker
     /// </summary>
     public static int DisplayedTexel(double worldPx, int worldSizePx, int bakeSize) =>
         Math.Clamp((int)Math.Floor(worldPx * bakeSize / (double)worldSizePx), 0, bakeSize - 1);
+
+    /// <summary>WS3: the texel the U-wrapped draw displays at world x <paramref name="worldPx"/> — any copy of the world —
+    /// the texel index NORMALISED (the GPU's AddressU = Wrap); along y (or flat) exactly
+    /// <see cref="DisplayedTexel(double, int, int)"/>.</summary>
+    public static int DisplayedTexel(double worldPx, int worldSizePx, int bakeSize, bool wrapX) =>
+        wrapX ? Sim.Core.Pathing.MapTopology.WrapX((long)Math.Floor(worldPx * bakeSize / (double)worldSizePx), bakeSize)
+              : DisplayedTexel(worldPx, worldSizePx, bakeSize);
+
+    /// <summary>WS3: how many columns either side of a wrapped coast distance are computed (<see cref="CoastDistance(ReadOnlySpan{double}, int, bool)"/>)
+    /// — beyond every distance the ink uses (the engraved band, 26 px), so every inked distance is the cylinder's.</summary>
+    public const int CoastSeamPadPx = 64;
+
+    /// <summary>
+    /// WS3: <see cref="CoastDistance(ReadOnlySpan{double}, int)"/> on a CYLINDER: the same chamfer over the map widened by
+    /// <see cref="CoastSeamPadPx"/> columns copied from across the seam on each side (column j is world column
+    /// (j − pad) mod n), so a cell's boundary test and its two sweeps see their x neighbours across the seam; the centre n
+    /// columns are kept. Every distance up to the pad is the cylinder's own (deterministic beyond it). Flat: exactly the flat one.
+    /// </summary>
+    public static float[] CoastDistance(ReadOnlySpan<double> water, int n, bool wrapX)
+    {
+        if (!wrapX) return CoastDistance(water, n);
+        int pad = Math.Min(n, CoastSeamPadPx), m = n + 2 * pad;
+        var wide = new double[m * n];
+        for (int y = 0; y < n; y++)
+            for (int j = 0; j < m; j++)
+                wide[y * m + j] = water[y * n + Sim.Core.Pathing.MapTopology.WrapX(j - pad, n)];
+        float[] d = CoastDistanceRect(wide, m, n);
+        var result = new float[n * n];
+        for (int y = 0; y < n; y++)
+            Array.Copy(d, y * m + pad, result, y * n, n);
+        return result;
+    }
+
+    /// <summary>The chamfer of <see cref="CoastDistance(ReadOnlySpan{double}, int)"/> over a <paramref name="w"/> ×
+    /// <paramref name="h"/> raster (rows of <paramref name="w"/>).</summary>
+    private static float[] CoastDistanceRect(double[] water, int w, int h)
+    {
+        var d = new float[w * h];
+        const float Far = 1e9f;
+        for (int y = 0; y < h; y++)
+            for (int x = 0; x < w; x++)
+            {
+                int i = y * w + x;
+                bool wet = water[i] >= 0.5;
+                bool boundary = (x > 0 && (water[i - 1] >= 0.5) != wet)
+                    || (x < w - 1 && (water[i + 1] >= 0.5) != wet)
+                    || (y > 0 && (water[i - w] >= 0.5) != wet)
+                    || (y < h - 1 && (water[i + w] >= 0.5) != wet);
+                d[i] = boundary ? 0f : Far;
+            }
+        const float O = 1f, D = 1.41421356f;
+        for (int y = 0; y < h; y++)
+            for (int x = 0; x < w; x++)
+            {
+                int i = y * w + x;
+                float m = d[i];
+                if (x > 0) m = Math.Min(m, d[i - 1] + O);
+                if (y > 0) m = Math.Min(m, d[i - w] + O);
+                if (x > 0 && y > 0) m = Math.Min(m, d[i - w - 1] + D);
+                if (x < w - 1 && y > 0) m = Math.Min(m, d[i - w + 1] + D);
+                d[i] = m;
+            }
+        for (int y = h - 1; y >= 0; y--)
+            for (int x = w - 1; x >= 0; x--)
+            {
+                int i = y * w + x;
+                float m = d[i];
+                if (x < w - 1) m = Math.Min(m, d[i + 1] + O);
+                if (y < h - 1) m = Math.Min(m, d[i + w] + O);
+                if (x < w - 1 && y < h - 1) m = Math.Min(m, d[i + w + 1] + D);
+                if (x > 0 && y < h - 1) m = Math.Min(m, d[i + w - 1] + D);
+                d[i] = m;
+            }
+        return d;
+    }
 
     /// <summary>Chamfer distance (in terrain texels) from every cell to the
     /// nearest land/water boundary — two sweeps, exact enough for an ink band
@@ -289,8 +494,37 @@ public static class ParchmentBaker
     private static double Luminance(ParchmentPalette.Rgba c) =>
         0.2126 * c.R + 0.7152 * c.G + 0.0722 * c.B;
 
+    /// <summary>WS3: the bilinear sample on a cylinder — x PERIODIC (both corner columns normalised: the cell across the
+    /// seam is the neighbour), y clamped as before. <paramref name="wrapX"/> false: exactly the flat sample. Public (no
+    /// behaviour change) so the periodic field read is pinned directly, as IsWaterAt and DisplayedTexel are.</summary>
+    public static double Sample(double[] field, int n, double x, double y, bool wrapX)
+    {
+        if (!wrapX) return Sample(field, n, x, y);
+        int x0 = (int)Math.Floor(x), y0 = (int)Math.Floor(y);
+        double tx = x - x0, ty = y - y0;
+        int x1 = Sim.Core.Pathing.MapTopology.WrapX(x0 + 1, n), y1 = Math.Clamp(y0 + 1, 0, n - 1);
+        x0 = Sim.Core.Pathing.MapTopology.WrapX(x0, n); y0 = Math.Clamp(y0, 0, n - 1);
+        double a = field[y0 * n + x0], b = field[y0 * n + x1];
+        double c = field[y1 * n + x0], e = field[y1 * n + x1];
+        return (a + (b - a) * tx) + ((c + (e - c) * tx) - (a + (b - a) * tx)) * ty;
+    }
+
+    /// <summary>WS3: <see cref="SampleF(float[], int, double, double)"/>, x periodic on a cylinder (the coast distance's
+    /// read). Public for the same reason as <see cref="Sample(double[], int, double, double, bool)"/>.</summary>
+    public static double SampleF(float[] field, int n, double x, double y, bool wrapX)
+    {
+        if (!wrapX) return SampleF(field, n, x, y);
+        int x0 = (int)Math.Floor(x), y0 = (int)Math.Floor(y);
+        double tx = x - x0, ty = y - y0;
+        int x1 = Sim.Core.Pathing.MapTopology.WrapX(x0 + 1, n), y1 = Math.Clamp(y0 + 1, 0, n - 1);
+        x0 = Sim.Core.Pathing.MapTopology.WrapX(x0, n); y0 = Math.Clamp(y0, 0, n - 1);
+        double a = field[y0 * n + x0], b = field[y0 * n + x1];
+        double c = field[y1 * n + x0], e = field[y1 * n + x1];
+        return (a + (b - a) * tx) + ((c + (e - c) * tx) - (a + (b - a) * tx)) * ty;
+    }
+
     /// <summary>Bilinear field sample at continuous terrain coordinates,
-    /// clamped at the edges (the world does not wrap).</summary>
+    /// clamped at the edges (a flat world; WS3's wrapped one is the overload above).</summary>
     private static double Sample(double[] field, int n, double x, double y)
     {
         int x0 = (int)Math.Floor(x), y0 = (int)Math.Floor(y);

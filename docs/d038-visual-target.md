@@ -50,11 +50,18 @@ D3. §5's prompt skeleton stays for generated assets and gains a companion: the 
 
 E1. THE VISUAL PUSH IS AN INSERTED MILESTONE AFTER M5 AND BEFORE M6. It absorbs the deferred symbology packet rather than running alongside it.
 
+> **2026-10-12 — Director (`docs/d052-m5-integration-audit-rulings.md` §6): the visual milestone is placed at M6.**
+> - M5 keeps the composed visual tier.
+> - Individually drawn buildings and institutions (count staging), detailed Age-specific terrain and architecture, and
+>   richer unit art are scheduled with M6.
+> - The order and names in `docs/milestones.md` are unchanged.
+> - C1 (no figures) stands.
+
 E2. WHY AFTER M5: the symbology deferral's own reasoning — "symbology encodes what the map CONTAINS, and M3 (goods/markets), M4 (neighbors/armies), M5 (unrest) each change that content; redrawing piecemeal in the interim is wasted work." After M5 the content is settled. That reasoning is upheld, not overridden.
 
 E3. WHY NOT INSIDE M5: M5 is the governing loop and the "it's a game now" checkpoint. M4 is already ruled to stay whole as a large milestone; two consecutive mega-milestones is a different bet and is not taken.
 
-E4. WHY BEFORE M6: D-011 §4 already specifies how battle formations render. If the visual language exists first, M6 INHERITS it rather than inventing a second one.
+E4. WHY BEFORE M6 *(2026-10-03 roadmap rebase: the battle layer is now **M7**; the reasoning applies to M7)*: D-011 §4 already specifies how battle formations render. If the visual language exists first, M6 INHERITS it rather than inventing a second one.
 
 E5. WHY NOT M10: M10 is five milestones out. The director's play sessions are the project's defect-finding instrument — both the M1 and M2 exit gates found real defects that way and M2's exit was HELD on two. Making the game legible and pleasant to sit with earlier is tooling, not vanity. A smaller polish pass at M10 remains expected.
 

@@ -18,6 +18,8 @@ public class ExplainGrievanceTests
     [Fact]
     public void Starved_PrimaryIsSustenance_AndChainShowsHarvestBelowEaten()
     {
+        // D-053 §2: the starved rig runs on the per-settlement store (ExplainRigs.Starved states why) — relief would
+        // feed the target from its siblings and move the T1.9 turn pinned below for a reason that is not order delivery.
         (SimConfig cfg, List<WorldState> worlds, int first) = ExplainRigs.Starved(maxTurns: 12);
         Assert.True(first > 0, "rig vacuous: zero farming and herding never produced a deficit within 12 turns");
         Assert.True(first + 1 < worlds.Count, "rig: no Next after the first deficit world");
@@ -49,7 +51,14 @@ public class ExplainGrievanceTests
         // is the population the target carries into the drawdown turn, which
         // both packets move — SnapshotTests.FoundedGolden has the joint record.
         Assert.Equal(3, first);
-        Assert.Equal(0.76528799797005831, ExplainRigs.Deficit(worlds[first], ExplainRigs.Target));
+        // ADR-035 RE-PIN (VALUE, one cause: the founding-turn harvest): 0.76528799797005831 -> 0.77335557673975219,
+        // MEASURED — the rig's target carries a different population into the drawdown turn; first is unchanged.
+        // ADR-035 §6 RE-PIN (2026-10-07, P-F0: the founding death remainder seeded at 0.5; MEASURED): -> 0.77447216890595005.
+        // ADR-035 §7 RE-PIN (2026-10-07, P-F2: founding cohort noise at demographic scale; MEASURED): -> 0.77420936504045113.
+        // D-051 1(b) RE-PIN (2026-10-10, time-averaged decade weather; MEASURED): -> 0.78818337827898999 — the turns
+        // before the drawdown harvest the time-averaged weather, so the target carries a different store and population
+        // into it; first is unchanged.
+        Assert.Equal(0.78818337827898999, ExplainRigs.Deficit(worlds[first], ExplainRigs.Target));
         WorldState prev = worlds[first], next = worlds[first + 1];
 
         GrievanceExplanation g = GrievanceExplanation.For(prev, next, cfg, Target, new ClassId(Peasant));

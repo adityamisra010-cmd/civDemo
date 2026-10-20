@@ -170,3 +170,15 @@ That branch is therefore NOT deletable — deleting it makes every figure above 
 Same reasoning as `archive/t3.5-prerebase-originals`, `archive/t3.5b-prerebase-originals` and
 `archive/t3.6-prerebase-originals-2`: evidence behind a recorded measurement outlives the branch
 that produced it.
+
+## D-A2 follow-up (2026-10-11, M5 map workstream P3): the targets are now what the lens draws
+
+Append-only note; the D-A2 row above stays the record of the 2026-07-28 fix. The 44 px minimum target
+(`SettlementSelection.MinTargetDiameterPx`) and the stated ranking rule (marker-centre distance ASC, id ASC, whatever
+shape admitted) are kept. What changed is WHERE the targets come from: the world lens now draws every settlement
+mark and name (the legacy 20 px marker is gone), so the renderer-measured `LabelRect`s beside that marker and the
+constant 22 px circle no longer matched the screen — the name sits centred under the mark, and the footprint is drawn
+up to 150 px across. `WorldLens.Paint` now records each settlement's painted footprint and name plate
+(`LensFrame.SettlementHits`); the footprint's target is grown to the 44 px minimum about its centre, and the plate is a
+target as drawn. `LabelRect`, `MarkerScreenPx` and `GameUi.DrawNameLabels` are deleted. Record:
+`docs/m5-playability-gate.md` §3.4.

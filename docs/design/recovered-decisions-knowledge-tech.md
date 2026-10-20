@@ -1,5 +1,9 @@
 # RECOVERED DECISIONS — KNOWLEDGE · RESEARCH · TECHNOLOGY · BREAKTHROUGHS · CAPABILITY · DIFFUSION
 
+> **Superseded 2026-10-03 (Director roadmap rebase).** The authoritative ladder is now: M0 Kernel · M1 Walking Skeleton · M2 Demography / Food · M3 Production / Markets · M4 Empire / Strategic Foundation · M5 Governing Gameplay (current, being finished) · M6 Knowledge / Research / Technology (next) · M7 Battle Layer · M8 Politics / Diplomacy · M9 Society · M10 Integrated Civilization Simulation · M11+ Depth & Content Expansion. Knowledge/research/technology is **M6** and precedes the Battle Layer (**M7**), which consumes M6's authoritative technology/capability state. Canonical record: `docs/milestones.md` §"Roadmap rebase 2026-10-03". The text below is retained as history.
+> Where this record says research/knowledge "belongs to M7", read **M6**.
+
+
 **ARCHAEOLOGY, NOT DESIGN.** This document recovers decisions that already exist in the
 repository. It designs nothing, implements nothing, rules nothing, and reconciles nothing.
 No production code, schema, golden, corridor, quarantine or ratified/frozen document was

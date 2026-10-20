@@ -242,14 +242,32 @@ public class FamineScenarioTests
         // (FoodState.Of assigns the reason inside the `struck || abandoned`
         // branch) — it is measured anyway, because "by construction" is a claim
         // about code and this is a claim about a world.
+        // Batch 3 (D-054, W1 fix F5): founded FLAT (TestConfigs.PreD054Worldgen). The battery's premise is a world in
+        // which a strike beats a granary, and on the cylindrical seed-42 world none does in 300 turns at this rig's λ
+        // (MEASURED: 0 FAMINE settlement-turns; flat: 2) — the shipped topology moved the land, not the disaster. The
+        // flat seed-42 world is also the one docs/t4.21-1-foundations-audit.md §4 measured the ρ series printed below on,
+        // so the two stay comparable. The determinism legs below keep the shipped (cylindrical) world on a famine seed.
+        // BATCH 3 / D-054 RE-RIG (integration R1, 2026-10-14). The flat re-rig left V1's premise on TWO FAMINE
+        // settlement-turns (MEASURED on this tree, flat seed 42: turns 13 and 244, both reason Disaster) — a two-event
+        // coincidence, and on a topology the game no longer ships. FAMINE is exceptional on the shipped world at λ = 0.01
+        // (no canonical cylinder seed MEASURED has more than three in 300 turns; DisasterDeterminismTurns lists the census),
+        // so the test now measures TWO shipped (cylindrical) worlds:
+        //   (a) the canonical seed 42 — the name's world: V2 (both arms) and the ρ report; V1 holds vacuously there
+        //       (MEASURED: 0 FAMINE settlement-turns, 305 onsets) and is asserted anyway;
+        //   (b) the famine seed 22 — V1's premise: at least SeveralFamineTurns FAMINE settlement-turns (MEASURED: 3, at
+        //       turns 8, 98 and 140, all reason Disaster; 323 onsets), every one carrying a reason; V2 holds there too.
+        // The ρ series below is now the CYLINDRICAL seed-42 world's; the audit doc's §4 series was a flat world's.
         SimConfig cfg = ArmedRig();
         Census c = Run(cfg, TestConfigs.Worldgen(), CanonicalSeed, 300);
+        Census f = Run(cfg, TestConfigs.Worldgen(), DisasterSeed, 300);
 
         Assert.Equal(0, c.FamineNone);
-        Assert.True(c.Famine > 0,
-            "no FAMINE settlement-turn in 300 canonical turns — the battery is vacuous, "
-            + "either because the rig's hazard stopped arming the disaster or because no strike "
-            + "ever beat a granary");
+        Assert.Equal(0, f.FamineNone);
+        Assert.True(f.Famine >= SeveralFamineTurns,
+            $"only {f.Famine} FAMINE settlement-turn(s) in 300 turns of the famine seed — V1 rests on a one- or two-event "
+            + "coincidence, either because the rig's hazard stopped arming the disaster or because strikes stopped beating granaries");
+        Assert.Equal(0.0, f.MaxStressEffectiveDeficit);
+        Assert.Equal(0, f.StarvationBelowSevere);
 
         // V2, the by-construction arm: STRESS is the band adaptation absorbs, so
         // the effective deficit — starvation mortality's ONE input outside
@@ -509,12 +527,22 @@ public class FamineScenarioTests
         // here is the CAUSE, the TIMING and the fact that the twin without the
         // order never reaches FAMINE at that settlement.
         //
-        // THIS ARM USES THE SHIPPED CONFIG DELIBERATELY, and is the reason
-        // mandate item 1(B) is still reachable in play today: with the
-        // famine-class disaster shipping INERT (hazardPerYear 0.0, CR-016) the
-        // ONLY cause in the shipped world is deliberate abandonment, and this
-        // test proves that cause on the SHIPPED config, not on a rig.
-        SimConfig cfg = TestConfigs.Sim();
+        // D-053 §2 RE-RIG (2026-10-13): this rig measures the PER-SETTLEMENT rule
+        // (CR-015: an abandoned settlement in deficit is FAMINE/Abandonment), so it
+        // runs on TestConfigs.PreEmpireFoodAllocation — intra-polity grain relief
+        // removes the regime only while the polity has spare grain (D-053 §2), and
+        // on this 12-settlement world it has: on the shipped config the abandoned
+        // settlement is fed and never classifies FAMINE in the 12 turns (MEASURED,
+        // 2026-10-13), so the rule under test is never exercised.
+        // The control reproduces the de86ace run exactly (no expected value moved).
+        //
+        // WHY MANDATE ITEM 1(B) IS STILL REACHABLE IN PLAY (F-138): with the
+        // famine-class disaster shipping INERT (hazardPerYear 0.0, CR-016) the ONLY
+        // cause in the shipped world is deliberate abandonment, and under relief it
+        // reaches FAMINE once the polity has no spare grain left to send. That is
+        // proved on the SHIPPED config, through the same order, by
+        // EmpireFoodAllocationTests.Shipped_AbandonmentFamine_IsReachable_WhenThePolityHasNoSpareGrain.
+        SimConfig cfg = TestConfigs.PreEmpireFoodAllocation(TestConfigs.Sim());
         var orders = new OrderLog();
         orders.Append(new OrderRecord(1, ActorId: 1, OrderKind.LaborAllocation, TargetId: 0, Amount: 0.0));
         TurnExecutor ordered = Executor(cfg, TestConfigs.Worldgen(), orders);
@@ -781,13 +809,45 @@ public class FamineScenarioTests
     /// them can twin two quiet worlds.</summary>
     private const int DeterminismTurns = 120;
 
+    /// <summary>Batch 3 (D-054, W1 fix F5): the seed the determinism-with-disasters legs run on. On the shipped
+    /// (cylindrical) world the canonical seed 42 has disaster onsets but no FAMINE settlement-turn in 120 turns at the
+    /// rig's λ (MEASURED: "133 onsets / 0 FAMINE turns — replay leg vacuous"), so each leg would twin two worlds the
+    /// disaster never reached. Seed 3 is the LOWEST seed in 1–30 whose cylindrical world has one (MEASURED, orderless:
+    /// 127 onsets, a FAMINE settlement-turn at turn 7; seeds 3, 4, 13, 16, 22 and 24 are the ones that do among those
+    /// measured). The legs keep their own non-vacuity guards, so a later change that removes it fails loudly here.
+    /// (Superseded at integration R1, 2026-10-14: seed 3's one FAMINE settlement-turn is a one-event premise — the legs now
+    /// run on seed 22; <see cref="DisasterDeterminismTurns"/> has the measurement.)</summary>
+    private const ulong DisasterSeed = 22;
+
+    /// <summary>BATCH 3 / D-054 RE-RIG (integration R1, 2026-10-14) — THE DISASTER-DETERMINISM LEGS NEED SEVERAL FAMINE
+    /// SETTLEMENT-TURNS, NOT ONE. W1's seed 3 has exactly ONE in 120 turns (and in 300: turn 7) on the merged tree
+    /// (MEASURED), so each leg's famine half rested on a single event. FAMINE is genuinely exceptional on the shipped world
+    /// at the rig's λ = 0.01 — relief (D-053 §2) feeds a struck settlement from its siblings — and MEASURED on this tree
+    /// (orderless census of the canonical cylinder, 300 turns each) no seed reaches more than three: seeds 22, 24 and 35
+    /// have 3; 13 has 2; 3, 4, 7, 16, 19, 27 and 37 have 1; 1, 2, 6, 9, 10, 12, 17, 23, 29 and 42 have 0. The dev preset
+    /// (256 px, N = 4; seeds 1-30, 300 turns) has at most 1 per world, and N = 1 / 2 / 4 canonical worlds at most 2 in 120
+    /// turns. Seed 22 is the lowest seed with three, and they land at turns 8, 98 and 140 — three separate strikes, all
+    /// inside <see cref="DisasterDeterminismTurns"/> = 150 (onsets: 323 in 300 turns, 148 in the first 120). Both legs
+    /// now require at least <see cref="SeveralFamineTurns"/>, so a change that thins them back to one or two fails here.
+    /// The SHIPPED (cylindrical) world throughout; λ stays the rig's 0.01 (no hazard was changed).</summary>
+    private const int DisasterDeterminismTurns = 150;
+
+    /// <summary>"Several", not a one- or two-event coincidence (the C-review F3 bar).</summary>
+    private const int SeveralFamineTurns = 3;
+
+    /// <summary>Final nits (verifier F3): the replay leg's two labour-order stamps — the first delivered before the
+    /// famine seed's last FAMINE settlement-turn (world 139), the second after it (S_Determinism_ReplayReproducesRun_…).</summary>
+    private const long OrderBeforeFamine = 135, OrderAfterFamine = 146;
+
     private static (WorldState World, int Onsets, int Famine) StepCounting(
-        TurnExecutor exec, WorldState world, int from, int to, SimConfig cfg, List<string>? hashes = null)
+        TurnExecutor exec, WorldState world, int from, int to, SimConfig cfg, List<string>? hashes = null,
+        List<long>? famineWorlds = null, Action<WorldState>? observe = null)
     {
         int onsets = 0, famine = 0;
         for (int t = from; t <= to; t++)
         {
             WorldState next = exec.Step(world);
+            observe?.Invoke(next);
             for (int r = 0; r < next.Disasters.Count; r++)
             {
                 if (next.Disasters[r].Kind != DisasterSystem.KindCropFailure) continue;
@@ -799,7 +859,10 @@ public class FamineScenarioTests
             }
             for (int i = 0; i < world.Settlements.Count; i++)
                 if (FoodState.Of(world, world.Settlements[i].Id, cfg, out _) == FoodStateKind.Famine)
+                {
                     famine++;
+                    famineWorlds?.Add(world.Clock.Turn);
+                }
             world = next;
             hashes?.Add(WorldHash.ComputeHex(world));
         }
@@ -816,15 +879,15 @@ public class FamineScenarioTests
         var hashesA = new List<string>();
         var hashesB = new List<string>();
         (_, int onsets, int famine) = StepCounting(Executor(cfg, TestConfigs.Worldgen()),
-            WorldFounding.Found(TestConfigs.Worldgen(), cfg, CanonicalSeed), 1, DeterminismTurns, cfg, hashesA);
+            WorldFounding.Found(TestConfigs.Worldgen(), cfg, DisasterSeed), 1, DisasterDeterminismTurns, cfg, hashesA);
         StepCounting(Executor(cfg, TestConfigs.Worldgen()),
-            WorldFounding.Found(TestConfigs.Worldgen(), cfg, CanonicalSeed), 1, DeterminismTurns, cfg, hashesB);
-        Assert.True(onsets > 0 && famine > 0,
+            WorldFounding.Found(TestConfigs.Worldgen(), cfg, DisasterSeed), 1, DisasterDeterminismTurns, cfg, hashesB);
+        Assert.True(onsets > 0 && famine >= SeveralFamineTurns,
             $"{onsets} onsets / {famine} FAMINE settlement-turns — the twin is comparing two worlds "
-            + "with no disaster in them, which proves nothing about the disaster's determinism");
+            + "the disaster barely reached (fewer than several FAMINE settlement-turns), which proves little about the disaster's determinism");
         Assert.Equal(hashesA, hashesB);
         Console.WriteLine($"S_Determinism twin: {onsets} onsets, {famine} FAMINE settlement-turns "
-            + $"across {DeterminismTurns} turns, hash-identical every turn.");
+            + $"across {DisasterDeterminismTurns} turns, hash-identical every turn.");
     }
 
     [Fact]
@@ -834,17 +897,56 @@ public class FamineScenarioTests
         // determinism leg run on an inert disaster proves nothing about the
         // disaster — the non-vacuity guard below says so out loud.
         SimConfig cfg = ArmedRig();
+        // BATCH 3 / D-054 RE-RIG (integration R1, 2026-10-14): the two labour orders were stamped AFTER the famine seed's
+        // three FAMINE settlement-turns. At turns 20 and 60 they re-route the polity's grain relief and remove the later
+        // two (MEASURED on seed 22: orders on settlement 0 at 20/60, either way round, leave only the turn-8 one; on
+        // settlements 1-5, one or two), so the leg would rest on one event again; stamped 141 and 146 they kept all three.
+        // FINAL NITS (verifier F3, 2026-10-15): but then no famine happened in a world an order had shaped, so famine and
+        // order delivery never overlapped in the replay leg. The first order is now stamped 135 — delivered in step
+        // 135 -> 136, BEFORE the famine in world 139 — and the second stays at 146, delivered in step 146 -> 147, AFTER
+        // every famine. MEASURED on this tree (seed 22, the orders on settlement 0 at 30 % then 80 % farming): FAMINE in
+        // worlds 7 (settlement 0), 97 (settlement 11) and 139 (settlement 9) — the same three as with no order before 141.
+        // Earlier stamps of the first order thin or move them (MEASURED, second order at 146 throughout: on settlement 0 at
+        // 9, 30, 60, 90, 99, 100, 110, 120 or 130 one or two are left; on settlements 1, 9 or 11 at 99, 100 or 120 some
+        // keep three with a different third, e.g. settlement 9 at 100: worlds 7, 97, 129); on settlement 0 at 135 or 138
+        // all three stand.
         static OrderLog Log()
         {
             var log = new OrderLog();
-            log.Append(new OrderRecord(20, ActorId: 1, OrderKind.LaborAllocation, 0, 30.0));
-            log.Append(new OrderRecord(60, ActorId: 1, OrderKind.LaborAllocation, 0, 80.0));
+            log.Append(new OrderRecord(OrderBeforeFamine, ActorId: 1, OrderKind.LaborAllocation, 0, 30.0));
+            log.Append(new OrderRecord(OrderAfterFamine, ActorId: 1, OrderKind.LaborAllocation, 0, 80.0));
             return log;
         }
         var hashes = new List<string>();
-        (_, int onsets, int famine) = StepCounting(Executor(cfg, TestConfigs.Worldgen(), Log()),
-            WorldFounding.Found(TestConfigs.Worldgen(), cfg, CanonicalSeed), 1, DeterminismTurns, cfg, hashes);
-        Assert.True(onsets > 0 && famine > 0, $"{onsets} onsets / {famine} FAMINE turns — replay leg vacuous");
+        var famineWorlds = new List<long>();
+        var farming0 = new List<(long Turn, double Farming)>();
+        void RecordFarming(WorldState w)
+        {
+            for (int i = 0; i < w.SectorAllocations.Count; i++)
+                if (w.SectorAllocations[i].Settlement.Value == 0) { farming0.Add((w.Clock.Turn, w.SectorAllocations[i].Farming)); return; }
+            farming0.Add((w.Clock.Turn, -1.0));
+        }
+        (WorldState final, int onsets, int famine) = StepCounting(Executor(cfg, TestConfigs.Worldgen(), Log()),
+            WorldFounding.Found(TestConfigs.Worldgen(), cfg, DisasterSeed), 1, DisasterDeterminismTurns, cfg, hashes, famineWorlds, RecordFarming);
+        Assert.True(onsets > 0 && famine >= SeveralFamineTurns,
+            $"{onsets} onsets / {famine} FAMINE turns — replay leg vacuous (fewer than several FAMINE settlement-turns)");
+        // Anti-vacuity for the ORDER half (batch 3 re-rig): the last order was delivered and is in force at the end.
+        double farming = -1.0;
+        for (int i = 0; i < final.SectorAllocations.Count; i++)
+            if (final.SectorAllocations[i].Settlement.Value == 0) farming = final.SectorAllocations[i].Farming;
+        Assert.Equal(0.8, farming);
+
+        // Final nits (F3), turn-exact: each order takes effect in the state after the turn it is stamped — not before —
+        // and famine and delivery overlap: a FAMINE settlement-turn falls in a world the first order already shaped, and
+        // the second order is delivered after a FAMINE settlement-turn.
+        double FarmingAt(long turn) => farming0.Single(r => r.Turn == turn).Farming;
+        Assert.NotEqual(0.3, FarmingAt(OrderBeforeFamine));
+        Assert.Equal(0.3, FarmingAt(OrderBeforeFamine + 1));
+        Assert.Equal(0.3, FarmingAt(OrderAfterFamine));
+        Assert.Equal(0.8, FarmingAt(OrderAfterFamine + 1));
+        Assert.Contains(famineWorlds, w => w > OrderBeforeFamine);
+        Assert.Contains(famineWorlds, w => w <= OrderAfterFamine);
+        Assert.Equal(new long[] { 7, 97, 139 }, famineWorlds);   // MEASURED (above)
 
         using var buffer = new MemoryStream();
         Log().Save(buffer);
@@ -852,7 +954,7 @@ public class FamineScenarioTests
         OrderLog reloaded = OrderLog.Load(buffer);
         var replayed = new List<string>();
         StepCounting(Executor(cfg, TestConfigs.Worldgen(), reloaded),
-            WorldFounding.Found(TestConfigs.Worldgen(), cfg, CanonicalSeed), 1, DeterminismTurns, cfg, replayed);
+            WorldFounding.Found(TestConfigs.Worldgen(), cfg, DisasterSeed), 1, DisasterDeterminismTurns, cfg, replayed);
         Assert.Equal(hashes, replayed);
     }
 

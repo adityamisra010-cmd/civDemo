@@ -209,6 +209,10 @@ counterfactual on one world):
 
 ### 2.4a The vacancy bound's turn-2 refusal, and what the T4.21-4 RULE 2 null arm does and does not close
 
+> **2026-10-07 — CLOSED by ADR-035** (`docs/adr/adr-035-founding-turn-harvest.md`, M5 polish P1): Farm now
+> reads an absent catchment row as an UNMEASURED land side, so the founding turn harvests and the first
+> migration turn returns to 2 on the founded and driven seed-42 worlds. The text below is the historical record.
+
 §2.4's stated null arm ("absent demand row ⇒ `V_j = +∞`") covers the founding turn. It does **not**
 cover the turn AFTER founding, and T4.21-2 measured the consequence: on turn 2 every settlement reads
 `N_lim = 0 ⇒ V = 0` and the vacancy bound refuses **every gap flow world-wide** for that one turn

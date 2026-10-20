@@ -164,7 +164,9 @@ public sealed class GrievanceExplanation
                 turnover = NeedsGrievanceSystem.TurnoverPerYear(row.Births, row.Deaths, settlementPop, row.DtYears);
             }
         }
-        double decayRate = NeedsGrievanceSystem.DecayRatePerYear(tuning, turnover);
+        // M5 R2b: the discharge term (D-021 valve 1) the system adds, read through the same reader.
+        double decayRate = NeedsGrievanceSystem.DecayRatePerYear(tuning, turnover,
+            settlementPop > 0 ? Unrest.DischargePerYear(prev, settlement, cfg) : 0.0);
         long classPop = ExplainRows.ClassPopulation(prev, settlement, cls);
 
         // --- the bound needs that PUBLISHED a row, registry order (= the system's

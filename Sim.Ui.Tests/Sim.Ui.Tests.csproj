@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <IsPackable>false</IsPackable>
+    <!-- M5 hardening H1: the ImGui frame tests read the real draw lists (vertex/index buffers) by pointer. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- View-model/logic tests ONLY (T1.7): pure camera math, color mapping,
          texture-bake byte determinism. No Game instantiation, no window, so
          these run headless in CI. Separate from Sim.Tests so the core test
@@ -19,6 +21,12 @@
     <!-- Art substrate: the tests read the SAME assets/ the game ships,
          so the seamless/palette gates judge the real files. -->
     <None Include="..\assets\**\*" LinkBase="assets" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Fix round 1 (D-054, verifier F1): the REAL batch-2 (schema v32) session Sim.Tests checks in
+         (Sim.Tests/Fixtures/v32-session-found/README.md) — the UI resume test reads the same files. -->
+    <None Include="..\Sim.Tests\Fixtures\v32-session-found\*" LinkBase="Fixtures\v32-session-found" CopyToOutputDirectory="PreserveNewest" />
+    <!-- D-055 (schema v34): the batch-3 build's v33 session (Sim.Tests/Fixtures/README-v33-fixture.md) — the UI resume of a
+         v33 session under v34 reads the same files. -->
+    <None Include="..\Sim.Tests\Fixtures\v33-session-q17\*" LinkBase="Fixtures\v33-session-q17" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

@@ -40,7 +40,11 @@ public sealed record HudModel(
     // the selection card's happiness (SettlementHappiness.Of, the public
     // reader, when a config is given; NaN otherwise — "—", never a fabricated
     // score).
-    long WorldFood = 0, double Happiness = double.NaN)
+    long WorldFood = 0, double Happiness = double.NaN,
+    // D-060: whether the player may read the selected settlement's books (PlayerKnowledge.ReadsInternals). False for a
+    // known settlement the player does not rule: the selection card then shows its public identity (TitleLine,
+    // OwnerLine) and PlayerKnowledge.NotYoursLine, and every figure above is left at its zero — never read.
+    bool ReadsInternals = true, string OwnerLine = "")
 {
     /// <summary>Builds the HUD for one selected settlement. An id not present
     /// in the world (or an empty world) yields the zeros the panel can render
@@ -48,15 +52,27 @@ public sealed record HudModel(
     /// T2.6: pass the D-018 needs registry to get the needs block — bound
     /// needs show their satisfaction, unbound render "not yet simulated"; the
     /// grievance value reads the settlement's first class row (values are
-    /// identical across classes at M2 — settlement-wide inputs).</summary>
+    /// identical across classes at M2 — settlement-wide inputs).
+    /// P7: <paramref name="knowledge"/> is what the player knows (null = <see cref="PlayerKnowledge.Of(IReadOnlyWorldState)"/>,
+    /// all-known until S2a). The WORLD totals — population, food, the settlement count — are sums over the settlements
+    /// the player knows (the dataGap default: the fog ruling may change what a world total means); a selected settlement
+    /// the player does not know reads as one that is not there. M5 resources view (2026-10-19): the "world" totals are now the
+    /// player's OWN empire (<see cref="EmpireStores.OwnSettlements"/>; the property names are kept), not every known settlement.</summary>
     public static HudModel From(
         IReadOnlyWorldState world, int selectedSettlementId, NeedsConfig? needs = null,
-        string? settlementName = null, SimConfig? cfg = null)
+        string? settlementName = null, SimConfig? cfg = null, PlayerKnowledge? knowledge = null)
     {
+        PlayerKnowledge known = knowledge ?? PlayerKnowledge.Of(world);
+        if (known.IsHiddenSettlement(selectedSettlementId)) { selectedSettlementId = -1; settlementName = null; }   // P7: as if none
         var selected = new SettlementId(selectedSettlementId);
-        bool exists = false;
+        bool stands = false;
         for (int i = 0; i < world.Settlements.Count; i++)
-            if (world.Settlements[i].Id == selected) { exists = true; break; }
+            if (world.Settlements[i].Id == selected) { stands = true; break; }
+        // D-060: a known settlement the player does not rule keeps its public identity (the name, who holds it) and its
+        // books stay closed — no row of its people, stocks, labour, needs, grievance or happiness is read below.
+        bool books = !stands || known.ReadsInternals(selectedSettlementId);
+        bool exists = stands && books;
+        string ownerLine = !stands ? "" : OwnerWords(world, selected, known.Player);
 
         long children = 0, adults = 0, elders = 0, food = 0, lastHarvest = 0;
         // Never-ordered default: all farming (Sectors.Default), so the HUD
@@ -86,11 +102,18 @@ public sealed record HudModel(
             }
         }
 
+        // M5 resources view (the Director, 2026-10-19: "i should not be able to see other empire's data"): the status band's
+        // POPULATION, FOOD and settlement count are the player's OWN empire — the settlements its Empire controls
+        // (EmpireStores.OwnSettlements, the strip's set) — never a sum over a rival's, known or not. Food is the grain the
+        // empire's settlements hold (EmpireStockpile.Available: each settlement's first grain row, exact long).
+        int[] own = EmpireStores.OwnSettlements(world, known.Player);
+        var ownIds = new SettlementId[own.Length];
+        for (int i = 0; i < own.Length; i++) ownIds[i] = new SettlementId(own[i]);
         long worldPop = 0;
-        for (int i = 0; i < world.Buckets.Count; i++) worldPop += world.Buckets[i].Count.Value;
-        long worldFood = 0;
-        for (int i = 0; i < world.GoodStocks.Count; i++)
-            if (world.GoodStocks[i].Good == UiGoods.Grain) worldFood += world.GoodStocks[i].Amount.Value;
+        for (int i = 0; i < world.Buckets.Count; i++)
+            if (Array.BinarySearch(own, world.Buckets[i].Settlement.Value) >= 0) worldPop += world.Buckets[i].Count.Value;
+        long worldFood = EmpireStockpile.Available(world.GoodStocks, ownIds, UiGoods.Grain);
+        int settlementCount = own.Length;
         double happiness = exists && cfg is not null
             ? SettlementHappiness.Of(world, selected, cfg) : double.NaN;
 
@@ -156,25 +179,47 @@ public sealed record HudModel(
             CraftingPct: Sectors.Share(allocation, Sectors.Crafting) * 100.0,
             ConstructionPct: Sectors.Share(allocation, Sectors.Construction) * 100.0,
             WorldPopulation: worldPop,
-            SettlementCount: world.Settlements.Count,
+            SettlementCount: settlementCount,
             NeedLines: needLines,
             GrievanceValue: grievance,
             SettlementName: settlementName,
             WorldFood: worldFood,
-            Happiness: happiness);
+            Happiness: happiness,
+            ReadsInternals: books,
+            OwnerLine: ownerLine);
     }
+
+    /// <summary>D-060: who holds settlement <paramref name="id"/> in the player's words — public identity (the territory
+    /// the map draws says the same). "Yours", "Held by the empire of N" or "Free people, under no empire".</summary>
+    public static string OwnerWords(IReadOnlyWorldState world, SettlementId id, PolityId player) =>
+        !EmpireQuery.TryGetController(world, id, out PolityId owner) ? "Free people, under no empire"
+        : owner.Value == player.Value ? "Yours"
+        : "Held by " + StateChronicle.Polity(owner);
+
+    /// <summary>D-060: the selection card's rows when <see cref="ReadsInternals"/> is false — public identity and the
+    /// closed-books line, no figure.</summary>
+    public IReadOnlyList<string> ClosedBooksLines => [OwnerLine, PlayerKnowledge.NotYoursLine];
 
     /// <summary>T4.19 lane B: the status band's clickable figures, split so
     /// each can be a Selectable of its own — the population figure routes to
     /// the TURN population account, the food figure to the grain account.</summary>
     public string WorldPopulationFigure =>
-        string.Create(CultureInfo.InvariantCulture, $"world pop {WorldPopulation}");
+        string.Create(CultureInfo.InvariantCulture, $"empire pop {WorldPopulation}");
 
     public string SettlementCountFigure =>
         string.Create(CultureInfo.InvariantCulture, $"({SettlementCount} settlements)");
 
     public string WorldFoodFigure =>
         string.Create(CultureInfo.InvariantCulture, $"food {WorldFood}");
+
+    // M5 polish UR-3: the status band's primary figures as VALUES (the band sets each under a caps label in the
+    // KPI face). Same carriers as the figure strings above; the band's wording is the label, never the value.
+    public string TurnValue => PlayerTurn.Current(Turn).ToString(CultureInfo.InvariantCulture);
+    public string YearValue => Year.ToString(CultureInfo.InvariantCulture);
+    public string WorldPopulationValue => WorldPopulation.ToString("#,0", CultureInfo.InvariantCulture);
+    public string WorldFoodValue => WorldFood.ToString("#,0", CultureInfo.InvariantCulture);
+    public string SettlementCountDetail => SettlementCount == 1
+        ? "1 settlement" : SettlementCount.ToString(CultureInfo.InvariantCulture) + " settlements";
 
     /// <summary>The selection card's third data line, two clickable halves.
     /// Happiness is "—" without a config or for an absent settlement.</summary>
@@ -184,9 +229,17 @@ public sealed record HudModel(
 
     /// <summary>T2.9: the chronicle name leads; the id stays for cross-
     /// referencing orders/logs. Name defaults keep pre-T2.9 tests valid.</summary>
-    public string TitleLine => SettlementName is null
-        ? string.Create(CultureInfo.InvariantCulture, $"Settlement {SettlementId}")
-        : string.Create(CultureInfo.InvariantCulture, $"{SettlementName}  (settlement {SettlementId})");
+    /// <remarks>Item 4 (audit E23): player text carries the name only — the id stays in the developer
+    /// records (DEV › RECORDS). P7: an unnamed id no longer prints the raw settlement id either (ids are dense, so a
+    /// new colony's id told the player how many settlements the world holds): "Unnamed settlement", or "No settlement
+    /// selected" for none.</remarks>
+    public string TitleLine => SettlementName ?? (SettlementId >= 0 ? UnnamedTitle : NoSelectionTitle);
+
+    /// <summary>P7: the selection card's title for a selected settlement without a name.</summary>
+    public const string UnnamedTitle = "Unnamed settlement";
+
+    /// <summary>P7: the selection card's title with nothing selected.</summary>
+    public const string NoSelectionTitle = "No settlement selected";
 
     public string PopulationLine =>
         string.Create(CultureInfo.InvariantCulture,
@@ -203,10 +256,10 @@ public sealed record HudModel(
 
     public string WorldLine =>
         string.Create(CultureInfo.InvariantCulture,
-            $"world pop {WorldPopulation}  ({SettlementCount} settlements)");
+            $"empire pop {WorldPopulation}  ({SettlementCount} settlements)");
 
     public string ClockLine =>
-        string.Create(CultureInfo.InvariantCulture, $"turn {Turn}   year {Year}");
+        string.Create(CultureInfo.InvariantCulture, $"turn {PlayerTurn.Current(Turn)}   year {Year}");
 
     /// <summary>T2.6: the selected settlement's grievance stock — display only
     /// (the read-isolation doctrine: grievance drives no behavior until M5).
@@ -228,4 +281,15 @@ public sealed record HudModel(
     public static string CameraLine(double centerX, double centerY, double zoom) =>
         string.Create(CultureInfo.InvariantCulture,
             $"camera ({centerX:F0}, {centerY:F0}) zoom {zoom:F2}x");
+
+    /// <summary>WS3: the camera line of a camera on a world <paramref name="wrapWidth"/> px round — the centre's x rounded to
+    /// the whole px and NORMALISED into [0, wrapWidth) (a centre a hair west of the seam reads 0, never the world's width);
+    /// <paramref name="wrapWidth"/> ≤ 0: exactly <see cref="CameraLine(double, double, double)"/>.</summary>
+    public static string CameraLine(double centerX, double centerY, double zoom, double wrapWidth)
+    {
+        if (!(wrapWidth > 0)) return CameraLine(centerX, centerY, zoom);
+        double x = Math.Round(Sim.Core.Pathing.MapTopology.WrapCoord(centerX, wrapWidth), MidpointRounding.AwayFromZero);
+        if (x >= wrapWidth) x -= wrapWidth;
+        return CameraLine(x, centerY, zoom);
+    }
 }

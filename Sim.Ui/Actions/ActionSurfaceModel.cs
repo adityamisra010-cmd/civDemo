@@ -1,0 +1,1223 @@
+using System.Collections.Immutable;
+using System.Globalization;
+using Sim.Core.Kernel;
+using Sim.Core.State;
+using Sim.Core.Systems;
+using Sim.Core.Systems.Ages;
+using Sim.Core.Systems.Research;
+using Sim.Ui.Ages;
+using Sim.Ui.Theme;
+using Sim.Ui.ViewModel;
+
+namespace Sim.Ui.Actions;
+
+/// <summary>How the labour (and every other share-like) control is drawn and how fine its steps are.</summary>
+public enum LabourControlKind
+{
+    /// <summary>A1: stones laid in heaps — ten of them, no numerals.</summary>
+    Pebbles = 1,
+    /// <summary>A2–A3: clay counters — ten of them, no numerals.</summary>
+    Counters = 2,
+    /// <summary>A4–A6: a notched rule of twenty, with numerals.</summary>
+    Notches = 3,
+    /// <summary>A7–A8: a slider in whole points, with numerals.</summary>
+    Slider = 4,
+    /// <summary>A9: a precise slider in whole points, with numerals and the applied share.</summary>
+    PreciseSlider = 5,
+}
+
+/// <summary>
+/// THE CONTROL SPEC of an era — derived ONLY from <see cref="ControlTokens.Granularity"/> (the era theme's
+/// token, never the era number): coarse, numeral-free pebble and counter tallies while the civilization has
+/// barely organised knowledge (A1–A3), a notched rule of twenty with numerals from the Standard eras, and
+/// sliders in whole points with numerals at Fine and Precise granularity (A7–A9). <see cref="Units"/> is how
+/// many units an allocation places (it always sums to exactly that); one unit is
+/// <see cref="PercentPerUnit"/> percentage points of labour in the SectorAllocation order the control emits.
+/// </summary>
+public sealed record LabourControlSpec(LabourControlKind Kind, int Units, bool Numerals)
+{
+    public int PercentPerUnit => SectorAllocationModel.Total / Units;
+
+    /// <summary>Whether the control is a continuous track (clicked or dragged) rather than a row of slots.</summary>
+    public bool IsSlider => Kind is LabourControlKind.Slider or LabourControlKind.PreciseSlider;
+
+    public static LabourControlSpec For(ControlGranularity granularity) => granularity switch
+    {
+        ControlGranularity.Coarse => new(LabourControlKind.Pebbles, 10, false),
+        ControlGranularity.Simple => new(LabourControlKind.Counters, 10, false),
+        ControlGranularity.Standard => new(LabourControlKind.Notches, 20, true),
+        ControlGranularity.Fine => new(LabourControlKind.Slider, 100, true),
+        _ => new(LabourControlKind.PreciseSlider, 100, true),
+    };
+
+    public static LabourControlSpec For(EraTheme theme) => For(theme.Controls.Granularity);
+}
+
+/// <summary>How the surface groups its entries — from <see cref="DensityTokens.Level"/>: a short flat list at
+/// density 1 (A1), domain groups with headers at 2–3, denser detail at 4–5.</summary>
+public enum SurfaceLayout { Flat = 1, Grouped = 2, Detailed = 3 }
+
+/// <summary>One labour activity of the target settlement: its sector (the order's granularity), the label
+/// of every identity it expresses now, what it produces, its share, its units in the era's control, and the
+/// "new" marker on the turn research changed its identity.</summary>
+public sealed record LabourEntry(
+    int Sector, string Label, ImmutableArray<LabourIdentity> Identities, string Produces, double Share, int Units,
+    bool Researched, string? NewMarker, string? LearnedFrom, ActionDescriptor Action);
+
+/// <summary>The Empire-wide view of the labour the player commands: how many settlements, how many adults,
+/// and each sector's adult-weighted share across them (sector order), with the sectors' current labels.</summary>
+public sealed record LabourSummary(int Settlements, long Adults, ImmutableArray<double> Shares, ImmutableArray<string> Labels);
+
+/// <summary>The labour control of ONE controlled settlement (the selection, or the capital when the selection
+/// is not the player's to command).</summary>
+public sealed record LabourBlock(
+    SettlementId Settlement, string Name, string? Note, LabourControlSpec Control, ImmutableArray<LabourEntry> Entries,
+    ImmutableArray<int> Current, ImmutableArray<int> Queued, LabourSummary Summary, ImmutableArray<SettlementId> Controlled)
+{
+    /// <summary>Whether a labour order for this settlement is queued this turn (it applies at End Turn).</summary>
+    public bool HasQueued => !Queued.IsDefaultOrEmpty;
+
+    /// <summary>What the control starts from: the queued split if one is waiting, else the running one.</summary>
+    public ImmutableArray<int> Baseline => HasQueued ? Queued : Current;
+}
+
+/// <summary>A research node as the surface names it.</summary>
+public sealed record ResearchItem(long Key, string Name, double Cost, double Progress, string Where);
+
+/// <summary>
+/// THE RESEARCH LINE: the active target with its progress, a target chosen this turn (it applies at End Turn),
+/// the RP the pool earns per turn, retained partial progress, and whether the target can be cleared.
+/// </summary>
+public sealed record ResearchBlock(
+    ResearchItem? Target, ResearchItem? Chosen, bool ClearQueued, double PointsPerTurn, int Available,
+    ImmutableArray<ResearchItem> Retained, bool CanClear)
+{
+    /// <summary>The target the next End Turn will research: the one chosen this turn, else none if a clear is
+    /// queued, else the current target.</summary>
+    public ResearchItem? Effective => Chosen ?? (ClearQueued ? null : Target);
+
+    /// <summary>Research points are idle: nothing will be researched at the next End Turn.</summary>
+    public bool Idle => Effective is null;
+}
+
+/// <summary>The Age advance — listed only when the query lists it (eligible, not already ordered).</summary>
+public sealed record AgeBlock(int Age, string Name, int NextAge, string NextName, ActionDescriptor Advance);
+
+/// <summary>One construction project available in the target settlement. M5 polish: <c>Effects</c> is what reads a
+/// built one in this build (InfoQuery — the Age facts it counts toward, the levy's public-services offset), and
+/// <c>Chain</c> where a missing material comes from when nothing the player holds makes it (e.g. tools &lt;- Toolmaking
+/// &lt;- bronze &lt;- Bronze casting &lt;- Tin bronze).</summary>
+public sealed record ProjectEntry(
+    int ProjectId, string Name, string Materials, double LabourAdultYears, string? Blocker, long Built, int Queued,
+    string? LearnedFrom, ActionDescriptor Action, string? Effects = null, string? Chain = null);
+
+/// <summary>One queued project, head first (WS1, D-054: one painted ROW per entry). <c>Progress</c> is p of
+/// ConstructionQuery.ProgressUnits (0 for an entry nothing has gone into); <c>Head</c> the first in line (with the pending
+/// orders applied); <c>Committed</c> an entry accepted on an earlier turn (one ordered this turn is not, and has no Cancel —
+/// "can be cancelled from next turn"); <c>CancelPending</c> a committed entry whose cancel is queued this turn;
+/// <c>GoneIn</c> the figures line ("16 of 40 timber, 8 of 20 stone and 0.8 of 2 adult-years have gone in"; head with p &gt; 0);
+/// <c>Status</c> the head's status from ConstructionQuery.HeadStatus (an estimate); <c>Forfeit</c> what a cancel loses
+/// ("16 timber, 8 stone, 0.8 adult-years"; p &gt; 0); <c>Cancel</c> the query's cancel descriptor (committed, cancellable);
+/// <c>Position</c> the place in the settlement's queue at End Turn (1 = first in line; 0 for a cancelled entry). D-055:
+/// <c>SetAside</c> what the head sets aside while it waits ("sets aside 22 timber and 11 stone while it waits; projects
+/// ordered later wait for it" — HoldText.SetAsideLine; null when it sets nothing aside).</summary>
+public sealed record QueueEntry(
+    int Slot, int ProjectId, string Name, long Progress = 0, bool Head = false, bool Committed = true, bool CancelPending = false,
+    string? GoneIn = null, string? Status = null, string? Forfeit = null, ActionDescriptor? Cancel = null, int Position = 1,
+    string? SetAside = null);
+
+/// <summary>This turn's construction labour in adult-years: the construction share's whole pool, what housing
+/// took (its published draw, a one-turn lag) and what is left for projects and path-making.
+/// M5 R2b — AN ESTIMATE, AND LABELLED AS ONE: every figure is evaluated on the CURRENT state with the dt the
+/// UI expects for the coming step; ConstructionSystem re-reads the allocation, the labour adults, housing's
+/// draw and the step's own dt when the turn resolves, so the realised capacity can differ. <c>Pool</c> is
+/// computed over LABOUR adults (after institution staff, InstitutionStaffing.LabourAdults — the reader
+/// <see cref="ConstructionQuery.CapacityAdultYears"/> uses), so Pool − Housing = Available whenever the pool
+/// covers housing's draw.</summary>
+public sealed record CapacityLine(double Pool, double Housing, double Available, double DtYears);
+
+/// <summary>The construction projects of the target settlement, its queue, the head's blocker and capacity. WS1 (D-054):
+/// <c>Incremental</c> — the queue is built a little each turn (sim.json construction.incremental); <c>Ordered</c> the
+/// ordered-this-turn lines; <c>Priority</c> the building order across the player's settlements ("Building work is served
+/// oldest order first: …"); <c>LastTurn</c> what went into the head last turn.</summary>
+public sealed record ConstructionBlock(
+    SettlementId Settlement, string Name, ImmutableArray<ProjectEntry> Projects, ImmutableArray<QueueEntry> Queue,
+    string? HeadBlocker, CapacityLine? Capacity, int OrderedThisTurn, bool Incremental = false,
+    ImmutableArray<string> Ordered = default, string? Priority = null, string? LastTurn = null, string? MaterialsLine = null);
+
+/// <summary>One developable inter-city route, ranked by use (the plan's order), with its present performance.</summary>
+public sealed record RouteEntry(
+    int A, int B, string Label, double LengthKm, long Usage, double ModernizedPercent, double CostFactor, long CapacityTonnesPerYear,
+    string Cost);
+
+/// <summary>Road development for the best class the Empire knows: the ranked routes, the first route's
+/// blocker, whether a development is already ordered this turn. D-055 (T1b fix round, finding F2): <c>Pending</c> and
+/// <c>DtYears</c> — the player's pending orders and the coming step's length, so the roads preview reads what that step's
+/// construction will set aside (ActionSurface.RoadPlan) even without the Materials block.</summary>
+public sealed record RoadsBlock(
+    int TargetClass, string ClassName, ImmutableArray<RouteEntry> Routes, string? Blocker, string? LearnedFrom,
+    double? OrderedPercent, ActionDescriptor Action, IReadOnlyList<OrderRecord>? Pending = null, double? DtYears = null);
+
+/// <summary>What a road development of a given percentage would do now — an ESTIMATE on current stocks. WS2 (D-054): with
+/// the building/roads split in force, <c>AfterBuilding</c> is the share of the order that would be paid from what
+/// building work's predicted draw leaves (in [0, 1]: the least charged/needed ratio over its goods, the charges by the road
+/// system's own arithmetic), <c>LeftLine</c> says it in words ("after building work, about 25 of
+/// the 60 timber needed is left: about two-fifths of it would be paid this turn"), and <c>Warning</c> is the default
+/// split's "Building work may take up to X stone first under the current split - change it under Materials" (null when
+/// building work takes nothing the order needs). All three are null without the split. D-055: with the hold rule on, what
+/// building work takes counts what it SETS ASIDE too (the split's BuildingHolds), and <c>SetAside</c> names the projects
+/// that set aside goods the order needs ("40 timber is set aside for Alpha's granary; road works may not use it" —
+/// HoldText.RoadsLine; null when nothing is). The payers are the Empire's own purse places
+/// (ConstructionQuery.EmpirePursePlaces — the set road development draws on).</summary>
+public sealed record RoadPlanPreview(
+    double Percent, int Routes, string Cost, double Affordable, ImmutableArray<string> Payers, ImmutableArray<string> RouteLabels,
+    double? AfterBuilding = null, string? LeftLine = null, string? Warning = null, string? SetAside = null);
+
+/// <summary>
+/// WS2 (D-054) — THE MATERIALS BLOCK: the Empire's building/roads split, present iff the query lists its descriptor
+/// (ActionDomain.ResourceAllocation — listed exactly when road development is, so the block shows iff the Roads block
+/// does). <c>BuildingsPercent</c> is the split in force for this turn's work (a Set queued this turn counts), with
+/// <c>CommittedPercent</c>/<c>HasRow</c> what the world holds and <c>QueuedPercent</c> the queued Set; <c>Goods</c> the goods
+/// it covers (from content); <c>ConstructionLine</c> what the construction block says building work may use this turn (it
+/// reads only the road order queued this turn); <c>Pending</c> and <c>DtYears</c> what the roads preview estimates with.
+/// </summary>
+public sealed record AllocationBlock(
+    ActionDescriptor Action, int BuildingsPercent, int CommittedPercent, bool HasRow, int? QueuedPercent, string Goods,
+    string? ConstructionLine, IReadOnlyList<OrderRecord> Pending, double DtYears)
+{
+    /// <summary>Whether the split in force is the default, building first.</summary>
+    public bool IsDefault => BuildingsPercent == ResourceAllocation.DefaultBuildingsPercent;
+}
+
+/// <summary>The tax edict: the declared levy, legitimacy, per-settlement collection, and a levy queued this turn.</summary>
+public sealed record GovernanceBlock(
+    int DeclaredPercent, bool HasPolicy, string Legitimacy, ImmutableArray<string> Collection, string? LearnedFrom,
+    int? QueuedPercent, ActionDescriptor Action);
+
+/// <summary>One formation on the roster card.</summary>
+public sealed record FormationEntry(long Id, string Identity, string Family, int IdentityAge, string Where, string Line);
+
+/// <summary>"Basic fighting": the roster card — information only, because no military order exists (ADR-033 D7).</summary>
+public sealed record MilitaryBlock(
+    ImmutableArray<FormationEntry> Formations, string? NextAgeName, ImmutableArray<string> Modernization, string Note, ActionDescriptor Capability);
+
+/// <summary>One crafting recipe the civilization knows (R1): its name, inputs → output, where it runs now (or its
+/// content condition when it runs nowhere yet), and the research it was learned from.</summary>
+/// <remarks>M5 polish: <c>Condition</c> is the recipe's D-020 condition with its live value in plain words
+/// (InfoQuery.ConditionReading), never the raw predicate alone; <c>Missing</c> the source chain of an input the
+/// civilization cannot obtain (it is known, but cannot produce).</remarks>
+public sealed record ProductionEntry(string Name, string Detail, int Settlements, string? Blocker, string? LearnedFrom, ActionDescriptor Action,
+    string? Condition = null, string? Missing = null);
+
+/// <summary>The crafts the civilization knows (R1) — exactly the Production descriptors the query returns, in
+/// its order. Generic over content: a newly authored recipe and its knowledge entity appear here with no UI
+/// code change.</summary>
+public sealed record ProductionBlock(ImmutableArray<ProductionEntry> Entries);
+
+/// <summary>M5 S1d (D-051 §5): FOUND A SETTLEMENT from <c>Source</c> — the target settlement (the selection when the
+/// query lists it, else the capital, else the first listed). <c>Detail</c> is the descriptor's own (the party and its
+/// provisions, FoundingQuery's numbers); <c>Sources</c> every settlement the query lists it for. The site is chosen on the
+/// map in the placement mode; nothing here is an order until the placement's Confirm.</summary>
+public sealed record FoundingBlock(SettlementId Source, string Name, string Detail, ImmutableArray<SettlementId> Sources, ActionDescriptor Action);
+
+/// <summary>What the people do on their own — standing capabilities, one compact list, no controls. M5 polish:
+/// <c>Subjects</c> is each item's info subject (parallel to <c>Items</c>) for Shift+click.</summary>
+public sealed record StandingBlock(ImmutableArray<string> Items, ImmutableArray<InfoSubject> Subjects = default);
+
+/// <summary>M5 polish (verify gap G2 — "visibly disabled", directive §4): a governing domain the player might look for
+/// that is not open yet, with the reason read from the predicate that gates it (Governance.GateOf for the tax edict,
+/// the road-class knowledge query for road development, AgeQuery for the Age advance) — never invented. Shown in
+/// POLICY as a locked line; Shift+click opens <c>Subject</c>'s card.</summary>
+public sealed record LockedDomain(string Label, string Reason, InfoSubject Subject);
+
+/// <summary>
+/// THE ACTION SURFACE — "what can this civilization actually do now?", as one read-only model (ADR-033 D1/D2).
+/// EVERY block is present iff <see cref="AvailableActionsQuery"/> returned that domain's descriptors (labour and
+/// construction: for the target settlement); nothing here decides availability, so a locked future action is
+/// never listed and no future control is ever shown disabled. The era decides only HOW it is shown
+/// (<see cref="Control"/>, <see cref="Layout"/>).
+/// </summary>
+public sealed record ActionSurfaceModel(
+    UiEra Era, SurfaceLayout Layout, LabourControlSpec Control, ImmutableArray<ActionDescriptor> Actions,
+    LabourBlock? Labour, ResearchBlock? Research, AgeBlock? Age, ConstructionBlock? Construction, RoadsBlock? Roads,
+    MilitaryBlock? Military, GovernanceBlock? Governance, StandingBlock? Standing, ImmutableArray<string> Notices,
+    ProductionBlock? Production = null, ImmutableArray<LockedDomain> Locked = default, FoundingBlock? Founding = null,
+    AllocationBlock? Allocation = null)
+{
+    /// <summary>The domains the surface shows, in the query's domain order.</summary>
+    public ImmutableArray<ActionDomain> Domains
+    {
+        get
+        {
+            var b = ImmutableArray.CreateBuilder<ActionDomain>();
+            if (Labour is not null) b.Add(ActionDomain.Labour);
+            if (Research is not null) b.Add(ActionDomain.Research);
+            if (Age is not null) b.Add(ActionDomain.Age);
+            if (Construction is not null) b.Add(ActionDomain.Construction);
+            if (Roads is not null) b.Add(ActionDomain.Roads);
+            if (Military is not null) b.Add(ActionDomain.Military);
+            if (Governance is not null) b.Add(ActionDomain.Governance);
+            if (Standing is not null) b.Add(ActionDomain.Standing);
+            if (Production is not null) b.Add(ActionDomain.Production);
+            if (Founding is not null) b.Add(ActionDomain.Colonization);
+            if (Allocation is not null) b.Add(ActionDomain.ResourceAllocation);
+            return b.ToImmutable();
+        }
+    }
+}
+
+/// <summary>Everything the surface is built from: the world on screen, the world the last End Turn stepped
+/// from (for "new this turn"), the session's config and era table (the next step's dt), the player's Empire,
+/// the selection, the not-yet-stepped orders, the name registry and the era theme.</summary>
+public sealed record ActionSurfaceInput(
+    IReadOnlyWorldState World, IReadOnlyWorldState? Previous, SimConfig Config, EraTable Era, PolityId Player,
+    int Selected, IReadOnlyList<OrderRecord> Queued, Func<int, string> Name, EraTheme Theme);
+
+/// <summary>
+/// BUILDS the action surface (ADR-033 D1/D2). Pure and read-only: it calls
+/// <see cref="AvailableActionsQuery.For"/> once (with the next step's context) and <see cref="LabourActivities.For"/>
+/// once, reads the owning domains' public readers for what a descriptor names (a project's materials, a route's
+/// performance, a formation's line, the legitimacy line), and never re-derives availability. Deterministic:
+/// descriptor order, settlement-table order, sector order; no dictionary, no LINQ.
+/// </summary>
+public static class ActionSurface
+{
+    /// <summary>The model for <paramref name="input"/>.</summary>
+    public static ActionSurfaceModel Build(ActionSurfaceInput input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        IReadOnlyWorldState w = input.World;
+        var context = ActionQueryContext.ForNextStep(w, input.Era, input.Queued);
+        ImmutableArray<ActionDescriptor> actions = AvailableActionsQuery.For(w, input.Config, input.Player, context);
+        LabourControlSpec control = LabourControlSpec.For(input.Theme);
+        SurfaceLayout layout = input.Theme.Density.Level <= 1 ? SurfaceLayout.Flat
+            : input.Theme.Density.Level <= 3 ? SurfaceLayout.Grouped : SurfaceLayout.Detailed;
+
+        var notices = new List<string>();
+        LabourBlock? labour = Labour(input, actions, control, notices);
+        SettlementId? target = labour?.Settlement ?? TargetSettlement(input, actions, ActionDomain.Construction);
+        AllocationBlock? allocation = Allocation(input, actions, context.NextDtYears ?? input.World.Clock.DtYears);
+        ConstructionBlock? construction = target is { } t ? Construction(input, actions, t, context.NextDtYears) : null;
+        if (construction is { Incremental: true } && allocation?.ConstructionLine is { } materials)
+            construction = construction with { MaterialsLine = materials };
+        return new ActionSurfaceModel(
+            input.Theme.Era, layout, control, actions,
+            labour,
+            Research(input, actions),
+            Age(input, actions),
+            construction,
+            Roads(input, actions, context.NextDtYears ?? input.World.Clock.DtYears),
+            Military(input, actions),
+            Governance(input, actions),
+            Standing(actions),
+            Notices(input, actions, notices),
+            Production(input, actions),
+            Locked(input, actions, target),
+            Founding(input, actions),
+            allocation);
+    }
+
+    // ------------------------------------------------------------------ the materials split (WS2, D-054)
+
+    /// <summary>The Materials block: present iff the query lists the split's descriptor (so iff the Roads block is
+    /// present), read through ResourceAllocationQuery on the current world and the player's pending orders — the
+    /// construction line from the QUEUED road order only.</summary>
+    private static AllocationBlock? Allocation(ActionSurfaceInput input, ImmutableArray<ActionDescriptor> actions, double dtYears)
+    {
+        ActionDescriptor? split = null;
+        foreach (ActionDescriptor a in actions) if (a.Domain == ActionDomain.ResourceAllocation) { split = a; break; }
+        if (split is null) return null;
+        AllocationView? view = ResourceAllocationQuery.ForEmpire(input.World, input.Config, input.Player, input.Queued, dtYears);
+        if (view is null) return null;
+        return new AllocationBlock(split, view.BuildingsPercent, view.CommittedPercent, view.HasRow, view.QueuedPercent,
+            AllocationText.Goods(input.Config), AllocationText.ConstructionLine(view, input.Config), input.Queued, dtYears);
+    }
+
+    // ------------------------------------------------------------------ founding (M5 S1d)
+
+    /// <summary>The Found Settlement block: present iff the query lists the action for some settlement (its source-side
+    /// arms hold); shown for the target settlement (<see cref="TargetSettlement"/>: the selection, the capital, the first).</summary>
+    private static FoundingBlock? Founding(ActionSurfaceInput input, ImmutableArray<ActionDescriptor> actions)
+    {
+        if (TargetSettlement(input, actions, ActionDomain.Colonization) is not { } source) return null;
+        foreach (ActionDescriptor a in actions)
+            if (a.Domain == ActionDomain.Colonization && a.Id == source.Value)
+                return new FoundingBlock(source, input.Name(source.Value), a.Detail ?? "", SettlementsListed(actions, ActionDomain.Colonization), a);
+        return null;
+    }
+
+    /// <summary>The surface for a live session: its world, previous world, config, era table and queued orders.</summary>
+    /// <remarks>P7 review: a selection the session's knowledge hides is passed as no selection (−1), so no note names it.</remarks>
+    public static ActionSurfaceModel ForSession(UiSession session, EraTable era, int selected, EraTheme theme) =>
+        Build(new ActionSurfaceInput(session.World, session.PreviousWorld, session.Config, era, UiPlayer.Empire,
+            session.Knowledge.IsHiddenSettlement(selected) ? -1 : selected, session.QueuedOrders(), id => session.Names.Name(id), theme));
+
+    // ------------------------------------------------------------------ labour
+
+    /// <summary>The settlements the query lists a domain's actions for, in descriptor (settlement-table) order.</summary>
+    public static ImmutableArray<SettlementId> SettlementsListed(ImmutableArray<ActionDescriptor> actions, ActionDomain domain)
+    {
+        var ids = new List<int>();
+        foreach (ActionDescriptor a in actions)
+        {
+            if (a.Domain != domain || a.Targets.IsDefaultOrEmpty || a.Targets[0].Kind != ActionTargetKind.Settlement) continue;
+            int id = (int)a.Targets[0].Id;
+            if (!ids.Contains(id)) ids.Add(id);
+        }
+        var b = ImmutableArray.CreateBuilder<SettlementId>(ids.Count);
+        foreach (int id in ids) b.Add(new SettlementId(id));
+        return b.MoveToImmutable();
+    }
+
+    /// <summary>The settlement a per-settlement domain is shown for: the selection when the query lists that
+    /// domain for it, else the capital when listed, else the first settlement listed; null when none is.</summary>
+    public static SettlementId? TargetSettlement(ActionSurfaceInput input, ImmutableArray<ActionDescriptor> actions, ActionDomain domain)
+    {
+        ImmutableArray<SettlementId> listed = SettlementsListed(actions, domain);
+        if (listed.IsEmpty) return null;
+        foreach (SettlementId s in listed) if (s.Value == input.Selected) return s;
+        if (EmpireQuery.TryGetCapital(input.World, input.Player, out SettlementId cap))
+            foreach (SettlementId s in listed) if (s.Value == cap.Value) return s;
+        return listed[0];
+    }
+
+    private static LabourBlock? Labour(ActionSurfaceInput input, ImmutableArray<ActionDescriptor> actions, LabourControlSpec control, List<string> notices)
+    {
+        if (TargetSettlement(input, actions, ActionDomain.Labour) is not { } target) return null;
+        IReadOnlyWorldState w = input.World;
+        ImmutableArray<LabourActivity> activities = LabourActivities.For(w, input.Config, input.Player);
+        ImmutableArray<LabourActivity> before = input.Previous is { } prev ? LabourActivities.For(prev, input.Config, input.Player) : [];
+
+        var entries = ImmutableArray.CreateBuilder<LabourEntry>(Sectors.Count);
+        foreach (ActionDescriptor a in actions)
+        {
+            if (a.Domain != ActionDomain.Labour || a.Targets[0].Id != target.Value) continue;
+            int sector = (int)a.Targets[1].Id;
+            LabourActivity activity = Find(activities, target, sector)
+                ?? throw new InvalidOperationException("the query listed a labour action LabourActivities does not know");
+            string? marker = NewMarker(activity, before, sector);
+            if (marker is not null && !notices.Contains(marker)) notices.Add(marker);
+            entries.Add(new LabourEntry(
+                sector, a.Label, activity.Identities, Produces(activity, w, input.Config, target), activity.Share, 0, activity.Researched, marker,
+                a.Provenance.Researched ? string.Join(", ", a.Provenance.NodeNames) : null, a));
+        }
+
+        // The running split in the era's units; the queued split, when this turn already ordered one.
+        SectorAllocationRow running = LabourActivities.AllocationOf(w, target);
+        int[] current = new int[Sectors.Count];
+        SectorAllocationModel.FromShares(running, current, control.Units);
+        ImmutableArray<int> queued = [];
+        if (QueuedAllocation(input.Queued, input.Player, target, running) is { } row)
+        {
+            int[] q = new int[Sectors.Count];
+            SectorAllocationModel.FromShares(row, q, control.Units);
+            queued = [.. q];
+        }
+        var withUnits = ImmutableArray.CreateBuilder<LabourEntry>(entries.Count);
+        foreach (LabourEntry e in entries) withUnits.Add(e with { Units = current[e.Sector] });
+
+        ImmutableArray<SettlementId> controlled = SettlementsListed(actions, ActionDomain.Labour);
+        string? note = target.Value == input.Selected ? null
+            : input.Selected >= 0 ? input.Name(input.Selected) + " is not ours to command; showing " + input.Name(target.Value) + "."
+            : null;
+        return new LabourBlock(target, input.Name(target.Value), note, control, withUnits.MoveToImmutable(), [.. current], queued,
+            Summary(w, activities, controlled), controlled);
+    }
+
+    private static LabourActivity? Find(ImmutableArray<LabourActivity> activities, SettlementId settlement, int sector)
+    {
+        foreach (LabourActivity a in activities)
+            if (a.Settlement.Value == settlement.Value && a.Sector == sector) return a;
+        return null;
+    }
+
+    /// <summary>"new: Farming (Root and tuber cultivation)" when a researched identity the sector expresses now
+    /// was not among the identities it expressed in the world the last End Turn stepped from.</summary>
+    private static string? NewMarker(LabourActivity now, ImmutableArray<LabourActivity> before, int sector)
+    {
+        if (before.IsDefaultOrEmpty) return null;
+        LabourActivity? was = null;
+        foreach (LabourActivity a in before) if (a.Sector == sector) { was = a; break; }   // identities are Empire-wide
+        if (was is null) return null;
+        foreach (LabourIdentity id in now.Identities)
+        {
+            if (!id.Researched) continue;
+            bool known = false;
+            foreach (LabourIdentity old in was.Identities) if (string.Equals(old.Id, id.Id, StringComparison.Ordinal)) known = true;
+            if (!known) return "new: " + id.Name + (id.NodeNames.IsDefaultOrEmpty ? "" : " (" + string.Join(", ", id.NodeNames) + ")");
+        }
+        return null;
+    }
+
+    /// <summary>What a sector's labour makes: its goods (LabourActivities, production's own classification), or
+    /// for Construction — which makes no good — what its labour builds.</summary>
+    /// R4: before the farming capability exists for the settlement (LabourActivities.HarvestsWildFood — the same
+    /// predicate production's yield reads) the Farming sector's staple is WILD food gathered at forager rates; it is
+    /// still the economy's grain good internally, so it is named truthfully as "wild food (grain)".
+    private static string Produces(LabourActivity a, IReadOnlyWorldState w, SimConfig cfg, SettlementId settlement)
+    {
+        if (a.Sector == Sectors.Construction) return "dwellings, paths and projects";
+        if (a.GoodNames.IsDefaultOrEmpty) return "nothing yet";
+        if (a.Sector == Sectors.Farming && LabourActivities.HarvestsWildFood(w, cfg, settlement))
+        {
+            var names = new string[a.GoodNames.Length];
+            for (int i = 0; i < names.Length; i++)
+                names[i] = a.Goods[i].Value == cfg.Goods?.GrainId ? "wild food (" + a.GoodNames[i] + ")" : a.GoodNames[i];
+            return string.Join(", ", names);
+        }
+        return string.Join(", ", a.GoodNames);
+    }
+
+    /// <summary>The settlement's allocation row as the next End Turn will leave it, when the player has queued
+    /// SectorAllocation orders for it this turn: PathBuildSystem applies them in log order, each setting one
+    /// sector's raw weight (the same <see cref="Sectors.With"/> SectorOrderFactory.Preview uses). Null when none.</summary>
+    public static SectorAllocationRow? QueuedAllocation(
+        IReadOnlyList<OrderRecord> queued, PolityId player, SettlementId settlement, SectorAllocationRow running)
+    {
+        SectorAllocationRow row = running;
+        bool any = false;
+        for (int i = 0; i < queued.Count; i++)
+        {
+            OrderRecord o = queued[i];
+            if (o.Kind != OrderKind.SectorAllocation || o.ActorId != player.Value || o.TargetId >> 3 != settlement.Value) continue;
+            row = Sectors.With(row, o.TargetId & 7, o.Amount / 100.0);
+            any = true;
+        }
+        return any ? row : null;
+    }
+
+    private static LabourSummary Summary(IReadOnlyWorldState w, ImmutableArray<LabourActivity> activities, ImmutableArray<SettlementId> controlled)
+    {
+        var weighted = new double[Sectors.Count];
+        var labels = new string[Sectors.Count];
+        long adults = 0;
+        foreach (SettlementId s in controlled)
+        {
+            long a = BandViews.Adults(w.Buckets, s);
+            adults += a;
+            foreach (LabourActivity act in activities)
+            {
+                if (act.Settlement.Value != s.Value) continue;
+                weighted[act.Sector] += act.Share * a;
+                labels[act.Sector] = act.Label;
+            }
+        }
+        var shares = ImmutableArray.CreateBuilder<double>(Sectors.Count);
+        for (int s = 0; s < Sectors.Count; s++) shares.Add(adults > 0 ? weighted[s] / adults : 0.0);
+        for (int s = 0; s < Sectors.Count; s++) labels[s] ??= "";
+        return new LabourSummary(controlled.Length, adults, shares.MoveToImmutable(), [.. labels]);
+    }
+
+    /// <summary>The sectors in order of their summary share, largest first; ties by sector id (a composite
+    /// (share, id) key — the shares are doubles).</summary>
+    public static int[] RankedSectors(ImmutableArray<double> shares)
+    {
+        int[] order = new int[shares.Length];
+        for (int i = 0; i < order.Length; i++) order[i] = i;
+        Array.Sort(order, (x, y) => shares[x] != shares[y] ? shares[y].CompareTo(shares[x]) : x.CompareTo(y));
+        return order;
+    }
+
+    // ------------------------------------------------------------------ research
+
+    private static ResearchBlock? Research(ActionSurfaceInput input, ImmutableArray<ActionDescriptor> actions)
+    {
+        if (input.Config.Research is not { } content) return null;
+        ActionDescriptor? set = null, clear = null;
+        foreach (ActionDescriptor a in actions)
+        {
+            if (a.Domain != ActionDomain.Research) continue;
+            if (string.Equals(a.Key, "research.set-target", StringComparison.Ordinal)) set = a;
+            if (string.Equals(a.Key, "research.clear-target", StringComparison.Ordinal)) clear = a;
+        }
+        if (set is null && clear is null) return null;
+
+        ResearchItem? target = null;
+        if (clear is not null) target = Item(clear.Targets[0]);
+        var retained = ImmutableArray.CreateBuilder<ResearchItem>();
+        if (set is not null)
+            foreach (ActionTarget t in set.Targets)
+            {
+                if (t.Current) target ??= Item(t);
+                else if (t.Progress is > 0.0) retained.Add(Item(t));
+            }
+
+        int? queued = QueuedResearchChoice(input.Queued, input.Player);
+        ResearchItem? chosen = null;
+        if (queued is > 0 && content.IndexOf(new ResearchNodeId(queued.Value)) is int idx and >= 0)
+        {
+            ResearchNode n = content.Nodes[idx];
+            chosen = new ResearchItem(n.Key.Value, n.Name, ResearchQuery.EffectiveCost(input.World, content, input.Player, idx),
+                ResearchQuery.Progress(input.World, input.Player, n.Key), "");
+            // A retained node chosen this turn is the choice, not a leftover.
+            for (int i = retained.Count - 1; i >= 0; i--) if (retained[i].Key == chosen.Key) retained.RemoveAt(i);
+        }
+        bool clearQueued = queued == -1;
+        bool canClear = !clearQueued && (clear is not null || chosen is not null);
+        return new ResearchBlock(target, chosen, clearQueued, ResearchQuery.ResearchPointPool(input.World, content, input.Player),
+            set?.Targets.Length ?? 0, retained.ToImmutable(), canClear);
+    }
+
+    private static ResearchItem Item(ActionTarget t) => new(t.Id, t.Label, t.Cost ?? 0.0, t.Progress ?? 0.0, t.Detail ?? "");
+
+    /// <summary>The player's research directive queued this turn as ResearchSystem will apply it: the LAST of its
+    /// SetResearchTarget orders in log order (a key, −1 to clear), or null.</summary>
+    public static int? QueuedResearchChoice(IReadOnlyList<OrderRecord> queued, PolityId player)
+    {
+        int? choice = null;
+        for (int i = 0; i < queued.Count; i++)
+            if (queued[i].Kind == OrderKind.SetResearchTarget && queued[i].ActorId == player.Value) choice = queued[i].TargetId;
+        return choice;
+    }
+
+    // ------------------------------------------------------------------ Age
+
+    private static AgeBlock? Age(ActionSurfaceInput input, ImmutableArray<ActionDescriptor> actions)
+    {
+        if (input.Config.Ages is not { } ages) return null;
+        foreach (ActionDescriptor a in actions)
+        {
+            if (a.Domain != ActionDomain.Age) continue;
+            int current = AgeQuery.CurrentAge(input.World, ages, input.Player);
+            return new AgeBlock(current, ages.Age(current).Name, (int)a.Id, ages.Age((int)a.Id).Name, a);
+        }
+        return null;
+    }
+
+    // ------------------------------------------------------------------ construction
+
+    private static ConstructionBlock? Construction(
+        ActionSurfaceInput input, ImmutableArray<ActionDescriptor> actions, SettlementId settlement, double? dtYears)
+    {
+        if (input.Config.Goods is not { } goods) return null;
+        IReadOnlyWorldState w = input.World;
+        var projects = ImmutableArray.CreateBuilder<ProjectEntry>();
+        foreach (ActionDescriptor a in actions)
+        {
+            // ADR-033 D6 + R1: an institution-founding project (a university) is listed by the query's Institutions
+            // contributor; it is built through the same EnqueueConstruction order, so it joins this block.
+            if (a.Domain is not (ActionDomain.Construction or ActionDomain.Institutions) || a.Targets[0].Id != settlement.Value) continue;
+            int projectId = (int)a.Targets[1].Id;
+            ConstructionProjectEntry p = goods.ProjectById(projectId)!;
+            int queuedHere = 0;
+            foreach (ConstructionQueueRow r in ConstructionQuery.Queue(w, settlement)) if (r.ProjectId == projectId) queuedHere++;
+            projects.Add(new ProjectEntry(projectId, a.Targets[1].Label, Materials(p), p.LaborRequired, a.Blocker,
+                ConstructionQuery.Built(w, settlement, projectId), queuedHere,
+                a.Provenance.Researched ? string.Join(", ", a.Provenance.NodeNames) : null, a,
+                ProjectEffects(input, p, settlement), MissingChain(input, p, settlement)));
+        }
+        if (projects.Count == 0) return null;
+
+        var queue = ImmutableArray.CreateBuilder<QueueEntry>();
+        string? headBlocker = null;
+        bool incremental = ConstructionQuery.Incremental(input.Config);
+        var ordered = ImmutableArray.CreateBuilder<string>();
+        string? priority = null, lastTurn = null;
+        if (!incremental)
+        {
+            ConstructionQueueRow[] rows = ConstructionQuery.Queue(w, settlement);
+            for (int i = 0; i < rows.Length; i++)
+            {
+                ConstructionProjectEntry? p = goods.ProjectById(rows[i].ProjectId);
+                queue.Add(new QueueEntry(rows[i].Slot, rows[i].ProjectId, p is null ? "project " + Inv(rows[i].ProjectId) : NameOf(projects, rows[i].ProjectId, p.Name)));
+                if (i == 0 && p is not null) headBlocker = ConstructionQuery.Blocker(w, input.Config, settlement, p, dtYears);
+            }
+        }
+        else
+            IncrementalQueue(input, actions, settlement, dtYears ?? w.Clock.DtYears, projects, queue, ordered, ref headBlocker, ref priority, ref lastTurn);
+
+        CapacityLine? capacity = null;
+        if (dtYears is { } dt && dt > 0.0)
+        {
+            double pool = Sectors.Share(LabourActivities.AllocationOf(w, settlement), Sectors.Construction)
+                * InstitutionStaffing.LabourAdults(w, input.Config, settlement) * dt;
+            double housing = 0.0;
+            for (int i = 0; i < w.Housing.Count; i++)
+                if (w.Housing[i].Settlement == settlement) { housing = w.Housing[i].LastLaborUsed; break; }
+            capacity = new CapacityLine(pool, housing, ConstructionQuery.CapacityAdultYears(w, input.Config, settlement, dt), dt);
+        }
+
+        int orderedCount = 0;
+        for (int i = 0; i < input.Queued.Count; i++)
+            if (input.Queued[i].Kind == OrderKind.EnqueueConstruction && input.Queued[i].ActorId == input.Player.Value
+                && input.Queued[i].TargetId == settlement.Value) orderedCount++;
+        return new ConstructionBlock(settlement, input.Name(settlement.Value), projects.ToImmutable(), queue.ToImmutable(),
+            headBlocker, capacity, orderedCount, incremental, ordered.ToImmutable(), priority, lastTurn);
+    }
+
+    /// <summary>
+    /// WS1 (D-054) — THE QUEUE AS IT WILL STAND AT END TURN, one entry per row: the world's queue with the player's pending
+    /// cancels and enqueues applied exactly as the intake will (ConstructionQuery.PendingBook), then the committed
+    /// entries whose cancel is pending (shown as cancelled this turn). The head's figures and status come from
+    /// ConstructionQuery.HeadStatus — the one resolver the system uses — and the screen labels them estimates.
+    /// </summary>
+    private static void IncrementalQueue(
+        ActionSurfaceInput input, ImmutableArray<ActionDescriptor> actions, SettlementId settlement, double dtYears,
+        ImmutableArray<ProjectEntry>.Builder projects, ImmutableArray<QueueEntry>.Builder queue, ImmutableArray<string>.Builder ordered,
+        ref string? headBlocker, ref string? priority, ref string? lastTurn)
+    {
+        IReadOnlyWorldState w = input.World;
+        SimConfig cfg = input.Config;
+        GoodsConfig goods = cfg.Goods!;
+        IReadOnlyTable<ConstructionQueueRow> book = ConstructionQuery.PendingBook(w, cfg, input.Queued, out IReadOnlyTable<ConstructionProgressRow> progress);
+        QueueEntryRef[] cancelled = ConstructionQuery.PendingCancels(w, input.Queued);
+
+        var rows = new List<ConstructionQueueRow>();
+        for (int i = 0; i < book.Count; i++) if (book[i].Settlement == settlement) rows.Add(book[i]);
+        rows.Sort(static (a, b) => a.Slot.CompareTo(b.Slot));   // slots are unique per settlement
+        HeadStatusReport? status = rows.Count > 0 ? ConstructionQuery.HeadStatus(w, cfg, settlement, input.Queued, dtYears) : null;
+        bool empire = ConstructionQuery.DrawsOnEmpire(w, cfg, settlement);
+        string building = BuildingLabel(input);
+        // D-055: a head waiting on units SET ASIDE for an earlier head names it — its own status (its reason, the remedy) and
+        // where it stands in the building order (EnqueuedTurn, from the same pending book). The holder is of the head's OWN
+        // purse (HoldsWalk names no other), so this reads the player's own books only (P7).
+        // T1b fix round (finding F7): with what the heads ahead of it DRAW of its binding good this step, from the same walk.
+        HoldContext? hold = null;
+        if (status is { Cause: MaterialCause.HeldForEarlier, Holder: { } holder } && rows.Count > 0)
+        {
+            HoldsWalkResult walk = SetAsideQuery.Read(w, cfg, input.Queued, dtYears).Walk;
+            int at = SetAsideQuery.HeadIndexOf(walk, settlement);
+            long used = at >= 0 ? SetAsideQuery.At(SetAsideQuery.DrawnAhead(walk, at), status.Resolution.LimitGood) : 0;
+            hold = new HoldContext(ConstructionQuery.HeadStatus(w, cfg, holder.Settlement, input.Queued, dtYears),
+                ConstructionQuery.EnqueuedTurnOf(progress, new ConstructionQueueRow(holder.Settlement, holder.Slot, holder.ProjectId)),
+                ConstructionQuery.EnqueuedTurnOf(progress, rows[0]), used);
+        }
+        // The head's own set-aside line, and under a building/roads split of b < 100 (the pending kind-12 orders applied) that
+        // the split lets road works use the rest.
+        bool split = ResourceAllocation.Enabled(cfg) && ResourceAllocation.EffectivePercent(
+            ConstructionQuery.AllocationsWith(w, cfg, w.ResourceAllocations, input.Queued), input.Player) < ResourceAllocation.DefaultBuildingsPercent;
+        for (int i = 0; i < rows.Count; i++)
+        {
+            ConstructionQueueRow row = rows[i];
+            ConstructionProjectEntry? p = goods.ProjectById(row.ProjectId);
+            string name = p is null ? "project " + Inv(row.ProjectId) : NameOf(projects, row.ProjectId, AvailableActionsQuery.ProjectName(cfg.Research, p));
+            bool committed = Contains(w.ConstructionQueue, row);
+            long pr = ConstructionQuery.ProgressOf(progress, row);
+            bool head = i == 0;
+            string? line = head && status is not null ? ConstructionStatusText.Status(status, cfg, empire, input.Name(settlement.Value), input.Name, building, hold) : null;
+            ActionDescriptor? cancel = committed ? FindCancel(actions, settlement, row.Slot) : null;
+            queue.Add(new QueueEntry(row.Slot, row.ProjectId, name, pr, head, committed, false,
+                head && pr > 0 && p is not null ? ConstructionQuery.GoneIn(goods, p, pr) : null, line,
+                pr > 0 && p is not null ? ConstructionQuery.Forfeit(p, pr) : null, cancel, i + 1,
+                head && status is not null ? HoldText.SetAsideLine(status, cfg, split) : null));
+            if (head) headBlocker = status is { Resolution.Progresses: false } ? line : null;
+            if (head) lastTurn = ConstructionStatusText.LastTurn(input.Previous, w, cfg, row);
+            if (committed) continue;
+            if (head)
+            {
+                string uses = status is { Resolution: { Progresses: true, Project: { } hp } r } ? UpTo(hp, r) : "what its builders and the purse allow";
+                // D-055, T1b fix round (finding F11): a new head whose units are set aside for an earlier one does not start.
+                ordered.Add(status is { Cause: MaterialCause.HeldForEarlier, Resolution: { Progresses: false, LimitGood: >= 0 } held }
+                    ? name + " ordered - it is first in line, but at End Turn it waits for " + goods.ById(held.LimitGood).Name
+                      + " set aside for earlier projects; later, cancelling loses what went in"
+                    : name + " ordered - it is first in line, so at End Turn it starts and may use up to " + uses
+                      + "; later, cancelling loses what went in");
+            }
+            else ordered.Add(name + " ordered - joins the queue " + ConstructionStatusText.Ordinal(i + 1) + "; nothing is used until it is first in line");
+        }
+        foreach (QueueEntryRef c in cancelled)
+        {
+            if (c.Settlement != settlement) continue;
+            var row = new ConstructionQueueRow(c.Settlement, c.Slot, c.ProjectId);
+            ConstructionProjectEntry? p = goods.ProjectById(c.ProjectId);
+            string name = p is null ? "project " + Inv(c.ProjectId) : NameOf(projects, c.ProjectId, AvailableActionsQuery.ProjectName(cfg.Research, p));
+            long pr = ConstructionQuery.ProgressOf(w, row);
+            queue.Add(new QueueEntry(c.Slot, c.ProjectId, name, pr, false, true, true, null, null,
+                pr > 0 && p is not null ? ConstructionQuery.Forfeit(p, pr) : null, null, 0));
+        }
+
+        // The building order across the player's OWN settlements (P7: no foreign queue is named).
+        if (status is not null)
+        {
+            var names = new List<string>();
+            foreach (QueueEntryRef h in status.Order)
+                if (EmpireQuery.ControlsSettlement(w, input.Player, h.Settlement))
+                    names.Add(input.Name(h.Settlement.Value) + "'s " + ConstructionStatusText.ProjectName(cfg, h.ProjectId));
+            if (names.Count > 1)
+                priority = "Building work is served oldest order first: " + string.Join(", then ", names) + ".";
+        }
+    }
+
+    private static string UpTo(ConstructionProjectEntry project, HeadResolution r)
+    {
+        var parts = new List<string>();
+        for (int i = 0; i < project.Inputs.Length; i++)
+            if (r.Draws[i] > 0) parts.Add(Inv(r.Draws[i]) + " " + project.Inputs[i].Good);
+        return parts.Count == 0 ? "nothing yet" : string.Join(" and ", parts);
+    }
+
+    private static bool Contains(IReadOnlyTable<ConstructionQueueRow> table, ConstructionQueueRow row)
+    {
+        for (int i = 0; i < table.Count; i++) if (table[i] == row) return true;
+        return false;
+    }
+
+    private static ActionDescriptor? FindCancel(ImmutableArray<ActionDescriptor> actions, SettlementId settlement, int slot)
+    {
+        long id = ((long)settlement.Value << 32) | (uint)slot;
+        foreach (ActionDescriptor a in actions) if (a.Domain == ActionDomain.ConstructionQueue && a.Id == id) return a;
+        return null;
+    }
+
+    /// <summary>The construction sector's knowledge-derived label (what the Labour block calls it, e.g. "Building").</summary>
+    private static string BuildingLabel(ActionSurfaceInput input)
+    {
+        if (input.Config.Research is not { } research) return "Building";
+        bool[] completed = ResearchQuery.CompletedMask(input.World, research, input.Player);
+        string label = LabourActivities.CapabilityLabel(research, completed, Sectors.Construction);
+        return label.Length == 0 ? "Building" : label;
+    }
+
+    private static string NameOf(ImmutableArray<ProjectEntry>.Builder projects, int id, string fallback)
+    {
+        foreach (ProjectEntry p in projects) if (p.ProjectId == id) return p.Name;
+        return fallback;
+    }
+
+    private static string Materials(ConstructionProjectEntry p)
+    {
+        var parts = new List<string>(p.Inputs.Length);
+        foreach (ProjectInput i in p.Inputs) parts.Add(Inv(i.Qty) + " " + i.Good);
+        return string.Join(", ", parts);
+    }
+
+    // ------------------------------------------------------------------ roads (read only: transport is frozen)
+
+    private static RoadsBlock? Roads(ActionSurfaceInput input, ImmutableArray<ActionDescriptor> actions, double dtYears)
+    {
+        ActionDescriptor? road = null;
+        foreach (ActionDescriptor a in actions) if (a.Domain == ActionDomain.Roads && a.Order == OrderKind.DevelopRoads) { road = a; break; }
+        if (road is null || input.Config.Roads is not { } roads || input.Config.Research is not { } research || input.Config.Goods is not { } goods)
+            return null;
+        RoadRouteView[] views = RoadDevelopmentQuery.Describe(input.World, research, roads, goods, input.Player);
+        var routes = ImmutableArray.CreateBuilder<RouteEntry>(road.Targets.Length);
+        foreach (ActionTarget t in road.Targets)
+        {
+            int a = (int)(t.Id >> 32), b = (int)(t.Id & 0xFFFFFFFF);
+            RoadRouteView? v = null;
+            foreach (RoadRouteView rv in views) if (rv.Route.A.Value == a && rv.Route.B.Value == b) { v = rv; break; }
+            if (v is not { } view) continue;
+            routes.Add(new RouteEntry(a, b, input.Name(a) + " - " + input.Name(b), view.Route.LengthKm, view.Route.Usage,
+                view.ModernizationPercent, view.EffectiveCostFactor, view.CapacityTonnesPerYear, Costs(goods, view.EstimatedCost)));
+        }
+        double? ordered = null;
+        for (int i = 0; i < input.Queued.Count; i++)
+            if (input.Queued[i].Kind == OrderKind.DevelopRoads && input.Queued[i].ActorId == input.Player.Value) { ordered = input.Queued[i].Amount; break; }
+        string className = road.Label.StartsWith("Develop roads (", StringComparison.Ordinal) && road.Label.EndsWith(')')
+            ? road.Label["Develop roads (".Length..^1] : road.Label;
+        return new RoadsBlock((int)road.Id, className, routes.MoveToImmutable(), road.Blocker,
+            road.Provenance.Researched ? string.Join(", ", road.Provenance.NodeNames) : null, ordered, road, input.Queued, dtYears);
+    }
+
+    /// <summary>What a DevelopRoads of <paramref name="percent"/>% would select now and cost — read through
+    /// <see cref="RoadOrderFactory.Preview"/> (= RoadDevelopmentQuery.Plan, the selection the system applies),
+    /// with the affordable fraction of the whole on the CURRENT stocks of the Empire's paying settlements. An
+    /// ESTIMATE: production runs before road development in the step that applies the order.</summary>
+    public static RoadPlanPreview RoadPlan(IReadOnlyWorldState world, SimConfig cfg, PolityId player, double percent, Func<int, string> name) =>
+        RoadPlan(world, cfg, player, percent, name, null, numerals: true);
+
+    /// <summary>
+    /// <see cref="RoadPlan(IReadOnlyWorldState, SimConfig, PolityId, double, Func{int, string})"/> with the building/roads
+    /// split (WS2, D-054): given the Materials block (<paramref name="split"/>: the pending orders and the step's dt), the
+    /// order is ALSO estimated on what remains after building work's predicted draw this turn — the split computed with
+    /// THIS DRAFT as the road order (ResourceAllocationQuery.ForEmpire), whose forecast holds building work's draws within
+    /// the split and what road development would CHARGE on what they leave (RoadDevelopmentQuery.SimulateCharges: the road
+    /// system's own charge arithmetic — its floors and min-ratio, and the order ending after a step it pays in part or at
+    /// one it can pay nothing of). The share of the order paid is the least charged/needed ratio over its goods, worded for
+    /// the era (<paramref name="numerals"/>: a percentage; otherwise fifths in words); nothing charged says "none of it".
+    /// At the default split (building first) it warns when building work will take goods the order needs first.
+    /// </summary>
+    public static RoadPlanPreview RoadPlan(
+        IReadOnlyWorldState world, SimConfig cfg, PolityId player, double percent, Func<int, string> name,
+        AllocationBlock? split, bool numerals) =>
+        RoadPlan(world, cfg, player, percent, name, split, numerals, split?.Pending, split?.DtYears);
+
+    /// <summary>
+    /// <see cref="RoadPlan(IReadOnlyWorldState, SimConfig, PolityId, double, Func{int, string}, AllocationBlock?, bool)"/> for the
+    /// step <paramref name="pending"/> and <paramref name="dtYears"/> describe (the player's pending orders; the step's length,
+    /// the world's own when null) — D-055, T1b fix round (finding F2): the basic preview's holding is less what THAT step's
+    /// construction will set aside within the payers (SetAsideQuery.StepTable), as the road blocker's is, so a pending cancel
+    /// of a holder or a pending enqueue reads as the step will do it. The screen passes the Roads block's own.
+    /// </summary>
+    public static RoadPlanPreview RoadPlan(
+        IReadOnlyWorldState world, SimConfig cfg, PolityId player, double percent, Func<int, string> name,
+        AllocationBlock? split, bool numerals, IReadOnlyList<OrderRecord>? pending, double? dtYears)
+    {
+        RoadPlanPreview basic = RoadPlanCore(world, cfg, player, percent, name, pending, dtYears ?? world.Clock.DtYears, out RoadMaterialCost[] sum);
+        if (split is null || sum.Length == 0 || cfg.Goods is not { } goods) return basic;
+        AllocationView? view = ResourceAllocationQuery.ForEmpire(world, cfg, player, split.Pending, split.DtYears, roadDraftPercent: percent);
+        if (view is null) return basic;
+        // D-055: the Empire's own purse places (the set road development and the split's S count; T1a round 2), and what
+        // building work takes counts what it SETS ASIDE as well as what it draws (0 with the hold rule off: batch 3).
+        SettlementId[] purse = ConstructionQuery.EmpirePursePlaces(world, cfg, player, RoadDevelopmentQuery.PayingSettlements(world, player));
+        bool holds = Reservations.Enabled(cfg);
+        var left = new long[sum.Length];
+        int binding = -1;
+        double worst = double.PositiveInfinity, after = 1.0;
+        long paidUnits = 1, neededUnits = 1;   // the least-paid good's charge and need (the share's exact numerator/denominator)
+        var taken = new List<string>();
+        for (int m = 0; m < sum.Length; m++)
+        {
+            int g = sum[m].Good.Value;
+            long have = EmpireStockpile.Available(world.GoodStocks, purse, sum[m].Good);
+            long building = checked(view.Split.BuildingDrawOf(g) + view.Split.BuildingHoldOf(g));
+            left[m] = Math.Max(0, have - building);
+            double ratio = sum[m].Units <= 0 ? double.PositiveInfinity : (double)left[m] / sum[m].Units;
+            if (ratio < worst) { worst = ratio; binding = m; }
+            if (sum[m].Units > 0)
+            {
+                long charged = Math.Min(view.Split.RoadChargeOf(g), sum[m].Units);
+                double paid = (double)charged / sum[m].Units;
+                if (paid < after) { after = paid; paidUnits = charged; neededUnits = sum[m].Units; }
+            }
+            if (view.IsDefault && building > 0 && left[m] < sum[m].Units) taken.Add(Inv(building) + " " + goods.ById(g).Name);
+        }
+        // Batch 3 R3 (C2 review F9): a partial payment is floored and held to 1–99 % (never "about 100%" or "about 0%").
+        string share = numerals && after < 1.0 && after > 0.0
+            ? AllocationText.SharePercent(paidUnits, neededUnits)
+            : AllocationText.ShareWords(after);
+        string afterWhat = holds ? "after what building work uses or sets aside, " : "after building work, ";
+        string leftLine = after >= 1.0
+            ? afterWhat + "everything this order needs is left: all of it would be paid this turn"
+            : afterWhat + "about " + Inv(left[binding]) + " of the " + Inv(sum[binding].Units) + " "
+              + goods.ById(sum[binding].Good.Value).Name + " needed is left: " + share + " would be paid this turn";
+        string? warning = taken.Count == 0 ? null
+            : "Building work may take up to " + AllocationText.List(taken) + " first under the current split - change it under Materials";
+        // D-055: name the projects that set aside what the order needs — the split forecast's own walk, head by head.
+        string? setAside = null;
+        if (holds)
+        {
+            var ids = new int[sum.Length];
+            for (int m = 0; m < sum.Length; m++) ids[m] = sum[m].Good.Value;
+            HoldsWalkHead[] heads = SetAsideQuery.HeadsUnder(world, cfg, player, split.Pending, split.DtYears, SetAsideQuery.ForecastGrants(view.Split));
+            setAside = HoldText.RoadsLine(heads, ids, cfg, name);
+        }
+        return basic with { AfterBuilding = after, LeftLine = leftLine, Warning = warning, SetAside = setAside };
+    }
+
+    private static RoadPlanPreview RoadPlanCore(
+        IReadOnlyWorldState world, SimConfig cfg, PolityId player, double percent, Func<int, string> name,
+        IReadOnlyList<OrderRecord>? pending, double dtYears, out RoadMaterialCost[] summed)
+    {
+        summed = [];
+        RoadDevelopmentStep[] plan = RoadOrderFactory.Preview(world, cfg, player, percent);
+        if (plan.Length == 0 || cfg.Goods is not { } goods) return new RoadPlanPreview(percent, 0, "nothing", 1.0, [], []);
+        var total = new List<RoadMaterialCost>();
+        var labels = ImmutableArray.CreateBuilder<string>(plan.Length);
+        foreach (RoadDevelopmentStep step in plan)
+        {
+            labels.Add(name(step.Route.A.Value) + " - " + name(step.Route.B.Value));
+            foreach (RoadMaterialCost c in step.Cost)
+            {
+                int at = -1;
+                for (int i = 0; i < total.Count; i++) if (total[i].Good.Value == c.Good.Value) at = i;
+                if (at < 0) total.Add(c); else total[at] = new RoadMaterialCost(c.Good, total[at].Units + c.Units);
+            }
+        }
+        RoadMaterialCost[] sum = [.. total];
+        summed = sum;
+        // D-055 (T1b; T1a round 2's open item): the payers road development itself draws on — the Empire's own purse places
+        // (ConstructionQuery.EmpirePursePlaces) — and their holding less what construction sets aside within them
+        // (RoadDevelopmentQuery.SetAsideWithin). T1b fix round (finding F2): THIS step's set-asides — the walk on the world
+        // and the pending orders (SetAsideQuery.StepTable), not the last step's published table — so the preview says what the
+        // step will do. The rule off: PayingSettlements and the whole holding (batch 3).
+        SettlementId[] payers = ConstructionQuery.EmpirePursePlaces(world, cfg, player,
+            RoadDevelopmentQuery.PayingSettlements(world, player, plan[0].Route.A, plan[0].Route.B));
+        long[] have = RoadDevelopmentQuery.Holdings(world.GoodStocks, payers, sum);
+        IReadOnlyTable<ConstructionHoldRow> setAsides = SetAsideQuery.StepTable(world, cfg, pending, dtYears);
+        for (int m = 0; m < sum.Length; m++)
+        {
+            long[]? keep = null;
+            have[m] = Math.Max(0, have[m] - RoadDevelopmentQuery.SetAsideWithin(world, cfg, setAsides, payers, sum[m].Good, ref keep));
+        }
+        double affordable = RoadDevelopmentQuery.AffordableFraction(sum, have);
+        var payerNames = ImmutableArray.CreateBuilder<string>(payers.Length);
+        foreach (SettlementId p in payers) payerNames.Add(name(p.Value));
+        return new RoadPlanPreview(percent, plan.Length, Costs(goods, sum), affordable, payerNames.MoveToImmutable(), labels.MoveToImmutable());
+    }
+
+    private static string Costs(GoodsConfig goods, RoadMaterialCost[] cost)
+    {
+        if (cost.Length == 0) return "nothing";
+        var parts = new List<string>(cost.Length);
+        foreach (RoadMaterialCost c in cost) parts.Add(Inv(c.Units) + " " + goods.ById(c.Good.Value).Name);
+        return string.Join(", ", parts);
+    }
+
+    // ------------------------------------------------------------------ military (information only)
+
+    private static MilitaryBlock? Military(ActionSurfaceInput input, ImmutableArray<ActionDescriptor> actions)
+    {
+        ActionDescriptor? fighting = null;
+        foreach (ActionDescriptor a in actions) if (a.Domain == ActionDomain.Military) { fighting = a; break; }
+        if (fighting is null) return null;
+        UnitFamilyContent? families = input.Config.UnitFamilies;
+        MilitaryUnitRow[] units = MilitaryQuery.Units(input.World, input.Player);
+        var formations = ImmutableArray.CreateBuilder<FormationEntry>(fighting.Targets.Length);
+        foreach (ActionTarget t in fighting.Targets)
+        {
+            MilitaryUnitRow? row = null;
+            foreach (MilitaryUnitRow u in units) if (u.Id == t.Id) { row = u; break; }
+            if (row is not { } unit) continue;
+            UnitIdentity? identity = families?.IdentityByKey(unit.Identity);
+            UnitFamily? family = families?.FamilyByKey(unit.Family);
+            formations.Add(new FormationEntry(t.Id, t.Label, family?.Name ?? "family " + Inv(unit.Family), identity?.Age ?? 0,
+                unit.Location.Value >= 0 ? input.Name(unit.Location.Value) : "in the field", Line(family, identity)));
+        }
+        string? next = null;
+        var modern = ImmutableArray.CreateBuilder<string>();
+        if (AdvanceFlowModel.Build(input.World, input.Config.Ages, families, input.Player) is { } flow)
+        {
+            next = flow.ToAgeName;
+            foreach (ModernizationLine l in flow.Modernization)
+                modern.Add(Inv(l.Count) + " x " + l.From + (l.Changes ? " -> " + l.To : " - " + AdvanceFlowModel.OutcomeText(l.Outcome)));
+        }
+        return new MilitaryBlock(formations.ToImmutable(), next, modern.ToImmutable(),
+            "Recruitment, movement and battle arrive with the Battle Layer (M7): there is no military order yet.", fighting);
+    }
+
+    /// <summary>The family's mainline from the formation's current identity: "Warband -> Axe warriors -> Bronze swordsmen".</summary>
+    private static string Line(UnitFamily? family, UnitIdentity? current)
+    {
+        if (family is null || current is null) return "";
+        var names = new List<string>();
+        bool from = false;
+        foreach (UnitIdentity i in family.Line)
+        {
+            if (i.Branch) continue;
+            if (i.Key == current.Key) from = true;
+            if (from) names.Add(i.Name);
+            if (names.Count == 3) break;
+        }
+        return string.Join(" -> ", names);
+    }
+
+    // ------------------------------------------------------------------ governance
+
+    private static GovernanceBlock? Governance(ActionSurfaceInput input, ImmutableArray<ActionDescriptor> actions)
+    {
+        ActionDescriptor? edict = null;
+        foreach (ActionDescriptor a in actions) if (a.Domain == ActionDomain.Governance) { edict = a; break; }
+        if (edict is null) return null;
+        IReadOnlyWorldState w = input.World;
+        int? queued = null;
+        for (int i = 0; i < input.Queued.Count; i++)
+            if (input.Queued[i].Kind == OrderKind.SetTaxRate && input.Queued[i].ActorId == input.Player.Value) queued = (int)input.Queued[i].Amount;
+        return new GovernanceBlock(
+            TaxOrderFactory.DeclaredPercent(w, input.Player), Sim.Core.State.Governance.HasPolicy(w, input.Player),
+            TaxOrderFactory.LegitimacyLine(w, input.Player, input.Config),
+            [.. TaxOrderFactory.BurdenLines(w, input.Player, input.Config, s => input.Name(s.Value))],
+            edict.Provenance.Researched ? string.Join(", ", edict.Provenance.NodeNames) : null, queued, edict);
+    }
+
+    // ------------------------------------------------------------------ production (R1)
+
+    private static ProductionBlock? Production(ActionSurfaceInput input, ImmutableArray<ActionDescriptor> actions)
+    {
+        var entries = ImmutableArray.CreateBuilder<ProductionEntry>();
+        GoodsConfig? goods = input.Config.Goods;
+        foreach (ActionDescriptor a in actions)
+        {
+            if (a.Domain != ActionDomain.Production) continue;
+            RecipeEntry? recipe = goods is not null && a.Id >= 1 && a.Id <= goods.Recipes.Length ? goods.Recipes[a.Id - 1] : null;
+            string? condition = recipe?.Requires is { } cond
+                ? InfoQuery.ConditionReading(input.World, input.Config, input.Player, cond, input.Name) : null;
+            string? missing = null;
+            if (recipe is not null)
+                foreach (RecipeInput i in recipe.Inputs)
+                    if (InfoQuery.SourceChain(input.World, input.Config, input.Player, i.Good) is { } chain) { missing = chain; break; }
+            entries.Add(new ProductionEntry(a.Label, a.Detail ?? "", a.Targets.IsDefault ? 0 : a.Targets.Length, a.Blocker,
+                a.Provenance.Researched ? string.Join(", ", a.Provenance.NodeNames) : null, a, condition, missing));
+        }
+        return entries.Count == 0 ? null : new ProductionBlock(entries.ToImmutable());
+    }
+
+    // ------------------------------------------------------------------ M5 polish: what a project does, where a material comes from
+
+    /// <summary>What reads a built project in this build, from its info card (InfoQuery): the Age facts it counts toward,
+    /// for a granary its local farm-output and empire-wide famine effects (M5 item 5), and, for a public work, the levy's
+    /// public-services offset. Null when nothing does.</summary>
+    private static string? ProjectEffects(ActionSurfaceInput input, ConstructionProjectEntry p, SettlementId settlement)
+    {
+        InfoCard card = InfoQuery.Card(input.World, input.Config, input.Player, InfoSubject.OfProject(p.Id, settlement.Value),
+            settlementName: input.Name, actions: ImmutableArray<ActionDescriptor>.Empty);
+        var parts = new List<string>();
+        foreach (InfoLink l in card.Enables)
+        {
+            if (l.Subject is { Kind: InfoKind.AgeMilestone } s)
+                parts.Add("counts toward Age " + AgePanelModel.Numeral((int)s.Id) + " \"" + l.Label + "\"");
+            else if (l.Subject is { Kind: InfoKind.UniversityType }) parts.Add("founds the " + l.Label);
+            else if (l.Subject is null)
+            {
+                // M5 item 5 (D-053 §3): a granary's two effects in their brief, multiplier form (no percentages on this
+                // surface) — the RESULTING TOTAL factors the simulation multiplies by (State.GranaryEffects) with one more
+                // STANDING granary (queued ones are not counted): the settlement's own count for the harvest, its
+                // civilization's for famine. The levy line keeps its form.
+                if (string.Equals(l.Label, InfoQuery.GranaryFarmLabel, StringComparison.Ordinal) && GranaryEffects.Active(input.Config) is { } gf)
+                    parts.Add(InfoQuery.GranaryFarmBrief(gf, GranaryEffects.LocalGranaries(input.World, input.Config, settlement),
+                        LabourActivities.HarvestsWildFood(input.World, input.Config, settlement)));   // C1: 1.0 on wild food
+                else if (string.Equals(l.Label, InfoQuery.GranaryFamineLabel, StringComparison.Ordinal) && GranaryEffects.Active(input.Config) is { } gn)
+                    parts.Add(InfoQuery.GranaryFamineBrief(gn, GranaryEffects.EmpireGranaries(input.World, input.Config, settlement)));
+                else
+                    parts.Add("once a levy exists, eases how heavily it is felt here");
+            }
+        }
+        return parts.Count == 0 ? null : string.Join("; ", parts);
+    }
+
+    /// <summary>The source chain of the first material the settlement's purse lacks (ConstructionQuery.Holders — its
+    /// Empire's settlements together, or its own stock) that nothing the civilization holds makes.</summary>
+    private static string? MissingChain(ActionSurfaceInput input, ConstructionProjectEntry p, SettlementId settlement)
+    {
+        foreach (MaterialShortfall s in ConstructionQuery.Shortfalls(input.World, input.Config, settlement, p))
+            if (InfoQuery.SourceChain(input.World, input.Config, input.Player, s.Name) is { } chain) return chain;
+        return null;
+    }
+
+    // ------------------------------------------------------------------ M5 polish: the locked governing domains (verify G2)
+
+    /// <summary>
+    /// Each governing domain the player might look for that the query does NOT list, with the reason the gating predicate
+    /// gives (read through InfoQuery's card for it): the tax edict (Governance.GateOf), road development (the road-class
+    /// knowledge query and RoadDevelopmentQuery.Plan) and the Age advance (AgeQuery). A domain the query lists is never
+    /// here, so a locked line and its control never show together.
+    /// </summary>
+    private static ImmutableArray<LockedDomain> Locked(ActionSurfaceInput input, ImmutableArray<ActionDescriptor> actions, SettlementId? settlement = null)
+    {
+        var lines = ImmutableArray.CreateBuilder<LockedDomain>();
+        IReadOnlyWorldState w = input.World;
+        SimConfig cfg = input.Config;
+        bool Lists(ActionDomain d) { foreach (ActionDescriptor a in actions) if (a.Domain == d) return true; return false; }
+        InfoCard Card(InfoSubject s) => InfoQuery.Card(w, cfg, input.Player, s, settlementName: input.Name, actions: actions);
+
+        if (!Lists(ActionDomain.Governance) && Sim.Core.State.Governance.GateOf(w, cfg, input.Player) is TaxGate.NeedsKnowledge or TaxGate.NeedsAge)
+        {
+            InfoCard tax = Card(InfoSubject.Tax);
+            lines.Add(new LockedDomain("Tax edict", tax.Summary ?? tax.StatusLine, InfoSubject.Tax));
+        }
+        if (!Lists(ActionDomain.Roads) && cfg.Roads is { } roads && cfg.Research is { } research)
+        {
+            int best = RoadDevelopmentQuery.BestKnownClass(w, research, roads, input.Player);
+            int next = -1;
+            foreach (RoadClassConfig c in roads.Classes)
+                if (c.Entity is not null && c.EdgeType > best && (next < 0 || c.EdgeType < next)) next = c.EdgeType;
+            if (best > EdgeTypes.DirtPath)
+            {
+                InfoCard known = Card(InfoSubject.OfRoadClass(best));
+                lines.Add(new LockedDomain("Road development (" + known.Title + ")", "no route is eligible for it now", InfoSubject.OfRoadClass(best)));
+            }
+            else if (next >= 0)
+            {
+                InfoCard card = Card(InfoSubject.OfRoadClass(next));
+                lines.Add(new LockedDomain("Road development (" + card.Title + ")", card.Summary ?? card.StatusLine, InfoSubject.OfRoadClass(next)));
+            }
+        }
+        // D-051 §4 / Director 2026-10-10: a project whose crafted input has no production path here yet is not a legal
+        // order (ConstructionQuery.InputUnobtainable), so the query does not list it — name it as locked, with where the
+        // input comes from (the source chain the Construction block used to show as its blocker), rather than let it vanish.
+        // D-053 §1: the claims are read from the queue the listing reads (the world's plus the pending orders the intake would
+        // accept), and where the empire HOLDS the input but its queued projects already claim it, the reason says so.
+        if (settlement is { } here && cfg.Goods is { Projects: { } projects } goods)
+        {
+            IReadOnlyTable<ConstructionQueueRow> claims = ConstructionQuery.QueueWithPending(w, cfg, input.Queued, out IReadOnlyTable<ConstructionProgressRow> claimsProgress);
+            foreach (ConstructionProjectEntry p in projects)
+            {
+                if (ConstructionQuery.Availability(w, cfg, input.Player, here, p.Id, claims, claimsProgress) != ProjectAvailability.InputUnobtainable) continue;
+                string good = ConstructionQuery.UnobtainableInput(w, cfg, here, p, claims, claimsProgress)?.Name ?? "an input";
+                string reason = (ConstructionQuery.ClaimedReason(w, cfg, here, p, claims, claimsProgress, input.Name)
+                        ?? "needs " + good + ", which " + input.Name(here.Value) + " cannot make yet")
+                    + (InfoQuery.SourceChain(w, cfg, input.Player, good) is { } chain ? " - comes from: " + chain : "");
+                lines.Add(new LockedDomain("Build " + AvailableActionsQuery.ProjectName(cfg.Research, p), reason, InfoSubject.OfProject(p.Id, here.Value)));
+            }
+        }
+        if (!Lists(ActionDomain.Age) && cfg.Ages is { } ages && AgeQuery.NextAge(w, ages, input.Player) is { } nextAge
+            && AgeQuery.PendingAdvance(w, ages, input.Queued, input.Player) is null)
+        {
+            InfoCard age = Card(InfoSubject.OfAge(nextAge.Key));
+            lines.Add(new LockedDomain("Advance to Age " + AgePanelModel.Numeral(nextAge.Key) + " (" + nextAge.Name + ")",
+                age.Summary ?? age.StatusLine, InfoSubject.OfAge(nextAge.Key)));
+        }
+        return lines.ToImmutable();
+    }
+
+    // ------------------------------------------------------------------ standing
+
+    private static StandingBlock? Standing(ImmutableArray<ActionDescriptor> actions)
+    {
+        var items = ImmutableArray.CreateBuilder<string>();
+        var subjects = ImmutableArray.CreateBuilder<InfoSubject>();
+        foreach (ActionDescriptor a in actions)
+        {
+            // R2a: the Trade capability is automatic (no order — the market moves goods once it is legal), so it
+            // joins what the people do on their own, listed only when the query lists it.
+            if (a.Domain is not (ActionDomain.Standing or ActionDomain.Trade)) continue;
+            items.Add(Short(a.Label));
+            // The descriptor's own provenance names its subject: the baseline id, or the trade entity.
+            subjects.Add(a.Domain == ActionDomain.Standing && !a.Provenance.Baseline.IsDefaultOrEmpty
+                ? InfoSubject.OfBaseline(a.Provenance.Baseline[0])
+                : !a.Provenance.Entities.IsDefaultOrEmpty ? InfoSubject.OfEntity(a.Provenance.Entities[0]) : InfoSubject.Research);
+        }
+        return items.Count == 0 ? null : new StandingBlock(items.ToImmutable(), subjects.ToImmutable());
+    }
+
+    /// <summary>A content name without its parenthetical gloss ("Basic fishing (shore, net, trap and spear)" → "Basic fishing").</summary>
+    public static string Short(string name)
+    {
+        int at = name.IndexOf(" (", StringComparison.Ordinal);
+        return at > 0 ? name[..at] : name;
+    }
+
+    // ------------------------------------------------------------------ notices
+
+    /// <summary>What changed in the action space at the last End Turn: research completed, new activity
+    /// identities (already gathered), and whole domains the query lists now but did not list before.</summary>
+    private static ImmutableArray<string> Notices(ActionSurfaceInput input, ImmutableArray<ActionDescriptor> actions, List<string> identities)
+    {
+        var lines = new List<string>();
+        if (input.Previous is { } prev && input.Config.Research is { } content)
+        {
+            foreach (ResearchNodeId k in ResearchQuery.CompletedBetween(prev, input.World, input.Player))
+                if (content.IndexOf(k) is int i and >= 0) lines.Add("learned: " + content.Nodes[i].Name);
+            lines.AddRange(identities);
+            ImmutableArray<ActionDescriptor> before = AvailableActionsQuery.For(prev, input.Config, input.Player);
+            foreach (ActionDomain d in new[] { ActionDomain.Construction, ActionDomain.Roads, ActionDomain.Governance, ActionDomain.Institutions, ActionDomain.Age })
+            {
+                bool now = false, was = false;
+                foreach (ActionDescriptor a in actions) if (a.Domain == d) { now = true; break; }
+                foreach (ActionDescriptor a in before) if (a.Domain == d) { was = true; break; }
+                if (now && !was) lines.Add("new: " + DomainNoun(d));
+            }
+            // R1: every action research made appear at the last End Turn, by name (deduplicated) — generic over
+            // content, so a newly authored node and its consequence are announced with no UI code change.
+            // Labour identities are announced above; research targets are not consequences.
+            foreach (ActionDescriptor a in actions)
+            {
+                if (a.Domain is ActionDomain.Labour or ActionDomain.Research || !a.Provenance.Researched) continue;
+                bool existed = false;
+                foreach (ActionDescriptor b in before) if (b.Domain == a.Domain && b.Id == a.Id) { existed = true; break; }
+                string line = "new: " + Short(a.Label);
+                if (!existed && !lines.Contains(line)) lines.Add(line);
+            }
+        }
+        return [.. lines];
+    }
+
+    /// <summary>A domain as the notices and the grouped headers name it.</summary>
+    public static string DomainNoun(ActionDomain d) => d switch
+    {
+        ActionDomain.Labour => "work",
+        ActionDomain.Research => "learning",
+        ActionDomain.Age => "advancing to the next Age",
+        ActionDomain.Construction => "building projects",
+        ActionDomain.Roads => "road development",
+        ActionDomain.Military => "arms",
+        ActionDomain.Governance => "the tax edict",
+        ActionDomain.Institutions => "institutions",
+        ActionDomain.Colonization => "founding settlements",
+        ActionDomain.ConstructionQueue => "cancelling building projects",
+        ActionDomain.ResourceAllocation => "the materials split",
+        _ => "what the people do on their own",
+    };
+
+    private static string Inv(long v) => v.ToString(CultureInfo.InvariantCulture);
+}

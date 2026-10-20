@@ -19,10 +19,11 @@ public class HudViewModelTests
         using var stream = global::Sim.Data.DataFiles.OpenSim();
         using var needs = global::Sim.Data.DataFiles.OpenNeeds();
         using var goods = global::Sim.Data.DataFiles.OpenGoods();
+        using var research = global::Sim.Data.DataFiles.OpenResearch();
         // T3.1 note: these view-model tests pin EXACT founded strings, so the
         // canonical endowment jitter is zeroed — formatting is the contract
         // here; the jittered founding has its own pins in Sim.Tests.
-        SimConfig cfg = SimConfigLoader.Load(stream, needs, goods);
+        SimConfig cfg = SimConfigLoader.Load(stream, needs, goods, research);
         return cfg with { Founding = cfg.Founding with { EndowmentJitter = 0.0 } };
     }
 
@@ -43,42 +44,32 @@ public class HudViewModelTests
             PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg)), orders);
     }
 
-    // --- slider → order payload ----------------------------------------------
+    // --- labour control → order log → executor ------------------------------
+    // ADR-033 D9: the M1 single-slider path (LaborOrderFactory, OrderKind 2) left Sim.Ui; OrderKind 2
+    // stays in the kernel because shipped order logs replay it (pinned in Sim.Tests). The UI's labour
+    // order is the five-sector SectorAllocation batch; its payload exactness is pinned in
+    // SectorControlTests, and its full path headless is pinned here.
 
     [Fact]
-    public void SliderOrder_PayloadExact()
-    {
-        OrderRecord order = LaborOrderFactory.Create(
-            currentTurn: 17, new SettlementId(0), farmPct: 35);
-        Assert.Equal(17, order.Turn);
-        Assert.Equal(LaborOrderFactory.UiActorId, order.ActorId);
-        Assert.Equal(OrderKind.LaborAllocation, order.Kind);
-        Assert.Equal(0, order.TargetId);
-        Assert.Equal(35.0, order.Amount); // integer percent → exact double
-
-        Assert.Throws<ArgumentOutOfRangeException>(
-            () => LaborOrderFactory.Create(1, new SettlementId(0), 101));
-        Assert.Throws<ArgumentOutOfRangeException>(
-            () => LaborOrderFactory.Create(1, new SettlementId(0), -1));
-    }
-
-    [Fact]
-    public void SliderOrder_RoundTripsTheOrderLog_AndSteersTheSim()
+    public void SectorBatch_RoundTripsTheOrderLog_AndSteersTheSim()
     {
         // The full UI order path headless: factory → log → save/load → executor.
         SimConfig cfg = SimCfg();
         var orders = new OrderLog();
-        orders.Append(LaborOrderFactory.Create(2, new SettlementId(0), 50));
+        foreach (OrderRecord o in SectorOrderFactory.Create(2, new SettlementId(0), [50, 0, 0, 0, 50])) orders.Append(o);
 
         using var buffer = new MemoryStream();
         orders.Save(buffer);
         buffer.Position = 0;
         OrderLog loaded = OrderLog.Load(buffer); // load-time validation passes
+        Assert.Equal(Sectors.Count, loaded.Count);
 
         TurnExecutor exec = Executor(cfg, loaded);
         WorldState world = WorldFounding.Found(DevCfg(), cfg, 42);
         for (int t = 1; t <= 3; t++) world = exec.Step(world);
         Assert.Equal(0.5, world.SectorAllocations[0].Farming);
+        Assert.Equal(0.5, world.SectorAllocations[0].Construction);
+        Assert.Equal(0.0, world.SectorAllocations[0].Herding);
     }
 
     // --- HUD numbers from a founded state ------------------------------------
@@ -114,7 +105,8 @@ public class HudViewModelTests
         // SplitLine's '%' was printf-mangled into garbage by ImGui.Text; the
         // HUD must render these via TextUnformatted, and these are the exact
         // strings it hands over — '%' characters deliberately included).
-        Assert.Equal("Settlement 0", hud.TitleLine);
+        // P7 (raw settlement ids hidden from player text): an unnamed selection is "Unnamed settlement" (was "Settlement 0").
+        Assert.Equal("Unnamed settlement", hud.TitleLine);
         // T4.19 lane C: the founding vector is now the kernel's own stable age
         // structure (sim.json founding._docCohortCounts); 130/200/70 was the
         // old 17.5%-elder endowment that opened the world in a 22% collapse.
@@ -122,8 +114,8 @@ public class HudViewModelTests
         Assert.Equal("food 6000  (last harvest +0)", hud.FoodLine);
         Assert.Equal("labor 55% farm / 15% herd / 10% mine / 12% craft / 8% build", hud.SplitLine); // T3.5b default mix
         Assert.Contains('%', hud.SplitLine); // the printf trap, pinned on purpose
-        Assert.Equal("world pop 1600  (4 settlements)", hud.WorldLine); // T2.4, dev N=4
-        Assert.Equal("turn 0   year -4000", hud.ClockLine);
+        Assert.Equal("empire pop 1600  (4 settlements)", hud.WorldLine);   // M5 resources view: own empire (every settlement here is the player's) // T2.4, dev N=4
+        Assert.Equal("turn 1   year -4000", hud.ClockLine); // F3: the turn being played (Clock.Turn 0 + 1)
         Assert.Equal("seed 42   fps 60", HudModel.StatusLine(42, 60.4));
         Assert.Equal("camera (128, 128) zoom 1.00x", HudModel.CameraLine(128.0, 128.0, 1.0));
     }
@@ -391,11 +383,16 @@ public class UiFoundingEquivalenceTests
             Sim.Core.Worldgen.WorldgenConfig wg;
             using (var s = global::Sim.Data.DataFiles.OpenWorldgen())
                 wg = Sim.Core.Worldgen.WorldgenConfigLoader.Load(s);
+            // ADR-031: the canonical recipe is the CLI's six-stream load (HeadlessFounding), which
+            // founds the warband formations; the UI now founds with the same recipe.
             Sim.Core.Systems.SimConfig sim;
             using (var s = global::Sim.Data.DataFiles.OpenSim())
             using (var n = global::Sim.Data.DataFiles.OpenNeeds())
             using (var g = global::Sim.Data.DataFiles.OpenGoods())
-                sim = Sim.Core.Systems.SimConfigLoader.Load(s, n, g);
+            using (var r = global::Sim.Data.DataFiles.OpenResearch())
+            using (var a = global::Sim.Data.DataFiles.OpenAges())
+            using (var f = global::Sim.Data.DataFiles.OpenUnitFamilies())
+                sim = Sim.Core.Systems.SimConfigLoader.Load(s, n, g, r, a, f);
             canonical = Sim.Core.Worldgen.WorldFounding.Found(wg, sim, 42);
         }
         Assert.Equal(

@@ -15,6 +15,18 @@ public static class OrderValidation
 {
     public static void ValidateAgainstWorld(OrderLog orders, IReadOnlyWorldState world)
     {
+        // The highest settlement id the validated world holds: colonization allocates
+        // maxId + 1 (ColonizationSystem), so only ids ABOVE it can come into existence later.
+        int maxSettlementId = -1;
+        for (int s = 0; s < world.Settlements.Count; s++)
+            if (world.Settlements[s].Id.Value > maxSettlementId) maxSettlementId = world.Settlements[s].Id.Value;
+
+        // The highest polity id the validated roster holds: a revolt founds its new AI polity at the
+        // roster maximum + 1 (RevoltSystem, D-048), so only ids ABOVE it can come into existence later.
+        int maxPolityId = int.MinValue;
+        for (int p = 0; p < world.Polities.Count; p++)
+            if (world.Polities[p].Id.Value > maxPolityId) maxPolityId = world.Polities[p].Id.Value;
+
         for (int i = 0; i < orders.Count; i++)
         {
             OrderRecord record = orders[i];
@@ -30,7 +42,23 @@ public static class OrderValidation
             // order log — including the replay fixtures — for naming an Empire the
             // world never had the chance to register. The seam is in place and
             // becomes live the moment worldgen seeds a roster.
-            if (world.Polities.Count > 0 && !EmpireQuery.TryGetCommandSource(world, record.Actor, out _))
+            //
+            // M5 hardening H4 (2026-10-05) — an Empire FOUNDED MID-GAME. Every revolt founds a new
+            // AI polity (R3 / D-048) and the UI's AI producer drives it from that turn, so a played
+            // log carries orders from a polity the validated turn-0 world never registered — and
+            // `sim replay` / `sim inspect` / `sim run --orders` of that log threw here (measured on
+            // 9bb7423: canonical seed 42, the FoundedHarness labour orders, revolt at turn 58, the
+            // new polity's first order stamped 58). Exactly the stream-V colony rule (`7100c77`),
+            // for actors: the world-dependent checks — existence and control — are DEFERRED to
+            // delivery, where every consumer applies them on PREV (ResearchSystem and AgeQuery read
+            // the roster, RoadDevelopmentSystem.IsRosterPolity, ConstructionQuery / LabourActivities
+            // the control relation, GovernanceSystem enacts only self-targeted edicts) and an order
+            // failing them changes nothing. Deferred only when the actor could still be founded:
+            // above every id the roster holds, delivered after the first step (Turn ≥ 1 — the turn-0
+            // batch reads exactly this world). Every turn-0 actor is checked as before, and the
+            // world-independent tax-authority check below still applies to every actor.
+            bool futureActor = world.Polities.Count > 0 && record.Turn >= 1 && record.ActorId > maxPolityId;
+            if (world.Polities.Count > 0 && !futureActor && !EmpireQuery.TryGetCommandSource(world, record.Actor, out _))
             {
                 throw new OrderValidationException(
                     $"order[{i}] (turn {record.Turn}): {record.Kind} is issued by polity " +
@@ -39,8 +67,67 @@ public static class OrderValidation
                     "Empire's PolityId, never a player/AI marker.");
             }
 
+            // ADR-033 D4 (ported from m5-full-build): an Empire sets ITS OWN tax policy and no
+            // one else's. Authority comes from the order's issuing Empire (whose registration the
+            // roster check above already established), never from the order's word for a target.
+            // Whether the issuer CAN levy a tax yet (the tax gate, Governance.CanLevyTax: the
+            // Taxation knowledge AND the minimum Age, H2) is state-dependent and is decided where
+            // the order is consumed — GovernanceSystem, on PREV.
+            if (record.Kind == OrderKind.SetTaxRate)
+            {
+                if (record.TargetId != record.ActorId)
+                {
+                    throw new OrderValidationException(
+                        $"order[{i}] (turn {record.Turn}): SetTaxRate targets polity " +
+                        $"{record.TargetId} but was issued by polity {record.ActorId}. An Empire " +
+                        "legislates its own taxes; it does not set another Empire's.");
+                }
+                continue;   // no settlement target to resolve
+            }
+
+            // WS2 (D-054): an Empire sets ITS OWN building/roads split — the SetTaxRate rule. The consumer re-applies
+            // it (and the roster check) on PREV at delivery.
+            if (record.Kind == OrderKind.SetResourceAllocation)
+            {
+                if (record.TargetId != record.ActorId)
+                {
+                    throw new OrderValidationException(
+                        $"order[{i}] (turn {record.Turn}): SetResourceAllocation targets polity " +
+                        $"{record.TargetId} but was issued by polity {record.ActorId}. An Empire " +
+                        "sets its own split of materials; it does not set another Empire's.");
+                }
+                continue;   // no settlement target to resolve
+            }
+
             if (record.Kind is not (OrderKind.LaborAllocation or OrderKind.SectorAllocation
-                or OrderKind.EnqueueConstruction)) continue;
+                or OrderKind.EnqueueConstruction or OrderKind.FoundSettlement or OrderKind.CancelConstruction
+                or OrderKind.CancelConstructionEntry)) continue;
+
+            // ADR-036: a Found Settlement site must be ON THE MAP. The load-time pass sees no terrain, so it
+            // could only insist on a whole, non-negative cell (OrderLog.ValidateRecord); the map size is
+            // world-dependent and is checked here. Terrain is static (ADR-008), so this holds for every actor
+            // and every turn, including a deferred one below. A terrain-less world has no map to found on: the
+            // source-existence check below rejects the order there (such worlds hold no settlement).
+            if (record.Kind == OrderKind.FoundSettlement && world.Terrain is { } terrain
+                && record.Amount >= (double)terrain.Size * terrain.Size)
+                throw new OrderValidationException(
+                    $"order[{i}] (turn {record.Turn}): FoundSettlement site cell " +
+                    $"{record.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)} is off the map " +
+                    $"(cells are 0..{((long)terrain.Size * terrain.Size - 1).ToString(System.Globalization.CultureInfo.InvariantCulture)}).");
+
+            // A mid-game Empire (above) holds nothing in the turn-0 world: its control is decided at delivery.
+            if (futureActor) continue;
+
+            // M5-integration (stream V): a settlement FOUNDED MID-GAME is absent from the
+            // validated (turn-0) world, yet the live step applies an order for it. Its
+            // world-dependent checks — existence and control — are DEFERRED to delivery, where
+            // the consumers apply the same predicates on PREV (LabourActivities.CanAllocate,
+            // ConstructionQuery.IsProjectAvailable) and an order failing them changes nothing.
+            // Deferred only when the id could still be founded: above every id the world holds,
+            // in a world that has a settlement to found it from, delivered after the first step
+            // (the Turn-0 batch reads exactly this world). Every turn-0 settlement is checked as before.
+            int targetSettlement = record.Kind == OrderKind.SectorAllocation ? record.TargetId >> 3 : record.TargetId;
+            if (record.Turn >= 1 && maxSettlementId >= 0 && targetSettlement > maxSettlementId) continue;
 
             // M4-D §12: an Empire may only build where it rules. The answer comes
             // from the D-037 control relation, never from the actor id taken on
@@ -49,11 +136,14 @@ public static class OrderValidation
             // reason the actor check is guarded on a non-empty roster: a world
             // with no control relation has nothing to check against, and hand-built
             // test worlds are legitimately in that state.
-            if (record.Kind == OrderKind.EnqueueConstruction && world.Controls.Count > 0
+            // WS1 (D-054): CancelConstruction by the same rule — an Empire cancels only where it rules. The consumer
+            // re-applies it on PREV at delivery (ConstructionQuery.CancelOrderValid): control can change after turn 0.
+            if (record.Kind is (OrderKind.EnqueueConstruction or OrderKind.CancelConstruction or OrderKind.CancelConstructionEntry)
+                && world.Controls.Count > 0
                 && !EmpireQuery.ControlsSettlement(world, record.Actor, new SettlementId(record.TargetId)))
             {
                 throw new OrderValidationException(
-                    $"order[{i}] (turn {record.Turn}): EnqueueConstruction targets settlement " +
+                    $"order[{i}] (turn {record.Turn}): {record.Kind} targets settlement " +
                     $"{record.TargetId}, which polity {record.ActorId} does not control. An Empire may " +
                     "only build where it rules (D-037 control is authoritative).");
             }
@@ -75,6 +165,101 @@ public static class OrderValidation
                     $"{settlementId}, which does not exist in this world " +
                     $"({world.Settlements.Count} settlement(s)). Toy worlds have none — " +
                     "labor orders need a founded world.");
+
+            // ADR-036: an Empire founds only FROM a settlement it rules (D-051 §5: "the player picks one of their
+            // settlements"). The construction check's guard (a non-empty Controls table) and the same relation;
+            // checked after existence so a missing source is named as missing. Control of a turn-0 settlement by a
+            // turn-0 Empire can only be LOST later (a revolt moves it to a NEW polity, above the roster maximum),
+            // never gained, so a live-played log always passes this. FoundingQuery re-applies it on PREV at delivery.
+            if (record.Kind == OrderKind.FoundSettlement && world.Controls.Count > 0
+                && !EmpireQuery.ControlsSettlement(world, record.Actor, new SettlementId(settlementId)))
+                throw new OrderValidationException(
+                    $"order[{i}] (turn {record.Turn}): FoundSettlement departs from settlement " +
+                    $"{settlementId}, which polity {record.ActorId} does not control. An Empire may only " +
+                    "found a settlement from one it rules (D-051 §5; D-037 control is authoritative).");
+
+            // ADR-033 D2: an Empire allocates labour only where it rules — the SAME
+            // predicate PathBuildSystem applies at consumption and the action surface
+            // lists sectors by (LabourActivities.CanAllocate; guarded on a non-empty
+            // Controls table exactly as the construction check above). Like that check,
+            // this load-time pass sees only the turn-0 world: it is the fast, actionable
+            // rejection of a bad log; the rule's implementation is the consumer's.
+            if (record.Kind is OrderKind.LaborAllocation or OrderKind.SectorAllocation
+                && !LabourActivities.CanAllocate(world, record.Actor, new SettlementId(settlementId)))
+                throw new OrderValidationException(
+                    $"order[{i}] (turn {record.Turn}): {record.Kind} targets settlement " +
+                    $"{settlementId}, which polity {record.ActorId} does not control. An Empire may " +
+                    "only allocate labour where it rules (D-037 control is authoritative).");
         }
+    }
+    /// <summary>
+    /// ADR-034 — THE DELIVERY HALF of the deferral above. <see cref="ValidateAgainstWorld"/> cannot reject an
+    /// order whose actor (a polity a revolt may found, H4 9bcad5b) or settlement target (a colony, stream V 7100c77)
+    /// does not exist in the turn-0 world, so a forged id above the turn-0 maxima (e.g. actor 999) passes it. A
+    /// runner that replays a log calls this for each turn's batch against PREV — the world the batch is delivered
+    /// to — before stepping: a DEFERRED actor must by then be a registered Empire and a DEFERRED settlement target
+    /// must by then exist, or the log is rejected with an explicit diagnostic instead of the order being silently
+    /// ignored by its consumer. A live-played log always satisfies this (the UI and the AI producer stamp orders
+    /// for the turn being played, from the state they are delivered to, and the roster never shrinks), so revolt
+    /// and colony replays are unaffected. Orders that the up-front pass already checked are not re-checked here;
+    /// the step itself is unchanged (observer-only: no hash moves).
+    /// </summary>
+    public static void ValidateAtDelivery(OrderBatch batch, IReadOnlyWorldState turnZero, IReadOnlyWorldState prev)
+    {
+        if (batch.Count == 0) return;
+        int maxSettlementId = -1;
+        for (int s = 0; s < turnZero.Settlements.Count; s++)
+            if (turnZero.Settlements[s].Id.Value > maxSettlementId) maxSettlementId = turnZero.Settlements[s].Id.Value;
+        int maxPolityId = int.MinValue;
+        for (int p = 0; p < turnZero.Polities.Count; p++)
+            if (turnZero.Polities[p].Id.Value > maxPolityId) maxPolityId = turnZero.Polities[p].Id.Value;
+
+        for (int i = 0; i < batch.Count; i++)
+        {
+            OrderRecord record = batch[i];
+            bool deferredActor = turnZero.Polities.Count > 0 && record.Turn >= 1 && record.ActorId > maxPolityId;
+            if (deferredActor && !EmpireQuery.TryGetCommandSource(prev, record.Actor, out _))
+                throw new OrderValidationException(
+                    $"order (turn {record.Turn}): {record.Kind} is issued by polity {record.ActorId}, which is not a " +
+                    $"registered Empire when the order is delivered (turn {prev.Clock.Turn}, {prev.Polities.Count} " +
+                    "registered). Its check was deferred because a revolt could have founded it by then; none did " +
+                    "(ADR-034).");
+
+            if (record.Kind is not (OrderKind.LaborAllocation or OrderKind.SectorAllocation
+                or OrderKind.EnqueueConstruction or OrderKind.FoundSettlement or OrderKind.CancelConstruction
+                or OrderKind.CancelConstructionEntry)) continue;
+            // D-056: an identity cancel whose identity names TWO OR MORE of the settlement's entries, none at its recorded
+            // slot, cannot name one entry (ConstructionQuery.CancelTargetIndex). Live play never issues one (an entry keeps
+            // its slot for its life, so the recorded slot holds the entry), so it means the replayed world is not the
+            // recorded one: the log is refused rather than the cancel guessed at. Judged against PREV, before any later
+            // cancel of the same batch applies.
+            if (record.Kind == OrderKind.CancelConstructionEntry
+                && ConstructionQuery.CancelTargetIndex(prev.ConstructionQueue, prev.ConstructionProgress, record)
+                    == ConstructionQuery.CancelTargetAmbiguous)
+                throw new OrderValidationException(
+                    $"order (turn {record.Turn}): CancelConstructionEntry for settlement {record.TargetId} names " +
+                    $"{DescribeCancelTarget(record.Amount)}, and the world it is delivered to (turn {prev.Clock.Turn}) " +
+                    "queues more than one entry with that identity and none at that slot, so the cancel cannot be applied " +
+                    "to one entry. The replayed world is not the one the order was recorded in (D-056).");
+            int target = record.Kind == OrderKind.SectorAllocation ? record.TargetId >> 3 : record.TargetId;
+            bool deferredTarget = record.Turn >= 1 && maxSettlementId >= 0 && target > maxSettlementId;
+            if (!deferredTarget) continue;
+            bool exists = false;
+            for (int s = 0; s < prev.Settlements.Count; s++)
+                if (prev.Settlements[s].Id.Value == target) { exists = true; break; }
+            if (!exists)
+                throw new OrderValidationException(
+                    $"order (turn {record.Turn}): {record.Kind} targets settlement {target}, which does not exist " +
+                    $"when the order is delivered (turn {prev.Clock.Turn}, {prev.Settlements.Count} settlement(s)). " +
+                    "Its check was deferred because a colony could have been founded with that id by then; none was " +
+                    "(ADR-034).");
+        }
+    }
+    /// <summary>A kind-13 payload as text for a diagnostic: "slot S, project P, enqueued on turn T".</summary>
+    public static string DescribeCancelTarget(double amount)
+    {
+        if (!OrderLog.TryUnpackCancelTarget(amount, out CancelTarget t)) return "a malformed target";
+        var inv = System.Globalization.CultureInfo.InvariantCulture;
+        return $"slot {t.Slot.ToString(inv)}, project {t.ProjectId.ToString(inv)}, enqueued on turn {t.EnqueuedTurn.ToString(inv)}";
     }
 }

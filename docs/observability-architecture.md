@@ -178,6 +178,15 @@ was in force on any turn without inferring it from the last change. The
 is `PolicyChange` verbatim. When M5's taxation lands, it is a second policy in
 the same two structures — nothing here is sector-specific except the array width.
 
+> **Note (2026-10-02, ADR-033 D4 — appended; the sentence above is kept as written).** The tax
+> landed as a POLITY-level policy (`TaxPolicyRow(Polity, Rate)`), so it is the second policy in the
+> same two SHAPES rather than the same two record types: `TaxPolicyChange { Turn, Year, Polity,
+> OldRate, OldRowPresent, NewRate, Actor, OrderIndex }` and `TaxPolicyState { Turn, Polity, Declared,
+> RowPresent }` (one per roster Empire per turn), recorded by `PolicyHistory.ObserveTax` beside the
+> sector history. The EFFECTIVE rate each settlement bears (declared × `ControlRow.Strength`, the stored
+> reach) is on its settlement record (`SocialSection.Tax`, telemetry/v4 `social.tax`), because happiness
+> is multiplied by it.
+
 **Consequences (B5)** are shown as the settlement's record on the turns after a
 change — what actually happened — and labelled as observation, never as
 attribution: the simulation does not carry a counterfactual, and the record

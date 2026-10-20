@@ -251,8 +251,33 @@ public class CalibrationBatteryTests
     // deliberately, like a golden, with the cause named. The RATE that would
     // move these numbers again is the director's — docs/adr/cr-016-armed-
     // disaster-fallout.md — and re-arming re-pins this envelope a third time.
-    private const double QuarantineRecordedSeed42 = 8.336943780925534E-05;
-    private const double QuarantineRecordedSeed7 = 1.0200612834541973E-04;
+    // R4 RE-PIN (2026-10-04, ONE cause: the forager switch ON at 2.0 / 4.3,
+    // docs/r4a-m5-closure-record.md). Measured by the agent writing this line,
+    // dev preset, 1000 turns: seed 42 8.3369E-05 -> 2.486239574664698E-04,
+    // seed 7 1.0201E-04 -> 2.8835491401298867E-04. Up ~3x and still BELOW the
+    // floor 0.001 (the quarantined regime): a wild-food world has a lower,
+    // flatter carrying surface, so land differentials drive more movement.
+    // Layer control: switch OFF returns the T4.21-7 values above. Band unmoved.
+    // D-059 RE-PIN (2026-10-19, the Director's authorization "CI main test run, full
+    // authorization, resolve the issue best you can", superseding D-052 §9's hold;
+    // docs/d059-calibration-rerecord-d051-regime.md). Measured by the agent writing
+    // this line, dev preset, 1000 turns, decomposed with the layer twins:
+    //   seed 42  R4 2.486239574664698E-04 | pre-1(b) chained, flat 2.5154E-04
+    //            | +D-051 §1(b) 8.7177E-05 (x0.347) | +D-053 8.7177E-05 (x1.000)
+    //            | +cylinder (D-054 WS3) 8.357547346004101E-05 (x0.959) = shipped.
+    //   seed  7  R4 2.8835491401298867E-04 | pre-1(b) chained, flat 2.8567E-04
+    //            | +1(b) 1.0083E-04 (x0.353) | +D-053 food relief 9.8771E-05 (x0.980)
+    //            | +cylinder 8.367965454628822E-05 (x0.847) = shipped.
+    // The dominant cause is the RULED 1(b) (gross migrants 2,831 -> 1,127 and
+    // 4,033 -> 1,670 at person-years x1.15 / x1.17): weather-driven deficit flight
+    // removed on purpose. The 1(b)-only switch-off on THIS tree reads 1.2460E-04 /
+    // 1.2298E-04, itself x0.50 / x0.43 of the R4 values, so the stale R4 pin is no
+    // longer reachable by reverting 1(b) alone. Construction layers (incremental,
+    // reservations, purse) leave both dev worlds BIT-IDENTICAL (no orders reach a
+    // bare TurnExecutor run). Still the quarantined below-floor regime: 20 dev seeds
+    // read 6.12E-05 .. 1.45E-04, all below 0.001. 0.75 and the band are UNCHANGED.
+    private const double QuarantineRecordedSeed42 = 8.357547346004101E-05;
+    private const double QuarantineRecordedSeed7 = 8.367965454628822E-05;
     private const double QuarantineDriftTolerance = 0.75;
 
     private static void AssertDevMigrationQuarantine(Corridors c, ulong seed, double value)
@@ -755,7 +780,24 @@ public class CalibrationBatteryTests
         //            PRE-EXISTING, previously masked cause above.
         // The envelope [82k, 138k] asserted below HOLDS on both seeds as
         // measured here, so it is not re-pinned.
-        Assert.InRange(m.FinalPopulation, 82_000, 138_000);
+        // R4 RE-PIN (2026-10-04, ONE cause: the forager switch ON at 2.0 / 4.3).
+        // Measured by the agent writing this line, 1000 dev turns: seed 42
+        // final 80,937 (peak = final, starvation 0), seed 7 final 105,841
+        // (peak = final, starvation 0) — the slower forager growth curve.
+        // Envelope [71k, 119k] keeps ~12 % margins on both. Was [82k, 138k].
+        // D-059 RE-PIN (2026-10-19, the Director's full authorization; ONE dominant
+        // ruled cause, D-051 §1(b) time-averaged weather, plus the cylinder).
+        // Measured by the agent writing this line, 1000 dev turns, layer twins:
+        //   seed 42  pre-1(b) flat 82,976 | +1(b) 98,208 | +D-053 98,208
+        //            | +cylinder 98,684 (peak = final, starvation 0, crashes 0)
+        //   seed  7  pre-1(b) flat 104,104 | +1(b) 124,455 | +D-053 124,483
+        //            | +cylinder 123,950 (peak = final, starvation 0, crashes 0)
+        // Fewer weather-driven deficit years means fewer setbacks to the pre-
+        // Malthusian exponential (+18 % / +20 %): the ruled purpose of 1(b), not a
+        // new defect. Same rule as every earlier re-pin: ~12 % margins on the two
+        // measured finals, rounded outward to the thousand (98,684 x 0.88 = 86,842;
+        // 123,950 x 1.12 = 138,824). Was [71k, 119k]. corridors.json UNTOUCHED.
+        Assert.InRange(m.FinalPopulation, 86_000, 139_000);
     }
 
     // --- the corridors file itself -------------------------------------------

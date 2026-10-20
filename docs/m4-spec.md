@@ -1,5 +1,9 @@
 # M4 — NEIGHBOURS, CONFLICT, AND A WORLD THAT CAN RUN SHORT
 
+> **Superseded 2026-10-03 (Director roadmap rebase).** The authoritative ladder is now: M0 Kernel · M1 Walking Skeleton · M2 Demography / Food · M3 Production / Markets · M4 Empire / Strategic Foundation · M5 Governing Gameplay (current, being finished) · M6 Knowledge / Research / Technology (next) · M7 Battle Layer · M8 Politics / Diplomacy · M9 Society · M10 Integrated Civilization Simulation · M11+ Depth & Content Expansion. Knowledge/research/technology is **M6** and precedes the Battle Layer (**M7**), which consumes M6's authoritative technology/capability state. Canonical record: `docs/milestones.md` §"Roadmap rebase 2026-10-03". The text below is retained as history.
+> M4 is closed; its "M6 FIGHTS" / "battle layer proper is M6" deferrals now read **M7 Battle Layer**, and "M8 adds political notables" is unchanged.
+
+
 ### The first milestone spec written under S8 §4.1. Its own conformance to that section is part of the deliverable (§0).
 
 **Status: R-1, R-2 and R-3 RULED (director, 2026-08-07). THE PACKET LIST IS FINAL.**

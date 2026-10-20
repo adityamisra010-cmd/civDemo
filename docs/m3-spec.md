@@ -70,3 +70,15 @@ All packets accepted · calibration battery green across ≥20 seeds with proven
 ## 6. GOVERNANCE
 
 Kernel remains frozen. M3 does not begin until the art-substrate branch is merged and this spec is on main with packets cut. The M2 scaffolding demolition is *planned* removal, not amendment. Weather/harvest variance is deliberately moved to M4 to keep the solver as this milestone's single large risk. The M4 spec (neighbors, conflict, foreign trade) is written only after M3 exit.
+
+## Dated note — 2026-10-15 (D-054; appended, the spec above is unchanged)
+
+**T3.1(b), the edge taper** ("guarantee an ocean margin so continents are not truncated at the world boundary"; accept
+"no land at the world edge"). Since the Director's 2026-10-14 instruction the shipped world is an east-west CYLINDER
+(`worldgen.json` `topology.wrapX`), so it has no east or west boundary:
+- the taper is y-only, and the poles keep their ocean margin;
+- land may cross the seam (canonical seeds 6, 8, 14, 16, 17, 18 and 20), and the terrain is continuous across it;
+- `NoLandAtTheWorldEdge_TenSeeds` keeps its y half; its x half became a seam-continuity test.
+
+With `topology.wrapX` false the taper and the test are as T3.1 accepted them. Record:
+`docs/d054-batch3-incremental-construction-allocation-cylinder.md` §3 and §5 item 11; `docs/queue.md` (T3.1(b)).

@@ -117,12 +117,22 @@ public sealed class TradeArbitrageSystem(SimConfig cfg) : ISimSystem<TradeArbitr
         TradeConfig t = _cfg.Trade;
         double dt = ctx.DtYears;
 
+        // R2a (Director decision 1): trade between settlements is a RESEARCH UNLOCK. A pair trades only when
+        // TradeQuery's predicate holds at both endpoints on PREV (sim.json trade.entity, evaluated against each
+        // settlement's knowledge — no node id here). Evaluated once per settlement; the pair rule is
+        // TradeQuery.CanTrade = knows[i] AND knows[j].
+        var knows = new bool[settlementCount];
+        for (int i = 0; i < settlementCount; i++)
+            knows[i] = TradeQuery.SettlementKnowsTrade(prev, _cfg, prev.Settlements[i].Id);
+
         // ---- SWEEP 1: COMPUTE — desired flows purely from Prev ----------
         var desired = new List<DesiredFlow>();
         for (int i = 0; i < settlementCount; i++)
         {
+            if (!knows[i]) continue;
             for (int j = i + 1; j < settlementCount; j++)
             {
+                if (!knows[j]) continue; // formal trade needs the capability at both ends
                 double pathCost = PairCost(prev, prev.Settlements[i].Id, prev.Settlements[j].Id);
                 if (double.IsInfinity(pathCost)) continue; // unreachable: zero, forever
 

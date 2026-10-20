@@ -81,16 +81,43 @@ public class DrivenGoldenTests
         return log;
     }
 
+    /// <summary>The driven golden (history on DrivenGolden_Seed42Turn300_MatchesPinnedConstant).</summary>
+    // ADR-035 (P-F1, founding-turn harvest) RE-PIN (VALUE): 6664a9b258c2d999… -> 983aa6eb0edef68f…. CAUSE: an absent catchment row is an unmeasured land side, so the founding turn harvests (labour-limited) instead of harvesting zero; turn 2 no longer reads N_lim = 0.
+    // ADR-035 §6 (P-F0, founding death remainder) RE-PIN (VALUE): 983aa6eb0edef68f… -> feaaff5a72423b64…. CAUSE: a new bucket row's D-004 death accumulator is seeded at 0.5, so the first integer reconciliation rounds instead of flooring (the turn-1 phantom survivors are gone).
+    // ADR-035 §7 (P-F2, founding composition) RE-PIN (VALUE): feaaff5a72423b64… -> 5a8c6c648daa4517…. CAUSE: founding cohort noise at demographic scale (CV ~ 1/sqrt(n_c)) instead of RC-1's per-cohort ±0.69; the settlement-common size factor is unchanged.
+    // D-051 1(b) (2026-10-10, time-averaged decade weather) RE-PIN (VALUE): 5a8c6c648daa4517… -> 7bcdc03ff5bf82ff…. CAUSE: a turn's harvest multiplier is the time-average of the yearly weather process over the turn's yearly sub-steps (mean unchanged, per-decade log-spread ~0.29 -> ~0.19) and a new settlement joins the weather at a stationary draw. CONTROL: TestConfigs.PreTimeAveragedHarvest returns the old value byte for byte (IntegratedPinAttributionTests.*_MovedForTheTimeAveragedHarvestAlone).
+    // D-053 (2026-10-13; integrated 2026-10-14) RE-PIN (VALUE): 7bcdc03ff5bf82ff… -> 4f4e0b81a5886201…. CAUSE: intra-polity grain relief (D-053 §2) — the driving orders starve settlements while their polity holds spare grain; from turn 5 the siblings' spare grain feeds them (the first step whose grain books show a negative residual), so fewer starve (turn-300 population 8,332 -> 16,451, MEASURED). ATTRIBUTION (MEASURED on this tree, RunDriven(300)): the batch off (TestConfigs.PreD053) returns OLD byte for byte; relief off alone (PreEmpireFoodAllocation) returns OLD too, while the purse off alone and the granary effects off alone both return NEW — relief is the whole of the move (no granary is built on this world and no construction order is issued). CONTROLS: EmpireFoodAllocationTests.Switch_Off_DrivenGolden_… (batch off = OLD) and PerLayer_Relief_TheDrivenWorldDivergesExactlyAtTheFirstRelief (turn-exact).
+    // BATCH 3 / D-054 (integration R1, 2026-10-14) RE-PIN (VALUE + LAYOUT): 4f4e0b81a5886201… -> fa1ce900ea15a9ab…. CAUSE: the v33 layout (two EMPTY appended tables) and the cylinder (worldgen.json topology.wrapX; the world differs from turn 0); WS1/WS2 do not act. CONTROLS: D054PairAttributionTests, WrapAttributionTests, IncrementalConstructionAttributionTests and GoldenAtV32 (full record on DrivenGolden_Seed42Turn300_MatchesPinnedConstant).
+    // D-055 (2026-10-16) RE-PIN (LAYOUT ALONE): fa1ce900ea15a9ab… -> eb88663ac944da5b…. CAUSE: schema v34 appends ConstructionHolds, EMPTY here (the driving batch carries only SectorAllocation orders: no queue head) — one four-byte zero count prefix. CONTROL: ReservationsLayoutAttributionTests.DrivenGoldenSeed42Turn300_MovedForTheV34LayoutAlone (SchemaProjection.V33 = OLD). Full record on DrivenGolden_Seed42Turn300_MatchesPinnedConstant.
+    internal const string Golden = "eb88663ac944da5b4bed584e60fa786ce90d1fc9cc6777906576ac608887e893";
+
+    /// <summary>Batch 3 (D-054, integration R1, 2026-10-14): THE CYLINDER-ALONE LINK — the driven golden's world through the
+    /// v32 projection (SchemaProjection.V32: the two v33 tables dropped, asserted EMPTY). It equals the driven golden the W1
+    /// stage measured with the cylinder and without the v33 layout (c7fbbe8f…), so the raw re-pin factors exactly into the
+    /// layout and the cylinder (this value against <see cref="PreD054Golden"/>).</summary>
+    internal const string GoldenAtV32 = "c7fbbe8fe134df4820837a02d7774b4ac4f9090eb86ca251d66a169e058e6524";
+
+    /// <summary>Batch 3 (D-054): the driven golden with the batch's worldgen layer off (founded flat,
+    /// TestConfigs.PreD054Worldgen) — the batch-2 value of <see cref="Golden"/>, where every pre-batch-3 attribution chain
+    /// of this world now ends (WrapAttributionTests is the cylinder's control). Integration (2026-10-14): BOTH halves of the PreD054 pair (PreD054Sim + PreD054Worldgen) and the v32 projection (SchemaProjection.V32 — schema v33 appended two tables) give it; D054PairAttributionTests pins that.</summary>
+    internal const string PreD054Golden = "4f4e0b81a5886201fb3cebbbe74802e8757e15355f6793a320e467276934b4c6";
+
     public static (WorldState World, SimConfig Cfg) RunDriven(int turns) => RunDriven(turns, null);
 
     /// <summary>T4.21-4: the same driven run under a CONFIG OVERRIDE, so the
     /// attribution controls in IntegratedPinAttributionTests can run the λ = 0
     /// twin of this world — the arming is a pure data change, and a layout
     /// control must not be asked to absorb a behaviour change.</summary>
-    public static (WorldState World, SimConfig Cfg) RunDriven(int turns, SimConfig? cfgOverride)
+    public static (WorldState World, SimConfig Cfg) RunDriven(int turns, SimConfig? cfgOverride) =>
+        RunDriven(turns, cfgOverride, null);
+
+    /// <summary>Batch 3 (D-054): as above, founded with <paramref name="worldgen"/> (default the shipped config) — an
+    /// attribution control passes TestConfigs.PreD054Worldgen() (the flat, pre-cylinder world).</summary>
+    public static (WorldState World, SimConfig Cfg) RunDriven(int turns, SimConfig? cfgOverride, WorldgenConfig? worldgen)
     {
         SimConfig cfg = cfgOverride ?? TestConfigs.Sim();
-        WorldState world = WorldFounding.Found(TestConfigs.Worldgen(), cfg, 42);
+        WorldgenConfig wg = worldgen ?? TestConfigs.Worldgen();
+        WorldState world = WorldFounding.Found(wg, cfg, 42);
         OrderLog orders = DrivingOrders(world.Settlements.Count);
         OrderValidation.ValidateAgainstWorld(orders, world);
 
@@ -98,7 +125,7 @@ public class DrivenGoldenTests
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
         var exec = new TurnExecutor(
             EraTableLoader.Load(eraStream),
-            PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg, TestConfigs.Worldgen())), orders);
+            PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg, wg)), orders);
         return (exec.Run(world, turns), cfg);
     }
 
@@ -375,7 +402,137 @@ public class DrivenGoldenTests
         //   BLAST RADIUS: the same four behavioural goldens the arming moved,
         //         moving back. The layout controls do NOT move either way, which
         //         is what makes the ladder a ladder.
-        const string golden = "98ee3a7acdcad9a9cb93870ec3d66d80c4559f8c430ce9d5329b251f010f5cdb";
+        // ADR-029 RE-PIN — SCHEMA v26 + THE RESEARCH ROWS, MEASURED on this tree by
+        // the agent writing this line.
+        //   OLD  98ee3a7acdcad9a9cb93870ec3d66d80c4559f8c430ce9d5329b251f010f5cdb
+        //   NEW  e0f16b1cb418db82b264897fe4fdd535cd89b6ed253260e6aa8c571b61f546ba
+        //   CAUSE as SnapshotTests.FoundedGolden's ADR-029 entry: five v26 count
+        //         prefixes plus ResearchSystem's own rows (Eurekas on available
+        //         roots; the driving batch issues no research order, so no target
+        //         and no CLP lands).
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
+        //         .DrivenGoldenSeed42Turn300_MovedForTheResearchLayerAlone strips
+        //         them on this exact world and returns the OLD value byte for byte.
+        // D-045 RE-PIN (2026-10-01) — INTENTIONAL GAMEPLAY CHANGE, research rows only, MEASURED
+        // on this tree by the agent writing this line.
+        //   OLD  e0f16b1cb418db82b264897fe4fdd535cd89b6ed253260e6aa8c571b61f546ba
+        //   NEW  d4aabc7c9389333d35c8cf6949deb8621829bd91fb2f89ca999a1cbc60e3fe0e
+        //   CAUSE D-045: calibrated costs, the 40 % partial-Eureka credit and the
+        //         ResearchEurekaRow Condition field change the research rows of this
+        //         order-less world (Eureka credit on available roots). Not architectural truth.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution.DrivenGoldenSeed42Turn300_MovedForTheResearchLayerAlone
+        //         still strips them and returns main's value byte for byte.
+        // RESEARCH FINALIZATION RE-PIN (ADR-029 addendum A; D-046) — MEASURED on this tree by the agent
+        // writing this line. Research rows and layout only; not architectural truth.
+        //   OLD  d4aabc7c9389333d35c8cf6949deb8621829bd91fb2f89ca999a1cbc60e3fe0e
+        //   NEW  464aac3d5ece3ea9e78e8a1034731467b9b155f5d5199c264db114f65d70ae47
+        //   CAUSE as SnapshotTests.FoundedGolden's finalization entry: two more empty
+        //         count prefixes, and no research row at turn 300 (measured: all seven
+        //         research tables empty; the driving batch issues no research order).
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution
+        //         .DrivenGoldenSeed42Turn300_MovedForTheResearchLayerAlone returns main's
+        //         98ee3a7a… byte for byte, also with a research driver added.
+        //   MEASURED by the in-test harness (DrivenGoldenTests.RunDriven(300)).
+        // ADR-031 RE-PIN — SCHEMA v28, MEASURED on this tree by the agent writing this line.
+        //   OLD  464aac3d5ece3ea9e78e8a1034731467b9b155f5d5199c264db114f65d70ae47
+        //   NEW  f94b01eb509853e252a399e103c8d82d7939013d3cca78419b090cc085e2083f
+        //   CAUSE v26 -> v28 appends AgeStates, AgeEligibility, AgeTransitions, MilitaryUnits,
+        //         UnitConversions (and, on founded worlds, the founding warband + per-turn
+        //         eligibility rows). No behaviour moved: IntegratedPinAttribution.DrivenGoldenSeed42Turn300_MovedForTheAgeLayerAlone
+        //         strips the five tables, drops their prefixes and returns OLD byte for byte.
+        // ADR-032 RE-PIN — SCHEMA v29, MEASURED on this tree by the agent writing this line.
+        //   OLD  f94b01eb509853e252a399e103c8d82d7939013d3cca78419b090cc085e2083f
+        //   NEW  0460e6e916d1b2bb0d39595c1daa5772879ca3d39d90334474b32da003aeee3a
+        //   CAUSE v28 -> v29 appends TransportEdges and RoadDevelopments (both EMPTY here: no
+        //         DevelopRoads order in this run). No behaviour moved: IntegratedPinAttribution.DrivenGoldenSeed42Turn300_MovedForTheTransportLayoutAlone
+        //         strips the two tables, drops their prefixes and returns OLD byte for byte.
+        // ADR-033 D4 RE-PIN (2026-10-02) — SCHEMA v30 + THE STORED REACH, MEASURED on this tree by
+        // the agent writing this line.
+        //   OLD  0460e6e916d1b2bb0d39595c1daa5772879ca3d39d90334474b32da003aeee3a
+        //   NEW  638d7a0914f0475f539354e47c99673b615ca52f4e353b03bec724c77392cb7a
+        //   CAUSE as SnapshotTests.FoundedGolden's ADR-033 D4 entry: one EMPTY TaxPolicies prefix
+        //         (the driving batch levies no tax) and the reach GovernanceSystem writes into
+        //         ControlRow.Strength. No behaviour moved.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution.DrivenGoldenSeed42Turn300_MovedForTheGovernanceLayerAlone
+        //         returns OLD byte for byte (non-vacuous: Strength rows restored).
+        //   MEASURED by the in-test harness (DrivenGoldenTests.RunDriven(300)).
+        // ADR-033 D6 + D10 RE-PIN (2026-10-02) — SCHEMA v31, MEASURED on this tree by the agent
+        // writing this line.
+        //   OLD  638d7a0914f0475f539354e47c99673b615ca52f4e353b03bec724c77392cb7a
+        //   NEW  65d53a01ffe1b3e9065cd48100698ac909e3e5b44e1c96f0f32dd5d6c6dbd651
+        //   CAUSE as SnapshotTests.FoundedGolden's ADR-033 D6 entry: two EMPTY count prefixes
+        //         (Institutions, ConstructionLabor — the driving batch carries only SectorAllocation
+        //         orders, so nothing is built and no university is founded). No behaviour moved.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution.DrivenGoldenSeed42Turn300_MovedForTheInstitutionsLayoutAlone
+        //         returns OLD byte for byte (removed == 0).
+        //   MEASURED by the in-test harness (DrivenGoldenTests.RunDriven(300)).
+        // R1 RE-PIN (2026-10-03) — RESEARCH-GATED RECIPES (BEHAVIOUR), MEASURED on this tree by the agent
+        // writing this line (ADR-015 §6).
+        //   OLD  65d53a01ffe1b3e9065cd48100698ac909e3e5b44e1c96f0f32dd5d6c6dbd651
+        //   NEW  7aa20e40f4d3ba9fbc060aa510b0e6868893d34c122b07060ee84407f01f5372
+        //   CAUSE goods.json recipes now link research.json recipe entities, and ProductionSystem runs a
+        //         recipe only when the settlement controller's knowledge makes it eligible (CraftingQuery):
+        //         pottery-firing needs pottery_open_fired, bronze-casting tin_bronze. This run completes
+        //         neither, so no pottery is fired and no bronze cast (toolmaking then has no bronze). The
+        //         schema is unchanged.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution.DrivenGoldenSeed42Turn300_MovedForTheRecipeKnowledgeLayerAlone
+        //         runs the content twin with the four recipe links removed (TestConfigs.PreRecipeKnowledge)
+        //         and returns OLD byte for byte; every older layer control runs on that twin and is UNMOVED.
+        //   MEASURED by the in-test harness (DrivenGoldenTests.RunDriven(300)).
+        // R2a RE-PIN (2026-10-03) — TRADE IS A RESEARCH UNLOCK (BEHAVIOUR), MEASURED on this tree by the agent
+        // writing this line (ADR-015 §6).
+        //   OLD  7aa20e40f4d3ba9fbc060aa510b0e6868893d34c122b07060ee84407f01f5372
+        //   NEW  75124c12e61f8999d9746f213255b29199f89cc669608644f42845e100ce1dfe
+        //   CAUSE TradeArbitrageSystem moves goods between two settlements only when both know Trade
+        //         (sim.json trade.entity → research.json activity.trade → node `trade`; TradeQuery.CanTrade).
+        //         This run researches nothing, so the arbitrage flows it had (baseline goods) no longer occur.
+        //         The schema is unchanged.
+        //   THE CONTROL THAT PROVES IT: IntegratedPinAttribution.DrivenGoldenSeed42Turn300_MovedForTheTradeKnowledgeLayerAlone
+        //         returns OLD byte for byte both with the whole layer removed (TestConfigs.PreTradeKnowledge) and
+        //         with ONLY trade.entity removed (the node and city-state research kept): the gate is the entire cause.
+        // M5 R2b RE-PIN (2026-10-03) — GOVERNANCE + WEATHER FIXES (BEHAVIOUR), MEASURED on this tree by the agent
+        // writing this line (ADR-015 §6).
+        //   OLD  7aa20e40f4d3ba9fbc060aa510b0e6868893d34c122b07060ee84407f01f5372
+        //   NEW  58e4c47cca90b2e46d6fb3961ddf2034bf5bfb57dcbd5998bc3a488c4a5952f2
+        //   CAUSE the same three R2b layers (each stripped alone still moves it); the driven log levies no tax.
+        //   CONTROL TestConfigs.PreR2b (weather spatialDistance travelCost + Dignity unbound and no unrest section +
+        //           formations facts without minIdentityAge) returns OLD byte for byte
+        //           (IntegratedPinAttributionTests.*_MovedForTheR2bLayersAlone).
+        // M5 R2c RE-PIN (2026-10-03) — MERGE OF R2a + R2b, MEASURED on the merged tree by the agent writing this line.
+        //   R2a alone 75124c12…ce1dfe, R2b alone 58e4c47c…4952f2 → MERGED efeec45dbb387dddec95a2e0db3fc3703bf525b2ca8463facadd1ac6adf1cbc4
+        //   CAUSE both layers together (trade gate + R2b governance/weather/Age layers). CONTROLS
+        //   IntegratedPinAttributionTests.*_R2c*: stripping R2b returns the R2a pin, stripping R2a returns the R2b pin,
+        //   stripping both returns 7aa20e40… (f1fe76f) — byte for byte.
+        // R4 RE-PIN (2026-10-04) — THE FORAGER LAYER (farming.preCultivation ON at 2.0 / 4.3; BEHAVIOUR), MEASURED on this
+        // tree by the agent writing this line. OLD efeec45dbb387dddec95a2e0db3fc3703bf525b2ca8463facadd1ac6adf1cbc4 -> NEW 3a9f007aeeb6dcd9c28efd3c47492b66d19a863057f5cfcba80c3d0c52ca12dd. CAUSE wild-food harvest
+        // rates until farming is known. CONTROL TestConfigs.PreForager returns OLD byte for byte
+        // (IntegratedPinAttributionTests.*_MovedForTheForagerLayerAlone).
+        // H2 RE-PIN (2026-10-05) — SCHEMA v32 (TaxGrievances, the levy's grievance per population segment), MEASURED on
+        // this tree by the agent writing this line (ADR-015 §6).
+        //   OLD  3a9f007aeeb6dcd9c28efd3c47492b66d19a863057f5cfcba80c3d0c52ca12dd
+        //   NEW  6664a9b258c2d999f8f307d6aba4c4729087b9bf22e73c9beca185c02a194f33
+        //   CAUSE v31 -> v32 appends TaxGrievances, EMPTY here (the driven log carries only SectorAllocation
+        //         orders: no levy), so the entire movement is one four-byte zero count prefix. No behaviour moved.
+        //   CONTROL IntegratedPinAttributionTests.*_MovedForTheV32Levy*: the asserted-absent levy rows stripped and the
+        //           empty v32 count prefix dropped return OLD byte for byte (docs/d049-taxation-and-revolt-model.md §8).
+        //   MEASURED by the in-test harness (DrivenGoldenTests.RunDriven(300)).
+        // BATCH 3 / D-054 RE-PIN (integration R1, 2026-10-14) — THE v33 LAYOUT + THE CYLINDER, MEASURED on this tree by the
+        // agent writing this line (ADR-015 §6).
+        //   OLD  4f4e0b81a5886201fb3cebbbe74802e8757e15355f6793a320e467276934b4c6
+        //   NEW  fa1ce900ea15a9abb6f1205fc0728ccb9877676933e70f6610df951037511bc0
+        //   CAUSE (1) v32 -> v33 appends ConstructionProgress and ResourceAllocations, both EMPTY here (the driving batch
+        //         carries only SectorAllocation orders: nothing is queued, no split is set); (2) the shipped world is a
+        //         CYLINDER (worldgen.json topology.wrapX): the terrain regenerates x-periodic and its content hash is folded
+        //         into every world hash, so the run differs from turn 0. WS1/WS2 do not act.
+        //   ATTRIBUTION, MEASURED (in-test harness): the sim half off on the cylinder (TestConfigs.PreD054Sim) -> the SAME raw
+        //         fa1ce900…; the v32 projection of THIS world -> c7fbbe8fe134df48… = the W1 stage's cylinder-only driven
+        //         golden (asserted below as GoldenAtV32: the layout is the whole raw/v32 difference).
+        //   CONTROLS D054PairAttributionTests ("driven": both halves off + v32 = OLD);
+        //         WrapAttributionTests.WithTheCylinderOff_TheDrivenGoldenIsTheBatch2DrivenGolden (the cylinder off alone + v32
+        //         = OLD); IncrementalConstructionAttributionTests.DrivenGoldenSeed42Turn300_MovedForTheV33LayoutAlone (flat: raw
+        //         e888941a… != OLD, v32 = OLD).
+        //   MEASURED by the in-test harness (DrivenGoldenTests.RunDriven(300)).
+        const string golden = Golden;
 
         // ---- CAUSE 1 (from main, T4.4) ----
         // T4.4 RE-PIN — SCHEMA ONLY, and that is PROVEN, not asserted.
@@ -462,8 +619,19 @@ public class DrivenGoldenTests
         //         contributes nothing to this hash; the weather coupling is the
         //         whole of the movement.
         //   NOT A SCHEMA CHANGE: no table joined or left the stream.
+        // D-055 RE-PIN (2026-10-16; the Director's batch-4 instruction, item 1) — SCHEMA v34, THE v34 LAYOUT ALONE, MEASURED
+        // on this tree by the agent writing this line (ADR-015 §6).
+        //   OLD  fa1ce900ea15a9abb6f1205fc0728ccb9877676933e70f6610df951037511bc0
+        //   NEW  eb88663ac944da5b4bed584e60fa786ce90d1fc9cc6777906576ac608887e893
+        //   CAUSE v33 -> v34 appends ConstructionHolds (section 61), EMPTY here (the driving batch carries only
+        //         SectorAllocation orders: nothing is queued, nothing set aside), so the entire movement is one four-byte
+        //         zero count prefix. No behaviour moved.
+        //   CONTROL ReservationsLayoutAttributionTests.DrivenGoldenSeed42Turn300_MovedForTheV34LayoutAlone: the v33
+        //         projection (SchemaProjection.V33, asserting 0 hold rows) returns OLD byte for byte.
+        //   MEASURED by the in-test harness (DrivenGoldenTests.RunDriven(300)).
         (WorldState world, _) = RunDriven(300);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
+        Assert.Equal(GoldenAtV32, SchemaProjection.V32(world));   // batch 3: the cylinder-alone link (no v33 row)
     }
 
     [Fact]

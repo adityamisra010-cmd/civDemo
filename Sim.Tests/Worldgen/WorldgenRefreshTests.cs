@@ -49,7 +49,14 @@ public class WorldgenRefreshTests
         // T3.1(b): the smoothstep edge taper crushes boundary elevation to
         // exactly 0, below any non-degenerate quantile sea level — so the
         // world edge is ocean by construction. Ten seeds, every boundary cell.
+        //
+        // BATCH 3 WS3 (D-054; the Director's 2026-10-14 instruction supersedes T3.1(b)'s x half): the shipped world
+        // is a CYLINDER, so it has no east or west edge — only the POLES keep the guaranteed ocean margin (the y half,
+        // asserted here as before). The x half is now "the terrain is continuous across the seam", asserted on ten seeds
+        // by CylinderWorldgenTests.TheTerrainIsContinuousAcrossTheSeam_TenSeeds_LikeAnyInteriorColumnPair; the flat
+        // world's four-sided margin (PreCylinderWorldgen) is kept by CylinderWorldgenTests.TheFlatWorld_StillHasItsFourSidedOceanMargin.
         WorldgenConfig cfg = Dev();
+        Assert.True(cfg.Topology is { WrapX: true });
         for (ulong seed = 1; seed <= 10; seed++)
         {
             TerrainSet t = Sim.Core.Worldgen.Worldgen.Generate(cfg, seed);
@@ -59,8 +66,6 @@ public class WorldgenRefreshTests
             {
                 Assert.True(water[i] >= 0.5, $"seed {seed}: LAND at north boundary x={i}");
                 Assert.True(water[(n - 1) * n + i] >= 0.5, $"seed {seed}: LAND at south boundary x={i}");
-                Assert.True(water[i * n] >= 0.5, $"seed {seed}: LAND at west boundary y={i}");
-                Assert.True(water[i * n + n - 1] >= 0.5, $"seed {seed}: LAND at east boundary y={i}");
             }
         }
     }

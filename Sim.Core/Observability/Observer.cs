@@ -43,9 +43,12 @@ public static class Observer
 
     public const string StoreLossesIdentity =
         "GrainOpening + Harvest - Eaten - GrainClosing; absorbs spoilage + granary overflow "
-        + "(unsplit per settlement) AND any appropriation transfer AND colony provisions; "
+        + "(unsplit per settlement) AND any appropriation transfer AND colony provisions "
+        + "AND intra-polity grain relief (D-053 s2: grain a settlement sent to a hungry sibling of its "
+        + "own polity counts here at the donor; grain it received and ate counts here NEGATIVE); "
         + "sum over all records == ledger spoilage + overflow on every turn; negative means "
-        + "grain ARRIVED by an unrecorded transfer (provisions on a founding record, a raid otherwise)";
+        + "grain ARRIVED by an unrecorded transfer (provisions on a founding record; otherwise a raid, "
+        + "or relief from its own polity, which leaves the recipient's granary empty)";
 
     private const string BuiltDecayedGap =
         "GAP: HousingSystem records only the dwelling stock and LastMaintenanceFraction; "
@@ -79,7 +82,7 @@ public static class Observer
         // system nor a channel between systems, and already read from this
         // namespace by CausalChain (Explain/CausalChain.cs:593-597). Its
         // FoodGoods span is EXACTLY the set ConsumptionSystem substitutes into
-        // the staple (ConsumptionSystem.cs:328-333) and ClassMobilitySystem
+        // the staple (ConsumptionSystem.cs:581-586) and ClassMobilitySystem
         // sums for its surplus numerator (ClassMobilitySystem.cs:131-135): the
         // goods carrying a Sustenance basket line. Selecting by goods.json's
         // "category":"food" string instead would be a SECOND rule that happens
@@ -98,28 +101,73 @@ public static class Observer
         MigrationPlan plan = MigrationSystem.Plan(prev, cfg, next.Clock.DtYears, baskets);
         int[] planRow = PlanRowBySettlementId(prev);
 
+        // M5 item 5: the granary content resolved ONCE per observed step (GranaryEffects.Bind — the binding
+        // DemographicsSystem holds), so the per-settlement effective deficit scans no project names.
+        GranaryBinding granaries = GranaryEffects.Bind(cfg);
+
         // Settlement records first: the turn record's appropriation detector
-        // reads their store-loss residuals.
+        // reads their store-loss residuals (the negatives WITHOUT the relief
+        // signature — see AppropriationDetected).
         int prevCount = prev.Settlements.Count;
         int founded = 0;
         for (int s = 0; s < next.Settlements.Count; s++)
             if (!HasSettlement(prev, next.Settlements[s].Id)) founded++;
         var settlements = new SettlementRecord[prevCount + founded];
         for (int s = 0; s < prevCount; s++)
-            settlements[s] = Settlement(prev, next, cfg, baskets, plan, planRow, orders, prev.Settlements[s].Id, founded: false);
+            settlements[s] = Settlement(prev, next, cfg, baskets, granaries, plan, planRow, orders, prev.Settlements[s].Id, founded: false);
         int f = prevCount;
         for (int s = 0; s < next.Settlements.Count; s++)
         {
             SettlementId id = next.Settlements[s].Id;
             if (HasSettlement(prev, id)) continue;
-            settlements[f++] = Settlement(prev, next, cfg, baskets, plan, planRow, orders, id, founded: true);
+            settlements[f++] = Settlement(prev, next, cfg, baskets, granaries, plan, planRow, orders, id, founded: true);
         }
 
-        bool unattributed = false;
-        for (int i = 0; i < settlements.Length; i++)
-            if (!settlements[i].Founded && settlements[i].Food.StoreLosses < 0) unattributed = true;
+        bool unattributed = AppropriationDetected(prev, cfg, settlements);
 
         return new TurnObservation(Turn(prev, next, cfg, orders, unattributed), settlements);
+    }
+
+    /// <summary>
+    /// THE APPROPRIATION DETECTOR (§3; FlowsSummary.UnattributedGrainTransfer). A NON-founded record whose
+    /// store-loss residual is NEGATIVE received grain no row records. D-053 §2's intra-polity grain relief — a PARTIAL
+    /// step toward D-051 §6's one central stockpile (only shortage grain moves, only to an empty store; D-051 §6 stays
+    /// open for everything else, D-053 §5) — also
+    /// does that, so a negative is EXCLUDED when — and only when — it carries the RELIEF SIGNATURE, every arm of
+    /// which relief guarantees: the record's granary closes EMPTY (a claimant's grain row was empty and it ate
+    /// every unit it received), it ATE something, it was controlled on PREV (the controller relief grouped it by,
+    /// EmpireQuery.TryGetController), and the residuals of every record that polity controlled on PREV sum to
+    /// ≥ 0 (a transfer inside one polity nets to zero within it, leaving that polity's spoilage + overflow).
+    /// A raid fails the controller arm (a raider is stateless, AppropriationSystem); grain crossing a polity
+    /// boundary fails the polity-sum arm; an inbound transfer that leaves grain in the store fails the closing
+    /// arm. Relief exists only with sim.json consumption.empireFoodAllocation ON, so with it OFF every negative
+    /// counts, exactly as before the relief existed. This is DETECTION by the identity failing, never a re-derivation
+    /// of the raid rule or the relief rule.
+    /// </summary>
+    internal static bool AppropriationDetected(IReadOnlyWorldState prev, SimConfig cfg, SettlementRecord[] settlements)
+    {
+        bool reliefOn = cfg.Consumption.EmpireFoodAllocation;
+        for (int i = 0; i < settlements.Length; i++)
+        {
+            SettlementRecord r = settlements[i];
+            if (r.Founded || r.Food.StoreLosses >= 0) continue;
+            if (reliefOn && HasReliefSignature(prev, settlements, r)) continue;
+            return true;
+        }
+        return false;
+    }
+
+    private static bool HasReliefSignature(IReadOnlyWorldState prev, SettlementRecord[] settlements, SettlementRecord r)
+    {
+        if (r.Food.GrainClosing != 0 || r.Food.Eaten <= 0) return false;
+        if (!EmpireQuery.TryGetController(prev, new SettlementId(r.Settlement), out PolityId polity)) return false;
+        long polityResidual = 0;
+        for (int k = 0; k < settlements.Length; k++)
+        {
+            if (!EmpireQuery.TryGetController(prev, new SettlementId(settlements[k].Settlement), out PolityId p)) continue;
+            if (p.Value == polity.Value) polityResidual = checked(polityResidual + settlements[k].Food.StoreLosses);
+        }
+        return polityResidual >= 0;
     }
 
     // ------------------------------------------------------------------ §2 --
@@ -330,7 +378,7 @@ public static class Observer
     // ------------------------------------------------------------------ §3 --
 
     private static SettlementRecord Settlement(
-        IReadOnlyWorldState prev, IReadOnlyWorldState next, SimConfig cfg, BasketBook baskets,
+        IReadOnlyWorldState prev, IReadOnlyWorldState next, SimConfig cfg, BasketBook baskets, GranaryBinding granaries,
         MigrationPlan plan, int[] planRow, OrderApplied[] orders, SettlementId id, bool founded)
     {
         GoodsConfig goods = cfg.Goods!;
@@ -356,7 +404,7 @@ public static class Observer
             Migration(prev, next, grain, id),
             Policy(next, id, shares),
             own.ToArray(),
-            FoodStateOf(prev, next, cfg, baskets, id),
+            FoodStateOf(prev, next, cfg, baskets, granaries, id),
             MigrationPlanOf(prev, next, cfg, plan, planRow, id));
     }
 
@@ -588,7 +636,8 @@ public static class Observer
             if (row.Settlement != id) continue;
             needs.Add(new NeedReading(row.Class.Value, row.NeedId, NeedName(cfg, row.NeedId), row.Value));
         }
-        return new SocialSection(happiness, factors, grievance.ToArray(), needs.ToArray());
+        return new SocialSection(happiness, factors, grievance.ToArray(), needs.ToArray(),
+            TaxBurdenReading.Of(next, cfg, id));
     }
 
     private static MigrationSection Migration(
@@ -632,7 +681,7 @@ public static class Observer
     /// of either.
     /// </summary>
     private static FoodStateSection FoodStateOf(
-        IReadOnlyWorldState prev, IReadOnlyWorldState next, SimConfig cfg, BasketBook baskets, SettlementId id)
+        IReadOnlyWorldState prev, IReadOnlyWorldState next, SimConfig cfg, BasketBook baskets, GranaryBinding granaries, SettlementId id)
     {
         bool prevPresent = HasSettlement(prev, id);
 
@@ -641,7 +690,10 @@ public static class Observer
         // multiplier its harvest carried, the sector row its production obeyed).
         FoodStateKind state = Sim.Core.State.FoodState.Of(prev, id, cfg, out FamineReason reason);
         double d = Sim.Core.State.FoodState.DeficitRatio(prev, id);
-        double dEff = Sim.Core.State.FoodState.EffectiveDeficit(d, state, cfg);
+        // M5 item 5: the world overload — the dead-zone form × the civilization's granary famine-intensity factor,
+        // the value DemographicsSystem integrated on this same PREV (one function, so the record never lies), with the
+        // binding resolved once per Observe (the overload DemographicsSystem itself calls).
+        double dEff = Sim.Core.State.FoodState.EffectiveDeficit(prev, id, d, state, cfg, granaries);
         bool abandoned = Sim.Core.State.FoodState.IsAbandoned(prev, id);
 
         (bool applied, DisasterRow appliedRow) = Disaster(prev, id);

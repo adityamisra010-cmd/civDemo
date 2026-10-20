@@ -7,7 +7,7 @@ namespace Sim.Core.Systems.NeedsGrievance;
 /// <summary>Writable handles to NeedsGrievanceSystem's own tables (built by
 /// SystemCatalog only).</summary>
 public readonly record struct NeedsGrievanceTables(
-    Table<NeedSatisfactionRow> Satisfactions, Table<GrievanceRow> Grievances);
+    Table<NeedSatisfactionRow> Satisfactions, Table<GrievanceRow> Grievances, Table<TaxGrievanceRow> TaxGrievances);
 
 /// <summary>
 /// Needs + grievance (T2.6; T3.5 — D-035). Everything reads Prev (§3.2). Slots
@@ -71,10 +71,32 @@ public readonly record struct NeedsGrievanceTables(
 /// through tables, law 6), whose own DtYears field keeps the rate per-year
 /// across era-pacing transitions. All three knobs are TUNE in needs.json.
 ///
-/// READ ISOLATION (the T2.6 packet's teeth, unchanged): NeedSatisfactions and
-/// Grievances are referenced ONLY by this system, serialization, StateEquals,
-/// tests, and Sim.Ui — enforced by the CI read-isolation grep; grievance drives
-/// NO behavior until M5 ships the unrest valves.
+/// READ ISOLATION (the T2.6 packet's teeth): NeedSatisfactions and Grievances are
+/// referenced ONLY by this system, serialization, StateEquals, tests, Sim.Ui and —
+/// since M5 R2b ships the unrest valves (D-021) — the one State reader
+/// <see cref="Unrest"/>, through which grievance drives protest, discharge and
+/// uprising. Enforced by the CI read-isolation grep.
+///
+/// M5 R2b — DIGNITY (D-035-D) is bound with source "taxBurden": satisfaction =
+/// 1 − the settlement's effective tax rate on PREV; it publishes nothing where
+/// the config carries no governance section (no tax instrument, no carrier).
+/// R4a offsets it by the class's provision; H2 also by the settlement's public
+/// services (State.Unrest.FeltBurden): satisfaction = 1 − felt.
+///
+/// H2 (Director 2026-10-05 §4–§6; docs/d049-taxation-and-revolt-model.md) — THE
+/// LEVY'S GRIEVANCE, per (settlement, class) segment, a second stock this system
+/// owns (TaxGrievances, schema v32), integrated with the SAME arithmetic:
+///
+///   T_next = StepGrievance(T_prev, W × (1 − S_levy), decay + discharge_segment, dt)
+///
+/// where S_levy is the D-035-B aggregate of the class's bound needs with every need
+/// but Dignity held at 1 — the shortfall the levy ALONE causes, through the ratified
+/// aggregation and weights — and the decay is the grievance's own (base + generational)
+/// plus the segment's protest discharge (D-021 valve 1). Not diluted by other
+/// shortfalls (the R2b attribution's flaw: a destitute segment's tax grievance read 0),
+/// so the poorer the segment, the more the same levy accrues. A row is written the
+/// first time a levy is felt (an untaxed world has none) and persists while the memory
+/// decays; empty classes and extinct settlements hold 0 (the ghost-grievance rule).
 /// STATELESS: config is immutable tuning, not state. No RNG.
 /// </summary>
 public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
@@ -94,6 +116,7 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
     /// pull; a predicate over it is not).</summary>
     private static readonly int[] TierAGateNeedIds = [1, 2, 3];
 
+    private readonly SimConfig _cfg;
     private readonly NeedsConfig _needs;
     private readonly BasketBook _baskets;
     private readonly GoodId _grain;
@@ -101,6 +124,7 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
 
     public NeedsGrievanceSystem(SimConfig cfg)
     {
+        _cfg = cfg ?? throw new ArgumentNullException(nameof(cfg));
         _personsPerDwelling = cfg.Housing?.PersonsPerDwelling
             ?? throw new NeedsConfigException(
                 "SimConfig.Housing is not loaded — a housingStock-sourced need reads it (T3.8).");
@@ -158,12 +182,17 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
         // Grievance rows persist (cloned): founded settlement-major in class
         // order; iterate rows and derive everything per row's settlement.
         Table<GrievanceRow> grievances = ctx.Owned.Grievances;
+        // H2: the levy's grievance rows persist the same way (cloned from PREV; appended on first felt levy).
+        Table<TaxGrievanceRow> levy = ctx.Owned.TaxGrievances;
 
         int needCount = _needs.Needs.Length;
         Span<double> sat = stackalloc double[needCount];
         Span<double> weight = stackalloc double[needCount];
         Span<double> adjusted = stackalloc double[needCount];
         Span<bool> isGate = stackalloc bool[needCount];
+        Span<double> otherSat = stackalloc double[needCount];
+        Span<double> otherWeight = stackalloc double[needCount];
+        Span<bool> otherGate = stackalloc bool[needCount];
 
         for (int s = 0; s < prev.Settlements.Count; s++)
         {
@@ -189,6 +218,9 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
                 for (int g = 0; g < grievances.Count; g++)
                     if (grievances[g].Settlement == settlement)
                         grievances[g] = grievances[g] with { Value = 0.0 };
+                for (int g = 0; g < levy.Count; g++)
+                    if (levy[g].Settlement == settlement && levy[g].Value != 0.0)
+                        levy[g] = levy[g] with { Value = 0.0 };
                 continue;
             }
 
@@ -202,7 +234,11 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
                 turnoverPerYear = TurnoverPerYear(v.Births, v.Deaths, settlementPop, v.DtYears);
                 break;
             }
-            double decayRate = DecayRatePerYear(tuning, turnoverPerYear);
+            // M5 R2b (D-021 valve 1): protest's expression vents the stock — the settlement's PREV
+            // protest adds discharge × p to the decay rate (exactly 0 when quiet or unconfigured, so
+            // the rate is then bit-identical to the pre-R2b one).
+            double decayRate = DecayRatePerYear(tuning, turnoverPerYear,
+                Unrest.DischargePerYear(prev, settlement, _cfg));
 
             for (int g = 0; g < grievances.Count; g++)
             {
@@ -231,11 +267,13 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
                 if (classPop == 0)
                 {
                     grievances[g] = grievances[g] with { Value = 0.0 };
+                    int ghost = LevyRow(levy, settlement, cls);
+                    if (ghost >= 0 && levy[ghost].Value != 0.0) levy[ghost] = levy[ghost] with { Value = 0.0 };
                     continue;
                 }
 
                 // --- per-need satisfaction from PREV basket fills -------------
-                int bound = 0;
+                int bound = 0, dignityRow = -1, dignitySlot = -1;
                 double rawWeightSum = 0.0;
                 for (int n = 0; n < needCount; n++)
                 {
@@ -243,7 +281,21 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
                     if (!need.Bound) continue;                       // unbound: skipped before any weight is read
 
                     double value;
-                    if (need.FromHousingStock)
+                    if (need.FromTaxBurden)
+                    {
+                        // M5 R2b — D-035-D, TAXATION → DIGNITY IS DIRECT: the carrier is the tax
+                        // instrument itself, so the satisfaction is one minus the EFFECTIVE rate this
+                        // settlement bears on PREV (declared × reach; 0 uncontrolled or untaxed).
+                        // Where no tax instrument exists at all (no governance section) the need has
+                        // no carrier and publishes nothing — exactly like an empty basket.
+                        if (_cfg.Governance is null) continue;
+                        // R4: the OFFSET reads this class's other provisions, so the value is filled in after
+                        // the loop (placeholder here keeps the row order unchanged).
+                        dignityRow = satisfactions.Count;
+                        dignitySlot = bound;
+                        value = 1.0;
+                    }
+                    else if (need.FromHousingStock)
                     {
                         // T3.8: Shelter reads the DWELLING STOCK against the
                         // population — never a flow. Classes carry EQUAL
@@ -267,6 +319,25 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
                     bound++;
                 }
 
+                if (dignityRow >= 0)
+                {
+                    // R4 — the levy's burden OFFSET by provision: P is the D-035-B aggregate of this class's
+                    // OTHER bound needs (food, shelter, comfort/amenities…), the same CES the grievance uses.
+                    int others = 0;
+                    for (int k = 0; k < bound; k++)
+                    {
+                        if (k == dignitySlot) continue;
+                        otherSat[others] = sat[k]; otherGate[others] = isGate[k]; otherWeight[others] = weight[k];
+                        others++;
+                    }
+                    double provision = others > 0
+                        ? AggregateSatisfaction(otherSat[..others], otherGate[..others], otherWeight[..others], agg, adjusted[..others])
+                        : 0.0;
+                    double dignity = DignitySatisfaction(prev, settlement, _cfg, provision);
+                    sat[dignitySlot] = dignity;
+                    satisfactions[dignityRow] = satisfactions[dignityRow] with { Value = dignity };
+                }
+
                 double aggregate = AggregateSatisfaction(
                     sat[..bound], isGate[..bound], weight[..bound], agg, adjusted[..bound]);
                 double accrualPerYear = AccrualPerYear(rawWeightSum, aggregate);
@@ -280,8 +351,62 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
                 }
                 grievances[g] = grievances[g] with
                 { Value = StepGrievance(gPrev, accrualPerYear, decayRate, dt) };
+
+                // --- H2: the segment's LEVY GRIEVANCE (only where a tax instrument exists) ---
+                if (dignitySlot >= 0)
+                {
+                    double levyAccrual = LevyAccrualPerYear(
+                        sat[..bound], isGate[..bound], weight[..bound], dignitySlot, rawWeightSum, agg, otherSat[..bound], adjusted[..bound]);
+                    int at = LevyRow(levy, settlement, cls);
+                    if (at >= 0 || levyAccrual > 0.0)
+                    {
+                        double tPrev = at >= 0 ? PrevLevy(prev, settlement, cls) : 0.0;
+                        double tDecay = DecayRatePerYear(tuning, turnoverPerYear,
+                            Unrest.SegmentDischargePerYear(prev, settlement, cls, _cfg));
+                        double tNext = StepGrievance(tPrev, levyAccrual, tDecay, dt);
+                        if (at >= 0) levy[at] = levy[at] with { Value = tNext };
+                        else levy.Add(new TaxGrievanceRow(settlement, cls, tNext));
+                    }
+                }
             }
         }
+    }
+
+    /// <summary>H2: the index of the (settlement, class) levy-grievance row in <paramref name="levy"/>, or −1.</summary>
+    private static int LevyRow(Table<TaxGrievanceRow> levy, SettlementId settlement, ClassId cls)
+    {
+        for (int i = 0; i < levy.Count; i++)
+            if (levy[i].Settlement == settlement && levy[i].Class == cls) return i;
+        return -1;
+    }
+
+    /// <summary>H2: the segment's PREV levy grievance (0 without a row; NaN reads 0).</summary>
+    private static double PrevLevy(IReadOnlyWorldState prev, SettlementId settlement, ClassId cls)
+    {
+        double t = Unrest.SegmentTaxGrievance(prev, settlement, cls);
+        return double.IsNaN(t) ? 0.0 : t;
+    }
+
+    /// <summary>
+    /// H2 — THE LEVY'S OWN ACCRUAL (per year) for one class: W × (1 − S_levy), with S_levy the D-035-B aggregate of
+    /// the class's bound needs in which every need BUT Dignity is held at its expectation (1) and Dignity at its felt
+    /// satisfaction — the shortfall the levy alone causes, through the ratified aggregation, gate rule and weights,
+    /// so it is never diluted by the class's other shortfalls and never zeroed by the Tier-A collapse of a destitute
+    /// class's upper needs. EXACTLY 0 when the Dignity satisfaction is 1 (no levy felt). Public and pure, so the
+    /// Glass Box recomputes it by calling it. <paramref name="scratch"/> and <paramref name="adjusted"/> are scratch
+    /// spans of the same length as <paramref name="satisfaction"/>.
+    /// </summary>
+    public static double LevyAccrualPerYear(
+        ReadOnlySpan<double> satisfaction, ReadOnlySpan<bool> isGate, ReadOnlySpan<double> weight, int dignitySlot,
+        double rawWeightSum, AggregationTuning tuning, Span<double> scratch, Span<double> adjusted)
+    {
+        ArgumentNullException.ThrowIfNull(tuning);
+        if (dignitySlot < 0 || dignitySlot >= satisfaction.Length) return 0.0;
+        double felt = satisfaction[dignitySlot];
+        if (!(felt < 1.0)) return 0.0;
+        for (int k = 0; k < satisfaction.Length; k++) scratch[k] = k == dignitySlot ? felt : Expectation;
+        double aggregate = AggregateSatisfaction(scratch[..satisfaction.Length], isGate, weight, tuning, adjusted);
+        return AccrualPerYear(rawWeightSum, aggregate);
     }
 
     /// <summary>
@@ -438,6 +563,33 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
         ArgumentNullException.ThrowIfNull(tuning);
         return tuning.BaseDecayPerYear + (1.0 - tuning.InheritFraction) * turnoverPerYear;
     }
+
+    /// <summary>M5 R2b: the decay rate with protest's DISCHARGE (D-021 valve 1,
+    /// <see cref="Unrest.DischargePerYear"/>) added. A discharge of exactly 0 returns the
+    /// two-term rate above unchanged, bit for bit.</summary>
+    public static double DecayRatePerYear(GrievanceTuning tuning, double turnoverPerYear, double dischargePerYear)
+    {
+        double rate = DecayRatePerYear(tuning, turnoverPerYear);
+        return dischargePerYear > 0.0 ? rate + dischargePerYear : rate;
+    }
+
+    /// <summary>M5 R2b — D-035-D: the Dignity need's satisfaction, 1 − the effective tax rate the
+    /// settlement bears (<see cref="State.Governance.EffectiveTaxRate"/>), in [0, 1]. Public and pure so the
+    /// Glass Box recomputes it by calling this, not by copying it.</summary>
+    public static double DignitySatisfaction(IReadOnlyWorldState world, SettlementId settlement, SimConfig cfg) =>
+        Math.Clamp(1.0 - State.Governance.EffectiveTaxRate(world, settlement, cfg), 0.0, 1.0);
+
+    /// <summary>R4 (Director 2026-10-04: tax burden → pressure OFFSET by food, amenities, services, development and
+    /// capacity) — the Dignity satisfaction with the burden offset by the class's PROVISION P in [0, 1] (the CES
+    /// aggregate of its other bound needs): s = 1 − r × (1 − offsetMax × P), offsetMax = needs.json
+    /// unrest.taxBurdenOffsetMax. A coefficient inside the resolution equation (law 2), not a buff: it scales the
+    /// felt burden and is exactly the R2b 1 − r when the levy is 0, the provision is 0 or offsetMax is 0. A
+    /// well-provided population bears a heavy levy with less indignity; a destitute one feels all of it.
+    /// H2 (Director 2026-10-05 §5): the burden is ALSO offset by the settlement's public services, development,
+    /// institutions and state capacity — <see cref="Unrest.FeltBurden"/> (× (1 − taxServiceOffsetMax × V)); exactly the
+    /// R4a reading where nothing is built or the service offset is 0.</summary>
+    public static double DignitySatisfaction(IReadOnlyWorldState world, SettlementId settlement, SimConfig cfg, double provision) =>
+        Math.Clamp(1.0 - Unrest.FeltBurden(world, settlement, cfg, provision), 0.0, 1.0);
 
     /// <summary>S: the D-035-B aggregate over the bound needs that published a
     /// row — d018:46's Tier A gate reweights them, then the CES combines them

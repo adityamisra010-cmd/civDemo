@@ -91,6 +91,45 @@ public class MerchantTests
         Assert.Equal(w.Settlements.Count, rows);
     }
 
+    /// <summary>The canonical seed-42 world (founded with <paramref name="worldgen"/>, realm knowing its crafts and Trade)
+    /// stepped 650 turns on the production pipeline: the first turn any settlement's merchant latch is active, and on how
+    /// many turns one is. Batch 3 (D-054): parameterized by the worldgen so the live test (the shipped cylinder) and its
+    /// attribution twin (<see cref="MerchantsEmerge_WithTheCylinderOff_AtTheBatch2Turn"/>, the flat world) share it.</summary>
+    internal static (int FirstActive, int ActiveTurns) MerchantLatch(WorldgenConfig worldgen, SimConfig? cfgOverride = null)
+    {
+        SimConfig cfg = cfgOverride ?? TestConfigs.Sim();
+        using var era = Sim.Data.DataFiles.OpenEraPacing();
+        using var pipe = Sim.Data.DataFiles.OpenPipeline();
+        var exec = new TurnExecutor(EraTableLoader.Load(era),
+            PipelineLoader.Load(pipe, SystemCatalog.All(cfg, worldgen)));
+        ClassId merchant = MerchantClass();
+        WorldState w = TestConfigs.KnowTrade(TestConfigs.KnowRecipes(WorldFounding.Found(worldgen, cfg, 42), cfg), cfg);
+        Assert.Equal(worldgen.Topology is { WrapX: true }, w.Terrain!.WrapX);
+        int firstActive = -1, activeTurns = 0;
+        for (int t = 1; t <= 650; t++)
+        {
+            w = exec.Step(w);
+            int activeNow = 0;
+            for (int i = 0; i < w.ClassStates.Count; i++)
+                if (w.ClassStates[i].Class == merchant && w.ClassStates[i].Active != 0) activeNow++;
+            if (activeNow > 0) { activeTurns++; if (firstActive < 0) firstActive = t; }
+        }
+        Console.WriteLine($"merchant latch: first active turn {firstActive}, active on {activeTurns} of 650 turns");
+        return (firstActive, activeTurns);
+    }
+
+    /// <summary>BATCH 3 / D-054 ATTRIBUTION CONTROL (integration R1, 2026-10-14) for the first-active pin of
+    /// <see cref="MerchantsEmergeInAFoundedWorldOnceTradeVolumeCrossesTheThreshold"/>: the same run with ONLY the cylinder
+    /// switched off (TestConfigs.PreCylinderWorldgen — the flat world; WS1/WS2 stay ON) returns the batch-2 turn 127
+    /// (MEASURED: active on 173 of 650 turns there), so the cylinder is the whole of the move.</summary>
+    [Fact]
+    public void MerchantsEmerge_WithTheCylinderOff_AtTheBatch2Turn()
+    {
+        (int firstActive, int activeTurns) = MerchantLatch(TestConfigs.PreCylinderWorldgen(TestConfigs.Worldgen()));
+        Assert.True(activeTurns > 0, "no merchant town on the flat world either");
+        Assert.Equal(127, firstActive);
+    }
+
     [Fact]
     public void MerchantsEmergeInAFoundedWorldOnceTradeVolumeCrossesTheThreshold()
     {
@@ -111,24 +150,13 @@ public class MerchantTests
         // measured 124; T4.21-3 alone measured 128).
         // T4.21-2's first-latch pin and T4.21-3's loop form both survive here:
         // the guard is on activeTurns, the turn-exact pin on firstActive.
-        using var era = Sim.Data.DataFiles.OpenEraPacing();
-        using var pipe = Sim.Data.DataFiles.OpenPipeline();
-        var exec = new TurnExecutor(EraTableLoader.Load(era),
-            PipelineLoader.Load(pipe, SystemCatalog.All(TestConfigs.Sim(), TestConfigs.Worldgen())));
-        ClassId merchant = MerchantClass();
-
-        WorldState w = WorldFounding.Found(TestConfigs.Worldgen(), TestConfigs.Sim(), 42);
-        int firstActive = -1, activeTurns = 0;
-        for (int t = 1; t <= 650; t++)
-        {
-            w = exec.Step(w);
-            int activeNow = 0;
-            for (int i = 0; i < w.ClassStates.Count; i++)
-                if (w.ClassStates[i].Class == merchant && w.ClassStates[i].Active != 0) activeNow++;
-            if (activeNow > 0) { activeTurns++; if (firstActive < 0) firstActive = t; }
-        }
-        Console.WriteLine($"merchant latch: first active turn {firstActive}, active on {activeTurns} of 650 turns");
-        int active = activeTurns;
+        // R1 (2026-10-03): in the ORDER-FREE canonical world nothing is researched, pottery and bronze are
+        // research-gated, and no trade occurs at all (MEASURED: no merchant town in 650 turns). The subject here
+        // is merchant REACHABILITY from trade volume, so the realm knows its crafts (TestConfigs.KnowRecipes —
+        // knowledge rows only, the world a civilization that has researched pottery and bronze would hold).
+        // R2a: trade between settlements is itself a research unlock now, so the realm also knows Trade
+        // (TestConfigs.KnowTrade — knowledge rows only). (Batch 3: the run is MerchantLatch, on the shipped worldgen.)
+        (int firstActive, int active) = MerchantLatch(TestConfigs.Worldgen());
 
         Assert.True(active > 0,
             "no settlement ever became a merchant town in 650 turns — either the predicate "
@@ -144,7 +172,25 @@ public class MerchantTests
         // pre-arming turn, so the arming was the whole of the move. The aim
         // ("it flips somewhere, and the predicate is reachable") is unchanged at
         // either value and is carried by the two asserts above.
-        Assert.Equal(119, firstActive);   // moves with the trajectory; re-measured per packet
+        // R1 (2026-10-03): with the recipe knowledge seeded the run is the pre-R1 economy, and the pin is UNMOVED —
+        // MEASURED on this tree: first active 119, active on 164 of 650 turns (identical to before R1).
+        // M5 R2b RE-PIN (2026-10-03; VALUE): first active 119 -> 124, MEASURED. Untaxed run, so no protest
+        // fires; the cause is the R2b weather-geography layer moving the harvest series (INFERRED by elimination:
+        // the unrest and Age-military layers act on nothing this run reads). Aim unchanged.
+        // ADR-035 RE-PIN (2026-10-07; VALUE, one cause: the founding-turn harvest): first active 124 -> 118, MEASURED.
+        // ADR-035 §6 RE-PIN (2026-10-07, P-F0: the founding death remainder seeded at 0.5; MEASURED): 118 -> 128.
+        // ADR-035 §7 RE-PIN (2026-10-07, P-F2: founding cohort noise at demographic scale; MEASURED): 128 -> 126.
+        // D-051 1(b) RE-PIN (2026-10-10, time-averaged decade weather; MEASURED): 126 -> 127. The harvest series this
+        // trajectory reads is the time-average of the yearly weather; with harvestVariance.timeAveragedHarvest off the
+        // weather system is bit-identical to the pre-1(b) one (IntegratedPinAttributionTests' D-051 1(b) controls).
+        // BATCH 3 / D-054 RE-PIN (integration R1, 2026-10-14; VALUE, MEASURED on this tree by the agent writing this line):
+        // first active 127 -> 148 (active on 45 of 650 turns, was 173 — the latch still flips, so the aim holds). CAUSE: the
+        // CYLINDER alone (worldgen.json topology.wrapX — the canonical world regenerates x-periodic, so the land, the
+        // population and the trade-volume series this predicate reads differ from turn 0). ATTRIBUTION:
+        // MerchantsEmerge_WithTheCylinderOff_AtTheBatch2Turn (the cylinder off alone, WS1/WS2 on) returns 127; with the
+        // sim half off alone on the cylinder (TestConfigs.PreD054Sim; MEASURED) the run is the same 148/45 — this order-free
+        // world builds nothing and sets no split, so WS1/WS2 cannot act.
+        Assert.Equal(148, firstActive);   // moves with the trajectory; re-measured per packet
     }
 
     private static double VarOf(WorldState w, SettlementId s, int varId)

@@ -1,0 +1,347 @@
+using Microsoft.Xna.Framework.Input;
+using Sim.Ui.Art;
+using Sim.Ui.ImGuiIntegration;
+
+namespace Sim.Ui.Headless;
+
+/// <summary>
+/// THE HEADLESS UI FRAME HARNESS (M5 hardening H1): the game's real per-frame UI (<see cref="GameUi"/>) in a real
+/// native ImGui context (<see cref="HeadlessImGui"/>), with no window and no GPU, driven by scripted input. Each
+/// <see cref="Frame"/> does what one MonoGame tick of <see cref="SimUiGame"/> does — <see cref="GameUi.Update"/>
+/// with this frame's mouse and keyboard, then <see cref="GameUi.PrepareFrame"/>, <c>ImGui.NewFrame</c> fed through
+/// the game's own input translation, <see cref="GameUi.Draw"/> and <c>ImGui.Render</c> — and then checks the frame:
+/// the draw data's 16-bit contract (<see cref="ImGuiDrawData.Check"/>), duplicate item ids
+/// (<see cref="UiControls.Duplicates"/>) and ImGui's own error tooltip (its duplicate-ID warning). Problems are
+/// collected, never thrown, so a run reports every one.
+/// </summary>
+public sealed class UiFrameHarness : IDisposable
+{
+    public HeadlessImGui Gui { get; }
+    public GameUi Ui { get; }
+    public string SessionLogPath { get; }
+
+    /// <summary>Frames run so far.</summary>
+    public int Frames { get; private set; }
+
+    /// <summary>Times the UI asked to exit (Escape with nothing open); the harness acknowledges and goes on.</summary>
+    public int ExitRequests { get; private set; }
+
+    /// <summary>Every defect seen, with the frame it was seen on.</summary>
+    public List<string> Problems { get; } = [];
+
+    /// <summary>The largest single draw list of any frame (the old 16-bit ceiling is 65,535).</summary>
+    public int MaxListVertices { get; private set; }
+
+    /// <summary>A label prefixed to problems (the scenario state).</summary>
+    public string Context { get; set; } = "";
+
+    /// <summary>P6: every coverage key (<see cref="UiCoverage"/>) the UI drew in any frame so far — controls, the
+    /// showing screens' hit kinds, inspectable kinds — in ordinal order. It only observes.</summary>
+    public SortedSet<string> Seen { get; } = new(StringComparer.Ordinal);
+
+    /// <summary>P6: every left-button press so far, with what it reached (<see cref="UiCoverage"/>): filled in as its
+    /// frames run, complete once its release frame has run.</summary>
+    public List<UiPress> Presses { get; } = [];
+
+    private int _x = 640, _y = 400, _wheel;
+    private bool _left, _right, _wasLeft;
+    private int _press = -1;                 // the index in Presses of the plain press still being followed, or -1
+    private ClickMarks _marks;
+    private readonly SortedSet<string> _reached = new(StringComparer.Ordinal);
+    private readonly HashSet<Keys> _keys = [];
+
+    private UiFrameHarness(HeadlessImGui gui, GameUi ui, string logPath)
+    {
+        Gui = gui;
+        Ui = ui;
+        SessionLogPath = logPath;
+    }
+
+    /// <summary>A harness over <paramref name="session"/>; its files go to <paramref name="sessionDir"/>.</summary>
+    /// <param name="vtxOffset">False only for the out-of-process control that reproduces the pre-fix crash.</param>
+    public static UiFrameHarness Start(UiSession session, string sessionDir, string assetsRoot,
+        bool developer = false, int width = 1280, int height = 800, bool vtxOffset = true)
+    {
+        Directory.CreateDirectory(sessionDir);
+        string log = Path.Combine(sessionDir, "orders-harness.bin");
+        // UR-1: the atlas at the UI scale the window asks for, as the windowed host loads it.
+        var gui = new HeadlessImGui(assetsRoot, width, height, vtxOffset, Theme.UiScale.Auto(height));
+        try
+        {
+            var ui = new GameUi(session, log, developer, AssetLibrary.Load(assetsRoot), gui.Fonts,
+                new UiTextureIds(new IntPtr(2), new IntPtr(3)), width, height);
+            var h = new UiFrameHarness(gui, ui, log);
+            h.Frame();   // one frame so every control has a rect and ImGui's capture flags are real
+            return h;
+        }
+        catch
+        {
+            gui.Dispose();
+            throw;
+        }
+    }
+
+    public int Width => Gui.Width;
+    public int Height => Gui.Height;
+    public int MouseX => _x;
+    public int MouseY => _y;
+
+    public MouseState Mouse => new(_x, _y, _wheel,
+        _left ? ButtonState.Pressed : ButtonState.Released, ButtonState.Released,
+        _right ? ButtonState.Pressed : ButtonState.Released, ButtonState.Released, ButtonState.Released);
+
+    public KeyboardState Keyboard => new([.. _keys]);
+
+    /// <summary>One tick: Update, then the ImGui frame, then the frame's checks.</summary>
+    public void Frame(double dt = 1.0 / 60.0)
+    {
+        MouseState mouse = Mouse;
+        KeyboardState keyboard = Keyboard;
+        bool released = !_left && _wasLeft;
+        if (_left && !_wasLeft)
+        {
+            bool shift = _keys.Contains(Keys.LeftShift) || _keys.Contains(Keys.RightShift);
+            // A Shift press inspects what the player saw there; a plain press is followed through its frames.
+            Presses.Add(new UiPress(Frames, _x, _y, shift, shift ? UiCoverage.Inspected(Ui, _x, _y) : []));
+            _press = shift ? -1 : Presses.Count - 1;
+            _marks = UiCoverage.Marks(Ui);
+            _reached.Clear();
+        }
+        _wasLeft = _left;
+        Ui.SetViewport(Gui.Width, Gui.Height);
+        Ui.Update(mouse, keyboard, dt, active: true);
+        if (Math.Abs(Ui.WantedScale - Gui.Fonts.Scale) > 1e-6)
+        {
+            // UR-1: the window crossed a scale step or the player changed the interface size — the host rebuilds
+            // the atlas between frames and hands the new faces over (SimUiGame.FollowUiScale).
+            Gui.Rebuild(Ui.WantedScale);
+            Ui.SetFonts(Gui.Fonts);
+        }
+        if (Ui.ExitRequested) { ExitRequests++; Ui.ExitRequested = false; }
+        Ui.PrepareFrame();
+        Gui.BeginFrame(mouse, keyboard, dt);
+        Ui.Draw();
+        ImGuiDrawReport r = Gui.EndFrame();
+        UiCoverage.Drawn(Ui, Seen);
+        if (_press >= 0)
+        {
+            // P6: what the press reached in this frame — ImGui's activation (the press frame), the screens' own Click
+            // (the press frame, or the release frame's Update) — until its release frame has run.
+            UiCoverage.Reached(Ui, ref _marks, _reached);
+            if (_reached.Count != Presses[_press].Reached.Count) Presses[_press] = Presses[_press] with { Reached = [.. _reached] };
+            if (released) _press = -1;
+        }
+        Frames++;
+        if (r.MaxListVertices > MaxListVertices) MaxListVertices = r.MaxListVertices;
+        foreach (string v in r.Violations) Problem("draw data: " + v);
+        foreach (string d in Ui.Controls.Duplicates) Problem("duplicate ImGui id: " + d);
+        // F3: the fixed chrome's controls (the command bar's row) must be inside the window — at a narrow window the
+        // territory toggle was once drawn past the right edge, unreachable.
+        foreach (UiControl c in Ui.Controls.Last)
+            if (IsBarControl(c.Name) && (c.X0 < 0 || c.Y0 < 0 || c.X1 > Gui.Width || c.Y1 > Gui.Height))
+                Problem("command-bar control '" + c.Name + "' outside the " + Gui.Width + "x" + Gui.Height + " window (x " + c.X0 + ".." + c.X1 + ")");
+        foreach (string t in Gui.LastTooltipWindows)
+            Problem("ImGui error tooltip (duplicate-ID warning) in " + t + " at (" + _x + "," + _y + "), section " + Ui.OpenSection
+                + (Ui.ProgressionOpen ? ", research open" : ""));
+    }
+
+    private static bool IsBarControl(string name) =>
+        name == "end-turn" || name == "territory" || name.StartsWith("nav:", StringComparison.Ordinal);
+
+    private void Problem(string what)
+    {
+        string p = (Context.Length > 0 ? Context + ": " : "") + "frame " + Frames + ": " + what;
+        if (Problems.Count < 200 && !Problems.Contains(p)) Problems.Add(p);
+    }
+
+    /// <summary>Runs <paramref name="n"/> frames with the input unchanged (time passes: toasts fade, the camera glides).</summary>
+    public void Idle(int n, double dt = 1.0 / 60.0) { for (int i = 0; i < n; i++) Frame(dt); }
+
+    /// <summary>P2: runs frames with the input unchanged until the map camera's ease has SETTLED (its shown view is its
+    /// target view), at most <paramref name="maxFrames"/>; returns the frames run (0 when it was settled already), or
+    /// -1 when it had not settled by then — a camera that never settles is itself a finding.</summary>
+    public int Settle(int maxFrames = 240, double dt = 1.0 / 60.0)
+    {
+        for (int i = 0; i < maxFrames; i++)
+        {
+            if (Ui.Camera.Settled) return i;
+            Frame(dt);
+        }
+        return Ui.Camera.Settled ? maxFrames : -1;
+    }
+
+    /// <summary>Moves the pointer and holds it for three frames: ImGui's hover state settles over one frame, and its
+    /// duplicate-ID detector compares with the previous frame's hovered item (its warning tooltip shows from the
+    /// fourth hovered frame, which the following press/release frames of a click reach).</summary>
+    public void MoveTo(double x, double y)
+    {
+        _x = (int)Math.Round(x);
+        _y = (int)Math.Round(y);
+        Frame();
+        Frame();
+        Frame();
+    }
+
+    /// <summary>A click as a player makes it: move, press for a frame, release, and one frame for the result to
+    /// show (a button answers on its release frame, after the panels before it were drawn; and ImGui still reports
+    /// the keyboard captured on the release frame, which a human never reaches with the next key press).</summary>
+    public void Click(double x, double y)
+    {
+        MoveTo(x, y);
+        _left = true;
+        Frame();
+        _left = false;
+        Frame();
+        Frame();
+    }
+
+    /// <summary>M5 polish (directive §9): a left click with Shift held throughout (move, press, release, result) — the
+    /// universal "show me what this is" gesture. Shift is released one frame after the click.</summary>
+    public void ShiftClick(double x, double y)
+    {
+        _keys.Add(Keys.LeftShift);
+        Click(x, y);
+        _keys.Remove(Keys.LeftShift);
+        Frame();
+    }
+
+    /// <summary>P8: a hover with <paramref name="key"/> held (move there with it down for three frames, as
+    /// <see cref="MoveTo"/>), then <paramref name="read"/> is asked while it is still held; the key is released after and one
+    /// frame runs. What a painted hover hint shows only while a modifier is held is read this way.</summary>
+    public T HoverWith<T>(double x, double y, Keys key, Func<T> read)
+    {
+        ArgumentNullException.ThrowIfNull(read);
+        _keys.Add(key);
+        MoveTo(x, y);
+        T value = read();
+        _keys.Remove(key);
+        Frame();
+        return value;
+    }
+
+    /// <summary>A right-button click (the game binds nothing to it; the monkey checks that stays harmless).</summary>
+    public void RightClick(double x, double y)
+    {
+        MoveTo(x, y);
+        _right = true;
+        Frame();
+        _right = false;
+        Frame();
+        Frame();
+    }
+
+    /// <summary>A drag with the left button from (x0, y0) to (x1, y1) in <paramref name="steps"/> moves.</summary>
+    public void Drag(double x0, double y0, double x1, double y1, int steps = 8)
+    {
+        MoveTo(x0, y0);
+        _left = true;
+        Frame();
+        for (int i = 1; i <= steps; i++)
+        {
+            _x = (int)Math.Round(x0 + (x1 - x0) * i / steps);
+            _y = (int)Math.Round(y0 + (y1 - y0) * i / steps);
+            Frame();
+        }
+        _left = false;
+        Frame();
+        Frame();
+    }
+
+    /// <summary>Wheel notches at a point (positive = away from the user, as MonoGame reports it).</summary>
+    public void Wheel(double x, double y, int notches)
+    {
+        _x = (int)Math.Round(x);
+        _y = (int)Math.Round(y);
+        _wheel += 120 * notches;
+        Frame();
+        Frame();
+    }
+
+    /// <summary>Wheel notches with keys held (Ctrl + wheel zooms the research tree).</summary>
+    public void WheelWith(double x, double y, int notches, params Keys[] held)
+    {
+        foreach (Keys k in held) _keys.Add(k);
+        Wheel(x, y, notches);
+        foreach (Keys k in held) _keys.Remove(k);
+        Frame();
+    }
+
+    /// <summary>A key tap: down for a frame, up for a frame.</summary>
+    public void Key(Keys key, params Keys[] modifiers)
+    {
+        foreach (Keys m in modifiers) _keys.Add(m);
+        _keys.Add(key);
+        Frame();
+        _keys.Remove(key);
+        foreach (Keys m in modifiers) _keys.Remove(m);
+        Frame();
+    }
+
+    /// <summary>Holds a key down for <paramref name="frames"/> frames (keyboard scrolling and panning).</summary>
+    public void Hold(Keys key, int frames)
+    {
+        _keys.Add(key);
+        for (int i = 0; i < frames; i++) Frame();
+        _keys.Remove(key);
+        Frame();
+    }
+
+    /// <summary>Clicks the named ImGui control where the last frame drew it. False when it was not drawn.</summary>
+    public bool ClickControl(string name)
+    {
+        if (Ui.Controls.Find(name) is not { } c) return false;
+        (double x, double y) = Aim(c);
+        Click(x, y);
+        return true;
+    }
+
+    /// <summary>P6 (moved here from the gate for the resources view's tests): scrolls the context panel's body (the wheel
+    /// over it, Shift + wheel sideways — as a player does) until the first control whose name starts with
+    /// <paramref name="prefix"/> lies wholly inside the visible body; null when the panel draws no such control (or it
+    /// cannot be brought into view).</summary>
+    public UiControl? ScrollContextTo(string prefix)
+    {
+        ViewModel.PanelRect p = Ui.ContextRect;
+        double top = ViewModel.ChromeGeometry.ContentTop(new ViewModel.ChromeElement(p, ViewModel.RulePlacement.UnderHeaderRow), ImGuiNET.ImGui.GetFrameHeight(), Ui.Scale) + 2,
+            bottom = p.Y + p.Height - Sim.Ui.Art.UiTheme.WindowPaddingPx.Y * Ui.Scale - 6,
+            left = p.X + 4, right = p.X + p.Width - 20;
+        for (int k = 0; k < 80; k++)
+        {
+            UiControl? found = null;
+            foreach (UiControl c in Ui.Controls.Last)
+                if (c.Name.StartsWith(prefix, StringComparison.Ordinal)) { found = c; break; }
+            if (found is not { } ctl) return null;
+            if (ctl.Y0 < top || ctl.Y1 > bottom) Wheel(p.X + p.Width / 2, p.Y + p.Height / 2, ctl.Y0 < top ? 1 : -1);
+            // Sideways only when too little of it shows to aim at (a full-width row runs past the edge by design: Aim
+            // clicks near its start).
+            else if (ctl.X0 > right - 24) WheelWith(p.X + p.Width / 2, p.Y + p.Height / 2, -1, Keys.LeftShift);
+            else if (ctl.X1 < left + 24) WheelWith(p.X + p.Width / 2, p.Y + p.Height / 2, 1, Keys.LeftShift);
+            else return ctl;
+        }
+        return null;
+    }
+
+    /// <summary>Scrolls the context panel to the control named <paramref name="name"/> (see <see cref="ScrollContextTo"/>)
+    /// and clicks it; false when it is not drawn.</summary>
+    public bool ClickInContext(string name)
+    {
+        if (ScrollContextTo(name) is not { } ctl) return false;
+        (double x, double y) = Aim(ctl);
+        Click(x, y);
+        return true;
+    }
+
+    /// <summary>Where a player clicks a control: its centre, or — for a full-width row that runs past the edge of
+    /// its panel or of the screen (the TURN audit lines carry a horizontal scrollbar) — a point near its start.</summary>
+    public (double X, double Y) Aim(UiControl c)
+    {
+        double right = Math.Min(c.X1, Gui.Width - 1);
+        ViewModel.PanelRect context = Ui.ContextRect;
+        if (c.X0 >= context.X)
+            right = Math.Min(right, context.X + context.Width - 16);
+        double x = c.X1 <= right ? c.CenterX : Math.Min(c.X0 + 40, (c.X0 + right) / 2);
+        return (x, c.CenterY);
+    }
+
+    public void Dispose() => Gui.Dispose();
+}

@@ -1,5 +1,522 @@
 # CURRENT STATE — the routing document
 
+> **2026-10-20 (latest): M5 CLOSED at its exit gate on the Director's merge ruling — with checklist 21 and 22 WAIVED as
+> pre-merge requirements and TRACKED AS OUTSTANDING human validation against the Decision C build (`dd727c4`). Neither
+> checklist has been played or passed.** Merge of `44e7874` into `main` by pull request, history preserved; NO tag, NO
+> release (the `m5-exit` Release is the Director's separate decision). Records: `docs/m5-exit-inventory.md` §13 (waiver
+> and merge ruling), `docs/milestones.md` closure block (PR, merge commit, main head, post-merge CI filled in after the
+> merge), `docs/m5-playtest-known-issues.md` last dated note. **Current milestone: M6 — spec in preparation, NOT
+> ratified; no active packets** (`docs/m6-plan/`). Verify against the tree (gov-4) before relying on this entry.
+
+> **2026-10-20 (latest): the Director's M5 closure rulings are recorded; Decision C implemented (UI only). M5 is NOT
+> closed — the merge ruling (R6) is withheld until the final candidate and fresh CI are presented.**
+> - **Rulings:** `docs/m5-exit-inventory.md` §13 (R1–R10, with the validation against CR-008 and the frozen exit
+>   definition) and dated notes in D-051, D-052, D-053, D-054, D-055, D-057–D-060, ADR-035, ADR-042, CR-022, the
+>   known-issues file and `docs/m6-plan/` (D-I, D-D, D-E, D-F ruled).
+> - **Decision C:** `UiSession.ExpectedWeatherCopy` clones the world and sets the player's settlements' pending
+>   `HarvestWeather.Multiplier` to 1.0 before the preview step; actual End Turn is unchanged; the column is "Next turn
+>   (expected weather)". Tests: `ResourcesPersistenceTests` (exactness pins under an ordinary pending harvest; the rigged
+>   1.5 multiplier pin: the forecast equals the real step of a 1.0 twin for every good, grain differs from the rigged
+>   step, non-farm goods equal). Automated Next-turn comparison (checklist 22, headless, seed 42 + 1 AI, 12 turns):
+>   `docs/m5-next-turn-comparison.md` — 100 rows, every non-food good exact, only weather-carrying food goods differ.
+>   Fresh CI on the Decision C commit: recorded in `docs/m5-exit-inventory.md` §13 once the run finishes.
+> - **Open for the Director:** R6 merge ruling; checklist 21 and 22 on the Decision C build.
+> - Verify against the tree (gov-4) before relying on this entry.
+
+> **2026-10-20 (latest): M5 closure package and M6 planning package prepared — branch `claude/new-session-yavghm`
+> (this entry's commit sits on `dc83a67`; docs only). M5 is NOT closed: the package is the evidence for the Director's
+> closure ruling, not the ruling.**
+> - **M5 closure report and evidence matrix:** `docs/m5-exit-inventory.md`. Verdict: ready for the Director's review,
+>   not ready for tagging. Of D-052 §15's seven conditions: CI incl. Windows smoke PASS on `4d2de04` and `dc83a67`
+>   (VERIFIED job by job: CI runs 39371214975 / 39373352699, Windows runs 39371214840 / 39373352710); the calibration
+>   battery PASS with D-059's acceptance PENDING; D-051 scheduling BLOCKED (no milestone named); the unit-display rework
+>   FAIL (not built); the Spine M5 items BLOCKED (destination unruled); packet acceptance PENDING (18 m5w packets, W0,
+>   ADR-035 P-F1/P-F0, D-053…D-060, `3c18a71`); the merge ruling PENDING. Proposed tag `m5-exit` on the merge commit into
+>   `main`, minted by the Director publishing the Release (M0–M4 convention); release notes drafted.
+> - **The 20-seed soak** (`calibration-nightly`, S8 §4 proof standard) was dispatched on the branch at `dc83a67` (CI run
+>   39377615261): the 20-seed autoplay sweep and the corridor teeth across all 20 seeds **passed** (VERIFIED).
+> - **Director-reported (2026-10-20 instruction):** zero-stock persistence confirmed on the build of `4d2de04`
+>   (build as stated by the Director; artifact 12241855029). NOT reported: the next-turn equality check (checklist 22),
+>   PT-04–PT-11, the chronicle wording fix.
+> - **Verified finding (Decision C, `m5-exit-inventory.md` §10):** the RESOURCES "Next turn" figure includes the pending
+>   harvest-weather multiplier (production reads PREV's `HarvestWeather` row, `ProductionSystem.cs:176`), which ratified
+>   D-051 §3 says a forecast must not reveal ("expected weather … never reveals the actual next draw"). No code changed;
+>   three options are put to the Director (keep exact with a dated note on §3; expected weather — recommended; blank
+>   farm goods).
+> - **M6 planning package:** `docs/m6-plan/` — README with the M5→M6 transition note, scope register, task register
+>   (M6.1–M6.24), dependency graph, decision register (D-C…D-Q), risk register, M7 handoff register, deferred-work
+>   register (DW-001…DW-076). Status PLANNING INPUT: not the M6 spec (S8 §4: written after the M5 exit gate), allocates
+>   no packet, authorizes no code. Material conflicts recorded, not resolved: "Civics Points" vs the ratified single RP
+>   pool (D-044 R2/R12, D-046 G5); government adoption in M6 vs the Spine's M8; per-unit progression state and Action
+>   Points vs D-052 §4 / D-011.
+> - **Unchanged:** `main` at `93270cd`; no tag, no release, no merge; no Sim.* file changed by this entry's commit.
+> - Verify against the tree (gov-4) before relying on this entry.
+
+> **2026-10-20: Director's playtest of the D-060 candidate; resource persistence fixed; Decisions A and B; run-recording
+> audit — branch `claude/new-session-yavghm` (this entry's commits sit on `f80dce6`). Supersedes the "LOCAL … NOT
+> pushed, NOT merged" status of the D-060 entry below, which is kept as written: D-060 is pushed at `f80dce6` (CI run
+> 39338603701 green; `windows-smoke` green, run 39338603779). Nothing is on `main`.**
+> - **Director-reported (2026-10-20), not agent observations:** rival-data isolation Pass; resources view and strip Pass
+>   except a resource disappearing at 0 stock; construction carry-over (D-058) Pass; Continue last game Pass; ordinary
+>   play Pass. **Build: `f80dce6`, INFERRED** (the only pushed build carrying D-060; the Director did not state it).
+>   Not covered: PT-04 to PT-11, the chronicle wording fix. Details: `docs/m5-playtest-known-issues.md` (note of
+>   2026-10-20).
+> - **Fixed, UI only:** a resource once held in this game stays listed at 0; RESOURCES gains a "Next turn" column (the
+>   production step run on a copy, AI orders excluded). Record: `docs/m5-resources-view-proposal.md` §9. Tests:
+>   `Sim.Ui.Tests/ResourcesPersistenceTests.cs`. No Sim.Core, order, save, schema or hash change.
+> - **Ruled (recorded, not reopened):** Decision A, a rival token's size is deferred until fog of war (not permanently
+>   public); Decision B, pre-capture price history is an intentional disclosure. Record: D-060 §11.
+> - **Run recording:** not encrypted, not compressed, not merged; the one-file export is an M6 design only. **Director
+>   ruling needed** on what "encryption" must achieve: `docs/m5-run-recording-audit.md` §8.
+> - M5 is NOT closed (D-052 §15). Verify against the tree (gov-4) before relying on this entry.
+
+> **2026-10-19 (latest): D-060 closes a known rival's books on every player surface — branch `b6-rival` (clone
+> `/home/user/m5w/b6-rival`, base `77d8c30`; LOCAL commits only — NOT pushed, NOT merged).**
+> This is the Director's instruction "i should not be able to see other empire's data". It fixes the open defect named
+> in the entry below.
+> - **Record:** `docs/d060-rival-internals-isolation.md`.
+> - **The rule.** Player surfaces now ask `PlayerKnowledge.ReadsInternals`, the UI wrapper over the existing
+>   `PolityKnowledge.ReadsInternals`, instead of "known" alone. They are:
+>   - the selection card;
+>   - the SETTLEMENT view;
+>   - POLICY's labour record;
+>   - the needs and market models;
+>   - the unit card's experience and army;
+>   - the map's Settlement-zoom labels and labour ring;
+>   - the ANNALS panel;
+>   - the founding card.
+>
+>   A rival shows its name, its owner and "Not your settlement - its figures are not known to you."
+> - **Decided scope.**
+>   - The F12 DEV panels stay world-wide, labelled "Developer view - shows every empire.".
+>   - The session files, chronicle export included, are unchanged.
+> - **Evidence.**
+>   - Sim.Ui.Tests: 1,080 / 0 failed.
+>   - Sim.Tests: 2,635 / 0 failed / 13 skipped.
+>   - Release build: 0 warnings.
+>   - Seed-42 one-AI 60-turn hash unchanged, `827d9b00…3878a0`.
+>   - Both smokes: SMOKE PASSED.
+> - **Unchanged.** No Sim.Core system, order, save, schema or hash changed. The one Sim.Core edit is InfoQuery's founding
+>   card, a read-only query.
+> - **Residual.** The drawn token still sizes with a rival's population (public as drawn). A settlement captured from a
+>   rival shows its pre-capture price history. See D-060 §9.
+> - Verify against the tree (gov-4) before relying on this entry.
+
+> **2026-10-19 (later) — status correction; supersedes the "LOCAL", "NOT pushed" and "NOT merged" wording of the D-059
+> and D-058 entries directly below (they are kept as written).**
+> - **Merged and pushed.** D-058 (`b5-cons`), D-059 (`b5-calib`), the resources view (`b5-res`) and the chronicle fix
+>   (`b5-chron`) are merged into `claude/new-session-yavghm` at `6d1988f27195c1ad30898eb651c4f4fdaa16ca23`, which is
+>   pushed to that branch on GitHub. `main` is unchanged at `93270cd`. Nothing is merged to `main`, tagged or released.
+> - **CI on `6d1988f`** (run 39270568141):
+>   - `build-and-test` success: Sim.Tests 2,635 passed / 0 failed / 13 skipped; Sim.Ui.Tests 1,069 / 1,069;
+>   - `calibration`, `determinism`, `determinism-xproc`: success;
+>   - `calibration-nightly`: skipped (it runs on the schedule only).
+> - **Windows build** (run 39270568128): `ui-artifact` success, artifact `sim-ui-win-x64-6d1988f` (expires
+>   2026-11-18). `windows-smoke` success: 13 states, 3,862 checks, 0 FAIL, SMOKE PASSED, exit 0.
+> - **Human evidence covers build `231485e` only** (PT-01 to PT-03, 2026-10-19). The changes after it are NOT yet
+>   accepted by the Director: D-058, D-059, the resources view, the chronicle fix and `Continue last game.cmd`.
+> - **Open at `6d1988f`:** a selected rival settlement still shows its internals (population, grain, harvest, happiness,
+>   grievance; audit of 2026-10-19). M5 is NOT closed (D-052 §15).
+
+> **2026-10-19: D-059 resolves the two CR-020 calibration reds on branch `b5-calib` (LOCAL; NOT pushed, NOT
+> merged).** This is the Director's 2026-10-19 instruction ("CI main test run, full authorization, resolve the issue
+> best you can"), applied as CR-020 §B option 1.
+> - The re-record covers `Dev_MalthusCorridors_AllInBand`'s per-seed recorded dev migration values and its population
+>   envelope.
+> - Test-only: no world hash, golden or CI pin moved.
+> - Record: `docs/d059-calibration-rerecord-d051-regime.md`.
+
+> **2026-10-19: D-058, the Director's ruling "build one at a time … 7 built, 1 under construction, 1 not started", is
+> implemented on branch `b5-cons` (clone `/home/user/m5w/b5-cons`; LOCAL commits only — NOT pushed, NOT merged).**
+> Records: `docs/d058-build-one-at-a-time-capacity-carries-within-the-turn.md`, and dated notes appended to ADR-039 and
+> `docs/m5-playtest-known-issues.md`.
+> - **What changed.** When a construction head completes, the settlement's leftover capacity that turn carries its queue's
+>   next entry into the same step, at its own place in the building order and under the D-055 set-aside rules
+>   (`ConstructionQuery.HoldsWalk`). Switch: `sim.json construction.continueWithinTurn` (shipped on); control
+>   `TestConfigs.PreContinueWithinTurn`. `SplitReportCheck` P2 is restated as build + holds = min(G_b, R).
+> - **Unchanged.** Schema v34; no kernel file; no golden hash of the suite or ci.yml.
+> - **Moved scenario pins.** S42-ALLOC-H, the save/load battery, the colony cancel, the v32 fixture and the ci.yml mix
+>   leg's generator; each is attributed in D-058 §7.
+> - **Compatibility.** The Director's 68-turn session of 2026-10-19 is unaffected (identical old/new replay, 68/68).
+> - Verify against the tree (gov-4) before relying on this entry.
+
+> **2026-10-18 (later): D-057 continues D-056 on `claude/new-session-yavghm` (LOCAL, development clone
+> `/home/user/m5w/dev`; NOT pushed, NOT merged, NOT published).** Records:
+> - `docs/d057-identity-proof-and-validated-handoff.md` (decisions, compatibility impact, the coupling map, the priority
+>   contract, the smoke rig, the bench);
+> - `docs/adr/adr-042-replay-identity-proof.md` (the contract);
+> - `docs/adr/cr-022-identity-proof-vs-d008-replay-recovery.md` (the conflict with D-008: implemented under delegated
+>   authority, awaiting the Director's ruling).
+>
+> **What changed:**
+> - A replayed order is delivered only when every settlement and polity it names is proven to be the recorded one
+>   (ReplayProof: UI resume and `sim inspect`).
+> - `inspect` reports the readable-form check for v32/v33 sessions.
+> - Bare-log runners refuse another schema's session log.
+> - A damaged session file is a refusal dialog, not a crash.
+> - `--emit-session` never overwrites a record.
+> - The snapshot reader refuses malformed flags and command sources.
+> - The 1-AI smoke age rig is fixed (a harness defect).
+> - Two system comments are corrected.
+>
+> **Schema stays v34;** no hash moved. Verify against the tree (gov-4) before relying on this entry.
+
+> **2026-10-18: D-056, the Director's mandate "Fix the game", is implemented on `claude/new-session-yavghm` (the
+> protected development clone; NOT merged, NOT published).** Records: `docs/d056-director-mandate-fix-the-game.md`
+> (decisions and supersessions) and `docs/adr/adr-041-identity-cancel-replay-guard-same-step-edge.md` (the contract).
+> - **What changed.**
+>   - Cancels are order kind 13 and carry their entry's identity. Kind 11 is legacy: never written, and replayed only
+>     where the session trace proves the world is the recorded one; otherwise refused before any write. Bare CLI logs
+>     carrying kind 11 are refused.
+>   - The road-development read of ConstructionHolds is an enforced same-step edge.
+>   - The snapshot reader refuses truncated or padded files and impossible row counts.
+>   - The O5 early exit is observable.
+>   - `--from-save S --save S` is refused.
+> - **Schema stays v34.** The batch-4 entry below describes the base this sits on; verify both against the tree
+>   (gov-4).
+
+> **2026-10-18: batch 4 (the Director's instruction "Batch 4 — Independent Audit Remediation") is applied UNCOMMITTED
+> on `m5w-integration`, on top of the uncommitted batch-3 tree (`de86ace` + the batch-2 base + `b3-final-v9`).**
+> - **State.** LOCAL only, in the integration worktree's working tree. It is NOT committed, NOT merged, NOT pushed, NOT
+>   tagged and NOT packaged ("No commit, push, merge, tag or publication is authorised"). M5 stays NOT complete
+>   (D-052 §15). LOCAL, REPORTED, REMOTE and MAIN are four different states (gov-4 §2): no batch-4 commit exists, so no
+>   remote branch and not `main` carries batch 4 — nor batches 2 and 3, which are uncommitted too. This entry and
+>   D-055 are REPORTED state: the "MEASURED" results below are scratch-only, and every claim is to be verified against
+>   the tree.
+>   - Verify before relying on it: in the working tree, `Sim.Core/Kernel/CanonicalSchema.cs` must read
+>     `public const int Version = 34;` and `Sim.Core/State/Reservations.cs` must exist. If not, batch 4 is not applied
+>     there and this entry describes nothing.
+>   - Verify that the code is the validated code: at the root, run
+>     `git ls-files -co --exclude-standard -- ':!docs' | LC_ALL=C sort -u | while IFS= read -r f; do [ -f "$f" ] && sha256sum "$f"; done | sha256sum`.
+>     It must print `736862e6aaa85795df6d0fff67a874efcfbda4202251621900813e9097cc1207` (770 files outside `docs/`;
+>     D-055 §8). If it does not, the code there is not the code the results below were measured on.
+>   - This entry was written at the batch's integration (records stage, 2026-10-17) on a scratch clone of the merged
+>     tree: the six track patches combined, work tree `6a9f6dc9…` before the records (D-055's provenance names each
+>     patch and its sha256). It was updated 2026-10-18 (the integration's update stage) when T3's final revision
+>     replaced the merged one: code tree `06eae6ba…`; and at the fix stage (2026-10-18), which corrected records and
+>     made two comment-only source edits (D-055's provenance, "the fixed tree"); and last at the records-finalize stage
+>     (2026-10-18, docs only), which added D-055 §8's result table and brought the MEASURED lines below up to date. It
+>     reaches the worktree together with the code it describes, so it was written before that application and does
+>     not report it.
+> - **Built** (records: `docs/d055-batch4-reservations-attribution-allocation-ci-persistence-pathfinding.md` for the
+>   decisions, supersessions, measurements, moved pins and limitations; `docs/adr/adr-040-schema-v34-construction-holds-pathfinder-surface-and-cli.md`
+>   for the contract):
+>   - **Item 1, material reservations across turns.** Every unreleased construction queue head SETS ASIDE its remaining
+>     need from its purse, oldest order first; later heads and road works may not use it. Released only when the
+>     reservation is invalid (unknown project, no labour adults, `NoConfig` viability). Switch: `sim.json`
+>     `construction.reservations`, shipped ON; control `TestConfigs.PreReservations`. The player is told in one term,
+>     "set aside".
+>   - **Item 2, W1 F7 closed:** turn-exact attribution on the shipped cylinder of every behavioural feature previously
+>     proven only on flat rigs, with seam rigs for the five distance-reading features (`CylinderAttribution*Tests`); the
+>     pure layout byte strips get no cylinder twin, each with its reason (D-055 §3).
+>   - **Item 3:** the ci.yml step "Allocation split, binding, cross-process (D-055)", with `sim run --from-save`,
+>     `--split-report` and `sim split-check`. The check re-derives every reported step's split and walk (P11, P12)
+>     instead of reading them back, and judges that a split change binds in its own delivery step against the run
+>     without it (PT).
+>   - **Item 4:** the persistence and lifecycle matrix, closed with recorded gaps (D-055 §5).
+>   - **Item 5:** the 13.8 % finding corrected (+9.2–9.4 % against a same-day flat control, seed 42's A* search size), and
+>     the byte-identical optimisations O1–O6 (60-turn bench −44 % to −54 % per seed, measured on base-b3 + T5; all of
+>     batch 4 against base-b3, −36.5 % to −47.0 %, D-055 §8).
+> - **Contract changes (ADR-040).** Schema **v34**: section 61 `ConstructionHolds` (16-byte rows); the readable versions
+>   are {32, 33, 34}; a v33 save loads with the table empty. No order kind added. `TurnExecutor.cs` changes by comments
+>   only; the construction → roaddevelopment read is order-as-data in `SystemCatalog` (D-055 §11).
+> - **Moved pins** (each with a dated D-055 cause block and its old value reproduced under `PreReservations`, D-055 §7).
+>   The founded golden `40115e28…` → `0f29efc7…` (and ci.yml `FOUNDED_GOLDEN`), toy `222280e5…` → `2e6d4461…`, driven
+>   `fa1ce900…` → `eb88663a…`, first reign `bccc8aed…` → `f7ca60a5…`, AI `91836bcf…` → `25f4799d…`: the v34 layout alone.
+>   Behaviour: three DEFECT pins, two split pins, `TwoHeadsAndARoad`, and the save/load battery's save points
+>   (1, 26, 2, 26) → (1, 26, 23, 24). Text pins for the "set aside" wording.
+> - **Calibration.** No frozen item touched. The two CR-020 reds keep batch 3's values exactly (seed 42 8.35755E-05; seed
+>   7 123,950) in every track's full run and in the integration's (D-055 §8).
+> - **MEASURED: scratch-only** (D-055 §8; gov-4 §9, a result, not a certification). None of it ran on the worktree.
+>   - Each track's full Sim.Tests on its own tree: only the two CR-020 reds, plus, under host load, the wall-clock
+>     `PopulationTests.ProductionPipeline_PerPhaseBench_Reported`, which passed when re-run alone.
+>   - The integration validated the combined tree (`4602ed4d…`, patch `e4b607ed…`). It re-ran the code-dependent checks
+>     on the fixed tree (`30fed100…`, patch `2e2353eb…`; comment-only source edits). Results: build 0 warnings; the three
+>     gates and the three research `--check`s OK; FULL Sim.Tests 2,577, of which 2,562 passed, 13 were skipped and 2
+>     failed, exactly the CR-020 pair; FULL Sim.Ui.Tests 1,019 / 1,019; the determinism, topology and pathfinding,
+>     save/load and migration, allocation and reservation filters all passed; `--smoke --monkey 300` 0 FAIL.
+>   - The ci.yml cross-process step (T0.9) and the allocation step, extracted and run locally: exit 0. With and without
+>     T5, the whole run is identical. The nightly (20 seeds × 650 turns) equals batch 3's on every compared field
+>     (`worldHash` excluded), and `corridors.log` is byte-identical. `sim bench`, 60 turns: 36.5–47.0 % faster per seed
+>     than base-b3 (load 1.80–7.66). New failures: none.
+> - **NOT measured in the repository's records:** anything on the integration worktree itself, because the worktree
+>   validation after this application is reported in the batch-4 report, not in the repository; CI on any batch-4 commit
+>   (none exists; the ci.yml steps ran only locally); the Windows build; the GPU seam and a person reading the holds UI
+>   (manual).
+> - **Open for the Director:** D-054 §10 Q1–Q13, Q15, Q18 and Q19 (Q14 is answered, Q16 corrected and Q17 resolved by
+>   batch 4). Batch 4 escalated nothing; its limitations are D-055 §9.
+> - **Batch-4 dated notes** were appended at the END of: D-054, ADR-039, ADR-032, ADR-005 (2026-10-16), the m5w plan,
+>   `docs/queue.md`, `docs/m5-playtest-known-issues.md` and `docs/m5-playability-gate.md` (§3.14, §3.15 and the §6
+>   regeneration). No earlier text was rewritten (D-054 §10 Q19 is unruled), except the gate doc's §6 generated totals
+>   line (117594 → 117608 frames), regenerated by the gate's own command and recorded in that document's file-end
+>   notes.
+> - Verify these claims against the working tree (gov-4). They describe LOCAL state only.
+
+> **2026-10-15: batch 3 (the Director's 2026-10-14 instruction) is implemented, LOCAL and UNCOMMITTED, on top of the
+> uncommitted batch-2 tree of the `m5w-integration` worktree (`de86ace`).**
+> - **State.** LOCAL only, in the integration worktree's working tree. It is NOT committed, NOT merged, NOT pushed, NOT
+>   tagged and NOT packaged; committing, merging and publication wait for the Director. M5 stays NOT complete
+>   (D-052 §15). LOCAL, REMOTE and MAIN are three different states: no batch-3 commit exists, so no remote branch and
+>   not `main` carries batch 3.
+>   - Verify before relying on it: in the working tree, `Sim.Core/Pathing/MapTopology.cs` must exist and
+>     `Sim.Core/Kernel/CanonicalSchema.cs` must read `public const int Version = 33;`. If not, batch 3 is not applied
+>     there.
+>   - The final code is the batch-3 diff `b3-final-r3.patch` (sha256 `855a14029c906c51…`: the combine stage's tree
+>     `5ab74d3e…` plus fix rounds 1 and 2 and a final nits round) plus final-round fix 1 (2026-10-15: the save/load
+>     battery's part-built save point moved to world 8, and three comment-only edits) plus final-round fix 3
+>     (2026-10-15: the wording of two refusals, the cylinder's size refusal and the corrupt-trailer refusal, and their
+>     tests) plus final-round fix 4 (2026-10-15: one semantic worldgen test for the flat noise mapping, mutant MA2; no
+>     product code; its doc comment corrected afterwards). Its non-docs diff over the batch-2 base has sha256
+>     `317ec1b6…` (`fa72fa6c…` before that comment correction, `5de7149e…` before fix 4; D-054 header).
+> - **Built** (records: `docs/d054-batch3-incremental-construction-allocation-cylinder.md` for the decisions,
+>   supersessions, measurements, moved pins and Director questions; `docs/adr/adr-039-schema-v33-orders-11-12-and-cylinder-topology.md`
+>   for the contract):
+>   - **WS1, incremental construction.** It supersedes M4-D's "built whole or waits". Switch: `sim.json`
+>     `construction.incremental`.
+>   - **WS2, each Empire's building/roads material split** (default 100 = building first). Switch:
+>     `construction.allocationRatios`.
+>   - **WS3, the east-west cylinder** in worldgen, simulation and rendering. Switch: `worldgen.json` `topology.wrapX`.
+>   - All three are shipped ON. The attribution pair `TestConfigs.PreD054Sim` + `PreD054Worldgen` turns the batch off.
+> - **Contract changes (ADR-039).**
+>   - Schema **v33**: `ConstructionProgress`, 28-byte rows; `ResourceAllocations`, 8-byte rows.
+>   - Order kinds **11** `CancelConstruction` and **12** `SetResourceAllocation`. Kind 10 stays reserved for M7.
+>   - An int32 snapshot topology trailer.
+>   - The first explicit migration: a v32 save loads flat.
+>   - **One rule for old records:** `TopologyFlags.RecordedFlat(v)` = `v < 33`. Every pre-v33 save or session is
+>     rebuilt FLAT, by the UI resume, `sim inspect` and the CLI save loader; a v33 save uses the topology its trailer
+>     names. A real batch-2 session (`Sim.Tests/Fixtures/v32-session-found/`) resumes into the batch-2 build's own
+>     world (hash `6157dfde…` at turn 8). `sim replay` has no flat path (D-054 §4, §9).
+>   - CR-021 is RESOLVED.
+> - **Moved pins** (each attributed in integration R1; no re-pin since; D-054 §7).
+>   - The founded golden `937577ff…` → `40115e28…`, with ci.yml `FOUNDED_GOLDEN` moving the same way (its V32
+>     projection `0549049d…` is the cylinder alone). Driven `4f4e0b81…` → `fa1ce900…`. AI `b2e4f333…` → `91836bcf…`.
+>     First-reign `467f2cb6…` → `bccc8aed…`. Cause: the v33 layout plus the cylinder.
+>   - Toy `5994e978…` → `222280e5…`: the layout alone.
+>   - Seven turn and digest pins moved for the cylinder: five in Sim.Tests and two in Sim.Ui.Tests. One of them, the
+>     battery's save points, also moved for WS1.
+>   - With both halves off and the v32 projection, every batch-2 reference reproduces byte for byte.
+> - **Calibration.** No literal, band, envelope, hazard, spoilage or store bound was touched. The two CR-020 reds remain
+>   the only Sim.Tests failures: seed 42 8.35755E-05 (was 8.71773E-05); seed 7 123,950 (was 124,483). The cylinder alone
+>   moves them. The nightly corridor drift is in D-054 §6.
+> - **MEASURED on the final code** by final-round fix 3 (HEAD `de86ace` + batch-2 base + the final batch-3 diff;
+>   Release, .NET 10.0.112; a result, not a certification, gov-4 §9; D-054 §8):
+>   - build: 0 warnings, 0 errors (also with `--no-incremental`);
+>   - the three gates (banned constructs, read isolation, readonly proof) and the three research `--check`s: OK;
+>   - **Sim.Tests 2,060 passed / 2 failed / 13 skipped (2,075)**, the 2 being the CR-020 seeds above;
+>   - **Sim.Ui.Tests 975 / 975**;
+>   - calibration battery (read from the full run) 5 passed, the same 2 failed;
+>   - smoke `--monkey 300`: 13 states, 3,190 checks, 0 FAIL.
+> - **Measured by final-round fix 1** on its code (the final code before fix 3's two message changes): Sim.Tests
+>   2,056 / 2 / 13 (2,071) and Sim.Ui.Tests 974 / 974; every test name of those runs is in fix 3's with the same
+>   outcome, except the renamed size and trailer theory cases.
+> - **Measured by the nits round on `b3-final-r3.patch`** (which differs from final-round fix 1's code only in one test
+>   file and three doc comments): the same counts as fix 1, and the ci.yml cross-process step rc 0, including the
+>   seed-16 seam leg and the exact kind set {3..9, 11, 12}, with every hash equal to the combine stage's run.
+>   Final-round fixes 1 and 3 did not re-run that step: they changed no order, hash or simulation code (fix 3 changed
+>   the text of two CLI/UI refusals).
+> - **Measured on the final code in the integration worktree itself** (2026-10-15, after final-round fix 3 and before
+>   fix 4's test; D-054 §8): the same suite counts as above, determinism filter 48 / 48, the ci.yml cross-process step
+>   rc 0 (every leg, including the seed-16 seam leg and the exact kind set {3..9, 11, 12}), nightly 20 × 650 rc 0 and
+>   identical in every field to the combine stage's, corridors rc 0. Final-round fix 4 then added one Sim.Tests test:
+>   full Sim.Tests 2,061 / 2 / 13 (2,076).
+> - **Measured only on the combine stage's tree `5ab74d3e…`** (the later rounds changed no simulation system): bench
+>   +13.8 % on the shipped config and +1.2 % on the same flat world; the six CLI hash legs with the V32 projection; the
+>   cylinder-off nightly control (the calibration battery's cylinder-off control was measured on the W1 tree).
+> - **NOT measured:** CI on any batch-3 commit (none exists); the Windows build and smoke; the GPU seam (the manual
+>   playtest, `docs/m5-playtest-known-issues.md` §16).
+> - **Open for the Director:** D-054 §10 (19 questions; Q9, old sessions, is reframed for the final code, and Q17,
+>   Q18 and Q19, where batch 3's dated notes sit in frozen documents, are new).
+> - **Batch-3 dated notes** were appended to: `docs/milestones.md` (M4-D), §4 below, `docs/queue.md` (T3.1(b), the
+>   M4-D entry, the P1 zoom-floor entry), D-052, D-053, ADR-005, ADR-008, ADR-032 (Final Ruling 3), ADR-033 (D10),
+>   ADR-034 (§4, the resume notice), ADR-038, CR-021, the m5w plan, D-009, the M1 spec (D-015), the M3 spec (T3.1(b)),
+>   `docs/institutions-universities.md` and `docs/session-records.md`. Some of them sit inside the body, next to the
+>   text they supersede, rather than at the end of the file; D-054 §10 Q19 lists those and asks whether gov-4 §6 allows
+>   it.
+> - Verify these claims against the working tree (gov-4). They describe LOCAL state only.
+
+> **2026-10-14: batch 2 (the Director's 2026-10-13 instruction) is implemented UNCOMMITTED on `m5w-integration`, on
+> top of `de86ace`.** Nothing is committed, pushed, merged, tagged or packaged; publication waits for the Director.
+> - **Built:**
+>   - D-053 §1, the empire purse for construction and roads;
+>   - §2, intra-polity grain relief in a shortage;
+>   - §3, the granary effects.
+>   Each has a sim.json switch, shipped ON, and an attribution control (`TestConfigs.PreD053` turns the batch off).
+> - **Records:** `docs/d053-batch2-playtest-rulings.md` (decisions, supersessions, questions for the Director) and
+>   `docs/adr/adr-038-empire-stockpile-food-relief-granaries.md` (technical contract, re-pins).
+> - **Not built:** items 3, 4 and 6 (incremental construction, building/road ratios, the explored-longitude wrap with
+>   Satellites). `docs/adr/cr-021-batch2-items-3-4-6-vs-frozen-decisions.md` is OPEN and escalated.
+> - **No save-format change** (CanonicalSchema v32), and no frozen calibration reference touched.
+>   - The founded golden `937577ff…` is unchanged.
+>   - The AI world moves `aa7a87a9…` → `b2e4f333…` and the driven golden `7bcdc03f…` → `4f4e0b81…`, each with
+>     per-layer attribution in ADR-038 §6.
+>   - The two CR-020 reds are unchanged in kind. Seed 7 now reads 124,483.
+> - Verify these claims against the working tree (gov-4): they describe LOCAL state only.
+
+> **2026-10-12: D-052 recorded, and the two playtest blockers fixed, on `m5w-integration`** (two commits on
+> `f0427d2`, pushed to the new branch `claude/m5-playtest-d052` for the playtest build with the Director's authorization).
+> - `claude/new-session-yavghm` is untouched at `2dc6af2`.
+> - NOT merged, and M5 is NOT complete.
+> - The packets' acceptance and any merge to `main` are still the Director's.
+> - **The Director's 2026-10-12 rulings are recorded:** `docs/d052-m5-integration-audit-rulings.md`, with dated
+>   pointers in the records it supersedes. In summary:
+>   - ADR-036 and ADR-037 are RATIFIED as drafted, ADR-036 §8 (g)–(i) and the S1c re-pins included.
+>   - CR-020 is RULED: §A is the guard plus the approved primitive-tools direction, mechanism deferred; under §B,
+>     time-averaged weather stays on, every frozen calibration reference is preserved, and the two reds are
+>     disclosed.
+>   - CR-017 §3/§5 are scheduled for M7, and the CR stays OPEN.
+>   - D-051 §1(a), §2, §3 and §6, and primitive toolmaking, are deferred until after the playtest.
+>   - Fog and scouts go to M6; the visual milestone is placed at M6; movement and Action Points go to M7.
+>   - The unit-display reading is agreed, but NOT built.
+>   - The Spine's M5 items (budget, authority, laws-lite) are deferred, with destination unruled.
+>   - The playtest launcher uses `--ai-empires 1`.
+>   - `--size` must found correctly.
+>   - Old saves from another build are refused with a clear error.
+> - **Still open** (D-052 §14): ADR-035 P-F1/P-F0; acceptance of the 18 m5w packets and W0; publication (`2dc6af2`
+>   is the accepted remote baseline); the Spine items' destination; G9; the viewport fit; the shortcut's deposit
+>   highlight.
+> - **Playtest blockers fixed (code):**
+>   - `--size` founding: `WorldFounding.HinterlandMeans` indexes by the terrain's own size. It used to read the wrong
+>     cells and crash End Turn for bottom-row sites; that was reproduced, for example with `--seed 1 --size 256
+>     --ai-empires 1` at turn 180.
+>   - Cross-build resume: `SessionIncompatibleException` gives a clear error with exit code 3 and a best-effort native
+>     dialog, instead of an unhandled crash (`Sim.Ui/ResumeRefusal.cs`, `Sim.Ui/NativeErrorDialog.cs`).
+>   - The canonical founded golden `937577ff…` is unchanged, and no pin moved.
+> - **Playtest launcher:** `.github/workflows/ui-artifact.yml` writes `start "" "app\Sim.Ui.exe" --ai-empires 1`.
+> - **Known issues for the playtest:** `docs/m5-playtest-known-issues.md`.
+> - **MEASURED on this tree** (a scratch clone at `f0427d2` carrying the identical diff before it was committed, Release):
+>   build 0 warnings / 0 errors; banned-constructs, read-isolation and readonly-proof gates OK; three research
+>   `--check`s current; **Sim.Tests 1,703 passed / 2 failed / 13 skipped (1,718)** — the 2 failures are exactly the
+>   ruled CR-020 reds (`Dev_MalthusCorridors_AllInBand` seed 42: 8.71773E-05 below 0.75 × 0.000248624; seed 7: 124,455
+>   above 119,000); **Sim.Ui.Tests 845 / 845**; `--smoke --monkey 300` PASSED (12 states, 2,896 checks, 0 FAIL);
+>   ci.yml cross-process legs reproduced — orderless 400, ordered + replay 400, founded 300 = `937577ff…` (the pinned
+>   golden), founded replay, found-settlement leg (inspect VERIFIED 301 turns), AI leg (296 orders, kinds 3–9, inspect
+>   VERIFIED 601 turns, `7f374638…`).
+> - **NOT measured when this was written:** CI and the Windows smoke on the pushed commit (see its GitHub Actions runs),
+>   and the native dialog on Windows.
+>
+> Verify against git.
+
+> **2026-10-11: M5 map / exploration / settlement workstream, `m5w-integration` @ `6b624d45` (LOCAL, NOT pushed,
+> NOT merged).**
+> This entry records MEASURED facts only. It was written by packet W0 (branch `m5w-w0-docs`). It names no base for the
+> workstream, because none is ruled. Record: `docs/m5w-map-workstream-audit-and-plan.md`, which holds the 2026-10-10
+> audit and plan and its "2026-10-11 — status" section.
+>
+> - **REMOTE: `2dc6af2` is on the remote.** `m5p-integration` @ `2dc6af2` is the remote branch
+>   `origin/claude/new-session-yavghm` (`git ls-remote origin`, 2026-10-11). Both CI runs on that head are green
+>   (`gh run view`):
+>   - CI run `38032099613`: build-and-test, determinism, determinism-xproc and calibration succeeded.
+>   - ui-artifact run `38032099661`: ui-artifact and windows-smoke succeeded. The artifact `sim-ui-win-x64-2dc6af2` is
+>     not expired.
+>
+>   This dated line supersedes, for `2dc6af2` only, the 2026-10-10 entry's "(LOCAL, NOT pushed, NOT merged …)", which
+>   is kept as written. `2dc6af2` is NOT on main (`origin/main` = `93270cd`).
+> - **LOCAL only: `m5p-d051-fixes` @ `82bde01` and `m5w-integration` @ `6b624d45`.** Neither is on the remote: no remote
+>   ref contains either commit (`git ls-remote origin`, then `git merge-base --is-ancestor` against every remote head).
+>   Neither is merged to main, and because neither is on the remote, no CI can have run on
+>   either. `m5w-integration` is cut from `82bde01`, 103 commits ahead.
+>   Seventeen packet branches are merged into it: S0, S1a, S1b, S1c, S1d, P1, P2, P3, P4, P6, P7, P8, P9, P10, P11, P12a
+>   and P13. Their heads are in the status section. None has a Director acceptance ruling.
+> - **Inherited CR-020 reds:** `Dev_MalthusCorridors_AllInBand` seeds 42 and 7 are RED on `6b624d45`'s code.
+>   - MEASURED 2026-10-11 on branch `m5w-w0-docs` (Release,
+>     `dotnet test Sim.Tests/Sim.Tests.csproj -c Release --no-build`): 1,699 passed, 2 failed, 13 skipped.
+>   - The failures carry CR-020 §B's values. Seed 7: the dev population is 124,455, above 119,000. Seed 42: migration
+>     is 8.71773E-05, below 0.75 × 0.000248624.
+>   - These are the two reds CR-020 records on `m5p-d051-fixes`. They are left RED until CR-020 is ruled.
+>
+>   On the same tree: Sim.Ui.Tests 830/830; `Sim.Ui --smoke --monkey 200` passed (12 states, 0 FAIL); the three gate
+>   scripts and the three research checks are OK.
+> - **PROPOSED, not ratified:**
+>   - ADR-036 (the Found Settlement order, kind 9). Its legality terms are the defaults the Director was told of, and
+>     they await his confirmation.
+>   - ADR-037 (the player-knowledge seam).
+>
+>   CR-020 and CR-017 are OPEN.
+> - **Open Director rulings for this workstream.** None is recorded, and no D-052 exists. They are:
+>   - the base branch: CR-020 §A/§B, approval to push `m5p-d051-fixes`, and the "cut from main" convention;
+>   - ADR-036's legality terms and its §8 items (g)–(i);
+>   - D-038 E1's visual milestone;
+>   - fog and discovered extent: D-040 pulled forward from M6;
+>   - unit movement and Action Points: CR-017 §3/§5;
+>   - unit representation;
+>   - institutions at close zoom: D-043 D2 and H8;
+>   - Age-specific terrain and architecture;
+>   - part 6's "research unlocks a resource".
+>
+>   Waiting on them: W0b, P5, P12b, P14, S2a, S2b, S2c, S3a, S3b and S3c. Some delivered packets follow defaults that are
+>   not ruled: S1b, S1c and S1d follow ADR-036's terms; P10 follows part 6 option 1; P11 follows unit-representation
+>   option 1.
+>
+> Verify against git.
+
+> **2026-10-10 (later) — `m5p-d051-fixes` (LOCAL, NOT pushed, NOT merged), cut from `m5p-integration` @ `2dc6af2`.**
+> Director rulings recorded (ADR-035 P-F2 + ADR-017 §7 amendment accepted; D-051 §6 deferred). D-051 §4: the Age I
+> workshop trap closed by `ProjectAvailability.InputUnobtainable` (a stone-toolmaking recipe was measured to block all
+> granaries and is NOT shipped). D-051 §1(b): time-averaged decade weather (`timeAveragedHarvest`, off = old goldens).
+> MEASURED on `2444a5c` (Release): Sim.Tests 1568 passed / 2 failed / 12 skipped — the two failures are
+> `Dev_MalthusCorridors_AllInBand` seeds 42 and 7, left RED and escalated in CR-020; Sim.Ui.Tests 583/583; all gates
+> and research checks OK; ci.yml determinism-xproc leg reproduced (founded golden `937577ff…`, AI leg VERIFIED).
+
+> **2026-10-10 — M5 PLAYTEST CANDIDATE `m5p-integration` (LOCAL, NOT pushed, NOT merged; M6 not started).** One tree =
+> `m5-hardening` `81ac697` + `m5p-sim` `4ef911c` + `m5p-docs` `9814383` + `m5p-info` `9205db6` + `m5p-ui` `bf711c8`.
+> Conflicts resolved: `docs/d049` (append-only, both kept); five UI files (m5p-ui layout kept, every m5p-info
+> Shift+click registration ported onto the new geometry). Simulation code = `m5p-sim` (other diffs are comments,
+> read-only `InfoQuery`/`Variables`, `SessionManifest` provenance). MEASURED on this tree (Release, 2026-10-10):
+> Sim.Tests 1559 passed / 0 failed / 12 skipped; Sim.Ui.Tests 583/583; banned-constructs, read-isolation,
+> readonly-proof and the three research `--check`s OK; ci.yml determinism-xproc leg reproduced locally (orderless,
+> replay, founded = `FOUNDED_GOLDEN` `e9e089bb…`, founded replay, 600-turn AI leg with order kinds 3–8, inspect
+> VERIFIED); calibration battery 7/7. ADR-035 still PROPOSED; D-051 rulings ratified, not implemented. Order-free
+> starvation unchanged by ADR-035 (canonical 11/20 seeds by 650; σ_log yield 0.19 counterfactual: 0/20).
+
+> **2026-10-05 — M5 HARDENING PASS (`m5-hardening`, NOT merged, NOT tagged; M6 not started; playable build
+> `sim-ui-win-x64-6ef1596`, ui-artifact run 37336233575, build and windows-smoke jobs green).** Newer than the
+> 2026-10-04 entry below. Research-screen crash fixed at its root (ImGui `RendererHasVtxOffset` never declared);
+> headless `--smoke` playability gate over every drawn control (9 states), also run on the shipped Windows exe;
+> Warband selectable with a card stating movement is M7; taxation is continuous per-segment pressure with no
+> instant revolt, a food floor and state-capacity aggravation (D-049, schema v32); the tax edict needs Taxation
+> **and** Age III; a revolt-born polity inherits its parent's Age; preview tools fixed; title `civ-sim M5`; on-screen
+> turn numbering starts at 1. ADR-034 (delivery-time order validation) is PROPOSED. Forager order-free starvation
+> is OPEN (shipped 4.3 / 2.0 kept). Record: `docs/m5-playtest-baseline.md` §15, `docs/d049-taxation-and-revolt-model.md`,
+> `docs/m5-playability-gate.md`, `docs/m5-hardening-measurements.md`. Verify against git.
+>
+> **2026-10-06 — D-050, Director rulings on the hardening open items** (docs-only commits `721cb01`, `81ac697` on
+> `m5-hardening`; still NOT merged, NOT tagged; M6 not started; no code change, so the playable build is still
+> `sim-ui-win-x64-6ef1596`). This dated line supersedes the entry's "ADR-034 … is PROPOSED" and "Forager order-free
+> starvation is OPEN", which are kept as written: (1) ADR-034 is **RATIFIED**; (2) forager food stays **4.3 per
+> gatherer / 2.0 per km²** — the 5.0 / 3.0 alternative is rejected, order-free worlds may starve in bad weather, and
+> a player who neglects food can starve; (3) population segments are classes, finer segments deferred to **M9
+> Society**; (4) the rebel count is a deterministic expected fraction, `uprisingGrievance` = 20; (5) a last
+> settlement under a permanent 100 % levy may sit in permanent revolt (food floored at the untaxed level), no relief
+> mechanic; (6) `taxCapacityOffsetMax` = 0.25; (7) capital succession deferred to **M8 Politics / Diplomacy**
+> (revolt-founded civilizations have no capital and cannot tax until then); (8) the 1080×640 minimum-window snap-back
+> is a Director playtest item. Record: `docs/d050-m5-hardening-rulings.md`. Verify against git.
+
+> **2026-10-04 — M5 PLAYTEST BASELINE (`m5-integration` @ `bc87ef8`; played build `sim-ui-win-x64-5c364b5`, ui-artifact
+> run 37203130829).** This dated entry is newer than the R3 entry below. It supersedes R3's "forager food STOPPED …
+> switch stays OFF":
+> - **R4a.** The forager layer ships ON at 4.3 / 2.0 with 400 founders (`07832a4`). The ledger crash is fixed
+>   (`e6b7e42`). The Dignity tax offset is in (`95982bd`). D-048 is ratified.
+> - **R5.** The Civics node `taxation` (1007, A3, 1,050 RP) is the only tax gate (`9f7c82b`).
+>
+> Full forensic baseline and decision record: `docs/m5-playtest-baseline.md`. Verify against git.
+
+> **2026-10-03 — Director roadmap rebase (milestone ladder).** COMPLETE: M0 Kernel · M1 Walking Skeleton · M2
+> Demography / Food · M3 Production / Markets · M4 Empire / Strategic Foundation. **CURRENT: M5 Governing Gameplay —
+> being finished, NOT complete** (integration unmerged, see below). NEXT: **M6 Knowledge / Research / Technology** (large;
+> owns, reviews and completes the research engine, Ages, unlock pipeline and universities already built early on the
+> unmerged integration branches — none of that makes M6 done). FUTURE: M7 Battle Layer (consumes M6's technology/capability
+> state) · M8 Politics / Diplomacy · M9 Society · M10 Integrated Civilization Simulation · M11+ Depth & Content Expansion. Earlier orderings
+> (M6 battle / M7 knowledge) in this file and elsewhere are superseded; record: `docs/milestones.md` §"Roadmap rebase 2026-10-03".
+
+> **2026-10-03 — M5 integration R3 (final R2 reconciliation) on `m5i-r3-final-reconcile` (NOT merged).** Revolt founds
+> a new AI polity with a complete copy of its parent's knowledge; annexation union operation; capital-loss invariants;
+> truthful food label. Turn-1 forager food STOPPED (no founding population passes the bands; switch stays OFF).
+> Record: `docs/r3-final-reconcile-record.md`, ADR-033 §R3, CR-019. Verify against git.
+
+> **2026-10-03 — M5 integration R2c on `m5i-r2c-reconcile` (NOT merged).** R2a (Trade as research node 426, city-state
+> research) and R2b (unrest-lite tax brake, geographic weather distance, Age military milestones) reconciled on one tree.
+> Status, goldens and evidence: ADR-033 §R2c and `docs/m5-integration-coherence-matrix.md` §7. Verify against git.
+
 > **STALENESS CORRECTION, M4 exit gate (2026-09-16).** The measurement below is dated 2026-08-31 and
 > four of its load-bearing claims have since been overtaken by git. They are corrected inline and
 > marked `CORRECTED`; nothing else in this file was rewritten, per the director's instruction that the
@@ -181,6 +698,36 @@
 >
 > Records: `docs/adr/cr-016-armed-disaster-fallout.md` §D.3 and §D.6, `docs/queue.md`,
 > `docs/t4.21-architecture.md` §the disaster constants table. Verify against git.
+>
+> **2026-10-03 — M5 INTEGRATION ASSEMBLED on `m5-integration` (tip `0b8cb14`), NOT on `main`.** Verified on
+> `m5i-v-verify` (= `0b8cb14` + the verification stream). `origin/main` is `93270cd`, 0 ahead / 113 behind
+> `0b8cb14`: NOTHING below is on `main` — not the frozen transport base `997824b`, not the streams.
+> Stream branches (remote, merged into `m5-integration`): `m5i-s1-governing-loop` `43f38cd`,
+> `m5i-u1-era-theme` `e61e182`, `m5i-s2-capability-actions` `8478b4d`, `m5i-u2a-actions` `09db372`,
+> `m5i-u3-world-map` `0ec37ac`, `m5i-s3-institutions` `93dfcd2`, `m5i-u2b-views` `ecf3aa7`,
+> `m5i-s4-ai-goals` `b952a9f`. Decisions: `docs/adr/adr-033-m5-integration-pass.md`. Status of every
+> mechanic, what each stream fixed and what remains: `docs/m5-integration-coherence-matrix.md`.
+> Schema v31; founded golden `74306d6a574b6a680e454eb385f88e9df2d6a74c5c16fd9af64930c3cdc55c1c`
+> (`SnapshotTests.FoundedGoldenHash` = `ci.yml` FOUNDED_GOLDEN; unmoved by the verification stream).
+> **Suite, MEASURED on `m5i-v-verify` in Release:** Sim.Tests **1370 / 0 / 5**, Sim.Ui.Tests **469 / 0 / 0**;
+> all three gate scripts and both research `--check` scripts exit 0. Bench (`sim bench --founded --seed 42
+> --turns 300`, median of 3): `997824b` 33,947 ms, this tree 34,515 ms (×1.017). Verification fixed one
+> defect: a mid-game colony's orders made replay/`sim inspect` throw (`7100c77`). Not on `main`, not
+> ruled: everything in this entry. Verify against git.
+
+> **2026-10-03 — R1 (research trees drive gameplay) on `m5i-r1-unlock-pipeline`, cut from `m5-integration` @ `ac13c3d`;
+> NOT merged, NOT on `main`.** Crafting recipes research-gated by content-declared recipe entities (pottery firing,
+> bronze casting); Production domain on the action surface; full-corpus unlock audit
+> `docs/research-gameplay-unlock-audit.md` (CI `--check`). Founded golden `68c629b66badfa717514e91c6efe9aaa2f8874d272d21afcee283fe1d85ce655`.
+> Suite MEASURED in Release: Sim.Tests 1396 / 0 / 5, Sim.Ui.Tests 472 / 0 / 0. Record:
+> `docs/m5-integration-coherence-matrix.md` §5. Verify against git.
+
+> **2026-10-03 — R2b (governance and weather gaps) on `m5i-r2b-governance-fixes`, cut from `m5-integration` @ `f1fe76f`;
+> NOT merged, NOT on `main`.** D-021 unrest-lite tax brake (Dignity bound to the tax burden → levy grievance → protest
+> drag, discharge, uprising); weather correlation over geographic distance; Age military milestones need an
+> age-appropriate formation (pending on M6; *2026-10-03 rebase: recruitment is now M7 Battle Layer*). Founded golden `1368df9f…` (superseded by R4a forager layer: `02c7f9eb0d08bf0ab31e6a9b0afb64041e4283e1fc4af1d4fbc94c8fa7b10ef2`).
+> Suite MEASURED in Release: Sim.Tests 1418 / 0 / 6, Sim.Ui.Tests 472 / 0 / 0. Record:
+> `docs/m5-integration-coherence-matrix.md` §6. Verify against git.
 
 **Read this first, then verify it.** This file exists so an agent entering the repository with zero
 conversation context can work out what to read next. It is a ROUTER and a STATUS BOARD. It is not
@@ -198,6 +745,19 @@ with `origin/main` at `070f05b` as fetched. Every git figure below was read from
 ---
 
 ## 1. WHERE THE PROJECT IS
+
+> **Pointer (2026-10-05, M5 hardening H3).** This table and §2 are the 2026-08-31 measurement, kept as written.
+> The current milestone is **M5 Governing Gameplay, in progress** (the dated entries at the top of this file;
+> `docs/milestones.md` roadmap rebase). `CLAUDE.md`'s milestone line reads M5 (verified on `9bb7423`; changed in
+> `4448350`), so §2's contradiction no longer exists.
+>
+> *(2026-10-06, M5 polish pass.)* The "Documents required" list below the table is the 2026-08-31 (M4) list too,
+> kept as written. For M5 work read: `CLAUDE.md` · `docs/milestones.md` (the authoritative roadmap) ·
+> `docs/adr/adr-033-m5-integration-pass.md` (M5's decision record; M5 has no separate spec file) ·
+> `docs/d049-taxation-and-revolt-model.md` · `docs/d050-m5-hardening-rulings.md` ·
+> `docs/adr/adr-034-order-validation-deferral.md` · `docs/m5-playtest-baseline.md` §15–§16 ·
+> `docs/m5-playability-gate.md` · `docs/spine-s8-governance-freeze.md` · `docs/gov-4-repository-freshness.md` ·
+> `docs/queue.md`.
 
 | | |
 | --- | --- |
@@ -289,6 +849,14 @@ attribution control before any repin, then repinned on director approval.
 Certification run: `Sim.Tests` **572 passed / 6 failed / 6 skipped** (584, 24m07), `Sim.Ui.Tests`
 **151/151**, build 0 warnings, all three gates OK. The 6 are the unchanged mainline quarantine.
 
+> *2026-10-15 dated note (D-054; the M4-D text above is kept as written).* "Built whole this turn or waits unchanged.
+> No build timer, no fractional progress … Materials leave settlement good stocks all-or-nothing" is SUPERSEDED for the
+> shipped configuration by the Director's 2026-10-14 instruction: incremental construction, with progress stored in
+> schema v33 `ConstructionProgress`, materials going in as they become available, and a cancel order (kind 11). The
+> queue with only its head eligible, the competition with housing's draw, "no construction currency, no second labour
+> pool", and an Empire building only where it rules all stand. Record: `docs/d054-batch3-incremental-construction-allocation-cylinder.md`
+> §1 and §5.
+
 **M4-C — FOUNDING INSTANTIATES THE EMPIRE. CERTIFIED.**
 
 `WorldFounding.Found` now creates the founded world's one player-commanded Empire in the same
@@ -366,7 +934,7 @@ M4 schema and nothing else. `DrivenGolden_Seed42Turn300` does not, which isolate
 fix as its second, behavioural cause. `ci.yml`'s `FOUNDED_GOLDEN` moved with its test.
 
 **Open change requests awaiting director ruling:** CR-005 (M5 ownership of Research/Technology/
-Institutions) · CR-006 (temporal control and epoch) · CR-007 (B3 exemplar — headline withdrawn by
+Institutions — *2026-10-03 roadmap rebase places research/knowledge/technology at M6*) · CR-006 (temporal control and epoch) · CR-007 (B3 exemplar — headline withdrawn by
 the author; the record stands) · CR-008 (money owner) · CR-009 (era gates) · CR-010 (institution
 definition) · D-042 §14.1 (D-018 income-column staleness).
 
@@ -405,6 +973,20 @@ exception to it.
 **Stale — describes a state the repository has moved past:**
 
 - `CLAUDE.md:10` — the M3 milestone line and its art-substrate amendment (§2).
+  *(2026-10-06 note, M5 polish pass: no longer the M3 line — `CLAUDE.md:10` has named M5 Governing Gameplay (in
+  progress, NOT complete) with the rebased sequence since `4448350`. Still stale on `m5-hardening`, and the
+  Director's to edit: line 10 names `m5-integration` as M5's branch (the candidate is `m5-hardening`, built on
+  it) and keeps the M3-era art-substrate amendment; line 7 still calls `docs/m0-kernel-spec.md` the "current
+  milestone spec" (M5 has no spec file; its decisions are ADR-033, D-049 and D-050).)*
+- Records that number milestones on a pre-2026-10-03 ladder (M6 battle / M7 knowledge / "Ancient Vertical Slice" /
+  "Era Expansions"): superseded by `docs/milestones.md` §"Roadmap rebase 2026-10-03"; they carry dated pointers,
+  except pure history left as written (`docs/handoff-status.md`, `docs/m2-spec.md`, `docs/m4-exit-session.md`) and
+  the read-only research corpus `tech-graph-v0.6.json` (SHA-256-pinned by `ResearchContentTests`) with its `.html`
+  view (D-040's pointer covers their "M7" knowledge reading). The M5 polish pass (2026-10-06) added the pointers that were missing: D-037, D-039,
+  `docs/t4.6-foreign-trade-decision.md` §6, `docs/design/civilization-progression-architecture.md` 5.6,
+  `docs/design/arch-I-climate-environment.md`, `docs/design/recovered-decisions-climate-env-agri.md`,
+  `docs/design/recovered-decisions-food-disaster-needs.md`, `docs/m4-blocking-material.md` (B-2 addendum) and
+  `docs/m4-exit-inventory.md` §7; the Spine's system-table note was moved below the table so the table renders whole.
 - `docs/handoff-status.md` — a previous, measured attempt at this same routing role, dated
   2026-07-28 against `t3.4c-variance-fix` at `719152a`. Its branch table, suite counts and milestone
   are all from M3. **It is superseded by this file for routing purposes and left untouched as a

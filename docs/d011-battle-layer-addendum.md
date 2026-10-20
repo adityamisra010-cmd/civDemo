@@ -46,12 +46,24 @@ v1 ships ancient/classical warfare only (matching the vertical slice). Later era
 
 
 
+> *(2026-10-03 roadmap rebase: knowledge is now M6, politics stays M8 — see §6 note.)*
 > **D-040 (2026-08-08) uses this resequence.** `docs/d040-discovery-and-control.md` D3/D4 place
 > map extent and discovery at **M7 (knowledge)** and the political consequences of weak control at
 > **M8 (politics)**, per the table below. D-040 Part B also extends **D-039** Part B's
 > reconnaissance clauses to a second scale (strategic discovery), naming the one difference:
 > reconnaissance reports a lagging position of a moving thing, discovery a permanent fact about
 > the land.## 6. Milestone resequence (battle layer inserted as M6)
+
+> **Superseded 2026-10-03 (Director roadmap rebase).** This §6 ordering (M6 battle, M7 knowledge, M8 politics) is superseded. The Battle Layer is now
+> **M7** and FOLLOWS **M6 Knowledge / Research / Technology**: the battle layer consumes M6's authoritative
+> technology/capability state rather than shipping generic battle with tech added later. Politics &
+> diplomacy remain M8, society M9, M10 Integrated Civilization Simulation, M11+ Depth & Content Expansion. The battle mechanics in §1–§5
+> and the decisions in §8 are unchanged (they now close at the **M7** spec). Record: `docs/milestones.md`
+> §"Roadmap rebase 2026-10-03". "Ancient Vertical Slice" and "Era expansions" are obsolete milestone names: M10 integrates and validates the whole
+> model across all nine Ages A1–A9 as one simulation (ancient content is not a prerequisite for later Ages), and M11+ adds
+> depth, not "later Ages". **Ages are a simulation dimension, not development milestones** — never "build A1 → validate A1 →
+> build A2". §5's "matching the vertical slice" and the M10/M11+ rows below
+> are read accordingly. The table below is retained as history.
 
 | M | Content | Note |
 |---|---|---|
@@ -70,6 +82,8 @@ v1 ships ancient/classical warfare only (matching the vertical slice). Later era
 M0 task packets T0.1–T0.9: untouched — build proceeds. Kernel contract: already supports sub-stepped military phases and order-logged player input. D-002 (MonoGame + ImGui.NET): *strengthened* — MonoGame is a genuine 2D game framework; the battle map is squarely in its lane. Strategic-layer military spec (M4): unchanged; the tactical layer plugs into the reserved interface exactly as designed.
 
 ## 8. New decisions opened (close at M6 spec, recommendations noted)
+
+*(2026-10-03 roadmap rebase: "M6 spec" here now means the **M7 Battle Layer** spec.)*
 
 - **D-012** battle-grid representation — rec: coarse deterministic grid + continuous render (above).
 - **D-013** pulse budget and pulse-duration fiction — rec: 6–12 pulses ≈ one day of battle.

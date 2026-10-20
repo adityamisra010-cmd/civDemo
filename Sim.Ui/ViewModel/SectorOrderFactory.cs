@@ -21,24 +21,23 @@ namespace Sim.Ui.ViewModel;
 /// "as applied" cannot drift from "as sent".
 ///
 /// PURE view-model: ints, doubles, strings and OrderRecords — no MonoGame or
-/// ImGui types, headless-testable like LaborOrderFactory.
+/// ImGui types, headless-testable.
 /// </summary>
 public static class SectorOrderFactory
 {
-    /// <summary>The Empire the human director commands — the same one the legacy
-    /// labor order names. See <see cref="LaborOrderFactory.PlayerEmpire"/> for why
+    /// <summary>The Empire the human director commands. See <see cref="UiPlayer.Empire"/> for why
     /// this is an Empire identity and not a "player" marker.</summary>
-    public static PolityId PlayerEmpire => LaborOrderFactory.PlayerEmpire;
+    public static PolityId PlayerEmpire => UiPlayer.Empire;
 
     /// <summary>Back-compat alias for the raw id. Prefer <see cref="PlayerEmpire"/>.</summary>
-    public const int UiActorId = LaborOrderFactory.UiActorId;
+    public const int UiActorId = UiPlayer.ActorId;
 
     /// <summary>
-    /// D-032 target packing, shared by the encoder and the tests so the
-    /// shift width lives in exactly one place: settlementId × 8 + sectorId,
-    /// decoded by PathBuildSystem as <c>&gt;&gt; 3</c> / <c>&amp; 7</c>.
+    /// D-032 target packing: settlementId × 8 + sectorId, decoded by PathBuildSystem as
+    /// <c>&gt;&gt; 3</c> / <c>&amp; 7</c> — exactly <see cref="LabourActivities.PackTarget"/>, the packing
+    /// the action surface's labour descriptors carry (one definition, in the simulation).
     /// </summary>
-    public static int PackTarget(SettlementId settlement, int sector) => settlement.Value * 8 + sector;
+    public static int PackTarget(SettlementId settlement, int sector) => LabourActivities.PackTarget(settlement, sector);
 
     /// <summary>
     /// The allocation as it WILL BE APPLIED: the sim's own normalization over

@@ -30,14 +30,24 @@ public sealed class UiSession
     private readonly Sim.Core.Chronicle.ChronicleConfig _chronicleCfg;
     private readonly Sim.Core.Chronicle.ChronicleCollector _chronicle;
     private readonly List<string> _annals = [];
+    // D-060: the in-game ANNALS view — _annals with another empire's books left out (UiSession.PlayerAnnal). The session
+    // record (ExportChronicle, chronicle-*.txt) stays _annals: the scope decision keeps the session files world-wide.
+    private readonly List<string> _playerAnnals = [];
     private int _renderedEvents;
+    // Item 3: the annal events the Sim.Core chronicle does not detect, derived UI-side from (prev, next).
+    private readonly ViewModel.StateChronicle _events = new();
 
     /// <summary>Settlement id → name (deterministic from world seed; ADR-001
     /// registry, never sim rows).</summary>
-    public Sim.Core.Chronicle.NameRegistry Names { get; }
+    public Sim.Core.Chronicle.NameRegistry Names { get; private set; }
 
-    /// <summary>The annals, oldest first (the panel renders newest LAST).</summary>
-    public IReadOnlyList<string> AnnalLines => _annals;
+    /// <summary>The annals AS THE PLAYER READS THEM (the ANNALS panel), oldest first (the panel renders newest LAST).
+    /// D-060: another empire's private figures are not told here — see <see cref="PlayerAnnal"/>.</summary>
+    public IReadOnlyList<string> AnnalLines => _playerAnnals;
+
+    /// <summary>D-060: the annals of the SESSION RECORD — what <see cref="ExportChronicle"/> writes to chronicle-*.txt,
+    /// world-wide (subject to P7's hidden-settlement filter only), as before D-060.</summary>
+    public IReadOnlyList<string> RecordAnnalLines => _annals;
 
     // THE SESSION RECORD (T4.17). The seed and overrides are kept because a
     // session log without them is UNREPLAYABLE — the world cannot be rebuilt,
@@ -45,6 +55,10 @@ public sealed class UiSession
     private readonly ulong _seed;
     private readonly int? _sizePx;
     private readonly int? _settlements;
+    // ADR-033 D5: the AI-empire override the world was founded with (null = worldgen.json's
+    // aiEmpires, whose default is 0). Recorded in the manifest and the forensic record because a
+    // session founded with AI Empires replays only into the same world.
+    private readonly int? _aiEmpires;
     private readonly int _grainGoodId;
     private readonly List<string> _trace = [SessionTrace.Header];
 
@@ -54,6 +68,74 @@ public sealed class UiSession
     // can reach it, so it cannot change a hash; that is also MEASURED, not
     // assumed (TelemetryTests: hash equality with and without a log).
     private readonly SimConfig _simCfg;
+
+    // M5 S1c: the worldgen config the production pipeline's ColonizationSystem is built from (ProductionPipeline),
+    // which the AI's Found Settlement orders are judged with — loaded once, read by AppendAiOrders and (P8) Sites only.
+    private readonly Sim.Core.Worldgen.WorldgenConfig _worldgen = ProductionWorldgen();
+
+    // M5 P8: the terrain half of a site assessment for the map this session plays on.
+    private SiteAssessment.Prepared? _sites;
+
+    /// <summary>
+    /// M5 map workstream P8 — the terrain half of the map-cell card's <see cref="SiteAssessment"/> (the siting score
+    /// raster and its two factor rasters, the frontier lattice): a pure function of the immutable terrain and the configs,
+    /// built the first time a place's card is asked for and kept while the world's terrain is the same one (every clone
+    /// of a world shares it). Built with the worldgen config this session's ColonizationSystem holds, so the card's
+    /// deposit preview is the founding path's own values. UI-side only — the TerrainBaker precedent; nothing in the
+    /// simulation reads it. Null for a world without terrain.
+    /// </summary>
+    public SiteAssessment.Prepared? Sites
+    {
+        get
+        {
+            if (World.Terrain is null) return null;
+            if (_sites is null || !_sites.IsFor(World.Terrain)) _sites = SiteAssessment.Prepare(World, _simCfg, _worldgen);
+            return _sites;
+        }
+    }
+
+    // M5 P9: the resource overlay's bake and the turn's status, kept while their inputs are the same.
+    private Sim.Ui.World.ResourceOverlay? _overlay;
+    private IReadOnlyList<Sim.Ui.World.OverlayLayer>? _overlayLayers;
+    private (WorldState World, PlayerKnowledge Knowledge, Sim.Ui.World.ResourceOverlay Bake, Sim.Ui.World.OverlayStatus Status)? _overlayStatus;
+
+    /// <summary>
+    /// M5 map workstream P9 — the resource overlay's layers for this session's content (the deposit channels, then the
+    /// siting score and its two factors): what the overlay controls list. Cheap — no terrain pass.
+    /// </summary>
+    public IReadOnlyList<Sim.Ui.World.OverlayLayer> OverlayLayers =>
+        _overlayLayers ??= World.Terrain is { } t ? Sim.Ui.World.ResourceOverlay.LayersOf(_simCfg, _worldgen, t.KmPerPx) : [];
+
+    /// <summary>
+    /// M5 map workstream P9 — THE RESOURCE OVERLAY's bake (<see cref="Sim.Ui.World.ResourceOverlay"/>) for what the player
+    /// knows: a pure function of the terrain, the configs and the knowledge masks, baked the first time an overlay layer is
+    /// shown and kept while they are the same (in production — all-known — once per session). UI-side only, the terrain
+    /// bake's precedent; nothing in the simulation reads it. Null for a world without terrain.
+    /// </summary>
+    public Sim.Ui.World.ResourceOverlay? Overlay
+    {
+        get
+        {
+            if (Sites is not { } site) return null;
+            if (_overlay is null || !_overlay.IsFor(site, Knowledge.Core)) _overlay = Sim.Ui.World.ResourceOverlay.Bake(_simCfg, site, Knowledge.Core);
+            return _overlay;
+        }
+    }
+
+    /// <summary>M5 P9: the overlay key's per-turn status (access, extraction, the realized ore rolls) for the world and
+    /// knowledge of now; null without terrain. Kept while the world, the knowledge and the bake are the same.</summary>
+    public Sim.Ui.World.OverlayStatus? OverlayStatus
+    {
+        get
+        {
+            if (Overlay is not { } bake) return null;
+            if (_overlayStatus is { } c && ReferenceEquals(c.World, World) && ReferenceEquals(c.Knowledge, Knowledge) && ReferenceEquals(c.Bake, bake))
+                return c.Status;
+            Sim.Ui.World.OverlayStatus status = bake.Status(World, _simCfg, Knowledge);
+            _overlayStatus = (World, Knowledge, bake, status);
+            return status;
+        }
+    }
 
     /// <summary>The observation history the UI graphs and panels read through
     /// (docs/observability-architecture.md §7: one read seam).</summary>
@@ -87,16 +169,117 @@ public sealed class UiSession
     /// captured per observed turn alongside the chronicle.</summary>
     public ViewModel.HistoryBuffer History { get; } = new();
 
+    /// <summary>M5 resources view: which settlements were the player's on each observed turn (UI-side, rebuilt by replay) —
+    /// the RESOURCES view's trends sum a turn's records over these only, never a foreign settlement's.</summary>
+    public ViewModel.OwnershipHistory Ownership { get; } = new();
+
+    /// <summary>Director playtest 2026-10-20 — the goods the player has unlocked in THIS game (held at the founding or after
+    /// any step): the resources view keeps their rows even at 0. Filled by the founding capture and the one Step path, so
+    /// a resume's replay rebuilds it; UI-side only, no file, no hash.</summary>
+    public ViewModel.ResourceCatalogue Unlocked { get; } = new();
+
+    // The preview cache: the world PreviewNextWorld last produced, and the (world, order count) it was produced for.
+    private WorldState? _preview;
+    private WorldState? _previewFrom;
+    private int _previewOrders = -1;
+    private EraTable? _previewEra;
+    private SystemRegistration[]? _previewPipeline;
+
+    /// <summary>
+    /// Director playtest 2026-10-20 — THE WORLD THE NEXT TURN OPENS WITH IF THE PLAYER ENDS THE TURN NOW, for the resources
+    /// view's next-turn figure. It is the simulation's own accounting, not an estimate: the PRODUCTION step
+    /// (<see cref="BuildProductionExecutor"/>'s era and pipeline) run on the current world with this turn's queued orders,
+    /// so construction charges, set-asides, project priority, affordability and capacity carry-over (D-058), harvest,
+    /// consumption and trade all apply exactly as End Turn applies them, each once.
+    ///
+    /// <para><b>The AI's orders are NOT included</b>: they are a rival's decisions the player has not seen (D-060), so they
+    /// are never computed for a preview. With no AI polity the preview equals the next turn exactly; with one, it differs
+    /// only where an AI order of this turn reaches the player's own stores.</para>
+    ///
+    /// <para><b>Read-only.</b> <see cref="TurnExecutor.Step(WorldState)"/> never mutates its input; the preview steps a
+    /// separate order log holding a copy of this turn's orders, so neither <see cref="World"/>, <see cref="Orders"/> nor any
+    /// recorded file changes, and End Turn's world and hash are the same whether a preview ran or not. Cached until the world
+    /// or the order count changes.</para>
+    /// </summary>
+    public IReadOnlyWorldState PreviewNextWorld()
+    {
+        // Decision C (Director, 2026-10-20; D-051 §3): the preview is a forecast under EXPECTED weather, never a read of the
+        // pending draw — see ExpectedWeatherCopy. Actual turn resolution (EndTurn) is untouched.
+
+        if (_preview is not null && ReferenceEquals(_previewFrom, World) && _previewOrders == Orders.Count) return _preview;
+        long turn = World.Clock.Turn;
+        _previewEra ??= ProductionEra();
+        _previewPipeline ??= ProductionPipeline();
+        var log = new OrderLog();
+        for (int i = 0; i < Orders.Count; i++) if (Orders[i].Turn == turn) log.Append(Orders[i]);
+        _preview = new TurnExecutor(_previewEra, _previewPipeline, log).Step(ExpectedWeatherCopy(World, UiPlayer.Empire));
+        _previewFrom = World;
+        _previewOrders = Orders.Count;
+        return _preview;
+    }
+
+    /// <summary>
+    /// Decision C (Director, 2026-10-20), the ratified D-051 §3 rule for a forecast: "computed by the authoritative
+    /// simulation, stepping a private copy of the world, with expected weather … It never reveals the actual next draw."
+    /// The harvest-weather multiplier that WILL apply at the coming harvest is already in state when the player looks
+    /// (production reads PREV's HarvestWeather row), so a step on the live world would carry it into the figure. This
+    /// returns a clone in which every settlement of <paramref name="player"/>'s has that pending multiplier replaced by its
+    /// expectation, exactly 1.0 (HarvestWeatherSystem: a mean-one multiplier). <c>LogDeviation</c> is left as is: it feeds
+    /// only the copy's NEXT draw, which reaches no figure the preview shows. Other polities' rows are untouched (their weather
+    /// is theirs; the player's stores see it only through trade, which the forecast does not pretend to know). The live
+    /// world is never modified: End Turn resolves with the actual multiplier as before.
+    /// </summary>
+    public static WorldState ExpectedWeatherCopy(WorldState world, PolityId player)
+    {
+        ArgumentNullException.ThrowIfNull(world);
+        WorldState copy = world.Clone();
+        int[] own = ViewModel.EmpireStores.OwnSettlements(copy, player);
+        for (int i = 0; i < copy.HarvestWeather.Count; i++)
+        {
+            HarvestWeatherRow row = copy.HarvestWeather[i];
+            if (Array.BinarySearch(own, row.Settlement.Value) < 0) continue;
+            if (row.Multiplier == 1.0) continue;
+            copy.HarvestWeather.Ref(i) = row with { Multiplier = 1.0 };
+        }
+        return copy;
+    }
+
+    /// <summary>
+    /// M5 map workstream P7 — WHAT THE PLAYER KNOWS of <see cref="World"/>, rebuilt after every step (and at the start) from
+    /// the Sim.Core knowledge seam: <see cref="PlayerKnowledge.Of(IReadOnlyWorldState)"/>, all-known until S2a stores an
+    /// extent. Every player-facing reader asks it; the annals are filtered by it HERE, before a line is appended (an event
+    /// is kept only when the player knows every settlement and polity it names), and the history buffer's world series
+    /// sum only what it knows. Never a second source of truth: a pure function of the world (and, for a test or the
+    /// headless gate's hidden-rival rig only, of the stub <see cref="StartFrom(WorldState, ulong, int?, int?, Func{IReadOnlyWorldState, PlayerKnowledge}?)"/>
+    /// was given). The developer export (chronicle.txt) writes the same filtered annals.
+    /// </summary>
+    public PlayerKnowledge Knowledge { get; private set; }
+
+    // P7: how Knowledge is built from a world — the production view, or a test/gate stub (never anything else).
+    private readonly Func<IReadOnlyWorldState, PlayerKnowledge> _knowledgeOf;
+
+    /// <summary>
+    /// M5 map workstream P10 — THE 'NOW USABLE' HISTORY: every shortcut a step fired for the player (a content-declared
+    /// recipe or activity that the player's research made knowledge-eligible, and whose effect the simulation reads —
+    /// <see cref="DiscoveryShortcuts.Transitions"/>), oldest first. Fed by <see cref="Step"/>, which Resume's replay drives
+    /// too, so a resumed session rebuilds it identically. UI-side only: it never touches the world and no hash moves.
+    /// </summary>
+    public NowUsableHistory NowUsableHistory { get; } = new(DiscoveryShortcuts.Content);
+
     private UiSession(
         WorldState world, TurnExecutor executor, OrderLog orders,
-        ulong seed, int? sizePx, int? settlements, SimConfig simCfg)
+        ulong seed, int? sizePx, int? settlements, SimConfig simCfg, int? aiEmpires = null,
+        Func<IReadOnlyWorldState, PlayerKnowledge>? knowledgeOf = null)
     {
         World = world;
+        _knowledgeOf = knowledgeOf ?? (w => PlayerKnowledge.Of(w));
+        Knowledge = _knowledgeOf(world);
         _executor = executor;
         Orders = orders;
         _seed = seed;
         _sizePx = sizePx;
         _settlements = settlements;
+        _aiEmpires = aiEmpires;
         _simCfg = simCfg;
         _grainGoodId = simCfg.Goods?.GrainId ?? 0;
         using (var stream = Sim.Data.DataFiles.OpenChronicle())
@@ -108,7 +291,9 @@ public sealed class UiSession
         // FoodState classification, so the collector needs the sim config.
         _chronicle = new Sim.Core.Chronicle.ChronicleCollector(_chronicleCfg, _simCfg);
         ObserveChronicle(); // founding events fire on first sight
-        History.Capture(World); // the founding sample (turn 0)
+        History.Capture(World, Knowledge); // the founding sample (turn 0)
+        Ownership.Capture(World, UiPlayer.Empire);   // the resources view: the player's settlements at the founding
+        Unlocked.Capture(World, _simCfg, UiPlayer.Empire);   // the resources view: the goods unlocked at the founding
         CaptureTrace();         // turn 0 — the world before any order lands
     }
 
@@ -116,26 +301,86 @@ public sealed class UiSession
     {
         _chronicle.Observe(World);
         for (; _renderedEvents < _chronicle.Events.Count; _renderedEvents++)
-            _annals.Add(Sim.Core.Chronicle.ChronicleProse.Render(
-                _chronicle.Events[_renderedEvents], _chronicleCfg, Names));
+        {
+            // P7: the annals are filtered by SUBJECT — an event at a settlement the player does not know is never told.
+            // The collector itself still observes every settlement (its tracking state is the same with or without fog).
+            if (!AdmitsAnnal(Knowledge, _chronicle.Events[_renderedEvents])) continue;
+            string line = Sim.Core.Chronicle.ChronicleProse.Render(_chronicle.Events[_renderedEvents], _chronicleCfg, Names);
+            _annals.Add(line);
+            if (PlayerAnnal(Knowledge, _chronicle.Events[_renderedEvents], line, Names.Name) is { } told) _playerAnnals.Add(told);
+        }
     }
 
-    /// <summary>Founds the world and builds the PRODUCTION executor + a fresh log.</summary>
+    /// <summary>
+    /// D-060 — a core chronicle event AS THE PLAYER READS IT. Every core event carries a figure of its settlement's books
+    /// (a founding's people, a famine's shortfall share and deaths, an extinction's last people, the artisans' count, a
+    /// migration's count and share, a disaster's loss, a shortfall's share and years). At a settlement whose books the
+    /// player reads (<see cref="PlayerKnowledge.ReadsInternals"/>) the line is the chronicle's own (<paramref name="line"/>).
+    /// At any other: a FOUNDING is public — the place, its name and that it was founded — and is told without its figure
+    /// ("In the year Y, NAME was founded."); every other event is the settlement's books and is not told (null). A rival's
+    /// extinction is left out too: the stricter reading (its last people are a figure, and the map keeps its token).
+    /// </summary>
+    public static string? PlayerAnnal(PlayerKnowledge knowledge, Sim.Core.Chronicle.ChronicleEvent e, string line, Func<int, string> name)
+    {
+        ArgumentNullException.ThrowIfNull(knowledge);
+        ArgumentNullException.ThrowIfNull(name);
+        if (knowledge.IsHiddenSettlement(e.SettlementId)) return null;   // P7
+        if (!knowledge.KnowsSettlement(e.SettlementId) || knowledge.ReadsInternals(e.SettlementId)) return line;
+        if (e.Type != Sim.Core.Chronicle.ChronicleEventType.Founding) return null;
+        return "In the year " + ((long)Math.Round(e.Year)).ToString(System.Globalization.CultureInfo.InvariantCulture)
+            + ", " + name(e.SettlementId) + " was founded.";
+    }
+
+    /// <summary>P7: whether a core chronicle event reaches the player's annals — its subject settlement is not one the
+    /// player does not know (all-known: every event, as before).</summary>
+    public static bool AdmitsAnnal(PlayerKnowledge knowledge, Sim.Core.Chronicle.ChronicleEvent e)
+    {
+        ArgumentNullException.ThrowIfNull(knowledge);
+        return !knowledge.IsHiddenSettlement(e.SettlementId);
+    }
+
+    /// <summary>Founds the world and builds the PRODUCTION executor + a fresh log.
+    /// <paramref name="aiEmpiresOverride"/> (ADR-033 D5) founds that many AI-commanded Empires instead of
+    /// worldgen.json's count (default 0); their orders come from <see cref="AiOrders"/> at every End Turn.
+    /// <paramref name="wrapXOverride"/> (batch 3 WS3) is <see cref="UiFounding.Found"/>'s test and tool seam for the
+    /// world's east-west topology — never set by the launcher, not recorded in the manifest.</summary>
     public static UiSession Start(
-        ulong seed, int? sizeOverridePx = null, int? settlementsOverride = null)
+        ulong seed, int? sizeOverridePx = null, int? settlementsOverride = null, int? aiEmpiresOverride = null,
+        bool? wrapXOverride = null)
     {
         var orders = new OrderLog();
-        SimConfig simCfg;
-        using (var stream = Sim.Data.DataFiles.OpenSim())
-        using (var needs = Sim.Data.DataFiles.OpenNeeds())
-        using (var goods = Sim.Data.DataFiles.OpenGoods())
-        {
-            simCfg = SimConfigLoader.Load(stream, needs, goods);
-        }
+        SimConfig simCfg = UiFounding.ProductionConfig();
         return new UiSession(
-            UiFounding.Found(seed, sizeOverridePx, settlementsOverride),
+            UiFounding.Found(seed, sizeOverridePx, settlementsOverride, aiEmpiresOverride, wrapXOverride),
             BuildProductionExecutor(orders), orders,
-            seed, sizeOverridePx, settlementsOverride, simCfg);
+            seed, sizeOverridePx, settlementsOverride, simCfg, aiEmpiresOverride);
+    }
+
+    /// <summary>The AI-empire override this session was founded with, or null for worldgen.json's count.</summary>
+    public int? AiEmpiresOverride => _aiEmpires;
+
+    /// <summary>
+    /// A session over an ALREADY-FOUNDED world with the production executor and config — for tests
+    /// and previews that need a constructed situation (e.g. an AI polity that is eligible for its next
+    /// Age). The order pathway, AI policy and End Turn are exactly <see cref="Start"/>'s. Such a session
+    /// replays only from the same starting world, so it is never written as a playable session log.
+    /// </summary>
+    public static UiSession StartFrom(WorldState founded, ulong seed, int? sizeOverridePx = null, int? settlementsOverride = null)
+        => StartFrom(founded, seed, sizeOverridePx, settlementsOverride, knowledgeOf: null);
+
+    /// <summary>
+    /// As <see cref="StartFrom(WorldState, ulong, int?, int?)"/>, with the session's player knowledge built by
+    /// <paramref name="knowledgeOf"/> — P7's TEST SEAM: a knowledge stub (<see cref="PlayerKnowledge.From"/> over
+    /// <see cref="PolityKnowledge.Restricted"/>) that hides part of the world, for the metamorphic leak tests and the
+    /// headless gate's hidden-rival rig. Null = the production view. It changes what the UI SHOWS, never the world, the
+    /// orders or a hash.
+    /// </summary>
+    public static UiSession StartFrom(WorldState founded, ulong seed, int? sizeOverridePx, int? settlementsOverride,
+        Func<IReadOnlyWorldState, PlayerKnowledge>? knowledgeOf)
+    {
+        var orders = new OrderLog();
+        return new UiSession(founded, BuildProductionExecutor(orders), orders,
+            seed, sizeOverridePx, settlementsOverride, UiFounding.ProductionConfig(), knowledgeOf: knowledgeOf);
     }
 
     /// <summary>
@@ -163,13 +408,7 @@ public sealed class UiSession
     /// with.</summary>
     public static SystemRegistration[] ProductionPipeline()
     {
-        SimConfig simCfg;
-        using (var stream = Sim.Data.DataFiles.OpenSim())
-        using (var needs = Sim.Data.DataFiles.OpenNeeds())
-        using (var goods = Sim.Data.DataFiles.OpenGoods())
-        {
-            simCfg = SimConfigLoader.Load(stream, needs, goods);
-        }
+        SimConfig simCfg = UiFounding.ProductionConfig();
         using var pipe = Sim.Data.DataFiles.OpenPipeline();
         using var wgStream = Sim.Data.DataFiles.OpenWorldgen();
         return PipelineLoader.Load(pipe, SystemCatalog.All(
@@ -185,54 +424,245 @@ public sealed class UiSession
         return Sim.Core.Worldgen.WorldgenConfigLoader.Load(wgStream);
     }
 
-    /// <summary>The HUD slider's release handler: ONE order, stamped with the
-    /// CURRENT turn (§3.9: delivered to the very next End Turn step), targeting
-    /// the FIRST settlement — the pre-selection shorthand the T1.9 replay
-    /// tests pin; the selection HUD calls the targeted overload below.</summary>
-    public void EmitLaborOrder(int farmPct)
-    {
-        if (World.Settlements.Count == 0) return;
-        EmitLaborOrder(farmPct, World.Settlements[0].Id.Value);
-    }
-
-    /// <summary>T2.4: the targeted form — the slider orders the SELECTED
-    /// settlement. An id not present in the world emits NOTHING (an order for
-    /// a ghost settlement would poison the log at replay validation).</summary>
-    public void EmitLaborOrder(int farmPct, int settlementId)
-    {
-        for (int i = 0; i < World.Settlements.Count; i++)
-        {
-            if (World.Settlements[i].Id.Value == settlementId)
-            {
-                Orders.Append(LaborOrderFactory.Create(
-                    World.Clock.Turn, World.Settlements[i].Id, farmPct));
-                return;
-            }
-        }
-    }
-
     /// <summary>
-    /// T3.9b: the five-sector control's submit handler — a BATCH of five
-    /// SectorAllocation orders (D-032, the order kind T3.3 already shipped),
-    /// all stamped with the CURRENT turn, targeting the SELECTED settlement.
-    /// Same ghost-id rule as the labor order: an id not present in the world
-    /// emits NOTHING, because an order for a settlement that does not exist
-    /// poisons the log at replay validation.
-    /// Returns true when the batch was appended, so the caller can leave the
-    /// widget alone on refusal rather than pretending the order landed.
+    /// T3.9b / ADR-033 D1: the labour control's submit handler — a BATCH of five SectorAllocation orders
+    /// (D-032, through <see cref="SectorOrderFactory"/>), all stamped with the CURRENT turn, for ONE
+    /// settlement. Returns true when the batch was appended, so the caller can leave the widget alone on
+    /// refusal rather than pretending the order landed.
+    ///
+    /// GUARDED BY THE SIMULATION'S OWN PREDICATE (ADR-033 D2, "one predicate, two callers"): the batch is
+    /// appended only when <see cref="LabourActivities.CanAllocate"/> holds for the player's Empire — the
+    /// settlement exists AND the Empire controls it, the rule PathBuildSystem applies when it consumes the
+    /// order and order validation applies at replay. Without it a click on an AI-run, stateless or revolted
+    /// settlement was logged, ignored live, and made replay / `sim inspect` validation throw. A refused
+    /// batch appends NOTHING (a ghost id, an uncontrolled settlement, an all-zero or out-of-range split).
     /// </summary>
     public bool EmitSectorOrders(ReadOnlySpan<int> weights, int settlementId)
     {
         if (!SectorOrderFactory.CanSubmit(weights)) return false;
-        for (int i = 0; i < World.Settlements.Count; i++)
-        {
-            if (World.Settlements[i].Id.Value != settlementId) continue;
-            IReadOnlyList<OrderRecord> batch = SectorOrderFactory.Create(
-                World.Clock.Turn, World.Settlements[i].Id, weights);
-            for (int b = 0; b < batch.Count; b++) Orders.Append(batch[b]);
-            return true;
-        }
-        return false;
+        var settlement = new SettlementId(settlementId);
+        if (!LabourActivities.CanAllocate(World, UiPlayer.Empire, settlement)) return false;
+        IReadOnlyList<OrderRecord> batch = SectorOrderFactory.Create(World.Clock.Turn, UiPlayer.Empire, settlement, weights);
+        for (int b = 0; b < batch.Count; b++) Orders.Append(batch[b]);
+        return true;
+    }
+
+    /// <summary>
+    /// ADR-033 D3: the build button's handler — ONE EnqueueConstruction order for the player's Empire,
+    /// stamped with the CURRENT turn (the next End Turn queues it), built by
+    /// <see cref="ConstructionOrderFactory"/> (= <see cref="ConstructionQuery.EnqueueOrder"/>) and appended
+    /// only when <see cref="ConstructionQuery.IsProjectAvailable"/> holds — the predicate ConstructionSystem
+    /// applies. A project short of materials is legal (it waits at the head of the queue); a settlement the
+    /// Empire does not control, an unknown project or a locked one appends NOTHING.
+    /// </summary>
+    public bool EmitConstructionOrder(int settlementId, int projectId)
+    {
+        // WS1 (the batch-2 one-predicate gap closed): judged against the queue the intake will see — the world's queue with
+        // this turn's pending cancels and enqueues applied (ConstructionQuery.QueueWithPending), so an order the intake would
+        // refuse (a second workshop on ten tools) is never logged.
+        if (ConstructionOrderFactory.Create(World, Config, UiPlayer.Empire, new SettlementId(settlementId), projectId, QueuedOrders()) is not { } order)
+            return false;
+        Orders.Append(order);
+        return true;
+    }
+
+    /// <summary>
+    /// WS1 (D-054): the queue's Cancel handler — ONE cancel order for the player's Empire (D-056: kind 13, carrying the
+    /// entry's identity), stamped with
+    /// the CURRENT turn (the next End Turn removes the entry before its building work), built by
+    /// <see cref="ConstructionQuery.CancelOrder"/> (the constructor the AI's structural-stall cancel uses) and appended only
+    /// when THE predicate ConstructionSystem applies at delivery holds (<see cref="ConstructionQuery.CancelOrderValid(IReadOnlyWorldState, OrderRecord)"/>:
+    /// a roster Empire, control, a well-formed slot, the slot queued) for a COMMITTED entry whose cancel is not already
+    /// pending (<see cref="ConstructionQuery.PendingCancels"/>) — an entry ordered this turn has no cancel ("from next turn").
+    /// No refund: what has gone in is lost. Appends NOTHING (false) otherwise.
+    /// </summary>
+    public bool EmitCancelConstruction(int settlementId, int slot)
+    {
+        var settlement = new SettlementId(settlementId);
+        OrderRecord order = ConstructionQuery.CancelOrder(World, UiPlayer.Empire, settlement, slot);
+        if (!ConstructionQuery.CancelOrderValid(World, order)) return false;
+        int i = ConstructionQuery.IndexOfSlot(World.ConstructionQueue, settlement, slot);
+        var entry = new QueueEntryRef(settlement, slot, World.ConstructionQueue[i].ProjectId);
+        if (Array.IndexOf(ConstructionQuery.PendingCancels(World, QueuedOrders()), entry) >= 0) return false;
+        Orders.Append(order);
+        return true;
+    }
+
+    /// <summary>
+    /// ADR-032 / ADR-033 D2: the road-development action's handler — ONE DevelopRoads order for the player's
+    /// Empire ("modernize <paramref name="percent"/>% of eligible demand"), stamped with the CURRENT turn,
+    /// built by <see cref="RoadOrderFactory"/> (= <see cref="RoadDevelopmentQuery.DevelopOrder"/>). Appends
+    /// NOTHING when the percentage is outside the order log's (0, 100], when the selection RoadDevelopmentSystem
+    /// applies is empty (no eligible route for a class the Empire knows), or when the Empire already ordered a
+    /// development this turn — the system applies only the FIRST DevelopRoads per Empire per turn, so a second
+    /// would sit in the log and change nothing.
+    /// </summary>
+    public bool EmitRoadOrder(double percent)
+    {
+        PolityId me = UiPlayer.Empire;
+        if (QueuedRoadOrder() is not null) return false;
+        if (RoadOrderFactory.Create(World, Config, me, percent) is not { } order) return false;
+        Orders.Append(order);
+        return true;
+    }
+
+    /// <summary>The player's DevelopRoads order queued this turn (the one the next End Turn applies), or null.</summary>
+    public OrderRecord? QueuedRoadOrder()
+    {
+        IReadOnlyList<OrderRecord> queued = QueuedOrders();
+        for (int i = 0; i < queued.Count; i++)
+            if (queued[i].Kind == OrderKind.DevelopRoads && queued[i].ActorId == UiPlayer.ActorId) return queued[i];
+        return null;
+    }
+
+    /// <summary>
+    /// ADR-029 / D-044 R17: the research-target control's submit handler. It
+    /// appends a SetResearchTarget order for the player's Empire, stamped with the
+    /// CURRENT turn — the same order pathway as every other directive; the UI never
+    /// writes research state. Returns false and appends NOTHING when the node is not
+    /// available to the Empire now, or when the session carries no research content,
+    /// so the caller can leave the control alone rather than pretend the order landed.
+    /// </summary>
+    public bool EmitResearchOrder(ResearchNodeId node)
+    {
+        if (Config.Research is not { } content) return false;
+        if (ResearchOrderFactory.SetTarget(World, content, UiPlayer.Empire, node) is not { } order)
+            return false;
+        Orders.Append(order);
+        return true;
+    }
+
+    /// <summary>
+    /// ADR-033 D4: the tax edict's submit handler — ONE SetTaxRate order, stamped with the CURRENT
+    /// turn, legislated by the player's Empire for itself (<see cref="TaxOrderFactory.Create(long, PolityId, int)"/>,
+    /// i.e. <see cref="Governance.TaxOrder"/>). Returns false and appends NOTHING for a rate outside
+    /// 0..100, or when the Empire cannot levy a tax yet (<see cref="Governance.CanLevyTax"/> — the
+    /// tax gate, the Taxation knowledge AND the minimum Age (H2), that GovernanceSystem applies on
+    /// the step; the UI never logs an edict the
+    /// simulation would ignore), so the caller can leave the control alone rather than pretend.
+    /// </summary>
+    public bool EmitTaxOrder(int percent)
+    {
+        if (!TaxOrderFactory.CanSubmit(percent)) return false;
+        PolityId me = UiPlayer.Empire;
+        if (!Governance.CanLevyTax(World, Config, me)) return false;
+        Orders.Append(TaxOrderFactory.Create(World.Clock.Turn, me, percent));
+        return true;
+    }
+
+    /// <summary>
+    /// WS2 (D-054): the Materials block's "Set" handler — ONE SetResourceAllocation order (kind 12) for the player's Empire,
+    /// stamped with the CURRENT turn, legislated by the Empire for itself (<see cref="ResourceAllocation.Order"/>: TargetId =
+    /// the Empire, Amount = building work's shares in 100). It governs THIS turn's work: the next End Turn applies it before
+    /// any building work (ConstructionSystem's step 2). Appended only when THE predicate ConstructionSystem applies at
+    /// delivery holds (<see cref="ConstructionQuery.AllocationOrderValid"/>: the split switched on, a roster Empire setting its
+    /// own split, a whole share in [0, 100]) and the share differs from the split in force for this turn (the world's row
+    /// with this turn's earlier Sets applied — a Set that changes nothing is not logged; the button shows only while the
+    /// draft differs). A later Set in the same turn replaces an earlier one (the last valid order wins). Appends NOTHING
+    /// (false) otherwise.
+    /// </summary>
+    public bool EmitAllocationOrder(int percent)
+    {
+        if (percent is < 0 or > 100) return false;
+        PolityId me = UiPlayer.Empire;
+        OrderRecord order = ResourceAllocation.Order(World, me, percent);
+        if (!ConstructionQuery.AllocationOrderValid(World, Config, order)) return false;
+        IReadOnlyList<OrderRecord> queued = QueuedOrders();
+        int inForce = ResourceAllocation.EffectivePercent(ConstructionQuery.AllocationsWith(World, Config, World.ResourceAllocations, queued), me);
+        if (inForce == percent) return false;
+        Orders.Append(order);
+        return true;
+    }
+
+    /// <summary>
+    /// M5 S1d (D-051 §5, ADR-036): the placement mode's CONFIRM handler — ONE FoundSettlement order for the player's
+    /// Empire, from settlement <paramref name="sourceId"/> to terrain cell <paramref name="siteCell"/>, stamped with the
+    /// CURRENT turn (the next End Turn founds it, in the state of the turn after). Built by
+    /// <see cref="FoundSettlementOrderFactory"/> (= <see cref="FoundingQuery.FoundOrder"/>, the constructor the AI's founding
+    /// policy uses) and appended only when THE predicate ColonizationSystem applies (<see cref="FoundingQuery.Check(IReadOnlyWorldState, SimConfig, Sim.Core.Worldgen.SettlementSiting.FrontierSiting, ReadOnlySpan{double}, ReadOnlySpan{int}, PolityId, SettlementId, int)"/>)
+    /// answers Legal on this world with the batch the queued orders already make, on a cell the player knows (P7). Appends
+    /// NOTHING (and returns false) otherwise — a cell the player does not know, an illegal site, a source the Empire does
+    /// not hold or that cannot spare a party and its provisions, a source whose founding is already queued this turn, or a
+    /// world without terrain — so the caller shows why rather than pretend the order landed.
+    /// </summary>
+    public bool EmitFoundSettlement(int sourceId, int siteCell)
+    {
+        if (Sites is not { } site) return false;
+        if (FoundSettlementOrderFactory.Create(World, Config, site.Frontier, Knowledge.Core, UiPlayer.Empire,
+                new SettlementId(sourceId), siteCell, QueuedOrders()) is not { } order) return false;
+        Orders.Append(order);
+        return true;
+    }
+
+    /// <summary>The not-yet-stepped orders: the log rows stamped with the current turn, in log order
+    /// (exactly the batch the next End Turn delivers).</summary>
+    public IReadOnlyList<OrderRecord> QueuedOrders()
+    {
+        var queued = new List<OrderRecord>();
+        for (int i = 0; i < Orders.Count; i++)
+            if (Orders[i].Turn == World.Clock.Turn) queued.Add(Orders[i]);
+        return queued;
+    }
+
+    /// <summary>The player's AdvanceAge decision queued this turn, or null.</summary>
+    public PendingAgeAdvance? PendingPlayerAdvance =>
+        Config.Ages is { } ages ? AgeQuery.PendingAdvance(World, ages, QueuedOrders(), UiPlayer.Empire) : null;
+
+    /// <summary>
+    /// ADR-031 / D-047 ruling 13: the ADVANCE AGE confirm handler. Appends exactly
+    /// <see cref="AgeQuery.AdvanceOrder"/> for the player's Empire (stamped with the CURRENT turn, so
+    /// the next turn begins in the new Age) — the same order pathway as every other directive; the UI
+    /// never writes Age state. Returns false and appends NOTHING when the session has no Age content,
+    /// when <see cref="AgeQuery.CheckAdvance"/> would reject it, or when an advance is already pending
+    /// this turn (a second order would change nothing but would still sit in the log).
+    /// </summary>
+    public bool EmitAdvanceAge(int toAge, int surgeKey)
+    {
+        if (Config.Ages is not { } ages) return false;
+        PolityId me = UiPlayer.Empire;
+        if (AgeQuery.CheckAdvance(World, ages, me, toAge, surgeKey) != AdvanceRejection.None) return false;
+        if (AgeQuery.PendingAdvance(World, ages, QueuedOrders(), me) is not null) return false;
+        Orders.Append(AgeQuery.AdvanceOrder(World, me, toAge, surgeKey));
+        return true;
+    }
+
+    /// <summary>
+    /// ADR-033 D5 (replacing the Age-only call of ADR-031 §4): before each step every AI polity's orders —
+    /// research target, Age advance, road development, construction (<see cref="AiOrders"/>, the one
+    /// deterministic producer, which reaches them through the player's own order constructors and the same
+    /// domain predicates) — are appended to the order log like the player's clicks, so an AI run replays from
+    /// the log. Player-commanded polities are never touched: the player is never auto-advanced.
+    /// </summary>
+    private void AppendAiOrders() => AiOrders.Append(Orders, World, Config, _worldgen);
+
+    /// <summary>
+    /// ADR-029: clears the player's research target (progress is kept, D-044 R9) — ONE SetResearchTarget
+    /// order with target −1 (<see cref="ResearchQuery.ClearTargetOrder"/>), stamped with the CURRENT turn.
+    /// Appends NOTHING (and returns false) when there is nothing to clear: no research content; a clear
+    /// already queued this turn; or no target chosen earlier this turn and none in the world (the condition
+    /// under which the action surface lists "research.clear-target"). ResearchSystem applies a turn's target
+    /// orders in log order, so a clear after a choice made the same turn is a real decision.
+    /// </summary>
+    public bool ClearResearchTarget()
+    {
+        if (Config.Research is null) return false;
+        int? queued = QueuedResearchChoice();
+        if (queued == -1) return false;
+        if (queued is null && !ResearchQuery.TryGetTarget(World, UiPlayer.Empire, out _)) return false;
+        Orders.Append(ResearchOrderFactory.ClearTarget(World, UiPlayer.Empire));
+        return true;
+    }
+
+    /// <summary>The research directive the player queued this turn, as ResearchSystem will apply it — the
+    /// LAST of the player's SetResearchTarget orders in log order: a node key, −1 for a clear, or null when
+    /// none is queued.</summary>
+    public int? QueuedResearchChoice()
+    {
+        int? choice = null;
+        IReadOnlyList<OrderRecord> queued = QueuedOrders();
+        for (int i = 0; i < queued.Count; i++)
+            if (queued[i].Kind == OrderKind.SetResearchTarget && queued[i].ActorId == UiPlayer.ActorId) choice = queued[i].TargetId;
+        return choice;
     }
 
     /// <summary>End Turn: the executor steps synchronously (m1 spec §3);
@@ -247,12 +677,30 @@ public sealed class UiSession
     /// indices, so a policy change carries its order number.</summary>
     public void EndTurn()
     {
+        AppendAiOrders();
+        Step();
+    }
+
+    /// <summary>The step and every UI-side observer, shared by live play and <see cref="Resume"/>'s replay.</summary>
+    private void Step()
+    {
         WorldState prev = World;
         World = _executor.Step(prev);
         PreviousWorld = prev;
+        // Audit E23: a colony founded this step gets its name now. The registry assigns names in ascending
+        // id order with collision re-draws against names already taken, so rebuilding over a world that
+        // only GAINED settlements leaves every existing name unchanged (pinned by a test).
+        if (World.Settlements.Count != prev.Settlements.Count)
+            Names = Sim.Core.Chronicle.NameRegistry.Build(_chronicleCfg, World.Seed, World);
         _observations.Observe(prev, World, _simCfg, OrderApplied.For(Orders, prev.Clock.Turn));
+        Knowledge = _knowledgeOf(World);   // P7: what the player knows of the world the step produced
         ObserveChronicle();
-        History.Capture(World);
+        _events.Observe(prev, World, _simCfg, Names.Name, _annals, Knowledge);
+        _events.Observe(prev, World, _simCfg, Names.Name, _playerAnnals, Knowledge, playerBooks: true);   // D-060: the ANNALS view
+        NowUsableHistory.Observe(prev, World, _simCfg, UiPlayer.Empire);   // P10: the 'now usable' shortcuts this step fired
+        History.Capture(World, Knowledge);
+        Ownership.Capture(World, UiPlayer.Empire);   // the resources view: the player's settlements after the step
+        Unlocked.Capture(World, _simCfg, UiPlayer.Empire);   // the resources view: goods unlocked by the step stay unlocked
         CaptureTrace();
     }
 
@@ -310,7 +758,7 @@ public sealed class UiSession
     /// record; without it the director's real Windows session read as
     /// "REPRODUCTION FAILED", a determinism finding it was not.
     /// </summary>
-    public SessionManifest Manifest(string startedAt, string sessionLogPath) =>
+    public SessionManifest Manifest(string startedAt, string sessionLogPath, SessionDisplay? display = null) =>
         new(Seed: _seed,
             SizePx: _sizePx,
             Settlements: _settlements,
@@ -323,15 +771,17 @@ public sealed class UiSession
             TraceFile: Path.GetFileName(TracePath(sessionLogPath)),
             TelemetryFile: Path.GetFileName(TelemetryPath(sessionLogPath)),
             Platform: System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier,
-            ForensicFile: Path.GetFileName(ForensicPath(sessionLogPath)));
+            ForensicFile: Path.GetFileName(ForensicPath(sessionLogPath)),
+            AiEmpires: _aiEmpires,
+            Display: display);
 
-    /// <summary>Writes the manifest beside the order log.</summary>
-    public void ExportManifest(string startedAt, string sessionLogPath)
+    /// <summary>Writes the manifest beside the order log (with the display the game opens on, when the host knows it).</summary>
+    public void ExportManifest(string startedAt, string sessionLogPath, SessionDisplay? display = null)
     {
         string path = ManifestPath(sessionLogPath);
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         using FileStream file = File.Create(path);
-        Manifest(startedAt, sessionLogPath).Write(file);
+        Manifest(startedAt, sessionLogPath, display).Write(file);
     }
 
     /// <summary>Exports the turn trace — header plus one line per observed
@@ -455,7 +905,7 @@ public sealed class UiSession
             orders: Orders,
             era: ProductionEra(),
             pipeline: ProductionPipeline(),
-            aiEmpiresConfigured: ProductionWorldgen().AiEmpires,
+            aiEmpiresConfigured: _aiEmpires ?? ProductionWorldgen().AiEmpires,
             terrainContentHash: World.Terrain?.ContentHash,
             buildSha: BuildInfo.Sha,
             buildDate: BuildInfo.Date,
@@ -504,8 +954,10 @@ public sealed class UiSession
                 GatesState: "not-recorded — no gate-verdict producer exists in this build"));
     }
 
-    /// <summary>Exports the annals — EXACTLY the panel's lines, one per line,
-    /// fixed \n (byte-identical across identical runs).</summary>
+    /// <summary>Exports the annals of the SESSION RECORD (<see cref="RecordAnnalLines"/>), one per line,
+    /// fixed \n (byte-identical across identical runs). D-060: world-wide, as before — the scope decision keeps the
+    /// session files the replay/forensic record; the in-game ANNALS panel (<see cref="AnnalLines"/>) is the filtered view.
+    /// Where the player rules every settlement the two are identical.</summary>
     public void ExportChronicle(string path)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
@@ -519,7 +971,7 @@ public sealed class UiSession
     /// canonical-world log at replay time (`sim replay --founded --size PX`).
     /// </summary>
     public static string SessionLogPath(
-        DateTime now, int? sizeOverridePx = null, int? settlementsOverride = null) =>
+        DateTime now, int? sizeOverridePx = null, int? settlementsOverride = null, int? aiEmpiresOverride = null) =>
         Path.Combine("runs",
             "orders-" + now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture)
             + (sizeOverridePx is { } sz
@@ -528,11 +980,277 @@ public sealed class UiSession
             + (settlementsOverride is { } n
                 ? "-n" + n.ToString(CultureInfo.InvariantCulture)
                 : "")
+            // ADR-033 D5: an AI-empire override is recorded IN the name too (…-a1.bin), like the size and
+            // settlement overrides, so such a log is never mistaken for a solo canonical-world log.
+            + (aiEmpiresOverride is { } a
+                ? "-a" + a.ToString(CultureInfo.InvariantCulture)
+                : "")
             + ".bin");
+
+    /// <summary>
+    /// Audit E32 — RESUME by replay (D-008: replay is the recovery path). Re-founds the world from the session
+    /// manifest (seed, size, settlements, AI empires), then replays the saved order log through the SAME
+    /// executor and the SAME per-step observers live play uses — so the world AND the UI-side records (annals,
+    /// observations, history, trace, names, policy history) are rebuilt, not approximated. The log already
+    /// carries every AI order (they were appended to it live), so the AI producer is NOT re-run while
+    /// replaying. Played turns: the trace's last turn when the trace exists (each replayed turn's hash is then
+    /// checked against it, and a mismatch throws), else the highest order stamp. Orders stamped with the
+    /// final turn were issued but not yet played; they are re-queued.
+    ///
+    /// S0 (2026-10-10) — A SESSION RECORDED UNDER ANOTHER SCHEMA. The trace's hashes cover the whole canonical
+    /// stream (WorldHash), so after any schema bump no saved trace line can equal a replayed one, and the check
+    /// above threw "resume diverged at turn 1" for every older session while the manifest's own
+    /// <see cref="SessionManifest.SchemaVersion"/> went unread. It is read now: when it is not this build's
+    /// <see cref="CanonicalSchema.Version"/>, the session is resumed by the D-008 recovery path — re-founded from
+    /// the seed and replayed from the order log WITHOUT the trace-hash check (the trace still gives the turn to
+    /// replay to) — and <see cref="ResumeNotice"/> says so explicitly. The ADR-034 order checks still apply.
+    ///
+    /// D-054 (fix round 1, 2026-10-15) — A SESSION RECORDED BEFORE THE CYLINDER. Every world recorded under a schema before
+    /// v33 was flat; such a session is re-founded flat (<see cref="TopologyFlags.RecordedFlat"/>), so its replay runs on the
+    /// map it was played on, and the notice says so. A session this build recorded is re-founded with the shipped worldgen,
+    /// as it was founded.
+    ///
+    /// M5 playtest blocker (D-052) — A SESSION ANOTHER BUILD RECORDED UNDER THIS SCHEMA. The simulation can change
+    /// between builds without a schema bump (playtest build 2dc6af2 and f0427d2 are both v32 and differ from turn 1),
+    /// and then the trace check refuses the session — rightly: its world cannot be rebuilt here. That refusal used to
+    /// end the launch as an unhandled exception. It is now a <see cref="SessionIncompatibleException"/> carrying the
+    /// recorded and current build identities and the divergence turn, with the check's
+    /// <see cref="ResumeDivergedException"/> as its inner exception; <see cref="ResumeLaunch"/> reports it to the
+    /// player. The check itself, the schema-mismatch path above and every hash are unchanged, and nothing is written:
+    /// a refused resume has only read the session's files.
+    /// </summary>
+    public static UiSession Resume(string manifestPath, out string sessionLogPath)
+    {
+        string dir = Path.GetDirectoryName(Path.GetFullPath(manifestPath)) ?? "";
+        // D-057: a session file that is missing or cannot be read (a truncated log, a malformed trace line, a manifest that
+        // is not one) is a SessionUnreadableException — reported by ResumeLaunch like every refusal — not an unhandled
+        // exception that ends the launch with nothing a player sees.
+        SessionManifest manifest = ReadSessionFile(manifestPath, "manifest", path =>
+        {
+            using FileStream m = File.OpenRead(path);
+            return SessionManifest.Read(m, path);
+        });
+        sessionLogPath = Path.Combine(dir, manifest.OrdersFile);
+        OrderLog saved = ReadSessionFile(sessionLogPath, "order log", path =>
+        {
+            using FileStream o = File.OpenRead(path);
+            return OrderLog.Load(o);
+        });
+
+        IReadOnlyList<SessionTrace.Row>? trace = null;
+        string tracePath = Path.Combine(dir, manifest.TraceFile);
+        if (manifest.TraceFile.Length > 0 && File.Exists(tracePath))
+            trace = ReadSessionFile(tracePath, "trace", path => SessionTrace.Parse(File.ReadAllLines(path), path));
+        long target = 0;
+        if (trace is { Count: > 0 }) target = trace[^1].Turn;
+        else for (int i = 0; i < saved.Count; i++) target = Math.Max(target, saved[i].Turn);
+
+        bool sameSchema = manifest.SchemaVersion == CanonicalSchema.Version;
+        string recordedBy = "build " + manifest.BuildSha + ", " + manifest.BuildDate + ", schema v"
+            + manifest.SchemaVersion.ToString(CultureInfo.InvariantCulture);
+        // Fix round 1 (D-054, verifier F1, 2026-10-15): a session recorded before v33 was played on a FLAT map (no world
+        // wrapped before the cylinder), so it is re-founded flat — TopologyFlags.RecordedFlat, the rule the CLI's save
+        // loader and `sim inspect` apply too. Before, it was re-founded on the shipped cylinder: a different map, and a
+        // log whose FoundSettlement sites are legal only on the flat one was rejected (exit 2).
+        UiSession session = Start(manifest.Seed, manifest.SizePx, manifest.Settlements, manifest.AiEmpires,
+            wrapXOverride: TopologyFlags.RecordedFlat(manifest.SchemaVersion) ? false : null);
+        try
+        {
+            // D-056: the trace goes in whatever the schema — ReplayGuard checks every batch carrying a legacy kind-11
+            // cancel against it in any readable form; the every-turn check stays this schema's only.
+            // D-057: and ReplayProof checks, before every batch, that each settlement and polity it names is the recorded
+            // one (the trace's rows in the recorded schema's form).
+            session.ReplayTo(saved, target, trace, checkEveryTurn: sameSchema,
+                describedAs: "saved session " + Path.GetFileName(manifestPath), recordedBy: recordedBy,
+                recordedSchema: manifest.SchemaVersion,
+                missingTraceFile: trace is null ? manifest.TraceFile : null);
+        }
+        catch (ResumeDivergedException diverged)   // only with the trace checked, i.e. under this build's schema
+        {
+            throw new SessionIncompatibleException(
+                Path.GetFullPath(manifestPath),
+                manifest.BuildSha, manifest.BuildDate, manifest.Platform,
+                BuildInfo.Sha, BuildInfo.Date, System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier,
+                diverged);
+        }
+        if (!sameSchema) session.ResumeNotice = SchemaMismatchNotice(manifest.SchemaVersion, CanonicalSchema.Version);
+        else if (trace is null) session.ResumeNotice = MissingTraceNotice;
+        // D-056: a replay the trace did not check turn by turn may not be the recorded world, and the first save
+        // rewrites the log and the trace — so the recorded files are copied aside before it (KeepRecordedFiles).
+        if (!sameSchema || trace is null)
+            session._recordedFiles = [sessionLogPath, tracePath, Path.Combine(dir, manifest.ChronicleFile)];
+        return session;
+    }
+
+    /// <summary>D-057: reads one of a session's files with <paramref name="read"/>; a missing or unreadable file — the
+    /// I/O and format failures the readers raise — becomes a <see cref="SessionUnreadableException"/> naming it. Reads
+    /// only.</summary>
+    private static T ReadSessionFile<T>(string path, string what, Func<string, T> read)
+    {
+        try
+        {
+            return read(path);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidDataException
+            or SnapshotFormatException or System.Text.Json.JsonException or KeyNotFoundException or FormatException
+            or InvalidOperationException or ArgumentException)
+        {
+            throw new SessionUnreadableException(path, what, e);
+        }
+    }
+
+    /// <summary>D-056: the files a resumed session was recorded with, copied aside (<see cref="RecordedCopyPath"/>) by the
+    /// first <see cref="Save"/> before anything overwrites them — set only when the replay was not checked turn by turn
+    /// (another schema, or no trace), so the recording survives as evidence; null otherwise or once copied.</summary>
+    private string[]? _recordedFiles;
+
+    /// <summary>D-056: where <see cref="Save"/> keeps a recorded file before the first overwrite after an unchecked
+    /// resume — beside it, with ".as-recorded" before the extension (orders-X.bin → orders-X.as-recorded.bin).</summary>
+    public static string RecordedCopyPath(string path) =>
+        Path.Combine(Path.GetDirectoryName(path) ?? "",
+            Path.GetFileNameWithoutExtension(path) + ".as-recorded" + Path.GetExtension(path));
+
+    /// <summary>D-056: the copies, once — an existing copy (an earlier resume's) is never replaced, so it stays the
+    /// oldest recording. Missing files (no trace, no chronicle) are skipped.</summary>
+    private void KeepRecordedFiles()
+    {
+        if (_recordedFiles is null) return;
+        foreach (string file in _recordedFiles)
+        {
+            if (file.Length == 0 || !File.Exists(file)) continue;
+            string copy = RecordedCopyPath(file);
+            if (!File.Exists(copy)) File.Copy(file, copy);
+        }
+        _recordedFiles = null;
+    }
+
+    /// <summary>D-056: the notice for a session of this schema resumed without its trace file — nothing could check the
+    /// replay.</summary>
+    public static readonly IReadOnlyList<string> MissingTraceNotice =
+    [
+        "The saved trace file is missing.",
+        "Resumed by replaying its seed and orders (D-008).",
+        "The replay was not checked against the original game.",
+        "The world may differ from the one originally played.",
+    ];
+
+    /// <summary>What <see cref="Resume"/> has to tell the player about how this session was rebuilt: empty for a
+    /// session started here or resumed with its trace checked, the <see cref="SchemaMismatchNotice"/> lines when it
+    /// was recorded under another schema. UI-side, like the annals — never in the world, never in a hash.</summary>
+    public IReadOnlyList<string> ResumeNotice { get; private set; } = [];
+
+    /// <summary>The kicker the game's notice toast shows <see cref="ResumeNotice"/> under.</summary>
+    public const string ResumeNoticeKicker = "RESUMED SESSION";
+
+    /// <summary>The explicit notice for a session whose manifest records schema <paramref name="recorded"/> while
+    /// this build writes <paramref name="current"/> (D-008: saves may break between milestones; seed + order-log
+    /// replay is the recovery path). Four short lines, so the notice toast shows each of them whole. Fix round 1
+    /// (D-054, verifier F1): for a schema before v33 (<see cref="TopologyFlags.RecordedFlat"/>) the second line names the
+    /// map it was rebuilt on — flat, as it was played.</summary>
+    public static IReadOnlyList<string> SchemaMismatchNotice(int recorded, int current) =>
+    [
+        "Recorded under save schema v" + recorded.ToString(CultureInfo.InvariantCulture)
+            + "; this build is v" + current.ToString(CultureInfo.InvariantCulture) + ".",
+        TopologyFlags.RecordedFlat(recorded)
+            ? "Replayed from its seed and orders on the flat map v" + recorded.ToString(CultureInfo.InvariantCulture) + " used (D-008)."
+            : "Resumed by replaying its seed and orders (D-008).",
+        "The saved trace was not checked against this replay.",
+        "The world may differ from the one originally played.",
+    ];
+
+    /// <summary>The replay loop of <see cref="Resume"/>, public for the resume tests: appends the saved
+    /// orders of each turn in log order and steps, until <paramref name="target"/>; then re-queues the
+    /// orders stamped <paramref name="target"/>.
+    ///
+    /// ADR-034 §4 adopted (S0, 2026-10-10): the replay runs the SAME order checks every CLI replay runner runs —
+    /// <see cref="OrderValidation.ValidateAgainstWorld"/> once against the founded world, then
+    /// <see cref="OrderValidation.ValidateAtDelivery"/> for each turn's batch against the world it is delivered
+    /// to, before that step — so a forged or stale order for a deferred id (an actor no revolt founded, a
+    /// settlement no colony took) rejects the resume with the diagnostic `sim replay` prints instead of being
+    /// silently ignored by its consumer. The re-queued batch is checked too, against the world the next End Turn
+    /// delivers it to. Observer-only: the steps are unchanged and no hash moves. Valid only from the founded world
+    /// with an empty log — the turn-0 world the up-front pass needs — which is how <see cref="Resume"/> calls it.
+    ///
+    /// D-056: before each batch — the re-queued one too — <see cref="ReplayGuard.CheckBeforeDelivery"/> refuses one that
+    /// carries a legacy kind-11 cancel unless <paramref name="trace"/> proves the world it is delivered to is the
+    /// recorded one (in any readable schema form); with no trace, such a batch is refused. The check runs before the
+    /// batch is appended, so a refusal leaves the world as the previous step made it. <paramref name="checkEveryTurn"/>
+    /// keeps the every-turn hash check (this schema's sessions only — <see cref="Resume"/> passes false for another
+    /// schema's, whose trace hashes another stream).
+    ///
+    /// D-057: a RECORDED session — <paramref name="trace"/> given, or <paramref name="missingTraceFile"/> naming the trace
+    /// file a resume could not find ("" when the manifest names none) — is replayed under <see cref="ReplayProof"/>: before
+    /// each batch, every settlement and polity it names must be shown to be the recorded one (the trace's rows, tried in
+    /// <paramref name="recordedSchema"/>'s form first), or the resume is refused with an <see cref="OrderValidationException"/>
+    /// before that batch is appended. With neither (a test's bare replay) only D-056's kind-11 rule applies.
+    /// </summary>
+    public void ReplayTo(OrderLog saved, long target, IReadOnlyList<SessionTrace.Row>? trace = null,
+        bool checkEveryTurn = true, string describedAs = "this saved session", string? recordedBy = null,
+        int recordedSchema = CanonicalSchema.Version, string? missingTraceFile = null)
+    {
+        ArgumentNullException.ThrowIfNull(saved);
+        if (World.Clock.Turn != 0 || Orders.Count != 0)
+            throw new InvalidOperationException(
+                "ReplayTo replays a saved log from the founded world, but this session is at turn "
+                + World.Clock.Turn.ToString(CultureInfo.InvariantCulture) + " with "
+                + Orders.Count.ToString(CultureInfo.InvariantCulture) + " order(s) already logged.");
+        WorldState turnZero = World;
+        OrderValidation.ValidateAgainstWorld(saved, turnZero);
+        int rosterMax = 0;
+        for (int p = 0; p < turnZero.Polities.Count; p++) rosterMax = Math.Max(rosterMax, turnZero.Polities[p].Id.Value);
+        // D-057: a RECORDED session (a trace, or a resume whose trace file is missing) is replayed under the identity proof;
+        // a bare replay (a test's own log, no trace and no session) asserts nothing about a recording and keeps D-056's rule
+        // only — a kind-11 batch is refused, having no trace to be checked against.
+        ReplayProof? proof = trace is not null || missingTraceFile is not null
+            ? new ReplayProof(trace, recordedSchema, rosterMax, describedAs, recordedBy,
+                trace is not null ? null
+                    : "Nothing was applied and no session file was changed. To continue this session, put its trace file"
+                      + (missingTraceFile!.Length > 0 ? " (" + missingTraceFile + ")" : "") + " back beside the manifest, or open "
+                      + "it with the build that recorded it" + (string.IsNullOrEmpty(recordedBy) ? "" : " (" + recordedBy + ")")
+                      + "; to play this build, start a new game.")
+            : null;
+        int next = 0;
+        while (World.Clock.Turn < target)
+        {
+            long turn = World.Clock.Turn;
+            BeforeDelivery(proof, saved.BatchFor(turn), trace, describedAs, recordedBy); // D-056 (kind 11), D-057 (identity)
+            for (; next < saved.Count && saved[next].Turn <= turn; next++)
+                if (saved[next].Turn == turn) Orders.Append(saved[next]);
+            OrderValidation.ValidateAtDelivery(Orders.BatchFor(turn), turnZero, World); // ADR-034
+            Step();
+            if (checkEveryTurn && trace is not null)
+                for (int r = 0; r < trace.Count; r++)
+                    if (trace[r].Turn == World.Clock.Turn)
+                    {
+                        string hash = _trace[^1].Split(',')[^1];
+                        // M5 playtest blocker (D-052): a typed divergence, same message — Resume turns it into
+                        // the player-facing SessionIncompatibleException.
+                        if (!string.Equals(hash, trace[r].Hash, StringComparison.Ordinal))
+                            throw new ResumeDivergedException(World.Clock.Turn, hash, trace[r].Hash);
+                        break;
+                    }
+        }
+        BeforeDelivery(proof, saved.BatchFor(World.Clock.Turn), trace, describedAs, recordedBy); // the re-queued batch too
+        for (; next < saved.Count; next++)
+            if (saved[next].Turn == World.Clock.Turn) Orders.Append(saved[next]);
+        // The re-queued batch is delivered to exactly this world by the next End Turn (orders the player adds in
+        // the meantime do not change it), so it is checked here, while the log is still the saved one.
+        OrderValidation.ValidateAtDelivery(Orders.BatchFor(World.Clock.Turn), turnZero, World); // ADR-034
+    }
+
+    /// <summary>The check before a replayed batch: the identity proof for a recorded session (D-057, which applies D-056's
+    /// kind-11 rule itself); D-056's kind-11 rule alone for a bare replay.</summary>
+    private void BeforeDelivery(ReplayProof? proof, OrderBatch batch, IReadOnlyList<SessionTrace.Row>? trace,
+        string describedAs, string? recordedBy)
+    {
+        if (proof is not null) proof.BeforeDelivery(batch, World);
+        else ReplayGuard.CheckBeforeDelivery(batch, World, trace, describedAs, recordedBy);
+    }
 
     public void Save(string path)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        KeepRecordedFiles();   // D-056: before the first overwrite after an unchecked resume
         using var stream = File.Create(path);
         Orders.Save(stream);
     }

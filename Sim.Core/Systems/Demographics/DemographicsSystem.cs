@@ -65,7 +65,11 @@ public readonly record struct DemographicsTables(
 ///      STRESS (d ≤ a) starves nobody and suppresses no birth, SEVERE starves
 ///      on the unabsorbed remainder. One per-turn scalar feeds BOTH
 ///      exceptional channels (mortality and fertility suppression, G3(b));
-///      the rebound release gate reads the NOMINAL d == 0.0.
+///      the rebound release gate reads the NOMINAL d == 0.0. M5 item 5: that
+///      scalar is the dead-zone form × the civilization's granary
+///      famine-intensity factor (FoodState.EffectiveDeficit's world overload,
+///      GranaryEffects; ∈ (1 − famineReductionMax, 1], skipped when no granary
+///      stands in the civilization) — organised relief capacity, no grain moves.
 ///      Mortality acts on PRESENT counts (ADR-011 §1): per-capita and
 ///      position-independent — people moved by an earlier system this turn
 ///      die where they stand; the Prev-sized dodge class is structurally
@@ -155,9 +159,14 @@ public sealed class DemographicsSystem : ISimSystem<DemographicsTables>
     private readonly BasketBook _baskets;
     private readonly double[] _cohortWeights;
 
+    /// <summary>M5 item 5: the granary content resolved ONCE at construction (State.GranaryEffects.Bind), so the
+    /// per-settlement effective deficit scans no project names.</summary>
+    private readonly GranaryBinding _granaries;
+
     public DemographicsSystem(SimConfig cfg)
     {
         _cfg = cfg;
+        _granaries = GranaryEffects.Bind(cfg);
         GoodsConfig goods = cfg.Goods
             ?? throw new ArgumentException(
                 "DemographicsSystem requires SimConfig.Goods (goods.json) from T4.21-3.");
@@ -205,6 +214,7 @@ public sealed class DemographicsSystem : ISimSystem<DemographicsTables>
         var agingExact = new double[rowCount];   // outflow to the NEXT slot
         var starveRate = new double[Cohorts.Count];
         var totalRate = new double[Cohorts.Count];
+        var baseRate = new double[Cohorts.Count];   // ADR-033 D6: base mortality × the settlement's health multiplier
         // T4.21-3 PASS A scratch, indexed by the group's anchor (cohort-0) row:
         // the uncapped candidate and its parts, committed in PASS B.
         var unsuppressedA = new double[rowCount];
@@ -244,13 +254,28 @@ public sealed class DemographicsSystem : ISimSystem<DemographicsTables>
             // gate below (`deficit == 0.0`) is byte-identical: release is a
             // recovery signal (is there any shortfall at all?), not a
             // response magnitude.
+            // M5 item 5 (granaries, EMPIRE-WIDE; D-053 §3): the world overload multiplies the dead-zone form by
+            // the civilization's granary famine-intensity factor (GranaryEffects, from PREV, with the binding
+            // resolved at construction) — organised relief capacity blunts the unabsorbed shortfall (no grain
+            // moves), so BOTH channels below read the reduced dEff and nothing else does. With no granary in the
+            // civilization (or the effects off) the multiplication is skipped: dEff is the dead-zone value bit for
+            // bit, and the kernel computes the identical values.
             FoodStateKind foodState = FoodState.Of(prev, settlement, _cfg, out _);
-            double dEff = FoodState.EffectiveDeficit(deficit, foodState, _cfg);
+            double dEff = FoodState.EffectiveDeficit(prev, settlement, deficit, foodState, _cfg, _granaries);
             double suppression = Math.Max(0.0, 1.0 - d.FamineFertilitySuppressionSlope * dEff);
+            // ADR-033 D6 — THE ONE PER-SETTLEMENT HEALTH SEAM (InstitutionEffects.MortalityMultiplier,
+            // from PREV): medical universities' coverage, diffused over travel cost, scales every
+            // cohort's BASE mortality by μ ∈ [1 − maxMortalityReduction, 1] (bounded, saturating);
+            // starvation is untouched (medicine feeds nobody). Held constant across the micro-loop
+            // like every rate here, so e^(−m·μ·h) still composes exactly (dt-invariance by
+            // construction). Without a medical university μ is the literal 1.0 and m × 1.0 == m bit
+            // for bit, so the kernel computes the identical values.
+            double health = InstitutionEffects.MortalityMultiplier(prev, _cfg, settlement);
             for (int c = 0; c < Cohorts.Count; c++)
             {
                 starveRate[c] = StarvationRate(d, c, dEff);
-                totalRate[c] = d.MortalityPerYear[c] + starveRate[c];
+                baseRate[c] = d.MortalityPerYear[c] * health;
+                totalRate[c] = baseRate[c] + starveRate[c];
             }
 
             // Seed the micro-state from PRESENT integer counts; zero the flow
@@ -388,7 +413,7 @@ public sealed class DemographicsSystem : ISimSystem<DemographicsTables>
                     if (buckets[i].Settlement != settlement) continue;
                     int c = buckets[i].CohortIdx;
 
-                    double dead = pop[i] * (1.0 - Math.Exp(-d.MortalityPerYear[c] * h));
+                    double dead = pop[i] * (1.0 - Math.Exp(-baseRate[c] * h));
                     pop[i] -= dead;
                     deathsExact[i] += dead;
                     double starved = pop[i] * (1.0 - Math.Exp(-starveRate[c] * h));

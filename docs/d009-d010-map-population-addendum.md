@@ -60,3 +60,14 @@ discontent → **protest** (production drag) → **riot** (local: damage, strike
 - **D-017** settlement sprawl model (M3) — rec: suitability-field blob growth along edges.
 - **D-018** final class list & needs weights (M2 data files).
 - **D-019** verb-freeze matrix per crisis type (M8) — which actions lock under which legitimacy states.
+
+---
+
+**Dated note — 2026-10-15 (D-054; appended, the rulings above are unchanged).** D-009's continuous-world model stands.
+The map it assumed was flat; since the Director's 2026-10-14 instruction it is an east-west CYLINDER (`worldgen.json`
+`topology.wrapX`), with hard poles.
+- The continental mask is unchanged, so one landmass stays centred.
+- On some shipped seeds its land crosses the seam: canonical seeds 6, 8, 14, 16, 17, 18 and 20.
+- Every simulation distance, path, catchment and siting window now wraps, through `Sim.Core/Pathing/MapTopology.cs`.
+
+Record: `docs/d054-batch3-incremental-construction-allocation-cylinder.md` §3 and §5.

@@ -54,7 +54,7 @@ public static class SnapshotDiff
     private static Field L(string n) => new(n, Kind.Int64);
     private static Field D(string n) => new(n, Kind.Double);
 
-    /// <summary>CanonicalSchema.Write blocks 3..39, in stream order. Every entry
+    /// <summary>CanonicalSchema.Write blocks 3..61, in stream order (v34). Every entry
     /// is (field, width class) exactly as the writer emits it; widths must sum
     /// to the schema's *RowWidth constants (SnapshotDiffTests proves the sum).</summary>
     public static readonly Table[] Layout =
@@ -109,7 +109,71 @@ public static class SnapshotDiff
         new("Structures", [I("Settlement"), I("ProjectId"), L("Count")]),
         new("Disasters", [I("Settlement"), I("Kind"), D("Severity"), D("RemainingYears"),
             D("Multiplier"), D("AppliedMultiplier")]),
+        // v26 (ADR-029): the research tables.
+        new("ResearchTargets", [I("Polity"), I("Node")]),
+        new("ResearchProgress", [I("Polity"), I("Node"), D("Progress")]),
+        new("ResearchCompleted", [I("Polity"), I("Node")]),
+        new("ResearchEurekas", [I("Polity"), I("Node"), I("Eureka")]),
+        new("ResearchCostModifiers", [I("Polity"), I("UniversityType"), D("Factor")]),
+        // v26, ADR-029 addendum A: acceleration-credit provenance and the foreign-exposure seam.
+        new("ResearchCredits", [I("Polity"), I("Node"), I("Source"), D("Amount")]),
+        new("ResearchExposures", [I("Polity"), I("Node"), D("Offered")]),
+        // v28 (ADR-031): Ages and military formations.
+        new("AgeStates", [I("Polity"), I("Age"), L("EnteredTurn"), I("Surge"), L("SurgeStartTurn")]),
+        new("AgeEligibility", [I("Polity"), I("NextAge"), L("EvaluatedTurn"), I("CoreMet"), I("CoreTotal"),
+            I("SupportingMet"), I("SupportingRequired"), I("CategoryMask"), I("CategoriesRequired"),
+            new("Eligible", Kind.Bool)]),
+        new("AgeTransitions", [I("Polity"), I("FromAge"), I("ToAge"), I("Surge"), L("DecisionTurn"), L("EffectiveTurn")]),
+        new("MilitaryUnits", [I("Id"), I("Owner"), I("Family"), I("Identity"), I("Location"), D("X"), D("Y"),
+            D("Experience"), I("Army")]),
+        new("UnitConversions", [L("Turn"), I("Unit"), I("Owner"), I("FromFamily"), I("FromIdentity"), I("ToFamily"),
+            I("ToIdentity"), I("FromAge"), I("ToAge"), I("Outcome")]),
+        // v29 (ADR-032): the inter-settlement transport multigraph and the road-development log.
+        new("TransportEdges", [I("Id"), I("A"), I("B"), I("EdgeType"), I("Mode"), I("State"),
+            L("CapacityTonnesPerYear"), D("LengthKm"), I("Condition"), L("BuiltTurn"), L("UpgradedTurn"),
+            I("TargetClass"), D("Modernization"), D("CostFactor")]),
+        new("RoadDevelopments", [L("Turn"), I("Polity"), I("Edge"), I("A"), I("B"), I("FromClass"), I("ToClass"),
+            I("Kind"), L("Usage"), L("MaterialUnits"), D("ProgressBefore"), D("ProgressAfter")]),
+        // v30 (ADR-033 D4): the standing tax policy per Empire.
+        new("TaxPolicies", [I("Polity"), D("Rate")]),
+        // v31 (ADR-033 D6 + D10): founded institutions with their stored maturity; the construction labour
+        // the queue consumed this step.
+        new("Institutions", [I("Id"), I("Polity"), I("Settlement"), I("Type"), L("FoundedTurn"), D("Maturity")]),
+        new("ConstructionLabor", [I("Settlement"), D("LastLaborUsed")]),
+        // v32 (H2): the levy's grievance per (settlement, class) population segment.
+        new("TaxGrievance", [I("Settlement"), I("Class"), D("Value")]),
+        // v33 (WS1/WS2, ADR-039): per-entry construction progress; the per-Empire building/roads split.
+        new("ConstructionProgress", [I("Settlement"), I("Slot"), I("ProjectId"), L("EnqueuedTurn"), L("Progress")]),
+        new("ResourceAllocations", [I("Polity"), I("BuildingsPercent")]),
+        // v34 (D-055): each purse's set-aside units per good this step.
+        new("ConstructionHolds", [I("Purse"), I("Good"), L("Units")]),
     ];
+
+    /// <summary>The number of trailing <see cref="Layout"/> blocks schema v33 appended (absent from a v32 stream).</summary>
+    private const int V33Blocks = 2;
+
+    /// <summary>The number of trailing <see cref="Layout"/> blocks schema v34 appended (absent from v32 and v33 streams).</summary>
+    private const int V34Blocks = 1;
+
+    /// <summary>
+    /// THE LAYOUT OF A STREAM OF <paramref name="version"/> (ADR-039: the walk dispatches on the save's header version;
+    /// D-055: the readable SET, CanonicalSchema.IsReadable): this build's <see cref="Layout"/> for v34; the same less the
+    /// v34 block for v33 (a v33 stream ends after section 60, ResourceAllocations); less the v34 block and the two v33
+    /// blocks for v32 (a v32 stream ends after section 58, the levy's grievance table). Any other version is refused, as
+    /// Snapshot.Load refuses it.
+    /// </summary>
+    public static Table[] LayoutFor(int version)
+    {
+        if (!CanonicalSchema.IsReadable(version))
+            throw new ArgumentOutOfRangeException(nameof(version), version,
+                $"sim diff walks canonical streams of version 32, 33 and {CanonicalSchema.Version} only.");
+        return version switch
+        {
+            32 => Layout[..^(V33Blocks + V34Blocks)],
+            33 => Layout[..^V34Blocks],
+            _ => Layout,   // CanonicalSchema.Version, the one other member of the readable set
+        };
+    }
 
     /// <summary>A field that compares unequal. Row is -1 for the header block
     /// and for a table's row-count prefix.</summary>
@@ -123,14 +187,24 @@ public static class SnapshotDiff
         bool Identical, FieldDifference? First, IReadOnlyList<TableSummary> Tables,
         long BytesA, long BytesB, long BytesWalkedA, long BytesWalkedB);
 
-    public static Result Compare(WorldState a, WorldState b)
+    public static Result Compare(WorldState a, WorldState b) =>
+        CompareStreams(Serialize(a), CanonicalSchema.Version, Serialize(b), CanonicalSchema.Version);
+
+    /// <summary>
+    /// Compares two raw canonical STREAMS, each walked with the layout of its own schema <paramref name="versionA"/> /
+    /// <paramref name="versionB"/> (<see cref="LayoutFor"/>). A block one stream's version lacks reads as zero rows on
+    /// that side (a v32 stream has no ConstructionProgress, a v33 stream no ConstructionHolds), so a v32 or v33 stream
+    /// and the migrated v34 stream of one world differ only there.
+    /// </summary>
+    public static Result CompareStreams(byte[] bytesA, int versionA, byte[] bytesB, int versionB)
     {
-        byte[] bytesA = Serialize(a), bytesB = Serialize(b);
+        Table[] layoutA = LayoutFor(versionA), layoutB = LayoutFor(versionB);
+        Table[] walk = layoutA.Length >= layoutB.Length ? layoutA : layoutB;
         using var ra = new BinaryReader(new MemoryStream(bytesA, writable: false));
         using var rb = new BinaryReader(new MemoryStream(bytesB, writable: false));
 
         FieldDifference? first = null;
-        var tables = new List<TableSummary>(Layout.Length + 1);
+        var tables = new List<TableSummary>(walk.Length + 1);
 
         // Header block: seed, clock, terrain flag, then the conditional hash.
         int headerDiffs = 0;
@@ -157,10 +231,11 @@ public static class SnapshotDiff
         }
         tables.Add(new TableSummary("Header", 1, 1, 1, headerDiffs > 0 ? 1 : 0, headerDiffs > 0 ? 0 : -1));
 
-        for (int t = 0; t < Layout.Length; t++)
+        for (int t = 0; t < walk.Length; t++)
         {
-            Table table = Layout[t];
-            int countA = ra.ReadInt32(), countB = rb.ReadInt32();
+            Table table = walk[t];
+            int countA = t < layoutA.Length ? ra.ReadInt32() : 0;
+            int countB = t < layoutB.Length ? rb.ReadInt32() : 0;
             if (countA != countB)
             {
                 first ??= new FieldDifference(table.Name, -1, "RowCount", Kind.Int32,

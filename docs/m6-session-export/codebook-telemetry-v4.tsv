@@ -1,0 +1,338 @@
+sheet	code	pos	json field	type	default when the field is EMPTY	notes
+grammar						A cell is one telemetry line (one turn). Segments are split by |. Segment 1 is the turn; each further segment is one settlement record, in file order.
+grammar						Inside a segment, sections are split by a space. A section is CODE:payload. CODE~ means that optional object is absent (St, X, Y) or that the array is empty (tables).
+grammar						A section that is missing entirely = every field in it has its default (for a table with no default rows: an empty array).
+grammar						Tuple payload: values split by , in the "pos" order below. An EMPTY value means the default. Trailing empty values are dropped.
+grammar						Table payload: rows split by /, values inside a row split by ,. *N = N rows that are all defaults.
+grammar						Numbers are the writer's exact text; a leading 0. is written as . (and -0. as -.). N = NaN, I = Infinity, -I = -Infinity. Bools: 1 true, 0 false.
+grammar						Double arrays: values split by ; (~ = empty array).
+grammar						Ledger legs (k table): reason[+sourceUnits][-sinkUnits] split by ; (missing units = 0; ~ = no legs). Each leg is one sources[] row and one sinks[] row with that reason.
+grammar						!JSON = escape: the value is a JSON literal (used only when the codebook cannot express it; separators inside strings appear as \u escapes).
+grammar	v4		schema			first token of the cell: v4 = telemetry/v4 (v3, v2 likewise)
+grammar	A		settlements[].migration.allAttractiveness (line level)			written once per turn segment; each record's Ma table defaults to it. Rows: value,settlement
+turn	t		turn	tuple		
+turn	t	1	turn	integer	(always written)	
+turn	t	2	year	double	(always written)	
+turn	t	3	dtYears	double	(always written)	
+turn	k		turn.stocks[]	table	default: empty array	row JSON key order: quantity,name,opening,closing,sources,sinks,reconciles,discrepancy
+turn	k	1	opening	integer	(always written)	
+turn	k	2	closing	integer	(always written)	
+turn	k	3	sources+sinks	ledger legs	(always written)	
+turn	k	4	reconciles	bool 1/0	1	
+turn	k	5	discrepancy	integer	0	
+turn	k	6	quantity	integer	by row: 3 4 101 102 103 104 105 106 107 108 109 110 111 112 113 114	
+turn	k	7	name	name	name of the quantity id (Names table)	
+turn	p		turn.population	tuple		
+turn	p	1	births	integer	(always written)	
+turn	p	2	naturalDeaths	integer	(always written)	
+turn	p	3	opening	integer	= turn.stocks.0.opening	
+turn	p	4	closing	integer	= turn.stocks.0.closing	
+turn	p	5	starvation	integer	0	
+turn	p	6	reconciles	bool 1/0	1	
+turn	p	7	discrepancy	integer	0	
+turn	g		turn.grain	tuple		
+turn	g	1	harvest	integer	(always written)	
+turn	g	2	eaten	integer	(always written)	
+turn	g	3	spoilage	integer	0	
+turn	g	4	overflow	integer	0	
+turn	g	5	opening	integer	= turn.stocks.2.opening	
+turn	g	6	closing	integer	= turn.stocks.2.closing	
+turn	g	7	endowment	integer	0	
+turn	g	8	reconciles	bool 1/0	1	
+turn	g	9	discrepancy	integer	0	
+turn	w		turn.dwellings	tuple		
+turn	w	1	built	integer	0	
+turn	w	2	decayed	integer	0	
+turn	w	3	opening	integer	= turn.stocks.1.opening	
+turn	w	4	closing	integer	= turn.stocks.1.closing	
+turn	w	5	reconciles	bool 1/0	1	
+turn	w	6	discrepancy	integer	0	
+turn	q		turn.goods[]	table	default: empty array	row JSON key order: good,name,opening,produced,inputsConsumed,toolWear,eaten,housingMaterials,constructionMaterials,closing,reconciles,discrepancy
+turn	q	1	produced	integer	0	
+turn	q	2	inputsConsumed	integer	0	
+turn	q	3	eaten	integer	0	
+turn	q	4	housingMaterials	integer	0	
+turn	q	5	constructionMaterials	integer	0	
+turn	q	6	opening	integer	= turn.stocks.(row+3).opening	
+turn	q	7	closing	integer	= turn.stocks.(row+3).closing	
+turn	q	8	toolWear	integer	0	
+turn	q	9	reconciles	bool 1/0	1	
+turn	q	10	discrepancy	integer	0	
+turn	q	11	good	integer	by row: 2 3 4 5 6 7 8 9 10 11 12 13 14	
+turn	q	12	name	name	name of the good id (Names table)	
+turn	f		turn.flows	tuple		
+turn	f	1	migrantsMoved	integer	0	
+turn	f	2	settlementsFounded	integer	0	
+turn	f	3	controlLost	integer	0	
+turn	f	4	tradeUnits	integer	0	
+turn	f	5	tradeFlowCount	integer	0	
+turn	f	6	unattributedGrainTransfer	bool 1/0	0	
+turn	o		turn.orders[]	table	default: empty array	row JSON key order: index,turn,actor,kind,targetId,settlement,sector,amount
+turn	o	1	index	integer	(always written)	
+turn	o	2	turn	integer	(always written)	
+turn	o	3	actor	integer	(always written)	
+turn	o	4	kind	order kind code	(always written)	
+turn	o	5	targetId	integer	(always written)	
+turn	o	6	amount	double	(always written)	
+turn	o	7	settlement	integer	-1	
+turn	o	8	sector	integer	-1	
+turn	y		turn.policy[]	table	default: empty array	row JSON key order: settlement,shares
+turn	y	1	shares	doubles joined by ;	[0.55;0.15;0.1;0.12;0.08]	
+turn	y	2	settlement	integer	row number (0,1,2...)	
+turn	c		turn.causes	tuple		
+turn	c	1	populationDelta	integer	0	
+turn	c	2	populationExplained	integer	= turn.causes.populationDelta	
+turn	c	3	grainDelta	integer	0	
+turn	c	4	grainExplained	integer	= turn.causes.grainDelta	
+turn	A		line-level attractiveness	table	default: empty array	row JSON key order: settlement,value
+turn	A	1	value	double	(always written)	
+turn	A	2	settlement	integer	row number (0,1,2...)	
+settlement	#		settlements[] (identity)	tuple		
+settlement	#	1	settlement	integer	(always written)	
+settlement	#	2	foundedTurn	integer	0	
+settlement	#	3	controller	integer	(always written)	
+settlement	#	4	founded	bool 1/0	0	
+settlement	P		settlements[].population	tuple		
+settlement	P	1	opening	integer	(always written)	
+settlement	P	2	closing	integer	= this settlement: population.opening	
+settlement	P	3	children	integer	(always written)	
+settlement	P	4	adults	integer	(always written)	
+settlement	P	5	elders	integer	(always written)	
+settlement	P	6	births	integer	0	
+settlement	P	7	deaths	integer	0	
+settlement	P	8	inflow	integer	0	
+settlement	P	9	outflow	integer	0	
+settlement	P	10	colonistsDeparted	integer	0	
+settlement	P	11	notables	integer	0	
+settlement	P	12	colonistsDepartedIdentity	constant text	constant C1	
+settlement	Pc		settlements[].population.classCounts[]	table	default: empty array	row JSON key order: class,name,count
+settlement	Pc	1	count	integer	0	
+settlement	Pc	2	class	integer	by row: 1 2 3	
+settlement	Pc	3	name	name	name of the class id (Names table)	
+settlement	F		settlements[].food	tuple		
+settlement	F	1	grainOpening	integer	(always written)	
+settlement	F	2	grainClosing	integer	= this settlement: food.grainOpening	
+settlement	F	3	harvest	integer	0	
+settlement	F	4	eaten	integer	0	
+settlement	F	5	storeLosses	integer	0	
+settlement	F	6	demandUnits	integer	0	
+settlement	F	7	deficitRatio	double	0	
+settlement	F	8	foodObtained	integer	= this settlement: food.demandUnits	
+settlement	F	9	foodProduced	integer	0	
+settlement	F	10	foodBalance	integer	0	
+settlement	F	11	storeLossesIdentity	constant text	constant C2	
+settlement	Fg		settlements[].food.foodGoods[]	table	default: empty array	row JSON key order: good,name,produced,demand,eaten
+settlement	Fg	1	produced	integer	row 0: = this settlement: food.harvest; other rows: 0	
+settlement	Fg	2	demand	integer	row 0: = this settlement: food.eaten; other rows: 0	
+settlement	Fg	3	eaten	integer	= same row: demand	
+settlement	Fg	4	good	integer	by row: 1 2 3	
+settlement	Fg	5	name	name	name of the good id (Names table)	
+settlement	H		settlements[].housing	tuple		
+settlement	H	1	dwellingsOpening	integer	(always written)	
+settlement	H	2	dwellingsClosing	integer	= this settlement: housing.dwellingsOpening	
+settlement	H	3	capacity	double	(always written)	
+settlement	H	4	need	double	(always written)	
+settlement	H	5	sufficiency	double	1	
+settlement	H	6	lastMaintenanceFraction	double	1	
+settlement	H	7	lastLaborUsed	double	0	
+settlement	H	8	hasRow	bool 1/0	1	
+settlement	H	9	builtDecayedSplit	constant text	constant C3	
+settlement	E		settlements[].economy	tuple		
+settlement	E	1	foodSurplusRatio	double	(always written)	
+settlement	E	2	artisanShare	double	(always written)	
+settlement	E	3	tradeVolume	double	0	
+settlement	E	4	sectorShares	doubles joined by ;	[0.55;0.15;0.1;0.12;0.08]	
+settlement	E	5	sectorRowPresent	bool 1/0	0	
+settlement	Eg		settlements[].economy.goods[]	table	default: empty array	row JSON key order: good,name,stock,produced,inputDemand,consumptionDemand,eaten,price
+settlement	Eg	1	stock	integer	row 0: = this settlement: food.grainClosing; other rows: 0	
+settlement	Eg	2	produced	integer	row 0: = this settlement: food.harvest; row 1: = this settlement: food.foodGoods.1.produced; row 2: = this settlement: food.foodGoods.2.produced; row 8: = this settlement: economy.goods.3.produced; row 9: = this settlement: economy.goods.3.produced; other rows: 0	
+settlement	Eg	3	inputDemand	integer	row 10: = this settlement: economy.goods.3.inputDemand; other rows: 0	
+settlement	Eg	4	consumptionDemand	integer	row 0: = this settlement: food.eaten; row 1: = this settlement: food.foodGoods.1.demand; row 2: = this settlement: food.foodGoods.2.demand; other rows: 0	
+settlement	Eg	5	eaten	integer	row 0: = this settlement: food.eaten; row 1: = this settlement: food.foodGoods.1.eaten; row 2: = this settlement: food.foodGoods.2.eaten; row 13: = same row: produced; other rows: 0	
+settlement	Eg	6	price	double	by row: 1 0.05 0.05 0.05 0.05 0.05 0.05 0.05 20 0.05 20 1 20 20	
+settlement	Eg	7	good	integer	by row: 1 2 3 4 5 6 7 8 9 10 11 12 13 14	
+settlement	Eg	8	name	name	name of the good id (Names table)	
+settlement	Ei		settlements[].economy.tradeIn[]	table	default: empty array	row JSON key order: other,good,name,quantity
+settlement	Ei	1	other	integer	(always written)	
+settlement	Ei	2	good	integer	(always written)	
+settlement	Ei	3	quantity	integer	0	
+settlement	Ei	4	name	name	name of the good id (Names table)	
+settlement	Eo		settlements[].economy.tradeOut[]	table	default: empty array	row JSON key order: other,good,name,quantity
+settlement	Eo	1	other	integer	(always written)	
+settlement	Eo	2	good	integer	(always written)	
+settlement	Eo	3	quantity	integer	0	
+settlement	Eo	4	name	name	name of the good id (Names table)	
+settlement	Ea		settlements[].economy.classActive[]	table	default: empty array	row JSON key order: class,name,active
+settlement	Ea	1	active	integer	by row: 1 1 0	
+settlement	Ea	2	class	integer	by row: 1 2 3	
+settlement	Ea	3	name	name	name of the class id (Names table)	
+settlement	S		settlements[].social	tuple		
+settlement	S	1	happiness	double	100	
+settlement	S	2	happinessFactors	doubles joined by ;	[1;= this settlement: housing.sufficiency]	
+settlement	Sg		settlements[].social.grievance[]	table	default: empty array	row JSON key order: class,name,value
+settlement	Sg	1	value	double	0	
+settlement	Sg	2	class	integer	by row: 1 2 3	
+settlement	Sg	3	name	name	name of the class id (Names table)	
+settlement	Sn		settlements[].social.needSatisfaction[]	table	default: empty array	row JSON key order: class,need,name,value
+settlement	Sn	1	value	double	by row: 0 1 0 1 0 1 0 1	
+settlement	Sn	2	class	integer	by row: 1 1 1 1 2 2 2 2	
+settlement	Sn	3	need	integer	by row: 1 2 6 7 1 2 6 7	
+settlement	Sn	4	name	name	name of the need id (Names table)	
+settlement	St		settlements[].social.tax (OPTIONAL object)	tuple		
+settlement	St	1	controlStrength	double	(always written)	
+settlement	St	2	nominalRate	double	0	
+settlement	St	3	effectiveRate	double	0	
+settlement	St	4	scale	double	1	
+settlement	St	5	controller	integer	= this settlement: controller	
+settlement	St	6	policyRowPresent	bool 1/0	0	
+settlement	M		settlements[].migration	tuple		
+settlement	M	1	prevGrainHarvest	integer	0	
+settlement	M	2	pushDeficitRatio	double	0	
+settlement	M	3	pullAttractiveness	double	this settlement's value in its attractiveness list (Ma / A)	
+settlement	M	4	prevGrainStock	integer	= this settlement: food.grainOpening	
+settlement	M	5	unplacedDeparture	double	0	
+settlement	M	6	unplacedRemainder	double	0	
+settlement	M	7	pairwiseFlows	constant text	constant C4	
+settlement	Ma		settlements[].migration.allAttractiveness[]	table	default: the A table of the turn segment	row JSON key order: settlement,value
+settlement	Ma	1	value	double	(always written)	
+settlement	Ma	2	settlement	integer	row number (0,1,2...)	
+settlement	X		settlements[].foodState (OPTIONAL object)	tuple		
+settlement	X	1	harvestWeatherApplied	double	1	
+settlement	X	2	foodLimit	double	(always written)	
+settlement	X	3	vacancy	double	(always written)	
+settlement	X	4	headroom	double	= this settlement: foodState.vacancy	
+settlement	X	5	surplusRatio	double	= this settlement: economy.foodSurplusRatio	
+settlement	X	6	nominalDeficit	double	0	
+settlement	X	7	effectiveDeficit	double	0	
+settlement	X	8	state	food state code	Normal	
+settlement	X	9	famineReason	famine reason code	None	
+settlement	X	10	abandoned	bool 1/0	0	
+settlement	X	11	prevRowsPresent	bool 1/0	1	
+settlement	X	12	harvestWeatherRowPresent	bool 1/0	1	
+settlement	X	13	disasterRowPresent	bool 1/0	0	
+settlement	X	14	disasterKind	integer	0	
+settlement	X	15	disasterSeverity	double	0	
+settlement	X	16	disasterMultiplierThisStep	double	1	
+settlement	X	17	disasterAppliedMultiplier	double	1	
+settlement	X	18	disasterRemainingYears	double	0	
+settlement	X	19	disasterPendingRowPresent	bool 1/0	0	
+settlement	X	20	disasterPendingKind	integer	0	
+settlement	X	21	disasterPendingSeverity	double	0	
+settlement	X	22	disasterPendingMultiplier	double	1	
+settlement	X	23	disasterPendingRemainingYears	double	0	
+settlement	Y		settlements[].migrationPlan (OPTIONAL object)	tuple		
+settlement	Y	1	exitOpenness	double	(always written)	
+settlement	Y	2	gapOut	double	0	
+settlement	Y	3	gapOutflowCap	double	(always written)	
+settlement	Y	4	gapIn	double	0	
+settlement	Y	5	gapInflowCap	double	(always written)	
+settlement	Y	6	vacancyCap	double	(always written)	
+settlement	Y	7	desiredInflowAe	double	0	
+settlement	Y	8	flightFractionPrime	double	0	
+settlement	Y	9	flightBound	double	0	
+settlement	Y	10	flightOut	double	0	
+settlement	Y	11	flightIn	double	0	
+settlement	Y	12	srcScale	double	1	
+settlement	Y	13	destScale	double	1	
+settlement	Y	14	vacancyScale	double	1	
+settlement	Y	15	planRecorded	bool 1/0	1	
+settlement	Y	16	dtYears	double	= turn.dtYears	
+settlement	Y	17	inflowAeByChannel	constant text	constant C5	
+settlement	L		settlements[].policy	tuple		
+settlement	L	1	declaredWeights	doubles joined by ;	[0.55;0.15;0.1;0.12;0.08]	
+settlement	L	2	declaredRowPresent	bool 1/0	0	
+settlement	L	3	effectiveShares	doubles joined by ;	= this settlement: economy.sectorShares	
+settlement	O		settlements[].orders[]	table	default: the rows of turn.orders (o) whose settlement = this settlement	row JSON key order: index,turn,actor,kind,targetId,settlement,sector,amount
+settlement	O	1	index	integer	(always written)	
+settlement	O	2	turn	integer	(always written)	
+settlement	O	3	actor	integer	(always written)	
+settlement	O	4	kind	order kind code	(always written)	
+settlement	O	5	targetId	integer	(always written)	
+settlement	O	6	amount	double	(always written)	
+settlement	O	7	settlement	integer	-1	
+settlement	O	8	sector	integer	-1	
+names	reason	1	growth			
+names	reason	2	initialEndowment			
+names	reason	3	harvest			
+names	reason	4	eaten			
+names	reason	5	births			
+names	reason	6	deaths			
+names	reason	7	starvation			
+names	reason	8	produced			
+names	reason	9	inputsConsumed			
+names	reason	10	toolWear			
+names	reason	11	housingBuilt			
+names	reason	12	housingDecayed			
+names	reason	13	housingMaterials			
+names	reason	14	spoilage			
+names	reason	15	granaryOverflow			
+names	reason	16	constructionMaterials			
+names	reason	other	reason-N			fallback
+names	quantity	3	population			
+names	quantity	4	dwellings			
+names	quantity	101	grain			
+names	quantity	102	livestock			
+names	quantity	103	fish			
+names	quantity	104	timber			
+names	quantity	105	stone			
+names	quantity	106	clay			
+names	quantity	107	copper-ore			
+names	quantity	108	tin-ore			
+names	quantity	109	fiber			
+names	quantity	110	hides			
+names	quantity	111	bronze			
+names	quantity	112	tools			
+names	quantity	113	pottery			
+names	quantity	114	cloth			
+names	good	1	grain			
+names	good	2	livestock			
+names	good	3	fish			
+names	good	4	timber			
+names	good	5	stone			
+names	good	6	clay			
+names	good	7	copper-ore			
+names	good	8	tin-ore			
+names	good	9	fiber			
+names	good	10	hides			
+names	good	11	bronze			
+names	good	12	tools			
+names	good	13	pottery			
+names	good	14	cloth			
+names	class	1	Peasants			
+names	class	2	Artisans			
+names	class	3	Merchants			
+names	class	other	class-N			fallback
+names	need	1	Sustenance			
+names	need	2	Shelter			
+names	need	3	Safety			
+names	need	4	Health			
+names	need	5	Belonging/Faith			
+names	need	6	Comfort			
+names	need	7	Dignity/Liberty			
+names	need	8	Prospects			
+names	need	other	need-N			fallback
+enums	kind	RB	SetRainBias			
+enums	kind	LA	LaborAllocation			
+enums	kind	SA	SectorAllocation			
+enums	kind	EC	EnqueueConstruction			
+enums	kind	TX	SetTaxRate			
+enums	kind	RT	SetResearchTarget			
+enums	kind	AA	AdvanceAge			
+enums	kind	DR	DevelopRoads			
+enums	kind	FS	FoundSettlement			
+enums	kind	CC	CancelConstruction			
+enums	kind	RA	SetResourceAllocation			
+enums	kind	CE	CancelConstructionEntry			
+enums	state	N	Normal			
+enums	state	S	Stress			
+enums	state	V	Severe			
+enums	state	F	Famine			
+enums	famine	N	None			
+enums	famine	D	Disaster			
+enums	famine	A	Abandonment			
+enums	famine	B	Both			
+constants	C1		Opening + Births - Deaths + Inflow - Outflow - Closing; absorbs ONLY colonization (the party leaves by Ledger.Transfer and no row records it); 0 on every turn no settlement was founded; negative on a founding record (the party ARRIVED)			
+constants	C2		GrainOpening + Harvest - Eaten - GrainClosing; absorbs spoilage + granary overflow (unsplit per settlement) AND any appropriation transfer AND colony provisions AND intra-polity grain relief (D-053 s2: grain a settlement sent to a hungry sibling of its own polity counts here at the donor; grain it received and ate counts here NEGATIVE); sum over all records == ledger spoilage + overflow on every turn; negative means grain ARRIVED by an unrecorded transfer (provisions on a founding record; otherwise a raid, or relief from its own polity, which leaves the recipient's granary empty)			
+constants	C3		GAP: HousingSystem records only the dwelling stock and LastMaintenanceFraction; the per-settlement built/decayed split is a world ledger total (see TurnRecord.Dwellings)			
+constants	C4		GAP: the From->To flow matrix, damping, viability products and gap scale are computed inside MigrationSystem and discarded; only per-settlement totals are recorded			
+constants	C5		GAP: MigrationPlan.DesiredInflowAe is the adult-equivalent inflow the vacancy bound tests, summed over the gap AND flight channels together (MigrationSystem.Plan, the vacancy-bound loop); the planner forms no per-channel adult-equivalent split, so none is recorded. The per-channel HEAD counts are recorded (gapIn, flightIn).			

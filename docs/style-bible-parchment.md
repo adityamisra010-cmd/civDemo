@@ -56,6 +56,17 @@ Accents (sparingly, for symbology later):
 Each entry: purpose · spec · tiling/format.
 1. **Parchment base texture** — the paper itself. Large, seamless, tileable, subtle (no dominant blotches that repeat visibly). 2048² PNG, tileable. Generate 2–3 variants; renderer picks one per world seed.
 2. **Fibre/age overlay** — a separate faint fibre+mottle layer multiplied over everything (including UI). Very low contrast. 2048² tileable PNG, grayscale.
+
+   > **AMENDED 2026-10-06 (M5 polish, UI readability UR-2; Director directive 2026-10-06 §2 — "gameplay information
+   > beats decorative texture").** The overlay is still multiplied over the whole frame, map and interface alike, so the
+   > window still reads as one sheet of paper — but at two amplitudes: the MAP takes the fibre at full depth; the
+   > INTERFACE (every panel, chip, card and label) takes it at 35 % of its depth (`factor' = 1 − 0.35 × (1 − fibre)`,
+   > mean factor 0.952 instead of 0.864 on the shipped asset). Measured reason: at full depth the overlay consumed a
+   > quarter of the text's contrast budget (A1 body text 9.78:1 on its tokens, 7.57:1 rendered). The asset is
+   > unchanged; the host draws it in two multiply passes (`Sim.Ui/Art/FibreOverlay.cs`: the map's remainder before the
+   > interface, the soft share after it). Panels and cards likewise keep their era texture in the FRAME BAND and are calm
+   > under the words (`PanelFrame`: marks over a content rect are one in four at alpha ≤ 0.06). The sentence above is
+   > kept as written (S8 §5 audit trail); this note is its current reading.
 3. **Terrain wash tiles** — one seamless swatch per land class in §2 (lowland, fertile, plain, arid, upland, peak) + shallows/sea/deep. These are what the shader blends by elevation/moisture/fertility. 1024² each, tileable, in-palette. This single item is the biggest visual upgrade — it replaces flat color fills with painted parchment.
 4. **Coastline ink treatment** — a thin darker ink band the renderer draws where land meets sea (the classic hand-map coast line), plus optional faint parallel "engraved sea" lines offshore. Spec as a shader effect + one hairline texture, not a full asset.
 5. **UI frame furniture** — panel border/corners, a header rule, button plate, a scroll/parchment panel background for the Annals, a compass rose (decorative, corner). In-palette, ink-on-parchment. PNGs with transparile edges (9-slice-friendly where possible).
@@ -112,3 +123,22 @@ Per-asset extra slots:
 - **Permitted and to be pushed hard:** settlements and structures, terrain relief, forests, fields, roads and bridges, ships and carts, army and formation tokens, banners, borders, production and resource glyphs.
 - **Where people must appear they are silhouettes or tokens.** Already ruled for battles — D-011 §4: "each token drawn as a cluster of tiny sprites thinning as strength drops — Ultimate-General-style". D-038 C1 generalises that ruling to the whole visual layer rather than creating a new one.
 - **The fence is also the right design:** at map scale a figure reads as a smudge; a silhouette reads as an army. The constraint costs nothing the game needs.
+
+---
+
+> **NOTE (2026-10-02, append-only) — the UI frame now follows the player's Age (ADR-033 D8).**
+> The §6 acceptance line "The medium reads identically at year −4000 and any later date (frame is
+> era-invariant)" is SUPERSEDED FOR THE UI FRAME by the Director's instruction of 2026-10-02, recorded
+> in `docs/adr/adr-033-m5-integration-pass.md` D8. The interface's panels, chrome, controls and UI
+> typography now take a visual era derived by one pure function from the player's authoritative Age
+> (`UiEra = f(AgeQuery.CurrentAge(...))`, never stored in the simulation), on one token system that evolves
+> across the nine Ages around the same layout regions, navigation, interaction rules and semantic colours
+> (`docs/architecture/era-ui.md`). The superseded line stays in §6 as written, per the S8 §5 audit-trail
+> convention; nothing above this note was edited.
+>
+> **What still holds.** The parchment substrate of §1–§2 is unchanged and remains the A6-centred material:
+> the UI's Medieval era (A6) is this document's palette exactly (paper light, mid and shade; ink primary
+> and soft; iron-red, gold-leaf, verdigris), the centre of the continuum rather than its only point. The
+> map substrate — parchment, washes, coastlines, hydrography — is not re-themed by this change; UI
+> furniture stays lit flat in every era (§1, two-layer rule); the single-cartographer rule for generated
+> art and §7 are untouched. D-002 (ImGui is the game UI) and D-038 (the map shows what IS) are unaffected.

@@ -93,9 +93,16 @@ public sealed record GoodAccount(
 /// The step's cross-settlement movements. <see cref="UnattributedGrainTransfer"/>
 /// is the HONEST appropriation detector (§3): a settlement whose store-loss
 /// residual is NEGATIVE on a turn it was not founded received grain no row
-/// records — the only shipped mechanism that does that is an appropriation raid
-/// (AppropriationSystem owns no table, §8 gap 4). It is detected by the identity
-/// failing per settlement, never asserted absent by re-deriving the raid rule.
+/// records — the only shipped mechanism that does that WITHOUT the relief
+/// signature below is an appropriation raid (AppropriationSystem owns no table,
+/// §8 gap 4). It is detected by the
+/// identity failing per settlement, never asserted absent by re-deriving the raid
+/// rule. D-053 §2's intra-polity grain relief (sim.json
+/// consumption.empireFoodAllocation) ALSO leaves a negative residual at the
+/// recipient (no row records the grant); such a negative is EXCLUDED by its
+/// signature, never by re-deriving the relief rule — granary closes EMPTY, it ate
+/// something, it had a controller on PREV, and that polity's residuals sum to ≥ 0
+/// (Observer.AppropriationDetected). With the switch off every negative counts.
 /// </summary>
 public sealed record FlowsSummary(
     long MigrantsMoved,               // SUMMED next.MigrationFlows Inflow
@@ -103,7 +110,7 @@ public sealed record FlowsSummary(
     int ControlLost,                  // ControlRows present in prev and absent in next (same Polity, Place)
     long TradeUnits,                  // SUMMED next.TradeFlows Quantity
     int TradeFlowCount,               // READ next.TradeFlows.Count
-    bool UnattributedGrainTransfer);  // any non-founded settlement with StoreLosses < 0
+    bool UnattributedGrainTransfer);  // any non-founded settlement with StoreLosses < 0 WITHOUT the relief signature
 
 /// <summary>Effective sector shares IN FORCE for one settlement during the step:
 /// Sectors.Share on the PREV row, which is the row every consumer (Production,
@@ -136,12 +143,17 @@ public readonly record struct OrderApplied(
 {
     /// <summary>The settlement the order targets, decoded per kind (OrderKind
     /// doc): SectorAllocation packs settlement × 8 + sector; the others carry
-    /// the settlement id directly. SetRainBias targets a region: −1.</summary>
+    /// the settlement id directly — for FoundSettlement (ADR-036) that is the
+    /// SOURCE the party leaves (the site is a cell, not a settlement). SetRainBias
+    /// targets a region: −1.</summary>
     public int Settlement => Kind switch
     {
         OrderKind.SectorAllocation => TargetId >> 3,
         OrderKind.LaborAllocation => TargetId,
         OrderKind.EnqueueConstruction => TargetId,
+        OrderKind.CancelConstruction => TargetId,
+        OrderKind.CancelConstructionEntry => TargetId,
+        OrderKind.FoundSettlement => TargetId,
         _ => -1,
     };
 

@@ -305,7 +305,7 @@ Before implementation, the coder must verify these references against the curren
 
 - M5: basic autonomous decision-making.
 - M5+: procedural personalities and competence tiers.
-- M6+: deeper military and diplomatic reasoning as those systems become available.
+- M6+: deeper military and diplomatic reasoning as those systems become available (2026-10-03 rebase: M6 knowledge, M7 battle layer, M8 diplomacy).
 - Later: opponent modelling, forecasting, adaptation and richer institutional behaviour.
 - End state: civilizations that are different, coherent, historically contingent, and capable of surprising the player without cheating.
 

@@ -14,8 +14,14 @@ public static class BuildInfo
     public static string Sha { get; } = Metadata("BuildSha") ?? "dev";
     public static string Date { get; } = Metadata("BuildDate") ?? "local";
 
+    /// <summary>The milestone the build belongs to: the CURRENT milestone (M5 Governing Gameplay, in progress —
+    /// docs/milestones.md "Roadmap rebase 2026-10-03"). Bumped together with BuildInfoTests when the current
+    /// milestone changes. History: M2 → M3 at T3.12; M3 → M4 at the M4 exit paperwork (b40fad6); M4 → M5 on 2026-10-05 (M5 hardening,
+    /// Director §13: the M5 playtest builds still read "civ-sim M4").</summary>
+    public const string Milestone = "M5";
+
     /// <summary>The identity string used verbatim in title and panel.</summary>
-    public static string Describe() => $"civ-sim M4 ({Sha}, {Date})";
+    public static string Describe() => $"civ-sim {Milestone} ({Sha}, {Date})";
 
     private static string? Metadata(string key)
     {

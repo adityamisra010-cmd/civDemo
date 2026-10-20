@@ -14,8 +14,18 @@ namespace Sim.Ui;
 /// </summary>
 public static class UiFounding
 {
+    /// <param name="aiEmpiresOverride">ADR-033 D5: found this many AI-commanded Empires instead of
+    /// worldgen.json's <c>aiEmpires</c> (whose default stays 0). Recorded in the session manifest so the
+    /// session replays (`sim replay --ai-empires N`).</param>
+    /// <param name="wrapXOverride">Batch 3 WS3: found the world with this east-west topology instead of
+    /// worldgen.json's <c>topology.wrapX</c> — a TEST AND TOOL SEAM (the launcher never sets it). Its one use is a
+    /// rig that needs a size the lattice stride does not divide, which only a flat world supports (the 250-px
+    /// StrideWorldsFixture world, which exists to exercise the orphan terrain columns). The manifest does not record
+    /// it, so a session founded with it is not resumable from its log — like <see cref="UiSession.StartFrom(WorldState, ulong, int?, int?)"/>,
+    /// it is never written as a playable session.</param>
     public static WorldState Found(
-        ulong seed, int? sizeOverridePx = null, int? settlementsOverride = null)
+        ulong seed, int? sizeOverridePx = null, int? settlementsOverride = null, int? aiEmpiresOverride = null,
+        bool? wrapXOverride = null)
     {
         WorldgenConfig worldgenCfg;
         using (var stream = Sim.Data.DataFiles.OpenWorldgen())
@@ -23,15 +33,27 @@ public static class UiFounding
             worldgenCfg = WorldgenConfigLoader.Load(stream);
         }
         if (sizeOverridePx is { } sz) worldgenCfg = worldgenCfg with { SizePx = sz };
+        if (aiEmpiresOverride is { } ai) worldgenCfg = worldgenCfg with { AiEmpires = ai };
+        if (wrapXOverride is { } wrap) worldgenCfg = worldgenCfg with { Topology = new TopologyConfig(wrap) };
 
-        SimConfig simCfg;
-        using (var stream = Sim.Data.DataFiles.OpenSim())
-        using (var needs = Sim.Data.DataFiles.OpenNeeds())
-        using (var goods = Sim.Data.DataFiles.OpenGoods())
-        {
-            simCfg = SimConfigLoader.Load(stream, needs, goods);
-        }
+        return WorldFounding.Found(worldgenCfg, ProductionConfig(), seed, settlementsOverride);
+    }
 
-        return WorldFounding.Found(worldgenCfg, simCfg, seed, settlementsOverride);
+    /// <summary>
+    /// ADR-031: the ONE config recipe the UI founds, steps and reads with — the six-stream load
+    /// (sim, needs, goods, research, ages, unit families), the same recipe as Sim.Cli's
+    /// <c>CliRecipes</c>. With the four-stream load the Age systems were inert and founding laid
+    /// down no formations; every UI call site reads through here so the founded world, the
+    /// executor's systems and the panels cannot disagree about which content is loaded.
+    /// </summary>
+    public static SimConfig ProductionConfig()
+    {
+        using var stream = Sim.Data.DataFiles.OpenSim();
+        using var needs = Sim.Data.DataFiles.OpenNeeds();
+        using var goods = Sim.Data.DataFiles.OpenGoods();
+        using var research = Sim.Data.DataFiles.OpenResearch();
+        using var ages = Sim.Data.DataFiles.OpenAges();
+        using var families = Sim.Data.DataFiles.OpenUnitFamilies();
+        return SimConfigLoader.Load(stream, needs, goods, research, ages, families);
     }
 }

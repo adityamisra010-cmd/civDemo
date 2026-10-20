@@ -46,26 +46,23 @@ namespace Sim.Core.State;
 /// by tuning.
 ///
 /// THE CATCHMENT ARM (T4.21-4, RULE 2; ADR-025 §null-arm, ADR-026 §null-arm).
-/// The null arm's meaning is "the influx is UNMEASURED", and a settlement whose
-/// catchment has never been computed could not have produced: `ProductionSystem.Farm`
-/// reads `prev.CatchmentSummaries` for its arable (ProductionSystem.cs:211-216), so
-/// with no row the land side is 0 and the staple harvest is 0 — an S of 0 that is a
-/// STRUCTURAL UNAVAILABILITY of the measurement, not a measured zero capacity.
+/// The null arm's meaning is "the influx is UNMEASURED". `ProductionSystem.Farm` reads
+/// `prev.CatchmentSummaries` for its arable and keys the SAME row absence: since ADR-035 a
+/// settlement with no row harvests with an UNMEASURED (non-binding) land side — labour-limited
+/// when the yield per km² is &gt; 0, zero when it is 0 — so the two arms agree that row absence is
+/// a missing measurement, never a measured zero capacity. (Before ADR-035 Farm read the absent
+/// row as arable 0 and the founding-turn staple harvest was 0 everywhere.)
 /// Keyed on ROW ABSENCE ONLY — never on "production == 0", which is the ABANDONED
 /// settlement's genuine zero influx and must keep N_lim = 0 (D_Cap_NoGrowthOnAGranary
 /// and the abandonment semantics depend on it; CatchmentSystem emits a row per
 /// settlement in `prev.Settlements` regardless of labour or sectors, so an abandoned
 /// settlement in a real world always has one).
 ///
-/// MEASURED SCOPE OF THIS ARM (T4.21-4, canonical founded seed 42, 300 turns): it
-/// does NOT restore the turn-2 gap flows. Catchment is pipeline entry 1 and writes
-/// into NEXT, so the turn-1 world — which is PREV on turn 2 — already carries a row
-/// for every founded settlement; the turn-2 refusal comes from that row being
-/// PRESENT alongside the turn-1 zero staple harvest, which this key is forbidden to
-/// read. The arm therefore fires only where a settlement is genuinely younger than
-/// its first catchment recompute. WHERE IT DOES FIRE — a settlement in its first
-/// turn after founding — it yields Limit = +∞, hence V = +∞: one turn with no
-/// vacancy bound and no growth cap, bounded to exactly one turn by
+/// SCOPE OF THIS ARM. Catchment is pipeline entry 1 and writes into NEXT, so the turn-1 world —
+/// PREV on turn 2 — already carries a row for every founded settlement. The arm therefore fires only
+/// where a settlement is genuinely younger than its first catchment recompute (its founding turn's
+/// NEXT, i.e. a colony's first stepped turn). There it yields Limit = +∞, hence V = +∞: one turn with
+/// no vacancy bound and no growth cap, bounded to exactly one turn by
 /// CatchmentSystem.IsStale's summary-count check (CatchmentSystem.cs:178), which
 /// gives the new settlement its row on the very next turn. That one-turn
 /// unbounded-inflow window is a real semantic change from the pre-T4.21-4

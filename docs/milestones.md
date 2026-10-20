@@ -1,10 +1,151 @@
 # Milestones
 
+## Roadmap rebase 2026-10-03 (Director) — AUTHORITATIVE MILESTONE SEQUENCE
+
+**This section is the authoritative milestone sequence. It supersedes every earlier ordering
+(Director roadmap rebase 2026-10-03, revised)** — the Spine v3 ladder (M6 knowledge, M7 politics,
+M9 Ancient Vertical Slice, M10+ era expansions), D-011 §6's resequence (M6 Battle Layer, M7 knowledge,
+M8 politics, M10 Ancient Vertical Slice, M11+ era expansions), and the handoff/ledger reading "M5
+governing loop · M6 battle · M7 knowledge · M8 politics". "Ancient Vertical Slice" and "Era
+Expansions" are obsolete as milestone names. Those texts are kept as history, each with a pointer
+here. *(2026-10-06, M5 polish pass: until this date the paragraph opened "Superseded 2026-10-03
+(Director roadmap rebase, revised). This replaces every earlier ordering", which read as if this
+section marked itself superseded. Reworded; the meaning is unchanged.)*
+
+| M | Milestone | Status |
+|---|---|---|
+| M0 | Kernel | COMPLETE |
+| M1 | Walking Skeleton | COMPLETE |
+| M2 | Demography / Food | COMPLETE |
+| M3 | Production / Markets | COMPLETE |
+| M4 | Empire / Strategic Foundation | COMPLETE (closed at its exit gate) |
+| **M5** | **Governing Gameplay** | **COMPLETE, with checklist 21 and 22 tracked as outstanding human validation** (closed at its exit gate 2026-10-20; the `m5-exit` Release is the Director's separate decision) |
+| **M6** | **Knowledge / Research / Technology** | **CURRENT — spec in preparation, NOT ratified** (`docs/m6-plan/`; no active packets until `docs/m6-spec.md` is ratified, S8 §4) |
+| M7 | Battle Layer | future |
+| M8 | Politics / Diplomacy | future |
+| M9 | Society | future |
+| M10 | Integrated Civilization Simulation | future |
+| M11+ | Depth & Content Expansion | future (sequence intentionally open) |
+
+> **2026-10-12 — Director (`docs/d052-m5-integration-audit-rulings.md`).** The order and names above are unchanged, and
+> M5 is still NOT complete.
+> - **M6** also carries:
+>   - the visual milestone of D-038 E1 (drawn buildings and institutions, Age-specific terrain, richer unit art; D-052
+>     §6);
+>   - fog of war, scouts and visibility persistence (D-052 §5).
+> - **M7** carries unit movement and Action Points (D-052 §4).
+> - The M5 Dependencies items "budget", "authority" and "laws-lite" are deferred out of the M5 playtest build. Their
+>   destination is not yet ruled (D-052 §12).
+
+> **2026-10-19 — Director (M5 playtest).** **M6** also carries a one-file session export: everything a session writes
+> to `runs\` in a single Excel workbook, so that a whole session can be handed to an AI assistant that accepts at most
+> five files. The request, the measured facts and the questions for the M6 spec are in `docs/queue.md` (dated note
+> 2026-10-19).
+
+> **2026-10-20 — M5 closure package and M6 planning package (agent; docs only; nothing ruled).** The order and names
+> above are unchanged; **M5 is still NOT complete.** The evidence package for the Director's M5 closure ruling is
+> `docs/m5-exit-inventory.md` (D-052 §15 condition by condition; proposed tag `m5-exit` on the merge commit, minted by
+> the Director's Release as for M0–M4). M6 planning input — not the M6 spec, which S8 §4 has written after the M5 exit
+> gate — is `docs/m6-plan/` (scope, task and decision registers, dependency graph, risks, M7 handoff, deferred work).
+> The M5 and M6 rows change only on the Director's ruling at the exit gate.
+
+> **2026-10-20 — M5 CLOSURE BLOCK (Director's merge ruling).** Checklist 21 and 22 WAIVED as pre-merge requirements
+> (M4 precedent) and TRACKED AS OUTSTANDING human validation against the Decision C build — neither played, neither
+> passed (`docs/m5-exit-inventory.md` §13; `docs/m5-playtest-known-issues.md`, last dated note). The Director authorized
+> the merge of `44e78740a798963b7f2e98bad4ac631b5c5616e0` into `main` by pull request, history preserved, **no tag and no
+> release**. PR, merge commit, resulting `main` head and post-merge CI: recorded below once known.
+> - PR / merge commit / main head / post-merge CI: _pending at the time of this edit; filled in by the agent after the merge._
+
+> **2026-10-20 — Director's M5 closure rulings R1–R10 and M6 decisions D-I/D-D/D-E/D-F recorded**
+> (`docs/m5-exit-inventory.md` §13; dated notes in D-051, D-052, D-053, D-054, D-055, D-057–D-060, ADR-035, ADR-042,
+> CR-022). D-059 accepted; D-051 items scheduled (§1(a) M9, §2 and §4 M6, §6-remainder M10); unit display deferred to
+> M6's E1; laws-lite and the bandwidth economy to the M6 civic spec, budget unassigned under CR-008; the packet set
+> accepted with named exceptions; CR-022 option 2 as built; the "it's a game now" checkpoint answered by the Director;
+> Decision C (expected weather) implemented UI-only. **The merge is NOT yet authorized and M5 is still NOT complete**;
+> the rows above are unchanged.
+
+### Dependencies
+
+M0 → … → M11+ is the **build order**, but later systems are not isolated layers bolted on top:
+
+- **M5 — Governing Gameplay** establishes the governing/gameplay foundation (taxation, budget,
+  authority, laws-lite, legitimacy, player agency) on which later milestones act.
+- **M6 — Knowledge / Research / Technology** establishes the authoritative Knowledge → Capability
+  layer and its vocabulary.
+- **M7 — Battle Layer** CONSUMES M6's authoritative technology/capability state. No parallel tech
+  vocabulary inside the battle layer, and no "generic battle now, tech later". Illustrative only:
+  Gunpowder / Bronze / Industrial research → capability → legal military assets → the Battle Layer
+  fields them. Military realization previously labelled "M6 recruitment" / "M6 battle" (ADR-033
+  decision 11, D-043, D-047, ADR-031, the deferred-entity plan) is retargeted to M7; D-011's battle
+  mechanics are unchanged — only their milestone number and their dependency on M6.
+- **M8 — Politics / Diplomacy** consumes governance, knowledge and military state and FEEDS BACK
+  into governance, military, knowledge and society. It does not wait for the Battle Layer to be
+  "strictly complete".
+- **M9 — Society** (culture, religion, social structure, opinion, disease/crisis) consumes and feeds
+  back into all preceding systems.
+- **M10 — Integrated Civilization Simulation** integrates and validates the complete civilization
+  model — demography, economy, production, governance, research, knowledge, capabilities,
+  realization, adoption, infrastructure, military, politics, diplomacy, society and Age progression —
+  across the WHOLE Age ladder A1–A9 as one coherent simulation, not era-specific games. Ancient
+  content is not a prerequisite for later Ages.
+- **M11+ — Depth & Content Expansion** adds continued depth: technology/content, institutions,
+  military assets, political/social systems, infrastructure, industries, applications, historical
+  coverage, mechanics, calibration, AI, world detail, refinement and balancing. The exact sequence is
+  intentionally open. It is NOT "adding the later Ages": all nine Ages already belong to the model.
+
+### M6 scope (roadmap level; detailed rules belong to the M6 spec)
+
+M6 is large and substantive: the Technology and Civics trees; research points (RP) and progression;
+prerequisites; Eureka / foreign-exposure acceleration; persistent civilization-owned knowledge;
+capability acquisition; research-gated actions; realization requirements and the capability →
+realization chain; knowledge diffusion; universities and research modifiers; Age integration;
+tech-dependent economic, infrastructure and military capabilities; corpus gameplay audit; automatic
+propagation of authored consequences into legal gameplay; simulation-side rejection of illegal
+actions; UI exposure of legal actions; save/load/replay/determinism coverage; tech-dependent content
+and assets.
+
+*Early work, not completion:* substantial research/knowledge infrastructure was built early on the
+unmerged integration branches — the research engine (ADR-029, ADR-030), Ages (ADR-031), the
+research-driven unlock pipeline and universities. M6 owns that work and will review, reconcile and
+complete it. M6 is NOT done, and this work is not reassigned to M5.
+
+### Ages A1–A9 are a simulation dimension, NOT development milestones
+
+The nine Ages — A1 Prehistoric/Stone · A2 Neolithic/Agricultural · A3 Bronze · A4 Iron · A5
+Classical/Imperial · A6 Medieval · A7 Early Modern · A8 Industrial · A9 Modern/Contemporary — run on
+the same systems. Development is never "build A1 → validate A1 → build A2 …". The Age/research
+distinction stands: research completion does not advance an Age, and an Age does not simply unlock a
+node. The chain is research → knowledge/capability → realization (institutions, infrastructure,
+materials, personnel, production, construction, logistics, geography) → adoption/realized state →
+Age eligibility evaluated from simulated state. This is not a disguised tech tree.
+
+*Stated explicitly (2026-10-06, M5 polish pass, from the Director's 2026-10-06 directive §0; the heading
+above read "Ages are a simulation dimension, not development milestones" until this date):* there are **no
+A1 → A2 → … → A9 development phases**. Each system is developed in the milestone that owns it and must work
+in every Age; no milestone is scoped to an Age, and no Age's content is a milestone deliverable. M6
+establishes the knowledge/capability foundations; M7 consumes them for the Battle Layer; M8 Politics /
+Diplomacy and M9 Society build on them; M10 validates the integrated simulation across all nine Ages
+A1–A9; M11+ deepens it in an intentionally open order (not "adding the later Ages").
+
+Every other ratified decision (determinism, RP, Eureka, costs, Ages, MobileAgents, transport, the M4
+and M5 rules, battle mechanics, the capability architecture) is unchanged by this rebase.
+
+---
+
+## Milestone exit records — HISTORY (kept as written; the authoritative sequence is the section above)
+
+*(Heading added 2026-10-06, M5 polish pass. Everything below is the record of each milestone as it stood at
+its exit gate, with the old milestone names (M2 "Population & Society", M3 "The economy arrives", M4
+"Neighbours, conflict, and a world that can run short"). Where it names a later milestone by the pre-2026-10-03
+numbering, the section above governs.)*
+
 | M | Scope (one line) | Exit date | Exit commit | Tag |
 |---|---|---|---|---|
 | **M0 — Simulation kernel** | Turn executor, state tables, PCG32 RNG, integer-day clock + era table, Ledger with exact conservation, canonical snapshots/hash/replay, determinism harness (in-process + cross-process CI gates), headless CLI + bench. *No game.* | 2026-07-20 | `2702293` (+ closure docs) | [`m0-exit`](../../tags/m0-exit) |
 | **M1 — Walking skeleton** | Continuous world, one settlement, labor-limited Malthus loop, playable + replayable UI, CI-published builds. | 2026-07-22 | `3b05832` (+ closure docs) | [`m1-exit`](../../tags/m1-exit) |
 | **M2 — Population & Society** | Cohort demography on the ADR-011/ADR-012 kernel (exponential-survival micro-step integration, viability-gated migration), eleven-class system with two live classes (Peasants + emergent Artisans, D-020 DSL), twelve settlements with partitioned catchments, needs/grievance stocks (display-only), chronicle-lite with procedural names + annals, time-series graphs, autoplay + corridor-checked calibration battery. | 2026-07-25 | `ff4c5ac` (+ closure docs) | [`m2-exit`](../../tags/m2-exit) |
+| **M3 — The economy arrives** (roadmap: Production / Markets) | Five-sector production (D-032), the D-033 price solver, D-035 consumption baskets and CES needs, D-034 trade & arbitrage, housing as a real stock, the market and sector-control UI. See §M3 below. *(Row added 2026-10-06, M5 polish pass.)* | 2026-08-06 | tag commit `5bf4920` | [`m3-exit`](../../tags/m3-exit) |
+| **M4 — Neighbours, conflict, and a world that can run short** (roadmap: Empire / Strategic Foundation) | The Empire control foundation (polities, control, capitals, command source), neighbours and conflict, and a world that can run short. See §M4 below. *(Row added 2026-10-06, M5 polish pass.)* | 2026-09-21 | tag commit `de5e00e` | [`m4-exit`](../../tags/m4-exit) |
 
 ## M1 exit checklist (per `docs/m1-walking-skeleton-spec.md` §5)
 
@@ -107,6 +248,9 @@ M2 does not reopen; the record states it.
 ---
 
 ## M3 — The economy arrives  *(at the exit gate)*
+
+> *2026-10-06 note (M5 polish pass):* M3 is **COMPLETE** — the Director's exit ruling of 2026-08-06 (below), tag
+> `m3-exit` (`5bf4920`). "(at the exit gate)" is the heading as written at the gate.
 
 Settlements stop being identical food-machines and become places that make different things,
 price them, and want more than bread. T3.1–T3.12 per `docs/m3-spec.md`.
@@ -284,6 +428,9 @@ above, and the milestone closes on his ruling.
 
 ## M4 — Neighbours, conflict, and a world that can run short  *(at the exit gate)*
 
+> *2026-10-06 note (M5 polish pass):* M4 is **COMPLETE** — closed on the Director's final closure rulings of
+> 2026-09-21 (below), tag `m4-exit` (`de5e00e`). "(at the exit gate)" is the heading as written at the gate.
+
 M4's spec (`docs/m4-spec.md`) was the first written under S8 §4.1, and its own conformance to that
 section was part of the deliverable. It conforms on all four requirements: the foundations audit ran
 as packet one and its findings were promoted into T4.3's named prohibitions; the dimensional
@@ -301,6 +448,21 @@ not a second identity, needing no new field and no serialization change. The **s
 construction queue**: an ordered queue whose head is either built whole this turn or waits
 unchanged, competing for the existing construction sector against housing's published draw. Schema
 moved v22 → v23 → **v24** across these.
+
+> **2026-10-15 — M4-D's whole-building rule is superseded (D-054; dated note, the paragraph above is kept as written).**
+> The Director's 2026-10-14 instruction: "Replace the existing whole-building construction rule with the incremental
+> construction behaviour previously specified."
+> - With `sim.json` `construction.incremental` on (shipped), a queue head progresses each turn as far as its builders
+>   and the next units of its materials allow. What has gone in is stored (schema v33 `ConstructionProgress`) and is
+>   never lost while the head waits.
+> - Heads are served oldest order first.
+> - A head can be cancelled (order kind 11), with no refund.
+> - **What stands:** the ordered queue with only its head eligible; the competition with housing's draw; no construction
+>   currency; no second labour pool.
+> - The schema is now **v33**.
+>
+> Records: `docs/d054-batch3-incremental-construction-allocation-cylinder.md` §1 and §5, and
+> `docs/adr/adr-039-schema-v33-orders-11-12-and-cylinder-topology.md`.
 
 Beyond the Empire spine: **store bounding** (T4.2), whose pre-registered prediction that stores
 would sit near 1.5 years of demand was met to four decimals; **colonization** (T4.4); **transport and
@@ -323,7 +485,7 @@ feedable food-influx limit is a fertility multiplier, not a serialized cap).
 
 ### WHAT M4 DELIBERATELY DID NOT DELIVER
 
-**No AutoResolver and no armies.** D-011 §6 resequences the battle layer to M6, and under GOV-4 §1 a
+**No AutoResolver and no armies.** D-011 §6 resequences the battle layer to M6 (*superseded 2026-10-03, Director roadmap rebase: the Battle Layer is now M7, after M6 Knowledge / Research / Technology — see the top of this file*), and under GOV-4 §1 a
 later decision outranks the Spine's earlier "Conflict v1 at M4". Recorded as a certified exclusion,
 not an omission.
 
