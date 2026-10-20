@@ -1,5 +1,13 @@
 # CURRENT STATE — the routing document
 
+> **2026-10-20 (latest): M5 CLOSED at its exit gate on the Director's merge ruling — with checklist 21 and 22 WAIVED as
+> pre-merge requirements and TRACKED AS OUTSTANDING human validation against the Decision C build (`dd727c4`). Neither
+> checklist has been played or passed.** Merge of `44e7874` into `main` by pull request, history preserved; NO tag, NO
+> release (the `m5-exit` Release is the Director's separate decision). Records: `docs/m5-exit-inventory.md` §13 (waiver
+> and merge ruling), `docs/milestones.md` closure block (PR, merge commit, main head, post-merge CI filled in after the
+> merge), `docs/m5-playtest-known-issues.md` last dated note. **Current milestone: M6 — spec in preparation, NOT
+> ratified; no active packets** (`docs/m6-plan/`). Verify against the tree (gov-4) before relying on this entry.
+
 > **2026-10-20 (latest): the Director's M5 closure rulings are recorded; Decision C implemented (UI only). M5 is NOT
 > closed — the merge ruling (R6) is withheld until the final candidate and fresh CI are presented.**
 > - **Rulings:** `docs/m5-exit-inventory.md` §13 (R1–R10, with the validation against CR-008 and the frozen exit

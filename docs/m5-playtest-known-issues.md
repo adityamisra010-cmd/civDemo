@@ -649,3 +649,17 @@ and §16 it names.
   quarantined and non-gating (D-054 Q8). The other D-054 §10 questions stay open, disclosed, non-gating.
 - **Unit display (ruling R3):** D-052 §7 deferred to M6's E1 visual milestone; the current token and card wording stay.
 Record: `docs/m5-exit-inventory.md` §13.
+
+## Dated note — 2026-10-20 (later): checklist 21 and 22 waived as pre-merge requirements; OUTSTANDING (appended; sections above unchanged)
+
+> ### WAIVER, 2026-10-20 — CHECKLIST 21 AND 22 WAIVED AS PRE-MERGE REQUIREMENTS BY THE DIRECTOR (M4 precedent, `m4-exit-session.md:16-21`)
+>
+> **The Director waived checklist 21 (strip vs RESOURCES table vs cards) and checklist 22 (the Next-turn figure against
+> the next turn's Empire figure) as pre-merge requirements and authorized the merge of `44e78740a798963b7f2e98bad4ac631b5c5616e0`
+> into `main` by the recorded PR procedure.** Both are **tracked as outstanding human validation against the Decision C
+> build** (`dd727c4`, artifact `sim-ui-win-x64-dd727c4`). **NEITHER CHECKLIST HAS BEEN PLAYED OR PASSED.** That is a
+> waiver of the pre-merge requirement, not a pass. The automated comparison (`docs/m5-next-turn-comparison.md`) stands as
+> evidence beside it, not in place of it. Record: the Director's instruction of 2026-10-20 ("Record a dated waiver for
+> checklist 21 and 22 as pre-merge requirements, using the M4 precedent. Track both as outstanding human validation against
+> the Decision C build. ... Do not represent either checklist as passed."). No tag, release or release action is part of
+> this authorization; the `m5-exit` Release remains the Director's separate decision.

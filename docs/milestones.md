@@ -19,8 +19,8 @@ section marked itself superseded. Reworded; the meaning is unchanged.)*
 | M2 | Demography / Food | COMPLETE |
 | M3 | Production / Markets | COMPLETE |
 | M4 | Empire / Strategic Foundation | COMPLETE (closed at its exit gate) |
-| **M5** | **Governing Gameplay** | **CURRENT — in progress, being finished, NOT complete** |
-| **M6** | **Knowledge / Research / Technology** | NEXT (large) |
+| **M5** | **Governing Gameplay** | **COMPLETE, with checklist 21 and 22 tracked as outstanding human validation** (closed at its exit gate 2026-10-20; the `m5-exit` Release is the Director's separate decision) |
+| **M6** | **Knowledge / Research / Technology** | **CURRENT — spec in preparation, NOT ratified** (`docs/m6-plan/`; no active packets until `docs/m6-spec.md` is ratified, S8 §4) |
 | M7 | Battle Layer | future |
 | M8 | Politics / Diplomacy | future |
 | M9 | Society | future |
@@ -48,6 +48,13 @@ section marked itself superseded. Reworded; the meaning is unchanged.)*
 > the Director's Release as for M0–M4). M6 planning input — not the M6 spec, which S8 §4 has written after the M5 exit
 > gate — is `docs/m6-plan/` (scope, task and decision registers, dependency graph, risks, M7 handoff, deferred work).
 > The M5 and M6 rows change only on the Director's ruling at the exit gate.
+
+> **2026-10-20 — M5 CLOSURE BLOCK (Director's merge ruling).** Checklist 21 and 22 WAIVED as pre-merge requirements
+> (M4 precedent) and TRACKED AS OUTSTANDING human validation against the Decision C build — neither played, neither
+> passed (`docs/m5-exit-inventory.md` §13; `docs/m5-playtest-known-issues.md`, last dated note). The Director authorized
+> the merge of `44e78740a798963b7f2e98bad4ac631b5c5616e0` into `main` by pull request, history preserved, **no tag and no
+> release**. PR, merge commit, resulting `main` head and post-merge CI: recorded below once known.
+> - PR / merge commit / main head / post-merge CI: _pending at the time of this edit; filled in by the agent after the merge._
 
 > **2026-10-20 — Director's M5 closure rulings R1–R10 and M6 decisions D-I/D-D/D-E/D-F recorded**
 > (`docs/m5-exit-inventory.md` §13; dated notes in D-051, D-052, D-053, D-054, D-055, D-057–D-060, ADR-035, ADR-042,

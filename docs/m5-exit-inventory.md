@@ -463,3 +463,22 @@ checklist-22 comparison is `docs/m5-next-turn-comparison.md`.
 run), A, B, E — **met**. Condition 7 (merge ruling) — **OPEN by the Director's choice until the final candidate and
 evidence are presented**. Condition 11 — checklist 21 and 22 to be played by the Director on the Decision C build;
 PT-04–PT-11 deferred by ruling. **M5 is NOT closed by this record.**
+
+> ### WAIVER, 2026-10-20 — CHECKLIST 21 AND 22 WAIVED AS PRE-MERGE REQUIREMENTS BY THE DIRECTOR (M4 precedent, `m4-exit-session.md:16-21`)
+>
+> **The Director waived checklist 21 (strip vs RESOURCES table vs cards) and checklist 22 (the Next-turn figure against
+> the next turn's Empire figure) as pre-merge requirements and authorized the merge of `44e78740a798963b7f2e98bad4ac631b5c5616e0`
+> into `main` by the recorded PR procedure.** Both are **tracked as outstanding human validation against the Decision C
+> build** (`dd727c4`, artifact `sim-ui-win-x64-dd727c4`). **NEITHER CHECKLIST HAS BEEN PLAYED OR PASSED.** That is a
+> waiver of the pre-merge requirement, not a pass. The automated comparison (`docs/m5-next-turn-comparison.md`) stands as
+> evidence beside it, not in place of it. Record: the Director's instruction of 2026-10-20 ("Record a dated waiver for
+> checklist 21 and 22 as pre-merge requirements, using the M4 precedent. Track both as outstanding human validation against
+> the Decision C build. ... Do not represent either checklist as passed."). No tag, release or release action is part of
+> this authorization; the `m5-exit` Release remains the Director's separate decision.
+
+**R6 merge ruling (given 2026-10-20, after the three governance checks):** the Director authorized the merge of `44e7874`
+into `main` by pull request after the required checks pass, history preserved (no force push, no rewrite), no tag or
+release. Condition 11 is discharged by the waiver above for merge purposes; checklist 21 and 22 stay OUTSTANDING. The
+pull request carries this record and the §12 merge-time edits (the milestones row reads "COMPLETE, with checklist 21 and
+22 tracked as outstanding human validation"). The PR number, merge commit and post-merge CI are recorded in
+`docs/milestones.md`'s closure block once known.
