@@ -166,3 +166,45 @@ The items §6 recorded for a ruling, and §7 called defects, are fixed on branch
   - a rival source's founding card (L6);
   - the ANNALS panel: `D060_TheAnnalsView_…` and `D060_TheStateChronicle_…`.
 - **DEV stays world-wide** by decision; `D060_TheDeveloperView_…` pins it.
+
+## 9. Status note — 2026-10-20 (dated, §1–§8 unchanged): resource persistence and the next-turn figure
+
+**The Director's playtest of `f80dce6` (build inferred; see the known-issues note of 2026-10-20):** the resources view
+and strip pass, except that a resource is omitted once its stock reaches 0.
+
+- **Root cause.** `EmpireStores.IsShown` (§6: "held now, held at the start of last turn, or set aside"). A good that ran
+  out showed one more turn with 0 and a falling mark, then vanished.
+- **The rule now.** A good is shown once it is **unlocked** in this game, and stays shown for the rest of it, at 0 when
+  empty. "Unlocked" keeps §6's meaning of use: the player's empire has held some of it — at the founding or after any
+  turn (holding a good is how the player comes to use it; no research rule is restated). A good never held is still not
+  shown, so the Stone Age strip stays short.
+  - `ResourceCatalogue` (`Sim.Ui/ViewModel/ResourceCatalogue.cs`): UI-side, filled by the founding capture and the one
+    Step path, so resume's replay rebuilds it and a new game starts empty. No file, save or hash.
+  - It reads the player's controlled settlements only (`EmpireStores.OwnSettlements`): a rival's stores unlock nothing.
+- **The next-turn figure.** RESOURCES has a "Next turn" column, and each card line ends "N next turn".
+  - It is `UiSession.PreviewNextWorld()`: the production step (`BuildProductionExecutor`'s era and pipeline) run on
+    the current world with this turn's queued orders, summed over the settlements that are the player's in that world.
+    `TurnExecutor.Step` never mutates its input. The preview steps its own copy of the order log.
+  - So the figure follows the simulation's accounting exactly: material charges, set-asides (part of the stores, not a
+    deduction), project priority, affordability, D-058 carry-over, extraction, consumption and trade, each once.
+    Nothing is restated in the UI.
+  - **Not included:** the AI's orders of the turn (rivals' decisions the player has not seen; D-060). With no AI the
+    figure equals the next turn exactly. With one AI it differs only where an AI order of this turn reaches the
+    player's own stores. Measured: 40 turns of seed 42, with no AI and with one AI, with 0 mismatches on every good.
+  - **Cost:** one turn step, about 120–180 ms (880 ms the first time, while loading the data), computed only when
+    RESOURCES or a strip card is shown and cached until the world or the order count changes.
+- **Tests** (`Sim.Ui.Tests/ResourcesPersistenceTests.cs`, 11 tests):
+  - persistence at 0 through six turns, where the old rule drops the good;
+  - persistence after further stock changes;
+  - the catalogue equals the goods ever held (so goods never held are not listed);
+  - a rival's stores never unlock a good;
+  - game scope, and rebuild on resume;
+  - 0 is drawn in the table and the card;
+  - the next-turn figure equals the next turn for every good, and for a good at 0 now;
+  - construction is charged once, and not the whole queue;
+  - set-asides are taken once;
+  - the preview changes no world, order or hash;
+  - the next-turn figure reads no rival's stores.
+
+  Four mutants were killed, each by a semantic test: the old show rule, a catalogue over every settlement, set-aside
+  subtracted twice, and a preview cache that ignores new orders.

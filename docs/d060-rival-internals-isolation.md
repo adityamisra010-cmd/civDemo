@@ -244,3 +244,18 @@ output or the positive control. Each is restated in its own file, with a D-060 c
 - No new file reads `Settlements`, `MilitaryUnits`, `Buckets` or `Deposits` raw.
 - Every changed reader is already listed as `routed` (it references `PlayerKnowledge`).
 - `ScreenModels.cs` stays `developer`; its Policy view now also asks `ReadsInternals`.
+
+## 11. Dated note — 2026-10-20: status, and the Director's rulings on §9's two residuals (§1–§10 unchanged)
+
+- **Status.** Pushed in `claude/new-session-yavghm` at `f80dce6`, superseding the "LOCAL … not pushed" status line
+  above, which is kept as written. CI run 39338603701 is green, and the Windows build `sim-ui-win-x64-f80dce6` passed
+  `windows-smoke` (run 39338603779). Not on `main`.
+- **Director-reported playtest (2026-10-20):** rival-data isolation **Pass**. The build is inferred to be `f80dce6`; see
+  `docs/m5-playtest-known-issues.md`, note of 2026-10-20.
+- **Decision A — the drawn token's size (§9, first bullet): DEFERRED until fog of war.** Keep the current footprint and
+  dwelling-block sizing of a rival's token. This is **not** a ruling that the sizing is permanently accepted public
+  information. Revisit it when fog-of-war visibility and information-disclosure rules are designed (S2a). Nothing is
+  changed in code.
+- **Decision B — pre-capture price history (§9, second bullet): INTENTIONAL DISCLOSURE, not a leak.** Pre-capture price
+  history stays visible to the settlement's current owner. Historical price graphs are not masked by ownership history.
+  §9's wording "a small, bounded leak … not fixed here" is superseded by this ruling. Nothing is changed in code.

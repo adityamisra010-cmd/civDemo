@@ -1,5 +1,23 @@
 # CURRENT STATE — the routing document
 
+> **2026-10-20: Director's playtest of the D-060 candidate; resource persistence fixed; Decisions A and B; run-recording
+> audit — branch `claude/new-session-yavghm` (this entry's commits sit on `f80dce6`). Supersedes the "LOCAL … NOT
+> pushed, NOT merged" status of the D-060 entry below, which is kept as written: D-060 is pushed at `f80dce6` (CI run
+> 39338603701 green; `windows-smoke` green, run 39338603779). Nothing is on `main`.**
+> - **Director-reported (2026-10-20), not agent observations:** rival-data isolation Pass; resources view and strip Pass
+>   except a resource disappearing at 0 stock; construction carry-over (D-058) Pass; Continue last game Pass; ordinary
+>   play Pass. **Build: `f80dce6`, INFERRED** (the only pushed build carrying D-060; the Director did not state it).
+>   Not covered: PT-04 to PT-11, the chronicle wording fix. Details: `docs/m5-playtest-known-issues.md` (note of
+>   2026-10-20).
+> - **Fixed, UI only:** a resource once held in this game stays listed at 0; RESOURCES gains a "Next turn" column (the
+>   production step run on a copy, AI orders excluded). Record: `docs/m5-resources-view-proposal.md` §9. Tests:
+>   `Sim.Ui.Tests/ResourcesPersistenceTests.cs`. No Sim.Core, order, save, schema or hash change.
+> - **Ruled (recorded, not reopened):** Decision A, a rival token's size is deferred until fog of war (not permanently
+>   public); Decision B, pre-capture price history is an intentional disclosure. Record: D-060 §11.
+> - **Run recording:** not encrypted, not compressed, not merged; the one-file export is an M6 design only. **Director
+>   ruling needed** on what "encryption" must achieve: `docs/m5-run-recording-audit.md` §8.
+> - M5 is NOT closed (D-052 §15). Verify against the tree (gov-4) before relying on this entry.
+
 > **2026-10-19 (latest): D-060 closes a known rival's books on every player surface — branch `b6-rival` (clone
 > `/home/user/m5w/b6-rival`, base `77d8c30`; LOCAL commits only — NOT pushed, NOT merged).**
 > This is the Director's instruction "i should not be able to see other empire's data". It fixes the open defect named

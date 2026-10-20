@@ -590,3 +590,43 @@ and §16 it names.
 - **Human check.** Select a rival settlement (Tab or click). The card shows its name, "Held by the empire of 2" and the
   not-your-settlement line. SETTLEMENT and POLICY › labour record say the same. Zoom in on it: no people line is drawn
   under its name.
+
+## Dated note — 2026-10-20: Director's playtest of the D-060 candidate; resource persistence; Decisions A and B (appended; the sections above are unchanged)
+
+- **Director-reported results (2026-10-20, the Director's own words summarised; not agent observations):**
+
+  | Item | Result |
+  |---|---|
+  | Rival-data isolation (D-060) | **Pass** |
+  | Resources view and strip | **Pass, except** a resource disappears when its stock reaches 0 (fixed below) |
+  | Construction carry-over (D-058) | **Pass** |
+  | Continue last game (D1) | **Pass** |
+  | Ordinary play | **Pass** |
+
+- **Build tested: `f80dce6` — INFERRED, not verified.** The Director did not state the build, report the window title or
+  upload session files. `f80dce6` (artifact `sim-ui-win-x64-f80dce6`, ui-artifact run 39338603779) is the only pushed
+  CI build that contains D-060, and the branch has not moved since; a rival-isolation pass needs D-060. Correction to
+  the 2026-10-19 report: its download link pointed at the smoke-report artifact (id 12227473230); the game build is
+  artifact id 12227387967.
+- **Not covered by this report:** PT-04 to PT-11 of the 2026-10-19 matrix (colony Labour, set-aside lines, roads beside
+  a set-aside, resume with a split, damaged or legacy session files); the chronicle wording fix; the next-turn figure
+  and resource persistence below (built after the playtest).
+- **Resource persistence — FIXED (2026-10-20, UI only).** A good stayed listed only while held now, held at the start
+  of last turn or set aside, so it vanished a turn after running out. Now a good the empire has held at any point in
+  this game stays in the strip, its card and RESOURCES and reads **0**. RESOURCES also gains a **Next turn** column
+  (and each card line a "N next turn"): the stores the next turn opens with if the turn is ended now — the game's own
+  step run on a copy of the world with this turn's orders, so construction charges, set-asides and D-058 carry-over
+  are counted exactly once. Rivals' orders of the turn are not included (they are not known to the player).
+  Record: `docs/m5-resources-view-proposal.md` §9; tests `Sim.Ui.Tests/ResourcesPersistenceTests.cs`.
+- **Playtest checklist addition (continuing §16):**
+  22. **Resources at zero.** Use up a good (pottery or cloth drain fastest once held). End two more turns: its row stays
+      and reads 0. Its "Next turn" figure equals the next turn's Empire figure when no further order is given.
+- **Decision A (Director, ruled; recorded 2026-10-20): rival map-token size — DEFERRED until fog of war.** The footprint
+  and dwelling blocks of a rival's token keep their current sizing for now. This is **not** a permanent ruling that the
+  sizing is public information: it is to be revisited when fog-of-war visibility and disclosure rules are designed
+  (S2a). Record: `docs/d060-rival-internals-isolation.md` §11.
+- **Decision B (Director, ruled; recorded 2026-10-20): pre-capture price history — INTENTIONAL DISCLOSURE.** A captured
+  settlement's price graph keeps its prices from before the capture, visible to its current owner. Historical price
+  graphs are not masked by ownership history. This is no longer an open leak. Record: D-060 §11.
+- **Run recording (audit 2026-10-20):** the session files are not encrypted, not compressed and not merged into one;
+  the one-file export is an M6 design, never built. Record and the ruling needed: `docs/m5-run-recording-audit.md`.
