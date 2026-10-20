@@ -103,3 +103,21 @@ Recommended (option 1). The other options are listed so the ruling is explicit.
 or name the threat that encryption must answer (option 2); (b) confirm that the M6 export sits beside the six files
 (not option 3). Integrity against tampering (a keyed MAC or signature) is a separate question, only needed if session
 files must be trusted when they come from someone else.
+
+## 9. Director's ruling — 2026-10-20 (dated; §1–§8 unchanged)
+
+The Director, verbatim: "Encryption is supposed to reduce the size. Like Instead of "bigen had a population of 560
+children 780 adults and 450 old" It becomes reduced/encoded/encrypted to B1PC560A780O450 That reduces number of
+characters. The core issue was that we have too many files right? We're trying to bring all the runs data into one excel
+sheet. So it's easier to upload here. Since claude and gpt have a limit on number of files".
+
+- **§8 (a) is answered:** "encryption" means a size-reducing **encoding** (short codes in place of words, decodable
+  with the codebook). No secrecy is wanted, so no cipher, key or threat model is needed. This is option 1, and it is
+  what `docs/m6-session-export/` already designs. Example: the codebook writes a settlement's population by age band
+  as a short positional tuple, not field names. Measured: the Director's session dropped from ≈96,000 to 8,877
+  characters per turn (median).
+- **§8 (b) is answered:** the goal is one uploadable file (an Excel workbook) per session, because AI assistants limit
+  the number of files per upload. The workbook is written **beside** the six files, which stay the save and replay
+  record, so resume, replay, CI and saves are unaffected.
+- **Milestone unchanged: M6.** Nothing is built in M5. The 2026-10-19 instruction "Do not start M6 or modify the
+  telemetry encoding/codebook" still stands; this note records the ruling for the M6 spec.
