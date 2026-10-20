@@ -42,6 +42,13 @@ section marked itself superseded. Reworded; the meaning is unchanged.)*
 > five files. The request, the measured facts and the questions for the M6 spec are in `docs/queue.md` (dated note
 > 2026-10-19).
 
+> **2026-10-20 — M5 closure package and M6 planning package (agent; docs only; nothing ruled).** The order and names
+> above are unchanged; **M5 is still NOT complete.** The evidence package for the Director's M5 closure ruling is
+> `docs/m5-exit-inventory.md` (D-052 §15 condition by condition; proposed tag `m5-exit` on the merge commit, minted by
+> the Director's Release as for M0–M4). M6 planning input — not the M6 spec, which S8 §4 has written after the M5 exit
+> gate — is `docs/m6-plan/` (scope, task and decision registers, dependency graph, risks, M7 handoff, deferred work).
+> The M5 and M6 rows change only on the Director's ruling at the exit gate.
+
 ### Dependencies
 
 M0 → … → M11+ is the **build order**, but later systems are not isolated layers bolted on top:

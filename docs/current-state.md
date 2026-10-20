@@ -1,5 +1,34 @@
 # CURRENT STATE — the routing document
 
+> **2026-10-20 (latest): M5 closure package and M6 planning package prepared — branch `claude/new-session-yavghm`
+> (this entry's commit sits on `dc83a67`; docs only). M5 is NOT closed: the package is the evidence for the Director's
+> closure ruling, not the ruling.**
+> - **M5 closure report and evidence matrix:** `docs/m5-exit-inventory.md`. Verdict: ready for the Director's review,
+>   not ready for tagging. Of D-052 §15's seven conditions: CI incl. Windows smoke PASS on `4d2de04` and `dc83a67`
+>   (VERIFIED job by job: CI runs 39371214975 / 39373352699, Windows runs 39371214840 / 39373352710); the calibration
+>   battery PASS with D-059's acceptance PENDING; D-051 scheduling BLOCKED (no milestone named); the unit-display rework
+>   FAIL (not built); the Spine M5 items BLOCKED (destination unruled); packet acceptance PENDING (18 m5w packets, W0,
+>   ADR-035 P-F1/P-F0, D-053…D-060, `3c18a71`); the merge ruling PENDING. Proposed tag `m5-exit` on the merge commit into
+>   `main`, minted by the Director publishing the Release (M0–M4 convention); release notes drafted.
+> - **The 20-seed soak** (`calibration-nightly`, S8 §4 proof standard) was dispatched on the branch at `dc83a67` (CI run
+>   39377615261): the 20-seed autoplay sweep and the corridor teeth across all 20 seeds **passed** (VERIFIED).
+> - **Director-reported (2026-10-20 instruction):** zero-stock persistence confirmed on the build of `4d2de04`
+>   (build as stated by the Director; artifact 12241855029). NOT reported: the next-turn equality check (checklist 22),
+>   PT-04–PT-11, the chronicle wording fix.
+> - **Verified finding (Decision C, `m5-exit-inventory.md` §10):** the RESOURCES "Next turn" figure includes the pending
+>   harvest-weather multiplier (production reads PREV's `HarvestWeather` row, `ProductionSystem.cs:176`), which ratified
+>   D-051 §3 says a forecast must not reveal ("expected weather … never reveals the actual next draw"). No code changed;
+>   three options are put to the Director (keep exact with a dated note on §3; expected weather — recommended; blank
+>   farm goods).
+> - **M6 planning package:** `docs/m6-plan/` — README with the M5→M6 transition note, scope register, task register
+>   (M6.1–M6.24), dependency graph, decision register (D-C…D-Q), risk register, M7 handoff register, deferred-work
+>   register (DW-001…DW-076). Status PLANNING INPUT: not the M6 spec (S8 §4: written after the M5 exit gate), allocates
+>   no packet, authorizes no code. Material conflicts recorded, not resolved: "Civics Points" vs the ratified single RP
+>   pool (D-044 R2/R12, D-046 G5); government adoption in M6 vs the Spine's M8; per-unit progression state and Action
+>   Points vs D-052 §4 / D-011.
+> - **Unchanged:** `main` at `93270cd`; no tag, no release, no merge; no Sim.* file changed by this entry's commit.
+> - Verify against the tree (gov-4) before relying on this entry.
+
 > **2026-10-20: Director's playtest of the D-060 candidate; resource persistence fixed; Decisions A and B; run-recording
 > audit — branch `claude/new-session-yavghm` (this entry's commits sit on `f80dce6`). Supersedes the "LOCAL … NOT
 > pushed, NOT merged" status of the D-060 entry below, which is kept as written: D-060 is pushed at `f80dce6` (CI run

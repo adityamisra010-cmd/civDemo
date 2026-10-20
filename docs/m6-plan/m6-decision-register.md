@@ -1,0 +1,227 @@
+# M6 decision register — what genuinely needs the Director
+
+**Status: PROPOSED (planning input, 2026-10-20, tree `dc83a67`).** Only decisions an agent may not take: each either
+touches a ratified or frozen item, re-opens a recorded ruling, or chooses between designs with different compatibility
+costs. For each: the question, why it matters, the options, the recommendation, and what stays blocked until it is
+decided. The M5 closure rulings R1–R9 are in `../m5-exit-inventory.md` §6 and are not repeated here except where an
+M6 workstream waits on them.
+
+| ID | Decision | Blocks |
+|---|---|---|
+| D-C | Next-turn figure: exact weather vs D-051 §3's expected weather (`../m5-exit-inventory.md` §10) | M5 acceptance of `3c18a71`; D-051 §3's stores half |
+| D-D | Government adoption and active-government effects in M6 or M8 | M6.6 scope, M6.7, the vertical slice's "one government adoption or institutional effect" |
+| D-E | Per-unit progression STATE in M6, or design/contract only | M6.8–M6.11 scope; schema plan |
+| D-F | The repeatable-training / Action-Point contract: M6 writes data and contract only, M7 implements | M6.10; M7 handoff H7-02 |
+| D-G | Session export: hand-rolled minimal OOXML writer vs an xlsx library dependency | M6.15 start |
+| D-H | Schema version sequencing: v35 fog (reserved), v36 M7 S3 (reserved) — where civics/institution tables land | M6.17; every M6 table |
+| D-I | Civics currency and targeting: one pool/one target (ratified) vs two targets vs Civics Points | M6.4 design; M6.5 costs; the slice |
+| D-J | Scouts: a class, a flag, or a per-polity capability score (D-039 B6, "M6's spec owns it") | M6.13 discovery rules |
+| D-K | Known-extent storage and sight budget: ratify the S2a plan (per-polity bitset over the 16 km lattice, monotone OR, v35; sight = isochrone from controlled settlements and owned formations, no new constant) | M6.13 |
+| D-L | E1: the Age style register's driver (Age, realized state or knowledge — D-038 H8 open) and an asset budget / gate cadence | M6.14 |
+| D-M | "What is an institution" (CR-010, recommended and never written) — needed before any non-university institution is adopted | M6.6, the slice |
+| D-N | D-051 carry-over destination (= closure ruling R2) | M6.24 existence |
+| D-O | Spine M5 items' destination (= closure ruling R4) | M6.4/M6.5 content for laws-lite and the authority economy |
+| D-P | The vertical slice: approve the proposed slice (M6.18) or choose another | M6.18 |
+| D-Q | "Levying Troops" and other verb-granting civics before M7 has an owning system: knowledge-only until M7, or an explicit seam ruling | M6.5 content; H7-03 |
+
+## D-D — Government adoption in M6 or M8
+
+- **Why it matters.** The 2026-10-20 instruction's M6.6 asks for "adoption action, active government state,
+  government-specific laws/policies/effects, transition/replacement/persistence rules". The Spine (frozen) places
+  "Politics deep (institutions, regime change) … composable modules, not enum governments" at the politics milestone —
+  M8 after the 2026-10-03 rebase (`civ-sim-architecture-v3-outline.md:85, 134`; `d011:60`; `milestones.md:25, 59-61`).
+  M6's scope names "the Technology and Civics trees" and the capability → realization chain, not government forms
+  (`milestones.md:74-83`). D-042 §5 (RATIFIED): government "may influence available decisions, policies, capabilities …
+  through state and computed conditions"; "Avoid hard-coding governments as bundles of direct bonuses". arch-FGH (design)
+  gives the shape: a REGIME MODULE SET (serialized, latched, per Empire) and a GOVERNMENT LABEL that is "DERIVED …
+  never read by any mechanism".
+- **Options.**
+  1. **M6 = availability; M8 = adoption** (recommended). M6 delivers: macro civics whose completion makes a module set
+     eligible; the regime-module data shape and derived label (read-only in M6); UI that shows Available vs Adopted with
+     locked-state reasons. No adoption order, no active effects in M6. No freeze conflict.
+  2. **M6 = availability + adoption + minimal effects.** Needs a priced override of the Spine allocation (S8 §2:
+     "a written ADR stating what breaks, which tests and docs change, and the schedule price", `spine-s8:37`), CR-010
+     (D-M) first, and a legitimacy type (arch-FGH §2.4) if any effect touches it. Pulls M8's defining content forward.
+  3. **All government work in M8**, M6 civics content only. Loses the Director's "Researched → Adopted" demonstration.
+- **Recommendation:** option 1; the slice shows one institutional adoption (an institution, not a government) which is
+  M6's by `milestones.md:80-81`.
+- **Blocked until decided:** M6.6's deliverables, M6.7's adoption interface, slice item 2/3.
+
+## D-E — Per-unit progression state in M6
+
+- **Why it matters.** `MilitaryUnitRow.Experience` is a preserved 0.0 — "nothing in this build earns it"
+  (`UnitCardModel.cs:157-160`); the only earner in any ruling is D-011 §2's `BattleOutcome` (M7). The D-011 §3 formation
+  fields promotions would modify (strength, cohesion, fatigue, ammo) do not exist. `MilitaryUnits` has one writer by
+  rule (`AgeTransitionSystem.cs:43-45`); widening the row breaks the appended-only premise of the readable set
+  (`m7-handoff-register.md` E). Designing effects against absent fields is "a modifier without a carrier" (D-035-C test).
+- **Options.**
+  1. **Design + content schema + validator + M7 contract; no state** (recommended). Promotion trees are authored and
+     validated for shape (prerequisites, exclusivity, repeatability, referenced M7 fields named), inert; the placeholder
+     panel says so.
+  2. Add a per-unit progression table (appended, new version) with promotions selectable now and effects deferred.
+     Costs a schema bump, an ownership re-split ADR, populated tests, golden moves — for state nothing can change until M7.
+  3. Defer all unit progression to M7.
+- **Recommendation:** option 1.
+- **Blocked until decided:** M6.8–M6.11 scope lines; D-H's version plan.
+
+## D-F — The repeatable-training / AP contract
+
+- **Why it matters.** Action Points are M7's (D-052 §4, RATIFIED); CR-017 §3 (Action Capacity vs Law 3) "must be ruled
+  before any M7 movement packet" (`d052:49-50`); the S3b plan derives AC max from content, which a trained per-unit max
+  contradicts. "Dormant units must not improve accidentally" needs a definition of dormant that only M7's movement state
+  can give.
+- **Options.** 1. M6 writes the contract only (definition of dormant as a named M7 state; eligibility; cost; increment;
+  cap; diminishing returns; rejection cases) as data fields and validation (recommended). 2. M6 adds training state and
+  an order — contradicts D-052 §4 without an override.
+- **Recommendation:** option 1; the contract is `m7-handoff-register.md` H7-02's deliverable.
+- **Blocked until decided:** M6.10.
+
+## D-G — Session export: how the workbook is written
+
+- **Why it matters.** The repository has four package dependencies (MonoGame, ImGui.NET, xunit, FsCheck). An xlsx
+  library adds a dependency, a licence and possibly nondeterministic output (timestamps, GUIDs, zip ordering). The
+  workbook is simple: text and number cells, eight sheets, no formulas.
+- **Options.** 1. **A minimal OOXML writer in Sim.Cli/Sim.Ui tooling** (recommended): `System.IO.Compression` zip with
+  fixed entry order and fixed timestamps, hand-written `sheet.xml`, inline strings, `InvariantCulture`; fully
+  deterministic; ~300 lines; tested by re-reading with the same code and by a byte-identical golden. 2. ClosedXML /
+  Open XML SDK: faster to write, adds the dependency and the determinism audit.
+- **Recommendation:** option 1.
+- **Blocked until decided:** M6.15's first packet.
+
+## D-H — Schema version sequencing
+
+- **Why it matters.** D-055 reserved v35 for S2a (known extent) and v36 for S3 (M7 Action Points)
+  (`d055:1306-1308`). M6 civics/institution tables and any export-related schema (none expected) must take versions
+  in commit order; the readable-set logic assumes appended-only tables. If civics lands before fog, the reservation
+  is wrong in order.
+- **Options.** 1. **Allocate by landing order, re-reserving in the spec**: next landed table takes the next version;
+  the spec states the sequence (e.g. v35 fog, v36 civics, v37 M7 S3) and amends D-055's reservation by dated note
+  (recommended). 2. Keep reservations fixed and hold civics tables until fog lands.
+- **Recommendation:** option 1.
+- **Blocked until decided:** M6.17's plan; D-055's note.
+
+## D-I — Civics currency and targeting
+
+- **Why it matters.** The 2026-10-20 instruction: "Civics uses Civics Points. Do not silently reuse Research Points or
+  combine the currencies without an explicit, evidence-backed design decision." The record's evidence: D-044 R2
+  (Director verbatim, `d044:79-103`): "There is ONE shared Cognitive Load Point pool … Do NOT create: Science Points,
+  Culture Points … Do not create a second accumulated research currency"; R12 (`:360-383`): "Civics is Tree 2. It uses
+  the SAME Cognitive Load Point pool … Do not create Culture Points … Do not copy Technology into Civics under another
+  name"; D-046 G5 (`d046:202-204`): "There is exactly one shared RP pool. Technology and Civics draw from the same pool";
+  the ledger's prohibited reintroductions §26 (2) separate currencies per branch, (3) a second currency, (4) a general
+  RP reserve, (11) a reusable per-turn exception; ADR-030 §3: a second per-turn quantity needs its own ADR; D-044 Part B
+  marks the pool question do-not-ask-again. As built, the 7 civics nodes already cost RP from the one pool, one target
+  (`ResearchEngineTests.SharedPool_OneTargetAcrossBothTrees_TotalInvestedEqualsTotalRp`).
+- **Options.**
+  1. **One pool, one target — as ratified and built** (recommended for the slice). "Civics Points" is not a currency;
+     civics compete with technology for the same RP, which is the ruled design. The civics layer's novelty is adoption,
+     not currency.
+  2. **One pool, two targets** (a technology target and a civics target with a player-set split). Supersedes D-044 R9
+     (one target) only; needs a dated Director note and a second `SetResearchTarget`-like order kind; keeps conservation
+     of invested RP exact.
+  3. **Civics Points as a second accumulated currency.** Supersedes D-044 R2/R12, D-046 G5 and ledger §26; needs its
+     own ADR for denomination (per-year × dt or a scoped per-turn exception), a non-linear population input, a D-021
+     brake for anything that accelerates it, new rows (schema bump, populated test, golden re-pin), and must never be
+     the left operand of a gate (arch-O II.2).
+- **Recommendation:** option 1 now; option 2 if the Director wants parallel progression visible to the player. Option 3
+  only by explicit supersession of the Director's own rulings.
+- **Blocked until decided:** M6.4's design; M6.5's cost model; the slice.
+
+## D-J — Scouts (D-039 B6)
+
+- **Why it matters.** D-039 B6 (OPEN): a scout as a class, a flag on a notable, or a per-polity capability score —
+  "M6's spec owns it, and it should be answered alongside GOV-2's open 'is a notable a person?' question"
+  (`d039:77-82`). D-040 B2: discovery is reconnaissance at a different scale; "Do not invent a second exploration
+  system". The S2a plan gives sight to controlled settlements and owned formations with no scout entity and no new
+  constant.
+- **Options.** 1. **S2a as planned, no scout entity in M6**: sight from settlements and formations; scouts arrive as
+  the first MobileAgent in M7 with movement (recommended — D-039 B1's "a scout is a person drawn from a bucket" needs
+  recruitment and movement, both M7). 2. A per-polity capability score that widens the sight isochrone (a coefficient in
+  a named equation, realizable now). 3. A scout class (needs MobileAgent, M7).
+- **Recommendation:** option 1, with option 2 noted as the only M6-realizable "scouting" lever.
+- **Blocked until decided:** M6.13's discovery rules and the sight budget.
+
+## D-K — Known-extent storage and sight (ratify the S2a shape)
+
+- **Why it matters.** D-040 B5/E4 (RATIFIED) deliberately did not design storage, granularity or constants; the m5w
+  plan proposes `KnownExtentRow(Holder, Word, Bits)` — a per-polity bitset over the 16 km lattice, rows sorted
+  (Holder, Word), monotone OR each step, seeded from founding catchments, revolt inherits a copy, annexation takes the
+  union, schema v35, `DiscoverySystem` (`m5w-map-workstream-audit-and-plan.md:725-760`).
+- **Options.** 1. **Ratify the plan as the M6 spec's S2a packet** (recommended; it is the only designed shape, it adds
+  no source of truth for the visible set, and the seam already consumes it). 2. Per-settlement extent (D-040 B5 left
+  it open) — more rows, no identified benefit. 3. Coarser granularity than the lattice — conflicts with D-040 B5's
+  "one node is 16 × 16 km".
+- **Recommendation:** option 1.
+- **Blocked until decided:** M6.13.
+
+## D-L — E1: style-register driver and gate cadence
+
+- **Why it matters.** D-038 H8 and "what drives the Age style register (Age, realized state or knowledge)" are unruled
+  (`d038:208`; `m5w:938`). Law 4 forbids a visual that implies capability; D-052 §6 says visual Age representation must
+  not grant anything. The visual gate is the Director's (D-023) and cannot be automated.
+- **Options.** 1. **Style register driven by REALIZED state** (structures present, institutions active) with the Age
+  banner as the only Age-keyed element (recommended: a drawing of what exists cannot be a calendar gate). 2. Driven by
+  Age (simple; a label drives the look). 3. Driven by knowledge (shows what could be built — misleading).
+- **Recommendation:** option 1; gate the slice's art first, then one gate per asset batch.
+- **Blocked until decided:** M6.14 conventions.
+
+## D-M — "What is an institution" (CR-010)
+
+- **Why it matters.** arch-N `:196`: "Three ratified placements (M5 by D-035-C, M7 by the Spine, M8 by D-011) and ≥6
+  meanings with zero code … CR-010 was recommended and never written." Today exactly one institution type exists
+  (universities) with a lifecycle, staffing brake and effects. Civics unlock 28 `inst.*` entities; 27 have no
+  realization; "Adopted" for them is unspecified. Any civic adoption in M6 needs the answer.
+- **Options.** 1. **Rule it in the M6 spec as "an institution is a founded, staffed, maturing structure of a settlement
+  or polity, modelled by the university lifecycle (`InstitutionRow`, Locked→Mature), realized by construction `founds`
+  or by a civic's adoption act, with effects only through coefficients inside named equations"** (recommended — it is
+  the shipped meaning). 2. Write CR-010 as a separate Director record first. 3. Leave undefined and keep civics
+  knowledge-only in M6.
+- **Recommendation:** option 1, recorded as a D-record cited by the spec.
+- **Blocked until decided:** M6.6, the slice's institutional adoption.
+
+## D-N, D-O — closure rulings R2 and R4
+
+See `../m5-exit-inventory.md` §6 and §7. M6.24 exists only if R2 names M6; M6.4/M6.5's laws-lite and authority
+content exist only if R4 places them in M6's civics.
+
+## D-P — The proposed vertical slice (M6.18)
+
+Chosen for existing implementation and architectural fit; every element reuses a shipped mechanism.
+
+1. **One civic micro node:** `law_code` (exists: key 1001, A3, 1240 RP, prerequisite a script) — reviewed, not
+   rewritten; its effect text names the mechanism below.
+2. **One step toward a macro option:** the regime-module data shape with one module, "codified law", present when the
+   law-code institution is Active, and the derived label it changes (e.g. "chiefdom" → "law-giving chiefdom"); no
+   adoption order (D-D option 1).
+3. **One institutional effect:** a second institution type beyond universities — the law court (`inst.law_code`) —
+   established through the existing lifecycle (construction `founds` like `building.university`; Locked→Available on
+   civic completion; Active/Mature by the same maturity closed forms) and realized through an EXISTING equation:
+   `Unrest.ServiceOffset` already reads institution maturity × reach; the court's maturity enters it (a coefficient
+   inside a named equation, not a bonus). D-021 pairing: the staffing brake already applies.
+4. **One military progression upgrade:** a promotion-tree content entry validated by the M6.9 schema and shown inert
+   in the placeholder with "earned in M7" (D-E option 1) — no state.
+5. **One non-military progression example:** none exists to progress; the slice records this honestly (settler =
+   order; heroes = CR-017 §7 OPEN) rather than inventing one.
+6. **Simulation-side validation:** the construction project for the court is refused when the civic is not completed
+   (`ProjectAvailability.NotKnowledgeEligible` path); an injected order is rejected (the `T15` pattern).
+7. **UI:** Progression › Civics tab and the INSTITUTIONS lens show Unresearched → Available → Active for the court,
+   with the locked-state reason; the action surface lists the project only when legal (one predicate, two callers).
+8. **Persistence and replay:** the new institution type uses the existing `InstitutionRow.Type` (no schema change if
+   the type enum is content-driven — to be measured in M6.2); if a new table is needed, D-H applies; populated test;
+   replay twin; golden attribution.
+
+**Why this slice:** it exercises completion → eligibility → establishment → maturation → effect through four shipped
+systems (research, construction, institutions, unrest) and one existing civics node, touches no frozen item, needs
+only D-M and D-I(1), and is playable by the Director in one session. **Approve, amend or replace.**
+
+## D-Q — Verb-granting civics before M7
+
+- **Why it matters.** "Levying Troops" would, by completion, make a levy verb legal. D-040 B3 / law 4: a node that
+  opens a verb is a calendar gate wearing a tree unless an owning system realizes it on computed state (D-047 r7/8
+  resolved this for class unlocks). Recruitment has no owning system before M7; `AvailableActionsQuery` lists only
+  available actions.
+- **Options.** 1. **Such civics are knowledge-only in M6** (like the 27 `inst.*` entities): authored, validated,
+  shown in the tree, consumed by M7's recruitment when it exists (recommended; it is exactly "M7 consumes M6's capability
+  state"). 2. An explicit seam ruling allowing a levy order in M6 with no resolution — refused by the action-surface rule.
+- **Recommendation:** option 1.
+- **Blocked until decided:** M6.5's content rules for military civics.
