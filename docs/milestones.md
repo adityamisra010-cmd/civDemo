@@ -54,7 +54,14 @@ section marked itself superseded. Reworded; the meaning is unchanged.)*
 > passed (`docs/m5-exit-inventory.md` §13; `docs/m5-playtest-known-issues.md`, last dated note). The Director authorized
 > the merge of `44e78740a798963b7f2e98bad4ac631b5c5616e0` into `main` by pull request, history preserved, **no tag and no
 > release**. PR, merge commit, resulting `main` head and post-merge CI: recorded below once known.
-> - PR / merge commit / main head / post-merge CI: _pending at the time of this edit; filled in by the agent after the merge._
+> - **PR #11** (`claude/new-session-yavghm` → `main`, head `3ab1ed6b44c8be7b15c03ea023e9298d7594a091` = `44e7874` + the
+>   merge-time edits), merged 2026-10-20 16:30 UTC by merge commit, no force push, no rewrite.
+> - **Merge commit / resulting `main` head: `6e51a3e26c6b10e179335db3042898f1251099de`** (parents `93270cd`, `3ab1ed6`).
+> - **Post-merge CI on `main` at `6e51a3e`:** CI run 39458057401 green (build-and-test, determinism, determinism-xproc,
+>   calibration; nightly skipped on push); ui-artifact run 39458057425 green incl. windows-smoke, artifact
+>   `sim-ui-win-x64-6e51a3e`; xplat-surveillance run 39458057576 green.
+> - **No tag and no release**: `m5-exit` does not exist; the Release is the Director's separate decision.
+> - **Checklist 21 and 22: OUTSTANDING human validation** (waived as pre-merge requirements only; not played, not passed).
 
 > **2026-10-20 — Director's M5 closure rulings R1–R10 and M6 decisions D-I/D-D/D-E/D-F recorded**
 > (`docs/m5-exit-inventory.md` §13; dated notes in D-051, D-052, D-053, D-054, D-055, D-057–D-060, ADR-035, ADR-042,
