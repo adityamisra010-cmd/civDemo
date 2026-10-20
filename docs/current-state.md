@@ -9,7 +9,9 @@
 >   `HarvestWeather.Multiplier` to 1.0 before the preview step; actual End Turn is unchanged; the column is "Next turn
 >   (expected weather)". Tests: `ResourcesPersistenceTests` (exactness pins under an ordinary pending harvest; the rigged
 >   1.5 multiplier pin: the forecast equals the real step of a 1.0 twin for every good, grain differs from the rigged
->   step, non-farm goods equal). Results and CI: see the next dated entry.
+>   step, non-farm goods equal). Automated Next-turn comparison (checklist 22, headless, seed 42 + 1 AI, 12 turns):
+>   `docs/m5-next-turn-comparison.md` — 100 rows, every non-food good exact, only weather-carrying food goods differ.
+>   Fresh CI on the Decision C commit: recorded in `docs/m5-exit-inventory.md` §13 once the run finishes.
 > - **Open for the Director:** R6 merge ruling; checklist 21 and 22 on the Decision C build.
 > - Verify against the tree (gov-4) before relying on this entry.
 

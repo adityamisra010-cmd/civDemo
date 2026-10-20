@@ -203,16 +203,45 @@ public sealed class UiSession
     /// </summary>
     public IReadOnlyWorldState PreviewNextWorld()
     {
+        // Decision C (Director, 2026-10-20; D-051 §3): the preview is a forecast under EXPECTED weather, never a read of the
+        // pending draw — see ExpectedWeatherCopy. Actual turn resolution (EndTurn) is untouched.
+
         if (_preview is not null && ReferenceEquals(_previewFrom, World) && _previewOrders == Orders.Count) return _preview;
         long turn = World.Clock.Turn;
         _previewEra ??= ProductionEra();
         _previewPipeline ??= ProductionPipeline();
         var log = new OrderLog();
         for (int i = 0; i < Orders.Count; i++) if (Orders[i].Turn == turn) log.Append(Orders[i]);
-        _preview = new TurnExecutor(_previewEra, _previewPipeline, log).Step(World);
+        _preview = new TurnExecutor(_previewEra, _previewPipeline, log).Step(ExpectedWeatherCopy(World, UiPlayer.Empire));
         _previewFrom = World;
         _previewOrders = Orders.Count;
         return _preview;
+    }
+
+    /// <summary>
+    /// Decision C (Director, 2026-10-20), the ratified D-051 §3 rule for a forecast: "computed by the authoritative
+    /// simulation, stepping a private copy of the world, with expected weather … It never reveals the actual next draw."
+    /// The harvest-weather multiplier that WILL apply at the coming harvest is already in state when the player looks
+    /// (production reads PREV's HarvestWeather row), so a step on the live world would carry it into the figure. This
+    /// returns a clone in which every settlement of <paramref name="player"/>'s has that pending multiplier replaced by its
+    /// expectation, exactly 1.0 (HarvestWeatherSystem: a mean-one multiplier). <c>LogDeviation</c> is left as is: it feeds
+    /// only the copy's NEXT draw, which reaches no figure the preview shows. Other polities' rows are untouched (their weather
+    /// is theirs; the player's stores see it only through trade, which the forecast does not pretend to know). The live
+    /// world is never modified: End Turn resolves with the actual multiplier as before.
+    /// </summary>
+    public static WorldState ExpectedWeatherCopy(WorldState world, PolityId player)
+    {
+        ArgumentNullException.ThrowIfNull(world);
+        WorldState copy = world.Clone();
+        int[] own = ViewModel.EmpireStores.OwnSettlements(copy, player);
+        for (int i = 0; i < copy.HarvestWeather.Count; i++)
+        {
+            HarvestWeatherRow row = copy.HarvestWeather[i];
+            if (Array.BinarySearch(own, row.Settlement.Value) < 0) continue;
+            if (row.Multiplier == 1.0) continue;
+            copy.HarvestWeather.Ref(i) = row with { Multiplier = 1.0 };
+        }
+        return copy;
     }
 
     /// <summary>

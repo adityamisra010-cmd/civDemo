@@ -259,7 +259,7 @@ public sealed record EmpireStores(int[] Settlements, StoreGood[] AllGoods, long[
         string line = good.Name + ": " + N(good.Total);
         if (good.HasPrevious) line += good.Change == 0 ? " (no change since last turn)" : " (" + ChangeText(true, good.Change) + " since last turn)";
         if (good.SetAside > 0) line += "; " + N(good.SetAside) + " set aside for projects";
-        if (good.HasNext) line += "; " + NextText(good.Next) + " next turn";
+        if (good.HasNext) line += "; " + NextText(good.Next) + " next turn (expected weather)";
         if (good.Holders.Length > 0)
         {
             var parts = new List<string>();
@@ -272,7 +272,8 @@ public sealed record EmpireStores(int[] Settlements, StoreGood[] AllGoods, long[
         return line;
     }
 
-    /// <summary>The next-turn figure: the stores the next turn opens with if the turn is ended now.</summary>
+    /// <summary>The next-turn figure: the stores the next turn opens with if the turn is ended now, under expected weather
+    /// (Decision C, D-051 §3: a forecast, never a read of the pending draw).</summary>
     public static string NextText(long next) => N(next);
 
     /// <summary>A figure for the stores table.</summary>

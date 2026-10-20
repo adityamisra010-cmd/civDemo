@@ -16,13 +16,16 @@ namespace Sim.Ui.Tests;
 /// has held. The next-turn figure is <see cref="UiSession.PreviewNextWorld"/> — the production step on the current world
 /// with this turn's queued orders, without the AI's — so it equals the next turn's stores exactly, construction charges
 /// counted once. The rig is real play: pottery, cloth and tools seeded at the founding capital are eaten by the people in
-/// the first turn (needs.json) and the Stone Age player cannot make more.
+/// the first turn (needs.json) and the Stone Age player cannot make more. Decision C (Director, 2026-10-20; D-051 §3):
+/// the figure is a forecast under EXPECTED weather — the player's settlements' pending harvest-weather multiplier is
+/// replaced by 1.0 in the preview copy — so the exactness pins below rig that multiplier to 1.0 (then the forecast and
+/// the real step coincide for every good) and one test pins the forecast under a rigged multiplier.
 /// </summary>
 [Collection("ImGui context")]
 public sealed class ResourcesPersistenceTests : IDisposable
 {
     private static readonly PolityId Me = UiPlayer.Empire;
-    private const int Timber = 4, Stone = 5, Fiber = 9, Bronze = 11, Tools = 12, Pottery = 13, Cloth = 14;
+    private const int Livestock = 2, Fish = 3, Timber = 4, Stone = 5, Fiber = 9, Bronze = 11, Tools = 12, Pottery = 13, Cloth = 14;
     private const int Granary = 1;
 
     private readonly string _root = Path.Combine(Path.GetTempPath(),
@@ -72,6 +75,32 @@ public sealed class ResourcesPersistenceTests : IDisposable
             if (w.GoodStocks[i].Good.Value == good && EmpireQuery.ControlsSettlement(w, Me, w.GoodStocks[i].Settlement))
                 sum = checked(sum + w.GoodStocks[i].Amount.Value);
         return sum;
+    }
+
+    /// <summary>Sets every own settlement's pending harvest-weather multiplier (the one the coming harvest will use) to
+    /// <paramref name="multiplier"/>; 1.0 makes the expected-weather forecast and the real step coincide.</summary>
+    /// <summary>
+    /// Rigs the PENDING harvest weather of every settlement the player controls to <paramref name="multiplier"/>: the
+    /// existing row is rewritten, and a settlement with no row yet (the founding turn — rows are written at the end of a
+    /// settlement's first step) gets one, so the rig is the same whether or not a turn has passed. LogDeviation is set
+    /// consistently (ln m) so the carried AR(1) state agrees with the multiplier.
+    /// </summary>
+    private static void SetOwnWeather(WorldState w, double multiplier)
+    {
+        int[] own = EmpireStores.OwnSettlements(w, Me);
+        Assert.True(own.Length > 0, "premise: the player controls a settlement");
+        foreach (int id in own)
+        {
+            bool found = false;
+            for (int i = 0; i < w.HarvestWeather.Count; i++)
+            {
+                HarvestWeatherRow row = w.HarvestWeather[i];
+                if (row.Settlement.Value != id) continue;
+                w.HarvestWeather.Ref(i) = row with { Multiplier = multiplier, LogDeviation = Math.Log(multiplier) };
+                found = true;
+            }
+            if (!found) w.HarvestWeather.Add(new HarvestWeatherRow(new SettlementId(id), Math.Log(multiplier), multiplier));
+        }
     }
 
     private static EmpireStores Stores(UiSession s, bool next = false) =>
@@ -215,15 +244,15 @@ public sealed class ResourcesPersistenceTests : IDisposable
         Assert.NotNull(h.Ui.Controls.Find(GameUi.StoreRowControl(Pottery)));   // the row is drawn
         IReadOnlyList<string> texts = h.Ui.FrameText.Texts(FrameSurface.Context);
         Assert.Contains("pottery", texts);
-        Assert.Contains("Next turn", texts);
+        Assert.Contains("Next turn (expected weather)", texts);
         StoreGood pottery = h.Ui.Stores!.Good(Pottery)!;
         Assert.Equal((0L, 0L, true), (pottery.Total, pottery.Next, pottery.HasNext));
 
         UiControl c = h.Ui.Controls.Find(GameUi.StripControl(StoreGroup.Goods)) ?? throw new InvalidOperationException("Goods group not drawn");
         h.MoveTo((c.X0 + c.X1) / 2.0, (c.Y0 + c.Y1) / 2.0);
         Assert.Equal(StoreGroup.Goods, h.Ui.StripHover);
-        Assert.Contains("pottery: 0 (no change since last turn); 0 next turn; none in store", h.Ui.StripCardLines);
-        Assert.Contains("cloth: 0 (no change since last turn); 0 next turn; none in store", h.Ui.StripCardLines);
+        Assert.Contains("pottery: 0 (no change since last turn); 0 next turn (expected weather); none in store", h.Ui.StripCardLines);
+        Assert.Contains("cloth: 0 (no change since last turn); 0 next turn (expected weather); none in store", h.Ui.StripCardLines);
         Assert.Empty(h.Problems);
     }
 
@@ -236,6 +265,7 @@ public sealed class ResourcesPersistenceTests : IDisposable
     {
         WorldState w = Founding.Value.Clone();
         foreach (int id in EmpireStores.OwnSettlements(w, Me)) Set(w, new SettlementId(id), Stone, 0);
+        SetOwnWeather(w, 1.0);   // Decision C: with an ordinary pending harvest the forecast IS the next turn
         UiSession s = UiSession.StartFrom(w, 42);
         Assert.False(s.Unlocked.IsUnlocked(Stone));   // never held in THIS game: not listed until the step brings some
         EmpireStores before = Stores(s, next: true);
@@ -258,8 +288,10 @@ public sealed class ResourcesPersistenceTests : IDisposable
     [Fact]
     public void TheNextTurnFigure_ChargesConstructionAsTheStepDoes_OnceAndNotTheWholeQueue()
     {
-        UiSession s = UiSession.StartFrom(Founding.Value.Clone(), 42);
-        UiSession twin = UiSession.StartFrom(Founding.Value.Clone(), 42);
+        WorldState w0 = Founding.Value.Clone();
+        SetOwnWeather(w0, 1.0);   // Decision C: an ordinary pending harvest, so every good is pinned exactly
+        UiSession s = UiSession.StartFrom(w0, 42);
+        UiSession twin = UiSession.StartFrom(w0.Clone(), 42);
         int capital = Capital(s.World).Value;
         EmpireStores idle = Stores(s, next: true);
         Assert.True(s.EmitConstructionOrder(capital, Granary));
@@ -296,17 +328,74 @@ public sealed class ResourcesPersistenceTests : IDisposable
         WorldState w = Founding.Value.Clone();
         int[] own = EmpireStores.OwnSettlements(w, Me);
         foreach (int id in own) Set(w, new SettlementId(id), Stone, 6);
+        SetOwnWeather(w, 1.0);   // Decision C
         UiSession s = UiSession.StartFrom(w, 42);
         foreach (int id in own) { Assert.True(s.EmitConstructionOrder(id, Granary)); Assert.True(s.EmitConstructionOrder(id, Granary)); }
         int withAside = 0;
         for (int t = 0; t < 6; t++)
         {
+            SetOwnWeather(s.World, 1.0);   // Decision C: each turn's pending harvest made ordinary, so the figure stays exact
             EmpireStores st = Stores(s, next: true);
             foreach (StoreGood g in st.AllGoods) if (g.SetAside > 0) withAside++;
             s.EndTurn();
             foreach (StoreGood g in st.AllGoods) Assert.Equal(Own(s.World, g.Good), g.Next);
         }
         Assert.True(withAside > 0, "premise: some turn had materials set aside");
+    }
+
+    /// <summary>
+    /// Decision C (D-051 §3): the forecast uses EXPECTED weather. With the player's settlements' pending multiplier rigged
+    /// to 1.5, the figure equals — for every good, exactly — the real step of a twin world whose pending multiplier is 1.0;
+    /// against the real step of the rigged world itself, every non-food good still matches while the weather-carrying food
+    /// goods do not: the pending draw never reaches the figure. The live world keeps its 1.5 and End Turn resolves with it.
+    /// </summary>
+    [Fact]
+    public void TheNextTurnFigure_UsesExpectedWeather_NeverThePendingDraw()
+    {
+        // One real turn first (the founding turn's farms credit nothing before their catchment and sector rows exist),
+        // then the twins diverge in ONE value: the player's settlements' pending multiplier.
+        UiSession s = UiSession.StartFrom(Founding.Value.Clone(), 42);
+        UiSession twin = UiSession.StartFrom(Founding.Value.Clone(), 42);
+        s.EndTurn();
+        twin.EndTurn();
+        Assert.Equal(WorldHash.ComputeHex(twin.World), WorldHash.ComputeHex(s.World));
+        SetOwnWeather(s.World, 1.5);
+        SetOwnWeather(twin.World, 1.0);
+        int grain = s.Config.Goods!.GrainId;
+
+        EmpireStores forecast = Stores(s, next: true);
+        // The live world is untouched by the preview: its pending multiplier is still 1.5 on every own settlement.
+        int[] own = EmpireStores.OwnSettlements(s.World, Me);
+        int seen = 0;
+        for (int i = 0; i < s.World.HarvestWeather.Count; i++)
+            if (Array.BinarySearch(own, s.World.HarvestWeather[i].Settlement.Value) >= 0) { Assert.Equal(1.5, s.World.HarvestWeather[i].Multiplier); seen++; }
+        Assert.True(seen > 0);
+
+        s.EndTurn();      // resolves with the ACTUAL 1.5
+        twin.EndTurn();   // the expected-weather world
+        foreach (StoreGood g in forecast.AllGoods) Assert.Equal(Own(twin.World, g.Good), g.Next);   // exact, every good
+        // The weather-carrying goods: farm grain and the herding/fishing food pathway (livestock 2, fish 3). The 1.5 step
+        // PRODUCES more grain than the forecast's step — the stock itself can read equal, because spoilage caps grain at
+        // storage capacity in this early world — and leaves MORE livestock and fish than the forecast said.
+        Assert.True(Produced(s.World, grain) > Produced(twin.World, grain), "premise: a 1.5 harvest produces more grain");
+        Assert.True(Own(s.World, Livestock) > forecast.Good(Livestock)!.Next);                        // the draw is not read
+        Assert.True(Own(s.World, Fish) > forecast.Good(Fish)!.Next);
+        foreach (int id in new[] { Timber, Stone, Pottery })
+            Assert.Equal(Own(s.World, id), forecast.Good(id)!.Next);                                 // non-food goods: unaffected
+    }
+
+    /// <summary>Units of <paramref name="good"/> the last step produced across the player's settlements (the row's
+    /// observational LastProducedUnits).</summary>
+    private static long Produced(IReadOnlyWorldState w, int good)
+    {
+        int[] own = EmpireStores.OwnSettlements(w, Me);
+        long sum = 0;
+        for (int i = 0; i < w.GoodStocks.Count; i++)
+        {
+            GoodStockRow r = w.GoodStocks[i];
+            if (r.Good.Value == good && Array.BinarySearch(own, r.Settlement.Value) >= 0) sum += r.LastProducedUnits;
+        }
+        return sum;
     }
 
     /// <summary>The preview is read-only: a session that previewed after every order and every turn plays to the same world,

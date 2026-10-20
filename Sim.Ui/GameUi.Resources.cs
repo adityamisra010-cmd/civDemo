@@ -87,8 +87,9 @@ public sealed partial class GameUi
     }
 
     /// <summary>Adds the next-turn figures to the stores (Director playtest 2026-10-20): the stores the next turn opens with
-    /// if the turn is ended now — <see cref="UiSession.PreviewNextWorld"/>, the production step run on a copy, without the
-    /// AI's orders. Built once per refresh, when RESOURCES or a hover card first needs them.</summary>
+    /// if the turn is ended now — <see cref="UiSession.PreviewNextWorld"/>, the production step run on a copy under expected
+    /// weather (Decision C, D-051 §3), without the AI's orders. Built once per refresh, when RESOURCES or a hover card first
+    /// needs them.</summary>
     private void EnsureStoresNext()
     {
         if (_storesHaveNext || _stores is null) return;
@@ -226,7 +227,7 @@ public sealed partial class GameUi
         heads[1] = "Empire";
         heads[2] = "Change";
         heads[3] = "Set aside";
-        heads[4] = "Next turn";
+        heads[4] = "Next turn (expected weather)";
         for (int c = 0; c < st.Settlements.Length; c++) heads[Fixed + c] = name(st.Settlements[c]);
         var widths = new float[heads.Length];
         for (int c = 0; c < heads.Length; c++) widths[c] = ImGui.CalcTextSize(heads[c]).X;
@@ -279,8 +280,9 @@ public sealed partial class GameUi
             ? "Set aside: what your queued projects keep back from your stores until they are built; other projects and road works may not use it."
             : "Nothing is set aside for projects.");
         if (_storesSplitLine is { } split) Text(split);
-        Text("Change: since the start of last turn. Next turn: your stores if you end the turn now (your orders, building and "
-            + "upkeep included; rivals' moves are not known). Click a good to chart its stores below.");
+        Text("Change: since the start of last turn. Next turn (expected weather): your stores if you end the turn now, with "
+            + "an ordinary harvest - your orders, building and upkeep included; the coming weather and rivals' moves are not "
+            + "known. Click a good to chart its stores below.");
         ImGui.PopTextWrapPos();
     }
 
