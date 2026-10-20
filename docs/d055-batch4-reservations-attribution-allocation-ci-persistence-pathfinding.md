@@ -1350,3 +1350,8 @@ documentation-comment hunks (the `ITurnObserver` summary now names the read-only
 line is a `///` line. `SystemCatalog` hands road development `next.ConstructionHolds` and records the shared table in its
 ownership paragraph. The kernel spec's interaction matrix (P-26/Q-66) is still absent; that paragraph and ADR-040 are the
 record, as for the GoodStocks share and `ConsumptionSystem`'s precedent.
+
+
+> **2026-10-20 — Director (closure ruling R5).** D-055 is accepted as part of the M5 set with its stated scope. O7 (pooled
+> scratch arrays) and O9 (a lattice per terrain) are recorded as **NOT IMPLEMENTED** (each would need an ADR); O8 (an
+> indexed heap) is **DEFERRED**. None of the three is accepted as completed work. Record: `docs/m5-exit-inventory.md` §13.

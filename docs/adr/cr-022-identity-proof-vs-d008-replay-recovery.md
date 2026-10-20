@@ -78,3 +78,13 @@ The recovery path therefore cannot both replay every recorded order and apply ea
 Option 2, as built. It removes the silent misapplication, keeps D-008 for every session whose orders can be shown to
 mean what they meant, and needs no wire change. Option 3 is worth adding later for colonies (a founding-cell field)
 when an order-log version is next opened; it is a `docs/queue.md` item, not part of this change.
+
+
+## Dated note — 2026-10-20: RULED by the Director — option 2 as built (closure ruling R10)
+
+> "Accept option 2 as built: prove target identity and refuse replay or inspection where identity cannot be established.
+> Preserve D-008's recovery promise for provable sessions. Keep the save layout, hashes, and order-log wire format
+> unchanged." Refusal behaviour and compatibility boundaries are §4 of this record (refused with a diagnostic: an older
+> session naming a colony or revolt polity founded after the replay first differs; a differing founding; a missing trace
+> with named settlements; unaffected: trace-checked sessions, provable older sessions, every CLI bare-log run). The status
+> line above is superseded by this note; D-057 and ADR-042 are accepted with it. Record: `docs/m5-exit-inventory.md` §13.

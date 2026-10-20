@@ -129,3 +129,10 @@ authorised resolving it.
 - A first full Sim.Tests run at default parallelism was killed by the shared container's memory cgroup (OOM, `dmesg`)
   after 1,592 passed / 0 failed.
 - That kill was an environment limit, not a test result. The full re-run above is the result.
+
+
+## Dated note — 2026-10-20: ACCEPTED by the Director (closure ruling R1)
+
+> "Accept D-059 on its stated acceptance check." The check (§5: re-run `Dev_MalthusCorridors_AllInBand`, compare the
+> turn-1000 dev world hashes) was met (§6); the `calibration` CI job has passed on every build since, incl. `a7f0700`.
+> The status line above ("acceptance still pending") is superseded by this note. Record: `docs/m5-exit-inventory.md` §13.

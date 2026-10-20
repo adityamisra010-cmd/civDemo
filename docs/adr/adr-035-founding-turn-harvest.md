@@ -233,3 +233,11 @@ remaining decline (seed 1, turn 18, −2) is a weather shortfall with 24 starvat
   `docs/research-calibration-report.md`) was measured on the pre-ADR-035 world; its `--check` passes because it
   checks the report against the trace, not the trace against the simulation. Re-measuring it is a calibration
   task, not done here.
+
+
+> **2026-10-20 — Director (closure ruling R5): P-F1 and P-F0 ACCEPTED as shipped.** Rationale: P-F1 closes the ADR-025 §2.4a
+> founding-harvest deviation; P-F0 starts a new bucket row's death accumulator at its stationary mean (before it, about
+> eight people per settlement who died in the exact micro-state survived a pure floor). Measured effect (§9, the
+> 2026-10-10 review): seed 42 world population turn 0 5143 → 5108, the three founding changes together moving turn-300
+> population by −3.7 % to +0.7 % across seeds 1, 2, 7, 42. Both have shipped in every build the Director played. The status
+> line above is superseded for all three parts. Record: `docs/m5-exit-inventory.md` §13.

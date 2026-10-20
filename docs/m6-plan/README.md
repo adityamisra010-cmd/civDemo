@@ -17,7 +17,7 @@ REQUIRED**.
 |---|---|---|
 | `../m5-exit-inventory.md` | M5 closure report and evidence matrix; proposed tag; the closure ceremony | 1 |
 | `m6-scope-register.md` | Authoritative M6 definition, in/out of scope, additions proposed on 2026-10-20 and where each sits against the frozen allocation, milestone acceptance criteria | 2 |
-| `m6-task-register.md` | Workstreams M6.1–M6.23 with stable IDs, objective, scope, reuse, ownership, prerequisites, decisions, deliverables, acceptance, tests, determinism/persistence implications, size, risks, parallelism, exit criteria | 3 |
+| `m6-task-register.md` | Workstreams M6.1–M6.24 with stable IDs, objective, scope, reuse, ownership, prerequisites, decisions, deliverables, acceptance, tests, determinism/persistence implications, size, risks, parallelism, exit criteria | 3 |
 | `m6-dependency-graph.md` | The directed dependency graph (table + Mermaid), the critical path, independent lanes, the proposed execution sequence | 4 |
 | `m6-decision-register.md` | Decisions that genuinely need the Director, incl. the architecture conflicts; each with options, consequences, recommendation and what stays blocked | 5 |
 | `m6-risk-register.md` | Risks with owner, trigger, mitigation | 6 |

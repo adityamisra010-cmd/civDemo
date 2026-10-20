@@ -228,3 +228,11 @@ CR-021 is RESOLVED. In this record:
   measurement of the road and purse order (ADR-039).
 
 Record: `docs/d054-batch3-incremental-construction-allocation-cylinder.md` §5 item 3.
+
+
+> **2026-10-20 — Director (closure ruling R5) on §6.** **Q3 CONFIRMED:** D-042 §4.3 / §10.1 are superseded by D-051 §6 for
+> construction, roads and shortage food (the shipped `EmpireStockpile` pools exactly those; pinned by the B1 tests).
+> **Q4 CONFIRMED:** a controlled settlement's deliberate abandonment no longer produces famine while its empire has spare
+> grain (the relief path; pinned by the B2 tests). **Q1** (food urgency metric) and **Q2** (granary farm bonus 5 % vs 10 %)
+> are carried, unruled, to the central-stockpile remainder's destination (M10) with the relief constants they belong to.
+> Q5 was resolved by D-054. Record: `docs/m5-exit-inventory.md` §13.

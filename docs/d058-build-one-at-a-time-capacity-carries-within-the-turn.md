@@ -206,3 +206,7 @@ Moved (every one re-pinned with a dated D-058 cause block in place; the batch-4 
   | this tree | 7,022 / 7,113 / 6,780 | 12.6–12.7 ms, 35,240 B |
 
   There is no measurable time change. The construction phase allocates 3,840 B more over 60 turns (the walk's lists).
+
+
+> **2026-10-20 — ACCEPTED by the Director (closure ruling R5; Director-reported Pass on the inferred `f80dce6` build, test
+> evidence §5–§7).** The status notes above are superseded. Record: `docs/m5-exit-inventory.md` §13.

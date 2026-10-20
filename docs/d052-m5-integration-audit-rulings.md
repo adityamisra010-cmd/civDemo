@@ -240,3 +240,15 @@ and does not say whether the M5 exit waits for them. Both stay open for the M5 e
   - the `corridors.json` bands and the 0.75 tooth are preserved;
   - nothing is waived, skipped or reverted.
 - Record: `docs/d059-calibration-rerecord-d051-regime.md`.
+
+
+> **2026-10-20 — Director (closure rulings R2–R5, R8; `docs/m5-exit-inventory.md` §13).** §7 unit-display rework: **deferred to
+> M6's E1 visual milestone** by this dated ruling; §15 bullet 3 is discharged by deferral; the emblem plate and the card's
+> truthful "not simulated" wording stay; nothing visual is marked complete. §12: taxation, authority-as-reach and
+> legitimacy-as-reading are the delivered M5 mechanisms; laws-lite and the authority/bandwidth economy go to the M6 civic
+> specification subject to architecture review; budget/treasury has no carrier under CR-008 (CLOSED: "There is NO treasury
+> requirement") and is **unassigned pending a definition** — not placed in M8, which the Spine does not support. §14:
+> ADR-035 P-F1 and P-F0 accepted as shipped; the 18 m5w packets and W0 accepted as a set (exceptions in §13). §15: the
+> frozen exit-criterion definition (the Spine's "it's a game now" checkpoint) is answered by the Director's statement in
+> §13 R8; the content items of the Spine's M5 line were moved out by §12 above and are now given destinations; no frozen
+> definition is edited. The merge ruling (§15 bullet 7) is NOT given yet. M5 is NOT closed by this note.

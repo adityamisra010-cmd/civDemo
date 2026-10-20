@@ -289,3 +289,7 @@ Non-kernel files changed: `Sim.Ui/UiSession.cs`, `Sim.Ui/ResumeRefusal.cs`, `Sim
   a future order-log version.
 - **External checks not run:** GitHub CI on these commits, the Windows build and windows-smoke, and a human playtest.
   The handoff report lists the exact commands.
+
+
+> **2026-10-20 — ACCEPTED by the Director with CR-022 option 2 (closure ruling R10); the readable set {32, 33, 34} stands.**
+> Record: `docs/m5-exit-inventory.md` §13.

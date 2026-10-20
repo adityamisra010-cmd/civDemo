@@ -1236,3 +1236,12 @@ D-054 §10 Q19 is unruled, so this note sits at the file's end and nothing above
 - **§2's "Cross-process coverage. No lasting CI leg makes the split BIND"** (and its `docs/queue.md` line) is closed by the
   ci.yml step "Allocation split, binding, cross-process (D-055)" (D-055 §4).
 - **Unchanged by batch 4:** Q1–Q13, Q15, Q18 and Q19 stay open as written.
+
+
+## Dated note — 2026-10-20: §10 Q8 RULED by the Director (closure ruling R1)
+
+> Ship `topology.wrapX` on. The density target-band membership (16/20), the density window breach (QUARANTINED) and the
+> migration breach (80.83 %) stay quarantined, non-gating and disclosed in `docs/m5-playtest-known-issues.md`; the
+> calibration model is not reopened. The CR-020 reds Q8 lists were re-recorded by D-059 (accepted the same day). The other
+> §10 questions (Q1–Q7, Q9–Q13, Q15, Q18, Q19) remain OPEN as disclosed, non-gating known issues — not resolved.
+> Record: `docs/m5-exit-inventory.md` §13.

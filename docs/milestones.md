@@ -49,6 +49,14 @@ section marked itself superseded. Reworded; the meaning is unchanged.)*
 > gate — is `docs/m6-plan/` (scope, task and decision registers, dependency graph, risks, M7 handoff, deferred work).
 > The M5 and M6 rows change only on the Director's ruling at the exit gate.
 
+> **2026-10-20 — Director's M5 closure rulings R1–R10 and M6 decisions D-I/D-D/D-E/D-F recorded**
+> (`docs/m5-exit-inventory.md` §13; dated notes in D-051, D-052, D-053, D-054, D-055, D-057–D-060, ADR-035, ADR-042,
+> CR-022). D-059 accepted; D-051 items scheduled (§1(a) M9, §2 and §4 M6, §6-remainder M10); unit display deferred to
+> M6's E1; laws-lite and the bandwidth economy to the M6 civic spec, budget unassigned under CR-008; the packet set
+> accepted with named exceptions; CR-022 option 2 as built; the "it's a game now" checkpoint answered by the Director;
+> Decision C (expected weather) implemented UI-only. **The merge is NOT yet authorized and M5 is still NOT complete**;
+> the rows above are unchanged.
+
 ### Dependencies
 
 M0 → … → M11+ is the **build order**, but later systems are not isolated layers bolted on top:

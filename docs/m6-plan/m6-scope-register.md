@@ -143,3 +143,11 @@ marked PROPOSED and, where it needs the Director, points at `m6-decision-registe
   the spec on ratification (a dated note here will say so).
 - `docs/milestones.md` gets the M6 entry at the M6 exit, and dated notes only before that; `docs/current-state.md`
   carries the dated entry for this package; `docs/queue.md` is for "a better way exists" lines, not for rulings.
+
+
+## Dated note — 2026-10-20: destinations ruled (closure rulings R2, R4)
+
+S-18 is no longer conditional in part: D-051 **§2** and **§4** are M6's (M6.13 coordination and the M6.22 realization lane;
+M6.24 narrows to those two); **§1(a)** is M9's and **§6-remainder** M10's. Laws-lite and the authority/bandwidth economy
+enter the M6 civic specification (M6.4/M6.5) subject to architecture review; budget/treasury stays unassigned pending a
+definition. D-I, D-D, D-E, D-F are ruled (see `m6-decision-register.md`). Record: `../m5-exit-inventory.md` §13.

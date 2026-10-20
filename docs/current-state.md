@@ -1,5 +1,18 @@
 # CURRENT STATE — the routing document
 
+> **2026-10-20 (latest): the Director's M5 closure rulings are recorded; Decision C implemented (UI only). M5 is NOT
+> closed — the merge ruling (R6) is withheld until the final candidate and fresh CI are presented.**
+> - **Rulings:** `docs/m5-exit-inventory.md` §13 (R1–R10, with the validation against CR-008 and the frozen exit
+>   definition) and dated notes in D-051, D-052, D-053, D-054, D-055, D-057–D-060, ADR-035, ADR-042, CR-022, the
+>   known-issues file and `docs/m6-plan/` (D-I, D-D, D-E, D-F ruled).
+> - **Decision C:** `UiSession.ExpectedWeatherCopy` clones the world and sets the player's settlements' pending
+>   `HarvestWeather.Multiplier` to 1.0 before the preview step; actual End Turn is unchanged; the column is "Next turn
+>   (expected weather)". Tests: `ResourcesPersistenceTests` (exactness pins under an ordinary pending harvest; the rigged
+>   1.5 multiplier pin: the forecast equals the real step of a 1.0 twin for every good, grain differs from the rigged
+>   step, non-farm goods equal). Results and CI: see the next dated entry.
+> - **Open for the Director:** R6 merge ruling; checklist 21 and 22 on the Decision C build.
+> - Verify against the tree (gov-4) before relying on this entry.
+
 > **2026-10-20 (latest): M5 closure package and M6 planning package prepared — branch `claude/new-session-yavghm`
 > (this entry's commit sits on `dc83a67`; docs only). M5 is NOT closed: the package is the evidence for the Director's
 > closure ruling, not the ruling.**

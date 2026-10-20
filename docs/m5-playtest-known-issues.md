@@ -630,3 +630,22 @@ and §16 it names.
   graphs are not masked by ownership history. This is no longer an open leak. Record: D-060 §11.
 - **Run recording (audit 2026-10-20):** the session files are not encrypted, not compressed and not merged into one;
   the one-file export is an M6 design, never built. Record and the ruling needed: `docs/m5-run-recording-audit.md`.
+
+
+## Dated note — 2026-10-20: Director's closure rulings — human tests and disclosed quarantines (appended; sections above unchanged)
+
+- **Decision C implemented (UI only):** the RESOURCES "Next turn" column is now "Next turn (expected weather)": the
+  forecast steps a copy of the world in which the player's settlements' pending harvest-weather multiplier is 1.0
+  (D-051 §3). Actual turn resolution is unchanged. Consequence for checklist 22: with no new orders, every NON-farm good's
+  figure equals the next turn's Empire figure exactly; grain differs by the coming harvest's weather, which the forecast
+  does not know. Tests: `ResourcesPersistenceTests.TheNextTurnFigure_UsesExpectedWeather_NeverThePendingDraw` and the
+  exactness pins under an ordinary pending harvest.
+- **Human tests (ruling R7):** checklist 21 and 22 are to be run by the Director on the post-Decision-C build. PT-04–PT-11
+  are **deferred to the first M6 human session** — rationale: their resume and set-aside paths are covered by
+  `IdentityDriftResumeTests`, `LegacyCancelResumeTests`, `ConstructionLifecycleResumeTests`, the v33 fixture tests and by
+  the Director's PT-02/PT-03 on `231485e`. The chronicle wording fix (`aa79173`, `6d1988f`) is implemented and
+  test-pinned; its human check is deferred, non-gating.
+- **Calibration (ruling R1):** D-059 accepted; `topology.wrapX` ships on; the cylinder's density/migration drift stays
+  quarantined and non-gating (D-054 Q8). The other D-054 §10 questions stay open, disclosed, non-gating.
+- **Unit display (ruling R3):** D-052 §7 deferred to M6's E1 visual milestone; the current token and card wording stay.
+Record: `docs/m5-exit-inventory.md` §13.

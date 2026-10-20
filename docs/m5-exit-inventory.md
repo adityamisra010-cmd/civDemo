@@ -371,3 +371,89 @@ discharge D-051 §3's stores half.
 5. The Director publishes the `m5-exit` Release at the merge commit (the tag is minted by the publish; the zip attaches).
 6. The agent records the Release, the tag SHA and the attached asset in the closure block, and M6 planning proceeds
    from `docs/m6-plan/` to the M6 spec.
+
+
+---
+
+## 13. Director's closure rulings — 2026-10-20 (recorded; the Director's words quoted; merge NOT yet authorized)
+
+**Validation before recording (agent, against the authoritative record):**
+- *Frozen M5 exit definition.* S8 freezes "each milestone's exit-criteria *definitions*" (`spine-s8:17`); for M5 that is
+  the Spine's checkpoint — "**'It's a game now' checkpoint — evaluate fun honestly here before proceeding**"
+  (`civ-sim-architecture-v3-outline.md:132`) — plus the S8 proof standard (`spine-s8:53`). The Spine line's content
+  items (budget, authority/bandwidth economy, laws-lite) were already moved out of the build by RATIFIED D-052 §12;
+  R4 gives them destinations. No frozen definition is edited by these rulings.
+- *CR-008.* **CLOSED by the Director:** "There is NO separate tax-recipient entity. There is NO treasury requirement."
+  (`cr-008:3-7`). "Budget" therefore has no ratified carrier; the Spine's politics line names institutions, regime
+  change and diplomacy, not budget. R4's conditional "M8 only if consistent with the Spine" is **not** met, so budget is
+  recorded as **unassigned pending a definition**, not as M8.
+- *R7 chronicle.* The wording fix IS implemented (`aa79173`, in `6d1988f`, test-pinned); only its human check is
+  outstanding. It is recorded as implemented-and-human-check-deferred, not as "not implemented".
+- No other proposed disposition contradicts a governing rule.
+
+**R1 — Calibration.** *"Accept D-059 on its stated acceptance check. Ship `topology.wrapX` on. Keep the specified
+density and migration drift quarantined, non-gating, and disclosed in known issues. Do not reopen the calibration model.
+Record D-054 Q8 exactly as proposed."* → D-059 ACCEPTED; D-054 Q8 ruled (notes in both records). §2 condition 1: met.
+
+**R2 — D-051 destinations** (scheduling, not implementation or acceptance): §1(a) → **M9 Society**; §2 → **M6**,
+coordinated with fog of war and the P9/P10 overlays; §3 → **Decision C now** for the resource forecast, population
+forecast in **M6**; §4 → **M6.22** realization lane, subject to the existing CR-020 mechanism decision; §6-remainder →
+**M10 Integrated Civilization Simulation**. Rationale and dependencies are recorded in `d051`'s dated note. §15 bullet 2
+("scheduled"): met.
+
+**R3 — Unit display.** *"Defer D-052 §7 to M6's E1 visual milestone. Retain the current emblem plate and truthful 'not
+simulated' wording. Do not mark the visual work complete."* → §15 bullet 3 discharged by dated deferral (note in D-052).
+
+**R4 — Spine M5 items.** Taxation, authority-as-reach and legitimacy-as-reading recorded as the delivered M5 mechanisms.
+Laws-lite and the authority/bandwidth economy assigned to the M6 civic specification and implementation plan, subject to
+architecture review. Budget/treasury: subject to CR-008 (closed, no treasury requirement); **unassigned pending a
+definition** (the M8 placement is not supported by the Spine — see validation above). The M5 exit criterion is satisfied
+only because the frozen definition is the checkpoint (R8), not the content list; recorded as such. §15 bullet 4: met.
+
+**R5 — Packet acceptance.** The coherent set ACCEPTED: the 18 m5w packets (row 6 SHAs), W0, D-053/ADR-038, D-054/
+ADR-039, D-055/ADR-040, D-056/ADR-041, D-058, D-059, D-060 (incl. its scope decisions and Decisions A/B), the resources
+view, the chronicle fix, `Continue last game.cmd`, `3c18a71`/`9330f27`. **Exceptions and dispositions:** ADR-035 P-F1 and
+P-F0 ACCEPTED as shipped, rationale and measured effects recorded in ADR-035; D-053 Q3 and Q4 CONFIRMED (code and tests
+cited in D-053's note); D-053 Q1 and Q2 carried to M10 with the stockpile remainder; D-054 §10's open questions
+preserved as disclosed, non-gating known issues, not resolved; D-055 O7/O9 NOT IMPLEMENTED and O8 DEFERRED, none accepted
+as completed work; the stated scope and status of D-053…D-060 and their ADRs preserved. §15 bullet 5: met.
+
+**R6 — Merge.** *"No merge authorization yet. After the rulings and UI changes, run the required tests and fresh CI, then
+present the final candidate and evidence for my explicit merge decision. I retain control of `main`, the merge, and the
+M5 release tag."* → §15 bullet 7: **OPEN** until the final candidate is presented.
+
+**R7 — Human tests.** Run the Next-turn preview comparison (checklist 22) after Decision C, and checklist 21. PT-04–PT-11
+deferred to the first M6 human session, with the automated coverage and PT-02/PT-03 as rationale (recorded in
+known-issues). The chronicle wording fix: implemented and test-pinned; human check deferred, non-gating.
+
+**R8 — "It's a game now" checkpoint.** Compared with the frozen wording: the Spine asks for an honest fun evaluation
+before proceeding; the Director's two statements supply the definition and the evaluation. Recorded verbatim:
+
+> "M5 delivers a playable, deterministic civilization simulation with functioning turn progression, resource production
+> and consumption, construction, persistence and resume, and a usable interface. More advanced knowledge, combat,
+> diplomacy and societal systems remain deliberately assigned to their subsequent milestones."
+
+> "I have played 68 or more turns across three sessions. The loop of settling, building, taxing and continuing is
+> playable and worth proceeding with into the next milestone."
+
+No unmet requirement under the governing wording. Criterion E: met.
+
+**R9 — Decision C.** *"Use expected weather in the next-turn preview. In the preview copy, set the player's settlements'
+pending `HarvestWeather` multiplier to 1.0 before stepping. Label the column 'Next turn (expected weather)'. Do not change
+actual turn resolution."* Tests required: equality for every non-farm good; exact farm-good forecast difference under a
+rigged weather multiplier; the no-hash/no-order invariants. UI-only; fresh CI. → Implemented in the commit following
+this record (`UiSession.ExpectedWeatherCopy`, `UiSession.PreviewNextWorld`, labels in `GameUi.Resources.cs` and
+`EmpireStores.cs`; tests in `ResourcesPersistenceTests.cs`). D-051 §3's stores half is discharged by it.
+
+**R10 — CR-022.** *"Accept option 2 as built: prove target identity and refuse replay or inspection where identity cannot
+be established. Preserve D-008's recovery promise for provable sessions. Keep the save layout, hashes, and order-log wire
+format unchanged."* → CR-022 RULED; D-057 and ADR-042 ACCEPTED; refusal behaviour and compatibility boundaries are
+CR-022 §4 (quoted in its note).
+
+**M6 decisions (recorded in `docs/m6-plan/m6-decision-register.md`):** D-I one shared RP pool, one target, civics a
+distinct graph on `ResearchTree.Civics`, no Civics Points; D-D M6 eligibility, M8 adoption; D-E option 1; D-F option 1.
+
+**Status of §2 after these rulings:** conditions 1, 2, 3, 4, 5, 6 (CI), 8, 9, 10, 12, 13 (pending the Decision C CI
+run), A, B, E — **met**. Condition 7 (merge ruling) — **OPEN by the Director's choice until the final candidate and
+evidence are presented**. Condition 11 — checklist 21 and 22 to be played by the Director on the Decision C build;
+PT-04–PT-11 deferred by ruling. **M5 is NOT closed by this record.**

@@ -130,3 +130,15 @@ revise it.
 
 Taxation (D-049/D-050), knowledge persistence (D-048), the research engine, the Age gates and the
 Battle Layer deferral (M7).
+
+
+> **2026-10-20 — Director (closure ruling R2): destinations for the deferred items.** Scheduling, not implementation or
+> acceptance; each ruling above stays RATIFIED. Mapped by content: **§1(a)** (smoothed multi-turn flight deficit; a
+> migration mechanic, calibration-sensitive) → **M9 Society**. **§2** (availability classes, floor, regional richness —
+> "expansion must pay") → **M6**, coordinated with fog of war (known extent) and the P9/P10 overlays. **§3** → the stores
+> half is discharged now by Decision C (the RESOURCES next-turn figure uses expected weather); the population forecast
+> → **M6** UI lane. **§4** (primitive stone-and-wood toolmaking) → **M6**, M6.22 realization lane, subject to the CR-020 §A
+> mechanism decision. **§6-remainder** (one central stockpile for everything beyond D-053's two parts) → **M10 Integrated
+> Civilization Simulation**. Dependencies: §2 needs stored known extent (M6.13) and the overlay data gaps closed; §4 needs
+> the CR-020 §A option chosen and the recipe realized by an owning system; §6-remainder touches housing, recipes, trade,
+> prices, migration and provisions at once and is not a knowledge item. Record: `docs/m5-exit-inventory.md` §13.

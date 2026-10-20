@@ -89,3 +89,7 @@ or delivered: `BeforeDelivery(batch, prev)`.
 | `inspect` of the real batch-2 (v32) and batch-3 (v33) fixtures | `CliSaveAndSizeMessagesTests`, `ConstructionHoldsV33FixtureTests` |
 | Unreadable files, in process and in the real exe | `Sim.Ui.Tests/SessionUnreadableResumeTests.cs` |
 | Strict fields | `Sim.Tests/State/SnapshotCorruptInputTests.cs` |
+
+
+> **2026-10-20 — ACCEPTED by the Director with CR-022 option 2 (closure ruling R10).** The status line above is superseded.
+> Record: `docs/m5-exit-inventory.md` §13.

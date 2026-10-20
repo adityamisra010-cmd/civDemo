@@ -225,3 +225,22 @@ only D-M and D-I(1), and is playable by the Director in one session. **Approve, 
   state"). 2. An explicit seam ruling allowing a levy order in M6 with no resolution — refused by the action-surface rule.
 - **Recommendation:** option 1.
 - **Blocked until decided:** M6.5's content rules for military civics.
+
+
+## Dated note — 2026-10-20: D-I, D-D, D-E and D-F RULED by the Director
+
+- **D-I — RULED:** one shared Research Points pool and one target. Civics is a distinct progression graph on
+  `ResearchTree.Civics` with its own node costs, prerequisites and adoption preconditions. No separate Civics Points
+  currency. (Consistent with D-044 R2/R12 and D-046 G5; nothing superseded.)
+- **D-D — RULED:** M6 defines civic prerequisites and government eligibility; government adoption and active political
+  effects belong to M8. Available and Adopted are distinguished in the model and the presentation without implementing
+  political transitions in M6.
+- **D-E — RULED, option 1:** M6 specifies unit-progression semantics, content schema, validation and the M7 contract. No
+  serialized per-unit progression state in M6.
+- **D-F — RULED, option 1:** M6 defines the training/AP contract only. No executable training state, training order or
+  AP-resolution change in M6. The training panel remains a labelled, non-functional placeholder.
+- **D-N / D-O:** ruled with the closure (R2, R4): D-051 §2 and §4 → M6 (M6.13 coordination; M6.22 lane); §1(a) → M9;
+  §6-remainder → M10; laws-lite and the authority/bandwidth economy → the M6 civic specification subject to architecture
+  review; budget/treasury unassigned pending a definition (CR-008 closed with no treasury requirement).
+- **D-C — RULED:** expected weather (option 2); implemented UI-only with tests — see `../m5-exit-inventory.md` §13.
+Record of the rulings: `docs/m5-exit-inventory.md` §13.

@@ -259,3 +259,9 @@ output or the positive control. Each is restated in its own file, with a D-060 c
 - **Decision B — pre-capture price history (§9, second bullet): INTENTIONAL DISCLOSURE, not a leak.** Pre-capture price
   history stays visible to the settlement's current owner. Historical price graphs are not masked by ownership history.
   §9's wording "a small, bounded leak … not fixed here" is superseded by this ruling. Nothing is changed in code.
+
+
+## 12. Dated note — 2026-10-20: ACCEPTED by the Director (closure ruling R5)
+
+> Accepted as part of the M5 set, including the §5/§6 scope decisions (F12 DEV panels and session files stay world-wide)
+> and the §11 Decisions A and B. Record: `docs/m5-exit-inventory.md` §13.
