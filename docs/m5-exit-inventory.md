@@ -453,6 +453,12 @@ CR-022 §4 (quoted in its note).
 **M6 decisions (recorded in `docs/m6-plan/m6-decision-register.md`):** D-I one shared RP pool, one target, civics a
 distinct graph on `ResearchTree.Civics`, no Civics Points; D-D M6 eligibility, M8 adoption; D-E option 1; D-F option 1.
 
+**Fresh CI on the Decision C candidate (`dd727c4`, 2026-10-20):** CI run 39431262586 — build-and-test, determinism,
+determinism-xproc, calibration all green (calibration-nightly skipped on push, by design); ui-artifact run 39431262647 —
+ui-artifact and windows-smoke green; artifact `sim-ui-win-x64-dd727c4`. Local: Sim.Ui.Tests 1092/1092, Sim.Tests 2635 passed
+/ 13 skipped / 0 failed, the three source gates OK, the 60-turn CLI hash `827d9b00…3878a0` unchanged. The automated
+checklist-22 comparison is `docs/m5-next-turn-comparison.md`.
+
 **Status of §2 after these rulings:** conditions 1, 2, 3, 4, 5, 6 (CI), 8, 9, 10, 12, 13 (pending the Decision C CI
 run), A, B, E — **met**. Condition 7 (merge ruling) — **OPEN by the Director's choice until the final candidate and
 evidence are presented**. Condition 11 — checklist 21 and 22 to be played by the Director on the Decision C build;
