@@ -62,6 +62,11 @@ section marked itself superseded. Reworded; the meaning is unchanged.)*
 >   `sim-ui-win-x64-6e51a3e`; xplat-surveillance run 39458057576 green.
 > - **No tag and no release**: `m5-exit` does not exist; the Release is the Director's separate decision.
 > - **Checklist 21 and 22: OUTSTANDING human validation** (waived as pre-merge requirements only; not played, not passed).
+> - **Release `m5-exit` PUBLISHED by the Director 2026-10-21 13:00 UTC** at `6e51a3e26c6b10e179335db3042898f1251099de`
+>   (tag resolves to the merge commit; verified by `git ls-remote`). Asset: `sim-ui-win-x64-6e51a3e.zip` (81,011,064 bytes),
+>   attached by ui-artifact run 39604280402 (release event, green). Note: the Release body carries the full
+>   `m5-exit-inventory.md` text, whose header pre-dates closure ("M5 is NOT closed"); the record here and the
+>   milestones row are authoritative. **The M5 closure ceremony (m5-exit-inventory §12 steps 1–6) is complete.**
 
 > **2026-10-20 — Director's M5 closure rulings R1–R10 and M6 decisions D-I/D-D/D-E/D-F recorded**
 > (`docs/m5-exit-inventory.md` §13; dated notes in D-051, D-052, D-053, D-054, D-055, D-057–D-060, ADR-035, ADR-042,
