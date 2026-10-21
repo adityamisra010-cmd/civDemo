@@ -392,3 +392,24 @@ Every §1 line cites its record; every MEASURED figure in §3 cites `docs/m6-fou
 the file:line there; the D-061/CR-023 passages are quoted verbatim with line numbers in those files; the planning
 package's citations were pinned to `dc83a67` and have drifted in `docs/milestones.md` (e.g. the M7 "CONSUMES" sentence
 is now `:87`; the M6 scope paragraph `:110-116`) — this spec cites the current tree.
+
+
+## Dated note — 2026-10-21 (M6.1 docket; appended, the text above is unchanged)
+
+- **§3.4 coupling map — row added (defect C.1 of `docs/m6-plan/m6-ruling-docket.md`):** *Civics Points pool* ALSO perturbs
+  **Technology eligibility**: `legal_code_roman` is an atom of the research stage that opens all five Technology subtrees
+  (`Sim.Data/content/research.json:254`; `ResearchQuery.cs:81-94`; `ResearchEngineTests.cs:348`), of `inst.university`
+  (`research.json:29068`) and of the A5 CORE milestone (`ages.json:85`); 13 further `inst.*` entities require civics
+  (`research.json:28984-29152`). Under D-061 those edges are paced by CP generation. Re-anchoring: T6.3 measures the
+  completion turn of `legal_code_roman`, the stage and `inst.university` eligibility on seeds 1, 2, 42, 7 before and after,
+  and the AI university goal closure (`AiResearchPolicy.cs:165-178`) spans both pools.
+- **§7 G1 revised:** D-061.4 recommendation changes to a SHARED key space with a reserved civics range and a cross-tree
+  validator fence (a separate file would require re-keying existing progress/completed rows at migration — a row rewrite
+  the append-only readable-set premise forbids, `CanonicalSchema.cs:14-16`); D-061.8 widens to "civic atoms inside
+  Technology gates" with the reachability measurement as its condition; D-061.3 and D-061.8 are ruled together.
+- **§4 T6.17 (defect C.2):** not "continuous". Persistence coverage is each state packet's own acceptance (I-10, I-12);
+  T6.17 is ONE closing packet (fixture resumes, cross-process legs, readable-set statement on the merged tree).
+- **§4 T6.5 (D-V, new):** the regime-module shape is CONTENT in M6, not a serialized table, unless the Director rules
+  otherwise — a table with no writer is dead state.
+- **§7 new decisions:** D-U (commission the cited Civ VI comparison as T6.1b), D-V (above). Full docket:
+  `docs/m6-plan/m6-ruling-docket.md`. Nothing in this note is a ruling.

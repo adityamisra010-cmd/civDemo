@@ -141,3 +141,16 @@ package §4) and does not widen M6's scope through this record.
 
 > _[empty — awaiting the Director. Suggested form: "2026-10-DD — RATIFIED D-061.1–D-061.8 as recommended / with
 > the following amendments: …" Until a line is written here, every passage in §2 remains in force as written.]_
+
+
+## Dated note — 2026-10-21 (M6.1 docket; appended, §1–§9 unchanged; §9 still empty)
+
+- **§5 gains a row — Technology eligibility.** The civic `legal_code_roman` gates the research stage (all five Technology
+  subtrees), `inst.university` and the A5 CORE milestone; census/coined_wage/patent/joint_stock gate 13 `inst.*` entities
+  (`research.json:254, 28984-29152`; `ages.json:85`). Under this supersession those gates are paced by CP. **D-061.3 and
+  D-061.8 must be ruled together**, and T6.3 measures reachability before/after (docket C.1).
+- **§6 D-061.4 recommendation REVISED:** shared key space with a reserved civics range and a cross-tree fence, not a
+  separate file — re-keying existing rows at migration would rewrite rows, which the append-only premise behind the
+  readable set forbids (`CanonicalSchema.cs:14-16`; docket C.5). D-061.5's "carry 1:1" becomes trivial under this choice.
+- **§6 D-061.8 WIDENED:** "whether civic atoms inside Technology gates (the stage, `inst.university`) and Age milestones stay
+  as is" — recommended yes, with the rule that no macro civic is ever an Age CORE milestone.
