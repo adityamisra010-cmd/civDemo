@@ -220,3 +220,8 @@ was bounded at 300 s, and none hung. Every mutant was killed by at least one sem
 | M6: never set `ResumeNotice` | the older-schema resume test and the UI notice test (2) |
 | M7: `GameUi` does not show the notice | the UI notice test (1) |
 | M8: remove the launch's `catch (OrderValidationException)` | the launch test (1) |
+
+
+## Dated note — 2026-10-21 (M6.1; appended, the text above is unchanged)
+
+STATUS CORRECTION (dated note, M6.1): the header above reads PROPOSED; line 7 of this record reads "RATIFIED by the Director (D-050 ruling 1)". The header is stale; the ratification line governs.

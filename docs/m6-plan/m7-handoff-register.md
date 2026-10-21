@@ -30,3 +30,9 @@ column says what M6 delivers, the other what M7 builds; nothing is shared.
   sequencing if M6's own tables land first.
 - Anything in M6 that would *change* how AP, movement or battle resolve is out of scope by D-052 §4 and D-011; M6 may
   define data, requirements and interface contracts, nothing more.
+
+
+## Dated note — 2026-10-21 (M6.1; appended, the text above is unchanged)
+
+- Unchanged by M6.1. The spec (`docs/m6-spec.md` §3.5 H, §4 T6.12, T6.19) binds M6 to this register's boundary rules;
+  D-E/D-F are ruled (option 1). H7-10: the spec recommends no scout class in M6 (D-J), so M7 creates the first MobileAgent.

@@ -49,6 +49,12 @@ section marked itself superseded. Reworded; the meaning is unchanged.)*
 > gate — is `docs/m6-plan/` (scope, task and decision registers, dependency graph, risks, M7 handoff, deferred work).
 > The M5 and M6 rows change only on the Director's ruling at the exit gate.
 
+> **2026-10-21 — M6.1 (spec and foundations audit) DRAFTED, NOT RATIFIED.** `docs/m6-spec.md` (S8 §4.1 items 1–4),
+> `docs/m6-foundations-audit.md` (T6.1, measured on `a0b3b25`), `docs/d061-civics-points-supersession.md` (PROPOSED:
+> Civics Points as a separate currency and a distinct civics tree, superseding the 2026-10-20 D-I ruling when the
+> Director ratifies it; conflict recorded in `docs/adr/cr-023-…md`). No packet beyond T6.1 is allocated; no code,
+> content, schema or golden changed. The M6 row above is unchanged ("spec in preparation, NOT ratified").
+
 > **2026-10-20 — M5 CLOSURE BLOCK (Director's merge ruling).** Checklist 21 and 22 WAIVED as pre-merge requirements
 > (M4 precedent) and TRACKED AS OUTSTANDING human validation against the Decision C build — neither played, neither
 > passed (`docs/m5-exit-inventory.md` §13; `docs/m5-playtest-known-issues.md`, last dated note). The Director authorized

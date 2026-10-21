@@ -162,3 +162,8 @@ architecture change of any kind is authorized.
 **STATUS: RULED — KEEP.** CR-012 closed. No code changed; none is authorized by this ruling.
 
 **AMENDED BY CR-015 (2026-09-17, director mandate) in narrow scope — starvation hazard argument (`d_eff`); fertility suppression argument (`d_eff` outside FAMINE, G3(b)); a headroom fertility multiplier on the feedable food-influx limit (ADR-026). ADR-011, `MicroStepYears`, ADR-010, the rebound reservoir and its nominal-`d == 0` release gate, the reconciliation order, T4.2 and Consumption remain untouched; every other fact ratified above stands.** See `docs/adr/cr-015-famine-is-exceptional.md` §6.2 N2.
+
+
+## Dated note — 2026-10-21 (M6.1; appended, the text above is unchanged)
+
+STATUS CORRECTION (dated note, M6.1): the header above reads DRAFT; the record's own closing line (`:162`) reads "STATUS: RULED — KEEP. CR-012 closed." The header is stale; the closing line governs. Nothing else is changed.

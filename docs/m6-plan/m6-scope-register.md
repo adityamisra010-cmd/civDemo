@@ -151,3 +151,13 @@ S-18 is no longer conditional in part: D-051 **§2** and **§4** are M6's (M6.13
 M6.24 narrows to those two); **§1(a)** is M9's and **§6-remainder** M10's. Laws-lite and the authority/bandwidth economy
 enter the M6 civic specification (M6.4/M6.5) subject to architecture review; budget/treasury stays unassigned pending a
 definition. D-I, D-D, D-E, D-F are ruled (see `m6-decision-register.md`). Record: `../m5-exit-inventory.md` §13.
+
+
+## Dated note — 2026-10-21 (M6.1; appended, the text above is unchanged)
+
+- S-03 ("on the ONE shared RP pool"), §4 row 1, §5 bullet 5 and §7 criterion 2 are **superseded in reading by
+  D-061 (PROPOSED)** pending the Director's ratification: Civics as a separate domain on a SEPARATE Civics Points
+  pool and its own graph (`docs/d061-civics-points-supersession.md`; CR-023). Until ratified the text above stands as
+  written and nothing is built.
+- §7 acceptance criteria are carried into `docs/m6-spec.md` §5 (criterion 2 rewritten for two currencies).
+- §8: the spec exists as a DRAFT; this register remains planning input until the spec is ratified.

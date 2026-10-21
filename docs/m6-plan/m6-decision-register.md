@@ -244,3 +244,16 @@ only D-M and D-I(1), and is playable by the Director in one session. **Approve, 
   review; budget/treasury unassigned pending a definition (CR-008 closed with no treasury requirement).
 - **D-C — RULED:** expected weather (option 2); implemented UI-only with tests — see `../m5-exit-inventory.md` §13.
 Record of the rulings: `docs/m5-exit-inventory.md` §13.
+
+
+## Dated note — 2026-10-21 (M6.1; appended, the text above is unchanged)
+
+- **D-I — SUPERSESSION PROPOSED (not yet ruled):** the Director's 2026-10-21 M6.1 instruction directs "a separate
+  Civics Points pool, distinct from Research Points" and "a genuinely distinct tree". The conflict with the 2026-10-20
+  D-I ruling and with D-044 R2/R12, D-046 G5 and ledger §26 is recorded in `docs/adr/cr-023-civics-points-vs-single-pool-rulings.md`;
+  the proposed supersession record with sub-decisions D-061.1–D-061.8 is `docs/d061-civics-points-supersession.md`.
+  The D-I ruling text above is NOT edited. Status: **AWAITING THE DIRECTOR**.
+- New decisions surfaced by T6.1 and the spec (`docs/m6-spec.md` §7): **D-R** overflow carry/lose; **D-S** RP/CP inputs
+  beyond population; **D-T** what the AI assumes of unseen terrain. Recommendations are in the spec; none is ruled.
+- D-N/D-O: ruled 2026-10-20 (closure R2/R4) — unchanged. D-D, D-E, D-F: ruled — unchanged. D-G, D-H, D-J, D-K, D-L,
+  D-M, D-P, D-Q: still open; consolidated with recommendations in the spec §7.

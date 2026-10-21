@@ -763,3 +763,8 @@ moved**, so nothing is re-pinned. Measured cause: the order-less founded, driven
 research row (A.8), and the content edits change no node a driven test reaches with a different outcome at its pinned
 turn; `arsenical_bronze`'s former `stock_copper_ore > 0` Eureka never fired on an available node in any pinned run
 (had it, the founded/driven research-arm pins would have moved).
+
+
+## Dated note — 2026-10-21 (M6.1; appended, the text above is unchanged)
+
+STALE LINE (dated note, M6.1): §3's owner column for `ResearchCostModifiers` reads "none yet"; since ADR-033 D6 the owner is `InstitutionsSystem` (`Sim.Core/Systems/Institutions/InstitutionsSystem.cs:90-105`, MEASURED in `docs/m6-foundations-audit.md` B6). The table text is not rewritten. Also: ADR-029 §14 item 6 (overflow carry) and A.4 R-2 remain an open Director decision — `docs/m6-spec.md` §7 D-R.

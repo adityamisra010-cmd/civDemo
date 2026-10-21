@@ -117,3 +117,10 @@ are pulled forward to run beside the civics chain rather than after it (they do 
 completion (M6.21/M6.22) is added and runs after M6.2; the unit-progression items (M6.8–M6.12) stay in order but are
 design/contract scope pending Decision D-E; save/replay coverage (M6.17) is per-table as each lands, not a single late
 stage; D-051 carry-over is a conditional lane, not part of the chain.
+
+
+## Dated note — 2026-10-21 (M6.1; appended, the text above is unchanged)
+
+- The spec (`docs/m6-spec.md` §4) re-expresses this graph as packets T6.1–T6.21 with a gate the graph did not have:
+  **D-061 ratification** between T6.2 and T6.3 (civics currency). Critical path: T6.1 → ratify → T6.2 → T6.3 → T6.4 →
+  T6.5 → T6.6 → T6.15 → T6.17 → T6.18 → T6.20. Fog, export, E1, units, diffusion, universities are independent lanes.

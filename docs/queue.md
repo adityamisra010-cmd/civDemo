@@ -1606,3 +1606,5 @@
     port; codebook header "EMPTY never means 0".
 
 - 2026-10-19 (D-058): the construction queue shows no in-turn forecast of how far a continuation (a completed head's leftover capacity carried to the next entry) will get; the result appears after End Turn. A UI estimate line per continued entry would close it.
+
+- 2026-10-21 (M6.1 / T6.1, `docs/m6-foundations-audit.md` §F — "chosen, never derived", recorded, not corrected): `rp.coefficient` 0.08 / `rp.exponent` 0.699 (anchored to 100→2, 1000→10); `effectiveCostFloorFraction` 0.2; `cityStatePaceFraction` 0.25; `maxResearchCostReduction` 1/3; `governance.authorityDecayCostUnits` 25.0 (= migration damping by reference class, never measured for authority); `taxExtractionResponseMax` 0.3; the unrest thresholds in `needs.json:168-182`; worldgen slope/water/river cost factors. Code literals not TUNE-visible: `TraversalLattice.DefaultStride` (4 px), the AI valuation windows (±3 px, 24 px BFS cutoff). A better derivation exists for each; none is a conflict.

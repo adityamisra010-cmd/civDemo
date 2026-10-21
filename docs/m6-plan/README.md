@@ -59,3 +59,16 @@ REQUIRED**.
    (`spine-s8:37`).
 6. **Nothing in this package changes the frozen order, any D-decision, any ADR, a golden hash or a schema.** Where it
    found a contradiction it recorded it (`m6-decision-register.md` D-C…, `m5-exit-inventory.md` §10) and stopped.
+
+
+## Dated note — 2026-10-21 (M6.1; appended, the text above is unchanged)
+
+- `docs/m6-spec.md` is DRAFTED (NOT ratified) with the four S8 §4.1 items; `docs/m6-foundations-audit.md` is the T6.1
+  table (MEASURED on `a0b3b25`); `docs/d061-civics-points-supersession.md` (PROPOSED) and `docs/adr/cr-023-…md` (RAISED)
+  carry the Civics Points direction of the Director's 2026-10-21 instruction, which conflicts with D-I as ruled on
+  2026-10-20. **This package is superseded by the spec on the spec's ratification; until then both are planning input.**
+  Where this package says "one shared RP pool" (S-03, §4 row 1, §5 bullet 5, §7 criterion 2, M6.4) read D-061.
+- The transition note's item 2 ("the long-lived branch ends with the M5 merge") is overtaken: M6.1's documentation
+  continues on `claude/new-session-yavghm` (= `main` + docs commits) by the session's branch assignment; packets cut
+  from `main` after ratification per CLAUDE.md.
+- Review package: `m6.1-review-package.md`.

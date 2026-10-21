@@ -294,3 +294,15 @@ actionable before their verdict (ADR-015 §6); hand-back is a pointer (GOV-3 E2)
   overlay data), §4 primitive toolmaking (CR-020 §A option), §1(a) smoothed flight deficit, §6-remainder central
   stockpile. Each is a sim change with calibration impact: battery re-ruled per item, goldens attributed, an
   independent lane. **Size: L if all.** **Risks:** R-18.
+
+
+## Dated note — 2026-10-21 (M6.1; appended, the text above is unchanged)
+
+- **M6.1 status: deliverables DRAFTED, awaiting ratification** — `docs/m6-spec.md`, `docs/m6-foundations-audit.md`,
+  D-061/CR-023, this package's dated notes, housekeeping notes on CR-012/CR-018/ADR-034/ADR-029 (appended, not rewritten).
+  Stale CODE comments listed in M6.1's scope are NOT changed by M6.1 (the Director's hard constraint "no gameplay code
+  changes"); they move to the first code packet (T6.2). M6.1's acceptance ("spec ratified by dated ruling; T6.1 no
+  unexplained omissions") is NOT yet met.
+- **M6.4** "on the same RP (D-I option 1)" is superseded in reading by D-061 (PROPOSED). The packet mapping
+  M6.x → T6.x is in the spec §4 (M6.4 → T6.3 currency/graph + T6.4 content; M6.13 → T6.7/T6.8/T6.9; M6.2+M6.3 → T6.2).
+- The comprehensive Civ VI comparison does not exist in the tree; proposed as T6.1b (documentation only).

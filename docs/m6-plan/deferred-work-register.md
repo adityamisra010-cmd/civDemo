@@ -147,3 +147,12 @@ recommendations for unruled ones are in `m6-decision-register.md` and `../m5-exi
 Also awaiting acceptance though not ADR/CR files: `d053:3` "RECORDED 2026-10-13/14, uncommitted, for the Director's
 review"; `d056:3-4`, `d057:3-9`, `d058:3-8`, `d059:3-11`, `d060:3, 250-252` "IMPLEMENTED … awaits the Director's
 acceptance".
+
+
+## Dated note — 2026-10-21 (M6.1; appended, the text above is unchanged)
+
+- Housekeeping items in the header: CR-012, CR-018 and ADR-034 headers now carry dated superseding notes (appended by
+  M6.1); G1 and the `milestones.md`/`queue.md` stale readings, the ADR-019 branch note, the T3.7 carry and the two
+  INFERRED-stale playtest lines are RECORDED here and left for the next docs pass that touches those files.
+- New deferred items from T6.1 (`docs/m6-foundations-audit.md` §F): the "chosen, never derived" constants (queued in
+  `docs/queue.md`), the code-literal lattice stride and AI valuation windows, the stale code comments (to T6.2).

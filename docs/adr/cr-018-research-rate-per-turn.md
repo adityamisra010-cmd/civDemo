@@ -66,3 +66,8 @@ allocation and progress only. Law 3's text is not amended, and ADR-030 §3 forbi
 (BaseCost = U × K^magnitude, ADR-029 addendum A), so no cost was scaled to the dt choice. `tuning.rpReferenceTurnYears`
 is removed from `research.json`; the one code site is `ResearchSystem` step 3. The measured pacing in §2 above is
 historical evidence for the per-year reading and is obsolete (ADR-030 §4).
+
+
+## Dated note — 2026-10-21 (M6.1; appended, the text above is unchanged)
+
+STATUS CORRECTION (dated note, M6.1): the header above reads OPEN; CR-018 is resolved by ADR-030 (RATIFIED; `cr-018:60-68`, `adr-030:3`). The header is stale; ADR-030 governs.

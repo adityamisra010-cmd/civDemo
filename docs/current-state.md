@@ -1,5 +1,12 @@
 # CURRENT STATE — the routing document
 
+> **2026-10-21 (latest): M6.1 — the M6 spec and the T6.1 foundations audit are DRAFTED for the Director's review; NOT
+> ratified; no M6 code.** Read in this order: `docs/m6-plan/m6.1-review-package.md` (the review package) →
+> `docs/m6-spec.md` → `docs/m6-foundations-audit.md` → `docs/d061-civics-points-supersession.md` + `docs/adr/cr-023-…md`
+> (the Civics Points conflict: the 2026-10-21 direction vs the 2026-10-20 D-I ruling; append-only, awaiting ruling).
+> Baseline: `main` = `m5-exit` = `6e51a3e`; this branch = `6e51a3e` + docs-only commits. Nothing under `Sim.*` changed.
+> Verify against the tree (gov-4) before relying on this entry.
+
 > **2026-10-20 (latest): M5 CLOSED at its exit gate on the Director's merge ruling — with checklist 21 and 22 WAIVED as
 > pre-merge requirements and TRACKED AS OUTSTANDING human validation against the Decision C build (`dd727c4`). Neither
 > checklist has been played or passed.** Merge of `44e7874` into `main` by pull request, history preserved; NO tag, NO
