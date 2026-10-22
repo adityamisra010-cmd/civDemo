@@ -179,3 +179,14 @@ force until a dated line in §9 says otherwise.
 - **Pointer.** The design analysis for this intent — source catalogue, candidate CP equations, the exchange's
   structural limit, and the `legal_code_roman` cross-pool gate options with a static ESTIMATE — is
   `docs/m6-plan/knowledge-redesign/cp-economy-proposal.md` (PROPOSED; not ratified).
+
+## §9 ruling — appended 2026-10-22 (recorded by the agent on the Director's explicit instruction; §9's placeholder above is left as written)
+
+> **2026-10-22 — RULED by the Director (D-062 R4, R5; `docs/d062-m6-director-final-rulings.md`).** D-061.1 RATIFIED:
+> Civics Points are a separate currency from Research Points, **accumulate in a bankable balance** (beyond this
+> record's proposal: a balance, not only per-node progress) and are spent on civic progression. D-061.8: the research
+> stage no longer requires `legal_code_roman`; `inst.university` keeps it. D-061.2–D-061.7 were delegated to the
+> agent and are decided in ADR-043: CP per sim-year (law 3); a population term now, other sources deferred; shared key
+> space with keys 1001–1007 kept (no re-keying, so existing progress carries 1:1); schema v35 for the M6 slice; one
+> civics target. The government-change-turn exchange stays unimplemented (M8).
+

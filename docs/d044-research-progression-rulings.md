@@ -879,3 +879,7 @@ or military systems realize them on computed state. Primitive riverine and shore
 BASELINE, so no node opens water or overland movement as such, which is the concrete case D-040 B3 protects; the
 calendar Age alone is never the gate. T3's text above stands as the record of the tension; D-040 B3's frozen text is
 not edited.
+
+## Dated note — 2026-10-22 (D-062; appended, the text above is unchanged)
+
+R2/R12 (single research currency) and R20-D (no general research reserve) are SUPERSEDED **for Civics Points only** by D-062 R4: Civics Points are a separate currency with a bankable balance spent on civic progression. Research Points keep R2, R12 and R20-D unchanged. Record: `docs/d062-m6-director-final-rulings.md`.

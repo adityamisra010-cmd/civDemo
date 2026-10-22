@@ -252,3 +252,7 @@ and does not say whether the M5 exit waits for them. Both stay open for the M5 e
 > frozen exit-criterion definition (the Spine's "it's a game now" checkpoint) is answered by the Director's statement in
 > §13 R8; the content items of the Spine's M5 line were moved out by §12 above and are now given destinations; no frozen
 > definition is edited. The merge ruling (§15 bullet 7) is NOT given yet. M5 is NOT closed by this note.
+
+## Dated note — 2026-10-22 (D-062; appended, the text above is unchanged)
+
+§4 (movement and Action Points in M7) is CONFIRMED by D-062 R2. §5 (full fog, LIVE/GHOST/UNKNOWN, scouts, sighting memory in M6) is SUPERSEDED in part by D-062 R1/R11: M6 ships a minimal fog (UNKNOWN / VISIBLE / REMEMBERED, settlement sighting memory, rival formations only while visible) with Explore and Prospect orders; scouts and formation ghost rows move with movement to M7 (ADR-044). Record: `docs/d062-m6-director-final-rulings.md`.

@@ -223,3 +223,7 @@ only at first |`, but GOV-2 §1c rules that inventory STALE BY ONE MILESTONE FRO
 D-011 §6 battle-layer insertion). Read against D-011 §6, espionage is M11+. B5's wording is
 imprecise rather than wrong, and F4's "different systems in different milestones" holds under
 either reading.
+
+## Dated note — 2026-10-22 (D-062; appended, the text above is unchanged)
+
+B1 and B3 are SUPERSEDED in part by D-062 R1/R11 for M6: a minimal Explore order widens a settlement's explored radius at a food cost (no people leave, no unit moves); M7's mobile units replace it. C1's ghost display waits for movement in M7 (ADR-044). Record: `docs/d062-m6-director-final-rulings.md`.

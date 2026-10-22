@@ -306,3 +306,7 @@ actionable before their verdict (ADR-015 §6); hand-back is a pointer (GOV-3 E2)
 - **M6.4** "on the same RP (D-I option 1)" is superseded in reading by D-061 (PROPOSED). The packet mapping
   M6.x → T6.x is in the spec §4 (M6.4 → T6.3 currency/graph + T6.4 content; M6.13 → T6.7/T6.8/T6.9; M6.2+M6.3 → T6.2).
 - The comprehensive Civ VI comparison does not exist in the tree; proposed as T6.1b (documentation only).
+
+## Dated note — 2026-10-22 (D-062; appended, the text above is unchanged)
+
+Packets authorized by D-062 R12 and delivered on `claude/new-session-yavghm`: T6.2a stage gate + T6.3 Civics Points (ADR-043); T6.7-lite / T6.21-lite exploration, prospecting, concealment and fog (ADR-044); KR-3 content tranche (ADR-045). Remaining packets keep their status. Record: `docs/d062-m6-director-final-rulings.md`.

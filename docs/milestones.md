@@ -745,3 +745,7 @@ sequence · ADR-027's sign-off on `CorridorStatus.cs` living under `Sim.Core/Ker
 remaining stale claims in `docs/current-state.md`. None blocks M4 under these rulings.
 
 **M4 CLOSES ON THIS BLOCK.**
+
+## Dated note — 2026-10-22 (D-062; appended, the text above is unchanged)
+
+D-062 (Director, 2026-10-22) fixes M6's scope: knowledge, research, technology, civic eligibility, and a minimal exploration/prospecting mechanic; M7 keeps movement and Action Points; M8 keeps civic adoption and active political effects. The D-062 slice is authorized for implementation; the remainder of the M6 spec stays DRAFT. Record: `docs/d062-m6-director-final-rulings.md`.

@@ -413,3 +413,37 @@ is now `:87`; the M6 scope paragraph `:110-116`) — this spec cites the current
   otherwise — a table with no writer is dead state.
 - **§7 new decisions:** D-U (commission the cited Civ VI comparison as T6.1b), D-V (above). Full docket:
   `docs/m6-plan/m6-ruling-docket.md`. Nothing in this note is a ruling.
+
+
+## Dated amendment — 2026-10-22 (D-062; appended, the text above is unchanged)
+
+**Status line.** This spec is **DRAFT, AMENDED BY D-062**. The Director's ruling of 2026-10-22
+(`docs/d062-m6-director-final-rulings.md`) authorizes implementation of the slice below; the rest of the spec is not
+ratified by it.
+
+**§1 additions (RULED).** 1.18 CP separate from RP, **bankable balance**, spent on civic progression (supersedes 1.17's
+PROPOSED status and §2's "no general CP reserve"). 1.19 The research stage is `medicine_hippocratic AND
+(geometry_axiomatic OR algebra) AND stamp_seal`; `inst.university` keeps `legal_code_roman`. 1.20 Deposits: ≈ 25 % of
+eligible geological deposits are concealed until prospected; placement and quantities unchanged. 1.21 A minimal
+Explore/Prospect mechanic is in M6 with separate Construction and Actions menus (supersedes 1.13 in part). 1.22
+Technologies may enable or improve discovery. 1.23 Nuclear knowledge progression accepted as a design direction;
+no nuclear mechanics in M6. 1.24 Costs may be adjusted to support pacing, each change with a recorded reason (R13).
+1.5 (adoption M8) and 1.7 (training/AP contract only; movement M7) are confirmed. 1.14's schema reservations are
+superseded: v35 is the M6 slice.
+
+**§2 amendments.** Struck from the fence: "a general RP or CP reserve" — for CP only (RP keeps no reserve). Added to the
+fence: an RP↔CP exchange (only on the government-change turn; M8), formation ghost rows and scouts (M7, with
+movement), nuclear mechanics, key retirement/merge/consumer-removing splits until the remap seam (KR-2).
+
+**§4 packets authorized now** (contract: `docs/m6-plan/knowledge-redesign/m6-slice-contract.md`):
+
+| Packet | Scope | Acceptance (summary) | ADR |
+|---|---|---|---|
+| T6.2a + T6.3 | stage gate; Civics Points lane, generation, banking, spending; section 62 | stage holds without the civic and the university still needs it; CP identity `balance = generated − spent` every step on seeds 1, 2, 42, 7; dt-correct accrual; turn-exact civic-target pin; populated-table test; attribution twin; AI two lanes with tie-dense test; UI shows both targets and CP | ADR-043 |
+| T6.7-lite + T6.21-lite | deposit concealment (derived); Prospect (kind 15) and Explore (kind 14); DiscoverySystem; fog UNKNOWN/VISIBLE/REMEMBERED; sections 63–66; Actions menu | share of concealed eligible deposits in [20 %, 30 %] on seeds 1, 2, 42, 7; deposit table unchanged; turn-exact pins; ledger-exact costs; no repeat exploit; founding only on known land; metamorphic leak tests; populated-table tests; v34 migration; UI lists Explore/Prospect under Actions and Build Granary under Construction | ADR-044 |
+| KR-3 | non-breaking content tranche of the redesigned tree | loader and content tests green; three `--check` docs regenerated; per-change accepted/revised/deferred/rejected table | ADR-045 |
+
+**§5 exit criteria** 2 and 4 are read against the minimal slice: criterion 2's "two conservation pins" become the CP
+identity and the RP-loss identity; criterion 4's extent, memory and leak requirements hold for the minimal fog; GHOST
+display and scouts move to M7.
+

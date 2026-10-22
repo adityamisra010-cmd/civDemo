@@ -56,3 +56,7 @@ not contradicted by C: it requires that a second per-turn quantity has its own A
 
 Option 1. Ratify D-061.1 now so the spec can be written against the intended direction; rule D-061.2–8 with the spec
 (they are design rulings, not blockers for M6.2, M6.13, M6.14, M6.15). Keep every superseded passage unedited.
+
+## Dated note — 2026-10-22 (D-062; appended, the text above is unchanged)
+
+RESOLVED by D-062 R4 (Director, 2026-10-22): option 1 in substance — Civics Points are a separate currency with a bankable balance; D-061.1 ratified; the details are decided in ADR-043. Record: `docs/d062-m6-director-final-rulings.md`.

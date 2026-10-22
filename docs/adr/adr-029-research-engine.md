@@ -768,3 +768,7 @@ turn; `arsenical_bronze`'s former `stock_copper_ore > 0` Eureka never fired on a
 ## Dated note — 2026-10-21 (M6.1; appended, the text above is unchanged)
 
 STALE LINE (dated note, M6.1): §3's owner column for `ResearchCostModifiers` reads "none yet"; since ADR-033 D6 the owner is `InstitutionsSystem` (`Sim.Core/Systems/Institutions/InstitutionsSystem.cs:90-105`, MEASURED in `docs/m6-foundations-audit.md` B6). The table text is not rewritten. Also: ADR-029 §14 item 6 (overflow carry) and A.4 R-2 remain an open Director decision — `docs/m6-spec.md` §7 D-R.
+
+## Dated note — 2026-10-22 (D-062; appended, the text above is unchanged)
+
+§8's stage predicate (`:341-367`, "It needs a Civic") is SUPERSEDED by D-062 R5: the research stage is `medicine_hippocratic AND (geometry_axiomatic OR algebra) AND stamp_seal`; `inst.university` keeps `library AND legal_code_roman`. Civics are funded by Civics Points (D-062 R4, ADR-043). Record: `docs/d062-m6-director-final-rulings.md`.

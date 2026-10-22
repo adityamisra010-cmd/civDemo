@@ -231,3 +231,7 @@ face it, and it should not discover it late.
 ---
 
 **HOLD FOR MERGE.** Docs only. No mechanism designed, no code written.
+
+## Dated note — 2026-10-22 (D-062; appended, the text above is unchanged)
+
+B2's "Do not invent a second exploration system" (`:41-49`) is SUPERSEDED in part by D-062 R1: M6 ships a minimal Explore/Prospect mechanic (ADR-044). M7's mobile units are to REPLACE the Explore order, not add a second system beside it. Record: `docs/d062-m6-director-final-rulings.md`.

@@ -395,3 +395,7 @@ Branch, SHAs and PR link; files changed; the exact cost methodology; cost distri
 6. **The changes the capability ownership matrix lists** for M5 integration.
 7. **The 38 technique candidates** (D-045 §11) — carried forward in the audit, not moved.
 8. **Milestone placement (CR-005)** — unchanged from D-044 Part D T1.
+
+## Dated note — 2026-10-22 (D-062; appended, the text above is unchanged)
+
+G5 ("exactly one shared RP pool", `:202-204`) is SUPERSEDED by D-062 R4 (separate Civics Points). F§1's stage expression (`:293-298`) is SUPERSEDED by D-062 R5: `legal_code_roman` leaves the research stage and remains an `inst.university` requirement. The rule "Technology costs must NOT be changed to force a target Age duration" (`:50`) is SUPERSEDED by D-062 R13: costs may be adjusted to support pacing, each change with a recorded reason and a measurement. Record: `docs/d062-m6-director-final-rulings.md`.

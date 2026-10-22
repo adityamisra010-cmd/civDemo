@@ -257,3 +257,7 @@ Record of the rulings: `docs/m5-exit-inventory.md` §13.
   beyond population; **D-T** what the AI assumes of unseen terrain. Recommendations are in the spec; none is ruled.
 - D-N/D-O: ruled 2026-10-20 (closure R2/R4) — unchanged. D-D, D-E, D-F: ruled — unchanged. D-G, D-H, D-J, D-K, D-L,
   D-M, D-P, D-Q: still open; consolidated with recommendations in the spec §7.
+
+## Dated note — 2026-10-22 (D-062; appended, the text above is unchanged)
+
+D-062 (`docs/d062-m6-director-final-rulings.md`) records the Director's final M6 rulings of 2026-10-22: D-I SUPERSEDED (separate, bankable Civics Points); the research stage loses `legal_code_roman`; deposits partly concealed and revealed by prospecting; minimal Explore/Prospect in M6 with separate Construction and Actions menus; movement/AP stays M7 (D-F confirmed); adoption stays M8 (D-D confirmed); nuclear knowledge only. Open letters resolved by it: D-H (schema: v35 is the M6 slice), D-K/D-J/D-T in their minimal form (ADR-044). D-R (overflow) unchanged for RP; CP never overflows (banked). Record: `docs/d062-m6-director-final-rulings.md`.

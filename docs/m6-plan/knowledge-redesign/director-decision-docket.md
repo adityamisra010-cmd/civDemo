@@ -252,3 +252,15 @@ Lanes re-point some entity requirements (e.g., `infra.power_grid` to `ac_transmi
 
 > _[empty — awaiting the Director. Suggested form: "2026-10-DD — KD-01 ADOPTED; KD-04 APPROVED; KD-11 …". Until a line
 > is written here, nothing in this package is in force.]_
+
+### Ruling — appended 2026-10-22 (recorded by the agent from the Director's instruction; the placeholder above is left as written)
+
+> **2026-10-22 — RULED by the Director (D-062, `docs/d062-m6-director-final-rulings.md`).** A-1: separate Civics Points
+> with a **bankable balance** (the docket's "per-node progress only" recommendation is superseded); exchange only on the
+> government-change turn, not built (M8). A-2: approved (eligibility in M6, adoption M8). A-3: decided as the minimal
+> fog of D-062 §2 / ADR-044 — Explore and Prospect orders in M6, separate Actions menu, movement and Action Points M7.
+> A-4: **Option B** — `legal_code_roman` leaves the research stage and stays a university prerequisite. A-5: approved,
+> with ~75 % of eligible deposits visible and ~25 % concealed until prospected; technologies may improve discovery.
+> A-6: approved (nuclear knowledge only). KD-01/KD-04/KD-09: the redesign is the basis, implemented as the non-breaking
+> tranche of ADR-045; costs may be adjusted for pacing (D-062 R13). Other B and C items keep their status.
+

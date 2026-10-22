@@ -142,3 +142,7 @@ Battle Layer deferral (M7).
 > Civilization Simulation**. Dependencies: §2 needs stored known extent (M6.13) and the overlay data gaps closed; §4 needs
 > the CR-020 §A option chosen and the recipe realized by an owning system; §6-remainder touches housing, recipes, trade,
 > prices, migration and provisions at once and is not a knowledge item. Record: `docs/m5-exit-inventory.md` §13.
+
+## Dated note — 2026-10-22 (D-062; appended, the text above is unchanged)
+
+§2 (availability and richness classes, `:132-142`): D-062 R6/R7 make concealment (≈25 % of eligible geological deposits, revealed by prospecting) the first availability class in M6 (ADR-044). Richness classes stay as scheduled. Record: `docs/d062-m6-director-final-rulings.md`.

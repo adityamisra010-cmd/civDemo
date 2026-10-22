@@ -161,3 +161,7 @@ definition. D-I, D-D, D-E, D-F are ruled (see `m6-decision-register.md`). Record
   written and nothing is built.
 - §7 acceptance criteria are carried into `docs/m6-spec.md` §5 (criterion 2 rewritten for two currencies).
 - §8: the spec exists as a DRAFT; this register remains planning input until the spec is ratified.
+
+## Dated note — 2026-10-22 (D-062; appended, the text above is unchanged)
+
+Scope amended by D-062: M6 now includes separate bankable Civics Points (ADR-043), the stage-gate change, deposit concealment with Prospect and Explore orders, a minimal fog and the Actions menu (ADR-044), and a non-breaking content tranche of the redesigned tree (ADR-045). Movement/AP stay M7; adoption stays M8; no nuclear mechanics. Record: `docs/d062-m6-director-final-rulings.md`.

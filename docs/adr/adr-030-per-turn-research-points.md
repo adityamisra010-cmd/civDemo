@@ -87,3 +87,7 @@ excludes exactly the site above (§5).
 **Overflow (§2.3).** §2 scopes "overflow into the next target" to per-turn semantics; it does not rule that overflow
 carries. The engine keeps ADR-029 §13 R-2 — RP past a node's remaining cost, and RP with no target, is not stored — and
 that question stays a Director decision (ADR-029 addendum A).
+
+## Dated note — 2026-10-22 (D-062; appended, the text above is unchanged)
+
+§3's single per-turn pool now applies to Research Points only. Civics Points are a second, bankable pool generated per sim-year (D-062 R4, ADR-043). The RP per-turn exception is unchanged. Record: `docs/d062-m6-director-final-rulings.md`.

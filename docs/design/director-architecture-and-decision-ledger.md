@@ -1783,3 +1783,7 @@ The checks covered every remote-tracking ref and every local branch: 157 refs, m
   an explicit player/AI choice effective from the next turn (ruling 13). Completion overflow is LOST (the 2.2 freeze,
   recorded by D-047 Part B). The full closure table is D-047 Part B; the gap audit's §9 marks each G-item.
 - **R7 update:** D-047 is now minted. ADR-031 and CR-019 remain free.
+
+## Dated note — 2026-10-22 (D-062; appended, the text above is unchanged)
+
+§26 items 2–4 (one research currency; no second currency; no general RP reserve) are SUPERSEDED **for Civics Points only** by D-062 R4 (`docs/d062-m6-director-final-rulings.md`). Item 19 (costs never moved for pacing) is SUPERSEDED by D-062 R13. The other §26 items stand. Record: `docs/d062-m6-director-final-rulings.md`.
