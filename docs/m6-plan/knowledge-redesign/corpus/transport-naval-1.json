@@ -4,13 +4,58 @@
   "tree": "technology",
   "description": "A sea-crossing raft binds logs, bamboo or reed bundles into a platform buoyant enough to carry people over open water. No Pleistocene craft survives; such vessels are inferred from where people arrived. Settling Sahul, the joined landmass of Australia and New Guinea, required sea crossings by at least 50,000 years ago; the craft's form is unknown.",
   "wordCount": 57,
-  "sources": [],
-  "uncertainty": "Arrival in Sahul is dated between roughly 50,000 and 65,000 years ago depending on the site and method; hominins on Flores about one million years ago imply a water crossing, but whether it was deliberate is contested. Raft form is inferred, not observed.",
+  "sources": [
+   {
+    "sourceId": "TRN1-028",
+    "claims": [
+     "Sahul ≥50 ka; watercraft required; no direct evidence"
+    ]
+   },
+   {
+    "sourceId": "TRN1-029",
+    "claims": [
+     "crossings to Sahul"
+    ]
+   }
+  ],
+  "uncertainty": "Arrival in Sahul is dated between roughly 50,000 and 65,000 years ago depending on the site and method; some researchers argue accidental drift on vegetation rafts could explain arrival, though drift modelling makes this unlikely. Hominins on Flores about one million years ago imply a water crossing, but whether it was deliberate is contested. Raft form is inferred, not observed.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
-   "notes": "Uncorroborated: Sahul as a joined Australia-New Guinea landmass, the need for sea crossings, the >=50,000-year date and the absence of surviving Pleistocene craft. Needs a search pass before any check status above unverified."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "No Pleistocene craft survives; vessels inferred from where people arrived",
+     "sources": [
+      "TRN1-028"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Sahul was the joined landmass of Australia and New Guinea",
+     "sources": [
+      "TRN1-028"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Settling Sahul required sea crossings by at least 50,000 years ago",
+     "sources": [
+      "TRN1-028",
+      "TRN1-029"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "The craft's form is unknown",
+     "sources": [
+      "TRN1-028"
+     ],
+     "result": "supported"
+    }
+   ],
+   "notes": "All historical claims match search text from Scientific Reports (2019) and Bird et al. (2018); the opening sentence is a general description of raft construction. Earlier drafting-lane note: Uncorroborated: Sahul as a joined Australia-New Guinea landmass, the need for sea crossings, the >=50,000-year date and the absence of surviving Pleistocene craft. Needs a search pass before any check status above unverified."
   },
   "mechanicLink": "Knowledge-only trunk node (unlock-audit class C): records open-water crossing knowledge and the eligibility class sea-edge.open-crossing; PROPOSED realization as a transport-packet edge type (M10+) that reveals no land, and it is one hull route to sail_square."
  },
@@ -229,8 +274,8 @@
  {
   "id": "collar_harness",
   "tree": "technology",
-  "description": "The breast-strap harness passes a broad band across a horse's chest, moving the pull from the neck to the breastbone. Depictions from Warring States China, including Chu lacquerware of about 400-300 BCE, show it, and it was standard under the Han dynasty. Made of stitched leather straps, it preceded the padded horse collar by several centuries.",
-  "wordCount": 56,
+  "description": "The breast-strap harness passes a broad band across a horse's chest, moving the pull from the neck to the breastbone. A Chu lacquer box of the fourth century BCE shows a horse pulling against a chest yoke; breast straps then appear widely in Han-dynasty tomb reliefs. They preceded the padded collar, attested in China by about the fifth century CE.",
+  "wordCount": 60,
   "sources": [
    {
     "sourceId": "TRN1-006",
@@ -239,14 +284,56 @@
      "standard under the Han",
      "padded collar distinct and later"
     ]
+   },
+   {
+    "sourceId": "TRN1-030",
+    "claims": [
+     "Chu box chest yoke; Han breast straps"
+    ]
+   },
+   {
+    "sourceId": "TRN1-031",
+    "claims": [
+     "Warring States breast strap; collar about 5th century CE; choking debate"
+    ]
    }
   ],
   "uncertainty": "How much the older throat-and-girth harness limited horse traction is disputed; experimental work has challenged the classic claim that it choked horses.",
   "factCheck": {
    "status": "partially-checked",
-   "checkedBy": "drafting lane",
-   "method": "Claims compared with (a) claims the D08 design lane recorded as RESEARCHED from its WebSearch summaries (research/lane-notes/D08-transport-naval.md §3-§4 and §15, registered here as TRN1-xxx) and/or (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch was refused (shared per-turn budget of 200 calls exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
-   "notes": "Corroborated via lane record: Chu lacquerware dating, Han use and the later padded collar. Not corroborated (general knowledge): stitched-leather construction."
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Chu lacquer box, 4th century BCE, chest traction by a yoke",
+     "sources": [
+      "TRN1-030"
+     ],
+     "result": "corrected"
+    },
+    {
+     "claim": "Breast straps in Han tomb reliefs; Warring States development",
+     "sources": [
+      "TRN1-030",
+      "TRN1-031"
+     ],
+     "result": "disputed"
+    },
+    {
+     "claim": "Padded collar in China about the 5th century CE",
+     "sources": [
+      "TRN1-031"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Stitched-leather construction",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Changed 'Depictions from Warring States China, including Chu lacquerware of about 400-300 BCE, show it, and it was standard under the Han' to say the Chu box shows a chest yoke, replaced by breast straps in Han reliefs, because Wikipedia's History of horse-drawn transport describes the Chu image as a yoke across the chest; removed 'stitched leather' (unsupported) and 'it was standard under the Han dynasty' (replaced by the relief evidence). Support is Wikipedia only and dating varies across sources. Earlier lane-recorded TRN1-006 kept. Earlier drafting-lane note: Corroborated via lane record: Chu lacquerware dating, Han use and the later padded collar. Not corroborated (general knowledge): stitched-leather construction."
   },
   "mechanicLink": "Knowledge-only (class C): PROPOSED as horse haulage input to the effective bulk cost of overland routes (Q-C, M10+)."
  },
@@ -283,15 +370,62 @@
  {
   "id": "lateen",
   "tree": "technology",
-  "description": "The lateen is a triangular fore-and-aft sail set on a long, angled yard, letting a ship work closer to the wind than a square sail allows. Images place it in the eastern Mediterranean by about the 2nd century CE, and Indian Ocean sailors may have used it earlier; its origin is debated. It became typical of Arab and Mediterranean craft.",
+  "description": "The lateen is a triangular fore-and-aft sail on a long, angled yard, letting a ship work closer to the wind than a square sail. A second-century CE gravestone appears to show a related four-sided form, and a wreck of about 400 CE is reconstructed with a lateen rig. Its origin is debated. It became typical of Arab and Mediterranean craft.",
   "wordCount": 60,
-  "sources": [],
-  "uncertainty": "Origin is disputed between the Mediterranean and the Indian Ocean; early images are few.",
+  "sources": [
+   {
+    "sourceId": "TRN1-032",
+    "claims": [
+     "2nd-century gravestone; c. 400 CE wreck"
+    ]
+   },
+   {
+    "sourceId": "TRN1-033",
+    "claims": [
+     "Kelenderis interpretation debated"
+    ]
+   }
+  ],
+  "uncertainty": "Origin is disputed: older works placed it in the Indian Ocean, while Mediterranean depictions earlier than the Arab conquests are now often cited; early images are few and their reading (e.g., the Kelenderis mosaic) is contested.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
-   "notes": "Uncorroborated: sail form, earliest images and their dating, regional use. Needs a search pass before any check status above unverified."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "2nd-century CE depiction of a related (settee) form",
+     "sources": [
+      "TRN1-032"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Lateen-rigged wreck reconstructed about 400 CE (Yassi Ada II)",
+     "sources": [
+      "TRN1-032"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Origin debated (Mediterranean vs Indian Ocean)",
+     "sources": [
+      "TRN1-033"
+     ],
+     "result": "disputed"
+    },
+    {
+     "claim": "Eastern Mediterranean by the 2nd century CE; Indian Ocean use earlier",
+     "sources": [],
+     "result": "corrected"
+    },
+    {
+     "claim": "Upwind performance; typical of Arab and Mediterranean craft",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Changed 'Images place it in the eastern Mediterranean by about the 2nd century CE, and Indian Ocean sailors may have used it earlier' to the gravestone and the c. 400 CE reconstructed wreck because the earliest image shows a four-sided (settee) form and the Indian Ocean claim was not supported beyond older scholarship. Support is mostly Wikipedia. Earlier drafting-lane note: Uncorroborated: sail form, earliest images and their dating, regional use. Needs a search pass before any check status above unverified."
   },
   "mechanicLink": "Knowledge-only (class C): records windward sailing; prerequisite of caravel and the carrack's lateen mizzen."
  },
@@ -451,14 +585,61 @@
     "claims": [
      "compartmented junk hulls"
     ]
+   },
+   {
+    "sourceId": "TRN1-019",
+    "claims": [
+     "Quanzhou wreck after 1272"
+    ]
+   },
+   {
+    "sourceId": "TRN1-020",
+    "claims": [
+     "13 compartments"
+    ]
+   },
+   {
+    "sourceId": "TRN1-021",
+    "claims": [
+     "Quanzhou wreck"
+    ]
    }
   ],
   "uncertainty": "Zheng He's voyages are documented, but the size of his largest ships is disputed.",
   "factCheck": {
    "status": "partially-checked",
-   "checkedBy": "drafting lane",
-   "method": "Claims compared with (a) claims the D08 design lane recorded as RESEARCHED from its WebSearch summaries (research/lane-notes/D08-transport-naval.md §3-§4 and §15, registered here as TRN1-xxx) and/or (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch was refused (shared per-turn budget of 200 calls exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
-   "notes": "Corroborated via lane records: compass at sea 1111-1117, Quanzhou wreck. The 1405-1433 Zheng He dates were recorded by the D08 lane as RESEARCHED without a dedicated URL. Not corroborated (general knowledge): battened sails, Song and Yuan trade routes, East African landfalls."
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Quanzhou wreck about 1275 with thirteen compartments",
+     "sources": [
+      "TRN1-019",
+      "TRN1-020",
+      "TRN1-021"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Compass navigation at sea recorded 1111-1117",
+     "sources": [
+      "TRN1-008"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Zheng He's fleets reached East Africa 1405-1433",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Battened sails, large rudder; Song and Yuan trade with Southeast Asia and India",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "This pass: Quanzhou wreck sank within a few years after 1272 and had 13 watertight compartments (Wikipedia, Fujian government, WA Museum). Compass 1111-1117 rests on the earlier lane record TRN1-008 (not re-seen). Zheng He and sail/route claims not covered by the search. Earlier drafting-lane note: Corroborated via lane records: compass at sea 1111-1117, Quanzhou wreck. The 1405-1433 Zheng He dates were recorded by the D08 lane as RESEARCHED without a dedicated URL. Not corroborated (general knowledge): battened sails, Song and Yuan trade routes, East African landfalls."
   },
   "mechanicLink": "PROPOSED new node: an independent route to the oceanic class (activity.ocean_shipping, sea-edge.oceanic eligibility); no current effect; new coasts enter extent only when a voyage reaches them."
  },
@@ -591,15 +772,49 @@
  {
   "id": "steamboat",
   "tree": "technology",
-  "description": "A steamboat drives paddle wheels with a steam engine, freeing travel from wind and current. Several inventors built experimental vessels in the 1780s and 1790s; Robert Fulton's North River Steamboat began regular service on the Hudson between New York and Albany in 1807. Steamers soon worked upstream on large rivers and, from the late 1830s, crossed oceans.",
+  "description": "A steamboat drives paddle wheels with a steam engine, freeing travel from wind and current. Several inventors built experimental vessels in the 1780s and 1790s; Robert Fulton's North River Steamboat began regular service on the Hudson between New York and Albany in 1807. Steamers soon worked upstream on large rivers and, later in the century, crossed oceans.",
   "wordCount": 57,
-  "sources": [],
+  "sources": [
+   {
+    "sourceId": "TRN1-034",
+    "claims": [
+     "Fulton 1807 New York-Albany"
+    ]
+   },
+   {
+    "sourceId": "TRN1-035",
+    "claims": [
+     "17 August 1807; regular service"
+    ]
+   }
+  ],
   "uncertainty": "Priority among early steamboat builders in France, Britain and the United States is contested.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
-   "notes": "Uncorroborated: early experiments, Fulton's 1807 service, river and ocean use. Needs a search pass before any check status above unverified."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Fulton's North River Steamboat, regular New York-Albany service from 1807",
+     "sources": [
+      "TRN1-034",
+      "TRN1-035"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Experimental steamboats in the 1780s-1790s",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Upstream river work; ocean crossings from the late 1830s",
+     "sources": [],
+     "result": "corrected"
+    }
+   ],
+   "notes": "Changed 'from the late 1830s, crossed oceans' to 'later in the century, crossed oceans' because the ocean-crossing date was not found in search text. Early experimenters (Jouffroy 1783, Fitch 1786-90) appeared only in a non-credible blog result, so that claim stays unsupported. Earlier drafting-lane note: Uncorroborated: early experiments, Fulton's 1807 service, river and ocean use. Needs a search pass before any check status above unverified."
   },
   "mechanicLink": "Knowledge-only (class C): PROPOSED as upriver and timetabled sea parameters of realized water edges; prerequisite of screw_propeller and iron_hull."
  },
@@ -674,8 +889,8 @@
  {
   "id": "balloon",
   "tree": "technology",
-  "description": "Balloon flight lifts people by buoyancy: an envelope of gas lighter than the surrounding air, either heated air or hydrogen. In 1783 the Montgolfier brothers' hot-air balloon and Jacques Charles's hydrogen balloon carried the first people aloft in Paris, ten days apart. French forces used a tethered observation balloon at the Battle of Fleurus in 1794.",
-  "wordCount": 56,
+  "description": "Balloon flight lifts people by buoyancy: an envelope of gas lighter than the surrounding air, either heated air or hydrogen. In 1783 the Montgolfier brothers' hot-air balloon and Jacques Charles's hydrogen balloon made the first free flights with people aboard, in Paris, ten days apart. French forces used a tethered observation balloon at the Battle of Fleurus in 1794.",
+  "wordCount": 59,
   "sources": [
    {
     "sourceId": "TRN1-013",
@@ -689,14 +904,70 @@
     "claims": [
      "observation balloon at Fleurus 1794"
     ]
+   },
+   {
+    "sourceId": "TRN1-022",
+    "claims": [
+     "15 October 1783 tethered ascent; 1783 flights"
+    ]
+   },
+   {
+    "sourceId": "TRN1-023",
+    "claims": [
+     "Charles 1 December 1783"
+    ]
+   },
+   {
+    "sourceId": "TRN1-024",
+    "claims": [
+     "1783 balloons"
+    ]
+   },
+   {
+    "sourceId": "TRN1-025",
+    "claims": [
+     "21 November 1783"
+    ]
    }
   ],
-  "uncertainty": null,
+  "uncertainty": "A tethered crewed ascent in a Montgolfier balloon (15 October 1783) preceded the free flights; sources differ on the Charles launch site (Tuileries or Champ-de-Mars).",
   "factCheck": {
    "status": "partially-checked",
-   "checkedBy": "drafting lane",
-   "method": "Claims compared with (a) claims the D08 design lane recorded as RESEARCHED from its WebSearch summaries (research/lane-notes/D08-transport-naval.md §3-§4 and §15, registered here as TRN1-xxx) and/or (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch was refused (shared per-turn budget of 200 calls exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
-   "notes": "Corroborated via lane records: 1783 balloons and crewed flight dates, Fleurus 1794. Not corroborated (general knowledge): Paris as the location and the tethered form of the Fleurus balloon."
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Montgolfier hot-air free flight with people, Paris, 21 November 1783",
+     "sources": [
+      "TRN1-022",
+      "TRN1-025",
+      "TRN1-024"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Charles hydrogen balloon with people, Paris, 1 December 1783",
+     "sources": [
+      "TRN1-023",
+      "TRN1-024"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "'First people aloft' (a tethered crewed ascent came first, 15 October 1783)",
+     "sources": [
+      "TRN1-022"
+     ],
+     "result": "corrected"
+    },
+    {
+     "claim": "Tethered observation balloon at Fleurus, 1794",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Changed 'carried the first people aloft' to 'made the first free flights with people aboard' because Wikipedia's History of ballooning records a tethered crewed ascent on 15 October 1783. Fleurus June 1794 tethered balloon appeared in search text but its source URL could not be identified; it rests on the earlier lane record TRN1-014. Earlier drafting-lane note: Corroborated via lane records: 1783 balloons and crewed flight dates, Fleurus 1794. Not corroborated (general knowledge): Paris as the location and the tethered form of the Fleurus balloon."
   },
   "mechanicLink": "PROPOSED new node (knowledge-only): a realized observation balloon (M7 asset) would multiply its observer's sight budget by a dimensionless vantage factor (D-039 B4), pointed and never global."
  },
@@ -720,14 +991,53 @@
      "Cayley's lift, drag and thrust analysis",
      "Brompton Dale 1853"
     ]
+   },
+   {
+    "sourceId": "TRN1-026",
+    "claims": [
+     "Cayley 1853"
+    ]
+   },
+   {
+    "sourceId": "TRN1-027",
+    "claims": [
+     "Lilienthal 1891-96, about 2,000 glides"
+    ]
    }
   ],
   "uncertainty": null,
   "factCheck": {
    "status": "partially-checked",
-   "checkedBy": "drafting lane",
-   "method": "Claims compared with (a) claims the D08 design lane recorded as RESEARCHED from its WebSearch summaries (research/lane-notes/D08-transport-naval.md §3-§4 and §15, registered here as TRN1-xxx) and/or (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch was refused (shared per-turn budget of 200 calls exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
-   "notes": "Corroborated via lane records: all dated and attributed claims."
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Cayley's crewed glider 1853",
+     "sources": [
+      "TRN1-026"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Lilienthal about 2,000 glides 1891-1896",
+     "sources": [
+      "TRN1-027"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Cayley's lift/drag/thrust analysis; Brompton Dale",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Wright gliders 1900-1902, three-axis control",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "This pass: Cayley 1853 (ICAO) and Lilienthal's ~2,000 flights 1891-96 (Mississippi State University) supported; Brompton Dale, Cayley's analysis and the Wright gliders were not covered and rest on earlier lane records (TRN1-015/016, not re-seen). Earlier note: 'Corroborated via lane records: all dated and attributed claims.' Earlier drafting-lane note: Corroborated via lane records: all dated and attributed claims."
   },
   "mechanicLink": "PROPOSED new node (knowledge-only): records lift and three-axis control; prerequisite of aircraft."
  },

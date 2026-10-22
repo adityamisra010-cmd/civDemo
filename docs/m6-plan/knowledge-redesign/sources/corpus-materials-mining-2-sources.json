@@ -591,5 +591,100 @@
   ],
   "confidence": "high",
   "notes": "Seen as search-result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT2-041",
+  "title": "Henry Clifton Sorby",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Henry_Clifton_Sorby",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Sorby extended thin-section microscopy to iron and steel",
+   "His family was long involved in the Sheffield iron and steel industry"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MAT2-042",
+  "title": "History of metallography",
+  "author_org": "PACE Technologies (metallographic.com)",
+  "published": null,
+  "url": "https://www.metallographic.com/guides/history-of-metallography",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "Sorby adapted petrographic techniques to metals in 1863 with mechanical polishing and chemical etching",
+   "He examined meteorites and commercial steels in 1863-1866 and found a constituent he called 'pearly'",
+   "He published the first micrographs of steel structures"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MAT2-043",
+  "title": "Puddling (metallurgy)",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Puddling_(metallurgy)",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "In the reverberatory puddling furnace hot gases pass over the iron without contact with the fuel, allowing coal in place of charcoal",
+   "Stirring in an oxidising atmosphere burns out carbon; the pasty iron is gathered into a puddled ball, shingled and rolled"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MAT2-044",
+  "title": "Fining and puddling in Europe",
+  "author_org": "Donald B. Wagner (donwagner.dk)",
+  "published": null,
+  "url": "https://donwagner.dk/arch-iron/eu/fining-puddling-europe-eu.html",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Puddling separated the fuel from the iron in a reverberatory furnace, making coal usable where charcoal had been needed"
+  ],
+  "confidence": "medium",
+  "notes": "Statement-level attribution between this page and Wikipedia was not fully distinguished in the search summary. Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MAT2-045",
+  "title": "How cement is made",
+  "author_org": "Portland Cement Association",
+  "published": null,
+  "url": "https://www.cement.org/basics/howmade.asp",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "Limestone, shale, clay and similar materials are crushed and heated in a kiln to about 1,450 C, fusing into clinker",
+   "Portland cement forms a paste with water that hardens, binding sand and rock"
+  ],
+  "confidence": "high",
+  "notes": "The hardening statement came from the PCA basics FAQ (https://cement.org/basics/cement-and-concrete-basics-faqs) in the same search. Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MAT2-046",
+  "title": "GSA 2007 Annual Meeting abstract, paper 128322",
+  "author_org": "Geological Society of America (USGS-authored abstract)",
+  "published": "2007",
+  "url": "https://gsa.confex.com/gsa/2007AM/webprogram/Paper128322.html",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Portland cement is made by grinding clinker together with about 5% gypsum"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
  }
 ]

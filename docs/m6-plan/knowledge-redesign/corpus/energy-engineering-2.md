@@ -26,8 +26,8 @@ Cyber operations use computer networks to spy on, disrupt or damage an opponent'
 
 A quantum computer stores information in qubits, which can hold superpositions and become entangled, so some calculations proceed in ways ordinary computers cannot efficiently imitate. Richard Feynman argued in 1981-82 that they could simulate physics. In 2019 Google's 53-qubit Sycamore processor ran a narrow sampling task claimed to be beyond classical reach, a claim IBM disputed. Early machines remain noisy.
 
-- words: 60 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).)
-- sources: —
+- words: 60 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [ENG2-007] Feynman 1981-82; [ENG2-008] Sycamore 2019; IBM dispute; [ENG2-009] IBM dispute
 - uncertainty: The 2019 'quantum supremacy' claim was disputed (IBM estimated a classical simulation in days) and later classical algorithms narrowed the gap; several groups and approaches (superconducting, trapped-ion, photonic) contributed to early quantum computing.
 - relation to mechanics: Knowledge-only today (unlock-audit class C, limited quantum simulation); prerequisite of fault_tolerant_quantum; kept unchanged in the proposal.
 
@@ -44,8 +44,8 @@ Numerical weather prediction forecasts the atmosphere by solving equations for m
 
 Fault-tolerant quantum computing is a goal rather than an achieved technology: machines correcting their own errors faster than errors arise, keeping long calculations reliable. Quantum error-correcting codes, first proposed by Peter Shor in 1995, spread one robust logical qubit across many fragile physical ones. If built at scale, such machines could simulate molecules and materials beyond practical classical reach.
 
-- words: 59 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).)
-- sources: —
+- words: 59 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [ENG2-010] Shor 1995; logical vs physical qubits; [ENG2-011] Shor 1995
 - uncertainty: Speculative: no large fault-tolerant machine exists; timelines, the best qubit technology and the size of the practical advantage for chemistry are all contested.
 - relation to mechanics: Knowledge-only speculative leaf (completion row, class C); counts toward engineering-subtree exhaustion before the recursive frontier nodes open; no consumer planned.
 
@@ -96,19 +96,19 @@ Cyber research is the contest between attackers and defenders of networked syste
 
 ### 483 · Programmable digital computer (`programmable_computer`)
 
-The first programmable digital computers performed long calculations automatically, following instructions set by punched tape, switches or plugboard wiring rather than held in memory. They arose largely independently: Konrad Zuse's relay-based Z3 ran in Berlin in 1941; valve-based Colossus machines attacked German teleprinter ciphers at Bletchley Park from 1944; and ENIAC, completed in Philadelphia in 1945, computed artillery tables.
+The first programmable digital computers performed long calculations automatically, following instructions set by punched tape, switches or plugboard wiring rather than held in memory. They arose largely independently: Konrad Zuse's relay-based Z3 ran in Berlin in 1941; valve-based Colossus machines attacked German teleprinter ciphers at Bletchley Park from 1944; and ENIAC, completed in Philadelphia in 1945-46, computed artillery tables.
 
-- words: 59 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).)
-- sources: —
-- uncertainty: Which machine was 'first' depends on criteria (programmable, electronic, general-purpose, Turing-complete); Colossus was special-purpose, and the first Colossus was tested in late 1943 before entering service in early 1944. Stibitz's relay calculators at Bell Labs are a further independent strand.
+- words: 59 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [ENG2-001] Z3 1941; Colossus Lorenz; [ENG2-002] Z3 12 May 1941 Berlin; [ENG2-003] Colossus 1943-44; ENIAC Penn firing tables, 1945/46
+- uncertainty: Which machine was 'first' depends on criteria (programmable, electronic, general-purpose, Turing-complete); Colossus was special-purpose, and the first Colossus ran in December 1943 or January 1944. ENIAC's completion is dated 1945 or 1946 in different sources. Stibitz's relay calculators at Bell Labs are a further independent strand.
 - relation to mechanics: PROPOSED (split from computer): knowledge-only completion row and the prerequisite of the stored-program computer node; reachable by a valve or a relay-switching route.
 
 ### 495 · Semiconductor physics (`semiconductor_physics`)
 
 Semiconductor physics explains why materials like silicon and germanium conduct electricity better than insulators but worse than metals. In 1931 Alan Wilson used quantum mechanics to describe their energy bands; Walter Schottky and Nevill Mott explained rectifying metal contacts in 1938-39, clarifying radio crystal detectors. In 1940 Russell Ohl at Bell Labs found a silicon junction generating voltage under light.
 
-- words: 60 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).)
-- sources: —
-- uncertainty: Band theory was built by several physicists (Bloch, Peierls, Wilson and others); Schottky and Mott (and Davydov) worked on rectification largely independently; the p-n junction was understood only gradually after Ohl's 1940 observation.
+- words: 60 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [ENG2-004] Wilson 1931; Schottky and Mott 1938-39; [ENG2-005] Ohl p-n junction 1940; [ENG2-006] Lashkaryov priority claim
+- uncertainty: Band theory was built by several physicists (Bloch, Peierls, Wilson and others); Schottky and Mott (and Davydov) worked on rectification largely independently; Ohl's junction is dated 1940 or about 1941, a priority claim for Vadym Lashkaryov has been argued, and the p-n junction was understood only gradually.
 - relation to mechanics: PROPOSED (split from transistor): knowledge-only completion row and the prerequisite of transistor and solar_pv.
 

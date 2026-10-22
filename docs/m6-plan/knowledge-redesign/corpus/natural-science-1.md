@@ -71,8 +71,8 @@ Early gunpowder was a loose meal whose ingredients could separate in transport a
 
 Nicolaus Copernicus's On the Revolutions (1543) placed the Sun at the centre and treated Earth as one of the planets, though he kept circular orbits. Using Tycho Brahe's careful observations, Johannes Kepler showed in Astronomia nova (1609) that Mars moves on an ellipse and sweeps equal areas in equal times. The Sun-centred system remained contested for decades.
 
-- words: 57 · fact-check: partially-checked (drafting lane; Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked); claims not corroborated are listed in notes.)
-- sources: [NAT1-017] Copernicus 1543, Sun at centre, circular orbits, Kepler used Tycho's data after 1601; [NAT1-018] Kepler's first two laws, Mars, Astronomia nova 1609
+- words: 57 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [NAT1-017] Copernicus 1543, Sun at centre, circular orbits, Kepler used Tycho's data after 1601; [NAT1-018] Kepler's first two laws, Mars, Astronomia nova 1609; [NAT1-093] 1616 prohibition, 73 years after publication; [NAT1-094] Slow acceptance; early denunciation
 - uncertainty: Aristarchus of Samos had proposed a Sun-centred arrangement in antiquity; Copernicus's model still used epicycles. The pace of acceptance varied by country and community.
 - relation to mechanics: Knowledge-only today (class C, no simulated effect); records accurate planetary prediction. Prerequisites astronomy_geometric and trigonometry; prerequisite of mechanics_newtonian.
 
@@ -258,82 +258,82 @@ In 1953 James Watson and Francis Crick proposed that DNA is a double helix of tw
 
 ### 334 · Recombinant DNA (`genetic_engineering`)
 
-Recombinant DNA joins genetic material from different sources and copies it in living cells. In 1973 Stanley Cohen and Herbert Boyer inserted foreign DNA into a bacterial plasmid that Escherichia coli then copied as it multiplied. An Asilomar meeting in 1975 set safety guidelines, and human insulin made by engineered bacteria was approved for medical use in 1982.
+Recombinant DNA joins genetic material from different sources and copies it in living cells. In 1973 Stanley Cohen and Herbert Boyer inserted foreign DNA into a bacterial plasmid that Escherichia coli then copied as it multiplied. The 1975 Asilomar conference set safety guidelines for such research, and engineered bacteria were later used to make human insulin for diabetes treatment.
 
-- words: 58 · fact-check: unverified (drafting lane; None: this session's WebSearch budget (shared across agents) was exhausted before this node was searched; the text was written from general knowledge with cautious wording and has no corroborating source.)
-- sources: —
-- uncertainty: Paul Berg's group made recombinant DNA molecules in 1972; the 1982 insulin approval was in the United States.
+- words: 59 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [NAT1-100] 1973 pSC101 plasmid in E. coli; [NAT1-101] 1973 recombinant DNA; 1975 Asilomar guidelines; human insulin
+- uncertainty: Paul Berg's group made recombinant DNA molecules in 1972; the 1982 US approval of recombinant human insulin was not confirmed in this pass.
 - relation to mechanics: Knowledge-only today (class C, no simulated effect); records synthetic insulin, GM crops, vaccines by design. Prerequisites dna_structure and antibiotic_broad; prerequisite of crispr, mrna_vaccines.
 
 ### 337 · Synthetic polymers (`plastics`)
 
-Synthetic polymers are long chain molecules built from small repeating units. Leo Baekeland's Bakelite, patented around 1907-1909 from phenol and formaldehyde, was the first fully synthetic plastic and set hard when heated. In the 1930s polyethylene was made at ICI in Britain and nylon at DuPont in the United States; petroleum later became the main raw material.
+Synthetic polymers are long chain molecules built from small repeating units. Leo Baekeland's Bakelite, made from phenol and formaldehyde and introduced around 1907-1909, was the first fully synthetic plastic and set hard when heated. In the 1930s polyethylene was made at ICI in Britain and nylon at DuPont, first sold as toothbrush bristles (1938) and stockings (1939).
 
-- words: 57 · fact-check: unverified (drafting lane; None: this session's WebSearch budget (shared across agents) was exhausted before this node was searched; the text was written from general knowledge with cautious wording and has no corroborating source.)
-- sources: —
-- uncertainty: Celluloid (1860s-1870s) was an earlier semi-synthetic plastic; the Bakelite patent was filed in 1907 and granted in 1909.
+- words: 57 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [NAT1-102] Bakelite 1907, phenol-formaldehyde; [NAT1-103] First entirely synthetic thermosetting plastic; ICI polyethylene; [NAT1-104] Nylon at DuPont 1935; toothbrushes 1938, hosiery 1939
+- uncertainty: Celluloid (1860s-1870s) was an earlier semi-synthetic plastic; sources date Bakelite variously 1907 (invention), 1909 (introduction) and 1910; polyethylene's first ICI synthesis is dated 1933 or 1934.
 - relation to mechanics: Knowledge-only today (class C, no simulated effect); records cheap durable materials, textiles without fibre crops. Prerequisites petroleum_refining and chemistry_quantitative and synthetic_dye; prerequisite of additive_manufacturing, composites, desalination, drip_irrigation.
 
 ### 345 · Atomic clock (`atomic_clock`)
 
-An atomic clock keeps time by counting the frequency of radiation that atoms absorb or emit when changing energy state, a frequency identical for every atom of the element. Louis Essen and Jack Parry built the first practical caesium clock at Britain's National Physical Laboratory in 1955. Since 1967 the second has been defined by caesium-133.
+An atomic clock keeps time from the radiation that atoms absorb or emit when changing energy state. The US National Bureau of Standards announced an ammonia-based atomic clock in 1949. Louis Essen and Jack Parry built the first caesium clock at Britain's National Physical Laboratory in 1955. In 1967 the second was redefined using caesium.
 
-- words: 56 · fact-check: unverified (drafting lane; None: this session's WebSearch budget (shared across agents) was exhausted before this node was searched; the text was written from general knowledge with cautious wording and has no corroborating source.)
-- sources: —
-- uncertainty: An ammonia-based frequency standard at the US National Bureau of Standards (1949) preceded the caesium clock.
+- words: 55 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [NAT1-105] Essen and Parry 1955 caesium clock; change of state in caesium atoms; [NAT1-106] NBS ammonia clock 1949; second redefined 1967
+- uncertainty: Harold Lyons's ammonia clock at the US National Bureau of Standards (built 1948, announced 1949) was less accurate than quartz clocks; the 1967 redefinition (caesium-133) was confirmed only by a reference source this pass.
 - relation to mechanics: Knowledge-only today (class C, no simulated effect); records navigation, network synchronisation. PROPOSED rewire: prerequisites quantum_mechanics and vacuum_tube (was quantum_mechanics and longitude_problem); prerequisite of gps.
 
 ### 348 · Relativity (`relativity`)
 
 Albert Einstein's special relativity (1905) held that light's speed is the same for all observers, so measured time and length depend on motion, and implied that mass and energy are equivalent. His general relativity (1915) described gravity as the curvature of spacetime. Satellite navigation clocks must be corrected for both effects, by about 38 microseconds a day.
 
-- words: 57 · fact-check: unverified (drafting lane; None: this session's WebSearch budget (shared across agents) was exhausted before this node was searched; the text was written from general knowledge with cautious wording and has no corroborating source.)
-- sources: —
-- uncertainty: Lorentz, Poincaré and others developed parts of the mathematics before 1905.
+- words: 57 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [NAT1-098] 1905 special relativity content; general relativity as curvature; [NAT1-099] General relativity completed November 1915; [NAT1-095] Net 38 microseconds per day; [NAT1-096] Special relativity about 7 microseconds per day; [NAT1-097] General relativity about 45 microseconds per day
+- uncertainty: Lorentz, Poincare and others developed parts of the mathematics before 1905. General relativity was completed in November 1915 and published in 1916.
 - relation to mechanics: Knowledge-only today (class C, no simulated effect); records mass-energy equivalence, orbital timing corrections (GPS). PROPOSED rewire: prerequisites electromagnetic_field_theory and mechanics_newtonian (was electromagnetism and mechanics_newtonian); prerequisite of gps, nuclear_physics.
 
 ### 349 · Laser (`laser`)
 
-A laser amplifies light by stimulated emission, a process Albert Einstein described in 1917, giving a narrow beam of one wavelength with its waves in step. Charles Townes's group built the microwave maser in 1954, and Theodore Maiman operated the first laser, with a ruby crystal, at Hughes Research Laboratories in 1960. Cutting, surgery, measurement and fibre-optic communication followed.
+A laser amplifies light by stimulated emission, which Albert Einstein described in 1917. Charles Townes's group built a microwave maser in the early 1950s; Townes and Arthur Schawlow patented an optical maser in 1958, a priority Gordon Gould contested. On 16 May 1960 Theodore Maiman operated the first laser, a synthetic ruby emitting red pulses, at Hughes Research Laboratories.
 
-- words: 59 · fact-check: unverified (drafting lane; None: this session's WebSearch budget (shared across agents) was exhausted before this node was searched; the text was written from general knowledge with cautious wording and has no corroborating source.)
-- sources: —
+- words: 59 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [NAT1-107] Einstein 1917; Hughes 1960 ruby laser; 1958 patent and Gould; [NAT1-108] 16 May 1960, red pulses; maser dates 1951-1954
 - uncertainty: Priority for the laser concept was contested in patent disputes (Gordon Gould versus Townes and Schawlow); Soviet physicists Basov and Prokhorov also developed the maser.
 - relation to mechanics: Grants project.probe_acceleration (class J), which no system yet realizes, so it has no current effect (deferred owner none; milestone M6); records coherent light, precision cutting, optical communication. Prerequisites quantum_mechanics and vacuum_tube; prerequisite of fibre_optics, guided_munitions, nuclear_fusion_research.
 
 ### 352 · Applied superconductivity (`superconductivity_applied`)
 
-In 1911 Heike Kamerlingh Onnes found that mercury cooled by liquid helium to about 4 kelvin loses all electrical resistance. Practical use waited for alloys such as niobium-titanium that stay superconducting in strong magnetic fields; from the 1960s they were wound into powerful magnets. Such magnets serve hospital MRI scanners, particle accelerators and fusion experiments, but need costly cooling.
+In 1911 Heike Kamerlingh Onnes's Leiden laboratory found that mercury cooled with liquid helium to about 4 kelvin loses all electrical resistance. Early superconductors failed in modest magnetic fields; from 1961-62, niobium-tin and niobium-titanium wires carried large currents in strong fields and were wound into magnets. Niobium-titanium filaments finer than a hair now carry the Large Hadron Collider's magnet currents.
 
-- words: 59 · fact-check: unverified (drafting lane; None: this session's WebSearch budget (shared across agents) was exhausted before this node was searched; the text was written from general knowledge with cautious wording and has no corroborating source.)
-- sources: —
-- uncertainty: High-temperature superconductors (1986 onward) work above liquid-nitrogen temperature but are harder to make into wire.
+- words: 60 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [NAT1-109] 1911 mercury at about 4 K; [NAT1-110] Field limit; 1961 Nb3Sn; LHC NbTi filaments
+- uncertainty: High-temperature superconductors (1986 onward) work above liquid-nitrogen temperature but are harder to make into wire; the first commercial niobium-titanium wire (often dated 1962, Westinghouse) was not confirmed by a credible source here; MRI use was not checked.
 - relation to mechanics: Knowledge-only today (class C, no simulated effect); records high-field magnets, MRI, particle accelerators, fusion confinement. Prerequisites quantum_mechanics and refrigeration; prerequisite of nuclear_fusion_research, quantum_computing.
 
 ### 376 · Interplanetary probe (`space_probe`)
 
-An interplanetary probe is an uncrewed spacecraft sent beyond Earth's orbit to study other worlds at close range. The American Mariner 2 flew past Venus in December 1962, the first successful planetary flyby, and measured a very hot surface. Such missions depend on precise orbital calculation, long-range radio links and electronics that survive years in space.
+An interplanetary probe is an uncrewed spacecraft sent beyond Earth's orbit to study other worlds at close range. The American Mariner 2 flew past Venus on 14 December 1962, the first spacecraft to encounter another planet successfully. Passing about 35,000 kilometres away, it found a dense atmosphere and surface temperatures of at least 425 C.
 
-- words: 56 · fact-check: unverified (drafting lane; None: this session's WebSearch budget (shared across agents) was exhausted before this node was searched; the text was written from general knowledge with cautious wording and has no corroborating source.)
-- sources: —
+- words: 56 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [NAT1-111] First successful planetary encounter; [NAT1-112] 14 Dec 1962 flyby; 425 C; dense atmosphere
 - uncertainty: Earlier Soviet Venus and Mars attempts (1961-1962) failed or lost contact.
 - relation to mechanics: Knowledge-only today (class C, no simulated effect); records exploration of other worlds. Prerequisites satellite and computer; prerequisite of asteroid_mining, frontier_propulsion, fusion_propulsion.
 
 ### 378 · Space telescope (`space_telescope`)
 
-A telescope above the atmosphere escapes its blurring and sees ultraviolet, infrared and X-ray light that barely reaches the ground. The Hubble Space Telescope, launched in 1990, needed corrective optics installed by astronauts in 1993 because its main mirror was misshaped. Space observatories have since measured the universe's expansion rate and found thousands of planets around other stars.
+A telescope above the atmosphere escapes its blurring and can observe ultraviolet and infrared light that barely reaches the ground. The Hubble Space Telescope, launched in 1990, returned blurred images because its main mirror suffered spherical aberration. In December 1993 astronauts on five spacewalks installed corrective optics and a new camera; later instruments carried their own corrections.
 
-- words: 58 · fact-check: unverified (drafting lane; None: this session's WebSearch budget (shared across agents) was exhausted before this node was searched; the text was written from general knowledge with cautious wording and has no corroborating source.)
-- sources: —
+- words: 57 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [NAT1-113] 1990 launch; spherical aberration; 1993 repair; later self-correcting instruments
 - uncertainty: Earlier orbiting observatories (for example OAO-2, 1968, and X-ray satellites from 1970) preceded Hubble; exoplanet counts come mainly from the Kepler mission and ground surveys.
 - relation to mechanics: Knowledge-only today (class C, no simulated effect); records observation across the spectrum, exoplanet detection. Prerequisites satellite and telescope; no dependant.
 
 ### 385 · Polymerase chain reaction (`pcr`)
 
-The polymerase chain reaction copies a chosen stretch of DNA millions of times by repeatedly heating and cooling a sample with short primers and a DNA-copying enzyme. Kary Mullis devised it at the Cetus Corporation in 1983 and shared the 1993 Nobel Prize in Chemistry. A heat-stable enzyme from the hot-spring bacterium Thermus aquaticus made the cycles practical.
+The polymerase chain reaction copies a chosen stretch of DNA again and again by repeatedly heating and cooling a sample with short primers and a DNA-copying enzyme. Kary Mullis devised it at the Cetus Corporation in 1983 and shared the 1993 Nobel Prize in Chemistry. A heat-stable enzyme from the bacterium Thermus aquaticus made the cycles practical.
 
-- words: 58 · fact-check: unverified (drafting lane; None: this session's WebSearch budget (shared across agents) was exhausted before this node was searched; the text was written from general knowledge with cautious wording and has no corroborating source.)
-- sources: —
+- words: 57 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [NAT1-114] Mullis at Cetus 1983; primers and cycles; Taq; [NAT1-115] 1993 Nobel Prize in Chemistry
 - uncertainty: Colleagues at Cetus contributed substantially to making PCR work; the proposal's link to genome sequencing (sequence-tagged sites, 1989) is in the D04 lane notes.
 - relation to mechanics: Knowledge-only today (class C, no simulated effect); records genetic testing, forensics. PROPOSED rewire: prerequisite dna_sequencing (was dna_structure); prerequisite of genome_sequencing.
 
@@ -341,8 +341,8 @@ The polymerase chain reaction copies a chosen stretch of DNA millions of times b
 
 Probability became mathematics in 1654, when Blaise Pascal and Pierre de Fermat exchanged letters on dividing the stakes of an interrupted game. Jacob Bernoulli's Ars Conjectandi, published posthumously in 1713, proved that observed frequencies approach the underlying probability as trials multiply. Pierre-Simon Laplace's 1812 treatise built these ideas into general methods of calculation and inference.
 
-- words: 55 · fact-check: partially-checked (drafting lane; Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked); claims not corroborated are listed in notes.)
-- sources: [NAT1-031] 1654 letters; problem of points; [NAT1-032] posthumous 1713; [NAT1-033] law of large numbers in Part IV; [NAT1-034] Laplace 1812
+- words: 55 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [NAT1-031] 1654 letters; problem of points; [NAT1-032] posthumous 1713; [NAT1-033] law of large numbers in Part IV; [NAT1-034] Laplace 1812; [NAT1-087] 1812 treatise; systematic inverse probability; [NAT1-088] Combinatorial calculus and universal inductive method
 - uncertainty: Cardano had treated games of chance earlier (published 1663). Statistics also grew from population counts (Graunt, 1662) and astronomical error theory (Gauss, Legendre), not covered here.
 - relation to mechanics: PROPOSED new node with no current effect beyond its completion row; records mathematics of chance and inference, statistical analysis of counts and errors. Prerequisite algebra; prerequisite of epidemiology, genetics_mendel, machine_learning.
 
@@ -375,10 +375,10 @@ James Clerk Maxwell's 1865 paper 'A Dynamical Theory of the Electromagnetic Fiel
 
 ### 459 · Organic chemistry (`organic_chemistry`)
 
-Organic chemistry studies the compounds of carbon. In 1828 Friedrich Wöhler made urea, known from living bodies, from inorganic starting materials, weakening the belief that such compounds need a vital force, although the effect was gradual. From 1858 structural theory showed which atoms bond to which, and August Kekulé proposed the ring structure of benzene in 1865.
+Organic chemistry studies the compounds of carbon. In 1828 Friedrich Wöhler made urea, an organic compound, from inorganic starting materials, weakening the belief that such compounds need a vital force, although the effect was gradual. From 1858 structural theory showed which atoms bond to which, and August Kekulé proposed the ring structure of benzene in 1865.
 
-- words: 57 · fact-check: partially-checked (drafting lane; Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked); claims not corroborated are listed in notes.)
-- sources: [NAT1-070] 1828 urea from inorganic materials, impact on vitalism muted and gradual; [NAT1-071] 1858 structural formulas, Kekule's benzene ring 1865
+- words: 56 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [NAT1-070] 1828 urea from inorganic materials, impact on vitalism muted and gradual; [NAT1-071] 1858 structural formulas, Kekule's benzene ring 1865; [NAT1-089] 1828 urea; vitalism challenged gradually; [NAT1-090] 1858 structural theory (Couper, Kekule); 1865 benzene ring
 - uncertainty: Kekulé's later dream story is doubted, and Loschmidt and Couper drew comparable formulas; Archibald Couper and Aleksandr Butlerov share credit for structural theory.
 - relation to mechanics: PROPOSED new node with no current effect beyond its completion row; records carbon compounds analysed, synthesised and drawn as structures. Prerequisite chemistry_quantitative; prerequisite of dynamite, synthetic_dye.
 
@@ -404,8 +404,8 @@ A spectroscope spreads light into its colours so that fine lines can be measured
 
 Thermodynamics is the science of heat, work and energy. Sadi Carnot's 1824 study of heat engines showed that their efficiency has an upper limit. After James Joule and others showed in the 1840s that heat and work are interchangeable forms of energy, Rudolf Clausius (1850) and William Thomson, later Lord Kelvin (1851), stated its laws; Clausius named entropy in 1865.
 
-- words: 60 · fact-check: partially-checked (drafting lane; Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked); claims not corroborated are listed in notes.)
-- sources: [NAT1-075] Carnot's theory of maximum efficiency of heat engines; [NAT1-076] Clausius 1850 second law; entropy 1865; Joule's experiments; [NAT1-077] Mayer and Joule 1840s energy conservation; Kelvin 1851
+- words: 60 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [NAT1-075] Carnot's theory of maximum efficiency of heat engines; [NAT1-076] Clausius 1850 second law; entropy 1865; Joule's experiments; [NAT1-077] Mayer and Joule 1840s energy conservation; Kelvin 1851; [NAT1-091] Reflections published 1824; [NAT1-092] Maximum-efficiency ideal engine; 1824
 - uncertainty: Julius Robert Mayer has a competing claim to energy conservation. Ludwig Boltzmann's statistical interpretation of entropy (1870s) is part of the node but not described in the text.
 - relation to mechanics: PROPOSED new node with no current effect beyond its completion row; records laws of energy and entropy, efficiency limits of heat engines, chemical equilibrium. Prerequisites steam_separate_condenser and calculus; prerequisite of diesel, haber_bosch, quantum_mechanics, refrigeration, steam_turbine.
 

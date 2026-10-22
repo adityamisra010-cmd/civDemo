@@ -105,10 +105,10 @@ A balance supports fair exchange only if weights agree. Indus cities from about 
 
 ### 106 · Civil solar calendar (`calendar_civil`)
 
-Egypt's administrators used a civil year of twelve 30-day months plus five extra days. With no leap day until 22 BCE, its new year slipped through the seasons by about one day every four years, realigning with the dawn rising of Sirius only after some 1,460 years. Its origin is disputed; proposals cluster near 2800 BCE.
+Ancient Egypt's civil calendar had twelve 30-day months plus five extra days. With no leap day until the Roman period, its new year slipped through the seasons by about one day every four years, realigning with the dawn rising of Sirius only after some 1,460 years. Its origin is disputed; proposals cluster near 2800 BCE.
 
-- words: 57 · fact-check: partially-checked (drafting lane; Claims compared with summarized WebSearch results (2026-10-22) recorded in sources; pages not opened (WebFetch unavailable). Claims listed in notes rest on general knowledge and were not corroborated this session.)
-- sources: [SCI-030] 12 x 30 + 5 days; no leap day until 22 BCE; drift of a day per four years; 1,461 civil = 1,460 Julian years; origin disputed, proposals near 2780-2770 BCE
+- words: 56 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [SCI-030] 12 x 30 + 5 days; no leap day until 22 BCE; drift of a day per four years; 1,461 civil = 1,460 Julian years; origin disputed, proposals near 2780-2770 BCE; [SCI-068] 365-day civil year structure; wandering year; [SCI-069] Sothic cycle; disputed origin near 2800 BCE
 - uncertainty: The inauguration date rests on the contested assumption that the calendar began at a Sothic coincidence; the origin of the 365-day count is itself debated (Parker, Neugebauer).
 - relation to mechanics: Knowledge-only today (class C, no simulated effect). Requires calendar_lunar and a script; prerequisite of water_clock. PROPOSED cost correction (institutional factor at law_code's level; 5,910 to 1,760) and mesoamerican_script added as a script alternative.
 
@@ -224,8 +224,8 @@ Algebra finds unknown quantities by general rules. In Baghdad around 820, al-Khw
 
 In early China, numbers were laid out with rods on a counting board, one column per decimal place, an empty column standing for zero. Bamboo slips carbon-dated to about 305 BCE hold the oldest known decimal multiplication table. The Nine Chapters, compiled by Han times, used red and black rods for positive and negative quantities in solving linear equations.
 
-- words: 59 · fact-check: partially-checked (drafting lane; Claims compared with summarized WebSearch results (2026-10-22) recorded in sources; pages not opened (WebFetch unavailable). Claims listed in notes rest on general knowledge and were not corroborated this session.)
-- sources: [SCI-056] Slips about 305 BCE, oldest decimal multiplication table; [SCI-057] Carbon-dated about 305 BCE, Warring States; [SCI-058] Fangcheng on a counting board; positive and negative procedure; [SCI-059] Red and black rods; Nine Chapters dating debated
+- words: 59 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [SCI-056] Slips about 305 BCE, oldest decimal multiplication table; [SCI-057] Carbon-dated about 305 BCE, Warring States; [SCI-058] Fangcheng on a counting board; positive and negative procedure; [SCI-059] Red and black rods; Nine Chapters dating debated; [SCI-066] Blank space for zero in positional rod numerals, Nine Chapters mainly first century CE; [SCI-067] Red/black rods in the Han-era text
 - uncertainty: The node's ~400 BCE anchor for physical rods (a Chu tomb at Changsha) was not confirmed this session. The Nine Chapters' compilation date is debated (first century BCE to first century CE; earliest surviving commentary 263 CE).
 - relation to mechanics: NEW node, PROPOSED: requires chinese_script and on completion writes a knowledge row only. With geometry_practical it opens algebra as an alternative to hindu_arabic, and through algebra it can satisfy the research stage atom.
 

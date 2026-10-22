@@ -15,11 +15,11 @@ The spinning jenny let one worker spin several threads at once. A hand-turned wh
 
 ### 262 · Water frame (`water_frame`)
 
-The water frame spun strong cotton thread by drawing fibre between pairs of rollers turning at rising speeds, then twisting it onto a bobbin with a flyer. Richard Arkwright patented it in 1769, adapting roller drafting tried by Lewis Paul and John Wyatt in 1738. Its firm yarn suited warp. Arkwright's water-powered mill at Cromford ran from 1771 in shifts.
+The water frame spun strong cotton thread by drawing fibre between pairs of rollers turning at rising speeds, then twisting it onto a bobbin with a flyer. Richard Arkwright patented it in 1769, adapting roller drafting tried by Lewis Paul and John Wyatt in 1738. Its firm yarn suited warp. Arkwright began building a water-powered mill at Cromford in 1771.
 
-- words: 60 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was exhausted at this batch's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).)
-- sources: —
-- uncertainty: Credit is contested: Thomas Highs and the clockmaker John Kay were linked to the design, and Arkwright's patent was later annulled (1785). A horse-driven mill in Nottingham preceded Cromford.
+- words: 60 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [IND2-011] 1769 patent; Cromford built 1771; 1785; [IND2-012] Cromford working probably 1774; [IND2-013] 1769 patent; rollers
+- uncertainty: Credit is contested: Thomas Highs and the clockmaker John Kay were linked to the design, and Arkwright's patent was overturned in 1785. A horse-driven mill in Nottingham preceded Cromford, which probably began working by about 1774.
 - relation to mechanics: Deferred: completion makes building.textile_mill eligible (with power_loom as the alternative route) but no system builds it yet; PROPOSED for T6.11 as a per-building capacity term on the live weaving recipe. Prerequisites spinning_wheel AND water_mill (PROPOSED); prerequisite of spinning_mule.
 
 ### 263 · Spinning mule (`spinning_mule`)
@@ -80,8 +80,8 @@ A steel-frame skyscraper carries floors and outer walls on a metal skeleton of c
 
 Numerical control directs a machine tool by coded instructions instead of a machinist's hands. John Parsons proposed the idea for cutting aircraft parts, and MIT's Servomechanisms Laboratory demonstrated a tape-controlled milling machine in 1952. In 1961 the Unimate, a programmable arm designed by George Devol and promoted by Joseph Engelberger, began handling hot die-castings at a General Motors plant.
 
-- words: 59 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was exhausted at this batch's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).)
-- sources: —
+- words: 59 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [IND2-014] Parsons; MIT project; [IND2-015] Parsons; MIT 1952; [IND2-016] MIT 1952 NC mill; [IND2-017] Unimate 1961 GM die-casting; Devol; Engelberger; [IND2-018] Unimate GM 1961
 - uncertainty: Credit for numerical control is shared between Parsons and the MIT laboratory (with US Air Force funding) and was disputed; the Unimate plant is usually placed in New Jersey.
 - relation to mechanics: Knowledge-only today (unlock-audit class C, no simulated effect); records flexible automation. Prerequisites computer AND milling_machine; prerequisite of additive_manufacturing.
 
@@ -105,19 +105,19 @@ Additive manufacturing builds an object layer by layer from a digital design ins
 
 ### 454 · Sanitary engineering (sewerage and filtered water) (`sanitary_engineering`)
 
-Sanitary engineering moved water and waste through piped networks. In 1829 James Simpson's slow-sand filters began cleaning Thames water for London's Chelsea Waterworks. After Hamburg's 1842 fire, William Lindley planned sewers built from 1843. London's main drainage, designed by Joseph Bazalgette and built mostly in 1859-1875, used brick sewers and steam pumps, while many still blamed disease on foul air.
+Sanitary engineering moved water and waste through piped networks. By 1829 James Simpson's slow-sand filter was cleaning Thames water for London's Chelsea Waterworks. After Hamburg's 1842 fire, William Lindley planned sewers for the rebuilt city. London's main drainage, designed by Joseph Bazalgette and built from 1859, used brick sewers and steam pumps, while many blamed disease on foul air.
 
-- words: 60 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was exhausted at this batch's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).)
-- sources: —
-- uncertainty: Completion dates of London's main drainage are given variously (main works by about 1865-1875, extensions later); earlier sewers and filters existed elsewhere on a smaller scale.
+- words: 59 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [IND2-001] Simpson Chelsea 1829; [IND2-002] Lindley Hamburg sewers after 1842; [IND2-003] Lindley Hamburg 1842; [IND2-004] Bazalgette from 1859, brick sewers
+- uncertainty: Completion dates of London's main drainage are given variously (main works by about 1865-1875, extensions later); the start date of Hamburg's sewer construction was not confirmed; earlier sewers and filters existed elsewhere on a smaller scale.
 - relation to mechanics: PROPOSED new node: completion would make infra.sewerage_system eligible (re-pointed from 'germ_theory AND reinforced_concrete'); building it waits on T6.11 and a per-settlement health term. Prerequisites steam_rotary AND fired_brick.
 
 ### 455 · Structural iron (iron-framed buildings and bridges) (`structural_iron`)
 
 Iron became a structural material in Britain once coke smelting made cast iron plentiful. The Iron Bridge at Coalbrookdale, cast by Abraham Darby III, was erected in 1779 and opened in 1781. Shrewsbury's Ditherington Flax Mill (1797) had an internal frame of iron columns and beams to resist fire. London's Crystal Palace of 1851 assembled prefabricated iron and glass.
 
-- words: 59 · fact-check: partially-checked (drafting lane; First sentence compared with the search-result summary of a source registered by another lane (MAT2-002, English Heritage); the shared WebSearch budget was exhausted at this batch's first query (2026-10-22) and WebFetch is blocked, so the remaining claims rest on general knowledge with cautious wording.)
-- sources: [MAT2-002] Coke smelting at Coalbrookdale (from 1709) made the mass production of cast iron economically viable
-- uncertainty: Ditherington is commonly called the first iron-framed building, though its outer walls are load-bearing brick; the Iron Bridge's dates are given as 1779 (erection) or 1781 (opening).
+- words: 59 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [MAT2-002] Coke smelting at Coalbrookdale (from 1709) made the mass production of cast iron economically viable; [IND2-005] Ditherington 1797 iron frame, fire; [IND2-006] Ditherington first iron-framed building; [IND2-008] Iron Bridge 1779/1781; [IND2-009] Darby III; [IND2-010] Crystal Palace prefabrication
+- uncertainty: Ditherington is commonly called the first fully iron-framed building, though its outer walls are load-bearing brick and Bell Mill at Stanley (1786) used cast-iron columns earlier; the Iron Bridge's ironwork was erected in summer 1779 and the bridge opened on 1 January 1781.
 - relation to mechanics: PROPOSED new knowledge-only node (no simulated effect; no iron good exists): records iron bridges and iron-framed buildings. Prerequisite coke; PROPOSED prerequisite of skyscraper.
 

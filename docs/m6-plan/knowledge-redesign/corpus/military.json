@@ -62,15 +62,76 @@
  {
   "id": "composite_bow",
   "tree": "technology",
-  "description": "A composite bow laminates a wooden core, horn on the belly, which resists compression, and sinew on the back, which resists stretching, bonded with hide or fish glue. The result is short yet powerful, suited to shooting from chariots and horseback. Composite bows are depicted across the Near East and steppe by the second millennium BCE; Tutankhamun's tomb held several.",
-  "wordCount": 60,
-  "sources": [],
-  "uncertainty": "First appearance is disputed: some read earlier Mesopotamian images as composite bows, and the steppe and Near Eastern traditions are hard to date separately.",
+  "description": "A composite bow laminates a wooden core, horn on the belly and sinew on the back, bonded with animal glue; horn and sinew store more energy than wood, so the bow can be short yet powerful. Horn composite bows are well attested in the Near East and Egypt by the later second millennium BCE; Tutankhamun's tomb held several.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "MIL-014",
+    "claims": [
+     "Wood, horn (belly) and sinew (back) with animal glue",
+     "Horn and sinew store more energy than wood",
+     "Attested in the Near East and Egypt by the later 2nd millennium BCE",
+     "Several composite bows in Tutankhamun's tomb"
+    ]
+   },
+   {
+    "sourceId": "MIL-016",
+    "claims": [
+     "Attested in the Near East and Egypt by the later 2nd millennium BCE"
+    ]
+   },
+   {
+    "sourceId": "MIL-015",
+    "claims": [
+     "Earlier origin (4th millennium BCE) claimed but weakly evidenced"
+    ]
+   }
+  ],
+  "uncertainty": "Origin is disputed: prevailing accounts place the first composite bows in the fourth millennium BCE, but a 2025 paper argues that evidence is insufficiently analysed, and one study argues true glued horn-wood-sinew bows appear only around 1600 BCE, with Egypt adopting rather than inventing them.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: horn-wood-sinew construction with hide or fish glue; second-millennium BCE dating; composite bows among Tutankhamun's grave goods."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Wood, horn (belly) and sinew (back) with animal glue",
+     "sources": [
+      "MIL-014"
+     ],
+     "result": "corrected"
+    },
+    {
+     "claim": "Horn and sinew store more energy than wood",
+     "sources": [
+      "MIL-014"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Attested in the Near East and Egypt by the later 2nd millennium BCE",
+     "sources": [
+      "MIL-014",
+      "MIL-016"
+     ],
+     "result": "disputed"
+    },
+    {
+     "claim": "Several composite bows in Tutankhamun's tomb",
+     "sources": [
+      "MIL-014"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Earlier origin (4th millennium BCE) claimed but weakly evidenced",
+     "sources": [
+      "MIL-015"
+     ],
+     "result": "disputed"
+    }
+   ],
+   "notes": "Changed 'hide or fish glue' to 'animal glue' and 'depicted across the Near East and steppe by the second millennium BCE' to 'well attested in the Near East and Egypt by the later second millennium BCE' (results support Near East/Egypt; steppe not covered). Also removed 'suited to chariots and horseback' (uncorroborated). Earlier status: unverified (drafting lane; written from general knowledge with no source retrieved, search budget exhausted)."
   },
   "mechanicLink": "Deferred to the Battle layer (M7): with cavalry grants unit.horse_archers (class F, no realizing system yet); PROPOSED prerequisite correction replaces birch_tar with hide_working, since hide or fish glue, not birch tar, bonded the bow."
  },
@@ -182,15 +243,60 @@
  {
   "id": "traction_trebuchet",
   "tree": "technology",
-  "description": "The traction trebuchet is a pivoting beam with a sling on its long arm; a crew hauling ropes on the short arm whips it round, releasing a stone. Mohist texts of fourth- or third-century BCE China describe such engines. Avars and Byzantines were using them in the Mediterranean world by the late sixth century CE.",
-  "wordCount": 55,
-  "sources": [],
-  "uncertainty": "Dating of the Mohist texts is approximate, and the route by which the engine travelled west is not documented in detail.",
+  "description": "The traction trebuchet is a pivoting beam with a sling on its long arm; a crew hauling ropes on the short arm swings it to hurl a stone. The Mohist Mojing, compiled in China around the fourth century BCE, describes such engines. Byzantine sources record them by the late sixth or early seventh century CE, possibly introduced through the Avars.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "MIL-001",
+    "claims": [
+     "Mohist Mojing (c. 4th century BCE) describes the traction trebuchet",
+     "Possible transmission via the Avars"
+    ]
+   },
+   {
+    "sourceId": "MIL-002",
+    "claims": [
+     "Byzantine use by the late 6th or early 7th century CE",
+     "Possible transmission via the Avars"
+    ]
+   }
+  ],
+  "uncertainty": "Dating of the Mohist texts varies (4th or 5th century BCE). How and when the engine reached Byzantium is debated; the Avar route is a hypothesis.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Mohist textual description; arrival in the Mediterranean by the late sixth century CE; Avar and Byzantine use."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Mohist Mojing (c. 4th century BCE) describes the traction trebuchet",
+     "sources": [
+      "MIL-001"
+     ],
+     "result": "disputed"
+    },
+    {
+     "claim": "Byzantine use by the late 6th or early 7th century CE",
+     "sources": [
+      "MIL-002"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Possible transmission via the Avars",
+     "sources": [
+      "MIL-001",
+      "MIL-002"
+     ],
+     "result": "disputed"
+    },
+    {
+     "claim": "Pivoting beam, sling on the long arm, crew hauling ropes on the short arm",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Changed 'Avars and Byzantines were using them ... by the late sixth century' to 'Byzantine sources record them by the late sixth or early seventh century CE, possibly introduced through the Avars' because McCotter (MIL-002) dates Byzantine appearance to the late 6th or early 7th century and calls the introduction debated. Mohist dating rests on Wikipedia only (one mirror gives the 5th century BCE). Mechanism description not corroborated in result text. Earlier status: unverified (drafting lane; written from general knowledge with no source retrieved, search budget exhausted)."
   },
   "mechanicLink": "PROPOSED new node, deferred to the Battle layer (M7): adds a route to unit.siege_engine and becomes the prerequisite of the counterweight trebuchet; requires sling and timber_frame."
  },
@@ -324,15 +430,86 @@
  {
   "id": "wheellock",
   "tree": "technology",
-  "description": "The wheellock struck sparks by spinning a serrated steel wheel, driven by a wound spring, against a piece of pyrite, so a gun could be carried loaded and fired without a burning match. It appeared around 1500 in southern Germany or northern Italy. Costly and intricate, it made one-handed pistols practical for horsemen and for concealed carry.",
-  "wordCount": 57,
-  "sources": [],
-  "uncertainty": "The place of invention is disputed; drawings attributed to Leonardo da Vinci show a similar mechanism, and their priority is debated.",
+  "description": "The wheellock struck sparks by spinning a serrated wheel against a piece of pyrite, so a gun could be carried loaded and fired without a burning match. It was devised in Europe around 1500 to 1515, and Augsburg armourers were among the first makers of wheellock pistols. Intricate, often made by clockmakers, it was first fitted to horsemen's firearms.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "MIL-018",
+    "claims": [
+     "Pyrite (or flint) against a rotating milled-edge wheel",
+     "Devised about 1500 (Met) / about 1515 (Britannica)"
+    ]
+   },
+   {
+    "sourceId": "MIL-017",
+    "claims": [
+     "Devised about 1500 (Met) / about 1515 (Britannica)",
+     "Augsburg armourers among the first makers of wheellock pistols",
+     "First fitted to horse-borne firearms"
+    ]
+   },
+   {
+    "sourceId": "MIL-019",
+    "claims": [
+     "Early mechanisms often made by clockmakers"
+    ]
+   }
+  ],
+  "uncertainty": "Dates differ (Met about 1500, Britannica about 1515). The place of invention is disputed; drawings attributed to Leonardo da Vinci of a similar mechanism, and their priority, were not corroborated in this pass.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: spring-driven wheel against pyrite; origin about 1500 in southern Germany or northern Italy; use in cavalry pistols."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Pyrite (or flint) against a rotating milled-edge wheel",
+     "sources": [
+      "MIL-018"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Devised about 1500 (Met) / about 1515 (Britannica)",
+     "sources": [
+      "MIL-017",
+      "MIL-018"
+     ],
+     "result": "disputed"
+    },
+    {
+     "claim": "Augsburg armourers among the first makers of wheellock pistols",
+     "sources": [
+      "MIL-017"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Early mechanisms often made by clockmakers",
+     "sources": [
+      "MIL-019"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "First fitted to horse-borne firearms",
+     "sources": [
+      "MIL-017"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Gun can be carried loaded without a burning match",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Origin in southern Germany or northern Italy; Leonardo drawings",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Changed 'appeared around 1500 in southern Germany or northern Italy' to 'devised in Europe around 1500 to 1515 ... Augsburg armourers among the first makers' (Met c. 1500, Britannica c. 1515; Italian origin not corroborated). Replaced 'costly ... concealed carry' (uncorroborated) with clockmaker and cavalry statements from the Met. Also removed 'steel' and 'driven by a wound spring' (the results describe an iron milled-edge wheel and do not mention the spring). Earlier status: unverified (drafting lane; written from general knowledge with no source retrieved, search budget exhausted)."
   },
   "mechanicLink": "Deferred to the Battle layer (M7): pistol of the PROPOSED unit.cuirassiers (open decision); requires matchlock and escapement_verge; prerequisite of the flintlock."
  },
@@ -384,60 +561,271 @@
  {
   "id": "rifling",
   "tree": "technology",
-  "description": "Rifling cuts spiral grooves inside a gun barrel so the projectile spins and flies straighter. Gunmakers around Vienna and Nuremberg made rifled barrels by about 1500, though who first did so is disputed. Rifles were accurate but slow to load, so they stayed largely with hunters and specialist marksmen; general military issue came only in the nineteenth century.",
-  "wordCount": 58,
-  "sources": [],
-  "uncertainty": "Named early makers (Kollner, about 1498; Kotter, about 1520) are uncertain attributions.",
+  "description": "Rifling cuts spiral grooves inside a gun barrel so the projectile spins, flying straighter and farther. Rifled barrels were known in Europe by the fifteenth century, though who first made them is unclear. Because a tight ball had to be forced into the grooves, rifles loaded slowly; broad military use followed the Minié bullet, adopted about 1852.",
+  "wordCount": 57,
+  "sources": [
+   {
+    "sourceId": "MIL-003",
+    "claims": [
+     "Spiral grooves spin the projectile for accuracy and range",
+     "Rifling known since at least the 15th century",
+     "Slow loading because the ball had to be forced into the rifling",
+     "Military adoption followed the Minié ball, adopted in Europe about 1852"
+    ]
+   }
+  ],
+  "uncertainty": "Named early makers (Kollner, about 1498; Kotter, about 1520) and centres such as Vienna, Nuremberg or Augsburg are traditional attributions not corroborated in this pass.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: rifled barrels around Vienna and Nuremberg by about 1500; disputed attribution; slow loading; general issue in the nineteenth century."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Spiral grooves spin the projectile for accuracy and range",
+     "sources": [
+      "MIL-003"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Rifling known since at least the 15th century",
+     "sources": [
+      "MIL-003"
+     ],
+     "result": "corrected"
+    },
+    {
+     "claim": "Slow loading because the ball had to be forced into the rifling",
+     "sources": [
+      "MIL-003"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Military adoption followed the Minié ball, adopted in Europe about 1852",
+     "sources": [
+      "MIL-003"
+     ],
+     "result": "corrected"
+    }
+   ],
+   "notes": "Changed 'Gunmakers around Vienna and Nuremberg made rifled barrels by about 1500' to 'known in Europe by the fifteenth century ... where and by whom ... unclear' (Britannica: at least 15th century; no source located the Vienna/Nuremberg claim). Replaced 'stayed largely with hunters and marksmen; general issue only in the nineteenth century' with the Minié bullet (about 1852), which Britannica states. Earlier status: unverified (drafting lane; written from general knowledge with no source retrieved, search budget exhausted)."
   },
   "mechanicLink": "PROPOSED new node, deferred to the Battle layer (M7): PROPOSED unit.rangers (open decision); prerequisite of breech_loading_rifle and rifled_artillery; requires matchlock."
  },
  {
   "id": "breech_loading_rifle",
   "tree": "technology",
-  "description": "Breech-loading rifles take the cartridge at the rear of the barrel, so soldiers can reload quickly, even lying down. Prussia adopted Dreyse's needle gun, firing a paper cartridge, in 1841. From the 1860s metallic cartridges sealed the breech reliably, and bolt-action rifles followed. Smokeless powder, from the late 1880s, extended range and hid firing positions.",
-  "wordCount": 55,
-  "sources": [],
-  "uncertainty": "Earlier breech-loaders existed (for example in the United States from 1819); the node record dates the type from 1841.",
+  "description": "Breech-loading rifles take the cartridge at the rear of the barrel, so soldiers can reload faster, even lying down. Prussia began buying Dreyse's needle gun, whose long firing pin pierced a paper cartridge, in 1841, and its success in 1866 drew wide attention. Bolt-action rifles such as Mauser's followed, using metallic cartridges, and smokeless powder later allowed smaller bullets.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "MIL-004",
+    "claims": [
+     "Prussia began buying the Dreyse needle gun in 1841",
+     "Needle firing pin and paper cartridge"
+    ]
+   },
+   {
+    "sourceId": "MIL-005",
+    "claims": [
+     "Decisive in 1866 (Königgrätz)",
+     "Mauser rifles succeeded the Dreyse (1870s-80s)"
+    ]
+   },
+   {
+    "sourceId": "MIL-006",
+    "claims": [
+     "Smokeless powder allowed smaller projectiles"
+    ]
+   }
+  ],
+  "uncertainty": "Earlier breech-loaders existed (for example in the United States from 1819). Britannica entries give 1841 (first purchases) and 1843 (adoption) for the Dreyse.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Prussian adoption of the needle gun in 1841; metallic cartridges and bolt actions from the 1860s; smokeless powder from the late 1880s."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Prussia began buying the Dreyse needle gun in 1841",
+     "sources": [
+      "MIL-004"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Needle firing pin and paper cartridge",
+     "sources": [
+      "MIL-004"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Decisive in 1866 (Königgrätz)",
+     "sources": [
+      "MIL-005"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Mauser rifles succeeded the Dreyse (1870s-80s)",
+     "sources": [
+      "MIL-005"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Smokeless powder allowed smaller projectiles",
+     "sources": [
+      "MIL-006"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Faster reloading, including lying down",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Mauser-era rifles used metallic cartridges",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Rewrote the 1860s metallic-cartridge and late-1880s smokeless-powder dates, which no credible result stated, as relative statements; added 1866 and Mauser from Britannica. Britannica entries disagree on adoption (1841 purchase vs 1843 adoption). Earlier status: unverified (drafting lane; written from general knowledge with no source retrieved, search budget exhausted)."
   },
   "mechanicLink": "PROPOSED new node, deferred to the Battle layer (M7): PROPOSED unit.line_infantry (open decision); prerequisite of machine_gun."
  },
  {
   "id": "machine_gun",
   "tree": "technology",
-  "description": "A machine gun fires continuously while the trigger is held. Richard Gatling's 1862 design rotated several barrels with a hand crank. Hiram Maxim's gun of 1884 was fully automatic, using recoil energy to reload from a cloth belt, with a water jacket cooling the barrel. In the First World War, machine guns, wire and artillery helped produce trench deadlock.",
-  "wordCount": 59,
-  "sources": [],
-  "uncertainty": "Maxim guns first used black-powder cartridges and were adapted for smokeless powder in the late 1880s.",
+  "description": "Machine guns fire continuously while the trigger is held. Richard Gatling patented a hand-cranked gun with a rotating cluster of barrels in 1862. Hiram Maxim's gun, developed from about 1884, was fully automatic: recoil energy ejected each spent case and loaded the next round. In the First World War, machine guns, wire and artillery helped produce trench deadlock.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "MIL-007",
+    "claims": [
+     "Gatling 1862 crank-operated multibarrel gun"
+    ]
+   },
+   {
+    "sourceId": "MIL-008",
+    "claims": [
+     "Maxim from about 1884, recoil-operated automatic fire"
+    ]
+   }
+  ],
+  "uncertainty": "Maxim guns first used black-powder cartridges and were adapted for smokeless powder; some sources date the first Maxim gun to 1885.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Gatling 1862 hand-cranked multi-barrel; Maxim 1884 recoil-operated belt-fed; role in First World War deadlock."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Gatling 1862 crank-operated multibarrel gun",
+     "sources": [
+      "MIL-007"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Maxim from about 1884, recoil-operated automatic fire",
+     "sources": [
+      "MIL-008"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Role in First World War trench deadlock",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Removed the water-jacket detail (not corroborated) and reworded the Maxim sentence to the recoil mechanism Britannica describes. Some sources date the Maxim gun to 1885. Also removed the belt-feed detail (uncorroborated). Earlier status: unverified (drafting lane; written from general knowledge with no source retrieved, search budget exhausted)."
   },
   "mechanicLink": "PROPOSED new node, deferred to the Battle layer (M7): PROPOSED unit.machine_guns (open decision); prerequisite of tank; requires breech_loading_rifle."
  },
  {
   "id": "rifled_artillery",
   "tree": "technology",
-  "description": "Rifled breech-loading guns fired elongated shells that spun in flight, reaching farther and more accurately than round shot. William Armstrong's built-up wrought-iron breech-loader, developed at Elswick in the 1850s, was adopted by the British army at the end of that decade. Alfred Krupp's cast-steel breech-loaders, adopted by Prussia in the 1860s, proved durable and widely exported.",
-  "wordCount": 56,
-  "sources": [],
-  "uncertainty": "Britain later returned to muzzle-loaders for some years; national adoption dates differ by gun type.",
+  "description": "Rifled breech-loading guns fired elongated shells that spun in flight, reaching farther and more accurately than round shot. William Armstrong's built-up gun, with coils shrunk over a rifled inner tube, entered British service in 1859, though Britain reverted to muzzle-loaders in the mid-1860s. Prussia adopted its first Krupp breech-loader, forged from solid steel, in 1856; Krupp persevered with the principle.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "MIL-010",
+    "claims": [
+     "Armstrong built-up construction (tubes and coils on a rifled inner tube)",
+     "British adoption of the Armstrong system in 1859",
+     "Britain reverted to muzzle-loaders in the mid-1860s"
+    ]
+   },
+   {
+    "sourceId": "MIL-009",
+    "claims": [
+     "British adoption of the Armstrong system in 1859",
+     "Prussia adopted its first Krupp steel breechloader in 1856"
+    ]
+   },
+   {
+    "sourceId": "MIL-011",
+    "claims": [
+     "Krupp persevered with breech-loading"
+    ]
+   }
+  ],
+  "uncertainty": "Britain returned to muzzle-loaders from about 1864-65; Britannica says Prussian breech-loading artillery was finally introduced in 1861 after first adoption in 1856.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Armstrong gun (Elswick, 1850s) and British adoption; Krupp cast-steel guns adopted by Prussia in the 1860s."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Armstrong built-up construction (tubes and coils on a rifled inner tube)",
+     "sources": [
+      "MIL-010"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "British adoption of the Armstrong system in 1859",
+     "sources": [
+      "MIL-009",
+      "MIL-010"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Britain reverted to muzzle-loaders in the mid-1860s",
+     "sources": [
+      "MIL-010"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Prussia adopted its first Krupp steel breechloader in 1856",
+     "sources": [
+      "MIL-009"
+     ],
+     "result": "corrected"
+    },
+    {
+     "claim": "Krupp persevered with breech-loading",
+     "sources": [
+      "MIL-011"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Spinning elongated shells outranged and outshot round shot",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Changed 'Krupp's cast-steel breech-loaders, adopted by Prussia in the 1860s, proved durable and widely exported' to 'Prussia adopted its first Krupp breech-loader, forged from solid steel, in 1856; Krupp persevered' (Britannica gives 1856; durability/export claims uncorroborated). Removed 'Elswick' (not in results). Earlier status: unverified (drafting lane; written from general knowledge with no source retrieved, search budget exhausted)."
   },
   "mechanicLink": "PROPOSED new node, deferred to the Battle layer (M7): PROPOSED unit.field_artillery (open decision); prerequisite of tank; requires rifling, puddling and slide_rest_lathe."
  },
@@ -541,15 +929,47 @@
  {
   "id": "missile_defence",
   "tree": "technology",
-  "description": "Missile defence tries to detect, track and destroy attacking missiles before they reach their targets. The 1972 Anti-Ballistic Missile Treaty limited American and Soviet systems, which then relied on nuclear-armed interceptors. In 1984 an American test destroyed a target warhead by direct collision, the hit-to-kill approach later used by several systems. Interception remains difficult against large or decoy-laden attacks.",
-  "wordCount": 59,
-  "sources": [],
+  "description": "Missile defence tries to detect, track and destroy attacking missiles before they reach their targets. The 1972 Anti-Ballistic Missile Treaty limited American and Soviet systems, which then relied on nuclear-armed interceptors. In June 1984 an American test, the Homing Overlay Experiment, destroyed a target warhead by direct collision, the hit-to-kill approach later used by several systems.",
+  "wordCount": 56,
+  "sources": [
+   {
+    "sourceId": "MIL-020",
+    "claims": [
+     "June 1984 Homing Overlay Experiment hit-to-kill intercept of a target reentry vehicle"
+    ]
+   }
+  ],
   "uncertainty": "Effectiveness of deployed systems is contested and depends heavily on test conditions.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: ABM Treaty 1972; nuclear-armed interceptors; first hit-to-kill intercept in 1984."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "June 1984 Homing Overlay Experiment hit-to-kill intercept of a target reentry vehicle",
+     "sources": [
+      "MIL-020"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "1972 ABM Treaty limits on US and Soviet systems",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Systems then relied on nuclear-armed interceptors",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Hit-to-kill later used by several systems",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Named the 1984 test (Homing Overlay Experiment, 10 June 1984) from MIL-020. Removed the closing sentence on difficulty against large or decoy-laden attacks (uncorroborated). ABM Treaty and Safeguard statements appeared only in non-credible results, so they remain unsupported. Earlier status: unverified (drafting lane; written from general knowledge with no source retrieved, search budget exhausted)."
   },
   "mechanicLink": "Knowledge-only (class C): no unit family realizes interception; candidate owner the Battle layer (M7) strike resolution; requires radar and guided_munitions."
  },
@@ -571,15 +991,53 @@
  {
   "id": "guided_missile",
   "tree": "technology",
-  "description": "Guided missiles combine propulsion with a guidance system that corrects their course in flight. Germany's Henschel Hs 293, a rocket-boosted, radio-controlled glide bomb, sank Allied ships from 1943. In the 1950s radar- and infrared-homing missiles, such as the American Sidewinder, entered service for air defence and air combat, without needing lasers or stored-program computers.",
-  "wordCount": 54,
-  "sources": [],
+  "description": "Guided missiles combine propulsion with a guidance system that corrects their course in flight. Germany's Henschel Hs 293, a rocket-boosted glide bomb steered by radio, was first used in August 1943 and soon sank Allied ships, including HMS Egret. In the 1950s homing missiles entered service, such as the American infrared-guided Sidewinder, adopted by the US Navy in 1956.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "MIL-012",
+    "claims": [
+     "Hs 293 rocket-boosted radio-guided glide bomb, first used August 1943",
+     "Sank Allied ships including HMS Egret"
+    ]
+   },
+   {
+    "sourceId": "MIL-013",
+    "claims": [
+     "Sidewinder infrared homing, US Navy service 1956"
+    ]
+   }
+  ],
   "uncertainty": "This split part covers missiles of the 1940s–1950s; precision-guided bombs remain in guided_munitions.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Hs 293 rocket-boosted radio guidance and ship sinkings from 1943; Sidewinder service in the 1950s."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Hs 293 rocket-boosted radio-guided glide bomb, first used August 1943",
+     "sources": [
+      "MIL-012"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Sank Allied ships including HMS Egret",
+     "sources": [
+      "MIL-012"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Sidewinder infrared homing, US Navy service 1956",
+     "sources": [
+      "MIL-013"
+     ],
+     "result": "supported"
+    }
+   ],
+   "notes": "Supported only by Wikipedia (reference, medium confidence); no claim is disputed. Removed uncorroborated 'radar-homing' and 'without needing lasers or stored-program computers'. Ship-loss totals vary by source. Earlier status: unverified (drafting lane; written from general knowledge with no source retrieved, search budget exhausted)."
   },
   "mechanicLink": "PROPOSED new split part of guided_munitions, knowledge-only: candidate owner the Battle layer (M7); requires rocket and radar; prerequisite of guided_munitions."
  }

@@ -273,7 +273,7 @@
      "pros": [
       "no change to ratified-derived content (D-044 R4 'university / research institutional stage'; the stage _doc derivation, research.json:255; ADR-029 §8)",
       "keeps one explicit, measured point where the two economies interlock — the institution of learning",
-      "today's measured slack (66-67 turns) and the cost ratio (civic 3,730 vs technology 24,930 = 0.15) make a stall unlikely under any CP rate ≥ 0.3 of RP"
+      "today's measured slack (66-67 turns, AI polity) and the static ESTIMATE of tools/cp_gate.py (no stage delay for placeholder CP scale >= 0.5 per-turn / >= 1 per-sim-year with up to a 10,000-CP detour; cp-economy-proposal.md §4) make a stall unlikely unless CP is slow and spent elsewhere first"
      ],
      "cons": [
       "technology after A5 waits on the civics economy if CP is slow or the civics target is spent elsewhere",
@@ -290,7 +290,7 @@
       "causally clean: specialized knowledge needs no law code; a chartered university does"
      ],
      "cons": [
-      "re-reads a ★ settled ruling: 'the specialized branches become available when the civilization reaches the university/research institutional stage' (d044:145, ★ d044:796; digest S1-06) — the stage would become the knowledge half only; the stage expression itself is ratified content (D-046 F§1; digest S1-08) — a Director ruling",
+      "changes the stage expression, which is ratified content (D-046 F§1, d046:367; digest S1-08) — a dated Director content ruling plus dated notes on ADR-029 §8 and the research.json:255 _doc. It does not re-ask the ★ question (all five subtrees still open together at one stage, d044:145/796; digest S1-06), but the stage would carry no institutional (civic) atom, so 'university/research institutional stage' is then read as the knowledge half, with the institution in inst.university",
       "ResearchContentTests.cs:233-252 pins 'stage needs legal_code_roman'; goldens move where the civic lagged (attributed)",
       "stage closure falls from 18 nodes / 28,660 to 16 / 24,930 in the one-pool world too"
      ],
@@ -312,46 +312,51 @@
     }
    ],
    "sensitivityEstimate": {
-    "source": "tools/balance.py cp_coupling → data/balance-current.json (ESTIMATE from a static model: optimistic lower bound, all RP into the closure; CP = ratio × RP of the same polity as a stand-in until D-061.3; 'extraCP' = CP spent on other civics before the gate civics)",
-    "seed42ResearchStageDelayTurns": {
-     "extraCP_0": {
-      "0.05": 249,
-      "0.1": 79,
-      "0.15": 0,
-      "0.25": 0,
-      "0.5": 0,
-      "1.0": 0
+    "source": "tools/cp_gate.py -> data/balance-cp-gate.json (ESTIMATE, static model; CP from a candidate population-led equation with PROPOSED placeholder coefficients — never from RP)",
+    "reading": "See cp-economy-proposal.md §4 and research-balance-analysis.md §6.",
+    "supersededRatioStandIn": {
+     "source": "tools/balance.py cp_coupling → data/balance-current.json (ESTIMATE from a static model: optimistic lower bound, all RP into the closure; CP = ratio × RP of the same polity as a stand-in until D-061.3; 'extraCP' = CP spent on other civics before the gate civics)",
+     "seed42ResearchStageDelayTurns": {
+      "extraCP_0": {
+       "0.05": 249,
+       "0.1": 79,
+       "0.15": 0,
+       "0.25": 0,
+       "0.5": 0,
+       "1.0": 0
+      },
+      "extraCP_10000": {
+       "0.05": 709,
+       "0.1": 433,
+       "0.15": 307,
+       "0.25": 169,
+       "0.5": 17,
+       "1.0": 0
+      },
+      "extraCP_30000": {
+       "0.05": 1269,
+       "0.1": 809,
+       "0.15": 622,
+       "0.25": 427,
+       "0.5": 222,
+       "1.0": 58
+      }
      },
-     "extraCP_10000": {
-      "0.05": 709,
-      "0.1": 433,
-      "0.15": 307,
-      "0.25": 169,
-      "0.5": 17,
-      "1.0": 0
+     "seed42A5CoreDelayTurns": {
+      "extraCP_10000": {
+       "0.25": 120,
+       "0.5": 0
+      },
+      "extraCP_30000": {
+       "0.5": 173,
+       "1.0": 9
+      }
      },
-     "extraCP_30000": {
-      "0.05": 1269,
-      "0.1": 809,
-      "0.15": 622,
-      "0.25": 427,
-      "0.5": 222,
-      "1.0": 58
-     }
-    },
-    "seed42A5CoreDelayTurns": {
-     "extraCP_10000": {
-      "0.25": 120,
-      "0.5": 0
-     },
-     "extraCP_30000": {
-      "0.5": 173,
-      "1.0": 9
-     }
-    },
-    "reading": "With no other civic bought first the break-even ratio is 0.15 (= 3,730 / 24,930). This proposal adds 34,760 points of new civics (micro and macro) whose metadata Age is A1-A4: a player who buys most of them before systematic law delays the subtrees by roughly 60-430 turns at ratios 1.0-0.25 (ESTIMATE). That is a player's choice, but a heavy one; it is the main argument for Option B and the reason for the UI rule below."
+     "reading": "With no other civic bought first the break-even ratio is 0.15 (= 3,730 / 24,930). This proposal adds 34,760 points of new civics (micro and macro) whose metadata Age is A1-A4: a player who buys most of them before systematic law delays the subtrees by roughly 60-430 turns at ratios 1.0-0.25 (ESTIMATE). That is a player's choice, but a heavy one; it is the main argument for Option B and the reason for the UI rule below.",
+     "status": "SUPERSEDED 2026-10-22: modelled CP as ratio x RP, which the Director's intent excludes; kept for traceability only"
+    }
    },
-   "recommendation": "A, because the stage's institutional character is a ★ settled ruling (S1-06) and its expression is ratified content (S1-08): keep the atom, with tolerances P1-P6 as T6.3 acceptance, an AI civics lane that works gate civics first, D-061.3 aiming at CP ≥ 0.5 × RP (10,000 CP of other civics then costs about 17 turns, ESTIMATE), and a UI rule that marks legal_code_roman (and law_code) as 'opens the five subtrees' in the civics panel. B is the pre-registered remedy if P1-P4 fail after those remedies — it needs the Director to read S1-06 as the knowledge half of the university stage. C is rejected. The same guarantee covers the A5 CORE fact a5_systematic_law and the structural a5_wages gate (G-06).",
+   "recommendation": "A, because the stage's institutional character is a ★ settled ruling (S1-06) and its expression is ratified content (S1-08): keep the atom, with tolerances P1-P6 as T6.3 acceptance, an AI civics lane that works gate civics first, a D-061.3 CP equation defined on its own inputs (population-led, cp-economy-proposal.md §2) that passes P2 with a 10,000-CP detour in the static model (tools/cp_gate.py: placeholder scale >= 0.5-1.0 depending on reading and exponent, ESTIMATE), and a UI rule that marks legal_code_roman (and law_code) as 'opens the five subtrees' in the civics panel. B is the pre-registered remedy if P1-P4 fail after those remedies — it needs the Director to read S1-06 as the knowledge half of the university stage. C is rejected. The same guarantee covers the A5 CORE fact a5_systematic_law and the structural a5_wages gate (G-06).",
    "measuredClosures": {
     "stage": {
      "nodes": 18,
@@ -457,12 +462,17 @@
     {
      "id": "P5",
      "kind": "design-time precondition (before any run)",
-     "rule": "CP_turn(P) ≥ 0.30 × RP_turn(P) for population P in [20,000; 300,000] — the range in which the AI approaches the stage (56,550-59,580 at turn 500, 101,260-106,800 at turn 650, 153,054-270,681 at turn 800 in the baseline). 0.30 = 2 × 0.15, the ratio of the stage's civic part (3,730) to its technology part (24,930); the factor 2 covers taxation (1,050) bought first and the civics target spent elsewhere. Target (not a gate): ≥ 0.5, which keeps a 10,000-CP detour through other civics to about 17 turns of stage delay (ESTIMATE, sensitivityEstimate)."
+     "rule": "Before any run, the candidate D-061.3 CP equation (its own inputs; never a fraction or split of RP — cp-economy-proposal.md §2) must, in the static model (tools/cp_gate.py -> data/balance-cp-gate.json), accumulate the gate civics' closure (law_code + legal_code_roman = 3,730 CP) plus a 10,000-CP detour between the first writing completion and the one-pool stage turn on every seed and driver, i.e. pass P2 with detourCP = 10,000. ESTIMATE (static model). Replaces the earlier 'CP_turn >= 0.30 x RP_turn' form, which stated CP as a ratio of RP."
     },
     {
      "id": "P6",
      "kind": "remedy order",
      "rule": "if P1-P4 fail: (1) the AI civics lane works gate civics first; (2) revise D-061.3 CP inputs; (3) Option B. Never a civic or technology cost change (C-23)."
+    },
+    {
+     "id": "P7",
+     "kind": "tax edict (legacy live gate)",
+     "rule": "T_taxation(CP) <= max(T_taxation(twin) + 10, T_A3entry(twin)) on every seed and driver, so the operational tax edict (knowledge AND Age III AND seat) opens no later than in the twin. MEASURED twin: taxation 328-339, A3 entry 412-425 (AI). ESTIMATE under the placeholder CP equation: 329-351 (cp_gate.py, scale 1)."
     }
    ],
    "humanPlayers": "The tolerances bind AI and scripted drivers. A human who neglects civics delays the stage by choice; the stage lock must name the civic prerequisite across trees (legal_code_roman playerCommunication)."
@@ -964,7 +974,8 @@
   "counts": {
    "existingCivics": 7,
    "existingKept": 7,
-   "existingChanged": 0,
+   "existingContentChanged": 0,
+   "existingChangedNote": "Reconciled 2026-10-22 (legacyAudit): 'changed 0' is true of each legacy record's CONTENT fields only (key, id, name, Age, prerequisite, factors, cost). The proposal does change what surrounds them: entity re-points that drop a legacy civic from an institution requirement (OD-05; counted by the renderer from technology-tree-proposal.json entityChanges), the funding pool of all 7 under D-061.5, new civic dependants for 6 of 7, a restated capability block and a new civic block for all 7, an Ages-content change around coined_wage (OD-02/KD-22) and, under Option B only, the research stage expression.",
    "newMicro": 42,
    "newMacro": 18,
    "totalCivicsProposed": 67,
@@ -2058,6 +2069,104 @@
    "macroLeaves": "no macro is a prerequisite of any node and no macro requires another (checked)",
    "idsAgainstEntityShortIds": "no new id equals an entity short id (checked)",
    "displayNames": "no new display name duplicates an existing node or another new node (checked)"
+  },
+  "legacyAudit": {
+   "status": "Legacy civics audit — consumers/gates MEASURED (read-only); dispositions and recommendations PROPOSED; added 2026-10-22",
+   "anchorRule": "The seven legacy keys 1001-1007 are compatibility anchors: never renumbered, never re-keyed, ids never renamed; new civic keys append from 1008 (integrate.py CIVIC_KEY_START). Under D-061.4 as revised (shared key space, reserved civics range) and D-061.5 (carry 1:1), their RP progress rows are read as CP by the node's tree — no row is rewritten (append-only readable set, CanonicalSchema.cs:197-204).",
+   "changedZeroReconciliation": "The summary previously read 'kept 7, changed 0'. That is accurate for the records' content fields only: every legacy record keeps key, id, name, Age, prerequisite, six factors and cost (MEASURED: prereq == oldPrereq and cost == oldCost for all 7 in civics-tree-proposal.json). It is NOT accurate for their consumers and context: (a) OD-05 entity re-points remove census from 5 institution requirements, legal_code_roman from inst.guild and joint_stock from inst.central_bank (EC-10..EC-16); (b) all 7 change funding pool from RP to CP if D-061 is ratified; (c) 6 of 7 gain new civic dependants; (d) all 7 receive a restated capability block and a new civic block (progressionRole); (e) OD-02/KD-22 proposes an Ages-content change that would end coined_wage's de facto A5 gate; (f) Option B (not recommended) would remove legal_code_roman from the research stage. The summary line now states content and consumer changes separately.",
+   "source": "MEASURED from Sim.Data/content (research.json, ages.json, sim.json) and Sim.Core/Sim.Tests read-only at the package baseline",
+   "rows": [
+    {
+     "key": 1001,
+     "id": "law_code",
+     "oldPrereq": "(cuneiform OR hieroglyphic OR chinese_script)",
+     "proposedPrereq": "unchanged",
+     "consumersToday": "A3 supporting fact a3_law (ages.json:50); inst.law_code (research.json:28984, unrealized, unlock class J); prerequisite of legal_code_roman, hence in the closure of the research stage, inst.university and the A5 CORE fact; inside the AI core/university goal closures (AiResearchPolicy.cs:105-181)",
+     "proposedConsumerChanges": "none removed; gains 8 new civic dependants (assembly_democracy, city_state_oligarchy, civil_police, land_registry, municipal_charter, service_tenure, succession_law, theocracy); D-P vertical slice law_code -> law court -> ServiceOffset (PROPOSED, m6-spec G4)",
+     "disposition": "keep (anchor; progressionRole gate)",
+     "compatibilityRisk": "low for saves (key/id unchanged); medium for pacing: under CP it paces the stage atom through legal_code_roman",
+     "migrationTests": "ResearchContentTests.cs:62-77 pins exactly 7 civics with keys 1001+i (count pin moves when 1008+ append; these records do not); ResearchEngineTests.cs:532/548 (civics progress; one-pool pin superseded by two conservation pins, D-061 S-12); INSTITUTIONS lens labels completed civics 'Adopted' (Sim.Ui/Progression/Lenses.cs:62-68) — must read Researched/Available (I-2)",
+     "recommendation": "keep unchanged; show 'opens the five subtrees (via Systematic law)' while Option A stands"
+    },
+    {
+     "key": 1002,
+     "id": "legal_code_roman",
+     "oldPrereq": "law_code",
+     "proposedPrereq": "unchanged",
+     "consumersToday": "RESEARCH-STAGE ATOM: researchStage.requires (research.json:254) read by ResearchQuery.StageReached/IsBranchOpen (ResearchQuery.cs:81-94) — opens all five subtrees; inst.university 'library AND legal_code_roman' (research.json:29068) — the only civic consequence realized as an entity (university founding projects); inst.legal_code_roman (:29040); inst.guild (:29089); A5 CORE fact a5_systematic_law (ages.json:85); prerequisite of patent and joint_stock; AI university goal closure (AiResearchPolicy.cs:165-178)",
+     "proposedConsumerChanges": "inst.guild re-pointed to 'textile_workshop AND craft_guilds' (EC-10, OD-05); gains 9 new civic dependants; Option A: stage atom kept; Option B: removed from the stage, kept in inst.university; Option C: '(legal_code_roman OR civil_service_examinations)' (rejected)",
+     "disposition": "keep (anchor; progressionRole gate; the only civic gating Technology)",
+     "compatibilityRisk": "HIGH (pacing): under D-061 the stage, university eligibility and A5 CORE become CP-paced (docket C.1); saves: none (key unchanged)",
+     "migrationTests": "ResearchContentTests.cs:233-252 'stage needs legal_code_roman' (kept under A; superseded by a dated pin under B); ResearchEngineTests.cs:348 subtrees open together; UniversityRigs/InstitutionLifecycleTests/AiResearchGoalTests use it; T6.3 reachability baseline on seeds 1/2/42/7 (m6-spec dated note §3.4) with the PreCivicsPoints attribution twin",
+     "recommendation": "keep; Option A with the liveness safeguards of cp-economy-proposal.md §4 (choice left to the Director, KD-03 / D-061.8)"
+    },
+    {
+     "key": 1003,
+     "id": "census",
+     "oldPrereq": "(cuneiform OR hieroglyphic OR chinese_script) AND stamp_seal",
+     "proposedPrereq": "unchanged",
+     "consumersToday": "A4 supporting fact a4_census (ages.json:70; never binding, completed 1358-1624 by the AI); inst.census (:29033); inst.military_medicine (:29054), inst.mint_institution (:29061), inst.quarantine (:29096), inst.statistics_vital (:29145), inst.mass_schooling (:29152) — all unrealized (class J)",
+     "proposedConsumerChanges": "5 re-points away from census (EC-11..EC-15, OD-05): military_medicine -> standing_army, mint_institution -> appointed_officials, quarantine -> public_health_board, statistics_vital -> official_statistics AND epidemiology, mass_schooling -> compulsory_education (census stays in the closure of the last three); gains 6 new civic dependants",
+     "disposition": "keep (anchor; progressionRole age-supporting)",
+     "compatibilityRisk": "medium: holders of census lose eligibility for 5 unrealized institutions until the new civic is researched (no alias seam); no gameplay effect today",
+     "migrationTests": "unlock reverse-index tests (ResearchContent.cs:1246-1255) and the orphan validator move with the re-points; ResearchContentTests count pin",
+     "recommendation": "keep unchanged; apply the 5 re-points only on an explicit OD-05 ruling"
+    },
+    {
+     "key": 1004,
+     "id": "coined_wage",
+     "oldPrereq": "coinage_electrum",
+     "proposedPrereq": "unchanged",
+     "consumersToday": "A5 supporting fact a5_wages (ages.json:92) — DE FACTO MANDATORY for A5 entry until M7 (A5 needs 3 supporting facts over 3 categories; a5_wages is its only institutional_social fact and a5_heavy_infantry is pending): MEASURED AI A5 entry order turn = coined_wage completion on all four seeds (1233/1245/1225/1422); inst.coined_wage (:29026, unrealized)",
+     "proposedConsumerChanges": "none to the node; OD-02/KD-22 proposes a non-civic A5 material_economic supporting fact (Ages content) so that the civic stops being a structural gate",
+     "disposition": "keep (anchor; progressionRole age-supporting; treated as a gate civic until OD-02 is ruled)",
+     "compatibilityRisk": "medium-high: under CP the A5 entry turn becomes CP-paced through this civic (tolerance P4)",
+     "migrationTests": "AgeProgressionTests/AiAgeAdvancementIntegrationTests read the A5 entry; goldens move where A5 entry moves (attributed)",
+     "recommendation": "keep; rule KD-22; the AI civics lane values it at priority 2 while G-06 stands"
+    },
+    {
+     "key": 1005,
+     "id": "patent",
+     "oldPrereq": "legal_code_roman AND printing_press",
+     "proposedPrereq": "unchanged",
+     "consumersToday": "A7 supporting fact a7_patent (ages.json:129); inst.patent (:29131, unrealized)",
+     "proposedConsumerChanges": "none; G-19 notes a causal question (codified patent law predates printed specifications) — no change proposed pending a D-047-style review",
+     "disposition": "keep (anchor; progressionRole age-supporting)",
+     "compatibilityRisk": "low",
+     "migrationTests": "count pin only",
+     "recommendation": "keep unchanged"
+    },
+    {
+     "key": 1006,
+     "id": "joint_stock",
+     "oldPrereq": "bill_of_exchange AND legal_code_roman",
+     "proposedPrereq": "unchanged",
+     "consumersToday": "A7 supporting fact a7_company (ages.json:130; MEASURED: AI A7 entry order turn = joint_stock completion on all four seeds); inst.joint_stock (:29117); inst.central_bank 'joint_stock AND paper_money' (:29124)",
+     "proposedConsumerChanges": "inst.central_bank re-pointed to the civic central_banking (EC-16, OD-05; its prerequisites are exactly joint_stock AND paper_money); gains dependant central_banking",
+     "disposition": "keep (anchor; progressionRole age-supporting)",
+     "compatibilityRisk": "low-medium: binding in practice for AI A7 entry; holders lose inst.central_bank eligibility until central_banking (unrealized)",
+     "migrationTests": "count pin; Age-entry goldens only where A7 entry moves",
+     "recommendation": "keep unchanged; re-point only on OD-05"
+    },
+    {
+     "key": 1007,
+     "id": "taxation",
+     "oldPrereq": "token_counting AND stamp_seal AND (proto_writing OR hieroglyphic OR chinese_script)",
+     "proposedPrereq": "unchanged",
+     "consumersToday": "THE LIVE TAX-EDICT GATE: sim.json governance.taxationRequires 'taxation' (:268, R5 Director 2026-10-04) AND governance.taxationMinAge 3 (:270, H2 Director 2026-10-05, RATIFIED in d049) — both evaluated in Governance.GateOf/CanLevyTax (Governance.cs:251-302: KnowsTaxation = knowledge half, MeetsTaxationAge = Age III half, HasSeat), by GovernanceSystem on PREV, AvailableActionsQuery (:581-591), InfoQuery (:1774-1794) and the AI valve; the AI tax goal reads only the knowledge half (AiResearchPolicy.cs:155-165). Research is not Age-gated; the capability is. MEASURED: AI completes taxation at 328-339 but enters A3 at 412-425, so the Age III half binds the operational edict by 74-97 turns",
+     "proposedConsumerChanges": "none; gains 5 new civic dependants (appointed_officials, corvee_labour, representative_assembly, service_tenure, tax_farming)",
+     "disposition": "keep (anchor; progressionRole gate)",
+     "compatibilityRisk": "HIGH (behaviour): the only live gameplay gate among the 7; under CP the knowledge half becomes CP-paced and tax timing drives extraction -> stores -> goldens. The Age III half is unchanged by any civics proposal",
+     "migrationTests": "TaxAgeGateTests (5 facts), ResearchUnlockPipelineTests.cs:190-216 (T08b: the edict is the Taxation civic), GovernanceActionTests, InfoQueryTests, GovernanceRigs, PlayabilityGate.cs:342; new tolerance P7 (tax edict timing). Tooling finding: civics-tree-proposal.json derived.optional = true for taxation although its role is 'gate' — integrate.py's gate set is the research stage plus Age CORE facts only, so the tax edict closure is not protected by validator V24",
+     "recommendation": "keep both halves unchanged; under CP the AI tax goal moves to the civics lane at priority 1; the Age III requirement stays in sim.json, never in the civic"
+    }
+   ],
+   "findings": [
+    "No macro civic (regime form) appears in any Age fact (technology-tree-proposal.json ageFacts checked: 0 of 18) and no Age entry grants any civic; every macro carries ageRelation 'never an Age fact; no Age entry grants it' — consistent with the Director's rule that no government form is granted automatically by an Age transition. No content correction needed.",
+    "Every macro is a named module set (civic.regimeModule.moduleExpression) with a derived governmentLabel 'never read by a mechanism' — the frozen direction 'composable modules, not enum governments' (civ-sim-architecture-v3-outline.md:85; D-042:90-92 'avoid hard-coding governments as bundles of direct bonuses'); the enum-government test is arch-FGH §2.2 (PROPOSED). The capability grant string 'regime:form.<id>' is a deferred promise, not a stored government field.",
+    "Eligibility only in M6, adoption and active effects in M8: D-D RULED 2026-10-20 (m6-decision-register.md dated note, :235-237).",
+    "Tooling finding (not corrected here; changing it alters derived flags across both graphs): integrate.py computes derived.optional from the research stage and Age CORE facts only; the tax edict (sim.json) and inst.university requirements are outside that set, so taxation reads optional = true while its progressionRole is gate."
+   ]
   }
  },
  "existing": [

@@ -1,1 +1,1352 @@
-[]
+[
+ {
+  "id": "CVC1-001",
+  "title": "Location Theory and Complex Chiefdoms: A Mississippian Example",
+  "author_org": "Vincas P. Steponaitis (University of North Carolina, Research Laboratories of Archaeology)",
+  "published": "1978",
+  "url": "https://rla.unc.edu/personal/vps/articles/Steponaitis%201978%20(corrected).pdf",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "In Mississippian complex chiefdoms, what looks like redistribution may work more like tribute collection"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-002",
+  "title": "Assessing Human Diet and Movement in the Tongan Maritime Chiefdom Using Isotopic Analyses",
+  "author_org": "PLOS ONE (journal article)",
+  "published": null,
+  "url": "https://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0123156",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Tonga is treated as a (maritime) chiefdom, a classic Polynesian case",
+   "The Tu'i Tonga was the paramount chief; elites drew tribute from commoners"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-003",
+  "title": "Chiefdom",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Chiefdom",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Carneiro's definition: an autonomous unit of several villages under the lasting authority of a paramount chief",
+   "Service's model treats chiefdoms as redistributive; Earle's Hawaiian work argued chiefs handed out mainly prestige goods (wealth finance), disputing redistribution"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Wikipedia: used only alongside other sources for the disputed redistribution point.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-004",
+  "title": "Iroquois",
+  "author_org": "The Canadian Encyclopedia",
+  "published": null,
+  "url": "https://www.thecanadianencyclopedia.ca/en/article/iroquois",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The founding date of the Haudenosaunee (Iroquois) Confederacy is disputed"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-005",
+  "title": "Origins of the Haudenosaunee (Iroquois) Confederacy",
+  "author_org": "World History Encyclopedia",
+  "published": null,
+  "url": "https://www.worldhistory.org/article/1656/origins-of-the-haudenosaunee-iroquois-confederacy/",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Proposed founding dates range from 1142 (Mann and Fields, from an eclipse in oral tradition) to about 1450-1650; oral tradition gives no year"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-006",
+  "title": "Modu Chanyu",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Modu_Chanyu",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Modu took power in 209 BCE and ruled 209-174 BCE; 209 BCE is the traditional date for the unified Xiongnu polity"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Only source found for this date; not disputed, so used at medium confidence.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-007",
+  "title": "Early Dynastic Rulers (Narmer)",
+  "author_org": "Rosicrucian Egyptian Museum",
+  "published": null,
+  "url": "https://egyptianmuseum.org/explore/early-dynastic-period-rulers-narmer",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Many scholars regard Narmer as the unifier of Egypt and first king of the unified state"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-008",
+  "title": "Narmer",
+  "author_org": "World History Encyclopedia",
+  "published": null,
+  "url": "https://www.worldhistory.org/Narmer",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Narmer united Upper and Lower Egypt about 3150 BCE; the Narmer Palette's meaning is debated"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-009",
+  "title": "The Akkadian Period (ca. 2350-2150 B.C.)",
+  "author_org": "The Metropolitan Museum of Art (Heilbrunn Timeline)",
+  "published": null,
+  "url": "https://www.metmuseum.org/essays/the-akkadian-period-ca-2350-2150-b-c",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Akkadian period about 2350-2150 BCE; Sargon reigned roughly 2340-2285 BCE"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-010",
+  "title": "Sargon",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/biography/Sargon",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Sargon's reign usually dated about 2334-2279 BCE, though dates cannot be fixed exactly",
+   "A royal inscription claims 5,400 men took their meal daily before him, perhaps the nucleus of a standing army"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-011",
+  "title": "Sargon of Akkad: From Gardener to King of the Four Corners of the World",
+  "author_org": "World History Encyclopedia",
+  "published": null,
+  "url": "https://www.worldhistory.org/Sargon_of_Akkad/",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Sargon installed loyal officials and family members as governors and administrators in conquered cities and garrisoned them"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-012",
+  "title": "Shang dynasty",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/Shang-dynasty",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Shang dynasty dated about 1600-1046 BCE"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-013",
+  "title": "Oracle bone",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/oracle-bone",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The earliest inscribed oracle bones, from Anyang, are usually dated to about 1250 BCE"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-014",
+  "title": "Theocracy",
+  "author_org": "Encyclopedia.com (Encyclopedia of Religion)",
+  "published": null,
+  "url": "https://www.encyclopedia.com/religion/encyclopedias-almanacs-transcripts-and-maps/theocracy",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Priestly rule appeared in the Papal States of central Italy, which lasted 756-1870"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-015",
+  "title": "Paper, AAR Annual Meeting 2025: Tibetan and Bhutanese religious states",
+  "author_org": "American Academy of Religion",
+  "published": "2025",
+  "url": "https://papers.aarweb.org/node/105559",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "The regime of the Fifth Dalai Lama (1617-1682) governed Central Tibet and is often labelled theocratic by scholars"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Exact paper title not shown in the result; title here is descriptive.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-016",
+  "title": "Herihor",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/biography/Herihor",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Herihor, army officer and high priest of Amun at Karnak, founded a line of priest-kings ruling southern Egypt in the late 20th Dynasty (c. 1100-1051 BCE)"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-017",
+  "title": "King Smendes",
+  "author_org": "UCL Digital Egypt (University College London)",
+  "published": null,
+  "url": "https://www.ucl.ac.uk/museums-static/digitalegypt/chronology/smendes.html",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Herihor ruled Upper Egypt from Thebes as High Priest of Amun while Smendes was king in the north"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-018",
+  "title": "List of Rulers of Ancient Egypt and Nubia",
+  "author_org": "The Metropolitan Museum of Art",
+  "published": null,
+  "url": "https://www.metmuseum.org/toah/hd/phar/hd_phar.htm",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Herihor's high priesthood dated 1080-1074 BCE"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-019",
+  "title": "Athenian Democracy: a brief overview",
+  "author_org": "Demos: Classical Athenian Democracy (Stoa Consortium), C. W. Blackwell",
+  "published": null,
+  "url": "https://stoa.org/projects/demos/article_democracy_overview?page=all",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "From Kleisthenes' reforms to 322 BCE the assembly was the chief decision-maker on virtually all political issues",
+   "The Council of 500 was chosen by lot for one-year terms",
+   "Women, slaves and resident foreigners were excluded from political rights"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-020",
+  "title": "Cleisthenes of Athens",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/biography/Cleisthenes-of-Athens",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Cleisthenes' reforms of about 508/507 BCE based citizenship on the deme"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-021",
+  "title": "Rethinking Athenian Democracy",
+  "author_org": "Harvard University (DASH repository)",
+  "published": null,
+  "url": "https://dash.harvard.edu/bitstreams/7b597d3d-2b72-4be1-a1a9-d4b28bb037ed/download",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Some Athenian magistrates were selected by lot"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-022",
+  "title": "Ancient Political Philosophy",
+  "author_org": "Stanford Encyclopedia of Philosophy",
+  "published": null,
+  "url": "https://plato.stanford.edu/entries/ancient-political/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Polybius analysed Rome as a mixed constitution of consuls, senate and popular assemblies",
+   "Kingship at Rome ended about 509 BCE"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-023",
+  "title": "Polybius, Histories, Book 6 (English translation)",
+  "author_org": "LacusCurtius (Bill Thayer, University of Chicago)",
+  "published": null,
+  "url": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/6*.html",
+  "accessed": "2026-10-22",
+  "type": "archive",
+  "claims_supported": [
+   "Primary text of Polybius' account of the Roman constitution: consuls, senate and people"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-024",
+  "title": "Roman Republic",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/place/Roman-Republic",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "By the end of the republic it was accepted that the republic began in 509 BCE",
+   "The kingship was replaced by two annually elected consuls"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-025",
+  "title": "The Constitution of the Roman Republic: A Political Economy Perspective",
+  "author_org": "University of Chicago Law School (Chicago Unbound)",
+  "published": null,
+  "url": "https://chicagounbound.uchicago.edu/cgi/viewcontent.cgi?article=1300&context=public_law_and_legal_theory",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Consuls had equal, collegial power; the senate deliberated but had little legislative authority; popular assemblies enacted laws"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-026",
+  "title": "Heteronomy: Tyranny of a Construct?",
+  "author_org": "E-International Relations",
+  "published": "2019",
+  "url": "https://www.e-ir.info/2019/08/25/heteronomy-tyranny-of-a-construct/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "E. A. R. Brown's 1974 article began a continuing debate over whether 'feudalism' is a useful concept",
+   "Ganshof described feudalism as relations around the fief"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-027",
+  "title": "Elizabeth A. R. Brown",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Elizabeth_A._R._Brown",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Brown's 1974 American Historical Review article criticized the feudalism construct; Susan Reynolds extended the critique in 1994"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-028",
+  "title": "History of France: The emergence of France",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/history-of-France/The-emergence-of-France",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "In the late 9th and 10th centuries the western Frankish kings lost the ability to keep order; grants to retainers depleted royal land and regional princes built principalities"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-029",
+  "title": "Vassal",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/vassal",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "A fief was land granted for military service, confirmed by homage and an oath of loyalty",
+   "Vassals could subinfeudate parts of their fiefs to vassals of their own; fiefs became hereditary"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-030",
+  "title": "Internet History Sourcebooks Project: medieval lecture outline",
+  "author_org": "Fordham University",
+  "published": null,
+  "url": "https://sourcebooks.fordham.edu/lect/med10.asp",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Whether 'feudalism' really existed is an open debate among historians"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-031",
+  "title": "Great Council (Venetian political organization)",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/Great-Council-Venetian-political-organization",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The serrata of the Great Council is usually dated from 1297, but the closing took about a century"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-032",
+  "title": "Doge",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/doge",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "From the 12th century the aristocracy placed strict limits on the doge's powers"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-033",
+  "title": "Kamakura shogunate",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/Kamakura-shogunate",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The Kamakura shogunate, established by Minamoto Yoritomo in 1192, was a feudal military government lasting until 1333"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-034",
+  "title": "Japan 1000 CE: the samurai (Asia for Educators)",
+  "author_org": "Columbia University",
+  "published": null,
+  "url": "https://www.columbia.edu/itc/eacp/japanworks/special/japan_1000ce_samurai.htm",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "In 1185 a new government was founded by the Minamoto family in Kamakura"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-035",
+  "title": "Mamluk dynasty",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/Mamluk-dynasty-Egypt-Syria",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Mamluk regiments seized authority in Egypt in 1250; the sultanate ruled Egypt and Syria until Ottoman conquest in 1516-1517",
+   "Mamluk means slave; the rulers were drawn from military slaves"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-036",
+  "title": "The Art of the Mamluk Period (1250-1517)",
+  "author_org": "The Metropolitan Museum of Art",
+  "published": null,
+  "url": "https://www.metmuseum.org/essays/the-art-of-the-mamluk-period-1250-1517",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Mamluk period dated 1250-1517"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-037",
+  "title": "Commune (local government)",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/commune-local-government",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "By 1140 nearly every episcopal city in northern Italy had a communal government"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-038",
+  "title": "Building a State: Genoa's Rise and Fall (chapter)",
+  "author_org": "Avner Greif, Stanford University",
+  "published": null,
+  "url": "https://web.stanford.edu/~avner/Greif_Instutions/0%208%20Genoa%20-%20Chapter%20VIII.pdf",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Genoa set up a consular commune shortly after 1096, with consuls chosen by an assembly of citizens"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-039",
+  "title": "Licchavi",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://britannica.com/topic/Licchavi",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The Licchavis, with their capital at Vaishali, had a republican government with a general assembly of heads of leading Kshatriya families"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-040",
+  "title": "Decreta of León of 1188 - the oldest documentary manifestation of the European parliamentary system",
+  "author_org": "UNESCO Memory of the World Register",
+  "published": "2013",
+  "url": "https://en.unesco.org/memoryoftheworld/registry/251",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The Decreta record a curia of Alfonso IX of León in 1188 in which elected town representatives took part",
+   "UNESCO calls them the oldest documentary manifestation of the European parliamentary system"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-041",
+  "title": "TFG D 0086 (undergraduate thesis on medieval precedents of parliaments)",
+  "author_org": "Universidad de Valladolid (UVaDOC)",
+  "published": "2015",
+  "url": "https://uvadoc.uva.es/bitstream/10324/15088/1/TFG_D-0086.pdf",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "UNESCO's 'oldest parliament' wording for León is questioned by comparison with other medieval assemblies"
+  ],
+  "confidence": "low",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Student thesis; used only to show that the priority claim is disputed.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-042",
+  "title": "Simon de Montfort's Parliament",
+  "author_org": "UK Parliament (Living Heritage)",
+  "published": null,
+  "url": "https://www.parliament.uk/about/living-heritage/evolutionofparliament/originsofparliament/birthofparliament/overview/simondemontfort/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The 1265 parliament is seen as the first at which knights of the shires and town burgesses sat together to discuss national affairs"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-043",
+  "title": "List of people summoned to the 1265 Parliament",
+  "author_org": "The National Archives (UK)",
+  "published": null,
+  "url": "https://www.nationalarchives.gov.uk/explore-the-collection/stories/list-of-people-summoned-to-the-1265-parliament/",
+  "accessed": "2026-10-22",
+  "type": "archive",
+  "claims_supported": [
+   "Writs of December 1264 asked for two knights from each county and two burgesses from each borough",
+   "Earlier parliaments had already included knights, so 1265 was not the first such assembly"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-044",
+  "title": "Student thesis on Hittite royal succession and the Telipinu Proclamation",
+  "author_org": "Leiden University (Student Theses repository)",
+  "published": null,
+  "url": "https://studenttheses.universiteitleiden.nl/access/item%3A4256906/view",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Telipinu's succession rule: a first-rank king's son, then a second-rank son, then a husband chosen for a first-rank daughter",
+   "Scholars debate how far the edict reformed earlier succession practice"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-045",
+  "title": "Telipinus (Research Starters)",
+  "author_org": "EBSCO",
+  "published": null,
+  "url": "https://ebsco.com/research-starters/history/telipinus",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The Telipinu Proclamation, c. 1525-1500 BCE, set rules for peaceful succession to stop royal murders of previous decades"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-046",
+  "title": "Master's thesis on Hittite succession (Siim Mottus)",
+  "author_org": "University of Tartu (DSpace)",
+  "published": "2018",
+  "url": "https://dspace.ut.ee/bitstream/10062/63329/1/Siim_M6ttus_mag2018%20.pdf",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Telipinu issued an edict putting the ranks eligible for the throne in a fixed order"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-047",
+  "title": "Kuriltai",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/kuriltai",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The kuriltai was an assembly of Mongol leaders that chose the khan"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-048",
+  "title": "Kublai Khan",
+  "author_org": "World History Encyclopedia",
+  "published": null,
+  "url": "https://www.worldhistory.org/Kublai_Khan/",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Kublai was elected khan at a kurultai while his brother Arigh Boke held a rival kurultai; succession was contested"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-049",
+  "title": "China: The Zhou feudal system",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/place/China/The-Zhou-feudal-system",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Under the Zhou the line of lordship was regarded as the line of elder brothers, with political and family seniority"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-050",
+  "title": "Darius iii. Darius I the Great",
+  "author_org": "Encyclopaedia Iranica",
+  "published": null,
+  "url": "https://www.iranicaonline.org/articles/darius-iii/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Darius I completed the division of the empire into satrapies with fixed tribute; in 519 BCE he set up a new tax system based on measured land"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-051",
+  "title": "Achaemenid taxation",
+  "author_org": "Encyclopaedia Iranica",
+  "published": null,
+  "url": "https://www.iranicaonline.org/articles/achaemenid-taxation/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Tax sums set under Darius I remained practically unchanged for the rest of the empire"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-052",
+  "title": "Tiglath-pileser III",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/biography/Tiglath-pileser-III",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Tiglath-Pileser III (r. 745-727 BCE) reduced the size of provinces, raising their number from 12 to 25"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-053",
+  "title": "Tiglath Pileser III",
+  "author_org": "World History Encyclopedia",
+  "published": null,
+  "url": "https://www.worldhistory.org/Tiglath_Pileser_III/",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Tiglath-Pileser III required each province to provide men who could campaign year-round and set up a palace-run intelligence system"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-054",
+  "title": "Amarna Letters",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/Amarna-Letters",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The Amarna letters, found at Tell el-Amarna, date to the reigns of Amenhotep III and Akhenaten",
+   "Letters from Babylonia, Assyria, Mitanni and the Hittite court deal with gifts and diplomatic marriages"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-055",
+  "title": "Replica of Peace Treaty between Hattusilis and Ramses II",
+  "author_org": "United Nations (UN Gifts)",
+  "published": null,
+  "url": "https://www.un.org/ungifts/replica-peace-treaty-between-hattusilis-and-ramses-ii",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The treaty tablet was found in 1906 at Hattusa; the UN page dates the original to 1269 BC"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-056",
+  "title": "The Hittites",
+  "author_org": "World History Encyclopedia",
+  "published": null,
+  "url": "https://www.worldhistory.org/hittite/&xid=17259,15700023,15700124,15700186,15700190,15700201,15700237,15700242,15700248/",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The treaty between Ramesses II and Hattusili III is dated 1258 BCE"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-057",
+  "title": "Domesday Book",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/Domesday-Book",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "William I ordered the survey at Christmas 1085; it was made in 1086 and records landholding and land use"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-058",
+  "title": "Domesday Book (research guide)",
+  "author_org": "The National Archives (UK)",
+  "published": null,
+  "url": "https://www.nationalarchives.gov.uk/help-with-your-research/research-guides/domesday-book/",
+  "accessed": "2026-10-22",
+  "type": "archive",
+  "claims_supported": [
+   "Domesday is not a population census; evidence was taken through sworn inquests"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-059",
+  "title": "Torrens Title",
+  "author_org": "SA History Hub (History Trust of South Australia)",
+  "published": null,
+  "url": "https://sahistoryhub.history.sa.gov.au/subjects/torrens-title/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Robert Torrens championed the Real Property Act, passed in January 1858; title passes by registration on a public register"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-060",
+  "title": "Torrens, Sir Robert Richard",
+  "author_org": "Australian Dictionary of Biography (Australian National University)",
+  "published": null,
+  "url": "https://adb.anu.edu.au/biography/torrens-sir-robert-richard-4739",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Torrens is associated with South Australia's 1858 Real Property Act and registered title"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-061",
+  "title": "Imperial examination",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Imperial_examination",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Written examinations began in earnest under the Sui (Emperor Wen; a candidate category under Emperor Yang in 605); abolished by the Qing in 1905"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). No non-Wikipedia source found within the search budget.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-062",
+  "title": "Gwageo",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Gwageo",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Korea's examination system was introduced under Gwangjong of Goryeo in 958"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-063",
+  "title": "Civil service (archived 2022)",
+  "author_org": "Wikipedia (via Internet Archive)",
+  "published": null,
+  "url": "https://webcf.waybackmachine.org/web/20220416133043/https://en.wikipedia.org/wiki/Civil_service",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The Northcote-Trevelyan Report of 1854 recommended recruitment on merit through written examinations"
+  ],
+  "confidence": "low",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-064",
+  "title": "1668 - Sveriges Riksbank is founded",
+  "author_org": "Sveriges Riksbank",
+  "published": null,
+  "url": "https://www.riksbank.se/en-gb/about-the-riksbank/history/historical-timeline/1600-1699/sveriges-riksbank-is-founded/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The Riksdag decided in 1668 to found the bank later named Sveriges Riksbank, the world's oldest central bank"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-065",
+  "title": "The world's first central bank and the invention of banknotes",
+  "author_org": "Bank of England Museum",
+  "published": null,
+  "url": "https://www.bankofengland.co.uk/museum/online-collections/blog/world-first-central-bank-invention-of-banknotes",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The Bank of England was founded in 1694, about 26 years after the Riksbank, as the second-oldest central bank"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-066",
+  "title": "Lieutenant of police",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/lieutenant-of-police",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Louis XIV created the Paris police office in 1667; La Reynie held it 1667-1697 with regulatory, judicial and executive powers"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-067",
+  "title": "Metropolitan Police Act",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/Metropolitan-Police-Act",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The 1829 Act, sponsored by Robert Peel, established the London Metropolitan Police, a model for later forces in Britain, the Commonwealth and the United States"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-068",
+  "title": "Police: The development of professional policing in England",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/police/The-development-of-professional-policing-in-England",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Metropolitan officers were uniformed and salaried; Peel's principles stressed crime prevention"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-069",
+  "title": "The Edicts of Asoka (translation)",
+  "author_org": "Columbia University",
+  "published": null,
+  "url": "https://www.columbia.edu/itc/religion/f2001/edit/docs/edicts_asoka.pdf",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Rock Edict XII urges respect for all sects; the Rock Edicts date to about 257-256 BCE"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-070",
+  "title": "Edict of Milan",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/Edict-of-Milan",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The Edict of Milan (313) granted freedom of worship and legal standing to Christians in the Roman empire"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-071",
+  "title": "Edict of Nantes",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/event/Edict-of-Nantes",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The Edict of Nantes (1598) gave Huguenots freedom of conscience and limited rights of public worship; it was revoked in 1685"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-072",
+  "title": "Publican",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/publican",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Roman tax-collection contracts were let by the censors at auction, normally for five years, to companies of publicani"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-073",
+  "title": "The Organization of Athenian Public Finance",
+  "author_org": "Greece & Rome (Cambridge University Press)",
+  "published": null,
+  "url": "https://www.cambridge.org/core/journals/greece-and-rome/article/abs/organization-of-athenian-public-finance/88F2A8870BB176C0A871B5D6008621CC",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Athenian tax-collection contracts were let by officials called poletai (Ath. Pol. 47-48)"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-074",
+  "title": "Municipium Flavium Irnitanum: a Latin Town in Spain",
+  "author_org": "Julian Gonzalez, Journal of Roman Studies 76 (Cambridge University Press)",
+  "published": "1986",
+  "url": "https://www.cambridge.org/core/journals/journal-of-roman-studies/article/abs/municipium-flavium-irnitanum-a-latin-town-in-spain/9365B3524EC28B3ECCF891C663858C5C",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Bronze tablets found in 1981 near El Saucejo preserve part of the municipal law of the Flavian municipium of Irni"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-075",
+  "title": "The So-called Letter of Domitian at the End of the Lex Irnitana",
+  "author_org": "Journal of Roman Studies (Cambridge University Press)",
+  "published": null,
+  "url": "https://www.cambridge.org/core/journals/journal-of-roman-studies/article/abs/socalled-letter-of-domitian-at-the-end-of-the-lex-irnitana/C7659B0BD51B003DF59442CB5D51A167",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "The Lex Irnitana ends with a letter attributed to the emperor Domitian"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-076",
+  "title": "Gerousia",
+  "author_org": "Oxford Classical Dictionary (Oxford Research Encyclopedias)",
+  "published": null,
+  "url": "https://oxfordre.com/classics/display/10.1093/acrefore/9780199381135.001.0001/acrefore-9780199381135-e-2832",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "The Spartan gerousia comprised 28 men over 60, drawn in practice from leading families, with the two kings; membership was for life",
+   "It led the citizen assembly and was Sparta's highest court"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-077",
+  "title": "Apella",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/apella",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The Spartan assembly could not initiate proposals, considered matters put by the ephors or gerousia, and voted by shouts"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-078",
+  "title": "Ancient Egyptian Vizier",
+  "author_org": "World History Encyclopedia",
+  "published": null,
+  "url": "https://www.worldhistory.org/Egyptian_Vizier/",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The vizier was the most powerful official after the king, handling the daily running of government; early viziers were often royal relatives"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-079",
+  "title": "Ancient Egypt: The Old Kingdom (c. 2543-c. 2120 bce)",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/place/ancient-Egypt/The-Old-Kingdom-c-2543-c-2120-bce-and-the-First-Intermediate-period-c-2118-c-1980-bce",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Britannica dates the Old Kingdom c. 2543-c. 2120 BCE"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-080",
+  "title": "Horus",
+  "author_org": "World History Encyclopedia",
+  "published": null,
+  "url": "https://www.worldhistory.org/Horus/",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "From the First Dynasty, Egyptian kings aligned themselves with Horus and took a Horus name at coronation"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-081",
+  "title": "Ancient Egypt: The Early Dynastic period (c. 2900-c. 2544 bce)",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/place/ancient-Egypt/The-Early-Dynastic-period-c-2900-c-2544-bce",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Britannica dates the Early Dynastic period c. 2900-c. 2544 BCE; titles were added to the royal Horus name under the First Dynasty"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-082",
+  "title": "Timar",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/timar",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "A timar was a grant of lands or revenues by the Ottoman sultan in return for service, essentially similar to the iqta of the caliphate"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-083",
+  "title": "Eridu",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/place/Eridu",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Eridu, probably founded in the 5th millennium BCE, preserves a long sequence of superimposed temples of the Ubaid period"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-084",
+  "title": "Eridu: The Divine Birthplace of Kingship and Order",
+  "author_org": "World History Encyclopedia",
+  "published": null,
+  "url": "https://www.worldhistory.org/eridu/",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The earliest temple phase at Eridu dates to about 5500 BCE"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-085",
+  "title": "Uruk: The First City",
+  "author_org": "The Metropolitan Museum of Art (Heilbrunn Timeline)",
+  "published": null,
+  "url": "https://metmuseum.org/toah/hd/uruk/hd_uruk.htm&lang=en",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Pictographs on clay tablets at Uruk recorded the management of goods and the allocation of workers' rations, about 3200 BCE"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-086",
+  "title": "History of Mesopotamia: The emergence of Mesopotamian civilization",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/place/Mesopotamia-historical-region-Asia/The-emergence-of-Mesopotamian-civilization",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Large temples and construction needing organized labour appear in Uruk Levels VI-IV, around the turn of the 4th to 3rd millennium BCE"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-087",
+  "title": "Who Built the Pyramids? Not slaves (Harvard Magazine interview with Mark Lehner)",
+  "author_org": "Harvard University (Giza Project media library)",
+  "published": null,
+  "url": "https://gizamedia.rc.fas.harvard.edu/images/MFA-images/Giza/GizaImage/full/library/lehner_harvard_mag.pdf",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Pyramid builders worked in rotating gangs subdivided into phyles, not as slaves"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-088",
+  "title": "Who Built the Pyramids?",
+  "author_org": "PBS NOVA",
+  "published": null,
+  "url": "https://www.pbs.org/wgbh/nova/pyramid/explore/builders.html",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "Egyptologists estimate the Giza workforce at about 20,000 rather than Herodotus's 100,000; crews rotated"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC1-089",
+  "title": "Bureaucracy in the Achaemenid Empire: Learning from the Past",
+  "author_org": "World History Encyclopedia",
+  "published": null,
+  "url": "https://www.worldhistory.org/article/767/bureaucracy-in-the-achaemenid-empire-learning-from/",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Satraps were answerable to the king, and each satrapy's royal secretary, treasurer and garrison commander reported to the royal house rather than to the satrap"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results; attribution of each claim to this page is probable, not certain.",
+  "retrieval": "web-search-result"
+ }
+]

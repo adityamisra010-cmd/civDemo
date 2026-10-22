@@ -8,9 +8,9 @@ Original prose. Word counts are computed by the validator. Sources resolve in `h
 
 A sea-crossing raft binds logs, bamboo or reed bundles into a platform buoyant enough to carry people over open water. No Pleistocene craft survives; such vessels are inferred from where people arrived. Settling Sahul, the joined landmass of Australia and New Guinea, required sea crossings by at least 50,000 years ago; the craft's form is unknown.
 
-- words: 57 · fact-check: unverified (drafting lane; No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.)
-- sources: —
-- uncertainty: Arrival in Sahul is dated between roughly 50,000 and 65,000 years ago depending on the site and method; hominins on Flores about one million years ago imply a water crossing, but whether it was deliberate is contested. Raft form is inferred, not observed.
+- words: 57 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [TRN1-028] Sahul ≥50 ka; watercraft required; no direct evidence; [TRN1-029] crossings to Sahul
+- uncertainty: Arrival in Sahul is dated between roughly 50,000 and 65,000 years ago depending on the site and method; some researchers argue accidental drift on vegetation rafts could explain arrival, though drift modelling makes this unlikely. Hominins on Flores about one million years ago imply a water crossing, but whether it was deliberate is contested. Raft form is inferred, not observed.
 - relation to mechanics: Knowledge-only trunk node (unlock-audit class C): records open-water crossing knowledge and the eligibility class sea-edge.open-crossing; PROPOSED realization as a transport-packet edge type (M10+) that reveals no land, and it is one hull route to sail_square.
 
 ### 21 · Load-carrying dugout (`dugout`)
@@ -96,10 +96,10 @@ An engineered paved road is surveyed, drained and built in layers of stone, grav
 
 ### 158 · Breast-strap harness (`collar_harness`)
 
-The breast-strap harness passes a broad band across a horse's chest, moving the pull from the neck to the breastbone. Depictions from Warring States China, including Chu lacquerware of about 400-300 BCE, show it, and it was standard under the Han dynasty. Made of stitched leather straps, it preceded the padded horse collar by several centuries.
+The breast-strap harness passes a broad band across a horse's chest, moving the pull from the neck to the breastbone. A Chu lacquer box of the fourth century BCE shows a horse pulling against a chest yoke; breast straps then appear widely in Han-dynasty tomb reliefs. They preceded the padded collar, attested in China by about the fifth century CE.
 
-- words: 56 · fact-check: partially-checked (drafting lane; Claims compared with (a) claims the D08 design lane recorded as RESEARCHED from its WebSearch summaries (research/lane-notes/D08-transport-naval.md §3-§4 and §15, registered here as TRN1-xxx) and/or (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch was refused (shared per-turn budget of 200 calls exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.)
-- sources: [TRN1-006] breast-strap harness in Warring States China (Chu lacquerware), about 400-300 BCE, standard under the Han, padded collar distinct and later
+- words: 60 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [TRN1-006] breast-strap harness in Warring States China (Chu lacquerware), about 400-300 BCE, standard under the Han, padded collar distinct and later; [TRN1-030] Chu box chest yoke; Han breast straps; [TRN1-031] Warring States breast strap; collar about 5th century CE; choking debate
 - uncertainty: How much the older throat-and-girth harness limited horse traction is disputed; experimental work has challenged the classic claim that it choked horses.
 - relation to mechanics: Knowledge-only (class C): PROPOSED as horse haulage input to the effective bulk cost of overland routes (Q-C, M10+).
 
@@ -132,11 +132,11 @@ Monsoon navigation times voyages to the Indian Ocean's seasonal winds, which blo
 
 ### 168 · Lateen sail (`lateen`)
 
-The lateen is a triangular fore-and-aft sail set on a long, angled yard, letting a ship work closer to the wind than a square sail allows. Images place it in the eastern Mediterranean by about the 2nd century CE, and Indian Ocean sailors may have used it earlier; its origin is debated. It became typical of Arab and Mediterranean craft.
+The lateen is a triangular fore-and-aft sail on a long, angled yard, letting a ship work closer to the wind than a square sail. A second-century CE gravestone appears to show a related four-sided form, and a wreck of about 400 CE is reconstructed with a lateen rig. Its origin is debated. It became typical of Arab and Mediterranean craft.
 
-- words: 60 · fact-check: unverified (drafting lane; No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.)
-- sources: —
-- uncertainty: Origin is disputed between the Mediterranean and the Indian Ocean; early images are few.
+- words: 60 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [TRN1-032] 2nd-century gravestone; c. 400 CE wreck; [TRN1-033] Kelenderis interpretation debated
+- uncertainty: Origin is disputed: older works placed it in the Indian Ocean, while Mediterranean depictions earlier than the Arab conquests are now often cited; early images are few and their reading (e.g., the Kelenderis mosaic) is contested.
 - relation to mechanics: Knowledge-only (class C): records windward sailing; prerequisite of caravel and the carrack's lateen mizzen.
 
 ### 169 · Mortise-and-tenon hull (`mortise_hull`)
@@ -276,10 +276,10 @@ A railway network joins locomotives, iron rails, surveyed gradients, stations an
 
 ### 269 · Steamboat (`steamboat`)
 
-A steamboat drives paddle wheels with a steam engine, freeing travel from wind and current. Several inventors built experimental vessels in the 1780s and 1790s; Robert Fulton's North River Steamboat began regular service on the Hudson between New York and Albany in 1807. Steamers soon worked upstream on large rivers and, from the late 1830s, crossed oceans.
+A steamboat drives paddle wheels with a steam engine, freeing travel from wind and current. Several inventors built experimental vessels in the 1780s and 1790s; Robert Fulton's North River Steamboat began regular service on the Hudson between New York and Albany in 1807. Steamers soon worked upstream on large rivers and, later in the century, crossed oceans.
 
-- words: 57 · fact-check: unverified (drafting lane; No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.)
-- sources: —
+- words: 57 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [TRN1-034] Fulton 1807 New York-Albany; [TRN1-035] 17 August 1807; regular service
 - uncertainty: Priority among early steamboat builders in France, Britain and the United States is contested.
 - relation to mechanics: Knowledge-only (class C): PROPOSED as upriver and timetabled sea parameters of realized water edges; prerequisite of screw_propeller and iron_hull.
 
@@ -386,26 +386,26 @@ Satellite navigation fixes position by timing radio signals from several satelli
 
 The ocean-going junk combined a compartmented hull, a large rudder and battened sails with compass navigation, recorded at sea in 1111-1117. Song and Yuan merchants sailed such ships between China, Southeast Asia and India with the monsoons. The Quanzhou wreck of about 1275 had thirteen compartments, and Zheng He's fleets reached East Africa between 1405 and 1433.
 
-- words: 57 · fact-check: partially-checked (drafting lane; Claims compared with (a) claims the D08 design lane recorded as RESEARCHED from its WebSearch summaries (research/lane-notes/D08-transport-naval.md §3-§4 and §15, registered here as TRN1-xxx) and/or (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch was refused (shared per-turn budget of 200 calls exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.)
-- sources: [TRN1-008] compass navigation at sea recorded 1111-1117; [TRN1-009] Quanzhou wreck about 1275, 13 compartments; [TRN1-010] compartmented junk hulls
+- words: 57 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [TRN1-008] compass navigation at sea recorded 1111-1117; [TRN1-009] Quanzhou wreck about 1275, 13 compartments; [TRN1-010] compartmented junk hulls; [TRN1-019] Quanzhou wreck after 1272; [TRN1-020] 13 compartments; [TRN1-021] Quanzhou wreck
 - uncertainty: Zheng He's voyages are documented, but the size of his largest ships is disputed.
 - relation to mechanics: PROPOSED new node: an independent route to the oceanic class (activity.ocean_shipping, sea-edge.oceanic eligibility); no current effect; new coasts enter extent only when a voyage reaches them.
 
 ### 449 · Balloon flight (`balloon`)
 
-Balloon flight lifts people by buoyancy: an envelope of gas lighter than the surrounding air, either heated air or hydrogen. In 1783 the Montgolfier brothers' hot-air balloon and Jacques Charles's hydrogen balloon carried the first people aloft in Paris, ten days apart. French forces used a tethered observation balloon at the Battle of Fleurus in 1794.
+Balloon flight lifts people by buoyancy: an envelope of gas lighter than the surrounding air, either heated air or hydrogen. In 1783 the Montgolfier brothers' hot-air balloon and Jacques Charles's hydrogen balloon made the first free flights with people aboard, in Paris, ten days apart. French forces used a tethered observation balloon at the Battle of Fleurus in 1794.
 
-- words: 56 · fact-check: partially-checked (drafting lane; Claims compared with (a) claims the D08 design lane recorded as RESEARCHED from its WebSearch summaries (research/lane-notes/D08-transport-naval.md §3-§4 and §15, registered here as TRN1-xxx) and/or (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch was refused (shared per-turn budget of 200 calls exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.)
-- sources: [TRN1-013] Montgolfier and Charles balloons 1783, crewed flights on 21 November and 1 December 1783; [TRN1-014] observation balloon at Fleurus 1794
-- uncertainty: —
+- words: 59 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [TRN1-013] Montgolfier and Charles balloons 1783, crewed flights on 21 November and 1 December 1783; [TRN1-014] observation balloon at Fleurus 1794; [TRN1-022] 15 October 1783 tethered ascent; 1783 flights; [TRN1-023] Charles 1 December 1783; [TRN1-024] 1783 balloons; [TRN1-025] 21 November 1783
+- uncertainty: A tethered crewed ascent in a Montgolfier balloon (15 October 1783) preceded the free flights; sources differ on the Charles launch site (Tuileries or Champ-de-Mars).
 - relation to mechanics: PROPOSED new node (knowledge-only): a realized observation balloon (M7 asset) would multiply its observer's sight budget by a dimensionless vantage factor (D-039 B4), pointed and never global.
 
 ### 451 · Gliding flight (`glider`)
 
 Gliding flight depends on wings that generate lift and on controls that keep the craft balanced. George Cayley analysed lift, drag and thrust and flew a crewed glider at Brompton Dale in 1853. Otto Lilienthal made about 2,000 glides in 1891-1896 and published lift data. The Wright brothers' gliders of 1900-1902 developed control around three axes.
 
-- words: 57 · fact-check: partially-checked (drafting lane; Claims compared with (a) claims the D08 design lane recorded as RESEARCHED from its WebSearch summaries (research/lane-notes/D08-transport-naval.md §3-§4 and §15, registered here as TRN1-xxx) and/or (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch was refused (shared per-turn budget of 200 calls exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.)
-- sources: [TRN1-015] Cayley 1853 crewed glider, Lilienthal about 2,000 glides 1891-1896, lift data, Wright gliders 1900-1902, three-axis control; [TRN1-016] Cayley's lift, drag and thrust analysis, Brompton Dale 1853
+- words: 57 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [TRN1-015] Cayley 1853 crewed glider, Lilienthal about 2,000 glides 1891-1896, lift data, Wright gliders 1900-1902, three-axis control; [TRN1-016] Cayley's lift, drag and thrust analysis, Brompton Dale 1853; [TRN1-026] Cayley 1853; [TRN1-027] Lilienthal 1891-96, about 2,000 glides
 - uncertainty: —
 - relation to mechanics: PROPOSED new node (knowledge-only): records lift and three-axis control; prerequisite of aircraft.
 

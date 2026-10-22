@@ -107,15 +107,66 @@
  {
   "id": "physiology",
   "tree": "technology",
-  "description": "Physiology studies how the body's parts work, not only what they look like. William Harvey's De motu cordis (1628) used ligature experiments and estimates of how much blood the heart pumps to show that blood circulates continuously. Ibn al-Nafis had described the blood's passage through the lungs in thirteenth-century Cairo. Capillaries, which closed Harvey's circuit, were first seen in 1661.",
-  "wordCount": 60,
-  "sources": [],
-  "uncertainty": "Whether Ibn al-Nafis's account influenced later European writers is debated. Capillaries were reported by Marcello Malpighi in 1661.",
+  "description": "Physiology studies how the body's parts work, not only their form. William Harvey's De motu cordis (1628) used ligature experiments and estimates of how much blood the heart pumps to show that blood circulates continuously. Ibn al-Nafis had described the blood's passage through the lungs in the thirteenth century. Marcello Malpighi described the capillaries closing Harvey's circuit in 1661.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "MED-001",
+    "claims": [
+     "De motu cordis 1628; circulation",
+     "Ligature experiments",
+     "Malpighi capillaries 1661"
+    ]
+   },
+   {
+    "sourceId": "MED-002",
+    "claims": [
+     "Ibn al-Nafis described pulmonary circulation in the 13th century"
+    ]
+   }
+  ],
+  "uncertainty": "Whether Ibn al-Nafis's account influenced later European writers is debated.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
-   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: De motu cordis 1628 and Harvey's methods; Ibn al-Nafis pulmonary transit; capillaries 1661."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "De motu cordis 1628; circulation",
+     "sources": [
+      "MED-001"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Ligature experiments",
+     "sources": [
+      "MED-001"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Ibn al-Nafis described pulmonary circulation in the 13th century",
+     "sources": [
+      "MED-002"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Malpighi capillaries 1661",
+     "sources": [
+      "MED-001"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Harvey's estimates of blood quantity",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Removed 'Cairo' (not in results) and named Malpighi in the text. Harvey's blood-quantity argument not corroborated in result text. Earlier status: unverified (drafting lane; written from general knowledge with no source retrieved, search budget exhausted)."
   },
   "mechanicLink": "PROPOSED new node (split from anatomy_dissection), knowledge-only ('circulation of the blood', 'experimental physiology'); prerequisite of endocrinology and of blood transfusion."
  },
@@ -137,30 +188,142 @@
  {
   "id": "anaesthesia",
   "tree": "technology",
-  "description": "Surgical anaesthesia makes a patient insensible to pain for the length of an operation. In Boston in 1846, William Morton publicly demonstrated ether during surgery at Massachusetts General Hospital, and chloroform followed in Edinburgh in 1847. In Japan, Hanaoka Seishū had operated under an herbal general anaesthetic in 1804. Painless surgery permitted slower, more deliberate operations.",
-  "wordCount": 56,
-  "sources": [],
-  "uncertainty": "Priority is disputed: Crawford Long used ether in Georgia from 1842 but published later, and Horace Wells tried nitrous oxide in 1845. Hanaoka's method did not spread beyond Japan.",
+  "description": "Surgical anaesthesia makes a patient insensible to pain during an operation. In Boston in 1846, William Morton publicly demonstrated ether at Massachusetts General Hospital, though Crawford Long had used ether in Georgia from 1842 and priority remains contested. James Simpson introduced chloroform in Scotland in 1847. In Japan, Hanaoka Seishū had operated under his own anaesthetic formula in 1804.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "MED-021",
+    "claims": [
+     "Morton 1846 public demonstration at Massachusetts General Hospital",
+     "Simpson introduced chloroform in 1847, Scotland"
+    ]
+   },
+   {
+    "sourceId": "MED-020",
+    "claims": [
+     "Long used ether from 1842, published 1849; priority contested"
+    ]
+   },
+   {
+    "sourceId": "MED-022",
+    "claims": [
+     "Hanaoka 1804 operation under his anaesthetic formula"
+    ]
+   }
+  ],
+  "uncertainty": "Priority is disputed: Crawford Long used ether in Georgia from 1842 but published only in 1849, and Horace Wells used nitrous oxide for dental extraction from 1844. Hanaoka's work was little known outside Japan.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
-   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Morton 1846 at Massachusetts General Hospital; chloroform Edinburgh 1847; Hanaoka 1804."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Morton 1846 public demonstration at Massachusetts General Hospital",
+     "sources": [
+      "MED-021"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Long used ether from 1842, published 1849; priority contested",
+     "sources": [
+      "MED-020"
+     ],
+     "result": "disputed"
+    },
+    {
+     "claim": "Simpson introduced chloroform in 1847, Scotland",
+     "sources": [
+      "MED-021"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Hanaoka 1804 operation under his anaesthetic formula",
+     "sources": [
+      "MED-022"
+     ],
+     "result": "supported"
+    }
+   ],
+   "notes": "Made the priority dispute explicit in the text; changed 'Edinburgh' to 'Scotland' and 'herbal general anaesthetic' to 'his own anaesthetic formula' (wording the results support); removed 'Painless surgery permitted slower, more deliberate operations' (uncorroborated). Hanaoka source attribution is uncertain (low confidence), so the entry stays partially-checked. Earlier status: unverified (drafting lane; written from general knowledge with no source retrieved, search budget exhausted)."
   },
   "mechanicLink": "Knowledge-only ('long, deliberate surgery'); PROPOSED M9 operative-mortality term with hospitals; prerequisite of antiseptic surgery."
  },
  {
   "id": "germ_theory",
   "tree": "technology",
-  "description": "Germ theory holds that specific microorganisms cause specific infectious diseases. Microbes had been seen through Leeuwenhoek's microscopes in the 1670s, but evidence for disease causation came between about 1860 and 1880. Louis Pasteur linked microbes to fermentation and spoilage, and Robert Koch tied anthrax (1876) and then tuberculosis (1882) to identified bacteria using culture and staining.",
-  "wordCount": 56,
-  "sources": [],
-  "uncertainty": "Earlier contagion ideas (for example Fracastoro, 1546) preceded the theory; acceptance was gradual and contested into the 1880s and beyond.",
+  "description": "Germ theory holds that specific microorganisms cause specific infectious diseases. Leeuwenhoek had first seen bacteria through his microscopes nearly two centuries earlier, but evidence for disease causation came between the 1860s and the 1880s. Louis Pasteur linked microbes to fermentation and spoilage, and Robert Koch tied anthrax (1876) and then tuberculosis (1882) to identified bacteria using culture and staining.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "MED-023",
+    "claims": [
+     "Definition"
+    ]
+   },
+   {
+    "sourceId": "MED-024",
+    "claims": [
+     "Leeuwenhoek first observed bacteria",
+     "Pasteur: fermentation and souring caused by microorganisms",
+     "Koch anthrax 1876, tuberculosis 1882"
+    ]
+   },
+   {
+    "sourceId": "MED-025",
+    "claims": [
+     "Koch anthrax 1876, tuberculosis 1882",
+     "Culture and staining methods"
+    ]
+   }
+  ],
+  "uncertainty": "Earlier contagion ideas (for example Fracastoro, 1546; Henle, 1840) preceded the theory; acceptance was gradual and contested into the 1880s and beyond.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
-   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Leeuwenhoek 1670s; Pasteur fermentation work; Koch anthrax 1876 and tuberculosis 1882; culture and staining methods."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Definition",
+     "sources": [
+      "MED-023"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Leeuwenhoek first observed bacteria",
+     "sources": [
+      "MED-024"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Pasteur: fermentation and souring caused by microorganisms",
+     "sources": [
+      "MED-024"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Koch anthrax 1876, tuberculosis 1882",
+     "sources": [
+      "MED-024",
+      "MED-025"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Culture and staining methods",
+     "sources": [
+      "MED-025"
+     ],
+     "result": "supported"
+    }
+   ],
+   "notes": "Changed 'in the 1670s' to 'nearly two centuries earlier' (no result stated the decade) and 'between about 1860 and 1880' to 'between the 1860s and the 1880s' to include Koch's 1882 finding. Earlier status: unverified (drafting lane; written from general knowledge with no source retrieved, search budget exhausted)."
   },
   "mechanicLink": "Realized today: A8 supporting Age fact (a8_germ) and requirement of infra.sewerage_system; PROPOSED M9 transmission channel in which hygiene and sanitation lower transmission where realized."
  },
@@ -182,15 +345,66 @@
  {
   "id": "epidemiology",
   "tree": "technology",
-  "description": "Epidemiology studies how disease is distributed across populations and why. In 1662 John Graunt analysed London's bills of mortality, counting deaths by cause. In 1854 John Snow mapped cholera deaths around a Soho water pump and compared water companies' customers, arguing that cholera spread through water. Randomised trials, such as Britain's 1948 streptomycin trial, extended its comparative method.",
-  "wordCount": 58,
-  "sources": [],
-  "uncertainty": "Snow's waterborne explanation was not widely accepted at the time; the cholera bacterium was identified later (Pacini 1854, Koch 1883). Population counting and controlled comparison have several precursors.",
+  "description": "Epidemiology studies how disease is distributed across populations and why. In 1662 John Graunt analysed London's bills of mortality, counting deaths by cause. In 1854 John Snow mapped cholera deaths and water pumps in London and compared two water companies' customers, arguing that cholera spread through water. Randomised trials, such as Britain's 1948 streptomycin trial, extended its comparative method.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "MED-003",
+    "claims": [
+     "Graunt 1662 bills of mortality, deaths by cause",
+     "Snow compared two water companies' customers"
+    ]
+   },
+   {
+    "sourceId": "MED-004",
+    "claims": [
+     "Snow 1854 mapped deaths and pumps"
+    ]
+   },
+   {
+    "sourceId": "MED-005",
+    "claims": [
+     "1948 MRC streptomycin randomised trial"
+    ]
+   }
+  ],
+  "uncertainty": "Snow's waterborne explanation was not widely accepted at the time, and the pump handle's removal probably mattered little to the outbreak's end. The 1948 trial is often called the first randomised trial, a label historians dispute.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
-   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Graunt 1662 bills of mortality; Snow 1854 Soho pump and water-company comparison; 1948 MRC streptomycin trial."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Graunt 1662 bills of mortality, deaths by cause",
+     "sources": [
+      "MED-003"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Snow 1854 mapped deaths and pumps",
+     "sources": [
+      "MED-004"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Snow compared two water companies' customers",
+     "sources": [
+      "MED-003"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "1948 MRC streptomycin randomised trial",
+     "sources": [
+      "MED-005"
+     ],
+     "result": "supported"
+    }
+   ],
+   "notes": "Changed 'mapped cholera deaths around a Soho water pump' to 'mapped cholera deaths and water pumps in London' (the results describe mapping deaths and pump locations; 'Soho' not stated). Earlier status: unverified (drafting lane; written from general knowledge with no source retrieved, search budget exhausted)."
   },
   "mechanicLink": "PROPOSED new node, knowledge-only: in the M9 transmission channel surveillance shortens the delay before quarantine or water-source interventions act and improves their targeting; knowledge basis for inst.statistics_vital and a pre-germ-theory route to sanitation."
  },
@@ -212,15 +426,81 @@
  {
   "id": "antibiotic_broad",
   "tree": "technology",
-  "description": "Later antibiotics widened the range of bacteria that drugs could treat. Streptomycin, isolated from a soil microbe in Selman Waksman's laboratory in 1943, was the first effective drug against tuberculosis. Chloramphenicol (1947) and the tetracyclines (from 1948) followed, found by screening soil organisms and made with fermentation methods developed for penicillin.",
-  "wordCount": 51,
-  "sources": [],
-  "uncertainty": "Credit for streptomycin was disputed between Waksman and his student Albert Schatz. 'Broad-spectrum' strictly fits chloramphenicol and tetracyclines better than streptomycin.",
+  "description": "Later antibiotics widened the range of bacteria that drugs could treat. Streptomycin, isolated from a soil microbe by Albert Schatz in Selman Waksman's laboratory in 1943, soon proved effective against tuberculosis; credit for it was later contested. Chloramphenicol (1947) and the first tetracycline, chlortetracycline (1948), followed, both found by screening soil organisms.",
+  "wordCount": 52,
+  "sources": [
+   {
+    "sourceId": "MED-006",
+    "claims": [
+     "Streptomycin isolated by Schatz in Waksman's laboratory, 1943, from a soil organism",
+     "Effective against tuberculosis (1944)",
+     "Credit contested (Schatz lawsuit)"
+    ]
+   },
+   {
+    "sourceId": "MED-007",
+    "claims": [
+     "Streptomycin isolated by Schatz in Waksman's laboratory, 1943, from a soil organism"
+    ]
+   },
+   {
+    "sourceId": "MED-008",
+    "claims": [
+     "Chloramphenicol 1947 from a soil bacterium"
+    ]
+   },
+   {
+    "sourceId": "MED-009",
+    "claims": [
+     "Chlortetracycline 1948 from a soil actinomycete; first tetracycline"
+    ]
+   }
+  ],
+  "uncertainty": "Credit for streptomycin was disputed between Waksman and Albert Schatz, who sued and was recognized as co-discoverer. Which drug was the 'first broad-spectrum' antibiotic is contested (chloramphenicol and chlortetracycline are both so described); streptomycin fits the label less well.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
-   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Streptomycin 1943 from Waksman's laboratory; first effective tuberculosis drug; chloramphenicol 1947; tetracyclines 1948; soil screening and fermentation."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Streptomycin isolated by Schatz in Waksman's laboratory, 1943, from a soil organism",
+     "sources": [
+      "MED-006",
+      "MED-007"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Effective against tuberculosis (1944)",
+     "sources": [
+      "MED-006"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Credit contested (Schatz lawsuit)",
+     "sources": [
+      "MED-006"
+     ],
+     "result": "disputed"
+    },
+    {
+     "claim": "Chloramphenicol 1947 from a soil bacterium",
+     "sources": [
+      "MED-008"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Chlortetracycline 1948 from a soil actinomycete; first tetracycline",
+     "sources": [
+      "MED-009"
+     ],
+     "result": "supported"
+    }
+   ],
+   "notes": "Changed 'the first effective drug against tuberculosis' to 'soon proved effective against tuberculosis'; named Schatz and stated the credit dispute in the text; removed 'made with fermentation methods developed for penicillin' (uncorroborated). Earlier status: unverified (drafting lane; written from general knowledge with no source retrieved, search budget exhausted)."
   },
   "mechanicLink": "Knowledge-only ('tuberculosis curable', 'routine surgery'); PROPOSED M9 term for endemic bacterial burden in adult base mortality and case fatality; prerequisite of genetic engineering and antibiotic resistance management."
  },
@@ -451,45 +731,222 @@
  {
   "id": "endocrinology",
   "tree": "technology",
-  "description": "Endocrinology studies hormones, chemical messengers that glands release into the blood. In London in 1902, William Bayliss and Ernest Starling showed that secretin from the intestine triggers pancreatic secretion; Starling introduced the word hormone in 1905. In Toronto in 1922, a team of Frederick Banting, Charles Best, James Collip and John Macleod first treated a diabetic patient with purified insulin.",
-  "wordCount": 60,
-  "sources": [],
-  "uncertainty": "Gland extracts were used earlier (thyroid extract for myxoedema, 1891). Credit for insulin was disputed within the Toronto team.",
+  "description": "Endocrinology studies hormones, chemical messengers that glands release into the blood. In London in 1902, William Bayliss and Ernest Starling identified secretin, often called the first hormone; Starling introduced the word hormone in 1905. In 1922 a diabetic patient, Leonard Thompson, received insulin purified by James Collip, after work by Frederick Banting and Charles Best in John Macleod's laboratory.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "MED-010",
+    "claims": [
+     "Secretin 1902, University College London"
+    ]
+   },
+   {
+    "sourceId": "MED-011",
+    "claims": [
+     "Secretin 1902, University College London",
+     "Starling used 'hormone' in 1905"
+    ]
+   },
+   {
+    "sourceId": "MED-012",
+    "claims": [
+     "1922 first insulin patient Leonard Thompson; Collip purification"
+    ]
+   },
+   {
+    "sourceId": "MED-013",
+    "claims": [
+     "Banting and Best in Macleod's laboratory"
+    ]
+   }
+  ],
+  "uncertainty": "Gland extracts were used earlier (thyroid extract for myxoedema, 1891). Credit for insulin was disputed within the team; sources differ on who did what.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
-   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Bayliss and Starling 1902 secretin; 'hormone' 1905; Toronto insulin 1922 and team members."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Secretin 1902, University College London",
+     "sources": [
+      "MED-010",
+      "MED-011"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Starling used 'hormone' in 1905",
+     "sources": [
+      "MED-011"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "1922 first insulin patient Leonard Thompson; Collip purification",
+     "sources": [
+      "MED-012"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Banting and Best in Macleod's laboratory",
+     "sources": [
+      "MED-013"
+     ],
+     "result": "supported"
+    }
+   ],
+   "notes": "Changed 'showed that secretin ... triggers pancreatic secretion' to 'identified secretin, often called the first hormone' (wording the sources support); replaced 'In Toronto ... a team ... first treated a diabetic patient' with the named patient and roles from the results.  Earlier status: unverified (drafting lane; written from general knowledge with no source retrieved, search budget exhausted)."
   },
   "mechanicLink": "PROPOSED new node, knowledge-only ('insulin therapy', 'hormone replacement'); PROPOSED M9 base-mortality term for diabetes and endocrine disease in adult cohorts; prerequisite of the oral contraceptive and IVF."
  },
  {
   "id": "immunology",
   "tree": "technology",
-  "description": "Immunology studies the body's defences against infection and foreign material. In Berlin in 1890, Emil von Behring and Kitasato Shibasaburō showed that serum from immunised animals neutralised diphtheria and tetanus toxins, founding serum therapy. In Vienna in 1901, Karl Landsteiner used the clumping of red cells by serum to identify blood groups, later central to transfusion and diagnosis.",
-  "wordCount": 58,
-  "sources": [],
-  "uncertainty": "Immunology has several roots (Metchnikoff's cellular theory, Ehrlich's antibody theory); the node dates it from serum therapy and serology.",
+  "description": "Immunology studies the body's defences against infection. In Berlin in 1890, Emil von Behring and Kitasato Shibasaburō showed that immunised animals produced blood antitoxins against diphtheria or tetanus toxins, and that such serum could protect others, founding serum therapy. In 1901 Karl Landsteiner used the clumping of red cells by serum to define blood groups, later central to transfusion.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "MED-014",
+    "claims": [
+     "Behring and Kitasato 1890 antitoxins, Berlin Hygiene Institute",
+     "Serum therapy / passive immunisation"
+    ]
+   },
+   {
+    "sourceId": "MED-015",
+    "claims": [
+     "Behring and Kitasato 1890 antitoxins, Berlin Hygiene Institute"
+    ]
+   },
+   {
+    "sourceId": "MED-016",
+    "claims": [
+     "Landsteiner 1901 blood groups by agglutination"
+    ]
+   },
+   {
+    "sourceId": "MED-017",
+    "claims": [
+     "Landsteiner 1901 blood groups by agglutination",
+     "Relevance to transfusion"
+    ]
+   }
+  ],
+  "uncertainty": "Immunology has several roots (Metchnikoff's cellular theory, Ehrlich's antibody theory). A contemporary critique held that Behring was anticipated by Japanese workers, and Ehrlich's methods were needed for an effective serum.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
-   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Behring and Kitasato 1890 Berlin antitoxin; Landsteiner 1901 Vienna blood groups."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Behring and Kitasato 1890 antitoxins, Berlin Hygiene Institute",
+     "sources": [
+      "MED-014",
+      "MED-015"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Serum therapy / passive immunisation",
+     "sources": [
+      "MED-014"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Landsteiner 1901 blood groups by agglutination",
+     "sources": [
+      "MED-016",
+      "MED-017"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Relevance to transfusion",
+     "sources": [
+      "MED-017"
+     ],
+     "result": "supported"
+    }
+   ],
+   "notes": "Removed 'Vienna' and 'diagnosis' (not in results); described the 1890 experiment as Nobel sources state it. Earlier status: unverified (drafting lane; written from general knowledge with no source retrieved, search budget exhausted)."
   },
   "mechanicLink": "PROPOSED new node, knowledge-only; PROPOSED M9 case-fatality term for toxin diseases (diphtheria antitoxin) with hospitals; prerequisite of blood transfusion and monoclonal antibodies."
  },
  {
   "id": "sulfonamides",
   "tree": "technology",
-  "description": "Sulfonamides were the first synthetic drugs to cure common bacterial infections inside the body. At Bayer's laboratories in Elberfeld, Germany, Gerhard Domagk found in 1932 that the red dye Prontosil protected mice from streptococci; results appeared in 1935. Researchers in Paris then showed that the active part was sulfanilamide. Deaths from childbed fever fell from the mid-1930s.",
-  "wordCount": 57,
-  "sources": [],
-  "uncertainty": "Bayer was then part of IG Farben, and the chemists Klarer and Mietzsch synthesised the dye. Ehrlich's arsenical Salvarsan (1910) was an earlier synthetic antimicrobial, against syphilis.",
+  "description": "Sulfonamides were among the first synthetic drugs to treat bacterial infections inside the body. At Bayer in Germany, Gerhard Domagk found in 1932 that the dye Prontosil was far more effective than earlier dyes; results appeared in 1935. Researchers in Paris then showed that the active part was sulfanilamide. In 1936 Leonard Colebrook sharply reduced childbed-fever deaths with sulfonamides.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "MED-018",
+    "claims": [
+     "Domagk at Bayer, 1932, Prontosil",
+     "Published 1935",
+     "Paris researchers identified sulfanilamide as the active part (late 1935)",
+     "Colebrook reduced puerperal-fever deaths in 1936"
+    ]
+   },
+   {
+    "sourceId": "MED-019",
+    "claims": [
+     "Credit shared with chemist Klarer"
+    ]
+   }
+  ],
+  "uncertainty": "Bayer was then part of IG Farben, and the chemists Klarer and Mietzsch synthesised the dye; sources differ on how credit is shared. Ehrlich's arsenical Salvarsan (1910) was an earlier synthetic antimicrobial, against syphilis.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
-   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Domagk 1932 Elberfeld; Prontosil publication 1935; Paris sulfanilamide finding; mid-1930s fall in puerperal-sepsis deaths (cited in the node record from Loudon 1987, not checked)."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Domagk at Bayer, 1932, Prontosil",
+     "sources": [
+      "MED-018"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Published 1935",
+     "sources": [
+      "MED-018"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Paris researchers identified sulfanilamide as the active part (late 1935)",
+     "sources": [
+      "MED-018"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Colebrook reduced puerperal-fever deaths in 1936",
+     "sources": [
+      "MED-018"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Credit shared with chemist Klarer",
+     "sources": [
+      "MED-019"
+     ],
+     "result": "disputed"
+    },
+    {
+     "claim": "Among the first synthetic antibacterial drugs",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Removed 'Elberfeld' and 'red' (not in results); changed 'protected mice from streptococci' to the comparative effectiveness the results state; replaced 'Deaths from childbed fever fell from the mid-1930s' with Colebrook 1936. Softened 'the first synthetic drugs' to 'among the first'. Earlier status: unverified (drafting lane; written from general knowledge with no source retrieved, search budget exhausted)."
   },
   "mechanicLink": "PROPOSED new node, knowledge-only; PROPOSED M9 case-fatality term for bacterial infection, including childbirth-linked deaths in fertile cohorts; prerequisite of chemotherapy."
  }

@@ -17,15 +17,64 @@
  {
   "id": "water_frame",
   "tree": "technology",
-  "description": "The water frame spun strong cotton thread by drawing fibre between pairs of rollers turning at rising speeds, then twisting it onto a bobbin with a flyer. Richard Arkwright patented it in 1769, adapting roller drafting tried by Lewis Paul and John Wyatt in 1738. Its firm yarn suited warp. Arkwright's water-powered mill at Cromford ran from 1771 in shifts.",
+  "description": "The water frame spun strong cotton thread by drawing fibre between pairs of rollers turning at rising speeds, then twisting it onto a bobbin with a flyer. Richard Arkwright patented it in 1769, adapting roller drafting tried by Lewis Paul and John Wyatt in 1738. Its firm yarn suited warp. Arkwright began building a water-powered mill at Cromford in 1771.",
   "wordCount": 60,
-  "sources": [],
-  "uncertainty": "Credit is contested: Thomas Highs and the clockmaker John Kay were linked to the design, and Arkwright's patent was later annulled (1785). A horse-driven mill in Nottingham preceded Cromford.",
+  "sources": [
+   {
+    "sourceId": "IND2-011",
+    "claims": [
+     "1769 patent; Cromford built 1771; 1785"
+    ]
+   },
+   {
+    "sourceId": "IND2-012",
+    "claims": [
+     "Cromford working probably 1774"
+    ]
+   },
+   {
+    "sourceId": "IND2-013",
+    "claims": [
+     "1769 patent; rollers"
+    ]
+   }
+  ],
+  "uncertainty": "Credit is contested: Thomas Highs and the clockmaker John Kay were linked to the design, and Arkwright's patent was overturned in 1785. A horse-driven mill in Nottingham preceded Cromford, which probably began working by about 1774.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this batch's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: 1769 patent; Paul and Wyatt roller drafting (patent 1738); flyer-and-bobbin twisting; warp-strength yarn; Cromford mill opening 1771; shift working."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Rollers at increasing speeds draw out the fibre",
+     "sources": [
+      "IND2-013"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Arkwright patent 1769",
+     "sources": [
+      "IND2-011",
+      "IND2-013"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Cromford mill begun 1771",
+     "sources": [
+      "IND2-011"
+     ],
+     "result": "corrected"
+    },
+    {
+     "claim": "Paul and Wyatt roller drafting 1738; flyer and bobbin; warp yarn",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Changed 'Arkwright's water-powered mill at Cromford ran from 1771 in shifts' to 'Arkwright began building a water-powered mill at Cromford in 1771' because Grace's Guide gives 1771 for building while ERIH says the site probably began working in 1774, and shift working was not in search text. 1785 patent loss supported. Earlier drafting-lane note: No claim corroborated this session and no source recorded (none invented). Check first: 1769 patent; Paul and Wyatt roller drafting (patent 1738); flyer-and-bobbin twisting; warp-strength yarn; Cromford mill opening 1771; shift working."
   },
   "mechanicLink": "Deferred: completion makes building.textile_mill eligible (with power_loom as the alternative route) but no system builds it yet; PROPOSED for T6.11 as a per-building capacity term on the live weaving recipe. Prerequisites spinning_wheel AND water_mill (PROPOSED); prerequisite of spinning_mule."
  },
@@ -107,15 +156,75 @@
  {
   "id": "sanitary_engineering",
   "tree": "technology",
-  "description": "Sanitary engineering moved water and waste through piped networks. In 1829 James Simpson's slow-sand filters began cleaning Thames water for London's Chelsea Waterworks. After Hamburg's 1842 fire, William Lindley planned sewers built from 1843. London's main drainage, designed by Joseph Bazalgette and built mostly in 1859-1875, used brick sewers and steam pumps, while many still blamed disease on foul air.",
-  "wordCount": 60,
-  "sources": [],
-  "uncertainty": "Completion dates of London's main drainage are given variously (main works by about 1865-1875, extensions later); earlier sewers and filters existed elsewhere on a smaller scale.",
+  "description": "Sanitary engineering moved water and waste through piped networks. By 1829 James Simpson's slow-sand filter was cleaning Thames water for London's Chelsea Waterworks. After Hamburg's 1842 fire, William Lindley planned sewers for the rebuilt city. London's main drainage, designed by Joseph Bazalgette and built from 1859, used brick sewers and steam pumps, while many blamed disease on foul air.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "IND2-001",
+    "claims": [
+     "Simpson Chelsea 1829"
+    ]
+   },
+   {
+    "sourceId": "IND2-002",
+    "claims": [
+     "Lindley Hamburg sewers after 1842"
+    ]
+   },
+   {
+    "sourceId": "IND2-003",
+    "claims": [
+     "Lindley Hamburg 1842"
+    ]
+   },
+   {
+    "sourceId": "IND2-004",
+    "claims": [
+     "Bazalgette from 1859, brick sewers"
+    ]
+   }
+  ],
+  "uncertainty": "Completion dates of London's main drainage are given variously (main works by about 1865-1875, extensions later); the start date of Hamburg's sewer construction was not confirmed; earlier sewers and filters existed elsewhere on a smaller scale.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this batch's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Simpson's Chelsea filter 1829; Hamburg fire 1842 and Lindley sewers from 1843; Bazalgette's design; 1859-1875 construction; brick and steam pumping; prevailing miasma theory."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Simpson's slow-sand filter at Chelsea Waterworks by 1829",
+     "sources": [
+      "IND2-001"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Lindley planned Hamburg sewers after the 1842 fire",
+     "sources": [
+      "IND2-002",
+      "IND2-003"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Bazalgette's main drainage built from 1859 with brick sewers",
+     "sources": [
+      "IND2-004"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Steam pumping; prevailing miasma theory",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Hamburg sewers built from 1843; London works mostly 1859-1875",
+     "sources": [],
+     "result": "corrected"
+    }
+   ],
+   "notes": "Changed 'built mostly in 1859-1875' to 'built from 1859' because the 1843 and 1875 dates were not found in search text; 'In 1829 ... began cleaning' to 'By 1829 ... was cleaning' (ICE: prototype completed by 1829); 'planned sewers built from 1843' became 'planned sewers for the rebuilt city'; 'still blamed' became 'blamed'. Earlier drafting-lane note: No claim corroborated this session and no source recorded (none invented). Check first: Simpson's Chelsea filter 1829; Hamburg fire 1842 and Lindley sewers from 1843; Bazalgette's design; 1859-1875 construction; brick and steam pumping; prevailing miasma theory."
   },
   "mechanicLink": "PROPOSED new node: completion would make infra.sewerage_system eligible (re-pointed from 'germ_theory AND reinforced_concrete'); building it waits on T6.11 and a per-settlement health term. Prerequisites steam_rotary AND fired_brick."
  },
@@ -130,14 +239,77 @@
     "claims": [
      "Coke smelting at Coalbrookdale (from 1709) made the mass production of cast iron economically viable"
     ]
+   },
+   {
+    "sourceId": "IND2-005",
+    "claims": [
+     "Ditherington 1797 iron frame, fire"
+    ]
+   },
+   {
+    "sourceId": "IND2-006",
+    "claims": [
+     "Ditherington first iron-framed building"
+    ]
+   },
+   {
+    "sourceId": "IND2-008",
+    "claims": [
+     "Iron Bridge 1779/1781"
+    ]
+   },
+   {
+    "sourceId": "IND2-009",
+    "claims": [
+     "Darby III"
+    ]
+   },
+   {
+    "sourceId": "IND2-010",
+    "claims": [
+     "Crystal Palace prefabrication"
+    ]
    }
   ],
-  "uncertainty": "Ditherington is commonly called the first iron-framed building, though its outer walls are load-bearing brick; the Iron Bridge's dates are given as 1779 (erection) or 1781 (opening).",
+  "uncertainty": "Ditherington is commonly called the first fully iron-framed building, though its outer walls are load-bearing brick and Bell Mill at Stanley (1786) used cast-iron columns earlier; the Iron Bridge's ironwork was erected in summer 1779 and the bridge opened on 1 January 1781.",
   "factCheck": {
    "status": "partially-checked",
-   "checkedBy": "drafting lane",
-   "method": "First sentence compared with the search-result summary of a source registered by another lane (MAT2-002, English Heritage); the shared WebSearch budget was exhausted at this batch's first query (2026-10-22) and WebFetch is blocked, so the remaining claims rest on general knowledge with cautious wording.",
-   "notes": "Corroborated (via MAT2-002, search summary): coke smelting at Coalbrookdale made cast iron economically mass-produced. Not corroborated: Darby III as builder; 1779 erection and 1781 opening; Ditherington 1797 iron frame for fire resistance; Crystal Palace 1851 prefabrication."
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Coke smelting made cast iron plentiful",
+     "sources": [
+      "MAT2-002"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Iron Bridge cast by Darby III, erected 1779, opened 1781",
+     "sources": [
+      "IND2-008",
+      "IND2-009"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Ditherington Flax Mill 1797, iron columns and beams for fire resistance",
+     "sources": [
+      "IND2-005",
+      "IND2-006"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Crystal Palace 1851 prefabricated iron and glass",
+     "sources": [
+      "IND2-010"
+     ],
+     "result": "supported"
+    }
+   ],
+   "notes": "All dated claims now supported by search text this pass except the coke-smelting sentence, which rests on MAT2-002 (another lane's register entry, not re-searched). Earlier drafting note: coke smelting corroborated via MAT2-002 search summary. Earlier drafting-lane note: Corroborated (via MAT2-002, search summary): coke smelting at Coalbrookdale made cast iron economically mass-produced. Not corroborated: Darby III as builder; 1779 erection and 1781 opening; Ditherington 1797 iron frame for fire resistance; Crystal Palace 1851 prefabrication."
   },
   "mechanicLink": "PROPOSED new knowledge-only node (no simulated effect; no iron good exists): records iron bridges and iron-framed buildings. Prerequisite coke; PROPOSED prerequisite of skyscraper."
  },
@@ -161,13 +333,72 @@
   "tree": "technology",
   "description": "Numerical control directs a machine tool by coded instructions instead of a machinist's hands. John Parsons proposed the idea for cutting aircraft parts, and MIT's Servomechanisms Laboratory demonstrated a tape-controlled milling machine in 1952. In 1961 the Unimate, a programmable arm designed by George Devol and promoted by Joseph Engelberger, began handling hot die-castings at a General Motors plant.",
   "wordCount": 59,
-  "sources": [],
+  "sources": [
+   {
+    "sourceId": "IND2-014",
+    "claims": [
+     "Parsons; MIT project"
+    ]
+   },
+   {
+    "sourceId": "IND2-015",
+    "claims": [
+     "Parsons; MIT 1952"
+    ]
+   },
+   {
+    "sourceId": "IND2-016",
+    "claims": [
+     "MIT 1952 NC mill"
+    ]
+   },
+   {
+    "sourceId": "IND2-017",
+    "claims": [
+     "Unimate 1961 GM die-casting; Devol; Engelberger"
+    ]
+   },
+   {
+    "sourceId": "IND2-018",
+    "claims": [
+     "Unimate GM 1961"
+    ]
+   }
+  ],
   "uncertainty": "Credit for numerical control is shared between Parsons and the MIT laboratory (with US Air Force funding) and was disputed; the Unimate plant is usually placed in New Jersey.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this batch's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Parsons's proposal for aircraft parts; MIT demonstration 1952 with punched tape; Unimate 1961 at General Motors; Devol and Engelberger roles; die-casting task."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Parsons proposed numerical control for cutting aircraft (helicopter rotor-blade) parts",
+     "sources": [
+      "IND2-014",
+      "IND2-015"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "MIT Servomechanisms Laboratory demonstrated a tape-controlled milling machine in 1952",
+     "sources": [
+      "IND2-015",
+      "IND2-016",
+      "IND2-014"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Unimate, designed by Devol and promoted by Engelberger, handled hot die-castings at a GM plant from 1961",
+     "sources": [
+      "IND2-017",
+      "IND2-018"
+     ],
+     "result": "supported"
+    }
+   ],
+   "notes": "All claims match search-result text (Wikipedia, IEEE Computer Society, MIT Museum, Guinness World Records); MIT's later control of the project supports the shared-credit uncertainty; the GM plant was in Ewing Township, New Jersey. Earlier drafting-lane note: No claim corroborated this session and no source recorded (none invented). Check first: Parsons's proposal for aircraft parts; MIT demonstration 1952 with punched tape; Unimate 1961 at General Motors; Devol and Engelberger roles; die-casting task."
   },
   "mechanicLink": "Knowledge-only today (unlock-audit class C, no simulated effect); records flexible automation. Prerequisites computer AND milling_machine; prerequisite of additive_manufacturing."
  },

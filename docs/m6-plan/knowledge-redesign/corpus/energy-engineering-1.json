@@ -108,15 +108,57 @@
  {
   "id": "water_mill",
   "tree": "technology",
-  "description": "A water mill uses a flowing stream to turn a wheel that drives millstones, replacing human or animal labour in grinding grain. Evidence from the Greek world, including a debated site at Perachora, points to water mills by about the third century BCE. Roman engineers spread them widely, and Han China developed water-powered machinery independently by the first century CE.",
+  "description": "A water mill uses a flowing stream to turn a wheel driving millstones, replacing human or animal labour in grinding grain. Greek evidence suggests water-driven wheels by about the third century BCE, though it is debated; a Perachora wheel probably lifted water instead. Roman engineers spread water mills, and Han China developed water power independently by the first century CE.",
   "wordCount": 60,
-  "sources": [],
-  "uncertainty": "Origins are debated: Greek texts and the Perachora installation suggest the third century BCE, but dating and interpretation are contested; Chinese water power developed independently.",
+  "sources": [
+   {
+    "sourceId": "ENG1-037",
+    "claims": [
+     "Perachora wheel; reconstruction disputed"
+    ]
+   },
+   {
+    "sourceId": "ENG1-038",
+    "claims": [
+     "Perachora 3rd-century BCE water-lifting wheel"
+    ]
+   }
+  ],
+  "uncertainty": "Origins are debated: finds such as the Perachora wheel suggest water-driven wheels in the Greek world by the third century BCE, but that installation lifted water and its reconstruction is disputed; Chinese water power developed independently.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "No claim compared with any source: this drafting lane's WebSearch returned no results (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or design-lane record covers this node's claims. Written from general knowledge with cautious wording.",
-   "notes": "Uncorroborated: third-century BCE Greek evidence, Perachora, Roman spread, independent Han development. Needs a search pass."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Water-driven wheels in the Greek world by about the third century BCE (debated)",
+     "sources": [
+      "ENG1-037",
+      "ENG1-038"
+     ],
+     "result": "disputed"
+    },
+    {
+     "claim": "Perachora wheel was a water-lifting device, not a grain mill",
+     "sources": [
+      "ENG1-038",
+      "ENG1-037"
+     ],
+     "result": "corrected"
+    },
+    {
+     "claim": "Roman spread of water mills",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Han China water-powered machinery by the 1st century CE",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Changed 'Evidence from the Greek world, including a debated site at Perachora, points to water mills' to say the Perachora wheel probably lifted water rather than grinding, because the Kotsanas Museum and MPIWG results describe it as a water-lifting wheel with a disputed reconstruction. Roman spread and Han water power not covered by the search. Earlier drafting-lane note: Uncorroborated: third-century BCE Greek evidence, Perachora, Roman spread, independent Han development. Needs a search pass."
   },
   "mechanicLink": "Realized today as one route to the Age 6 supporting milestone a6_mills; building.water_mill and building.paper_mill are eligible with no realizing system (milling effects PROPOSED for later production chains)."
  },
@@ -255,22 +297,65 @@
  {
   "id": "dynamo",
   "tree": "technology",
-  "description": "A dynamo turns mechanical work into electric current by spinning coils through a magnetic field, using the induction Michael Faraday discovered in 1831. Early generators with permanent magnets were weak. In 1866-67 Werner Siemens, Charles Wheatstone and others made machines that fed part of their output to their own electromagnets, and Zénobe Gramme's dynamo of 1871 gave steady current.",
-  "wordCount": 59,
+  "description": "A dynamo turns mechanical work into electric current by spinning coils through a magnetic field, using the induction Michael Faraday discovered in 1831. In 1866-67 Henry Wilde, Werner Siemens, Charles Wheatstone and others made machines that fed part of their output to their own electromagnets, and Zénobe Gramme's ring dynamo of about 1870 gave steady current.",
+  "wordCount": 56,
   "sources": [
    {
     "sourceId": "NAT1-058",
     "claims": [
      "Faraday discovered electromagnetic induction in 1831"
     ]
+   },
+   {
+    "sourceId": "ENG1-039",
+    "claims": [
+     "Self-excitation 1866-67"
+    ]
+   },
+   {
+    "sourceId": "ENG1-040",
+    "claims": [
+     "Siemens and Wheatstone 1867; Varley 1866"
+    ]
+   },
+   {
+    "sourceId": "ENG1-041",
+    "claims": [
+     "Gramme dynamo dated 1869"
+    ]
    }
   ],
-  "uncertainty": "Priority for self-excitation is disputed: Ányos Jedlik and others described the principle earlier; Siemens and Wheatstone announced it almost simultaneously in 1867.",
+  "uncertainty": "Priority for self-excitation is disputed: Ányos Jedlik and others described the principle earlier; Wilde (1866), Varley (patent December 1866), and Siemens and Wheatstone (1867) announced versions almost simultaneously. Gramme's machine is dated 1869 or 1871 in different sources.",
   "factCheck": {
    "status": "partially-checked",
-   "checkedBy": "drafting lane",
-   "method": "Claims compared with (a) claims the D06 design lane recorded from its WebSearch summaries (research/lane-notes/D06-energy-engineering.md §17, registered here as ENG1-xxx) and (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch returned no results (shared per-turn budget exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
-   "notes": "Corroborated via NAT1-058: Faraday 1831. Not corroborated (general knowledge): self-excitation in 1866-67 and Gramme's 1871 machine."
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Faraday's induction 1831",
+     "sources": [
+      "NAT1-058"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Self-excitation 1866-67 by Wilde, Siemens, Wheatstone and others",
+     "sources": [
+      "ENG1-039",
+      "ENG1-040"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Gramme ring dynamo about 1870 gave steady current",
+     "sources": [
+      "ENG1-041"
+     ],
+     "result": "disputed"
+    }
+   ],
+   "notes": "Added Henry Wilde (1866), removed 'Early generators with permanent magnets were weak' (length), and changed Gramme 'of 1871' to 'of about 1870' because the VDE chronicle dates it 1869 and 1871 was not confirmed by a credible result. Faraday 1831 rests on NAT1-058 (another lane's register entry, not re-seen this pass). Earlier drafting-lane note: Corroborated via NAT1-058: Faraday 1831. Not corroborated (general knowledge): self-excitation in 1866-67 and Gramme's 1871 machine."
   },
   "mechanicLink": "Knowledge-only (class C): records electricity as a produced capacity; prerequisite of electric_light and electricity_generation."
  },
@@ -279,13 +364,67 @@
   "tree": "technology",
   "description": "An incandescent lamp makes light by heating a thin filament until it glows inside a glass bulb emptied of air, so the filament does not burn. Many inventors tried the idea; around 1878-80 Joseph Swan in England and Thomas Edison in the United States produced durable carbon-filament lamps. Unlike arc lamps, they were small, safe indoors and individually switched.",
   "wordCount": 59,
-  "sources": [],
-  "uncertainty": "Priority between Swan and Edison was contested; earlier experimental lamps by others predate both.",
+  "sources": [
+   {
+    "sourceId": "ENG1-042",
+    "claims": [
+     "Swan 1878-79 demonstrations"
+    ]
+   },
+   {
+    "sourceId": "ENG1-043",
+    "claims": [
+     "vacuum; Swan 1880 filament patent"
+    ]
+   },
+   {
+    "sourceId": "ENG1-044",
+    "claims": [
+     "Swan commercially viable lamp 1880"
+    ]
+   },
+   {
+    "sourceId": "ENG1-045",
+    "claims": [
+     "Edison's incandescent lamp"
+    ]
+   }
+  ],
+  "uncertainty": "Priority between Swan and Edison was contested (their British companies merged as Edison & Swan); earlier experimental lamps by others predate both; Swan's patent is dated 1878 or 1880 in different sources.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "No claim compared with any source: this drafting lane's WebSearch returned no results (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or design-lane record covers this node's claims. Written from general knowledge with cautious wording.",
-   "notes": "Uncorroborated: filament-in-vacuum principle, Swan and Edison 1878-80, comparison with arc lamps. Needs a search pass."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Filament heated in an evacuated bulb",
+     "sources": [
+      "ENG1-043"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Swan's carbon lamps 1878-80",
+     "sources": [
+      "ENG1-042",
+      "ENG1-043",
+      "ENG1-044"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Edison's durable carbon-filament lamp in the same period",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Contrast with arc lamps (small, safe indoors, individually switched)",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Search text supports Swan's demonstrations of 1878-79, the vacuum problem and his commercially viable carbonised-thread lamp of 1880; it names Edison's lamp (ETHW) but did not state Edison's 1879 date explicitly. Arc-lamp comparison not covered. Earlier drafting-lane note: Uncorroborated: filament-in-vacuum principle, Swan and Edison 1878-80, comparison with arc lamps. Needs a search pass."
   },
   "mechanicLink": "Knowledge-only (class C): records night work and urban lighting demand; it is the demand side required by electricity_generation."
  },
@@ -414,22 +553,76 @@
     "claims": [
      "Niagara to Buffalo 1896"
     ]
+   },
+   {
+    "sourceId": "ENG1-029",
+    "claims": [
+     "Ganz/ZBD closed-core transformer, 1885 demonstration"
+    ]
+   },
+   {
+    "sourceId": "ENG1-030",
+    "claims": [
+     "Lauffen-Frankfurt 1891, 175 km"
+    ]
+   },
+   {
+    "sourceId": "ENG1-031",
+    "claims": [
+     "Niagara to Buffalo, November 1896"
+    ]
+   },
+   {
+    "sourceId": "ENG1-032",
+    "claims": [
+     "Niagara to Buffalo, November 1896"
+    ]
    }
   ],
   "uncertainty": "Gaulard and Gibbs showed open-core transformers in 1881-84; the Ganz closed-core design is the usual practical starting point. Rival DC and AC systems competed in the late 1880s.",
   "factCheck": {
    "status": "partially-checked",
-   "checkedBy": "drafting lane",
-   "method": "Claims compared with (a) claims the D06 design lane recorded from its WebSearch summaries (research/lane-notes/D06-energy-engineering.md §17, registered here as ENG1-xxx) and (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch returned no results (shared per-turn budget exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
-   "notes": "Corroborated via the design-lane record: Ganz 1884-85, Lauffen-Frankfurt 1891 about 175 km, Niagara-Buffalo 1896. Not corroborated: the general loss mechanism (standard physics)."
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Transformers raise AC voltage for long-distance transmission with small losses and lower it for use",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Ganz works (ZBD team), closed-core transformers 1884-85",
+     "sources": [
+      "ENG1-029"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Lauffen-Frankfurt three-phase line 1891, about 175 km",
+     "sources": [
+      "ENG1-030"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Niagara generators supplied Buffalo from 1896",
+     "sources": [
+      "ENG1-031",
+      "ENG1-032"
+     ],
+     "result": "supported"
+    }
+   ],
+   "notes": "This pass: ZBD closed-core transformer at Ganz (public demonstration 1885) from a Wikipedia result; the 1884 start and Budapest location rest on the earlier design-lane records (ENG1-004..006), not re-seen. Lauffen-Frankfurt 175 km, 15 kV (IEEE milestone). Niagara power reached Buffalo 15-16 November 1896. The loss mechanism (standard physics) was not explicitly supported. Earlier lane-recorded sources kept. Earlier drafting-lane note: Corroborated via the design-lane record: Ganz 1884-85, Lauffen-Frankfurt 1891 about 175 km, Niagara-Buffalo 1896. Not corroborated: the general loss mechanism (standard physics)."
   },
   "mechanicLink": "PROPOSED new node split from electricity_generation: completion makes infra.power_grid knowledge-eligible; grid connectivity between settlements is deferred to the M11+ energy system."
  },
  {
   "id": "gas_engine",
   "tree": "technology",
-  "description": "The stationary gas engine burned its fuel inside the cylinder instead of under a boiler. Étienne Lenoir's engine of 1860 in Paris ran on coal gas without compressing it and used fuel wastefully. In 1876 Nikolaus Otto's engine, built at Deutz, compressed the gas-air mixture before igniting it in a four-stroke cycle, making small boiler-less workshop engines economical.",
-  "wordCount": 58,
+  "description": "The stationary gas engine burned its fuel inside the cylinder instead of under a boiler. Étienne Lenoir's engine of 1860, the first practical one, burned gas without compressing it first. In 1876 Nikolaus Otto's Cologne firm built an engine that compressed the gas-air mixture before igniting it in a four-stroke cycle, making small boiler-less workshop engines economical.",
+  "wordCount": 57,
   "sources": [
    {
     "sourceId": "ENG1-015",
@@ -443,22 +636,67 @@
     "claims": [
      "Lenoir 1860; Otto 1876"
     ]
+   },
+   {
+    "sourceId": "ENG1-033",
+    "claims": [
+     "Lenoir 1860 without compression",
+     "Otto 1876 four-stroke",
+     "Otto & Cie, Cologne"
+    ]
+   },
+   {
+    "sourceId": "ENG1-034",
+    "claims": [
+     "Lenoir 1860; Otto 1876"
+    ]
    }
   ],
-  "uncertainty": "Alphonse Beau de Rochas described the four-stroke principle in an 1862 patent; Otto's 1876 engine was the first successful one, and his patent was later challenged.",
+  "uncertainty": "Alphonse Beau de Rochas described the four-stroke principle in an 1862 patent; Otto's 1876 engine was the first successful one, and his patent was later challenged. Some accounts credit the 1876 design partly to Rings and Schumm.",
   "factCheck": {
    "status": "partially-checked",
-   "checkedBy": "drafting lane",
-   "method": "Claims compared with (a) claims the D06 design lane recorded from its WebSearch summaries (research/lane-notes/D06-energy-engineering.md §17, registered here as ENG1-xxx) and (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch returned no results (shared per-turn budget exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
-   "notes": "Corroborated via the design-lane record: Lenoir 1860, Otto's four-stroke compression engine 1876. Not corroborated: coal-gas fuel, Deutz, and the efficiency comparison."
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Lenoir 1860, first practical gas engine, no compression",
+     "sources": [
+      "ENG1-033",
+      "ENG1-034"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Otto's 1876 four-stroke compression engine",
+     "sources": [
+      "ENG1-033",
+      "ENG1-034"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Otto's firm was in Cologne (Otto & Cie, founded 1864)",
+     "sources": [
+      "ENG1-033"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Small boiler-less workshop engines became economical",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Changed 'in Paris ran on coal gas without compressing it and used fuel wastefully' to 'the first practical one, burned gas without compressing it first' and 'built at Deutz' to 'Otto's Cologne firm' because Paris, coal gas, fuel waste and Deutz were not supported by search-result text (Otto & Cie in Cologne was). Added Rings-Schumm credit to uncertainty. Earlier drafting-lane note: Corroborated via the design-lane record: Lenoir 1860, Otto's four-stroke compression engine 1876. Not corroborated: coal-gas fuel, Deutz, and the efficiency comparison."
   },
   "mechanicLink": "PROPOSED new node split from internal_combustion: completion row only; prerequisite of internal_combustion and diesel; a stationary power effect is deferred (no fuel good exists)."
  },
  {
   "id": "water_turbine",
   "tree": "technology",
-  "description": "A water turbine passes water under pressure through curved blades in a closed casing, extracting more energy than an open wheel, especially from high falls. Benoît Fourneyron's turbine of 1827 in France, James Francis's design at Lowell, Massachusetts (1849), and Lester Pelton's impulse wheel in California (1879) made high heads usable. Turbines later drove hydroelectric generators.",
-  "wordCount": 56,
+  "description": "A water turbine passes water under pressure through curved blades in a closed casing, extracting more energy than an open wheel, especially from high falls. Benoît Fourneyron's turbine of 1827 in France, James Francis's inward-flow design in the United States (1849), and Lester Pelton's impulse wheel in California (about 1880) made high heads usable. Turbines later drove hydroelectric generators.",
+  "wordCount": 59,
   "sources": [
    {
     "sourceId": "ENG1-013",
@@ -478,14 +716,61 @@
     "claims": [
      "turbine-driven generator at Lauffen, 1891"
     ]
+   },
+   {
+    "sourceId": "ENG1-035",
+    "claims": [
+     "Fourneyron 1827; Francis 1849; Pelton and Knight's wheel"
+    ]
+   },
+   {
+    "sourceId": "ENG1-036",
+    "claims": [
+     "Francis 1849"
+    ]
    }
   ],
   "uncertainty": "Pelton's wheel is dated 1879 (development) or 1880 (patent) in different sources.",
   "factCheck": {
    "status": "partially-checked",
-   "checkedBy": "drafting lane",
-   "method": "Claims compared with (a) claims the D06 design lane recorded from its WebSearch summaries (research/lane-notes/D06-energy-engineering.md §17, registered here as ENG1-xxx) and (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch returned no results (shared per-turn budget exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
-   "notes": "Corroborated via the design-lane record: Fourneyron 1827, Francis 1849, Pelton 1879, high heads, turbine-driven generation. Not corroborated: the relative-efficiency statement."
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Fourneyron turbine 1827",
+     "sources": [
+      "ENG1-035"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Francis inward-flow turbine 1849",
+     "sources": [
+      "ENG1-035",
+      "ENG1-036"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Pelton impulse wheel, California, about 1880",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Turbines extract more energy than open wheels, especially from high heads",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Turbines later drove hydroelectric generators",
+     "sources": [
+      "ENG1-007"
+     ],
+     "result": "supported"
+    }
+   ],
+   "notes": "Changed 'at Lowell, Massachusetts' to 'in the United States' (Lowell not in search text) and Pelton '1879' to 'about 1880' (search text gave no year; uncertainty notes 1879/1880). Britannica text links Pelton's work to Knight's wheel in California but does not date or place Pelton's wheel explicitly. Turbine-driven generation rests on the earlier lane record ENG1-007. Earlier drafting-lane note: Corroborated via the design-lane record: Fourneyron 1827, Francis 1849, Pelton 1879, high heads, turbine-driven generation. Not corroborated: the relative-efficiency statement."
   },
   "mechanicLink": "PROPOSED new node: completion row only; prerequisite of hydroelectric (dams drive turbines, not water wheels)."
  },
@@ -615,13 +900,55 @@
   "tree": "technology",
   "description": "An integrated circuit forms transistors, resistors and their connections together on one piece of semiconductor instead of wiring separate parts. Jack Kilby at Texas Instruments demonstrated one in 1958, and Robert Noyce at Fairchild devised a planar silicon version in 1959, independently. Patterning by photolithography, related to photographic printing, let factories make many identical chips together.",
   "wordCount": 56,
-  "sources": [],
-  "uncertainty": "Kilby and Noyce are both credited; patent disputes followed.",
+  "sources": [
+   {
+    "sourceId": "ENG1-046",
+    "claims": [
+     "Kilby 1958"
+    ]
+   },
+   {
+    "sourceId": "ENG1-047",
+    "claims": [
+     "Kilby September 1958"
+    ]
+   },
+   {
+    "sourceId": "ENG1-048",
+    "claims": [
+     "Noyce 1959 planar IC"
+    ]
+   }
+  ],
+  "uncertainty": "Kilby and Noyce are both credited; the companies litigated and then cross-licensed. Fairchild's first working monolithic ICs date from May 1960.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "No claim compared with any source: this drafting lane's WebSearch returned no results (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or design-lane record covers this node's claims. Written from general knowledge with cautious wording.",
-   "notes": "Uncorroborated: Kilby 1958, Noyce 1959, planar process, photolithography. Needs a search pass."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Kilby at Texas Instruments, working IC 1958",
+     "sources": [
+      "ENG1-046",
+      "ENG1-047"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Noyce at Fairchild, planar silicon IC 1959, independently",
+     "sources": [
+      "ENG1-048"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Photolithographic patterning allowed many identical chips to be made together",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Kilby September 1958 and Noyce's 1959 planar concept supported (IEEE Spectrum, Linda Hall Library, Computer History Museum). Photolithography statement not covered by the search. Earlier drafting-lane note: Uncorroborated: Kilby 1958, Noyce 1959, planar process, photolithography. Needs a search pass."
   },
   "mechanicLink": "Deferred: building.semiconductor_fab is eligible with no realizing system; a fab's output needs an electronics good (M11+ content, PROPOSED)."
  },

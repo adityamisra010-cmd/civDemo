@@ -62,8 +62,8 @@ A joint-stock company divides its capital into transferable shares held by many 
 
 Early taxation took the form of tribute in kind: a counted share of grain, livestock or craft goods owed to a ruler or temple. In Uruk-period Mesopotamia, from about 3300 BCE, officials recorded receipts and rations on clay tablets and sealed stored goods; in early dynastic Egypt, wealth was counted and harvests assessed, partly in light of the Nile flood.
 
-- words: 60 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
+- words: 60 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC1-085] In Uruk-period Mesopotamia officials recorded goods and rations on clay tablets
 - uncertainty: Whether early Uruk deliveries were taxes, rents or temple obligations is debated; Egyptian assessment practice is reconstructed from later and fragmentary records.
 - relation to mechanics: Existing civic (MEASURED): the only atom of governance.taxationRequires, so the tax edict is operational from Age III; PROPOSED it also roots the tax_farming and corvee_labour instruments.
 
@@ -96,127 +96,127 @@ Before writing, separate villages or kin groups could bind themselves together t
 
 ### 1011 · Organized priesthood (`organized_priesthood`)
 
-An organized priesthood is a body of full-time religious specialists who serve a temple, keep its festival calendar and manage its lands, herds and offerings. In southern Mesopotamia a long sequence of rebuilt shrines at Eridu begins in the sixth or fifth millennium BCE, and by about 3300-3000 BCE temple institutions at Uruk administered large estates and workforces.
+An organized priesthood is a body of full-time religious specialists who serve a temple, keep its festival calendar and manage its lands, herds and offerings. At Eridu in southern Mesopotamia a long sequence of superimposed temples begins in the Ubaid period, perhaps about 5500 BCE, and by about 3300-3000 BCE tablets at Uruk recorded goods and workers' rations.
 
-- words: 58 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
-- uncertainty: Whether the early Eridu shrines were staffed by full-time priests is inferred; the balance between temple and palace in the Uruk economy is debated. Priesthoods also arose independently elsewhere (Egypt, Mesoamerica, China).
+- words: 58 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC1-083] At Eridu a long sequence of superimposed temples begins in the Ubaid period, perhaps about 5500 BCE; [CVC1-084] At Eridu a long sequence of superimposed temples begins in the Ubaid period, perhaps about 5500 BCE; [CVC1-085] By about 3300-3000 BCE tablets at Uruk recorded goods and workers' rations; [CVC1-086] By about 3300-3000 BCE tablets at Uruk recorded goods and workers' rations
+- uncertainty: Whether the early Eridu shrines had full-time priests is inferred; Eridu's founding is dated 5th millennium (Britannica) or about 5500 BCE (WHE); the balance between temple and palace in the Uruk economy is debated. Priesthoods also arose independently elsewhere (Egypt, Mesoamerica, China).
 - relation to mechanics: PROPOSED civic-micro (not in content today): completion grants knowledge only ('a temple priesthood keeping the ritual calendar; temple estates managed by priests'); under M9 it is the institutional operand of Clergy emergence and under M8 the priestly-authority regime module - both deferred.
 
 ### 1012 · Chiefdom (`chiefdom`)
 
-A chiefdom, in anthropologists' usage, is a regional society of several villages under a paramount chief from a high-ranking lineage. The chief gathers tribute in food and goods, redistributes much of it at feasts, and leads in war and ritual, but rules through kin and allies without a bureaucracy or written law. Tonga in Polynesia is a classic ethnographic case.
+A chiefdom, in anthropologists' usage, is a regional society of several villages under the lasting authority of a paramount chief. Classic models have the chief collect tribute and redistribute it, though studies of Hawaii and the Mississippian southeast suggest tribute and prestige goods mattered more than redistribution. Tonga, under its paramount Tu'i Tonga, is a classic Polynesian case.
 
-- words: 60 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
-- uncertainty: 'Chiefdom' is a modern analytical category; whether particular archaeological cultures were chiefdoms, and whether some Polynesian polities (e.g. Hawaii at contact) were already early states, is debated.
+- words: 58 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC1-003] A chiefdom (anthropological category) is a regional society of several villages under the lasting authority of a paramount chief, Classic models have the chief ; [CVC1-001] Studies of Hawaii and the Mississippian southeast suggest tribute and prestige goods mattered more than redistribution; [CVC1-002] Tonga, under its paramount Tu'i Tonga, is a classic Polynesian case
+- uncertainty: 'Chiefdom' is a modern analytical category (Service, Carneiro); the redistributive model is disputed (Earle's 'wealth finance'); whether some Polynesian polities (e.g. Hawaii at contact) were already early states is debated.
 - relation to mechanics: PROPOSED civic-macro regime form (not in content today): completion grants knowledge only ('a regional chiefdom under a paramount chief'); under M8 the form is adopted as the module set hereditary_rank, and the government label is derived, never stored - deferred.
 
 ### 1013 · Tribal confederacy (`tribal_confederacy`)
 
 A tribal confederacy joins autonomous tribes or chiefdoms in a sworn league. Each member keeps its own leaders and customs, while a shared council handles war, peace and disputes between members, sometimes under a common war leader. The Xiongnu of the Mongolian steppe formed one around 209 BCE; the Haudenosaunee (Iroquois) Confederacy is another, though its founding date is debated.
 
-- words: 60 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
-- uncertainty: Haudenosaunee founding is dated variously from about the 12th to the 16th century CE; the internal structure of the Xiongnu polity (confederation or state) is debated.
+- words: 60 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC1-006] The Xiongnu formed a confederacy around 209 BCE; [CVC1-004] The Haudenosaunee Confederacy's founding date is debated; [CVC1-005] The Haudenosaunee Confederacy's founding date is debated
+- uncertainty: Proposed Haudenosaunee founding dates range from 1142 CE (Mann and Fields, from an eclipse in oral tradition) to about 1450-1650 CE; oral tradition gives no year. 209 BCE is Modu's accession, the traditional date for the unified Xiongnu polity, whose internal structure (confederation or state) is debated.
 - relation to mechanics: PROPOSED civic-macro regime form (not in content today): completion grants knowledge only ('a sworn league of autonomous tribes'); under M8 the form is adopted as the module set oath_alliance, label derived not stored - deferred.
 
 ### 1014 · Appointed officials (`appointed_officials`)
 
-Rulers who govern through appointed officials rely on agents they choose, pay and can dismiss, who act on written instructions and report in writing, holding office by commission, not birth. Old Kingdom Egypt, from about 2600 BCE, had ranked royal officials headed by a vizier, and the Third Dynasty of Ur (about 2100-2000 BCE) placed governors over its provinces.
+Rulers who govern through appointed officials rely on agents they choose, pay and can dismiss, who act on written instructions and report in writing, holding office by commission, not birth. Old Kingdom Egypt, in the third millennium BCE, had ranked royal officials headed by a vizier, and the Third Dynasty of Ur (about 2100-2000 BCE) placed governors over its provinces.
 
-- words: 59 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
-- uncertainty: In practice many appointed offices tended to become hereditary; dates are approximate.
+- words: 60 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC1-078] Old Kingdom Egypt, in the third millennium BCE, had royal officials headed by a vizier; [CVC1-079] Old Kingdom Egypt, in the third millennium BCE, had royal officials headed by a vizier
+- uncertainty: In practice many appointed offices tended to become hereditary; early Egyptian viziers were often royal relatives; dates differ between chronologies.
 - relation to mechanics: PROPOSED civic-micro (not in content today): completion grants knowledge only ('officials appointed and removed by the ruler, acting on written orders'); under M8 it is the officialdom regime module of kingship and empire forms and under M9 an operand of Bureaucrats emergence - both deferred.
 
 ### 1015 · Corvée labour (`corvee_labour`)
 
 Corvée is labour owed to the state rather than produce: households supply workers for a set period to dig canals, build walls and roads, or raise monuments, organized in rotating gangs under officials. Old Kingdom Egypt used rotating crews on royal building projects, and comparable labour duties existed in Mesopotamia, imperial China and the Inca empire (the mit'a).
 
-- words: 58 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
-- uncertainty: How far Egyptian pyramid crews were conscripted rather than paid or volunteer is debated; terms and burdens varied widely between states.
+- words: 58 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC1-087] Old Kingdom Egypt used rotating crews on royal building projects; [CVC1-088] Old Kingdom Egypt used rotating crews on royal building projects
+- uncertainty: How far Egyptian pyramid crews were conscripted rather than paid or volunteer is debated (Egyptologists reject the slave model); terms and burdens varied widely between states.
 - relation to mechanics: PROPOSED civic-micro policy (not in content today): completion grants knowledge only ('labour service owed to the state, worked in rotating gangs'); under M8 GovernanceSystem and ConstructionSystem would read it as a labour levy diverted to public construction, felt as an exaction and limited by administrative reach - deferred.
 
 ### 1016 · Council of notables (`elite_council`)
 
-A council of notables is a standing body limited to leading families, office-holders or the wealthy, which deliberates on war, law and finance and may advise, restrain or replace a single ruler. Sparta's gerousia, a council of elders sitting with its two kings and attested by the seventh century BCE, and the senate of the Roman Republic are well-known examples.
+A council of notables is a standing body limited to leading families, office-holders or the wealthy, which deliberates on war, law and finance and may advise or restrain a single ruler. Sparta's gerousia, twenty-eight men over sixty who served for life alongside its two kings, and the senate of the Roman Republic are well-known examples.
 
-- words: 60 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
-- uncertainty: The date of Sparta's constitutional arrangements (the 'Great Rhetra') is uncertain; the early Roman senate is known mainly from much later accounts.
+- words: 55 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC1-076] Sparta's gerousia: 28 men over sixty serving for life alongside two kings; [CVC1-022] The Roman Republic's senate as an example; [CVC1-025] The Roman Republic's senate as an example
+- uncertainty: The date of Sparta's constitutional arrangements (the 'Great Rhetra', ascribed to Lycurgus) is uncertain; the early Roman senate is known mainly from much later accounts.
 - relation to mechanics: PROPOSED civic-micro (not in content today): completion grants knowledge only ('a council of leading families deliberating on war, law and finance'); under M8 it is the oligarchic council module of city-state and republican forms and makes the 'call a council' crisis remedy available - deferred.
 
 ### 1017 · Envoys and diplomatic letters (`royal_envoys`)
 
-Envoys carried sealed letters and gifts between rulers, travelling under protection and received according to an agreed protocol. Archives at Ebla in Syria, of about the 24th century BCE, include diplomatic correspondence, and the Amarna letters, cuneiform tablets of about 1360-1330 BCE found in Egypt, record envoys exchanged between the pharaoh and kings of Babylon, Mitanni, Hatti and Assyria.
+Envoys carried sealed letters and gifts between rulers, travelling under protection and received by agreed protocol. Archives at Ebla, of about the 24th century BCE, include diplomatic correspondence, and the Amarna letters, cuneiform tablets of the reigns of Amenhotep III and Akhenaten found in Egypt, record gifts and marriage talks between the pharaoh and kings of Babylon, Mitanni, Hatti and Assyria.
 
-- words: 59 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
+- words: 61 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC1-054] Amarna letters, of the reigns of Amenhotep III and Akhenaten, record gifts and marriage talks with Babylon, Mitanni, Hatti and Assyria
 - uncertainty: Dates are approximate; protections for envoys were customary and were sometimes violated.
 - relation to mechanics: PROPOSED civic-micro (not in content today): completion grants knowledge only ('accredited envoys carrying sealed letters between rulers'); under M8 Diplomacy it would open a diplomatic channel to a known polity - deferred, no diplomacy system exists.
 
 ### 1018 · Sacred kingship (`sacral_kingship`)
 
-Sacred kingship treats the ruler as divine or divinely chosen, and makes the king the chief mediator between gods and people through ritual, so that obedience becomes a religious duty upheld by priesthoods. Egyptian kings of the first dynasties, around 3100-2900 BCE, were identified with the god Horus; comparable ideas arose independently elsewhere, for example among the Inca.
+Sacred kingship treats the ruler as divine or divinely chosen, and makes the king the chief mediator between gods and people through ritual, so obedience becomes a religious duty. From the First Dynasty onward, Egyptian kings ruled under a 'Horus name' that identified them with the god Horus; comparable ideas arose independently elsewhere, for example among the Inca.
 
-- words: 58 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
+- words: 58 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC1-080] From the First Dynasty, Egyptian kings ruled under a Horus name identifying them with Horus; [CVC1-081] From the First Dynasty, Egyptian kings ruled under a Horus name identifying them with Horus
 - uncertainty: The degree to which kings were regarded as gods rather than as divinely chosen varied between cultures and periods; early Egyptian dates are approximate.
 - relation to mechanics: PROPOSED civic-micro (not in content today): completion grants knowledge only ('kingship sanctioned by the gods and upheld by temple ritual'); under M8 it is a religious legitimacy source for monarchic module sets, with legitimacy produced through the Clergy under M9 - deferred.
 
 ### 1019 · Land held for service (`service_tenure`)
 
-Under service tenure a ruler grants land, or the income from land, to people who owe military or other service in return, so an army can be supported without a cash payroll. Hammurabi's laws, of about 1750 BCE, regulate such holdings, known as ilku. Comparable arrangements include the fiefs of medieval Europe and the timars of the Ottoman empire.
+Under service tenure a ruler grants land, or the income from land, to people who owe military or other service in return, so an army can be supported without a cash payroll. Hammurabi's laws, of about 1750 BCE, regulate such holdings, known as ilku. Comparable arrangements include medieval European fiefs, the iqta of the caliphates and the Ottoman timar.
 
-- words: 59 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
+- words: 59 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC1-029] Medieval European fiefs as comparable arrangements; [CVC1-082] The iqta of the caliphates and the Ottoman timar as comparable arrangements
 - uncertainty: Service tenures arose independently in many places with different rules of revocation and inheritance; Babylonian dates are approximate.
 - relation to mechanics: PROPOSED civic-micro (not in content today): completion grants knowledge only ('land grants held in return for military service'); under M7 the battle layer would raise formations from service holders, and under M9 it becomes an Aristocracy operand once tenures are hereditary - knowledge-only until then.
 
 ### 1020 · Rules of succession (`succession_law`)
 
-A rule of succession fixes who inherits rule, whether by birth order, designation by the ruler or election within a defined group, and how a regency works, so a ruler's death need not reopen the struggle for power. The Hittite Proclamation of Telipinu, of about 1500 BCE, set an order of royal heirs after a period of violent dynastic conflict.
+A succession rule fixes who inherits power, by birth order or election within a defined group, so a ruler's death need not reopen the struggle for power. The Hittite Proclamation of Telipinu, about 1500 BCE, set an order of royal heirs after dynastic murders; Zhou China favoured the senior line of elder sons; Mongol khans were chosen by a kurultai.
 
-- words: 60 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
-- uncertainty: The Telipinu date is approximate; such rules were frequently contested or set aside in practice.
+- words: 60 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC1-045] A succession rule fixes who inherits power by birth order or election within a defined group, so a death need not reopen the power struggle, The Hittite Proclam; [CVC1-047] A succession rule fixes who inherits power by birth order or election within a defined group, so a death need not reopen the power struggle, Mongol khans were c; [CVC1-044] The Hittite Proclamation of Telipinu, about 1500 BCE, set an order of royal heirs; [CVC1-046] The Hittite Proclamation of Telipinu, about 1500 BCE, set an order of royal heirs; [CVC1-049] Zhou China favoured the senior line of elder sons; [CVC1-048] Mongol khans were chosen by a kurultai
+- uncertainty: The Telipinu date is approximate (c. 1525-1500 BCE) and scholars debate whether the edict is a legal or partly historical text and how far it changed earlier practice; Mongol successions by kurultai were often contested (Kublai and Arigh Boke held rival assemblies); Zhou seniority had exceptions; such rules were frequently set aside in practice.
 - relation to mechanics: PROPOSED civic-micro (not in content today): completion grants knowledge only ('a fixed rule naming the ruler's heir'); under M8 succession work it is the rule applied when a ruler dies - deferred, no ruler or succession state exists.
 
 ### 1021 · Sworn treaties (`sworn_treaties`)
 
-Sworn treaties are written agreements between rulers, sealed by oaths before the gods, with lists of divine witnesses and curses on whoever breaks them. They fixed peace, borders, alliance and the return of fugitives, and each party kept a copy. A well-preserved example is the treaty between Ramesses II of Egypt and the Hittite king Hattusili III, about 1259 BCE.
+Sworn treaties are written agreements between rulers, sealed by oaths before the gods, with lists of divine witnesses and curses on whoever breaks them. They fixed peace, borders, alliance and the return of fugitives. A well-preserved example is the treaty between Ramesses II of Egypt and the Hittite king Hattusili III, of the mid-thirteenth century BCE.
 
-- words: 60 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
-- uncertainty: An earlier treaty between Ebla and Abarsal (about the 24th century BCE) is often cited as the oldest known; the Egyptian-Hittite treaty survives in both Egyptian and Akkadian versions.
+- words: 56 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC1-055] Treaty between Ramesses II and Hattusili III, of the mid-thirteenth century BCE; [CVC1-056] Treaty between Ramesses II and Hattusili III, of the mid-thirteenth century BCE
+- uncertainty: An earlier treaty between Ebla and Abarsal (about the 24th century BCE) is often cited as the oldest known; the Egyptian-Hittite treaty survives in Egyptian and Akkadian versions and is dated 1269-1258 BCE depending on chronology.
 - relation to mechanics: PROPOSED civic-micro (not in content today): completion grants knowledge only ('written treaties sworn before the gods and kept by both parties'); under M8 Diplomacy it would define the treaty object between polities - deferred, no treaty table exists.
 
 ### 1022 · Oligarchic city-state (`city_state_oligarchy`)
 
-In an oligarchic city-state a single city and its surrounding countryside govern themselves through a council drawn from leading families, which chooses the magistrates and controls law and finance; any popular assembly ratifies more than it decides. Many Greek poleis of the archaic and classical periods were governed this way, as were several Italian communes after about 1100 CE.
+In an oligarchic city-state a city and its countryside are governed by a council of leading families, which chooses magistrates and controls law and finance. Many Greek poleis were run this way; in the Ganges valley the Licchavis of Vaishali were ruled by an assembly of heads of leading families; north Italian communes under elected consuls spread from about 1100 CE.
 
-- words: 59 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
-- uncertainty: Constitutions changed often within a single city, and the line between oligarchy and other forms was drawn differently by ancient writers.
+- words: 61 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC1-039] The Licchavis of Vaishali in the Ganges valley were ruled by an assembly of heads of leading families; [CVC1-037] North Italian communes under elected consuls spread from about 1100 CE; [CVC1-038] North Italian communes under elected consuls spread from about 1100 CE
+- uncertainty: Constitutions changed often within a single city, and the line between oligarchy and other forms was drawn differently by ancient writers; scholars describe the Licchavi system as a compromise between assembly government and oligarchy, and its assembly sizes in texts are not literal.
 - relation to mechanics: PROPOSED civic-macro regime form (not in content today): completion grants knowledge only ('a city governed by a council of leading families'); under M8 the form is adopted as the module set elite_council AND law_code, label derived not stored - deferred.
 
 ### 1023 · Territorial kingship (`territorial_kingship`)
 
-Territorial kingship unites many cities and villages under one hereditary king, who governs through a royal household and appointed officials, commands the army and acts as supreme judge, with authority resting on divine sanction or dynastic right. Early examples arose separately in Egypt, unified around 3100 BCE, Akkad under Sargon about 2300 BCE, and Shang China from about 1600 BCE.
+Territorial kingship unites many communities under one hereditary king, who governs through a royal household and appointed officials, commands the army and acts as supreme judge, with authority resting on divine sanction or dynastic right. Early examples arose separately in Egypt, unified by about 3100 BCE, Akkad under Sargon about 2300 BCE, and Shang China from about 1600 BCE.
 
-- words: 60 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
-- uncertainty: All three dates are approximate; Egyptian unification may have been gradual, and the traditional Shang start date precedes the earliest written records (about 1250 BCE).
+- words: 59 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC1-007] Egypt unified by about 3100 BCE; [CVC1-008] Egypt unified by about 3100 BCE; [CVC1-009] Akkad under Sargon about 2300 BCE; [CVC1-010] Akkad under Sargon about 2300 BCE; [CVC1-012] Shang China from about 1600 BCE; [CVC1-013] Earliest Shang written records about 1250 BCE (uncertainty field)
+- uncertainty: All dates are approximate: Egyptian unification is dated c. 3150-3100 BCE and may have been gradual (the Narmer Palette's meaning is debated); Sargon's reign is given as c. 2340-2285 (Met) or 2334-2279 BCE; the traditional Shang start (c. 1600 BCE) precedes the earliest oracle-bone writing (about 1250 BCE).
 - relation to mechanics: PROPOSED civic-macro regime form (not in content today): completion grants knowledge only ('a realm of many settlements under a hereditary king'); under M8 the form is adopted as the module set (sacral_kingship OR succession_law) AND appointed_officials, label derived not stored - deferred.
 
 ### 1024 · Popular assembly (`citizen_assembly`)
 
-A popular assembly gathers all free adult members of a community, historically almost always men, to decide on war and peace, approve laws and choose leaders by acclamation or vote. Assemblies appear in many Greek communities from about the eighth and seventh centuries BCE, and the Roman historian Tacitus described assemblies of armed free men among Germanic peoples.
+A popular assembly gathers all free adult members of a community, historically almost always men, to decide on war and peace, approve laws and choose leaders by acclamation or vote. Sparta's assembly voted by shouting on proposals brought by its council or officials, and the Roman historian Tacitus described assemblies of armed free men among Germanic peoples.
 
-- words: 58 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
+- words: 57 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC1-077] Sparta's assembly voted by shouting on proposals brought by its council or officials
 - uncertainty: Early Greek assemblies are known mostly from poetry and later sources; Tacitus wrote from a Roman perspective and his accounts are not neutral.
 - relation to mechanics: PROPOSED civic-micro (not in content today): completion grants knowledge only ('an assembly of free members deciding by vote'); under M8 it is the popular-assembly regime module with a broad enfranchisement vector and makes the 'call elections or an assembly' crisis remedy available - deferred.
 
@@ -224,8 +224,8 @@ A popular assembly gathers all free adult members of a community, historically a
 
 Elected magistracies fill executive offices by vote for a fixed, usually one-year term, often shared between colleagues, and holders answer for their conduct when the term ends. Athens listed annual archons from about 683 BCE, though early archons were not chosen by popular vote; Rome's paired consuls, by tradition first elected in 509 BCE, are the classic example.
 
-- words: 58 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
+- words: 58 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC1-024] Rome's paired consuls, by tradition first elected in 509 BCE, elected annually
 - uncertainty: Early Athenian archon lists and the Roman founding date are traditional; the method of choosing archons changed over time (later by lot).
 - relation to mechanics: PROPOSED civic-micro (not in content today): completion grants knowledge only ('executive offices filled by election for fixed terms'); under M8 it is the elected-magistracy regime module of republican forms - deferred.
 
@@ -233,45 +233,45 @@ Elected magistracies fill executive offices by vote for a fixed, usually one-yea
 
 A land registry is a public record, kept by officials, of each plot's boundaries, holder and dues; it is evidence of title and the basis of assessment. Egyptian scribes surveyed fields for assessment from the third millennium BCE; England's Domesday survey of 1086 recorded landholdings; and Robert Torrens's system of registered title began in South Australia in 1858.
 
-- words: 58 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
+- words: 58 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC1-057] England's Domesday survey of 1086 recorded landholdings; [CVC1-058] England's Domesday survey of 1086 recorded landholdings; [CVC1-059] Torrens's system of registered title began in South Australia in 1858; [CVC1-060] Torrens's system of registered title began in South Australia in 1858
 - uncertainty: Early surveys recorded holdings for assessment rather than conclusive title; the Domesday survey was a one-time inquiry rather than a continuously kept register.
 - relation to mechanics: PROPOSED civic-micro institution (not in content today): completion grants knowledge only ('a public register of land, holders and dues'); under M8 a founded registry office would improve assessment where it operates, a capacity term inside the felt-burden equation - deferred, new entity.
 
 ### 1027 · Provincial governors (`provincial_administration`)
 
-Provincial administration divides a realm into provinces, each under a governor sent by the centre to levy taxes, raise troops and judge in the ruler's name, bound to the capital by reports and inspection. Akkad placed governors over conquered cities around 2300 BCE; Assyria reorganized its provinces under Tiglath-Pileser III after 745 BCE; Persia's satrapies followed from about 520 BCE.
+Provincial administration divides a realm into provinces, each under a governor sent by the centre to levy taxes and raise troops in the ruler's name, watched by officials and reports answering to the capital. Akkad placed governors over conquered cities around 2300 BCE; Assyria reorganized its provinces under Tiglath-Pileser III after 745 BCE; Persia's satrapies followed from about 520 BCE.
 
-- words: 60 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
-- uncertainty: Akkadian dates are approximate; how far each empire's governors were truly appointees rather than co-opted local rulers varied.
+- words: 60 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC1-050] Governors sent by the centre to levy taxes and raise troops, watched by officials and reports answering to the capital, Persia's satrapies followed from about 5; [CVC1-089] Governors sent by the centre to levy taxes and raise troops, watched by officials and reports answering to the capital; [CVC1-053] Governors sent by the centre to levy taxes and raise troops, watched by officials and reports answering to the capital, Assyria reorganized its provinces under ; [CVC1-011] Akkad placed governors over conquered cities around 2300 BCE; [CVC1-009] Akkad placed governors over conquered cities around 2300 BCE; [CVC1-052] Assyria reorganized its provinces under Tiglath-Pileser III after 745 BCE; [CVC1-051] Persia's satrapies followed from about 520 BCE
+- uncertainty: Akkadian dates are approximate; accounts differ on whether Sargon replaced local rulers or made them governors; how far each empire's governors were true appointees varied.
 - relation to mechanics: PROPOSED civic-micro (not in content today): completion grants knowledge only ('provinces under appointed governors answering to the capital'); as an R4 candidate GovernanceSystem would measure administrative reach from designated provincial seats as well as the capital, a condition inside the existing reach term - conditional on M6 ruling.
 
 ### 1028 · Standing army (`standing_army`)
 
-A standing army is a permanent professional force, paid and supplied by the state in peace and war, which replaces or supplements seasonal levies, making soldiering a full-time occupation. An inscription of Sargon of Akkad, about 2300 BCE, claims 5,400 men ate daily before him; Assyria under Tiglath-Pileser III, after 745 BCE, expanded a permanent royal army.
+A standing army is a permanent professional force, paid and supplied by the state in peace and war, which replaces or supplements seasonal levies, making soldiering a full-time occupation. An inscription of Sargon of Akkad, about 2300 BCE, claims 5,400 men ate daily before him; Assyria under Tiglath-Pileser III, after 745 BCE, made provinces supply troops able to campaign year-round.
 
-- words: 58 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
-- uncertainty: Royal inscriptions are boastful; whether Sargon's men were a true standing army is debated, as is the extent of Tiglath-Pileser III's reforms.
+- words: 61 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC1-010] Sargon's inscription claims 5,400 men ate daily before him (about 2300 BCE); [CVC1-011] Sargon's inscription claims 5,400 men ate daily before him (about 2300 BCE); [CVC1-009] Sargon's inscription claims 5,400 men ate daily before him (about 2300 BCE); [CVC1-053] Tiglath-Pileser III after 745 BCE made provinces supply troops able to campaign year-round; [CVC1-052] Tiglath-Pileser III after 745 BCE made provinces supply troops able to campaign year-round
+- uncertainty: Royal inscriptions are boastful; whether Sargon's 5,400 were a true standing army is inferred ('perhaps the nucleus'); the extent of Tiglath-Pileser III's reforms is debated.
 - relation to mechanics: PROPOSED civic-micro (not in content today): completion grants knowledge only ('a permanent army paid and supplied by the state'); under M7 the battle layer would maintain professional formations in peace, and under M9 it is the operand of Soldiers emergence - knowledge-only until then.
 
 ### 1029 · Tax farming (`tax_farming`)
 
-Tax farming hands the collection of a tax to private contractors, who bid for the right, pay the state an agreed sum and keep whatever more they collect. Classical Athens auctioned tax contracts; Roman publicani collected provincial revenues under contract in the late republic; and France's General Farm, created in 1681, collected indirect taxes until the Revolution abolished it.
+Tax farming hands the collection of a tax to private contractors, who bid for the right, pay the state an agreed sum and keep whatever more they collect. Classical Athens let tax contracts through officials called poletai; Roman censors auctioned contracts to companies of publicani; and France's General Farm, created in 1681, collected indirect taxes until the Revolution abolished it.
 
-- words: 59 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
+- words: 60 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC1-073] Classical Athens let tax contracts through officials called poletai; [CVC1-072] Roman censors auctioned contracts to companies of publicani
 - uncertainty: Arrangements differed in whether contractors paid in advance; dates for Athenian contracting are approximate (fifth and fourth centuries BCE).
 - relation to mechanics: PROPOSED civic-micro tax instrument (not in content today): completion grants knowledge only ('collection of taxes contracted to private tax farmers'); as an R4 laws-lite candidate GovernanceSystem would apply it to the flow-only tax edict, so extraction no longer scales with reach while felt burden is heavier - conditional on M6 ruling.
 
 ### 1030 · Theocratic rule (`theocracy`)
 
-In a theocracy, supreme political authority belongs to religious office-holders, or to a ruler whose title is religious, and religious law serves as the law of the state. Examples include Thebes under the high priests of Amun from about 1070 BCE, the Papal States from 756 CE, and Tibet under the Dalai Lamas' Ganden Phodrang government from 1642.
+In a theocracy, supreme political authority belongs to religious office-holders, or to a ruler whose title is religious, and religious law serves as the law of the state. Examples include Thebes under the high priests of Amun from the eleventh century BCE, the Papal States from 756 CE, and Tibet under the Fifth Dalai Lama (1617-1682) and his successors.
 
-- words: 58 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
-- uncertainty: Labels vary: some cases combine clerical rule with secular officials or foreign overlords; dates are approximate for the Theban case.
+- words: 59 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC1-014] Definition: supreme authority held by religious office-holders; religious law as state law, Papal States from 756 CE; [CVC1-016] Thebes under the high priests of Amun from the eleventh century BCE; [CVC1-017] Thebes under the high priests of Amun from the eleventh century BCE; [CVC1-018] Thebes under the high priests of Amun from the eleventh century BCE; [CVC1-015] Tibet under the Fifth Dalai Lama (1617-1682) and his successors as a theocratic regime
+- uncertainty: Labels vary: some cases combine clerical rule with secular officials or foreign overlords (Herihor ruled Upper Egypt while Smendes was king in the north); scholars label the Dalai Lamas' state 'theocratic' with caveats; Theban dates differ by chronology.
 - relation to mechanics: PROPOSED civic-macro regime form (not in content today): completion grants knowledge only ('government by religious office under religious law'); under M8 the form is adopted as the module set organized_priesthood AND (law_code OR sacral_kingship), label derived not stored - deferred.
 
 ### 1031 · Craft guilds (`craft_guilds`)
@@ -285,10 +285,10 @@ Craft guilds are associations of masters in a trade that control admission, appr
 
 ### 1032 · Municipal charters (`municipal_charter`)
 
-A municipal charter is a written grant by which a ruler lets a town govern itself, with its own council, magistrates, courts and market, for loyalty and fixed payments. Bronze tablets of the Lex Irnitana, from Roman Spain about 91 CE, preserve such a town law, and many European towns obtained charters from the eleventh and twelfth centuries CE.
+A municipal charter is a written grant by which a ruler lets a town govern itself, with its own council, magistrates, courts and market, for loyalty and fixed payments. Bronze tablets of the Lex Irnitana, a town law from Flavian Roman Spain of the late first century CE, survive, and many European towns obtained charters from the eleventh and twelfth centuries.
 
-- words: 59 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
+- words: 61 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC1-074] Bronze tablets of the Lex Irnitana, a town law from Flavian Roman Spain of the late first century CE; [CVC1-075] Bronze tablets of the Lex Irnitana, a town law from Flavian Roman Spain of the late first century CE
 - uncertainty: Roman municipal laws were imperial regulations rather than negotiated grants; medieval charters varied greatly in the liberties granted.
 - relation to mechanics: PROPOSED civic-micro policy (not in content today): completion grants knowledge only ('town self-government under a written charter'); under M8 it would be an autonomy grant that raises a settlement's attachment without ceding the claim - deferred, no autonomy grant exists.
 
@@ -296,17 +296,17 @@ A municipal charter is a written grant by which a ruler lets a town govern itsel
 
 Religious toleration lets communities of more than one faith worship openly and keep their own institutions without civil penalty for belonging to a minority. Ashoka's edicts in third-century BCE India urged respect between sects; the Edict of Milan in 313 CE allowed Christians to worship in the Roman empire; and France's Edict of Nantes, in 1598, granted Protestants limited rights.
 
-- words: 60 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
+- words: 60 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC1-069] Ashoka's edicts in third-century BCE India urged respect between sects; [CVC1-070] The Edict of Milan in 313 CE allowed Christians to worship; [CVC1-071] The Edict of Nantes (1598) granted Protestants limited rights
 - uncertainty: Toleration was often partial and revocable (the Edict of Nantes was revoked in 1685); Ashoka's edicts expressed policy ideals whose enforcement is unknown.
 - relation to mechanics: PROPOSED civic-micro policy (not in content today): completion grants knowledge only ('legal toleration of more than one faith'); under M9 it would remove the religious-discrimination grievance source for minority faiths - deferred.
 
 ### 1034 · Assembly democracy (`assembly_democracy`)
 
-In assembly democracy the citizens govern directly. At Athens after the reforms of Cleisthenes in 508/507 BCE, an assembly open to every citizen voted on laws, war and peace; in its developed form most officials were chosen by lot for one-year terms and audited afterwards. Citizenship was limited to adult men, excluding women, enslaved people and resident foreigners.
+In assembly democracy the citizens govern directly. At Athens after the reforms of Cleisthenes in 508/507 BCE, an assembly open to every citizen decided almost all political questions, while a Council of 500 was chosen by lot for one-year terms, as were some magistrates. Citizenship was limited to adult men, excluding women, enslaved people and resident foreigners.
 
-- words: 59 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
+- words: 58 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC1-019] Cleisthenes' reforms of 508/507 BCE at Athens, An assembly open to every citizen decided almost all political questions, A Council of 500 was chosen by lot for ; [CVC1-020] Cleisthenes' reforms of 508/507 BCE at Athens; [CVC1-021] A Council of 500 was chosen by lot for one-year terms, as were some magistrates
 - uncertainty: The use of lot and pay for office developed over the fifth century BCE rather than all at once; ancient sources on Cleisthenes are limited.
 - relation to mechanics: PROPOSED civic-macro regime form (not in content today): completion grants knowledge only ('government by an assembly of all citizens'); under M8 the form is adopted as the module set citizen_assembly AND law_code, label derived not stored - deferred.
 
@@ -314,27 +314,27 @@ In assembly democracy the citizens govern directly. At Athens after the reforms 
 
 A bureaucratic empire governs a large realm of many peoples from a capital through salaried, ranked officials, appointed provincial governors, registers, standard taxes and a standing army; the dynasty heads the system but rules through it. Achaemenid Persia from about 520 BCE, China after the Qin unification of 221 BCE, and imperial Rome are often cited examples.
 
-- words: 57 · fact-check: partially-checked (drafting lane; Qin unification date compared with the register record SCI-029 (claims recorded by the early-science lane from a search summary, 2026-10-22); no page opened by this lane.)
-- sources: [SCI-029] Qin unification of China in 221 BCE, after unification the Qin emperor imposed standard weights and measures across the empire
+- words: 57 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [SCI-029] Qin unification of China in 221 BCE, after unification the Qin emperor imposed standard weights and measures across the empire, Qin unification of 221 BCE; [CVC1-050] Achaemenid Persia from about 520 BCE as a bureaucratic empire with governors and standard taxes; [CVC1-051] Achaemenid Persia from about 520 BCE as a bureaucratic empire with governors and standard taxes
 - uncertainty: How bureaucratic each case was is debated; the early Roman empire relied heavily on cities and a small salaried administration.
 - relation to mechanics: PROPOSED civic-macro regime form (not in content today): completion grants knowledge only ('an empire governed through salaried officials and provinces'); under M8 the form is adopted as the module set provincial_administration AND standing_army, label derived not stored - deferred.
 
 ### 1036 · Mixed-constitution republic (`classical_republic`)
 
-A mixed-constitution republic has no monarch. Annually elected magistrates, serving in pairs or colleges, hold executive power; a senate of former magistrates guides policy and finance; and citizen assemblies elect officials and pass laws, so that power is shared among the three. Rome, whose republic traditionally began in 509 BCE, is the case the Greek historian Polybius analysed this way.
+A mixed-constitution republic has no monarch. Annually elected magistrates, such as paired consuls, hold executive power; a senate deliberates and advises on policy; and citizen assemblies elect officials and pass laws, so that power is shared among the three. Rome, whose republic traditionally began in 509 BCE, is the case the historian Polybius analysed this way.
 
-- words: 60 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
+- words: 56 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC1-024] Annually elected magistrates, such as paired consuls, hold executive power, Rome's republic traditionally began in 509 BCE; [CVC1-025] Annually elected magistrates, such as paired consuls, hold executive power, A senate deliberates and advises on policy, Citizen assemblies elect officials and p; [CVC1-022] A senate deliberates and advises on policy, Citizen assemblies elect officials and pass laws, Rome's republic traditionally began in 509 BCE, Polybius analysed ; [CVC1-023] Polybius analysed Rome as a mixed constitution
 - uncertainty: The 509 BCE founding date is traditional; the 'mixed constitution' is an ancient theory, and Rome's practice was more oligarchic than the model suggests.
 - relation to mechanics: PROPOSED civic-macro regime form (not in content today): completion grants knowledge only ('a republic of elected magistrates, senate and assemblies'); under M8 the form is adopted as the module set elected_magistracies AND elite_council, label derived not stored - deferred.
 
 ### 1037 · Civil service examinations (`civil_service_examinations`)
 
-Civil service examinations recruit officials through competitive written tests on a fixed curriculum, open in principle beyond the hereditary elite, with graded degrees qualifying holders for office. China's imperial examinations began under the Sui dynasty around 605 CE and lasted until 1905; Korea adopted them in 958, and Britain introduced competitive civil service examinations from 1855.
+Civil service examinations recruit officials through competitive written tests on a fixed curriculum, open in principle beyond the hereditary elite, with graded degrees qualifying holders for office. China's imperial examinations took shape under the Sui dynasty around 600 CE and lasted until 1905; Korea adopted them in 958, and in Britain the Northcote-Trevelyan Report of 1854 recommended competitive examinations.
 
-- words: 56 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
-- uncertainty: The Sui start date is given variously (587-605 CE); in practice wealth and education limited who could compete. Open competition in Britain was generalized only in 1870.
+- words: 59 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC1-061] China's imperial examinations took shape under the Sui around 600 CE, They lasted until 1905; [CVC1-062] Korea adopted them in 958; [CVC1-063] Britain's Northcote-Trevelyan Report of 1854 recommended competitive examinations
+- uncertainty: The Sui start date is given variously (about 587-605 CE); in practice wealth and education limited who could compete. Korea abolished its examinations in 1894; Britain's open competition followed the 1854 report in stages.
 - relation to mechanics: PROPOSED civic-micro (not in content today): completion grants knowledge only ('recruitment of officials by competitive written examination'); under M9 it is the mobility route into the Bureaucrats class, and under M8 one route to the absolute-monarchy form - deferred.
 
 ### 1038 · Merchant law (`commercial_law`)
@@ -348,37 +348,37 @@ Merchant law is the body of rules and specialized courts that enforce contracts,
 
 ### 1039 · Representative assembly (`representative_assembly`)
 
-A representative assembly summons spokesmen of the realm's estates or communities, typically nobles, clergy and towns, to consent to taxes and new laws and to petition for redress of grievances. The Cortes of León in 1188 included representatives of towns, and in 1265 Simon de Montfort's English parliament summoned burgesses from towns alongside knights of the shires.
+A representative assembly summons spokesmen of the realm's estates or communities, typically nobles, clergy and towns, to consent to taxes and new laws and to petition for redress of grievances. At León in 1188, elected town representatives joined the royal council of Alfonso IX, and in 1265 Simon de Montfort's English parliament summoned borough burgesses alongside knights of the shires.
 
-- words: 57 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
-- uncertainty: Which assembly counts as the first representative parliament is disputed; composition and powers varied widely between realms.
+- words: 60 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC1-040] At León in 1188 elected town representatives joined Alfonso IX's royal council, Which assembly was the first representative parliament (uncertainty field: León ; [CVC1-042] In 1265 Simon de Montfort's parliament summoned borough burgesses alongside knights of the shires; [CVC1-043] In 1265 Simon de Montfort's parliament summoned borough burgesses alongside knights of the shires, Which assembly was the first representative parliament (uncer; [CVC1-041] Which assembly was the first representative parliament (uncertainty field: León per UNESCO; not 1265)
+- uncertainty: Which assembly counts as the first representative parliament is disputed: UNESCO (2013) calls the León Decreta the oldest documentary manifestation of the European parliamentary system, a wording others question; English parliaments before 1265 already included knights. Composition and powers varied widely between realms.
 - relation to mechanics: PROPOSED civic-micro (not in content today): completion grants knowledge only ('representatives of estates and towns consenting to taxation'); under M8 it is the consent-of-representatives regime module of constitutional and parliamentary forms - deferred.
 
 ### 1040 · Feudal monarchy (`feudal_monarchy`)
 
-In a feudal monarchy the king grants land and rights of justice to vassals for military service and counsel, who grant fiefs to their own vassals, so public authority is divided along a hierarchy of mostly hereditary holdings. The pattern is often traced to post-Carolingian France, about 900 CE; historians debate how useful 'feudal' is as a label.
+In a feudal monarchy the king grants land as fiefs to vassals for loyalty and military service; vassals grant parts of their fiefs to vassals of their own, dividing authority along a hierarchy of increasingly hereditary holdings. It took shape in France as Carolingian royal power weakened in the tenth century; historians compare medieval Japan and debate the label itself.
 
-- words: 58 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
-- uncertainty: 'Feudalism' is a later historians' construct; critics argue it imposes false uniformity on varied medieval arrangements. Norman England (from 1066) is another commonly cited case.
+- words: 60 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC1-029] The king grants land as fiefs to vassals for loyalty and military service, Vassals grant parts of their fiefs to vassals of their own (subinfeudation), Holdings; [CVC1-028] It took shape in France as Carolingian royal power weakened in the tenth century; [CVC1-033] Comparisons are drawn with medieval Japan; [CVC1-026] The 'feudal' label is debated by historians; [CVC1-027] The 'feudal' label is debated by historians; [CVC1-030] The 'feudal' label is debated by historians
+- uncertainty: 'Feudalism' is a later historians' construct; since E. A. R. Brown (1974) and S. Reynolds (1994) critics argue it imposes false uniformity; applying it to Japan is a comparison, not an identity. Norman England (from 1066) is another commonly cited case.
 - relation to mechanics: PROPOSED civic-macro regime form (not in content today): completion grants knowledge only ('a monarchy of vassals holding fiefs for service'); under M8 the form is adopted as the module set service_tenure AND (succession_law OR sacral_kingship), label derived not stored - deferred.
 
 ### 1041 · Mercantile republic (`merchant_republic`)
 
-A mercantile republic is governed by councils drawn from merchant families: a great council elects smaller councils and a head of state with narrowly limited powers, and policy favours long-distance trade. Venice is the best-known case; in 1297 its Great Council largely closed membership to established families. Genoa and Hanseatic towns such as Lübeck had comparable merchant-led governments.
+A mercantile republic is governed by councils drawn from merchant families: a great council elects smaller councils and a closely limited head of state, and policy favours long-distance trade. Venice is the best-known case; from 1297 its Great Council was gradually closed to all but established families. Genoa, governed by consuls from about 1100, and Hanseatic Lübeck were comparable.
 
-- words: 58 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
-- uncertainty: The 1297 'closing' was gradual and its effects debated; Hanseatic towns were self-governing cities within the Empire rather than fully sovereign republics.
+- words: 59 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC1-031] In Venice a great council elects smaller councils and a closely limited head of state, From 1297 Venice's Great Council was gradually closed to all but establis; [CVC1-032] In Venice a great council elects smaller councils and a closely limited head of state; [CVC1-038] Genoa governed by consuls from about 1100
+- uncertainty: The 1297 'closing' was gradual and its effects debated; Hanseatic towns were self-governing cities within the Empire rather than fully sovereign republics; how far Genoa's government was merchant-led is not established here.
 - relation to mechanics: PROPOSED civic-macro regime form (not in content today): completion grants knowledge only ('a republic governed by merchant councils'); under M8 the form is adopted as the module set commercial_law AND (elected_magistracies OR municipal_charter), label derived not stored - deferred.
 
 ### 1042 · Military rule (`military_rule`)
 
 Under military rule the armed forces, through their commanders or a council of officers, hold supreme power, govern by decree and subordinate or suspend civilian institutions, and rulers depend on the army's backing. Historical forms vary widely, including Japan's Kamakura shogunate from the 1180s-1190s, the Mamluk sultanate of Egypt and Syria (1250-1517), and many twentieth-century juntas.
 
-- words: 56 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
+- words: 56 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC1-033] Japan's Kamakura shogunate from the 1180s-1190s; [CVC1-034] Japan's Kamakura shogunate from the 1180s-1190s; [CVC1-035] Mamluk sultanate of Egypt and Syria (1250-1517); [CVC1-036] Mamluk sultanate of Egypt and Syria (1250-1517)
 - uncertainty: The Kamakura shogunate coexisted with the imperial court, and its founding is dated 1185 or 1192; Mamluk rulers were drawn from a military slave elite rather than a modern officer corps.
 - relation to mechanics: PROPOSED civic-macro regime form (not in content today): completion grants knowledge only ('government by the armed forces'); under M8 the form is adopted as the module set standing_army OR service_tenure, label derived not stored - deferred.
 
@@ -393,10 +393,10 @@ A bill of rights is a law binding the ruler that guarantees specified rights of 
 
 ### 1044 · Central banking (`central_banking`)
 
-A central bank is a public bank that holds the government's accounts, issues notes and settles payments between other banks, and later became lender of last resort in crises. Sweden's Riksbank, founded in 1668, and the Bank of England, founded in 1694 to lend to the government, are usually counted among the earliest, though their central functions developed gradually.
+A central bank is a public bank that holds the government's accounts, issues notes and settles payments between other banks, and later became lender of last resort in crises. Sweden's Riksbank, founded by decision of the Riksdag in 1668, and the Bank of England, founded in 1694, are usually counted the oldest, though their central functions developed gradually.
 
-- words: 59 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
+- words: 58 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC1-064] Sweden's Riksbank was founded by decision of the Riksdag in 1668, They are usually counted the oldest central banks; [CVC1-065] The Bank of England was founded in 1694, They are usually counted the oldest central banks
 - uncertainty: Which institution was the first 'central bank' depends on definition; lender-of-last-resort practice developed mostly in the nineteenth century.
 - relation to mechanics: PROPOSED civic-micro institution (not in content today): grants knowledge ('a public bank holding state accounts and issuing notes') and would re-point inst.central_bank from joint_stock; knowledge-only until a monetary model exists (M10+).
 
@@ -404,8 +404,8 @@ A central bank is a public bank that holds the government's accounts, issues not
 
 A professional police force is a salaried civil body under public authority that patrols, prevents crime and keeps public order, distinct from both the army and private or volunteer watchmen. Paris gained a lieutenant-general of police in 1667, and London's Metropolitan Police, established in 1829 under Robert Peel, became a widely copied model of uniformed patrol policing.
 
-- words: 57 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
+- words: 57 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC1-068] A salaried, uniformed civil body that patrols and prevents crime; [CVC1-066] Paris gained a lieutenant-general of police in 1667; [CVC1-067] London's Metropolitan Police, established 1829 under Peel, became a widely copied model
 - uncertainty: Earlier urban watches and imperial security forces (e.g. Rome's vigiles) blur the line; the Paris office combined policing with wide administrative duties.
 - relation to mechanics: PROPOSED civic-micro institution (not in content today): completion grants knowledge only ('a salaried civil police force under public authority'); under M8 policing would enter riot propensity in the unrest ladder, and under M9 it satisfies the Safety need - deferred, new entity.
 

@@ -1,1 +1,122 @@
-[]
+[
+ {
+  "id": "TRN2-001",
+  "title": "USS Holland (SS-1)",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/USS_Holland_(SS-1)",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Holland VI bought by the US Navy April 1900, commissioned 12 October 1900; gasoline engine on the surface, electric motor submerged; dived with ballast tanks full"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "TRN2-002",
+  "title": "SS-1 Holland",
+  "author_org": "GlobalSecurity.org",
+  "published": null,
+  "url": "https://www.globalsecurity.org/military/systems/ship/ss-1.htm",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Holland: 50 hp Otto gasoline engine; storage battery and electric motor for underwater running"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked). The search summary did not always say which result gave each statement.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "TRN2-003",
+  "title": "R-7",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://britannica.com/technology/R-7",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "R-7 first successful full-range flight 21 August 1957; modified R-7 launched Sputnik 1 on 4 October 1957"
+  ],
+  "confidence": "high",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked). The search summary did not always say which result gave each statement.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "TRN2-004",
+  "title": "R-7 Semyorka",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/R-7_Semyorka",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "R-7 first successful long flight 21 August 1957 (about 6,000 km to Kamchatka) after failures in May-July; Sputnik 1 launched 4 October 1957"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "TRN2-005",
+  "title": "Breguet-Dorand Gyroplane Laboratoire",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Breguet-Dorand_Gyroplane_Laboratoire",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "First flight 26 June 1935; coaxial contra-rotating rotors cancelled torque; some historians call it the first real helicopter"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "TRN2-006",
+  "title": "Sikorsky VS-300 Helicopter (Landmark 95)",
+  "author_org": "ASME",
+  "published": null,
+  "url": "https://www.asme.org/wwwasmeorg/media/ResourceFiles/AboutASME/Who%20We%20Are/Engineering%20History/Landmarks/95-Sikorsky-VS-300-Helicopter.pdf",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "VS-300 (1939) pioneered the single main rotor with torque-compensating tail rotor"
+  ],
+  "confidence": "high",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "TRN2-007",
+  "title": "The Future of Aerospace (1993), chapter 7",
+  "author_org": "National Academies Press",
+  "published": "1993",
+  "url": "https://www.nationalacademies.org/read/2101/chapter/7",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Gives December 1941 for the VS-300 as the first single-main-rotor, single-tail-rotor helicopter (date conflicts with 1939)"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "TRN2-008",
+  "title": "Historic Helicopters: The Legendary FW61",
+  "author_org": "Just Helicopters",
+  "published": null,
+  "url": "https://justhelicopters.com/Articles-and-News/Community-Articles/Article/67587/Historic-Helicopters-The-Legendary-FW61",
+  "accessed": "2026-10-22",
+  "type": "community",
+  "claims_supported": [
+   "Focke-Wulf Fw 61 first free flight 26 June 1936 at Bremen; side-by-side counter-rotating rotors"
+  ],
+  "confidence": "low",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked). The search summary did not always say which result gave each statement.",
+  "retrieval": "web-search-result"
+ }
+]

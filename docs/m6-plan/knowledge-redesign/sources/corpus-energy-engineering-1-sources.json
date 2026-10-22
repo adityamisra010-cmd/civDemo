@@ -402,5 +402,309 @@
   ],
   "confidence": "medium",
   "notes": "URL and claim recorded by the D06 design lane in research/lane-notes/D06-energy-engineering.md §17 ('Sources for RESEARCHED claims (web search summaries, accessed 2026-10-22)') from its WebSearch results; page not opened (WebFetch blocked). The corpus drafting lane could not re-run the search (shared per-turn WebSearch budget exhausted) and registers it on that lane's record; the lane note groups claims per topic, so attribution of each claim to this particular URL is probable, not certain. Tentative: the design lane labelled this 'RESEARCHED, tentative'."
+ },
+ {
+  "id": "ENG1-029",
+  "title": "Ganz Works",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Ganz_Works",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Zipernowsky, Bláthy and Déri (ZBD) at Ganz built the first high-efficiency closed-core transformer; ZBD system publicly demonstrated 1885"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "ENG1-030",
+  "title": "Milestones: Long Distance Electric Power Transmission Using Three-Phase Alternating Current, 1891",
+  "author_org": "IEEE History Center (Engineering and Technology History Wiki)",
+  "published": null,
+  "url": "https://ethw.org/Milestones%3ALong_Distance_Electric_Power_Transmission_Using_Three-Phase_Alternating_Current%2C_1891",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Lauffen-Frankfurt three-phase transmission 1891, 175 km, 15 kV, about 75% efficiency"
+  ],
+  "confidence": "high",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "ENG1-031",
+  "title": "Niagara Power Houses",
+  "author_org": "Edison Tech Center",
+  "published": null,
+  "url": "https://edisontechcenter.org/niagara/",
+  "accessed": "2026-10-22",
+  "type": "community",
+  "claims_supported": [
+   "Niagara (Adams plant) AC power reached Buffalo on 15-16 November 1896; Westinghouse generators"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked). Non-profit engineering-history site; the search summary did not always say which of its results gave each statement.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "ENG1-032",
+  "title": "A Brief History of Electric Power (IEEE Hamilton Section)",
+  "author_org": "IEEE Hamilton Section",
+  "published": null,
+  "url": "https://ewh.ieee.org/r7/hamilton/y2015/BriefHistoryOfElectricPower.pdf",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Niagara power transmitted to Buffalo in November 1896"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked). The search summary did not always say which of its results gave each statement.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "ENG1-033",
+  "title": "Nicolaus Otto",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Nicolaus_Otto",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Lenoir engine 1860, first practical gas-fuelled internal-combustion engine, without compression",
+   "Otto four-stroke compression engine 1876 ('Otto Silent'); designed in Otto's firm (Rings-Schumm design)",
+   "Otto & Cie founded in Cologne 1864"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "ENG1-034",
+  "title": "Nikolaus August Otto (Research Starter)",
+  "author_org": "EBSCO",
+  "published": null,
+  "url": "https://www.ebsco.com/research-starters/history/nikolaus-august-otto/",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Lenoir 1860 engine without compression; Otto 1876 four-stroke engine"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked). The search summary did not always say which of its results gave each statement.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "ENG1-035",
+  "title": "Turbine: History of water turbine technology",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://britannica.com/technology/turbine/History-of-water-turbine-technology",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Fourneyron's first successful turbine 1827",
+   "Francis inward-flow turbine 1849 with guide vanes",
+   "Pelton's work began with experiments on Knight's wheel (California, 1866)"
+  ],
+  "confidence": "high",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "ENG1-036",
+  "title": "Water turbine",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Water_turbine",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Francis turbine 1849, efficiency over 90%"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "ENG1-037",
+  "title": "Water machines database, node 776 (Perachora wheel)",
+  "author_org": "Max Planck Institute for the History of Science",
+  "published": null,
+  "url": "https://watermachines.mpiwg-berlin.mpg.de/node_776.html",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Perachora: wheel with compartmented rim; restoration called incorrect (interpretation debated)"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "ENG1-038",
+  "title": "The hydraulic wheel of Perachora (3rd c. BC)",
+  "author_org": "Kotsanas Museum of Ancient Greek Technology",
+  "published": null,
+  "url": "https://kotsanas.com/en/the-hydraulic-wheel-of-perachora-3rd-c-b-c/",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Perachora 3rd-century BCE wheel was a water-lifting device turned via cogwheels, not a grain mill"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "ENG1-039",
+  "title": "Dynamo",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Dynamo",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Self-excitation solved by several inventors in 1866-67; Wilde 1866; Siemens and Wheatstone 1867"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "ENG1-040",
+  "title": "Werner Siemens",
+  "author_org": "Grace's Guide to British Industrial History",
+  "published": null,
+  "url": "https://gracesguide.co.uk/Werner_Siemens",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Siemens's dynamo paper read to the Royal Society February 1867; Wheatstone's shunt method at the same meeting; Varley patent December 1866"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked). The search summary cited Grace's Guide, an IEE journal PDF and a Wroclaw library PDF together for these statements.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "ENG1-041",
+  "title": "Generatoren (Chronik)",
+  "author_org": "VDE (Verband der Elektrotechnik)",
+  "published": null,
+  "url": "https://www.vde.com/de/geschichte/chronik/generatoren",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "Gramme's successful DC dynamo with iron-wire ring dated 1869"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked). Conflicts with the commonly given 1871.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "ENG1-042",
+  "title": "Joseph Swan",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Joseph_Swan",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Swan showed a carbon lamp in Newcastle 18 December 1878; working demonstrations January-February 1879"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "ENG1-043",
+  "title": "Joseph Swan (biography)",
+  "author_org": "IET Archives",
+  "published": null,
+  "url": "https://theiet.org/membership/library-and-archives/the-iet-archives/biographies/joseph-swan",
+  "accessed": "2026-10-22",
+  "type": "archive",
+  "claims_supported": [
+   "Swan's early bulbs needed a better vacuum (Sprengel pump after 1875); patent application on improved filaments November 1880"
+  ],
+  "confidence": "high",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "ENG1-044",
+  "title": "Swan, Joseph Wilson 1828-1914",
+  "author_org": "Science Museum Group",
+  "published": null,
+  "url": "https://collection.sciencemuseumgroup.org.uk/people/ap24422",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Swan demonstrated a commercially viable carbonised-thread lamp October 1880; his company and Edison's later merged"
+  ],
+  "confidence": "high",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "ENG1-045",
+  "title": "Edison's Incandescent Lamp",
+  "author_org": "IEEE History Center (Engineering and Technology History Wiki)",
+  "published": null,
+  "url": "https://ethw.org/Edison%27s_Incandescent_Lamp",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Edison's carbon-filament incandescent lamp; Swan British patent dated 1880"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "ENG1-046",
+  "title": "July 1958: Kilby Conceives the Integrated Circuit",
+  "author_org": "IEEE Spectrum",
+  "published": null,
+  "url": "https://spectrum.ieee.org/july-1958-kilby-conceives-the-integrated-circuit",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "Kilby (Texas Instruments) notebook 24 July 1958; working prototype September 1958"
+  ],
+  "confidence": "high",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "ENG1-047",
+  "title": "Jack Kilby (Scientist of the Day)",
+  "author_org": "Linda Hall Library",
+  "published": null,
+  "url": "https://www.lindahall.org/about/news/scientist-of-the-day/jack-kilby",
+  "accessed": "2026-10-22",
+  "type": "archive",
+  "claims_supported": [
+   "First working integrated circuit built by Kilby at Texas Instruments, September 1958"
+  ],
+  "confidence": "high",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "ENG1-048",
+  "title": "1959: Practical Monolithic Integrated Circuit Concept Patented",
+  "author_org": "Computer History Museum (The Silicon Engine)",
+  "published": null,
+  "url": "https://www.computerhistory.org/siliconengine/practical-monolithic-integrated-circuit-concept-patented/",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Noyce at Fairchild conceived a monolithic IC in 1959 using Hoerni's planar process; patent filed July 1959; working monolithic ICs May 1960"
+  ],
+  "confidence": "high",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
  }
 ]

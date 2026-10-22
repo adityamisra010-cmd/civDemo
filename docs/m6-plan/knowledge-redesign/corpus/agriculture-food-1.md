@@ -6,9 +6,9 @@ Original prose. Word counts are computed by the validator. Sources resolve in `h
 
 ### 22 · Line and pelagic fishing (`fishing_hook`)
 
-At Jerimalai rock shelter in East Timor, layers about 42,000 years old hold thousands of fish bones, many from tuna and other open-sea species. Catching them implies boats, planning and offshore skill. How they were caught, by hook, trolled line or net, is unresolved: the site's oldest shell hook is younger, about 23,000 to 16,000 years old.
+At Jerimalai rock shelter in East Timor, layers about 42,000 years old hold thousands of fish bones, many from tuna and other open-sea species. Catching them implies planning and seagoing skill. How they were caught, by hook, trolled line or net, is unresolved: the site's oldest shell hook is younger, about 23,000 to 16,000 years old.
 
-- words: 60 · fact-check: partially-checked (drafting lane; Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.)
+- words: 59 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
 - sources: [AGR1-001] Pelagic fish including tuna at Jerimalai about 42,000 years ago, Pelagic fishing implies planning and maritime technology; [AGR1-002] Oldest Jerimalai shell hook about 23,000-16,000 years old, Capture method (hooks, trolling or nets) unresolved
 - uncertainty: The node's 'line fishing' framing is an inference: the 42,000-year evidence is fish bone, not line or hook; press reports of 42,000-year-old hooks conflict with the excavator's own dating of the hook.
 - relation to mechanics: Knowledge-only today (no simulated effect); PROPOSED and deferred (M10+): an offshore fish stock worked by the Herding/fishing sector and reachable only by boat from a coast.
@@ -24,10 +24,10 @@ Grinding wild seeds and roots between two stones turns tough plant tissue into f
 
 ### 29 · Cereal cultivation (`cereal_cultivation`)
 
-Before genetic domestication, people sowed, tended and reaped wild cereal stands. In the Levant's Pre-Pottery Neolithic A, roughly 11,500 years ago, wild emmer, einkorn and barley were cultivated, judged from arable weeds and larger grains, though whether those grains reflect selection or wetter conditions is debated. Similar cultivation began independently with millet, rice and maize in China and Mexico.
+Before domestication, people sowed, tended and reaped wild cereal stands. In the Levant's Pre-Pottery Neolithic A, about 11,600 to 10,700 years ago, wild emmer, einkorn and barley were cultivated, judged from arable weeds and larger grains, though whether those grains reflect selection or wetter conditions is debated. Similar cultivation began independently with millet, rice and maize in China and Mexico.
 
-- words: 60 · fact-check: partially-checked (drafting lane; Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.)
-- sources: [AGR1-005] Pre-domestication cultivation inferred from domestic-sized grains and arable weeds, Wild emmer and barley in the southern Levant, wild einkorn in the north, in ; [AGR1-007] Agriculture began in Southwest Asia in the Pre-Pottery Neolithic; [AGR1-011] Millet the founding grains of northern Chinese farming; [AGR1-009] Rice cultivation on the Lower Yangtze by 8000-7700 BP; [AGR1-012] Maize domestication in the Balsas valley, Mexico
+- words: 62 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [AGR1-005] Pre-domestication cultivation inferred from domestic-sized grains and arable weeds, Wild emmer and barley in the southern Levant, wild einkorn in the north, in ; [AGR1-007] Agriculture began in Southwest Asia in the Pre-Pottery Neolithic; [AGR1-011] Millet the founding grains of northern Chinese farming; [AGR1-009] Rice cultivation on the Lower Yangtze by 8000-7700 BP; [AGR1-012] Maize domestication in the Balsas valley, Mexico; [AGR1-099] PPNA cultivation of wild cereals about 11,600-10,700 years ago; [AGR1-100] Regional diversity in timing of cultivation
 - uncertainty: The proposal's emerged field reads '~11,500 BCE Levant (PPNA)'; the PPNA began about 11,500-11,700 years ago (about 9,500-9,700 BCE), so the field appears to mix BP and BCE. Pre-domestication cultivation is inferred, not directly observed.
 - relation to mechanics: Realized today: grants activity.farming and the A2 cultivation age fact; PROPOSED and deferred: crop-package suitability by climate, water and soil in the Farming land side.
 
@@ -51,19 +51,19 @@ At Kuahuqiao on the lower Yangtze, about 7,700 years ago, villagers burned scrub
 
 ### 32 · Millet cultivation (`millet`)
 
-Broomcorn and foxtail millet, grasses that tolerate drought and short growing seasons, were the founding grains of farming in northern China, grown with rainfall rather than irrigation. At Cishan in Hebei, a 2009 study dated domesticated broomcorn millet to about 10,000 years ago, although some archaeologists question its sampling. Where and when each millet was first domesticated remains open.
+Broomcorn and foxtail millet, grasses that tolerate drought and short growing seasons, were the founding grains of farming in northern China. At Cishan in Hebei, a 2009 study dated domesticated broomcorn millet to about 10,000 years ago, although some archaeologists question its sampling and dates. Where and when each millet was first domesticated remains open.
 
-- words: 60 · fact-check: partially-checked (drafting lane; Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.)
-- sources: [AGR1-010] 2009 study dated broomcorn millet at Cishan to about 10,000 years ago, Early Cishan dates questioned; [AGR1-011] Broomcorn and foxtail millet the two grains of early north Chinese farming, Place and time of domestication unresolved
+- words: 56 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [AGR1-010] 2009 study dated broomcorn millet at Cishan to about 10,000 years ago, Early Cishan dates questioned; [AGR1-011] Broomcorn and foxtail millet the two grains of early north Chinese farming, Place and time of domestication unresolved; [AGR1-101] Millets yield with about 300 mm rain; heat tolerance; [AGR1-102] Foxtail and broomcorn millet as drought-tolerant models; [AGR1-103] Short growing season under dry, hot conditions
 - uncertainty: Cishan's early dates and crop identifications are disputed; the proposal's emerged field (~8,000 BCE Cishan) lies within the debated range.
 - relation to mechanics: Realized today as a member of activity.farming (all crop members currently give the same yield); PROPOSED and deferred: crop-package suitability by climate, water and soil in the Farming land side.
 
 ### 33 · Maize domestication (`maize`)
 
-Maize descends from teosinte, a wild grass of southwestern Mexico whose small, hard-cased ears look little like a corncob. Evidence from the Central Balsas River valley, where the closest wild relative still grows, places early domesticated maize about 8,700 years ago. Farmers gradually selected larger ears with exposed kernels, and maize spread through the Americas, becoming a staple.
+Maize descends from teosinte, a wild grass of southwestern Mexico whose small ears hold kernels in hard, indigestible cases. Evidence from the Central Balsas River valley, where the closest wild relative still grows, places early domesticated maize about 8,700 years ago. Farmers gradually selected larger cobs whose softer-cased kernels stay attached, and maize spread north and south.
 
-- words: 59 · fact-check: partially-checked (drafting lane; Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.)
-- sources: [AGR1-012] Earliest maize domestication evidence in the Central Balsas valley about 8,700 years ago, Balsas teosinte the wild grass closest to maize
+- words: 58 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [AGR1-012] Earliest maize domestication evidence in the Central Balsas valley about 8,700 years ago, Balsas teosinte the wild grass closest to maize; [AGR1-104] Balsas origin; attached kernels; larger cobs; spread north and south; [AGR1-105] Hard indigestible teosinte kernel casing
 - uncertainty: Earliest phases are debated; when maize became a dominant staple varied by region (the proposal's '~2,000 BCE' was not corroborated).
 - relation to mechanics: Realized today as a member of activity.farming (all crop members currently give the same yield); PROPOSED and deferred: crop-package suitability by climate, water and soil in the Farming land side.
 
@@ -71,8 +71,8 @@ Maize descends from teosinte, a wild grass of southwestern Mexico whose small, h
 
 South of the Sahara, farmers domesticated cereals suited to heat and erratic rain. Chaff of wild and domesticated sorghum in pottery from eastern Sudan dates to the fourth millennium BCE, and domesticated pearl millet appears in southeastern Mali in the third millennium BCE. Both crops later crossed to India; pearl millet arrived within about a thousand years.
 
-- words: 57 · fact-check: partially-checked (drafting lane; Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.)
-- sources: [AGR1-014] Wild and domesticated sorghum chaff in KG23 pottery, fourth millennium BC; [AGR1-013] Domesticated pearl millet in southeastern Mali by the second half of the third millennium BC, Spread to India in under 1,000 years, Eastern Sudan a gateway towa
+- words: 57 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [AGR1-014] Wild and domesticated sorghum chaff in KG23 pottery, fourth millennium BC; [AGR1-013] Domesticated pearl millet in southeastern Mali by the second half of the third millennium BC, Spread to India in under 1,000 years, Eastern Sudan a gateway towa; [AGR1-101] Pearl millet and sorghum drought and heat tolerance; Sahel; [AGR1-103] Pearl millet yield under drought and heat stress
 - uncertainty: Sorghum's exact domestication centre and timing are debated; the proposal's '~3,000 BCE Sahel' is a simplification of two crops on different timelines.
 - relation to mechanics: Realized today as a member of activity.farming (all crop members currently give the same yield); PROPOSED and deferred: crop-package suitability by climate, water and soil in the Farming land side.
 
@@ -276,11 +276,11 @@ A seed drill drops seed through tubes into furrows at even depth and spacing, sa
 
 ### 175 · Heavy wheeled plough (`heavy_plough`)
 
-The heavy plough combined a knife-like coulter, an iron share and a mouldboard, often on wheels and drawn by several oxen. It could cut and turn the wet clay soils of northern Europe that resisted the ard. Linguistic evidence suggests Slavic peoples used it by the sixth century CE; how fast it spread and what it changed remain debated.
+The heavy plough combined a coulter, an iron share and a mouldboard, and might need up to eight oxen. It turned the wet clay soils of northern Europe that resisted the ard. Linguistic evidence suggests Slavic peoples used it by the sixth century CE, and it is recorded in Italy's Po valley by 643; how fast it spread is debated.
 
-- words: 59 · fact-check: partially-checked (drafting lane; Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.)
-- sources: [AGR1-065] Heavy plough with coulter and mouldboard, Linguistic evidence of Slavic use by about AD 568; [AGR1-066] Lynn White: clay soils resisted the ard, Clay regions gained population and towns after adoption around the close of the first millennium; [AGR1-067] Ard-to-mouldboard shift slow and uneven
-- uncertainty: Origin (Slavic or otherwise) rests on linguistic rather than archaeological evidence; Lynn White's thesis on its social effects is contested.
+- words: 60 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [AGR1-065] Heavy plough with coulter and mouldboard, Linguistic evidence of Slavic use by about AD 568, Up to eight oxen; wet clay soils, Po valley by 643; [AGR1-066] Lynn White: clay soils resisted the ard, Clay regions gained population and towns after adoption around the close of the first millennium; [AGR1-067] Ard-to-mouldboard shift slow and uneven
+- uncertainty: Origin is not settled: Slavic use rests on linguistic evidence, while the carruca is recorded in the Po valley by 643 and south-western Germany by 720; Lynn White's thesis on its social effects is contested. Wheeled forecarriages are not confirmed as standard.
 - relation to mechanics: Realized today: grants the A6 heavy-plough age fact; PROPOSED and deferred: heavy clay counted as effective arable and a lower fallow share in the Farming land side.
 
 ### 176 · Padded horse collar (`horse_collar`)
@@ -402,10 +402,10 @@ Mineral fertilizers return plant nutrients to soil in concentrated form. In 1842
 
 ### 466 · Horse-drawn farm machinery (`farm_machinery`)
 
-Before engines reached farms, horse-powered machines began replacing hand labour. Andrew Meikle's threshing machine, first used in Scotland in 1786 and patented in 1788, separated grain from straw. Mechanical reapers followed from Patrick Bell in 1828, Cyrus McCormick in 1831 and Obed Hussey in 1833, and John Deere made his first steel plough in 1837.
+Before engines reached farms, horse-drawn machines began replacing hand labour. Andrew Meikle's threshing machine, first used in Scotland in 1786, separated grain from straw. Patrick Bell's 1828 reaper was pushed by two horses; in the United States Cyrus McCormick (1831) and Obed Hussey (1833) built rival reapers, with priority disputed. John Deere made his first steel plough in 1837.
 
-- words: 55 · fact-check: partially-checked (drafting lane; Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.)
-- sources: [AGR1-090] Meikle 1786/1788; McCormick 1831; Hussey 1833; [AGR1-091] Bell 1828, McCormick 1831, Hussey 1833 reapers; [AGR1-092] Bell's 1828 reaper, unpatented; [AGR1-093] Deere's first steel plough 1837, Grand Detour
-- uncertainty: Priority among reaper inventors was contested at the time; John Lane is reported to have built a steel plough in 1833.
+- words: 59 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [AGR1-090] Meikle 1786/1788; McCormick 1831; Hussey 1833; [AGR1-091] Bell 1828, McCormick 1831, Hussey 1833 reapers; [AGR1-092] Bell's 1828 reaper, unpatented; [AGR1-093] Deere's first steel plough 1837, Grand Detour; [AGR1-098] Bell's 1827-28 reaper, propelled by two horses
+- uncertainty: Priority among reaper inventors was contested at the time and since (William Manning held a US reaper patent of 3 May 1831; McCormick's credit as inventor is disputed); Meikle's 1788 patent was not confirmed; John Lane is reported to have built a steel plough in 1833.
 - relation to mechanics: PROPOSED and deferred: farm implements as an equipment good (iron, timber) raising output per farmer on the labour side.
 

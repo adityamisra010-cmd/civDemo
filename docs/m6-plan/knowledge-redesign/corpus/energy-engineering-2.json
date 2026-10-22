@@ -34,13 +34,62 @@
   "tree": "technology",
   "description": "A quantum computer stores information in qubits, which can hold superpositions and become entangled, so some calculations proceed in ways ordinary computers cannot efficiently imitate. Richard Feynman argued in 1981-82 that they could simulate physics. In 2019 Google's 53-qubit Sycamore processor ran a narrow sampling task claimed to be beyond classical reach, a claim IBM disputed. Early machines remain noisy.",
   "wordCount": 60,
-  "sources": [],
+  "sources": [
+   {
+    "sourceId": "ENG2-007",
+    "claims": [
+     "Feynman 1981-82"
+    ]
+   },
+   {
+    "sourceId": "ENG2-008",
+    "claims": [
+     "Sycamore 2019; IBM dispute"
+    ]
+   },
+   {
+    "sourceId": "ENG2-009",
+    "claims": [
+     "IBM dispute"
+    ]
+   }
+  ],
   "uncertainty": "The 2019 'quantum supremacy' claim was disputed (IBM estimated a classical simulation in days) and later classical algorithms narrowed the gap; several groups and approaches (superconducting, trapped-ion, photonic) contributed to early quantum computing.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Feynman's 1981 lecture published 1982; Sycamore 53 working qubits, 2019; IBM's dispute of the claim."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Feynman argued in 1981-82 that quantum computers could simulate physics",
+     "sources": [
+      "ENG2-007"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Google's 53-qubit Sycamore, 2019, narrow sampling task claimed beyond classical reach",
+     "sources": [
+      "ENG2-008"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "IBM disputed the claim",
+     "sources": [
+      "ENG2-008",
+      "ENG2-009"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Qubit superposition and entanglement allow calculations classical computers cannot efficiently imitate; early machines remain noisy",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Feynman's May 1981 talk published 1982 (arXiv review); Sycamore 53 qubits, 200 s vs claimed 10,000 years, IBM's 2.5-day estimate (press reports). The general description of qubits and noise was not checked against a cited result. Earlier drafting-lane note: No claim corroborated this session and no source recorded (none invented). Check first: Feynman's 1981 lecture published 1982; Sycamore 53 working qubits, 2019; IBM's dispute of the claim."
   },
   "mechanicLink": "Knowledge-only today (unlock-audit class C, limited quantum simulation); prerequisite of fault_tolerant_quantum; kept unchanged in the proposal."
  },
@@ -64,13 +113,49 @@
   "tree": "technology",
   "description": "Fault-tolerant quantum computing is a goal rather than an achieved technology: machines correcting their own errors faster than errors arise, keeping long calculations reliable. Quantum error-correcting codes, first proposed by Peter Shor in 1995, spread one robust logical qubit across many fragile physical ones. If built at scale, such machines could simulate molecules and materials beyond practical classical reach.",
   "wordCount": 59,
-  "sources": [],
+  "sources": [
+   {
+    "sourceId": "ENG2-010",
+    "claims": [
+     "Shor 1995; logical vs physical qubits"
+    ]
+   },
+   {
+    "sourceId": "ENG2-011",
+    "claims": [
+     "Shor 1995"
+    ]
+   }
+  ],
   "uncertainty": "Speculative: no large fault-tolerant machine exists; timelines, the best qubit technology and the size of the practical advantage for chemistry are all contested.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Shor's 1995 nine-qubit code as the first quantum error-correcting code; logical versus physical qubits."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Shor proposed the first quantum error-correcting code in 1995",
+     "sources": [
+      "ENG2-010",
+      "ENG2-011"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "One logical qubit is spread across many physical qubits",
+     "sources": [
+      "ENG2-010"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "No large fault-tolerant machine yet; could simulate molecules and materials beyond classical reach",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Shor's 1995 nine-qubit code as the first quantum error-correcting code (one logical in nine physical qubits) supported. The 'goal not yet achieved' status and the chemistry-simulation prospect were not searched. Earlier drafting-lane note: No claim corroborated this session and no source recorded (none invented). Check first: Shor's 1995 nine-qubit code as the first quantum error-correcting code; logical versus physical qubits."
   },
   "mechanicLink": "Knowledge-only speculative leaf (completion row, class C); counts toward engineering-subtree exhaustion before the recursive frontier nodes open; no consumer planned."
  },
@@ -159,15 +244,65 @@
  {
   "id": "programmable_computer",
   "tree": "technology",
-  "description": "The first programmable digital computers performed long calculations automatically, following instructions set by punched tape, switches or plugboard wiring rather than held in memory. They arose largely independently: Konrad Zuse's relay-based Z3 ran in Berlin in 1941; valve-based Colossus machines attacked German teleprinter ciphers at Bletchley Park from 1944; and ENIAC, completed in Philadelphia in 1945, computed artillery tables.",
+  "description": "The first programmable digital computers performed long calculations automatically, following instructions set by punched tape, switches or plugboard wiring rather than held in memory. They arose largely independently: Konrad Zuse's relay-based Z3 ran in Berlin in 1941; valve-based Colossus machines attacked German teleprinter ciphers at Bletchley Park from 1944; and ENIAC, completed in Philadelphia in 1945-46, computed artillery tables.",
   "wordCount": 59,
-  "sources": [],
-  "uncertainty": "Which machine was 'first' depends on criteria (programmable, electronic, general-purpose, Turing-complete); Colossus was special-purpose, and the first Colossus was tested in late 1943 before entering service in early 1944. Stibitz's relay calculators at Bell Labs are a further independent strand.",
+  "sources": [
+   {
+    "sourceId": "ENG2-001",
+    "claims": [
+     "Z3 1941; Colossus Lorenz"
+    ]
+   },
+   {
+    "sourceId": "ENG2-002",
+    "claims": [
+     "Z3 12 May 1941 Berlin"
+    ]
+   },
+   {
+    "sourceId": "ENG2-003",
+    "claims": [
+     "Colossus 1943-44; ENIAC Penn firing tables, 1945/46"
+    ]
+   }
+  ],
+  "uncertainty": "Which machine was 'first' depends on criteria (programmable, electronic, general-purpose, Turing-complete); Colossus was special-purpose, and the first Colossus ran in December 1943 or January 1944. ENIAC's completion is dated 1945 or 1946 in different sources. Stibitz's relay calculators at Bell Labs are a further independent strand.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Z3 operational 1941 in Berlin; Colossus at Bletchley Park from early 1944; ENIAC completed late 1945 for ballistic tables."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Z3 operational in Berlin, 1941",
+     "sources": [
+      "ENG2-002",
+      "ENG2-001"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Colossus at Bletchley Park against German teleprinter (Lorenz) ciphers from about 1944",
+     "sources": [
+      "ENG2-001",
+      "ENG2-003"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "ENIAC at Philadelphia (University of Pennsylvania) for artillery tables, completed 1945-46",
+     "sources": [
+      "ENG2-003"
+     ],
+     "result": "corrected"
+    },
+    {
+     "claim": "Relay (Z3) and valve (Colossus) technology; instructions by tape, switches or plugboards",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Changed ENIAC 'completed ... in 1945' to '1945-46' because search results give both 1945 and 1946. The search summary did not attribute each statement to a specific result, and two of three results are press articles, so attributions are probable rather than certain. Earlier drafting-lane note: No claim corroborated this session and no source recorded (none invented). Check first: Z3 operational 1941 in Berlin; Colossus at Bletchley Park from early 1944; ENIAC completed late 1945 for ballistic tables."
   },
   "mechanicLink": "PROPOSED (split from computer): knowledge-only completion row and the prerequisite of the stored-program computer node; reachable by a valve or a relay-switching route."
  },
@@ -176,13 +311,61 @@
   "tree": "technology",
   "description": "Semiconductor physics explains why materials like silicon and germanium conduct electricity better than insulators but worse than metals. In 1931 Alan Wilson used quantum mechanics to describe their energy bands; Walter Schottky and Nevill Mott explained rectifying metal contacts in 1938-39, clarifying radio crystal detectors. In 1940 Russell Ohl at Bell Labs found a silicon junction generating voltage under light.",
   "wordCount": 60,
-  "sources": [],
-  "uncertainty": "Band theory was built by several physicists (Bloch, Peierls, Wilson and others); Schottky and Mott (and Davydov) worked on rectification largely independently; the p-n junction was understood only gradually after Ohl's 1940 observation.",
+  "sources": [
+   {
+    "sourceId": "ENG2-004",
+    "claims": [
+     "Wilson 1931; Schottky and Mott 1938-39"
+    ]
+   },
+   {
+    "sourceId": "ENG2-005",
+    "claims": [
+     "Ohl p-n junction 1940"
+    ]
+   },
+   {
+    "sourceId": "ENG2-006",
+    "claims": [
+     "Lashkaryov priority claim"
+    ]
+   }
+  ],
+  "uncertainty": "Band theory was built by several physicists (Bloch, Peierls, Wilson and others); Schottky and Mott (and Davydov) worked on rectification largely independently; Ohl's junction is dated 1940 or about 1941, a priority claim for Vadym Lashkaryov has been argued, and the p-n junction was understood only gradually.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Wilson's 1931 band theory of semiconductors; Schottky and Mott rectifier theory 1938-39; Ohl's 1940 silicon p-n junction photovoltaic observation."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Wilson's 1931 quantum band theory of semiconductors",
+     "sources": [
+      "ENG2-004"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Schottky and Mott explained rectifying metal contacts 1938-39",
+     "sources": [
+      "ENG2-004"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Ohl at Bell Labs found a silicon junction, 1940",
+     "sources": [
+      "ENG2-005"
+     ],
+     "result": "disputed"
+    },
+    {
+     "claim": "Ohl's junction generated voltage under light; link to radio crystal detectors",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Wilson 1931, Schottky-Mott 1938 and Schottky's 1939 refinement supported (Cornell history PDF); Ohl's p-n junction 1940 (Computer History Museum) vs about 1941 (another result); Lashkaryov priority claim (Ukrainian Journal of Physics) added to uncertainty. The photovoltaic effect and crystal-detector link were not stated in search text. Earlier drafting-lane note: No claim corroborated this session and no source recorded (none invented). Check first: Wilson's 1931 band theory of semiconductors; Schottky and Mott rectifier theory 1938-39; Ohl's 1940 silicon p-n junction photovoltaic observation."
   },
   "mechanicLink": "PROPOSED (split from transistor): knowledge-only completion row and the prerequisite of transistor and solar_pv."
  }

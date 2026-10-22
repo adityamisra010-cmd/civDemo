@@ -48,6 +48,23 @@ contract, T6.11 institutions); M7 (battle layer — units); M8 (adoption — reg
 disease, class, culture); M10+ (era expansions: energy, deterrence); M11+ (depth and content). Counts per status are in
 `validation-report.md` and the generated matrix files.
 
+## 3a. Realization class (added 2026-10-22; MEASURED from the proposal JSON, derived by `tools/integrate.py`)
+
+A research node grants **eligibility** only. The class says what has to exist before the promise works, so no row can
+be read as a mechanic that already works.
+
+| Class | Rule | Rows |
+|---|---|---|
+| EXISTING | an existing node whose grants a live system realizes today (MEASURED consumer) | 59 |
+| EXTENSION REQUIRED | the grant kind has a live system, but this node or its content is new, or an M6 packet must extend that system | 48 |
+| NEW MECHANIC REQUIRED | owned by M6 but needs a system that does not exist yet (identification / access through the fog and discovery contract) | 4 |
+| DEFERRED | the realizing system belongs to M7 (units), M8 (regimes, policies, adoption), M9 (society), M10+ or M11+ | 127 |
+| KNOWLEDGE-ONLY | no non-knowledge grant, or no realizing owner (justified dead ends included) | 323 |
+
+Validator V27 refuses a row with no class, owner or milestone, an EXISTING row whose capability is not realized today,
+and a DEFERRED or NEW MECHANIC row that claims the milestone "existing". The class appears in the "milestone · status ·
+realization class" column of every `matrix/` file.
+
 ## 4. Checks applied to every row (`tools/validate.py`)
 
 Coherent prerequisites (resolved, acyclic, causal per lane review, chronology V21), explicit resource requirements in

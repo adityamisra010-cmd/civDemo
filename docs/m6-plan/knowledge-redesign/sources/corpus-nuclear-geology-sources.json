@@ -1,1 +1,323 @@
-[]
+[
+ {
+  "id": "NGC-001",
+  "title": "ITER FAQs",
+  "author_org": "ITER Organization",
+  "published": null,
+  "url": "https://www.iter.org/faqs",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "ITER does not aim to generate electricity and does not need tritium self-sufficiency; it prepares for demonstration power plants (DEMO)"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NGC-002",
+  "title": "What will ITER do?",
+  "author_org": "ITER Organization",
+  "published": null,
+  "url": "https://www.iter.org/fusion-energy/what-will-iter-do",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "ITER aims at extended burn with fusion power at least ten times the heating power (Q >= 10)"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NGC-003",
+  "title": "Perfecting tritium breeding for DEMO and beyond",
+  "author_org": "ITER Organization (Newsline)",
+  "published": null,
+  "url": "https://www.iter.org/node/20687/perfecting-tritium-breeding-demo-and-beyond",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Neutrons from the plasma striking lithium produce tritium; ITER will test breeding concepts in Test Blanket Modules"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NGC-004",
+  "title": "ITER Engineering Basis Handbook Vol. 1, ch. 9: Gaps to fill beyond ITER",
+  "author_org": "ITER Organization",
+  "published": "2026",
+  "url": "https://www.iter.org/sites/default/files/media/2026-02/vol.1_ch.09_gaps_to_fill_beyond_iter_e5ynb7.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "No fusion breeding blanket has yet been built or tested"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NGC-005",
+  "title": "Absolute dating of metallurgical innovations in the Vinca culture of the Balkans (Boric)",
+  "author_org": "Cardiff University ORCA repository",
+  "published": "2009",
+  "url": "https://orca.cardiff.ac.uk/id/eprint/32490/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Copper-ore mining and smelting in Vinca-culture contexts, including Rudna Glava, are the earliest copper metallurgy of southeast Europe"
+  ],
+  "confidence": "medium",
+  "notes": "Title inferred from the repository record shown in the result; the abstract text was summarised, not read. Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NGC-006",
+  "title": "Challenging the boom and bust models: the fourth millennium BC copper mine of Curak in south-west Serbia",
+  "author_org": "UCL Discovery repository",
+  "published": "2025",
+  "url": "https://discovery.ucl.ac.uk/10197684/1/challenging-the-boom-and-bust-models-the-fourth-millennium-bc-copper-mine-of-curak-in-south-west-serbia.pdf",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Ore was exploited at Rudna Glava by at least the sixth millennium BC and the mine was no longer worked in the fourth millennium BC"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NGC-007",
+  "title": "Gossan",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/science/gossan",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "A gossan is a rust-coloured cap of iron (and manganese) oxides over an ore deposit, used as a surface clue to buried mineralisation"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NGC-008",
+  "title": "Supergene Ore and Gangue Characteristics (Koski), USGS SIR 2010-5070-C ch. 12",
+  "author_org": "U.S. Geological Survey",
+  "published": "2010",
+  "url": "https://pubs.usgs.gov/sir/2010/5070/c/Chapter12SIR10-5070-C-3.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Oxidation-resistant minerals such as cassiterite remain in leached gossans after sulphides dissolve"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NGC-009",
+  "title": "De natura fossilium",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/De-natura-fossilium",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Agricola's De natura fossilium (1546) gave the first scientific classification of minerals, based on physical properties"
+  ],
+  "confidence": "high",
+  "notes": "Results differ on whether Agricola's scheme rested on geometric form or on physical properties generally. Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NGC-010",
+  "title": "Georgius Agricola (1494-1555)",
+  "author_org": "University of California Museum of Paleontology",
+  "published": null,
+  "url": "https://ucmp.berkeley.edu/history/agricola.html",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "De natura fossilium classified minerals by simple physical properties"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NGC-011",
+  "title": "Rediscovery of the Elements: Cronstedt and Nickel (The Hexagon, 2014)",
+  "author_org": "J. L. & V. R. Marshall, University of North Texas",
+  "published": "2014",
+  "url": "https://sites.chemistry.unt.edu/~jimm/REDISCOVERY%206-10-2021/Hexagon%20Articles/nickel.pdf",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Cronstedt was the first to use the blowpipe in systematic analysis of minerals",
+   "Cronstedt published his mineral system in 1758"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NGC-012",
+  "title": "A short history: first steps in nuclear medicine (radium medicine)",
+  "author_org": "CNRS-IN2P3 (laradioactivite.com)",
+  "published": null,
+  "url": "https://laradioactivite-prod-en.apps.wok3.in2p3.fr/articles/phenomenon/radium_medicine",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Dr Danlos, using radium sources prepared by the Curies, made the first therapeutic tests on skin lesions"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NGC-013",
+  "title": "Henri-Alexandre Danlos",
+  "author_org": "Whonamedit? (dictionary of medical eponyms)",
+  "published": null,
+  "url": "https://www.whonamedit.com/doctor.cfm/1799.html",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "In 1901, with Eugene Bloch, Danlos applied radium to tuberculous skin lesions (Hopital Saint-Louis, Paris)"
+  ],
+  "confidence": "low",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NGC-014",
+  "title": "Liquid Metal Fast Breeder Reactors (Khodarev), IAEA Bulletin 20-6",
+  "author_org": "International Atomic Energy Agency",
+  "published": "1978",
+  "url": "https://www.iaea.org/sites/default/files/publications/magazines/bulletin/bull20-6/20604782938.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Fast breeders produce more fissile material than they consume",
+   "Uranium-238 is converted to plutonium-239 by neutron capture in core and blanket"
+  ],
+  "confidence": "high",
+  "notes": "Publication year taken from the IAEA Bulletin volume (vol. 20 no. 6) in the URL; not stated in the result text. Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NGC-015",
+  "title": "Fast Neutron Reactors",
+  "author_org": "World Nuclear Association",
+  "published": null,
+  "url": "https://world-nuclear.org/information-library/current-and-future-generation/fast-neutron-reactors",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "The core is typically surrounded by a depleted-uranium blanket where much plutonium forms",
+   "The coolant is a liquid metal, normally sodium, to avoid neutron moderation"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NGC-016",
+  "title": "The Disposal of Radioactive Waste on Land",
+  "author_org": "National Academy of Sciences - National Research Council",
+  "published": "1957",
+  "url": "https://nap.nationalacademies.org/read/18527",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "A 1957 NAS-NRC Committee on Waste Disposal report, prepared at the Atomic Energy Commission's request, studied land disposal of radioactive waste"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NGC-017",
+  "title": "WIPP history timeline",
+  "author_org": "U.S. Department of Energy, Waste Isolation Pilot Plant",
+  "published": null,
+  "url": "https://www.wipp.energy.gov/historytimeline.asp",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "In 1957 the National Academy of Sciences concluded that salt deposits were the most promising medium for radioactive waste disposal"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NGC-018",
+  "title": "Which was the first 'tokamak' - or was it 'tokomag'?",
+  "author_org": "ITER Organization (Newsline)",
+  "published": null,
+  "url": "https://www.iter.org/node/20687/which-was-first-tokamak-or-was-it-tokomag",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "T-1 at the Kurchatov Institute is generally regarded as the first tokamak; Soviet results were presented in Geneva in 1958",
+   "ITER accounts variously date the first tokamak to 1954 (assembly) or late 1957 (T-1)"
+  ],
+  "confidence": "high",
+  "notes": "The 1954 date came from other ITER pages in the same result set. Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NGC-019",
+  "title": "Francois Conrad Schlumberger",
+  "author_org": "Engineering and Technology History Wiki (IEEE History Center)",
+  "published": null,
+  "url": "https://ethw.org/Fran%C3%A7ois_Conrad_Schlumberger",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "In 1913 Conrad Schlumberger located sulphide ore bodies electrically using the mise-a-la-masse method"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NGC-020",
+  "title": "Electrical and electromagnetic borehole measurements: a review (Spies, Brest 1994 workshop; Surveys in Geophysics 1996)",
+  "author_org": "B. R. Spies (MTnet archive)",
+  "published": "1996",
+  "url": "https://www.MTnet.info/division/papers/EMWKSHP_ReviewVolumes/1994Brest/Spies_1994BrestReview_SG_1996.pdf",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Conrad Schlumberger first tested surface resistivity mapping at Val Richer in summer 1912",
+   "An electrode implanted in an orebody (at Bor, Serbia) raised the whole body to one potential (mise-a-la-masse)"
+  ],
+  "confidence": "medium",
+  "notes": "Title partly inferred from the file name; the review's exact title was not shown. Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NGC-021",
+  "title": "Achieving Fusion Ignition",
+  "author_org": "Lawrence Livermore National Laboratory",
+  "published": null,
+  "url": "https://lasers.llnl.gov/science/achieving-fusion-ignition",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "On 5 December 2022 NIF produced 3.15 MJ of fusion energy from 2.05 MJ of laser energy delivered to the target",
+   "The target was a capsule of deuterium-tritium fuel compressed by lasers"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ }
+]

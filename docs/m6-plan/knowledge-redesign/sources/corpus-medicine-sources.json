@@ -1,1 +1,398 @@
-[]
+[
+ {
+  "id": "MED-001",
+  "title": "PMC article PMC1847732 (title not shown in the search result)",
+  "author_org": "PubMed Central (NIH/NLM)",
+  "published": null,
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC1847732",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Harvey's De motu cordis (1628) set out the circulation of the blood",
+   "Harvey used ligature experiments",
+   "Malpighi described the capillaries in 1661, supplying the link Harvey could not see"
+  ],
+  "confidence": "medium",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MED-002",
+  "title": "Cardiology Journal article (download 21732/17336)",
+  "author_org": "Via Medica (Cardiology Journal)",
+  "published": null,
+  "url": "https://journals.viamedica.pl/cardiology_journal/article/download/21732/17336",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Ibn al-Nafis proposed pulmonary circulation in the thirteenth century"
+  ],
+  "confidence": "medium",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MED-003",
+  "title": "University of Maryland HSHSL digital archive item (bitstream 1b77f33e)",
+  "author_org": "University of Maryland, Health Sciences and Human Services Library",
+  "published": null,
+  "url": "https://archive.hshsl.umaryland.edu/server/api/core/bitstreams/1b77f33e-b87b-499c-94fd-eb6328e371c1/content",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Graunt's Natural and Political Observations ... upon the Bills of Mortality (1662) analysed London deaths by age, sex and cause",
+   "Snow compared cholera death rates in households served by two rival water companies, one drawing sewage-polluted Thames water"
+  ],
+  "confidence": "medium",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MED-004",
+  "title": "John Snow archive document 15-78-97-22",
+  "author_org": "Michigan State University (John Snow Archive and Research Companion)",
+  "published": null,
+  "url": "https://johnsnow.matrix.msu.edu/documentUploads/15-78-97/15-78-97-22-johnsnow-a0a0r5-a_11479.pdf",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Snow mapped the homes of those who died in the 1854 outbreak and the locations of water pumps"
+  ],
+  "confidence": "medium",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MED-005",
+  "title": "Medical Research Council (1948). Streptomycin treatment of pulmonary tuberculosis",
+  "author_org": "James Lind Library",
+  "published": null,
+  "url": "https://www.jameslindlibrary.org/records/medical-research-council-1948b/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "MRC streptomycin trial published in the BMJ, 30 October 1948, with random allocation promoted by Austin Bradford Hill",
+   "Its label as the first randomised trial is disputed (the whooping-cough trial was planned earlier)"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MED-006",
+  "title": "Etymologia: Streptomycin",
+  "author_org": "Emerging Infectious Diseases (CDC), via PubMed Central",
+  "published": null,
+  "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6390759/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Albert Schatz, a PhD student in Selman Waksman's Rutgers laboratory, isolated streptomycin from Streptomyces griseus in 1943",
+   "Waksman's team screened soil actinomycetes for antibiotics",
+   "Streptomycin was shown effective against Mycobacterium tuberculosis in 1944",
+   "Schatz later sued and was recognized as co-discoverer"
+  ],
+  "confidence": "medium",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MED-007",
+  "title": "Selman Waksman, Rutgers alumnus, researcher and Nobel Prize winner, developed system to discover antibiotics",
+  "author_org": "Rutgers University",
+  "published": null,
+  "url": "https://www.rutgers.edu/news/selman-waksman-rutgers-alumnus-researcher-and-nobel-prize-winner-developed-system-discover",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Waksman's laboratory systematically screened soil microbes for antibiotics; Waksman received the 1952 Nobel Prize"
+  ],
+  "confidence": "medium",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MED-008",
+  "title": "First Broad-Spectrum Antibiotic Is Discovered",
+  "author_org": "EBSCO Research Starters",
+  "published": null,
+  "url": "https://www.ebsco.com/research-starters/pharmacy-and-pharmacology/first-broad-spectrum-antibiotic-discovered",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Chloramphenicol announced in 1947, derived from the soil bacterium Streptomyces venezuelae"
+  ],
+  "confidence": "medium",
+  "notes": "Search-result summary; page not opened (fetch blocked). Its claim that chloramphenicol was the first lab-synthesized antibiotic was not relied on.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MED-009",
+  "title": "Duggar Develops First Tetracycline Antibiotic",
+  "author_org": "EBSCO Research Starters",
+  "published": null,
+  "url": "https://www.ebsco.com/research-starters/history/duggar-develops-first-tetracycline-antibiotic",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Benjamin Duggar at Lederle found chlortetracycline (Aureomycin), unveiled 1948, from a soil actinomycete; the first tetracycline"
+  ],
+  "confidence": "medium",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MED-010",
+  "title": "Secretin, its discovery, and the introduction of the hormone concept (Henriksen and Schaffalitzky de Muckadell)",
+  "author_org": "Scandinavian Journal of Clinical and Laboratory Investigation (PubMed record)",
+  "published": "2000",
+  "url": "https://pubmed.ncbi.nlm.nih.gov/11129062/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Bayliss and Starling discovered secretin in 1902, generally described as the first hormone, and introduced the hormone concept"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MED-011",
+  "title": "Guest article, Indian Journal of Physiology and Pharmacology 46(4)",
+  "author_org": "Indian Journal of Physiology and Pharmacology",
+  "published": "2002",
+  "url": "https://ijpp.com/IJPP%20archives/2002_46_4/vol46_no4_guestartical1.htm",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "The crucial secretin experiment was performed at University College London on 16 January 1902",
+   "Starling first used the word 'hormone' in 1905"
+  ],
+  "confidence": "medium",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MED-012",
+  "title": "The insulin centennial - 100 years of milestones in biochemistry",
+  "author_org": "PubMed Central (NIH/NLM)",
+  "published": null,
+  "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8721491/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Insulin purified by James Collip was used to treat the first human diabetic patient, Leonard Thompson, in 1922"
+  ],
+  "confidence": "medium",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MED-013",
+  "title": "Frederick G Banting (1891-1941): A Pioneer in Diabetes Treatment",
+  "author_org": "PubMed Central (NIH/NLM)",
+  "published": null,
+  "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11650121/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Macleod provided Banting with laboratory space, dogs and a student assistant, Charles Best; Banting and Best treated a patient in January 1922",
+   "Sources differ on who did what in the insulin work"
+  ],
+  "confidence": "medium",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MED-014",
+  "title": "Emil von Behring: The founder of serum therapy",
+  "author_org": "NobelPrize.org",
+  "published": null,
+  "url": "https://www.nobelprize.org/prizes/medicine/1901/behring/article/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "In 1890 Behring and Kitasato showed that animals given graded doses of sterilised diphtheria or tetanus cultures produced blood antitoxins that neutralised the toxins",
+   "Serum from immunised animals could cure infected ones (passive immunisation, serum therapy)"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MED-015",
+  "title": "Emil von Behring - Biographical",
+  "author_org": "NobelPrize.org",
+  "published": null,
+  "url": "https://www.nobelprize.org/prizes/medicine/1901/behring/biographical/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Behring worked at the Hygiene Institute in Berlin from 1888",
+   "1890 publication with S. Kitasato on antitoxins"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MED-016",
+  "title": "Physiology or Medicine 1930 - Presentation Speech",
+  "author_org": "NobelPrize.org",
+  "published": null,
+  "url": "https://www.nobelprize.org/prizes/medicine/1930/ceremony-speech/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Landsteiner classified human blood into groups by their different agglutinating properties"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MED-017",
+  "title": "Karl Landsteiner (1868-1943): A Versatile Blood Scientist",
+  "author_org": "PubMed Central (NIH/NLM)",
+  "published": null,
+  "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11458791/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Landsteiner identified the ABO blood group system in 1901, explaining transfusion reactions"
+  ],
+  "confidence": "medium",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MED-018",
+  "title": "Special Feature: Never say dye",
+  "author_org": "British Columbia Medical Journal",
+  "published": null,
+  "url": "https://bcmj.org/sites/default/files/public/BCMJ_54_Vol2_spec_feat.pdf",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Domagk at Bayer found in 1932 that one dye (Prontosil) was much more effective than any tested before",
+   "First report published in 1935 (Deutsche Medizinische Wochenschrift, 15 February 1935)",
+   "French workers in Paris (Fourneau, the Tréfouëls, Bovet, Nitti) showed in late 1935 that Prontosil acts as sulfanilamide",
+   "Leonard Colebrook sharply reduced puerperal-fever deaths with sulfonamide treatment in 1936"
+  ],
+  "confidence": "medium",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MED-019",
+  "title": "Dr. Gerhard Domagk and Prontosil: dyeing beats dying",
+  "author_org": "Hektoen International",
+  "published": "2022-05-23",
+  "url": "https://hekint.org/2022/05/23/dr-gerhard-domagk-and-prontosil-dyeing-beats-dying/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Credits for Prontosil vary: Domagk's testing versus the chemist Klarer's synthesis"
+  ],
+  "confidence": "medium",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MED-020",
+  "title": "Dr. Crawford W. Long, the Discoverer of Anaesthesia (address of 1878)",
+  "author_org": "PubMed Central (NIH/NLM), historical reprint",
+  "published": null,
+  "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6922287/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Crawford Long used ether in surgery in Georgia from 30 March 1842 but did not publish until 1849"
+  ],
+  "confidence": "medium",
+  "notes": "Search-result summary; page not opened (fetch blocked). Partisan 19th-century address; used only for Long's dates. The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MED-021",
+  "title": "Excerpt, ISBN 9780521720205 (anaesthesia history timeline)",
+  "author_org": "Cambridge University Press",
+  "published": null,
+  "url": "https://assets.cambridge.org/97805217/20205/excerpt/9780521720205_excerpt.pdf",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "1844 Horace Wells administers nitrous oxide for dental analgesia",
+   "Morton's public demonstration of ether at Massachusetts General Hospital, 16 October 1846",
+   "James Simpson, professor of obstetrics in Scotland, introduced chloroform in 1847"
+  ],
+  "confidence": "medium",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MED-022",
+  "title": "PMC article PMC9312459 (title not shown in the search result)",
+  "author_org": "PubMed Central (NIH/NLM)",
+  "published": null,
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9312459",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Hanaoka Seishū's first recorded operation under his anaesthetic formula was a partial mastectomy in October 1804; his work was little known in the West"
+  ],
+  "confidence": "low",
+  "notes": "Search-result summary; page not opened (fetch blocked). Attribution of the Hanaoka statement between this result and an ESAIC newsletter in the same result set is uncertain. The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MED-023",
+  "title": "Germ theory",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/science/germ-theory",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Germ theory: specific microorganisms cause specific diseases; Pasteur, Lister and Koch credited with its development and acceptance",
+   "Henle argued in 1840 that infectious diseases come from minute living organisms"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MED-024",
+  "title": "History of medicine - Verification of the germ theory",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/science/history-of-medicine/Verification-of-the-germ-theory",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Leeuwenhoek was the first to observe bacteria and protozoa",
+   "Pasteur proved fermentation and souring of milk are caused by living microorganisms",
+   "Koch announced in 1876 that he had proved the bacterium caused anthrax",
+   "Koch identified the tuberculosis bacterium in 1882"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MED-025",
+  "title": "Robert Koch",
+  "author_org": "Science Museum (Brought to Life)",
+  "published": null,
+  "url": "https://broughttolife.sciencemuseum.org.uk/broughttolife/people/robertkoch",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Koch's team developed staining methods and solid culture media",
+   "Koch identified the bacteria of tuberculosis (1882) and cholera (1883)"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ }
+]

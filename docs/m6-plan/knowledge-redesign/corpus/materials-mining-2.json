@@ -96,14 +96,68 @@
     "claims": [
      "origin of the rolling idea contested"
     ]
+   },
+   {
+    "sourceId": "MAT2-043",
+    "claims": [
+     "Fuel separated from iron; puddled ball shingled and rolled"
+    ]
+   },
+   {
+    "sourceId": "MAT2-044",
+    "claims": [
+     "Fuel separated from iron, allowing coal"
+    ]
    }
   ],
-  "uncertainty": "Cort built on earlier work (Peter Onions patented a similar process in 1783), and a claim that he took the rolling idea from a Jamaican foundry is contested. Sources date full commercial use at Cyfarthfa from about 1786 to the 1790s; his process at first suited white rather than grey pig iron.",
+  "uncertainty": "Cort built on earlier work (Peter Onions patented a similar process in 1783), and a claim that he took the rolling idea from a Jamaican foundry is contested. Sources date full commercial use at Cyfarthfa from about 1786 to the 1790s; his process at first suited white rather than grey pig iron. One source describes coke rather than raw coal as the fuel.",
   "factCheck": {
-   "status": "partially-checked",
-   "checkedBy": "drafting lane",
-   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
-   "notes": "Corroborated: Cort's 1783 and 1784 patents, reverberatory furnace, stirring to oxidise carbon, grooved rolls, Welsh (Cyfarthfa) adoption. General knowledge, not corroborated by search: that the flame, not the fuel, touched the metal; 'shingled' (hammering of the puddled ball); 'without charcoal' (coal firing)."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Coal-fired reverberatory furnace, flame not fuel touching the metal; no charcoal",
+     "sources": [
+      "MAT2-043",
+      "MAT2-044",
+      "MAT2-007"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Stirring until air burned out carbon",
+     "sources": [
+      "MAT2-007",
+      "MAT2-043"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Shingled and passed through grooved rolls",
+     "sources": [
+      "MAT2-043",
+      "MAT2-007"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Cort patents 1783 (rolls) and 1784 (puddling)",
+     "sources": [
+      "MAT2-007"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Welsh ironmasters made them practical",
+     "sources": [
+      "MAT2-008"
+     ],
+     "result": "supported"
+    }
+   ],
+   "notes": "Fuel separation, coal in place of charcoal and shingling now supported. No text change. One search result described coke rather than coal firing (noted in uncertainty). Earlier notes (drafting lane): Corroborated: Cort's 1783 and 1784 patents, reverberatory furnace, stirring to oxidise carbon, grooved rolls, Welsh (Cyfarthfa) adoption. General knowledge, not corroborated by search: that the flame, not the fuel, touched the metal; 'shingled' (hammering of the puddled ball); 'without charcoal' (coal firing)."
   },
   "mechanicLink": "Realized today (class B): completing it supplies the supporting fact age:a8_iron to AgeTransitionSystem's Age 8 milestone. Prerequisites coke AND steam_rotary; prerequisite of bessemer, railway, iron_hull, rifled_artillery and steam_high_pressure."
  },
@@ -261,22 +315,61 @@
     "claims": [
      "Johnson fired chalk and clay at 1400-1500 C, c. 1845"
     ]
+   },
+   {
+    "sourceId": "MAT2-045",
+    "claims": [
+     "Kiln clinker from limestone and clay; paste with water hardens"
+    ]
+   },
+   {
+    "sourceId": "MAT2-046",
+    "claims": [
+     "Clinker ground with gypsum"
+    ]
    }
   ],
   "uncertainty": "Who made the first true portland cement is disputed between the Aspdins (Joseph's patent, William's clinker) and Johnson; Johnson's work is dated 1845 locally and about 1850 by Britannica.",
   "factCheck": {
-   "status": "partially-checked",
-   "checkedBy": "drafting lane",
-   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
-   "notes": "Corroborated: 1824 patent, Portland stone name, underburning, Johnson's higher-temperature clinker and its dating range. General knowledge, not corroborated by search: the generic manufacturing description (limestone or chalk with clay, ground clinker, hardening with water)."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Burning limestone or chalk with clay into clinker, ground to a powder that hardens with water",
+     "sources": [
+      "MAT2-045",
+      "MAT2-046",
+      "MAT2-021"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Aspdin patented the name in 1824, after Portland stone; product probably underburned",
+     "sources": [
+      "MAT2-019"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Johnson's higher-temperature firing about 1845-50",
+     "sources": [
+      "MAT2-020",
+      "MAT2-021"
+     ],
+     "result": "supported"
+    }
+   ],
+   "notes": "Generic manufacturing description now supported (Portland Cement Association; USGS-authored GSA abstract). No text change. Earlier notes (drafting lane): Corroborated: 1824 patent, Portland stone name, underburning, Johnson's higher-temperature clinker and its dating range. General knowledge, not corroborated by search: the generic manufacturing description (limestone or chalk with clay, ground clinker, hardening with water)."
   },
   "mechanicLink": "Grants building.cement_works (class J), not yet realized (deferred owner ConstructionSystem); records concrete in general use. Prerequisites concrete_pozzolan, kiln_updraft and chemistry_quantitative; prerequisite of reinforced_concrete."
  },
  {
   "id": "metallography",
   "tree": "technology",
-  "description": "Metallography studies the inner structure of metals. From 1863 to 1865 Henry Clifton Sorby of Sheffield polished and etched steel and examined it under reflected-light microscopes, revealing distinct constituents. By about 1900 Roberts-Austen and Bakhuis Roozeboom had drawn the iron-carbon diagram, explaining hardening and tempering that smiths had long practised without knowing why.",
-  "wordCount": 53,
+  "description": "Metallography studies the inner structure of metals. From 1863 to 1865 Henry Clifton Sorby of Sheffield polished and etched steel and examined it under reflected-light microscopes, revealing distinct constituents, including one he called 'pearly'. By about 1900 Roberts-Austen and Bakhuis Roozeboom had drawn the iron-carbon phase diagram; austenite, a high-temperature form of steel, is named after Roberts-Austen.",
+  "wordCount": 57,
   "sources": [
    {
     "sourceId": "MAT2-022",
@@ -289,14 +382,63 @@
     "claims": [
      "Roberts-Austen's diagrams 1897 and 1899; Roozeboom's phase-rule diagram c. 1900"
     ]
+   },
+   {
+    "sourceId": "MAT2-041",
+    "claims": [
+     "Sorby of Sheffield"
+    ]
+   },
+   {
+    "sourceId": "MAT2-042",
+    "claims": [
+     "Polishing and etching from 1863; 'pearly' constituent"
+    ]
    }
   ],
   "uncertainty": "Sorby's results were fully published only in 1886-87, and others (Martens, Osmond, Le Chatelier) developed the field in parallel; Widmanstatten had etched meteoritic iron earlier. Some 1897 diagrams by others are also claimed to precede Roberts-Austen's.",
   "factCheck": {
-   "status": "partially-checked",
-   "checkedBy": "drafting lane",
-   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
-   "notes": "Corroborated: Sorby 1863-65, polishing, etching, reflected-light microscopy; Roberts-Austen and Roozeboom diagram by about 1900. General knowledge, not corroborated by search: Sorby's Sheffield base, and that the diagram explains hardening and tempering practised long before."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Sorby of Sheffield",
+     "sources": [
+      "MAT2-041"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "1863-65 polishing, etching, reflected-light microscopy of steel",
+     "sources": [
+      "MAT2-022",
+      "MAT2-042"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Distinct constituents including one he called 'pearly'",
+     "sources": [
+      "MAT2-042"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Roberts-Austen and Bakhuis Roozeboom iron-carbon diagram by about 1900; austenite named after Roberts-Austen",
+     "sources": [
+      "MAT2-023"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Diagram explained hardening and tempering long practised by smiths",
+     "sources": [],
+     "result": "corrected"
+    }
+   ],
+   "notes": "Removed the unsupported claim that the iron-carbon diagram explained smiths' hardening and tempering; replaced with the sourced fact that austenite is named after Roberts-Austen. Added Sorby's 'pearly' constituent (sourced). Earlier notes (drafting lane): Corroborated: Sorby 1863-65, polishing, etching, reflected-light microscopy; Roberts-Austen and Roozeboom diagram by about 1900. General knowledge, not corroborated by search: Sorby's Sheffield base, and that the diagram explains hardening and tempering practised long before."
   },
   "mechanicLink": "PROPOSED new science node with no current effect beyond its completion row; prerequisites microscope AND chemistry_quantitative; its only dependant is superalloy, and no steelmaking node requires it."
  },

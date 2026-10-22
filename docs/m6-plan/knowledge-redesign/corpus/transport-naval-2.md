@@ -80,9 +80,9 @@ Electric cars are not new: battery vehicles were common in some cities around 19
 
 A helicopter lifts and steers itself with powered rotating wings, so it can hover, take off vertically and land without runways. Rotor torque and uneven blade forces defeated many early attempts. In 1935 and 1936 France's Breguet-Dorand Gyroplane Laboratoire and Germany's Focke-Wulf Fw 61 made controlled flights; Igor Sikorsky's VS-300 (1939) then established the single main rotor with tail rotor.
 
-- words: 60 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts).)
-- sources: —
-- uncertainty: 'First practical helicopter' is contested between the Breguet-Dorand machine, the Fw 61 and Sikorsky's designs; the answer depends on the criteria used.
+- words: 60 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [TRN2-005] Breguet-Dorand 1935; torque; [TRN2-006] VS-300 1939 tail rotor; [TRN2-007] VS-300 date conflict; [TRN2-008] Fw 61 1936
+- uncertainty: 'First practical helicopter' is contested between the Breguet-Dorand machine, the Fw 61 and Sikorsky's designs; the answer depends on the criteria used. The VS-300 is dated 1939 (ASME) but a National Academies text gives December 1941 for its single-main-rotor, single-tail-rotor form.
 - relation to mechanics: Deferred: vertical lift and runway-free air mobility; grants unit.helicopter eligibility (M7).
 
 ### 414 · Fusion propulsion (`fusion_propulsion`)
@@ -125,8 +125,8 @@ A motor road, or highway, is built for fast motor traffic alone, with limited ac
 
 Submarines travel beneath the surface by flooding and emptying ballast tanks to change buoyancy. Practical boats around 1900, such as John Holland's design for the US Navy, ran petrol engines on the surface and battery-powered electric motors underwater. In the First World War, German U-boat campaigns against merchant shipping showed the submarine's strategic weight and helped prompt Allied convoys.
 
-- words: 59 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts).)
-- sources: —
+- words: 59 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [TRN2-001] Holland 1900, propulsion, ballast; [TRN2-002] gasoline engine; battery and motor
 - uncertainty: Many inventors contributed (earlier human-powered and steam boats); 'first practical' submarine is a matter of definition.
 - relation to mechanics: Knowledge-only (new node): PROPOSED eligibility for a conventional-submarine identity if D09 adds one (M7) and the prerequisite of nuclear_submarine.
 
@@ -134,8 +134,8 @@ Submarines travel beneath the surface by flooding and emptying ballast tanks to 
 
 An orbital launch vehicle is a staged, guided rocket able to reach orbital speed, about 7.8 kilometres per second at low altitude. Earlier missiles such as the German V-2 (1944) reached only a fraction of that speed. The Soviet R-7, built as an intercontinental missile, first flew full range in August 1957 and launched Sputnik 1 on 4 October.
 
-- words: 60 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts).)
-- sources: —
+- words: 60 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [TRN2-003] R-7 August 1957; Sputnik 1; [TRN2-004] R-7 21 August 1957; Sputnik 1 4 October 1957
 - uncertainty: —
 - relation to mechanics: Deferred (split from rocket): takes building.spaceport and project.orbital_launch requirements; PROPOSED orbital launch campaigns as construction projects (tier G, nothing consumes them before M11+); prerequisite of satellite.
 

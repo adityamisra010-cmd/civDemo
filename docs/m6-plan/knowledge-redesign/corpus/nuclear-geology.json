@@ -2,22 +2,87 @@
  {
   "id": "ore_prospecting",
   "tree": "technology",
-  "description": "Ore prospecting means reading the ground for metal-bearing rock: green and blue copper stains, rusty weathered caps called gossans, and unusually heavy dark pebbles in stream gravels that may be tin ore. At Rudna Glava in Serbia, miners followed copper veins in the fifth millennium BCE. Tin ore was scarcer and harder to recognise, and its earliest sources are debated.",
-  "wordCount": 60,
-  "sources": [],
-  "uncertainty": "Dates for the earliest ore prospecting are inferred from mines and slag; Rudna Glava is commonly dated to the fifth millennium BCE, and early tin working at Kestel-Goltepe (Taurus, about 3000 BCE) is disputed. Prospecting practices arose in many regions independently.",
+  "description": "Ore prospecting means reading the ground for metal-bearing rock: green and blue copper stains, rusty weathered caps called gossans, and heavy dark pebbles in stream gravels that may be tin ore. At Rudna Glava in Serbia, Vinča-culture miners followed copper veins by the fifth millennium BCE. Tin ore was scarcer and harder to recognise; its earliest sources are debated.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "NGC-007",
+    "claims": [
+     "Gossans (rusty weathered caps) are surface indications of ore"
+    ]
+   },
+   {
+    "sourceId": "NGC-008",
+    "claims": [
+     "Cassiterite (tin ore) resists weathering"
+    ]
+   },
+   {
+    "sourceId": "NGC-005",
+    "claims": [
+     "Vinca-culture miners at Rudna Glava followed copper veins by the fifth millennium BCE"
+    ]
+   },
+   {
+    "sourceId": "NGC-006",
+    "claims": [
+     "Vinca-culture miners at Rudna Glava followed copper veins by the fifth millennium BCE"
+    ]
+   }
+  ],
+  "uncertainty": "Dates for the earliest ore prospecting are inferred from mines and slag; Rudna Glava is usually placed in the fifth millennium BCE, but a recent study argues it was worked by at least the sixth [NGC-006]. Early tin working at Kestel-Goltepe (Taurus, about 3000 BCE) is disputed. Prospecting practices arose in many regions independently.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: no register entry covers these claims, this lane's WebSearch call was refused (shared budget exhausted, 2026-10-22) and WebFetch is blocked. Written from general knowledge with cautious wording and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Rudna Glava copper mining in the fifth millennium BCE (Vinca culture); gossans and colour stains as surface indications; cassiterite in stream placers; scarcity of Bronze Age tin sources."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Gossans (rusty weathered caps) are surface indications of ore",
+     "sources": [
+      "NGC-007"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Green and blue copper stains are prospecting indications",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Cassiterite (tin ore) resists weathering",
+     "sources": [
+      "NGC-008"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Heavy dark pebbles in stream gravels may be tin ore",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Vinca-culture miners at Rudna Glava followed copper veins by the fifth millennium BCE",
+     "sources": [
+      "NGC-005",
+      "NGC-006"
+     ],
+     "result": "corrected"
+    },
+    {
+     "claim": "Tin ore was scarcer and harder to recognise; its earliest sources are debated",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Changed 'At Rudna Glava in Serbia, miners followed copper veins in the fifth millennium BCE' to 'Vinča-culture miners followed copper veins by the fifth millennium BCE' because a 2025 paper places exploitation by at least the sixth millennium BC [NGC-006]. NGC-008 only says cassiterite survives weathering in gossans, not that it collects in stream gravels. Unsupported: copper stains; tin scarcity. Earlier lane (drafting lane, status unverified): No claim corroborated this session and no source recorded (none invented). Claims to check first: Rudna Glava copper mining in the fifth millennium BCE (Vinca culture); gossans and colour stains as surface indications; cassiterite in stream placers; scarcity of Bronze Age tin sources."
   },
   "mechanicLink": "PROPOSED, deferred (M6 fog lane): would let a polity label exposed tin-ore deposits inside its known extent (otherwise shown as unidentified occurrences); the proving activity is IMPLEMENTATION DEFERRED and research never reveals or creates a deposit."
  },
  {
   "id": "mineralogy",
   "tree": "technology",
-  "description": "Systematic mineralogy identifies minerals as distinct species by tests rather than appearance. Georgius Agricola, a physician in the Bohemian mining town of Joachimsthal, classified minerals from observation in the mid-1500s. In the 1700s Axel Fredrik Cronstedt analysed minerals with a blowpipe flame. Such chemistry let Martin Klaproth find uranium in 1789 in pitchblende, which miners had called bad luck.",
+  "description": "Systematic mineralogy sorts minerals into species by properties and, later, chemistry. Georgius Agricola, a physician in the Bohemian mining town Joachimsthal, classified minerals by physical properties in 1546. In 1758 Axel Fredrik Cronstedt proposed a mineral system, analysing specimens with a blowpipe flame. Such chemistry let Klaproth find uranium in 1789 in pitchblende, which miners had called bad luck.",
   "wordCount": 59,
   "sources": [
    {
@@ -50,14 +115,92 @@
     "claims": [
      "Joachimsthal miners called the uranium mineral 'Pechblende', a bad-luck mineral"
     ]
+   },
+   {
+    "sourceId": "NGC-009",
+    "claims": [
+     "Agricola, physician at Joachimsthal, classified minerals by physical properties in 1546"
+    ]
+   },
+   {
+    "sourceId": "NGC-010",
+    "claims": [
+     "Agricola, physician at Joachimsthal, classified minerals by physical properties in 1546"
+    ]
+   },
+   {
+    "sourceId": "NGC-011",
+    "claims": [
+     "In 1758 Cronstedt proposed a mineral system, analysing specimens with a blowpipe"
+    ]
    }
   ],
-  "uncertainty": "The node record dates the practice to 1546 (De natura fossilium) and 1758 (Cronstedt); the text gives centuries because the reused sources do not state those years. Mineral classification had earlier roots (Theophrastus, Islamic and Chinese works).",
+  "uncertainty": "Results differ on whether Agricola's 1546 scheme rested on geometric form or on physical properties generally [NGC-009]. Mineral classification had earlier roots (Theophrastus, Islamic and Chinese works).",
   "factCheck": {
-   "status": "partially-checked",
-   "checkedBy": "drafting lane",
-   "method": "Claims compared with the claims recorded in register entries reused from sources/nuclear-geology-sources.json (search-result summaries captured by lane D11 on 2026-10-22); claims listed in notes rest on general knowledge. This lane's own WebSearch call was refused (shared search budget exhausted, 2026-10-22) and WebFetch is blocked, so no page was opened and no new search was run.",
-   "notes": "General knowledge, not corroborated: De natura fossilium in the mid-1500s (1546); Cronstedt's work in the 1700s; 'tests rather than appearance' as a characterisation."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Agricola was town physician at Joachimsthal (1527-1533)",
+     "sources": [
+      "NUC-229"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "De natura fossilium classified minerals; Agricola favoured observation over ancient authority",
+     "sources": [
+      "NUC-229"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Blowpipe analysis of ores developed by Cronstedt",
+     "sources": [
+      "NUC-231"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Cronstedt's systematic use of the blowpipe to analyse mineral composition",
+     "sources": [
+      "NUC-232"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Klaproth identified uranium in pitchblende in 1789",
+     "sources": [
+      "NUC-01"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Joachimsthal miners called the uranium mineral 'Pechblende', a bad-luck mineral",
+     "sources": [
+      "NUC-04"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Agricola, physician at Joachimsthal, classified minerals by physical properties in 1546",
+     "sources": [
+      "NGC-009",
+      "NGC-010"
+     ],
+     "result": "corrected"
+    },
+    {
+     "claim": "In 1758 Cronstedt proposed a mineral system, analysing specimens with a blowpipe",
+     "sources": [
+      "NGC-011"
+     ],
+     "result": "corrected"
+    }
+   ],
+   "notes": "Changed 'identifies minerals as distinct species by tests rather than appearance' to 'sorts minerals into species by properties and, later, chemistry' (Agricola's scheme rested on physical properties); changed 'from observation in the mid-1500s' to 'by physical properties in 1546' and 'In the 1700s' to 'In 1758' now that results state those years. Existing NUC claims (Joachimsthal, blowpipe, Klaproth 1789, pitchblende) retained. Earlier lane (drafting lane, status partially-checked): General knowledge, not corroborated: De natura fossilium in the mid-1500s (1546); Cronstedt's work in the 1700s; 'tests rather than appearance' as a characterisation."
   },
   "mechanicLink": "PROPOSED, deferred: would type exposed bauxite and uranium-mineral occurrences in observed land (with chemistry_quantitative); uranium identification stays contract-only because no Spine-sanctioned system consumes uranium (OPEN DECISION)."
  },
@@ -239,15 +382,61 @@
  {
   "id": "nuclear_fusion_research",
   "tree": "technology",
-  "description": "Controlled fusion research tries to join light nuclei such as deuterium and tritium in a plasma hot, dense and confined enough to yield net energy. Soviet physicists built the first tokamak, a doughnut-shaped magnetic chamber, in the late 1950s. Inertial confinement squeezes fuel pellets with lasers; a 2022 American experiment released more energy than its lasers delivered.",
-  "wordCount": 57,
-  "sources": [],
-  "uncertainty": "The 2022 result exceeded the laser energy delivered to the target, not the total energy the facility consumed. Dates for the first tokamak vary (1958 is usual) depending on what counts as a tokamak.",
+  "description": "Controlled fusion research tries to join light nuclei such as deuterium and tritium in a plasma hot, dense and confined enough to yield net energy. Soviet physicists developed the tokamak, a doughnut-shaped magnetic chamber, in the 1950s. Inertial confinement squeezes fuel pellets with lasers; a 2022 American experiment released more energy than its lasers delivered.",
+  "wordCount": 55,
+  "sources": [
+   {
+    "sourceId": "NGC-018",
+    "claims": [
+     "Soviet physicists developed the tokamak in the 1950s"
+    ]
+   },
+   {
+    "sourceId": "NGC-021",
+    "claims": [
+     "Inertial confinement compresses fuel pellets with lasers",
+     "A 2022 American experiment released more energy than its lasers delivered",
+     "Deuterium and tritium as fuel"
+    ]
+   }
+  ],
+  "uncertainty": "The 2022 result (3.15 MJ from 2.05 MJ of laser energy) exceeded the laser energy delivered to the target, not the total energy the facility consumed [NGC-021]. Dates for the first tokamak vary between 1954 and 1958 depending on what counts as a tokamak [NGC-018].",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: no register entry covers these claims, this lane's WebSearch call was refused (shared budget exhausted, 2026-10-22) and WebFetch is blocked. Written from general knowledge with cautious wording and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: first tokamak (Kurchatov Institute, about 1958); National Ignition Facility target gain in December 2022; deuterium-tritium as the main fuel."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Soviet physicists developed the tokamak in the 1950s",
+     "sources": [
+      "NGC-018"
+     ],
+     "result": "corrected"
+    },
+    {
+     "claim": "Inertial confinement compresses fuel pellets with lasers",
+     "sources": [
+      "NGC-021"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "A 2022 American experiment released more energy than its lasers delivered",
+     "sources": [
+      "NGC-021"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Deuterium and tritium as fuel",
+     "sources": [
+      "NGC-021"
+     ],
+     "result": "supported"
+    }
+   ],
+   "notes": "Changed 'built the first tokamak ... in the late 1950s' to 'developed the tokamak ... in the 1950s' because ITER accounts date the first device variously to 1954 (assembly), late 1957 (T-1) or 1958 (Geneva publication). The 'hot, dense and confined' net-energy condition and the tokamak's shape are treated as definitions. Earlier lane (drafting lane, status unverified): No claim corroborated this session and no source recorded (none invented). Claims to check first: first tokamak (Kurchatov Institute, about 1958); National Ignition Facility target gain in December 2022; deuterium-tritium as the main fuel."
   },
   "mechanicLink": "Knowledge-only (class C): records plasma confinement and fusion science; reachable by a magnetic route (superconductivity) or an inertial route (thermonuclear and laser); no simulated effect."
  },
@@ -283,15 +472,72 @@
  {
   "id": "fusion_power",
   "tree": "technology",
-  "description": "Fusion power is the still-unrealised goal of generating electricity from controlled fusion. A plant would need a plasma yielding far more energy than the whole facility consumes, wall materials that survive intense neutron bombardment, and tritium fuel bred from lithium. No fusion device has yet supplied a grid; experiments such as ITER in France aim first to sustain burning plasmas.",
+  "description": "Fusion power is the still-unrealised goal of generating electricity from controlled fusion. A plant would need a plasma yielding far more energy than the whole facility consumes, wall materials that survive intense neutron bombardment, and tritium fuel bred from lithium. ITER in France does not aim to generate electricity; it aims to sustain burning plasmas, leaving power to later plants.",
   "wordCount": 60,
-  "sources": [],
-  "uncertainty": "Speculative: timelines for commercial fusion are disputed and repeatedly revised; no date is implied.",
+  "sources": [
+   {
+    "sourceId": "NGC-003",
+    "claims": [
+     "Tritium fuel would be bred from lithium"
+    ]
+   },
+   {
+    "sourceId": "NGC-001",
+    "claims": [
+     "ITER does not aim to generate electricity; it aims to sustain burning plasmas, leaving power to later demonstration plants"
+    ]
+   },
+   {
+    "sourceId": "NGC-002",
+    "claims": [
+     "ITER does not aim to generate electricity; it aims to sustain burning plasmas, leaving power to later demonstration plants"
+    ]
+   }
+  ],
+  "uncertainty": "Speculative: timelines for commercial fusion are disputed and repeatedly revised; no date is implied. Breeding blankets remain untested at scale [NGC-004], and laboratory 'gain' figures count energy delivered to the target, not the facility's consumption [NGC-021].",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: no register entry covers these claims, this lane's WebSearch call was refused (shared budget exhausted, 2026-10-22) and WebFetch is blocked. Written from general knowledge with cautious wording and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: no fusion device has supplied grid electricity (as of 2026); ITER's location and aim; tritium breeding from lithium."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Tritium fuel would be bred from lithium",
+     "sources": [
+      "NGC-003"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "ITER does not aim to generate electricity; it aims to sustain burning plasmas, leaving power to later demonstration plants",
+     "sources": [
+      "NGC-001",
+      "NGC-002"
+     ],
+     "result": "corrected"
+    },
+    {
+     "claim": "A plant would need a plasma yielding far more energy than the whole facility consumes",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Wall materials must survive intense neutron bombardment",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Fusion power is still unrealised",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "ITER is in France",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Changed 'No fusion device has yet supplied a grid; experiments such as ITER in France aim first to sustain burning plasmas' to 'ITER in France does not aim to generate electricity; it aims to sustain burning plasmas, leaving power to later plants' because no result stated the grid claim directly, while ITER's FAQ states this aim. NIF's gain counts laser energy, not facility energy [NGC-021]; ITER notes no breeding blanket has been built or tested [NGC-004]. Unsupported: neutron-resistant wall materials; 'still unrealised' (not stated directly); the facility-energy requirement; ITER's location was not stated in result text. Earlier lane (drafting lane, status unverified): No claim corroborated this session and no source recorded (none invented). Claims to check first: no fusion device has supplied grid electricity (as of 2026); ITER's location and aim; tritium breeding from lithium."
   },
   "mechanicLink": "Knowledge-only (class J): the declared fusion plant has no realizing system and, as nuclear generation, no Spine-sanctioned owner; prerequisite of fusion_propulsion."
  },
@@ -468,14 +714,72 @@
     "claims": [
      "Saskatoon cobalt-60 unit treated its first patient in November 1951"
     ]
+   },
+   {
+    "sourceId": "NGC-012",
+    "claims": [
+     "Around 1901 doctors applied radium to skin lesions"
+    ]
+   },
+   {
+    "sourceId": "NGC-013",
+    "claims": [
+     "Around 1901 doctors applied radium to skin lesions"
+    ]
    }
   ],
   "uncertainty": "London, Ontario, and Saskatoon both claim the first cobalt-60 treatment in 1951 [NUC-77, NUC-203].",
   "factCheck": {
-   "status": "partially-checked",
-   "checkedBy": "drafting lane",
-   "method": "Claims compared with the claims recorded in register entries reused from sources/nuclear-geology-sources.json (search-result summaries captured by lane D11 on 2026-10-22); claims listed in notes rest on general knowledge. This lane's own WebSearch call was refused (shared search budget exhausted, 2026-10-22) and WebFetch is blocked, so no page was opened and no new search was run.",
-   "notes": "General knowledge, not corroborated: first radium treatments of skin lesions around 1901 (the node record places one in Paris)."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Becquerel's skin burn from a radium tube; joint Becquerel-Curie paper on physiological effects in 1901",
+     "sources": [
+      "NUC-134"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Radium sources placed in body cavities and later implanted as needles",
+     "sources": [
+      "NUC-201"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Institut du Radium (1909) and Fondation Curie as treatment and training centres",
+     "sources": [
+      "NUC-202"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "First cobalt-60 external-beam treatment given in London, Ontario, in 1951, a second in Saskatoon",
+     "sources": [
+      "NUC-77"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Saskatoon cobalt-60 unit treated its first patient in November 1951",
+     "sources": [
+      "NUC-203"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Around 1901 doctors applied radium to skin lesions",
+     "sources": [
+      "NGC-012",
+      "NGC-013"
+     ],
+     "result": "supported"
+    }
+   ],
+   "notes": "Closes the earlier gap: Danlos (with Bloch) applied Curie-prepared radium to skin lesions at Saint-Louis, Paris, dated 1901 [NGC-012, NGC-013 (low confidence for the year)]. Existing NUC claims retained. Earlier lane (drafting lane, status partially-checked): General knowledge, not corroborated: first radium treatments of skin lesions around 1901 (the node record places one in Paris)."
   },
   "mechanicLink": "PROPOSED, deferred (M9 health system): a cancer-treatment practice whose radium and cobalt-60 sources would be an abstract medical supply, since ore processing and isotope production have no Spine-sanctioned system (OPEN DECISION)."
  },
@@ -508,14 +812,73 @@
     "claims": [
      "BN-600 grid-connected April 1980"
     ]
+   },
+   {
+    "sourceId": "NGC-014",
+    "claims": [
+     "A uranium-238 blanket becomes plutonium, so the reactor can make more fissile fuel than it burns"
+    ]
+   },
+   {
+    "sourceId": "NGC-015",
+    "claims": [
+     "A uranium-238 blanket becomes plutonium, so the reactor can make more fissile fuel than it burns",
+     "Fast neutrons, usually liquid-sodium cooling"
+    ]
    }
   ],
   "uncertainty": "Breeding needs reprocessing to recover the bred plutonium; Superphenix was shut down early [NUC-87] and the US did not pursue the closed cycle commercially.",
   "factCheck": {
-   "status": "partially-checked",
-   "checkedBy": "drafting lane",
-   "method": "Claims compared with the claims recorded in register entries reused from sources/nuclear-geology-sources.json (search-result summaries captured by lane D11 on 2026-10-22); claims listed in notes rest on general knowledge. This lane's own WebSearch call was refused (shared search budget exhausted, 2026-10-22) and WebFetch is blocked, so no page was opened and no new search was run.",
-   "notes": "General physics, not corroborated by a reused source: conversion of uranium-238 into plutonium in a blanket."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "EBR-I produced the first usable nuclear electricity on 20 December 1951; first liquid-metal-cooled fast reactor",
+     "sources": [
+      "NUC-58"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "EBR-I as a breeder made more fuel than it consumed",
+     "sources": [
+      "NUC-59"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Superphenix closed in 1998; BN-600 and BN-800 are the main operating sodium-cooled fast reactors",
+     "sources": [
+      "NUC-85"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "BN-600 grid-connected April 1980",
+     "sources": [
+      "NUC-86"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "A uranium-238 blanket becomes plutonium, so the reactor can make more fissile fuel than it burns",
+     "sources": [
+      "NGC-014",
+      "NGC-015"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Fast neutrons, usually liquid-sodium cooling",
+     "sources": [
+      "NGC-015"
+     ],
+     "result": "supported"
+    }
+   ],
+   "notes": "Closes the earlier gap (U-238 conversion in a blanket). Existing NUC claims retained. Earlier lane (drafting lane, status partially-checked): General physics, not corroborated by a reused source: conversion of uranium-238 into plutonium in a blanket."
   },
   "mechanicLink": "Knowledge-only (closed-cycle alternative reactor family for nuclear_power, requires reprocessing): no realization under the frozen Spine; any mechanic needs a CR (OPEN DECISION)."
  },
@@ -542,14 +905,58 @@
     "claims": [
      "Oklo retained fission waste for about two billion years; actinides stayed largely in place"
     ]
+   },
+   {
+    "sourceId": "NGC-016",
+    "claims": [
+     "In 1957 an American scientific panel favoured salt formations"
+    ]
+   },
+   {
+    "sourceId": "NGC-017",
+    "claims": [
+     "In 1957 an American scientific panel favoured salt formations"
+    ]
    }
   ],
   "uncertainty": "Finland's Onkalo spent-fuel repository received a favourable regulatory safety finding in 2026 [NUC-128] but the government's licensing decision is pending; no civil spent-fuel repository was operating when this was written.",
   "factCheck": {
-   "status": "partially-checked",
-   "checkedBy": "drafting lane",
-   "method": "Claims compared with the claims recorded in register entries reused from sources/nuclear-geology-sources.json (search-result summaries captured by lane D11 on 2026-10-22); claims listed in notes rest on general knowledge. This lane's own WebSearch call was refused (shared search budget exhausted, 2026-10-22) and WebFetch is blocked, so no page was opened and no new search was run.",
-   "notes": "General knowledge, not corroborated: the 1957 US National Academy of Sciences report recommending salt (the node record's date); 650 m is a conversion of 2,150 feet."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "High level waste is matched to deep geological disposal",
+     "sources": [
+      "NUC-125"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "First waste shipment arrived at WIPP on 26 March 1999; about 2,150 feet underground in a salt formation; defence transuranic waste",
+     "sources": [
+      "NUC-126"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Oklo retained fission waste for about two billion years; actinides stayed largely in place",
+     "sources": [
+      "NUC-131"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "In 1957 an American scientific panel favoured salt formations",
+     "sources": [
+      "NGC-016",
+      "NGC-017"
+     ],
+     "result": "supported"
+    }
+   ],
+   "notes": "Closes the earlier gap: the 1957 NAS-NRC report recommended salt deposits [NGC-016, NGC-017]. 'Stable rock and engineered barriers rather than continued human care' is treated as the definition of the concept. Existing NUC claims retained. Earlier lane (drafting lane, status partially-checked): General knowledge, not corroborated: the 1957 US National Academy of Sciences report recommending salt (the node record's date); 650 m is a conversion of 2,150 feet."
   },
   "mechanicLink": "Knowledge-only: a radioactive-waste repository is a nuclear-layer facility the frozen Spine does not sanction; any mechanic needs a CR (OPEN DECISION)."
  },
@@ -870,14 +1277,72 @@
     "claims": [
      "Magnetic prospection, later airborne"
     ]
+   },
+   {
+    "sourceId": "NGC-019",
+    "claims": [
+     "Electrical methods targeted sulphide ores (Schlumberger, 1912-13)"
+    ]
+   },
+   {
+    "sourceId": "NGC-020",
+    "claims": [
+     "Electrical methods targeted sulphide ores (Schlumberger, 1912-13)"
+    ]
    }
   ],
   "uncertainty": "The 1640 date for compass prospecting rests on a low-confidence abstract [NUC-248]; the node record cites Thalen's 1879 survey method. Results include false positives and misses.",
   "factCheck": {
    "status": "partially-checked",
-   "checkedBy": "drafting lane",
-   "method": "Claims compared with the claims recorded in register entries reused from sources/nuclear-geology-sources.json (search-result summaries captured by lane D11 on 2026-10-22); claims listed in notes rest on general knowledge. This lane's own WebSearch call was refused (shared search budget exhausted, 2026-10-22) and WebFetch is blocked, so no page was opened and no new search was run.",
-   "notes": "General knowledge, not corroborated: electrical methods for sulphide ores (Schlumberger, about 1912-13, per the node record)."
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Compass used to locate Swedish iron ore (dated 1640 in an abstract); field magnetometers from 1915",
+     "sources": [
+      "NUC-248"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Eotvos torsion balance (1888); first gravimetric oil survey at Egbell (1915); Nash salt dome, Texas, 1924",
+     "sources": [
+      "NUC-246"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "First reflection-seismograph field test, central Oklahoma, 4 June 1921",
+     "sources": [
+      "NUC-244"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Magnetic prospection, later airborne",
+     "sources": [
+      "NUC-249"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Electrical methods targeted sulphide ores (Schlumberger, 1912-13)",
+     "sources": [
+      "NGC-019",
+      "NGC-020"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Swedish miners traced iron ore with magnetic compasses (low-confidence source only)",
+     "sources": [
+      "NUC-248"
+     ],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Electrical-method gap closed [NGC-019, NGC-020]. Still partially-checked because the Swedish compass claim rests only on a low-confidence 1949 abstract [NUC-248]; not re-searched (budget). Earlier lane (drafting lane, status partially-checked): General knowledge, not corroborated: electrical methods for sulphide ores (Schlumberger, about 1912-13, per the node record)."
   },
   "mechanicLink": "PROPOSED, deferred: survey work over observed territory would identify concealed iron, oil, copper, salt and sulphur prospects with false positives and misses, never proving size or grade."
  },

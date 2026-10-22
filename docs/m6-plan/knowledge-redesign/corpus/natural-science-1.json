@@ -244,14 +244,52 @@
     "claims": [
      "Kepler's first two laws, Mars, Astronomia nova 1609"
     ]
+   },
+   {
+    "sourceId": "NAT1-093",
+    "claims": [
+     "1616 prohibition, 73 years after publication"
+    ]
+   },
+   {
+    "sourceId": "NAT1-094",
+    "claims": [
+     "Slow acceptance; early denunciation"
+    ]
    }
   ],
   "uncertainty": "Aristarchus of Samos had proposed a Sun-centred arrangement in antiquity; Copernicus's model still used epicycles. The pace of acceptance varied by country and community.",
   "factCheck": {
-   "status": "partially-checked",
-   "checkedBy": "drafting lane",
-   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked); claims not corroborated are listed in notes.",
-   "notes": "'Contested for decades' is general historical knowledge, not corroborated in this search."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Copernicus 1543, Sun at centre, Earth a planet, circular orbits",
+     "sources": [
+      "NAT1-017"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Kepler, using Tycho's data, Astronomia nova 1609: ellipse and equal areas",
+     "sources": [
+      "NAT1-017",
+      "NAT1-018"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "The Sun-centred system remained contested for decades",
+     "sources": [
+      "NAT1-093",
+      "NAT1-094"
+     ],
+     "result": "supported"
+    }
+   ],
+   "notes": "'Contested for decades' now supported (slow acceptance; De revolutionibus on the Index in 1616; Galileo tried 1633). No text change. Earlier notes (drafting lane): 'Contested for decades' is general historical knowledge, not corroborated in this search."
   },
   "mechanicLink": "Knowledge-only today (class C, no simulated effect); records accurate planetary prediction. Prerequisites astronomy_geometric and trigonometry; prerequisite of mechanics_newtonian."
  },
@@ -443,14 +481,53 @@
     "claims": [
      "Laplace 1812"
     ]
+   },
+   {
+    "sourceId": "NAT1-087",
+    "claims": [
+     "1812 treatise; systematic inverse probability"
+    ]
+   },
+   {
+    "sourceId": "NAT1-088",
+    "claims": [
+     "Combinatorial calculus and universal inductive method"
+    ]
    }
   ],
   "uncertainty": "Cardano had treated games of chance earlier (published 1663). Statistics also grew from population counts (Graunt, 1662) and astronomical error theory (Gauss, Legendre), not covered here.",
   "factCheck": {
-   "status": "partially-checked",
-   "checkedBy": "drafting lane",
-   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked); claims not corroborated are listed in notes.",
-   "notes": "Corroborated: 1654, 1713, law of large numbers, Laplace 1812. 'Methods of inference' is a characterisation not checked against a source."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "1654 Pascal-Fermat letters on dividing stakes",
+     "sources": [
+      "NAT1-031"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Ars Conjectandi posthumous 1713; law of large numbers",
+     "sources": [
+      "NAT1-032",
+      "NAT1-033"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Laplace's 1812 treatise built general methods of calculation and inference",
+     "sources": [
+      "NAT1-034",
+      "NAT1-087",
+      "NAT1-088"
+     ],
+     "result": "supported"
+    }
+   ],
+   "notes": "'Methods of calculation and inference' now supported: Laplace's 1812 Theorie analytique combined a combinatorial calculus with a universal inductive method and systematically applied Bayes's inverse probability (statement-level attribution between NAT1-087 and NAT1-088 not fully distinguished). No text change. Earlier notes (drafting lane): Corroborated: 1654, 1713, law of large numbers, Laplace 1812. 'Methods of inference' is a characterisation not checked against a source."
   },
   "mechanicLink": "PROPOSED new node with no current effect beyond its completion row; records mathematics of chance and inference, statistical analysis of counts and errors. Prerequisite algebra; prerequisite of epidemiology, genetics_mendel, machine_learning."
  },
@@ -925,8 +1002,8 @@
  {
   "id": "organic_chemistry",
   "tree": "technology",
-  "description": "Organic chemistry studies the compounds of carbon. In 1828 Friedrich Wöhler made urea, known from living bodies, from inorganic starting materials, weakening the belief that such compounds need a vital force, although the effect was gradual. From 1858 structural theory showed which atoms bond to which, and August Kekulé proposed the ring structure of benzene in 1865.",
-  "wordCount": 57,
+  "description": "Organic chemistry studies the compounds of carbon. In 1828 Friedrich Wöhler made urea, an organic compound, from inorganic starting materials, weakening the belief that such compounds need a vital force, although the effect was gradual. From 1858 structural theory showed which atoms bond to which, and August Kekulé proposed the ring structure of benzene in 1865.",
+  "wordCount": 56,
   "sources": [
    {
     "sourceId": "NAT1-070",
@@ -941,14 +1018,66 @@
      "1858 structural formulas",
      "Kekule's benzene ring 1865"
     ]
+   },
+   {
+    "sourceId": "NAT1-089",
+    "claims": [
+     "1828 urea; vitalism challenged gradually"
+    ]
+   },
+   {
+    "sourceId": "NAT1-090",
+    "claims": [
+     "1858 structural theory (Couper, Kekule); 1865 benzene ring"
+    ]
    }
   ],
   "uncertainty": "Kekulé's later dream story is doubted, and Loschmidt and Couper drew comparable formulas; Archibald Couper and Aleksandr Butlerov share credit for structural theory.",
   "factCheck": {
-   "status": "partially-checked",
-   "checkedBy": "drafting lane",
-   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked); claims not corroborated are listed in notes.",
-   "notes": "Corroborated: 1828, vitalism, 1858 structural theory, 1865 benzene. Not corroborated: Kekulé's personal role in the 1858 theory (only implied)."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "1828 Wohler made urea from inorganic starting materials",
+     "sources": [
+      "NAT1-070",
+      "NAT1-089"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Weakened vitalism gradually",
+     "sources": [
+      "NAT1-070",
+      "NAT1-089"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "From 1858 structural theory showed which atoms bond to which",
+     "sources": [
+      "NAT1-071",
+      "NAT1-090"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Kekule's benzene ring 1865",
+     "sources": [
+      "NAT1-071",
+      "NAT1-090"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Urea 'known from living bodies'",
+     "sources": [],
+     "result": "corrected"
+    }
+   ],
+   "notes": "Changed 'urea, known from living bodies' to 'urea, an organic compound' because the search text stated urea's organic status but not its biological source. Couper's parallel 1858 role confirmed (NAT1-090). Earlier notes (drafting lane): Corroborated: 1828, vitalism, 1858 structural theory, 1865 benzene. Not corroborated: Kekulé's personal role in the 1858 theory (only implied)."
   },
   "mechanicLink": "PROPOSED new node with no current effect beyond its completion row; records carbon compounds analysed, synthesised and drawn as structures. Prerequisite chemistry_quantitative; prerequisite of dynamite, synthetic_dye."
  },
@@ -1037,14 +1166,61 @@
     "claims": [
      "Mayer and Joule 1840s energy conservation; Kelvin 1851"
     ]
+   },
+   {
+    "sourceId": "NAT1-091",
+    "claims": [
+     "Reflections published 1824"
+    ]
+   },
+   {
+    "sourceId": "NAT1-092",
+    "claims": [
+     "Maximum-efficiency ideal engine; 1824"
+    ]
    }
   ],
   "uncertainty": "Julius Robert Mayer has a competing claim to energy conservation. Ludwig Boltzmann's statistical interpretation of entropy (1870s) is part of the node but not described in the text.",
   "factCheck": {
-   "status": "partially-checked",
-   "checkedBy": "drafting lane",
-   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked); claims not corroborated are listed in notes.",
-   "notes": "The 1824 date of Carnot's Reflections was not explicitly confirmed by the summaries; Boltzmann's 1877 work was not corroborated and is left out of the text."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Carnot's 1824 study showed heat-engine efficiency has an upper limit",
+     "sources": [
+      "NAT1-091",
+      "NAT1-092",
+      "NAT1-075"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Joule and others in the 1840s showed heat and work interchangeable",
+     "sources": [
+      "NAT1-076",
+      "NAT1-077"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Clausius 1850 and Thomson 1851 stated the laws",
+     "sources": [
+      "NAT1-076",
+      "NAT1-077"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Clausius named entropy 1865",
+     "sources": [
+      "NAT1-076"
+     ],
+     "result": "supported"
+    }
+   ],
+   "notes": "Carnot's 1824 publication date now confirmed (Britannica, APS News). Boltzmann remains outside the text. No text change. Earlier notes (drafting lane): The 1824 date of Carnot's Reflections was not explicitly confirmed by the summaries; Boltzmann's 1877 work was not corroborated and is left out of the text."
   },
   "mechanicLink": "PROPOSED new node with no current effect beyond its completion row; records laws of energy and entropy, efficiency limits of heat engines, chemical equilibrium. Prerequisites steam_separate_condenser and calculus; prerequisite of diesel, haber_bosch, quantum_mechanics, refrigeration, steam_turbine."
  },
@@ -1182,45 +1358,191 @@
  {
   "id": "genetic_engineering",
   "tree": "technology",
-  "description": "Recombinant DNA joins genetic material from different sources and copies it in living cells. In 1973 Stanley Cohen and Herbert Boyer inserted foreign DNA into a bacterial plasmid that Escherichia coli then copied as it multiplied. An Asilomar meeting in 1975 set safety guidelines, and human insulin made by engineered bacteria was approved for medical use in 1982.",
-  "wordCount": 58,
-  "sources": [],
-  "uncertainty": "Paul Berg's group made recombinant DNA molecules in 1972; the 1982 insulin approval was in the United States.",
+  "description": "Recombinant DNA joins genetic material from different sources and copies it in living cells. In 1973 Stanley Cohen and Herbert Boyer inserted foreign DNA into a bacterial plasmid that Escherichia coli then copied as it multiplied. The 1975 Asilomar conference set safety guidelines for such research, and engineered bacteria were later used to make human insulin for diabetes treatment.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "NAT1-100",
+    "claims": [
+     "1973 pSC101 plasmid in E. coli"
+    ]
+   },
+   {
+    "sourceId": "NAT1-101",
+    "claims": [
+     "1973 recombinant DNA; 1975 Asilomar guidelines; human insulin"
+    ]
+   }
+  ],
+  "uncertainty": "Paul Berg's group made recombinant DNA molecules in 1972; the 1982 US approval of recombinant human insulin was not confirmed in this pass.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "None: this session's WebSearch budget (shared across agents) was exhausted before this node was searched; the text was written from general knowledge with cautious wording and has no corroborating source.",
-   "notes": "No source retrieved: dates (1973, 1975, 1982) and names are from general knowledge and need checking."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "1973 Cohen and Boyer inserted foreign DNA into a plasmid copied by E. coli",
+     "sources": [
+      "NAT1-100",
+      "NAT1-101"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "1975 Asilomar conference set safety guidelines",
+     "sources": [
+      "NAT1-101"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Engineered bacteria later used to make human insulin",
+     "sources": [
+      "NAT1-101"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Human insulin approved for medical use in 1982",
+     "sources": [],
+     "result": "corrected"
+    }
+   ],
+   "notes": "Removed the 1982 approval date (not found in results); text now says engineered bacteria were later used to make human insulin. Asilomar sentence reworded. Earlier notes (drafting lane): No source retrieved: dates (1973, 1975, 1982) and names are from general knowledge and need checking."
   },
   "mechanicLink": "Knowledge-only today (class C, no simulated effect); records synthetic insulin, GM crops, vaccines by design. Prerequisites dna_structure and antibiotic_broad; prerequisite of crispr, mrna_vaccines."
  },
  {
   "id": "plastics",
   "tree": "technology",
-  "description": "Synthetic polymers are long chain molecules built from small repeating units. Leo Baekeland's Bakelite, patented around 1907-1909 from phenol and formaldehyde, was the first fully synthetic plastic and set hard when heated. In the 1930s polyethylene was made at ICI in Britain and nylon at DuPont in the United States; petroleum later became the main raw material.",
+  "description": "Synthetic polymers are long chain molecules built from small repeating units. Leo Baekeland's Bakelite, made from phenol and formaldehyde and introduced around 1907-1909, was the first fully synthetic plastic and set hard when heated. In the 1930s polyethylene was made at ICI in Britain and nylon at DuPont, first sold as toothbrush bristles (1938) and stockings (1939).",
   "wordCount": 57,
-  "sources": [],
-  "uncertainty": "Celluloid (1860s-1870s) was an earlier semi-synthetic plastic; the Bakelite patent was filed in 1907 and granted in 1909.",
+  "sources": [
+   {
+    "sourceId": "NAT1-102",
+    "claims": [
+     "Bakelite 1907, phenol-formaldehyde"
+    ]
+   },
+   {
+    "sourceId": "NAT1-103",
+    "claims": [
+     "First entirely synthetic thermosetting plastic; ICI polyethylene"
+    ]
+   },
+   {
+    "sourceId": "NAT1-104",
+    "claims": [
+     "Nylon at DuPont 1935; toothbrushes 1938, hosiery 1939"
+    ]
+   }
+  ],
+  "uncertainty": "Celluloid (1860s-1870s) was an earlier semi-synthetic plastic; sources date Bakelite variously 1907 (invention), 1909 (introduction) and 1910; polyethylene's first ICI synthesis is dated 1933 or 1934.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "None: this session's WebSearch budget (shared across agents) was exhausted before this node was searched; the text was written from general knowledge with cautious wording and has no corroborating source.",
-   "notes": "No source retrieved; all dates and attributions from general knowledge."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Bakelite from phenol and formaldehyde, introduced around 1907-1909, first fully synthetic plastic, thermosetting",
+     "sources": [
+      "NAT1-102",
+      "NAT1-103"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Polyethylene at ICI in the 1930s",
+     "sources": [
+      "NAT1-103"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Nylon at DuPont, sold as toothbrush bristles 1938 and stockings 1939",
+     "sources": [
+      "NAT1-104"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "'Patented around 1907-1909'",
+     "sources": [],
+     "result": "corrected"
+    },
+    {
+     "claim": "Petroleum later became the main raw material",
+     "sources": [],
+     "result": "corrected"
+    }
+   ],
+   "notes": "Changed 'patented around 1907-1909' to 'introduced around 1907-1909' (results gave invention 1907 and introduction 1909, not patent dates); removed the unsupported petroleum-feedstock clause and added nylon's first products (EBSCO). Earlier notes (drafting lane): No source retrieved; all dates and attributions from general knowledge."
   },
   "mechanicLink": "Knowledge-only today (class C, no simulated effect); records cheap durable materials, textiles without fibre crops. Prerequisites petroleum_refining and chemistry_quantitative and synthetic_dye; prerequisite of additive_manufacturing, composites, desalination, drip_irrigation."
  },
  {
   "id": "atomic_clock",
   "tree": "technology",
-  "description": "An atomic clock keeps time by counting the frequency of radiation that atoms absorb or emit when changing energy state, a frequency identical for every atom of the element. Louis Essen and Jack Parry built the first practical caesium clock at Britain's National Physical Laboratory in 1955. Since 1967 the second has been defined by caesium-133.",
-  "wordCount": 56,
-  "sources": [],
-  "uncertainty": "An ammonia-based frequency standard at the US National Bureau of Standards (1949) preceded the caesium clock.",
+  "description": "An atomic clock keeps time from the radiation that atoms absorb or emit when changing energy state. The US National Bureau of Standards announced an ammonia-based atomic clock in 1949. Louis Essen and Jack Parry built the first caesium clock at Britain's National Physical Laboratory in 1955. In 1967 the second was redefined using caesium.",
+  "wordCount": 55,
+  "sources": [
+   {
+    "sourceId": "NAT1-105",
+    "claims": [
+     "Essen and Parry 1955 caesium clock; change of state in caesium atoms"
+    ]
+   },
+   {
+    "sourceId": "NAT1-106",
+    "claims": [
+     "NBS ammonia clock 1949; second redefined 1967"
+    ]
+   }
+  ],
+  "uncertainty": "Harold Lyons's ammonia clock at the US National Bureau of Standards (built 1948, announced 1949) was less accurate than quartz clocks; the 1967 redefinition (caesium-133) was confirmed only by a reference source this pass.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "None: this session's WebSearch budget (shared across agents) was exhausted before this node was searched; the text was written from general knowledge with cautious wording and has no corroborating source.",
-   "notes": "No source retrieved; names and dates from general knowledge."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Atomic clocks keep time from atoms' change of energy state",
+     "sources": [
+      "NAT1-105"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "NBS ammonia-based atomic clock announced 1949",
+     "sources": [
+      "NAT1-106"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Essen and Parry, first caesium clock, NPL, 1955",
+     "sources": [
+      "NAT1-105"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Second redefined using caesium in 1967",
+     "sources": [
+      "NAT1-106"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Frequency identical for every atom of the element",
+     "sources": [],
+     "result": "corrected"
+    }
+   ],
+   "notes": "Removed the unsupported 'identical for every atom' clause; added the sourced 1949 NBS ammonia clock to the text (previously only in uncertainty). The 1967 statement rests on a reference source only (not disputed). Earlier notes (drafting lane): No source retrieved; names and dates from general knowledge."
   },
   "mechanicLink": "Knowledge-only today (class C, no simulated effect); records navigation, network synchronisation. PROPOSED rewire: prerequisites quantum_mechanics and vacuum_tube (was quantum_mechanics and longitude_problem); prerequisite of gps."
  },
@@ -1229,88 +1551,386 @@
   "tree": "technology",
   "description": "Albert Einstein's special relativity (1905) held that light's speed is the same for all observers, so measured time and length depend on motion, and implied that mass and energy are equivalent. His general relativity (1915) described gravity as the curvature of spacetime. Satellite navigation clocks must be corrected for both effects, by about 38 microseconds a day.",
   "wordCount": 57,
-  "sources": [],
-  "uncertainty": "Lorentz, Poincaré and others developed parts of the mathematics before 1905.",
+  "sources": [
+   {
+    "sourceId": "NAT1-098",
+    "claims": [
+     "1905 special relativity content; general relativity as curvature"
+    ]
+   },
+   {
+    "sourceId": "NAT1-099",
+    "claims": [
+     "General relativity completed November 1915"
+    ]
+   },
+   {
+    "sourceId": "NAT1-095",
+    "claims": [
+     "Net 38 microseconds per day"
+    ]
+   },
+   {
+    "sourceId": "NAT1-096",
+    "claims": [
+     "Special relativity about 7 microseconds per day"
+    ]
+   },
+   {
+    "sourceId": "NAT1-097",
+    "claims": [
+     "General relativity about 45 microseconds per day"
+    ]
+   }
+  ],
+  "uncertainty": "Lorentz, Poincare and others developed parts of the mathematics before 1905. General relativity was completed in November 1915 and published in 1916.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "None: this session's WebSearch budget (shared across agents) was exhausted before this node was searched; the text was written from general knowledge with cautious wording and has no corroborating source.",
-   "notes": "No source retrieved; the 38-microsecond GPS figure is also cited in the proposal's rationale but was not checked here."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Special relativity 1905: constant light speed, time and length depend on motion, mass-energy equivalence",
+     "sources": [
+      "NAT1-098"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "General relativity 1915: gravity as curvature of spacetime",
+     "sources": [
+      "NAT1-098",
+      "NAT1-099"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Satellite navigation clocks corrected for both effects, about 38 microseconds a day",
+     "sources": [
+      "NAT1-095",
+      "NAT1-096",
+      "NAT1-097"
+     ],
+     "result": "supported"
+    }
+   ],
+   "notes": "All claims now supported (Britannica; NASA; NIST: special relativity about -7 us/day, general relativity about +45 us/day, net about 38). No text change. NASA notes November 1915 completion with 1916 publication. Earlier notes (drafting lane): No source retrieved; the 38-microsecond GPS figure is also cited in the proposal's rationale but was not checked here."
   },
   "mechanicLink": "Knowledge-only today (class C, no simulated effect); records mass-energy equivalence, orbital timing corrections (GPS). PROPOSED rewire: prerequisites electromagnetic_field_theory and mechanics_newtonian (was electromagnetism and mechanics_newtonian); prerequisite of gps, nuclear_physics."
  },
  {
   "id": "laser",
   "tree": "technology",
-  "description": "A laser amplifies light by stimulated emission, a process Albert Einstein described in 1917, giving a narrow beam of one wavelength with its waves in step. Charles Townes's group built the microwave maser in 1954, and Theodore Maiman operated the first laser, with a ruby crystal, at Hughes Research Laboratories in 1960. Cutting, surgery, measurement and fibre-optic communication followed.",
+  "description": "A laser amplifies light by stimulated emission, which Albert Einstein described in 1917. Charles Townes's group built a microwave maser in the early 1950s; Townes and Arthur Schawlow patented an optical maser in 1958, a priority Gordon Gould contested. On 16 May 1960 Theodore Maiman operated the first laser, a synthetic ruby emitting red pulses, at Hughes Research Laboratories.",
   "wordCount": 59,
-  "sources": [],
+  "sources": [
+   {
+    "sourceId": "NAT1-107",
+    "claims": [
+     "Einstein 1917; Hughes 1960 ruby laser; 1958 patent and Gould"
+    ]
+   },
+   {
+    "sourceId": "NAT1-108",
+    "claims": [
+     "16 May 1960, red pulses; maser dates 1951-1954"
+    ]
+   }
+  ],
   "uncertainty": "Priority for the laser concept was contested in patent disputes (Gordon Gould versus Townes and Schawlow); Soviet physicists Basov and Prokhorov also developed the maser.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "None: this session's WebSearch budget (shared across agents) was exhausted before this node was searched; the text was written from general knowledge with cautious wording and has no corroborating source.",
-   "notes": "No source retrieved; names and dates from general knowledge."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Stimulated emission described by Einstein in 1917",
+     "sources": [
+      "NAT1-107"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Townes's group built a microwave maser in the early 1950s",
+     "sources": [
+      "NAT1-107",
+      "NAT1-108"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Townes and Schawlow optical maser patent 1958; Gould contested",
+     "sources": [
+      "NAT1-107"
+     ],
+     "result": "disputed"
+    },
+    {
+     "claim": "Maiman's ruby laser, 16 May 1960, Hughes Research Laboratories, red pulses",
+     "sources": [
+      "NAT1-108",
+      "NAT1-107"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Maser in 1954 (exact)",
+     "sources": [
+      "NAT1-108"
+     ],
+     "result": "corrected"
+    },
+    {
+     "claim": "Narrow single-wavelength beam; cutting, surgery, measurement, fibre optics followed",
+     "sources": [],
+     "result": "corrected"
+    }
+   ],
+   "notes": "Changed maser date from '1954' to 'the early 1950s' (sources give 1951-1954); removed the unsourced beam-property clause and list of later uses; added the sourced 1958 patent dispute and the 16 May 1960 date. Earlier notes (drafting lane): No source retrieved; names and dates from general knowledge."
   },
   "mechanicLink": "Grants project.probe_acceleration (class J), which no system yet realizes, so it has no current effect (deferred owner none; milestone M6); records coherent light, precision cutting, optical communication. Prerequisites quantum_mechanics and vacuum_tube; prerequisite of fibre_optics, guided_munitions, nuclear_fusion_research."
  },
  {
   "id": "superconductivity_applied",
   "tree": "technology",
-  "description": "In 1911 Heike Kamerlingh Onnes found that mercury cooled by liquid helium to about 4 kelvin loses all electrical resistance. Practical use waited for alloys such as niobium-titanium that stay superconducting in strong magnetic fields; from the 1960s they were wound into powerful magnets. Such magnets serve hospital MRI scanners, particle accelerators and fusion experiments, but need costly cooling.",
-  "wordCount": 59,
-  "sources": [],
-  "uncertainty": "High-temperature superconductors (1986 onward) work above liquid-nitrogen temperature but are harder to make into wire.",
+  "description": "In 1911 Heike Kamerlingh Onnes's Leiden laboratory found that mercury cooled with liquid helium to about 4 kelvin loses all electrical resistance. Early superconductors failed in modest magnetic fields; from 1961-62, niobium-tin and niobium-titanium wires carried large currents in strong fields and were wound into magnets. Niobium-titanium filaments finer than a hair now carry the Large Hadron Collider's magnet currents.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "NAT1-109",
+    "claims": [
+     "1911 mercury at about 4 K"
+    ]
+   },
+   {
+    "sourceId": "NAT1-110",
+    "claims": [
+     "Field limit; 1961 Nb3Sn; LHC NbTi filaments"
+    ]
+   }
+  ],
+  "uncertainty": "High-temperature superconductors (1986 onward) work above liquid-nitrogen temperature but are harder to make into wire; the first commercial niobium-titanium wire (often dated 1962, Westinghouse) was not confirmed by a credible source here; MRI use was not checked.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "None: this session's WebSearch budget (shared across agents) was exhausted before this node was searched; the text was written from general knowledge with cautious wording and has no corroborating source.",
-   "notes": "No source retrieved; dates and materials from general knowledge."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "1911 Leiden: mercury cooled with liquid helium to about 4 K loses resistance",
+     "sources": [
+      "NAT1-109"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Early superconductors failed in modest magnetic fields",
+     "sources": [
+      "NAT1-110"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "From 1961-62 niobium-tin and niobium-titanium wires carried large currents in strong fields, wound into magnets",
+     "sources": [
+      "NAT1-110"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Niobium-titanium filaments finer than a hair carry LHC magnet currents",
+     "sources": [
+      "NAT1-110"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "MRI, fusion experiments, costly cooling",
+     "sources": [],
+     "result": "corrected"
+    }
+   ],
+   "notes": "Replaced the unsourced MRI/fusion/cooling sentence with the CERN Courier's LHC filament detail; added the sourced field-limit problem and Bell Labs 1961 niobium-tin result. 1962 niobium-titanium wire rests on a weak timeline and is folded into '1961-62'. Earlier notes (drafting lane): No source retrieved; dates and materials from general knowledge."
   },
   "mechanicLink": "Knowledge-only today (class C, no simulated effect); records high-field magnets, MRI, particle accelerators, fusion confinement. Prerequisites quantum_mechanics and refrigeration; prerequisite of nuclear_fusion_research, quantum_computing."
  },
  {
   "id": "space_probe",
   "tree": "technology",
-  "description": "An interplanetary probe is an uncrewed spacecraft sent beyond Earth's orbit to study other worlds at close range. The American Mariner 2 flew past Venus in December 1962, the first successful planetary flyby, and measured a very hot surface. Such missions depend on precise orbital calculation, long-range radio links and electronics that survive years in space.",
+  "description": "An interplanetary probe is an uncrewed spacecraft sent beyond Earth's orbit to study other worlds at close range. The American Mariner 2 flew past Venus on 14 December 1962, the first spacecraft to encounter another planet successfully. Passing about 35,000 kilometres away, it found a dense atmosphere and surface temperatures of at least 425 C.",
   "wordCount": 56,
-  "sources": [],
+  "sources": [
+   {
+    "sourceId": "NAT1-111",
+    "claims": [
+     "First successful planetary encounter"
+    ]
+   },
+   {
+    "sourceId": "NAT1-112",
+    "claims": [
+     "14 Dec 1962 flyby; 425 C; dense atmosphere"
+    ]
+   }
+  ],
   "uncertainty": "Earlier Soviet Venus and Mars attempts (1961-1962) failed or lost contact.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "None: this session's WebSearch budget (shared across agents) was exhausted before this node was searched; the text was written from general knowledge with cautious wording and has no corroborating source.",
-   "notes": "No source retrieved; mission facts from general knowledge."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Mariner 2 flew past Venus on 14 December 1962, first successful planetary encounter",
+     "sources": [
+      "NAT1-111",
+      "NAT1-112"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Passed about 35,000 km away",
+     "sources": [
+      "NAT1-112"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Dense atmosphere; surface at least 425 C",
+     "sources": [
+      "NAT1-112"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Missions depend on orbital calculation, radio links, durable electronics",
+     "sources": [],
+     "result": "corrected"
+    }
+   ],
+   "notes": "Replaced the unsourced generic sentence on mission requirements with sourced flyby findings. The opening definition is terminology, not a historical claim. Earlier notes (drafting lane): No source retrieved; mission facts from general knowledge."
   },
   "mechanicLink": "Knowledge-only today (class C, no simulated effect); records exploration of other worlds. Prerequisites satellite and computer; prerequisite of asteroid_mining, frontier_propulsion, fusion_propulsion."
  },
  {
   "id": "space_telescope",
   "tree": "technology",
-  "description": "A telescope above the atmosphere escapes its blurring and sees ultraviolet, infrared and X-ray light that barely reaches the ground. The Hubble Space Telescope, launched in 1990, needed corrective optics installed by astronauts in 1993 because its main mirror was misshaped. Space observatories have since measured the universe's expansion rate and found thousands of planets around other stars.",
-  "wordCount": 58,
-  "sources": [],
+  "description": "A telescope above the atmosphere escapes its blurring and can observe ultraviolet and infrared light that barely reaches the ground. The Hubble Space Telescope, launched in 1990, returned blurred images because its main mirror suffered spherical aberration. In December 1993 astronauts on five spacewalks installed corrective optics and a new camera; later instruments carried their own corrections.",
+  "wordCount": 57,
+  "sources": [
+   {
+    "sourceId": "NAT1-113",
+    "claims": [
+     "1990 launch; spherical aberration; 1993 repair; later self-correcting instruments"
+    ]
+   }
+  ],
   "uncertainty": "Earlier orbiting observatories (for example OAO-2, 1968, and X-ray satellites from 1970) preceded Hubble; exoplanet counts come mainly from the Kepler mission and ground surveys.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "None: this session's WebSearch budget (shared across agents) was exhausted before this node was searched; the text was written from general knowledge with cautious wording and has no corroborating source.",
-   "notes": "No source retrieved; facts from general knowledge."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Above the atmosphere a telescope escapes blurring and sees ultraviolet and infrared",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Hubble launched 1990, mirror spherical aberration, blurred images",
+     "sources": [
+      "NAT1-113"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "December 1993, five spacewalks, corrective optics and new camera",
+     "sources": [
+      "NAT1-113"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Later instruments carried their own corrections",
+     "sources": [
+      "NAT1-113"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Measured expansion rate; found thousands of exoplanets",
+     "sources": [],
+     "result": "corrected"
+    }
+   ],
+   "notes": "Removed the unsourced final sentence (expansion rate, exoplanets); added sourced 1993 repair details. Unsupported: the opening sentence on atmospheric blurring and ultraviolet/infrared access (general knowledge, not searched; budget exhausted). Earlier notes (drafting lane): No source retrieved; facts from general knowledge."
   },
   "mechanicLink": "Knowledge-only today (class C, no simulated effect); records observation across the spectrum, exoplanet detection. Prerequisites satellite and telescope; no dependant."
  },
  {
   "id": "pcr",
   "tree": "technology",
-  "description": "The polymerase chain reaction copies a chosen stretch of DNA millions of times by repeatedly heating and cooling a sample with short primers and a DNA-copying enzyme. Kary Mullis devised it at the Cetus Corporation in 1983 and shared the 1993 Nobel Prize in Chemistry. A heat-stable enzyme from the hot-spring bacterium Thermus aquaticus made the cycles practical.",
-  "wordCount": 58,
-  "sources": [],
+  "description": "The polymerase chain reaction copies a chosen stretch of DNA again and again by repeatedly heating and cooling a sample with short primers and a DNA-copying enzyme. Kary Mullis devised it at the Cetus Corporation in 1983 and shared the 1993 Nobel Prize in Chemistry. A heat-stable enzyme from the bacterium Thermus aquaticus made the cycles practical.",
+  "wordCount": 57,
+  "sources": [
+   {
+    "sourceId": "NAT1-114",
+    "claims": [
+     "Mullis at Cetus 1983; primers and cycles; Taq"
+    ]
+   },
+   {
+    "sourceId": "NAT1-115",
+    "claims": [
+     "1993 Nobel Prize in Chemistry"
+    ]
+   }
+  ],
   "uncertainty": "Colleagues at Cetus contributed substantially to making PCR work; the proposal's link to genome sequencing (sequence-tagged sites, 1989) is in the D04 lane notes.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "None: this session's WebSearch budget (shared across agents) was exhausted before this node was searched; the text was written from general knowledge with cautious wording and has no corroborating source.",
-   "notes": "No source retrieved; facts from general knowledge. The D04 lane notes cite a genome.gov page on sequence-tagged sites, not retrieved by this drafting lane."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "PCR copies a DNA stretch repeatedly with heating/cooling cycles, primers and a polymerase",
+     "sources": [
+      "NAT1-114"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Mullis at Cetus, 1983",
+     "sources": [
+      "NAT1-114"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Shared 1993 Nobel Prize in Chemistry",
+     "sources": [
+      "NAT1-115"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Heat-stable enzyme from Thermus aquaticus made cycles practical",
+     "sources": [
+      "NAT1-114"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "'Millions of times'; 'hot-spring bacterium'",
+     "sources": [],
+     "result": "corrected"
+    }
+   ],
+   "notes": "Changed 'millions of times' to 'again and again' and dropped 'hot-spring' (neither stated in results). Earlier notes (drafting lane): No source retrieved; facts from general knowledge. The D04 lane notes cite a genome.gov page on sequence-tagged sites, not retrieved by this drafting lane."
   },
   "mechanicLink": "Knowledge-only today (class C, no simulated effect); records genetic testing, forensics. PROPOSED rewire: prerequisite dna_sequencing (was dna_structure); prerequisite of genome_sequencing."
  }

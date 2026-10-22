@@ -1258,5 +1258,463 @@
   ],
   "confidence": "high",
   "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-087",
+  "title": "Laplace, Pierre-Simon Marquis de",
+  "author_org": "Encyclopedia of Mathematics (EMS / Springer)",
+  "published": null,
+  "url": "https://encyclopediaofmath.org/wiki/Laplace,_Pierre-Simon_Marquis_de",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Theorie analytique des probabilites: first edition 1812, further editions 1814 and 1820",
+   "Laplace generalised and systematically applied Bayes's method of inverse probability"
+  ],
+  "confidence": "high",
+  "notes": "The inverse-probability statement may come from arXiv 2606.00102 in the same results; treated as supporting jointly with NAT1-088. Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT1-088",
+  "title": "Theorie analytique des probabilites (P. S. de Laplace)",
+  "author_org": "Encyclopaedia Universalis",
+  "published": null,
+  "url": "https://www.universalis.fr/encyclopedie/theorie-analytique-des-probabilites/",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The 1812 work joined a combinatorial calculus inherited from Pascal with a universal inductive method"
+  ],
+  "confidence": "medium",
+  "notes": "Attribution of this phrase to Universalis is probable but was not explicit in the summary. Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT1-089",
+  "title": "Friedrich Wohler (Research Starter)",
+  "author_org": "EBSCO Research Starters",
+  "published": null,
+  "url": "https://www.ebsco.com/research-starters/history/friedrich-wohler",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Wohler heated ammonium cyanate and obtained urea in 1828, challenging vitalism without immediately dismantling it"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT1-090",
+  "title": "Hafner, August Kekule: the architect of chemistry (Angewandte Chemie Int. Ed. 1979)",
+  "author_org": "Angewandte Chemie / TU Darmstadt repository",
+  "published": "1979",
+  "url": "https://tuprints.ulb.tu-darmstadt.de/22351/1/Angew%20%20Chem%20%20Int%20%20Ed%20%20Engl%20-%20September%201979%20-%20Hafner%20-%20August%20Kekul%20%20The%20Architect%20of%20Chemistry%20Commemorating%20the%20150th.pdf",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Couper and Kekule worked from the four-valence of carbon and carbon-carbon chains (1858)",
+   "Kekule proposed a six-membered carbon ring for benzene in 1865; the dream story was told in 1890"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT1-091",
+  "title": "Reflections on the Motive Power of Fire",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/Reflections-on-the-Motive-Power-of-Fire",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Sadi Carnot published Reflections on the Motive Power of Fire in 1824, his only published work"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT1-092",
+  "title": "May 1824 (sic: 2009 issue): Sadi Carnot publishes treatise on heat engines",
+  "author_org": "APS News (American Physical Society)",
+  "published": "2009",
+  "url": "https://www.aps.org/apsnews/2009/05/sadi-carnot-heat-engines",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Carnot described an ideal heat engine giving the maximum work for given heat; its efficiency depends only on source and sink temperatures",
+   "The work drew little notice until Clapeyron reformulated it in 1834"
+  ],
+  "confidence": "high",
+  "notes": "Title from the result list: \"Sadi Carnot Publishes Treatise on Heat Engines\"; issue year from URL. Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT1-093",
+  "title": "400 years ago the Catholic Church prohibited Copernicanism",
+  "author_org": "Origins (Ohio State University)",
+  "published": "2016",
+  "url": "https://origins.osu.edu/milestones/february-2016-400-years-ago-catholic-church-prohibited-copernicanism",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "De revolutionibus placed on the Index in March 1616, 73 years after publication",
+   "Galileo warned in 1616 and tried in 1633"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT1-094",
+  "title": "Reception of Copernicus's theory",
+  "author_org": "Nicolaus Copernicus University in Torun",
+  "published": null,
+  "url": "https://nct.umk.pl/en/copernican-revolution/reception-of-copernicus-theory-and-the-importance-of-the-discovery/reception-of-the-discovery-in-europe-the-views-of-the-church-and-of-other-scholars-on-the-heliocentric-theory",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "The heliocentric theory was slow to be accepted and was denounced by some as unproven soon after publication"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT1-095",
+  "title": "Putting Einstein to the test with the world's most accurate clocks",
+  "author_org": "NIST (Taking Measure blog)",
+  "published": null,
+  "url": "https://www.nist.gov/blogs/taking-measure/putting-einstein-test-worlds-most-accurate-clocks",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "GPS satellite clocks gain a net of about 38 microseconds per day relative to ground clocks because of relativity"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT1-096",
+  "title": "Putting Einstein to the test",
+  "author_org": "NIST",
+  "published": null,
+  "url": "https://www.nist.gov/atomic-clocks/a-powerful-tool-for-science/putting-einstein-test",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Special relativity slows GPS satellite clocks by about 7 microseconds per day"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT1-097",
+  "title": "100 years of general relativity",
+  "author_org": "NASA Goddard (Blueshift)",
+  "published": "2015",
+  "url": "https://asd.gsfc.nasa.gov/blueshift/index.php/2015/11/25/100-years-of-general-relativity/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "General relativity speeds GPS satellite clocks by about 45 microseconds per day",
+   "General relativity centenary marked in November 2015"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT1-098",
+  "title": "Relativity",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/science/relativity",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Special relativity (1905): constancy of the speed of light, length contraction, time dilation, mass-energy equivalence",
+   "General relativity treats gravity as curvature of space-time",
+   "Lorentz and Poincare contributed; Einstein first integrated it as a universal law"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT1-099",
+  "title": "Einstein and general relativity",
+  "author_org": "NASA",
+  "published": null,
+  "url": "https://www.nasa.gov/image-article/einstein-general-relativity/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Einstein completed general relativity in November 1915 (published 1916): gravity as a field warping space and time"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT1-100",
+  "title": "Herbert W. Boyer and Stanley N. Cohen",
+  "author_org": "Science History Institute",
+  "published": null,
+  "url": "https://sciencehistory.org/historical-profile/herbert-w-boyer-and-stanley-n-cohen",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "First Cohen-Boyer success in spring 1973 used plasmid pSC101, conferring tetracycline resistance on E. coli"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT1-101",
+  "title": "Cohen and Boyer develop recombinant DNA technology (Research Starter)",
+  "author_org": "EBSCO Research Starters",
+  "published": null,
+  "url": "https://www.ebsco.com/research-starters/history/cohen-and-boyer-develop-recombinant-dna-technology",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "November 1973 PNAS paper: genes cut from DNA, joined to a plasmid and introduced into bacteria",
+   "Safety concerns led to the 1975 Asilomar Conference, which set guidelines for recombinant DNA research",
+   "Recombinant DNA enabled production of human insulin for diabetes"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT1-102",
+  "title": "Living better through chemistry and plastics",
+  "author_org": "Engineering and Technology History Wiki (IEEE History Center)",
+  "published": null,
+  "url": "https://ethw.org/Living_Better_Through_Chemistry_and_Plastics",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Bakelite, a phenol-formaldehyde moldable plastic invented by Baekeland in 1907, was a major commercial success"
+  ],
+  "confidence": "medium",
+  "notes": "Statement-level attribution among ETHW, CIUHCT and Wikipedia not fully distinguished; dates in results ranged 1907-1910. Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT1-103",
+  "title": "History of plastics",
+  "author_org": "CIUHCT (Interuniversity Centre for the History of Science and Technology, Portugal)",
+  "published": null,
+  "url": "https://plasticos.ciuhct.org/historyofplastics/",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Bakelite described as the first entirely synthetic thermosetting plastic",
+   "Polyethylene first prepared at ICI in the 1930s"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT1-104",
+  "title": "Carothers invents nylon (Research Starter)",
+  "author_org": "EBSCO Research Starters",
+  "published": null,
+  "url": "https://ebsco.com/research-starters/history/carothers-invents-nylon",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Nylon polyamide made at DuPont under Wallace Carothers on 28 February 1935",
+   "Nylon first appeared in toothbrush bristles in 1938 and women's hosiery in 1939"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT1-105",
+  "title": "Caesium atomic clock, 1955",
+  "author_org": "Science Museum Group Collection",
+  "published": null,
+  "url": "https://collection.sciencemuseumgroup.org.uk/objects/co855/caesium-atomic-clock-1955",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Louis Essen and Jack Parry built the caesium clock at the National Physical Laboratory, Teddington, in 1955",
+   "It measured time by a change of state in caesium atoms"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT1-106",
+  "title": "Louis Essen",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Louis_Essen",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "An ammonia-based atomic clock built by Harold Lyons's team at the US National Bureau of Standards was announced in January 1949",
+   "The second was officially redefined in 1967"
+  ],
+  "confidence": "medium",
+  "notes": "The 1967 statement was not attributed to a specific result in the summary; Wikipedia is the likeliest. Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT1-107",
+  "title": "This month in physics history: May 1960, Maiman builds first working laser",
+  "author_org": "APS News (American Physical Society)",
+  "published": "2010",
+  "url": "https://www.aps.org/apsnews/2010/05/physics-history",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "First working ruby laser at Hughes Research Laboratories in 1960",
+   "Einstein raised stimulated emission in 1917",
+   "Townes and Schawlow patented an optical maser in 1958; Gould contested"
+  ],
+  "confidence": "high",
+  "notes": "Title descriptive (result list showed \"physics history\"); statement attribution between this and NAT1-108 not fully distinguished. Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT1-108",
+  "title": "A brief history of lasers: 60th anniversary of the laser",
+  "author_org": "Cambridge University Press blog",
+  "published": "2020",
+  "url": "https://cambridgeblog.org/2020/04/a-brief-history-of-lasers-60th-anniversary-of-the-laser/",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "Maiman's ruby laser first operated on 16 May 1960, producing pulses of red light",
+   "Maser dates given variously as 1951-1954"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT1-109",
+  "title": "The discovery of superconductivity",
+  "author_org": "Europhysics News (EPS)",
+  "published": "2011",
+  "url": "https://www.europhysicsnews.org/10.1051/epn/2011104/pdf",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "In April 1911 at Leiden, mercury resistance vanished at about 4.2 K, with liquid helium cooling"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT1-110",
+  "title": "CERN Courier article on superconducting magnets (cerncourier.com/?p=117217)",
+  "author_org": "CERN Courier",
+  "published": null,
+  "url": "https://cerncourier.com/?p=117217",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Fields of a few hundred gauss destroyed superconductivity in early materials, blocking magnets for half a century",
+   "In 1961 at Bell Labs Kunzler drove heavy current through niobium-tin at 88,000 gauss",
+   "LHC dipoles carry about 12,000 A in niobium-titanium filaments finer than a hair"
+  ],
+  "confidence": "medium",
+  "notes": "Title descriptive. Westinghouse 1962 NbTi wire came from a non-credible timeline and is not relied on alone. Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT1-111",
+  "title": "25th anniversary of NASA's first planetary mission",
+  "author_org": "NASA Jet Propulsion Laboratory",
+  "published": null,
+  "url": "https://www.jpl.nasa.gov/news/25th-anniversary-of-nasas-first-planetary-mission",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Mariner 2 was the first spacecraft to successfully encounter another planet (Venus, December 1962)"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT1-112",
+  "title": "Mariner 2 data from Venus",
+  "author_org": "NASA",
+  "published": null,
+  "url": "https://www.nasa.gov/image-article/mariner-2-data-from-venus/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Mariner 2 found Venus surface temperatures of at least 425 C on day and night sides and a very dense atmosphere",
+   "Flyby range 34,762 km on 14 December 1962, scanning for 42 minutes"
+  ],
+  "confidence": "high",
+  "notes": "Flyby range and duration may come from Wikipedia Mariner 2 in the same results. Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT1-113",
+  "title": "History: the spherical aberration problem",
+  "author_org": "ESA/Hubble",
+  "published": null,
+  "url": "https://esahubble.org/about/history/aberration_problem/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Hubble, launched 1990, had spherical aberration in its primary mirror, producing blurry images",
+   "December 1993 STS-61 installed COSTAR corrective mirrors and WFPC2 in five spacewalks",
+   "Later instruments corrected the aberration themselves"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT1-114",
+  "title": "Polymerase chain reaction (PCR)",
+  "author_org": "Embryo Project Encyclopedia, Arizona State University",
+  "published": null,
+  "url": "https://embryo.asu.edu/pages/polymerase-chain-reaction-pcr",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Mullis developed PCR at Cetus in the early 1980s (1983)",
+   "Short DNA strands mark the ends of a target; a polymerase replicates it through repeated cycles",
+   "Thermostable Taq polymerase from Thermus aquaticus allowed repeated heating without fresh enzyme"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT1-115",
+  "title": "Kary Mullis",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Kary_Mullis",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Mullis shared the 1993 Nobel Prize in Chemistry with Michael Smith"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
  }
 ]

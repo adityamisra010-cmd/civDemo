@@ -971,5 +971,69 @@
   ],
   "confidence": "medium",
   "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-066",
+  "title": "Counting rods",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Counting_rods",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Rod numerals were positional, with digits 1-9 and a blank space for zero, from the Warring States period to the sixteenth century",
+   "The Nine Chapters (mainly first century CE) gives rules for signed numbers"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "SCI-067",
+  "title": "Key concept of math may have emerged first in China",
+  "author_org": "Northwest University (Xi'an) news",
+  "published": "2023",
+  "url": "https://news.nwu.edu.cn/info/1004/23321.htm",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Red and black rods for positive and negative numbers attributed to the Han-era Nine Chapters",
+   "Ivory rods from a Qin site in Xi'an are painted red and black"
+  ],
+  "confidence": "medium",
+  "notes": "Date from the parallel China Daily report of 24 November 2023 in the same results. Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "SCI-068",
+  "title": "Timekeeping at Akhet Khufu, as shown by the Diary of Merer",
+  "author_org": "arXiv preprint 2411.08061",
+  "published": "2024",
+  "url": "https://arxiv.org/pdf/2411.08061",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Egyptian civil year of 365 days: twelve 30-day months plus five epagomenal days",
+   "The year wandered through the seasons, about a quarter day short of the solar year"
+  ],
+  "confidence": "medium",
+  "notes": "Year inferred from the arXiv identifier (November 2024). Statement-level attribution between this and SCI-069 not fully distinguished. Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "SCI-069",
+  "title": "Astronomical Society of the Pacific Conference Series 409, paper 116",
+  "author_org": "Astronomical Society of the Pacific",
+  "published": null,
+  "url": "https://www.aspbooks.org/publications/409/116.pdf",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Sothic cycle of 1,461 civil (1,460 Julian) years realigns the calendar with the heliacal rising of Sirius",
+   "Origin of the civil calendar disputed; Parker argued a lunar origin; inauguration estimates near 2781 BCE or a century or two before 2800 BCE"
+  ],
+  "confidence": "medium",
+  "notes": "Title descriptive. Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
  }
 ]

@@ -6,10 +6,10 @@ Original prose. Word counts are computed by the validator. Sources resolve in `h
 
 ### 76 · Clay tokens (`token_counting`)
 
-Small shaped clay counters such as cones, spheres and discs appear at Near Eastern farming sites from roughly the ninth or eighth millennium BCE. The archaeologist Denise Schmandt-Besserat argued that each shape stood for a fixed quantity of a particular commodity, letting people keep accounts beyond memory. Her further thesis, that tokens led directly to writing, is influential but debated.
+Shaped clay counters appear at Near Eastern farming sites from about 8000 BCE. The archaeologist Denise Schmandt-Besserat argued that each shape stood for a fixed quantity of a particular commodity, letting people keep accounts beyond memory. Her further thesis, that tokens led directly to writing, is influential but debated, though accounting needs are widely seen as one root of writing.
 
-- words: 60 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).)
-- sources: —
+- words: 60 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [COM-001] Tokens from about 8000 BCE in the Neolithic Near East, Schmandt-Besserat: tokens as accounting devices for goods, Token-to-writing thesis influential but critic; [COM-002] Token-to-writing thesis influential but criticized; [COM-003] Accounting needs widely accepted as a factor in the origin of writing
 - uncertainty: The function of many early tokens (counters, gaming pieces, amulets) and the direct token-to-writing sequence are contested; dates are broad ranges across many sites.
 - relation to mechanics: Realized today (class B): satisfies the Age 3 record-keeping supporting fact (with proto_writing as the alternative) and is a prerequisite of taxation, trade, standard_weights, proto_writing and hieroglyphic; kept unchanged in the proposal.
 
@@ -51,11 +51,11 @@ Egyptian hieroglyphic writing combined signs for words with signs for consonant 
 
 ### 89 · Oracle bone script (`chinese_script`)
 
-The oldest substantial body of Chinese writing is inscribed on turtle shells and cattle shoulder blades from the late Shang capital near Anyang, dated to about 1250-1050 BCE. Diviners recorded questions put to ancestors and spirits about harvests, warfare, weather and illness. The script was already mature, implying earlier development, and is ancestral to Chinese characters used today.
+The oldest substantial body of Chinese writing is inscribed on turtle shells and cattle shoulder blades from the late Shang capital near Anyang, dated to about 1250-1050 BCE. Diviners recorded questions about harvests, warfare, weather and other matters, then read cracks from heating. The script was already fully developed, implying earlier development, and is ancestral to modern Chinese characters.
 
-- words: 58 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).)
-- sources: —
-- uncertainty: Earlier marks on Neolithic Chinese pottery are sometimes proposed as precursors; their status as writing is disputed. Shang chronology is approximate.
+- words: 59 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [COM-007] Turtle plastrons and ox scapulae from Yin Xu near Anyang, Divination questions on harvests, weather, war; cracks from heating; [COM-005] About 1250-1050 BCE (late Shang); [COM-006] About 1250-1050 BCE (late Shang), Fully developed writing ancestral to modern Chinese script; [COM-004] Divination questions on harvests, weather, war; cracks from heating, Earliest known Chinese writing
+- uncertainty: Earlier marks on Neolithic Chinese pottery are sometimes proposed as precursors; their status as writing is disputed. Shang chronology is approximate (UNESCO gives about 1400-1100 BCE for the practice).
 - relation to mechanics: Realized today (class D) as the independent Chinese script route, the only one not rooted in clay tokens; makes the written-institution entities eligible pending their realization (PROPOSED M6 T6.11); kept unchanged.
 
 ### 90 · Papyrus (`papyrus`)
@@ -87,11 +87,11 @@ Greeks adapted Phoenician letters, probably during the eighth century BCE, and r
 
 ### 119 · Brahmi script (`brahmi`)
 
-Brahmi is the earliest well-dated readable script of South Asia, known from the edicts of the Mauryan emperor Ashoka in the third century BCE. Each consonant carries an inherent vowel that attached marks modify. Whether it derived from Aramaic or other Semitic models or developed locally is debated. Brahmi is ancestral to many South and Southeast Asian scripts.
+Brahmi appears as a fully developed script in the third century BCE, notably in the Mauryan emperor Ashoka's edicts, though sherds from Anuradhapura, Sri Lanka, have been dated earlier. Each consonant carries an inherent vowel that attached marks modify. Whether it derived from Aramaic or developed locally is debated. Brahmi is ancestral to many South and Southeast Asian scripts.
 
-- words: 58 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).)
-- sources: —
-- uncertainty: Origin (Semitic-derived or indigenous) is disputed; some Sri Lankan and South Indian inscribed sherds have been dated earlier than Ashoka, and those dates are contested.
+- words: 59 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [COM-022] Fully developed by the 3rd century BCE, notably in Ashoka's edicts, Inherent vowel with diacritics, Origin (Aramaic vs local) debated; [COM-024] Anuradhapura sherds dated to the early 4th century BCE; [COM-023] Origin (Aramaic vs local) debated
+- uncertainty: Origin (Semitic-derived or indigenous) is disputed. Anuradhapura sherds have been dated to the early 4th century BCE, and a cited radiocarbon study proposes earlier dates; these dates are contested.
 - relation to mechanics: Deferred: the school building it gates has no realizing system until PROPOSED M6 T6.11; prerequisite of hindu_arabic; kept unchanged.
 
 ### 120 · Weighed silver (`hacksilver`)
@@ -125,8 +125,8 @@ Paper is a mat of plant fibres beaten to pulp, caught on a screen and dried. Fra
 
 Woodblock printing transfers ink from a carved relief block to paper, copying a whole page at once. It developed in East Asia by the eighth century CE; a Buddhist charm sealed in a Korean pagoda by 751 may be among the earliest prints. The Diamond Sutra scroll found at Dunhuang, dated 868, is the oldest dated printed book known.
 
-- words: 59 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).)
-- sources: —
+- words: 59 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [COM-025] Diamond Sutra from Dunhuang dated 868, earliest dated printed book
 - uncertainty: Whether the Korean Bulguksa dharani was printed in Korea or China, and its exact date, are disputed; earlier textile and seal printing blur the start.
 - relation to mechanics: Deferred: the printing-house building awaits realization (PROPOSED M6 T6.11); PROPOSED relocation from the engineering subtree to the trunk, since its prerequisites are paper and stamp_seal.
 
@@ -197,9 +197,9 @@ Submarine cables carry telegraph signals under the sea inside insulation of gutt
 
 The telephone converts speech into a varying electric current and back into sound. Alexander Graham Bell received a United States patent in 1876, amid a rival filing by Elisha Gray and earlier work by Antonio Meucci and others. Carbon transmitters soon made speech louder and clearer, and within a few years cities had exchanges where operators connected calls by hand.
 
-- words: 60 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).)
-- sources: —
-- uncertainty: Priority of invention was litigated and remains disputed; Bell's patent is a legal milestone, not proof of sole invention.
+- words: 60 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [COM-026] Bell's US patent 1876, Rival filing by Elisha Gray (same day), Earlier work by Antonio Meucci (1871 caveat); [COM-027] Carbon transmitters improved speech; [COM-028] Manual exchanges within a few years (New Haven, 1878)
+- uncertainty: Priority of invention was litigated and remains disputed; Bell's patent is a legal milestone, not proof of sole invention. Meucci's 1871 caveat lapsed, and a 2002 US House resolution recognized his work.
 - relation to mechanics: Deferred: the telephone network awaits realization (PROPOSED M6 T6.11); prerequisite of internet and automatic_switching; kept unchanged.
 
 ### 309 · Artificial satellite (`satellite`)
@@ -213,11 +213,11 @@ An artificial satellite is an object placed in orbit, moving sideways fast enoug
 
 ### 311 · Wireless telegraphy (radio) (`radio`)
 
-Heinrich Hertz demonstrated electromagnetic waves in the late 1880s. From 1895 Guglielmo Marconi built spark transmitters and receivers that sent Morse code without wires, and in December 1901 he reported receiving a signal across the Atlantic in Newfoundland. Ships adopted wireless for safety and command. Alexander Popov, Oliver Lodge and others did parallel work.
+Heinrich Hertz demonstrated electromagnetic waves in 1886-1888. From 1895 Guglielmo Marconi built on Hertz's oscillator and Branly's coherer to send Morse code without wires, and in December 1901 he reported receiving a signal across the Atlantic in Newfoundland, a claim later questioned. Alexander Popov, Oliver Lodge and others did parallel work, and who invented radio remains disputed.
 
-- words: 54 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).)
-- sources: —
-- uncertainty: Marconi's 1901 transatlantic reception was unwitnessed and has been questioned; priority among early wireless experimenters is disputed.
+- words: 57 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [COM-033] Hertz verified electromagnetic waves 1886-1888; [COM-030] Marconi from 1895 with Hertz oscillator and Branly coherer; [COM-032] Marconi from 1895 with Hertz oscillator and Branly coherer, Popov (1895) and Lodge parallel work; priority disputed; [COM-029] December 1901 Signal Hill reception, later questioned; [COM-031] Popov (1895) and Lodge parallel work; priority disputed
+- uncertainty: Marconi's 1901 reception was unwitnessed and may have been a harmonic; priority among early wireless experimenters (Marconi, Popov, Lodge, Tesla and others) is disputed.
 - relation to mechanics: Realized today (class B): Age 9 radio supporting fact and radio-transmitter building (awaiting PROPOSED M6 T6.11); PROPOSED split keeps wireless telegraphy here, moves voice broadcasting to radio_broadcasting and re-dates the node to A8.
 
 ### 314 · Television (`television`)
@@ -276,55 +276,55 @@ Exchange between distant communities is ancient, but organized trade with record
 
 ### 430 · Mesoamerican writing (`mesoamerican_script`)
 
-Writing arose in Mesoamerica independently of the Old World. Candidate early signs include a cylinder seal from San Andres, Tabasco, of about 650 BCE, bearing a day name, and Zapotec carvings at San Jose Mogote; both dates are debated. Maya writing is attested at San Bartolo by about 300 BCE and later recorded dynastic histories with calendar dates.
+Writing arose in Mesoamerica independently of the Old World. Candidate early signs include a cylinder seal from San Andrés, Tabasco, of about 650 BCE, which its excavators read as writing though critics doubt it, and inscriptions from Oaxaca of about 400 BCE. Maya writing is attested at San Bartolo, Guatemala, by about 300 to 200 BCE.
 
-- words: 58 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).)
-- sources: —
-- uncertainty: The San Andres and San Jose Mogote finds are contested in date and reading; which Mesoamerican tradition wrote first is unresolved.
+- words: 56 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [COM-008] San Andrés cylinder seal about 650 BCE; reading as writing disputed; [COM-009] Oaxaca writing about 400 BCE, San Bartolo Maya writing about 300-200 BCE
+- uncertainty: The San Andrés finds are contested in reading; which Mesoamerican tradition wrote first is unresolved, and what counts as writing affects the answer.
 - relation to mechanics: PROPOSED new node: joins the generic-writing OR groups so a calendar-first civilization reaches the same written institutions (entity changes EC-04 to EC-09, pending ruling); realization waits for PROPOSED M6 T6.11.
 
 ### 439 · Optical telegraph (`optical_telegraph`)
 
-In 1794 the French engineer Claude Chappe and his brothers opened a line of signal towers between Paris and Lille. Operators set movable arms into coded positions that the next tower read by telescope and repeated. By the 1840s the French state network had over 500 stations, and Sweden and Britain built shutter systems. Darkness and fog halted signalling.
+In July 1794 the engineer Claude Chappe, helped by his brothers, completed a line of fifteen signal stations between Paris and Lille. Operators set movable arms into coded positions that the next station, 10 to 15 kilometres away, read by telescope and repeated. The French network spanned nearly 5,000 kilometres. Sweden and Britain built shutter systems from 1795.
 
-- words: 59 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).)
-- sources: —
-- uncertainty: Station counts for the French network vary by source and year.
+- words: 59 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [COM-010] July 1794 Paris-Lille line of 15 stations, Chappe and brothers, Arms read by telescope; stations 10-15 km apart, Network of nearly 5,000 km; [COM-011] Swedish (Edelcrantz) and British (Murray) shutter systems, 1795
+- uncertainty: Sources differ on the Paris-Lille line length (about 210 or 230 km) and one dates a first message to 1792; the French network ran until replaced by the electric telegraph from 1853.
 - relation to mechanics: PROPOSED new node; deferred: a signal-line infrastructure that shortens strategic order latency along built tower chains (M7) and extends administrative reach (M8), never revealing territory.
 
 ### 448 · Automatic telephone switching (`automatic_switching`)
 
-Automatic switching connects telephone calls without a human operator. Almon Strowger patented a stepping switch in 1891, and the first commercial automatic exchange opened in La Porte, Indiana, in 1892. Later crossbar systems replaced stepping mechanisms. Telephone relays performing switching logic were also used to build early computers such as Konrad Zuse's Z3.
+Automatic switching connects telephone calls without a human operator. Almon Strowger patented a stepping switch in 1891, and the first Strowger exchange opened in La Porte, Indiana, in 1892, with pulses from the caller's telephone driving the switch. Crossbar systems, patented from 1919, later challenged stepping mechanisms. Telephone-style relays also went into early computers such as Konrad Zuse's Z3.
 
-- words: 53 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).)
-- sources: —
+- words: 59 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [COM-012] Strowger patent 1891, stepping switch, La Porte, Indiana, 1892, Pulses from the telephone drove the switch, Crossbar (patent 1919) later challenged Strowger swi; [COM-013] Strowger patent 1891, stepping switch
 - uncertainty: Several inventors proposed automatic exchanges earlier; Strowger's design was the first widely adopted.
 - relation to mechanics: PROPOSED new node, knowledge-only until infrastructure capacity is modelled (M11+); prerequisite of cellular telephony and a candidate relay route to programmable computation.
 
 ### 453 · Punched-card tabulation (`punched_card_tabulation`)
 
-Herman Hollerith, who had worked on the 1880 United States census, patented a system in 1889 that recorded each person as holes punched in a card. Electrical contacts through the holes advanced counters on a tabulating machine. Used for the 1890 census, it sped processing considerably. Hollerith's company later became part of IBM.
+Herman Hollerith, who had worked on the 1880 United States census, patented a system in 1889 that recorded each person as holes punched in a card. Electrical contacts through the holes advanced counters on a tabulating machine. Used for the 1890 census, it reportedly saved years of work. Hollerith's company later became part of IBM.
 
-- words: 53 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).)
-- sources: —
-- uncertainty: Published estimates of the time saved in the 1890 census vary.
+- words: 55 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [COM-016] Hollerith worked on the 1880 census, Electrical reading via contacts through holes; [COM-014] 1889 patent for punched-card tabulation, 1890 census; reportedly saved two years; [COM-015] Electrical reading via contacts through holes; [COM-017] 1890 census; reportedly saved two years; [COM-018] Company lineage to IBM
+- uncertainty: Published estimates of the time and money saved in the 1890 census vary; sources differ on the founding year of the Tabulating Machine Company (1895 or 1896).
 - relation to mechanics: PROPOSED new node; deferred to M8 as an input of administrative reach (faster census cycles); first real dependant of jacquard's punched-card control.
 
 ### 476 · Communications satellite (`communications_satellite`)
 
-Communications satellites relay radio signals between distant ground stations. Arthur C. Clarke described geostationary relays in 1945. Telstar 1 relayed transatlantic television in 1962, but its low orbit gave only short passes. Syncom 3 reached geostationary orbit in 1964 and relayed the Tokyo Olympics. Intelsat I, nicknamed Early Bird, began commercial service in 1965.
+Communications satellites relay radio signals between distant ground stations. Arthur C. Clarke developed the idea of geostationary relays in a 1945 article. Telstar 1 and Relay 1, launched in 1962, worked from lower, non-geostationary orbits. Syncom 3 became the first geostationary communications satellite in 1964, and Intelsat I, nicknamed Early Bird, began commercial service in 1965.
 
-- words: 54 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).)
-- sources: —
-- uncertainty: —
+- words: 56 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [COM-019] Clarke 1945 Wireless World article, Telstar and Relay, 1962, medium orbit, Syncom 3 first geostationary communications satellite, 1964, Early Bird (Intelsat I) 
+- uncertainty: Hermann Oberth (1923) and George O. Smith (1942) speculated about such relays before Clarke, whose article had little immediate effect. Syncom 3's Tokyo Olympics relay was not corroborated in this pass.
 - relation to mechanics: PROPOSED new node (split from satellite); deferred: intercontinental relay for contact and diplomacy information (M8) and global live media (M9); ground stations are IMPLEMENTATION DEFERRED.
 
 ### 484 · Voice radio and broadcasting (`radio_broadcasting`)
 
-Voice radio needs continuous waves whose strength is varied, or modulated, by sound. Reginald Fessenden and others experimented with voice transmission in the 1900s, and vacuum-tube oscillators and amplifiers made it practical in the 1910s. Pittsburgh's KDKA began scheduled broadcasting in November 1920, and receivers soon spread into millions of homes.
+Voice radio needs continuous waves whose strength is varied, or modulated, by sound. Reginald Fessenden promoted amplitude modulation and reportedly broadcast speech and music from Brant Rock, Massachusetts, on Christmas Eve 1906. Pittsburgh's Westinghouse station KDKA made what is often called the first scheduled broadcast on 2 November 1920, though several stations claim to have been first.
 
-- words: 51 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).)
-- sources: —
-- uncertainty: Fessenden's reported 1906 broadcast is poorly documented; several stations claim to be the first broadcaster.
+- words: 57 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [COM-021] Fessenden and amplitude modulation, Fessenden's 1906 Brant Rock broadcast; [COM-020] KDKA first scheduled broadcast, 2 November 1920, Which station was first is disputed
+- uncertainty: Fessenden's 1906 broadcast is poorly documented and questioned by some historians; several stations claim to be the first broadcaster.
 - relation to mechanics: PROPOSED new node (split from radio); deferred: with television and mass schooling it makes the broadcast-media institution eligible, with media reach in M9 and voice command in M7.
 

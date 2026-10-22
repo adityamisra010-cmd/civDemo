@@ -1,1 +1,288 @@
-[]
+[
+ {
+  "id": "IND1-001",
+  "title": "The Step Pyramid of Djoser at Saqqara",
+  "author_org": "World History Encyclopedia",
+  "published": null,
+  "url": "https://www.worldhistory.org/article/862/the-step-pyramid-of-djoser-at-saqqara/",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Djoser's reign c. 2670 BCE; Step Pyramid of cut stone attributed to Imhotep"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND1-002",
+  "title": "Step Pyramid complex at Saqqara",
+  "author_org": "Smarthistory",
+  "published": null,
+  "url": "https://smarthistory.org/?p=59886",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Djoser's Step Pyramid as the earliest large cut-stone building"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked). The search summary did not always say which result gave each statement.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND1-003",
+  "title": "Han pattern-loom models from Laoguanshan, Chengdu (Antiquity article, doi 10.15184/aqy.2016.267)",
+  "author_org": "Antiquity / Cambridge University Press",
+  "published": null,
+  "url": "https://dx.doi.org/10.15184%2Faqy.2016.267",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Four pattern-loom models from a Han tomb at Laoguanshan, Chengdu, second half of the 2nd century BCE: earliest evidence of pattern looms in China"
+  ],
+  "confidence": "high",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked). Descriptive title: the search result did not show the article title.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND1-004",
+  "title": "Model Looms Are Missing Link in China's Textile History",
+  "author_org": "Smithsonian Magazine",
+  "published": null,
+  "url": "https://www.smithsonianmag.com/smart-news/model-looms-are-missing-link-chinas-textile-history-180962990/",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "Laoguanshan loom models as early Chinese pattern looms"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND1-005",
+  "title": "A high point in the development of ancient Chinese pattern looms: the multiple heddle pattern device",
+  "author_org": "Fibers and Textiles in Archaeology and Anthropology (Long and Zhao)",
+  "published": null,
+  "url": "https://fltjournal.libraryhost.com/index.php/flt/article/view/2",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Earliest Chinese pattern loom was a multi-heddle device; whether early looms were drawlooms is debated"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND1-006",
+  "title": "A revised radiocarbon chronology for the mammoth bone structures and associated features at Mezhyrich, Ukraine",
+  "author_org": "Chu, Shydlovskyi and Maier (PMC)",
+  "published": "2025",
+  "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12639289/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Mezhyrich mammoth-bone structure 4 dated c. 18,250-17,760 cal BP; earlier dates ranged about 19,000-12,000 years; dwelling interpretation remains a hypothesis"
+  ],
+  "confidence": "high",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND1-007",
+  "title": "Ice Age architecture: how mammoth bones reveal human ingenuity",
+  "author_org": "Leiden University",
+  "published": "2025",
+  "url": "https://www.universiteitleiden.nl/en/news/2025/11/ice-age-architecture-how-mammoth-bones-reveal-human-ingenuity",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Mezhyrich mammoth-bone dwellings re-dated to about 18,000 years ago"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND1-008",
+  "title": "Oldest indigo-dyed fabric found",
+  "author_org": "Science News",
+  "published": null,
+  "url": "https://www.sciencenews.org/?p=20775",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "Indigo-dyed cotton from Huaca Prieta, Peru, about 6,200-6,000 years old, oldest known indigo dyeing (Splitstoser et al. 2016)"
+  ],
+  "confidence": "high",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND1-009",
+  "title": "Earliest evidence of indigo dye found at ancient Peruvian burial site",
+  "author_org": "Smithsonian Magazine",
+  "published": null,
+  "url": "https://www.smithsonianmag.com/smart-news/earliest-evidence-indigo-dye-found-ancient-peruvian-burial-site-180960477/",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "Huaca Prieta indigo about 6,000 years old; predates Egyptian indigo (about 4,400 years)"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND1-010",
+  "title": "Peru's Indigo-Dyed Fabric Dated to 6,200 Years Ago",
+  "author_org": "Archaeology (Archaeological Institute of America)",
+  "published": "2016",
+  "url": "https://archaeology.org/news/2016/09/15/160915-peru-cotton-indigo",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "Huaca Prieta indigo-dyed fabric dated to about 6,200 years ago"
+  ],
+  "confidence": "high",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND1-011",
+  "title": "History of silk",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/History_of_silk",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Woven silk from Qianshanyang (Zhejiang) about 2700 BCE; older silk from Qingtaicun (Henan) about 3630 BCE",
+   "Wild silk reported at Harappa about 2450 BCE"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND1-012",
+  "title": "Qanat",
+  "author_org": "World History Encyclopedia",
+  "published": null,
+  "url": "https://www.worldhistory.org/Qanat/",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Qanats developed in ancient Iran in the early first millennium BCE and spread west and east"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND1-013",
+  "title": "Karez/qanat study (Remote Sensing 15(8):2146)",
+  "author_org": "Remote Sensing (MDPI)",
+  "published": null,
+  "url": "https://doi.org/10.3390/RS15082146",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Karez systems in Turpan, China; qanat World Heritage inscription 2016"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND1-014",
+  "title": "Qanat (Graph Search concept)",
+  "author_org": "EPFL",
+  "published": null,
+  "url": "https://graphsearch.epfl.ch/en/concept/536059",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Emerging view of a Southern Arabian (Oman/UAE) origin of qanats; regional names (falaj, foggara in Algeria, khettara in Morocco, galerías in Spain)"
+  ],
+  "confidence": "low",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked). Encyclopedia-derived summary page; not sole support for the disputed origin.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND1-015",
+  "title": "Fulling",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Fulling",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Fulling mills proposed to originate in 9th-10th century Europe; earliest documents about 1086 (Normandy; Domesday, Temple Guiting)"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND1-016",
+  "title": "Review discussing Holt's excursus on Carus-Wilson's 'industrial revolution of the thirteenth century'",
+  "author_org": "Project MUSE",
+  "published": null,
+  "url": "https://muse.jhu.edu/article/494562/pdf",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Carus-Wilson's thesis of a 13th-century industrial revolution driven by fulling mills is debated"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND1-017",
+  "title": "Mechanical fulling and the English and Low Countries cloth industries",
+  "author_org": "MPRA (University of Munich)",
+  "published": null,
+  "url": "https://mpra.ub.uni-muenchen.de/11027/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "English cloth industry gained from mechanical fulling while Low Countries drapers avoided mills before the 16th century"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked). Title paraphrased from the search summary; check exact title.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND1-018",
+  "title": "Canal du Midi (World Heritage nomination document)",
+  "author_org": "UNESCO World Heritage Centre",
+  "published": null,
+  "url": "https://whc.unesco.org/document/154225",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Canal du Midi built 1666-1681, finished when Riquet died in 1681; final elements 1694"
+  ],
+  "confidence": "high",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND1-019",
+  "title": "Bassin de Saint-Ferréol",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Bassin_de_Saint-Ferr%C3%A9ol",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Reservoir and dam (1667-c.1671) fed water from the Montagne Noire to the canal's summit at the Seuil de Naurouze"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ }
+]

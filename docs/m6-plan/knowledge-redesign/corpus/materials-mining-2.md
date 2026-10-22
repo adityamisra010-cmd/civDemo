@@ -26,9 +26,9 @@ Lead crystal is glass made heavy and brilliant with lead oxide. In 1674 George R
 
 Puddling turned brittle pig iron into tough wrought iron without charcoal. In a coal-fired reverberatory furnace, where flame rather than fuel touched the metal, workers stirred molten iron until air burned out its carbon; the iron was then shingled and passed through grooved rolls. Henry Cort patented the rolls in 1783 and puddling in 1784; Welsh ironmasters made them practical.
 
-- words: 60 · fact-check: partially-checked (drafting lane; Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).)
-- sources: [MAT2-007] 1783 grooved-roll patent, 1784 puddling patent: stirring in a reverberatory furnace to oxidise carbon, giving wrought iron; [MAT2-008] made practical at Cyfarthfa, Merthyr Tydfil, late 1780s-1790s, Peter Onions's similar 1783 patent; [MAT2-009] origin of the rolling idea contested
-- uncertainty: Cort built on earlier work (Peter Onions patented a similar process in 1783), and a claim that he took the rolling idea from a Jamaican foundry is contested. Sources date full commercial use at Cyfarthfa from about 1786 to the 1790s; his process at first suited white rather than grey pig iron.
+- words: 60 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [MAT2-007] 1783 grooved-roll patent, 1784 puddling patent: stirring in a reverberatory furnace to oxidise carbon, giving wrought iron; [MAT2-008] made practical at Cyfarthfa, Merthyr Tydfil, late 1780s-1790s, Peter Onions's similar 1783 patent; [MAT2-009] origin of the rolling idea contested; [MAT2-043] Fuel separated from iron; puddled ball shingled and rolled; [MAT2-044] Fuel separated from iron, allowing coal
+- uncertainty: Cort built on earlier work (Peter Onions patented a similar process in 1783), and a claim that he took the rolling idea from a Jamaican foundry is contested. Sources date full commercial use at Cyfarthfa from about 1786 to the 1790s; his process at first suited white rather than grey pig iron. One source describes coke rather than raw coal as the fuel.
 - relation to mechanics: Realized today (class B): completing it supplies the supporting fact age:a8_iron to AgeTransitionSystem's Age 8 milestone. Prerequisites coke AND steam_rotary; prerequisite of bessemer, railway, iron_hull, rifled_artillery and steam_high_pressure.
 
 ### 253 · Hot blast (`hot_blast`)
@@ -71,8 +71,8 @@ Acid-lined converters could not remove phosphorus, which made steel brittle. Sid
 
 Portland cement is made by burning limestone or chalk with clay into clinker and grinding it to a powder that hardens with water. Joseph Aspdin patented the name in 1824, after Portland stone, but his product was probably underburned. Firing at much higher temperatures, as Isaac Charles Johnson did around 1845-50, produced the stronger modern material.
 
-- words: 56 · fact-check: partially-checked (drafting lane; Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).)
-- sources: [MAT2-019] Aspdin's 1824 patent and name from Portland stone, product probably too lightly burned, William Aspdin and clinker; [MAT2-020] Johnson's prototype about 1850; [MAT2-021] Johnson fired chalk and clay at 1400-1500 C, c. 1845
+- words: 56 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [MAT2-019] Aspdin's 1824 patent and name from Portland stone, product probably too lightly burned, William Aspdin and clinker; [MAT2-020] Johnson's prototype about 1850; [MAT2-021] Johnson fired chalk and clay at 1400-1500 C, c. 1845; [MAT2-045] Kiln clinker from limestone and clay; paste with water hardens; [MAT2-046] Clinker ground with gypsum
 - uncertainty: Who made the first true portland cement is disputed between the Aspdins (Joseph's patent, William's clinker) and Johnson; Johnson's work is dated 1845 locally and about 1850 by Britannica.
 - relation to mechanics: Grants building.cement_works (class J), not yet realized (deferred owner ConstructionSystem); records concrete in general use. Prerequisites concrete_pozzolan, kiln_updraft and chemistry_quantitative; prerequisite of reinforced_concrete.
 
@@ -132,10 +132,10 @@ Materials science studies how a material's structure, from atoms to grains, gove
 
 ### 452 · Scientific metallurgy (metallography) (`metallography`)
 
-Metallography studies the inner structure of metals. From 1863 to 1865 Henry Clifton Sorby of Sheffield polished and etched steel and examined it under reflected-light microscopes, revealing distinct constituents. By about 1900 Roberts-Austen and Bakhuis Roozeboom had drawn the iron-carbon diagram, explaining hardening and tempering that smiths had long practised without knowing why.
+Metallography studies the inner structure of metals. From 1863 to 1865 Henry Clifton Sorby of Sheffield polished and etched steel and examined it under reflected-light microscopes, revealing distinct constituents, including one he called 'pearly'. By about 1900 Roberts-Austen and Bakhuis Roozeboom had drawn the iron-carbon phase diagram; austenite, a high-temperature form of steel, is named after Roberts-Austen.
 
-- words: 53 · fact-check: partially-checked (drafting lane; Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).)
-- sources: [MAT2-022] Sorby's researches 1863-65: polished and etched specimens, reflected-light microscopy; [MAT2-023] Roberts-Austen's diagrams 1897 and 1899; Roozeboom's phase-rule diagram c. 1900
+- words: 57 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [MAT2-022] Sorby's researches 1863-65: polished and etched specimens, reflected-light microscopy; [MAT2-023] Roberts-Austen's diagrams 1897 and 1899; Roozeboom's phase-rule diagram c. 1900; [MAT2-041] Sorby of Sheffield; [MAT2-042] Polishing and etching from 1863; 'pearly' constituent
 - uncertainty: Sorby's results were fully published only in 1886-87, and others (Martens, Osmond, Le Chatelier) developed the field in parallel; Widmanstatten had etched meteoritic iron earlier. Some 1897 diagrams by others are also claimed to precede Roberts-Austen's.
 - relation to mechanics: PROPOSED new science node with no current effect beyond its completion row; prerequisites microscope AND chemistry_quantitative; its only dependant is superalloy, and no steelmaking node requires it.
 

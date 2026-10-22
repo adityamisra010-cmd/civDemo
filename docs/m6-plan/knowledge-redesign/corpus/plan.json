@@ -56,7 +56,62 @@
     "chemical_fertilizer",
     "farm_machinery",
     "green_revolution"
-   ]
+   ],
+   "evidence": {
+    "byStatus": {
+     "unverified": 0,
+     "partially-checked": 27,
+     "search-corroborated": 18,
+     "source-checked": 0
+    },
+    "blocked": [
+     "farm_machinery",
+     "chemical_fertilizer",
+     "agricultural_chemistry",
+     "cotton_cultivation",
+     "cattle",
+     "fermentation_grain",
+     "green_revolution",
+     "legume",
+     "orchard",
+     "root_crop",
+     "sugar_refining",
+     "terrace",
+     "cereal_cultivation",
+     "cereal_domesticated",
+     "fishing_hook",
+     "heavy_plough",
+     "maize",
+     "millet",
+     "rice_wet",
+     "sheep_goat",
+     "sorghum_pearl_millet",
+     "beekeeping",
+     "canning",
+     "crop_rotation_norfolk",
+     "digging_stick_hoe",
+     "horse_collar",
+     "iron_mouldboard",
+     "new_world_crops",
+     "nixtamalization",
+     "oil_press",
+     "pig",
+     "plough_ard",
+     "refrigeration",
+     "rice_champa",
+     "salt_extraction",
+     "seed_drill",
+     "seed_drill_tull",
+     "selective_breeding",
+     "sickle",
+     "animal_traction",
+     "fermentation_fruit",
+     "flax",
+     "grinding_stone",
+     "milking",
+     "rotary_quern"
+    ]
+   }
   },
   {
    "file": "agriculture-food-2.json",
@@ -73,7 +128,23 @@
     "frontier_crops",
     "frontier_climate",
     "scientific_plant_breeding"
-   ]
+   ],
+   "evidence": {
+    "byStatus": {
+     "unverified": 0,
+     "partially-checked": 2,
+     "search-corroborated": 4,
+     "source-checked": 0
+    },
+    "blocked": [
+     "scientific_plant_breeding",
+     "frontier_climate",
+     "drip_irrigation",
+     "mechanised_agriculture",
+     "frontier_crops",
+     "precision_agriculture"
+    ]
+   }
   },
   {
    "file": "materials-mining-1.json",
@@ -129,7 +200,62 @@
     "blast_furnace_water",
     "wire_drawing",
     "percussion_drilling"
-   ]
+   ],
+   "evidence": {
+    "byStatus": {
+     "unverified": 0,
+     "partially-checked": 36,
+     "search-corroborated": 9,
+     "source-checked": 0
+    },
+    "blocked": [
+     "cupellation",
+     "percussion_drilling",
+     "hafting",
+     "knapping_oldowan",
+     "tin_bronze",
+     "arsenical_bronze",
+     "birch_tar",
+     "blast_furnace_water",
+     "bone_tools",
+     "brass_calamine",
+     "cast_iron",
+     "casting_closed",
+     "casting_open",
+     "concrete_pozzolan",
+     "copper_smelting",
+     "fired_brick",
+     "glass_blowing",
+     "glass_blown_precursor",
+     "glass_core",
+     "glass_glaze",
+     "gold_silver_native",
+     "ground_stone_early",
+     "heat_treatment_stone",
+     "iron_bloomery",
+     "kiln_updraft",
+     "knapping_blade",
+     "knapping_levallois",
+     "lacquer",
+     "lost_wax",
+     "microlith",
+     "potters_wheel_fast",
+     "pottery_open_fired",
+     "pressure_flaking",
+     "quenching",
+     "spectacles",
+     "steel_carburized",
+     "tempering",
+     "window_glass",
+     "wire_drawing",
+     "wootz",
+     "adhesive_natural",
+     "copper_native",
+     "mining_shaft",
+     "pattern_welding",
+     "sheet_metal"
+    ]
+   }
   },
   {
    "file": "materials-mining-2.json",
@@ -155,7 +281,32 @@
     "nanotechnology",
     "asteroid_mining",
     "frontier_materials"
-   ]
+   ],
+   "evidence": {
+    "byStatus": {
+     "unverified": 0,
+     "partially-checked": 11,
+     "search-corroborated": 4,
+     "source-checked": 0
+    },
+    "blocked": [
+     "metallography",
+     "portland_cement",
+     "puddling",
+     "aluminium",
+     "asteroid_mining",
+     "basic_process",
+     "bessemer",
+     "coke",
+     "composites",
+     "frontier_materials",
+     "glass_lead",
+     "nanotechnology",
+     "open_hearth",
+     "superalloy",
+     "hot_blast"
+    ]
+   }
   },
   {
    "file": "science-early.json",
@@ -191,7 +342,42 @@
     "counting_rods",
     "hindu_arabic",
     "algebra"
-   ]
+   ],
+   "evidence": {
+    "byStatus": {
+     "unverified": 0,
+     "partially-checked": 21,
+     "search-corroborated": 4,
+     "source-checked": 0
+    },
+    "blocked": [
+     "counting_rods",
+     "abacus",
+     "distillation",
+     "dog_domestication",
+     "tally_notation",
+     "calendar_civil",
+     "alchemy",
+     "algebra",
+     "arithmetic_babylonian",
+     "astronomy_geometric",
+     "astronomy_records",
+     "calendar_lunar",
+     "calendar_lunisolar",
+     "camel",
+     "donkey",
+     "geometry_axiomatic",
+     "geometry_practical",
+     "hindu_arabic",
+     "numeral_sexagesimal",
+     "ochre_processing",
+     "standard_weights",
+     "surveying",
+     "water_clock",
+     "horse_domestication",
+     "mechanics_archimedean"
+    ]
+   }
   },
   {
    "file": "natural-science-1.json",
@@ -247,7 +433,62 @@
     "space_probe",
     "space_telescope",
     "pcr"
-   ]
+   ],
+   "evidence": {
+    "byStatus": {
+     "unverified": 0,
+     "partially-checked": 21,
+     "search-corroborated": 24,
+     "source-checked": 0
+    },
+    "blocked": [
+     "cell_theory",
+     "electromagnetic_field_theory",
+     "organic_chemistry",
+     "periodic_system",
+     "probability_statistics",
+     "spectroscopy",
+     "taxonomy",
+     "thermodynamics",
+     "barometer_vacuum",
+     "haber_bosch",
+     "mechanics_newtonian",
+     "atomic_clock",
+     "heliocentrism",
+     "laser",
+     "pcr",
+     "relativity",
+     "telescope",
+     "trigonometry",
+     "astrolabe",
+     "bleach_chlorine",
+     "calculus",
+     "corned_powder",
+     "dna_structure",
+     "double_entry",
+     "dynamite",
+     "electromagnetism",
+     "evolution",
+     "genetics_mendel",
+     "gunpowder",
+     "optics_ibn_haytham",
+     "petroleum_refining",
+     "saltpetre_refining",
+     "soda_leblanc",
+     "space_telescope",
+     "sulphuric_acid",
+     "vacuum_tube",
+     "chemistry_quantitative",
+     "genetic_engineering",
+     "microscope",
+     "photography",
+     "plastics",
+     "quantum_mechanics",
+     "space_probe",
+     "superconductivity_applied",
+     "synthetic_dye"
+    ]
+   }
   },
   {
    "file": "natural-science-2.json",
@@ -263,7 +504,22 @@
     "catalytic_converter",
     "carbon_capture",
     "dna_sequencing"
-   ]
+   ],
+   "evidence": {
+    "byStatus": {
+     "unverified": 0,
+     "partially-checked": 1,
+     "search-corroborated": 4,
+     "source-checked": 0
+    },
+    "blocked": [
+     "dna_sequencing",
+     "crispr",
+     "carbon_capture",
+     "catalytic_converter",
+     "genome_sequencing"
+    ]
+   }
   },
   {
    "file": "communication-computing.json",
@@ -310,7 +566,53 @@
     "cellular_digital",
     "communications_satellite",
     "radio_broadcasting"
-   ]
+   ],
+   "evidence": {
+    "byStatus": {
+     "unverified": 23,
+     "partially-checked": 6,
+     "search-corroborated": 7,
+     "source-checked": 0
+    },
+    "blocked": [
+     "mesoamerican_script",
+     "automatic_switching",
+     "communications_satellite",
+     "optical_telegraph",
+     "punched_card_tabulation",
+     "radio_broadcasting",
+     "brahmi",
+     "token_counting",
+     "woodblock_print",
+     "chinese_script",
+     "radio",
+     "telephone",
+     "abjad",
+     "alphabet_vowels",
+     "bill_of_exchange",
+     "cellular_digital",
+     "coinage_electrum",
+     "cuneiform",
+     "fibre_optics",
+     "hieroglyphic",
+     "internet",
+     "mobile_phone",
+     "movable_type_ceramic",
+     "movable_type_metal",
+     "paper",
+     "paper_money",
+     "papyrus",
+     "printing_press",
+     "proto_writing",
+     "satellite",
+     "stamp_seal",
+     "submarine_cable",
+     "telegraph",
+     "television",
+     "trade",
+     "hacksilver"
+    ]
+   }
   },
   {
    "file": "energy-engineering-1.json",
@@ -366,7 +668,62 @@
     "deep_learning",
     "large_language_models",
     "cloud_computing"
-   ]
+   ],
+   "evidence": {
+    "byStatus": {
+     "unverified": 23,
+     "partially-checked": 22,
+     "search-corroborated": 0,
+     "source-checked": 0
+    },
+    "blocked": [
+     "ac_transmission",
+     "gas_engine",
+     "water_turbine",
+     "dynamo",
+     "electric_light",
+     "water_mill",
+     "cloud_computing",
+     "cmos_vlsi",
+     "deep_learning",
+     "electricity_generation",
+     "gpu_parallel",
+     "jet_engine",
+     "lamp",
+     "large_language_models",
+     "lithium_battery",
+     "machine_learning",
+     "microprocessor",
+     "operating_system",
+     "personal_computer",
+     "programming_languages",
+     "public_key_crypto",
+     "relational_database",
+     "smart_grid",
+     "steam_rotary",
+     "steam_separate_condenser",
+     "steam_turbine",
+     "trip_hammer",
+     "windmill_post",
+     "windmill_vertical",
+     "bellows",
+     "charcoal",
+     "computer",
+     "diesel",
+     "electric_motor",
+     "fire_making",
+     "gas_turbine_power",
+     "grid_storage",
+     "hydroelectric",
+     "integrated_circuit",
+     "internal_combustion",
+     "solar_pv",
+     "steam_atmospheric",
+     "steam_high_pressure",
+     "transistor",
+     "wind_turbine_modern"
+    ]
+   }
   },
   {
    "file": "energy-engineering-2.json",
@@ -389,7 +746,29 @@
     "frontier_cyber",
     "programmable_computer",
     "semiconductor_physics"
-   ]
+   ],
+   "evidence": {
+    "byStatus": {
+     "unverified": 7,
+     "partially-checked": 5,
+     "search-corroborated": 0,
+     "source-checked": 0
+    },
+    "blocked": [
+     "programmable_computer",
+     "semiconductor_physics",
+     "fault_tolerant_quantum",
+     "quantum_computing",
+     "cyber_warfare",
+     "frontier_computation",
+     "frontier_cyber",
+     "general_ai",
+     "smartphone",
+     "space_solar",
+     "weather_prediction",
+     "frontier_energy"
+    ]
+   }
   },
   {
    "file": "industry-construction-1.json",
@@ -445,7 +824,62 @@
     "interchangeable_parts",
     "milling_machine",
     "flying_shuttle"
-   ]
+   ],
+   "evidence": {
+    "byStatus": {
+     "unverified": 35,
+     "partially-checked": 10,
+     "search-corroborated": 0,
+     "source-checked": 0
+    },
+    "blocked": [
+     "ashlar_masonry",
+     "drawloom",
+     "canal_navigation",
+     "dyeing",
+     "fulling_mill",
+     "qanat",
+     "shelter_hut",
+     "silk",
+     "aqueduct_arcade",
+     "aqueduct_channel",
+     "aqueduct_tunnel",
+     "arch",
+     "basketry",
+     "bridge_stone",
+     "canal_lock",
+     "cordage",
+     "cotton_gin_roller",
+     "crank_connecting_rod",
+     "cylinder_boring",
+     "escapement_verge",
+     "flying_shuttle",
+     "gearing",
+     "hide_working",
+     "horizontal_loom",
+     "interchangeable_parts",
+     "irrigation_basin",
+     "irrigation_canal",
+     "lime_plaster",
+     "loom_warp_weighted",
+     "milling_machine",
+     "mudbrick",
+     "noria",
+     "olive_press_beam",
+     "sewing",
+     "slide_rest_lathe",
+     "spinning_spindle",
+     "spinning_wheel",
+     "stone_dry",
+     "stone_fortification",
+     "timber_frame",
+     "type_founding",
+     "well",
+     "wool",
+     "vault_dome",
+     "water_screw"
+    ]
+   }
   },
   {
    "file": "industry-construction-2.json",
@@ -469,7 +903,30 @@
     "numerical_control",
     "desalination",
     "additive_manufacturing"
-   ]
+   ],
+   "evidence": {
+    "byStatus": {
+     "unverified": 9,
+     "partially-checked": 3,
+     "search-corroborated": 1,
+     "source-checked": 0
+    },
+    "blocked": [
+     "sanitary_engineering",
+     "structural_iron",
+     "water_frame",
+     "numerical_control",
+     "additive_manufacturing",
+     "cotton_gin_saw",
+     "desalination",
+     "jacquard",
+     "power_loom",
+     "reinforced_concrete",
+     "skyscraper",
+     "spinning_jenny",
+     "spinning_mule"
+    ]
+   }
   },
   {
    "file": "transport-naval-1.json",
@@ -525,7 +982,62 @@
     "container_shipping",
     "electric_traction",
     "gps"
-   ]
+   ],
+   "evidence": {
+    "byStatus": {
+     "unverified": 27,
+     "partially-checked": 17,
+     "search-corroborated": 1,
+     "source-checked": 0
+    },
+    "blocked": [
+     "ocean_junk",
+     "balloon",
+     "glider",
+     "collar_harness",
+     "lateen",
+     "steamboat",
+     "raft",
+     "aircraft_metal",
+     "automobile_mass",
+     "bicycle",
+     "caravel",
+     "cartography",
+     "celestial_navigation",
+     "cog",
+     "container_shipping",
+     "dugout",
+     "electric_traction",
+     "horseshoe",
+     "latitude_sailing",
+     "locomotive",
+     "longitude_problem",
+     "macadam",
+     "mercator",
+     "monsoon_sailing",
+     "mortise_hull",
+     "plank_boat",
+     "polynesian_canoe",
+     "portolan",
+     "railway",
+     "road_paved",
+     "screw_propeller",
+     "stern_rudder",
+     "track_road",
+     "wheel_spoked",
+     "aircraft",
+     "carrack",
+     "cart",
+     "compass_magnetic",
+     "gps",
+     "iron_hull",
+     "rocket",
+     "sail_square",
+     "sledge",
+     "watertight_bulkhead",
+     "wheel_solid"
+    ]
+   }
   },
   {
    "file": "transport-naval-2.json",
@@ -551,7 +1063,32 @@
     "motor_road",
     "submarine",
     "orbital_launch_vehicle"
-   ]
+   ],
+   "evidence": {
+    "byStatus": {
+     "unverified": 12,
+     "partially-checked": 3,
+     "search-corroborated": 0,
+     "source-checked": 0
+    },
+    "blocked": [
+     "orbital_launch_vehicle",
+     "submarine",
+     "helicopter",
+     "crewed_spaceflight",
+     "earth_observation",
+     "electric_vehicle",
+     "frontier_launch",
+     "frontier_propulsion",
+     "fusion_propulsion",
+     "high_speed_rail",
+     "jet_airliner",
+     "lunar_flight",
+     "motor_road",
+     "reusable_launch",
+     "space_station"
+    ]
+   }
   },
   {
    "file": "military.json",
@@ -600,7 +1137,55 @@
     "missile_defence",
     "frontier_military",
     "guided_missile"
-   ]
+   ],
+   "evidence": {
+    "byStatus": {
+     "unverified": 27,
+     "partially-checked": 9,
+     "search-corroborated": 2,
+     "source-checked": 0
+    },
+    "blocked": [
+     "guided_missile",
+     "breech_loading_rifle",
+     "machine_gun",
+     "rifled_artillery",
+     "traction_trebuchet",
+     "rifling",
+     "composite_bow",
+     "missile_defence",
+     "wheellock",
+     "atlatl",
+     "bow_simple",
+     "cannon_cast_bronze",
+     "cannon_cast_iron",
+     "cavalry",
+     "chariot",
+     "combat_drone",
+     "crossbow",
+     "flintlock",
+     "frontier_military",
+     "greek_fire",
+     "guided_munitions",
+     "icbm",
+     "longbow",
+     "matchlock",
+     "naval_ram",
+     "plate_armour",
+     "radar",
+     "saddle",
+     "ship_of_line",
+     "siege_ram",
+     "sling",
+     "stealth",
+     "stirrup",
+     "torsion_artillery",
+     "trace_italienne",
+     "trebuchet",
+     "cannon_early",
+     "tank"
+    ]
+   }
   },
   {
    "file": "medicine.json",
@@ -643,7 +1228,49 @@
     "endocrinology",
     "immunology",
     "sulfonamides"
-   ]
+   ],
+   "evidence": {
+    "byStatus": {
+     "unverified": 23,
+     "partially-checked": 4,
+     "search-corroborated": 5,
+     "source-checked": 0
+    },
+    "blocked": [
+     "endocrinology",
+     "epidemiology",
+     "physiology",
+     "sulfonamides",
+     "immunology",
+     "anaesthesia",
+     "antibiotic_broad",
+     "germ_theory",
+     "anatomy_dissection",
+     "antibiotic_penicillin",
+     "antibiotic_resistance",
+     "antisepsis",
+     "antiviral_drugs",
+     "blood_transfusion",
+     "chemotherapy",
+     "frontier_medicine",
+     "hormonal_contraception",
+     "inoculation",
+     "ivf",
+     "medical_imaging",
+     "medicine_hippocratic",
+     "medicine_recorded",
+     "monoclonal_antibodies",
+     "mrna_vaccines",
+     "oral_rehydration",
+     "organ_transplant",
+     "pharmacology",
+     "surgery_instruments",
+     "trepanation",
+     "vaccination",
+     "vaccine_lab",
+     "xray"
+    ]
+   }
   },
   {
    "file": "nuclear-geology.json",
@@ -681,7 +1308,44 @@
     "radioactivity",
     "radioisotope_production",
     "radiometric_prospecting"
-   ]
+   ],
+   "evidence": {
+    "byStatus": {
+     "unverified": 0,
+     "partially-checked": 7,
+     "search-corroborated": 20,
+     "source-checked": 0
+    },
+    "blocked": [
+     "ore_prospecting",
+     "reprocessing",
+     "geophysical_prospecting",
+     "stratigraphy",
+     "fast_breeder_reactor",
+     "fission_weapon",
+     "geological_disposal",
+     "graphite_reactor",
+     "heavy_water_reactor",
+     "light_water_reactor",
+     "mineralogy",
+     "nuclear_medicine",
+     "nuclear_physics",
+     "radiation_detection",
+     "radiation_protection",
+     "radioactivity",
+     "radioisotope_production",
+     "radiometric_prospecting",
+     "radiotherapy",
+     "uranium_enrichment",
+     "uranium_milling",
+     "fusion_power",
+     "nuclear_power",
+     "nuclear_fission",
+     "nuclear_submarine",
+     "thermonuclear",
+     "nuclear_fusion_research"
+    ]
+   }
   },
   {
    "file": "civics-1.json",
@@ -737,7 +1401,62 @@
     "bill_of_rights",
     "central_banking",
     "civil_police"
-   ]
+   ],
+   "evidence": {
+    "byStatus": {
+     "unverified": 11,
+     "partially-checked": 26,
+     "search-corroborated": 8,
+     "source-checked": 0
+    },
+    "blocked": [
+     "representative_assembly",
+     "theocracy",
+     "chiefdom",
+     "succession_law",
+     "bill_of_rights",
+     "commercial_law",
+     "craft_guilds",
+     "kin_council",
+     "oath_alliance",
+     "appointed_officials",
+     "bureaucratic_empire",
+     "central_banking",
+     "citizen_assembly",
+     "city_state_oligarchy",
+     "civil_service_examinations",
+     "corvee_labour",
+     "elected_magistracies",
+     "elite_council",
+     "hereditary_rank",
+     "land_registry",
+     "merchant_republic",
+     "military_rule",
+     "municipal_charter",
+     "organized_priesthood",
+     "royal_envoys",
+     "sacral_kingship",
+     "service_tenure",
+     "standing_army",
+     "sworn_treaties",
+     "tax_farming",
+     "territorial_kingship",
+     "tribal_confederacy",
+     "assembly_democracy",
+     "civil_police",
+     "classical_republic",
+     "feudal_monarchy",
+     "provincial_administration",
+     "religious_toleration",
+     "census",
+     "coined_wage",
+     "joint_stock",
+     "law_code",
+     "legal_code_roman",
+     "patent",
+     "taxation"
+    ]
+   }
   },
   {
    "file": "civics-2.json",
@@ -770,7 +1489,40 @@
     "central_planning",
     "marxist_leninist_state",
     "one_party_state"
-   ]
+   ],
+   "evidence": {
+    "byStatus": {
+     "unverified": 1,
+     "partially-checked": 19,
+     "search-corroborated": 2,
+     "source-checked": 0
+    },
+    "blocked": [
+     "federal_republic",
+     "law_of_nations",
+     "separation_of_powers",
+     "compulsory_education",
+     "abolition",
+     "absolute_monarchy",
+     "central_planning",
+     "general_staff",
+     "laws_of_war",
+     "mass_political_party",
+     "mass_suffrage",
+     "ministerial_responsibility",
+     "official_statistics",
+     "one_party_state",
+     "parliamentary_government",
+     "presidential_republic",
+     "public_health_board",
+     "resident_embassies",
+     "universal_conscription",
+     "written_constitution",
+     "constitutional_monarchy",
+     "marxist_leninist_state"
+    ]
+   }
   }
- ]
+ ],
+ "evidenceDoc": "evidence: counts by fact-check status and the ids still blocked from shipping, in queue order; refreshed by tools/sourcing_queue.py"
 }

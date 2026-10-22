@@ -954,7 +954,9 @@
   "type": "reference",
   "claims_supported": [
    "Heavy plough with coulter and mouldboard important in northern European medieval agriculture",
-   "Linguistic evidence suggests some Slavs used it by about AD 568"
+   "Linguistic evidence suggests some Slavs used it by about AD 568",
+   "Heavy plough may have needed a team of eight oxen; ards worked poorly in dense wet clay",
+   "Carruca present in the Po valley by 643 and in south-western Germany by 720"
   ],
   "confidence": "low",
   "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full. Pointer."
@@ -1330,7 +1332,8 @@
   "accessed": "2026-10-22",
   "type": "reference",
   "claims_supported": [
-   "Patrick Bell's reaper 1828, McCormick's 1831 demonstration, Hussey's 1833 patent"
+   "Patrick Bell's reaper 1828, McCormick's 1831 demonstration, Hussey's 1833 patent",
+   "A US reaper patent of 3 May 1831 went to William Manning; crediting McCormick as inventor in 1831 is contested"
   ],
   "confidence": "low",
   "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full. Pointer."
@@ -1419,5 +1422,134 @@
   ],
   "confidence": "medium",
   "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "AGR1-098",
+  "title": "Patrick Bell's original reaping machine",
+  "author_org": "Science Museum Group Collection",
+  "published": null,
+  "url": "https://collection.sciencemuseumgroup.org.uk/objects/co38745/patrick-bells-original-reaping-machine",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Bell's surviving reaper dates to 1827-1828",
+   "It was propelled by two horses walking behind it"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "AGR1-099",
+  "title": "Archaeobotanical review of cereal cultivation and domestication in southwest Asia (PNAS, PMC5150421)",
+  "author_org": "PNAS via PubMed Central",
+  "published": null,
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC5150421/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Cultivation of morphologically wild plants in southwest Asia about 11,600-10,700 years ago, during the PPNA",
+   "Wild cereal cultivation common in the southern-central Levant and Upper Euphrates; domestic-type chaff in southern Syria about 10.7-10.2 ka cal BP"
+  ],
+  "confidence": "high",
+  "notes": "Title descriptive (search result gave only the PMC identifier); search summary attributed the dates to a PNAS-based study. Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "AGR1-100",
+  "title": "Prehistoric plant remains highlight diverse origins of cereal domestication",
+  "author_org": "University of Copenhagen, Faculty of Humanities",
+  "published": "2016",
+  "url": "https://humanities.ku.dk/news/2016/prehistoric-plant-remains-highlight-diverse-origins-of-cereal-domestication",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Regional diversity in the timing of early cereal cultivation and domestication in southwest Asia"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "AGR1-101",
+  "title": "Sorghum and millets in human nutrition (FAO document W1808E, chapter page)",
+  "author_org": "Food and Agriculture Organization of the United Nations",
+  "published": null,
+  "url": "https://www.fao.org/3/w1808e/w1808e0c.htm",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Millets can yield grain where annual rainfall is about 300 mm, versus about 400 mm minimum for sorghum and 500-600 mm for maize",
+   "Pearl and proso millets tolerate higher temperatures than sorghum and maize; sorghum tolerates long drought better",
+   "Pearl millet is a traditional Sahel crop of poor, sandy, dry soils; foxtail millet important mainly in China"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "AGR1-102",
+  "title": "Scientia Agricultura Sinica 2019, 52(22): 3943-3949",
+  "author_org": "Scientia Agricultura Sinica",
+  "published": "2019",
+  "url": "https://www.chinaagrisci.com/EN/Y2019/V52/I22/3943",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Foxtail millet, broomcorn millet and sorghum treated as drought- and salinity-tolerant model grasses"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "AGR1-103",
+  "title": "Millet",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Millet",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Millets favoured for productivity and short growing season under dry, high-temperature conditions",
+   "Pearl millet has the highest yield potential of the millets under drought and heat stress"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "AGR1-104",
+  "title": "Review of maize domestication (eLife article 05861)",
+  "author_org": "eLife",
+  "published": null,
+  "url": "https://elifesciences.org/articles/05861",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Genetics and archaeology place domestication of Balsas teosinte (parviglumis) in the Balsas river valley",
+   "Teosinte kernels fall from the plant; maize kernels stay on the cob and must be sown",
+   "Cob thickened (kernel rows from about 2 to 20+) and the fruitcase softened",
+   "Maize spread north and south from the Balsas region"
+  ],
+  "confidence": "high",
+  "notes": "Title descriptive (search result gave only the article URL). Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "AGR1-105",
+  "title": "Fedoroff 2003, prehistoric maize genetics (PDF hosted at faculty.washington.edu)",
+  "author_org": "University of Washington (hosted copy)",
+  "published": "2003",
+  "url": "https://faculty.washington.edu/stevehar/Federoff2003.pdf",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Teosinte kernels are enclosed in a tough, indigestible casing hardened by silica and lignin",
+   "Genes tga1 and tb1 underlie key differences from maize"
+  ],
+  "confidence": "high",
+  "notes": "Title descriptive (file name only in search result). Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
  }
 ]

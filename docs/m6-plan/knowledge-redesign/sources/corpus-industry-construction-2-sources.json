@@ -1,1 +1,272 @@
-[]
+[
+ {
+  "id": "IND2-001",
+  "title": "London's water supply and the introduction of sand filtration",
+  "author_org": "Institution of Civil Engineers",
+  "published": null,
+  "url": "https://www.ice.org.uk/what-is-civil-engineering/infrastructure-projects/london-s-water-supply-and-the-introduction-of-sand-filtration",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "James Simpson completed a sand filter bed at Chelsea Waterworks by 1829, the first treated public water supply"
+  ],
+  "confidence": "high",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND2-002",
+  "title": "William Lindley: Modern water management for continental Europe",
+  "author_org": "European Route of Industrial Heritage (ERIH)",
+  "published": null,
+  "url": "https://www.erih.net/how-it-started/virtual-exhibition-linking-europe/william-lindley-modern-water-management-for-continental-europe",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "After Hamburg's 1842 fire Lindley planned hygienic water management including underground sewers"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND2-003",
+  "title": "William Lindley",
+  "author_org": "Grace's Guide to British Industrial History",
+  "published": null,
+  "url": "https://gracesguide.co.uk/William_Lindley",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Lindley commissioned by the Hamburg Senate to plan rebuilding after the 1842 fire"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND2-004",
+  "title": "Joseph Bazalgette",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Joseph_Bazalgette",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "London main drainage construction began 1859; 82 miles of brick main sewers"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND2-005",
+  "title": "Ditherington Flax Mill",
+  "author_org": "Institution of Civil Engineers",
+  "published": null,
+  "url": "https://www.ice.org.uk/what-is-civil-engineering/what-do-civil-engineers-do/ditherington-flax-mill",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Ditherington mill, Shrewsbury, 1796-97, designed by Charles Bage with iron columns and beams after a 1796 mill fire; first fully iron-framed mill"
+  ],
+  "confidence": "high",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked). The search summary did not always say which result gave each statement.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND2-006",
+  "title": "Grandparent of skyscrapers begins third life as mixed-use space",
+  "author_org": "ASCE Civil Engineering magazine",
+  "published": "2023",
+  "url": "https://www.asce.org/publications-and-news/civil-engineering-source/civil-engineering-magazine/issues/magazine-issue/article/2023/07/grandparent-of-skyscrapers-begins-third-life-as-mixed-use-space",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "Ditherington Flax Mill as the first iron-framed building"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND2-007",
+  "title": "Iron frames in textile mills",
+  "author_org": "Designing Buildings Wiki",
+  "published": null,
+  "url": "https://www.designingbuildings.co.uk/wiki/Iron_frames_in_textile_mills",
+  "accessed": "2026-10-22",
+  "type": "community",
+  "claims_supported": [
+   "Bell Mill, Stanley (1786) had cast-iron columns in a regular layout before Ditherington"
+  ],
+  "confidence": "low",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND2-008",
+  "title": "Construction of the First Iron Bridge (Research Starter)",
+  "author_org": "EBSCO",
+  "published": null,
+  "url": "https://www.ebsco.com/research-starters/history/construction-first-iron-bridge",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Iron Bridge ironwork erected summer 1779; opened to traffic 1 January 1781"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked). The search summary did not always say which result gave each statement.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND2-009",
+  "title": "Abraham Darby III (Scientist of the Day)",
+  "author_org": "Linda Hall Library",
+  "published": null,
+  "url": "https://www.lindahall.org/about/news/scientist-of-the-day/abraham-darby-iii/",
+  "accessed": "2026-10-22",
+  "type": "archive",
+  "claims_supported": [
+   "Darby III carried the Iron Bridge through after Pritchard's death (1777); casting at his furnaces"
+  ],
+  "confidence": "high",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND2-010",
+  "title": "The Great Exhibition building, architectural sketch (Joseph Paxton)",
+  "author_org": "Victoria and Albert Museum",
+  "published": null,
+  "url": "https://collections.vam.ac.uk/item/O18167/the-great-exhibition-building-architectural-sketch-paxton-joseph-sir/",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Crystal Palace (1851) built from prefabricated iron and glass sections"
+  ],
+  "confidence": "high",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND2-011",
+  "title": "Richard Arkwright",
+  "author_org": "Grace's Guide to British Industrial History",
+  "published": null,
+  "url": "https://gracesguide.co.uk/Richard_Arkwright",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Arkwright patent 1769; new mill at Cromford built 1771; patent case settled against him 1785"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND2-012",
+  "title": "Sir Richard Arkwright (1732-92)",
+  "author_org": "European Route of Industrial Heritage (ERIH)",
+  "published": null,
+  "url": "https://www.erih.net/how-it-started/stories-about-people-biographies/biography/arkwright",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Cromford site probably began working in 1774"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND2-013",
+  "title": "Invention of the Water Frame (Research Starter)",
+  "author_org": "EBSCO",
+  "published": null,
+  "url": "https://www.ebsco.com/research-starters/history/invention-water-frame",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "1769 patent; rollers turning at increasing speeds drew out the roving"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND2-014",
+  "title": "History of numerical control",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/History_of_numerical_control",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Parsons and Stulen computed helicopter-rotor-blade curves; MIT Servomechanisms Laboratory from 1949; MIT later took control of the project"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND2-015",
+  "title": "John T. Parsons",
+  "author_org": "IEEE Computer Society",
+  "published": null,
+  "url": "https://history.computer.org/parsons.html",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Parsons credited with the birth of numerical control; MIT demonstration 1952 of a punched-tape-controlled milling machine"
+  ],
+  "confidence": "high",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked). The search summary did not always say which result gave each statement.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND2-016",
+  "title": "Numerical control milling machine (object 2007.037.001)",
+  "author_org": "MIT Museum",
+  "published": null,
+  "url": "https://mitmuseum.mit.edu/collections/object/2007.037.001",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "MIT's 1952 numerically controlled Cincinnati Hydrotel milling machine using punched tape"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked). The search summary did not always say which result gave each statement.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND2-017",
+  "title": "Unimate",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Unimate",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "First Unimate installed 1961 at a General Motors plant in Ewing Township, New Jersey, handling hot die-castings; Devol's design (patent filed 1954, granted 1961); Engelberger co-founded Unimation"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "IND2-018",
+  "title": "First industrial production robot",
+  "author_org": "Guinness World Records",
+  "published": null,
+  "url": "https://www.guinnessworldrecords.com/world-records/411563-first-industrial-production-robot",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Unimate at General Motors, 1961"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ }
+]

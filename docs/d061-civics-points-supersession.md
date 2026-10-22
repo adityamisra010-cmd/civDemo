@@ -154,3 +154,28 @@ package §4) and does not widen M6's scope through this record.
   readable set forbids (`CanonicalSchema.cs:14-16`; docket C.5). D-061.5's "carry 1:1" becomes trivial under this choice.
 - **§6 D-061.8 WIDENED:** "whether civic atoms inside Technology gates (the stage, `inst.university`) and Age milestones stay
   as is" — recommended yes, with the rule that no macro civic is ever an Age CORE milestone.
+
+
+## Director intent note — 2026-10-22 (NOT RATIFIED; input for a future dated ruling)
+
+Appended 2026-10-22; §1–§9 and the dated note of 2026-10-21 are unchanged; §9 is still empty. This note records the
+Director's stated intent as **input**. It is not a ruling, it marks nothing RATIFIED, and every passage in §2 stays in
+force until a dated line in §9 says otherwise.
+
+- **Two separate pools, population-led Civics Points.** RP and CP are separate pools feeding distinct trees. CP comes
+  partly from population (a population-based formula: larger population, more CP) and partly from other source
+  categories named as directions, not as claims that they exist: social-sciences universities, colleges, embassies,
+  spies, artists, literary scholars and other justified institutions or specialists. CP is **not** a fixed fraction or
+  a split of RP; its inputs are defined independently (consistent with D-061.3's "no RP term, no fraction of RP").
+- **Exchange only on the government-change turn.** An RP↔CP exchange is allowed only in the turn the empire changes
+  government; there is no general conversion. Direction, ratio, limits, transaction order and eligibility are OPEN
+  DECISIONS; no exchange is implemented. Government change is M8 (D-D), so any exchange is IMPLEMENTATION DEFERRED to
+  M8 and needs its own dated ruling and ADR scope (the package's analysis: `cp-economy-proposal.md` §3, §5 G-2).
+- **Happiness penalty not developed.** A temporary happiness penalty was mentioned only as an example; it is explicitly
+  not developed, tuned or prototyped.
+- **Supersession only through the formal process.** The single-pool rulings listed in §2 (S-1…S-12) may be superseded
+  only through this append-only record and a dated Director ruling in §9; no older document is edited.
+- **Staged ratification.** Architecture first; mechanics and content at later gates.
+- **Pointer.** The design analysis for this intent — source catalogue, candidate CP equations, the exchange's
+  structural limit, and the `legal_code_roman` cross-pool gate options with a static ESTIMATE — is
+  `docs/m6-plan/knowledge-redesign/cp-economy-proposal.md` (PROPOSED; not ratified).

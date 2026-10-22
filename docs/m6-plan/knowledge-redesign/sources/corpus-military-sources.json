@@ -1,1 +1,321 @@
-[]
+[
+ {
+  "id": "MIL-001",
+  "title": "Mangonel",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Mangonel",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The Mohist Mojing (compiled about the 4th century BCE) describes the traction trebuchet",
+   "Traction trebuchets spread westward, possibly via the Avars, by the 6th-7th centuries CE"
+  ],
+  "confidence": "medium",
+  "notes": "Search-result summary; page not opened (fetch blocked). Wikipedia: finding aid only; another mirror dates the Mozi to the 5th century BCE. The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MIL-002",
+  "title": "Byzantines, Avars and the Introduction of the Trebuchet",
+  "author_org": "Medievalists.net (republishing a paper by Stephen McCotter)",
+  "published": null,
+  "url": "https://www.medievalists.net/2011/03/byzantines-avars-and-the-introduction-of-the-trebuchet",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "McCotter places the traction trebuchet's appearance in the Byzantine empire in the late sixth or early seventh century",
+   "The introduction of the traction trebuchet is difficult to resolve and still debated"
+  ],
+  "confidence": "medium",
+  "notes": "Search-result summary; page not opened (fetch blocked). Online history magazine reproducing an academic paper; author named in the result text.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MIL-003",
+  "title": "Rifling",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/technology/rifling",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Rifling is spiral grooves cut inside a barrel that spin the projectile for better accuracy and range",
+   "Rifling has been known since at least the 15th century",
+   "Reloading rifles was slow because the ball had to be forced into the rifling",
+   "The Minié ball, adopted in Europe about 1852, made rifled military arms practical"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked). The Minié statement may come from the related Britannica 'Small arm' article.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MIL-004",
+  "title": "Nikolaus von Dreyse",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/biography/Nikolaus-von-Dreyse",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Dreyse's 1836 bolt-action breechloader was bought by the Prussian army from 1841",
+   "Paper cartridge with primer at the bullet's base, ignited by a long needle-shaped firing pin"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked). Another Britannica entry gives 1838 introduction and 1843 adoption.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MIL-005",
+  "title": "Dreyse rifle",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/technology/Dreyse-rifle",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The needle gun proved decisive at Königgrätz in 1866",
+   "Standard Prussian infantry weapon until the ascendancy of the Mauser rifle in the 1870s and 1880s"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MIL-006",
+  "title": "Small arm",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/technology/small-arm",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Smokeless powder brought smaller, longer projectiles and bores of about .30 inch"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MIL-007",
+  "title": "Gatling gun",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/technology/Gatling-gun",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Richard Gatling patented a crank-operated, multibarrel machine gun in 1862; rotating barrels each fired once per turn"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MIL-008",
+  "title": "Machine gun",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/technology/machine-gun",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "From about 1884 Hiram Maxim built guns that used recoil energy to eject the case and load the next round (automatic fire)"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked). Some sources date the Maxim gun to 1885. The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MIL-009",
+  "title": "Artillery - Breech-loading",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/technology/artillery/Breech-loading",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Britain adopted the Armstrong system for field and naval artillery in 1859",
+   "Prussia adopted its first Krupp breechloader in 1856, made from a solid steel forging"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked). A separate Britannica entry says Prussian breech-loading artillery was finally introduced in 1861.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MIL-010",
+  "title": "Gun and carriage - 7-inch gun of 72 cwt, Rifled Breech Loading ('Armstrong gun')",
+  "author_org": "Royal Armouries",
+  "published": null,
+  "url": "https://collections.royalarmouries.org/object/rac-object-9107.html",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Armstrong gun barrel built of tubes and coils shrunk on an inner rifled tube",
+   "Six natures of Armstrong gun adopted into British service in 1859",
+   "Britain abandoned breech-loading in the mid-1860s (1864-65) for rifled muzzle-loaders"
+  ],
+  "confidence": "medium",
+  "notes": "Search-result summary; page not opened (fetch blocked). The construction claim is in the record title; the reversion statement may come from a sibling Royal Armouries record. The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MIL-011",
+  "title": "Gun - 9 cm Breech-Loading, Heavy Field Gun C/73 by Krupp",
+  "author_org": "Royal Armouries",
+  "published": null,
+  "url": "https://collections.royalarmouries.org/object/rac-object-2941.html",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Unlike the British, after problems with Armstrong breech-loaders, Krupp persevered with the breech-loading principle"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MIL-012",
+  "title": "Henschel Hs 293",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Henschel_Hs_293",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Radio-guided, rocket-boosted glide bomb; first used 25 August 1943",
+   "Sank the corvette HMS Egret two days later, the first known sinking by a guided bomb",
+   "Damaged or sank at least 25 ships (counts vary)"
+  ],
+  "confidence": "medium",
+  "notes": "Search-result summary; page not opened (fetch blocked). Wikipedia: no disputed claim rests on it alone.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MIL-013",
+  "title": "AIM-9 Sidewinder",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/AIM-9_Sidewinder",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Infrared-homing missile; entered US Navy service in 1956 (Air Force 1964)"
+  ],
+  "confidence": "medium",
+  "notes": "Search-result summary; page not opened (fetch blocked). Wikipedia.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MIL-014",
+  "title": "Composite bow",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Composite_bow",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Composite bow laminated from wood, horn and sinew; sinew soaked in animal glue laid on the back; horn on the belly",
+   "Horn and sinew store more energy than wood for the same bow length",
+   "First horn composite bows probably in Syria, Anatolia or Mesopotamia, then Egypt",
+   "Several composite bows were found in Tutankhamun's tomb"
+  ],
+  "confidence": "medium",
+  "notes": "Search-result summary; page not opened (fetch blocked). Wikipedia; dating is disputed (see MIL-015, MIL-016).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MIL-015",
+  "title": "Journal article s10816-025-09750-4 (title not shown in the search result)",
+  "author_org": "Springer Nature (journal article)",
+  "published": null,
+  "url": "https://link.springer.com/article/10.1007/s10816-025-09750-4",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Prevailing theories place the origin of the composite bow in the fourth millennium BCE, but these claims often rest on insufficiently analysed evidence"
+  ],
+  "confidence": "medium",
+  "notes": "Search-result summary; page not opened (fetch blocked). Journal name not shown in the result; the result summary described it as a 2025 paper.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MIL-016",
+  "title": "Scientists Reveal the Deadliest Weapon of the Bronze Age",
+  "author_org": "GreekReporter.com",
+  "published": "2025-10-21",
+  "url": "https://greekreporter.com/2025/10/21/deadliest-weapon-bronze-age/",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "A study by Šaffa argues true glued wood-horn-sinew composite construction appears only in the Late Bronze Age, about 1600 BCE",
+   "Tutankhamun's bows (about 1300 BCE) probably came from Syria or Anatolia; Egypt may have adopted rather than invented the type"
+  ],
+  "confidence": "low",
+  "notes": "Search-result summary; page not opened (fetch blocked). Popular press report of a study; used only for the uncertainty note.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MIL-017",
+  "title": "Wheellock Pistol - German, Augsburg",
+  "author_org": "The Metropolitan Museum of Art",
+  "published": null,
+  "url": "https://www.metmuseum.org/art/collection/search/27307",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "The wheellock was devised around 1500; Augsburg armorers were among the first to make wheellock pistols",
+   "The wheellock was first fitted to horse-borne firearms; pistols became standard for middle and light cavalry by the mid-16th century"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MIL-018",
+  "title": "Wheel lock",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/technology/wheel-lock",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Wheel lock developed about 1515",
+   "Flint or iron pyrite pressed against a rotating milled-edge iron wheel threw sparks into the priming"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MIL-019",
+  "title": "Peter Peck - Double-Barreled Wheellock Pistol Made for Emperor Charles V",
+  "author_org": "The Metropolitan Museum of Art",
+  "published": null,
+  "url": "https://www.metmuseum.org/art/collection/search/22387",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Many early wheellock mechanisms were made by clockmakers; the gunsmith of this c. 1540-45 pistol was also a clockmaker"
+  ],
+  "confidence": "medium",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MIL-020",
+  "title": "Homing Overlay Experiment (HOE)",
+  "author_org": "Directory of U.S. Military Rockets and Missiles (Andreas Parsch, designation-systems.net)",
+  "published": null,
+  "url": "https://designation-systems.net/dusrm/app4/hoe.html",
+  "accessed": "2026-10-22",
+  "type": "community",
+  "claims_supported": [
+   "The Army's Homing Overlay Experiment demonstrated nonnuclear hit-to-kill interception",
+   "After three failures, the fourth test on 10 June 1984 intercepted a Minuteman reentry vehicle above 160 km"
+  ],
+  "confidence": "medium",
+  "notes": "Search-result summary; page not opened (fetch blocked). Long-standing reference directory, not an official body. The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ }
+]

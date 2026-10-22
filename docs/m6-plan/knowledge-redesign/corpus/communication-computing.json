@@ -2,15 +2,73 @@
  {
   "id": "token_counting",
   "tree": "technology",
-  "description": "Small shaped clay counters such as cones, spheres and discs appear at Near Eastern farming sites from roughly the ninth or eighth millennium BCE. The archaeologist Denise Schmandt-Besserat argued that each shape stood for a fixed quantity of a particular commodity, letting people keep accounts beyond memory. Her further thesis, that tokens led directly to writing, is influential but debated.",
+  "description": "Shaped clay counters appear at Near Eastern farming sites from about 8000 BCE. The archaeologist Denise Schmandt-Besserat argued that each shape stood for a fixed quantity of a particular commodity, letting people keep accounts beyond memory. Her further thesis, that tokens led directly to writing, is influential but debated, though accounting needs are widely seen as one root of writing.",
   "wordCount": 60,
-  "sources": [],
+  "sources": [
+   {
+    "sourceId": "COM-001",
+    "claims": [
+     "Tokens from about 8000 BCE in the Neolithic Near East",
+     "Schmandt-Besserat: tokens as accounting devices for goods",
+     "Token-to-writing thesis influential but criticized"
+    ]
+   },
+   {
+    "sourceId": "COM-002",
+    "claims": [
+     "Token-to-writing thesis influential but criticized"
+    ]
+   },
+   {
+    "sourceId": "COM-003",
+    "claims": [
+     "Accounting needs widely accepted as a factor in the origin of writing"
+    ]
+   }
+  ],
   "uncertainty": "The function of many early tokens (counters, gaming pieces, amulets) and the direct token-to-writing sequence are contested; dates are broad ranges across many sites.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Every date, place and attribution needs the independent check pass. Claims to check first: tokens from the 9th-8th millennium BCE; Schmandt-Besserat's commodity-unit interpretation and its contested status."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Tokens from about 8000 BCE in the Neolithic Near East",
+     "sources": [
+      "COM-001"
+     ],
+     "result": "corrected"
+    },
+    {
+     "claim": "Schmandt-Besserat: tokens as accounting devices for goods",
+     "sources": [
+      "COM-001"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Token-to-writing thesis influential but criticized",
+     "sources": [
+      "COM-001",
+      "COM-002"
+     ],
+     "result": "disputed"
+    },
+    {
+     "claim": "Accounting needs widely accepted as a factor in the origin of writing",
+     "sources": [
+      "COM-003"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Each shape a fixed quantity of a specific commodity",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Changed 'cones, spheres and discs ... from roughly the ninth or eighth millennium BCE' to 'shaped clay counters ... from about 8000 BCE' (USU); added the widely accepted accounting factor (UCL thesis). The one-shape-one-commodity detail is not stated in result text. Earlier status: unverified (drafting lane; written from general knowledge with no source retrieved, search budget exhausted)."
   },
   "mechanicLink": "Realized today (class B): satisfies the Age 3 record-keeping supporting fact (with proto_writing as the alternative) and is a prerequisite of taxation, trade, standard_weights, proto_writing and hieroglyphic; kept unchanged in the proposal."
  },
@@ -77,15 +135,83 @@
  {
   "id": "chinese_script",
   "tree": "technology",
-  "description": "The oldest substantial body of Chinese writing is inscribed on turtle shells and cattle shoulder blades from the late Shang capital near Anyang, dated to about 1250-1050 BCE. Diviners recorded questions put to ancestors and spirits about harvests, warfare, weather and illness. The script was already mature, implying earlier development, and is ancestral to Chinese characters used today.",
-  "wordCount": 58,
-  "sources": [],
-  "uncertainty": "Earlier marks on Neolithic Chinese pottery are sometimes proposed as precursors; their status as writing is disputed. Shang chronology is approximate.",
+  "description": "The oldest substantial body of Chinese writing is inscribed on turtle shells and cattle shoulder blades from the late Shang capital near Anyang, dated to about 1250-1050 BCE. Diviners recorded questions about harvests, warfare, weather and other matters, then read cracks from heating. The script was already fully developed, implying earlier development, and is ancestral to modern Chinese characters.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "COM-007",
+    "claims": [
+     "Turtle plastrons and ox scapulae from Yin Xu near Anyang",
+     "Divination questions on harvests, weather, war; cracks from heating"
+    ]
+   },
+   {
+    "sourceId": "COM-005",
+    "claims": [
+     "About 1250-1050 BCE (late Shang)"
+    ]
+   },
+   {
+    "sourceId": "COM-006",
+    "claims": [
+     "About 1250-1050 BCE (late Shang)",
+     "Fully developed writing ancestral to modern Chinese script"
+    ]
+   },
+   {
+    "sourceId": "COM-004",
+    "claims": [
+     "Divination questions on harvests, weather, war; cracks from heating",
+     "Earliest known Chinese writing"
+    ]
+   }
+  ],
+  "uncertainty": "Earlier marks on Neolithic Chinese pottery are sometimes proposed as precursors; their status as writing is disputed. Shang chronology is approximate (UNESCO gives about 1400-1100 BCE for the practice).",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Every date, place and attribution needs the independent check pass. Claims to check first: Anyang oracle bones c. 1250-1050 BCE; divination content; maturity of the script; continuity to modern characters."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Turtle plastrons and ox scapulae from Yin Xu near Anyang",
+     "sources": [
+      "COM-007"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "About 1250-1050 BCE (late Shang)",
+     "sources": [
+      "COM-005",
+      "COM-006"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Divination questions on harvests, weather, war; cracks from heating",
+     "sources": [
+      "COM-004",
+      "COM-007"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Fully developed writing ancestral to modern Chinese script",
+     "sources": [
+      "COM-006"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Earliest known Chinese writing",
+     "sources": [
+      "COM-004"
+     ],
+     "result": "supported"
+    }
+   ],
+   "notes": "Removed 'to ancestors and spirits' and 'illness' (not in results); added the heating of bones (Britannica). Earlier status: unverified (drafting lane; written from general knowledge with no source retrieved, search budget exhausted)."
   },
   "mechanicLink": "Realized today (class D) as the independent Chinese script route, the only one not rooted in clay tokens; makes the written-institution entities eligible pending their realization (PROPOSED M6 T6.11); kept unchanged."
  },
@@ -150,15 +276,58 @@
  {
   "id": "mesoamerican_script",
   "tree": "technology",
-  "description": "Writing arose in Mesoamerica independently of the Old World. Candidate early signs include a cylinder seal from San Andres, Tabasco, of about 650 BCE, bearing a day name, and Zapotec carvings at San Jose Mogote; both dates are debated. Maya writing is attested at San Bartolo by about 300 BCE and later recorded dynastic histories with calendar dates.",
-  "wordCount": 58,
-  "sources": [],
-  "uncertainty": "The San Andres and San Jose Mogote finds are contested in date and reading; which Mesoamerican tradition wrote first is unresolved.",
+  "description": "Writing arose in Mesoamerica independently of the Old World. Candidate early signs include a cylinder seal from San Andrés, Tabasco, of about 650 BCE, which its excavators read as writing though critics doubt it, and inscriptions from Oaxaca of about 400 BCE. Maya writing is attested at San Bartolo, Guatemala, by about 300 to 200 BCE.",
+  "wordCount": 56,
+  "sources": [
+   {
+    "sourceId": "COM-008",
+    "claims": [
+     "San Andrés cylinder seal about 650 BCE; reading as writing disputed"
+    ]
+   },
+   {
+    "sourceId": "COM-009",
+    "claims": [
+     "Oaxaca writing about 400 BCE",
+     "San Bartolo Maya writing about 300-200 BCE"
+    ]
+   }
+  ],
+  "uncertainty": "The San Andrés finds are contested in reading; which Mesoamerican tradition wrote first is unresolved, and what counts as writing affects the answer.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Every date, place and attribution needs the independent check pass. Claims to check first: San Andres cylinder seal c. 650 BCE with a day sign; San Jose Mogote Zapotec carving; San Bartolo Maya text c. 300 BCE."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "San Andrés cylinder seal about 650 BCE; reading as writing disputed",
+     "sources": [
+      "COM-008"
+     ],
+     "result": "disputed"
+    },
+    {
+     "claim": "Oaxaca writing about 400 BCE",
+     "sources": [
+      "COM-009"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "San Bartolo Maya writing about 300-200 BCE",
+     "sources": [
+      "COM-009"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Independent invention in Mesoamerica",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Changed 'Zapotec carvings at San Jose Mogote' to 'inscriptions from Oaxaca of about 400 BCE' (site not named in results) and 'by about 300 BCE ... later recorded dynastic histories' to 'by about 300 to 200 BCE' (Science News; dynastic content not corroborated). Made the San Andrés dispute explicit. Earlier status: unverified (drafting lane; written from general knowledge with no source retrieved, search budget exhausted)."
   },
   "mechanicLink": "PROPOSED new node: joins the generic-writing OR groups so a calendar-first civilization reaches the same written institutions (entity changes EC-04 to EC-09, pending ruling); realization waits for PROPOSED M6 T6.11."
  },
@@ -195,15 +364,73 @@
  {
   "id": "brahmi",
   "tree": "technology",
-  "description": "Brahmi is the earliest well-dated readable script of South Asia, known from the edicts of the Mauryan emperor Ashoka in the third century BCE. Each consonant carries an inherent vowel that attached marks modify. Whether it derived from Aramaic or other Semitic models or developed locally is debated. Brahmi is ancestral to many South and Southeast Asian scripts.",
-  "wordCount": 58,
-  "sources": [],
-  "uncertainty": "Origin (Semitic-derived or indigenous) is disputed; some Sri Lankan and South Indian inscribed sherds have been dated earlier than Ashoka, and those dates are contested.",
+  "description": "Brahmi appears as a fully developed script in the third century BCE, notably in the Mauryan emperor Ashoka's edicts, though sherds from Anuradhapura, Sri Lanka, have been dated earlier. Each consonant carries an inherent vowel that attached marks modify. Whether it derived from Aramaic or developed locally is debated. Brahmi is ancestral to many South and Southeast Asian scripts.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "COM-022",
+    "claims": [
+     "Fully developed by the 3rd century BCE, notably in Ashoka's edicts",
+     "Inherent vowel with diacritics",
+     "Origin (Aramaic vs local) debated"
+    ]
+   },
+   {
+    "sourceId": "COM-024",
+    "claims": [
+     "Anuradhapura sherds dated to the early 4th century BCE"
+    ]
+   },
+   {
+    "sourceId": "COM-023",
+    "claims": [
+     "Origin (Aramaic vs local) debated"
+    ]
+   }
+  ],
+  "uncertainty": "Origin (Semitic-derived or indigenous) is disputed. Anuradhapura sherds have been dated to the early 4th century BCE, and a cited radiocarbon study proposes earlier dates; these dates are contested.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Every date, place and attribution needs the independent check pass. Claims to check first: Ashokan edicts in the 3rd century BCE; inherent-vowel structure; origin debate; descendant scripts."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Fully developed by the 3rd century BCE, notably in Ashoka's edicts",
+     "sources": [
+      "COM-022"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Anuradhapura sherds dated to the early 4th century BCE",
+     "sources": [
+      "COM-024"
+     ],
+     "result": "disputed"
+    },
+    {
+     "claim": "Inherent vowel with diacritics",
+     "sources": [
+      "COM-022"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Origin (Aramaic vs local) debated",
+     "sources": [
+      "COM-022",
+      "COM-023"
+     ],
+     "result": "disputed"
+    },
+    {
+     "claim": "Ancestral to many South and Southeast Asian scripts",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Changed 'the earliest well-dated readable script of South Asia, known from the edicts of Ashoka' to 'appears as a fully developed script in the third century BCE ... though sherds from Anuradhapura ... have been dated earlier' because Coningham et al. (COM-024) report Anuradhapura sherds dated to the early 4th century BCE. Earlier status: unverified (drafting lane; written from general knowledge with no source retrieved, search budget exhausted)."
   },
   "mechanicLink": "Deferred: the school building it gates has no realizing system until PROPOSED M6 T6.11; prerequisite of hindu_arabic; kept unchanged."
  },
@@ -242,13 +469,40 @@
   "tree": "technology",
   "description": "Woodblock printing transfers ink from a carved relief block to paper, copying a whole page at once. It developed in East Asia by the eighth century CE; a Buddhist charm sealed in a Korean pagoda by 751 may be among the earliest prints. The Diamond Sutra scroll found at Dunhuang, dated 868, is the oldest dated printed book known.",
   "wordCount": 59,
-  "sources": [],
+  "sources": [
+   {
+    "sourceId": "COM-025",
+    "claims": [
+     "Diamond Sutra from Dunhuang dated 868, earliest dated printed book"
+    ]
+   }
+  ],
   "uncertainty": "Whether the Korean Bulguksa dharani was printed in Korea or China, and its exact date, are disputed; earlier textile and seal printing blur the start.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Every date, place and attribution needs the independent check pass. Claims to check first: 7th-8th century CE origin; Bulguksa pagoda dharani by 751; Dunhuang Diamond Sutra dated 868."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Diamond Sutra from Dunhuang dated 868, earliest dated printed book",
+     "sources": [
+      "COM-025"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Origin in East Asia by the 8th century CE",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Bulguksa pagoda dharani by 751",
+     "sources": [],
+     "result": "disputed"
+    }
+   ],
+   "notes": "Text unchanged. The Bulguksa dharani dating (751 or earlier, 704-751 range) appeared only in non-credible results and remains unsupported here. Earlier status: unverified (drafting lane; written from general knowledge with no source retrieved, search budget exhausted)."
   },
   "mechanicLink": "Deferred: the printing-house building awaits realization (PROPOSED M6 T6.11); PROPOSED relocation from the engineering subtree to the trunk, since its prerequisites are paper and stamp_seal."
  },
@@ -330,15 +584,61 @@
  {
   "id": "optical_telegraph",
   "tree": "technology",
-  "description": "In 1794 the French engineer Claude Chappe and his brothers opened a line of signal towers between Paris and Lille. Operators set movable arms into coded positions that the next tower read by telescope and repeated. By the 1840s the French state network had over 500 stations, and Sweden and Britain built shutter systems. Darkness and fog halted signalling.",
+  "description": "In July 1794 the engineer Claude Chappe, helped by his brothers, completed a line of fifteen signal stations between Paris and Lille. Operators set movable arms into coded positions that the next station, 10 to 15 kilometres away, read by telescope and repeated. The French network spanned nearly 5,000 kilometres. Sweden and Britain built shutter systems from 1795.",
   "wordCount": 59,
-  "sources": [],
-  "uncertainty": "Station counts for the French network vary by source and year.",
+  "sources": [
+   {
+    "sourceId": "COM-010",
+    "claims": [
+     "July 1794 Paris-Lille line of 15 stations, Chappe and brothers",
+     "Arms read by telescope; stations 10-15 km apart",
+     "Network of nearly 5,000 km"
+    ]
+   },
+   {
+    "sourceId": "COM-011",
+    "claims": [
+     "Swedish (Edelcrantz) and British (Murray) shutter systems, 1795"
+    ]
+   }
+  ],
+  "uncertainty": "Sources differ on the Paris-Lille line length (about 210 or 230 km) and one dates a first message to 1792; the French network ran until replaced by the electric telegraph from 1853.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Every date, place and attribution needs the independent check pass. Claims to check first: Paris-Lille line 1794; telescope relay of arm positions; over 500 stations by the 1840s; Swedish and British shutter systems."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "July 1794 Paris-Lille line of 15 stations, Chappe and brothers",
+     "sources": [
+      "COM-010"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Arms read by telescope; stations 10-15 km apart",
+     "sources": [
+      "COM-010"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Network of nearly 5,000 km",
+     "sources": [
+      "COM-010"
+     ],
+     "result": "corrected"
+    },
+    {
+     "claim": "Swedish (Edelcrantz) and British (Murray) shutter systems, 1795",
+     "sources": [
+      "COM-011"
+     ],
+     "result": "supported"
+    }
+   ],
+   "notes": "Changed 'By the 1840s the French state network had over 500 stations' to 'eventually spanned nearly 5,000 kilometres' (ETHW figure; station count not found). Removed 'Darkness and fog halted signalling' (uncorroborated). Earlier status: unverified (drafting lane; written from general knowledge with no source retrieved, search budget exhausted)."
   },
   "mechanicLink": "PROPOSED new node; deferred: a signal-line infrastructure that shortens strategic order latency along built tower chains (M7) and extends administrative reach (M8), never revealing territory."
  },
@@ -377,58 +677,308 @@
   "tree": "technology",
   "description": "The telephone converts speech into a varying electric current and back into sound. Alexander Graham Bell received a United States patent in 1876, amid a rival filing by Elisha Gray and earlier work by Antonio Meucci and others. Carbon transmitters soon made speech louder and clearer, and within a few years cities had exchanges where operators connected calls by hand.",
   "wordCount": 60,
-  "sources": [],
-  "uncertainty": "Priority of invention was litigated and remains disputed; Bell's patent is a legal milestone, not proof of sole invention.",
+  "sources": [
+   {
+    "sourceId": "COM-026",
+    "claims": [
+     "Bell's US patent 1876",
+     "Rival filing by Elisha Gray (same day)",
+     "Earlier work by Antonio Meucci (1871 caveat)"
+    ]
+   },
+   {
+    "sourceId": "COM-027",
+    "claims": [
+     "Carbon transmitters improved speech"
+    ]
+   },
+   {
+    "sourceId": "COM-028",
+    "claims": [
+     "Manual exchanges within a few years (New Haven, 1878)"
+    ]
+   }
+  ],
+  "uncertainty": "Priority of invention was litigated and remains disputed; Bell's patent is a legal milestone, not proof of sole invention. Meucci's 1871 caveat lapsed, and a 2002 US House resolution recognized his work.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Every date, place and attribution needs the independent check pass. Claims to check first: Bell's 1876 patent; Gray and Meucci claims; carbon transmitter; manual exchanges within a few years."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Bell's US patent 1876",
+     "sources": [
+      "COM-026"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Rival filing by Elisha Gray (same day)",
+     "sources": [
+      "COM-026"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Earlier work by Antonio Meucci (1871 caveat)",
+     "sources": [
+      "COM-026"
+     ],
+     "result": "disputed"
+    },
+    {
+     "claim": "Carbon transmitters improved speech",
+     "sources": [
+      "COM-027"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Manual exchanges within a few years (New Haven, 1878)",
+     "sources": [
+      "COM-028"
+     ],
+     "result": "supported"
+    }
+   ],
+   "notes": "Text unchanged; priority is already phrased as contested. Earlier status: unverified (drafting lane; written from general knowledge with no source retrieved, search budget exhausted)."
   },
   "mechanicLink": "Deferred: the telephone network awaits realization (PROPOSED M6 T6.11); prerequisite of internet and automatic_switching; kept unchanged."
  },
  {
   "id": "radio",
   "tree": "technology",
-  "description": "Heinrich Hertz demonstrated electromagnetic waves in the late 1880s. From 1895 Guglielmo Marconi built spark transmitters and receivers that sent Morse code without wires, and in December 1901 he reported receiving a signal across the Atlantic in Newfoundland. Ships adopted wireless for safety and command. Alexander Popov, Oliver Lodge and others did parallel work.",
-  "wordCount": 54,
-  "sources": [],
-  "uncertainty": "Marconi's 1901 transatlantic reception was unwitnessed and has been questioned; priority among early wireless experimenters is disputed.",
+  "description": "Heinrich Hertz demonstrated electromagnetic waves in 1886-1888. From 1895 Guglielmo Marconi built on Hertz's oscillator and Branly's coherer to send Morse code without wires, and in December 1901 he reported receiving a signal across the Atlantic in Newfoundland, a claim later questioned. Alexander Popov, Oliver Lodge and others did parallel work, and who invented radio remains disputed.",
+  "wordCount": 57,
+  "sources": [
+   {
+    "sourceId": "COM-033",
+    "claims": [
+     "Hertz verified electromagnetic waves 1886-1888"
+    ]
+   },
+   {
+    "sourceId": "COM-030",
+    "claims": [
+     "Marconi from 1895 with Hertz oscillator and Branly coherer"
+    ]
+   },
+   {
+    "sourceId": "COM-032",
+    "claims": [
+     "Marconi from 1895 with Hertz oscillator and Branly coherer",
+     "Popov (1895) and Lodge parallel work; priority disputed"
+    ]
+   },
+   {
+    "sourceId": "COM-029",
+    "claims": [
+     "December 1901 Signal Hill reception, later questioned"
+    ]
+   },
+   {
+    "sourceId": "COM-031",
+    "claims": [
+     "Popov (1895) and Lodge parallel work; priority disputed"
+    ]
+   }
+  ],
+  "uncertainty": "Marconi's 1901 reception was unwitnessed and may have been a harmonic; priority among early wireless experimenters (Marconi, Popov, Lodge, Tesla and others) is disputed.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Every date, place and attribution needs the independent check pass. Claims to check first: Hertz late 1880s; Marconi from 1895; reported transatlantic signal December 1901; Popov and Lodge."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Hertz verified electromagnetic waves 1886-1888",
+     "sources": [
+      "COM-033"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Marconi from 1895 with Hertz oscillator and Branly coherer",
+     "sources": [
+      "COM-030",
+      "COM-032"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "December 1901 Signal Hill reception, later questioned",
+     "sources": [
+      "COM-029"
+     ],
+     "result": "disputed"
+    },
+    {
+     "claim": "Popov (1895) and Lodge parallel work; priority disputed",
+     "sources": [
+      "COM-031",
+      "COM-032"
+     ],
+     "result": "disputed"
+    }
+   ],
+   "notes": "Changed 'late 1880s' to '1886-1888'; replaced 'spark transmitters' with the oscillator/coherer basis the results state; removed 'Ships adopted wireless for safety and command' (uncorroborated); made the priority dispute explicit in the text. Earlier status: unverified (drafting lane; written from general knowledge with no source retrieved, search budget exhausted)."
   },
   "mechanicLink": "Realized today (class B): Age 9 radio supporting fact and radio-transmitter building (awaiting PROPOSED M6 T6.11); PROPOSED split keeps wireless telegraphy here, moves voice broadcasting to radio_broadcasting and re-dates the node to A8."
  },
  {
   "id": "automatic_switching",
   "tree": "technology",
-  "description": "Automatic switching connects telephone calls without a human operator. Almon Strowger patented a stepping switch in 1891, and the first commercial automatic exchange opened in La Porte, Indiana, in 1892. Later crossbar systems replaced stepping mechanisms. Telephone relays performing switching logic were also used to build early computers such as Konrad Zuse's Z3.",
-  "wordCount": 53,
-  "sources": [],
+  "description": "Automatic switching connects telephone calls without a human operator. Almon Strowger patented a stepping switch in 1891, and the first Strowger exchange opened in La Porte, Indiana, in 1892, with pulses from the caller's telephone driving the switch. Crossbar systems, patented from 1919, later challenged stepping mechanisms. Telephone-style relays also went into early computers such as Konrad Zuse's Z3.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "COM-012",
+    "claims": [
+     "Strowger patent 1891, stepping switch",
+     "La Porte, Indiana, 1892",
+     "Pulses from the telephone drove the switch",
+     "Crossbar (patent 1919) later challenged Strowger switching"
+    ]
+   },
+   {
+    "sourceId": "COM-013",
+    "claims": [
+     "Strowger patent 1891, stepping switch"
+    ]
+   }
+  ],
   "uncertainty": "Several inventors proposed automatic exchanges earlier; Strowger's design was the first widely adopted.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Every date, place and attribution needs the independent check pass. Claims to check first: Strowger patent 1891; La Porte exchange 1892; crossbar successors; relay-built computers such as the Z3."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Strowger patent 1891, stepping switch",
+     "sources": [
+      "COM-012",
+      "COM-013"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "La Porte, Indiana, 1892",
+     "sources": [
+      "COM-012"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Pulses from the telephone drove the switch",
+     "sources": [
+      "COM-012"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Crossbar (patent 1919) later challenged Strowger switching",
+     "sources": [
+      "COM-012"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Relay computers such as Zuse's Z3",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Changed 'first commercial automatic exchange' to 'first Strowger exchange' and 'Later crossbar systems replaced stepping mechanisms' to 'Crossbar systems, patented from 1919, later challenged stepping mechanisms'. Z3 relay claim not corroborated. Earlier status: unverified (drafting lane; written from general knowledge with no source retrieved, search budget exhausted)."
   },
   "mechanicLink": "PROPOSED new node, knowledge-only until infrastructure capacity is modelled (M11+); prerequisite of cellular telephony and a candidate relay route to programmable computation."
  },
  {
   "id": "punched_card_tabulation",
   "tree": "technology",
-  "description": "Herman Hollerith, who had worked on the 1880 United States census, patented a system in 1889 that recorded each person as holes punched in a card. Electrical contacts through the holes advanced counters on a tabulating machine. Used for the 1890 census, it sped processing considerably. Hollerith's company later became part of IBM.",
-  "wordCount": 53,
-  "sources": [],
-  "uncertainty": "Published estimates of the time saved in the 1890 census vary.",
+  "description": "Herman Hollerith, who had worked on the 1880 United States census, patented a system in 1889 that recorded each person as holes punched in a card. Electrical contacts through the holes advanced counters on a tabulating machine. Used for the 1890 census, it reportedly saved years of work. Hollerith's company later became part of IBM.",
+  "wordCount": 55,
+  "sources": [
+   {
+    "sourceId": "COM-016",
+    "claims": [
+     "Hollerith worked on the 1880 census",
+     "Electrical reading via contacts through holes"
+    ]
+   },
+   {
+    "sourceId": "COM-014",
+    "claims": [
+     "1889 patent for punched-card tabulation",
+     "1890 census; reportedly saved two years"
+    ]
+   },
+   {
+    "sourceId": "COM-015",
+    "claims": [
+     "Electrical reading via contacts through holes"
+    ]
+   },
+   {
+    "sourceId": "COM-017",
+    "claims": [
+     "1890 census; reportedly saved two years"
+    ]
+   },
+   {
+    "sourceId": "COM-018",
+    "claims": [
+     "Company lineage to IBM"
+    ]
+   }
+  ],
+  "uncertainty": "Published estimates of the time and money saved in the 1890 census vary; sources differ on the founding year of the Tabulating Machine Company (1895 or 1896).",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Every date, place and attribution needs the independent check pass. Claims to check first: Hollerith's 1880 census work; 1889 patents; electrical counting; 1890 census use; corporate lineage to IBM."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Hollerith worked on the 1880 census",
+     "sources": [
+      "COM-016"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "1889 patent for punched-card tabulation",
+     "sources": [
+      "COM-014"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Electrical reading via contacts through holes",
+     "sources": [
+      "COM-015",
+      "COM-016"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "1890 census; reportedly saved two years",
+     "sources": [
+      "COM-014",
+      "COM-017"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Company lineage to IBM",
+     "sources": [
+      "COM-018"
+     ],
+     "result": "supported"
+    }
+   ],
+   "notes": "Changed 'it sped processing considerably' to 'it reportedly saved years of work' (IBM: reportedly two years). Earlier status: unverified (drafting lane; written from general knowledge with no source retrieved, search budget exhausted)."
   },
   "mechanicLink": "PROPOSED new node; deferred to M8 as an input of administrative reach (faster census cycles); first real dependant of jacquard's punched-card control."
  },
@@ -525,30 +1075,117 @@
  {
   "id": "communications_satellite",
   "tree": "technology",
-  "description": "Communications satellites relay radio signals between distant ground stations. Arthur C. Clarke described geostationary relays in 1945. Telstar 1 relayed transatlantic television in 1962, but its low orbit gave only short passes. Syncom 3 reached geostationary orbit in 1964 and relayed the Tokyo Olympics. Intelsat I, nicknamed Early Bird, began commercial service in 1965.",
-  "wordCount": 54,
-  "sources": [],
-  "uncertainty": null,
+  "description": "Communications satellites relay radio signals between distant ground stations. Arthur C. Clarke developed the idea of geostationary relays in a 1945 article. Telstar 1 and Relay 1, launched in 1962, worked from lower, non-geostationary orbits. Syncom 3 became the first geostationary communications satellite in 1964, and Intelsat I, nicknamed Early Bird, began commercial service in 1965.",
+  "wordCount": 56,
+  "sources": [
+   {
+    "sourceId": "COM-019",
+    "claims": [
+     "Clarke 1945 Wireless World article",
+     "Telstar and Relay, 1962, medium orbit",
+     "Syncom 3 first geostationary communications satellite, 1964",
+     "Early Bird (Intelsat I) first commercial communications satellite, 1965"
+    ]
+   }
+  ],
+  "uncertainty": "Hermann Oberth (1923) and George O. Smith (1942) speculated about such relays before Clarke, whose article had little immediate effect. Syncom 3's Tokyo Olympics relay was not corroborated in this pass.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Every date, place and attribution needs the independent check pass. Claims to check first: Clarke 1945; Telstar 1 1962; Syncom 3 1964 and the Tokyo Olympics; Intelsat I 1965."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Clarke 1945 Wireless World article",
+     "sources": [
+      "COM-019"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Telstar and Relay, 1962, medium orbit",
+     "sources": [
+      "COM-019"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Syncom 3 first geostationary communications satellite, 1964",
+     "sources": [
+      "COM-019"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Early Bird (Intelsat I) first commercial communications satellite, 1965",
+     "sources": [
+      "COM-019"
+     ],
+     "result": "supported"
+    }
+   ],
+   "notes": "Replaced 'Telstar 1 relayed transatlantic television in 1962' and 'Syncom 3 ... relayed the Tokyo Olympics' (not corroborated in result text) with orbit facts NASA states. Earlier status: unverified (drafting lane; written from general knowledge with no source retrieved, search budget exhausted)."
   },
   "mechanicLink": "PROPOSED new node (split from satellite); deferred: intercontinental relay for contact and diplomacy information (M8) and global live media (M9); ground stations are IMPLEMENTATION DEFERRED."
  },
  {
   "id": "radio_broadcasting",
   "tree": "technology",
-  "description": "Voice radio needs continuous waves whose strength is varied, or modulated, by sound. Reginald Fessenden and others experimented with voice transmission in the 1900s, and vacuum-tube oscillators and amplifiers made it practical in the 1910s. Pittsburgh's KDKA began scheduled broadcasting in November 1920, and receivers soon spread into millions of homes.",
-  "wordCount": 51,
-  "sources": [],
-  "uncertainty": "Fessenden's reported 1906 broadcast is poorly documented; several stations claim to be the first broadcaster.",
+  "description": "Voice radio needs continuous waves whose strength is varied, or modulated, by sound. Reginald Fessenden promoted amplitude modulation and reportedly broadcast speech and music from Brant Rock, Massachusetts, on Christmas Eve 1906. Pittsburgh's Westinghouse station KDKA made what is often called the first scheduled broadcast on 2 November 1920, though several stations claim to have been first.",
+  "wordCount": 57,
+  "sources": [
+   {
+    "sourceId": "COM-021",
+    "claims": [
+     "Fessenden and amplitude modulation",
+     "Fessenden's 1906 Brant Rock broadcast"
+    ]
+   },
+   {
+    "sourceId": "COM-020",
+    "claims": [
+     "KDKA first scheduled broadcast, 2 November 1920",
+     "Which station was first is disputed"
+    ]
+   }
+  ],
+  "uncertainty": "Fessenden's 1906 broadcast is poorly documented and questioned by some historians; several stations claim to be the first broadcaster.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Every date, place and attribution needs the independent check pass. Claims to check first: Fessenden's voice experiments; tube oscillators and amplifiers in the 1910s; KDKA November 1920."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Fessenden and amplitude modulation",
+     "sources": [
+      "COM-021"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Fessenden's 1906 Brant Rock broadcast",
+     "sources": [
+      "COM-021"
+     ],
+     "result": "disputed"
+    },
+    {
+     "claim": "KDKA first scheduled broadcast, 2 November 1920",
+     "sources": [
+      "COM-020"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Which station was first is disputed",
+     "sources": [
+      "COM-020"
+     ],
+     "result": "disputed"
+    }
+   ],
+   "notes": "Added the Brant Rock 1906 broadcast (Britannica) and the KDKA date (FCC); removed uncorroborated statements on vacuum-tube oscillators in the 1910s and receivers spreading into millions of homes. Earlier status: unverified (drafting lane; written from general knowledge with no source retrieved, search budget exhausted)."
   },
   "mechanicLink": "PROPOSED new node (split from radio); deferred: with television and mass schooling it makes the broadcast-media institution eligible, with media reach in M9 and voice command in M7."
  }

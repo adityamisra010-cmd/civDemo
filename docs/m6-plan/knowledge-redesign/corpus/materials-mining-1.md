@@ -6,10 +6,10 @@ Original prose. Word counts are computed by the validator. Sources resolve in `h
 
 ### 2 · Oldowan flaking (`knapping_oldowan`)
 
-Striking one stone against another to detach sharp flakes is the oldest securely dated technology. Oldowan tools, named after Olduvai Gorge in Tanzania, appear at Gona, Ethiopia, by about 2.6 million years ago. Sharp flakes and choppers let early hominins cut meat from carcasses. Cruder Lomekwian pieces from Kenya, about 3.3 million years old, remain debated.
+Knapping strikes one stone against another to detach sharp-edged flakes. Oldowan tools, named after Olduvai Gorge, Tanzania, appear at Gona, Ethiopia, by about 2.6 million years ago. At Nyayanga, Kenya, they lie among cut-marked hippopotamus bones, with wear from processing animals and plants. Cruder Lomekwian pieces from Kenya, about 3.3 million years old, remain debated.
 
-- words: 58 · fact-check: partially-checked (drafting lane; Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).)
-- sources: [MAT1-001] Gona about 2.6 million years ago, Lomekwi 3.3 million years, contested; [MAT1-002] Lomekwi 3, Kenya, about 3.3 million years; [MAT1-003] named after Olduvai Gorge
+- words: 57 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [MAT1-001] Gona about 2.6 million years ago, Lomekwi 3.3 million years, contested; [MAT1-002] Lomekwi 3, Kenya, about 3.3 million years; [MAT1-003] named after Olduvai Gorge; [MAT1-082] Nyayanga cut-marked hippo bones; animal and plant processing
 - uncertainty: Lomekwi 3 (about 3.3 Ma) is contested (natural fracture, dating, no associated toolmaker); Nyayanga, Kenya, has Oldowan-style tools with a possible age of 2.6-3.0+ Ma. Which hominin made the earliest Oldowan tools is unknown.
 - relation to mechanics: Knowledge-only node (unlock-audit class C): records cutting edges, butchery and marrow extraction with no current effect; a turn-0 root kept unchanged because allocation-scenario key 2 and the v33 fixture depend on it, and the prerequisite of ground_stone_early.
 
@@ -177,9 +177,9 @@ Copper containing a few percent arsenic, often from smelting arsenic-rich ores, 
 
 ### 81 · Tin bronze (`tin_bronze`)
 
-Alloying copper with roughly ten percent tin gives a hard bronze of reproducible quality. Tin bronzes appear in Mesopotamia and Anatolia in the early third millennium BCE, although neither region had significant tin sources; a bronze foil from Plocnik, Serbia, about 4650 BCE, is claimed as earliest. Bronze-making therefore tied metal supply to long-distance trade.
+Alloying copper with up to about ten percent tin makes tin bronze. Tin bronzes appear in Mesopotamia and Anatolia in the early third millennium BCE, although neither region had significant tin sources; a bronze foil from Plocnik, Serbia, about 4650 BCE, is claimed as earliest. Bronze-making there therefore depended on tin brought from elsewhere.
 
-- words: 55 · fact-check: partially-checked (drafting lane; Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).)
+- words: 54 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
 - sources: [MAT1-036] Plocnik foil about 4650 BC claimed earliest, Mesopotamia and Anatolia early third millennium, up to 10 wt% tin, those regions lack tin
 - uncertainty: The Plocnik priority is contested; other sources place the earliest tin bronzes in Iran and Iraq in the late fourth millennium BCE, and claims for fifth-millennium Thailand exist. The node anchors ~3,300 BCE.
 - relation to mechanics: Realized today (class B): makes recipe bronze-casting (8 copper ore + 1 tin ore + 2 timber -> 1 bronze) eligible and satisfies a3_bronze; bronze is the only metal input to toolmaking, so this node gates domestic tool production unless bronze or tools are traded.
@@ -395,17 +395,17 @@ Zinc boils at a temperature below copper's melting point, so early brass was mad
 
 Much ancient silver came not from native metal but from silver-bearing lead ores. In cupellation, smelted lead is heated to about 800 C in an oxidising blast: the lead turns to litharge and is absorbed or skimmed, leaving silver and gold. Litharge from Habuba Kabira, Syria, and Fatmali-Kalecik, Anatolia, attests the process in the fourth millennium BCE.
 
-- words: 57 · fact-check: partially-checked (drafting lane; Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).)
-- sources: [NUC-225] heating to about 800 C under oxidising conditions; silver and gold remain metallic; [NUC-224] lead oxide soaks into a porous cupel; ancient quantitative fire assay; [MAT1-032] Habuba Kabira and Fatmali-Kalecik cupellation debris, fourth millennium BC; [MAT1-033] Tappeh Shoghali litharge cakes, Sialk III-IV
+- words: 57 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [NUC-225] heating to about 800 C under oxidising conditions; silver and gold remain metallic; [NUC-224] lead oxide soaks into a porous cupel; ancient quantitative fire assay; [MAT1-032] Habuba Kabira and Fatmali-Kalecik cupellation debris, fourth millennium BC; [MAT1-033] Tappeh Shoghali litharge cakes, Sialk III-IV; [MAT1-079] Most ancient silver came from cupellation of argentiferous lead ores, Litharge proves cupellation; earliest finds fourth millennium BCE
 - uncertainty: Litharge alone does not prove on-site cupellation, since it was also reused; the share of ancient silver from lead ores versus native silver is not quantified here. The node's Tepe Sialk anchor (~3,600 BCE) is close to the late-fourth-millennium Tappeh Shoghali evidence.
 - relation to mechanics: PROPOSED new node (completion row only): no lead, silver or argentiferous-ore good exists today; requires copper_smelting and gold_silver_native, and is proposed as a prerequisite of weighed silver and fire assay if those lanes adopt the edges.
 
 ### 436 · Deep percussion drilling (`percussion_drilling`)
 
-Percussion drilling repeatedly lifts and drops a heavy iron bit on a rope or cable, chipping a narrow hole downward. In Sichuan, drillers lined boreholes with bamboo and reached brine and natural gas, with techniques well developed by the Song dynasty; Zigong's Shenhai well passed about 1,001 metres in 1835. Pennsylvania's 1859 Drake oil well used a cable-tool rig.
+Percussion drilling repeatedly lifts and drops a heavy iron bit, chipping a narrow hole downward. Sichuan drillers used it to reach brine and natural gas; around 1050 CE, in the Song dynasty, a light, flexible bamboo cable replaced heavy solid bamboo rods. Zigong's Shenhai well passed about 1,001 metres in 1835. Pennsylvania's 1859 Drake oil well used a cable-tool rig.
 
-- words: 60 · fact-check: partially-checked (drafting lane; Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).)
-- sources: [MAT1-062] iron bit lifted and dropped, developed by Tang and especially Song, bamboo casings; gas piped to boil brine; [MAT1-061] Shenhai well 1835, about 1,001 m; [MAT1-063] Drake well 1859, cable-tool rig, 69.5 ft; [MAT1-064] Drake's rig based on Pennsylvania salt-well drilling
+- words: 61 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [MAT1-062] iron bit lifted and dropped, developed by Tang and especially Song, bamboo casings; gas piped to boil brine; [MAT1-061] Shenhai well 1835, about 1,001 m; [MAT1-063] Drake well 1859, cable-tool rig, 69.5 ft; [MAT1-064] Drake's rig based on Pennsylvania salt-well drilling; [MAT1-080] About 1050 CE flexible bamboo cable replaced solid bamboo pipe; [MAT1-081] Percussion drilling with heavy iron bit, Sichuan brine and gas, Shenhai over 1,000 m in 1835
 - uncertainty: How Chinese drilling knowledge reached nineteenth-century America is unclear: Drake's rig followed local salt-well practice, and claims of direct Chinese transmission are unverified. 'First well past one kilometre' for Shenhai is hedged in the sources.
 - relation to mechanics: PROPOSED new node (completion row only): no brine, natural-gas or petroleum good exists; requires iron_bloomery and well, and is proposed as the extraction gate for fluid deposits that petroleum_refining would process.
 

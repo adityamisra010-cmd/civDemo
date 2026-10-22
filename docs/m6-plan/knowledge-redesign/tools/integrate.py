@@ -94,6 +94,24 @@ def auto_capability(cur):
     }
 
 
+# Realization class (2026-10-22): what it takes for a node's capability promise to work. Existing systems realize
+# these grant kinds today; the other kinds need a system that does not exist yet (units M7, regimes/policies M8,
+# identification/access the M6 fog and discovery contract).
+EXISTING_KINDS = {"building", "institution", "infrastructure", "production", "trade", "tax", "stage", "age"}
+
+
+def realization_class(n):
+    cap = n.get("capability") or {}
+    kinds = {g.split(":", 1)[0] for g in cap.get("grants") or []} - {"knowledge"}
+    if cap.get("status") == "knowledge-only" or not kinds:
+        return "KNOWLEDGE-ONLY"
+    if cap.get("status") == "realized-today":
+        return "EXISTING" if n["status"] == "existing" and kinds <= EXISTING_KINDS else "EXTENSION REQUIRED"
+    if cap.get("milestone") in ("M6", "existing"):
+        return "EXTENSION REQUIRED" if kinds <= EXISTING_KINDS else "NEW MECHANIC REQUIRED"
+    return "DEFERRED"
+
+
 def load_parts():
     parts = {}
     if PARTS.exists():
@@ -248,6 +266,9 @@ def main(argv):
                                                                           list((o.get("capabilityPatch") or {}).keys()))})
             applied.append(o["id"])
 
+    for n in tech + civ:
+        if n.get("capability") is not None:
+            n["capability"]["realizationClass"] = realization_class(n)
     # 5. derived metrics on the active proposed graph (both trees, one key space)
     active = [n for n in tech + civ if n["status"] != "retired"]
     g = kr.Graph(active)
@@ -280,6 +301,9 @@ def main(argv):
                     f2["changed"] = ch.get("rationale")
     gate_exprs = [stage_expr] + ["(" + " OR ".join(f["fact"]["nodes"]) + ")" for f in age_facts
                                   if f["role"] == "core" and f["fact"].get("kind") == "research"]
+    # Live gates outside research.json (2026-10-22): the tax edict (sim.json governance.taxationRequires) and the
+    # realized university (inst.university requires 'library AND legal_code_roman'). Their closures are not optional.
+    gate_exprs += ["taxation", "library AND legal_code_roman"]
     gate_ancestors = set()
     if not missing and not cyc:
         for e in gate_exprs:

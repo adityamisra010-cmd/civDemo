@@ -10,7 +10,7 @@
    "status": "unverified",
    "checkedBy": "drafting lane",
    "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Prussian 1717 and 1763 measures and their weak enforcement; Massachusetts 1852 law."
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Prussian 1717 and 1763 measures and their weak enforcement; Massachusetts 1852 law. Evidence pass 2026-10-22: one WebSearch returned only non-credible pages (legal-marketing, advocacy essays, newsletters) and Wikipedia; they disagreed on Prussia (1763 vs 1820s) and did not mention 1717. No source recorded; status stays unverified."
   },
   "mechanicLink": "Knowledge-only today; PROPOSED to become the requirement of the mass-schooling institution (replacing census as a proxy) under the Society milestone (M9), feeding the D-018 literacy loop."
  },
@@ -19,13 +19,60 @@
   "tree": "civics",
   "description": "The law of nations is a body of norms held to bind sovereign states in their dealings: the safety of envoys, the keeping of treaties, the rights of neutrals and limits on war. Hugo Grotius's On the Law of War and Peace (1625) systematised earlier natural-law writing. Lacking a common enforcer, it relied on custom, reciprocity and reputation.",
   "wordCount": 58,
-  "sources": [],
-  "uncertainty": "The proposal also anchors the node to the Peace of Westphalia (1648); historians dispute how far Westphalia actually founded a system of sovereign states. Grotius built on earlier writers such as Vitoria, Suárez and Gentili.",
+  "sources": [
+   {
+    "sourceId": "CVC2-022",
+    "claims": [
+     "Hugo Grotius's On the Law of War and Peace appeared in 1625"
+    ]
+   },
+   {
+    "sourceId": "CVC2-023",
+    "claims": [
+     "Grotius systematised earlier natural-law writing"
+    ]
+   },
+   {
+    "sourceId": "CVC2-024",
+    "claims": [
+     "Grotius systematised earlier natural-law writing"
+    ]
+   }
+  ],
+  "uncertainty": "The proposal also anchors the node to the Peace of Westphalia (1648); historians dispute how far Westphalia actually founded a system of sovereign states (not re-checked in this pass). Grotius drew extensively on Alberico Gentili [CVC2-023]; links to Spanish scholastics such as Vitoria and Suarez are commonly cited but were not corroborated here.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Grotius 1625 title and date; scholastic antecedents; content of the norms."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Hugo Grotius's On the Law of War and Peace appeared in 1625",
+     "sources": [
+      "CVC2-022"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Grotius systematised earlier natural-law writing",
+     "sources": [
+      "CVC2-023",
+      "CVC2-024"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Content of the norms (envoys, treaties, neutrals, limits on war)",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "It relied on custom, reciprocity and reputation, lacking a common enforcer",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Westphalia dispute (in uncertainty) was not searched in this pass; kept as a stated dispute. Vitoria was not found in the results and Suarez only as a quotation in SEP, so the uncertainty now names Gentili (supported) and flags the others as uncorroborated. Earlier lane (drafting lane, status unverified): No claim corroborated this session and no source recorded (none invented). Claims to check first: Grotius 1625 title and date; scholastic antecedents; content of the norms."
   },
   "mechanicLink": "Knowledge-only today; PROPOSED to let the Diplomacy system (M8) treat neutrality, recognition and treaty compliance as reputational conditions, and to precede the laws-of-war conventions."
  },
@@ -34,13 +81,63 @@
   "tree": "civics",
   "description": "A statistical office is a standing public body that collects and publishes counts at regular intervals, turning single censuses into comparable series. Sweden's Tabellverket compiled national population tables from parish registers from 1749. Britain took its first national census in 1801. Regular tables let governments track births, deaths and migration, though their categories reflected official priorities.",
   "wordCount": 56,
-  "sources": [],
-  "uncertainty": "Sweden's permanent statistical commission dates from 1756, a few years after the tables began; Britain's 1801 census was a headcount without a permanent office, which came later with civil registration (1837). Which body counts as the first statistical office depends on definition.",
+  "sources": [
+   {
+    "sourceId": "CVC2-026",
+    "claims": [
+     "Sweden's Tabellverket compiled national population tables from parish registers from 1749",
+     "Sweden's permanent commission dates from 1756"
+    ]
+   },
+   {
+    "sourceId": "CVC2-028",
+    "claims": [
+     "Britain took its first national census in 1801"
+    ]
+   },
+   {
+    "sourceId": "CVC2-027",
+    "claims": [
+     "Sweden's permanent commission dates from 1756"
+    ]
+   }
+  ],
+  "uncertainty": "Sweden's statistical commission dates from 1756, a few years after the tables began, and became an independent authority in 1769 [CVC2-027]; Britain's 1801 census covered England and Wales as a headcount without a permanent office, and the 1841 census under civil registration is regarded as the first modern one [CVC2-028]. Which body counts as the first statistical office depends on definition.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Tabellverket from 1749 based on parish registers; first British census 1801."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Sweden's Tabellverket compiled national population tables from parish registers from 1749",
+     "sources": [
+      "CVC2-026"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Britain took its first national census in 1801",
+     "sources": [
+      "CVC2-028"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Sweden's permanent commission dates from 1756",
+     "sources": [
+      "CVC2-026",
+      "CVC2-027"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Regular tables let governments track births, deaths and migration; categories reflected official priorities",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Unsupported: the closing sentence on what the tables tracked and on official categories. Riksarkivet adds that the commission became an authority of its own in 1769 [CVC2-027]; ONS notes 1801 was a headcount for England and Wales [CVC2-028]. Earlier lane (drafting lane, status unverified): No claim corroborated this session and no source recorded (none invented). Claims to check first: Tabellverket from 1749 based on parish registers; first British census 1801."
   },
   "mechanicLink": "Knowledge-only today; PROPOSED to become the requirement of the vital-statistics institution (M9) and a prerequisite of central planning."
  },
@@ -49,28 +146,95 @@
   "tree": "civics",
   "description": "A board of health is a public authority empowered to protect a population's health through quarantine, inspection and sanitation. Ragusa, now Dubrovnik, ordered isolation of arrivals during plague in 1377, and Venice later kept a permanent health magistracy. England's General Board of Health, created in 1848, pressed for drains and clean water. They often acted before disease causes were understood.",
   "wordCount": 60,
-  "sources": [],
+  "sources": [
+   {
+    "sourceId": "CVC2-025",
+    "claims": [
+     "Ragusa (Dubrovnik) ordered isolation of arrivals during plague in 1377"
+    ]
+   }
+  ],
   "uncertainty": "The proposal dates Venice's permanent magistracy to 1486; temporary plague commissions in Italian cities are older. England's board was weak and was dissolved in 1858.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Ragusa 1377 isolation ordinance; Venetian permanent magistracy; English General Board of Health 1848 and its sanitary aims."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Ragusa (Dubrovnik) ordered isolation of arrivals during plague in 1377",
+     "sources": [
+      "CVC2-025"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Venice later kept a permanent health magistracy",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "England's General Board of Health was created in 1848 and pressed for drains and clean water",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Boards acted before disease causes were understood",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Searched once; the Venetian 1486 date appeared only in a non-credible result and the 1848 General Board of Health was not returned. Text left unchanged because the Venetian sentence carries no date and the 1848 board is a well-attested institution, but both remain uncorroborated here. Earlier lane (drafting lane, status unverified): No claim corroborated this session and no source recorded (none invented). Claims to check first: Ragusa 1377 isolation ordinance; Venetian permanent magistracy; English General Board of Health 1848 and its sanitary aims."
   },
   "mechanicLink": "Knowledge-only today; PROPOSED to become the requirement of the quarantine institution (replacing census as a proxy) under the Society milestone (M9)."
  },
  {
   "id": "resident_embassies",
   "tree": "civics",
-  "description": "A resident embassy is a permanent mission at a foreign ruler's court whose ambassador reports home continuously. The practice spread among Italian states such as Milan, Venice and Florence during the fifteenth century, then across Europe. Earlier diplomacy relied mainly on temporary envoys sent for particular negotiations. Standing missions gave steady information but invited suspicion of spying.",
-  "wordCount": 57,
-  "sources": [],
-  "uncertainty": "The exact origin is debated (mid-fifteenth-century Milanese envoys are often cited); long-staying envoys and representatives existed earlier in other regions, including the papal court and Byzantine and Asian diplomacy.",
+  "description": "A resident embassy is a permanent mission at a foreign ruler's court whose ambassador reports home continuously. Venice, Milan and Mantua exchanged resident envoys from around 1400; such missions became normal in Italy late in the fifteenth century and spread northward after 1500. Earlier diplomacy relied mainly on temporary envoys. Standing missions gave steady information but invited suspicion of spying.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "CVC2-050",
+    "claims": [
+     "Venice, Milan and Mantua exchanged resident envoys from around 1400",
+     "Resident missions became normal in Italy late in the fifteenth century and spread northward after 1500"
+    ]
+   }
+  ],
+  "uncertainty": "Britannica notes it is unclear which Italian state had the first permanent envoy; a Milanese envoy at Louis XI's court from 1463 is often cited [CVC2-050]. Long-staying envoys and representatives existed earlier elsewhere, including at the papal court (whether Avignon-era proctors count is debated) and in Byzantine and Asian diplomacy.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Fifteenth-century Italian origin; spread across Europe; contrast with temporary embassies."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Venice, Milan and Mantua exchanged resident envoys from around 1400",
+     "sources": [
+      "CVC2-050"
+     ],
+     "result": "corrected"
+    },
+    {
+     "claim": "Resident missions became normal in Italy late in the fifteenth century and spread northward after 1500",
+     "sources": [
+      "CVC2-050"
+     ],
+     "result": "corrected"
+    },
+    {
+     "claim": "Earlier diplomacy relied mainly on temporary envoys",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Standing missions gave steady information but invited suspicion of spying",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Changed 'The practice spread among Italian states such as Milan, Venice and Florence during the fifteenth century, then across Europe' to Britannica's statement (Venice, Milan and Mantua from the late 14th/early 15th century; norm in Italy late 15th century; spread north after 1500). Unsupported: contrast with temporary envoys; information/espionage sentence. Earlier lane (drafting lane, status unverified): No claim corroborated this session and no source recorded (none invented). Claims to check first: Fifteenth-century Italian origin; spread across Europe; contrast with temporary embassies."
   },
   "mechanicLink": "Knowledge-only today; PROPOSED to give the Diplomacy system (M8) a standing channel and regular reporting from a known polity's court, bounded by the fog-of-war fence."
  },
@@ -79,13 +243,77 @@
   "tree": "civics",
   "description": "Separation of powers assigns lawmaking, execution and judging to distinct bodies so that none holds all authority. Montesquieu's The Spirit of the Laws (1748), drawing on an idealised reading of England, gave the idea its classic statement, and the United States Constitution of 1787 built it into checks and balances. Critics note that strict separation can produce deadlock between branches.",
   "wordCount": 60,
-  "sources": [],
-  "uncertainty": "Earlier roots include ancient theories of mixed government and John Locke's distinction of powers; how accurately Montesquieu described England is debated.",
+  "sources": [
+   {
+    "sourceId": "CVC2-031",
+    "claims": [
+     "Montesquieu's The Spirit of the Laws (1748) gave the idea its classic statement"
+    ]
+   },
+   {
+    "sourceId": "CVC2-033",
+    "claims": [
+     "Montesquieu's The Spirit of the Laws (1748) gave the idea its classic statement",
+     "Montesquieu drew on an idealised reading of England"
+    ]
+   },
+   {
+    "sourceId": "CVC2-032",
+    "claims": [
+     "Montesquieu drew on an idealised reading of England"
+    ]
+   },
+   {
+    "sourceId": "CVC2-029",
+    "claims": [
+     "The US Constitution of 1787 built it into checks and balances"
+    ]
+   },
+   {
+    "sourceId": "CVC2-034",
+    "claims": [
+     "The US Constitution of 1787 built it into checks and balances"
+    ]
+   }
+  ],
+  "uncertainty": "Earlier roots include ancient theories of mixed government and John Locke's distinction of powers; how accurately Montesquieu described England is disputed [CVC2-032]. One Britannica summary dates The Spirit of the Laws to 1750 rather than 1748.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Montesquieu 1748 and his use of England; US Constitution 1787 checks and balances."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Montesquieu's The Spirit of the Laws (1748) gave the idea its classic statement",
+     "sources": [
+      "CVC2-031",
+      "CVC2-033"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Montesquieu drew on an idealised reading of England",
+     "sources": [
+      "CVC2-032",
+      "CVC2-033"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "The US Constitution of 1787 built it into checks and balances",
+     "sources": [
+      "CVC2-029",
+      "CVC2-034"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Strict separation can produce deadlock between branches",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Checks and balances are credited to Montesquieu [CVC2-034] and the Constitution is dated 1787 [CVC2-029]; no result stated in one sentence that the Constitution embodied them, so this is supported by combination. Unsupported: the critics' deadlock point. A Britannica summary page dates the book 1750; other results give 1748. Earlier lane (drafting lane, status unverified): No claim corroborated this session and no source recorded (none invented). Claims to check first: Montesquieu 1748 and his use of England; US Constitution 1787 checks and balances."
   },
   "mechanicLink": "Knowledge-only today; PROPOSED as the regime module for independent courts and mutually checking executive and legislature, adoptable in M8 and required by the presidential form."
  },
@@ -94,43 +322,201 @@
   "tree": "civics",
   "description": "A written constitution is a single fundamental law that establishes government's organs, defines their powers and is usually harder to amend than statutes. England's Instrument of Government of 1653 is an early example, and the United States Constitution of 1787 is often described as the oldest national constitution still in force. Text alone does not guarantee rulers observe it.",
   "wordCount": 59,
-  "sources": [],
-  "uncertainty": "Claims about the 'first' or 'oldest' written constitution depend on definition: earlier charters and city statutes (for example San Marino's) are sometimes counted, and Britain still has no single codified constitution.",
+  "sources": [
+   {
+    "sourceId": "CVC2-035",
+    "claims": [
+     "England's Instrument of Government of 1653 is an early example"
+    ]
+   },
+   {
+    "sourceId": "CVC2-029",
+    "claims": [
+     "The US Constitution of 1787 is often described as the oldest national constitution still in force"
+    ]
+   },
+   {
+    "sourceId": "CVC2-030",
+    "claims": [
+     "The US Constitution of 1787 is often described as the oldest national constitution still in force"
+    ]
+   }
+  ],
+  "uncertainty": "Claims about the 'first' or 'oldest' written constitution depend on definition: earlier charters and city statutes (for example San Marino's) are sometimes counted, the Instrument lasted only until 1657 [CVC2-035], the US had an earlier written frame in the Articles of Confederation (1781-89) [CVC2-029], and Britain still has no single codified constitution.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Instrument of Government 1653; US Constitution 1787 as oldest national constitution in force."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "England's Instrument of Government of 1653 is an early example",
+     "sources": [
+      "CVC2-035"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "The US Constitution of 1787 is often described as the oldest national constitution still in force",
+     "sources": [
+      "CVC2-029",
+      "CVC2-030"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Usually harder to amend than statutes",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Text alone does not guarantee rulers observe it",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Britannica calls the Instrument 'the first detailed written constitution adopted by a modern state' and notes it was replaced in 1657 [CVC2-035]. Unsupported: amendment difficulty (general) and the closing observation. Earlier lane (drafting lane, status unverified): No claim corroborated this session and no source recorded (none invented). Claims to check first: Instrument of Government 1653; US Constitution 1787 as oldest national constitution in force."
   },
   "mechanicLink": "Knowledge-only today; PROPOSED as the constitutional regime module (M8) fixing which powers each organ may use, and a prerequisite of several forms and of separation of powers."
  },
  {
   "id": "absolute_monarchy",
   "tree": "civics",
-  "description": "Absolute monarchy is rule by a monarch claiming authority that does not depend on the consent of estates or assemblies, often justified by divine right. Louis XIV of France (reigned 1643 to 1715) and Peter I of Russia (1682 to 1725) are frequent examples. Rulers centralised taxation, armies and administration, yet still bargained with nobles, churches, courts and local privileges.",
-  "wordCount": 60,
-  "sources": [],
-  "uncertainty": "Many historians question 'absolutism' as a label, since early-modern monarchs' real power was limited by elites, law and custom; the term was applied largely in retrospect.",
+  "description": "Absolute monarchy is rule by a monarch claiming authority that no estate, parliament or assembly can call to account, often justified by divine right. Louis XIV of France is the standard example, and Peter I of Russia is often grouped with him. Rulers centralised taxation, armies and administration, yet still bargained with nobles, churches, courts and local privileges.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "CVC2-001",
+    "claims": [
+     "Absolute monarchy was often justified by divine right; the monarch claimed not to be accountable to estates or assemblies"
+    ]
+   },
+   {
+    "sourceId": "CVC2-002",
+    "claims": [
+     "Absolute monarchy was often justified by divine right; the monarch claimed not to be accountable to estates or assemblies",
+     "Louis XIV of France is the standard example",
+     "Real royal power was limited by bargaining with elites and institutions"
+    ]
+   },
+   {
+    "sourceId": "CVC2-003",
+    "claims": [
+     "Real royal power was limited by bargaining with elites and institutions"
+    ]
+   }
+  ],
+  "uncertainty": "Many historians question 'absolutism' as a label, since early-modern monarchs' real power was limited by elites, law and custom; the term was applied largely in retrospect, and opinion on its extent varies [CVC2-003]. Britannica notes Louis XIV made surprisingly few institutional changes [CVC2-002].",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Reign dates of Louis XIV and Peter I; divine-right justification; centralisation and its practical limits."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Absolute monarchy was often justified by divine right; the monarch claimed not to be accountable to estates or assemblies",
+     "sources": [
+      "CVC2-001",
+      "CVC2-002"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Louis XIV of France is the standard example",
+     "sources": [
+      "CVC2-002"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Peter I of Russia is often grouped with Louis XIV",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Rulers centralised taxation, armies and administration",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Real royal power was limited by bargaining with elites and institutions",
+     "sources": [
+      "CVC2-002",
+      "CVC2-003"
+     ],
+     "result": "disputed"
+    }
+   ],
+   "notes": "Changed 'Louis XIV of France (reigned 1643 to 1715) and Peter I of Russia (1682 to 1725) are frequent examples' to an undated wording because no credible result stated either reign's dates (only study guides). Unsupported: Peter I's grouping with Louis XIV; centralisation of taxation, armies and administration. Britannica notes Louis XIV made few institutional changes; historians vary on the extent of absolutism. Earlier lane (drafting lane, status unverified): No claim corroborated this session and no source recorded (none invented). Claims to check first: Reign dates of Louis XIV and Peter I; divine-right justification; centralisation and its practical limits."
   },
   "mechanicLink": "Knowledge-only today; PROPOSED as a regime form adoptable in M8 from the standing-army and administration modules, with the government label derived rather than stored."
  },
  {
   "id": "constitutional_monarchy",
   "tree": "civics",
-  "description": "A constitutional monarchy keeps a hereditary monarch but binds the crown by law and by the consent of a legislature. In England, the settlement of 1689, including the Bill of Rights, required parliamentary consent for taxation and for a standing army in peacetime. Over later centuries many such monarchs became largely ceremonial, while ministers answerable to elected chambers exercised power.",
+  "description": "A constitutional monarchy keeps a hereditary monarch but binds the crown by law and by the consent of a legislature. In England, the settlement of 1689, including the Bill of Rights, required parliamentary consent for taxation and for a standing army in peacetime. British monarchs later kept formal powers but became largely ceremonial, as cabinets answerable to the Commons governed.",
   "wordCount": 60,
-  "sources": [],
-  "uncertainty": "The 1689 settlement limited the crown but did not yet create cabinet government; other monarchies were constrained by law or estates before 1689, so the English case is a prominent rather than unique origin.",
+  "sources": [
+   {
+    "sourceId": "CVC2-004",
+    "claims": [
+     "The 1689 Bill of Rights made taxation without parliamentary grant illegal",
+     "The 1689 Bill of Rights required parliamentary consent for a standing army in peacetime"
+    ]
+   },
+   {
+    "sourceId": "CVC2-005",
+    "claims": [
+     "The 1689 Bill of Rights made taxation without parliamentary grant illegal",
+     "The 1689 Bill of Rights required parliamentary consent for a standing army in peacetime"
+    ]
+   },
+   {
+    "sourceId": "CVC2-013",
+    "claims": [
+     "British monarchs kept formal powers while power passed to cabinets answerable to the Commons"
+    ]
+   },
+   {
+    "sourceId": "CVC2-014",
+    "claims": [
+     "British monarchs kept formal powers while power passed to cabinets answerable to the Commons"
+    ]
+   }
+  ],
+  "uncertainty": "The 1689 settlement limited the crown but did not yet create cabinet government, and it claimed to declare existing law rather than introduce new principles [CVC2-006]; other monarchies were constrained by law or estates before 1689, so the English case is a prominent rather than unique origin.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: 1689 Bill of Rights provisions on taxation and peacetime army; later ceremonial role of monarchs."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "The 1689 Bill of Rights made taxation without parliamentary grant illegal",
+     "sources": [
+      "CVC2-004",
+      "CVC2-005"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "The 1689 Bill of Rights required parliamentary consent for a standing army in peacetime",
+     "sources": [
+      "CVC2-004",
+      "CVC2-005"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "British monarchs kept formal powers while power passed to cabinets answerable to the Commons",
+     "sources": [
+      "CVC2-013",
+      "CVC2-014"
+     ],
+     "result": "corrected"
+    }
+   ],
+   "notes": "Changed 'many such monarchs became largely ceremonial, while ministers answerable to elected chambers exercised power' to a claim about British monarchs (formal powers kept, cabinets answerable to the Commons governed) because the results document Britain only. Definitional statements (what the institution is) are treated as definitions, not as material claims. Earlier lane (drafting lane, status unverified): No claim corroborated this session and no source recorded (none invented). Claims to check first: 1689 Bill of Rights provisions on taxation and peacetime army; later ceremonial role of monarchs."
   },
   "mechanicLink": "Knowledge-only today; PROPOSED as a regime form adoptable in M8 from succession law plus a constitution or rights-and-assembly modules, combinable with parliamentary government."
  },
@@ -139,13 +525,63 @@
   "tree": "civics",
   "description": "A federation divides sovereignty between a central government and member states or cantons, each holding powers protected by a constitution. The United States Constitution of 1787 created a durable federal model, and Switzerland adopted a federal constitution in 1848 after a brief civil war. Federations can accommodate regional diversity but must keep settling disputes over which level holds which powers.",
   "wordCount": 60,
-  "sources": [],
-  "uncertainty": "Looser confederations, such as the Dutch Republic and the earlier Swiss Confederacy, preceded these; where confederation ends and federation begins is a matter of definition.",
+  "sources": [
+   {
+    "sourceId": "CVC2-029",
+    "claims": [
+     "The US Constitution of 1787 created a durable federal model"
+    ]
+   },
+   {
+    "sourceId": "CVC2-007",
+    "claims": [
+     "Switzerland adopted a federal constitution in 1848 after a brief civil war (Sonderbund War, 1847)",
+     "Swiss 1848 constitution turned a confederation into a federation and protected cantonal representation"
+    ]
+   },
+   {
+    "sourceId": "CVC2-008",
+    "claims": [
+     "Swiss 1848 constitution turned a confederation into a federation and protected cantonal representation"
+    ]
+   }
+  ],
+  "uncertainty": "Looser confederations, such as the Dutch Republic and the earlier Swiss Confederacy, preceded these; where confederation ends and federation begins is a matter of definition. The 1848 Swiss constitution is described as turning a confederation of states into a federation [CVC2-007].",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: US Constitution 1787 as federal model; Swiss federal constitution 1848 following the Sonderbund war."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "The US Constitution of 1787 created a durable federal model",
+     "sources": [
+      "CVC2-029"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Switzerland adopted a federal constitution in 1848 after a brief civil war (Sonderbund War, 1847)",
+     "sources": [
+      "CVC2-007"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Swiss 1848 constitution turned a confederation into a federation and protected cantonal representation",
+     "sources": [
+      "CVC2-007",
+      "CVC2-008"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Federations accommodate regional diversity but must keep settling disputes over powers",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "CVC2-029 supports the 1787 date and durability (oldest written national constitution in use) but no result text described the federal division of powers explicitly; counted as supported for date/durability only. Unsupported: the closing general statement on diversity and disputes. Definitional statements (what the institution is) are treated as definitions, not as material claims. Earlier lane (drafting lane, status unverified): No claim corroborated this session and no source recorded (none invented). Claims to check first: US Constitution 1787 as federal model; Swiss federal constitution 1848 following the Sonderbund war."
   },
   "mechanicLink": "Knowledge-only today; PROPOSED as a territorial regime form adoptable in M8 from a written constitution plus municipal or provincial modules, combinable with several executive forms."
  },
@@ -154,13 +590,89 @@
   "tree": "civics",
   "description": "A presidential republic has a chief executive elected separately from the legislature for a fixed term, who cannot normally be removed by a vote of no confidence. The United States Constitution of 1787 established the model, later adopted widely in Latin America and elsewhere. Fixed terms give predictability, though conflict between president and legislature can bring deadlock or constitutional crises.",
   "wordCount": 60,
-  "sources": [],
-  "uncertainty": "Removal is still possible through impeachment or similar procedures; many systems mix presidential and parliamentary features, so classification is debated.",
+  "sources": [
+   {
+    "sourceId": "CVC2-010",
+    "claims": [
+     "The chief executive is chosen separately from the legislature, as designed in 1787 to avoid dependence on Congress",
+     "The US Constitution of 1787 established the model"
+    ]
+   },
+   {
+    "sourceId": "CVC2-029",
+    "claims": [
+     "The US Constitution of 1787 established the model"
+    ]
+   },
+   {
+    "sourceId": "CVC2-009",
+    "claims": [
+     "The model was adopted widely in Latin America and elsewhere"
+    ]
+   },
+   {
+    "sourceId": "CVC2-012",
+    "claims": [
+     "Fixed terms (e.g., Mexico's single six-year term)"
+    ]
+   },
+   {
+    "sourceId": "CVC2-011",
+    "claims": [
+     "Not normally removable by a vote of no confidence"
+    ]
+   }
+  ],
+  "uncertainty": "Removal is still possible through impeachment or similar procedures, and some constitutions (e.g., Peru's 1993 'moral incapacity' clause) let legislatures remove presidents by supermajority [CVC2-011]; many systems mix presidential and parliamentary features, so classification is debated.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: US Constitution 1787 as origin of the form; diffusion to Latin America; fixed-term executive."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "The chief executive is chosen separately from the legislature, as designed in 1787 to avoid dependence on Congress",
+     "sources": [
+      "CVC2-010"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "The US Constitution of 1787 established the model",
+     "sources": [
+      "CVC2-010",
+      "CVC2-029"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "The model was adopted widely in Latin America and elsewhere",
+     "sources": [
+      "CVC2-009"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Fixed terms (e.g., Mexico's single six-year term)",
+     "sources": [
+      "CVC2-012"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Not normally removable by a vote of no confidence",
+     "sources": [
+      "CVC2-011"
+     ],
+     "result": "disputed"
+    },
+    {
+     "claim": "Conflict between president and legislature can bring deadlock or crises",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Unsupported: deadlock and constitutional-crisis tendency. The no-confidence point is qualified: Peru's Congress can remove a president for 'moral incapacity', described as a parliamentary trapdoor [CVC2-011]; the text already says 'normally'. Earlier lane (drafting lane, status unverified): No claim corroborated this session and no source recorded (none invented). Claims to check first: US Constitution 1787 as origin of the form; diffusion to Latin America; fixed-term executive."
   },
   "mechanicLink": "Knowledge-only today; PROPOSED as a regime form adoptable in M8 from the separation-of-powers and elected-magistracy modules."
  },
@@ -169,28 +681,108 @@
   "tree": "civics",
   "description": "Abolition is the legal ending of slavery or hereditary bondage, freeing those held and forbidding re-enslavement. Solon cancelled debt bondage at Athens around 594 BCE; Britain's Slavery Abolition Act of 1833 ended slavery in most of its colonies, and Russia emancipated its serfs in 1861. Freed people often faced apprenticeship, redemption debts or land shortages; some former owners received compensation.",
   "wordCount": 60,
-  "sources": [],
-  "uncertainty": "Solon's reform is known from later sources and ended Athenian debt bondage, not chattel slavery. The British Act excluded some territories and imposed apprenticeship until 1838; Russian emancipation required redemption payments. Abolition came through many separate struggles, including enslaved people's own resistance.",
+  "sources": [
+   {
+    "sourceId": "CVC2-036",
+    "claims": [
+     "Britain's Slavery Abolition Act of 1833 ended slavery in most of its colonies, with apprenticeship",
+     "Some former owners received compensation"
+    ]
+   },
+   {
+    "sourceId": "CVC2-037",
+    "claims": [
+     "Some former owners received compensation"
+    ]
+   }
+  ],
+  "uncertainty": "Solon's reform is known from later sources and ended Athenian debt bondage, not chattel slavery. The British Act excluded some territories and imposed apprenticeship until 1838 [CVC2-036] (one parliamentary page says 1840, the originally scheduled end for some workers); owners received GBP 20 million [CVC2-037]. Russian emancipation required redemption payments. Abolition came through many separate struggles, including enslaved people's own resistance.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Solon about 594 BCE; British Act 1833 with apprenticeship and owner compensation; Russian emancipation 1861 with redemption payments."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Solon cancelled debt bondage at Athens around 594 BCE",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Britain's Slavery Abolition Act of 1833 ended slavery in most of its colonies, with apprenticeship",
+     "sources": [
+      "CVC2-036"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Some former owners received compensation",
+     "sources": [
+      "CVC2-036",
+      "CVC2-037"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Russia emancipated its serfs in 1861 with redemption debts",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "One search covered the British Act only. Unsupported: Solon c. 594 BCE; Russian emancipation 1861 and redemption payments. A UK Parliament heritage page gives apprenticeship to 1840 while The National Archives gives 1838 (it ended early, in 1838). Earlier lane (drafting lane, status unverified): No claim corroborated this session and no source recorded (none invented). Claims to check first: Solon about 594 BCE; British Act 1833 with apprenticeship and owner compensation; Russian emancipation 1861 with redemption payments."
   },
   "mechanicLink": "Knowledge-only today; PROPOSED as the D-018 exit from the Enslaved class through the class-mobility system (M9); its unfree-labour counterpart remains an open decision."
  },
  {
   "id": "general_staff",
   "tree": "civics",
-  "description": "A general staff is a permanent body of trained officers who plan mobilisation, gather intelligence and prepare operations in peacetime. Prussia reorganised its staff during reforms between 1806 and 1814 after defeats by Napoleon, and founded a war academy in Berlin in 1810. Other states copied the model after Prussian victories in 1866 and 1870, though planning never removed uncertainty.",
+  "description": "A general staff is a permanent body of trained officers who plan mobilisation, gather intelligence and prepare operations in peacetime. Prussia built one in reforms led by Scharnhorst and Gneisenau after Napoleon defeated it at Jena and Auerstedt, and founded a war academy in Berlin in 1810. It later became the envy of other armies, though planning never removed uncertainty.",
   "wordCount": 60,
-  "sources": [],
-  "uncertainty": "Staff officers and quartermaster-general departments existed in several armies before 1806; the Prussian version is notable for its permanence and training rather than for inventing staff work.",
+  "sources": [
+   {
+    "sourceId": "CVC2-047",
+    "claims": [
+     "Prussia created a permanent staff during reforms led by Scharnhorst and Gneisenau after defeats by Napoleon",
+     "A war academy was founded in Berlin in 1810",
+     "It (the Prussian staff system) later became the envy of other armies"
+    ]
+   }
+  ],
+  "uncertainty": "Staff officers and quartermaster-general departments existed in several armies before 1806; the Prussian version is notable for its permanence and training rather than for inventing staff work. Its prestige grew under Moltke, chief of staff 1857-1887; foreign imitation after the wars of 1866 and 1870 is widely asserted but was not corroborated here.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Prussian staff reform 1806-1814; Berlin war academy 1810; imitation after 1866 and 1870."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Prussia created a permanent staff during reforms led by Scharnhorst and Gneisenau after defeats by Napoleon",
+     "sources": [
+      "CVC2-047"
+     ],
+     "result": "corrected"
+    },
+    {
+     "claim": "A war academy was founded in Berlin in 1810",
+     "sources": [
+      "CVC2-047"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "It (the Prussian staff system) later became the envy of other armies",
+     "sources": [
+      "CVC2-047"
+     ],
+     "result": "corrected"
+    },
+    {
+     "claim": "Planning never removed uncertainty",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Changed 'reorganised its staff during reforms between 1806 and 1814' to 'after Napoleon defeated it at Jena and Auerstedt' (the 1814 end date was unsupported) and 'Other states copied the model after Prussian victories in 1866 and 1870' to 'It later became the envy of other armies' (imitation after 1866/1870 not stated in any result). Unsupported: the closing caveat on uncertainty. Earlier lane (drafting lane, status unverified): No claim corroborated this session and no source recorded (none invented). Claims to check first: Prussian staff reform 1806-1814; Berlin war academy 1810; imitation after 1866 and 1870."
   },
   "mechanicLink": "Knowledge-only today; PROPOSED to feed operational planning and command friction in the battle layer (M7) and to count as an organised officer corps in M8."
  },
@@ -199,13 +791,73 @@
   "tree": "civics",
   "description": "Laws of war conventions are agreements by which states bind their conduct in armed conflict. The Lieber Code of 1863 instructed Union armies in the American Civil War; the Geneva Convention of 1864 protected wounded soldiers and medical staff; the Hague Conventions of 1899 addressed prisoners, occupation and some weapons. Compliance depended on reciprocity and command discipline; violations remained common.",
   "wordCount": 60,
-  "sources": [],
+  "sources": [
+   {
+    "sourceId": "CVC2-038",
+    "claims": [
+     "The Lieber Code of 1863 instructed Union armies"
+    ]
+   },
+   {
+    "sourceId": "CVC2-039",
+    "claims": [
+     "The Lieber Code of 1863 instructed Union armies"
+    ]
+   },
+   {
+    "sourceId": "CVC2-040",
+    "claims": [
+     "The Geneva Convention of 1864 protected wounded soldiers"
+    ]
+   },
+   {
+    "sourceId": "CVC2-041",
+    "claims": [
+     "The Hague Conventions of 1899 addressed war on land"
+    ]
+   }
+  ],
   "uncertainty": "The Lieber Code was a national army order rather than a treaty; customary restraints on war are far older and found in many cultures.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Lieber Code 1863; first Geneva Convention 1864 on wounded and medical personnel; Hague 1899 content."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "The Lieber Code of 1863 instructed Union armies",
+     "sources": [
+      "CVC2-038",
+      "CVC2-039"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "The Geneva Convention of 1864 protected wounded soldiers",
+     "sources": [
+      "CVC2-040"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "The Hague Conventions of 1899 addressed war on land",
+     "sources": [
+      "CVC2-041"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "The 1899 conventions covered prisoners, occupation and some weapons",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Compliance depended on reciprocity and command discipline; violations remained common",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Unsupported: the specific 1899 subjects (prisoners, occupation, weapons) and the compliance sentence. The ICRC notes the Lieber Code bound only US forces but stimulated the Hague conventions [CVC2-039]. Earlier lane (drafting lane, status unverified): No claim corroborated this session and no source recorded (none invented). Claims to check first: Lieber Code 1863; first Geneva Convention 1864 on wounded and medical personnel; Hague 1899 content."
   },
   "mechanicLink": "Knowledge-only today; PROPOSED to make treaty obligations on wartime conduct a diplomatic condition (M8) and to shape treatment of prisoners and wounded in the battle layer (M7)."
  },
@@ -214,13 +866,55 @@
   "tree": "civics",
   "description": "A mass political party is a permanent organisation with local branches, a press and national leadership, built to mobilise voters. In the United States, national party organisations and nominating conventions formed around 1830. Germany's socialist party, created by a merger at Gotha in 1875, became a model of membership organisation. Parties widen participation but can concentrate power in leaderships.",
   "wordCount": 59,
-  "sources": [],
+  "sources": [
+   {
+    "sourceId": "CVC2-053",
+    "claims": [
+     "Germany's socialist party was created by a merger at Gotha in 1875"
+    ]
+   },
+   {
+    "sourceId": "CVC2-054",
+    "claims": [
+     "Germany's socialist party was created by a merger at Gotha in 1875",
+     "It took the name SPD only in 1890"
+    ]
+   }
+  ],
   "uncertainty": "The German party took the name Social Democratic Party only in 1890. Earlier factions and clubs existed in Britain, the United States and revolutionary France; when they became 'mass' parties depends on criteria.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: US national conventions around 1830; Gotha merger 1875; organisational features of mass parties."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "US national party organisations and nominating conventions formed around 1830",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Germany's socialist party was created by a merger at Gotha in 1875",
+     "sources": [
+      "CVC2-053",
+      "CVC2-054"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "It took the name SPD only in 1890",
+     "sources": [
+      "CVC2-054"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "It became a model of membership organisation",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Unsupported: US conventions about 1830; 'model of membership organisation'; the closing general statement. Sources differ on whether the Gotha congress opened on 22 or 23 May 1875. Earlier lane (drafting lane, status unverified): No claim corroborated this session and no source recorded (none invented). Claims to check first: US national conventions around 1830; Gotha merger 1875; organisational features of mass parties."
   },
   "mechanicLink": "Knowledge-only today; PROPOSED as the party-organisation regime module (M8) that carries elections and is required by the one-party and Marxist-Leninist forms."
  },
@@ -229,28 +923,115 @@
   "tree": "civics",
   "description": "Mass suffrage extends the vote to most adults, typically through public registers of electors and, increasingly, a secret ballot. Most US states dropped property qualifications for white men by about 1830; France adopted universal male suffrage in 1848; New Zealand gave women the national vote in 1893. Broad franchises long excluded many people by race, sex, residence or literacy.",
   "wordCount": 59,
-  "sources": [],
+  "sources": [
+   {
+    "sourceId": "CVC2-049",
+    "claims": [
+     "Most US states dropped property qualifications for white men by about 1830"
+    ]
+   },
+   {
+    "sourceId": "CVC2-048",
+    "claims": [
+     "New Zealand gave women the national vote in 1893"
+    ]
+   }
+  ],
   "uncertainty": "Dates vary by country and by group; 'universal' suffrage was rarely universal, and women's and minority voting rights often came decades after men's.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: US property-qualification removal by about 1830; France 1848; New Zealand 1893."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Most US states dropped property qualifications for white men by about 1830",
+     "sources": [
+      "CVC2-049"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "France adopted universal male suffrage in 1848",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "New Zealand gave women the national vote in 1893",
+     "sources": [
+      "CVC2-048"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Broad franchises long excluded many by race, sex, residence or literacy",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Unsupported: France 1848 (not returned by the search); the exclusions sentence. CVC2-049 says New York (1826) was the last state to abolish property qualifications for white men; some states kept taxpaying tests longer, so 'most ... by about 1830' is retained. Earlier lane (drafting lane, status unverified): No claim corroborated this session and no source recorded (none invented). Claims to check first: US property-qualification removal by about 1830; France 1848; New Zealand 1893."
   },
   "mechanicLink": "Knowledge-only today; PROPOSED as the broadest setting of the D-018 enfranchisement vector, weighting headcount, adoptable in M8."
  },
  {
   "id": "ministerial_responsibility",
   "tree": "civics",
-  "description": "Ministerial responsibility is the convention that ministers hold office only while they keep the confidence of the elected chamber. The resignation of Lord North's ministry in 1782, after it lost support in the Commons, is often cited as an early British marker. Nova Scotia won responsible government in 1848. It makes executives accountable but can destabilise governments with fragile majorities.",
+  "description": "Ministerial responsibility is the convention that ministers hold office only while they keep the confidence of the elected chamber. The collapse of Lord North's ministry in 1782, when George III had to accept ministers he opposed, is often cited as an early British marker. Nova Scotia won responsible government in 1848. It makes executives accountable but can destabilise fragile governments.",
   "wordCount": 60,
-  "sources": [],
-  "uncertainty": "The convention developed gradually and was not fixed by any single event; royal influence over ministers persisted in Britain well into the nineteenth century.",
+  "sources": [
+   {
+    "sourceId": "CVC2-015",
+    "claims": [
+     "In 1782 George III had to accept ministers he opposed"
+    ]
+   },
+   {
+    "sourceId": "CVC2-051",
+    "claims": [
+     "Nova Scotia won responsible government in 1848"
+    ]
+   },
+   {
+    "sourceId": "CVC2-052",
+    "claims": [
+     "Nova Scotia won responsible government in 1848"
+    ]
+   }
+  ],
+  "uncertainty": "The convention developed gradually and was not fixed by any single event; royal influence over ministers persisted in Britain well into the nineteenth century. Nova Scotia was the first British North American colony to achieve responsible government (January-February 1848) [CVC2-051, CVC2-052].",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Lord North's resignation 1782 after losing Commons support; Nova Scotia 1848."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "In 1782 George III had to accept ministers he opposed",
+     "sources": [
+      "CVC2-015"
+     ],
+     "result": "corrected"
+    },
+    {
+     "claim": "This followed the collapse of Lord North's ministry after it lost Commons support",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Nova Scotia won responsible government in 1848",
+     "sources": [
+      "CVC2-051",
+      "CVC2-052"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "It makes executives accountable but can destabilise governments with fragile majorities",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Changed 'The resignation of Lord North's ministry in 1782, after it lost support in the Commons, is often cited' to 'The collapse of Lord North's ministry in 1782, when George III had to accept ministers he opposed, is often cited' to match Britannica's wording; North's loss of Commons support was not stated in any result. Unsupported: the closing evaluative sentence. Earlier lane (drafting lane, status unverified): No claim corroborated this session and no source recorded (none invented). Claims to check first: Lord North's resignation 1782 after losing Commons support; Nova Scotia 1848."
   },
   "mechanicLink": "Knowledge-only today; PROPOSED as the responsible-ministry regime module (M8) making the executive dismissible by the legislature, the defining module of parliamentary government."
  },
@@ -259,28 +1040,136 @@
   "tree": "civics",
   "description": "Universal conscription makes military service a legal obligation for men of set ages, enforced through registration and regular call-up. Revolutionary France decreed a levée en masse in 1793, and the Jourdan Law of 1798 established regular conscription by age class. It produced much larger armies but also evasion, desertion and heavy burdens on families and farm labour.",
   "wordCount": 57,
-  "sources": [],
+  "sources": [
+   {
+    "sourceId": "CVC2-044",
+    "claims": [
+     "Revolutionary France decreed a levee en masse in 1793"
+    ]
+   },
+   {
+    "sourceId": "CVC2-045",
+    "claims": [
+     "The Jourdan Law of 1798 established regular conscription by age class"
+    ]
+   },
+   {
+    "sourceId": "CVC2-046",
+    "claims": [
+     "The Jourdan Law of 1798 established regular conscription by age class",
+     "It produced evasion"
+    ]
+   }
+  ],
   "uncertainty": "Compulsory service existed earlier in other forms (for example Swedish and Prussian cantonal recruitment), and 'universal' systems usually allowed exemptions or paid substitutes.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Levée en masse 1793; Jourdan Law 1798 by age class; social costs and evasion."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Revolutionary France decreed a levee en masse in 1793",
+     "sources": [
+      "CVC2-044"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "The Jourdan Law of 1798 established regular conscription by age class",
+     "sources": [
+      "CVC2-045",
+      "CVC2-046"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "It produced evasion",
+     "sources": [
+      "CVC2-046"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "It produced much larger armies, desertion and heavy burdens on families and farm labour",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Britannica describes the 1793 levee as covering unmarried men aged 18-25 and as a one-off mobilisation; the Jourdan Law introduced annual conscription of men aged 20-25 [CVC2-046]. Unsupported: army size, desertion and family burdens. Earlier lane (drafting lane, status unverified): No claim corroborated this session and no source recorded (none invented). Claims to check first: Levée en masse 1793; Jourdan Law 1798 by age class; social costs and evasion."
   },
   "mechanicLink": "Knowledge-only today; PROPOSED to draw battle-layer manpower from registered cohorts (M7) and to feed grievance under the Society milestone (M9)."
  },
  {
   "id": "parliamentary_government",
   "tree": "civics",
-  "description": "Parliamentary government is rule by a cabinet drawn from and responsible to the legislature, governing only while it keeps a majority's confidence. In Britain, cabinet government consolidated between about 1830 and 1870 as the monarch's role in choosing ministers declined. Because executive and legislature are fused, governments can legislate quickly but may fall when coalitions or party majorities break.",
-  "wordCount": 59,
-  "sources": [],
-  "uncertainty": "The date range for British consolidation is an interpretive convention; similar systems developed separately in other European states and in British colonies.",
+  "description": "Parliamentary government is rule by a cabinet drawn from and responsible to the legislature, governing only while it keeps a majority's confidence. In Britain, after the 1832 Reform Act no cabinet could survive without a Commons majority, and by the mid-1800s the cabinet was the senior decision-making body. Fused executives can legislate quickly but fall when majorities break.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "CVC2-013",
+    "claims": [
+     "After the 1832 Reform Act no British cabinet could survive without a Commons majority",
+     "Governments fall when they lose their majority"
+    ]
+   },
+   {
+    "sourceId": "CVC2-014",
+    "claims": [
+     "By the mid-1800s the cabinet was the senior decision-making body",
+     "The monarch's role in choosing ministers declined"
+    ]
+   },
+   {
+    "sourceId": "CVC2-015",
+    "claims": [
+     "The monarch's role in choosing ministers declined"
+    ]
+   }
+  ],
+  "uncertainty": "Dating British consolidation is an interpretive convention: the monarch's practical power to choose ministers eroded from the eighteenth century (Walpole's fall, the 1782 crisis) while the formal power to appoint remained [CVC2-014, CVC2-015]; similar systems developed separately in other European states and in British colonies.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: British cabinet consolidation about 1830-1870; fusion of executive and legislature."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "After the 1832 Reform Act no British cabinet could survive without a Commons majority",
+     "sources": [
+      "CVC2-013"
+     ],
+     "result": "corrected"
+    },
+    {
+     "claim": "By the mid-1800s the cabinet was the senior decision-making body",
+     "sources": [
+      "CVC2-014"
+     ],
+     "result": "corrected"
+    },
+    {
+     "claim": "The monarch's role in choosing ministers declined",
+     "sources": [
+      "CVC2-014",
+      "CVC2-015"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Governments fall when they lose their majority",
+     "sources": [
+      "CVC2-013"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Fused executives can legislate quickly",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Changed 'cabinet government consolidated between about 1830 and 1870 as the monarch's role in choosing ministers declined' to the 1832 Reform Act and mid-1800s markers stated by Britannica and The National Archives; the 1870 end date was not supported. 'Fall when majorities break' is supported by CVC2-013; 'legislate quickly' is unsupported (interpretive), hence partially-checked. Definitional statements (what the institution is) are treated as definitions, not as material claims. Earlier lane (drafting lane, status unverified): No claim corroborated this session and no source recorded (none invented). Claims to check first: British cabinet consolidation about 1830-1870; fusion of executive and legislature."
   },
   "mechanicLink": "Knowledge-only today; PROPOSED as a regime form adoptable in M8 from the responsible-ministry module, with the government label derived rather than stored."
  },
@@ -289,43 +1178,217 @@
   "tree": "civics",
   "description": "Central planning is the direction of an economy's output, investment and allocation by state plans rather than mainly by market prices. The Soviet state created Gosplan, its planning commission, in 1921 and launched the first Five-Year Plan in 1928. Planning drove rapid heavy industrialisation but struggled with information, incentives and quality, and accompanied forced collectivisation and famine.",
   "wordCount": 57,
-  "sources": [],
+  "sources": [
+   {
+    "sourceId": "CVC2-042",
+    "claims": [
+     "The Soviet state created Gosplan in 1921"
+    ]
+   },
+   {
+    "sourceId": "CVC2-043",
+    "claims": [
+     "The first Five-Year Plan was launched in 1928",
+     "Planning drove rapid heavy industrialisation",
+     "It accompanied forced collectivisation and famine"
+    ]
+   }
+  ],
   "uncertainty": "Wartime controlled economies (notably Germany in 1914-1918) preceded Soviet planning; how much the plans actually directed outcomes, as opposed to setting targets, is debated.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Gosplan 1921; first Five-Year Plan 1928; industrialisation and its costs."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "The Soviet state created Gosplan in 1921",
+     "sources": [
+      "CVC2-042"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "The first Five-Year Plan was launched in 1928",
+     "sources": [
+      "CVC2-043"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Planning drove rapid heavy industrialisation",
+     "sources": [
+      "CVC2-043"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "It accompanied forced collectivisation and famine",
+     "sources": [
+      "CVC2-043"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Planning struggled with information, incentives and quality",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Unsupported: the information/incentives/quality critique. Britannica dates the famine to 1932-33 [CVC2-043]. Earlier lane (drafting lane, status unverified): No claim corroborated this session and no source recorded (none invented). Claims to check first: Gosplan 1921; first Five-Year Plan 1928; industrialisation and its costs."
   },
   "mechanicLink": "Knowledge-only today; PROPOSED to allocate production by plan instead of price in the production system (M10 or later) and to serve as the planning module of the Marxist-Leninist form."
  },
  {
   "id": "marxist_leninist_state",
   "tree": "civics",
-  "description": "A Marxist-Leninist state is governed by a communist party claiming to lead the working class, combining one-party rule with state ownership and economic planning. The Soviet Union, founded in 1922, was the first such state; the People's Republic of China followed in 1949. Such states expanded schooling and industry but suppressed opposition, and many collapsed or changed course after 1989.",
-  "wordCount": 60,
-  "sources": [],
+  "description": "A Marxist-Leninist state is ruled by a communist party claiming to lead the working class, combining one-party rule with state ownership and planning. The Soviet Union, founded in 1922, was the first such state; the People's Republic of China followed in 1949. The USSR industrialised rapidly while suppressing opposition, then dissolved in 1991; China remains under communist rule.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "CVC2-016",
+    "claims": [
+     "The Soviet Union was founded in 1922",
+     "One-party rule / suppression of opposition (party monopoly of power)",
+     "The Soviet Union dissolved in 1991; China remains under communist rule"
+    ]
+   },
+   {
+    "sourceId": "CVC2-019",
+    "claims": [
+     "It was the first such state"
+    ]
+   },
+   {
+    "sourceId": "CVC2-017",
+    "claims": [
+     "The People's Republic of China followed in 1949"
+    ]
+   },
+   {
+    "sourceId": "CVC2-018",
+    "claims": [
+     "One-party rule / suppression of opposition (party monopoly of power)",
+     "The Soviet Union dissolved in 1991; China remains under communist rule"
+    ]
+   },
+   {
+    "sourceId": "CVC2-043",
+    "claims": [
+     "The USSR industrialised rapidly (Five-Year Plans)"
+    ]
+   }
+  ],
   "uncertainty": "Bolshevik rule began in 1917, before the USSR's formal founding; the label covers states that differed widely in economic policy and in how they reformed.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: USSR founded 1922; People's Republic of China 1949; post-1989 collapse or reform."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "The Soviet Union was founded in 1922",
+     "sources": [
+      "CVC2-016"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "It was the first such state",
+     "sources": [
+      "CVC2-019"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "The People's Republic of China followed in 1949",
+     "sources": [
+      "CVC2-017"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "One-party rule / suppression of opposition (party monopoly of power)",
+     "sources": [
+      "CVC2-016",
+      "CVC2-018"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "The USSR industrialised rapidly (Five-Year Plans)",
+     "sources": [
+      "CVC2-043"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "The Soviet Union dissolved in 1991; China remains under communist rule",
+     "sources": [
+      "CVC2-016",
+      "CVC2-018"
+     ],
+     "result": "corrected"
+    }
+   ],
+   "notes": "Changed 'expanded schooling and industry but suppressed opposition, and many collapsed or changed course after 1989' to 'The USSR industrialised rapidly while suppressing opposition, then dissolved in 1991; China remains under communist rule' because schooling and the collapse of 'many' states were not in any result, while these replacement facts are. 'First such state' rests on Britannica Kids (medium). Definitional statements (what the institution is) are treated as definitions, not as material claims. Earlier lane (drafting lane, status unverified): No claim corroborated this session and no source recorded (none invented). Claims to check first: USSR founded 1922; People's Republic of China 1949; post-1989 collapse or reform."
   },
   "mechanicLink": "Knowledge-only today; PROPOSED as a regime form adoptable in M8 from the party-organisation and central-planning modules."
  },
  {
   "id": "one_party_state",
   "tree": "civics",
-  "description": "A one-party state allows only one legal political party, or tolerates others only under its control, and merges party and state offices. Soviet Russia was an early case from the early 1920s; the Republican People's Party governed Turkey alone from about 1925 to 1945. Such regimes have pursued very different ideologies, and many claimed to represent the whole nation.",
-  "wordCount": 59,
-  "sources": [],
-  "uncertainty": "Start and end dates are approximate: Turkey's single-party period is variously dated from 1923 or 1925 to 1945 or 1946, and Soviet opposition parties were suppressed gradually after 1917.",
+  "description": "A one-party state allows only one legal political party, or tolerates others only under its control, and merges party and state offices. In Soviet Russia the communist party held a monopoly of power from soon after 1917; the Republican People's Party governed Turkey alone from about 1925 to 1945. Such regimes have pursued very different ideologies.",
+  "wordCount": 56,
+  "sources": [
+   {
+    "sourceId": "CVC2-016",
+    "claims": [
+     "In Soviet Russia the communist party held a monopoly of power from soon after 1917"
+    ]
+   },
+   {
+    "sourceId": "CVC2-020",
+    "claims": [
+     "The Republican People's Party governed Turkey alone from about 1925 to 1945"
+    ]
+   },
+   {
+    "sourceId": "CVC2-021",
+    "claims": [
+     "The Republican People's Party governed Turkey alone from about 1925 to 1945"
+    ]
+   }
+  ],
+  "uncertainty": "Start and end dates are approximate: Turkey became a single-party state with the closure of the Progressive Republican Party in June 1925; the Democrat Party was registered in January 1946, and some accounts extend CHP one-party rule to its 1950 defeat [CVC2-021]. Soviet opposition parties were suppressed gradually after 1917.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Soviet single-party rule from the early 1920s; Turkish single-party period about 1925-1945."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "In Soviet Russia the communist party held a monopoly of power from soon after 1917",
+     "sources": [
+      "CVC2-016"
+     ],
+     "result": "corrected"
+    },
+    {
+     "claim": "The Republican People's Party governed Turkey alone from about 1925 to 1945",
+     "sources": [
+      "CVC2-020",
+      "CVC2-021"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Such regimes have pursued very different ideologies",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Changed 'Soviet Russia was an early case from the early 1920s' to 'the communist party held a monopoly of power from soon after 1917', matching Britannica's statement of a monopoly from the 1917 revolution. Dropped 'and many claimed to represent the whole nation' (unsupported). Unsupported: the closing ideological-diversity sentence. Definitional statements (what the institution is) are treated as definitions, not as material claims. Earlier lane (drafting lane, status unverified): No claim corroborated this session and no source recorded (none invented). Claims to check first: Soviet single-party rule from the early 1920s; Turkish single-party period about 1925-1945."
   },
   "mechanicLink": "Knowledge-only today; PROPOSED as a regime form adoptable in M8 from the party-organisation module plus a written constitution or standing army, independent of economic doctrine."
  }

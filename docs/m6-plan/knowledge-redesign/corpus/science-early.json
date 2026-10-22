@@ -358,22 +358,68 @@
  {
   "id": "calendar_civil",
   "tree": "technology",
-  "description": "Egypt's administrators used a civil year of twelve 30-day months plus five extra days. With no leap day until 22 BCE, its new year slipped through the seasons by about one day every four years, realigning with the dawn rising of Sirius only after some 1,460 years. Its origin is disputed; proposals cluster near 2800 BCE.",
-  "wordCount": 57,
+  "description": "Ancient Egypt's civil calendar had twelve 30-day months plus five extra days. With no leap day until the Roman period, its new year slipped through the seasons by about one day every four years, realigning with the dawn rising of Sirius only after some 1,460 years. Its origin is disputed; proposals cluster near 2800 BCE.",
+  "wordCount": 56,
   "sources": [
    {
     "sourceId": "SCI-030",
     "claims": [
      "12 x 30 + 5 days; no leap day until 22 BCE; drift of a day per four years; 1,461 civil = 1,460 Julian years; origin disputed, proposals near 2780-2770 BCE"
     ]
+   },
+   {
+    "sourceId": "SCI-068",
+    "claims": [
+     "365-day civil year structure; wandering year"
+    ]
+   },
+   {
+    "sourceId": "SCI-069",
+    "claims": [
+     "Sothic cycle; disputed origin near 2800 BCE"
+    ]
    }
   ],
   "uncertainty": "The inauguration date rests on the contested assumption that the calendar began at a Sothic coincidence; the origin of the 365-day count is itself debated (Parker, Neugebauer).",
   "factCheck": {
-   "status": "partially-checked",
-   "checkedBy": "drafting lane",
-   "method": "Claims compared with summarized WebSearch results (2026-10-22) recorded in sources; pages not opened (WebFetch unavailable). Claims listed in notes rest on general knowledge and were not corroborated this session.",
-   "notes": "Only one (reference) source corroborates this entry; the link to Sirius's dawn rising is from the same source. Additional scholarly confirmation not obtained."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Civil year of twelve 30-day months plus five extra days",
+     "sources": [
+      "SCI-068",
+      "SCI-030"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "No leap day until the Roman period; slipped about one day every four years",
+     "sources": [
+      "SCI-030",
+      "SCI-068"
+     ],
+     "result": "corrected"
+    },
+    {
+     "claim": "Realigned with Sirius's dawn rising after some 1,460 years",
+     "sources": [
+      "SCI-069",
+      "SCI-030"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Origin disputed; proposals near 2800 BCE",
+     "sources": [
+      "SCI-069"
+     ],
+     "result": "disputed"
+    }
+   ],
+   "notes": "Changed 'no leap day until 22 BCE' to 'until the Roman period' (the exact reform year rests on a single reference source and varies in the literature); 'Egypt's administrators used' changed to 'Ancient Egypt's civil calendar had'. Scholarly support added (arXiv 2411.08061; ASP conference paper). Earlier notes (drafting lane): Only one (reference) source corroborates this entry; the link to Sirius's dawn rising is from the same source. Additional scholarly confirmation not obtained."
   },
   "mechanicLink": "Knowledge-only today (class C, no simulated effect). Requires calendar_lunar and a script; prerequisite of water_clock. PROPOSED cost correction (institutional factor at law_code's level; 5,910 to 1,760) and mesoamerican_script added as a script alternative."
  },
@@ -728,14 +774,63 @@
     "claims": [
      "Red and black rods; Nine Chapters dating debated"
     ]
+   },
+   {
+    "sourceId": "SCI-066",
+    "claims": [
+     "Blank space for zero in positional rod numerals",
+     "Nine Chapters mainly first century CE"
+    ]
+   },
+   {
+    "sourceId": "SCI-067",
+    "claims": [
+     "Red/black rods in the Han-era text"
+    ]
    }
   ],
   "uncertainty": "The node's ~400 BCE anchor for physical rods (a Chu tomb at Changsha) was not confirmed this session. The Nine Chapters' compilation date is debated (first century BCE to first century CE; earliest surviving commentary 263 CE).",
   "factCheck": {
-   "status": "partially-checked",
-   "checkedBy": "drafting lane",
-   "method": "Claims compared with summarized WebSearch results (2026-10-22) recorded in sources; pages not opened (WebFetch unavailable). Claims listed in notes rest on general knowledge and were not corroborated this session.",
-   "notes": "General knowledge, not corroborated: that a blank column marked zero; dating the Nine Chapters' compilation to Han times."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Rods on a counting board, one column per decimal place, empty column for zero",
+     "sources": [
+      "SCI-066",
+      "SCI-058"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Bamboo slips of about 305 BCE: oldest known decimal multiplication table",
+     "sources": [
+      "SCI-056",
+      "SCI-057"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Nine Chapters compiled by Han times (mainly first century CE; dating debated)",
+     "sources": [
+      "SCI-066",
+      "SCI-059"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Red and black rods for positive and negative quantities in solving linear equations",
+     "sources": [
+      "SCI-059",
+      "SCI-067",
+      "SCI-058"
+     ],
+     "result": "supported"
+    }
+   ],
+   "notes": "Blank-for-zero and Han-era compilation now supported (Counting rods reference; Northwest University report). No text change. Earlier notes (drafting lane): General knowledge, not corroborated: that a blank column marked zero; dating the Nine Chapters' compilation to Han times."
   },
   "mechanicLink": "NEW node, PROPOSED: requires chinese_script and on completion writes a knowledge row only. With geometry_practical it opens algebra as an alternative to hindu_arabic, and through algebra it can satisfy the research stage atom."
  },

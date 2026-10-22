@@ -165,7 +165,7 @@ def render_matrix(tech, civ):
         L = [f"# Capability–dependency matrix — {BRANCH_TITLE.get(br, 'Civics (Tree 2)')}", "", GEN, "",
              "PROPOSED. One row per active node. `default` texts are the package-wide defaults stated in "
              "`capability-dependency-matrix.md` §2.", "",
-             "| key | id | prerequisites | capability grants | inputs (resources · geography · infrastructure · institutions) | downstream consumers | realization owner | milestone · status | AI valuation | missing inputs | unknown resource | player communication | acceptance test | migration |",
+             "| key | id | prerequisites | capability grants | inputs (resources · geography · infrastructure · institutions) | downstream consumers | realization owner | milestone · status · realization class | AI valuation | missing inputs | unknown resource | player communication | acceptance test | migration |",
              "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
         for n in rows:
             c = n.get("capability") or {}
@@ -178,7 +178,7 @@ def render_matrix(tech, civ):
             L.append("| " + " | ".join([
                 str(n["key"]), f"`{n['id']}`", esc(n.get("prereq")), grants_cell(c, 8), esc(inp_s),
                 esc(", ".join(deps[:8]) + (f" (+{len(deps) - 8})" if len(deps) > 8 else "")) if deps else "—",
-                esc(c.get("realizationOwner")), esc(f"{c.get('milestone')} · {c.get('status')}"),
+                esc(c.get("realizationOwner")), esc(f"{c.get('milestone')} · {c.get('status')} · **{c.get('realizationClass', '—')}**"),
                 esc(cap_field(c, "aiValuation")), esc(cap_field(c, "missingInputs")),
                 esc(cap_field(c, "unknownResource")), esc(cap_field(c, "playerCommunication")),
                 esc(n.get("acceptanceTest") or "covered by the lane's packet acceptance (roadmap)"), esc(mig)]) + " |")
@@ -218,10 +218,32 @@ def _tbl(rows, cols, heads=None):
     return out
 
 
-def render_civics_overview(civ):
+def legacy_entity_changes(civ, tech):
+    """Per legacy (existing) civic: entity requirement changes that drop or add it (from technology-tree-proposal.json
+    entityChanges) - computed so the summary cannot drift from the data."""
+    legacy = sorted((n for n in civ["nodes"] if n["status"] == "existing"), key=lambda n: n["key"])
+    out = {}
+    for n in legacy:
+        drops, adds = [], []
+        for ch in (tech or {}).get("entityChanges") or []:
+            old = set(kr.atoms(kr.parse(ch.get("oldRequires")))) if ch.get("oldRequires") else set()
+            new = set(kr.atoms(kr.parse(ch.get("newRequires")))) if ch.get("newRequires") else set()
+            if n["id"] in old and n["id"] not in new:
+                drops.append(ch["entity"])
+            elif n["id"] in new and n["id"] not in old:
+                adds.append(ch["entity"])
+        out[n["id"]] = (n, drops, adds)
+    return out
+
+
+def render_civics_overview(civ, tech=None):
     m = civ.get("civicsMeta") or {}
     nodes = [n for n in civ["nodes"] if n["status"] != "retired"]
     by_id = {n["id"]: n for n in nodes}
+    leg = legacy_entity_changes(civ, tech)
+    content_changed = sum(1 for n, _d, _a in leg.values()
+                          if n.get("prereqChanged") or abs((n.get("oldCost") or 0) - (n.get("cost") or 0)) >= 0.5)
+    repointed = sorted(i for i, (_n, d, a) in leg.items() if d or a)
     L = ["# Civics tree proposal (Tree 2)", "", GEN, "",
          "**Status: " + esc(m.get("status") or "PROPOSED") + "**", "",
          f"Cost unit: **{esc(m.get('costUnit'))}** — {esc(m.get('costUnitNote'))} Per-civic detail: "
@@ -229,8 +251,11 @@ def render_civics_overview(civ):
          "`research/lane-notes/D12-civics.md`; canonical data: `civics-tree-proposal.json`.", ""]
     c = m.get("counts") or {}
     L += ["## 1. Summary", "",
-          f"- Existing civics: {c.get('existingCivics')} (kept {c.get('existingKept')}, changed {c.get('existingChanged')}); "
-          f"new micro-civics {c.get('newMicro')}; new macro-civics (regime forms) {c.get('newMacro')}; total {len(nodes)}.",
+          f"- Existing civics: {c.get('existingCivics')} (legacy keys 1001–1007, all kept; content fields changed: "
+          f"{content_changed} — key, id, name, Age, prerequisite, factors and cost are unchanged; consumer re-points "
+          f"proposed under OD-05 for {len(repointed)} ({', '.join(repointed) or 'none'}); funding pool RP → CP for all "
+          f"{len(leg)} if D-061 is ratified — see §4a); new micro-civics {c.get('newMicro')}; new macro-civics (regime "
+          f"forms) {c.get('newMacro')}; total {len(nodes)}.",
           f"- New civics total cost: {c.get('newCivicsTotalCost'):,.0f} points." if c.get('newCivicsTotalCost') else "",
           "- By strand: " + ", ".join(f"{k} {v}" for k, v in (c.get("byStrand") or {}).items()),
           "- By primary milestone: " + ", ".join(f"{k} {v}" for k, v in (c.get("byPrimaryMilestone") or {}).items()),
@@ -239,6 +264,22 @@ def render_civics_overview(civ):
     L += ["## 3. Strands", ""] + _tbl(m.get("strands") or [], ["id", "name", "scope", "existing", "new"]) + [""]
     L += ["## 4. Gate audit — every civic gate today", ""] + \
         _tbl(m.get("gateAudit") or [], ["id", "gate", "current", "civicAtoms", "classification", "evidence", "recommendation"]) + [""]
+    la = m.get("legacyAudit") or {}
+    if la:
+        L += ["## 4a. Legacy civics audit (keys 1001–1007)", "", f"**Status.** {esc(la.get('status'))}", "",
+              f"**Anchor rule.** {esc(la.get('anchorRule'))}", "",
+              f"**'Changed 0' reconciled.** {esc(la.get('changedZeroReconciliation'))}", "",
+              "| key | id | old prerequisites | proposed prerequisites | consumers / gates today (MEASURED) | proposed consumer changes | entity re-points (computed from entityChanges) | disposition | compatibility risk | migration / test implications | recommendation |",
+              "|---|---|---|---|---|---|---|---|---|---|---|"]
+        for r in la.get("rows") or []:
+            n, d, a = leg.get(r["id"], (None, [], []))
+            rp = "; ".join([f"drops {x}" for x in d] + [f"adds {x}" for x in a]) or "none"
+            L.append("| " + " | ".join([str(r.get("key")), f"`{r.get('id')}`", esc(r.get("oldPrereq")),
+                                        esc(r.get("proposedPrereq")), esc(r.get("consumersToday")),
+                                        esc(r.get("proposedConsumerChanges")), esc(rp), esc(r.get("disposition")),
+                                        esc(r.get("compatibilityRisk")), esc(r.get("migrationTests")),
+                                        esc(r.get("recommendation"))]) + " |")
+        L += [""] + [f"- {esc(x)}" for x in la.get("findings") or []] + ["", f"Source: {esc(la.get('source'))}.", ""]
     so = m.get("stageAtomOptions") or {}
     L += ["## 5. The research-stage civic atom", "", f"**Question.** {esc(so.get('question'))}", "",
           f"**Measured baseline.** {esc(so.get('measuredBaseline'))}", ""]
@@ -358,7 +399,7 @@ def main():
     m = render_matrix(tech, civ)
     render_civics(civ)
     if civ.get("civicsMeta"):
-        render_civics_overview(civ)
+        render_civics_overview(civ, tech)
     c = render_corpus(tech, civ, corpus, reg) if corpus else []
     if reg:
         render_register(reg)

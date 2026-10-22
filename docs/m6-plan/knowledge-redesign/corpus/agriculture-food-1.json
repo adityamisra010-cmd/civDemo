@@ -2,8 +2,8 @@
  {
   "id": "fishing_hook",
   "tree": "technology",
-  "description": "At Jerimalai rock shelter in East Timor, layers about 42,000 years old hold thousands of fish bones, many from tuna and other open-sea species. Catching them implies boats, planning and offshore skill. How they were caught, by hook, trolled line or net, is unresolved: the site's oldest shell hook is younger, about 23,000 to 16,000 years old.",
-  "wordCount": 60,
+  "description": "At Jerimalai rock shelter in East Timor, layers about 42,000 years old hold thousands of fish bones, many from tuna and other open-sea species. Catching them implies planning and seagoing skill. How they were caught, by hook, trolled line or net, is unresolved: the site's oldest shell hook is younger, about 23,000 to 16,000 years old.",
+  "wordCount": 59,
   "sources": [
    {
     "sourceId": "AGR1-001",
@@ -22,10 +22,39 @@
   ],
   "uncertainty": "The node's 'line fishing' framing is an inference: the 42,000-year evidence is fish bone, not line or hook; press reports of 42,000-year-old hooks conflict with the excavator's own dating of the hook.",
   "factCheck": {
-   "status": "partially-checked",
-   "checkedBy": "drafting lane",
-   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
-   "notes": "General knowledge, not corroborated: that open-sea fishing required boats (stated as an implication by the authors, not proven)."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Jerimalai fish bones about 42,000 years old, many tuna and other open-sea species",
+     "sources": [
+      "AGR1-001"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Catching them implies planning and seagoing skill",
+     "sources": [
+      "AGR1-001"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Capture method unresolved; oldest shell hook about 23,000-16,000 years old",
+     "sources": [
+      "AGR1-002"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Implies boats",
+     "sources": [],
+     "result": "corrected"
+    }
+   ],
+   "notes": "Changed 'implies boats, planning and offshore skill' to 'implies planning and seagoing skill', matching the authors' stated implication (maritime technology) without asserting boats. No new search needed; claims rest on AGR1-001/002 as recorded by the drafting lane. Earlier notes (drafting lane): General knowledge, not corroborated: that open-sea fishing required boats (stated as an implication by the authors, not proven)."
   },
   "mechanicLink": "Knowledge-only today (no simulated effect); PROPOSED and deferred (M10+): an offshore fish stock worked by the Herding/fishing sector and reachable only by boat from a coast."
  },
@@ -67,8 +96,8 @@
  {
   "id": "cereal_cultivation",
   "tree": "technology",
-  "description": "Before genetic domestication, people sowed, tended and reaped wild cereal stands. In the Levant's Pre-Pottery Neolithic A, roughly 11,500 years ago, wild emmer, einkorn and barley were cultivated, judged from arable weeds and larger grains, though whether those grains reflect selection or wetter conditions is debated. Similar cultivation began independently with millet, rice and maize in China and Mexico.",
-  "wordCount": 60,
+  "description": "Before domestication, people sowed, tended and reaped wild cereal stands. In the Levant's Pre-Pottery Neolithic A, about 11,600 to 10,700 years ago, wild emmer, einkorn and barley were cultivated, judged from arable weeds and larger grains, though whether those grains reflect selection or wetter conditions is debated. Similar cultivation began independently with millet, rice and maize in China and Mexico.",
+  "wordCount": 62,
   "sources": [
    {
     "sourceId": "AGR1-005",
@@ -101,14 +130,53 @@
     "claims": [
      "Maize domestication in the Balsas valley, Mexico"
     ]
+   },
+   {
+    "sourceId": "AGR1-099",
+    "claims": [
+     "PPNA cultivation of wild cereals about 11,600-10,700 years ago"
+    ]
+   },
+   {
+    "sourceId": "AGR1-100",
+    "claims": [
+     "Regional diversity in timing of cultivation"
+    ]
    }
   ],
   "uncertainty": "The proposal's emerged field reads '~11,500 BCE Levant (PPNA)'; the PPNA began about 11,500-11,700 years ago (about 9,500-9,700 BCE), so the field appears to mix BP and BCE. Pre-domestication cultivation is inferred, not directly observed.",
   "factCheck": {
-   "status": "partially-checked",
-   "checkedBy": "drafting lane",
-   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
-   "notes": "General knowledge, not corroborated: the approximate start of the PPNA (about 11,500 years ago)."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "PPNA wild-cereal cultivation about 11,600-10,700 years ago",
+     "sources": [
+      "AGR1-099",
+      "AGR1-007"
+     ],
+     "result": "corrected"
+    },
+    {
+     "claim": "Wild emmer, einkorn and barley cultivated; larger grains possibly from growing conditions (debated)",
+     "sources": [
+      "AGR1-005"
+     ],
+     "result": "disputed"
+    },
+    {
+     "claim": "Independent cultivation with millet, rice and maize in China and Mexico",
+     "sources": [
+      "AGR1-011",
+      "AGR1-009",
+      "AGR1-012"
+     ],
+     "result": "supported"
+    }
+   ],
+   "notes": "Changed 'roughly 11,500 years ago' to 'about 11,600 to 10,700 years ago' (PNAS-based archaeobotanical review); all dates in the text are now in years before present. The proposal's '~11,500 BCE' still mixes BP and BCE. Earlier notes (drafting lane): General knowledge, not corroborated: the approximate start of the PPNA (about 11,500 years ago)."
   },
   "mechanicLink": "Realized today: grants activity.farming and the A2 cultivation age fact; PROPOSED and deferred: crop-package suitability by climate, water and soil in the Farming land side."
  },
@@ -180,8 +248,8 @@
  {
   "id": "millet",
   "tree": "technology",
-  "description": "Broomcorn and foxtail millet, grasses that tolerate drought and short growing seasons, were the founding grains of farming in northern China, grown with rainfall rather than irrigation. At Cishan in Hebei, a 2009 study dated domesticated broomcorn millet to about 10,000 years ago, although some archaeologists question its sampling. Where and when each millet was first domesticated remains open.",
-  "wordCount": 60,
+  "description": "Broomcorn and foxtail millet, grasses that tolerate drought and short growing seasons, were the founding grains of farming in northern China. At Cishan in Hebei, a 2009 study dated domesticated broomcorn millet to about 10,000 years ago, although some archaeologists question its sampling and dates. Where and when each millet was first domesticated remains open.",
+  "wordCount": 56,
   "sources": [
    {
     "sourceId": "AGR1-010",
@@ -196,22 +264,78 @@
      "Broomcorn and foxtail millet the two grains of early north Chinese farming",
      "Place and time of domestication unresolved"
     ]
+   },
+   {
+    "sourceId": "AGR1-101",
+    "claims": [
+     "Millets yield with about 300 mm rain; heat tolerance"
+    ]
+   },
+   {
+    "sourceId": "AGR1-102",
+    "claims": [
+     "Foxtail and broomcorn millet as drought-tolerant models"
+    ]
+   },
+   {
+    "sourceId": "AGR1-103",
+    "claims": [
+     "Short growing season under dry, hot conditions"
+    ]
    }
   ],
   "uncertainty": "Cishan's early dates and crop identifications are disputed; the proposal's emerged field (~8,000 BCE Cishan) lies within the debated range.",
   "factCheck": {
-   "status": "partially-checked",
-   "checkedBy": "drafting lane",
-   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
-   "notes": "General knowledge, not corroborated: millets' drought and short-season tolerance; rain-fed (non-irrigated) cultivation."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Broomcorn and foxtail millet tolerate drought and short growing seasons",
+     "sources": [
+      "AGR1-101",
+      "AGR1-102",
+      "AGR1-103"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Founding grains of farming in northern China",
+     "sources": [
+      "AGR1-011"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Cishan 2009 study: domesticated broomcorn millet about 10,000 years ago, questioned",
+     "sources": [
+      "AGR1-010"
+     ],
+     "result": "disputed"
+    },
+    {
+     "claim": "Where and when each millet was first domesticated remains open",
+     "sources": [
+      "AGR1-011"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Grown with rainfall rather than irrigation",
+     "sources": [],
+     "result": "corrected"
+    }
+   ],
+   "notes": "Removed 'grown with rainfall rather than irrigation' (not supported by any result); added 'and dates' to the Cishan caveat, matching AGR1-010. Earlier notes (drafting lane): General knowledge, not corroborated: millets' drought and short-season tolerance; rain-fed (non-irrigated) cultivation."
   },
   "mechanicLink": "Realized today as a member of activity.farming (all crop members currently give the same yield); PROPOSED and deferred: crop-package suitability by climate, water and soil in the Farming land side."
  },
  {
   "id": "maize",
   "tree": "technology",
-  "description": "Maize descends from teosinte, a wild grass of southwestern Mexico whose small, hard-cased ears look little like a corncob. Evidence from the Central Balsas River valley, where the closest wild relative still grows, places early domesticated maize about 8,700 years ago. Farmers gradually selected larger ears with exposed kernels, and maize spread through the Americas, becoming a staple.",
-  "wordCount": 59,
+  "description": "Maize descends from teosinte, a wild grass of southwestern Mexico whose small ears hold kernels in hard, indigestible cases. Evidence from the Central Balsas River valley, where the closest wild relative still grows, places early domesticated maize about 8,700 years ago. Farmers gradually selected larger cobs whose softer-cased kernels stay attached, and maize spread north and south.",
+  "wordCount": 58,
   "sources": [
    {
     "sourceId": "AGR1-012",
@@ -219,14 +343,66 @@
      "Earliest maize domestication evidence in the Central Balsas valley about 8,700 years ago",
      "Balsas teosinte the wild grass closest to maize"
     ]
+   },
+   {
+    "sourceId": "AGR1-104",
+    "claims": [
+     "Balsas origin; attached kernels; larger cobs; spread north and south"
+    ]
+   },
+   {
+    "sourceId": "AGR1-105",
+    "claims": [
+     "Hard indigestible teosinte kernel casing"
+    ]
    }
   ],
   "uncertainty": "Earliest phases are debated; when maize became a dominant staple varied by region (the proposal's '~2,000 BCE' was not corroborated).",
   "factCheck": {
-   "status": "partially-checked",
-   "checkedBy": "drafting lane",
-   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
-   "notes": "General knowledge, not corroborated: teosinte ear morphology; selection for larger ears; spread through the Americas."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Teosinte, wild grass of southwestern Mexico, small ears with hard indigestible kernel cases",
+     "sources": [
+      "AGR1-105",
+      "AGR1-104",
+      "AGR1-012"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Central Balsas valley, about 8,700 years ago",
+     "sources": [
+      "AGR1-012",
+      "AGR1-104"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Selection for larger cobs with softer-cased, attached kernels",
+     "sources": [
+      "AGR1-104",
+      "AGR1-105"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Maize spread north and south",
+     "sources": [
+      "AGR1-104"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "'Becoming a staple'",
+     "sources": [],
+     "result": "corrected"
+    }
+   ],
+   "notes": "Made the teosinte description specific (hard, indigestible kernel cases; kernels that stay attached in maize) per eLife and Fedoroff; removed 'becoming a staple' (timing varies by region and was not supported) and changed 'spread through the Americas' to the sourced 'spread north and south'. Earlier notes (drafting lane): General knowledge, not corroborated: teosinte ear morphology; selection for larger ears; spread through the Americas."
   },
   "mechanicLink": "Realized today as a member of activity.farming (all crop members currently give the same yield); PROPOSED and deferred: crop-package suitability by climate, water and soil in the Farming land side."
  },
@@ -249,14 +425,58 @@
      "Spread to India in under 1,000 years",
      "Eastern Sudan a gateway toward the Red Sea and Indian Ocean"
     ]
+   },
+   {
+    "sourceId": "AGR1-101",
+    "claims": [
+     "Pearl millet and sorghum drought and heat tolerance; Sahel"
+    ]
+   },
+   {
+    "sourceId": "AGR1-103",
+    "claims": [
+     "Pearl millet yield under drought and heat stress"
+    ]
    }
   ],
   "uncertainty": "Sorghum's exact domestication centre and timing are debated; the proposal's '~3,000 BCE Sahel' is a simplification of two crops on different timelines.",
   "factCheck": {
-   "status": "partially-checked",
-   "checkedBy": "drafting lane",
-   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
-   "notes": "General knowledge, not corroborated: heat and drought adaptation of both crops."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Cereals suited to heat and erratic rain",
+     "sources": [
+      "AGR1-101",
+      "AGR1-103"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Wild and domesticated sorghum chaff in eastern Sudan pottery, fourth millennium BCE",
+     "sources": [
+      "AGR1-014"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Domesticated pearl millet in southeastern Mali, third millennium BCE",
+     "sources": [
+      "AGR1-013"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Both crossed to India; pearl millet within about a thousand years",
+     "sources": [
+      "AGR1-013"
+     ],
+     "result": "supported"
+    }
+   ],
+   "notes": "Heat and drought adaptation now supported (FAO: millets yield with about 300 mm rain, sorghum about 400 mm; pearl millet highest yield of millets under drought and heat). No text change. Earlier notes (drafting lane): General knowledge, not corroborated: heat and drought adaptation of both crops."
   },
   "mechanicLink": "Realized today as a member of activity.farming (all crop members currently give the same yield); PROPOSED and deferred: crop-package suitability by climate, water and soil in the Farming land side."
  },
@@ -994,14 +1214,16 @@
  {
   "id": "heavy_plough",
   "tree": "technology",
-  "description": "The heavy plough combined a knife-like coulter, an iron share and a mouldboard, often on wheels and drawn by several oxen. It could cut and turn the wet clay soils of northern Europe that resisted the ard. Linguistic evidence suggests Slavic peoples used it by the sixth century CE; how fast it spread and what it changed remain debated.",
-  "wordCount": 59,
+  "description": "The heavy plough combined a coulter, an iron share and a mouldboard, and might need up to eight oxen. It turned the wet clay soils of northern Europe that resisted the ard. Linguistic evidence suggests Slavic peoples used it by the sixth century CE, and it is recorded in Italy's Po valley by 643; how fast it spread is debated.",
+  "wordCount": 60,
   "sources": [
    {
     "sourceId": "AGR1-065",
     "claims": [
      "Heavy plough with coulter and mouldboard",
-     "Linguistic evidence of Slavic use by about AD 568"
+     "Linguistic evidence of Slavic use by about AD 568",
+     "Up to eight oxen; wet clay soils",
+     "Po valley by 643"
     ]
    },
    {
@@ -1018,12 +1240,57 @@
     ]
    }
   ],
-  "uncertainty": "Origin (Slavic or otherwise) rests on linguistic rather than archaeological evidence; Lynn White's thesis on its social effects is contested.",
+  "uncertainty": "Origin is not settled: Slavic use rests on linguistic evidence, while the carruca is recorded in the Po valley by 643 and south-western Germany by 720; Lynn White's thesis on its social effects is contested. Wheeled forecarriages are not confirmed as standard.",
   "factCheck": {
-   "status": "partially-checked",
-   "checkedBy": "drafting lane",
-   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
-   "notes": "General knowledge, not corroborated: wheeled forecarriage and multi-ox teams."
+   "status": "search-corroborated",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Coulter, iron share and mouldboard; might need up to eight oxen",
+     "sources": [
+      "AGR1-065"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Turned wet clay soils of northern Europe that resisted the ard",
+     "sources": [
+      "AGR1-065",
+      "AGR1-066"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Linguistic evidence: Slavic use by the sixth century CE",
+     "sources": [
+      "AGR1-065"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Recorded in the Po valley by 643",
+     "sources": [
+      "AGR1-065"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Pace of spread debated",
+     "sources": [
+      "AGR1-067",
+      "AGR1-066"
+     ],
+     "result": "disputed"
+    },
+    {
+     "claim": "Often on wheels",
+     "sources": [],
+     "result": "corrected"
+    }
+   ],
+   "notes": "Removed 'often on wheels' (a wheeled forecarriage was not confirmed for the heavy plough); 'drawn by several oxen' made specific as 'might need up to eight oxen' (hedged in sources); added the Po valley record of 643 so the Slavic linguistic evidence is not presented as a single origin; dropped 'what it changed' (Lynn White debate kept in uncertainty). Earlier notes (drafting lane): General knowledge, not corroborated: wheeled forecarriage and multi-ox teams."
   },
   "mechanicLink": "Realized today: grants the A6 heavy-plough age fact; PROPOSED and deferred: heavy clay counted as effective arable and a lower fallow share in the Farming land side."
  },
@@ -1366,8 +1633,8 @@
  {
   "id": "farm_machinery",
   "tree": "technology",
-  "description": "Before engines reached farms, horse-powered machines began replacing hand labour. Andrew Meikle's threshing machine, first used in Scotland in 1786 and patented in 1788, separated grain from straw. Mechanical reapers followed from Patrick Bell in 1828, Cyrus McCormick in 1831 and Obed Hussey in 1833, and John Deere made his first steel plough in 1837.",
-  "wordCount": 55,
+  "description": "Before engines reached farms, horse-drawn machines began replacing hand labour. Andrew Meikle's threshing machine, first used in Scotland in 1786, separated grain from straw. Patrick Bell's 1828 reaper was pushed by two horses; in the United States Cyrus McCormick (1831) and Obed Hussey (1833) built rival reapers, with priority disputed. John Deere made his first steel plough in 1837.",
+  "wordCount": 59,
   "sources": [
    {
     "sourceId": "AGR1-090",
@@ -1392,14 +1659,68 @@
     "claims": [
      "Deere's first steel plough 1837, Grand Detour"
     ]
+   },
+   {
+    "sourceId": "AGR1-098",
+    "claims": [
+     "Bell's 1827-28 reaper, propelled by two horses"
+    ]
    }
   ],
-  "uncertainty": "Priority among reaper inventors was contested at the time; John Lane is reported to have built a steel plough in 1833.",
+  "uncertainty": "Priority among reaper inventors was contested at the time and since (William Manning held a US reaper patent of 3 May 1831; McCormick's credit as inventor is disputed); Meikle's 1788 patent was not confirmed; John Lane is reported to have built a steel plough in 1833.",
   "factCheck": {
    "status": "partially-checked",
-   "checkedBy": "drafting lane",
-   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
-   "notes": "General knowledge, not corroborated: horse power as the motive power of these early machines."
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Horse-drawn machines preceded engines on farms (Bell's reaper pushed by two horses)",
+     "sources": [
+      "AGR1-098"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Meikle's threshing machine first used in Scotland in 1786",
+     "sources": [
+      "AGR1-090"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Meikle patent of 1788",
+     "sources": [
+      "AGR1-090"
+     ],
+     "result": "corrected"
+    },
+    {
+     "claim": "Bell's reaper 1828",
+     "sources": [
+      "AGR1-091",
+      "AGR1-092",
+      "AGR1-098"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "McCormick (1831) and Hussey (1833) reapers, priority disputed",
+     "sources": [
+      "AGR1-090",
+      "AGR1-091"
+     ],
+     "result": "disputed"
+    },
+    {
+     "claim": "Deere's first steel plough 1837",
+     "sources": [
+      "AGR1-093"
+     ],
+     "result": "supported"
+    }
+   ],
+   "notes": "Changed 'horse-powered' framing to cite Bell's two-horse reaper (Science Museum); removed 'patented in 1788' because only a low-confidence magazine source (AGR1-090) states it and this pass's search could not confirm it; McCormick/Hussey now phrased as rivals with disputed priority because sources contest McCormick's 1831 credit (William Manning held a US reaper patent of May 1831). Meikle 1786 still rests on a low-confidence press source, so status stays partially-checked. Earlier notes (drafting lane): General knowledge, not corroborated: horse power as the motive power of these early machines."
   },
   "mechanicLink": "PROPOSED and deferred: farm implements as an equipment good (iron, timber) raising output per farmer on the labour side."
  },

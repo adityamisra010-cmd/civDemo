@@ -78,20 +78,20 @@ Vaccination replaced smallpox material with cowpox, a related cattle disease, gi
 
 ### 294 · Surgical anaesthesia (`anaesthesia`)
 
-Surgical anaesthesia makes a patient insensible to pain for the length of an operation. In Boston in 1846, William Morton publicly demonstrated ether during surgery at Massachusetts General Hospital, and chloroform followed in Edinburgh in 1847. In Japan, Hanaoka Seishū had operated under an herbal general anaesthetic in 1804. Painless surgery permitted slower, more deliberate operations.
+Surgical anaesthesia makes a patient insensible to pain during an operation. In Boston in 1846, William Morton publicly demonstrated ether at Massachusetts General Hospital, though Crawford Long had used ether in Georgia from 1842 and priority remains contested. James Simpson introduced chloroform in Scotland in 1847. In Japan, Hanaoka Seishū had operated under his own anaesthetic formula in 1804.
 
-- words: 56 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
-- uncertainty: Priority is disputed: Crawford Long used ether in Georgia from 1842 but published later, and Horace Wells tried nitrous oxide in 1845. Hanaoka's method did not spread beyond Japan.
+- words: 59 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [MED-021] Morton 1846 public demonstration at Massachusetts General Hospital, Simpson introduced chloroform in 1847, Scotland; [MED-020] Long used ether from 1842, published 1849; priority contested; [MED-022] Hanaoka 1804 operation under his anaesthetic formula
+- uncertainty: Priority is disputed: Crawford Long used ether in Georgia from 1842 but published only in 1849, and Horace Wells used nitrous oxide for dental extraction from 1844. Hanaoka's work was little known outside Japan.
 - relation to mechanics: Knowledge-only ('long, deliberate surgery'); PROPOSED M9 operative-mortality term with hospitals; prerequisite of antiseptic surgery.
 
 ### 295 · Germ theory (`germ_theory`)
 
-Germ theory holds that specific microorganisms cause specific infectious diseases. Microbes had been seen through Leeuwenhoek's microscopes in the 1670s, but evidence for disease causation came between about 1860 and 1880. Louis Pasteur linked microbes to fermentation and spoilage, and Robert Koch tied anthrax (1876) and then tuberculosis (1882) to identified bacteria using culture and staining.
+Germ theory holds that specific microorganisms cause specific infectious diseases. Leeuwenhoek had first seen bacteria through his microscopes nearly two centuries earlier, but evidence for disease causation came between the 1860s and the 1880s. Louis Pasteur linked microbes to fermentation and spoilage, and Robert Koch tied anthrax (1876) and then tuberculosis (1882) to identified bacteria using culture and staining.
 
-- words: 56 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
-- uncertainty: Earlier contagion ideas (for example Fracastoro, 1546) preceded the theory; acceptance was gradual and contested into the 1880s and beyond.
+- words: 59 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [MED-023] Definition; [MED-024] Leeuwenhoek first observed bacteria, Pasteur: fermentation and souring caused by microorganisms, Koch anthrax 1876, tuberculosis 1882; [MED-025] Koch anthrax 1876, tuberculosis 1882, Culture and staining methods
+- uncertainty: Earlier contagion ideas (for example Fracastoro, 1546; Henle, 1840) preceded the theory; acceptance was gradual and contested into the 1880s and beyond.
 - relation to mechanics: Realized today: A8 supporting Age fact (a8_germ) and requirement of infra.sewerage_system; PROPOSED M9 transmission channel in which hygiene and sanitation lower transmission where realized.
 
 ### 296 · Antiseptic and aseptic surgery (`antisepsis`)
@@ -114,11 +114,11 @@ Penicillin was the first antibiotic to be produced industrially. Alexander Flemi
 
 ### 325 · Broad-spectrum antibiotics (`antibiotic_broad`)
 
-Later antibiotics widened the range of bacteria that drugs could treat. Streptomycin, isolated from a soil microbe in Selman Waksman's laboratory in 1943, was the first effective drug against tuberculosis. Chloramphenicol (1947) and the tetracyclines (from 1948) followed, found by screening soil organisms and made with fermentation methods developed for penicillin.
+Later antibiotics widened the range of bacteria that drugs could treat. Streptomycin, isolated from a soil microbe by Albert Schatz in Selman Waksman's laboratory in 1943, soon proved effective against tuberculosis; credit for it was later contested. Chloramphenicol (1947) and the first tetracycline, chlortetracycline (1948), followed, both found by screening soil organisms.
 
-- words: 51 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
-- uncertainty: Credit for streptomycin was disputed between Waksman and his student Albert Schatz. 'Broad-spectrum' strictly fits chloramphenicol and tetracyclines better than streptomycin.
+- words: 52 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [MED-006] Streptomycin isolated by Schatz in Waksman's laboratory, 1943, from a soil organism, Effective against tuberculosis (1944), Credit contested (Schatz lawsuit); [MED-007] Streptomycin isolated by Schatz in Waksman's laboratory, 1943, from a soil organism; [MED-008] Chloramphenicol 1947 from a soil bacterium; [MED-009] Chlortetracycline 1948 from a soil actinomycete; first tetracycline
+- uncertainty: Credit for streptomycin was disputed between Waksman and Albert Schatz, who sued and was recognized as co-discoverer. Which drug was the 'first broad-spectrum' antibiotic is contested (chloramphenicol and chlortetracycline are both so described); streptomycin fits the label less well.
 - relation to mechanics: Knowledge-only ('tuberculosis curable', 'routine surgery'); PROPOSED M9 term for endemic bacterial burden in adult base mortality and case fatality; prerequisite of genetic engineering and antibiotic resistance management.
 
 ### 326 · Antibiotic resistance management (`antibiotic_resistance`)
@@ -249,46 +249,46 @@ Biomedical research is the continuing, organised effort to understand disease at
 
 ### 438 · Physiology (`physiology`)
 
-Physiology studies how the body's parts work, not only what they look like. William Harvey's De motu cordis (1628) used ligature experiments and estimates of how much blood the heart pumps to show that blood circulates continuously. Ibn al-Nafis had described the blood's passage through the lungs in thirteenth-century Cairo. Capillaries, which closed Harvey's circuit, were first seen in 1661.
+Physiology studies how the body's parts work, not only their form. William Harvey's De motu cordis (1628) used ligature experiments and estimates of how much blood the heart pumps to show that blood circulates continuously. Ibn al-Nafis had described the blood's passage through the lungs in the thirteenth century. Marcello Malpighi described the capillaries closing Harvey's circuit in 1661.
 
-- words: 60 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
-- uncertainty: Whether Ibn al-Nafis's account influenced later European writers is debated. Capillaries were reported by Marcello Malpighi in 1661.
+- words: 59 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [MED-001] De motu cordis 1628; circulation, Ligature experiments, Malpighi capillaries 1661; [MED-002] Ibn al-Nafis described pulmonary circulation in the 13th century
+- uncertainty: Whether Ibn al-Nafis's account influenced later European writers is debated.
 - relation to mechanics: PROPOSED new node (split from anatomy_dissection), knowledge-only ('circulation of the blood', 'experimental physiology'); prerequisite of endocrinology and of blood transfusion.
 
 ### 446 · Epidemiology (`epidemiology`)
 
-Epidemiology studies how disease is distributed across populations and why. In 1662 John Graunt analysed London's bills of mortality, counting deaths by cause. In 1854 John Snow mapped cholera deaths around a Soho water pump and compared water companies' customers, arguing that cholera spread through water. Randomised trials, such as Britain's 1948 streptomycin trial, extended its comparative method.
+Epidemiology studies how disease is distributed across populations and why. In 1662 John Graunt analysed London's bills of mortality, counting deaths by cause. In 1854 John Snow mapped cholera deaths and water pumps in London and compared two water companies' customers, arguing that cholera spread through water. Randomised trials, such as Britain's 1948 streptomycin trial, extended its comparative method.
 
-- words: 58 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
-- uncertainty: Snow's waterborne explanation was not widely accepted at the time; the cholera bacterium was identified later (Pacini 1854, Koch 1883). Population counting and controlled comparison have several precursors.
+- words: 59 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [MED-003] Graunt 1662 bills of mortality, deaths by cause, Snow compared two water companies' customers; [MED-004] Snow 1854 mapped deaths and pumps; [MED-005] 1948 MRC streptomycin randomised trial
+- uncertainty: Snow's waterborne explanation was not widely accepted at the time, and the pump handle's removal probably mattered little to the outbreak's end. The 1948 trial is often called the first randomised trial, a label historians dispute.
 - relation to mechanics: PROPOSED new node, knowledge-only: in the M9 transmission channel surveillance shortens the delay before quarantine or water-source interventions act and improves their targeting; knowledge basis for inst.statistics_vital and a pre-germ-theory route to sanitation.
 
 ### 470 · Endocrinology (`endocrinology`)
 
-Endocrinology studies hormones, chemical messengers that glands release into the blood. In London in 1902, William Bayliss and Ernest Starling showed that secretin from the intestine triggers pancreatic secretion; Starling introduced the word hormone in 1905. In Toronto in 1922, a team of Frederick Banting, Charles Best, James Collip and John Macleod first treated a diabetic patient with purified insulin.
+Endocrinology studies hormones, chemical messengers that glands release into the blood. In London in 1902, William Bayliss and Ernest Starling identified secretin, often called the first hormone; Starling introduced the word hormone in 1905. In 1922 a diabetic patient, Leonard Thompson, received insulin purified by James Collip, after work by Frederick Banting and Charles Best in John Macleod's laboratory.
 
-- words: 60 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
-- uncertainty: Gland extracts were used earlier (thyroid extract for myxoedema, 1891). Credit for insulin was disputed within the Toronto team.
+- words: 59 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [MED-010] Secretin 1902, University College London; [MED-011] Secretin 1902, University College London, Starling used 'hormone' in 1905; [MED-012] 1922 first insulin patient Leonard Thompson; Collip purification; [MED-013] Banting and Best in Macleod's laboratory
+- uncertainty: Gland extracts were used earlier (thyroid extract for myxoedema, 1891). Credit for insulin was disputed within the team; sources differ on who did what.
 - relation to mechanics: PROPOSED new node, knowledge-only ('insulin therapy', 'hormone replacement'); PROPOSED M9 base-mortality term for diabetes and endocrine disease in adult cohorts; prerequisite of the oral contraceptive and IVF.
 
 ### 471 · Immunology (`immunology`)
 
-Immunology studies the body's defences against infection and foreign material. In Berlin in 1890, Emil von Behring and Kitasato Shibasaburō showed that serum from immunised animals neutralised diphtheria and tetanus toxins, founding serum therapy. In Vienna in 1901, Karl Landsteiner used the clumping of red cells by serum to identify blood groups, later central to transfusion and diagnosis.
+Immunology studies the body's defences against infection. In Berlin in 1890, Emil von Behring and Kitasato Shibasaburō showed that immunised animals produced blood antitoxins against diphtheria or tetanus toxins, and that such serum could protect others, founding serum therapy. In 1901 Karl Landsteiner used the clumping of red cells by serum to define blood groups, later central to transfusion.
 
-- words: 58 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
-- uncertainty: Immunology has several roots (Metchnikoff's cellular theory, Ehrlich's antibody theory); the node dates it from serum therapy and serology.
+- words: 59 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [MED-014] Behring and Kitasato 1890 antitoxins, Berlin Hygiene Institute, Serum therapy / passive immunisation; [MED-015] Behring and Kitasato 1890 antitoxins, Berlin Hygiene Institute; [MED-016] Landsteiner 1901 blood groups by agglutination; [MED-017] Landsteiner 1901 blood groups by agglutination, Relevance to transfusion
+- uncertainty: Immunology has several roots (Metchnikoff's cellular theory, Ehrlich's antibody theory). A contemporary critique held that Behring was anticipated by Japanese workers, and Ehrlich's methods were needed for an effective serum.
 - relation to mechanics: PROPOSED new node, knowledge-only; PROPOSED M9 case-fatality term for toxin diseases (diphtheria antitoxin) with hospitals; prerequisite of blood transfusion and monoclonal antibodies.
 
 ### 475 · Sulfonamides (`sulfonamides`)
 
-Sulfonamides were the first synthetic drugs to cure common bacterial infections inside the body. At Bayer's laboratories in Elberfeld, Germany, Gerhard Domagk found in 1932 that the red dye Prontosil protected mice from streptococci; results appeared in 1935. Researchers in Paris then showed that the active part was sulfanilamide. Deaths from childbed fever fell from the mid-1930s.
+Sulfonamides were among the first synthetic drugs to treat bacterial infections inside the body. At Bayer in Germany, Gerhard Domagk found in 1932 that the dye Prontosil was far more effective than earlier dyes; results appeared in 1935. Researchers in Paris then showed that the active part was sulfanilamide. In 1936 Leonard Colebrook sharply reduced childbed-fever deaths with sulfonamides.
 
-- words: 57 · fact-check: unverified (drafting lane; No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.)
-- sources: —
-- uncertainty: Bayer was then part of IG Farben, and the chemists Klarer and Mietzsch synthesised the dye. Ehrlich's arsenical Salvarsan (1910) was an earlier synthetic antimicrobial, against syphilis.
+- words: 59 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [MED-018] Domagk at Bayer, 1932, Prontosil, Published 1935, Paris researchers identified sulfanilamide as the active part (late 1935), Colebrook reduced puerperal-fever d; [MED-019] Credit shared with chemist Klarer
+- uncertainty: Bayer was then part of IG Farben, and the chemists Klarer and Mietzsch synthesised the dye; sources differ on how credit is shared. Ehrlich's arsenical Salvarsan (1910) was an earlier synthetic antimicrobial, against syphilis.
 - relation to mechanics: PROPOSED new node, knowledge-only; PROPOSED M9 case-fatality term for bacterial infection, including childbirth-linked deaths in fertile cohorts; prerequisite of chemotherapy.
 

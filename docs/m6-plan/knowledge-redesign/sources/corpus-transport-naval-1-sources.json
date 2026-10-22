@@ -264,5 +264,260 @@
   ],
   "confidence": "medium",
   "notes": "URL and claim recorded by the D08 design lane in research/lane-notes/D08-transport-naval.md (§3-§4 [RESEARCHED] claims; §15 'Sources consulted (RESEARCHED claims)') from its WebSearch results; page not opened (WebFetch blocked). The corpus drafting lane could not re-run the search (shared per-turn WebSearch budget exhausted) and registers it on that lane's record; the lane note groups URLs per topic, so attribution of each claim to this particular URL is probable, not certain. Article title not seen by this lane."
+ },
+ {
+  "id": "TRN1-019",
+  "title": "Quanzhou ship",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Quanzhou_ship",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Quanzhou wreck sank within a few years after 1272; found 1973-74"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "TRN1-020",
+  "title": "Moments in Fujian (Quanzhou Song ship)",
+  "author_org": "Fujian Provincial Government",
+  "published": null,
+  "url": "https://wb.fujian.gov.cn/English/momentsinfujian/201904/t20190408_4845949.htm",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Quanzhou ship had 13 watertight compartments"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "TRN1-021",
+  "title": "Quanzhou ship report (No. 1 China 1997)",
+  "author_org": "Western Australian Museum, maritime archaeology database",
+  "published": "1997",
+  "url": "https://museum.wa.gov.au/maritime-archaeology-db/sites/default/files/no._1_china_1997.pdf",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Quanzhou wreck, Song dynasty, compartmented hull"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked). The search summary did not always say which result gave each statement.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "TRN1-022",
+  "title": "History of ballooning",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/History_of_ballooning",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "First (tethered) crewed balloon ascent 15 October 1783 in Paris; free flights followed"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "TRN1-023",
+  "title": "Jacques Charles",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Jacques_Charles",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Charles and Robert's crewed hydrogen balloon flight, Paris, 1 December 1783"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "TRN1-024",
+  "title": "Artificial clouds and inflammable air: science and spectacle of the first balloon",
+  "author_org": "Science History Institute (Distillations)",
+  "published": null,
+  "url": "https://www.sciencehistory.org/stories/magazine/artificial-clouds-and-inflammable-air-science-and-spectacle-first-balloon",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Montgolfier hot-air and Charles hydrogen balloons, Paris, 1783"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked). The search summary did not always say which result gave each statement.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "TRN1-025",
+  "title": "21 novembre 1783",
+  "author_org": "Hérodote.net",
+  "published": null,
+  "url": "https://www.herodote.net/21_novembre_1783-evenement-17831121.php",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "Montgolfier balloon ascent with people, 21 November 1783"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "TRN1-026",
+  "title": "Aviation history: the scientific visionaries, or those men before the Wrights",
+  "author_org": "ICAO (postal history)",
+  "published": null,
+  "url": "https://applications.icao.int/postalhistory/aviation_history_the_scientific_visionaries_or_those_men_before_the_wrights.htm",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Cayley's full-size glider carried a person (coachman) in 1853"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "TRN1-027",
+  "title": "Otto Lilienthal",
+  "author_org": "Mississippi State University (Inventors and Inventions)",
+  "published": null,
+  "url": "https://invention.psychology.msstate.edu/i/Lilienthal/Lilienthal.html",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Lilienthal built 16 glider designs and made some 2,000 flights in 1891-1896; died August 1896"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "TRN1-028",
+  "title": "Sea-level and watercraft modelling of the peopling of Sahul (Scientific Reports 9, 2019)",
+  "author_org": "Scientific Reports (PMC; copy at ANU Open Research)",
+  "published": "2019",
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6579762",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Sahul (Australia, Tasmania, New Guinea joined at low sea level) peopled by at least 50,000 years ago; crossings of Wallacea required watercraft; no direct evidence of the watercraft"
+  ],
+  "confidence": "high",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked). Title paraphrased from the search summary; check exact title.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "TRN1-029",
+  "title": "Bird et al. 2018 (accepted author version)",
+  "author_org": "James Cook University ResearchOnline",
+  "published": "2018",
+  "url": "https://researchonline.jcu.edu.au/53719/26/53719_Bird%20et%20al_2018_accepted%20author%20version.pdf",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Northern and southern routes to Sahul; final crossing approaching 100 km"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked). The search summary did not always say which result gave each statement.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "TRN1-030",
+  "title": "History of horse-drawn transport",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/History_of_horse-drawn_transport",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Chu lacquer box of the 4th century BCE shows a yoke across the horse's chest; the yoke was replaced by a breast strap shown in Han tomb reliefs"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "TRN1-031",
+  "title": "Horse harness",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Horse_harness",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Breast-strap harness developed in Warring States China (481-221 BCE); horse collar in China about the 5th century CE; Spruytte's challenge to the 'choking' throat-and-girth account"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "TRN1-032",
+  "title": "Lateen",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Lateen",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "2nd-century CE gravestone showing a quadrilateral lateen (settee) sail; earliest reconstructed lateen-rigged ship about 400 CE (Yassi Ada II); Kelenderis mosaic dated late 5th-early 6th century"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "TRN1-033",
+  "title": "The Kelenderis ship: square or lateen sail? (Pomey, Roberts and Friedman 2006)",
+  "author_org": "International Journal of Nautical Archaeology (copy at ancientportsantiques.com)",
+  "published": "2006",
+  "url": "https://www.ancientportsantiques.com/wp-content/uploads/Documents/ETUDESarchivees/Navires/Documents/KelenderisShip-PomeyRobertsFriedman2006.pdf",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Interpretation of the Kelenderis mosaic sail as lateen is debated"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked). Title paraphrased from the search summary.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "TRN1-034",
+  "title": "North River Steamboat",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/North_River_Steamboat",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Fulton's North River Steamboat ran New York-Albany in August 1807 and then a regular passenger service"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "TRN1-035",
+  "title": "Maiden Voyage of the Clermont (Research Starter)",
+  "author_org": "EBSCO",
+  "published": null,
+  "url": "https://ebsco.com/research-starters/history/maiden-voyage-clermont",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Trial run New York to Albany 17 August 1807; regular service followed"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked). The search summary did not always say which result gave each statement.",
+  "retrieval": "web-search-result"
  }
 ]

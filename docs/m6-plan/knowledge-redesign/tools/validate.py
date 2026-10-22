@@ -488,6 +488,105 @@ def check_graphs(rep, tech, civ, inv):
     return stats
 
 
+LEGACY_CIVICS = ("law_code", "legal_code_roman", "census", "coined_wage", "patent", "joint_stock", "taxation")
+
+
+def check_gates(rep, tech, civ, inv):
+    """V23-V26 (added 2026-10-22, Director-intent refinement): key ranges for new records, the mandatory closure of
+    the research stage and the Age CORE facts, no regime form made mandatory or Age-granted, and the consumers of
+    every legacy civic (its gates). Must-closure follows the loader's MustHoldAtoms rule (see must_closure)."""
+    stats = {}
+    active = [n for n in tech["nodes"] + civ["nodes"] if n["status"] != "retired"]
+    by_id = {n["id"]: n for n in active}
+    ast = {n["id"]: kr.parse(n.get("prereq")) for n in active}
+    # V23 key ranges: legacy keys never renumbered (V14); new technology keys append from 427, new civics from 1008
+    for n in tech["nodes"]:
+        if n["status"] == "new" and n["key"] < 427:
+            rep.add("ERROR", "V23", f"new technology {n['id']} has key {n['key']} (< 427, a legacy range)")
+    for n in civ["nodes"]:
+        if n["status"] == "new" and n["key"] < 1008:
+            rep.add("ERROR", "V23", f"new civic {n['id']} has key {n['key']} (< 1008, the legacy civic range)")
+    cur_keys = {c["id"]: c["key"] for c in inv["nodes"] if c["id"] in LEGACY_CIVICS}
+    for i in LEGACY_CIVICS:
+        if i in by_id and i in cur_keys and by_id[i]["key"] != cur_keys[i]:
+            rep.add("ERROR", "V23", f"legacy civic {i} key {cur_keys[i]} -> {by_id[i]['key']}")
+
+    def closure_of(roots):
+        out = set()
+        for r in roots:
+            if r in by_id:
+                out.add(r)
+                out |= must_closure(r, ast)
+        return out
+    stage_atoms = must_hold_atoms(kr.parse(tech["researchStage"]["requires"]))
+    mandatory = closure_of(stage_atoms)
+    core_nodes = set()
+    for f in tech.get("ageFacts") or []:
+        if f["role"] == "core" and f["fact"]["kind"] == "research":
+            core_nodes |= set(f["fact"].get("nodes") or [])
+    mandatory |= closure_of(core_nodes)
+    # live gates outside research.json: the tax edict (sim.json) and the realized university (inst.university)
+    mandatory |= closure_of({"taxation", "library", "legal_code_roman"})
+    macro = {n["id"] for n in civ["nodes"] if n["status"] != "retired" and (n.get("civic") or {}).get("category") == "macro"}
+    nuclear_new = {n["id"] for n in tech["nodes"] if n["status"] == "new" and n.get("lane", "").startswith("D11")}
+    # V24 optional content must not become mandatory through prerequisite closure
+    for i in sorted(mandatory & macro):
+        rep.add("ERROR", "V24", f"regime form {i} is in the mandatory closure of the research stage or an Age CORE fact")
+    for i in sorted(mandatory & nuclear_new):
+        rep.add("WARN", "V24", f"case-study node {i} (lane D11) is in a mandatory closure — confirm it is meant to be required")
+    # V25 no Age fact (core or supporting) requires a regime form: Age transitions never grant or demand a government
+    for f in tech.get("ageFacts") or []:
+        for i in f["fact"].get("nodes") or []:
+            if i in macro:
+                rep.add("ERROR", "V25", f"Age fact {f['milestone']} names regime form {i}")
+    # V26 civic gate consumers (INFO): who waits on each legacy civic and which civics sit in mandatory closures
+    ent_req = defaultdict(list)
+    changed = {ch["entity"]: ch.get("newRequires") for ch in tech.get("entityChanges") or []}
+    for e in inv["entities"]:
+        req = changed.get(e["id"], e.get("requires"))
+        for a in kr.atoms(kr.parse(req)):
+            ent_req[a].append(e["id"])
+    gates = {}
+    for i in LEGACY_CIVICS:
+        if i not in by_id:
+            continue
+        direct = sorted(n["id"] for n in active if i in kr.atoms(ast[n["id"]]))
+        must = sorted(n["id"] for n in active if n["id"] != i and i in must_closure(n["id"], ast))
+        facts = sorted(f["milestone"] for f in tech.get("ageFacts") or []
+                       if i in (f["fact"].get("nodes") or []) or any(i in must_closure(x, ast) | {x}
+                                                                   for x in f["fact"].get("nodes") or [] if x in by_id))
+        gates[i] = {"directDependants": len(direct), "mustDependants": len(must), "ageFacts": facts,
+                    "researchStage": i in mandatory and i in closure_of(stage_atoms),
+                    "entities": sorted(ent_req.get(i, []))}
+        rep.add("INFO", "V26", f"{i}: {len(direct)} direct / {len(must)} must-closure dependants; Age facts {facts or '-'}; "
+                               f"research stage {'YES' if gates[i]['researchStage'] else 'no'}; entities {gates[i]['entities'] or '-'}")
+    # V27 every capability promise names its class, owner and milestone; nothing deferred claims to work today
+    classes = Counter()
+    for n in active:
+        c = n.get("capability") or {}
+        rc = c.get("realizationClass")
+        classes[rc] += 1
+        if rc is None or not c.get("realizationOwner") or not c.get("milestone"):
+            rep.add("ERROR", "V27", f"{n['id']}: capability lacks realization class, owner or milestone")
+        elif rc == "EXISTING" and c.get("status") != "realized-today":
+            rep.add("ERROR", "V27", f"{n['id']}: EXISTING but its capability is not realized today")
+        elif rc in ("DEFERRED", "NEW MECHANIC REQUIRED") and c.get("milestone") == "existing":
+            rep.add("ERROR", "V27", f"{n['id']}: {rc} but its milestone says 'existing'")
+    stats["realizationClass"] = dict(classes)
+    civ_mand = sorted(mandatory & {n["id"] for n in civ["nodes"]})
+    rep.add("INFO", "V24", f"mandatory closure (research stage, Age CORE research facts, tax edict, university): {len(mandatory)} nodes, of which "
+                           f"civics {civ_mand}, regime forms {len(mandatory & macro)}, case-study nodes {len(mandatory & nuclear_new)}")
+    stats.update({"mandatoryClosure": len(mandatory), "civicsInMandatory": civ_mand,
+                  "regimeFormsInMandatory": len(mandatory & macro), "caseStudyInMandatory": len(mandatory & nuclear_new),
+                  "legacyCivicGates": {k: {"must": v["mustDependants"], "stage": v["researchStage"],
+                                           "ageFacts": len(v["ageFacts"]), "entities": len(v["entities"])}
+                                       for k, v in gates.items()}})
+    return stats
+
+
+PAGE_READ = {"page-read", "document-read"}
+
+
 def shingles(text, k=5):
     w = re.findall(r"[a-z0-9]+", (text or "").lower())
     return {" ".join(w[i:i + k]) for i in range(max(0, len(w) - k + 1))}
@@ -523,6 +622,8 @@ def check_corpus(rep, tech, civ):
     wc = []
     band = Counter()
     status = Counter()
+    ship = Counter()
+    queue = defaultdict(list)
     sh = {}
     for e in entries:
         n = kr.word_count(e.get("description"))
@@ -540,8 +641,8 @@ def check_corpus(rep, tech, civ):
         srcs = e.get("sources") or []
         if not srcs:
             if (e.get("factCheck") or {}).get("status") == "unverified":
-                rep.add("WARN", "C03", f"{e['id']}: sourcing pending — unverified entry with no retrieved source "
-                                       "(search budget exhausted; never a substitute for a source)")
+                rep.add("WARN", "C03", f"{e['id']}: BLOCKED, sourcing pending — unverified entry with no retrieved "
+                                       "source (never a substitute for a source)")
             else:
                 rep.add("ERROR", "C03", f"{e['id']}: no sources but status is not 'unverified'")
         for s in srcs:
@@ -549,6 +650,30 @@ def check_corpus(rep, tech, civ):
                 rep.add("ERROR", "C03", f"{e['id']}: source {s.get('sourceId')} not in the register")
         st = (e.get("factCheck") or {}).get("status", "missing")
         status[st] += 1
+        # C11 evidence agreement (2026-10-22): a status may never claim more than its cited evidence shows
+        retrievals = {(reg.get(s.get("sourceId")) or {}).get("retrieval", "web-search-result") for s in srcs}
+        results = [c.get("result") for c in ((e.get("factCheck") or {}).get("claims") or [])]
+        if st == "source-checked" and not (retrievals & PAGE_READ):
+            rep.add("ERROR", "C11", f"{e['id']}: 'source-checked' but no cited source was read as a page or document")
+        # 'disputed' = the disagreement itself is sourced and the text presents the point as disputed
+        if st == "search-corroborated" and results and any(r not in ("supported", "corrected", "disputed") for r in results):
+            rep.add("ERROR", "C11", f"{e['id']}: 'search-corroborated' but a listed claim is {sorted(set(results))}")
+        if st == "partially-checked" and results and not any(r in ("supported", "corrected") for r in results):
+            rep.add("ERROR", "C11", f"{e['id']}: 'partially-checked' but no listed claim is supported")
+        if st == "unverified" and any(r in ("supported", "corrected") for r in results):
+            rep.add("WARN", "C11", f"{e['id']}: 'unverified' but a listed claim is supported (status may be understated)")
+        confs = {(reg.get(s.get("sourceId")) or {}).get("confidence") for s in srcs}
+        if st == "search-corroborated" and srcs and confs <= {"low", None}:
+            rep.add("ERROR", "C11", f"{e['id']}: 'search-corroborated' rests only on low-confidence sources")
+        for s in srcs:
+            if s.get("sourceId") in reg and not s.get("claims"):
+                rep.add("WARN", "C11", f"{e['id']}: cites {s.get('sourceId')} without naming the claim it supports")
+        # C10 shipping gate: only source-checked text with every listed claim supported may ship as fact
+        if st == "source-checked" and all(r in ("supported", "corrected", "disputed") for r in results):
+            ship["ready"] += 1
+        else:
+            ship["blocked"] += 1
+            queue[st].append(e["id"])
         if st == "missing":
             rep.add("ERROR", "C07", f"{e['id']}: no factCheck status")
         if INEVITABLE.search(e.get("description") or ""):
@@ -578,6 +703,10 @@ def check_corpus(rep, tech, civ):
             if jac >= 0.25:
                 near += 1
                 rep.add("WARN", "C04", f"near-duplicate {ids[i]} ~ {ids[j]} (5-gram Jaccard {jac:.2f})")
+    rep.add("WARN" if ship["blocked"] else "INFO", "C10",
+            f"SHIPPING GATE: {ship['ready']} of {len(entries)} entries may ship as fact; {ship['blocked']} are BLOCKED "
+            f"(not source-checked: {', '.join(f'{k} {len(v)}' for k, v in sorted(queue.items()))}). Zero structural errors "
+            "is not a fact-check; the mechanic may ship without its educational text, unsourced text may not.")
     used = defaultdict(set)
     for e in entries:
         for s in e.get("sources") or []:
@@ -586,7 +715,9 @@ def check_corpus(rep, tech, civ):
                   "wordBands": dict(band), "wordMin": min(wc) if wc else None, "wordMax": max(wc) if wc else None,
                   "wordMean": round(sum(wc) / len(wc), 1) if wc else None, "factCheck": dict(status),
                   "registerSources": len(reg), "sourcesUsed": len(used), "nearDuplicatePairs": near,
-                  "sourceTypes": dict(Counter(s.get("type") for s in reg.values()))})
+                  "sourceTypes": dict(Counter(s.get("type") for s in reg.values())),
+                  "shipGate": {"ready": ship["ready"], "blocked": ship["blocked"]},
+                  "retrieval": dict(Counter(s.get("retrieval", "web-search-result") for s in reg.values()))})
     if index_path.exists():
         idx = kr.load_json(index_path)
         listed = {x["file"] for x in idx.get("files", [])}
@@ -604,11 +735,15 @@ def main(argv):
     civ = kr.load_json(kr.PKG / "civics-tree-proposal.json")
     inv = kr.load_json(kr.DATA / "current-tree-inventory.json")
     gstats = check_graphs(rep, tech, civ, inv)
+    gstats["gates"] = check_gates(rep, tech, civ, inv)
     cstats = {} if "--no-corpus" in argv else check_corpus(rep, tech, civ)
     lines = ["# Validation report — knowledge redesign package", "",
              "Generated by `tools/validate.py`. **Structural validity is not historical verification**: this report "
              "checks shape, references, counts and wording rules. Fact-check status is recorded per corpus entry.", "",
              f"- ERROR: {rep.count('ERROR')} · WARN: {rep.count('WARN')} · INFO: {rep.count('INFO')}",
+             f"- **Shipping gate (C10): {(cstats.get('shipGate') or {}).get('ready', 'n/a')} entries may ship as fact; "
+             f"{(cstats.get('shipGate') or {}).get('blocked', 'n/a')} are blocked** until source-checked "
+             "(remaining queue: `corpus/sourcing-queue.md`).",
              f"- graph: {gstats}", f"- corpus: {cstats}", "", "| level | code | finding |", "|---|---|---|"]
     order = {"ERROR": 0, "WARN": 1, "INFO": 2}
     for lvl, code, msg in sorted(rep.rows, key=lambda r: (order[r[0]], r[1], r[2])):

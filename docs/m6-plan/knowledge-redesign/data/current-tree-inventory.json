@@ -4,7 +4,7 @@
   "closureCount/closureCost: the node plus a cheapest satisfying prerequisite set (greedy over OR alternatives; an upper bound on the true minimum). depthMin: shortest prerequisite chain (roots = 1). unlockAudit: copied from docs/research-gameplay-unlock-audit.md section 5."
  ],
  "provenance": {
-  "gitHead": "edba2b57b8e821cc128218216e4cbad3693839b5",
+  "gitHead": "92fe4408be555bf5acd2a31c6ca96815c5baade9",
   "researchSchema": "civ-sim/research@2",
   "corpusSha256": "e1251b0987a50db9252953a0a6af89594befa7bdf6dfb82361ba180d193ca854"
  },

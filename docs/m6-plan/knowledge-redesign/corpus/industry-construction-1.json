@@ -32,15 +32,44 @@
  {
   "id": "shelter_hut",
   "tree": "technology",
-  "description": "A framed hut uses posts, poles or large bones as a skeleton, covered with hides, brush or turf, giving shelter that can be reoccupied across seasons. Hut traces at Dolní Věstonice in Moravia date to about 26,000 years ago; on the Ukrainian plain, the Mezhyrich dwellings of interlocked mammoth bones are later, roughly 15,000 years old.",
+  "description": "A framed hut uses posts, poles or large bones as a skeleton, covered with hides, brush or turf, giving shelter that can be reoccupied across seasons. Hut traces at Dolní Věstonice in Moravia date to about 26,000 years ago; on the Ukrainian plain, the Mezhyrich dwellings of interlocked mammoth bones are later, about 18,000 years old.",
   "wordCount": 58,
-  "sources": [],
-  "uncertainty": "The proposal's emerged field pairs Mezhirich with about 25 kya; published dates for Mezhyrich mostly fall near 15,000 years ago (older estimates exist). Much older shelters have been claimed (e.g., Terra Amata) but are disputed.",
+  "sources": [
+   {
+    "sourceId": "IND1-006",
+    "claims": [
+     "Mezhyrich c. 18,000 years"
+    ]
+   },
+   {
+    "sourceId": "IND1-007",
+    "claims": [
+     "Mezhyrich re-dated to about 18,000 years"
+    ]
+   }
+  ],
+  "uncertainty": "Mezhyrich was long dated between about 19,000 and 12,000 years ago; a 2025 radiocarbon study places one structure at about 18,000 years ago, and reading the structures as dwellings remains an interpretation. The proposal's emerged field pairs Mezhirich with about 25 kya, which these dates do not support. Much older shelters have been claimed (e.g., Terra Amata) but are disputed.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Dolni Vestonice hut remains about 26 kya; Mezhyrich mammoth-bone dwellings about 15 kya; whether the emerged field's ~25 kya for Mezhirich should be corrected."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Mezhyrich mammoth-bone structures about 18,000 years old",
+     "sources": [
+      "IND1-006",
+      "IND1-007"
+     ],
+     "result": "corrected"
+    },
+    {
+     "claim": "Dolní Věstonice hut traces about 26,000 years ago",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Changed Mezhyrich 'roughly 15,000 years old' to 'about 18,000 years old' because a 2025 revised radiocarbon chronology (Chu, Shydlovskyi and Maier) dates structure 4 to c. 18,250-17,760 cal BP. Dolní Věstonice was not covered by the search. Earlier drafting-lane note: No claim corroborated this session and no source recorded (none invented). Check first: Dolni Vestonice hut remains about 26 kya; Mezhyrich mammoth-bone dwellings about 15 kya; whether the emerged field's ~25 kya for Mezhirich should be corrected."
   },
   "mechanicLink": "Knowledge-only node (unlock-audit class C): records multi-season occupation with no current effect (basic shelter exists without it, D-047); prerequisite of timber_frame, allocation-scenario key 17 unchanged."
  },
@@ -199,13 +228,54 @@
   "tree": "technology",
   "description": "Dyeing fixes colour to fibre, yarn or cloth. Indigo must be chemically reduced in a vat and then oxidises in the air; madder red binds best with a mordant such as alum. The oldest known indigo-dyed fabric, cotton from Huaca Prieta in Peru, is about 6,000 years old. Colour signalled status and made dyestuffs valuable trade goods.",
   "wordCount": 58,
-  "sources": [],
-  "uncertainty": "Older dyed fibres have been claimed (e.g., coloured flax fibres from Dzudzuana Cave, Georgia, about 30,000 years old) but their dyeing is contested; dye traditions arose independently in many regions.",
+  "sources": [
+   {
+    "sourceId": "IND1-008",
+    "claims": [
+     "Huaca Prieta indigo 6,200-6,000 years"
+    ]
+   },
+   {
+    "sourceId": "IND1-009",
+    "claims": [
+     "Huaca Prieta indigo about 6,000 years"
+    ]
+   },
+   {
+    "sourceId": "IND1-010",
+    "claims": [
+     "Huaca Prieta indigo 6,200 years"
+    ]
+   }
+  ],
+  "uncertainty": "Older dyed fibres have been claimed (e.g., coloured flax fibres from Dzudzuana Cave, Georgia, about 30,000 years old) but their dyeing is contested; the Huaca Prieta fragment is dated about 6,200-6,000 years ago; dye traditions arose independently in many regions.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Huaca Prieta indigo-dyed cotton about 6,000 years old; vat chemistry of indigo; alum mordant with madder."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Oldest known indigo-dyed fabric, cotton from Huaca Prieta, Peru, about 6,000 years old",
+     "sources": [
+      "IND1-008",
+      "IND1-009",
+      "IND1-010"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Indigo vat reduction and air oxidation; madder with alum mordant",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Colour signalled status; dyestuffs were valuable trade goods",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Huaca Prieta indigo (Splitstoser et al. 2016) supported by three press reports; dye chemistry and social claims not covered. Earlier drafting-lane note: No claim corroborated this session and no source recorded (none invented). Check first: Huaca Prieta indigo-dyed cotton about 6,000 years old; vat chemistry of indigo; alum mordant with madder."
   },
   "mechanicLink": "Knowledge-only node: records coloured cloth and dye as a trade good with no current effect; PROPOSED prerequisite change to spinning_spindle AND ochre_processing, and prerequisite of synthetic_dye."
  },
@@ -259,28 +329,89 @@
   "tree": "technology",
   "description": "Sericulture raises domesticated silkworms on mulberry leaves and unwinds the continuous filament of their cocoons, softened in hot water, into thread. In China, silk fabric survives from at least the third millennium BCE, with earlier traces debated. Under the Han dynasty silk was made on a large scale and carried west along Asian trade routes; the craft itself spread slowly.",
   "wordCount": 60,
-  "sources": [],
-  "uncertainty": "The proposal's ~3,500 BCE is within the debated range; claims of silk residues several thousand years older exist. Wild silks were also used in South Asia independently.",
+  "sources": [
+   {
+    "sourceId": "IND1-011",
+    "claims": [
+     "Qianshanyang c. 2700 BCE; Qingtaicun; Harappa wild silk"
+    ]
+   }
+  ],
+  "uncertainty": "The proposal's ~3,500 BCE is within the debated range: woven silk from Qianshanyang dates to about 2700 BCE and silk from Qingtaicun (Henan) to about 3600 BCE; claims of older residues exist. Wild silks were used independently in South Asia (reported at Harappa about 2450 BCE).",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: silk fabric from at least the third millennium BCE (e.g., Qianshanyang); Han-period scale of production and westward trade; slow spread of sericulture."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Silk fabric in China from at least the third millennium BCE, earlier traces debated",
+     "sources": [
+      "IND1-011"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Han-period large-scale production and westward trade; slow spread of sericulture",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Sericulture process (mulberry, cocoon reeling in hot water)",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Qianshanyang c. 2700 BCE and older Qingtaicun silk supported only by a Wikipedia result (not disputed in that form); Han trade and process claims not covered. Earlier drafting-lane note: No claim corroborated this session and no source recorded (none invented). Check first: silk fabric from at least the third millennium BCE (e.g., Qianshanyang); Han-period scale of production and westward trade; slow spread of sericulture."
   },
   "mechanicLink": "Knowledge-only node (unlock-audit class C): records silk cloth with no current effect; PROPOSED as the causal input of the new drawloom, which leads on to jacquard."
  },
  {
   "id": "ashlar_masonry",
   "tree": "technology",
-  "description": "Ashlar masonry uses stone blocks dressed to flat faces and square edges, so they sit with thin, regular joints. Djoser's step pyramid at Saqqara, Egypt, about 2,650 BCE, is among the earliest large buildings in dressed stone. Greek temple builders refined the craft, and Inca masons in the Andes independently developed tightly fitted stonework in the fifteenth century CE.",
+  "description": "Ashlar masonry uses stone blocks dressed to flat faces and square edges, so they sit with thin, regular joints. Djoser's step pyramid at Saqqara, Egypt, of about 2,670 BCE, is among the earliest large buildings in dressed stone. Greek temple builders refined it, and Inca masons in the Andes independently developed tightly fitted stonework in the fifteenth century CE.",
   "wordCount": 60,
-  "sources": [],
-  "uncertainty": "Dressed stone was used in smaller works before Djoser; Egyptian chronology carries a margin of decades. Inca masonry is often polygonal rather than coursed ashlar.",
+  "sources": [
+   {
+    "sourceId": "IND1-001",
+    "claims": [
+     "Djoser c. 2670 BCE, earliest large cut-stone building"
+    ]
+   },
+   {
+    "sourceId": "IND1-002",
+    "claims": [
+     "Step Pyramid as earliest large cut-stone building"
+    ]
+   }
+  ],
+  "uncertainty": "Dressed stone was used in smaller works before Djoser, and the nearby Gisr el-Mudir enclosure may predate his complex; Egyptian chronology carries a margin of decades (dates of about 2,700-2,650 BCE are given). Inca masonry is often polygonal rather than coursed ashlar.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Djoser step pyramid about 2,650 BCE as early large dressed-stone building; Greek temples; independent Inca fitted stonework in the 15th century CE."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Djoser's step pyramid at Saqqara, about 2,670 BCE, among the earliest large dressed-stone buildings",
+     "sources": [
+      "IND1-001",
+      "IND1-002"
+     ],
+     "result": "corrected"
+    },
+    {
+     "claim": "Greek temple builders refined ashlar",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Independent Inca fitted stonework, 15th century CE",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Changed 'about 2,650 BCE' to 'about 2,670 BCE' to match World History Encyclopedia (c. 2670 BCE); other results give about 2700-2650 BCE. Greek and Inca claims not searched. 'refined the craft' shortened to 'refined it' (length). Earlier drafting-lane note: No claim corroborated this session and no source recorded (none invented). Check first: Djoser step pyramid about 2,650 BCE as early large dressed-stone building; Greek temples; independent Inca fitted stonework in the 15th century CE."
   },
   "mechanicLink": "PROPOSED new node split from stone_fortification: civil dressed-stone building that makes the lighthouse knowledge-eligible (unbuildable until maritime routes exist, M10+) and serves as an alternative material for bridge_stone and vault_dome."
  },
@@ -304,13 +435,62 @@
   "tree": "technology",
   "description": "A qanat taps groundwater at the foot of hills and leads it through a gently sloping tunnel to fields and settlements downslope, without pumping. Diggers sink a line of vertical shafts for access, spoil removal and ventilation. Developed in Iran, probably during the first millennium BCE, qanats spread to North Africa, Spain and western China, and some still flow today.",
   "wordCount": 60,
-  "sources": [],
+  "sources": [
+   {
+    "sourceId": "IND1-012",
+    "claims": [
+     "Iranian origin, early 1st millennium BCE"
+    ]
+   },
+   {
+    "sourceId": "IND1-013",
+    "claims": [
+     "Turpan karez"
+    ]
+   },
+   {
+    "sourceId": "IND1-014",
+    "claims": [
+     "Arabian origin view; North Africa and Spain names"
+    ]
+   }
+  ],
   "uncertainty": "Origins are debated: some scholars place early examples (aflaj) in southeastern Arabia around the same period or earlier; the proposal's ~800 BCE Persia is one estimate.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Iranian origin in the first millennium BCE versus Arabian aflaj; spread to North Africa, Spain and Turpan (karez); some still in use."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Developed in Iran probably during the first millennium BCE",
+     "sources": [
+      "IND1-012"
+     ],
+     "result": "disputed"
+    },
+    {
+     "claim": "Arabian (aflaj) origin argued by some",
+     "sources": [
+      "IND1-014"
+     ],
+     "result": "disputed"
+    },
+    {
+     "claim": "Spread to North Africa, Spain and western China (Turpan karez)",
+     "sources": [
+      "IND1-014",
+      "IND1-013"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Tunnel and vertical-shaft mechanism; some still flow",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Iranian origin in the early first millennium BCE (World History Encyclopedia) and the competing Southern Arabian view (EPFL concept page) both appear in search text; regional names (Algeria, Morocco, Spain) and Turpan karez supported; route and dates of spread not covered. Earlier drafting-lane note: No claim corroborated this session and no source recorded (none invented). Check first: Iranian origin in the first millennium BCE versus Arabian aflaj; spread to North Africa, Spain and Turpan (karez); some still in use."
   },
   "mechanicLink": "PROPOSED deferred realization (T6.11 tier C): a qanat supplying irrigation and drinking water to an arid settlement through bounded Farming and water/health terms; its Eureka needs aquifer state that does not exist yet."
  },
@@ -481,15 +661,57 @@
  {
   "id": "drawloom",
   "tree": "technology",
-  "description": "A pattern loom stores a woven design in its harness: warp threads are tied to cords grouped so each pattern row can be lifted in turn by an assistant. Han-dynasty loom models from Laoguanshan, about 150 BCE, show early Chinese pattern looms for figured silk. Drawlooms later wove figured silks in Persia, Byzantium and Italy, until French inventors automated them.",
-  "wordCount": 60,
-  "sources": [],
-  "uncertainty": "Whether the Laoguanshan models are drawlooms or multi-shaft pattern looms is debated; the developed drawloom is usually dated to Tang China (by about 700 CE).",
+  "description": "A pattern loom stores a woven design in its harness: warp threads are tied to cords grouped so each pattern row can be lifted in turn. Han-dynasty loom models from Laoguanshan, of the later second century BCE, are China's earliest evidence of pattern looms. Drawlooms later wove figured silks in Persia, Byzantium and Italy, until French inventors automated them.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "IND1-003",
+    "claims": [
+     "Laoguanshan models, 2nd half 2nd c BCE"
+    ]
+   },
+   {
+    "sourceId": "IND1-004",
+    "claims": [
+     "Laoguanshan pattern looms"
+    ]
+   },
+   {
+    "sourceId": "IND1-005",
+    "claims": [
+     "multi-heddle vs drawloom debate"
+    ]
+   }
+  ],
+  "uncertainty": "Whether the Laoguanshan models are drawlooms or multi-heddle pattern looms is debated (specialists describe a multiple-heddle pattern device); the developed drawloom is usually dated to Tang China (by about 700 CE).",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Laoguanshan pattern-loom models about 150 BCE; later Persian, Byzantine and Italian figured silks; automation by Bouchon, Falcon, Vaucanson and Jacquard (1725-1804)."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Laoguanshan (Chengdu) pattern-loom models, second half of the 2nd century BCE, earliest Chinese pattern looms",
+     "sources": [
+      "IND1-003",
+      "IND1-004"
+     ],
+     "result": "corrected"
+    },
+    {
+     "claim": "Mechanism: cord harness, rows lifted by an assistant (drawloom vs multi-heddle debated)",
+     "sources": [
+      "IND1-005"
+     ],
+     "result": "disputed"
+    },
+    {
+     "claim": "Later Persian, Byzantine, Italian figured silks; French automation",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Changed 'about 150 BCE, show early Chinese pattern looms for figured silk' to 'of the later second century BCE, are the earliest evidence of Chinese pattern looms' to match the Antiquity article's dating and wording. The drawloom reading is debated (Long and Zhao: multi-heddle device). Earlier drafting-lane note: No claim corroborated this session and no source recorded (none invented). Check first: Laoguanshan pattern-loom models about 150 BCE; later Persian, Byzantine and Italian figured silks; automation by Bouchon, Falcon, Vaucanson and Jacquard (1725-1804)."
   },
   "mechanicLink": "PROPOSED new knowledge-only node: the first dependant of silk and the prerequisite of jacquard; a figured-textile good is deferred to M10+."
  },
@@ -498,13 +720,60 @@
   "tree": "technology",
   "description": "Fulling cleans and thickens woven wool by pounding it wet, often with fuller's earth, so the fibres felt together. Once done by trampling, it was mechanised with water-driven hammers lifted by cams on a wheel shaft; such mills are recorded in Europe by about the eleventh century. They drew some cloth-making toward fast streams, though how much is debated.",
   "wordCount": 59,
-  "sources": [],
+  "sources": [
+   {
+    "sourceId": "IND1-015",
+    "claims": [
+     "fulling mills documented about 1086"
+    ]
+   },
+   {
+    "sourceId": "IND1-016",
+    "claims": [
+     "Carus-Wilson thesis debated"
+    ]
+   },
+   {
+    "sourceId": "IND1-017",
+    "claims": [
+     "English vs Low Countries use of mechanical fulling"
+    ]
+   }
+  ],
   "uncertainty": "Earliest documentary mentions (tenth-century Italy) are disputed; the idea of a thirteenth-century English 'industrial revolution' driven by fulling mills has been questioned.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: water-powered fulling mills in Europe by about the 11th century; cam-lifted hammers; debate on relocation of English cloth-making."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Water-powered fulling mills recorded in Europe by about the eleventh century",
+     "sources": [
+      "IND1-015"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Cam-lifted hammers on a wheel shaft",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Effect on location of cloth-making is debated",
+     "sources": [
+      "IND1-016",
+      "IND1-017"
+     ],
+     "result": "disputed"
+    },
+    {
+     "claim": "Fuller's earth and felting process",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Earliest documents about 1086 (Normandy; Domesday) support 'by about the eleventh century'. A search result attributed the cam-operated trip-hammer description to a paper by A. R. Lucas, but its URL could not be identified, so the claim is left unsupported. Carus-Wilson thesis debate supported. Earlier drafting-lane note: No claim corroborated this session and no source recorded (none invented). Check first: water-powered fulling mills in Europe by about the 11th century; cam-lifted hammers; debate on relocation of English cloth-making."
   },
   "mechanicLink": "PROPOSED deferred realization (T6.11 tier D): grants the fulling mill, a per-building capacity term on the live weaving recipe that needs a river; PROPOSED move to the Main Trunk."
  },
@@ -603,13 +872,47 @@
   "tree": "technology",
   "description": "A navigation canal is a built waterway for freight boats, often crossing a watershed with locks and with reservoirs that feed water to its summit level. France's Canal du Midi, opened in 1681, joined the Atlantic and Mediterranean by way of the Garonne. England's Bridgewater Canal of 1761 carried coal to Manchester. China's Grand Canal had crossed summits centuries earlier.",
   "wordCount": 60,
-  "sources": [],
-  "uncertainty": "China's Lingqu canal (3rd century BCE) and the Grand Canal's Huitong section (1289; water supply rebuilt 1411) are earlier summit canals; the proposal's anchor records the European dates.",
+  "sources": [
+   {
+    "sourceId": "IND1-018",
+    "claims": [
+     "Canal du Midi finished 1681"
+    ]
+   },
+   {
+    "sourceId": "IND1-019",
+    "claims": [
+     "summit-level reservoir"
+    ]
+   }
+  ],
+  "uncertainty": "China's Lingqu canal (3rd century BCE) and the Grand Canal's Huitong section (1289; water supply rebuilt 1411) are earlier summit canals; the Canal du Midi was in use by 1681 but final works continued to 1694; the proposal's anchor records the European dates.",
   "factCheck": {
-   "status": "unverified",
-   "checkedBy": "drafting lane",
-   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
-   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Canal du Midi opened 1681 with summit reservoirs; Bridgewater Canal 1761 coal to Manchester; earlier Chinese summit canals."
+   "status": "partially-checked",
+   "checkedBy": "evidence pass 2026-10-22",
+   "method": "WebSearch result text; source pages not opened (fetch blocked)",
+   "verifiedOn": "2026-10-22",
+   "claims": [
+    {
+     "claim": "Canal du Midi opened 1681, reservoirs feeding the summit, joining Atlantic and Mediterranean via the Garonne",
+     "sources": [
+      "IND1-018",
+      "IND1-019"
+     ],
+     "result": "supported"
+    },
+    {
+     "claim": "Bridgewater Canal 1761 carried coal to Manchester",
+     "sources": [],
+     "result": "unsupported"
+    },
+    {
+     "claim": "Earlier Chinese summit canals",
+     "sources": [],
+     "result": "unsupported"
+    }
+   ],
+   "notes": "Canal du Midi 1666-1681 and the Saint-Ferréol reservoir feeding the summit level supported (UNESCO, Wikipedia); Garonne link not stated explicitly in search text; Bridgewater and Chinese canals not covered. Earlier drafting-lane note: No claim corroborated this session and no source recorded (none invented). Check first: Canal du Midi opened 1681 with summit reservoirs; Bridgewater Canal 1761 coal to Manchester; earlier Chinese summit canals."
   },
   "mechanicLink": "PROPOSED deferred realization: grants the navigation canal, a network edge class owned by the unscheduled transport packet (DW-059, M10+); knowledge-only until then."
  },

@@ -17,7 +17,7 @@ Design method: `design-framework.md`; lane rationale: `research/lane-notes/`; cr
 | Total technology workload | 11,192,730 RP | 13,158,910 RP (+17.6 %; +1.6M is the optional nuclear/geology case study) |
 | Most expensive node | 756,960 RP (`rocket`) | 378,470 RP |
 | Knowledge-only dead ends | 91 | 13, each kept with a stated reason |
-| Validator | — | 0 ERROR (`tools/validate.py --no-corpus`), 72 WARN of expected kinds |
+| Validator | — | 0 ERROR (`tools/validate.py`; see `validation-report.md` for the current WARN list) |
 
 New technology keys 427–496 are assigned by `tools/integrate.py` in (Age, branch, id) order — PROPOSED until
 ratified. Retired keys (never reused): `siege_tower` → `siege_ram`, `crossbow_repeating` → `crossbow` (merges;
@@ -90,7 +90,7 @@ listed in the lane notes.
 | Petroleum → combustion | fog extent | `geophysical_prospecting` | deferred | `percussion_drilling` knowledge | `petroleum_refining` | `internal_combustion` (A9 CORE) |
 | Uranium → nuclear | fog extent | `radiometric_prospecting` | deferred | `uranium_milling` | `uranium_enrichment` | reactor families (knowledge-only) |
 
-Detail and state ownership: `fog-of-war-proposal.md` §12.
+Detail and state ownership: `fog-of-war-proposal.md` §12.1 (revised 2026-10-22: observing a visible surface resource needs no research). The `identification:… (exposed)` grants above are recognition knowledge at most; whether they relabel a polity's own observations or become plain knowledge is docket item A-5 (`director-intent-reconciliation.md` R-7). Every turn figure for this graph is an ESTIMATE from a static model (`research-balance-analysis.md`).
 
 ## 6. Compatibility (summary; per node in the inventory files)
 

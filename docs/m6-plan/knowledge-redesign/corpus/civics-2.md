@@ -17,116 +17,116 @@ Compulsory education is a legal duty on parents or guardians to have children sc
 
 The law of nations is a body of norms held to bind sovereign states in their dealings: the safety of envoys, the keeping of treaties, the rights of neutrals and limits on war. Hugo Grotius's On the Law of War and Peace (1625) systematised earlier natural-law writing. Lacking a common enforcer, it relied on custom, reciprocity and reputation.
 
-- words: 58 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.)
-- sources: —
-- uncertainty: The proposal also anchors the node to the Peace of Westphalia (1648); historians dispute how far Westphalia actually founded a system of sovereign states. Grotius built on earlier writers such as Vitoria, Suárez and Gentili.
+- words: 58 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC2-022] Hugo Grotius's On the Law of War and Peace appeared in 1625; [CVC2-023] Grotius systematised earlier natural-law writing; [CVC2-024] Grotius systematised earlier natural-law writing
+- uncertainty: The proposal also anchors the node to the Peace of Westphalia (1648); historians dispute how far Westphalia actually founded a system of sovereign states (not re-checked in this pass). Grotius drew extensively on Alberico Gentili [CVC2-023]; links to Spanish scholastics such as Vitoria and Suarez are commonly cited but were not corroborated here.
 - relation to mechanics: Knowledge-only today; PROPOSED to let the Diplomacy system (M8) treat neutrality, recognition and treaty compliance as reputational conditions, and to precede the laws-of-war conventions.
 
 ### 1048 · Statistical office (`official_statistics`)
 
 A statistical office is a standing public body that collects and publishes counts at regular intervals, turning single censuses into comparable series. Sweden's Tabellverket compiled national population tables from parish registers from 1749. Britain took its first national census in 1801. Regular tables let governments track births, deaths and migration, though their categories reflected official priorities.
 
-- words: 56 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.)
-- sources: —
-- uncertainty: Sweden's permanent statistical commission dates from 1756, a few years after the tables began; Britain's 1801 census was a headcount without a permanent office, which came later with civil registration (1837). Which body counts as the first statistical office depends on definition.
+- words: 56 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC2-026] Sweden's Tabellverket compiled national population tables from parish registers from 1749, Sweden's permanent commission dates from 1756; [CVC2-028] Britain took its first national census in 1801; [CVC2-027] Sweden's permanent commission dates from 1756
+- uncertainty: Sweden's statistical commission dates from 1756, a few years after the tables began, and became an independent authority in 1769 [CVC2-027]; Britain's 1801 census covered England and Wales as a headcount without a permanent office, and the 1841 census under civil registration is regarded as the first modern one [CVC2-028]. Which body counts as the first statistical office depends on definition.
 - relation to mechanics: Knowledge-only today; PROPOSED to become the requirement of the vital-statistics institution (M9) and a prerequisite of central planning.
 
 ### 1049 · Boards of health (`public_health_board`)
 
 A board of health is a public authority empowered to protect a population's health through quarantine, inspection and sanitation. Ragusa, now Dubrovnik, ordered isolation of arrivals during plague in 1377, and Venice later kept a permanent health magistracy. England's General Board of Health, created in 1848, pressed for drains and clean water. They often acted before disease causes were understood.
 
-- words: 60 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.)
-- sources: —
+- words: 60 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC2-025] Ragusa (Dubrovnik) ordered isolation of arrivals during plague in 1377
 - uncertainty: The proposal dates Venice's permanent magistracy to 1486; temporary plague commissions in Italian cities are older. England's board was weak and was dissolved in 1858.
 - relation to mechanics: Knowledge-only today; PROPOSED to become the requirement of the quarantine institution (replacing census as a proxy) under the Society milestone (M9).
 
 ### 1050 · Resident embassies (`resident_embassies`)
 
-A resident embassy is a permanent mission at a foreign ruler's court whose ambassador reports home continuously. The practice spread among Italian states such as Milan, Venice and Florence during the fifteenth century, then across Europe. Earlier diplomacy relied mainly on temporary envoys sent for particular negotiations. Standing missions gave steady information but invited suspicion of spying.
+A resident embassy is a permanent mission at a foreign ruler's court whose ambassador reports home continuously. Venice, Milan and Mantua exchanged resident envoys from around 1400; such missions became normal in Italy late in the fifteenth century and spread northward after 1500. Earlier diplomacy relied mainly on temporary envoys. Standing missions gave steady information but invited suspicion of spying.
 
-- words: 57 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.)
-- sources: —
-- uncertainty: The exact origin is debated (mid-fifteenth-century Milanese envoys are often cited); long-staying envoys and representatives existed earlier in other regions, including the papal court and Byzantine and Asian diplomacy.
+- words: 60 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC2-050] Venice, Milan and Mantua exchanged resident envoys from around 1400, Resident missions became normal in Italy late in the fifteenth century and spread northward
+- uncertainty: Britannica notes it is unclear which Italian state had the first permanent envoy; a Milanese envoy at Louis XI's court from 1463 is often cited [CVC2-050]. Long-staying envoys and representatives existed earlier elsewhere, including at the papal court (whether Avignon-era proctors count is debated) and in Byzantine and Asian diplomacy.
 - relation to mechanics: Knowledge-only today; PROPOSED to give the Diplomacy system (M8) a standing channel and regular reporting from a known polity's court, bounded by the fog-of-war fence.
 
 ### 1051 · Separation of powers (`separation_of_powers`)
 
 Separation of powers assigns lawmaking, execution and judging to distinct bodies so that none holds all authority. Montesquieu's The Spirit of the Laws (1748), drawing on an idealised reading of England, gave the idea its classic statement, and the United States Constitution of 1787 built it into checks and balances. Critics note that strict separation can produce deadlock between branches.
 
-- words: 60 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.)
-- sources: —
-- uncertainty: Earlier roots include ancient theories of mixed government and John Locke's distinction of powers; how accurately Montesquieu described England is debated.
+- words: 60 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC2-031] Montesquieu's The Spirit of the Laws (1748) gave the idea its classic statement; [CVC2-033] Montesquieu's The Spirit of the Laws (1748) gave the idea its classic statement, Montesquieu drew on an idealised reading of England; [CVC2-032] Montesquieu drew on an idealised reading of England; [CVC2-029] The US Constitution of 1787 built it into checks and balances; [CVC2-034] The US Constitution of 1787 built it into checks and balances
+- uncertainty: Earlier roots include ancient theories of mixed government and John Locke's distinction of powers; how accurately Montesquieu described England is disputed [CVC2-032]. One Britannica summary dates The Spirit of the Laws to 1750 rather than 1748.
 - relation to mechanics: Knowledge-only today; PROPOSED as the regime module for independent courts and mutually checking executive and legislature, adoptable in M8 and required by the presidential form.
 
 ### 1052 · Written constitution (`written_constitution`)
 
 A written constitution is a single fundamental law that establishes government's organs, defines their powers and is usually harder to amend than statutes. England's Instrument of Government of 1653 is an early example, and the United States Constitution of 1787 is often described as the oldest national constitution still in force. Text alone does not guarantee rulers observe it.
 
-- words: 59 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.)
-- sources: —
-- uncertainty: Claims about the 'first' or 'oldest' written constitution depend on definition: earlier charters and city statutes (for example San Marino's) are sometimes counted, and Britain still has no single codified constitution.
+- words: 59 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC2-035] England's Instrument of Government of 1653 is an early example; [CVC2-029] The US Constitution of 1787 is often described as the oldest national constitution still in force; [CVC2-030] The US Constitution of 1787 is often described as the oldest national constitution still in force
+- uncertainty: Claims about the 'first' or 'oldest' written constitution depend on definition: earlier charters and city statutes (for example San Marino's) are sometimes counted, the Instrument lasted only until 1657 [CVC2-035], the US had an earlier written frame in the Articles of Confederation (1781-89) [CVC2-029], and Britain still has no single codified constitution.
 - relation to mechanics: Knowledge-only today; PROPOSED as the constitutional regime module (M8) fixing which powers each organ may use, and a prerequisite of several forms and of separation of powers.
 
 ### 1053 · Absolute monarchy (`absolute_monarchy`)
 
-Absolute monarchy is rule by a monarch claiming authority that does not depend on the consent of estates or assemblies, often justified by divine right. Louis XIV of France (reigned 1643 to 1715) and Peter I of Russia (1682 to 1725) are frequent examples. Rulers centralised taxation, armies and administration, yet still bargained with nobles, churches, courts and local privileges.
+Absolute monarchy is rule by a monarch claiming authority that no estate, parliament or assembly can call to account, often justified by divine right. Louis XIV of France is the standard example, and Peter I of Russia is often grouped with him. Rulers centralised taxation, armies and administration, yet still bargained with nobles, churches, courts and local privileges.
 
-- words: 60 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.)
-- sources: —
-- uncertainty: Many historians question 'absolutism' as a label, since early-modern monarchs' real power was limited by elites, law and custom; the term was applied largely in retrospect.
+- words: 58 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC2-001] Absolute monarchy was often justified by divine right; the monarch claimed not to be accountable to estates or assemblies; [CVC2-002] Absolute monarchy was often justified by divine right; the monarch claimed not to be accountable to estates or assemblies, Louis XIV of France is the standard e; [CVC2-003] Real royal power was limited by bargaining with elites and institutions
+- uncertainty: Many historians question 'absolutism' as a label, since early-modern monarchs' real power was limited by elites, law and custom; the term was applied largely in retrospect, and opinion on its extent varies [CVC2-003]. Britannica notes Louis XIV made surprisingly few institutional changes [CVC2-002].
 - relation to mechanics: Knowledge-only today; PROPOSED as a regime form adoptable in M8 from the standing-army and administration modules, with the government label derived rather than stored.
 
 ### 1054 · Constitutional monarchy (`constitutional_monarchy`)
 
-A constitutional monarchy keeps a hereditary monarch but binds the crown by law and by the consent of a legislature. In England, the settlement of 1689, including the Bill of Rights, required parliamentary consent for taxation and for a standing army in peacetime. Over later centuries many such monarchs became largely ceremonial, while ministers answerable to elected chambers exercised power.
+A constitutional monarchy keeps a hereditary monarch but binds the crown by law and by the consent of a legislature. In England, the settlement of 1689, including the Bill of Rights, required parliamentary consent for taxation and for a standing army in peacetime. British monarchs later kept formal powers but became largely ceremonial, as cabinets answerable to the Commons governed.
 
-- words: 60 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.)
-- sources: —
-- uncertainty: The 1689 settlement limited the crown but did not yet create cabinet government; other monarchies were constrained by law or estates before 1689, so the English case is a prominent rather than unique origin.
+- words: 60 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC2-004] The 1689 Bill of Rights made taxation without parliamentary grant illegal, The 1689 Bill of Rights required parliamentary consent for a standing army in peaceti; [CVC2-005] The 1689 Bill of Rights made taxation without parliamentary grant illegal, The 1689 Bill of Rights required parliamentary consent for a standing army in peaceti; [CVC2-013] British monarchs kept formal powers while power passed to cabinets answerable to the Commons; [CVC2-014] British monarchs kept formal powers while power passed to cabinets answerable to the Commons
+- uncertainty: The 1689 settlement limited the crown but did not yet create cabinet government, and it claimed to declare existing law rather than introduce new principles [CVC2-006]; other monarchies were constrained by law or estates before 1689, so the English case is a prominent rather than unique origin.
 - relation to mechanics: Knowledge-only today; PROPOSED as a regime form adoptable in M8 from succession law plus a constitution or rights-and-assembly modules, combinable with parliamentary government.
 
 ### 1055 · Federation (`federal_republic`)
 
 A federation divides sovereignty between a central government and member states or cantons, each holding powers protected by a constitution. The United States Constitution of 1787 created a durable federal model, and Switzerland adopted a federal constitution in 1848 after a brief civil war. Federations can accommodate regional diversity but must keep settling disputes over which level holds which powers.
 
-- words: 60 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.)
-- sources: —
-- uncertainty: Looser confederations, such as the Dutch Republic and the earlier Swiss Confederacy, preceded these; where confederation ends and federation begins is a matter of definition.
+- words: 60 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC2-029] The US Constitution of 1787 created a durable federal model; [CVC2-007] Switzerland adopted a federal constitution in 1848 after a brief civil war (Sonderbund War, 1847), Swiss 1848 constitution turned a confederation into a federat; [CVC2-008] Swiss 1848 constitution turned a confederation into a federation and protected cantonal representation
+- uncertainty: Looser confederations, such as the Dutch Republic and the earlier Swiss Confederacy, preceded these; where confederation ends and federation begins is a matter of definition. The 1848 Swiss constitution is described as turning a confederation of states into a federation [CVC2-007].
 - relation to mechanics: Knowledge-only today; PROPOSED as a territorial regime form adoptable in M8 from a written constitution plus municipal or provincial modules, combinable with several executive forms.
 
 ### 1056 · Presidential republic (`presidential_republic`)
 
 A presidential republic has a chief executive elected separately from the legislature for a fixed term, who cannot normally be removed by a vote of no confidence. The United States Constitution of 1787 established the model, later adopted widely in Latin America and elsewhere. Fixed terms give predictability, though conflict between president and legislature can bring deadlock or constitutional crises.
 
-- words: 60 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.)
-- sources: —
-- uncertainty: Removal is still possible through impeachment or similar procedures; many systems mix presidential and parliamentary features, so classification is debated.
+- words: 60 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC2-010] The chief executive is chosen separately from the legislature, as designed in 1787 to avoid dependence on Congress, The US Constitution of 1787 established the ; [CVC2-029] The US Constitution of 1787 established the model; [CVC2-009] The model was adopted widely in Latin America and elsewhere; [CVC2-012] Fixed terms (e.g., Mexico's single six-year term); [CVC2-011] Not normally removable by a vote of no confidence
+- uncertainty: Removal is still possible through impeachment or similar procedures, and some constitutions (e.g., Peru's 1993 'moral incapacity' clause) let legislatures remove presidents by supermajority [CVC2-011]; many systems mix presidential and parliamentary features, so classification is debated.
 - relation to mechanics: Knowledge-only today; PROPOSED as a regime form adoptable in M8 from the separation-of-powers and elected-magistracy modules.
 
 ### 1057 · Abolition of slavery and serfdom (`abolition`)
 
 Abolition is the legal ending of slavery or hereditary bondage, freeing those held and forbidding re-enslavement. Solon cancelled debt bondage at Athens around 594 BCE; Britain's Slavery Abolition Act of 1833 ended slavery in most of its colonies, and Russia emancipated its serfs in 1861. Freed people often faced apprenticeship, redemption debts or land shortages; some former owners received compensation.
 
-- words: 60 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.)
-- sources: —
-- uncertainty: Solon's reform is known from later sources and ended Athenian debt bondage, not chattel slavery. The British Act excluded some territories and imposed apprenticeship until 1838; Russian emancipation required redemption payments. Abolition came through many separate struggles, including enslaved people's own resistance.
+- words: 60 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC2-036] Britain's Slavery Abolition Act of 1833 ended slavery in most of its colonies, with apprenticeship, Some former owners received compensation; [CVC2-037] Some former owners received compensation
+- uncertainty: Solon's reform is known from later sources and ended Athenian debt bondage, not chattel slavery. The British Act excluded some territories and imposed apprenticeship until 1838 [CVC2-036] (one parliamentary page says 1840, the originally scheduled end for some workers); owners received GBP 20 million [CVC2-037]. Russian emancipation required redemption payments. Abolition came through many separate struggles, including enslaved people's own resistance.
 - relation to mechanics: Knowledge-only today; PROPOSED as the D-018 exit from the Enslaved class through the class-mobility system (M9); its unfree-labour counterpart remains an open decision.
 
 ### 1058 · General staff (`general_staff`)
 
-A general staff is a permanent body of trained officers who plan mobilisation, gather intelligence and prepare operations in peacetime. Prussia reorganised its staff during reforms between 1806 and 1814 after defeats by Napoleon, and founded a war academy in Berlin in 1810. Other states copied the model after Prussian victories in 1866 and 1870, though planning never removed uncertainty.
+A general staff is a permanent body of trained officers who plan mobilisation, gather intelligence and prepare operations in peacetime. Prussia built one in reforms led by Scharnhorst and Gneisenau after Napoleon defeated it at Jena and Auerstedt, and founded a war academy in Berlin in 1810. It later became the envy of other armies, though planning never removed uncertainty.
 
-- words: 60 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.)
-- sources: —
-- uncertainty: Staff officers and quartermaster-general departments existed in several armies before 1806; the Prussian version is notable for its permanence and training rather than for inventing staff work.
+- words: 60 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC2-047] Prussia created a permanent staff during reforms led by Scharnhorst and Gneisenau after defeats by Napoleon, A war academy was founded in Berlin in 1810, It (th
+- uncertainty: Staff officers and quartermaster-general departments existed in several armies before 1806; the Prussian version is notable for its permanence and training rather than for inventing staff work. Its prestige grew under Moltke, chief of staff 1857-1887; foreign imitation after the wars of 1866 and 1870 is widely asserted but was not corroborated here.
 - relation to mechanics: Knowledge-only today; PROPOSED to feed operational planning and command friction in the battle layer (M7) and to count as an organised officer corps in M8.
 
 ### 1059 · Laws of war conventions (`laws_of_war`)
 
 Laws of war conventions are agreements by which states bind their conduct in armed conflict. The Lieber Code of 1863 instructed Union armies in the American Civil War; the Geneva Convention of 1864 protected wounded soldiers and medical staff; the Hague Conventions of 1899 addressed prisoners, occupation and some weapons. Compliance depended on reciprocity and command discipline; violations remained common.
 
-- words: 60 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.)
-- sources: —
+- words: 60 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC2-038] The Lieber Code of 1863 instructed Union armies; [CVC2-039] The Lieber Code of 1863 instructed Union armies; [CVC2-040] The Geneva Convention of 1864 protected wounded soldiers; [CVC2-041] The Hague Conventions of 1899 addressed war on land
 - uncertainty: The Lieber Code was a national army order rather than a treaty; customary restraints on war are far older and found in many cultures.
 - relation to mechanics: Knowledge-only today; PROPOSED to make treaty obligations on wartime conduct a diplomatic condition (M8) and to shape treatment of prisoners and wounded in the battle layer (M7).
 
@@ -134,8 +134,8 @@ Laws of war conventions are agreements by which states bind their conduct in arm
 
 A mass political party is a permanent organisation with local branches, a press and national leadership, built to mobilise voters. In the United States, national party organisations and nominating conventions formed around 1830. Germany's socialist party, created by a merger at Gotha in 1875, became a model of membership organisation. Parties widen participation but can concentrate power in leaderships.
 
-- words: 59 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.)
-- sources: —
+- words: 59 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC2-053] Germany's socialist party was created by a merger at Gotha in 1875; [CVC2-054] Germany's socialist party was created by a merger at Gotha in 1875, It took the name SPD only in 1890
 - uncertainty: The German party took the name Social Democratic Party only in 1890. Earlier factions and clubs existed in Britain, the United States and revolutionary France; when they became 'mass' parties depends on criteria.
 - relation to mechanics: Knowledge-only today; PROPOSED as the party-organisation regime module (M8) that carries elections and is required by the one-party and Marxist-Leninist forms.
 
@@ -143,62 +143,62 @@ A mass political party is a permanent organisation with local branches, a press 
 
 Mass suffrage extends the vote to most adults, typically through public registers of electors and, increasingly, a secret ballot. Most US states dropped property qualifications for white men by about 1830; France adopted universal male suffrage in 1848; New Zealand gave women the national vote in 1893. Broad franchises long excluded many people by race, sex, residence or literacy.
 
-- words: 59 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.)
-- sources: —
+- words: 59 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC2-049] Most US states dropped property qualifications for white men by about 1830; [CVC2-048] New Zealand gave women the national vote in 1893
 - uncertainty: Dates vary by country and by group; 'universal' suffrage was rarely universal, and women's and minority voting rights often came decades after men's.
 - relation to mechanics: Knowledge-only today; PROPOSED as the broadest setting of the D-018 enfranchisement vector, weighting headcount, adoptable in M8.
 
 ### 1062 · Responsible ministers (`ministerial_responsibility`)
 
-Ministerial responsibility is the convention that ministers hold office only while they keep the confidence of the elected chamber. The resignation of Lord North's ministry in 1782, after it lost support in the Commons, is often cited as an early British marker. Nova Scotia won responsible government in 1848. It makes executives accountable but can destabilise governments with fragile majorities.
+Ministerial responsibility is the convention that ministers hold office only while they keep the confidence of the elected chamber. The collapse of Lord North's ministry in 1782, when George III had to accept ministers he opposed, is often cited as an early British marker. Nova Scotia won responsible government in 1848. It makes executives accountable but can destabilise fragile governments.
 
-- words: 60 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.)
-- sources: —
-- uncertainty: The convention developed gradually and was not fixed by any single event; royal influence over ministers persisted in Britain well into the nineteenth century.
+- words: 60 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC2-015] In 1782 George III had to accept ministers he opposed; [CVC2-051] Nova Scotia won responsible government in 1848; [CVC2-052] Nova Scotia won responsible government in 1848
+- uncertainty: The convention developed gradually and was not fixed by any single event; royal influence over ministers persisted in Britain well into the nineteenth century. Nova Scotia was the first British North American colony to achieve responsible government (January-February 1848) [CVC2-051, CVC2-052].
 - relation to mechanics: Knowledge-only today; PROPOSED as the responsible-ministry regime module (M8) making the executive dismissible by the legislature, the defining module of parliamentary government.
 
 ### 1063 · Universal conscription (`universal_conscription`)
 
 Universal conscription makes military service a legal obligation for men of set ages, enforced through registration and regular call-up. Revolutionary France decreed a levée en masse in 1793, and the Jourdan Law of 1798 established regular conscription by age class. It produced much larger armies but also evasion, desertion and heavy burdens on families and farm labour.
 
-- words: 57 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.)
-- sources: —
+- words: 57 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC2-044] Revolutionary France decreed a levee en masse in 1793; [CVC2-045] The Jourdan Law of 1798 established regular conscription by age class; [CVC2-046] The Jourdan Law of 1798 established regular conscription by age class, It produced evasion
 - uncertainty: Compulsory service existed earlier in other forms (for example Swedish and Prussian cantonal recruitment), and 'universal' systems usually allowed exemptions or paid substitutes.
 - relation to mechanics: Knowledge-only today; PROPOSED to draw battle-layer manpower from registered cohorts (M7) and to feed grievance under the Society milestone (M9).
 
 ### 1064 · Parliamentary government (`parliamentary_government`)
 
-Parliamentary government is rule by a cabinet drawn from and responsible to the legislature, governing only while it keeps a majority's confidence. In Britain, cabinet government consolidated between about 1830 and 1870 as the monarch's role in choosing ministers declined. Because executive and legislature are fused, governments can legislate quickly but may fall when coalitions or party majorities break.
+Parliamentary government is rule by a cabinet drawn from and responsible to the legislature, governing only while it keeps a majority's confidence. In Britain, after the 1832 Reform Act no cabinet could survive without a Commons majority, and by the mid-1800s the cabinet was the senior decision-making body. Fused executives can legislate quickly but fall when majorities break.
 
-- words: 59 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.)
-- sources: —
-- uncertainty: The date range for British consolidation is an interpretive convention; similar systems developed separately in other European states and in British colonies.
+- words: 58 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC2-013] After the 1832 Reform Act no British cabinet could survive without a Commons majority, Governments fall when they lose their majority; [CVC2-014] By the mid-1800s the cabinet was the senior decision-making body, The monarch's role in choosing ministers declined; [CVC2-015] The monarch's role in choosing ministers declined
+- uncertainty: Dating British consolidation is an interpretive convention: the monarch's practical power to choose ministers eroded from the eighteenth century (Walpole's fall, the 1782 crisis) while the formal power to appoint remained [CVC2-014, CVC2-015]; similar systems developed separately in other European states and in British colonies.
 - relation to mechanics: Knowledge-only today; PROPOSED as a regime form adoptable in M8 from the responsible-ministry module, with the government label derived rather than stored.
 
 ### 1065 · Central economic planning (`central_planning`)
 
 Central planning is the direction of an economy's output, investment and allocation by state plans rather than mainly by market prices. The Soviet state created Gosplan, its planning commission, in 1921 and launched the first Five-Year Plan in 1928. Planning drove rapid heavy industrialisation but struggled with information, incentives and quality, and accompanied forced collectivisation and famine.
 
-- words: 57 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.)
-- sources: —
+- words: 57 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC2-042] The Soviet state created Gosplan in 1921; [CVC2-043] The first Five-Year Plan was launched in 1928, Planning drove rapid heavy industrialisation, It accompanied forced collectivisation and famine
 - uncertainty: Wartime controlled economies (notably Germany in 1914-1918) preceded Soviet planning; how much the plans actually directed outcomes, as opposed to setting targets, is debated.
 - relation to mechanics: Knowledge-only today; PROPOSED to allocate production by plan instead of price in the production system (M10 or later) and to serve as the planning module of the Marxist-Leninist form.
 
 ### 1066 · Marxist–Leninist state (`marxist_leninist_state`)
 
-A Marxist-Leninist state is governed by a communist party claiming to lead the working class, combining one-party rule with state ownership and economic planning. The Soviet Union, founded in 1922, was the first such state; the People's Republic of China followed in 1949. Such states expanded schooling and industry but suppressed opposition, and many collapsed or changed course after 1989.
+A Marxist-Leninist state is ruled by a communist party claiming to lead the working class, combining one-party rule with state ownership and planning. The Soviet Union, founded in 1922, was the first such state; the People's Republic of China followed in 1949. The USSR industrialised rapidly while suppressing opposition, then dissolved in 1991; China remains under communist rule.
 
-- words: 60 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.)
-- sources: —
+- words: 58 · fact-check: search-corroborated (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC2-016] The Soviet Union was founded in 1922, One-party rule / suppression of opposition (party monopoly of power), The Soviet Union dissolved in 1991; China remains un; [CVC2-019] It was the first such state; [CVC2-017] The People's Republic of China followed in 1949; [CVC2-018] One-party rule / suppression of opposition (party monopoly of power), The Soviet Union dissolved in 1991; China remains under communist rule; [CVC2-043] The USSR industrialised rapidly (Five-Year Plans)
 - uncertainty: Bolshevik rule began in 1917, before the USSR's formal founding; the label covers states that differed widely in economic policy and in how they reformed.
 - relation to mechanics: Knowledge-only today; PROPOSED as a regime form adoptable in M8 from the party-organisation and central-planning modules.
 
 ### 1067 · One-party state (`one_party_state`)
 
-A one-party state allows only one legal political party, or tolerates others only under its control, and merges party and state offices. Soviet Russia was an early case from the early 1920s; the Republican People's Party governed Turkey alone from about 1925 to 1945. Such regimes have pursued very different ideologies, and many claimed to represent the whole nation.
+A one-party state allows only one legal political party, or tolerates others only under its control, and merges party and state offices. In Soviet Russia the communist party held a monopoly of power from soon after 1917; the Republican People's Party governed Turkey alone from about 1925 to 1945. Such regimes have pursued very different ideologies.
 
-- words: 59 · fact-check: unverified (drafting lane; Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.)
-- sources: —
-- uncertainty: Start and end dates are approximate: Turkey's single-party period is variously dated from 1923 or 1925 to 1945 or 1946, and Soviet opposition parties were suppressed gradually after 1917.
+- words: 56 · fact-check: partially-checked (evidence pass 2026-10-22; WebSearch result text; source pages not opened (fetch blocked))
+- sources: [CVC2-016] In Soviet Russia the communist party held a monopoly of power from soon after 1917; [CVC2-020] The Republican People's Party governed Turkey alone from about 1925 to 1945; [CVC2-021] The Republican People's Party governed Turkey alone from about 1925 to 1945
+- uncertainty: Start and end dates are approximate: Turkey became a single-party state with the closure of the Progressive Republican Party in June 1925; the Democrat Party was registered in January 1946, and some accounts extend CHP one-party rule to its 1950 defeat [CVC2-021]. Soviet opposition parties were suppressed gradually after 1917.
 - relation to mechanics: Knowledge-only today; PROPOSED as a regime form adoptable in M8 from the party-organisation module plus a written constitution or standing army, independent of economic doctrine.
 

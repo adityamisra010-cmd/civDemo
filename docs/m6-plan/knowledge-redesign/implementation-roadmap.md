@@ -1,7 +1,11 @@
 # Knowledge redesign — implementation roadmap (PROPOSED packets)
 
 **Status: PROPOSED. Nothing in this roadmap is allocated or ratified.** M6 implementation stays blocked until the
-Director ratifies `docs/m6-spec.md` and rules the gating decisions (`director-decision-docket.md`, KD-xx). Packets are
+Director ratifies `docs/m6-spec.md` and rules the gating decisions (`director-decision-docket.md`). **Ratification is
+staged (Director intent, 2026-10-22):** the architecture gate (docket group A) comes first; each packet's mechanics and
+content decisions (group B) are ruled before that packet; balance and content choices (group C) later. Ruling the
+architecture approves no node, cost, yield, government form, AI strategy, UI behaviour or educational text.
+Revised 2026-10-22 for the fog correction (unit-led sight), the CP source model and the corpus shipping gate. Packets are
 small, testable and aligned with the M6 spec's T6.x lanes; where a packet extends a T6.x packet it says so. CLAUDE.md
 rules apply to every packet: one packet per session and branch, cut from `main`; acceptance = the packet's criteria;
 banned-constructs grep, `dotnet build`, `dotnet test`; POPULATED-table tests for new rows; turn-exact pins for new order
@@ -32,17 +36,17 @@ KR-0; civics (KR-5, KR-6) waits on D-061.
 
 | Packet | Extends | Scope (one line) | Blocking decisions | Size |
 |---|---|---|---|---|
-| KR-0 Governance gate | T6.1 | Director rulings: spec, D-061.1, KD-01…KD-12 needed before code | — | docs |
+| KR-0 Governance gate | T6.1 | Director rulings on docket group A (architecture); group B items before their packet | — | docs |
 | KR-1 Engine fixes, harness, content identity | T6.2 | AI goal closure (cheapest route + stage atoms), AI research measurement harness, calibration report refresh, content hash in session identity | KD-05, KD-07, KD-10, KD-11 | M |
 | KR-2 Migration seam | new | content-declared key remap applied at load for retired/merged/split keys | KD-08 | M |
 | KR-3 Technology content A | T6.4 (tech half) | new nodes, rewires, rebalances, relocations, renames, Eureka appends — no key retirement | KD-01, KD-04, KD-06, KD-09 | L |
 | KR-4 Technology content B | T6.4 | splits, merges, retirements through KR-2 | KD-01, KD-08 | M |
-| KR-5 Civics engine | T6.3 | CP pool/target/progress (if D-061), ADR-043, schema bump, migration of the 7 civics, P1–P6 measurement | KD-02, KD-03, D-061.2–7 | L |
+| KR-5 Civics engine | T6.3 | CP generation from its own population-led inputs (not a fraction of RP), civic progress, ADR-043, schema bump, migration of the 7 civics, P1–P7 measurement; no RP↔CP exchange (M8) | A-1, A-4, B-4 | L |
 | KR-6 Civics content | T6.4/T6.5 | 60 new civics, regime/policy entity kinds (content-only), validators, Age-fact rules | KD-02, KD-21, KD-22, KD-23 | L |
-| KR-7 Educational corpus | new | node texts + sources into content and UI; fact-check gate | KD-25 | M |
-| KR-8 Fog S2a | T6.7 | extent, geometric LIVE sight, sighting memory (incl. formation ghosts), founding seed, schema, PreFog twin | KD-12, KD-15, KD-16, KD-17 | L |
+| KR-7 Educational corpus | new | node texts + sources into content and UI; ships only `source-checked` entries (C10 gate) | B-7 | M |
+| KR-8 Fog S2a | T6.7 | explored extent, unit-produced VISIBLE sight (no passive settlement sight by default), last-seen memory incl. formation GHOST rows, the ruled M6 exploration option (X2 recommended), schema, PreFog twin | A-3, B-8 | L |
 | KR-9 Fog S2b | T6.8 | gating, AI scoped queries, D-T, DW-002 companions, trade rule | KD-13, KD-14, KD-18 | M |
-| KR-10 Fog S2c | T6.9 | LIVE/REMEMBERED/UNKNOWN display, stale markers, blocked-action reasons | KD-12 | M |
+| KR-10 Fog S2c | T6.9 | UNKNOWN / VISIBLE / REMEMBERED display (dark overlay for remembered), GHOST markers with last-seen turn, no neutral-unit memory, blocked-action reasons | A-3 | M |
 | KR-11 Resource discovery contract | T6.21 (D-051 §2(b)) | place-level copper/tin truth (worldgen-derived), identification, deposit UI states | KD-19 | M |
 | KR-12 Capability/institution consumers | T6.11 | realize selected deferred entities through existing equations | KD-01, KD-27 | L |
 | KR-13 UI integration | T6.6 | research/civics panels: lanes, cards, grants, owners, milestones, reasons | KD-01 | M |
@@ -119,8 +123,11 @@ KR-0; civics (KR-5, KR-6) waits on D-061.
 - **Scope:** as `docs/m6-spec.md` T6.3 (CP pool, civics target kind 14, progress rows, ADR-043, schema bump, migration
   of the 7 civics, two conservation pins, minimal AI civics lane) — only if D-061.1 is ratified; otherwise KR-6 lands on
   the one pool and KD-02's workload warning applies.
-- **Acceptance (added by this package):** the D12 tolerances P1–P6 (`civics-tree-proposal.md` §6) measured against the
-  one-pool twin on seeds 1, 2, 42, 7 with both drivers; failure triggers the pre-registered Option B remedy (KD-03).
+- **Acceptance (added by this package):** the D12 tolerances P1–P7 (`civics-tree-proposal.md` §6, restated in CP
+  terms; P7 = the tax edict stays available as today) measured against the one-pool twin on seeds 1, 2, 42, 7 with both
+  drivers; failure triggers the pre-registered Option B remedy (`cp-economy-proposal.md` §4). CP is generated from its
+  own inputs (§2 there), never as a fraction or split of RP. **Exclusions:** the RP↔CP exchange (government-change turn
+  only; M8) and any government-change consequence such as a happiness penalty (not developed, by Director instruction).
 
 ### KR-6 — Civics content (T6.4/T6.5)
 - **Scope:** the 60 new civics (keys 1008+), strands as `domain` lanes, validators (macro civics are leaves, never Age
@@ -133,19 +140,25 @@ KR-0; civics (KR-5, KR-6) waits on D-061.
 ### KR-7 — Educational corpus content
 - **Scope:** node texts and source references into content (recommended: a separate `research-text.json` keyed by node
   id, so text edits never change `research.json`'s SHA and the CI audits — KD-25), shown on the node card with sources.
-- **Acceptance:** one text per node, 45–65 words, every entry at least `search-corroborated`, an independent check of a
-  stated sample, no duplicate/near-duplicate text; UI wraps text at all supported resolutions.
-- **Blocking:** KD-25. **Stop:** any entry still `unverified` blocks shipping that entry (it ships without text).
+- **Acceptance:** one text per node, 45–65 words, **only `source-checked` entries ship** (validator C10/C11; today 0 of
+  561 qualify), an independent check of a stated sample, no duplicate/near-duplicate text; UI wraps text at all
+  supported resolutions.
+- **Blocking:** B-7. **Stop:** any entry not `source-checked` ships without text (the mechanic may ship; unsourced prose
+  may not).
 
 ### KR-8 / KR-9 / KR-10 — Fog S2a, S2b, S2c (T6.7–T6.9)
 - **Scope and acceptance:** `fog-of-war-proposal.md` §16 (implementation sequence), §11 (deterministic test strategy:
   metamorphic leak tests on seeds 1, 2, 42, 7 with positive controls, turn-exact discovery pins, POPULATED tables,
-  PreFog twin), §14 (persistence and migration), with the §19 resolutions (formation ghost rows; geology storage on the
-  ADR-008 path; companion founding rules; sight radius ≥ 12 nodes).
-- **Blocking:** KD-12…KD-18. **Stop:** a metamorphic test that cannot be given teeth (positive control fails) blocks
-  the packet.
-- **Human check (KR-10):** the Director plays 50 turns and confirms LIVE/REMEMBERED/UNKNOWN read correctly, a stale
-  rival border shows its age, and a blocked founding explains why.
+  PreFog twin, plus leak invariants for unseen enemy movement and unseen resource/world changes), §14 (persistence and
+  migration), §6.7 (the M6 exploration option the Director rules), with the §19 resolutions as revised 2026-10-22 (units
+  are the only default sight producers; formation GHOST rows per D-039 C1–C3; no neutral-unit memory; geology storage on
+  the ADR-008 path; companion founding rules; sight geometry and radius are OPEN options, §6.3 — the earlier
+  "radius ≥ 12 nodes" is withdrawn).
+- **Blocking:** A-3 (architecture) and B-8 (packet decisions). **Stop:** a metamorphic test that cannot be given teeth
+  (positive control fails) blocks the packet; no packet may add passive settlement sight unless the Director rules X4.
+- **Human check (KR-10):** the Director plays 50 turns and confirms UNKNOWN / VISIBLE / REMEMBERED read correctly, a
+  GHOST marker shows its age and never moves, neutral units vanish when out of sight, and a blocked founding explains
+  why. Under X2 the check also confirms that M6 exploration is as limited as `fog-of-war-proposal.md` §6.7 states.
 
 ### KR-11 — Resource discovery contract (with T6.21 / D-051 §2(b))
 - **Scope:** place-level deposit truth for the existing ores (copper, tin) derived from worldgen (not stored); the

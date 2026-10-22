@@ -1,1 +1,193 @@
-[]
+[
+ {
+  "id": "NAT2-001",
+  "title": "Sanger, Nicklen and Coulson, DNA sequencing with chain-terminating inhibitors (PNAS 1977)",
+  "author_org": "PNAS via PubMed Central",
+  "published": "1977",
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/431765",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Dideoxy nucleotide analogues used as chain-terminating inhibitors of DNA polymerase",
+   "Method applied to phiX174 DNA; faster and more accurate than the plus and minus method"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT2-002",
+  "title": "15.03: DNA sequencing (Bergtrom, Cell and Molecular Biology)",
+  "author_org": "LibreTexts Biology",
+  "published": null,
+  "url": "https://bio.libretexts.org/Under_Construction/Cell_and_Molecular_Biology_(Bergtrom)/15%3A_DNA_Technologies/15.03%3A_DNA_sequencing",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "In 1977 two DNA sequencing methods were reported: Maxam and Gilbert's chemical method and Sanger's dideoxy method",
+   "The first complete sequencing of a genome was that of bacteriophage phiX174"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT2-003",
+  "title": "Biol 4241 DNA sequencing lecture notes (2026)",
+  "author_org": "Memorial University of Newfoundland, Biology",
+  "published": "2026",
+  "url": "https://www.mun.ca/biology/scarr/Biol4241_DNA_sequencing_2026Mar25.pdf",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "phiX174 genome of about 5,375-5,386 bases published in 1977"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT2-004",
+  "title": "Doudna wins 2020 Nobel Prize in Chemistry",
+  "author_org": "UCSF Pharmaceutical Sciences and Pharmacogenomics",
+  "published": "2020",
+  "url": "https://pspg.ucsf.edu/news/2020/10/doudna-wins-2020-nobel-prize-chemistry",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "2020 Nobel Prize in Chemistry to Charpentier and Doudna for a method of genome editing",
+   "In 2012 they showed RNA-guided Cas9 could be reprogrammed to cut a chosen DNA target"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT2-005",
+  "title": "2020 Nobel Prize in Chemistry awarded to Emmanuelle Charpentier and Jennifer Doudna",
+  "author_org": "Federation of European Microbiological Societies",
+  "published": "2020",
+  "url": "https://fems-microbiology.org/2020-nobel-prize-in-chemistry-awarded-to-eam-member-emmanuelle-charpentier-and-jennifer-doudna/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "The CRISPR-Cas9 system is part of a bacterial defence that recognises viral DNA",
+   "tracrRNA identified by Charpentier in Streptococcus pyogenes in 2011"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT2-006",
+  "title": "Clean machine",
+  "author_org": "Science History Institute (Distillations)",
+  "published": null,
+  "url": "https://www.sciencehistory.org/distillations/clean-machine",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Lead in petrol coated the catalyst and blocked contact with exhaust gases",
+   "The 1970 Clean Air Act required a 90% cut in auto pollutants by 1975; converters fitted from model year 1975",
+   "Unleaded petrol made available from 1 January 1975",
+   "Catalyst coating usually platinum"
+  ],
+  "confidence": "high",
+  "notes": "Statement-level attribution between this page and Wikipedia not fully distinguished for the model-year mandate. Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT2-007",
+  "title": "Catalytic converter",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Catalytic_converter",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Early two-way converters oxidised carbon monoxide and hydrocarbons",
+   "Three-way converters, also reducing NOx, first commercialised by Volvo in 1977"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT2-008",
+  "title": "Rochelle, Amine scrubbing for CO2 capture (Science 2009)",
+  "author_org": "Science (copy hosted by Georgia Tech)",
+  "published": "2009",
+  "url": "https://cobblab.eas.gatech.edu/energy/Readings/rochelle2009.pdf",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Amine scrubbing has been used to separate CO2 from natural gas and hydrogen since 1930"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT2-009",
+  "title": "CCS on Sleipner - back where it came from",
+  "author_org": "Equinor industrial heritage (industriminne.no)",
+  "published": null,
+  "url": "https://equinor.industriminne.no/en/category/technology-and-environment-climate-and-environment-en/page/2/",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "At Sleipner T, CO2 is removed from the gas flow by amines that bind it",
+   "The technology was not off-the-shelf, had problems and was costly"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT2-010",
+  "title": "Fleischmann et al., Whole-genome random sequencing and assembly of Haemophilus influenzae Rd (Science 269, 1995)",
+  "author_org": "Science (copy hosted by Duke University course)",
+  "published": "1995",
+  "url": "https://courses.cs.duke.edu/spring22/compsci260/resources/GenomeSequencingPapers/flesichmann95.pdf",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Complete genome of a free-living organism, Haemophilus influenzae Rd (1,830,137 bp), at TIGR",
+   "Whole-genome shotgun method circumvented the need for a physical map"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT2-011",
+  "title": "Telomere-to-Telomere (T2T)",
+  "author_org": "National Human Genome Research Institute (genome.gov)",
+  "published": null,
+  "url": "https://www.genome.gov/about-genomics/telomere-to-telomere",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The Human Genome Project ended in April 2003 with about 92% of the genome sequenced",
+   "The remaining ~8% was highly repetitive; a gapless sequence came in 2022"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "NAT2-012",
+  "title": "First complete sequence of a human genome",
+  "author_org": "NIH Research Matters",
+  "published": "2022",
+  "url": "https://www.nih.gov/news-events/nih-research-matters/first-complete-sequence-human-genome",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Complete human genome sequence described in six papers in Science, 1 April 2022"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ }
+]

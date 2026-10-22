@@ -1,1 +1,168 @@
-[]
+[
+ {
+  "id": "ENG2-001",
+  "title": "A history of computing in 20 objects, part one",
+  "author_org": "The Register",
+  "published": null,
+  "url": "https://www.theregister.co.uk/2012/11/01/a_history_of_computing_in_20_objects_part_one?page=2",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "Z3 in operation 1941 in Berlin; Colossus against the Lorenz teleprinter cipher"
+  ],
+  "confidence": "low",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked). The search summary did not say which result gave each statement; attribution among ENG2-001..003 is probable, not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "ENG2-002",
+  "title": "The digital era began in Kreuzberg 80 years ago today",
+  "author_org": "Berliner Zeitung",
+  "published": null,
+  "url": "https://www.berliner-zeitung.de/article/the-digital-era-began-in-kreuzberg-80-years-ago-today-158713",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "Zuse Z3 operational 12 May 1941 in Berlin"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked). Attribution of the 12 May 1941 date to this result is probable (title matches the anniversary), not certain.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "ENG2-003",
+  "title": "WWII computing (CSE 301 slides)",
+  "author_org": "Stony Brook University, Department of Computer Science",
+  "published": null,
+  "url": "https://www3.cs.stonybrook.edu/~tony/comphist/301slides/WWII.pdf",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Colossus first runs December 1943-January 1944; ENIAC begun 1943 at the University of Pennsylvania for Army firing tables; completion given as 1945 or 1946"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked). The search summary did not say which result gave each statement.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "ENG2-004",
+  "title": "History of semiconductors",
+  "author_org": "D. Jena, Cornell University",
+  "published": null,
+  "url": "https://djena.engineering.cornell.edu/hws/history_of_semiconductors.pdf",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Wilson's band theory of semiconductors 1931",
+   "Schottky and Mott independently modelled the metal-semiconductor barrier 1938; Schottky refined it 1939; Davydov 1938"
+  ],
+  "confidence": "high",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "ENG2-005",
+  "title": "Timeline (The Silicon Engine)",
+  "author_org": "Computer History Museum",
+  "published": null,
+  "url": "https://www.computerhistory.org/semiconductor/timeline.html",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Discovery of the p-n junction (Ohl, Bell Labs) dated 1940"
+  ],
+  "confidence": "high",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "ENG2-006",
+  "title": "The Centennial of Semiconductor Science: Origins and Ukrainian Contribution",
+  "author_org": "Ukrainian Journal of Physics",
+  "published": null,
+  "url": "https://ujp.bitp.kiev.ua/index.php/uik/en/article/view/2018517",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Priority claim for Vadym Lashkaryov in discovering the p-n junction"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "ENG2-007",
+  "title": "Feynman's 'Simulating Physics with Computers'",
+  "author_org": "arXiv (2405.03366)",
+  "published": null,
+  "url": "https://arxiv.org/pdf/2405.03366",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Feynman's talk at MIT May 1981, published 1982, proposed quantum computers to simulate quantum systems"
+  ],
+  "confidence": "high",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "ENG2-008",
+  "title": "Google Claims 'Quantum Supremacy', But IBM Disagrees",
+  "author_org": "Silicon UK",
+  "published": null,
+  "url": "https://silicon.co.uk/e-innovation/research/google-claims-quantum-supremacy-298759",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "Google's 53-qubit Sycamore 2019 sampling task (200 s vs 10,000 years claimed); IBM estimated 2.5 days classically"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "ENG2-009",
+  "title": "Google and IBM debate 'quantum supremacy' in academic spat",
+  "author_org": "ITPro",
+  "published": null,
+  "url": "https://itpro.com/technology/34686/google-and-ibm-debate-quantum-supremacy-in-academic-spat",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "IBM disputed Google's 2019 quantum-supremacy claim"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "ENG2-010",
+  "title": "Shor code",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Shor_code",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Shor's 1995 nine-qubit code was the first quantum error-correcting code; one logical qubit in nine physical qubits"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "ENG2-011",
+  "title": "Landmarks: Correcting Quantum Computer Errors",
+  "author_org": "APS Physics",
+  "published": null,
+  "url": "https://physics.aps.org/articles/v9/65",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Shor's 1995 quantum error-correcting code"
+  ],
+  "confidence": "high",
+  "notes": "Seen as a WebSearch result (title, URL and summarized content) in the 2026-10-22 evidence pass; page not opened (fetch blocked). The search summary grouped this with ENG2-010 for the Shor 1995 statements.",
+  "retrieval": "web-search-result"
+ }
+]

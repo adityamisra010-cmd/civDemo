@@ -1,1 +1,834 @@
-[]
+[
+ {
+  "id": "CVC2-001",
+  "title": "Divine right of kings",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/divine-right-of-kings",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Divine-right doctrine held that a monarch could not be held accountable by any earthly authority such as a parliament"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-002",
+  "title": "France - Absolutism, Louis XIV, Monarchy",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/place/France/Absolutism-of-Louis",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Louis XIV buttressed his authority with divine-right doctrines (Bossuet) and is the standard example of absolutism in practice",
+   "Louis XIV made surprisingly few institutional or administrative changes to the structure of government"
+  ],
+  "confidence": "medium",
+  "notes": "The search summary drew on several Britannica France pages (this one and 'The age of Louis XIV') without attributing each sentence to one page. Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-003",
+  "title": "Absolutism (European history)",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Absolutism_(European_history)",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Historians hold a considerable variety of opinion on the extent of absolutism among European monarchs"
+  ],
+  "confidence": "medium",
+  "notes": "Wikipedia: used only for the historiographical caveat, not as sole support of a disputed claim. Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-004",
+  "title": "Bill of Rights [1688] (1 Will. & Mar. Sess. 2 c. 2)",
+  "author_org": "legislation.gov.uk (The National Archives)",
+  "published": "1689",
+  "url": "https://www.legislation.gov.uk/aep/WillandMarSess2/1/2/introduction",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Levying money for the Crown by prerogative without grant of Parliament is illegal",
+   "Raising or keeping a standing army in time of peace without consent of Parliament is against law"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-005",
+  "title": "1689 Bill of Rights",
+  "author_org": "UK Parliament (Living Heritage)",
+  "published": null,
+  "url": "https://www.parliament.uk/about/living-heritage/evolutionofparliament/2015-parliament-in-the-making/get-involved1/2015-banners-exhibition/ross-sinclair/1689-bill-of-rights-gallery/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The Bill of Rights was designed to prevent monarchs changing laws, raising taxes or maintaining an army without Parliament's consent"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-006",
+  "title": "Bill of Rights (British history)",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/Bill-of-Rights-British-history",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The act declared illegal various practices of James II and purported to declare existing law rather than introduce new principles"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-007",
+  "title": "On the way to becoming a federal state (1815-1848)",
+  "author_org": "Federal Department of Foreign Affairs, Switzerland (aboutswitzerland.eda.admin.ch)",
+  "published": null,
+  "url": "https://www.aboutswitzerland.eda.admin.ch/dam/en/sd-web/gWCAcEYyHwKu/weg-bundesstaat_EN.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The Sonderbund War of 1847 was Switzerland's last civil war",
+   "The federal constitution was adopted in September 1848",
+   "With the 1848 constitution a confederation of states became a federation"
+  ],
+  "confidence": "high",
+  "notes": "The search summary drew on this PDF and the companion page 'The History of Switzerland' (aboutswitzerland.eda.admin.ch) without attributing each sentence. Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-008",
+  "title": "The Swiss Confederation - a brief guide 2024",
+  "author_org": "Swiss Federal Chancellery",
+  "published": "2024",
+  "url": "https://www.bk.admin.ch/dam/en/sd-web/9OAKySUiPAfR/buku2024.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Small cantons have been guaranteed representation in national matters through the second chamber since 1848"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-009",
+  "title": "president (Britannica Kids)",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://kids.britannica.com/kids/article/president/476818",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The United States and many countries in Africa and Latin America have presidential systems"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-010",
+  "title": "Presidency of the United States of America - Historical development",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/presidency-of-the-United-States-of-America/Historical-development",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The 1787 Convention rejected selection by Congress because it would make the executive dependent on the legislature"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-011",
+  "title": "Why Has Peru Had So Many Presidents?",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/Why-Has-Peru-Had-So-Many-Presidents",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Peru's 1993 constitution lets Congress remove a president for 'permanent moral incapacity' by a two-thirds vote, described as a parliamentary trapdoor in a presidential system"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-012",
+  "title": "Mexico - Government and society",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/place/Mexico/Government-and-society",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Mexico's president is popularly elected for a single six-year term"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-013",
+  "title": "Cabinet (government)",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/cabinet-government",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The 1832 Reform Act established that a cabinet is drawn from the Commons majority party and is collectively answerable to the Commons",
+   "After 1832 no cabinet could maintain itself in power without a Commons majority"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-014",
+  "title": "Cabinet and its committees (research guide)",
+  "author_org": "The National Archives (UK)",
+  "published": null,
+  "url": "https://www.nationalarchives.gov.uk/help-with-your-research/research-guides/cabinet-and-committees/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Power passed from the monarch to the Cabinet and Prime Minister during the 18th and 19th centuries",
+   "By the mid-1800s the Cabinet was firmly established as the most senior decision-making body"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-015",
+  "title": "Democracy - England, Parliament, Representation",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/democracy/England",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "In 1782 George III was forced to accept a Whig prime minister and cabinet against his wishes"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-016",
+  "title": "Soviet Union",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/place/Soviet-Union",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The Soviet Union was established on 30 December 1922",
+   "The communist party held a monopoly of political power from the 1917 revolution until the Soviet Union dissolved in 1991"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-017",
+  "title": "The Chinese Revolution of 1949",
+  "author_org": "Office of the Historian, U.S. Department of State",
+  "published": null,
+  "url": "https://history.state.gov/milestones/1945-1952/chinese-rev",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "On 1 October 1949 Mao Zedong proclaimed the People's Republic of China"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-018",
+  "title": "Chinese Communist Party (CCP)",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/Chinese-Communist-Party",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Since 1949 the CCP has been in sole control of China's government"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-019",
+  "title": "Union of Soviet Socialist Republics (Britannica Kids)",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://kids.britannica.com/kids/article/Union-of-Soviet-Socialist-Republics/353884",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The Soviet Union was the first country to form a government based on communism"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-020",
+  "title": "Parliament membership during the single-party system in Turkey (1925-1945)",
+  "author_org": "Sabanci University Research Database",
+  "published": null,
+  "url": "https://research.sabanciuniv.edu/id/eprint/27/1/3011800000203.pdf",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Turkey's single-party system is dated 1925-1945"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-021",
+  "title": "Three turning points in the political development of modern Turkey",
+  "author_org": "Turkish Studies (Taylor & Francis)",
+  "published": "2022",
+  "url": "https://www.tandfonline.com/doi/full/10.1080/14683849.2022.2143266",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "With the closure of the Progressive Republican Party in June 1925 Turkey became a single-party state",
+   "After intra-party pressure in 1945 Inonu opened the system; the Democrat Party was registered on 7 January 1946",
+   "Some accounts extend CHP one-party rule to its 1950 electoral defeat"
+  ],
+  "confidence": "medium",
+  "notes": "The search summary combined several results (this article and others); sentence-level attribution is not certain. Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-022",
+  "title": "On the Law of War and Peace",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/On-the-Law-of-War-and-Peace",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Grotius's treatise appeared in 1625 and is a foundational work of international law"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-023",
+  "title": "Alberico Gentili",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/biography/Alberico-Gentili",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Grotius drew extensively on Gentili's work on the law of nations"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-024",
+  "title": "Hugo Grotius (Stanford Encyclopedia of Philosophy, Summer 2026 edition)",
+  "author_org": "Stanford Encyclopedia of Philosophy",
+  "published": "2026",
+  "url": "https://plato.stanford.edu/archives/sum2026/entries/grotius/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Grotius placed natural law at the centre of his jurisprudence"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-025",
+  "title": "Between plague and trade: topography and typology of the maritime lazzarettos in Dubrovnik",
+  "author_org": "Marinkovic & Strunje (Ca' Foscari University of Venice repository)",
+  "published": "2023",
+  "url": "https://iris.unive.it/bitstream/10278/5041560/5/marinkovi%c4%87-strunje-2023-between-plague-and-trade-topography-and-typology-of-the-maritime-lazzarettos-in-dubrovnik%20%281%29.pdf",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "On 27 July 1377 Ragusa's Major Council required arrivals from plague areas to spend a period in isolation (Mrkan or Cavtat) before entering"
+  ],
+  "confidence": "medium",
+  "notes": "Attribution of the 1377 detail among the returned results (this paper, CEEOL 'The early quarantine in the Western Balkans') is not certain. Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-026",
+  "title": "History of Statistics Sweden",
+  "author_org": "Statistics Sweden (SCB)",
+  "published": null,
+  "url": "https://www.scb.se/en/About-us/main-activity/history-of-statistics-sweden/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Tabellverket began in 1749 and is the world's oldest regular national population statistics",
+   "Parish clergy filled in the tables",
+   "The Tabellkommissionen was created in 1756"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-027",
+  "title": "Tabellverket (f.d. Tabellkommissionen)",
+  "author_org": "Riksarkivet (Swedish National Archives)",
+  "published": null,
+  "url": "https://sok.riksarkivet.se/?postid=ArkisRef+SE/RA/420439",
+  "accessed": "2026-10-22",
+  "type": "archive",
+  "claims_supported": [
+   "The 1756 commission sat under the Chancery College and became an authority of its own in 1769"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-028",
+  "title": "Census history",
+  "author_org": "Office for National Statistics (UK)",
+  "published": null,
+  "url": "https://www.ons.gov.uk/census/2011census/howourcensusworks/aboutcensuses/censushistory",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The Census Act 1800 led to the first official census of England and Wales on 10 March 1801",
+   "Censuses 1801-1831 were headcounts; the 1841 census, run by the registration service, is regarded as the first modern census"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-029",
+  "title": "Constitution of the United States of America",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/Constitution-of-the-United-States-of-America",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Written in 1787 by the Constitutional Convention in Philadelphia; in force from 1789",
+   "The oldest written national constitution in use"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-030",
+  "title": "U.S. Senate: Constitution",
+  "author_org": "United States Senate",
+  "published": null,
+  "url": "https://www.senate.gov/reference/Index/Constitution.htm",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The US Constitution is the oldest written national constitution currently in effect"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-031",
+  "title": "The Spirit of Laws",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/The-Spirit-of-Laws",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Montesquieu's The Spirit of Laws dates from 1748"
+  ],
+  "confidence": "high",
+  "notes": "One Britannica summary page gives 1750; 1748 is the date in the other results. Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-032",
+  "title": "Separation of powers",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/separation-of-powers",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Montesquieu's doctrine was inspired by the English constitution, though his interpretation of English political realities has been disputed"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-033",
+  "title": "Baron de Montesquieu, Charles-Louis de Secondat",
+  "author_org": "Stanford Encyclopedia of Philosophy",
+  "published": null,
+  "url": "https://plato.stanford.edu/entries/montesquieu/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Montesquieu was greatly impressed by the English political system",
+   "Despotism is best prevented by having different bodies exercise legislative, executive and judicial power, all bound by law"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-034",
+  "title": "separation of powers (Britannica Students)",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://kids.britannica.com/students/article/separation-of-powers/630953",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Montesquieu outlined a system of checks and balances to keep any branch from gaining too much power"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-035",
+  "title": "Instrument of Government",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/event/Instrument-of-Government-England-1653",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The Instrument of Government (December 1653) was the first detailed written constitution adopted by a modern state",
+   "It was replaced in 1657 by the Humble Petition and Advice"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-036",
+  "title": "The 1833 Abolition of Slavery Act and compensation claims",
+  "author_org": "The National Archives (UK)",
+  "published": null,
+  "url": "https://www.nationalarchives.gov.uk/explore-the-collection/explore-by-time-period/georgians/1833-abolition-of-slavery-act-and-compensation-claims/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The 1833 Act made formerly enslaved people over six apprentice labourers; apprenticeship ended in 1838",
+   "Slave owners claimed compensation under the Act"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-037",
+  "title": "Slavery Abolition Act",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/Slavery-Abolition-Act",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The British government paid GBP 20,000,000 to owners of registered slaves as compensation"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-038",
+  "title": "Instructions for the Government of Armies of the United States in the Field (Lieber Code), 24 April 1863",
+  "author_org": "International Committee of the Red Cross (IHL Databases)",
+  "published": "1863",
+  "url": "https://ihl-databases.icrc.org/en/ihl-treaties/liebercode-1863",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The Lieber Code was issued on 24 April 1863 as General Orders No. 100 for Union armies"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-039",
+  "title": "The first modern codification of the law of war: Francis Lieber and General Orders No. 100",
+  "author_org": "International Review of the Red Cross (ICRC)",
+  "published": null,
+  "url": "https://international-review.icrc.org/articles/first-modern-codification-law-war-francis-lieber-and-general-orders-no-100",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "The Lieber Code bound only US forces but stimulated the Hague land-war conventions of 1899 and 1907"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-040",
+  "title": "Law of war",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/law-of-war",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Henri Dunant led states to conclude the first Geneva Convention (1864) on sick and wounded soldiers"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-041",
+  "title": "Laws and Customs of War on Land (Hague II); July 29, 1899",
+  "author_org": "The Avalon Project, Yale Law School",
+  "published": "1899",
+  "url": "https://avalon.law.yale.edu/19th_century/hague02.asp",
+  "accessed": "2026-10-22",
+  "type": "archive",
+  "claims_supported": [
+   "The 1899 Hague II convention annexed regulations on the laws and customs of war on land"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-042",
+  "title": "Five-Year Plans",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/money/Five-Year-Plans",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Gosplan was established in 1921 and became the central body translating objectives into national economic plans, especially after 1928"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-043",
+  "title": "First Five-Year Plan (Soviet economics)",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/First-Five-Year-Plan-Soviet-economics",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The First Five-Year Plan (1928) pushed heavy industrialisation and abandoned the NEP",
+   "Forced collectivisation of agriculture accompanied the plan, followed by famine in 1932-33"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-044",
+  "title": "Levee en masse",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/levee-en-masse",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The levee en masse of August 1793 applied to able-bodied unmarried men aged 18-25"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-045",
+  "title": "Jean-Baptiste, Count Jourdan",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/biography/Jean-Baptiste-Comte-Jourdan",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "As a deputy in the Council of Five Hundred Jourdan was responsible for the law legalising mass conscription (5 September 1798)"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-046",
+  "title": "Conscription Evasion, Contraband, and Resistance (thesis)",
+  "author_org": "East Tennessee State University (Digital Commons)",
+  "published": null,
+  "url": "https://dc.etsu.edu/cgi/viewcontent.cgi?article=2389&context=etd",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "The Jourdan Law implemented annual conscription of men aged twenty to twenty-five",
+   "Conscription met evasion and resistance"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-047",
+  "title": "From Prussia with Love: The Origins of the Modern Profession of Arms",
+  "author_org": "Modern War Institute at West Point",
+  "published": null,
+  "url": "https://mwi.westpoint.edu/from-prussia-with-love-the-origins-of-the-modern-profession-of-arms/",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Scharnhorst rebuilt the Prussian army after Jena and Auerstedt and willed the General Staff into existence",
+   "The Kriegsakademie was founded in Berlin in 1810",
+   "The Prussian army and its general staff system became the envy of other armies"
+  ],
+  "confidence": "medium",
+  "notes": "Attribution among results (this article, Britannica Scharnhorst and Gneisenau biographies) is not certain sentence by sentence. Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-048",
+  "title": "Brief history - New Zealand women and the vote",
+  "author_org": "Manatu Taonga Ministry for Culture and Heritage (NZHistory)",
+  "published": null,
+  "url": "https://nzhistory.govt.nz/politics/womens-suffrage/brief-history",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "New Zealand was the first self-governing country in which all women could vote in parliamentary elections; the Electoral Act was signed on 19 September 1893"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-049",
+  "title": "suffrage (Britannica Students)",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://kids.britannica.com/students/article/suffrage/277947",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "US white men gained the vote state by state; New York (1826) was the last state to abolish property qualifications for white men"
+  ],
+  "confidence": "medium",
+  "notes": "Attribution between Britannica student/kids suffrage pages is not certain. Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-050",
+  "title": "Diplomacy",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/diplomacy/Diplomacy-of-the-Roman-Catholic-Church",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "As early as the late 14th and early 15th centuries Venice, Milan and Mantua sent resident envoys to one another, to the popes and to the emperors",
+   "It is unclear which Italian state had the first permanent envoy",
+   "Resident embassies became the norm in Italy in the late 15th century and spread northward after 1500; a Milanese envoy reached Louis XI's court in 1463"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-051",
+  "title": "HOWE, JOSEPH (Dictionary of Canadian Biography)",
+  "author_org": "University of Toronto / Universite Laval",
+  "published": null,
+  "url": "https://www.biographi.ca/en/bio/howe_joseph_10E.html",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Responsible government came to Nova Scotia in 1848 (vote of 26 January 1848); the Uniacke ministry was the first in British North America under responsible government"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-052",
+  "title": "Responsible Government",
+  "author_org": "The Canadian Encyclopedia (Historica Canada)",
+  "published": null,
+  "url": "https://www.thecanadianencyclopedia.ca/en/article/responsible-government",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "In 1848 Nova Scotia became the first colony in British North America to achieve responsible government"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-053",
+  "title": "Socialist Workers' Party of Germany, Gotha Program (May 1875)",
+  "author_org": "German History in Documents and Images (German Historical Institute)",
+  "published": null,
+  "url": "https://germanhistorydocs.org/en/forging-an-empire-bismarckian-germany-1866-1890/socialist-workers-party-of-germany-gotha-program-may-1875",
+  "accessed": "2026-10-22",
+  "type": "archive",
+  "claims_supported": [
+   "At Gotha in May 1875 the Lassallean and Marxist wings founded the Socialist Workers' Party of Germany"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "CVC2-054",
+  "title": "Sozialistische Arbeiterpartei Deutschlands (SAP) - LeMO",
+  "author_org": "Deutsches Historisches Museum",
+  "published": null,
+  "url": "https://www.dhm.de/lemo/kapitel/kaiserreich/innenpolitik/sozialistische-arbeiterpartei-deutschlands-sap",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "The ADAV and SDAP merged at Gotha in 1875; the party was renamed the SPD in 1890 after the anti-socialist law lapsed"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result (title, URL and summarised text); page not opened because fetch is blocked.",
+  "retrieval": "web-search-result"
+ }
+]

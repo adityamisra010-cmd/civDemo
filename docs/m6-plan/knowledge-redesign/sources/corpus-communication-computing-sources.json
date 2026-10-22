@@ -1,1 +1,522 @@
-[]
+[
+ {
+  "id": "COM-001",
+  "title": "HIST 1100 Section 16: The Origins and Invention of Writing",
+  "author_org": "Utah State University",
+  "published": null,
+  "url": "https://artsci.usu.edu/history-cultures-ideas/classics/course-resources/hist-1100/section-16",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Clay tokens appear in the Neolithic Near East from about 8000 BCE",
+   "Schmandt-Besserat interprets tokens as accounting devices for goods and argues they led to writing"
+  ],
+  "confidence": "medium",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "COM-002",
+  "title": "Review of Schmandt-Besserat, Before Writing (Zimansky 1993)",
+  "author_org": "Paul Zimansky (PDF hosted at urkesh.org)",
+  "published": "1993",
+  "url": "https://urkesh.org/attach/Zimansky1993.pdf",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Critical review: the token theory overstates its case and rests on many speculations; tokens come from disturbed contexts"
+  ],
+  "confidence": "medium",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "COM-003",
+  "title": "Doctoral thesis (Josiffe), UCL Discovery 10082208",
+  "author_org": "University College London",
+  "published": null,
+  "url": "https://discovery-pp.ucl.ac.uk/id/eprint/10082208/3/Josiffe_10082208_thesis.pdf",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Following Schmandt-Besserat, accounting needs are generally accepted as a determining factor in the origin of Mesopotamian writing"
+  ],
+  "confidence": "medium",
+  "notes": "Search-result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "COM-004",
+  "title": "Oracle bone",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/oracle-bone",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Oracle-bone inscriptions are the earliest known form of Chinese writing",
+   "Questions were inscribed on bones or shells, which were heated and the cracks interpreted"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "COM-005",
+  "title": "Late Shang",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/Late-Shang",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Late Shang dated about 1250-1046 BCE"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "COM-006",
+  "title": "Oracle bone fragment, inscribed (F1985.35)",
+  "author_org": "Smithsonian National Museum of Asian Art",
+  "published": null,
+  "url": "https://asia.si.edu/explore-art-culture/collections/search/edanmdm:fsg_F1985.35/",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Fragment dated 1250-1050 BCE",
+   "Early texts reveal a fully developed writing system ancestral to the modern Chinese script"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "COM-007",
+  "title": "Chinese Oracle-Bone Inscriptions - Memory of the World",
+  "author_org": "UNESCO",
+  "published": null,
+  "url": "https://www.unesco.org/en/memory-world/chinese-oracle-bone-inscriptions",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Turtle plastrons and ox shoulder blades excavated at Yin Xu near Anyang, the last Shang capital",
+   "Divination on matters such as harvests, weather and war"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "COM-008",
+  "title": "Script Delivery: New World writing takes disputed turn",
+  "author_org": "Science News",
+  "published": null,
+  "url": "https://sciencenews.org/article/script-delivery-new-world-writing-takes-disputed-turn",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "Ceramic cylinder seal and greenstone plaque fragments from San Andrés, Tabasco, dated about 650 BCE",
+   "Mary Pohl's team argued the signs are true writing; critics such as David Stuart doubt it"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "COM-009",
+  "title": "Getting a read on early Maya writing",
+  "author_org": "Science News",
+  "published": null,
+  "url": "https://www.sciencenews.org/article/getting-read-early-maya-writing",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "Maya writing at San Bartolo, Guatemala, dated by radiocarbon to about 300-200 BCE",
+   "Before this, the oldest known writing in the region came from Oaxaca, about 400 BCE"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "COM-010",
+  "title": "France Builds Visual Telegraph",
+  "author_org": "Engineering and Technology History Wiki (IEEE History Center)",
+  "published": null,
+  "url": "https://ethw.org/France_Builds_Visual_Telegraph",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "In July 1794 Claude Chappe, assisted by two brothers, completed a fifteen-station line between Paris and Lille",
+   "Stations 10-15 km apart, each with telescopes and a two-arm semaphore",
+   "At its height the French network spanned nearly 5,000 km radiating from Paris; replaced by the electric telegraph in 1853"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "COM-011",
+  "title": "Telegraph",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/technology/telegraph",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Abraham Edelcrantz in Sweden used shutters instead of arms; first line Stockholm-Vaxholm, 1795",
+   "George Murray developed a six-shutter telegraph in England in 1795"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "COM-012",
+  "title": "Electromechanical Telephone-Switching",
+  "author_org": "Engineering and Technology History Wiki (IEEE History Center)",
+  "published": null,
+  "url": "https://ethw.org/Electromechanical_Telephone-Switching",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Strowger received a US patent for his stepping switch in 1891",
+   "First Strowger installation at La Porte, Indiana, 1892",
+   "The stepping movement was driven by pulses from the telephone instrument",
+   "Strowger exchanges were later challenged by crossbar technology (Lundquist patent 1919)"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "COM-013",
+  "title": "Automatic switching",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/technology/automatic-switching",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Strowger's switch led to the automation of telephone circuit switching"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "COM-014",
+  "title": "January 8: Herman Hollerith Receives a Patent for the Hollerith Tabulating Machine",
+  "author_org": "Computer History Museum",
+  "published": null,
+  "url": "https://www.computerhistory.org/tdih/january/8/",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Hollerith patented his punched-card tabulating machine in 1889; it won the contest to compile the 1890 census"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "COM-015",
+  "title": "Making Sense of the Census: Hollerith's Punched Card Solution",
+  "author_org": "Computer History Museum",
+  "published": null,
+  "url": "https://www.computerhistory.org/revolution/punched-cards/2/2",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "A wire passing through a hole into mercury closed a circuit and registered the item"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "COM-016",
+  "title": "Herman Hollerith",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/money/Herman-Hollerith",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Hollerith assisted on the 1880 census under William P. Trowbridge",
+   "His machine recorded statistics by electrically reading punched cards"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "COM-017",
+  "title": "The punched card tabulator",
+  "author_org": "IBM",
+  "published": null,
+  "url": "https://www.ibm.com/history/punched-card-tabulator",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "Used for the 1890 census, it reportedly saved two years and USD 5 million"
+  ],
+  "confidence": "medium",
+  "notes": "Search-result summary; page not opened (fetch blocked). Corporate history.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "COM-018",
+  "title": "The origins of IBM",
+  "author_org": "IBM",
+  "published": null,
+  "url": "https://www.ibm.com/history/ctr-and-ibm",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "Hollerith's Tabulating Machine Company merged into the Computing-Tabulating-Recording Company (1911), renamed IBM in 1924"
+  ],
+  "confidence": "medium",
+  "notes": "Search-result summary; page not opened (fetch blocked). Corporate history.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "COM-019",
+  "title": "Communications Satellites Short History",
+  "author_org": "NASA History Office",
+  "published": null,
+  "url": "https://www.hq.nasa.gov/office/pao/History/satcomhistory.html",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Clarke's October 1945 Wireless World article developed the geosynchronous relay concept; Oberth (1923) and Smith (1942) speculated earlier",
+   "Telstar and Relay (1962) were medium-orbit satellites",
+   "Syncom 3 (1964) was the first geostationary communications satellite, over the Pacific",
+   "Early Bird (Intelsat I), 1965, was the first operational commercial communications satellite"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked). Some statements may come from the companion NASA SP-4217 pages in the same result set. The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "COM-020",
+  "title": "History of Commercial Radio",
+  "author_org": "Federal Communications Commission",
+  "published": null,
+  "url": "https://www.fcc.gov/media/radio/history-of-commercial-radio",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Westinghouse's KDKA in Pittsburgh made the first scheduled broadcast on 2 November 1920",
+   "There is dispute about which station was the first to air in the United States"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "COM-021",
+  "title": "Reginald Aubrey Fessenden",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/biography/Reginald-Aubrey-Fessenden",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Fessenden broadcast music and voice from Brant Rock, Massachusetts, on Christmas Eve 1906",
+   "His work showcased amplitude modulation and the heterodyne principle"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "COM-022",
+  "title": "Brahmi",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/Brahmi",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Brahmi is commonly believed to be of Aramaic derivation or inspiration",
+   "It first appears as a fully developed system in the 3rd century BCE, notably in Ashoka's edicts",
+   "Each consonant has an inherent a or a diacritic for other vowels"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "COM-023",
+  "title": "Alphabet - Arabic, Script, Letters",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/alphabet-writing/Arabic-alphabet",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The origin of Brahmi is still uncertain and hotly discussed"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "COM-024",
+  "title": "Passage to India? Anuradhapura and the Early Use of the Brahmi Script",
+  "author_org": "Cambridge Archaeological Journal (Cambridge University Press)",
+  "published": null,
+  "url": "https://www.cambridge.org/core/services/aop-cambridge-core/content/view/DAAA2514FB08E1DDE3FAFF2171AB097B/S0959774300001608a.pdf/passage_to_india_anuradhapura_and_the_early_use_of_the_brahmi_script.pdf",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Brahmi-inscribed sherds from Anuradhapura dated to the beginning of the 4th century BCE, the earliest dated examples"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked). Authors and year not shown in the result text, so not recorded.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "COM-025",
+  "title": "The world's earliest dated printed book: The Diamond Sutra, 868 CE",
+  "author_org": "University of Oxford (Cabinet)",
+  "published": null,
+  "url": "https://www.cabinet.ox.ac.uk/worlds-earliest-dated-printed-book-diamond-sutra-868-ce",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "The British Library's Diamond Sutra (Or.8210/P.2), dated 868 by its colophon, is the world's earliest dated printed book",
+   "Found in the Mogao Caves near Dunhuang; brought to England by Aurel Stein in 1907"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "COM-026",
+  "title": "Who is credited with inventing the telephone?",
+  "author_org": "Library of Congress",
+  "published": null,
+  "url": "https://www.loc.gov/item/who-is-credited-with-inventing-the-telephone/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Bell's patent application of 14 February 1876; patent issued 7 March 1876",
+   "Elisha Gray filed a caveat the same day",
+   "Antonio Meucci filed a caveat in 1871 but could not renew it; US House resolution of 2002 recognized his work"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "COM-027",
+  "title": "Telephone - Development of the telephone instrument",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/technology/telephone/Development-of-the-telephone-instrument",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Carbon transmitters (Edison's carbon granules, Blake transmitter in use by 1878) improved speech transmission"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "COM-028",
+  "title": "Telephones",
+  "author_org": "Engineering and Technology History Wiki (IEEE History Center)",
+  "published": null,
+  "url": "https://ethw.org/Telephones",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The first commercial telephone exchange opened in New Haven, Connecticut, in January 1878"
+  ],
+  "confidence": "medium",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "COM-029",
+  "title": "Milestones: Reception of Transatlantic Radio Signals, 1901",
+  "author_org": "Engineering and Technology History Wiki (IEEE History Center)",
+  "published": null,
+  "url": "https://ethw.org/Milestones:Reception_of_Transatlantic_Radio_Signals,_1901",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "On 12 December 1901 at Signal Hill, Newfoundland, Marconi and Kemp heard Morse 'S' sent from Poldhu",
+   "Recent historians suggest Marconi picked up a harmonic; the reception has been questioned"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "COM-030",
+  "title": "Guglielmo Marconi",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/biography/Guglielmo-Marconi",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Marconi developed his practical wireless system in 1895 and filed a patent in England in 1896"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "COM-031",
+  "title": "Milestones: Popov's Contribution to the Development of Wireless Communication, 1895",
+  "author_org": "Engineering and Technology History Wiki (IEEE History Center)",
+  "published": null,
+  "url": "https://ethw.org/Milestones:Popov's_Contribution_to_the_Development_of_Wireless_Communication,_1895",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Popov demonstrated a coherer-based receiver to the Russian Physical and Chemical Society on 7 May 1895"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "COM-032",
+  "title": "Wireless Telegraphy",
+  "author_org": "Engineering and Technology History Wiki (IEEE History Center)",
+  "published": null,
+  "url": "https://ethw.org/Wireless_Telegraphy",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Oliver Lodge refined Branly's coherer and detected waves at relatively long distances",
+   "Marconi experimented with Hertz's oscillator and Branly's coherer in 1895"
+  ],
+  "confidence": "medium",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "COM-033",
+  "title": "Milestones: List of IEEE Milestones",
+  "author_org": "Engineering and Technology History Wiki (IEEE History Center)",
+  "published": null,
+  "url": "https://ethw.org/Milestones:List_of_IEEE_Milestones",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Heinrich Hertz verified Maxwell's predicted electromagnetic waves in 1886-1888"
+  ],
+  "confidence": "high",
+  "notes": "Search-result summary; page not opened (fetch blocked). The search tool returned one summary across several results; this statement appeared in that summary and is attributed to this result as the most probable origin, not with certainty.",
+  "retrieval": "web-search-result"
+ }
+]

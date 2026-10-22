@@ -1,1151 +1,1218 @@
 [
-  {
-    "id": "MAT1-001",
-    "title": "Searching for the earliest tools",
-    "author_org": "The Leakey Foundation",
-    "published": null,
-    "url": "https://leakeyfoundation.org/searching-for-the-earliest-tools/",
-    "accessed": "2026-10-22",
-    "type": "reference",
-    "claims_supported": [
-      "Gona, Ethiopia, yielded stone tools dated to about 2.6 million years ago, long the oldest accepted Oldowan tools",
-      "Lomekwi 3 tools (about 3.3 million years) are contested: natural fracture and dating have been questioned and no toolmaker is associated"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
-  },
-  {
-    "id": "MAT1-002",
-    "title": "Oldest stone tools discovery (Lomekwi 3, Harmand et al.)",
-    "author_org": "National Geographic",
-    "published": "2015",
-    "url": "https://www.nationalgeographic.com/news/2015/05/150520-oldest-stone-tools-discovery-harmand-archaeology/",
-    "accessed": "2026-10-22",
-    "type": "press",
-    "claims_supported": [
-      "Sonia Harmand and colleagues described tools from Lomekwi 3, near Lake Turkana, Kenya, dated to about 3.3 million years, about 700,000 years before Gona"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-003",
-    "title": "Oldowan Tools",
-    "author_org": "World History Encyclopedia",
-    "published": null,
-    "url": "https://www.worldhistory.org/Oldowan_Tools",
-    "accessed": "2026-10-22",
-    "type": "reference",
-    "claims_supported": [
-      "The Oldowan is named after Olduvai Gorge, Tanzania, where Louis Leakey found such tools in the 1930s"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-004",
-    "title": "Bolton, PhD thesis on Levallois technology (University of Southampton)",
-    "author_org": "University of Southampton (ePrints)",
-    "published": null,
-    "url": "https://eprints.soton.ac.uk/389337",
-    "accessed": "2026-10-22",
-    "type": "university",
-    "claims_supported": [
-      "Levallois technology became widespread in Europe and Africa about 300,000 years ago",
-      "Fully developed Levallois seems to derive from earlier simple prepared-core (proto- or reduced Levallois) methods"
-    ],
-    "confidence": "high",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-005",
-    "title": "Hu, Marwick, Zhang 2018, Levallois in southwest China (supplementary information)",
-    "author_org": "University of Washington (B. Marwick faculty page)",
-    "published": "2018",
-    "url": "https://faculty.washington.edu/bmarwick/PDFs/Hu-Marwick-Zhang-2018-Levallois-SW-China-paper-SI.pdf",
-    "accessed": "2026-10-22",
-    "type": "academic",
-    "claims_supported": [
-      "Levallois is a hallmark of stone technologies developed around 300,000 years ago in Africa and western Eurasia",
-      "Levallois at Guanyindong Cave, southwest China, is dated to about 170,000-80,000 years ago, the earliest in East Asia"
-    ],
-    "confidence": "high",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-006",
-    "title": "Origin of skillful stone tool sharpening method pushed back more than 50,000 years",
-    "author_org": "University of Colorado Boulder (CU Boulder Today)",
-    "published": "2010-10-28",
-    "url": "https://www.colorado.edu/today/2010/10/28/origin-skillful-stone-tool-sharpening-method-pushed-back-more-50000-years",
-    "accessed": "2026-10-22",
-    "type": "university",
-    "claims_supported": [
-      "At Blombos Cave, at least half of the finished Still Bay points were retouched by pressure flaking",
-      "The Still Bay industry at Blombos began roughly 76,000 years ago and may have lasted to 72,000 years ago",
-      "Evidence of silcrete heating about 164,000 years ago at Pinnacle Point, South Africa (Brown et al., Science 2009)",
-      "Experiments: unheated silcrete could not be pressure-flaked; heated silcrete gave points like the originals",
-      "Heat-treated silcrete leaves smooth glossy flake scars, unheated silcrete rough dull ones"
-    ],
-    "confidence": "high",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-007",
-    "title": "Experimental evidence for the efficacy of hafted Howiesons Poort backed segments (Roussel et al. 2025, repository record)",
-    "author_org": "University of Johannesburg (UJContent repository)",
-    "published": "2025",
-    "url": "https://ujcontent.uj.ac.za/esploro/outputs/journalArticle/Experimental-evidence-for-the-efficacy-of/9957506707691",
-    "accessed": "2026-10-22",
-    "type": "academic",
-    "claims_supported": [
-      "Backed quartz segments of the Howiesons Poort of southern Africa (65-60 ka) have been interpreted as arrow tips",
-      "How the segments were hafted (transverse or diagonal) is debated"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Full title truncated in the search result; the bracketed part of the title is descriptive."
-  },
-  {
-    "id": "MAT1-008",
-    "title": "Howiesons Poort (CARTA Anthropogeny)",
-    "author_org": "Center for Academic Research and Training in Anthropogeny (UC San Diego)",
-    "published": null,
-    "url": "https://carta.anthropogeny.org/node/319170",
-    "accessed": "2026-10-22",
-    "type": "university",
-    "claims_supported": [
-      "The Howiesons Poort includes composite weapons hafted with ochre-and-gum compound glue and microlith blades"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-009",
-    "title": "World's oldest axe fragment found in Australia",
-    "author_org": "The University of Sydney",
-    "published": "2016-05-11",
-    "url": "https://www.sydney.edu.au/news-opinion/news/2016/05/11/world_s-oldest-axe-fragment-found-in-australia.html",
-    "accessed": "2026-10-22",
-    "type": "university",
-    "claims_supported": [
-      "A thumbnail-sized ground-edge axe fragment from Carpenter's Gap 1, Kimberley, Western Australia, dates to about 44,000-49,000 years ago"
-    ],
-    "confidence": "high",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-010",
-    "title": "50,000-year-old axe shows Australians were at the cutting edge of technology",
-    "author_org": "Smithsonian Magazine",
-    "published": "2016",
-    "url": "https://www.smithsonianmag.com/smart-news/nearly-50000-year-old-stone-chip-shows-australians-were-innovators-axe-technology-180959050/",
-    "accessed": "2026-10-22",
-    "type": "press",
-    "claims_supported": [
-      "Earlier contenders for the oldest ground-edge axe included Japanese pieces of roughly 38,000 years and an Australian fragment of about 35,000 years"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Other reports give about 35,000 years for the Japanese axes."
-  },
-  {
-    "id": "MAT1-011",
-    "title": "Peer-reviewed article on Palaeolithic adhesive evidence (PubMed Central PMC6825292)",
-    "author_org": "PubMed Central (US National Library of Medicine)",
-    "published": "2019",
-    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6825292",
-    "accessed": "2026-10-22",
-    "type": "academic",
-    "claims_supported": [
-      "Birch tar on two flint flakes from Campitello Quarry, Italy, dated to more than 191,000 years",
-      "Bitumen on Levallois flints from Umm el Tlel, Syria, dated to about 71,000 years",
-      "Compound adhesives known from Africa date to 60-70 thousand years ago",
-      "A birch-tar find from the Zandmotor, Netherlands, about 50,000 years old, adds to Neanderthal tar samples"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Article title not shown in the search result; publication year inferred from the summary's description of the find as 2019 and is uncertain."
-  },
-  {
-    "id": "MAT1-012",
-    "title": "Paleolithic Adhesives (ROCEEH Month of the month, December 2010)",
-    "author_org": "ROCEEH, Heidelberg Academy of Sciences (file hosted on Wikimedia)",
-    "published": "2010",
-    "url": "https://de.Wikipedia.org/wiki/Datei:ROCEEH_Motm_2010_12_Paleolithic_Adhesives.pdf",
-    "accessed": "2026-10-22",
-    "type": "academic",
-    "claims_supported": [
-      "Campitello, Italy (about 200,000 years) is the earliest European evidence of birch pitch use"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-013",
-    "title": "Compound adhesives used for hafting at Sibudu Cave (PNAS article, PMC2700998)",
-    "author_org": "Wadley and colleagues; Proceedings of the National Academy of Sciences",
-    "published": "2009",
-    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC2700998",
-    "accessed": "2026-10-22",
-    "type": "academic",
-    "claims_supported": [
-      "Traces of compound adhesives and hafting microfractures occur on Middle Stone Age tools from Sibudu Cave, about 70,000 years ago",
-      "Recipes combined plant gum with red ochre, or plant gum with fat",
-      "Experimental replication found that ochre improves the bonding of natural adhesives such as acacia gum"
-    ],
-    "confidence": "high",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Exact article title not shown in the search result."
-  },
-  {
-    "id": "MAT1-014",
-    "title": "Archaeologists identify spear tips used in hunting a half-million years ago",
-    "author_org": "University of Toronto",
-    "published": "2012-11",
-    "url": "https://utoronto.ca/news/archaeologists-identify-spear-tips-used-hunting-half-million-years-ago",
-    "accessed": "2026-10-22",
-    "type": "university",
-    "claims_supported": [
-      "Wilkins and colleagues (Science, 16 November 2012) concluded that ~500,000-year-old points from Kathu Pan 1, South Africa, were spear tips",
-      "Function was inferred by comparing damage with experimental points thrust into a springbok carcass"
-    ],
-    "confidence": "high",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-015",
-    "title": "Reply to critics of the Kathu Pan 1 hafted-point interpretation (AGRIS record)",
-    "author_org": "FAO AGRIS",
-    "published": "2015",
-    "url": "https://agris.fao.org/search/en/records/65df7a9c0f3e94b9e5d8e693",
-    "accessed": "2026-10-22",
-    "type": "academic",
-    "claims_supported": [
-      "Rots and Plisson (2014) questioned the spear-tip interpretation; Wilkins and co-authors replied in 2015"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Record title not shown in the search result."
-  },
-  {
-    "id": "MAT1-016",
-    "title": "The slow crawl forward",
-    "author_org": "Discover Magazine",
-    "published": null,
-    "url": "https://www.discovermagazine.com/planet-earth/the-slow-crawl-forward",
-    "accessed": "2026-10-22",
-    "type": "press",
-    "claims_supported": [
-      "Dating methods for the Katanda bone points indicated about 110,000-80,000 years ago; the methods were experimental and not all skeptics were convinced"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-017",
-    "title": "Semliki harpoon",
-    "author_org": "Wikipedia",
-    "published": null,
-    "url": "https://en.wikipedia.org/wiki/Semliki_harpoon",
-    "accessed": "2026-10-22",
-    "type": "reference",
-    "claims_supported": [
-      "Barbed bone harpoon heads from Katanda on the Semliki River, DR Congo, are dated to about 90,000 years ago",
-      "Yellen and Brooks (Science 1995) described barbed and unbarbed bone points; rings carved around the base allowed fastening to a shaft; fish remains are mostly catfish"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Encyclopedia summary; used with Discover Magazine, not as sole authority."
-  },
-  {
-    "id": "MAT1-018",
-    "title": "Quartz knapping strategies in the Howiesons Poort at Sibudu (KwaZulu-Natal, South Africa)",
-    "author_org": "PLoS ONE (PubMed Central PMC4094463)",
-    "published": "2014",
-    "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4094463/",
-    "accessed": "2026-10-22",
-    "type": "academic",
-    "claims_supported": [
-      "Howiesons Poort quartz technology at Sibudu includes prismatic cores and a laminar technology emphasising small bladelets"
-    ],
-    "confidence": "high",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-019",
-    "title": "Curated character of the Initial Upper Palaeolithic lithic artefact assemblages in Bacho Kiro Cave (Bulgaria)",
-    "author_org": "Tsanova et al.; PLoS ONE (PubMed Central PMC11373871)",
-    "published": "2024",
-    "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11373871/",
-    "accessed": "2026-10-22",
-    "type": "academic",
-    "claims_supported": [
-      "Initial Upper Palaeolithic assemblages at Bacho Kiro are radiocarbon-dated to about 45,040-43,280 cal BP and attributed to Homo sapiens",
-      "Initial Upper Palaeolithic assemblages are defined by blade production"
-    ],
-    "confidence": "high",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-020",
-    "title": "Early pottery at 20,000 years ago in Xianrendong Cave, China (Wu et al., Science 2012)",
-    "author_org": "NASA ADS abstract record",
-    "published": "2012",
-    "url": "https://ui.adsabs.harvard.edu/abs/2012Sci...336.1696W/abstract",
-    "accessed": "2026-10-22",
-    "type": "academic",
-    "claims_supported": [
-      "The earliest pottery at Xianrendong Cave dates to about 20,000-19,000 calendar years ago, made by mobile foragers, possibly for cooking"
-    ],
-    "confidence": "high",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-021",
-    "title": "Radiocarbon dating of charred residues on the earliest pottery in Japan",
-    "author_org": "Radiocarbon (Cambridge University Press)",
-    "published": null,
-    "url": "https://resolve.cambridge.org/core/journals/radiocarbon/article/radiocarbon-dating-of-charred-residues-on-the-earliest-pottery-in-japan/D2DE167CFF67D9B361D5D2E3AF198BD8",
-    "accessed": "2026-10-22",
-    "type": "academic",
-    "claims_supported": [
-      "Charred residues on the oldest Odai Yamamoto I potsherds give calibrated ages of about 16,500 years ago"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claim drawn from a combined summary of several Odai Yamamoto results (one gives 16,520 cal BP); uncalibrated estimates run younger."
-  },
-  {
-    "id": "MAT1-022",
-    "title": "A study of double chambered kilns in the Near East: their origin and socio-economic roles (KAKENHI 08610402)",
-    "author_org": "University of Tsukuba / KAKEN database",
-    "published": null,
-    "url": "https://kaken.nii.ac.jp/grant/KAKENHI-PROJECT-08610402/",
-    "accessed": "2026-10-22",
-    "type": "academic",
-    "claims_supported": [
-      "Pottery kilns first appeared as pit kilns in the early sixth millennium BCE; double-chambered kilns were established by the middle of the sixth millennium",
-      "The shift is linked to production of Halaf painted pottery; pit and single-chamber kilns stayed in use"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-023",
-    "title": "The appearance of pottery kiln in northern Mesopotamia in prehistoric periods until the Neo-Assyrian period",
-    "author_org": "Zanco Journal of Humanity Sciences (Salahaddin University)",
-    "published": null,
-    "url": "https://zancojournal.su.edu.krd/index.php/JAHS/article/view/1784",
-    "accessed": "2026-10-22",
-    "type": "academic",
-    "claims_supported": [
-      "Two-chamber kilns had a combustion chamber below and a firing chamber above, with pots on a perforated floor through which hot gases rose"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-024",
-    "title": "Baldi 2021, the potter's wheel in Uruk-period Mesopotamia (IANSA, HAL archive)",
-    "author_org": "Interdisciplinaria Archaeologica (HAL open archive)",
-    "published": "2021",
-    "url": "https://halshs.archives-ouvertes.fr/halshs-03502859v1",
-    "accessed": "2026-10-22",
-    "type": "academic",
-    "claims_supported": [
-      "The potter's wheel was first adopted in Mesopotamia in the fourth millennium BCE within the Uruk sphere and spread unevenly",
-      "The assumption that bevelled-rim bowls were wheel-thrown is outdated"
-    ],
-    "confidence": "high",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-025",
-    "title": "Short teaching module: bevel-rimmed bowls",
-    "author_org": "World History Commons (George Mason University)",
-    "published": null,
-    "url": "https://worldhistorycommons.org/node/1194",
-    "accessed": "2026-10-22",
-    "type": "university",
-    "claims_supported": [
-      "Bevelled-rim bowls were cheaply made using a mould, not a wheel"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-026",
-    "title": "Radivojevic et al. 2014 review of early metallurgy (UCL Discovery 10059796)",
-    "author_org": "UCL Discovery",
-    "published": "2014",
-    "url": "https://discovery.ucl.ac.uk/id/eprint/10059796/",
-    "accessed": "2026-10-22",
-    "type": "academic",
-    "claims_supported": [
-      "Copper slag from Belovode, Serbia, dates to about 5000 BC (Radivojevic et al. 2010)",
-      "Smelting at Belovode continued over several centuries"
-    ],
-    "confidence": "high",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-027",
-    "title": "Serbian site may have hosted first copper makers",
-    "author_org": "Stone Pages Archaeo News",
-    "published": "2010",
-    "url": "https://www.stonepages.com/news/archives/003885.html",
-    "accessed": "2026-10-22",
-    "type": "press",
-    "claims_supported": [
-      "Belovode's status as the oldest smelting site is expected to be challenged by contemporary evidence from the Fertile Crescent"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-028",
-    "title": "Birch et al. 2013, Catalhoyuk copper: a review and new work",
-    "author_org": "UCL Discovery",
-    "published": "2013",
-    "url": "https://discovery-pp.ucl.ac.uk/id/eprint/1474072/1/Birch%20et%20al%202013%20Catal%20Hoyuk%20copper%20a%20review%20and%20new%20work%20plus%20Appendices.pdf",
-    "accessed": "2026-10-22",
-    "type": "academic",
-    "claims_supported": [
-      "The earliest annealed native copper work, beads and pins, dates to towards the end of the ninth millennium BC at Cayonu Tepesi, eastern Turkey"
-    ],
-    "confidence": "high",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Other summaries date Cayonu copper to 8200-7500 BC or link annealing there to about 7000 BC."
-  },
-  {
-    "id": "MAT1-029",
-    "title": "The Copper Standard (Old Copper culture dating)",
-    "author_org": "Archaeology Magazine (Archaeological Institute of America)",
-    "published": "2021",
-    "url": "https://archaeology.org/issues/july-august-2021/digs-discoveries/digs-michigan-old-copper-culture/",
-    "accessed": "2026-10-22",
-    "type": "press",
-    "claims_supported": [
-      "The oldest reliable age from material embedded in a Great Lakes copper artifact is about 8,500 years (Pompeani et al. 2021)",
-      "Pompeani's earlier work dated the start of copper mining in some areas to about 9,500 years ago"
-    ],
-    "confidence": "high",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-030",
-    "title": "A brief history of making copper objects, part 3: hammering, hot and cold work",
-    "author_org": "ARTECHNE project, Utrecht University",
-    "published": null,
-    "url": "https://artechne.wp.hum.uu.nl/a-brief-history-of-making-copper-objects-part-3-hammering-hot-and-cold-work/",
-    "accessed": "2026-10-22",
-    "type": "university",
-    "claims_supported": [
-      "Hammering work-hardens copper alloys and makes them brittle; annealing (heating) restores workability and may be repeated",
-      "Raising shapes a vessel by hammering on the outside over a small dome-headed anvil"
-    ],
-    "confidence": "high",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-031",
-    "title": "Varna Necropolis",
-    "author_org": "History Hit",
-    "published": null,
-    "url": "https://www.historyhit.com/locations/varna-necropolis/",
-    "accessed": "2026-10-22",
-    "type": "press",
-    "claims_supported": [
-      "The Varna necropolis has 294 graves dated between 4600 and 4200 BC with more than 3,000 gold artifacts weighing about six kilograms",
-      "It is described as the oldest worked gold known"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Popular source; interpretive claims about rulers were not used."
-  },
-  {
-    "id": "MAT1-032",
-    "title": "Murillo-Barroso et al. 2014 on early silver and cupellation",
-    "author_org": "UCL Discovery",
-    "published": "2014",
-    "url": "https://discovery-pp.ucl.ac.uk/1462031/1/Murillo-Barroso%20et%20al.%2C%202014.pdf",
-    "accessed": "2026-10-22",
-    "type": "academic",
-    "claims_supported": [
-      "Cupellation debris is known from Habuba Kabira in Syria (Pernicka et al. 1998) and Fatmali-Kalecik in Anatolia (Hess et al. 1998), both of the fourth millennium BC"
-    ],
-    "confidence": "high",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-033",
-    "title": "Tappeh Shoghali: a significant early silver production site in north central Iran",
-    "author_org": "Periodico di Mineralogia (Sapienza University of Rome)",
-    "published": null,
-    "url": "https://rosa.uniroma1.it/rosa04/periodico_di_mineralogia/article/view/15897",
-    "accessed": "2026-10-22",
-    "type": "academic",
-    "claims_supported": [
-      "Tappeh Shoghali yielded litharge cakes, a silver-rich lead ingot, crucibles and furnaces of the Sialk III-IV period, late fourth or early third millennium BC"
-    ],
-    "confidence": "high",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-034",
-    "title": "Novel imaging approach reveals how ancient amulet was made",
-    "author_org": "CNRS",
-    "published": "2016-11",
-    "url": "https://cnrs.fr/en/node/2767",
-    "accessed": "2026-10-22",
-    "type": "official",
-    "claims_supported": [
-      "A 6,000-year-old copper amulet from Mehrgarh is the earliest known lost-wax cast object (Thoury et al., Nature Communications, 2016)",
-      "It was cast in one piece from very pure copper",
-      "Mehrgarh is dated to roughly 4500-3600 BC"
-    ],
-    "confidence": "high",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-035",
-    "title": "The Nahal Mishmar Hoard",
-    "author_org": "The Metropolitan Museum of Art, Heilbrunn Timeline of Art History",
-    "published": null,
-    "url": "https://www.metmuseum.org/toah/hd/nahl/hd_nahl.htm",
-    "accessed": "2026-10-22",
-    "type": "museum",
-    "claims_supported": [
-      "Many Nahal Mishmar copper objects were made by lost-wax casting, the earliest known use of this complex technique",
-      "The more elaborate pieces used copper with 4-12 percent arsenic",
-      "Radiocarbon dating of the wrapping mat suggests a date of at least 3500 BC"
-    ],
-    "confidence": "high",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-036",
-    "title": "Tainted ores and the rise of tin bronzes in Eurasia, c. 6500 years ago",
-    "author_org": "Antiquity (Cambridge University Press)",
-    "published": "2013",
-    "url": "https://resolve.cambridge.org/core/journals/antiquity/article/tainted-ores-and-the-rise-of-tin-bronzes-in-eurasia-c-6500-years-ago/496710374082FC211C512670F0A98004",
-    "accessed": "2026-10-22",
-    "type": "academic",
-    "claims_supported": [
-      "A tin bronze foil from Plocnik, Serbia, from a horizon dated about 4650 BC, is claimed as the earliest known tin bronze artefact",
-      "The earliest known tin bronzes of Mesopotamia and Anatolia date to the early third millennium BC and contain up to about 10 wt% tin",
-      "Those regions lack significant tin sources"
-    ],
-    "confidence": "high",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). The Plocnik priority is the authors' claim; other summaries place the earliest tin bronzes in Iran and Iraq in the late fourth millennium BC."
-  },
-  {
-    "id": "MAT1-037",
-    "title": "Oudbashi 2023, from arsenical copper to tin bronze in western Iran (DEWA 2023 abstract)",
-    "author_org": "Societe prehistorique francaise",
-    "published": "2023",
-    "url": "https://www.prehistoire.org/offres/doc_inline_src/515/11_S26_DEWA2023_Oudbashi.pdf",
-    "accessed": "2026-10-22",
-    "type": "academic",
-    "claims_supported": [
-      "Western and south-western Iran shifted from impure and arsenical copper to tin bronze during the third millennium BCE; tin bronze became common only in the second millennium"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-038",
-    "title": "Iron and steel in early Europe (Iron, Steel and Swords script, 10.3)",
-    "author_org": "Kiel University, Faculty of Engineering (H. Foll)",
-    "published": null,
-    "url": "https://www.tf.uni-kiel.de/matwis/amat/iss/kap_a/backbone/ra_3_1.html",
-    "accessed": "2026-10-22",
-    "type": "university",
-    "claims_supported": [
-      "Systematic production of iron in bloomeries started around 1200 BC somewhere in Anatolia; crediting the Hittites with the invention likely overstates the case"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-039",
-    "title": "Bloomery",
-    "author_org": "Wikipedia",
-    "published": null,
-    "url": "https://en.wikipedia.org/wiki/Bloomery",
-    "accessed": "2026-10-22",
-    "type": "reference",
-    "claims_supported": [
-      "Bloomery smelting appeared in the Nok culture of central Nigeria by at least 550 BC and possibly earlier",
-      "Gbabiri, Central African Republic, has a reduction furnace and smithy with dates of about 896-773 and 907-796 BC",
-      "Traditional sub-Saharan African iron smelting processes are variants of the bloomery process"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Encyclopedia summary; dates should be checked against the excavation literature."
-  },
-  {
-    "id": "MAT1-040",
-    "title": "Maddin, Muhly and Wheeler 1977, 'How the Iron Age began' (Scientific American), as transcribed",
-    "author_org": "Scientific American via mormonr.org transcription",
-    "published": "1977",
-    "url": "https://mormonr.org/records/RgnyGb-03V9OJ",
-    "accessed": "2026-10-22",
-    "type": "archive",
-    "claims_supported": [
-      "A twelfth-century BC knife from Idalion, Cyprus, was carburized to improve its hardness",
-      "Very few iron artifacts of the twelfth century BC or earlier have been metallurgically analysed"
-    ],
-    "confidence": "low",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Secondary transcription on a religious-studies records site; article title as given there not confirmed."
-  },
-  {
-    "id": "MAT1-041",
-    "title": "Roper, 'Laban's sword of most precious steel' (quoted source page)",
-    "author_org": "FAIR (FairLatterDaySaints.org)",
-    "published": null,
-    "url": "https://www.fairlatterdaysaints.org/answers/Source:Roper:Laban%E2%80%99s_Sword_of_%E2%80%9CMost_Precious_Steel%E2%80%9D:Sophisticated_iron_technology",
-    "accessed": "2026-10-22",
-    "type": "community",
-    "claims_supported": [
-      "A curved iron knife from an eleventh-century BC tomb at Idalion was analysed by metallurgist Erik Tholander and found to be quench-hardened steel"
-    ],
-    "confidence": "low",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Apologetics site quoting secondary literature; the primary Tholander publication was not found."
-  },
-  {
-    "id": "MAT1-042",
-    "title": "Noric steel",
-    "author_org": "Wikipedia",
-    "published": null,
-    "url": "https://en.wikipedia.org/wiki/Noric_steel",
-    "accessed": "2026-10-22",
-    "type": "reference",
-    "claims_supported": [
-      "Roman writers mention ferrum Noricum, a high-quality steel, from the late first century BC",
-      "Its quality is linked to manganese-rich ore with little or no phosphorus; a Roman trading post on the Magdalensberg handled it"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-043",
-    "title": "Wootz steel",
-    "author_org": "Wikipedia",
-    "published": null,
-    "url": "https://en.wikipedia.org/wiki/Wootz_steel",
-    "accessed": "2026-10-22",
-    "type": "reference",
-    "claims_supported": [
-      "Wootz crucible steel originated in South India (Kodumanal and other Tamil Nadu sites) in the mid-first millennium BCE",
-      "Steel production reached Tissamaharama, Sri Lanka, around 200 BCE"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Encyclopedia summary; South Asian dates not checked against Srinivasan's excavation reports."
-  },
-  {
-    "id": "MAT1-044",
-    "title": "Production of crucible steel by co-fusion: archaeometallurgical evidence from the ninth-early tenth century at the site of Merv, Turkmenistan",
-    "author_org": "Feuerbach, Merkel and Griffiths; MRS Online Proceedings (Cambridge University Press)",
-    "published": null,
-    "url": "https://cambridge.org/core/journals/mrs-online-proceedings-library-archive/article/abs/production-of-crucible-steel-by-cofusion-archaeometallurgical-evidence-from-the-ninthearly-tenth-century-at-the-site-of-merv-turkmenistan/CC4416D5A26DC57AF4B8557086062E4C",
-    "accessed": "2026-10-22",
-    "type": "academic",
-    "claims_supported": [
-      "Crucible steel was produced by co-fusion at Merv, Turkmenistan, in the ninth to early tenth century"
-    ],
-    "confidence": "high",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-045",
-    "title": "Evolution of pattern welding (Iron, Steel and Swords script, 11.3.3)",
-    "author_org": "Kiel University, Faculty of Engineering (H. Foll)",
-    "published": null,
-    "url": "https://www.tf.uni-kiel.de/matwis/amat/iss/kap_b/backbone/rb_3_3.html",
-    "accessed": "2026-10-22",
-    "type": "university",
-    "claims_supported": [
-      "Occasional twisted strips appear in piled late La Tene swords; there is no definite beginning of pattern welding",
-      "True pattern welding is evident from about the third century AD, peaks in complexity in the sixth and seventh centuries and is generally out of use by the end of the tenth",
-      "Rods twisted or left straight were welded into a blade and grinding revealed the pattern"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Overlaps with 'The Serpent in the Sword' (Medievalists.net, 2013) result on the same topic."
-  },
-  {
-    "id": "MAT1-046",
-    "title": "Glass jar of Sargon II (museum number 90952)",
-    "author_org": "The British Museum",
-    "published": null,
-    "url": "https://www.britishmuseum.org/collection/image/103783001",
-    "accessed": "2026-10-22",
-    "type": "museum",
-    "claims_supported": [
-      "The Sargon vase, a green glass jar inscribed for Sargon II, dates to 721-705 BC and was probably cast, then ground and polished like stone"
-    ],
-    "confidence": "high",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-047",
-    "title": "Mosaic glass: casting (Roman Glass online exhibit)",
-    "author_org": "Penn Museum, University of Pennsylvania",
-    "published": null,
-    "url": "https://penn.museum/sites/roman%20glass/Mosaic%20Glass/casting_intro.html",
-    "accessed": "2026-10-22",
-    "type": "museum",
-    "claims_supported": [
-      "Mosaic glass wares originated with glass moulding in the Hellenistic world around 220 BC; vivid mosaic wares followed in the late second century BC",
-      "Hellenistic and Roman glassmakers sagged glass over convex former moulds to make cups and bowls"
-    ],
-    "confidence": "high",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-048",
-    "title": "Blown glass jugs and juglets",
-    "author_org": "The Posen Library of Jewish Culture and Civilization",
-    "published": null,
-    "url": "https://www.posenlibrary.com/node/10904",
-    "accessed": "2026-10-22",
-    "type": "archive",
-    "claims_supported": [
-      "Waste from a glass workshop, including glass tubes, rods and tiny blown bottles, was dumped in a ritual bath in Jerusalem's Jewish Quarter in the time of Herod",
-      "Glassblowing began in the Syro-Palestinian region around the middle of the first century BCE"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Attribution of each claim among two museum-style results is probable, not certain."
-  },
-  {
-    "id": "MAT1-049",
-    "title": "Roman Glass (essay)",
-    "author_org": "The Metropolitan Museum of Art, Heilbrunn Timeline of Art History",
-    "published": null,
-    "url": "https://www.metmuseum.org/en/essays/roman-glass",
-    "accessed": "2026-10-22",
-    "type": "museum",
-    "claims_supported": [
-      "Roman window glass could be cast or blown and served insulation and security more than illumination"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Attribution of this claim among window-glass results is probable, not certain."
-  },
-  {
-    "id": "MAT1-050",
-    "title": "Roman cast glass",
-    "author_org": "VILLUM Window Collection",
-    "published": null,
-    "url": "https://en.villumwindowcollection.com/all-about-windows/glass/roman-cast-glass",
-    "accessed": "2026-10-22",
-    "type": "industry",
-    "claims_supported": [
-      "The oldest Roman window glass was found in the excavations of Pompeii and Herculaneum"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Industry-sponsored collection; its claim that Romans were first to glaze windows was not used."
-  },
-  {
-    "id": "MAT1-051",
-    "title": "Fragment of bowl with lotus, antelope and fish (object 3188)",
-    "author_org": "Brooklyn Museum",
-    "published": null,
-    "url": "https://www.brooklynmuseum.org/objects/3188",
-    "accessed": "2026-10-22",
-    "type": "museum",
-    "claims_supported": [
-      "Egyptian faience dates to about 3500 BCE; its body is a glassy paste of crushed quartz or sand"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Attribution between two faience results is probable, not certain."
-  },
-  {
-    "id": "MAT1-052",
-    "title": "Faience in Egyptian culture",
-    "author_org": "Australian Museum",
-    "published": null,
-    "url": "https://australianmuseum.net.au/Faience-in-Egyptian-Culture",
-    "accessed": "2026-10-22",
-    "type": "museum",
-    "claims_supported": [
-      "Faience began with glazed steatite beads in the Badarian culture (about 4400-4000 BC)",
-      "Glaze was applied by brushing or dipping, or formed from a glazing powder in which the object was buried during firing"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-053",
-    "title": "Polychrome core-formed bottle with festooned design (object 4022)",
-    "author_org": "Brooklyn Museum",
-    "published": null,
-    "url": "https://www.brooklynmuseum.org/objects/4022",
-    "accessed": "2026-10-22",
-    "type": "museum",
-    "claims_supported": [
-      "Egyptians began making glass vessels in the reign of Thutmose III (about 1479-1425 BCE); glass had arrived from western Asia shortly before 1500 BCE"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). The two claims came from two museum results summarized together; attribution to this object page is probable, not certain."
-  },
-  {
-    "id": "MAT1-054",
-    "title": "Roman concrete: Berkeley research on Roman seawater concrete",
-    "author_org": "University of California, Berkeley (Berkeley News)",
-    "published": "2013-06-04",
-    "url": "https://news.berkeley.edu/2013/06/04/roman-concrete",
-    "accessed": "2026-10-22",
-    "type": "university",
-    "claims_supported": [
-      "A 2,000-year-old concrete block from the Bay of Pozzuoli contains aluminous tobermorite formed by reaction of lime, volcanic ash and seawater (Jackson et al., American Mineralogist 2013)",
-      "The mix needed about 10 percent lime and lower kiln temperatures than Portland cement"
-    ],
-    "confidence": "high",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-055",
-    "title": "The archaeometallurgy of iron / Early iron in China, Korea and Japan",
-    "author_org": "Donald B. Wagner (personal academic site)",
-    "published": null,
-    "url": "https://donwagner.dk/arch-iron",
-    "accessed": "2026-10-22",
-    "type": "academic",
-    "claims_supported": [
-      "Bloomery iron was the earliest smelted iron in China, possibly arriving from the west around the eighth century BC",
-      "Iron casting appears to have developed independently in China, probably in the south; blast-furnace production began perhaps as early as the fifth century BCE",
-      "Cast iron from large blast furnaces was normal in the Han dynasty"
-    ],
-    "confidence": "high",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-056",
-    "title": "Microstructure and chemical composition of Roman orichalcum coins emitted after the monetary reform of Augustus (23 B.C.)",
-    "author_org": "Di Fazio et al.; Scientific Reports (PubMed Central PMC6722059)",
-    "published": "2019",
-    "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6722059/",
-    "accessed": "2026-10-22",
-    "type": "academic",
-    "claims_supported": [
-      "Augustus's reform of 23 BC struck sestertii and dupondii in orichalcum, a copper-zinc alloy",
-      "Coin cores contain up to about 30 percent zinc, consistent with cementation",
-      "Romans added ground zinc ore (cadmea) with charcoal to copper; zinc content was hard to control"
-    ],
-    "confidence": "high",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-057",
-    "title": "Nya Lapphyttan and Karlberg",
-    "author_org": "Ekomuseum Bergslagen",
-    "published": null,
-    "url": "https://ekomuseum.se/en/besoksmalen/nya-lapphyttan-karlbergs-hembygdsgard/",
-    "accessed": "2026-10-22",
-    "type": "museum",
-    "claims_supported": [
-      "The Lapphyttan blast furnace, with water-driven bellows, was in use from the mid-twelfth to the mid-fourteenth century and is the oldest excavated in Europe",
-      "It is now considered a local development rather than an import from Germany"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-058",
-    "title": "Medieval iron in society (Jernkontorets bergshistoriska skriftserie H 34)",
-    "author_org": "Jernkontoret (Swedish Steel Producers' Association)",
-    "published": null,
-    "url": "https://www.jernkontoret.se/globalassets/publicerat/bergshistoria/h-34-medieval-iron-in-society.pdf",
-    "accessed": "2026-10-22",
-    "type": "academic",
-    "claims_supported": [
-      "The first Lapphyttan furnace dates to the late twelfth or early thirteenth century"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-059",
-    "title": "The roots of colonial iron technology",
-    "author_org": "Penn State College of Engineering (Materials Technology and History)",
-    "published": null,
-    "url": "https://engr.psu.edu/MTAH/articles/roots_colonial_iron_technology.htm",
-    "accessed": "2026-10-22",
-    "type": "university",
-    "claims_supported": [
-      "The European blast furnace was probably developed independently, although a Chinese water-powered blast furnace existed earlier"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-060",
-    "title": "Medieval spectacles",
-    "author_org": "Harry Ransom Center, University of Texas at Austin (Ransom Center Magazine)",
-    "published": "2012-04-17",
-    "url": "https://sites.utexas.edu/ransomcentermagazine/2012/04/17/medieval-spectacles/",
-    "accessed": "2026-10-22",
-    "type": "university",
-    "claims_supported": [
-      "In a Florence sermon (dated 1305 or 23 February 1306) the Dominican Giordano da Pisa said the art of making spectacles was less than twenty years old",
-      "Alessandro della Spina of Pisa made spectacles and shared the method; the original maker is unidentified",
-      "The claim for Salvino degli Armati rests on a later inscription"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims came from a combined summary of several spectacles results; attribution to this page is probable, not certain."
-  },
-  {
-    "id": "MAT1-061",
-    "title": "Zigong",
-    "author_org": "Wikipedia",
-    "published": null,
-    "url": "https://en.wikipedia.org/wiki/Zigong",
-    "accessed": "2026-10-22",
-    "type": "reference",
-    "claims_supported": [
-      "The Shenhai well at Zigong, drilled in 1835, reached about 1,001 metres"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-062",
-    "title": "The ancient salt wells of Zigong",
-    "author_org": "Amusing Planet",
-    "published": "2026-07",
-    "url": "https://www.amusingplanet.com/2026/07/the-ancient-salt-wells-of-zigong.html",
-    "accessed": "2026-10-22",
-    "type": "community",
-    "claims_supported": [
-      "Chinese percussion drilling repeatedly lifted and dropped a heavy iron bit; drilling was highly developed by the Tang and especially the Song dynasty",
-      "Bamboo casings stabilised shafts and natural gas from wells was piped in bamboo to boil brine"
-    ],
-    "confidence": "low",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Popular website; used only together with the Wikipedia and Penn State records."
-  },
-  {
-    "id": "MAT1-063",
-    "title": "Drake's well and cable-tool drilling (PNG 301)",
-    "author_org": "Penn State University, John A. Dutton e-Education Institute",
-    "published": null,
-    "url": "https://www.e-education.psu.edu/png301/node/903",
-    "accessed": "2026-10-22",
-    "type": "university",
-    "claims_supported": [
-      "Colonel Drake's well at Titusville, Pennsylvania, was drilled with a cable-tool rig in 1859 to 69.5 feet"
-    ],
-    "confidence": "high",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-064",
-    "title": "American oil history",
-    "author_org": "American Oil and Gas Historical Society",
-    "published": null,
-    "url": "https://aoghs.org/oil-amanac/american-oil-history/",
-    "accessed": "2026-10-22",
-    "type": "community",
-    "claims_supported": [
-      "Drake's driller William 'Uncle Billy' Smith was a salt-well specialist and the rig was based on Pennsylvania salt-well drilling rigs",
-      "The well was completed on 27 August 1859"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-065",
-    "title": "Neolithic Flint Mines at Spiennes (Mons)",
-    "author_org": "UNESCO World Heritage Centre",
-    "published": null,
-    "url": "https://whc.unesco.org/en/list/1006",
-    "accessed": "2026-10-22",
-    "type": "official",
-    "claims_supported": [
-      "Spiennes is the largest and earliest concentration of ancient mines in Europe, covering more than 100 ha",
-      "Shafts 0.8-1.2 m in diameter reached depths of 16 m",
-      "Mining ran from the last third of the fifth millennium to the first half of the third millennium BC"
-    ],
-    "confidence": "high",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-066",
-    "title": "Mining archaeology in the British Isles",
-    "author_org": "Wikipedia",
-    "published": null,
-    "url": "https://en.wikipedia.org/wiki/Mining_archaeology_in_the_British_Isles",
-    "accessed": "2026-10-22",
-    "type": "reference",
-    "claims_supported": [
-      "Radiocarbon dates for the Great Orme copper mine fall mainly between about 1600 and 1200 BC; it dominated British copper supply c. 1600-1400 BC"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-067",
-    "title": "Brick",
-    "author_org": "Wikipedia",
-    "published": null,
-    "url": "https://en.wikipedia.org/wiki/Brick",
-    "accessed": "2026-10-22",
-    "type": "reference",
-    "claims_supported": [
-      "Fired brick was used by about 3000 BC in early Indus Valley towns such as Kalibangan",
-      "Monumental baked-brick building rose in the mid-third millennium BC (Great Bath, Mohenjo-daro); Indus bricks follow a 1:2:4 ratio",
-      "Fired bricks from Chengtoushan, China, date to about 4400 BC; Mesopotamian fired brick is dated as early as 5000-4500 BC by one citation"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Encyclopedia summary; the early Mesopotamian and Chinese dates rest on single citations."
-  },
-  {
-    "id": "MAT1-068",
-    "title": "Historical text on wire-making (University of Utah Digital Library, OCR)",
-    "author_org": "University of Utah J. Willard Marriott Library",
-    "published": null,
-    "url": "https://collections.lib.utah.edu/details?id=122049",
-    "accessed": "2026-10-22",
-    "type": "archive",
-    "claims_supported": [
-      "Wire-making with the drawplate was probably known in Nuremberg early in the fourteenth century; records from 1360 mention wire-drawers"
-    ],
-    "confidence": "low",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Item title not shown in the search result."
-  },
-  {
-    "id": "MAT1-069",
-    "title": "Wire-drawing bench, Nuremberg, before 1565",
-    "author_org": "History of Science Museum, University of Oxford",
-    "published": null,
-    "url": "https://www.cabinet.ox.ac.uk/node/14826",
-    "accessed": "2026-10-22",
-    "type": "museum",
-    "claims_supported": [
-      "Goldsmiths used drawing tools of this type from the late Middle Ages"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-070",
-    "title": "Bronze Age axe-mould (Hunt Museum, 3D scan)",
-    "author_org": "Hunt Museum via MyMiniFactory",
-    "published": null,
-    "url": "https://www.myminifactory.com/object/3d-print-bronze-age-axe-mould-103942",
-    "accessed": "2026-10-22",
-    "type": "museum",
-    "claims_supported": [
-      "An early stone mould carries open matrices on two faces, one for a flat axe",
-      "More complex two-piece moulds developed as the Bronze Age progressed"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-071",
-    "title": "Mould for socketed axe B9910",
-    "author_org": "University of Bergen, Bronze Age bronzes database",
-    "published": null,
-    "url": "https://bronzes.w.uib.no/category/stopeformer/",
-    "accessed": "2026-10-22",
-    "type": "university",
-    "claims_supported": [
-      "A two-part soapstone mould for socketed axes from Norway is dated to the Younger Bronze Age"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-072",
-    "title": "MHG8165 - Bronze Age metalworking, Sittenham",
-    "author_org": "Highland Council Historic Environment Record",
-    "published": null,
-    "url": "https://her.highland.gov.uk/Monument/MHG8165",
-    "accessed": "2026-10-22",
-    "type": "official",
-    "claims_supported": [
-      "Two Scottish steatite moulds for socketed axes are dated to the Late Bronze Age"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-073",
-    "title": "Ondrkal 2025, the Hradok hoard and bronzeworking tools (Dissertationes Archaeologicae 3(12))",
-    "author_org": "Eotvos Lorand University (ELTE)",
-    "published": "2025",
-    "url": "https://ojs.elte.hu/dissarch/article/view/8444",
-    "accessed": "2026-10-22",
-    "type": "academic",
-    "claims_supported": [
-      "The Hradok hoard, western Slovakia, about 1225-1175 BC, holds the earliest and most complete set of bronzeworking tools in Central Europe",
-      "Sheet-metal vessel making began in eastern Mediterranean workshops before spreading into Europe and is linked to Urnfield power structures"
-    ],
-    "confidence": "high",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-074",
-    "title": "Urnfield-period bronze armour from Moravia (Archeologicke rozhledy)",
-    "author_org": "Archeologicke rozhledy (Czech Academy of Sciences)",
-    "published": null,
-    "url": "https://archeologickerozhledy.cz/index.php/ar/article/view/69",
-    "accessed": "2026-10-22",
-    "type": "academic",
-    "claims_supported": [
-      "The Ivancice 4 cuirass is sheet bronze shaped mechanically and then annealed",
-      "Solid bronze armour, including helmets, first appears in Central Europe at the start of the Urnfield period"
-    ],
-    "confidence": "high",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-075",
-    "title": "Solutrean hypothesis",
-    "author_org": "Wikipedia",
-    "published": null,
-    "url": "https://en.wikipedia.org/wiki/Solutrean_hypothesis",
-    "accessed": "2026-10-22",
-    "type": "reference",
-    "claims_supported": [
-      "Solutrean culture dominated present-day France and Spain from roughly 21,000 to 17,000 years ago",
-      "Bordes's experiments suggested laurel-leaf points were shaped mainly by percussion; Crabtree completed replicas with pressure flaking"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-076",
-    "title": "Lacquerware",
-    "author_org": "Wikipedia",
-    "published": null,
-    "url": "https://en.wikipedia.org/wiki/Lacquerware",
-    "accessed": "2026-10-22",
-    "type": "reference",
-    "claims_supported": [
-      "A red-lacquered wooden bowl of the Hemudu culture, Zhejiang, was long the earliest known Chinese lacquer, dated to about the fifth millennium BC",
-      "A lacquered bow from Kuahuqiao is reported as older"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-077",
-    "title": "8,000-year-old lacquerware dug up in eastern China (Jingtoushan)",
-    "author_org": "China Daily (Ningbo edition)",
-    "published": "2024-09-24",
-    "url": "https://ningbo.chinadaily.com.cn/2024-09/24/c_1024590.htm",
-    "accessed": "2026-10-22",
-    "type": "press",
-    "claims_supported": [
-      "Lacquer-coated wooden objects from Jingtoushan near Ningbo are radiocarbon-dated to more than 8,000 years ago"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
-  },
-  {
-    "id": "MAT1-078",
-    "title": "Archaeologists in Kathu Pan: ScienceDaily release on early hafted hunting",
-    "author_org": "ScienceDaily",
-    "published": "2012-11-15",
-    "url": "https://sciencedaily.com/releases/2012/11/121115141540.htm",
-    "accessed": "2026-10-22",
-    "type": "press",
-    "claims_supported": [
-      "The Kathu Pan 1 point-bearing deposits were dated to about 500,000 years by optically stimulated luminescence and U-series/ESR (2010 study)"
-    ],
-    "confidence": "medium",
-    "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Release title not shown exactly in the search result."
-  }
+ {
+  "id": "MAT1-001",
+  "title": "Searching for the earliest tools",
+  "author_org": "The Leakey Foundation",
+  "published": null,
+  "url": "https://leakeyfoundation.org/searching-for-the-earliest-tools/",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Gona, Ethiopia, yielded stone tools dated to about 2.6 million years ago, long the oldest accepted Oldowan tools",
+   "Lomekwi 3 tools (about 3.3 million years) are contested: natural fracture and dating have been questioned and no toolmaker is associated"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "MAT1-002",
+  "title": "Oldest stone tools discovery (Lomekwi 3, Harmand et al.)",
+  "author_org": "National Geographic",
+  "published": "2015",
+  "url": "https://www.nationalgeographic.com/news/2015/05/150520-oldest-stone-tools-discovery-harmand-archaeology/",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "Sonia Harmand and colleagues described tools from Lomekwi 3, near Lake Turkana, Kenya, dated to about 3.3 million years, about 700,000 years before Gona"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-003",
+  "title": "Oldowan Tools",
+  "author_org": "World History Encyclopedia",
+  "published": null,
+  "url": "https://www.worldhistory.org/Oldowan_Tools",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The Oldowan is named after Olduvai Gorge, Tanzania, where Louis Leakey found such tools in the 1930s"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-004",
+  "title": "Bolton, PhD thesis on Levallois technology (University of Southampton)",
+  "author_org": "University of Southampton (ePrints)",
+  "published": null,
+  "url": "https://eprints.soton.ac.uk/389337",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Levallois technology became widespread in Europe and Africa about 300,000 years ago",
+   "Fully developed Levallois seems to derive from earlier simple prepared-core (proto- or reduced Levallois) methods"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-005",
+  "title": "Hu, Marwick, Zhang 2018, Levallois in southwest China (supplementary information)",
+  "author_org": "University of Washington (B. Marwick faculty page)",
+  "published": "2018",
+  "url": "https://faculty.washington.edu/bmarwick/PDFs/Hu-Marwick-Zhang-2018-Levallois-SW-China-paper-SI.pdf",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Levallois is a hallmark of stone technologies developed around 300,000 years ago in Africa and western Eurasia",
+   "Levallois at Guanyindong Cave, southwest China, is dated to about 170,000-80,000 years ago, the earliest in East Asia"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-006",
+  "title": "Origin of skillful stone tool sharpening method pushed back more than 50,000 years",
+  "author_org": "University of Colorado Boulder (CU Boulder Today)",
+  "published": "2010-10-28",
+  "url": "https://www.colorado.edu/today/2010/10/28/origin-skillful-stone-tool-sharpening-method-pushed-back-more-50000-years",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "At Blombos Cave, at least half of the finished Still Bay points were retouched by pressure flaking",
+   "The Still Bay industry at Blombos began roughly 76,000 years ago and may have lasted to 72,000 years ago",
+   "Evidence of silcrete heating about 164,000 years ago at Pinnacle Point, South Africa (Brown et al., Science 2009)",
+   "Experiments: unheated silcrete could not be pressure-flaked; heated silcrete gave points like the originals",
+   "Heat-treated silcrete leaves smooth glossy flake scars, unheated silcrete rough dull ones"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-007",
+  "title": "Experimental evidence for the efficacy of hafted Howiesons Poort backed segments (Roussel et al. 2025, repository record)",
+  "author_org": "University of Johannesburg (UJContent repository)",
+  "published": "2025",
+  "url": "https://ujcontent.uj.ac.za/esploro/outputs/journalArticle/Experimental-evidence-for-the-efficacy-of/9957506707691",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Backed quartz segments of the Howiesons Poort of southern Africa (65-60 ka) have been interpreted as arrow tips",
+   "How the segments were hafted (transverse or diagonal) is debated"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Full title truncated in the search result; the bracketed part of the title is descriptive."
+ },
+ {
+  "id": "MAT1-008",
+  "title": "Howiesons Poort (CARTA Anthropogeny)",
+  "author_org": "Center for Academic Research and Training in Anthropogeny (UC San Diego)",
+  "published": null,
+  "url": "https://carta.anthropogeny.org/node/319170",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "The Howiesons Poort includes composite weapons hafted with ochre-and-gum compound glue and microlith blades"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-009",
+  "title": "World's oldest axe fragment found in Australia",
+  "author_org": "The University of Sydney",
+  "published": "2016-05-11",
+  "url": "https://www.sydney.edu.au/news-opinion/news/2016/05/11/world_s-oldest-axe-fragment-found-in-australia.html",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "A thumbnail-sized ground-edge axe fragment from Carpenter's Gap 1, Kimberley, Western Australia, dates to about 44,000-49,000 years ago"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-010",
+  "title": "50,000-year-old axe shows Australians were at the cutting edge of technology",
+  "author_org": "Smithsonian Magazine",
+  "published": "2016",
+  "url": "https://www.smithsonianmag.com/smart-news/nearly-50000-year-old-stone-chip-shows-australians-were-innovators-axe-technology-180959050/",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "Earlier contenders for the oldest ground-edge axe included Japanese pieces of roughly 38,000 years and an Australian fragment of about 35,000 years"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Other reports give about 35,000 years for the Japanese axes."
+ },
+ {
+  "id": "MAT1-011",
+  "title": "Peer-reviewed article on Palaeolithic adhesive evidence (PubMed Central PMC6825292)",
+  "author_org": "PubMed Central (US National Library of Medicine)",
+  "published": "2019",
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6825292",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Birch tar on two flint flakes from Campitello Quarry, Italy, dated to more than 191,000 years",
+   "Bitumen on Levallois flints from Umm el Tlel, Syria, dated to about 71,000 years",
+   "Compound adhesives known from Africa date to 60-70 thousand years ago",
+   "A birch-tar find from the Zandmotor, Netherlands, about 50,000 years old, adds to Neanderthal tar samples"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Article title not shown in the search result; publication year inferred from the summary's description of the find as 2019 and is uncertain."
+ },
+ {
+  "id": "MAT1-012",
+  "title": "Paleolithic Adhesives (ROCEEH Month of the month, December 2010)",
+  "author_org": "ROCEEH, Heidelberg Academy of Sciences (file hosted on Wikimedia)",
+  "published": "2010",
+  "url": "https://de.Wikipedia.org/wiki/Datei:ROCEEH_Motm_2010_12_Paleolithic_Adhesives.pdf",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Campitello, Italy (about 200,000 years) is the earliest European evidence of birch pitch use"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-013",
+  "title": "Compound adhesives used for hafting at Sibudu Cave (PNAS article, PMC2700998)",
+  "author_org": "Wadley and colleagues; Proceedings of the National Academy of Sciences",
+  "published": "2009",
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC2700998",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Traces of compound adhesives and hafting microfractures occur on Middle Stone Age tools from Sibudu Cave, about 70,000 years ago",
+   "Recipes combined plant gum with red ochre, or plant gum with fat",
+   "Experimental replication found that ochre improves the bonding of natural adhesives such as acacia gum"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Exact article title not shown in the search result."
+ },
+ {
+  "id": "MAT1-014",
+  "title": "Archaeologists identify spear tips used in hunting a half-million years ago",
+  "author_org": "University of Toronto",
+  "published": "2012-11",
+  "url": "https://utoronto.ca/news/archaeologists-identify-spear-tips-used-hunting-half-million-years-ago",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Wilkins and colleagues (Science, 16 November 2012) concluded that ~500,000-year-old points from Kathu Pan 1, South Africa, were spear tips",
+   "Function was inferred by comparing damage with experimental points thrust into a springbok carcass"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-015",
+  "title": "Reply to critics of the Kathu Pan 1 hafted-point interpretation (AGRIS record)",
+  "author_org": "FAO AGRIS",
+  "published": "2015",
+  "url": "https://agris.fao.org/search/en/records/65df7a9c0f3e94b9e5d8e693",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Rots and Plisson (2014) questioned the spear-tip interpretation; Wilkins and co-authors replied in 2015"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Record title not shown in the search result."
+ },
+ {
+  "id": "MAT1-016",
+  "title": "The slow crawl forward",
+  "author_org": "Discover Magazine",
+  "published": null,
+  "url": "https://www.discovermagazine.com/planet-earth/the-slow-crawl-forward",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "Dating methods for the Katanda bone points indicated about 110,000-80,000 years ago; the methods were experimental and not all skeptics were convinced"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-017",
+  "title": "Semliki harpoon",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Semliki_harpoon",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Barbed bone harpoon heads from Katanda on the Semliki River, DR Congo, are dated to about 90,000 years ago",
+   "Yellen and Brooks (Science 1995) described barbed and unbarbed bone points; rings carved around the base allowed fastening to a shaft; fish remains are mostly catfish"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Encyclopedia summary; used with Discover Magazine, not as sole authority."
+ },
+ {
+  "id": "MAT1-018",
+  "title": "Quartz knapping strategies in the Howiesons Poort at Sibudu (KwaZulu-Natal, South Africa)",
+  "author_org": "PLoS ONE (PubMed Central PMC4094463)",
+  "published": "2014",
+  "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4094463/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Howiesons Poort quartz technology at Sibudu includes prismatic cores and a laminar technology emphasising small bladelets"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-019",
+  "title": "Curated character of the Initial Upper Palaeolithic lithic artefact assemblages in Bacho Kiro Cave (Bulgaria)",
+  "author_org": "Tsanova et al.; PLoS ONE (PubMed Central PMC11373871)",
+  "published": "2024",
+  "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11373871/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Initial Upper Palaeolithic assemblages at Bacho Kiro are radiocarbon-dated to about 45,040-43,280 cal BP and attributed to Homo sapiens",
+   "Initial Upper Palaeolithic assemblages are defined by blade production"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-020",
+  "title": "Early pottery at 20,000 years ago in Xianrendong Cave, China (Wu et al., Science 2012)",
+  "author_org": "NASA ADS abstract record",
+  "published": "2012",
+  "url": "https://ui.adsabs.harvard.edu/abs/2012Sci...336.1696W/abstract",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "The earliest pottery at Xianrendong Cave dates to about 20,000-19,000 calendar years ago, made by mobile foragers, possibly for cooking"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-021",
+  "title": "Radiocarbon dating of charred residues on the earliest pottery in Japan",
+  "author_org": "Radiocarbon (Cambridge University Press)",
+  "published": null,
+  "url": "https://resolve.cambridge.org/core/journals/radiocarbon/article/radiocarbon-dating-of-charred-residues-on-the-earliest-pottery-in-japan/D2DE167CFF67D9B361D5D2E3AF198BD8",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Charred residues on the oldest Odai Yamamoto I potsherds give calibrated ages of about 16,500 years ago"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claim drawn from a combined summary of several Odai Yamamoto results (one gives 16,520 cal BP); uncalibrated estimates run younger."
+ },
+ {
+  "id": "MAT1-022",
+  "title": "A study of double chambered kilns in the Near East: their origin and socio-economic roles (KAKENHI 08610402)",
+  "author_org": "University of Tsukuba / KAKEN database",
+  "published": null,
+  "url": "https://kaken.nii.ac.jp/grant/KAKENHI-PROJECT-08610402/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Pottery kilns first appeared as pit kilns in the early sixth millennium BCE; double-chambered kilns were established by the middle of the sixth millennium",
+   "The shift is linked to production of Halaf painted pottery; pit and single-chamber kilns stayed in use"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-023",
+  "title": "The appearance of pottery kiln in northern Mesopotamia in prehistoric periods until the Neo-Assyrian period",
+  "author_org": "Zanco Journal of Humanity Sciences (Salahaddin University)",
+  "published": null,
+  "url": "https://zancojournal.su.edu.krd/index.php/JAHS/article/view/1784",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Two-chamber kilns had a combustion chamber below and a firing chamber above, with pots on a perforated floor through which hot gases rose"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-024",
+  "title": "Baldi 2021, the potter's wheel in Uruk-period Mesopotamia (IANSA, HAL archive)",
+  "author_org": "Interdisciplinaria Archaeologica (HAL open archive)",
+  "published": "2021",
+  "url": "https://halshs.archives-ouvertes.fr/halshs-03502859v1",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "The potter's wheel was first adopted in Mesopotamia in the fourth millennium BCE within the Uruk sphere and spread unevenly",
+   "The assumption that bevelled-rim bowls were wheel-thrown is outdated"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-025",
+  "title": "Short teaching module: bevel-rimmed bowls",
+  "author_org": "World History Commons (George Mason University)",
+  "published": null,
+  "url": "https://worldhistorycommons.org/node/1194",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Bevelled-rim bowls were cheaply made using a mould, not a wheel"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-026",
+  "title": "Radivojevic et al. 2014 review of early metallurgy (UCL Discovery 10059796)",
+  "author_org": "UCL Discovery",
+  "published": "2014",
+  "url": "https://discovery.ucl.ac.uk/id/eprint/10059796/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Copper slag from Belovode, Serbia, dates to about 5000 BC (Radivojevic et al. 2010)",
+   "Smelting at Belovode continued over several centuries"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-027",
+  "title": "Serbian site may have hosted first copper makers",
+  "author_org": "Stone Pages Archaeo News",
+  "published": "2010",
+  "url": "https://www.stonepages.com/news/archives/003885.html",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "Belovode's status as the oldest smelting site is expected to be challenged by contemporary evidence from the Fertile Crescent"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-028",
+  "title": "Birch et al. 2013, Catalhoyuk copper: a review and new work",
+  "author_org": "UCL Discovery",
+  "published": "2013",
+  "url": "https://discovery-pp.ucl.ac.uk/id/eprint/1474072/1/Birch%20et%20al%202013%20Catal%20Hoyuk%20copper%20a%20review%20and%20new%20work%20plus%20Appendices.pdf",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "The earliest annealed native copper work, beads and pins, dates to towards the end of the ninth millennium BC at Cayonu Tepesi, eastern Turkey"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Other summaries date Cayonu copper to 8200-7500 BC or link annealing there to about 7000 BC."
+ },
+ {
+  "id": "MAT1-029",
+  "title": "The Copper Standard (Old Copper culture dating)",
+  "author_org": "Archaeology Magazine (Archaeological Institute of America)",
+  "published": "2021",
+  "url": "https://archaeology.org/issues/july-august-2021/digs-discoveries/digs-michigan-old-copper-culture/",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "The oldest reliable age from material embedded in a Great Lakes copper artifact is about 8,500 years (Pompeani et al. 2021)",
+   "Pompeani's earlier work dated the start of copper mining in some areas to about 9,500 years ago"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-030",
+  "title": "A brief history of making copper objects, part 3: hammering, hot and cold work",
+  "author_org": "ARTECHNE project, Utrecht University",
+  "published": null,
+  "url": "https://artechne.wp.hum.uu.nl/a-brief-history-of-making-copper-objects-part-3-hammering-hot-and-cold-work/",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Hammering work-hardens copper alloys and makes them brittle; annealing (heating) restores workability and may be repeated",
+   "Raising shapes a vessel by hammering on the outside over a small dome-headed anvil"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-031",
+  "title": "Varna Necropolis",
+  "author_org": "History Hit",
+  "published": null,
+  "url": "https://www.historyhit.com/locations/varna-necropolis/",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "The Varna necropolis has 294 graves dated between 4600 and 4200 BC with more than 3,000 gold artifacts weighing about six kilograms",
+   "It is described as the oldest worked gold known"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Popular source; interpretive claims about rulers were not used."
+ },
+ {
+  "id": "MAT1-032",
+  "title": "Murillo-Barroso et al. 2014 on early silver and cupellation",
+  "author_org": "UCL Discovery",
+  "published": "2014",
+  "url": "https://discovery-pp.ucl.ac.uk/1462031/1/Murillo-Barroso%20et%20al.%2C%202014.pdf",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Cupellation debris is known from Habuba Kabira in Syria (Pernicka et al. 1998) and Fatmali-Kalecik in Anatolia (Hess et al. 1998), both of the fourth millennium BC"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-033",
+  "title": "Tappeh Shoghali: a significant early silver production site in north central Iran",
+  "author_org": "Periodico di Mineralogia (Sapienza University of Rome)",
+  "published": null,
+  "url": "https://rosa.uniroma1.it/rosa04/periodico_di_mineralogia/article/view/15897",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Tappeh Shoghali yielded litharge cakes, a silver-rich lead ingot, crucibles and furnaces of the Sialk III-IV period, late fourth or early third millennium BC"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-034",
+  "title": "Novel imaging approach reveals how ancient amulet was made",
+  "author_org": "CNRS",
+  "published": "2016-11",
+  "url": "https://cnrs.fr/en/node/2767",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "A 6,000-year-old copper amulet from Mehrgarh is the earliest known lost-wax cast object (Thoury et al., Nature Communications, 2016)",
+   "It was cast in one piece from very pure copper",
+   "Mehrgarh is dated to roughly 4500-3600 BC"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-035",
+  "title": "The Nahal Mishmar Hoard",
+  "author_org": "The Metropolitan Museum of Art, Heilbrunn Timeline of Art History",
+  "published": null,
+  "url": "https://www.metmuseum.org/toah/hd/nahl/hd_nahl.htm",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Many Nahal Mishmar copper objects were made by lost-wax casting, the earliest known use of this complex technique",
+   "The more elaborate pieces used copper with 4-12 percent arsenic",
+   "Radiocarbon dating of the wrapping mat suggests a date of at least 3500 BC"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-036",
+  "title": "Tainted ores and the rise of tin bronzes in Eurasia, c. 6500 years ago",
+  "author_org": "Antiquity (Cambridge University Press)",
+  "published": "2013",
+  "url": "https://resolve.cambridge.org/core/journals/antiquity/article/tainted-ores-and-the-rise-of-tin-bronzes-in-eurasia-c-6500-years-ago/496710374082FC211C512670F0A98004",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "A tin bronze foil from Plocnik, Serbia, from a horizon dated about 4650 BC, is claimed as the earliest known tin bronze artefact",
+   "The earliest known tin bronzes of Mesopotamia and Anatolia date to the early third millennium BC and contain up to about 10 wt% tin",
+   "Those regions lack significant tin sources"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). The Plocnik priority is the authors' claim; other summaries place the earliest tin bronzes in Iran and Iraq in the late fourth millennium BC."
+ },
+ {
+  "id": "MAT1-037",
+  "title": "Oudbashi 2023, from arsenical copper to tin bronze in western Iran (DEWA 2023 abstract)",
+  "author_org": "Societe prehistorique francaise",
+  "published": "2023",
+  "url": "https://www.prehistoire.org/offres/doc_inline_src/515/11_S26_DEWA2023_Oudbashi.pdf",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Western and south-western Iran shifted from impure and arsenical copper to tin bronze during the third millennium BCE; tin bronze became common only in the second millennium"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-038",
+  "title": "Iron and steel in early Europe (Iron, Steel and Swords script, 10.3)",
+  "author_org": "Kiel University, Faculty of Engineering (H. Foll)",
+  "published": null,
+  "url": "https://www.tf.uni-kiel.de/matwis/amat/iss/kap_a/backbone/ra_3_1.html",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Systematic production of iron in bloomeries started around 1200 BC somewhere in Anatolia; crediting the Hittites with the invention likely overstates the case"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-039",
+  "title": "Bloomery",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Bloomery",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Bloomery smelting appeared in the Nok culture of central Nigeria by at least 550 BC and possibly earlier",
+   "Gbabiri, Central African Republic, has a reduction furnace and smithy with dates of about 896-773 and 907-796 BC",
+   "Traditional sub-Saharan African iron smelting processes are variants of the bloomery process"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Encyclopedia summary; dates should be checked against the excavation literature."
+ },
+ {
+  "id": "MAT1-040",
+  "title": "Maddin, Muhly and Wheeler 1977, 'How the Iron Age began' (Scientific American), as transcribed",
+  "author_org": "Scientific American via mormonr.org transcription",
+  "published": "1977",
+  "url": "https://mormonr.org/records/RgnyGb-03V9OJ",
+  "accessed": "2026-10-22",
+  "type": "archive",
+  "claims_supported": [
+   "A twelfth-century BC knife from Idalion, Cyprus, was carburized to improve its hardness",
+   "Very few iron artifacts of the twelfth century BC or earlier have been metallurgically analysed"
+  ],
+  "confidence": "low",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Secondary transcription on a religious-studies records site; article title as given there not confirmed."
+ },
+ {
+  "id": "MAT1-041",
+  "title": "Roper, 'Laban's sword of most precious steel' (quoted source page)",
+  "author_org": "FAIR (FairLatterDaySaints.org)",
+  "published": null,
+  "url": "https://www.fairlatterdaysaints.org/answers/Source:Roper:Laban%E2%80%99s_Sword_of_%E2%80%9CMost_Precious_Steel%E2%80%9D:Sophisticated_iron_technology",
+  "accessed": "2026-10-22",
+  "type": "community",
+  "claims_supported": [
+   "A curved iron knife from an eleventh-century BC tomb at Idalion was analysed by metallurgist Erik Tholander and found to be quench-hardened steel"
+  ],
+  "confidence": "low",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Apologetics site quoting secondary literature; the primary Tholander publication was not found."
+ },
+ {
+  "id": "MAT1-042",
+  "title": "Noric steel",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Noric_steel",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Roman writers mention ferrum Noricum, a high-quality steel, from the late first century BC",
+   "Its quality is linked to manganese-rich ore with little or no phosphorus; a Roman trading post on the Magdalensberg handled it"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-043",
+  "title": "Wootz steel",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Wootz_steel",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Wootz crucible steel originated in South India (Kodumanal and other Tamil Nadu sites) in the mid-first millennium BCE",
+   "Steel production reached Tissamaharama, Sri Lanka, around 200 BCE"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Encyclopedia summary; South Asian dates not checked against Srinivasan's excavation reports."
+ },
+ {
+  "id": "MAT1-044",
+  "title": "Production of crucible steel by co-fusion: archaeometallurgical evidence from the ninth-early tenth century at the site of Merv, Turkmenistan",
+  "author_org": "Feuerbach, Merkel and Griffiths; MRS Online Proceedings (Cambridge University Press)",
+  "published": null,
+  "url": "https://cambridge.org/core/journals/mrs-online-proceedings-library-archive/article/abs/production-of-crucible-steel-by-cofusion-archaeometallurgical-evidence-from-the-ninthearly-tenth-century-at-the-site-of-merv-turkmenistan/CC4416D5A26DC57AF4B8557086062E4C",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Crucible steel was produced by co-fusion at Merv, Turkmenistan, in the ninth to early tenth century"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-045",
+  "title": "Evolution of pattern welding (Iron, Steel and Swords script, 11.3.3)",
+  "author_org": "Kiel University, Faculty of Engineering (H. Foll)",
+  "published": null,
+  "url": "https://www.tf.uni-kiel.de/matwis/amat/iss/kap_b/backbone/rb_3_3.html",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Occasional twisted strips appear in piled late La Tene swords; there is no definite beginning of pattern welding",
+   "True pattern welding is evident from about the third century AD, peaks in complexity in the sixth and seventh centuries and is generally out of use by the end of the tenth",
+   "Rods twisted or left straight were welded into a blade and grinding revealed the pattern"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Overlaps with 'The Serpent in the Sword' (Medievalists.net, 2013) result on the same topic."
+ },
+ {
+  "id": "MAT1-046",
+  "title": "Glass jar of Sargon II (museum number 90952)",
+  "author_org": "The British Museum",
+  "published": null,
+  "url": "https://www.britishmuseum.org/collection/image/103783001",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "The Sargon vase, a green glass jar inscribed for Sargon II, dates to 721-705 BC and was probably cast, then ground and polished like stone"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-047",
+  "title": "Mosaic glass: casting (Roman Glass online exhibit)",
+  "author_org": "Penn Museum, University of Pennsylvania",
+  "published": null,
+  "url": "https://penn.museum/sites/roman%20glass/Mosaic%20Glass/casting_intro.html",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Mosaic glass wares originated with glass moulding in the Hellenistic world around 220 BC; vivid mosaic wares followed in the late second century BC",
+   "Hellenistic and Roman glassmakers sagged glass over convex former moulds to make cups and bowls"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-048",
+  "title": "Blown glass jugs and juglets",
+  "author_org": "The Posen Library of Jewish Culture and Civilization",
+  "published": null,
+  "url": "https://www.posenlibrary.com/node/10904",
+  "accessed": "2026-10-22",
+  "type": "archive",
+  "claims_supported": [
+   "Waste from a glass workshop, including glass tubes, rods and tiny blown bottles, was dumped in a ritual bath in Jerusalem's Jewish Quarter in the time of Herod",
+   "Glassblowing began in the Syro-Palestinian region around the middle of the first century BCE"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Attribution of each claim among two museum-style results is probable, not certain."
+ },
+ {
+  "id": "MAT1-049",
+  "title": "Roman Glass (essay)",
+  "author_org": "The Metropolitan Museum of Art, Heilbrunn Timeline of Art History",
+  "published": null,
+  "url": "https://www.metmuseum.org/en/essays/roman-glass",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Roman window glass could be cast or blown and served insulation and security more than illumination"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Attribution of this claim among window-glass results is probable, not certain."
+ },
+ {
+  "id": "MAT1-050",
+  "title": "Roman cast glass",
+  "author_org": "VILLUM Window Collection",
+  "published": null,
+  "url": "https://en.villumwindowcollection.com/all-about-windows/glass/roman-cast-glass",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "The oldest Roman window glass was found in the excavations of Pompeii and Herculaneum"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Industry-sponsored collection; its claim that Romans were first to glaze windows was not used."
+ },
+ {
+  "id": "MAT1-051",
+  "title": "Fragment of bowl with lotus, antelope and fish (object 3188)",
+  "author_org": "Brooklyn Museum",
+  "published": null,
+  "url": "https://www.brooklynmuseum.org/objects/3188",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Egyptian faience dates to about 3500 BCE; its body is a glassy paste of crushed quartz or sand"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Attribution between two faience results is probable, not certain."
+ },
+ {
+  "id": "MAT1-052",
+  "title": "Faience in Egyptian culture",
+  "author_org": "Australian Museum",
+  "published": null,
+  "url": "https://australianmuseum.net.au/Faience-in-Egyptian-Culture",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Faience began with glazed steatite beads in the Badarian culture (about 4400-4000 BC)",
+   "Glaze was applied by brushing or dipping, or formed from a glazing powder in which the object was buried during firing"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-053",
+  "title": "Polychrome core-formed bottle with festooned design (object 4022)",
+  "author_org": "Brooklyn Museum",
+  "published": null,
+  "url": "https://www.brooklynmuseum.org/objects/4022",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Egyptians began making glass vessels in the reign of Thutmose III (about 1479-1425 BCE); glass had arrived from western Asia shortly before 1500 BCE"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). The two claims came from two museum results summarized together; attribution to this object page is probable, not certain."
+ },
+ {
+  "id": "MAT1-054",
+  "title": "Roman concrete: Berkeley research on Roman seawater concrete",
+  "author_org": "University of California, Berkeley (Berkeley News)",
+  "published": "2013-06-04",
+  "url": "https://news.berkeley.edu/2013/06/04/roman-concrete",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "A 2,000-year-old concrete block from the Bay of Pozzuoli contains aluminous tobermorite formed by reaction of lime, volcanic ash and seawater (Jackson et al., American Mineralogist 2013)",
+   "The mix needed about 10 percent lime and lower kiln temperatures than Portland cement"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-055",
+  "title": "The archaeometallurgy of iron / Early iron in China, Korea and Japan",
+  "author_org": "Donald B. Wagner (personal academic site)",
+  "published": null,
+  "url": "https://donwagner.dk/arch-iron",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Bloomery iron was the earliest smelted iron in China, possibly arriving from the west around the eighth century BC",
+   "Iron casting appears to have developed independently in China, probably in the south; blast-furnace production began perhaps as early as the fifth century BCE",
+   "Cast iron from large blast furnaces was normal in the Han dynasty"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-056",
+  "title": "Microstructure and chemical composition of Roman orichalcum coins emitted after the monetary reform of Augustus (23 B.C.)",
+  "author_org": "Di Fazio et al.; Scientific Reports (PubMed Central PMC6722059)",
+  "published": "2019",
+  "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6722059/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Augustus's reform of 23 BC struck sestertii and dupondii in orichalcum, a copper-zinc alloy",
+   "Coin cores contain up to about 30 percent zinc, consistent with cementation",
+   "Romans added ground zinc ore (cadmea) with charcoal to copper; zinc content was hard to control"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-057",
+  "title": "Nya Lapphyttan and Karlberg",
+  "author_org": "Ekomuseum Bergslagen",
+  "published": null,
+  "url": "https://ekomuseum.se/en/besoksmalen/nya-lapphyttan-karlbergs-hembygdsgard/",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "The Lapphyttan blast furnace, with water-driven bellows, was in use from the mid-twelfth to the mid-fourteenth century and is the oldest excavated in Europe",
+   "It is now considered a local development rather than an import from Germany"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-058",
+  "title": "Medieval iron in society (Jernkontorets bergshistoriska skriftserie H 34)",
+  "author_org": "Jernkontoret (Swedish Steel Producers' Association)",
+  "published": null,
+  "url": "https://www.jernkontoret.se/globalassets/publicerat/bergshistoria/h-34-medieval-iron-in-society.pdf",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "The first Lapphyttan furnace dates to the late twelfth or early thirteenth century"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-059",
+  "title": "The roots of colonial iron technology",
+  "author_org": "Penn State College of Engineering (Materials Technology and History)",
+  "published": null,
+  "url": "https://engr.psu.edu/MTAH/articles/roots_colonial_iron_technology.htm",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "The European blast furnace was probably developed independently, although a Chinese water-powered blast furnace existed earlier"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-060",
+  "title": "Medieval spectacles",
+  "author_org": "Harry Ransom Center, University of Texas at Austin (Ransom Center Magazine)",
+  "published": "2012-04-17",
+  "url": "https://sites.utexas.edu/ransomcentermagazine/2012/04/17/medieval-spectacles/",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "In a Florence sermon (dated 1305 or 23 February 1306) the Dominican Giordano da Pisa said the art of making spectacles was less than twenty years old",
+   "Alessandro della Spina of Pisa made spectacles and shared the method; the original maker is unidentified",
+   "The claim for Salvino degli Armati rests on a later inscription"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Claims came from a combined summary of several spectacles results; attribution to this page is probable, not certain."
+ },
+ {
+  "id": "MAT1-061",
+  "title": "Zigong",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Zigong",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The Shenhai well at Zigong, drilled in 1835, reached about 1,001 metres"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-062",
+  "title": "The ancient salt wells of Zigong",
+  "author_org": "Amusing Planet",
+  "published": "2026-07",
+  "url": "https://www.amusingplanet.com/2026/07/the-ancient-salt-wells-of-zigong.html",
+  "accessed": "2026-10-22",
+  "type": "community",
+  "claims_supported": [
+   "Chinese percussion drilling repeatedly lifted and dropped a heavy iron bit; drilling was highly developed by the Tang and especially the Song dynasty",
+   "Bamboo casings stabilised shafts and natural gas from wells was piped in bamboo to boil brine"
+  ],
+  "confidence": "low",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Popular website; used only together with the Wikipedia and Penn State records."
+ },
+ {
+  "id": "MAT1-063",
+  "title": "Drake's well and cable-tool drilling (PNG 301)",
+  "author_org": "Penn State University, John A. Dutton e-Education Institute",
+  "published": null,
+  "url": "https://www.e-education.psu.edu/png301/node/903",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Colonel Drake's well at Titusville, Pennsylvania, was drilled with a cable-tool rig in 1859 to 69.5 feet"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-064",
+  "title": "American oil history",
+  "author_org": "American Oil and Gas Historical Society",
+  "published": null,
+  "url": "https://aoghs.org/oil-amanac/american-oil-history/",
+  "accessed": "2026-10-22",
+  "type": "community",
+  "claims_supported": [
+   "Drake's driller William 'Uncle Billy' Smith was a salt-well specialist and the rig was based on Pennsylvania salt-well drilling rigs",
+   "The well was completed on 27 August 1859"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-065",
+  "title": "Neolithic Flint Mines at Spiennes (Mons)",
+  "author_org": "UNESCO World Heritage Centre",
+  "published": null,
+  "url": "https://whc.unesco.org/en/list/1006",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Spiennes is the largest and earliest concentration of ancient mines in Europe, covering more than 100 ha",
+   "Shafts 0.8-1.2 m in diameter reached depths of 16 m",
+   "Mining ran from the last third of the fifth millennium to the first half of the third millennium BC"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-066",
+  "title": "Mining archaeology in the British Isles",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Mining_archaeology_in_the_British_Isles",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Radiocarbon dates for the Great Orme copper mine fall mainly between about 1600 and 1200 BC; it dominated British copper supply c. 1600-1400 BC"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-067",
+  "title": "Brick",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Brick",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Fired brick was used by about 3000 BC in early Indus Valley towns such as Kalibangan",
+   "Monumental baked-brick building rose in the mid-third millennium BC (Great Bath, Mohenjo-daro); Indus bricks follow a 1:2:4 ratio",
+   "Fired bricks from Chengtoushan, China, date to about 4400 BC; Mesopotamian fired brick is dated as early as 5000-4500 BC by one citation"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Encyclopedia summary; the early Mesopotamian and Chinese dates rest on single citations."
+ },
+ {
+  "id": "MAT1-068",
+  "title": "Historical text on wire-making (University of Utah Digital Library, OCR)",
+  "author_org": "University of Utah J. Willard Marriott Library",
+  "published": null,
+  "url": "https://collections.lib.utah.edu/details?id=122049",
+  "accessed": "2026-10-22",
+  "type": "archive",
+  "claims_supported": [
+   "Wire-making with the drawplate was probably known in Nuremberg early in the fourteenth century; records from 1360 mention wire-drawers"
+  ],
+  "confidence": "low",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Item title not shown in the search result."
+ },
+ {
+  "id": "MAT1-069",
+  "title": "Wire-drawing bench, Nuremberg, before 1565",
+  "author_org": "History of Science Museum, University of Oxford",
+  "published": null,
+  "url": "https://www.cabinet.ox.ac.uk/node/14826",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Goldsmiths used drawing tools of this type from the late Middle Ages"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-070",
+  "title": "Bronze Age axe-mould (Hunt Museum, 3D scan)",
+  "author_org": "Hunt Museum via MyMiniFactory",
+  "published": null,
+  "url": "https://www.myminifactory.com/object/3d-print-bronze-age-axe-mould-103942",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "An early stone mould carries open matrices on two faces, one for a flat axe",
+   "More complex two-piece moulds developed as the Bronze Age progressed"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-071",
+  "title": "Mould for socketed axe B9910",
+  "author_org": "University of Bergen, Bronze Age bronzes database",
+  "published": null,
+  "url": "https://bronzes.w.uib.no/category/stopeformer/",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "A two-part soapstone mould for socketed axes from Norway is dated to the Younger Bronze Age"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-072",
+  "title": "MHG8165 - Bronze Age metalworking, Sittenham",
+  "author_org": "Highland Council Historic Environment Record",
+  "published": null,
+  "url": "https://her.highland.gov.uk/Monument/MHG8165",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Two Scottish steatite moulds for socketed axes are dated to the Late Bronze Age"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-073",
+  "title": "Ondrkal 2025, the Hradok hoard and bronzeworking tools (Dissertationes Archaeologicae 3(12))",
+  "author_org": "Eotvos Lorand University (ELTE)",
+  "published": "2025",
+  "url": "https://ojs.elte.hu/dissarch/article/view/8444",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "The Hradok hoard, western Slovakia, about 1225-1175 BC, holds the earliest and most complete set of bronzeworking tools in Central Europe",
+   "Sheet-metal vessel making began in eastern Mediterranean workshops before spreading into Europe and is linked to Urnfield power structures"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-074",
+  "title": "Urnfield-period bronze armour from Moravia (Archeologicke rozhledy)",
+  "author_org": "Archeologicke rozhledy (Czech Academy of Sciences)",
+  "published": null,
+  "url": "https://archeologickerozhledy.cz/index.php/ar/article/view/69",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "The Ivancice 4 cuirass is sheet bronze shaped mechanically and then annealed",
+   "Solid bronze armour, including helmets, first appears in Central Europe at the start of the Urnfield period"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-075",
+  "title": "Solutrean hypothesis",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Solutrean_hypothesis",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Solutrean culture dominated present-day France and Spain from roughly 21,000 to 17,000 years ago",
+   "Bordes's experiments suggested laurel-leaf points were shaped mainly by percussion; Crabtree completed replicas with pressure flaking"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-076",
+  "title": "Lacquerware",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Lacquerware",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "A red-lacquered wooden bowl of the Hemudu culture, Zhejiang, was long the earliest known Chinese lacquer, dated to about the fifth millennium BC",
+   "A lacquered bow from Kuahuqiao is reported as older"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-077",
+  "title": "8,000-year-old lacquerware dug up in eastern China (Jingtoushan)",
+  "author_org": "China Daily (Ningbo edition)",
+  "published": "2024-09-24",
+  "url": "https://ningbo.chinadaily.com.cn/2024-09/24/c_1024590.htm",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "Lacquer-coated wooden objects from Jingtoushan near Ningbo are radiocarbon-dated to more than 8,000 years ago"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT1-078",
+  "title": "Archaeologists in Kathu Pan: ScienceDaily release on early hafted hunting",
+  "author_org": "ScienceDaily",
+  "published": "2012-11-15",
+  "url": "https://sciencedaily.com/releases/2012/11/121115141540.htm",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "The Kathu Pan 1 point-bearing deposits were dated to about 500,000 years by optically stimulated luminescence and U-series/ESR (2010 study)"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Release title not shown exactly in the search result."
+ },
+ {
+  "id": "MAT1-079",
+  "title": "Propylaeum-DOK eprint 4585 (archaeometallurgy of silver and cupellation)",
+  "author_org": "Heidelberg University Library, Propylaeum-DOK",
+  "published": null,
+  "url": "https://archiv.ub.uni-heidelberg.de/propylaeumdok/id/eprint/4585/contents",
+  "accessed": "2026-10-22",
+  "type": "archive",
+  "claims_supported": [
+   "From antiquity until the eighteenth century AD most silver came from smelting and cupellation of argentiferous lead ores",
+   "Litharge is secure evidence of cupellation; earliest finds at a few fourth-millennium BCE sites in Western Asia"
+  ],
+  "confidence": "medium",
+  "notes": "Title descriptive; the search summary attributed the most-silver statement to an archive article. Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MAT1-080",
+  "title": "AAPG article on ancient Chinese drilling (aapg.org/?p=39899)",
+  "author_org": "American Association of Petroleum Geologists",
+  "published": null,
+  "url": "https://www.aapg.org/?p=39899",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "About 1050 AD a lighter, flexible bamboo cable replaced solid bamboo pipe in Chinese drilling, reducing the weight lifted"
+  ],
+  "confidence": "medium",
+  "notes": "Title descriptive (search result gave only the URL). Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MAT1-081",
+  "title": "Ancient Chinese drilling",
+  "author_org": "E&P Magazine (Hart Energy)",
+  "published": null,
+  "url": "https://www.epmag.com/ep/exclusives/ancient-chinese-drilling-16342",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "Chinese drillers extracted brine by the first millennium BCE; technology advanced under the Tang and Song",
+   "Percussion drilling raised and dropped a heavy iron bit",
+   "Natural gas from the brine formations was piped to fuel evaporation",
+   "The Shenhai (Shenghai) well passed 1,000 m in 1835"
+  ],
+  "confidence": "medium",
+  "notes": "Attributes its account to Kurlansky, Salt: A World History. Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ },
+ {
+  "id": "MAT1-082",
+  "title": "Somebody used stone tools to butcher hippos 2.9 million years ago",
+  "author_org": "Max Planck Institute of Geoanthropology",
+  "published": "2023",
+  "url": "https://www.gea.mpg.de/39185/stone-tools-to-butcher-hippos",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Oldowan tools at Nyayanga, Kenya, found among hippopotamus bones with cut marks",
+   "Wear on 30 tools indicates pounding, scraping and cutting of animals and plants",
+   "Toolmakers unidentified; Paranthropus fossils at the site",
+   "Deposits dated 3.032-2.581 million years ago"
+  ],
+  "confidence": "high",
+  "notes": "Year 2023 from the Science paper (Plummer et al. 2023) named in the search summary. Retrieved 2026-10-22 as a WebSearch result summary; page not opened (fetch blocked).",
+  "retrieval": "web-search-result"
+ }
 ]
