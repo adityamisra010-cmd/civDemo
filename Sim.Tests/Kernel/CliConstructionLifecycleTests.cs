@@ -52,6 +52,34 @@ public class CliConstructionLifecycleTests
 
     private static (int Exit, string Out, string Err) Sim(params string[] args) => CliProcess.Run(Limit, args);
 
+    /// <summary>ADR-045 (D-062, 2026-10-22): `sim run` with <see cref="Founded"/> and `--orders <paramref name="ordersPath"/>`
+    /// IN PROCESS under <paramref name="cfg"/> — the CLI's recipe (Sim.Cli Program: before each step the loaded log's rows for
+    /// the turn, then the AI's orders; the production pipeline on the shipped worldgen). Returns worlds 0..turns. A CLI
+    /// process always runs the SHIPPED research content, so a comparison with a session the v33 build recorded (before the
+    /// research-content tranche) runs this twin under TestConfigs.PreTreeTranche; the shipped arm is checked against the
+    /// CLI's own hash log, which ties the twin to the process.</summary>
+    private static WorldState[] InProcessRun(global::Sim.Core.Systems.SimConfig cfg, string ordersPath, int turns)
+    {
+        OrderLog q;
+        using (FileStream f = File.OpenRead(ordersPath)) q = OrderLog.Load(f);
+        var log = new OrderLog();
+        TurnExecutor exec;
+        using (var era = global::Sim.Data.DataFiles.OpenEraPacing())
+        using (var pipe = global::Sim.Data.DataFiles.OpenPipeline())
+            exec = new TurnExecutor(EraTableLoader.Load(era),
+                PipelineLoader.Load(pipe, global::Sim.Core.SystemCatalog.All(cfg, TestConfigs.Worldgen())), log);
+        var worlds = new WorldState[turns + 1];
+        worlds[0] = global::Sim.Core.Worldgen.WorldFounding.Found(TestConfigs.Worldgen() with { SizePx = 256, AiEmpires = 1 }, cfg, 42, 4);
+        for (int t = 1; t <= turns; t++)
+        {
+            OrderBatch b = q.BatchFor(worlds[t - 1].Clock.Turn);
+            for (int i = 0; i < b.Count; i++) log.Append(b[i]);
+            global::Sim.Core.AiOrders.Append(log, worlds[t - 1], cfg, TestConfigs.Worldgen());
+            worlds[t] = exec.Step(worlds[t - 1]);
+        }
+        return worlds;
+    }
+
     private static string[] Run(string orders, int turns, string? hashLog, int saveAt, string save, params string[] more)
     {
         var args = new List<string> { "run" };
@@ -179,10 +207,19 @@ public class CliConstructionLifecycleTests
             WorldState w2 = SaveFiles.Load(s2, 256), w3 = SaveFiles.Load(s3, 256);
             Assert.Equal((hashes[1], hashes[2]), (WorldHash.ComputeHex(w2), WorldHash.ComputeHex(w3)));   // the replayed worlds 2 and 3
             Assert.Equal((2, new ResourceAllocationRow(Player, 30)), (w2.ConstructionProgress.Count, Assert.Single(TableRows.Rows(w2.ResourceAllocations))));
-            Assert.Equal(TraceHash(v33Trace, 2), SchemaProjection.HashAtSchemaV33(w2, out int holdRows2));
-            Assert.True(holdRows2 > 0, "world 2 publishes the purse's set-aside (the populated v34 table)");
-            Assert.NotEqual(TraceHash(v33Trace, 3), SchemaProjection.HashAtSchemaV33(w3, out _));      // the hold binds in step 2 → 3
             Assert.Equal(150_000L, ConstructionQuery.ProgressOf(w3, new ConstructionQueueRow(S2, 0, Granary)));
+            // ADR-045 (D-062, 2026-10-22): the v33 trace was recorded before the research-content tranche, and from turn 0 the
+            // AI targets different research (the tranche's re-scores), so the CLI's worlds no longer project onto it. The
+            // in-process twin of this very run is checked against the CLI's hash log (the shipped content), and the SAME twin
+            // under the pre-tranche content (TestConfigs.PreTreeTranche) carries the v33-trace comparison: world 2 projects to
+            // the v33 build's hash with the purse's set-aside published, and the hold binds in step 2 → 3.
+            WorldState[] twin = InProcessRun(TestConfigs.Sim(), orders, 3);
+            Assert.Equal(hashes[..3], new[] { WorldHash.ComputeHex(twin[1]), WorldHash.ComputeHex(twin[2]), WorldHash.ComputeHex(twin[3]) });
+            WorldState[] pre = InProcessRun(TestConfigs.PreTreeTrancheSim(), orders, 3);
+            Assert.Equal(TraceHash(v33Trace, 2), SchemaProjection.HashAtSchemaV33(pre[2], out int holdRows2));
+            Assert.True(holdRows2 > 0, "world 2 publishes the purse's set-aside (the populated v34 table)");
+            Assert.NotEqual(TraceHash(v33Trace, 3), SchemaProjection.HashAtSchemaV33(pre[3], out _));      // the hold binds in step 2 → 3
+            Assert.Equal(150_000L, ConstructionQuery.ProgressOf(pre[3], new ConstructionQueueRow(S2, 0, Granary)));
         }
         finally
         {
@@ -237,7 +274,11 @@ public class CliConstructionLifecycleTests
         try
         {
             string v33 = ConstructionHoldsV33FixtureTests.FixturePath(), v34 = Path.Combine(dir, "v34-t2.civsnap");
-            Run(Q17Orders(dir), 2, null, 2, v34);
+            // ADR-045 (D-062, 2026-10-22): "the same world" as the v33 fixture is the pre-tranche research content's — a CLI
+            // process runs the shipped content, whose AI targets different research from turn 0 — so this build's save of
+            // it is written by the in-process twin of `sim run` (InProcessRun, tied to the CLI by the replay test above)
+            // under TestConfigs.PreTreeTranche. The diff itself is still the CLI's.
+            using (FileStream f = File.Create(v34)) Snapshot.Save(InProcessRun(TestConfigs.PreTreeTrancheSim(), Q17Orders(dir), 2)[2], f);
             (int exit, string stdout, string stderr) = Sim("diff", v33, v34, "--size", "256");
             Assert.Equal(1, exit);
             Assert.Equal(new[] { "note: " + v33 + ": migrated from save schema v33: ConstructionHolds was added empty; the hash "

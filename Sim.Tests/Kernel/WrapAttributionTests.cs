@@ -90,7 +90,8 @@ public class WrapAttributionTests
     [Fact]
     public void WithTheCylinderOff_TheAiWorldIsTheBatch2AiWorld()
     {
-        SimConfig cfg = TestConfigs.Sim();
+        // ADR-045 (D-062, 2026-10-22): the R4 rule — this control attributes an OLDER layer, so it runs on the pre-tranche research content (TestConfigs.PreTreeTranche); the tranche's own control is ResearchTrancheAttributionTests.
+        SimConfig cfg = TestConfigs.PreTreeTrancheSim();
         WorldgenConfig flatWg = TestConfigs.PreD054Worldgen() with { AiEmpires = 1 };
         var log = new OrderLog();
         using var era = Sim.Data.DataFiles.OpenEraPacing();

@@ -80,10 +80,13 @@ public class ReservationsLayoutAttributionTests
     [Fact]
     public void AiWorldSeed42Turn300_MovedForTheV34LayoutAlone()
     {
-        WorldState live = RunAiWorld(TestConfigs.Sim(), out int constructionOrders);
+        // ADR-045 (D-062, 2026-10-22): the R4 rule — this v34-layout control runs on the PRE-tranche research content, whose
+        // AI world is the one the D-055 re-pin measured (AiFoundingAttributionTests.PreTrancheS1cTurn300); the tranche's own
+        // move of the AI world is attributed by ResearchTrancheAttributionTests.
+        WorldState live = RunAiWorld(TestConfigs.PreTreeTrancheSim(), out int constructionOrders);
         Assert.True(constructionOrders > 0, "the AI ordered no construction - the absence of holds is vacuous");
-        AssertLayoutAlone(live, Batch3AiTurn300, AiFoundingAttributionTests.S1cTurn300);
-        WorldState control = RunAiWorld(TestConfigs.PreReservations(TestConfigs.Sim()), out _);
+        AssertLayoutAlone(live, Batch3AiTurn300, AiFoundingAttributionTests.PreTrancheS1cTurn300);
+        WorldState control = RunAiWorld(TestConfigs.PreReservations(TestConfigs.PreTreeTrancheSim()), out _);
         Assert.Equal(Batch3AiTurn300, SchemaProjection.V33(control));
         Assert.Equal(WorldHash.ComputeHex(live), WorldHash.ComputeHex(control));
     }

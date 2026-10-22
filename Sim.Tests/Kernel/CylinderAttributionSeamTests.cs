@@ -403,7 +403,9 @@ public class CylinderAttributionSeamTests
     [Fact]
     public void TradeKnowledge_TheUngatedArmTradesAcrossTheSeam_TurnExactAgainstTheGatedArm()
     {
-        SimConfig on = TestConfigs.Sim(), off = SingleSwitchTwins.PreTradeKnowledgeOnly(on);
+        // ADR-045 (D-062, 2026-10-22): the R2a content twin is derived from the PRE-tranche file (the R4 rule), so the ON
+        // arm is the pre-tranche content too — the two arms differ by the R2a layer alone.
+        SimConfig on = TestConfigs.PreTreeTrancheSim(), off = SingleSwitchTwins.PreTradeKnowledgeOnly(on);
         WorldState a = TestConfigs.KnowRecipes(SeamWorld.Found(true, SeamWorld.TwoSides(), sim: on, westFertility: 0.9, eastFertility: 0.3), on);
         WorldState b = TestConfigs.KnowRecipes(SeamWorld.Found(true, SeamWorld.TwoSides(), sim: off, westFertility: 0.9, eastFertility: 0.3), off);
         Assert.Equal(1, R.SeamCrossingPairs(a));
@@ -428,7 +430,7 @@ public class CylinderAttributionSeamTests
             int xa = SiteOf(a, f.From) % size, xb = SiteOf(a, f.To) % size;
             Assert.NotEqual(xb - xa, MapTopology.Dx(xa, xb, size, wrap: true));     // every flow crosses the seam
         }
-        SimConfig again = TestConfigs.Sim();
+        SimConfig again = TestConfigs.PreTreeTrancheSim();   // ADR-045: the same (pre-tranche) ON arm
         AssertOnArmRepeats(p.A, TestConfigs.KnowRecipes(SeamWorld.Found(true, SeamWorld.TwoSides(), sim: again, westFertility: 0.9, eastFertility: 0.3), again),
             again, SeamWorld.Worldgen());
     }

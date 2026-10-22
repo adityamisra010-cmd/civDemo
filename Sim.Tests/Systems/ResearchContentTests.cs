@@ -35,7 +35,9 @@ public class ResearchContentTests
         // ADR-032 appended ONE authored technology after the corpus (never renumbering it):
         // motor_road, key 425, the ratified highway class (Director transport ruling 16).
         // R2a appended the authored Trade technology, key 426 (Director decision 1/13).
-        Assert.Equal(426, Canonical.TechnologyCount);
+        // ADR-045 (D-062, 2026-10-22) appended the 70 proposal technologies, keys 427..496 in the proposal's order.
+        Assert.Equal(496, Canonical.TechnologyCount);
+        for (int i = 426; i < 496; i++) Assert.Equal(i + 1, Canonical.Nodes[i].Key.Value);
         Assert.Equal("motor_road", Canonical.Nodes[424].Id);
         Assert.Equal(425, Canonical.Nodes[424].Key.Value);
         Assert.Equal("trade", Canonical.Nodes[425].Id);
@@ -46,7 +48,7 @@ public class ResearchContentTests
             ResearchNode n = Canonical.Nodes[i];
             Assert.Equal(t.GetProperty("id").GetString(), n.Id);
             Assert.Equal(i + 1, n.Key.Value);
-            if (D047Renamed.TryGetValue(n.Id, out string? renamed))
+            if (D047Renamed.TryGetValue(n.Id, out string? renamed) || Adr045Renamed.TryGetValue(n.Id, out renamed))
             {
                 // D-047 rulings 2, 3, 6 and 7 re-scoped these baseline-claiming nodes (id and key kept).
                 Assert.Equal(renamed, n.Name);
@@ -62,7 +64,18 @@ public class ResearchContentTests
     public void Canonical_CivicsAreTheSixArchitectureCandidates_PlusTaxation_OnTheSameKeySpace()
     {
         // R5 (Director 2026-10-04) appended the authored Taxation civic, key 1007 (no renumbering).
-        Assert.Equal(7, Canonical.CivicsCount);
+        // ADR-045 (D-062) appended the 60 proposal civics, keys 1008..1067, as KNOWLEDGE-ONLY civics: capability
+        // strings and no entity unlock (no regime or policy entity kind exists; adoption is M8).
+        Assert.Equal(67, Canonical.CivicsCount);
+        for (int i = 7; i < 67; i++)
+        {
+            ResearchNode n = Canonical.Nodes[Canonical.TechnologyCount + i];
+            Assert.Equal(ResearchTree.Civics, n.Tree);
+            Assert.Equal(1001 + i, n.Key.Value);
+            Assert.Equal(-1, n.Branch);
+            Assert.NotEmpty(n.Capabilities);
+            foreach (int e in n.UnlockedEntities) Assert.Equal(ResearchEntityKind.Institution, Canonical.Entities[e].Kind);
+        }
         string[] ids = new string[7];
         for (int i = 0; i < 7; i++)
         {
@@ -81,7 +94,10 @@ public class ResearchContentTests
     {
         int[] counts = new int[6]; // trunk, then 1.1..1.5
         for (int i = 0; i < Canonical.TechnologyCount; i++) counts[Canonical.Nodes[i].Branch + 1]++;
-        Assert.Equal([177, 37, 22, 131, 44, 15], counts);   // ADR-032: motor_road joined engineering; R2a: trade joined the trunk
+        // ADR-032: motor_road joined engineering; R2a: trade joined the trunk. ADR-045 (D-062): 22 crafts relocated to the
+        // trunk and 70 nodes appended (trunk 177 - 0 + 22 relocated + 8 new; military 37 - 1 + 8; medicine 22 + 8;
+        // engineering 131 - 16 + 24; natural science 44 - 1 + 18; agriculture 15 - 4 + 4).
+        Assert.Equal([207, 44, 30, 139, 61, 15], counts);
         Assert.Equal(ResearchContentLoader.RuledBranchIds.Length, Canonical.Branches.Count);
         for (int b = 0; b < 5; b++)
         {
@@ -141,6 +157,38 @@ public class ResearchContentTests
         ["dugout"] = "Load-carrying dugout",
     };
 
+    /// <summary>ADR-045 (D-062) renames: id and key kept, the name follows the node's re-scoped content. The other two
+    /// proposal renames are deferred (siege_ram with the siege_tower merge; electricity_generation keeps the grid).</summary>
+    private static readonly Dictionary<string, string> Adr045Renamed = new(StringComparer.Ordinal)
+    {
+        ["cereal_domesticated"] = "Wheat and barley domestication",
+        ["collar_harness"] = "Breast-strap harness",
+        ["electromagnetism"] = "Electromagnetism",
+        ["internal_combustion"] = "High-speed petrol engine",
+        ["radio"] = "Wireless telegraphy (radio)",
+        ["nuclear_power"] = "Nuclear power-plant engineering",
+    };
+
+    /// <summary>ADR-045 (D-062): the attribution twin's fixture IS the pre-tranche research.json (the file at 06e0153, SHA-256
+    /// 7a3bf388…), it loads, and the shipped content is that graph plus the tranche's appended keys (no key retired or
+    /// renumbered: every pre-tranche key is still the same id).</summary>
+    [Fact]
+    public void PreTrancheFixture_IsTheFileBeforeAdr045_AndEveryOldKeyKeepsItsId()
+    {
+        string text = TestConfigs.PreTreeTrancheResearchJson();
+        Assert.Equal("7a3bf38896f443e4cdfe582503d57f7f17abbab4f87acafe5ac4c3ef8ed9b791",
+            Convert.ToHexStringLower(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text))));
+        ResearchContent pre = TestConfigs.PreTreeTranche(TestConfigs.Sim()).Research!;
+        Assert.Equal((426, 7), (pre.TechnologyCount, pre.CivicsCount));
+        foreach (ResearchNode n in pre.Nodes)
+        {
+            int i = Canonical.IndexOf(n.Key);
+            Assert.True(i >= 0, $"key {n.Key.Value} ({n.Id}) was retired");
+            Assert.Equal(n.Id, Canonical.Nodes[i].Id);
+        }
+        Assert.Equal(pre.Nodes.Count + 130, Canonical.Nodes.Count);
+    }
+
     [Fact]
     public void Canonical_IsInSyncWithTheCorpusFileItWasMigratedFrom()
     {
@@ -149,7 +197,7 @@ public class ResearchContentTests
     }
 
     [Fact]
-    public void Canonical_Eurekas_81OnEightyNodes_17EvaluableToday_AllAuthored_EveryNodeWithinTheFortyPercentCeiling()
+    public void Canonical_Eurekas_98On97Nodes_26EvaluableToday_AllAuthored_EveryNodeWithinTheFortyPercentCeiling()
     {
         int total = 0, nodes = 0, evaluable = 0, authored = 0, inherited = 0;
         foreach (ResearchNode n in Canonical.Nodes)
@@ -168,13 +216,15 @@ public class ResearchContentTests
             Assert.True(sum <= 0.4 + 1e-12, n.Id);
             Assert.True(n.EurekaTotalWeight <= 0.4, n.Id);
         }
-        Assert.Equal(81, total);
-        Assert.Equal(80, nodes);
+        // ADR-045 (D-062): the 17 new technologies carry one authored Eureka each (9 of them machine-evaluable over
+        // knowledge); existing Eurekas are append-only and unchanged.
+        Assert.Equal(98, total);
+        Assert.Equal(97, nodes);
         // D-047 ruling 10: the 8 inherited Eurekas were rewritten as authored, node-specific
         // circumstances; arsenical_bronze's generic copper-stock condition became a future-system
         // arsenical-ore exposure, so 18 -> 17 evaluable.
-        Assert.Equal(17, evaluable);
-        Assert.Equal((81, 0), (authored, inherited));
+        Assert.Equal(26, evaluable);
+        Assert.Equal((98, 0), (authored, inherited));
         foreach (ResearchNode n in Canonical.Nodes)
             foreach (ResearchEureka e in n.Eurekas)
                 Assert.DoesNotContain("inherited", e.Justification, StringComparison.Ordinal);
@@ -204,7 +254,7 @@ public class ResearchContentTests
                 Assert.False(cond.Evaluate(null, a => done[a], null), $"{Canonical.Nodes[i].Id}: '{cond.Source}' holds in the witness");
                 checkedConditions++;
             }
-        Assert.Equal(15, checkedConditions);
+        Assert.Equal(24, checkedConditions);   // ADR-045: + 9 knowledge conditions on the new technologies
     }
 
     /// <summary>The largest completed set reachable while every excluded node stays incomplete.</summary>
@@ -322,8 +372,9 @@ public class ResearchContentTests
         }
         Assert.Equal(10, recursive);
         Assert.Equal(6, speculative);
-        Assert.Equal(423, finite);   // ADR-032: + motor_road; R2a: + trade; R5: + taxation (civic)
-        Assert.Equal([36, 21, 125, 43, 14], [.. Canonical.FiniteNodesBySubtree.Select(l => l.Count)]);
+        // ADR-032: + motor_road; R2a: + trade; R5: + taxation (civic); ADR-045: + 70 technologies + 60 civics.
+        Assert.Equal(553, finite);
+        Assert.Equal([43, 29, 133, 60, 14], [.. Canonical.FiniteNodesBySubtree.Select(l => l.Count)]);
 
         // frontier_launch (engineering): with EVERYTHING else complete it is available; leave one finite
         // engineering node incomplete and it is not — per-subtree exhaustion, nothing else.
@@ -510,7 +561,9 @@ public class ResearchContentTests
             }
         }
         Assert.Empty(violations);
-        Assert.Equal(Canonical.Nodes.Count - 83, dated);      // the 83 marker-free texts are not tested
+        // The marker-free texts are not tested: 83 before ADR-045; the tranche's emerged edits and its 130 new nodes
+        // (a few undated civics, e.g. oath_alliance) leave 82.
+        Assert.Equal(Canonical.Nodes.Count - 82, dated);
         Assert.True(edges > 300, $"only {edges} dated edges checked");
         // The two Director examples, explicitly.
         Assert.DoesNotContain(Canonical.IndexOfId("vacuum_tube"), MustClosure(Canonical.IndexOfId("xray")));

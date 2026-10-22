@@ -108,18 +108,33 @@ public class AiPolicyTests
         bool[] goal = AiResearchPolicy.CoreGoalClosure(w, Research, TestConfigs.Ages(), Rival);
         Assert.Equal([grinding, cereal], Enumerable.Range(0, goal.Length).Where(i => goal[i]).OrderBy(i => i));
         // Turn 0 (goal-SEQUENTIAL, ADR-033 D5 follow-up): the goal worked is the one whose REMAINING closure is
-        // cheapest — the next road class (track_road), not the core — and the target is the cheapest available
-        // node of THAT closure, never of the union.
+        // cheapest, and the target is the cheapest available node of THAT closure, never of the union.
+        // ADR-045 RE-PIN (2026-10-22, D-062): cereal_cultivation was re-scored 3,520 -> 880 RP (the proposal's cereal
+        // material re-score, KD-09), so on the shipped content the CORE remainder (grinding_stone 370 + cereal 880) is the
+        // cheapest at turn 0: the worked goal is the core and its pick, grinding_stone, is also the union's pick. The
+        // rule is content-independent; its turn-0 WITNESS that goal and union differ is the pre-tranche content
+        // (TestConfigs.PreTreeTranche, below), on which the road goal is worked and its pick is knapping_oldowan.
         bool[] completed0 = ResearchQuery.CompletedMask(w, Research, Rival);
         bool[] available0 = ResearchQuery.AvailableMask(Research, completed0);
         bool[][] goals = AiResearchPolicy.Goals(w, Cfg, Rival);
         Assert.Equal(goal, goals[AiResearchPolicy.CoreGoal]);
-        Assert.Equal(AiResearchPolicy.RoadGoal, AiResearchPolicy.ChooseGoal(w, Research, Rival, goals, completed0, available0));
-        int roadPick = AiResearchPolicy.Cheapest(w, Research, Rival, available0, goals[AiResearchPolicy.RoadGoal]);
-        Assert.Equal("knapping_oldowan", Research.Nodes[roadPick].Id);
-        Assert.Equal(Research.Nodes[roadPick].Key.Value, AiResearchPolicy.Decide(w, Cfg, Rival)!.Value.TargetId);
-        // ...though grinding_stone (370) is the cheapest available node of the union (the S3 rule's pick).
-        Assert.Equal(grinding, AiResearchPolicy.Cheapest(w, Research, Rival, available0, AiResearchPolicy.GoalClosure(w, Cfg, Rival)));
+        Assert.Equal(AiResearchPolicy.CoreGoal, AiResearchPolicy.ChooseGoal(w, Research, Rival, goals, completed0, available0));
+        Assert.Equal(grinding, AiResearchPolicy.Cheapest(w, Research, Rival, available0, goals[AiResearchPolicy.CoreGoal]));
+        Assert.Equal(Research.Nodes[grinding].Key.Value, AiResearchPolicy.Decide(w, Cfg, Rival)!.Value.TargetId);
+        {
+            SimConfig pre = TestConfigs.PreTreeTranche(Cfg);
+            ResearchContent old = pre.Research!;
+            WorldState w0 = WorldFounding.Found(TestConfigs.DevWorldgen() with { AiEmpires = 1 }, pre, 42);
+            bool[] c0 = ResearchQuery.CompletedMask(w0, old, Rival);
+            bool[] a0 = ResearchQuery.AvailableMask(old, c0);
+            bool[][] g0 = AiResearchPolicy.Goals(w0, pre, Rival);
+            Assert.Equal(AiResearchPolicy.RoadGoal, AiResearchPolicy.ChooseGoal(w0, old, Rival, g0, c0, a0));
+            int roadPick = AiResearchPolicy.Cheapest(w0, old, Rival, a0, g0[AiResearchPolicy.RoadGoal]);
+            Assert.Equal("knapping_oldowan", old.Nodes[roadPick].Id);
+            Assert.Equal(old.Nodes[roadPick].Key.Value, AiResearchPolicy.Decide(w0, pre, Rival)!.Value.TargetId);
+            // ...though grinding_stone (370) is the cheapest available node of the union (the S3 rule's pick).
+            Assert.Equal(old.IndexOfId("grinding_stone"), AiResearchPolicy.Cheapest(w0, old, Rival, a0, AiResearchPolicy.GoalClosure(w0, pre, Rival)));
+        }
         Assert.Null(AiResearchPolicy.Decide(w, Cfg, Human));
 
         // With grinding_stone known the core's remaining closure is cereal_cultivation alone, cheaper than any other

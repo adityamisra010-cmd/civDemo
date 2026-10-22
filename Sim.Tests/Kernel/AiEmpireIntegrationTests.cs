@@ -155,7 +155,7 @@ public class AiEmpireIntegrationTests
     /// asserts (research target 2, first build, AdvanceAge decided / in force, first road order / row, first levy order /
     /// rate, A3 in force, the Found Settlement stamps, the polity's holdings) — measured by <see cref="RunCanonicalAi"/>.</summary>
     internal sealed record CanonicalAiPins(long Target1, long FirstBuild, long Advance, long AdvancedAt, long Road, long FirstRoad,
-        long Tax, long FirstTax, long A3At, long[] Founds, int Controlled);
+        long Tax, long FirstTax, long A3At, long[] Founds, int Controlled, string[]? FirstTargets = null);
 
     /// <summary>
     /// The canonical AI run (seed 42, 1024², one AI Empire, the production pipeline, AiOrders before every step, run until
@@ -168,6 +168,7 @@ public class AiEmpireIntegrationTests
     internal static CanonicalAiPins RunCanonicalAi(WorldgenConfig worldgen, SimConfig? cfgOverride = null)
     {
         SimConfig cfg = cfgOverride ?? Cfg;
+        ResearchContent research = cfg.Research!;   // ADR-045: the content the run uses (the pre-tranche twin, or the shipped)
         WorldgenConfig wg = worldgen with { AiEmpires = 1 };
         WorldState start = WorldFounding.Found(wg, cfg, 42);
         Assert.Equal(worldgen.Topology is { WrapX: true }, start.Terrain!.WrapX);
@@ -203,14 +204,14 @@ public class AiEmpireIntegrationTests
         for (int i = 0; i < log.Count; i++) Assert.Equal(Rival.Value, log[i].ActorId);
         OrderRecord[] orders = Enumerable.Range(0, log.Count).Select(i => log[i]).ToArray();
 
-        // Research (goal-SEQUENTIAL, ADR-033 D5 follow-up): the cheapest REMAINING goal at turn 0 is the track
-        // road, so the first two targets are its ancestors knapping_oldowan and ground_stone_early (S3's union
-        // started grinding_stone, knapping_oldowan; S2's core-only goal grinding_stone, cereal_cultivation).
+        // Research (goal-SEQUENTIAL, ADR-033 D5 follow-up): the first two targets, set at turn 0 and on the first completion,
+        // are returned for the caller to pin (they depend on the research content; ADR-045).
         OrderRecord[] targets = orders.Where(o => o.Kind == OrderKind.SetResearchTarget).ToArray();
-        Assert.Equal(("knapping_oldowan", 0L), (Research.Nodes[Research.IndexOf(new ResearchNodeId(targets[0].TargetId))].Id, targets[0].Turn));
-        Assert.Equal("ground_stone_early", Research.Nodes[Research.IndexOf(new ResearchNodeId(targets[1].TargetId))].Id);
+        Assert.Equal(0L, targets[0].Turn);
+        string[] firstTargets = [research.Nodes[research.IndexOf(new ResearchNodeId(targets[0].TargetId))].Id,
+                                 research.Nodes[research.IndexOf(new ResearchNodeId(targets[1].TargetId))].Id];
         Assert.True(firstCompletion > 0, "the AI completed no research node");
-        Assert.True(ResearchQuery.IsCompleted(w, Rival, Research.Nodes[Research.IndexOfId("cereal_cultivation")].Key));
+        Assert.True(ResearchQuery.IsCompleted(w, Rival, research.Nodes[research.IndexOfId("cereal_cultivation")].Key));
 
         // Construction: granaries first, built by ConstructionSystem from the AI's EnqueueConstruction orders.
         OrderRecord firstBuild = orders.First(o => o.Kind == OrderKind.EnqueueConstruction);
@@ -226,7 +227,7 @@ public class AiEmpireIntegrationTests
         // orders a road (DevelopRoads, applied the next turn), then reaches the tax gate and levies.
         OrderRecord road = orders.First(o => o.Kind == OrderKind.DevelopRoads);
         OrderRecord tax = orders.First(o => o.Kind == OrderKind.SetTaxRate);
-        Assert.True(ResearchQuery.IsCompleted(w, Rival, Research.Nodes[Research.IndexOfId("track_road")].Key));
+        Assert.True(ResearchQuery.IsCompleted(w, Rival, research.Nodes[research.IndexOfId("track_road")].Key));
         Assert.True(Governance.CanLevyTax(w, cfg, Rival));
         Assert.True(a3At > 0, "the AI never entered A3 before its first levy");
         Assert.True(tax.Turn >= a3At, "the AI levied before entering A3");   // the levy only once the AI is in A3
@@ -242,7 +243,7 @@ public class AiEmpireIntegrationTests
             Assert.Equal(hashes[t], WorldHash.ComputeHex(replayed));
         }
         return new CanonicalAiPins(targets[1].Turn, firstBuild.Turn, advance.Turn, advancedAt, road.Turn, firstRoad, tax.Turn,
-            firstTax, a3At, founds.Select(o => o.Turn).ToArray(), EmpireQuery.ControlledCount(w, Rival));
+            firstTax, a3At, founds.Select(o => o.Turn).ToArray(), EmpireQuery.ControlledCount(w, Rival), firstTargets);
     }
 
     [Fact]
@@ -277,7 +278,14 @@ public class AiEmpireIntegrationTests
         // sim half off alone on the cylinder (TestConfigs.PreD054Sim, MEASURED) returns the NEW values — incremental
         // construction and allocation ratios move nothing here (the AI's purse prudence finishes every head in its delivery
         // step; IncrementalConstructionAttributionTests' AI-world control).
-        Assert.Equal((25L, 2L, 221L, 222L), (p.Target1, p.FirstBuild, p.Advance, p.AdvancedAt));
+        // ADR-045 RE-PIN (2026-10-22, D-062; MEASURED on this tree by the agent writing this line, in-test harness):
+        // research target 2 25 -> 18, advance 221/222 -> 97/98 (first build 2 unchanged); the first two targets are now
+        // grinding_stone and cereal_cultivation (were knapping_oldowan and ground_stone_early). CAUSE: the research-content
+        // tranche — cereal_cultivation re-scored 3,520 -> 880 RP makes the CORE goal the cheapest remainder at turn 0 (see
+        // AiPolicyTests), so the AI knows cultivation and meets the Neolithic far sooner. ATTRIBUTION:
+        // OneAiEmpire_OnThePreTrancheContent_EveryPinReturnsItsBatch4Value (TestConfigs.PreTreeTranche) returns every old pin.
+        Assert.Equal(["grinding_stone", "cereal_cultivation"], p.FirstTargets!);
+        Assert.Equal((18L, 2L, 97L, 98L), (p.Target1, p.FirstBuild, p.Advance, p.AdvancedAt));
         // R1 RE-PIN (2026-10-03; research-gated recipes — no pottery or bronze before their nodes — move the
         // population and research-point trajectory): levy 547/548 -> 537/538; targets, granary, road, Age unchanged.
         // R4 RE-PIN (2026-10-04, the forager layer; MEASURED): road 141/142 -> 143/144, levy 537/538 -> 546/547.
@@ -301,8 +309,10 @@ public class AiEmpireIntegrationTests
         // BATCH 3 / D-054 RE-PIN (integration R1, 2026-10-14; MEASURED on this tree by the agent writing this line, in-test
         // harness): levy 423/424 -> 422/423 (still on the AI's first A3 turn: A3 423 -> 422); road 134/135 unchanged.
         // CAUSE: the cylinder alone; ATTRIBUTION as above (the twin returns 134/135, 423/424, A3 423).
-        Assert.Equal((134L, 135L, 422L, 423L), (p.Road, p.FirstRoad, p.Tax, p.FirstTax));
-        Assert.Equal(422L, p.A3At);                          // the AI entered A3 (decided 421; ADR-035: 463 -> 458 -> 462 -> 461; D-051 1(b): 461 -> 451; S1c: 451 -> 423; batch 3: 423 -> 422)
+        // ADR-045 RE-PIN (2026-10-22; MEASURED, same cause and control as above): road 134/135 -> 162/163, levy 422/423 ->
+        // 402/403 (still on the AI's first A3 turn: A3 422 -> 402); the foundings and holdings unchanged.
+        Assert.Equal((162L, 163L, 402L, 403L), (p.Road, p.FirstRoad, p.Tax, p.FirstTax));
+        Assert.Equal(402L, p.A3At);                          // the AI entered A3 (decided 401; ADR-035: 463 -> 458 -> 462 -> 461; D-051 1(b): 461 -> 451; S1c: 451 -> 423; batch 3: 423 -> 422; ADR-045: 422 -> 402)
 
         // S1c (ADR-036 §8): the AI EXPANDS through the player's Found Settlement order — one per 350 years at most, each
         // a colony it controls. MEASURED on this tree: eight orders by the first levy, the polity holding 6 + 8 = 14
@@ -321,10 +331,30 @@ public class AiEmpireIntegrationTests
     [Fact]
     public void OneAiEmpire_WithTheCylinderOff_EveryPinReturnsItsBatch2Value()
     {
-        CanonicalAiPins p = RunCanonicalAi(TestConfigs.PreCylinderWorldgen(TestConfigs.Worldgen()));
+        // ADR-045 (2026-10-22): the R4 rule — the cylinder is older than the research-content tranche, so its control runs
+        // on the pre-tranche content (TestConfigs.PreTreeTranche).
+        CanonicalAiPins p = RunCanonicalAi(TestConfigs.PreCylinderWorldgen(TestConfigs.Worldgen()), TestConfigs.PreTreeTrancheSim());
+        Assert.Equal(["knapping_oldowan", "ground_stone_early"], p.FirstTargets!);
         Assert.Equal((26L, 4L, 221L, 222L), (p.Target1, p.FirstBuild, p.Advance, p.AdvancedAt));
         Assert.Equal((134L, 135L, 423L, 424L), (p.Road, p.FirstRoad, p.Tax, p.FirstTax));
         Assert.Equal(423L, p.A3At);
+        Assert.Equal([35L, 71L, 107L, 143L, 179L, 215L, 286L, 357L], p.Founds);
+        Assert.Equal(14, p.Controlled);
+    }
+
+    /// <summary>ADR-045 ATTRIBUTION CONTROL (2026-10-22, D-062) for every pin of
+    /// <see cref="OneAiEmpire_OnTheCanonicalFoundedWorld_ResearchesBuildsAndAdvances_ThroughItsOrders_AndTheLogReplays"/> the
+    /// research-content tranche moved: the SAME run (the shipped cylinder, every layer on) with ONLY the research content
+    /// switched off (TestConfigs.PreTreeTranche — the pre-tranche research.json) returns every pre-tranche value, and every
+    /// structural assert of the run holds there too. So the tranche is the whole of the move.</summary>
+    [Fact]
+    public void OneAiEmpire_OnThePreTrancheContent_EveryPinReturnsItsBatch4Value()
+    {
+        CanonicalAiPins p = RunCanonicalAi(TestConfigs.Worldgen(), TestConfigs.PreTreeTrancheSim());
+        Assert.Equal(["knapping_oldowan", "ground_stone_early"], p.FirstTargets!);
+        Assert.Equal((25L, 2L, 221L, 222L), (p.Target1, p.FirstBuild, p.Advance, p.AdvancedAt));
+        Assert.Equal((134L, 135L, 422L, 423L), (p.Road, p.FirstRoad, p.Tax, p.FirstTax));
+        Assert.Equal(422L, p.A3At);
         Assert.Equal([35L, 71L, 107L, 143L, 179L, 215L, 286L, 357L], p.Founds);
         Assert.Equal(14, p.Controlled);
     }

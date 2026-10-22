@@ -161,7 +161,8 @@ public class IncrementalConstructionAttributionTests
     [Fact]
     public void AiWorldSeed42Turn300_MovedForTheV33LayoutAlone_TheIncrementalRuleNeverActsThere()
     {
-        SimConfig on = Shipped, off = TestConfigs.PreIncrementalConstruction(on);
+        // ADR-045 (D-062, 2026-10-22): the R4 rule — this control attributes an OLDER layer, so it runs on the pre-tranche research content (TestConfigs.PreTreeTranche); the tranche's own control is ResearchTrancheAttributionTests.
+        SimConfig on = TestConfigs.PreTreeTrancheSim(), off = TestConfigs.PreIncrementalConstruction(on);
         WorldgenConfig wg = TestConfigs.PreD054Worldgen() with { AiEmpires = 1 };   // the cylinder off (the pair rule)
         var onLog = new OrderLog();
         var offLog = new OrderLog();

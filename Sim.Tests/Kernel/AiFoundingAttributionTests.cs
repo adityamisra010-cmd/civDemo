@@ -68,12 +68,29 @@ public class AiFoundingAttributionTests
     /// the AI finishes every head in its delivery step), so the entire movement is one four-byte zero count prefix.
     /// CONTROL: ReservationsLayoutAttributionTests.AiWorldSeed42Turn300_MovedForTheV34LayoutAlone — the v33 projection
     /// (SchemaProjection.V33, asserting 0 hold rows) returns OLD byte for byte, and the PreReservations twin gives the same
-    /// world. `sim run --founded --seed 42 --turns 300 --ai-empires 1` on this tree prints the NEW value.</summary>
-    internal const string S1cTurn300 = "25f4799d581d8de72dc15d487bcba54cb9db399208aba065963eb1f257e9fd10";
+    /// world. `sim run --founded --seed 42 --turns 300 --ai-empires 1` on this tree prints the NEW value.
+    /// ADR-045 RE-PIN (2026-10-22, D-062; VALUE, MEASURED on this tree by the agent writing this line, in-test harness):
+    /// 25f4799d581d8de7… -> a7858f3208903e12…. CAUSE: the research-content tranche (research.json: 70 new technologies, 60
+    /// knowledge-only civics, 133 rewires, 61 re-scores) — the AI's goal closures and costs changed, so from turn 0 it
+    /// targets other research (grinding_stone, then cereal_cultivation: cereal re-scored 3,520 -> 880 RP) and reaches the
+    /// Neolithic far sooner (AiEmpireIntegrationTests: advance 221 -> 97). No code changed. CONTROL:
+    /// <see cref="TheResearchTranche_IsTheWholeMove_TheAiWorldOnThePreTrancheContentIsTheBatch4World"/> — the same run on the
+    /// pre-tranche research.json (TestConfigs.PreTreeTranche) returns <see cref="PreTrancheS1cTurn300"/> byte for byte.</summary>
+    internal const string S1cTurn300 = "a7858f3208903e1214814cc4dab6f34062c3bdc32c338243630464316b6f6c69";
+
+    /// <summary>ADR-045 (D-062, 2026-10-22): the live AI world at turn 300 on the PRE-tranche research content — the value
+    /// <see cref="S1cTurn300"/> held before the research-content tranche re-pin, and what every older-layer control of this
+    /// world (the R4 rule: they run on TestConfigs.PreTreeTranche) still reproduces.</summary>
+    internal const string PreTrancheS1cTurn300 = "25f4799d581d8de72dc15d487bcba54cb9db399208aba065963eb1f257e9fd10";
 
     /// <summary>Batch 3 (D-054, integration R1): THE CYLINDER-ALONE LINK — the live AI world through the v32 projection
     /// (the two v33 tables dropped, asserted EMPTY): the AI hash the W1 stage measured with the cylinder and no v33 layout.</summary>
-    private const string S1cTurn300AtV32 = "0ce1d4d9af1590351636b0aacd18c3400b110d59d04c7aa07bce9a9bbcf3a19d";
+    /// ADR-045 RE-PIN (2026-10-22; MEASURED): 0ce1d4d9af159035… -> 126769ae8cc2345d…, the same cause as S1cTurn300 (the
+    /// pre-tranche value is <see cref="PreTrancheS1cTurn300AtV32"/>).
+    private const string S1cTurn300AtV32 = "126769ae8cc2345d05a4ccb8d0cad15213be658864daf4b43a7c8c389a5ae15f";
+
+    /// <summary>ADR-045: <see cref="S1cTurn300AtV32"/> before the research-content tranche.</summary>
+    private const string PreTrancheS1cTurn300AtV32 = "0ce1d4d9af1590351636b0aacd18c3400b110d59d04c7aa07bce9a9bbcf3a19d";
 
     /// <summary>The turn the first AI Found Settlement order is stamped (state 36 is the first that differs).</summary>
     private const long FirstFoundingStamp = 35;
@@ -148,5 +165,30 @@ public class AiFoundingAttributionTests
         Assert.Equal(S1cTurn300, WorldHash.ComputeHex(live));
         Assert.Equal(S1cTurn300AtV32, SchemaProjection.V32(live));   // batch 3: the cylinder-alone link (no v33 row)
         Assert.NotEqual(S1cPreD053Turn300, S1cTurn300);
+    }
+
+    /// <summary>ADR-045 ATTRIBUTION CONTROL (2026-10-22, D-062) — a CONTENT SWITCH-OFF TWIN: the live AI world (the shipped
+    /// cylinder, every layer on, `sim run --founded --seed 42 --turns 300 --ai-empires 1`) stepped with the pre-tranche
+    /// research.json (TestConfigs.PreTreeTranche; Fixtures/research-pre-adr045.json, byte-identical to the file at 06e0153)
+    /// returns the pre-tranche pin byte for byte, raw and through the v32 projection; with the shipped content it is the
+    /// re-pinned value. Nothing but the research content differs between the two runs, so the tranche is the whole move.</summary>
+    [Fact]
+    public void TheResearchTranche_IsTheWholeMove_TheAiWorldOnThePreTrancheContentIsTheBatch4World()
+    {
+        SimConfig pre = TestConfigs.PreTreeTrancheSim();
+        Assert.NotSame(TestConfigs.Research(), pre.Research);
+        Assert.Equal(426, pre.Research!.TechnologyCount);
+        Assert.Equal(7, pre.Research.CivicsCount);
+        var log = new OrderLog();
+        TurnExecutor exec = Production(pre, log, TestConfigs.Worldgen());
+        WorldState w = WorldFounding.Found(TestConfigs.Worldgen() with { AiEmpires = 1 }, pre, 42);
+        for (int t = 1; t <= Turns; t++)
+        {
+            AiOrders.Append(log, w, pre, TestConfigs.Worldgen());
+            w = exec.Step(w);
+        }
+        Assert.Equal(PreTrancheS1cTurn300, WorldHash.ComputeHex(w));
+        Assert.Equal(PreTrancheS1cTurn300AtV32, SchemaProjection.V32(w));
+        Assert.NotEqual(PreTrancheS1cTurn300, S1cTurn300);
     }
 }

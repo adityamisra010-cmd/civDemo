@@ -91,7 +91,9 @@ public class CylinderAttributionDevAiTests : IClassFixture<CylinderAttributionDe
     /// independent ON run of the same length (determinism).</summary>
     public sealed class Arms
     {
-        public SimConfig On { get; } = TestConfigs.Sim();
+        // ADR-045 (D-062, 2026-10-22): the readings above were measured on the pre-tranche research content; by the R4 rule
+        // these older-layer controls run on it (TestConfigs.PreTreeTranche). ResearchTrancheAttributionTests owns the tranche.
+        public SimConfig On { get; } = TestConfigs.PreTreeTrancheSim();
         public R.Arm Live { get; }
         public R.Arm Again { get; }
 
@@ -100,7 +102,7 @@ public class CylinderAttributionDevAiTests : IClassFixture<CylinderAttributionDe
             Live = R.Run(R.DevAi(), "on", On, GranaryHorizon,
                 keep: [0, (int)FirstEnqueueOn, GranaryStands, GranaryStands + 1, (int)FirstFounding, FoundingDiverges, GranaryActs, GranaryActs + 1],
                 probes: [R.GranaryStands, R.GranaryActs]);
-            Again = R.Run(R.DevAi(), "on-again", TestConfigs.Sim(), GranaryHorizon);
+            Again = R.Run(R.DevAi(), "on-again", TestConfigs.PreTreeTrancheSim(), GranaryHorizon);
         }
     }
 

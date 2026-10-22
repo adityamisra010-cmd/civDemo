@@ -193,10 +193,13 @@ public static class TestConfigs
     /// (SchemaProjection.HashAtSchemaV32) returns the batch-2 references byte for byte. D-055 (2026-10-16): it switches
     /// off reservations too (the newer layer, the R4 rule; the loader refuses reservations without incremental), so it
     /// still returns them exactly as before.</summary>
-    public static SimConfig PreIncrementalConstruction(SimConfig cfg) =>
-        cfg.Construction is { } c
+    public static SimConfig PreIncrementalConstruction(SimConfig cfg)
+    {
+        cfg = PreTreeTranche(cfg);   // ADR-045 (2026-10-22): the R4 rule — the research-content tranche is newer still
+        return cfg.Construction is { } c
             ? cfg with { Construction = c with { Incremental = false, AllocationRatios = false, Reservations = false, ContinueWithinTurn = false } }
             : cfg;
+    }
 
     /// <summary>D-054 WS2 (2026-10-14) — THE BUILDING/ROADS SPLIT SWITCHED OFF: sim.json construction.allocationRatios
     /// false, so kind-12 orders are ignored at delivery, no ResourceAllocationRow is written, and building work goes first
@@ -267,8 +270,8 @@ public static class TestConfigs
 
     private static readonly Lazy<global::Sim.Core.Systems.Research.ResearchContent> PreR2aResearch = new(() =>
     {
-        using var stream = global::Sim.Data.DataFiles.OpenResearch();
-        var doc = System.Text.Json.Nodes.JsonNode.Parse(stream)!.AsObject();
+        // ADR-045 (the R4 rule: an older layer twin strips every newer layer): derived from the PRE-TRANCHE file.
+        var doc = System.Text.Json.Nodes.JsonNode.Parse(PreTreeTrancheResearchJson())!.AsObject();
         var techs = doc["technologies"]!.AsArray();
         for (int i = techs.Count - 1; i >= 0; i--) if ((string?)techs[i]!["id"] == "trade") techs.RemoveAt(i);
         var ents = doc["entities"]!.AsArray();
@@ -279,6 +282,32 @@ public static class TestConfigs
         using var needs = global::Sim.Data.DataFiles.OpenNeeds();
         SimConfig plain = SimConfigLoader.Load(sim, needs, goods);
         return global::Sim.Core.Systems.Research.ResearchContentLoader.Load(doc.ToJsonString(), plain.Goods);
+    });
+
+    /// <summary>ADR-045 (D-062, 2026-10-22) — THE RESEARCH-CONTENT TRANCHE STRIPPED: <paramref name="cfg"/> with research.json
+    /// exactly as it stood before the tranche (Fixtures/research-pre-adr045.json, byte-identical to the file at 06e0153). A
+    /// pure content switch-off — no code reads the tranche — so a world stepped under this twin is the pre-tranche world byte
+    /// for byte: the attribution control of every pin the tranche moves. The Age and unit-family content need no reload: an
+    /// Age fact holds node KEYS and ids (never dense indices), every key it names exists in both files, and a
+    /// research_count fact counts completed rows by key. Only the SHIPPED research is swapped (a rig's own content, or an
+    /// already stripped config, is returned unchanged), so the twin composes with every other twin in any order.
+    /// By the R4 rule (an older layer twin strips every newer layer) the chained twins strip it through
+    /// <see cref="PreIncrementalConstruction"/>.</summary>
+    public static SimConfig PreTreeTranche(SimConfig cfg) =>
+        ReferenceEquals(cfg.Research, CanonicalResearch.Value) ? cfg with { Research = PreAdr045.Value } : cfg;
+
+    /// <summary>The shipped config with the tranche stripped — the base of every historical attribution proof that pins
+    /// a pre-tranche literal on the shipped ("on") arm.</summary>
+    public static SimConfig PreTreeTrancheSim() => PreTreeTranche(Sim());
+
+    /// <summary>The pre-tranche research.json text (the fixture the twin loads).</summary>
+    public static string PreTreeTrancheResearchJson() =>
+        File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "research-pre-adr045.json"));
+
+    private static readonly Lazy<global::Sim.Core.Systems.Research.ResearchContent> PreAdr045 = new(() =>
+    {
+        using var goods = global::Sim.Data.DataFiles.OpenGoods();
+        return global::Sim.Core.Systems.Research.ResearchContentLoader.Load(PreTreeTrancheResearchJson(), GoodsConfigLoader.Load(goods));
     });
 
     /// <summary>R2a: the knowledge closure of the Trade capability (sim.json trade.entity), completed for EVERY

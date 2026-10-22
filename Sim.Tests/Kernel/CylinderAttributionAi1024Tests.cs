@@ -59,7 +59,11 @@ public class CylinderAttributionAi1024Tests : IClassFixture<CylinderAttributionA
     /// horizon; its world 300 is the existing pinned run.</summary>
     public sealed class Arms
     {
-        public SimConfig On { get; } = TestConfigs.Sim();
+        // ADR-045 (D-062, 2026-10-22): the R4 rule — these batch-3 controls (and their measured turns) are of the world
+        // BEFORE the research-content tranche, so the shared ON arm runs on the pre-tranche content
+        // (TestConfigs.PreTreeTranche); its world 300 is the pre-tranche pinned run. The tranche's own move of the AI run
+        // is attributed by AiFoundingAttributionTests / ResearchTrancheAttributionTests.
+        public SimConfig On { get; } = TestConfigs.PreTreeTrancheSim();
         public R.Arm Live { get; }
 
         public Arms() =>
@@ -77,7 +81,7 @@ public class CylinderAttributionAi1024Tests : IClassFixture<CylinderAttributionA
         R.Arm live = _arms.Live;
         Assert.True(live.At(0).Terrain!.WrapX);
         Assert.Equal(2, live.At(0).Polities.Count);
-        Assert.Equal(AiFoundingAttributionTests.S1cTurn300, live.Hashes[PinnedRunTurn]);
+        Assert.Equal(AiFoundingAttributionTests.PreTrancheS1cTurn300, live.Hashes[PinnedRunTurn]);
     }
 
     /// <summary>#5 — the tax Age gate. With the gate stripped the AI levies at T while still below the gate's Age; the
@@ -123,7 +127,7 @@ public class CylinderAttributionAi1024Tests : IClassFixture<CylinderAttributionA
         R.Arm twin = R.Run(R.Ai1024(), "ws1-off", off, AbsenceHorizon, keep: [AbsenceHorizon]);
         Assert.Equal(-1, R.FirstDifferent(live, twin));
         R.AssertLogsEqualBefore(live.Log, twin.Log, AbsenceHorizon);
-        Assert.Equal(AiFoundingAttributionTests.S1cTurn300, twin.Hashes[AbsenceHorizon]);
+        Assert.Equal(AiFoundingAttributionTests.PreTrancheS1cTurn300, twin.Hashes[AbsenceHorizon]);   // ADR-045: the pre-tranche ON arm (R4)
         WorldState end = live.At(Horizon);
         Assert.Equal((0, 0), (R.SeamCrossingPairs(end), R.WrappedDonorOrders(end)));
     }
@@ -142,6 +146,6 @@ public class CylinderAttributionAi1024Tests : IClassFixture<CylinderAttributionA
         R.Arm twin = R.Run(R.Ai1024(), "relief-off", off, AbsenceHorizon);
         Assert.Equal(-1, R.FirstDifferent(live, twin));
         R.AssertLogsEqualBefore(live.Log, twin.Log, AbsenceHorizon);
-        Assert.Equal(AiFoundingAttributionTests.S1cTurn300, twin.Hashes[AbsenceHorizon]);
+        Assert.Equal(AiFoundingAttributionTests.PreTrancheS1cTurn300, twin.Hashes[AbsenceHorizon]);   // ADR-045: the pre-tranche ON arm (R4)
     }
 }
