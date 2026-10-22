@@ -1,0 +1,504 @@
+[
+ {
+  "id": "coke",
+  "tree": "technology",
+  "description": "Coke is coal baked with little air to drive off its volatile matter, leaving a strong, porous carbon fuel. In 1709 Abraham Darby fired his Coalbrookdale blast furnace in Shropshire with coke as charcoal grew costly. Earlier trials had faltered; his was Europe's first lasting success, permitting larger furnaces and much cheaper cast iron.",
+  "wordCount": 54,
+  "sources": [
+   {
+    "sourceId": "MAT2-002",
+    "claims": [
+     "Darby smelted iron with coke at Coalbrookdale in 1709",
+     "made cast iron cheap at scale"
+    ]
+   },
+   {
+    "sourceId": "MAT2-001",
+    "claims": [
+     "not the first attempt, but the first in Europe to operate successfully for more than a few years"
+    ]
+   },
+   {
+    "sourceId": "MAT2-003",
+    "claims": [
+     "charcoal becoming costly",
+     "larger furnaces"
+    ]
+   }
+  ],
+  "uncertainty": "Coalbrookdale is often called the first coke-fired blast furnace; Grace's Guide calls that claim not strictly correct. Accounts differ on how Darby treated the coal. The wider spread of coke smelting in Britain took decades and is not dated here.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+   "notes": "Corroborated: 1709, Coalbrookdale, coke from local coal, charcoal costs, first lasting European success, larger furnaces, cheaper cast iron. General knowledge, not corroborated by search: the definition of coke (coal heated with little air to remove volatiles)."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); records iron and cheap cast iron at industrial scale. Prerequisite blast_furnace_water; prerequisite of puddling, hot_blast, structural_iron and synthetic_dye; its coal-seam Eureka waits on a future resources/terrain system."
+ },
+ {
+  "id": "glass_lead",
+  "tree": "technology",
+  "description": "Lead crystal is glass made heavy and brilliant with lead oxide. In 1674 George Ravenscroft patented a clear English glass meant to rival rock crystal; when early pieces clouded, a defect called crizzling, he added lead, a change dated between 1674 and 1676. The denser, more refractive glass suited cut tableware and, later, the flint elements of achromatic lenses.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "MAT2-004",
+    "claims": [
+     "1674 seven-year patent for glass resembling rock crystal",
+     "crizzling",
+     "lead added, giving denser, more refractive glass"
+    ]
+   },
+   {
+    "sourceId": "MAT2-005",
+    "claims": [
+     "lead glass dated 1676; formula perfected by 1681"
+    ]
+   },
+   {
+    "sourceId": "MAT2-006",
+    "claims": [
+     "Dollond's 1758 achromatic lens combined crown and flint glass"
+    ]
+   }
+  ],
+  "uncertainty": "Whether Ravenscroft found the lead effect himself or learned it from Venetian practice is debated; the lead formula is dated 1674 (Britannica) or 1676 (Toledo Museum) and was refined by about 1681. Achromatic lenses were made before Dollond's 1758 patent (Chester Moor Hall).",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+   "notes": "Corroborated: 1674 patent, rock-crystal aim, crizzling, lead addition and its dating range, density and refraction, flint glass in achromatic lenses. General knowledge, not corroborated by search: that 'flint glass' in English optics denotes lead glass of this kind, and its use for cut tableware."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); records optical glass and fine tableware. Prerequisite glass_blowing; prerequisite of photography and fibre_optics."
+ },
+ {
+  "id": "puddling",
+  "tree": "technology",
+  "description": "Puddling turned brittle pig iron into tough wrought iron without charcoal. In a coal-fired reverberatory furnace, where flame rather than fuel touched the metal, workers stirred molten iron until air burned out its carbon; the iron was then shingled and passed through grooved rolls. Henry Cort patented the rolls in 1783 and puddling in 1784; Welsh ironmasters made them practical.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "MAT2-007",
+    "claims": [
+     "1783 grooved-roll patent",
+     "1784 puddling patent: stirring in a reverberatory furnace to oxidise carbon, giving wrought iron"
+    ]
+   },
+   {
+    "sourceId": "MAT2-008",
+    "claims": [
+     "made practical at Cyfarthfa, Merthyr Tydfil, late 1780s-1790s",
+     "Peter Onions's similar 1783 patent"
+    ]
+   },
+   {
+    "sourceId": "MAT2-009",
+    "claims": [
+     "origin of the rolling idea contested"
+    ]
+   }
+  ],
+  "uncertainty": "Cort built on earlier work (Peter Onions patented a similar process in 1783), and a claim that he took the rolling idea from a Jamaican foundry is contested. Sources date full commercial use at Cyfarthfa from about 1786 to the 1790s; his process at first suited white rather than grey pig iron.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+   "notes": "Corroborated: Cort's 1783 and 1784 patents, reverberatory furnace, stirring to oxidise carbon, grooved rolls, Welsh (Cyfarthfa) adoption. General knowledge, not corroborated by search: that the flame, not the fuel, touched the metal; 'shingled' (hammering of the puddled ball); 'without charcoal' (coal firing)."
+  },
+  "mechanicLink": "Realized today (class B): completing it supplies the supporting fact age:a8_iron to AgeTransitionSystem's Age 8 milestone. Prerequisites coke AND steam_rotary; prerequisite of bessemer, railway, iron_hull, rifled_artillery and steam_high_pressure."
+ },
+ {
+  "id": "hot_blast",
+  "tree": "technology",
+  "description": "Hot blast means preheating the air blown into a blast furnace. James Beaumont Neilson, manager of the Glasgow gas works, patented the idea in 1828. Heating the air to about 300 degrees Fahrenheit cut coal per ton of iron by over a third in one reported case, allowed raw coal instead of coke, and made Scotland's blackband ironstone worth smelting.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "MAT2-010",
+    "claims": [
+     "1828 patent",
+     "about 300 F; 8.06 to 5.16 tons of coal per ton of iron",
+     "raw coal instead of coke",
+     "Botfield priority claim"
+    ]
+   },
+   {
+    "sourceId": "MAT2-011",
+    "claims": [
+     "Neilson manager at the Glasgow gas works",
+     "blackband ironstone usable; rapid adoption in west Scotland"
+    ]
+   },
+   {
+    "sourceId": "MAT2-012",
+    "claims": [
+     "significance for fuel economy"
+    ]
+   }
+  ],
+  "uncertainty": "Thomas Botfield's patent of January 1828 gives him a historical claim; Neilson is credited partly because he won patent litigation (notably against the Bairds of Gartsherrie, 1843). Where Neilson's first trials took place (Wilsontown or Clyde Iron Works) is reported differently. Fuel savings varied by works.",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+   "notes": "All claims (definition, Neilson's post, 1828 patent, temperature and fuel figures, raw coal, blackband ironstone) matched search summaries; the fuel figure rests mainly on a Wikipedia summary consistent with the other results."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); records iron smelting on poorer coal. Prerequisite coke; prerequisite of open_hearth."
+ },
+ {
+  "id": "bessemer",
+  "tree": "technology",
+  "description": "The Bessemer process made steel by blowing air through molten pig iron in a tilting vessel; burning out carbon and silicon released enough heat to keep the charge liquid without added fuel. Henry Bessemer described it at Cheltenham in August 1856, while William Kelly reached a similar idea independently in the United States. It made bulk steel far cheaper.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "MAT2-013",
+    "claims": [
+     "Cheltenham, British Association, August 1856",
+     "air blown through molten pig iron removes impurities and heats the metal",
+     "Kelly's independent US work and 1857 patent"
+    ]
+   }
+  ],
+  "uncertainty": "Kelly's priority is debated; he received a US patent in 1857, a year after Bessemer's English patent. Early Bessemer steel suffered where ores contained phosphorus (see basic_process). The day of the Cheltenham paper is given variously (11 or 24 August 1856).",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+   "notes": "Corroborated: Cheltenham August 1856, air blown through molten pig iron heating it, Kelly's independent work. General knowledge, not corroborated by search: the tilting vessel, silicon as a heat source, no added fuel, and the cost reduction of bulk steel."
+  },
+  "mechanicLink": "Grants building.steelworks (class J), which no system yet realizes, so it has no current effect (deferred owner ConstructionSystem); records steel rails, structural steel and steel ships. Prerequisite puddling; prerequisite of open_hearth, basic_process, reinforced_concrete and skyscraper."
+ },
+ {
+  "id": "open_hearth",
+  "tree": "technology",
+  "description": "Open-hearth steelmaking melted pig iron with scrap and ore in a shallow hearth heated by Carl Wilhelm Siemens's regenerative furnace, which used waste heat to preheat gas and air. Pierre-Émile Martin first made steel this way at Sireuil, France, in 1864-65. Slower than a converter, it let steelmakers sample and adjust each charge, and it consumed scrap.",
+  "wordCount": 57,
+  "sources": [
+   {
+    "sourceId": "MAT2-014",
+    "claims": [
+     "Siemens regenerative furnace preheating gas and air",
+     "Martins first made steel with it in 1864",
+     "rise from the late 1860s"
+    ]
+   },
+   {
+    "sourceId": "MAT2-015",
+    "claims": [
+     "Sireuil, 1865"
+    ]
+   }
+  ],
+  "uncertainty": "Martin's first steel is dated 1864 (Britannica) or 1865 (other sources); credit was later shared between Siemens and Martin, hence 'Siemens-Martin'. The process spread from the late 1860s.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+   "notes": "Corroborated: Siemens regenerative furnace, Martin at Sireuil, 1864-65 dating. General knowledge, not corroborated by search: shallow hearth, charge of pig iron with scrap and ore, slower than a converter, sampling and adjusting the charge."
+  },
+  "mechanicLink": "Also grants building.steelworks (class J, not yet realized; deferred owner ConstructionSystem); records quality steel and scrap recycling. Prerequisites bessemer AND hot_blast; prerequisite of diesel, haber_bosch, steam_turbine and superalloy."
+ },
+ {
+  "id": "basic_process",
+  "tree": "technology",
+  "description": "Acid-lined converters could not remove phosphorus, which made steel brittle. Sidney Gilchrist Thomas and his cousin Percy Gilchrist, experimenting at Blaenavon in Wales, lined the converter with basic material such as lime, which drew phosphorus into the slag. Announced in 1878, the method opened phosphoric ores in Lorraine and elsewhere, and its slag was sold as fertiliser.",
+  "wordCount": 57,
+  "sources": [
+   {
+    "sourceId": "MAT2-016",
+    "claims": [
+     "Thomas and Gilchrist at Blaenavon",
+     "basic (lime) lining took phosphorus into slag",
+     "announced 1878, paper 1879"
+    ]
+   },
+   {
+    "sourceId": "MAT2-017",
+    "claims": [
+     "phosphoric ore deposits made usable; value on the Continent"
+    ]
+   },
+   {
+    "sourceId": "MAT2-018",
+    "claims": [
+     "growth of Lorraine steel",
+     "slag sold as fertiliser (Thomas meal)"
+    ]
+   }
+  ],
+  "uncertainty": "The 1878 announcement drew little notice and the formal paper was read in May 1879. The process was later displaced by open-hearth and other methods and had disappeared by the mid-1960s.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+   "notes": "Corroborated: Thomas and Gilchrist, Blaenavon, basic lining, phosphorus to slag, 1878, phosphoric ores and Lorraine, fertiliser slag. General knowledge, not corroborated by search: that phosphorus makes steel brittle and that earlier converters were acid-lined."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); records steel from phosphoric ores. Prerequisite bessemer; prerequisite of tank."
+ },
+ {
+  "id": "portland_cement",
+  "tree": "technology",
+  "description": "Portland cement is made by burning limestone or chalk with clay into clinker and grinding it to a powder that hardens with water. Joseph Aspdin patented the name in 1824, after Portland stone, but his product was probably underburned. Firing at much higher temperatures, as Isaac Charles Johnson did around 1845-50, produced the stronger modern material.",
+  "wordCount": 56,
+  "sources": [
+   {
+    "sourceId": "MAT2-019",
+    "claims": [
+     "Aspdin's 1824 patent and name from Portland stone",
+     "product probably too lightly burned",
+     "William Aspdin and clinker"
+    ]
+   },
+   {
+    "sourceId": "MAT2-020",
+    "claims": [
+     "Johnson's prototype about 1850"
+    ]
+   },
+   {
+    "sourceId": "MAT2-021",
+    "claims": [
+     "Johnson fired chalk and clay at 1400-1500 C, c. 1845"
+    ]
+   }
+  ],
+  "uncertainty": "Who made the first true portland cement is disputed between the Aspdins (Joseph's patent, William's clinker) and Johnson; Johnson's work is dated 1845 locally and about 1850 by Britannica.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+   "notes": "Corroborated: 1824 patent, Portland stone name, underburning, Johnson's higher-temperature clinker and its dating range. General knowledge, not corroborated by search: the generic manufacturing description (limestone or chalk with clay, ground clinker, hardening with water)."
+  },
+  "mechanicLink": "Grants building.cement_works (class J), not yet realized (deferred owner ConstructionSystem); records concrete in general use. Prerequisites concrete_pozzolan, kiln_updraft and chemistry_quantitative; prerequisite of reinforced_concrete."
+ },
+ {
+  "id": "metallography",
+  "tree": "technology",
+  "description": "Metallography studies the inner structure of metals. From 1863 to 1865 Henry Clifton Sorby of Sheffield polished and etched steel and examined it under reflected-light microscopes, revealing distinct constituents. By about 1900 Roberts-Austen and Bakhuis Roozeboom had drawn the iron-carbon diagram, explaining hardening and tempering that smiths had long practised without knowing why.",
+  "wordCount": 53,
+  "sources": [
+   {
+    "sourceId": "MAT2-022",
+    "claims": [
+     "Sorby's researches 1863-65: polished and etched specimens, reflected-light microscopy"
+    ]
+   },
+   {
+    "sourceId": "MAT2-023",
+    "claims": [
+     "Roberts-Austen's diagrams 1897 and 1899; Roozeboom's phase-rule diagram c. 1900"
+    ]
+   }
+  ],
+  "uncertainty": "Sorby's results were fully published only in 1886-87, and others (Martens, Osmond, Le Chatelier) developed the field in parallel; Widmanstatten had etched meteoritic iron earlier. Some 1897 diagrams by others are also claimed to precede Roberts-Austen's.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+   "notes": "Corroborated: Sorby 1863-65, polishing, etching, reflected-light microscopy; Roberts-Austen and Roozeboom diagram by about 1900. General knowledge, not corroborated by search: Sorby's Sheffield base, and that the diagram explains hardening and tempering practised long before."
+  },
+  "mechanicLink": "PROPOSED new science node with no current effect beyond its completion row; prerequisites microscope AND chemistry_quantitative; its only dependant is superalloy, and no steelmaking node requires it."
+ },
+ {
+  "id": "aluminium",
+  "tree": "technology",
+  "description": "Aluminium is abundant in rocks but bound tightly to oxygen, so the metal was long a costly rarity. In 1886 Charles Martin Hall in the United States and Paul Héroult in France independently found that alumina dissolved in molten cryolite could be split by electric current. With Karl Josef Bayer's cheaper alumina from bauxite (1888-89), prices fell steeply.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "MAT2-024",
+    "claims": [
+     "independent 1886 patents; alumina in molten cryolite electrolysed",
+     "Bayer process 1889 (or 1888)"
+    ]
+   },
+   {
+    "sourceId": "MAT2-025",
+    "claims": [
+     "Hall's samples and patent application, 1886"
+    ]
+   },
+   {
+    "sourceId": "MAT2-026",
+    "claims": [
+     "price fell about 80 percent by 1890 versus 1854",
+     "Bayer's cheaper alumina began cheap aluminium"
+    ]
+   }
+  ],
+  "uncertainty": "The Bayer process is dated 1888 or 1889; price figures differ by source and baseline. Earlier chemical routes (Deville, 1850s) had already made small amounts of aluminium.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+   "notes": "Corroborated: Hall and Heroult 1886, independent work, cryolite electrolysis, Bayer process and price fall. General knowledge, not corroborated by search: aluminium's abundance and strong bond to oxygen as the reason for its early cost."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); PROPOSED rewire makes it require electricity_generation AND soda_leblanc (industrial alkali for alumina); prerequisite of aircraft_metal, rocket and graphite_reactor; bauxite identification belongs to another lane."
+ },
+ {
+  "id": "superalloy",
+  "tree": "technology",
+  "description": "Superalloys are nickel-based alloys that keep their strength when red-hot and under stress. Patents from 1929 showed that titanium and aluminium could form tiny strengthening particles in nickel-chromium. After a British government request in 1939, Mond Nickel tested over a thousand experimental alloys; Nimonic 80, introduced in 1941, became the standard turbine-blade alloy of British gas turbines.",
+  "wordCount": 57,
+  "sources": [
+   {
+    "sourceId": "MAT2-028",
+    "claims": [
+     "1929 Pilling and Merica precipitation-hardening patents"
+    ]
+   },
+   {
+    "sourceId": "MAT2-029",
+    "claims": [
+     "titanium and aluminium form the strengthening gamma-prime precipitate"
+    ]
+   },
+   {
+    "sourceId": "MAT2-027",
+    "claims": [
+     "1939 government request; over 1,000 alloys; Nimonic 80 in 1941; standard rotor-blade alloy of British gas turbines"
+    ]
+   }
+  ],
+  "uncertainty": "Accounts differ on which early Nimonic alloy first solved turbine-blade failures and on the date of the improved Nimonic 80A. Cobalt- and iron-based high-temperature alloys were developed in parallel, notably in the United States.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+   "notes": "Corroborated: 1929 patents, titanium and aluminium precipitates, 1939 request, over 1,000 alloys, Nimonic 80 in 1941 as standard blade alloy. General knowledge, not corroborated by search: the generic definition and the parallel US cobalt-based alloys named in uncertainty."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); PROPOSED rewire onto open_hearth AND metallography; dependants gas_turbine_power and jet_airliner, deliberately not jet_engine, since the first jet engines predate Nimonic 80."
+ },
+ {
+  "id": "composites",
+  "tree": "technology",
+  "description": "Composite materials embed strong fibres in a resin so that each covers the other's weakness. A US patent for making glass fibres with air jets was sought in 1933, and glass fibre was paired with new plastic resins from 1936. In 1963 Britain's Royal Aircraft Establishment developed strong carbon fibre, later used in airframes and turbine blades.",
+  "wordCount": 57,
+  "sources": [
+   {
+    "sourceId": "MAT2-030",
+    "claims": [
+     "glass fibres made with compressed air, patent applied for 1933",
+     "Fiberglas and du Pont resin, 1936"
+    ]
+   },
+   {
+    "sourceId": "MAT2-031",
+    "claims": [
+     "1963 high-strength carbon fibre at the Royal Aircraft Establishment, Farnborough"
+    ]
+   }
+  ],
+  "uncertainty": "Owens-Corning's founding is dated 1935 or 1938. Carbon fibres were made earlier (Union Carbide 1958; rayon process 1960), and Japanese work on PAN-based fibre in the same period is also credited; the 1963 date marks high strength, not first fibre.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+   "notes": "Corroborated (Wikipedia summaries only, consistent with commercial history pages in the same results): 1933 glass-fibre patent application, 1936 resin, 1963 RAE carbon fibre. Not corroborated: the definition of a composite, later use in airframes and turbine blades, and the Japanese PAN work named in uncertainty (search returned nothing on it)."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); records light strong structures, turbine blades and airframes. Prerequisite plastics; prerequisite of reusable_launch, stealth and wind_turbine_modern; one node covers both glass- and carbon-fibre composites."
+ },
+ {
+  "id": "nanotechnology",
+  "tree": "technology",
+  "description": "Nanoscale engineering works with structures roughly 1 to 100 nanometres across, where surface and quantum effects change how materials behave. The scanning tunnelling microscope, built at IBM Zurich in 1981, made single atoms visible; in 1989 IBM researchers moved xenon atoms to spell the company's initials. Fullerenes (1985) and carbon nanotubes (1991) followed as new carbon forms.",
+  "wordCount": 57,
+  "sources": [
+   {
+    "sourceId": "MAT2-032",
+    "claims": [
+     "STM introduced at IBM, 1981; 1986 Nobel Prize"
+    ]
+   },
+   {
+    "sourceId": "MAT2-033",
+    "claims": [
+     "1989 xenon atoms spelling IBM"
+    ]
+   },
+   {
+    "sourceId": "MAT2-034",
+    "claims": [
+     "fullerenes 1985; carbon nanotubes 1991"
+    ]
+   }
+  ],
+  "uncertainty": "The STM is dated 1981 or 1982. Tubular carbon was observed before Iijima's 1991 report. The 1-100 nm definition is a convention, and the node also bundles sub-100 nm chip fabrication, which this text does not describe.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+   "notes": "Corroborated: STM 1981 at IBM, 1989 xenon atoms, fullerenes 1985, nanotubes 1991. General knowledge, not corroborated by search: the 1-100 nm convention and that surface and quantum effects change material behaviour at that scale; Zurich as the STM site rests on the search summary of other results."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); bundles nanomaterials and sub-100 nm fabrication. Prerequisites cmos_vlsi AND quantum_mechanics; sole dependant frontier_materials."
+ },
+ {
+  "id": "asteroid_mining",
+  "tree": "technology",
+  "description": "Asteroid mining is the proposed extraction of water, metals or other materials from asteroids, for use in space or on Earth. It has not yet been done. Robotic missions have returned only small samples, such as Japan's Hayabusa2 from asteroid Ryugu in 2020. Two firms founded to pursue it, Planetary Resources and Deep Space Industries, were sold in 2018-19.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "MAT2-035",
+    "claims": [
+     "Hayabusa2 returned Ryugu samples"
+    ]
+   },
+   {
+    "sourceId": "MAT2-036",
+    "claims": [
+     "Planetary Resources and Deep Space Industries sold 2018-19; plans on hold"
+    ]
+   },
+   {
+    "sourceId": "MAT2-037",
+    "claims": [
+     "Bradford acquired Deep Space Industries, 2019"
+    ]
+   }
+  ],
+  "uncertainty": "Speculative: feasibility, costs and legal ownership of extracted resources are unsettled. The 2020 return date for Hayabusa2 is from mission plans and JAXA reporting; NASA's OSIRIS-REx also returned a Bennu sample (2023), not corroborated in this session's search results.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+   "notes": "Corroborated: Hayabusa2 Ryugu sample return, sale of both firms in 2018-19, plans shelved. General knowledge, not corroborated by search: the definition (water, metals; use in space or on Earth) and that no commercial extraction has taken place."
+  },
+  "mechanicLink": "Speculative knowledge-only node (class C, no simulated effect) with no dependant and no owner in any planned milestone; prerequisites reusable_launch AND space_probe."
+ },
+ {
+  "id": "frontier_materials",
+  "tree": "technology",
+  "description": "Materials science studies how a material's structure, from atoms to grains, governs its properties, and how processing changes that structure. It took shape as a discipline in the 1950s, when Northwestern University broadened metallurgy into a department renamed materials science in 1958-59. Recent programmes, such as the US Materials Genome Initiative (2011), pair computation with experiment.",
+  "wordCount": 56,
+  "sources": [
+   {
+    "sourceId": "MAT2-038",
+    "claims": [
+     "Northwestern metallurgy department (1955) became the first Department of Materials Science (1958)"
+    ]
+   },
+   {
+    "sourceId": "MAT2-039",
+    "claims": [
+     "renamed materials science in January 1959"
+    ]
+   },
+   {
+    "sourceId": "MAT2-040",
+    "claims": [
+     "Materials Genome Initiative announced 24 June 2011 to speed new materials"
+    ]
+   }
+  ],
+  "uncertainty": "Northwestern's claim to the first such department is its own; the renaming is dated 1958 or 1959. The field drew together metallurgy, ceramics, polymer science and solid-state physics in several countries at once.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+   "notes": "Corroborated: Northwestern dates, Materials Genome Initiative 2011 and aim. General knowledge, not corroborated by search: the definition of the discipline (structure, properties, processing), that Genome Initiative work pairs computation with experiment, and the multi-field origins in uncertainty."
+  },
+  "mechanicLink": "Repeatable science node: today it completes once with no effect, available only after every finite engineering node; PROPOSED (deferred, D-046) each level would lower construction material input, closing a fixed fraction of the gap to a physical limit."
+ }
+]

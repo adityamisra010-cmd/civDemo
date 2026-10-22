@@ -1,0 +1,691 @@
+[
+ {
+  "id": "cordage",
+  "tree": "technology",
+  "description": "Cordage is made by twisting plant or animal fibres into strands, then plying strands in the opposite direction. The oldest direct find is a tiny three-ply cord, probably of inner-bark fibre, on a Neanderthal stone tool at Abri du Maras, France, roughly 41,000 to 52,000 years old. Lashing, nets, snares and carrying depend on it.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Older cordage is inferred (hafting, beads, possible string-wear) but not directly preserved; the Abri du Maras date is a range and the fibre identification is probable, not certain.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: three-ply cord fragment on a stone tool at Abri du Maras attributed to Neanderthals; age about 41-52 kya; inner-bark fibre identification."
+  },
+  "mechanicLink": "Knowledge-only node (unlock-audit class C): records binding, snares, nets and carrying with no current effect; root of the textile family with eleven dependants, allocation-scenario key 12 unchanged."
+ },
+ {
+  "id": "basketry",
+  "tree": "technology",
+  "description": "Basketry interlaces stiff plant materials by twining, coiling or plaiting into containers, mats, sieves and fish traps. Fibres rarely survive, so early evidence is often indirect: twined impressions on fired clay at Pavlov and Dolní Věstonice, Czech Republic, about 27,000 years old. Dry Guitarrero Cave in Peru preserved twined plant artefacts roughly 12,000 to 10,000 years old.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Basketry is almost certainly older than its surviving evidence; whether the Pavlov and Dolni Vestonice impressions are basketry or textile is debated, and the Guitarrero Cave dates have been revised (direct dating places some items near 12,000 years ago).",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Pavlov and Dolni Vestonice impressions about 27 kya and their interpretation; Guitarrero Cave twined artefacts and their direct dates."
+  },
+  "mechanicLink": "PROPOSED deferred realization (T6.11 tier C): grants the fish weir (infra.fish_weir), a built structure that would add a bounded term to fish extraction where a fish deposit exists; knowledge-only until then, and gates pottery_open_fired and papyrus."
+ },
+ {
+  "id": "shelter_hut",
+  "tree": "technology",
+  "description": "A framed hut uses posts, poles or large bones as a skeleton, covered with hides, brush or turf, giving shelter that can be reoccupied across seasons. Hut traces at Dolní Věstonice in Moravia date to about 26,000 years ago; on the Ukrainian plain, the Mezhyrich dwellings of interlocked mammoth bones are later, roughly 15,000 years old.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "The proposal's emerged field pairs Mezhirich with about 25 kya; published dates for Mezhyrich mostly fall near 15,000 years ago (older estimates exist). Much older shelters have been claimed (e.g., Terra Amata) but are disputed.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Dolni Vestonice hut remains about 26 kya; Mezhyrich mammoth-bone dwellings about 15 kya; whether the emerged field's ~25 kya for Mezhirich should be corrected."
+  },
+  "mechanicLink": "Knowledge-only node (unlock-audit class C): records multi-season occupation with no current effect (basic shelter exists without it, D-047); prerequisite of timber_frame, allocation-scenario key 17 unchanged."
+ },
+ {
+  "id": "hide_working",
+  "tree": "technology",
+  "description": "Hide working turns raw skins into durable leather or fur by scraping away flesh and fat, then drying, stretching and softening them, sometimes with fat or smoke. Stone scrapers with hide-use wear, and specialised bone tools in Africa and Europe, show the practice by at least 100,000 years ago. Hides gave clothing, containers and tent covers.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Hide processing is inferred from tool wear and tool form; its earliest date is open, and whether ochre was used as a tanning agent or for other purposes is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: scraper use-wear and specialised bone hide tools (e.g., Contrebandiers Cave, Morocco; Neanderthal lissoirs, France) dated about 120-50 kya; the at-least-100-kya framing."
+  },
+  "mechanicLink": "Knowledge-only node (unlock-audit class C): records clothing, containers and shelter covering with no current effect; prerequisite of five nodes (bellows, collar_harness, saddle, sewing, siege_ram)."
+ },
+ {
+  "id": "sewing",
+  "tree": "technology",
+  "description": "An eyed needle draws thread through holes in hide or cloth, joining pieces into close-fitting garments and bags; earlier awls only punched lacing holes. A bone needle from Denisova Cave, Siberia, is often dated to roughly 50,000 years ago, and eyed needles were widespread in Eurasia by roughly 25,000 years ago. Tailored clothing eased life in the cold.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "The Denisova Cave needle's age and maker (Denisovan or modern human) are debated; eyed needles appear at different times in Siberia, China and Europe.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Denisova Cave bone needle about 50 kya; wide Eurasian use of eyed needles by about 25 kya; link of tailored clothing to cold-region settlement."
+  },
+  "mechanicLink": "Knowledge-only node: no current effect; PROPOSED (accepted) prerequisite of saddle and collar_harness (stitched leather), with a clothing good on the Comfort/Shelter ladder deferred to M10+."
+ },
+ {
+  "id": "wool",
+  "tree": "technology",
+  "description": "Wool is the fine, crimped underfleece of domestic sheep. Wild sheep carry mostly coarse hair, and the first herders in southwest Asia, about 11,000 years ago, kept sheep chiefly for meat and milk. Woolly breeds became economically important later, notably in fourth-millennium-BCE Mesopotamia. Spun fleece provided cloth without setting aside farmland for a fibre crop.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "When woolly fleece arose and spread is debated (estimates range across the fifth to third millennia BCE); evidence is indirect (kill-off patterns, texts, spindle whorls, rare textiles).",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: sheep domestication about 11 kya in southwest Asia; rise of woolly breeds in the fourth millennium BCE Mesopotamia; plucking before shearing."
+  },
+  "mechanicLink": "Knowledge-only node (unlock-audit class C): records wool fibre with no current effect; the animal branch of spinning_spindle's fibre alternative (flax OR wool OR cotton)."
+ },
+ {
+  "id": "mudbrick",
+  "tree": "technology",
+  "description": "Mudbrick is earth mixed with water and often straw or dung, shaped by hand or in moulds and dried in the sun. Hand-shaped bricks were used at Jericho by roughly 9,000 BCE, and Çatalhöyük in Anatolia was a dense mudbrick town by about 7,000 BCE. Cheap and insulating, mudbrick needs regular replastering; repeated rebuilding slowly raises settlement mounds.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Earliest mudbrick dates depend on the dating of Pre-Pottery Neolithic levels at Jericho and other Levantine sites; mould-made bricks are later than hand-shaped ones.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Jericho hand-shaped bricks by about 9,000 BCE; Catalhoyuk mudbrick town by about 7,000 BCE (proposal says ~7,500 BCE)."
+  },
+  "mechanicLink": "PROPOSED deferred realization: grants the city wall (building.city_wall), whose defensive effect waits for the M7 battle layer; prerequisite of fired_brick, kiln_updraft and arch."
+ },
+ {
+  "id": "lime_plaster",
+  "tree": "technology",
+  "description": "Lime plaster is made by burning limestone into quicklime, slaking it with water and applying the paste, which hardens as it reabsorbs carbon dioxide from the air. Late Natufian graves at Nahal Ein Gev II, Israel, about 12,000 years old, were lined with it. Later Neolithic villagers laid polished plaster floors and modelled the statues of 'Ain Ghazal, Jordan.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "The Nahal Ein Gev II plaster is dated by its Natufian context; how widespread early lime burning was, given its high fuel cost, is uncertain.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Nahal Ein Gev II burial plaster about 12 kya; PPNB plaster floors; 'Ain Ghazal plaster statues; lime cycle (calcination, slaking, recarbonation)."
+  },
+  "mechanicLink": "Knowledge-only node (class C): records waterproof floors, plastered walls and statuary with no current effect; PROPOSED prerequisite change to fire_making alone, and the prerequisite of concrete_pozzolan."
+ },
+ {
+  "id": "timber_frame",
+  "tree": "technology",
+  "description": "Timber-frame building sets heavy posts in the ground or on sills and links them with beams, so the frame rather than the walls carries the roof. Linear Pottery farmers in central Europe, from about 5,500 BCE, raised longhouses often over 20 metres long, with rows of internal posts and wattle-and-daub walls. Polished stone adzes shaped the timber.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Post-built houses are older and widespread; the Linear Pottery longhouse is one well-documented tradition, not the only origin. How many people one longhouse sheltered is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Linear Pottery (LBK) longhouses from about 5,500 BCE; lengths often over 20 m; internal post rows and wattle-and-daub walls; use of polished stone adzes."
+  },
+  "mechanicLink": "Knowledge-only node (unlock-audit class C): records large roofed spaces with no current effect; allocation-scenario key 52 unchanged, and PROPOSED prerequisite (OR route) of well and of canal_lock's timber gates."
+ },
+ {
+  "id": "stone_dry",
+  "tree": "technology",
+  "description": "Dry-stone construction builds walls from unmortared stones held in place by their weight, shape and careful placement. Large-scale stone building is attested at Göbekli Tepe in southeastern Turkey from about 9,500 BCE. At Skara Brae in Orkney, about 3,000 BCE, houses, beds and dressers were built of stacked flagstone. Terraces and field walls use the same craft.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Göbekli Tepe's enclosure walls used earth or clay bedding, so it illustrates early stone building rather than strictly mortarless masonry; dry-stone walling has many independent regional traditions.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Gobekli Tepe from about 9,500 BCE and its wall construction; Skara Brae about 3,180-2,500 BCE with stone furniture."
+  },
+  "mechanicLink": "Realized today as one of the two prerequisites of the Built road class (infra.road_built with track_road), which roads build with stone and timber per km; the city wall and harbour it lists remain unbuildable (M7, M10+)."
+ },
+ {
+  "id": "well",
+  "tree": "technology",
+  "description": "A dug well reaches groundwater through a lined shaft, allowing settlement away from rivers and water in drought. Stone-lined wells are known from Neolithic Cyprus and from Atlit-Yam, a village now under the sea off Israel, roughly 10,500 to 8,300 years ago. Linear Pottery farmers in central Europe lined wells with split oak felled around 5,200 BCE.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "The proposal dates Atlit-Yam's well to ~8,000 BCE; published dates for the site cluster around 6,900-6,300 BCE, while Cypriot wells are older. Unlined wells may be older still.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Cypriot Neolithic wells (Kissonerga-Mylouthkia) and Atlit-Yam dates; Saxon LBK oak-lined wells felled 5206-5098 BCE."
+  },
+  "mechanicLink": "PROPOSED deferred realization (T6.11 tier A): a built well feeding a bounded water-supply term in the per-settlement health seam; PROPOSED prerequisite change to stone_dry OR timber_frame, and prerequisite of qanat."
+ },
+ {
+  "id": "spinning_spindle",
+  "tree": "technology",
+  "description": "Spinning twists short fibres into continuous, strong thread. A drop spindle is a stick weighted with a whorl of stone, clay or bone that keeps it turning while the spinner draws out flax, wool or cotton. Perforated whorls are common at Neolithic sites in southwest Asia and Europe by roughly 6,000 BCE. Spinning often took more labour than weaving.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Spinning by hand or thigh-rolling predates whorls and leaves little trace; some perforated discs identified as whorls may have had other uses.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: spindle whorls common by about 6,000 BCE; the relative labour of spinning versus weaving in pre-industrial textiles."
+  },
+  "mechanicLink": "Knowledge-only node (unlock-audit class C): records thread at volume with no current effect; requires cordage and a fibre (flax OR wool OR cotton), and gates loom_warp_weighted, spinning_wheel and dyeing."
+ },
+ {
+  "id": "loom_warp_weighted",
+  "tree": "technology",
+  "description": "The warp-weighted loom hangs vertical warp threads from a beam, kept taut by bunches of clay or stone weights; the weaver stands and beats each weft upward. Rows of fallen loom weights mark looms at Anatolian and European sites from about the sixth millennium BCE. It wove wide cloth, including sailcloth, and survived in Norway into the twentieth century.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Cloth such as Catalhoyuk's (about 7,000 BCE) may have been woven on other loom types; loom weights date the warp-weighted loom only where they are found in clear rows.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: loom weights from about the sixth millennium BCE; standing weaver beating weft upward; use for sailcloth; survival in Norway into the 20th century."
+  },
+  "mechanicLink": "PROPOSED deferred realization (T6.11 under D-M): grants the textile workshop institution, whose consumer would be capacity of the live weaving recipe; knowledge-only until then, and gates fulling_mill, horizontal_loom, sail_square and silk."
+ },
+ {
+  "id": "dyeing",
+  "tree": "technology",
+  "description": "Dyeing fixes colour to fibre, yarn or cloth. Indigo must be chemically reduced in a vat and then oxidises in the air; madder red binds best with a mordant such as alum. The oldest known indigo-dyed fabric, cotton from Huaca Prieta in Peru, is about 6,000 years old. Colour signalled status and made dyestuffs valuable trade goods.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Older dyed fibres have been claimed (e.g., coloured flax fibres from Dzudzuana Cave, Georgia, about 30,000 years old) but their dyeing is contested; dye traditions arose independently in many regions.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Huaca Prieta indigo-dyed cotton about 6,000 years old; vat chemistry of indigo; alum mordant with madder."
+  },
+  "mechanicLink": "Knowledge-only node: records coloured cloth and dye as a trade good with no current effect; PROPOSED prerequisite change to spinning_spindle AND ochre_processing, and prerequisite of synthetic_dye."
+ },
+ {
+  "id": "irrigation_basin",
+  "tree": "technology",
+  "description": "Basin irrigation encloses floodplain fields with earth banks so a river's seasonal flood can be let in, held for weeks to soak the soil and leave silt, then drained before sowing. In Egypt it grew from simpler flood-recession farming over the fourth and third millennia BCE. It gave one dependable crop a year, though failed floods still brought hunger.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The proposal dates it to ~5,000 BCE; how early Egyptian basins were artificial, and how far they were centrally organised, is debated. Similar flood farming developed on the Indus and elsewhere.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Egyptian basin system developing over the 4th-3rd millennia BCE; weeks-long inundation and drainage before sowing; one crop per year."
+  },
+  "mechanicLink": "PROPOSED deferred realization (T6.11 tier C): a built basin system adding a bounded term to Farming output on a seasonally flooding floodplain; PROPOSED widening to cereal_cultivation OR root_crop."
+ },
+ {
+  "id": "irrigation_canal",
+  "tree": "technology",
+  "description": "Canal irrigation leads river water through dug channels to fields beyond the reach of rain or flood. At Choga Mami in eastern Iraq, Samarran-period canals date to about 6,000 BCE. Comparable systems arose independently in the Andes and the American Southwest. Over centuries, evaporation from poorly drained fields can leave salt behind, as documented in southern Mesopotamia.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "The Choga Mami canal date rests on excavation in the 1960s; how far salinisation drove southern Mesopotamian crop shifts (wheat to barley) is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Choga Mami Samarran canals about 6,000 BCE; independent Andean and Hohokam canal systems; salinisation documented in southern Mesopotamia."
+  },
+  "mechanicLink": "PROPOSED deferred realization (T6.11 tier C): a canal network adding a bounded term to Farming arable extent or yield; PROPOSED widening to cereal_cultivation OR root_crop, and prerequisite of canal_lock and noria."
+ },
+ {
+  "id": "arch",
+  "tree": "technology",
+  "description": "A true arch is built from wedge-shaped bricks or stones, voussoirs, that press against one another and turn the load above into thrust on the supports, spanning gaps wider than a single lintel. Mesopotamian builders made mudbrick arches at Ur by about 2,000 BCE; stone voussoir arches appear in Etruscan city gates by about the fourth century BCE.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Early brick arches and vaults also appear in Egypt; the dates of Etruscan arched gates (e.g., Volterra, Perugia) are debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: mudbrick arches at Ur by about 2,000 BCE; Etruscan stone voussoir gates about the 4th-3rd centuries BCE."
+  },
+  "mechanicLink": "Knowledge-only node: records spans without lintels with no current effect; PROPOSED prerequisite change to mudbrick AND surveying, and prerequisite of aqueduct_arcade, bridge_stone, concrete_pozzolan and vault_dome."
+ },
+ {
+  "id": "silk",
+  "tree": "technology",
+  "description": "Sericulture raises domesticated silkworms on mulberry leaves and unwinds the continuous filament of their cocoons, softened in hot water, into thread. In China, silk fabric survives from at least the third millennium BCE, with earlier traces debated. Under the Han dynasty silk was made on a large scale and carried west along Asian trade routes; the craft itself spread slowly.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "The proposal's ~3,500 BCE is within the debated range; claims of silk residues several thousand years older exist. Wild silks were also used in South Asia independently.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: silk fabric from at least the third millennium BCE (e.g., Qianshanyang); Han-period scale of production and westward trade; slow spread of sericulture."
+  },
+  "mechanicLink": "Knowledge-only node (unlock-audit class C): records silk cloth with no current effect; PROPOSED as the causal input of the new drawloom, which leads on to jacquard."
+ },
+ {
+  "id": "ashlar_masonry",
+  "tree": "technology",
+  "description": "Ashlar masonry uses stone blocks dressed to flat faces and square edges, so they sit with thin, regular joints. Djoser's step pyramid at Saqqara, Egypt, about 2,650 BCE, is among the earliest large buildings in dressed stone. Greek temple builders refined the craft, and Inca masons in the Andes independently developed tightly fitted stonework in the fifteenth century CE.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Dressed stone was used in smaller works before Djoser; Egyptian chronology carries a margin of decades. Inca masonry is often polygonal rather than coursed ashlar.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Djoser step pyramid about 2,650 BCE as early large dressed-stone building; Greek temples; independent Inca fitted stonework in the 15th century CE."
+  },
+  "mechanicLink": "PROPOSED new node split from stone_fortification: civil dressed-stone building that makes the lighthouse knowledge-eligible (unbuildable until maritime routes exist, M10+) and serves as an alternative material for bridge_stone and vault_dome."
+ },
+ {
+  "id": "stone_fortification",
+  "tree": "technology",
+  "description": "Ashlar fortification applies dressed-stone building to defence: thick walls of heavy blocks that resist battering rams, towers projecting so defenders can shoot along the wall face, and gates built as defended passages. Late Bronze Age examples include the walls and gates of Hattusa, the Hittite capital, and the Lion Gate at Mycenae, both about the thirteenth century BCE.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Mycenaean 'Cyclopean' walls use huge, roughly shaped blocks, with ashlar mainly at gates; fortification traditions arose in many regions and periods.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Hattusa walls and gates about 14th-13th centuries BCE; Mycenae Lion Gate about 1,250 BCE; projecting towers for flanking fire."
+  },
+  "mechanicLink": "PROPOSED split part: the retained fortification node (ashlar_masonry AND surveying) grants the castle, whose defensive effect waits for the M7 battle layer, and gains trace_italienne as a dependant."
+ },
+ {
+  "id": "qanat",
+  "tree": "technology",
+  "description": "A qanat taps groundwater at the foot of hills and leads it through a gently sloping tunnel to fields and settlements downslope, without pumping. Diggers sink a line of vertical shafts for access, spoil removal and ventilation. Developed in Iran, probably during the first millennium BCE, qanats spread to North Africa, Spain and western China, and some still flow today.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Origins are debated: some scholars place early examples (aflaj) in southeastern Arabia around the same period or earlier; the proposal's ~800 BCE Persia is one estimate.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Iranian origin in the first millennium BCE versus Arabian aflaj; spread to North Africa, Spain and Turpan (karez); some still in use."
+  },
+  "mechanicLink": "PROPOSED deferred realization (T6.11 tier C): a qanat supplying irrigation and drinking water to an arid settlement through bounded Farming and water/health terms; its Eureka needs aquifer state that does not exist yet."
+ },
+ {
+  "id": "aqueduct_tunnel",
+  "tree": "technology",
+  "description": "A rock-cut water tunnel carries a spring or stream through a hill to a city, supplying it even when enemies hold the land outside. Jerusalem's Siloam tunnel, about 700 BCE, was cut from both ends; an inscription records the crews meeting. On Samos, the kilometre-long Tunnel of Eupalinos was also dug from two ends in the sixth century BCE.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The Siloam tunnel is traditionally linked to King Hezekiah; its dating has been discussed but most estimates fall near 700 BCE.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Siloam tunnel about 700 BCE dug from both ends with an inscription; Tunnel of Eupalinos about 1,036 m, 6th century BCE, dug from two ends."
+  },
+  "mechanicLink": "PROPOSED deferred realization (T6.11 tier C): one route to the aqueduct (infra.aqueduct), feeding the water/health coverage term; PROPOSED prerequisite change to mining_shaft AND surveying (no longer after the qanat)."
+ },
+ {
+  "id": "aqueduct_channel",
+  "tree": "technology",
+  "description": "An aqueduct channel is a built conduit that carries water by gravity over long distances, which requires surveying a slight, steady downward slope. To supply Nineveh, the Assyrian king Sennacherib built canals around 700 BCE, including a stone aqueduct bridge at Jerwan. A long canal attributed to the Urartian king Menua, of about 800 BCE, reflects another, earlier tradition.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Dates for Sennacherib's works range over roughly 703-690 BCE; the Menua (Shamiram) canal date rests on royal inscriptions.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Sennacherib's Nineveh water works and Jerwan aqueduct bridge around 700-690 BCE; Menua canal about 800 BCE."
+  },
+  "mechanicLink": "PROPOSED deferred realization (T6.11 tier C): a second route to the aqueduct (infra.aqueduct) for the water/health term; PROPOSED prerequisite change to surveying AND stone_dry, and prerequisite of aqueduct_arcade."
+ },
+ {
+  "id": "olive_press_beam",
+  "tree": "technology",
+  "description": "The beam press squeezes crushed olives with a long wooden lever: one end is anchored in a wall socket and the other is pulled down by heavy stones, multiplying the force on baskets of pulp below. At Tel Miqne-Ekron, a Philistine city, more than a hundred such installations produced oil for export in the seventh century BCE.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "The proposal dates the node to ~800 BCE; the Ekron industrial zone is usually dated to the seventh century BCE, and simpler beam presses are older in the Levant.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: about 115 oil installations at Tel Miqne-Ekron and their seventh-century-BCE date; lever-and-weight mechanism."
+  },
+  "mechanicLink": "Knowledge-only node (class C): records oil at export scale with no current effect; it is the knowledge condition of printing_press's evaluable Eureka (a press for wine or oil), not a prerequisite."
+ },
+ {
+  "id": "water_screw",
+  "tree": "technology",
+  "description": "The water screw is a helix of planks or tubing fixed inside an inclined cylinder; turning it lifts water from the lower end to the upper. Ancient writers credited Archimedes of Syracuse, of the third century BCE, though earlier origins have been proposed. It irrigated Egyptian fields and drained Roman mines, and its principle survives in modern pumps and conveyors.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "SCI-044",
+    "claims": [
+     "Archimedes of Syracuse lived about 287-212 BCE (third century BCE)"
+    ]
+   }
+  ],
+  "uncertainty": "Attribution to Archimedes comes from later writers; an earlier Assyrian use has been proposed but is debated.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Search budget exhausted at this lane's first query (2026-10-22) and WebFetch blocked; one claim compared with the summarized search result already recorded in a registered source (reused by id); the rest written from general knowledge.",
+   "notes": "Corroborated via registered SCI-044: Archimedes of Syracuse, third century BCE. Not corroborated: the attribution of the screw to him by ancient writers, the proposed earlier Assyrian origin, Egyptian irrigation and Roman mine drainage. Check first: attribution to Archimedes by later ancient writers; Egyptian irrigation and Roman mine drainage use; proposed earlier Assyrian origin."
+  },
+  "mechanicLink": "Knowledge-only node (unlock-audit class C): records lift irrigation and mine drainage with no current effect; prerequisite of screw_propeller."
+ },
+ {
+  "id": "noria",
+  "tree": "technology",
+  "description": "Water-lifting wheels raise water above a river or canal to fields beyond gravity's reach. The saqiya, an animal-driven geared wheel carrying a chain of pots, is attested in Ptolemaic Egypt by about the third century BCE. Wheels turned by the current, later called norias, were described by Roman writers; large medieval-origin examples still stand at Hama, Syria.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Dating of the saqiya and the current-driven noria is debated (third to first centuries BCE); the proposal dates the stream-driven wheel to ~100 CE.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: saqiya in Ptolemaic Egypt about the 3rd century BCE; current-driven wheels in Vitruvius (1st century BCE); Hama norias of medieval origin."
+  },
+  "mechanicLink": "Knowledge-only node: records irrigation above river level with no current effect; a justified dead end until an irrigation realization adds a lift term (T6.11 tier C or M10+)."
+ },
+ {
+  "id": "gearing",
+  "tree": "technology",
+  "description": "Gear trains pass rotation between toothed wheels, changing speed, force or direction. The Antikythera mechanism, a bronze device recovered from a shipwreck off a Greek island, used dozens of small gears to calculate positions of the sun and moon and to predict eclipses; it was built around the second or first century BCE. Right-angled gears drove Roman watermills.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "The mechanism's construction date is debated (estimates from about 200 to 60 BCE); geared devices were also made in Han China.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Antikythera mechanism: bronze, about 30 surviving gears, eclipse prediction, date range; Vitruvian right-angle mill gearing."
+  },
+  "mechanicLink": "Knowledge-only node (unlock-audit class C): records astronomical calculators and mill gearing with no current effect; prerequisite of astrolabe, crank_connecting_rod and escapement_verge."
+ },
+ {
+  "id": "vault_dome",
+  "tree": "technology",
+  "description": "Vaults and domes extend the arch into three dimensions: a barrel vault is a continuous arch, a dome an arch rotated about its centre. Roman builders cast them in concrete of lime and volcanic ash, as in the Pantheon's dome of about 125 CE. Hagia Sophia's brick dome followed in 537 CE; medieval masons built ribbed vaults of dressed stone.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "MAT1-054",
+    "claims": [
+     "Roman concrete combined lime with volcanic ash"
+    ]
+   }
+  ],
+  "uncertainty": "Corbelled 'domes' are much older; true vaults in mudbrick appear in Egypt and Mesopotamia long before Rome. The Pantheon's exact completion date is about 125-128 CE.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Search budget exhausted at this lane's first query (2026-10-22) and WebFetch blocked; one claim compared with the summarized search result already recorded in a registered source (reused by id); the rest written from general knowledge.",
+   "notes": "Corroborated via registered MAT1-054: Roman concrete made with lime and volcanic ash. Not corroborated: Pantheon date, Hagia Sophia 537 CE, rib vaults. Check first: Pantheon dome about 125 CE; Hagia Sophia brick dome 537 CE; medieval stone rib vaults."
+  },
+  "mechanicLink": "PROPOSED deferred realization: grants the sewer (T6.11 health term), the castle (M7) and the bathhouse (M9); PROPOSED material alternative arch AND (concrete_pozzolan OR fired_brick OR ashlar_masonry)."
+ },
+ {
+  "id": "bridge_stone",
+  "tree": "technology",
+  "description": "A stone arch bridge carries a road on masonry arches whose thrust rests on piers and on abutments in the banks. Rome's Pons Fabricius, built in 62 BCE, still carries pedestrians across the Tiber. China's Zhaozhou Bridge, finished around 605 CE, uses a flat segmental limestone arch with small open arches in its shoulders that lighten it and pass floodwater.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Earlier stone arch bridges may have existed (e.g., in the Hellenistic world); the Zhaozhou Bridge is dated about 595-605 CE and attributed to Li Chun.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Pons Fabricius 62 BCE and present use; Zhaozhou Bridge about 595-605 CE, segmental arch with open spandrels."
+  },
+  "mechanicLink": "PROPOSED deferred realization: grants the bridge (infra.bridge), a road-network change owned by the unscheduled transport packet (DW-059, M10+); PROPOSED material alternative arch AND (concrete_pozzolan OR ashlar_masonry)."
+ },
+ {
+  "id": "aqueduct_arcade",
+  "tree": "technology",
+  "description": "An arcaded aqueduct keeps a water channel on its gentle gradient across valleys by raising it on tiers of arches. Rome's first aqueduct, the Aqua Appia of 312 BCE, ran almost entirely underground; the Aqua Marcia, begun in 144 BCE, carried water on long arcades. By the early third century CE, eleven aqueducts supplied the city's fountains, baths and houses.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Counts of Rome's aqueducts vary with whether branches are included (usually eleven major lines).",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Aqua Appia 312 BCE mostly underground; Aqua Marcia 144 BCE with long arcades; eleven aqueducts by the early 3rd century CE."
+  },
+  "mechanicLink": "PROPOSED deferred realization: the third route to the aqueduct (T6.11 water/health term) plus the bathhouse (M9); PROPOSED prerequisite simplification to aqueduct_channel AND arch."
+ },
+ {
+  "id": "horizontal_loom",
+  "tree": "technology",
+  "description": "The horizontal treadle loom lets the weaver's feet raise and lower sets of warp threads through cords and levers, freeing both hands to pass the shuttle and beat in the weft. Loom models from a Han-dynasty tomb at Laoguanshan, Chengdu, date to about 150 BCE. In Europe, eleventh-century loom parts mark its arrival as the professional weaver's tool.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Treadle looms may have developed earlier in China; the route by which they reached the Islamic world and Europe is uncertain.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Laoguanshan tomb loom models about 150 BCE; 11th-century European loom parts (Haithabu, Gdansk, Novgorod)."
+  },
+  "mechanicLink": "Knowledge-only node: records professional weaving with no current effect; PROPOSED move to the Main Trunk and re-dating to A5 with its gearing prerequisite removed, prerequisite of flying_shuttle and drawloom."
+ },
+ {
+  "id": "drawloom",
+  "tree": "technology",
+  "description": "A pattern loom stores a woven design in its harness: warp threads are tied to cords grouped so each pattern row can be lifted in turn by an assistant. Han-dynasty loom models from Laoguanshan, about 150 BCE, show early Chinese pattern looms for figured silk. Drawlooms later wove figured silks in Persia, Byzantium and Italy, until French inventors automated them.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Whether the Laoguanshan models are drawlooms or multi-shaft pattern looms is debated; the developed drawloom is usually dated to Tang China (by about 700 CE).",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Laoguanshan pattern-loom models about 150 BCE; later Persian, Byzantine and Italian figured silks; automation by Bouchon, Falcon, Vaucanson and Jacquard (1725-1804)."
+  },
+  "mechanicLink": "PROPOSED new knowledge-only node: the first dependant of silk and the prerequisite of jacquard; a figured-textile good is deferred to M10+."
+ },
+ {
+  "id": "fulling_mill",
+  "tree": "technology",
+  "description": "Fulling cleans and thickens woven wool by pounding it wet, often with fuller's earth, so the fibres felt together. Once done by trampling, it was mechanised with water-driven hammers lifted by cams on a wheel shaft; such mills are recorded in Europe by about the eleventh century. They drew some cloth-making toward fast streams, though how much is debated.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Earliest documentary mentions (tenth-century Italy) are disputed; the idea of a thirteenth-century English 'industrial revolution' driven by fulling mills has been questioned.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: water-powered fulling mills in Europe by about the 11th century; cam-lifted hammers; debate on relocation of English cloth-making."
+  },
+  "mechanicLink": "PROPOSED deferred realization (T6.11 tier D): grants the fulling mill, a per-building capacity term on the live weaving recipe that needs a river; PROPOSED move to the Main Trunk."
+ },
+ {
+  "id": "spinning_wheel",
+  "tree": "technology",
+  "description": "The spinning wheel turns the spindle with a hand-driven wheel and band, spinning much faster than a hand spindle, although early wheels made the spinner alternate twisting and winding. It probably originated in India, China or the Islamic world late in the first millennium CE and reached Europe by the thirteenth century. A later flyer allowed continuous spinning.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "The place of origin is debated (India, China or the Islamic world); the flyer is documented in Europe from the fifteenth century.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: origin late first millennium CE in South or East Asia or the Islamic world; Europe by the 13th century; flyer later."
+  },
+  "mechanicLink": "Knowledge-only node: records thread supply keeping pace with looms with no current effect; PROPOSED move to the Main Trunk, prerequisite of spinning_jenny and water_frame."
+ },
+ {
+  "id": "cotton_gin_roller",
+  "tree": "technology",
+  "description": "A roller gin separates cotton fibre from seed by drawing lint through a narrow gap, first between a roller and a flat stone, later between two counter-rotating rollers, while the seeds are held back. It was in use in India by around the middle of the first millennium CE. Sticky-seeded short-staple cottons resisted it until the saw gin of 1793.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "The earliest dating relies partly on artistic depictions; when the geared two-roller form appeared (perhaps the 13th-16th centuries) is uncertain.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Indian roller gin by about the 5th-6th century CE; single-roller then two-roller forms; Whitney's saw gin 1793 for short-staple upland cotton."
+  },
+  "mechanicLink": "Knowledge-only node: records cotton as a mass fibre with no current effect; PROPOSED move to the Main Trunk with prerequisite wheel_solid AND cotton_cultivation, prerequisite of cotton_gin_saw."
+ },
+ {
+  "id": "crank_connecting_rod",
+  "tree": "technology",
+  "description": "A crank and connecting rod convert rotation into back-and-forth motion, or the reverse. A relief on a third-century-CE tomb at Hierapolis, in western Turkey, shows a waterwheel driving two stone-cutting saws in this way, and remains of similar Roman saws survive at Gerasa and Ephesus. Medieval European millwrights used it widely from about 1400, later in pumps, bellows and engines.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Hand cranks are attested earlier in Han China (e.g., on winnowing-fan models); the Hierapolis interpretation is widely but not universally accepted.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Hierapolis sawmill relief, 3rd century CE; Gerasa and Ephesus sawmills; general European use about 1400."
+  },
+  "mechanicLink": "Knowledge-only node: records sawmills, pumps and bellows with no current effect; PROPOSED move to the Main Trunk, on the A8 core closure through steam_rotary."
+ },
+ {
+  "id": "escapement_verge",
+  "tree": "technology",
+  "description": "An escapement lets a weight-driven gear train advance in small, regular steps. In the verge-and-foliot, a crown wheel pushes alternately against two pallets on a rod carrying a swinging weighted bar. It appeared in European tower clocks in the late thirteenth century, inventor unknown, making equal hours practical. Su Song's 1092 clock tower in China used a water-driven escapement.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "No surviving clock or text fixes the first verge escapement; dates in the 1270s-1300s are inferred from records of new clocks.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: verge-and-foliot mechanism; European appearance in the late 13th century; Su Song's Kaifeng clock tower 1088-1092 with water-driven escapement."
+  },
+  "mechanicLink": "Knowledge-only node: records uniform hours and precision mechanism craft with no current effect; PROPOSED prerequisite change to gearing AND water_clock, prerequisite of longitude_problem, slide_rest_lathe and wheellock."
+ },
+ {
+  "id": "canal_lock",
+  "tree": "technology",
+  "description": "A pound lock is a chamber between two gates in which boats are raised or lowered by filling or emptying it. Chinese records credit the official Qiao Weiyue with building one on the Grand Canal system in 984 CE, replacing dangerous double slipways. In Europe, pound locks appear in the Low Countries and Italy from the late fourteenth century.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Earlier Chinese gate systems (flash locks) are much older; the identity of the first European pound lock (e.g., Vreeswijk 1373) is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Qiao Weiyue's pound lock 984 CE replacing double slipways; European pound locks from the late 14th century."
+  },
+  "mechanicLink": "Knowledge-only node: records navigable canals over hills with no current effect; PROPOSED move to the Main Trunk with prerequisite irrigation_canal AND timber_frame, prerequisite of canal_navigation."
+ },
+ {
+  "id": "type_founding",
+  "tree": "technology",
+  "description": "Type founding casts many identical metal letters. Each letter is cut in relief on a hard punch, struck into a softer copper matrix, and the matrix fitted into an adjustable hand mould for pouring molten alloy. Johannes Gutenberg developed this system in Strasbourg and Mainz around the 1440s. Earlier movable type in China and Korea was made by other methods.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Gutenberg's exact methods and alloy are reconstructed from later practice and analysis of early type; the role of punches versus sand casting in his earliest type is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: punch, matrix and adjustable hand mould; Gutenberg in Strasbourg and Mainz in the 1440s; Bi Sheng ceramic type (11th century) and Korean bronze type (e.g., Jikji 1377)."
+  },
+  "mechanicLink": "Knowledge-only node: records standardised parts and the hand mould with no current effect; PROPOSED re-pointing to casting_closed and becoming a prerequisite of printing_press (accepted by D05)."
+ },
+ {
+  "id": "canal_navigation",
+  "tree": "technology",
+  "description": "A navigation canal is a built waterway for freight boats, often crossing a watershed with locks and with reservoirs that feed water to its summit level. France's Canal du Midi, opened in 1681, joined the Atlantic and Mediterranean by way of the Garonne. England's Bridgewater Canal of 1761 carried coal to Manchester. China's Grand Canal had crossed summits centuries earlier.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "China's Lingqu canal (3rd century BCE) and the Grand Canal's Huitong section (1289; water supply rebuilt 1411) are earlier summit canals; the proposal's anchor records the European dates.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Canal du Midi opened 1681 with summit reservoirs; Bridgewater Canal 1761 coal to Manchester; earlier Chinese summit canals."
+  },
+  "mechanicLink": "PROPOSED deferred realization: grants the navigation canal, a network edge class owned by the unscheduled transport packet (DW-059, M10+); knowledge-only until then."
+ },
+ {
+  "id": "cylinder_boring",
+  "tree": "technology",
+  "description": "Precision boring cuts a true, smooth cylinder inside a casting. In 1774 the English ironmaster John Wilkinson patented a cannon-boring machine whose cutting head travelled on a rigid bar supported at both ends. Adapted to engine cylinders, it supplied Boulton and Watt from 1776, and the closer piston fit helped make Watt's steam engine practical on a commercial scale.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Earlier boring mills existed (e.g., Verbruggen and Smeaton); Wilkinson's patent was later annulled.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Wilkinson 1774 patent; bar supported at both ends; Boulton and Watt cylinders from about 1775-1776."
+  },
+  "mechanicLink": "Knowledge-only node (unlock-audit class C): records sealing steam cylinders with no current effect; on the A8 core closure (steam_rotary) and root of the machine-tool family."
+ },
+ {
+  "id": "slide_rest_lathe",
+  "tree": "technology",
+  "description": "A slide-rest lathe holds the cutting tool in a carriage moved by screws instead of by hand, so cuts are straight and repeatable. Henry Maudslay's London lathes of about 1800 combined a rigid metal frame, slide rest and lead screw with change gears to cut accurate threads. Thread standards followed, notably Joseph Whitworth's of 1841 and William Sellers's of 1864.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Slide rests and screw-cutting lathes existed earlier (e.g., in 16th-18th-century European workshops); Maudslay's role was combination and precision rather than first invention.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Maudslay screw-cutting lathe about 1800; Whitworth thread standard 1841; Sellers 1864."
+  },
+  "mechanicLink": "PROPOSED reclassification: standard screw threads become knowledge on this node rather than an institution (inst.standard_threads fails the D-M shape); prerequisite of interchangeable_parts and milling_machine."
+ },
+ {
+  "id": "interchangeable_parts",
+  "tree": "technology",
+  "description": "Interchangeable manufacture makes each part so close to a master pattern, shaped with jigs and machine tools and checked with gauges, that it fits without hand filing. Honoré Blanc demonstrated interchangeable musket locks in France in the 1780s. In the 1820s John Hall made interchangeable rifle parts at Harpers Ferry Armory, a basis of the American system of manufactures.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Eli Whitney's claims to interchangeability are generally judged overstated; the proposal anchors the node at Springfield, which adopted such methods alongside Harpers Ferry.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Blanc's musket locks 1780s; Hall's interchangeable rifles at Harpers Ferry in the 1820s; the term 'American system of manufactures'."
+  },
+  "mechanicLink": "Knowledge-only node: records gauge-and-jig manufacture with no current effect; PROPOSED prerequisite change to slide_rest_lathe alone, with assembly-line wording moved to automobile_mass; manufacturing productivity deferred to M10+."
+ },
+ {
+  "id": "milling_machine",
+  "tree": "technology",
+  "description": "A milling machine removes metal with a rotating, many-toothed cutter while the work is fed past it, shaping flat faces, slots and gear teeth more uniformly than hand filing. Early versions appeared in American arms works around 1816 to 1820, associated with Simeon North and with Eli Whitney's armory, though attribution is debated. Universal milling machines followed in the 1860s.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Who built the first milling machine is uncertain; the date usually given for the Whitney machine (about 1818) is not documented directly.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: early milling in American armories about 1816-1820 (North, Whitney); Brown and Sharpe universal milling machine 1862."
+  },
+  "mechanicLink": "Knowledge-only node (unlock-audit class C): records gun parts and gears at scale with no current effect; on the A9 core closure through internal_combustion."
+ },
+ {
+  "id": "flying_shuttle",
+  "tree": "technology",
+  "description": "John Kay's flying shuttle, patented in England in 1733, ran on small wheels and was knocked across the loom by pickers jerked with a cord, rather than passed from hand to hand. One weaver could then weave broad cloth alone and faster. Widely adopted from the mid-eighteenth century, it raised demand for yarn and so put pressure on spinning.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The pace of adoption varied by region and cloth type; Kay faced opposition and patent infringement.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Kay patent 1733; picker and cord mechanism; adoption from the mid-18th century; resulting demand for yarn."
+  },
+  "mechanicLink": "Knowledge-only node (unlock-audit class C): records faster weaving with no current effect; PROPOSED causal dependant power_loom, with the spinning_jenny edge removed."
+ }
+]

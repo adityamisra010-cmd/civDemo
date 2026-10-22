@@ -1,0 +1,866 @@
+[
+ {
+  "id": "raft",
+  "tree": "technology",
+  "description": "A sea-crossing raft binds logs, bamboo or reed bundles into a platform buoyant enough to carry people over open water. No Pleistocene craft survives; such vessels are inferred from where people arrived. Settling Sahul, the joined landmass of Australia and New Guinea, required sea crossings by at least 50,000 years ago; the craft's form is unknown.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Arrival in Sahul is dated between roughly 50,000 and 65,000 years ago depending on the site and method; hominins on Flores about one million years ago imply a water crossing, but whether it was deliberate is contested. Raft form is inferred, not observed.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: Sahul as a joined Australia-New Guinea landmass, the need for sea crossings, the >=50,000-year date and the absence of surviving Pleistocene craft. Needs a search pass before any check status above unverified."
+  },
+  "mechanicLink": "Knowledge-only trunk node (unlock-audit class C): records open-water crossing knowledge and the eligibility class sea-edge.open-crossing; PROPOSED realization as a transport-packet edge type (M10+) that reveals no land, and it is one hull route to sail_square."
+ },
+ {
+  "id": "dugout",
+  "tree": "technology",
+  "description": "A dugout is a boat carved from a single large log, hollowed with stone adzes and sometimes with fire to char the wood for easier removal. The oldest preserved example, from Pesse in the Netherlands, dates to roughly 8,000 BCE. Sturdier than bark or reed craft, dugouts carried freight and fishers on lakes, rivers and estuaries.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Pesse is the oldest preserved dugout, not necessarily the first; radiocarbon dates cluster around the 9th-8th millennia BCE.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: hollowing methods, the Pesse find and its date, and the uses named. Needs a search pass before any check status above unverified."
+  },
+  "mechanicLink": "Knowledge-only trunk node (class C): records log-hull freight and offshore fishing with no current effect; prerequisite of plank_boat, polynesian_canoe and, with raft as the alternative, sail_square."
+ },
+ {
+  "id": "sledge",
+  "tree": "technology",
+  "description": "A sledge drags a load on smooth runners instead of rolling it, spreading weight across snow, mud, marsh or grass where a wheel would sink. Wooden runners preserved in waterlogged Mesolithic sites in Finland and in Russia's Vychegda basin date to the 7th and 6th millennia BCE. Long after wheels appeared, sledges remained practical on snow and soft ground.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "TRN1-017",
+    "claims": [
+     "Mesolithic sledge runners from Finland (Heinola) about 7,000 BCE"
+    ]
+   },
+   {
+    "sourceId": "TRN1-018",
+    "claims": [
+     "Vis I sledge runners, Vychegda basin, 7th-6th millennia BCE"
+    ]
+   }
+  ],
+  "uncertainty": "Runner dates rest on a few waterlogged finds; when sledges were first used is unknown and likely earlier.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D08 design lane recorded as RESEARCHED from its WebSearch summaries (research/lane-notes/D08-transport-naval.md §3-§4 and §15, registered here as TRN1-xxx) and/or (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch was refused (shared per-turn budget of 200 calls exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated via lane records: Finnish and Vis I runners and their dating. Not corroborated (general knowledge): load-spreading on soft ground and continued use after the wheel."
+  },
+  "mechanicLink": "Knowledge-only leaf (class C): PROPOSED as a terrain-dependent haulage parameter (snow, marsh) inside the transport packet's effective bulk-cost term (Q-C, M10+), never a gate on baseline paths."
+ },
+ {
+  "id": "wheel_solid",
+  "tree": "technology",
+  "description": "A solid wheel turning with an axle lets a load roll instead of being dragged. Wheels made from one to three shaped planks appear in Europe and Mesopotamia during the 4th millennium BCE, so close in date that no single place of invention can be fixed. These heavy disc wheels suited slow wagons and carts drawn by oxen.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "AGR1-037",
+    "claims": [
+     "first clear evidence of the wheel in the 4th millennium BCE in Europe and Mesopotamia"
+    ]
+   }
+  ],
+  "uncertainty": "Several centres (central Europe, the Pontic steppe, Mesopotamia) yield wheels or wheeled-vehicle images within a few centuries of about 3,500 BCE; whether the wheel spread from one origin or arose more than once is debated.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D08 design lane recorded as RESEARCHED from its WebSearch summaries (research/lane-notes/D08-transport-naval.md §3-§4 and §15, registered here as TRN1-xxx) and/or (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch was refused (shared per-turn budget of 200 calls exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated via AGR1-037: 4th-millennium BCE wheels in Europe and Mesopotamia. Not corroborated (general knowledge): plank construction of disc wheels, near-simultaneous dating, ox draught."
+  },
+  "mechanicLink": "Live: supporting fact for the Age 3 milestone a3_wheel (unlock-audit class B) and root of the wheel family (cart, spoked wheel and other wheeled devices)."
+ },
+ {
+  "id": "cart",
+  "tree": "technology",
+  "description": "An ox cart couples wheels and an axle to a draught animal, so that one driver can move far more grain, timber or stone than porters could carry. Carts and wagons spread with the solid wheel from the later 4th millennium BCE, as cattle were used more widely for traction. Their range depended on fodder, firm tracks and gentle slopes.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "AGR1-037",
+    "claims": [
+     "wheel evidence in the 4th millennium BCE in Europe and Mesopotamia"
+    ]
+   },
+   {
+    "sourceId": "AGR1-036",
+    "claims": [
+     "use of animals for traction broadened in the 4th-3rd millennia BCE"
+    ]
+   }
+  ],
+  "uncertainty": "Whether two-wheeled carts or four-wheeled wagons came first is unresolved.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D08 design lane recorded as RESEARCHED from its WebSearch summaries (research/lane-notes/D08-transport-naval.md §3-§4 and §15, registered here as TRN1-xxx) and/or (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch was refused (shared per-turn budget of 200 calls exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated via reused register entries: 4th-millennium wheel evidence and broader animal traction. Not corroborated (general knowledge): load comparison with porters and the dependence on fodder, tracks and slopes."
+  },
+  "mechanicLink": "Knowledge-only leaf (class C): PROPOSED as the transport packet's draught-animal lever (Q-C, M10+), lowering the computed bulk cost of overland routes where herding supplies draught animals."
+ },
+ {
+  "id": "track_road",
+  "tree": "technology",
+  "description": "A trackway is a deliberately built route: logs, planks, brushwood or laid stones that keep feet and loads above mud. The Sweet Track across England's Somerset Levels, a raised plank walkway, was built from timber felled around 3,800 BCE, a date fixed by tree rings. Such causeways linked dry ground across wetlands and were an early investment in routes.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Tree-ring dating gives a felling date within a year or two of 3,807-3,806 BCE; simpler trackways elsewhere may be older.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: the Sweet Track's construction, location and tree-ring date. Needs a search pass before any check status above unverified."
+  },
+  "mechanicLink": "Live (class E): makes the Trackway road class, and with stone_dry the Built road class, buildable on DevelopRoads orders; co-gates the deferred courier-relay infrastructure."
+ },
+ {
+  "id": "sail_square",
+  "tree": "technology",
+  "description": "A square sail hung from a mast lets wind drive a boat downwind and along coasts. The oldest evidence is a painted disc from As-Sabiyah (site H3) in Kuwait, about 5,500-5,300 BCE, read as a two-masted boat and found with remains of seagoing reed-bundle craft. Nile images of square-sailed boats follow by about 3,500 BCE.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "TRN1-001",
+    "claims": [
+     "H3 As-Sabiyah: seagoing reed-bundle boats, about 5,500-5,300 BCE",
+     "painted two-masted boat, oldest sail evidence"
+    ]
+   },
+   {
+    "sourceId": "TRN1-002",
+    "claims": [
+     "reed-bundle seagoing boats at H3 in the 6th millennium BCE"
+    ]
+   }
+  ],
+  "uncertainty": "The H3 image is interpreted as masts; the form of its sail is not shown. Nile depictions are dated broadly to the Naqada II period.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D08 design lane recorded as RESEARCHED from its WebSearch summaries (research/lane-notes/D08-transport-naval.md §3-§4 and §15, registered here as TRN1-xxx) and/or (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch was refused (shared per-turn budget of 200 calls exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated via lane records: H3 reed-bundle boats, date and the two-masted image. Not corroborated (general knowledge): Nile square-sail images by about 3,500 BCE."
+  },
+  "mechanicLink": "Live as one OR atom of the trade gate (TradeQuery); declares activity.coastal_shipping (class J, no realizing system) and the eligibility class sea-edge.coastal-sail, PROPOSED as a transport-packet edge class (M10+) that reveals no land."
+ },
+ {
+  "id": "plank_boat",
+  "tree": "technology",
+  "description": "A plank-built boat assembles a hull from shaped boards, sewn with cord or fastened with pegs, instead of carving it from one log, so hull size is no longer limited by a single tree. Copper and bronze tools eased the joinery. Khufu's ship at Giza, about 2,500 BCE, and the sewn-plank Ferriby boats from England's Humber show separate traditions.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Ferriby boat dates span roughly 2,000-1,700 BCE; plank boats are probably older than the oldest surviving examples.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: Khufu ship date and location, Ferriby construction and date, and the role of metal tools. Needs a search pass before any check status above unverified."
+  },
+  "mechanicLink": "Declares building.harbour with stone_dry (class J, no realizing system); a harbour has a consequence only once sea edges exist (DW-059). Root of the hull family (mortise_hull, cog, stern_rudder)."
+ },
+ {
+  "id": "wheel_spoked",
+  "tree": "technology",
+  "description": "Spoked wheels replaced the heavy disc with a hub, radiating spokes and a jointed rim, cutting weight while keeping strength. The earliest known examples, surviving as stains in graves of the Sintashta culture east of the southern Urals, date to around 2,000 BCE. Light enough for fast horse-drawn chariots, the design spread across much of Eurasia within centuries.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Sintashta dates fall roughly between 2,100 and 1,800 BCE; Near Eastern spoked wheels follow closely, and the direction of transmission is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: Sintashta location, grave evidence, date and spread. Needs a search pass before any check status above unverified."
+  },
+  "mechanicLink": "Knowledge-only (class C): records fast light vehicles; prerequisite of the chariot (military lane)."
+ },
+ {
+  "id": "mortise_hull",
+  "tree": "technology",
+  "description": "In mortise-and-tenon construction, shipwrights cut slots in adjoining hull planks and lock them with tight tongues pinned by pegs, building the shell before inserting frames. The Uluburun wreck off southern Turkey, about 1,300 BCE, carried copper, tin and glass in such a hull. Roman builders used the method for large grain ships linking Egypt to Rome.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Uluburun is dated by tree rings and cargo to the late 14th century BCE; the technique is older in the eastern Mediterranean.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: construction method, Uluburun date, location and cargo, Roman grain ships. Needs a search pass before any check status above unverified."
+  },
+  "mechanicLink": "Knowledge-only (class C): records large cargo hulls; prerequisite of steamboat, canal locks and one route to stern_rudder."
+ },
+ {
+  "id": "latitude_sailing",
+  "tree": "technology",
+  "description": "Latitude sailing finds a ship's north-south position from the height of the Sun at noon or of known stars, then holds it across open water. Settlers of remote Pacific islands from about 1,000 BCE are thought to have used star paths without instruments, while Greek astronomers by about 300 BCE linked latitude to day length. The traditions arose independently.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Pacific star navigation is reconstructed from later practice and settlement patterns, not from contemporary records; the Greek date is approximate.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: Pacific settlement date and methods, Greek latitude work around 300 BCE. Needs a search pass before any check status above unverified."
+  },
+  "mechanicLink": "Knowledge-only (class C): PROPOSED as a reliability parameter of realized open-sea edges; it reveals no land and sets no extent bit. Reachable by literate or non-literate sky-watching."
+ },
+ {
+  "id": "road_paved",
+  "tree": "technology",
+  "description": "An engineered paved road is surveyed, drained and built in layers of stone, gravel and lime-bound fill to carry traffic in all weather. Rome's Via Appia, begun in 312 BCE, became a model for roads linking provinces to the capital. The Inca separately built a network of stone-paved and stepped mountain roads, extended greatly in the 15th century CE.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Roman road construction varied widely by region; the layered model is an idealisation. Inca roads incorporated older Andean routes.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: layered construction, Via Appia date, Inca road dating. Needs a search pass before any check status above unverified."
+  },
+  "mechanicLink": "Live (class B/E): supporting fact for the Age 5 milestone a5_roads and makes the paved road class buildable; the M7 battle layer is to read the same edge class for military movement."
+ },
+ {
+  "id": "collar_harness",
+  "tree": "technology",
+  "description": "The breast-strap harness passes a broad band across a horse's chest, moving the pull from the neck to the breastbone. Depictions from Warring States China, including Chu lacquerware of about 400-300 BCE, show it, and it was standard under the Han dynasty. Made of stitched leather straps, it preceded the padded horse collar by several centuries.",
+  "wordCount": 56,
+  "sources": [
+   {
+    "sourceId": "TRN1-006",
+    "claims": [
+     "breast-strap harness in Warring States China (Chu lacquerware), about 400-300 BCE",
+     "standard under the Han",
+     "padded collar distinct and later"
+    ]
+   }
+  ],
+  "uncertainty": "How much the older throat-and-girth harness limited horse traction is disputed; experimental work has challenged the classic claim that it choked horses.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D08 design lane recorded as RESEARCHED from its WebSearch summaries (research/lane-notes/D08-transport-naval.md §3-§4 and §15, registered here as TRN1-xxx) and/or (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch was refused (shared per-turn budget of 200 calls exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated via lane record: Chu lacquerware dating, Han use and the later padded collar. Not corroborated (general knowledge): stitched-leather construction."
+  },
+  "mechanicLink": "Knowledge-only (class C): PROPOSED as horse haulage input to the effective bulk cost of overland routes (Q-C, M10+)."
+ },
+ {
+  "id": "cartography",
+  "tree": "technology",
+  "description": "Mathematical cartography places features on a grid of measured coordinates instead of sketching them by eye. Ptolemy's Geography, about 150 CE, listed thousands of places by latitude and longitude, derived from astronomy and travellers' distances. In 3rd-century China, Pei Xiu set out principles for scaled grid maps. Such maps recorded what was already known.",
+  "wordCount": 54,
+  "sources": [],
+  "uncertainty": "Ptolemy's coordinates were often estimated from itineraries and contain large errors; surviving maps based on his text were drawn much later.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: Geography date and contents, Pei Xiu's principles and date. Needs a search pass before any check status above unverified."
+  },
+  "mechanicLink": "Knowledge-only (class C): maps record extent the polity has already discovered and reveal nothing (D-040 B1-B3); prerequisite of portolan and mercator."
+ },
+ {
+  "id": "monsoon_sailing",
+  "tree": "technology",
+  "description": "Monsoon navigation times voyages to the Indian Ocean's seasonal winds, which blow from the southwest in summer and the northeast in winter. Greek and Roman sources describe ships crossing directly from Arabia or the Red Sea to India by about the 1st century BCE, though Arabian and Indian sailors probably used the pattern earlier. Departures followed the seasons.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Classical texts credit a Greek, Hippalus, with the discovery, a claim most historians doubt; the date of the first direct crossings is uncertain.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: monsoon wind directions, classical sources and dating, earlier local use. Needs a search pass before any check status above unverified."
+  },
+  "mechanicLink": "Knowledge-only (class C): PROPOSED as a timing parameter of realized sea edges in monsoon waters; prerequisite of ocean_junk."
+ },
+ {
+  "id": "lateen",
+  "tree": "technology",
+  "description": "The lateen is a triangular fore-and-aft sail set on a long, angled yard, letting a ship work closer to the wind than a square sail allows. Images place it in the eastern Mediterranean by about the 2nd century CE, and Indian Ocean sailors may have used it earlier; its origin is debated. It became typical of Arab and Mediterranean craft.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Origin is disputed between the Mediterranean and the Indian Ocean; early images are few.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: sail form, earliest images and their dating, regional use. Needs a search pass before any check status above unverified."
+  },
+  "mechanicLink": "Knowledge-only (class C): records windward sailing; prerequisite of caravel and the carrack's lateen mizzen."
+ },
+ {
+  "id": "horseshoe",
+  "tree": "technology",
+  "description": "A nailed horseshoe is an iron rim fixed to the hoof wall with nails, protecting hooves worn by hard roads, stony ground or wet conditions. Romans used strap-on hipposandals; nailed shoes were common in Europe by about the 10th century CE, though the date of the first ones is contested. Shod horses could keep working on paved and muddy surfaces.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Some scholars place the first nailed shoes in the late Roman period or earlier; others date them to the early medieval period.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: construction, hipposandals, the 10th-century date and the effect on working horses. Needs a search pass before any check status above unverified."
+  },
+  "mechanicLink": "Knowledge-only leaf (class C): PROPOSED as an input to Q-C's effective bulk cost (shod horses sustain haulage on built roads and wet ground), M10+."
+ },
+ {
+  "id": "compass_magnetic",
+  "tree": "technology",
+  "description": "A magnetic compass uses a magnetised iron needle that aligns roughly north-south. In 1088 Shen Kuo described such needles and noted they point slightly away from true south, and Zhu Yu, writing in 1111-1117, recorded ships steering by compass under cloud. European texts mention mariners' compasses around 1190; whether this was transmission or reinvention is debated.",
+  "wordCount": 56,
+  "sources": [
+   {
+    "sourceId": "TRN1-007",
+    "claims": [
+     "Shen Kuo's 1088 description with deviation from true south",
+     "first record of compass use at sea 1111-1117",
+     "European compass about 1190"
+    ]
+   },
+   {
+    "sourceId": "TRN1-008",
+    "claims": [
+     "Zhu Yu, 1111-1117, sailors steering by compass when overcast"
+    ]
+   }
+  ],
+  "uncertainty": "Earlier Chinese lodestone devices for divination are attested; whether the European compass derived from China is unresolved.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D08 design lane recorded as RESEARCHED from its WebSearch summaries (research/lane-notes/D08-transport-naval.md §3-§4 and §15, registered here as TRN1-xxx) and/or (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch was refused (shared per-turn budget of 200 calls exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated via lane records: Shen Kuo 1088, Zhu Yu 1111-1117, Europe about 1190. Not corroborated: none beyond the general description of the needle."
+  },
+  "mechanicLink": "Knowledge-only (class C): PROPOSED as a reliability parameter of realized sea edges (steering out of sight of land and under overcast), never a sight or extent effect; feeds caravel, carrack, portolan and ocean_junk."
+ },
+ {
+  "id": "stern_rudder",
+  "tree": "technology",
+  "description": "A sternpost rudder is a single blade hinged on the centreline at a ship's stern, replacing large steering oars over the side. A pottery ship model from a Han tomb at Guangzhou, of about the 1st century CE, shows an early axial rudder. In northern Europe hinged rudders appear around 1180. The rudder let larger hulls be steered precisely.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Whether the Guangzhou model shows a true sternpost rudder is debated; the European date rests on images.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: the Guangzhou model and date, the European date. Needs a search pass before any check status above unverified."
+  },
+  "mechanicLink": "Knowledge-only (class C): records precise steering of larger ships; prerequisite of cog, caravel and watertight_bulkhead."
+ },
+ {
+  "id": "watertight_bulkhead",
+  "tree": "technology",
+  "description": "Watertight bulkheads divide a hull into sealed compartments with solid cross-partitions, so a breach floods one section rather than the whole ship. Chinese shipbuilders used them in junks by about the middle of the first millennium CE. The Quanzhou wreck, sunk around 1275, had thirteen compartments. European ships widely adopted the principle only in the 19th century.",
+  "wordCount": 57,
+  "sources": [
+   {
+    "sourceId": "TRN1-010",
+    "claims": [
+     "Chinese junks built with watertight bulkhead compartments limiting flooding"
+    ]
+   },
+   {
+    "sourceId": "TRN1-009",
+    "claims": [
+     "Quanzhou wreck about 1275 with 13 compartments"
+    ]
+   }
+  ],
+  "uncertainty": "The first use of bulkheads in China is uncertain; dates from the 4th to the 8th century CE are proposed.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D08 design lane recorded as RESEARCHED from its WebSearch summaries (research/lane-notes/D08-transport-naval.md §3-§4 and §15, registered here as TRN1-xxx) and/or (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch was refused (shared per-turn budget of 200 calls exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated via lane records: the compartment principle and the Quanzhou wreck. Not corroborated (general knowledge): the mid-first-millennium date and 19th-century European adoption."
+  },
+  "mechanicLink": "Knowledge-only (class C): records survivable ocean hulls; prerequisite of ocean_junk."
+ },
+ {
+  "id": "portolan",
+  "tree": "technology",
+  "description": "A portolan chart draws coastlines from compass bearings and estimated sailing distances, criss-crossed by radiating lines that help a navigator lay a course. The oldest surviving example, the Carte Pisane, dates from the late 13th century and covers the Mediterranean and Black Sea. Its makers drew on sailors' observations, not on Ptolemy's coordinate grid.",
+  "wordCount": 54,
+  "sources": [],
+  "uncertainty": "How portolan charts achieved their accuracy, and whether earlier charts existed, is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: chart construction, Carte Pisane date and coverage, independence from Ptolemy. Needs a search pass before any check status above unverified."
+  },
+  "mechanicLink": "Knowledge-only (class C): PROPOSED as a route-reliability parameter of realized coastal edges for coasts already sailed; reveals no land."
+ },
+ {
+  "id": "cog",
+  "tree": "technology",
+  "description": "The cog was a broad, flat-bottomed cargo ship with high clinker-built sides, a single square sail and, later, a sternpost rudder. It developed along the Frisian coast around 1000 CE and by 1200 carried grain, timber, fish and cloth across the North Sea and Baltic, serving Hanseatic towns. The Bremen cog, built around 1380, survives.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "The term 'cog' covered changing ship types; its origins and its link to the Hanseatic trade are debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: hull form, Frisian origin and dates, cargoes, Bremen cog date. Needs a search pass before any check status above unverified."
+  },
+  "mechanicLink": "Knowledge-only (class C): records Baltic and North Sea bulk trade; causal ancestor of the carrack."
+ },
+ {
+  "id": "polynesian_canoe",
+  "tree": "technology",
+  "description": "Polynesian voyaging canoes joined two hulls, or one hull and an outrigger, under woven sails, carrying people, plants and animals across thousands of kilometres of ocean. Navigators steered by stars, swells and birds without compass or writing. Hawaii was reached by around 1000-1200 CE and New Zealand by about 1300, late steps in a much older settlement of Oceania.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Settlement dates for eastern Polynesia have been revised later by recent radiocarbon work; canoe forms are reconstructed from later accounts.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: hull forms, navigation methods, Hawaii and New Zealand dates. Needs a search pass before any check status above unverified."
+  },
+  "mechanicLink": "Declares activity.ocean_shipping and the eligibility class sea-edge.oceanic (class J, no realizing system); PROPOSED oceanic edges without compass or writing (M10+), islands entering extent only when a voyage reaches them."
+ },
+ {
+  "id": "ocean_junk",
+  "tree": "technology",
+  "description": "The ocean-going junk combined a compartmented hull, a large rudder and battened sails with compass navigation, recorded at sea in 1111-1117. Song and Yuan merchants sailed such ships between China, Southeast Asia and India with the monsoons. The Quanzhou wreck of about 1275 had thirteen compartments, and Zheng He's fleets reached East Africa between 1405 and 1433.",
+  "wordCount": 57,
+  "sources": [
+   {
+    "sourceId": "TRN1-008",
+    "claims": [
+     "compass navigation at sea recorded 1111-1117"
+    ]
+   },
+   {
+    "sourceId": "TRN1-009",
+    "claims": [
+     "Quanzhou wreck about 1275, 13 compartments"
+    ]
+   },
+   {
+    "sourceId": "TRN1-010",
+    "claims": [
+     "compartmented junk hulls"
+    ]
+   }
+  ],
+  "uncertainty": "Zheng He's voyages are documented, but the size of his largest ships is disputed.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D08 design lane recorded as RESEARCHED from its WebSearch summaries (research/lane-notes/D08-transport-naval.md §3-§4 and §15, registered here as TRN1-xxx) and/or (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch was refused (shared per-turn budget of 200 calls exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated via lane records: compass at sea 1111-1117, Quanzhou wreck. The 1405-1433 Zheng He dates were recorded by the D08 lane as RESEARCHED without a dedicated URL. Not corroborated (general knowledge): battened sails, Song and Yuan trade routes, East African landfalls."
+  },
+  "mechanicLink": "PROPOSED new node: an independent route to the oceanic class (activity.ocean_shipping, sea-edge.oceanic eligibility); no current effect; new coasts enter extent only when a voyage reaches them."
+ },
+ {
+  "id": "caravel",
+  "tree": "technology",
+  "description": "The caravel was a small, light Portuguese ship, usually lateen-rigged, with a sternpost rudder, able to sail close to the wind and return against prevailing winds. From about the 1430s it carried exploration along the West African coast and among the Atlantic islands. Later caravels mixed square and lateen sails for longer ocean passages.",
+  "wordCount": 54,
+  "sources": [],
+  "uncertainty": "The name 'caravel' predates the exploration ship; its design changed over the 15th century.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: rig, dating and voyages. Needs a search pass before any check status above unverified."
+  },
+  "mechanicLink": "Live: supporting fact for the Age 7 milestone a7_ocean (class B); declares activity.ocean_shipping (unrealized); PROPOSED oceanic edges (M10+), never extent on completion."
+ },
+ {
+  "id": "carrack",
+  "tree": "technology",
+  "description": "The carrack joined northern and Mediterranean shipbuilding. Genoese builders of the early 14th century placed the cog's square rig and sternpost rudder on a frame-first hull and added a lateen mizzen. By the mid-15th century the type had become three-masted and full-rigged, large enough to carry heavy cargo and stores on long oceanic voyages.",
+  "wordCount": 54,
+  "sources": [
+   {
+    "sourceId": "TRN1-003",
+    "claims": [
+     "Genoese carraca early 14th century",
+     "cog rig and rudder on a frame-first hull with lateen mizzen"
+    ]
+   },
+   {
+    "sourceId": "TRN1-004",
+    "claims": [
+     "Italian builders adopted the cog's square rig and rudder"
+    ]
+   },
+   {
+    "sourceId": "TRN1-005",
+    "claims": [
+     "three-masted full-rigged by the mid-15th century",
+     "large cargo ship for long voyages"
+    ]
+   }
+  ],
+  "uncertainty": "Ship-type names in medieval records are inconsistent; the exact sequence of rig development is debated.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D08 design lane recorded as RESEARCHED from its WebSearch summaries (research/lane-notes/D08-transport-naval.md §3-§4 and §15, registered here as TRN1-xxx) and/or (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch was refused (shared per-turn budget of 200 calls exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated via lane records: all dated and constructional claims. Not corroborated: none beyond phrasing."
+  },
+  "mechanicLink": "Declares activity.ocean_shipping, building.dry_dock and sea-edge.oceanic eligibility (class J, no realizing system); PROPOSED oceanic edges and dry docks (M10+) that reveal no land."
+ },
+ {
+  "id": "celestial_navigation",
+  "tree": "technology",
+  "description": "Celestial navigation with instruments measured the altitude of the Sun or the Pole Star with a mariner's astrolabe or quadrant, then corrected the reading with tables of solar declination. Portuguese pilots developed the practice in the late 15th century, as voyages south of the equator lost sight of the Pole Star. It gave latitude reliably, but not longitude.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "The roles of particular scholars in preparing Portuguese declination tables are debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: instruments, declination tables, Portuguese dating and motive. Needs a search pass before any check status above unverified."
+  },
+  "mechanicLink": "Knowledge-only (class C): PROPOSED as a reliability parameter of realized oceanic edges; prerequisite of longitude_problem."
+ },
+ {
+  "id": "longitude_problem",
+  "tree": "technology",
+  "description": "Longitude by chronometer compares local noon with the time kept by an accurate clock set to a reference meridian; each hour of difference equals 15 degrees. Pendulum clocks failed at sea. John Harrison's marine timekeeper H4 erred by only seconds on a 1761-62 trial voyage to Jamaica. Chronometers became common on ships during the 19th century.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "The lunar-distance method offered a rival astronomical solution in the same decades; chronometers stayed costly for decades.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: H4 trial dates and accuracy, failure of pendulum clocks at sea, 19th-century adoption. Needs a search pass before any check status above unverified."
+  },
+  "mechanicLink": "Knowledge-only leaf (class C): PROPOSED as a route-safety parameter of realized oceanic edges (M10+); reveals no land."
+ },
+ {
+  "id": "mercator",
+  "tree": "technology",
+  "description": "Gerardus Mercator's world map of 1569 used a projection that keeps angles true, so a line of constant compass bearing, a rhumb line, appears straight. Navigators could lay a course with a ruler. The price is exaggerated area toward the poles. Edward Wright published the mathematics for constructing the projection accurately in 1599.",
+  "wordCount": 53,
+  "sources": [],
+  "uncertainty": null,
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: 1569 date, the projection's properties, Wright's 1599 publication. Needs a search pass before any check status above unverified."
+  },
+  "mechanicLink": "Knowledge-only leaf (class C): PROPOSED rhumb-line route planning over realized oceanic edges within known extent (M10+)."
+ },
+ {
+  "id": "locomotive",
+  "tree": "technology",
+  "description": "A steam locomotive puts a high-pressure engine on wheels so that it can haul trains along rails. Richard Trevithick's engine pulled loaded wagons on the Penydarren tramroad in Wales in 1804. At the Rainhill trials of 1829, George and Robert Stephenson's Rocket, with a multi-tube boiler and steam blast, showed locomotives could run fast and reliably.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": null,
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: Penydarren 1804, Rainhill 1829 and Rocket's design features. Needs a search pass before any check status above unverified."
+  },
+  "mechanicLink": "Knowledge-only (class C): records overland speed and bulk haulage; prerequisite of railway."
+ },
+ {
+  "id": "railway",
+  "tree": "technology",
+  "description": "A railway network joins locomotives, iron rails, surveyed gradients, stations and timetables into a public system. The Liverpool and Manchester Railway, opened in 1830, was the first intercity line worked by steam locomotives and carrying passengers and freight to a timetable. Expanding networks cut inland freight costs, linked national markets and spread standardised railway time.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "Earlier horse-drawn and industrial railways existed; 'first' depends on the criteria used.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: 1830 opening and its firsts, effects on freight costs and timekeeping. Needs a search pass before any check status above unverified."
+  },
+  "mechanicLink": "Live: supporting fact for the Age 8 milestone a8_rail (class B); declares infra.railway (no realizing system), PROPOSED as rail edges built like road classes (M10+)."
+ },
+ {
+  "id": "steamboat",
+  "tree": "technology",
+  "description": "A steamboat drives paddle wheels with a steam engine, freeing travel from wind and current. Several inventors built experimental vessels in the 1780s and 1790s; Robert Fulton's North River Steamboat began regular service on the Hudson between New York and Albany in 1807. Steamers soon worked upstream on large rivers and, from the late 1830s, crossed oceans.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Priority among early steamboat builders in France, Britain and the United States is contested.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: early experiments, Fulton's 1807 service, river and ocean use. Needs a search pass before any check status above unverified."
+  },
+  "mechanicLink": "Knowledge-only (class C): PROPOSED as upriver and timetabled sea parameters of realized water edges; prerequisite of screw_propeller and iron_hull."
+ },
+ {
+  "id": "screw_propeller",
+  "tree": "technology",
+  "description": "The screw propeller turns twisted blades beneath the stern, pushing water backward more efficiently, and with less exposure to damage, than paddle wheels. In 1836 Francis Pettit Smith and John Ericsson each patented screw propellers in Britain. Trials such as HMS Rattler against a paddle sloop in 1845 helped persuade navies, and screws soon drove oceangoing steamships.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Many earlier screw designs were proposed; the 1836 patents mark practical development, not first invention.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: 1836 patents, Rattler trial, adoption. Needs a search pass before any check status above unverified."
+  },
+  "mechanicLink": "Declares unit.ironclad eligibility with iron_hull (class F, no realizing system; M7); records ocean steamships and steam warships."
+ },
+ {
+  "id": "iron_hull",
+  "tree": "technology",
+  "description": "Iron hulls freed ship size from the limits of timber by riveting wrought-iron plates over iron frames. The paddle steamer Aaron Manby, built in 1821, became the first iron steamship to go to sea in 1822. Brunel's SS Great Britain, launched in 1843, combined an iron hull with screw propulsion and was the largest ship afloat at the time.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "TRN1-011",
+    "claims": [
+     "Aaron Manby built 1821, first iron steamship at sea 1822",
+     "paddle steamer"
+    ]
+   }
+  ],
+  "uncertainty": null,
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D08 design lane recorded as RESEARCHED from its WebSearch summaries (research/lane-notes/D08-transport-naval.md §3-§4 and §15, registered here as TRN1-xxx) and/or (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch was refused (shared per-turn budget of 200 calls exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated via lane record: Aaron Manby. Not corroborated (general knowledge): SS Great Britain launch year, screw propulsion and size rank; riveted construction."
+  },
+  "mechanicLink": "Declares unit.ironclad eligibility with screw_propeller (class F, no realizing system; M7); records ships beyond timber limits."
+ },
+ {
+  "id": "macadam",
+  "tree": "technology",
+  "description": "Macadam roads, named after the Scottish engineer John Loudon McAdam, were built from layers of small, angular broken stone over a drained, cambered base, which traffic compacted into a hard, smooth surface. Adopted widely by British turnpike trusts from the 1820s, the method was cheaper than heavy paving and spread across Europe and North America.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": null,
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: McAdam's method, turnpike adoption date and spread. Needs a search pass before any check status above unverified."
+  },
+  "mechanicLink": "Live (class E): makes the macadam road class buildable."
+ },
+ {
+  "id": "bicycle",
+  "tree": "technology",
+  "description": "The safety bicycle of 1885, John Kemp Starley's Rover, had two wheels of similar size and a chain drive to the rear wheel, replacing the precarious high-wheeler. Pneumatic tyres followed by 1888. Its ball bearings, steel tubing and roller chains demanded precise standardised parts, and several early car and aircraft makers began as bicycle builders.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "Other designers built rear-drive safety bicycles in the late 1870s and early 1880s; the Rover is the commonly cited breakthrough.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: Rover 1885, pneumatic tyre 1888, components, bicycle makers turning to cars and aircraft. Needs a search pass before any check status above unverified."
+  },
+  "mechanicLink": "Knowledge-only (class C): no owning system before M11+; its completion is the condition of aircraft's machine-evaluable Eureka."
+ },
+ {
+  "id": "balloon",
+  "tree": "technology",
+  "description": "Balloon flight lifts people by buoyancy: an envelope of gas lighter than the surrounding air, either heated air or hydrogen. In 1783 the Montgolfier brothers' hot-air balloon and Jacques Charles's hydrogen balloon carried the first people aloft in Paris, ten days apart. French forces used a tethered observation balloon at the Battle of Fleurus in 1794.",
+  "wordCount": 56,
+  "sources": [
+   {
+    "sourceId": "TRN1-013",
+    "claims": [
+     "Montgolfier and Charles balloons 1783",
+     "crewed flights on 21 November and 1 December 1783"
+    ]
+   },
+   {
+    "sourceId": "TRN1-014",
+    "claims": [
+     "observation balloon at Fleurus 1794"
+    ]
+   }
+  ],
+  "uncertainty": null,
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D08 design lane recorded as RESEARCHED from its WebSearch summaries (research/lane-notes/D08-transport-naval.md §3-§4 and §15, registered here as TRN1-xxx) and/or (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch was refused (shared per-turn budget of 200 calls exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated via lane records: 1783 balloons and crewed flight dates, Fleurus 1794. Not corroborated (general knowledge): Paris as the location and the tethered form of the Fleurus balloon."
+  },
+  "mechanicLink": "PROPOSED new node (knowledge-only): a realized observation balloon (M7 asset) would multiply its observer's sight budget by a dimensionless vantage factor (D-039 B4), pointed and never global."
+ },
+ {
+  "id": "glider",
+  "tree": "technology",
+  "description": "Gliding flight depends on wings that generate lift and on controls that keep the craft balanced. George Cayley analysed lift, drag and thrust and flew a crewed glider at Brompton Dale in 1853. Otto Lilienthal made about 2,000 glides in 1891-1896 and published lift data. The Wright brothers' gliders of 1900-1902 developed control around three axes.",
+  "wordCount": 57,
+  "sources": [
+   {
+    "sourceId": "TRN1-015",
+    "claims": [
+     "Cayley 1853 crewed glider",
+     "Lilienthal about 2,000 glides 1891-1896, lift data",
+     "Wright gliders 1900-1902, three-axis control"
+    ]
+   },
+   {
+    "sourceId": "TRN1-016",
+    "claims": [
+     "Cayley's lift, drag and thrust analysis",
+     "Brompton Dale 1853"
+    ]
+   }
+  ],
+  "uncertainty": null,
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D08 design lane recorded as RESEARCHED from its WebSearch summaries (research/lane-notes/D08-transport-naval.md §3-§4 and §15, registered here as TRN1-xxx) and/or (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch was refused (shared per-turn budget of 200 calls exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated via lane records: all dated and attributed claims."
+  },
+  "mechanicLink": "PROPOSED new node (knowledge-only): records lift and three-axis control; prerequisite of aircraft."
+ },
+ {
+  "id": "aircraft",
+  "tree": "technology",
+  "description": "Powered heavier-than-air flight combines lifting wings, a light engine, propellers and three-axis control. Building on their 1900-1902 gliders, the Wright brothers made the first sustained, controlled powered flights near Kitty Hawk, North Carolina, on 17 December 1903, the longest lasting 59 seconds. Within a decade aircraft flew military reconnaissance; in the First World War they also bombed and fought.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "TRN1-015",
+    "claims": [
+     "Wright gliders 1900-1902 preceded powered flight"
+    ]
+   }
+  ],
+  "uncertainty": "Other claims to earlier powered flight exist but are not generally accepted as sustained and controlled.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D08 design lane recorded as RESEARCHED from its WebSearch summaries (research/lane-notes/D08-transport-naval.md §3-§4 and §15, registered here as TRN1-xxx) and/or (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch was refused (shared per-turn budget of 200 calls exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated via lane record: the glider background. Not corroborated (general knowledge): 17 December 1903, Kitty Hawk, 59 seconds, military reconnaissance within a decade, First World War bombing and combat."
+  },
+  "mechanicLink": "Declares unit.military_aircraft, unit.aircraft_carrier (with steam_turbine) and building.airfield (class F, no realizing system; M7); PROPOSED aircraft observer vantage multiplier, never a global reveal."
+ },
+ {
+  "id": "aircraft_metal",
+  "tree": "technology",
+  "description": "The all-metal monoplane replaced wood, wire and fabric with a metal structure whose skin carries load. Hugo Junkers flew the J 1, built of sheet steel, in 1915, and aluminium alloys later made the approach light enough for wide use. By the mid-1930s airliners such as the Douglas DC-3 set the pattern for strong, streamlined, long-range aircraft.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": null,
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: J 1 date and material, later aluminium alloys, DC-3 timing. Needs a search pass before any check status above unverified."
+  },
+  "mechanicLink": "Knowledge-only (class C): records airliners and strategic bombers; prerequisite of the jet engine and jet airliner."
+ },
+ {
+  "id": "automobile_mass",
+  "tree": "technology",
+  "description": "Mass production turned the motor car from a costly handmade machine into a common one. Ford's Model T, introduced in 1908, was standardised for low cost; in 1913 Ford installed a moving assembly line at Highland Park, Michigan, cutting chassis assembly from about twelve hours to about an hour and a half. Falling prices spread cars and trucks.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": null,
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: Model T 1908, Highland Park 1913, assembly-time figures. Needs a search pass before any check status above unverified."
+  },
+  "mechanicLink": "Knowledge-only (class C): PROPOSED motor freight on built roads as a road-class capacity and cost parameter (M10+); the highway class itself is live through motor_road."
+ },
+ {
+  "id": "rocket",
+  "tree": "technology",
+  "description": "A liquid-fuel rocket feeds fuel and an oxidiser into a combustion chamber, producing thrust without drawing on outside air. Robert Goddard launched the first liquid-fuelled rocket on 16 March 1926. Germany's A-4, later called the V-2, first flew successfully in 1942 and was used as a ballistic missile against cities from 1944.",
+  "wordCount": 52,
+  "sources": [
+   {
+    "sourceId": "TRN1-012",
+    "claims": [
+     "Goddard first liquid-fuel rocket, 16 March 1926"
+    ]
+   }
+  ],
+  "uncertainty": "This node covers the liquid-propellant engine only; reaching orbit (1957) belongs to the orbital launch vehicle node.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D08 design lane recorded as RESEARCHED from its WebSearch summaries (research/lane-notes/D08-transport-naval.md §3-§4 and §15, registered here as TRN1-xxx) and/or (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch was refused (shared per-turn budget of 200 calls exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated via lane record: Goddard 1926. Not corroborated (general knowledge): A-4/V-2 first successful flight 1942 and operational use from 1944 (the D08 lane records the A-4 from 1942 as RESEARCHED without a dedicated URL)."
+  },
+  "mechanicLink": "Declares unit.missile (class F, no realizing system); PROPOSED ballistic-missile formations recruitable in M7. Split part: orbital launch moved to orbital_launch_vehicle."
+ },
+ {
+  "id": "container_shipping",
+  "tree": "technology",
+  "description": "Container shipping moves cargo in standard steel boxes that pass between ship, train and truck without unpacking. Malcom McLean's converted tanker Ideal X carried 58 containers from Newark to Houston in 1956. International size standards agreed in the late 1960s let cranes, ships and ports worldwide handle the same boxes, sharply cutting handling time and cost.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": null,
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: Ideal X voyage details, standards dating, cost effects. Needs a search pass before any check status above unverified."
+  },
+  "mechanicLink": "Knowledge-only leaf (class C): PROPOSED containerised sea-freight edge class (cost per bulk unit, port handling) for the transport packet (M10+)."
+ },
+ {
+  "id": "electric_traction",
+  "tree": "technology",
+  "description": "Electric traction drives trains and trams with motors fed from overhead wires or a live rail instead of onboard steam. Werner von Siemens demonstrated an electric railway in Berlin in 1879; Frank Sprague's tram system in Richmond, Virginia, opened in 1888; London's first deep electric tube line followed in 1890. Frequent, smoke-free service made underground metros practical.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": null,
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch was refused (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or D08 design-lane RESEARCHED record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: Siemens 1879, Richmond 1888, London 1890. Needs a search pass before any check status above unverified."
+  },
+  "mechanicLink": "Knowledge-only (class C): records large-city commuting; no current effect."
+ },
+ {
+  "id": "gps",
+  "tree": "technology",
+  "description": "Satellite navigation fixes position by timing radio signals from several satellites that carry atomic clocks. The United States Global Positioning System, developed from 1973, reached full operational capability in 1995. Its clocks are corrected for special and general relativity, about 38 microseconds a day; uncorrected, fixes would drift by kilometres daily. Civil receivers spread widely during the 1990s.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "AGR2-012",
+    "claims": [
+     "civil GPS available (to agriculture) in the early 1990s"
+    ]
+   },
+   {
+    "sourceId": "AGR2-011",
+    "claims": [
+     "GPS auto-guidance in use by 1996"
+    ]
+   }
+  ],
+  "uncertainty": "Earlier satellite navigation (the US Navy's Transit, from the 1960s) preceded GPS; Russia, Europe and China operate separate systems.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D08 design lane recorded as RESEARCHED from its WebSearch summaries (research/lane-notes/D08-transport-naval.md §3-§4 and §15, registered here as TRN1-xxx) and/or (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch was refused (shared per-turn budget of 200 calls exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated via reused register entries: civil GPS available in the early 1990s and auto-guidance in use by 1996. Not corroborated: 1973 start, 1995 full capability, the 38-microsecond relativistic offset (recorded in the node's D04-requested rationale, not as a sourced claim)."
+  },
+  "mechanicLink": "Knowledge-only (class C): position fixing within known extent, no map knowledge; PROPOSED guidance for M7 units and precision-agriculture efficiency; reveals no land and sets no extent bit."
+ }
+]

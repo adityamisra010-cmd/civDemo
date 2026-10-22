@@ -1,0 +1,1446 @@
+[
+ {
+  "id": "fishing_hook",
+  "tree": "technology",
+  "description": "At Jerimalai rock shelter in East Timor, layers about 42,000 years old hold thousands of fish bones, many from tuna and other open-sea species. Catching them implies boats, planning and offshore skill. How they were caught, by hook, trolled line or net, is unresolved: the site's oldest shell hook is younger, about 23,000 to 16,000 years old.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "AGR1-001",
+    "claims": [
+     "Pelagic fish including tuna at Jerimalai about 42,000 years ago",
+     "Pelagic fishing implies planning and maritime technology"
+    ]
+   },
+   {
+    "sourceId": "AGR1-002",
+    "claims": [
+     "Oldest Jerimalai shell hook about 23,000-16,000 years old",
+     "Capture method (hooks, trolling or nets) unresolved"
+    ]
+   }
+  ],
+  "uncertainty": "The node's 'line fishing' framing is an inference: the 42,000-year evidence is fish bone, not line or hook; press reports of 42,000-year-old hooks conflict with the excavator's own dating of the hook.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: that open-sea fishing required boats (stated as an implication by the authors, not proven)."
+  },
+  "mechanicLink": "Knowledge-only today (no simulated effect); PROPOSED and deferred (M10+): an offshore fish stock worked by the Herding/fishing sector and reachable only by boat from a coast."
+ },
+ {
+  "id": "grinding_stone",
+  "tree": "technology",
+  "description": "Grinding wild seeds and roots between two stones turns tough plant tissue into flour or paste that cooks quickly. Starch grains on grinding tools from Bilancino in Italy, Kostenki in Russia and Pavlov in Czechia show mobile hunter-gatherers processing plants this way about 30,000 years ago. Later, Natufian foragers of the Levant pounded wild cereals in stone mortars.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "AGR1-003",
+    "claims": [
+     "Starch on grinding tools at Bilancino II, Kostenki 16 and Pavlov VI",
+     "Plant processing, possibly flour, about 30,000 years ago"
+    ]
+   },
+   {
+    "sourceId": "AGR1-004",
+    "claims": [
+     "Bilancino grindstone with wild-plant starch; flour long before agriculture"
+    ]
+   },
+   {
+    "sourceId": "AGR1-039",
+    "claims": [
+     "Natufian stone mortars at Raqefet used to store and pound cereals"
+    ]
+   }
+  ],
+  "uncertainty": "The Bilancino date is given as about 25,000 BP (2007) and about 30,000 years (2010) by the same team.",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Each dated, located or attributed claim compared with the summarized content of the WebSearch results recorded in sources; pages not opened (WebFetch unavailable).",
+   "notes": ""
+  },
+  "mechanicLink": "Knowledge-only today (no simulated effect); its techniques (wild cereal harvesting, storage, drying) are recorded as knowledge and it is the causal prerequisite of cereal cultivation."
+ },
+ {
+  "id": "cereal_cultivation",
+  "tree": "technology",
+  "description": "Before genetic domestication, people sowed, tended and reaped wild cereal stands. In the Levant's Pre-Pottery Neolithic A, roughly 11,500 years ago, wild emmer, einkorn and barley were cultivated, judged from arable weeds and larger grains, though whether those grains reflect selection or wetter conditions is debated. Similar cultivation began independently with millet, rice and maize in China and Mexico.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "AGR1-005",
+    "claims": [
+     "Pre-domestication cultivation inferred from domestic-sized grains and arable weeds",
+     "Wild emmer and barley in the southern Levant, wild einkorn in the north, in the PPNA",
+     "Grain size may be a plastic response to conditions"
+    ]
+   },
+   {
+    "sourceId": "AGR1-007",
+    "claims": [
+     "Agriculture began in Southwest Asia in the Pre-Pottery Neolithic"
+    ]
+   },
+   {
+    "sourceId": "AGR1-011",
+    "claims": [
+     "Millet the founding grains of northern Chinese farming"
+    ]
+   },
+   {
+    "sourceId": "AGR1-009",
+    "claims": [
+     "Rice cultivation on the Lower Yangtze by 8000-7700 BP"
+    ]
+   },
+   {
+    "sourceId": "AGR1-012",
+    "claims": [
+     "Maize domestication in the Balsas valley, Mexico"
+    ]
+   }
+  ],
+  "uncertainty": "The proposal's emerged field reads '~11,500 BCE Levant (PPNA)'; the PPNA began about 11,500-11,700 years ago (about 9,500-9,700 BCE), so the field appears to mix BP and BCE. Pre-domestication cultivation is inferred, not directly observed.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: the approximate start of the PPNA (about 11,500 years ago)."
+  },
+  "mechanicLink": "Realized today: grants activity.farming and the A2 cultivation age fact; PROPOSED and deferred: crop-package suitability by climate, water and soil in the Farming land side."
+ },
+ {
+  "id": "cereal_domesticated",
+  "tree": "technology",
+  "description": "Domestication changed the plants themselves. In the Fertile Crescent, einkorn, emmer and barley gradually acquired ears that hold their grain until harvest instead of shattering, so they came to depend on human sowing. Domestic-type wheat ears appear at the start of the Pre-Pottery Neolithic B. With lentil, pea, chickpea, bitter vetch and flax, they form Southwest Asia's founder crops.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "AGR1-006",
+    "claims": [
+     "Non-brittle rachis wheats appear at the beginning of the PPNB"
+    ]
+   },
+   {
+    "sourceId": "AGR1-007",
+    "claims": [
+     "Founder crops list: emmer, einkorn, barley, lentil, pea, chickpea, bitter vetch, flax",
+     "Agriculture began in the Pre-Pottery Neolithic, about 11,000-10,000 years ago"
+    ]
+   },
+   {
+    "sourceId": "AGR1-005",
+    "claims": [
+     "Domestication of barley and emmer in the southern Levant was gradual and is debated"
+    ]
+   }
+  ],
+  "uncertainty": "Pace and mechanism are debated: some recent work finds cereals morphologically wild in early PPN Jordan; the role of sickle harvesting in selecting non-shattering ears is contested.",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Each dated, located or attributed claim compared with the summarized content of the WebSearch results recorded in sources; pages not opened (WebFetch unavailable).",
+   "notes": ""
+  },
+  "mechanicLink": "Knowledge-only today (no simulated effect); records reliable yield, storable surplus and threshing; it is one regional domestication beside rice, millet, maize and sorghum."
+ },
+ {
+  "id": "rice_wet",
+  "tree": "technology",
+  "description": "At Kuahuqiao on the lower Yangtze, about 7,700 years ago, villagers burned scrub on a coastal swamp, kept fields wet and probably controlled flooding with low banks, an early form of paddy farming. The site was later drowned by the sea. Fully domesticated, non-shattering rice emerged in the region over the following thousand years or so.",
+  "wordCount": 57,
+  "sources": [
+   {
+    "sourceId": "AGR1-008",
+    "claims": [
+     "Kuahuqiao rice cultivation about 7,700 cal BP",
+     "Scrub burned, wet grassland, probable bunding",
+     "Marine inundation about 7,550 cal BP"
+    ]
+   },
+   {
+    "sourceId": "AGR1-009",
+    "claims": [
+     "Rice domestication in the Lower Yangtze about 6900-6600 years ago"
+    ]
+   }
+  ],
+  "uncertainty": "The proposal's emerged field reads '~7,000 BCE'; Kuahuqiao cultivation is about 7,700 years ago (about 5,700 BCE), with earlier cultivation possible.",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Each dated, located or attributed claim compared with the summarized content of the WebSearch results recorded in sources; pages not opened (WebFetch unavailable).",
+   "notes": ""
+  },
+  "mechanicLink": "Realized today as a member of activity.farming (all crop members currently give the same yield); PROPOSED and deferred: crop-package suitability by climate, water and soil in the Farming land side."
+ },
+ {
+  "id": "millet",
+  "tree": "technology",
+  "description": "Broomcorn and foxtail millet, grasses that tolerate drought and short growing seasons, were the founding grains of farming in northern China, grown with rainfall rather than irrigation. At Cishan in Hebei, a 2009 study dated domesticated broomcorn millet to about 10,000 years ago, although some archaeologists question its sampling. Where and when each millet was first domesticated remains open.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "AGR1-010",
+    "claims": [
+     "2009 study dated broomcorn millet at Cishan to about 10,000 years ago",
+     "Early Cishan dates questioned"
+    ]
+   },
+   {
+    "sourceId": "AGR1-011",
+    "claims": [
+     "Broomcorn and foxtail millet the two grains of early north Chinese farming",
+     "Place and time of domestication unresolved"
+    ]
+   }
+  ],
+  "uncertainty": "Cishan's early dates and crop identifications are disputed; the proposal's emerged field (~8,000 BCE Cishan) lies within the debated range.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: millets' drought and short-season tolerance; rain-fed (non-irrigated) cultivation."
+  },
+  "mechanicLink": "Realized today as a member of activity.farming (all crop members currently give the same yield); PROPOSED and deferred: crop-package suitability by climate, water and soil in the Farming land side."
+ },
+ {
+  "id": "maize",
+  "tree": "technology",
+  "description": "Maize descends from teosinte, a wild grass of southwestern Mexico whose small, hard-cased ears look little like a corncob. Evidence from the Central Balsas River valley, where the closest wild relative still grows, places early domesticated maize about 8,700 years ago. Farmers gradually selected larger ears with exposed kernels, and maize spread through the Americas, becoming a staple.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "AGR1-012",
+    "claims": [
+     "Earliest maize domestication evidence in the Central Balsas valley about 8,700 years ago",
+     "Balsas teosinte the wild grass closest to maize"
+    ]
+   }
+  ],
+  "uncertainty": "Earliest phases are debated; when maize became a dominant staple varied by region (the proposal's '~2,000 BCE' was not corroborated).",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: teosinte ear morphology; selection for larger ears; spread through the Americas."
+  },
+  "mechanicLink": "Realized today as a member of activity.farming (all crop members currently give the same yield); PROPOSED and deferred: crop-package suitability by climate, water and soil in the Farming land side."
+ },
+ {
+  "id": "sorghum_pearl_millet",
+  "tree": "technology",
+  "description": "South of the Sahara, farmers domesticated cereals suited to heat and erratic rain. Chaff of wild and domesticated sorghum in pottery from eastern Sudan dates to the fourth millennium BCE, and domesticated pearl millet appears in southeastern Mali in the third millennium BCE. Both crops later crossed to India; pearl millet arrived within about a thousand years.",
+  "wordCount": 57,
+  "sources": [
+   {
+    "sourceId": "AGR1-014",
+    "claims": [
+     "Wild and domesticated sorghum chaff in KG23 pottery, fourth millennium BC"
+    ]
+   },
+   {
+    "sourceId": "AGR1-013",
+    "claims": [
+     "Domesticated pearl millet in southeastern Mali by the second half of the third millennium BC",
+     "Spread to India in under 1,000 years",
+     "Eastern Sudan a gateway toward the Red Sea and Indian Ocean"
+    ]
+   }
+  ],
+  "uncertainty": "Sorghum's exact domestication centre and timing are debated; the proposal's '~3,000 BCE Sahel' is a simplification of two crops on different timelines.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: heat and drought adaptation of both crops."
+  },
+  "mechanicLink": "Realized today as a member of activity.farming (all crop members currently give the same yield); PROPOSED and deferred: crop-package suitability by climate, water and soil in the Farming land side."
+ },
+ {
+  "id": "root_crop",
+  "tree": "technology",
+  "description": "Some farming began with plants grown from cuttings and tubers. At Kuk Swamp in the New Guinea highlands, taro was used in the early Holocene and bananas were cultivated by about 6,900 years ago, an independent origin of agriculture. In the Andes, potatoes were domesticated near Lake Titicaca; the oldest archaeological tubers are about 7,000 years old.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "AGR1-015",
+    "claims": [
+     "Independent agriculture at Kuk by 6950-6440 cal BP",
+     "Taro use in the early Holocene; bananas intensively cultivated"
+    ]
+   },
+   {
+    "sourceId": "AGR1-016",
+    "claims": [
+     "Cultivation versus domestication at Kuk debated"
+    ]
+   },
+   {
+    "sourceId": "AGR1-017",
+    "claims": [
+     "Single potato origin from wild Solanum brevicaule-complex taxa, southern Peru"
+    ]
+   },
+   {
+    "sourceId": "AGR1-018",
+    "claims": [
+     "Origin around Lake Titicaca",
+     "Oldest tubers about 7,000 years old"
+    ]
+   }
+  ],
+  "uncertainty": "Whether Kuk shows domestication or only cultivation is debated; a single potato origin is disputed by later genetic work, and the proposal's '~8,000 BCE Andes (potato)' was not corroborated.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: vegetative propagation as a distinct farming mode."
+  },
+  "mechanicLink": "Realized today as a member of activity.farming (all crop members currently give the same yield); PROPOSED and deferred: crop-package suitability by climate, water and soil in the Farming land side."
+ },
+ {
+  "id": "legume",
+  "tree": "technology",
+  "description": "Pulses were domesticated alongside cereals. Lentil, pea, chickpea and bitter vetch belong to Southwest Asia's founder crops of about 11,000 to 10,000 years ago, and the common bean was domesticated separately in Mesoamerica and the Andes from about 8,000 years ago. Rich in protein, legumes also host root bacteria that fix atmospheric nitrogen, renewing soil fertility.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "AGR1-007",
+    "claims": [
+     "Founder pulses: lentil, pea, chickpea, bitter vetch",
+     "Founder crops about 11,000-10,000 years ago"
+    ]
+   },
+   {
+    "sourceId": "AGR1-019",
+    "claims": [
+     "Common bean domesticated independently in Mesoamerica and the Andes from about 8,000 years ago"
+    ]
+   },
+   {
+    "sourceId": "AGR1-020",
+    "claims": [
+     "Andean bean domestication site disputed"
+    ]
+   }
+  ],
+  "uncertainty": "The Andean bean domestication location is disputed.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: protein content; nitrogen fixation by root-nodule bacteria (explained scientifically only in the late 19th century)."
+  },
+  "mechanicLink": "Knowledge-only today (no simulated effect); records protein without meat and soil fertility; it is a causal parent of the four-course rotation."
+ },
+ {
+  "id": "orchard",
+  "tree": "technology",
+  "description": "Fruit trees take years to bear and are often propagated from cuttings rather than seed. Carbonised seedless figs from Gilgal near Jericho, about 11,400 years old, could only have spread through planted shoots, suggesting very early fig cultivation. Olives, grapes and dates were domesticated thousands of years later; olive oil residues in Galilee pottery date to about 5800 BCE.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "AGR1-021",
+    "claims": [
+     "Parthenocarpic figs at Gilgal I about 11,400 years old",
+     "Seedless figs spread only by planted shoots",
+     "Grapes, olives and dates domesticated about 5,000 years later"
+    ]
+   },
+   {
+    "sourceId": "AGR1-022",
+    "claims": [
+     "Olive oil residues at En Zippori about 5,800 BCE"
+    ]
+   }
+  ],
+  "uncertainty": "The Gilgal fig interpretation as cultivation is debated; the proposal's '~4,000 BCE (olive)' is later than the oil residue evidence.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: fruit trees' years-long delay to bearing."
+  },
+  "mechanicLink": "Knowledge-only today (no simulated effect); records oil, wine (with fermentation) and dried fruit; reachable from either cereal or root-crop farming."
+ },
+ {
+  "id": "sickle",
+  "tree": "technology",
+  "description": "A sickle is a haft set with sharp blades for cutting stalks. Glossy flint blades at Ohalo II in Israel, about 23,000 years old, are the earliest known cereal-harvesting inserts. Among the Levant's Natufians, about 15,500 to 11,600 years ago, flint-bladed sickles hafted in wood, bone or antler became common, their edges polished by plant stems.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "AGR1-024",
+    "claims": [
+     "Ohalo II glossy blades about 23,000 years old, earliest composite cereal harvesting tools",
+     "Sickles become common in the Natufian, about 15,500-11,600 cal BP",
+     "Hafts of wood, antler or horn, some bone; macroscopic gloss on blades"
+    ]
+   }
+  ],
+  "uncertainty": "Whether sickle reaping selected non-shattering cereals (Hillman and Davies) is questioned; uprooting also selects.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: that gloss forms from silica in plant stems."
+  },
+  "mechanicLink": "Knowledge-only today (no simulated effect); PROPOSED and deferred (M10+): a harvest-technique coefficient in the Farming labour side, realized with the tools good."
+ },
+ {
+  "id": "digging_stick_hoe",
+  "tree": "technology",
+  "description": "A hoe sets a stone or wooden blade on a handle to break, turn and weed soil with chopping strokes. In early farming villages of northern China, such as those of the Peiligang culture about 8,000 years ago, ground-stone spades with wooden handles accompanied millet cultivation. Hafted blades allowed heavier soils to be worked than a pointed stick.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "AGR1-025",
+    "claims": [
+     "Peiligang stone spades, including shouldered spades with wooden handles"
+    ]
+   },
+   {
+    "sourceId": "AGR1-026",
+    "claims": [
+     "Peiligang-linked settlement about 7,800-7,400 years ago with stone tools for each farming step; hoe-using stage"
+    ]
+   },
+   {
+    "sourceId": "AGR1-010",
+    "claims": [
+     "Cishan/Peiligang farming based on millet"
+    ]
+   }
+  ],
+  "uncertainty": "The proposal also cites early stone hoes in the Levant, not corroborated this session.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: hafted blades working heavier soils than a digging stick."
+  },
+  "mechanicLink": "Knowledge-only today (no simulated effect); records hafted-blade tillage and faster weeding; it is a causal ancestor of the ard."
+ },
+ {
+  "id": "sheep_goat",
+  "tree": "technology",
+  "description": "Wild sheep and goats of the Zagros and Taurus uplands were the first livestock of Southwest Asia, managed from probably between 10,000 and 8,000 BCE. At Ganj Dareh in Iran, goat bones show herders slaughtering young males while keeping females to breed, a hallmark of herding rather than hunting. Goats were also managed early at Nevalı Çori.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "AGR1-027",
+    "claims": [
+     "Sheep and goat domestication probably began in the Zagros 12,000-10,000 years ago",
+     "Ganj Dareh goats: young males culled about 8000 BCE (Zeder and Hesse)"
+    ]
+   },
+   {
+    "sourceId": "AGR1-028",
+    "claims": [
+     "Goat domestication at Nevali Cori and Ganj Dareh"
+    ]
+   }
+  ],
+  "uncertainty": "The proposal's '~10,500 BCE' is earlier than the corroborated range; the main sources here are secondary course texts.",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Each dated, located or attributed claim compared with the summarized content of the WebSearch results recorded in sources; pages not opened (WebFetch unavailable).",
+   "notes": ""
+  },
+  "mechanicLink": "Realized today as a member of activity.herding; PROPOSED and deferred (M10+): managed herds as a breeding stock with pasture and fodder instead of a fixed wild deposit rate."
+ },
+ {
+  "id": "cattle",
+  "tree": "technology",
+  "description": "Cattle descend from the aurochs, a large and formidable wild ox. They were domesticated in Southwest Asia roughly 10,000 years ago, and humped zebu cattle separately in South Asia, most likely the Indus region. Ancient DNA shows that early herds repeatedly mixed with wild aurochs and later with zebu. Cattle supplied meat, milk, hides, dung fuel and pulling power.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "AGR1-031",
+    "claims": [
+     "Cattle domesticated from aurochs in Neolithic Southwest Asia"
+    ]
+   },
+   {
+    "sourceId": "AGR1-030",
+    "claims": [
+     "Indus Valley most likely primary centre of zebu domestication"
+    ]
+   },
+   {
+    "sourceId": "AGR1-029",
+    "claims": [
+     "Wild introgression in early Near Eastern cattle; later zebu influx"
+    ]
+   }
+  ],
+  "uncertainty": "A separate African domestication (the proposal's 'possibly Sahara') is debated and was not corroborated; dates vary between about 10,500 and 8,000 years ago.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: the range of cattle products listed."
+  },
+  "mechanicLink": "Realized today as a member of activity.herding; PROPOSED and deferred (M10+): managed herds as a breeding stock with pasture and fodder instead of a fixed wild deposit rate."
+ },
+ {
+  "id": "pig",
+  "tree": "technology",
+  "description": "Pigs descend from wild boar and were domesticated independently in southwestern Asia and in China, roughly by 8,500 BCE and 6,000 BCE respectively. Genetic studies show that Europe's first domestic pigs came from the Near East, and suggest further local domestications in South and Southeast Asia. Pigs need no pasture: they eat scraps and forage, and breed quickly.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "AGR1-032",
+    "claims": [
+     "Independent pig domestication in China supported by genetics and archaeology",
+     "First European pigs imported from the Near East",
+     "Possible cryptic domestications in India and Southeast Asia"
+    ]
+   }
+  ],
+  "uncertainty": "Absolute dates (taken from the proposal) were not corroborated this session; 'cryptic' domestications lack archaeological support.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: the approximate dates; pigs' diet and fast breeding."
+  },
+  "mechanicLink": "Knowledge-only today (no simulated effect); PROPOSED and deferred (M10+): livestock raised on settlement waste and fodder rather than pasture deposits."
+ },
+ {
+  "id": "milking",
+  "tree": "technology",
+  "description": "Milking yields food repeatedly without killing the animal. Fat residues in more than 2,200 pottery vessels show milk in use by the seventh millennium BCE in the Near East and southeastern Europe, especially in northwestern Anatolia where cattle were common. The residues point mostly to processed foods such as butter, yogurt or cheese rather than fresh milk.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "AGR1-033",
+    "claims": [
+     "Milk in use by the seventh millennium BC from over 2,200 vessels",
+     "Particularly important in northwestern Anatolia, linked to cattle"
+    ]
+   },
+   {
+    "sourceId": "AGR1-034",
+    "claims": [
+     "Residues suggest processed dairy such as butter, yogurt, ghee and cheese"
+    ]
+   }
+  ],
+  "uncertainty": null,
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Each dated, located or attributed claim compared with the summarized content of the WebSearch results recorded in sources; pages not opened (WebFetch unavailable).",
+   "notes": ""
+  },
+  "mechanicLink": "Knowledge-only today (no simulated effect); PROPOSED and deferred (M10+): milk and cheese as an output of living herds without slaughter, once herds are a stock."
+ },
+ {
+  "id": "animal_traction",
+  "tree": "technology",
+  "description": "Harnessing cattle to pull loads multiplied the work one farmer could do. Deformed foot bones of cattle from Neolithic sites in the western Balkans, about 6100 to 4500 BCE, suggest occasional light pulling. Regular traction is clearer from the fourth millennium BCE, when ploughs and wheeled vehicles appear in Europe and Mesopotamia, part of wider use of living animals.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "AGR1-035",
+    "claims": [
+     "Light cattle traction in the Neolithic western Balkans about 6100-4500 cal BC"
+    ]
+   },
+   {
+    "sourceId": "AGR1-037",
+    "claims": [
+     "First clear evidence of plough and wheel in the fourth millennium BC"
+    ]
+   },
+   {
+    "sourceId": "AGR1-036",
+    "claims": [
+     "Secondary products model: traction, milk and wool broaden in the 4th-3rd millennia BCE; a change of scale rather than invention"
+    ]
+   }
+  ],
+  "uncertainty": "The secondary-products model's timing is debated; plough marks at Sion are older (early fifth millennium BCE).",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Each dated, located or attributed claim compared with the summarized content of the WebSearch results recorded in sources; pages not opened (WebFetch unavailable).",
+   "notes": ""
+  },
+  "mechanicLink": "Knowledge-only today (no simulated effect); records ploughing, cart haulage and treading; it is the causal parent of the ard and the wheel."
+ },
+ {
+  "id": "fermentation_grain",
+  "tree": "technology",
+  "description": "Brewing turns grain starch into sugar, by malting or cooking, then lets yeasts ferment it into alcohol. Residues in stone mortars at Raqefet Cave, Israel, about 13,000 years old, have been read as a weak cereal beer, a contested claim. Later brewers used barley in Mesopotamia, rice in China, maize in the Andes and sorghum in Africa.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "AGR1-039",
+    "claims": [
+     "Raqefet mortars claimed as earliest cereal beer by foragers",
+     "Beer-driven domestication hypothesis highly controversial"
+    ]
+   },
+   {
+    "sourceId": "AGR1-038",
+    "claims": [
+     "Raqefet brew about 13,000 years old and much weaker than modern beer"
+    ]
+   },
+   {
+    "sourceId": "AGR1-040",
+    "claims": [
+     "Jiahu rice-based fermented drink; Godin Tepe jars about 3500 BCE"
+    ]
+   }
+  ],
+  "uncertainty": "Raqefet's identification is contested; the proposal's 'secure' Godin Tepe evidence (~3,500 BCE) rests here on a weak popular source.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: malting chemistry; Andean maize and African sorghum beers; Mesopotamian barley beer."
+  },
+  "mechanicLink": "Knowledge-only today (no simulated effect); records beer, grain preserved as drink and leavened bread; reachable from any regional cereal plus pottery."
+ },
+ {
+  "id": "fermentation_fruit",
+  "tree": "technology",
+  "description": "Crushed fruit ferments readily in a sealed vessel. Pottery from Jiahu in China, about 7000 BCE, holds residues of a mixed drink of rice, honey and fruit. Grape wine is attested chemically in jars from Georgia of about 6000 BCE, and at Areni-1 cave in Armenia a pressing basin and fermentation vat date to about 4100 BCE.",
+  "wordCount": 57,
+  "sources": [
+   {
+    "sourceId": "AGR1-040",
+    "claims": [
+     "Jiahu residues of rice, honey and fruit (McGovern)"
+    ]
+   },
+   {
+    "sourceId": "AGR1-041",
+    "claims": [
+     "Grape wine in Georgia about 6000 BC (Shulaveris Gora, Gadachrili Gora)"
+    ]
+   },
+   {
+    "sourceId": "AGR1-042",
+    "claims": [
+     "Areni-1 winemaking installation about 4100 BC"
+    ]
+   }
+  ],
+  "uncertainty": "Jiahu's attribution and date rest on a popular summary of McGovern's work.",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Each dated, located or attributed claim compared with the summarized content of the WebSearch results recorded in sources; pages not opened (WebFetch unavailable).",
+   "notes": ""
+  },
+  "mechanicLink": "Knowledge-only today (no simulated effect); records wine and mead; requires pottery."
+ },
+ {
+  "id": "oil_press",
+  "tree": "technology",
+  "description": "Olive oil is made by crushing the fruit to a paste and pressing it to separate oil from water and pulp. Residues in pottery from En Zippori in Galilee show olive oil in use about 5800 BCE, and underwater remains off Kfar Samir, near Haifa, preserve an early processing site. Oil served as food and lamp fuel, and stored well.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "AGR1-022",
+    "claims": [
+     "En Zippori olive oil about 5,800 BCE",
+     "Kfar Samir underwater olive oil industry",
+     "Oil as food staple and possibly for lighting"
+    ]
+   },
+   {
+    "sourceId": "AGR1-023",
+    "claims": [
+     "Olive oil use about 8,000 years ago"
+    ]
+   }
+  ],
+  "uncertainty": "Kfar Samir's age is reported variously (about 6,500 or 7,700 years); pottery shows use rather than pressing.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: the crushing-and-pressing process; oil's storability."
+  },
+  "mechanicLink": "Knowledge-only today; PROPOSED and deferred: building.oil_press as a deferred entity (T6.11) with no realizing system yet."
+ },
+ {
+  "id": "salt_extraction",
+  "tree": "technology",
+  "description": "Salt preserves meat and fish and is a dietary necessity, yet occurs only in particular places. At Poiana Slatinei in Romania, early farmers exploited a brine spring around 6050 to 5500 BCE, the oldest known saltworks in Europe. From the mid-fifth millennium BCE, clay containers called briquetage were used to dry brine into salt cakes in central and eastern Europe.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "AGR1-043",
+    "claims": [
+     "Poiana Slatinei salt exploitation at a brine spring about 6050-5500 BC",
+     "Briquetage from the mid-fifth millennium BC in central and eastern Europe"
+    ]
+   }
+  ],
+  "uncertainty": "Hallstatt rock-salt mining (named in the proposal) was not corroborated this session.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: salt's dietary necessity and preservative use."
+  },
+  "mechanicLink": "Knowledge-only today (no simulated effect); PROPOSED and deferred (M10+): a salt good from brine springs or rock salt, consumed to preserve fish and livestock for storage and trade."
+ },
+ {
+  "id": "flax",
+  "tree": "technology",
+  "description": "Flax yields linen fibre from its stems and oil from its seeds. Wild flax fibres, some spun, dyed and knotted, occur in Dzudzuana Cave, Georgia, in layers about 36,000 to 31,000 years old. Domesticated flax is one of Southwest Asia's founder crops: larger cultivated seeds at Tell Ramad in Syria date to the seventh millennium BCE.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "AGR1-044",
+    "claims": [
+     "Spun, dyed and knotted wild flax fibres at Dzudzuana, about 36-31 ka cal BP"
+    ]
+   },
+   {
+    "sourceId": "AGR1-045",
+    "claims": [
+     "Domestic flax seeds earliest evidence of cultivation; earliest domesticated fibre"
+    ]
+   },
+   {
+    "sourceId": "AGR1-046",
+    "claims": [
+     "Domesticated flax at Tell Ramad"
+    ]
+   },
+   {
+    "sourceId": "AGR1-007",
+    "claims": [
+     "Flax among the founder crops"
+    ]
+   }
+  ],
+  "uncertainty": "Tell Ramad is dated variously to the seventh millennium BCE or about 9,000 years ago; Dzudzuana fibres need not imply woven cloth.",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Each dated, located or attributed claim compared with the summarized content of the WebSearch results recorded in sources; pages not opened (WebFetch unavailable).",
+   "notes": ""
+  },
+  "mechanicLink": "Knowledge-only today (no simulated effect); records linen fibre; feeds spinning."
+ },
+ {
+  "id": "terrace",
+  "tree": "technology",
+  "description": "Terraces cut hillsides into level steps held by walls, slowing runoff, trapping soil and creating fields on slopes too steep to plough. They were built independently in many mountain regions. In highland Yemen terrace farming dates to at least the third millennium BCE; in the Andes terraces were intensively used centuries before the Inka, and about a million hectares survive.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "AGR1-048",
+    "claims": [
+     "Yemen terraces between about 3000 and 2000 BC; possibly 4,000-5,000 years ago"
+    ]
+   },
+   {
+    "sourceId": "AGR1-047",
+    "claims": [
+     "Highland Yemen terrace research by Wilkinson and Gibson"
+    ]
+   },
+   {
+    "sourceId": "AGR1-049",
+    "claims": [
+     "Cutamalla terraces used about 250-40 BCE, before the Inka",
+     "About one million hectares of Andean terraces"
+    ]
+   }
+  ],
+  "uncertainty": "The proposal's '~4,000 BCE Yemen' is earlier than the corroborated third-millennium date; Levantine terraces are reported from the fourth millennium BCE.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: independent invention in several regions; erosion-control mechanism."
+  },
+  "mechanicLink": "Knowledge-only today; PROPOSED and deferred: infra.terraces adding effective arable area on sloping catchment cells (tier C, T6.11)."
+ },
+ {
+  "id": "plough_ard",
+  "tree": "technology",
+  "description": "An ard is a simple plough: a pointed share dragged through the soil by animals, scratching a furrow without turning it over, so fields were often cross-ploughed. The oldest known plough marks in Europe, at Sion in Switzerland, date to the early fifth millennium BCE. By the fourth millennium BCE ploughing with draught animals is attested in Europe and Mesopotamia.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "AGR1-037",
+    "claims": [
+     "Sion plough marks early fifth millennium BCE",
+     "Plough evidence in the fourth millennium BC in Europe and Mesopotamia"
+    ]
+   }
+  ],
+  "uncertainty": "Plough marks are rare and hard to date.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: ard mechanics and cross-ploughing."
+  },
+  "mechanicLink": "Knowledge-only today (no simulated effect); records extensive cultivation and higher labour productivity; ancestor of the heavy plough and Tull's drill."
+ },
+ {
+  "id": "cotton_cultivation",
+  "tree": "technology",
+  "description": "Cotton seeds carry long fibres that can be spun into soft, washable cloth. Remarkably, four cotton species were domesticated independently, two in Africa and Asia and two in the Americas. Cotton fibres preserved inside copper beads at Mehrgarh, Pakistan, date to the sixth millennium BCE, and indigo-dyed cotton fabric from Huaca Prieta, Peru, is about 6,000 years old.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "AGR1-052",
+    "claims": [
+     "Four species independently domesticated, two in Africa-Asia and two in the Americas"
+    ]
+   },
+   {
+    "sourceId": "AGR1-053",
+    "claims": [
+     "G. barbadense and G. hirsutum domesticated in parallel in South America and Mesoamerica"
+    ]
+   },
+   {
+    "sourceId": "AGR1-050",
+    "claims": [
+     "Cotton fibres in copper beads at Mehrgarh, first half of the 6th millennium BC"
+    ]
+   },
+   {
+    "sourceId": "AGR1-051",
+    "claims": [
+     "Indigo-dyed Huaca Prieta cotton about 6,000 years old"
+    ]
+   }
+  ],
+  "uncertainty": "Whether the Mehrgarh fibres come from cultivated cotton is uncertain.",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Each dated, located or attributed claim compared with the summarized content of the WebSearch results recorded in sources; pages not opened (WebFetch unavailable).",
+   "notes": ""
+  },
+  "mechanicLink": "Knowledge-only today (no simulated effect); PROPOSED and deferred (M10+): a fibre crop letting farmland produce fiber, which today comes only from wild deposits."
+ },
+ {
+  "id": "nixtamalization",
+  "tree": "technology",
+  "description": "Nixtamalization means cooking and soaking maize in an alkaline solution of lime, wood ash or crushed shell. It loosens the hulls, eases grinding into dough, and releases bound niacin, protecting people who live mostly on maize from pellagra. The earliest suggested evidence, cooking equipment on Guatemala's southern coast, dates to about 1500 to 1200 BCE.",
+  "wordCount": 55,
+  "sources": [
+   {
+    "sourceId": "AGR1-054",
+    "claims": [
+     "Earliest evidence on Guatemala's southern coast about 1500-1200 BCE",
+     "Lime, ash or shells as alkali",
+     "Untreated maize staple raises pellagra risk"
+    ]
+   },
+   {
+    "sourceId": "AGR1-055",
+    "claims": [
+     "Residue proxy for nixtamalization on vessels and grinding stones"
+    ]
+   }
+  ],
+  "uncertainty": "The origin date rests on a secondary reference whose underlying study was not identified; direct archaeological detection is recent.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "Main date and nutrition claims rest on an encyclopedia summary (not independently corroborated). General knowledge: loosening hulls and easing grinding."
+  },
+  "mechanicLink": "Knowledge-only today (no simulated effect); PROPOSED and deferred: if M9 models diet-related disease, pellagra risk in maize-dependent settlements is removed where this knowledge is held."
+ },
+ {
+  "id": "beekeeping",
+  "tree": "technology",
+  "description": "Beekeeping houses honeybee colonies in hives so honey and wax can be taken repeatedly without destroying the nest. A relief in King Nyuserre's sun temple in Egypt, about 2400 BCE, shows horizontal hives and honey sealed in jars. At Tel Rehov in Israel, an apiary of clay cylinder hives of the tenth to ninth century BCE housed Anatolian honeybees.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "AGR1-058",
+    "claims": [
+     "Earliest depiction of beekeeping in Nyuserre's sun temple about 2400 BCE"
+    ]
+   },
+   {
+    "sourceId": "AGR1-059",
+    "claims": [
+     "Relief shows horizontal hives and honey sealed in jars"
+    ]
+   },
+   {
+    "sourceId": "AGR1-056",
+    "claims": [
+     "Tel Rehov clay cylinder hives, late 10th-early 9th century BCE"
+    ]
+   },
+   {
+    "sourceId": "AGR1-057",
+    "claims": [
+     "Tel Rehov bees of an Anatolian subspecies"
+    ]
+   }
+  ],
+  "uncertainty": "Reign dates for Nyuserre vary between sources (about 2474-2421 BCE).",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: repeated harvest without destroying the colony."
+  },
+  "mechanicLink": "Knowledge-only today (no simulated effect); PROPOSED and deferred (M10+): honey and wax goods from managed hives."
+ },
+ {
+  "id": "rotary_quern",
+  "tree": "technology",
+  "description": "A rotary quern grinds grain between two round stones, the upper one turned by a handle, replacing the back-and-forth rubbing of earlier querns. The oldest known examples come from northeastern Iberia in the sixth to fifth centuries BCE. They spread through southern France and, adopted by local peoples, into central Europe and Britain; Roman expansion later carried them further.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "AGR1-060",
+    "claims": [
+     "Oldest rotary querns in the western Mediterranean, 6th-5th centuries BC, Iberia",
+     "Native adoption in Britain and Germany; Roman spread"
+    ]
+   },
+   {
+    "sourceId": "AGR1-061",
+    "claims": [
+     "Probably designed in northeast Iberia; spread to southern France in the 5th-4th centuries BC"
+    ]
+   }
+  ],
+  "uncertainty": "Causes of its introduction and its labour effects are debated.",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Each dated, located or attributed claim compared with the summarized content of the WebSearch results recorded in sources; pages not opened (WebFetch unavailable).",
+   "notes": ""
+  },
+  "mechanicLink": "Knowledge-only today (no simulated effect); records higher milling productivity; causal parent of the water mill."
+ },
+ {
+  "id": "iron_mouldboard",
+  "tree": "technology",
+  "description": "A mouldboard is a curved plate behind the ploughshare that lifts and turns the cut soil, burying weeds and stubble instead of merely scratching a furrow. In China iron mouldboard ploughs were probably developed by the fourth century BCE and were common under the Han dynasty (206 BCE to 220 CE), alongside other iron farm tools.",
+  "wordCount": 56,
+  "sources": [
+   {
+    "sourceId": "AGR1-062",
+    "claims": [
+     "Iron mouldboard probably developed in the 4th century BC and common by the Han",
+     "Heavy mouldboard ploughs with iron shares in the Han"
+    ]
+   }
+  ],
+  "uncertainty": "Dating rests on a secondary reference drawing on Needham and Bray; transmission of Chinese plough designs to Europe is plausible but unproven.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "Main claim rests on an encyclopedia summary. General knowledge: mouldboard function; Han dynasty dates."
+  },
+  "mechanicLink": "Knowledge-only today (no simulated effect); records heavy-soil cultivation and weed burial; an alternative Chinese route into farm machinery."
+ },
+ {
+  "id": "seed_drill",
+  "tree": "technology",
+  "description": "A seed drill drops seed through tubes into furrows at even depth and spacing, saving seed and leaving rows that can be weeded. In Han China, Zhao Guo, an agricultural official under Emperor Wu (reigned 141 to 87 BCE), is credited with promoting an animal-drawn drill that sowed three rows at once. Europe's first known seed-drill patent dates from 1566.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "AGR1-063",
+    "claims": [
+     "Zhao Guo under Emperor Wu introduced a three-legged drill sowing three rows"
+    ]
+   },
+   {
+    "sourceId": "AGR1-062",
+    "claims": [
+     "Multi-tube iron seed drills in the Han"
+    ]
+   },
+   {
+    "sourceId": "AGR1-064",
+    "claims": [
+     "First European seed-drill patent to Camillo Torello, 1566"
+    ]
+   }
+  ],
+  "uncertainty": "Attribution to Zhao Guo follows Chinese tradition and a press source; the drill may be older.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: Emperor Wu's reign dates; seed economy and row weeding."
+  },
+  "mechanicLink": "Knowledge-only today (no simulated effect); records seed economy and row cultivation; an alternative route to the horse-drawn drill."
+ },
+ {
+  "id": "heavy_plough",
+  "tree": "technology",
+  "description": "The heavy plough combined a knife-like coulter, an iron share and a mouldboard, often on wheels and drawn by several oxen. It could cut and turn the wet clay soils of northern Europe that resisted the ard. Linguistic evidence suggests Slavic peoples used it by the sixth century CE; how fast it spread and what it changed remain debated.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "AGR1-065",
+    "claims": [
+     "Heavy plough with coulter and mouldboard",
+     "Linguistic evidence of Slavic use by about AD 568"
+    ]
+   },
+   {
+    "sourceId": "AGR1-066",
+    "claims": [
+     "Lynn White: clay soils resisted the ard",
+     "Clay regions gained population and towns after adoption around the close of the first millennium"
+    ]
+   },
+   {
+    "sourceId": "AGR1-067",
+    "claims": [
+     "Ard-to-mouldboard shift slow and uneven"
+    ]
+   }
+  ],
+  "uncertainty": "Origin (Slavic or otherwise) rests on linguistic rather than archaeological evidence; Lynn White's thesis on its social effects is contested.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: wheeled forecarriage and multi-ox teams."
+  },
+  "mechanicLink": "Realized today: grants the A6 heavy-plough age fact; PROPOSED and deferred: heavy clay counted as effective arable and a lower fallow share in the Farming land side."
+ },
+ {
+  "id": "horse_collar",
+  "tree": "technology",
+  "description": "A padded collar rests on a horse's shoulders, letting it pull heavy loads with its full strength instead of against straps across its chest or neck. Collar harness is attested in China by about the fifth century CE and became widespread in Europe around the tenth to twelfth centuries. Horses could then plough and haul faster than oxen.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "AGR1-068",
+    "claims": [
+     "Horse collar first appeared in 5th-century China",
+     "Widespread in Europe around the 10th-12th centuries"
+    ]
+   }
+  ],
+  "uncertainty": "Dates vary between sources (some propose earlier Chinese origins or earlier European arrival); how much older harnesses choked horses is debated.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "Main dates rest on an encyclopedia summary. General knowledge: mechanics of collar harness; horses' speed relative to oxen."
+  },
+  "mechanicLink": "Knowledge-only today (no simulated effect); records the horse-drawn plough and faster haulage; a parent of Tull's drill and farm machinery."
+ },
+ {
+  "id": "rice_champa",
+  "tree": "technology",
+  "description": "Early-ripening rice can be harvested after a shorter season, sometimes allowing two crops a year, and tolerates drought. After a drought on the lower Yangtze and Huai rivers in 1012, the Song emperor Zhenzong had seed of such rice, called Champa rice after its Southeast Asian source, sent from Fujian and distributed to farmers in the affected region.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "AGR1-069",
+    "claims": [
+     "1012 drought on the lower Yangtze and Huai; Zhenzong ordered Champa seed from Fujian distributed",
+     "Quick-maturing, drought-tolerant rice"
+    ]
+   },
+   {
+    "sourceId": "AGR1-070",
+    "claims": [
+     "Thirty thousand bushels distributed, 1011-1012"
+    ]
+   }
+  ],
+  "uncertainty": "Some accounts describe the seed as fetched from Champa itself rather than from Fujian.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: double cropping enabled by early ripening."
+  },
+  "mechanicLink": "Knowledge-only today (no simulated effect); PROPOSED and deferred (M10+): double cropping on watered rice land raising food per arable area where the season allows."
+ },
+ {
+  "id": "sugar_refining",
+  "tree": "technology",
+  "description": "Sugarcane was first domesticated in New Guinea, but boiling its juice until sugar crystallised into storable granules is credited to India, where the technique developed about two thousand years ago and was refined in the early centuries CE. From the seventh century the expanding Islamic world carried cane and sugar-making westward to Egypt, North Africa, Spain and Italy.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "AGR1-071",
+    "claims": [
+     "Sugarcane first domesticated in New Guinea",
+     "Cane sugar granules made in India a little over 2,000 years ago, refined in the early centuries AD"
+    ]
+   },
+   {
+    "sourceId": "AGR1-072",
+    "claims": [
+     "Islamic expansion from the seventh century carried cane to the western Mediterranean, Spain and Portugal"
+    ]
+   }
+  ],
+  "uncertainty": "Cane's place of domestication is contested (some sources favour India); the proposal's '~350 CE' rests on weak sources.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "Main India and New Guinea claims rest on an encyclopedia summary; spread to Egypt, North Africa and Italy matched a weaker result."
+  },
+  "mechanicLink": "Knowledge-only today (no simulated effect); PROPOSED and deferred (M10+): a sugar good boiled from a cane crop by a crafting recipe."
+ },
+ {
+  "id": "crop_rotation_norfolk",
+  "tree": "technology",
+  "description": "The four-course rotation grew wheat, then turnips, then barley undersown with clover and ryegrass, then the clover itself, removing the fallow year. Turnips and clover fed livestock through winter, extra manure enriched the fields, and clover added nitrogen. It was practised in Flanders before spreading in eighteenth-century Britain, where landowners such as Charles Townshend promoted it.",
+  "wordCount": 56,
+  "sources": [
+   {
+    "sourceId": "AGR1-073",
+    "claims": [
+     "Rotation of wheat, turnips, barley and clover without fallow",
+     "Flemish origin; popularized by Townshend in 18th-century Britain"
+    ]
+   },
+   {
+    "sourceId": "AGR1-074",
+    "claims": [
+     "British agricultural changes including new rotations"
+    ]
+   }
+  ],
+  "uncertainty": "The Flemish (Waasland) origin is weakly sourced; the scale of yield gains attributed to the rotation is debated.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: winter fodder, manure and nitrogen mechanisms."
+  },
+  "mechanicLink": "Knowledge-only today (no simulated effect); records higher yields and more livestock; causally needs legumes and wheat-barley."
+ },
+ {
+  "id": "seed_drill_tull",
+  "tree": "technology",
+  "description": "In 1701 the English farmer Jethro Tull built a horse-drawn seed drill that sowed seed in neat rows at an even depth instead of scattering it by hand. He later developed a horse-drawn hoe to cultivate between the rows. Seed drills had long been used in China, and Europe had seen an earlier patent in 1566.",
+  "wordCount": 56,
+  "sources": [
+   {
+    "sourceId": "AGR1-075",
+    "claims": [
+     "Tull's horse-drawn drill of 1701 sowing in rows",
+     "Later horse-drawn hoe",
+     "Broadcasting by hand the earlier practice"
+    ]
+   },
+   {
+    "sourceId": "AGR1-064",
+    "claims": [
+     "Torello's 1566 European patent"
+    ]
+   },
+   {
+    "sourceId": "AGR1-063",
+    "claims": [
+     "Han Chinese animal-drawn drill"
+    ]
+   }
+  ],
+  "uncertainty": "Tull's actual influence on practice is debated by historians.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "Main Tull claims rest on an encyclopedia summary."
+  },
+  "mechanicLink": "Knowledge-only today (no simulated effect); records seed economy and horse-hoeing; reachable from the Chinese drill or from the ard with a horse collar."
+ },
+ {
+  "id": "selective_breeding",
+  "tree": "technology",
+  "description": "From the mid-eighteenth century Robert Bakewell of Dishley in Leicestershire bred livestock systematically, choosing parents for desired traits and mating close relatives to fix them. His New Leicester sheep and improved Longhorn cattle fattened quickly and became famous. Inbreeding also had costs, including lower fertility, and historians debate how original his methods were.",
+  "wordCount": 53,
+  "sources": [
+   {
+    "sourceId": "AGR1-076",
+    "claims": [
+     "In-and-in breeding and the New Leicester sheep",
+     "Declines in fecundity and meat quality; doubts in recent scholarship"
+    ]
+   },
+   {
+    "sourceId": "AGR1-077",
+    "claims": [
+     "Bakewell pioneered breeding with Leicester sheep and Longhorn cattle"
+    ]
+   }
+  ],
+  "uncertainty": "The originality of Bakewell's methods is debated.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: rapid fattening as the breeding goal."
+  },
+  "mechanicLink": "Knowledge-only today (no simulated effect); records larger, faster-maturing animals; needs the four-course rotation and livestock."
+ },
+ {
+  "id": "new_world_crops",
+  "tree": "technology",
+  "description": "After 1492, ocean contact moved crops between the hemispheres. Maize, potatoes, sweet potatoes and cassava spread across Europe, Asia and Africa; one economic study attributes about a quarter of Old World population growth between 1700 and 1900 to the potato. In the Americas, Old World crops and livestock spread, and sugar and coffee plantations relied on enslaved labour.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "AGR1-078",
+    "claims": [
+     "Potatoes, sweet potatoes, maize and cassava reached the Old World including Asia and Africa",
+     "Sugar and coffee produced with enslaved labour in the Americas"
+    ]
+   },
+   {
+    "sourceId": "AGR1-079",
+    "claims": [
+     "Potato accounts for about a quarter of Old World population growth 1700-1900"
+    ]
+   }
+  ],
+  "uncertainty": "This node describes diffusion of existing crops by contact, not invention; the potato estimate is one study's model-based figure.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: spread of Old World crops such as wheat and of livestock in the Americas."
+  },
+  "mechanicLink": "Knowledge-only today (no simulated effect); PROPOSED and deferred: transferred crops arriving as exposure credit on the crop nodes once contact and diffusion exist (open decision, T6.10)."
+ },
+ {
+  "id": "refrigeration",
+  "tree": "technology",
+  "description": "Mechanical refrigeration uses work to pump heat out of an insulated space, typically by compressing and evaporating a working fluid. In 1876 Carl von Linde, prompted by brewers, built a reliable ammonia compression machine; one served the Dreher brewery in Trieste for decades. In the same years refrigerated ships such as Ferdinand Carré's Paraguay began carrying frozen meat across oceans.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "AGR1-080",
+    "claims": [
+     "Linde's reliable compressed-ammonia machine of 1876, prompted by brewing"
+    ]
+   },
+   {
+    "sourceId": "AGR1-081",
+    "claims": [
+     "Machine for the Dreher brewery, Trieste; 1877 given as first functional industrial machine"
+    ]
+   },
+   {
+    "sourceId": "AGR1-082",
+    "claims": [
+     "Carre equipped the Paraguay with absorption refrigeration for frozen meat"
+    ]
+   }
+  ],
+  "uncertainty": "Linde's first machine is dated 1876 or 1877 depending on the source; the Paraguay's voyage is dated 1876-1878 and its route was not corroborated.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: vapour-compression principle."
+  },
+  "mechanicLink": "Knowledge-only today (no simulated effect); records long-distance chilled meat and near-zero spoilage; needs quantitative chemistry, rotary steam power and thermodynamics."
+ },
+ {
+  "id": "canning",
+  "tree": "technology",
+  "description": "Canning preserves food by heating it in a sealed container. In 1810 Nicolas Appert, working with glass bottles, published his method after a French government award. The same year Peter Durand patented tin cans in Britain, and Bryan Donkin and John Hall soon set up a cannery supplying the army and navy. Why heating worked was understood only later.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "AGR1-083",
+    "claims": [
+     "Appert's award and 1810 publication; glass bottles",
+     "Others developed tin-plated canisters"
+    ]
+   },
+   {
+    "sourceId": "AGR1-084",
+    "claims": [
+     "Durand's 1810 patent sold to Donkin and Hall; Bermondsey cannery supplying army and navy"
+    ]
+   }
+  ],
+  "uncertainty": "Durand's patent is dated 1810 or 1811 in different sources; the idea was communicated to him from abroad.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: that the microbial explanation came later (germ theory is deliberately not a prerequisite)."
+  },
+  "mechanicLink": "Knowledge-only today (no simulated effect); PROPOSED and deferred: a preserved-food good letting fish and livestock be stored with negligible spoilage."
+ },
+ {
+  "id": "agricultural_chemistry",
+  "tree": "technology",
+  "description": "Agricultural chemistry asks what plants take from the soil and why fields lose fertility. Humphry Davy's lectures, published in 1813, were an early textbook. In 1840 Justus von Liebig argued that plants need mineral nutrients, notably nitrogen, phosphorus and potassium, and that the scarcest limits growth. From 1843 Rothamsted field trials tested such claims, partly refuting Liebig on nitrogen.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "AGR1-086",
+    "claims": [
+     "Davy's Elements of Agricultural Chemistry, 1813, from lectures 1802-1812"
+    ]
+   },
+   {
+    "sourceId": "AGR1-085",
+    "claims": [
+     "Liebig's 1840 book on K, P and N; least abundant nutrient limits growth",
+     "Lawes and Gilbert's trials showed Liebig's formula gave too little nitrogen"
+    ]
+   },
+   {
+    "sourceId": "AGR1-087",
+    "claims": [
+     "Rothamsted founded by Lawes in 1843"
+    ]
+   }
+  ],
+  "uncertainty": "The 'law of the minimum' label and idea also owe to Carl Sprengel's earlier work.",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Each dated, located or attributed claim compared with the summarized content of the WebSearch results recorded in sources; pages not opened (WebFetch unavailable).",
+   "notes": ""
+  },
+  "mechanicLink": "PROPOSED new node: knowledge-only, with no effect beyond making chemical fertilizer researchable."
+ },
+ {
+  "id": "chemical_fertilizer",
+  "tree": "technology",
+  "description": "Mineral fertilizers return plant nutrients to soil in concentrated form. In 1842 John Bennet Lawes patented a process treating phosphate rock with sulphuric acid to make superphosphate and opened a factory to produce it. From the 1840s Peru exported seabird guano, a natural fertilizer, almost as a world monopoly, and mined nitrates later competed with it.",
+  "wordCount": 56,
+  "sources": [
+   {
+    "sourceId": "AGR1-085",
+    "claims": [
+     "Lawes's 1842 patent for treating phosphate rock with sulphuric acid; first superphosphate factory"
+    ]
+   },
+   {
+    "sourceId": "AGR1-088",
+    "claims": [
+     "Peru's guano boom from the early 1840s with a near-monopoly"
+    ]
+   },
+   {
+    "sourceId": "AGR1-089",
+    "claims": [
+     "Nitrates later competed with guano"
+    ]
+   }
+  ],
+  "uncertainty": "The proposal's 'Chilean nitrate traded from the 1840s' was not corroborated: the large nitrate trade grew later in the century.",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Each dated, located or attributed claim compared with the summarized content of the WebSearch results recorded in sources; pages not opened (WebFetch unavailable).",
+   "notes": ""
+  },
+  "mechanicLink": "PROPOSED and deferred: a fertilizer good made by recipe (phosphate rock or bone with sulphuric acid, potash, nitrates) and applied per arable area in the Farming land side."
+ },
+ {
+  "id": "farm_machinery",
+  "tree": "technology",
+  "description": "Before engines reached farms, horse-powered machines began replacing hand labour. Andrew Meikle's threshing machine, first used in Scotland in 1786 and patented in 1788, separated grain from straw. Mechanical reapers followed from Patrick Bell in 1828, Cyrus McCormick in 1831 and Obed Hussey in 1833, and John Deere made his first steel plough in 1837.",
+  "wordCount": 55,
+  "sources": [
+   {
+    "sourceId": "AGR1-090",
+    "claims": [
+     "Meikle 1786/1788; McCormick 1831; Hussey 1833"
+    ]
+   },
+   {
+    "sourceId": "AGR1-091",
+    "claims": [
+     "Bell 1828, McCormick 1831, Hussey 1833 reapers"
+    ]
+   },
+   {
+    "sourceId": "AGR1-092",
+    "claims": [
+     "Bell's 1828 reaper, unpatented"
+    ]
+   },
+   {
+    "sourceId": "AGR1-093",
+    "claims": [
+     "Deere's first steel plough 1837, Grand Detour"
+    ]
+   }
+  ],
+  "uncertainty": "Priority among reaper inventors was contested at the time; John Lane is reported to have built a steel plough in 1833.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: horse power as the motive power of these early machines."
+  },
+  "mechanicLink": "PROPOSED and deferred: farm implements as an equipment good (iron, timber) raising output per farmer on the labour side."
+ },
+ {
+  "id": "green_revolution",
+  "tree": "technology",
+  "description": "From the 1940s Norman Borlaug, working in Mexico, bred short-stemmed wheat that could take heavy fertilizer without toppling; in 1966 the International Rice Research Institute released IR8, a semi-dwarf rice. With irrigation, fertilizer and pesticides, these varieties sharply raised yields in India, Pakistan and elsewhere. Critics note uneven gains favouring irrigated, better-off farmers, and environmental costs.",
+  "wordCount": 56,
+  "sources": [
+   {
+    "sourceId": "AGR1-096",
+    "claims": [
+     "Borlaug's semi-dwarf wheat bred in Mexico, adopted in India and Pakistan"
+    ]
+   },
+   {
+    "sourceId": "AGR1-095",
+    "claims": [
+     "IR8 released 1966, yields depend on fertilizer and irrigation"
+    ]
+   },
+   {
+    "sourceId": "AGR1-094",
+    "claims": [
+     "Package of varieties, irrigation, fertilizer and pesticides; equity debate"
+    ]
+   },
+   {
+    "sourceId": "AGR1-097",
+    "claims": [
+     "Gains concentrated on irrigated northern Indian land; rainfed smallholders neglected"
+    ]
+   }
+  ],
+  "uncertainty": "Assessments of its social and environmental effects remain contested; the proposal's grant 'famine ended in Asia' overstates the evidence.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results recorded in sources; claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: lodging resistance as the reason for short stems."
+  },
+  "mechanicLink": "Knowledge-only today (no simulated effect); PROPOSED and deferred (M10+): a higher-yield seed-variety state for wheat and rice that needs fertilizer and water inputs to realize."
+ }
+]

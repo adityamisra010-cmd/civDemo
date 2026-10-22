@@ -1,0 +1,237 @@
+[
+  {
+    "id": "mechanised_agriculture",
+    "tree": "technology",
+    "description": "Engines began replacing draught animals. John Froelich's petrol tractor worked Iowa's 1892 threshing season; Benjamin Holt tested a tracked steam tractor on Californian peat in 1904. Mass-produced Fordsons followed from 1917, and combines reaped and threshed in one pass. Machinery helped shrink US farm work from over a third of workers in 1900 to under 2 percent by 2000.",
+    "wordCount": 59,
+    "sources": [
+      {
+        "sourceId": "AGR2-001",
+        "claims": [
+          "Froelich petrol tractor, Iowa, 1892 threshing season",
+          "Holt horse-drawn combine 1886 (combine lineage)"
+        ]
+      },
+      {
+        "sourceId": "AGR2-002",
+        "claims": [
+          "Holt tracked steam tractor first tested at Stockton, 1904, on peat soils"
+        ]
+      },
+      {
+        "sourceId": "AGR2-003",
+        "claims": [
+          "Fordson mass production from 1917"
+        ]
+      },
+      {
+        "sourceId": "AGR2-004",
+        "claims": [
+          "US farm labour share about 41 percent in 1900 to 1.9 percent in 2000; machinery a driver"
+        ]
+      },
+      {
+        "sourceId": "AGR2-005",
+        "claims": [
+          "mechanisation contributed to long-term decline of US farm employment"
+        ]
+      }
+    ],
+    "uncertainty": "Over 100 crawler-tread patents preceded Holt's, though his was the first practical field design; the 1900 US farm labour share is estimated between about 36 and 41 percent. The labour figures are for the United States only; timing and extent of mechanisation differed widely by region, farm size and access to capital.",
+    "factCheck": {
+      "status": "partially-checked",
+      "checkedBy": "drafting lane",
+      "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+      "notes": "Corroborated: Froelich 1892, Holt 1904 and peat soils, Fordson 1917, US labour share 1900-2000. Not corroborated by search: that combines 'reaped and threshed in one pass' is general knowledge (standard definition), and the 1930s spread of combines named in the node's emerged field is not stated in the text."
+    },
+    "mechanicLink": "Knowledge-only node (class C): it records a farm-labour-share capability with no current effect in the simulation; PROPOSED prerequisites internal_combustion, seed_drill_tull and farm_machinery, and it is a prerequisite of precision_agriculture and (proposed) tank."
+  },
+  {
+    "id": "drip_irrigation",
+    "tree": "technology",
+    "description": "Drip irrigation releases water slowly at the roots through plastic emitters, wasting less than flooding or sprinklers. Perforated-pipe trials predate it, but Israeli engineer Simcha Blass found that long, narrow passages inside an emitter slowed flow without the clogging of tiny holes. Tested at Kibbutz Hatzerim in the Negev, the design was commercialised by Netafim, founded in 1965.",
+    "wordCount": 58,
+    "sources": [
+      {
+        "sourceId": "AGR2-007",
+        "claims": [
+          "Blass used long passages and friction inside a plastic emitter instead of tiny holes that clogged",
+          "first trials at Kibbutz Hatzerim, Negev"
+        ]
+      },
+      {
+        "sourceId": "AGR2-006",
+        "claims": [
+          "Netafim founded 1965; first sales 1967"
+        ]
+      },
+      {
+        "sourceId": "AGR2-008",
+        "claims": [
+          "drip irrigation conserves agricultural water; Blass and Hatzerim origin"
+        ]
+      }
+    ],
+    "uncertainty": "Accounts date Blass's first prototypes to 1959 or 1960 and the kibbutz partnership to 1964 or 1965; earlier subsurface and perforated-pipe watering experiments existed in several countries.",
+    "factCheck": {
+      "status": "partially-checked",
+      "checkedBy": "drafting lane",
+      "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+      "notes": "Corroborated: Blass emitter principle, Hatzerim, Netafim 1965. Not corroborated by search: the existence of earlier perforated-pipe trials and the comparative water saving against flooding or sprinklers (general knowledge, stated cautiously)."
+    },
+    "mechanicLink": "Knowledge-only today (no effect); PROPOSED deferred owner CatchmentSystem/ProductionSystem would count arid cells as effective arable with low water use once a water budget exists (M10+). Prerequisites: plastics AND an irrigation tradition."
+  },
+  {
+    "id": "precision_agriculture",
+    "tree": "technology",
+    "description": "Precision agriculture treats a field as a patchwork rather than a uniform unit. In the early 1990s, yield monitors on combines logged grain flow against satellite positions, and the maps showed yields varying within fields. Variable-rate machines, adopted from the late 1990s, adjusted seed and fertiliser by location. Uptake was uneven: early returns were inconsistent and data standards lagged.",
+    "wordCount": 59,
+    "sources": [
+      {
+        "sourceId": "AGR2-009",
+        "claims": [
+          "yield monitor commercially available 1992"
+        ]
+      },
+      {
+        "sourceId": "AGR2-010",
+        "claims": [
+          "yield monitors logged against GPS showed within-field variation; Australia from 1993"
+        ]
+      },
+      {
+        "sourceId": "AGR2-011",
+        "claims": [
+          "variable-rate technology among early adopters in the late 1990s"
+        ]
+      },
+      {
+        "sourceId": "AGR2-012",
+        "claims": [
+          "civil GPS available early 1990s; missing standards slowed uptake"
+        ]
+      }
+    ],
+    "uncertainty": "Start dates vary by source and country: variable-rate fertiliser research from 1983, yield monitors 1992-1993, auto-steering from 1996; most sources are trade or industry histories.",
+    "factCheck": {
+      "status": "search-corroborated",
+      "checkedBy": "drafting lane",
+      "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+      "notes": "Return-on-investment inconsistency in the late 1990s also reported in PrecisionAg 'The Crooked Road To Precision Ag Progress' (search result, not registered separately)."
+    },
+    "mechanicLink": "Knowledge-only today (no effect); PROPOSED deferred owner ProductionSystem would reduce fertilizer and seed per unit of yield once those inputs exist as goods (M10+). Prerequisites: gps AND mechanised_agriculture."
+  },
+  {
+    "id": "frontier_crops",
+    "tree": "technology",
+    "description": "Crop genomics reads and edits the DNA of food plants to guide breeding. The rice genome, published in 2005 by a project begun in 1997, mapped about 37,500 genes and became a reference for related cereals. Breeders pair such maps with editing tools like CRISPR, which alters chosen sites without leaving foreign DNA; rules for it vary by country.",
+    "wordCount": 60,
+    "sources": [
+      {
+        "sourceId": "AGR2-013",
+        "claims": [
+          "rice genome published 2005; project established 1997; about 37,544 genes; reference for related cereals"
+        ]
+      },
+      {
+        "sourceId": "AGR2-014",
+        "claims": [
+          "genomics combined with genome editing for breeding goals; unclear legal status of edited crops"
+        ]
+      },
+      {
+        "sourceId": "AGR2-015",
+        "claims": [
+          "editing changes specific sites without leaving foreign DNA"
+        ]
+      },
+      {
+        "sourceId": "AGR2-016",
+        "claims": [
+          "regulatory treatment of edited crops differs between countries"
+        ]
+      }
+    ],
+    "uncertainty": "Rice sequence completion is dated 2004 in one review and published 2005; how much yield gain genome editing will deliver at field scale remains an open research question.",
+    "factCheck": {
+      "status": "search-corroborated",
+      "checkedBy": "drafting lane",
+      "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+      "notes": ""
+    },
+    "mechanicLink": "Repeatable node: today it completes once with no effect; PROPOSED (deferred, M10+) each level would close a fixed fraction of the remaining gap between yield per arable km2 and a photosynthetic-efficiency ceiling. Prerequisite: crispr."
+  },
+  {
+    "id": "frontier_climate",
+    "tree": "technology",
+    "description": "Climate engineering means deliberate, large-scale intervention in the climate system. A 2009 Royal Society report split proposals into two families: removing carbon dioxide from the air, and reflecting some sunlight back to space. It judged removal preferable; reflection could cool quickly but would not lower carbon dioxide, and no method had been shown affordable with acceptable environmental effects.",
+    "wordCount": 58,
+    "sources": [
+      {
+        "sourceId": "AGR2-017",
+        "claims": [
+          "two families: carbon dioxide removal and solar radiation management",
+          "CDR preferable to SRM",
+          "SRM cools rapidly but does not affect CO2",
+          "no method yet shown affordable with acceptable impacts"
+        ]
+      },
+      {
+        "sourceId": "AGR2-018",
+        "claims": [
+          "geoengineering as deliberate large-scale intervention in the climate system"
+        ]
+      }
+    ],
+    "uncertainty": "Feasibility, side effects and governance of both families, especially sunlight reflection, remain scientifically and politically contested; assessments after 2009 were not checked here.",
+    "factCheck": {
+      "status": "search-corroborated",
+      "checkedBy": "drafting lane",
+      "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+      "notes": ""
+    },
+    "mechanicLink": "Repeatable node: today it completes once with no effect because no atmosphere or climate state exists (blocked by ADR-008); PROPOSED later levels would raise a remediation rate toward a pre-industrial baseline. Prerequisite: carbon_capture."
+  },
+  {
+    "id": "scientific_plant_breeding",
+    "tree": "technology",
+    "description": "Scientific plant breeding applied Mendel's laws to crops. In 1905 Cambridge's Rowland Biffen showed that wheat's yellow-rust resistance was inherited in Mendelian fashion. In 1908 George Shull, and independently Edward East, described hybrid vigour in crosses of inbred maize. Hybrid seed, sold from 1926 and rebought yearly, covered 6 percent of Iowa's corn in 1935 and nearly all by 1942.",
+    "wordCount": 60,
+    "sources": [
+      {
+        "sourceId": "AGR2-019",
+        "claims": [
+          "Biffen 1905: rust susceptibility in wheat a Mendelian character"
+        ]
+      },
+      {
+        "sourceId": "AGR2-020",
+        "claims": [
+          "Biffen bred resistant Little Joss (1910) using this knowledge"
+        ]
+      },
+      {
+        "sourceId": "AGR2-021",
+        "claims": [
+          "Shull 1908 hybrid vigour from crossing pure lines; East independently",
+          "Iowa hybrid share 6 percent 1935 to about 99 percent 1942",
+          "hybrid seed bought each year"
+        ]
+      },
+      {
+        "sourceId": "AGR2-022",
+        "claims": [
+          "Hi-Bred Corn Co. founded 1926 to produce hybrid seed corn"
+        ]
+      }
+    ],
+    "uncertainty": "One local history dates Biffen's demonstration to 1906; other seed firms may have offered hybrid seed in the early 1920s, so 1926 marks a company founding rather than the first sale. Hybrid uptake was fastest in the US Corn Belt and slower elsewhere.",
+    "factCheck": {
+      "status": "search-corroborated",
+      "checkedBy": "drafting lane",
+      "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+      "notes": "Biffen's demonstration specifically concerned yellow rust per biographical summaries in the same search."
+    },
+    "mechanicLink": "PROPOSED new technique node with no current effect; prerequisite genetics_mendel and the new parent of green_revolution. Deferred (M10+): higher-yielding varieties as a seed-variety state, with hybrid seed bought each year."
+  }
+]

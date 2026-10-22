@@ -1,0 +1,1150 @@
+[
+ {
+  "id": "ore_prospecting",
+  "tree": "technology",
+  "description": "Ore prospecting means reading the ground for metal-bearing rock: green and blue copper stains, rusty weathered caps called gossans, and unusually heavy dark pebbles in stream gravels that may be tin ore. At Rudna Glava in Serbia, miners followed copper veins in the fifth millennium BCE. Tin ore was scarcer and harder to recognise, and its earliest sources are debated.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Dates for the earliest ore prospecting are inferred from mines and slag; Rudna Glava is commonly dated to the fifth millennium BCE, and early tin working at Kestel-Goltepe (Taurus, about 3000 BCE) is disputed. Prospecting practices arose in many regions independently.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: no register entry covers these claims, this lane's WebSearch call was refused (shared budget exhausted, 2026-10-22) and WebFetch is blocked. Written from general knowledge with cautious wording and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Rudna Glava copper mining in the fifth millennium BCE (Vinca culture); gossans and colour stains as surface indications; cassiterite in stream placers; scarcity of Bronze Age tin sources."
+  },
+  "mechanicLink": "PROPOSED, deferred (M6 fog lane): would let a polity label exposed tin-ore deposits inside its known extent (otherwise shown as unidentified occurrences); the proving activity is IMPLEMENTATION DEFERRED and research never reveals or creates a deposit."
+ },
+ {
+  "id": "mineralogy",
+  "tree": "technology",
+  "description": "Systematic mineralogy identifies minerals as distinct species by tests rather than appearance. Georgius Agricola, a physician in the Bohemian mining town of Joachimsthal, classified minerals from observation in the mid-1500s. In the 1700s Axel Fredrik Cronstedt analysed minerals with a blowpipe flame. Such chemistry let Martin Klaproth find uranium in 1789 in pitchblende, which miners had called bad luck.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "NUC-229",
+    "claims": [
+     "Agricola was town physician at Joachimsthal (1527-1533)",
+     "De natura fossilium classified minerals; Agricola favoured observation over ancient authority"
+    ]
+   },
+   {
+    "sourceId": "NUC-231",
+    "claims": [
+     "Blowpipe analysis of ores developed by Cronstedt"
+    ]
+   },
+   {
+    "sourceId": "NUC-232",
+    "claims": [
+     "Cronstedt's systematic use of the blowpipe to analyse mineral composition"
+    ]
+   },
+   {
+    "sourceId": "NUC-01",
+    "claims": [
+     "Klaproth identified uranium in pitchblende in 1789"
+    ]
+   },
+   {
+    "sourceId": "NUC-04",
+    "claims": [
+     "Joachimsthal miners called the uranium mineral 'Pechblende', a bad-luck mineral"
+    ]
+   }
+  ],
+  "uncertainty": "The node record dates the practice to 1546 (De natura fossilium) and 1758 (Cronstedt); the text gives centuries because the reused sources do not state those years. Mineral classification had earlier roots (Theophrastus, Islamic and Chinese works).",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with the claims recorded in register entries reused from sources/nuclear-geology-sources.json (search-result summaries captured by lane D11 on 2026-10-22); claims listed in notes rest on general knowledge. This lane's own WebSearch call was refused (shared search budget exhausted, 2026-10-22) and WebFetch is blocked, so no page was opened and no new search was run.",
+   "notes": "General knowledge, not corroborated: De natura fossilium in the mid-1500s (1546); Cronstedt's work in the 1700s; 'tests rather than appearance' as a characterisation."
+  },
+  "mechanicLink": "PROPOSED, deferred: would type exposed bauxite and uranium-mineral occurrences in observed land (with chemistry_quantitative); uranium identification stays contract-only because no Spine-sanctioned system consumes uranium (OPEN DECISION)."
+ },
+ {
+  "id": "stratigraphy",
+  "tree": "technology",
+  "description": "Stratigraphy reads rock layers as history. In 1669 Nicolaus Steno argued that sediments settle in horizontal layers, the lowest oldest. William Smith found that English strata follow a regular order recognisable by their fossils; his 1815 map covered a whole country. Such maps let geologists predict hidden coal or ironstone, and Britain founded a geological survey in 1835.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "NUC-236",
+    "claims": [
+     "Steno's 1669 Prodromus: sedimentary layers form horizontally; lower layers are older"
+    ]
+   },
+   {
+    "sourceId": "NUC-237",
+    "claims": [
+     "Steno: strata laid down horizontal and continuous"
+    ]
+   },
+   {
+    "sourceId": "NUC-238",
+    "claims": [
+     "Smith's 1815 map was the first geological map of a whole country",
+     "Strata occur in a regular order identifiable by their fossils"
+    ]
+   },
+   {
+    "sourceId": "NUC-240",
+    "claims": [
+     "British Geological Survey founded in 1835"
+    ]
+   },
+   {
+    "sourceId": "NUC-241",
+    "claims": [
+     "Survey formally established on 11 July 1835"
+    ]
+   }
+  ],
+  "uncertainty": "Superposition had earlier anticipations; Smith's priority over contemporaries such as Cuvier and Brongniart in fossil correlation is shared, not exclusive.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with the claims recorded in register entries reused from sources/nuclear-geology-sources.json (search-result summaries captured by lane D11 on 2026-10-22); claims listed in notes rest on general knowledge. This lane's own WebSearch call was refused (shared search budget exhausted, 2026-10-22) and WebFetch is blocked, so no page was opened and no new search was run.",
+   "notes": "General knowledge, not corroborated by a reused source: geological maps used to predict concealed coal or ironstone (the node record cites the Kent coalfield, predicted 1856-57 and proved 1890, from a search not in the register)."
+  },
+  "mechanicLink": "PROPOSED, deferred: would turn concealed coal, ironstone, oil, salt, potash and phosphate into identified prospects (likelihoods, never proved deposits) where survey work covers observed land, and makes a geological-survey institution eligible; IMPLEMENTATION DEFERRED."
+ },
+ {
+  "id": "nuclear_fission",
+  "tree": "technology",
+  "description": "A controlled chain reaction keeps uranium fission steady: each splitting nucleus releases two or three neutrons, and on average one causes the next fission. A moderator such as very pure graphite slows the neutrons; absorbing rods set the pace. The first such pile, CP-1, ran on 2 December 1942 beneath a Chicago stadium's stands, producing about half a watt.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "NUC-41",
+    "claims": [
+     "Two or three neutrons emitted per fission (spring 1939)"
+    ]
+   },
+   {
+    "sourceId": "NUC-35",
+    "claims": [
+     "Neutrons slowed by passage through light materials are far more effective at inducing reactions"
+    ]
+   },
+   {
+    "sourceId": "NUC-50",
+    "claims": [
+     "CP-1 achieved the first self-sustaining controlled chain reaction on 2 December 1942",
+     "Graphite blocks with uranium, controlled by cadmium rods"
+    ]
+   },
+   {
+    "sourceId": "NUC-51",
+    "claims": [
+     "CP-1 built in a squash court under the stands of Stagg Field, University of Chicago"
+    ]
+   },
+   {
+    "sourceId": "NUC-53",
+    "claims": [
+     "CP-1 first ran at about 0.5 W thermal"
+    ]
+   },
+   {
+    "sourceId": "NUC-55",
+    "claims": [
+     "Graphite purity was a decisive wartime problem"
+    ]
+   }
+  ],
+  "uncertainty": "Accounts of CP-1's start time and run duration differ [NUC-53]. The chain-reaction idea predates fission's discovery (Szilard, 1933).",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with the claims recorded in register entries reused from sources/nuclear-geology-sources.json (search-result summaries captured by lane D11 on 2026-10-22); claims listed in notes rest on general knowledge. This lane's own WebSearch call was refused (shared search budget exhausted, 2026-10-22) and WebFetch is blocked, so no page was opened and no new search was run.",
+   "notes": "General physics, not corroborated by a reused source: the statement that a steady reaction requires on average one further fission per fission."
+  },
+  "mechanicLink": "Knowledge-only (class C): records the controlled chain reaction; no system may build a pile or reactor because the frozen Spine scopes the nuclear layer to a deterrence abstraction, so any civil-nuclear mechanic needs a CR (OPEN DECISION)."
+ },
+ {
+  "id": "nuclear_power",
+  "tree": "technology",
+  "description": "A nuclear power station uses reactor heat to raise steam for turbines, and its engineering spans grid and core. Obninsk in the Soviet Union sent about 5 megawatts to the grid in June 1954; Calder Hall in England and Shippingport in the United States followed in 1956-57. Operators plan refuelling outages, size units to the grid and protect cooling power.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "NUC-61",
+    "claims": [
+     "A 5,000 kW plant at Obninsk was connected to the grid on 27 June 1954"
+    ]
+   },
+   {
+    "sourceId": "NUC-60",
+    "claims": [
+     "Obninsk first grid connection 27 June 1954"
+    ]
+   },
+   {
+    "sourceId": "NUC-62",
+    "claims": [
+     "Calder Hall opened on 17 October 1956"
+    ]
+   },
+   {
+    "sourceId": "NUC-68",
+    "claims": [
+     "Shippingport reached full power on 23 December 1957"
+    ]
+   },
+   {
+    "sourceId": "NUC-221",
+    "claims": [
+     "Largest unit practically limited to about 10% of system load; reserves for planned outages and trips"
+    ]
+   },
+   {
+    "sourceId": "NUC-94",
+    "claims": [
+     "Fukushima Daiichi: loss of off-site and backup power caused extended station blackout"
+    ]
+   }
+  ],
+  "uncertainty": "Which plant was 'first' depends on the criterion (grid connection, commercial scale or civilian purpose); Calder Hall's claim was contested [NUC-63].",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Each factual claim compared with the claims recorded in register entries reused from sources/nuclear-geology-sources.json (search-result summaries captured by lane D11 on 2026-10-22). This lane's own WebSearch call was refused (shared search budget exhausted, 2026-10-22) and WebFetch is blocked, so no page was opened and no new search was run.",
+   "notes": "Steam-turbine generation is stated as definition."
+  },
+  "mechanicLink": "Knowledge-only (class J): the declared nuclear power station has no realizing system and stays unrealizable under the frozen Spine; any civil-nuclear generation mechanic needs a CR (OPEN DECISION)."
+ },
+ {
+  "id": "thermonuclear",
+  "tree": "technology",
+  "description": "A thermonuclear weapon uses a fission explosion to compress and heat hydrogen isotopes until they fuse, releasing far more energy than fission alone. The United States tested the first full-scale device, Ivy Mike, on 1 November 1952; the Soviet Union tested its own in November 1955. Such weapons became central to Cold War deterrence and later arms-control negotiations.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "NUC-214",
+    "claims": [
+     "First full-scale thermonuclear test, US 'Ivy Mike', 1 November 1952",
+     "Soviet thermonuclear test November 1955"
+    ]
+   }
+  ],
+  "uncertainty": "Whether earlier boosted or layered devices (for example the Soviet 1953 test) count as thermonuclear is debated.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with the claims recorded in register entries reused from sources/nuclear-geology-sources.json (search-result summaries captured by lane D11 on 2026-10-22); claims listed in notes rest on general knowledge. This lane's own WebSearch call was refused (shared search budget exhausted, 2026-10-22) and WebFetch is blocked, so no page was opened and no new search was run.",
+   "notes": "General knowledge, not corroborated: the fission-driven compression and fusion mechanism; the role of such weapons in deterrence and arms control."
+  },
+  "mechanicLink": "Deferred, deterrence abstraction only: raises the deterrence state the M10+ abstraction reads; no battle-layer nuclear mechanics and no simulated fusion-fuel or fissile-material production."
+ },
+ {
+  "id": "nuclear_fusion_research",
+  "tree": "technology",
+  "description": "Controlled fusion research tries to join light nuclei such as deuterium and tritium in a plasma hot, dense and confined enough to yield net energy. Soviet physicists built the first tokamak, a doughnut-shaped magnetic chamber, in the late 1950s. Inertial confinement squeezes fuel pellets with lasers; a 2022 American experiment released more energy than its lasers delivered.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "The 2022 result exceeded the laser energy delivered to the target, not the total energy the facility consumed. Dates for the first tokamak vary (1958 is usual) depending on what counts as a tokamak.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: no register entry covers these claims, this lane's WebSearch call was refused (shared budget exhausted, 2026-10-22) and WebFetch is blocked. Written from general knowledge with cautious wording and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: first tokamak (Kurchatov Institute, about 1958); National Ignition Facility target gain in December 2022; deuterium-tritium as the main fuel."
+  },
+  "mechanicLink": "Knowledge-only (class C): records plasma confinement and fusion science; reachable by a magnetic route (superconductivity) or an inertial route (thermonuclear and laser); no simulated effect."
+ },
+ {
+  "id": "nuclear_submarine",
+  "tree": "technology",
+  "description": "A nuclear submarine is driven by a compact reactor that makes steam for its turbines, so propulsion needs no air and the boat can stay submerged far longer than diesel-electric craft. The US Navy's Nautilus, powered by a pressurised-water reactor from Hyman Rickover's naval programme, signalled 'underway on nuclear power' on 17 January 1955. Other navies followed.",
+  "wordCount": 57,
+  "sources": [
+   {
+    "sourceId": "NUC-71",
+    "claims": [
+     "Nautilus signalled 'underway on nuclear power' on 17 January 1955",
+     "Plant described as a pressurized-water (submarine thermal) reactor"
+    ]
+   },
+   {
+    "sourceId": "NUC-69",
+    "claims": [
+     "Rickover's Naval Reactors led the Shippingport project (the same naval programme)"
+    ]
+   }
+  ],
+  "uncertainty": "Sources describe Nautilus' plant as a Westinghouse submarine thermal reactor and as a pressurised-water design; these are the same reactor under two names [NUC-71].",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with the claims recorded in register entries reused from sources/nuclear-geology-sources.json (search-result summaries captured by lane D11 on 2026-10-22); claims listed in notes rest on general knowledge. This lane's own WebSearch call was refused (shared search budget exhausted, 2026-10-22) and WebFetch is blocked, so no page was opened and no new search was run.",
+   "notes": "General knowledge, not corroborated: air-independent propulsion and endurance compared with diesel-electric boats; later adoption by several navies."
+  },
+  "mechanicLink": "Deferred to the Battle layer (M7): grants unit.nuclear_submarine (class F, eligibility only) whose reactor propulsion is a unit property; requires light_water_reactor and submarine; whether it falls under the nuclear-layer rescoping is an OPEN DECISION."
+ },
+ {
+  "id": "fusion_power",
+  "tree": "technology",
+  "description": "Fusion power is the still-unrealised goal of generating electricity from controlled fusion. A plant would need a plasma yielding far more energy than the whole facility consumes, wall materials that survive intense neutron bombardment, and tritium fuel bred from lithium. No fusion device has yet supplied a grid; experiments such as ITER in France aim first to sustain burning plasmas.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Speculative: timelines for commercial fusion are disputed and repeatedly revised; no date is implied.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: no register entry covers these claims, this lane's WebSearch call was refused (shared budget exhausted, 2026-10-22) and WebFetch is blocked. Written from general knowledge with cautious wording and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: no fusion device has supplied grid electricity (as of 2026); ITER's location and aim; tritium breeding from lithium."
+  },
+  "mechanicLink": "Knowledge-only (class J): the declared fusion plant has no realizing system and, as nuclear generation, no Spine-sanctioned owner; prerequisite of fusion_propulsion."
+ },
+ {
+  "id": "fission_weapon",
+  "tree": "technology",
+  "description": "A fission weapon assembles highly enriched uranium or plutonium so fast that a chain reaction runs out of control. The wartime Manhattan Project tested a plutonium implosion device in New Mexico on 16 July 1945; atomic bombs were then used against Hiroshima on 6 August and Nagasaki on 9 August. Four more states had tested such weapons by 1964.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "NUC-119",
+    "claims": [
+     "Weapons require uranium enriched to over 90% or plutonium in concentrated form"
+    ]
+   },
+   {
+    "sourceId": "NUC-212",
+    "claims": [
+     "First nuclear explosion, a plutonium implosion device, tested in New Mexico on 16 July 1945"
+    ]
+   },
+   {
+    "sourceId": "NUC-213",
+    "claims": [
+     "Uranium weapon used on Hiroshima 6 August 1945; plutonium weapon on Nagasaki 9 August 1945"
+    ]
+   },
+   {
+    "sourceId": "NUC-214",
+    "claims": [
+     "First tests: USSR 1949, UK 1952, France 1960, China 1964"
+    ]
+   }
+  ],
+  "uncertainty": "Casualty figures for Hiroshima and Nagasaki vary widely between estimates and are not given here.",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Each factual claim compared with the claims recorded in register entries reused from sources/nuclear-geology-sources.json (search-result summaries captured by lane D11 on 2026-10-22). This lane's own WebSearch call was refused (shared search budget exhausted, 2026-10-22) and WebFetch is blocked, so no page was opened and no new search was run.",
+   "notes": "The supercritical-assembly mechanism is stated in general terms consistent with NUC-119."
+  },
+  "mechanicLink": "Deferred, deterrence abstraction only: the M10+ abstraction reads 'fission_weapon or thermonuclear known' plus its own programme costs; a research node alone never confers a weapon; reachable by uranium_enrichment OR reprocessing."
+ },
+ {
+  "id": "nuclear_medicine",
+  "tree": "technology",
+  "description": "Nuclear medicine places radioactive substances in the body to trace organ function or treat disease. George de Hevesy's tracer method, first published in 1923, used radioactive atoms to mark an element's path. In 1941 Saul Hertz in Boston treated thyroid disease with radioiodine. Technetium-99m generators, first ordered by a hospital in 1961, now serve some 40 million procedures yearly.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "NUC-194",
+    "claims": [
+     "Hevesy's tracer method; first tracer studies published 1923"
+    ]
+   },
+   {
+    "sourceId": "NUC-195",
+    "claims": [
+     "Tracers extended to absorption, distribution and metabolism in the body"
+    ]
+   },
+   {
+    "sourceId": "NUC-204",
+    "claims": [
+     "31 March 1941: Hertz gave the first radioiodine treatment for thyroid disease at Massachusetts General Hospital"
+    ]
+   },
+   {
+    "sourceId": "NUC-198",
+    "claims": [
+     "First Tc-99m generator order went to a hospital in 1961"
+    ]
+   },
+   {
+    "sourceId": "NUC-199",
+    "claims": [
+     "Tc-99m used in some 40 million procedures a year"
+    ]
+   }
+  ],
+  "uncertainty": "More than one group treated patients with radioiodine in the early 1940s; the text follows the 1941 date in NUC-204.",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Each factual claim compared with the claims recorded in register entries reused from sources/nuclear-geology-sources.json (search-result summaries captured by lane D11 on 2026-10-22). This lane's own WebSearch call was refused (shared search budget exhausted, 2026-10-22) and WebFetch is blocked, so no page was opened and no new search was run.",
+   "notes": ""
+  },
+  "mechanicLink": "PROPOSED, deferred (M9 health system): radiotracer diagnosis and therapy; its isotopes would be an abstract medical supply because isotope production has no Spine-sanctioned system (OPEN DECISION)."
+ },
+ {
+  "id": "radiation_protection",
+  "tree": "technology",
+  "description": "Radiation protection limits harm from ionising radiation by controlling time, distance, shielding and containment, and by measuring doses against agreed limits. Injuries to early X-ray workers and to radium dial painters who shaped brushes with their lips showed the danger. An international committee formed in Stockholm in 1928, later the ICRP; Chicago's wartime Metallurgical Laboratory named 'health physics' in 1942.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "NUC-145",
+    "claims": [
+     "Protection principles: time, distance, shielding, containment"
+    ]
+   },
+   {
+    "sourceId": "NUC-146",
+    "claims": [
+     "ALARA: exposures kept as far below limits as reasonably achievable"
+    ]
+   },
+   {
+    "sourceId": "NUC-133",
+    "claims": [
+     "Edison's assistant Clarence Dally was injured by X-ray work and died in 1904"
+    ]
+   },
+   {
+    "sourceId": "NUC-135",
+    "claims": [
+     "Dial painters ingested radium by lip-pointing brushes"
+    ]
+   },
+   {
+    "sourceId": "NUC-138",
+    "claims": [
+     "Committee founded in 1928 at Stockholm as the International X-ray and Radium Protection Committee; renamed ICRP in 1950"
+    ]
+   },
+   {
+    "sourceId": "NUC-143",
+    "claims": [
+     "'Health physics' arose at the Chicago Metallurgical Laboratory in 1942"
+    ]
+   }
+  ],
+  "uncertainty": "Who coined 'health physics' is uncertain (most likely Robert Stone or Arthur Compton) [NUC-143].",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Each factual claim compared with the claims recorded in register entries reused from sources/nuclear-geology-sources.json (search-result summaries captured by lane D11 on 2026-10-22). This lane's own WebSearch call was refused (shared search budget exhausted, 2026-10-22) and WebFetch is blocked, so no page was opened and no new search was run.",
+   "notes": ""
+  },
+  "mechanicLink": "PROPOSED, deferred: makes protective regimes (ventilation, monitoring, dose limits) eligible to reduce exposure harm that exists without research (radon in hard-rock mines, radiology staff); also prerequisite of reprocessing and isotope work."
+ },
+ {
+  "id": "radiotherapy",
+  "tree": "technology",
+  "description": "Radiotherapy uses radiation to destroy tumours while sparing healthy tissue. Soon after radium was seen to burn skin around 1901, doctors applied it to skin lesions, then placed sealed sources in body cavities or implanted needles. Centres such as the Paris radium institute developed the practice. From 1951 cobalt-60 units in London, Ontario, and Saskatoon delivered penetrating external beams.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "NUC-134",
+    "claims": [
+     "Becquerel's skin burn from a radium tube; joint Becquerel-Curie paper on physiological effects in 1901"
+    ]
+   },
+   {
+    "sourceId": "NUC-201",
+    "claims": [
+     "Radium sources placed in body cavities and later implanted as needles"
+    ]
+   },
+   {
+    "sourceId": "NUC-202",
+    "claims": [
+     "Institut du Radium (1909) and Fondation Curie as treatment and training centres"
+    ]
+   },
+   {
+    "sourceId": "NUC-77",
+    "claims": [
+     "First cobalt-60 external-beam treatment given in London, Ontario, in 1951, a second in Saskatoon"
+    ]
+   },
+   {
+    "sourceId": "NUC-203",
+    "claims": [
+     "Saskatoon cobalt-60 unit treated its first patient in November 1951"
+    ]
+   }
+  ],
+  "uncertainty": "London, Ontario, and Saskatoon both claim the first cobalt-60 treatment in 1951 [NUC-77, NUC-203].",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with the claims recorded in register entries reused from sources/nuclear-geology-sources.json (search-result summaries captured by lane D11 on 2026-10-22); claims listed in notes rest on general knowledge. This lane's own WebSearch call was refused (shared search budget exhausted, 2026-10-22) and WebFetch is blocked, so no page was opened and no new search was run.",
+   "notes": "General knowledge, not corroborated: first radium treatments of skin lesions around 1901 (the node record places one in Paris)."
+  },
+  "mechanicLink": "PROPOSED, deferred (M9 health system): a cancer-treatment practice whose radium and cobalt-60 sources would be an abstract medical supply, since ore processing and isotope production have no Spine-sanctioned system (OPEN DECISION)."
+ },
+ {
+  "id": "fast_breeder_reactor",
+  "tree": "technology",
+  "description": "A fast breeder reactor uses unmoderated fast neutrons, usually with liquid-sodium cooling, and surrounds its core with uranium-238 that becomes plutonium, so it can make more fissile fuel than it burns. Idaho's EBR-I, which first generated usable nuclear electricity in December 1951, was a breeder. France closed Superphénix in 1998; Russia's BN-600 has fed its grid since 1980.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "NUC-58",
+    "claims": [
+     "EBR-I produced the first usable nuclear electricity on 20 December 1951; first liquid-metal-cooled fast reactor"
+    ]
+   },
+   {
+    "sourceId": "NUC-59",
+    "claims": [
+     "EBR-I as a breeder made more fuel than it consumed"
+    ]
+   },
+   {
+    "sourceId": "NUC-85",
+    "claims": [
+     "Superphenix closed in 1998; BN-600 and BN-800 are the main operating sodium-cooled fast reactors"
+    ]
+   },
+   {
+    "sourceId": "NUC-86",
+    "claims": [
+     "BN-600 grid-connected April 1980"
+    ]
+   }
+  ],
+  "uncertainty": "Breeding needs reprocessing to recover the bred plutonium; Superphenix was shut down early [NUC-87] and the US did not pursue the closed cycle commercially.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with the claims recorded in register entries reused from sources/nuclear-geology-sources.json (search-result summaries captured by lane D11 on 2026-10-22); claims listed in notes rest on general knowledge. This lane's own WebSearch call was refused (shared search budget exhausted, 2026-10-22) and WebFetch is blocked, so no page was opened and no new search was run.",
+   "notes": "General physics, not corroborated by a reused source: conversion of uranium-238 into plutonium in a blanket."
+  },
+  "mechanicLink": "Knowledge-only (closed-cycle alternative reactor family for nuclear_power, requires reprocessing): no realization under the frozen Spine; any mechanic needs a CR (OPEN DECISION)."
+ },
+ {
+  "id": "geological_disposal",
+  "tree": "technology",
+  "description": "Geological disposal isolates long-lived radioactive waste hundreds of metres underground, relying on stable rock and engineered barriers rather than continued human care. In 1957 an American scientific panel favoured salt formations. New Mexico's WIPP began receiving defence transuranic waste in 1999, about 650 metres deep in salt. At Oklo, Gabon, natural reactor wastes stayed largely put for two billion years.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "NUC-125",
+    "claims": [
+     "High level waste is matched to deep geological disposal"
+    ]
+   },
+   {
+    "sourceId": "NUC-126",
+    "claims": [
+     "First waste shipment arrived at WIPP on 26 March 1999; about 2,150 feet underground in a salt formation; defence transuranic waste"
+    ]
+   },
+   {
+    "sourceId": "NUC-131",
+    "claims": [
+     "Oklo retained fission waste for about two billion years; actinides stayed largely in place"
+    ]
+   }
+  ],
+  "uncertainty": "Finland's Onkalo spent-fuel repository received a favourable regulatory safety finding in 2026 [NUC-128] but the government's licensing decision is pending; no civil spent-fuel repository was operating when this was written.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with the claims recorded in register entries reused from sources/nuclear-geology-sources.json (search-result summaries captured by lane D11 on 2026-10-22); claims listed in notes rest on general knowledge. This lane's own WebSearch call was refused (shared search budget exhausted, 2026-10-22) and WebFetch is blocked, so no page was opened and no new search was run.",
+   "notes": "General knowledge, not corroborated: the 1957 US National Academy of Sciences report recommending salt (the node record's date); 650 m is a conversion of 2,150 feet."
+  },
+  "mechanicLink": "Knowledge-only: a radioactive-waste repository is a nuclear-layer facility the frozen Spine does not sanction; any mechanic needs a CR (OPEN DECISION)."
+ },
+ {
+  "id": "graphite_reactor",
+  "tree": "technology",
+  "description": "Graphite-moderated reactors use very pure carbon to slow neutrons, letting unenriched uranium sustain a chain reaction. Oak Ridge's X-10 (1943) pioneered plutonium production that Hanford's B reactor (1944) took to full scale. Britain's Magnox stations, from Calder Hall in 1956, cooled such cores with carbon dioxide for power. Flaws in the Soviet RBMK variant contributed to Chernobyl in 1986.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "NUC-80",
+    "claims": [
+     "Natural uranium suffices with graphite or heavy-water moderation"
+    ]
+   },
+   {
+    "sourceId": "NUC-56",
+    "claims": [
+     "X-10 went critical 4 November 1943; natural-uranium, graphite-moderated pilot plutonium reactor"
+    ]
+   },
+   {
+    "sourceId": "NUC-57",
+    "claims": [
+     "Hanford B: first full-scale plutonium production reactor, critical September 1944"
+    ]
+   },
+   {
+    "sourceId": "NUC-64",
+    "claims": [
+     "Magnox: natural uranium, graphite moderator, carbon dioxide coolant; Calder Hall"
+    ]
+   },
+   {
+    "sourceId": "NUC-62",
+    "claims": [
+     "Calder Hall opened 17 October 1956"
+    ]
+   },
+   {
+    "sourceId": "NUC-82",
+    "claims": [
+     "RBMK shortcomings (positive void coefficient, positive scram) behind the 1986 accident"
+    ]
+   }
+  ],
+  "uncertainty": "Hanford B's criticality is dated 26 or 27 September 1944 in different DOE histories [NUC-57].",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Each factual claim compared with the claims recorded in register entries reused from sources/nuclear-geology-sources.json (search-result summaries captured by lane D11 on 2026-10-22). This lane's own WebSearch call was refused (shared search budget exhausted, 2026-10-22) and WebFetch is blocked, so no page was opened and no new search was run.",
+   "notes": ""
+  },
+  "mechanicLink": "Knowledge-only: satisfies nuclear_power's reactor-family requirement; no realization under the frozen Spine, and any reactor mechanic needs a CR (OPEN DECISION)."
+ },
+ {
+  "id": "heavy_water_reactor",
+  "tree": "technology",
+  "description": "Heavy water, whose hydrogen carries an extra neutron, absorbs so few neutrons that a reactor moderated by it can run on natural uranium. Canada's ZEEP at Chalk River, critical in September 1945, was the first reactor outside the United States. The CANDU design, from a 1962 prototype, holds fuel in pressure tubes and refuels while running. India also uses it.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "NUC-33",
+    "claims": [
+     "Deuterium (heavy hydrogen) demonstrated in 1931"
+    ]
+   },
+   {
+    "sourceId": "NUC-79",
+    "claims": [
+     "High neutron economy allows natural uranium fuel; pressure tubes; on-power refuelling; PHWRs in Argentina, Canada, China, India and other countries"
+    ]
+   },
+   {
+    "sourceId": "NUC-76",
+    "claims": [
+     "ZEEP at Chalk River went critical on 5 September 1945, the first reactor outside the US"
+    ]
+   },
+   {
+    "sourceId": "NUC-77",
+    "claims": [
+     "NPD (1962) was the CANDU prototype"
+    ]
+   }
+  ],
+  "uncertainty": "Indian and other national pressurised heavy-water designs derive partly from CANDU but have diverged.",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Each factual claim compared with the claims recorded in register entries reused from sources/nuclear-geology-sources.json (search-result summaries captured by lane D11 on 2026-10-22). This lane's own WebSearch call was refused (shared search budget exhausted, 2026-10-22) and WebFetch is blocked, so no page was opened and no new search was run.",
+   "notes": "The atomic description of deuterium (one extra neutron) is stated as definition."
+  },
+  "mechanicLink": "Knowledge-only: an alternative reactor family for nuclear_power without enrichment; no realization under the frozen Spine, and any reactor or heavy-water-plant mechanic needs a CR (OPEN DECISION)."
+ },
+ {
+  "id": "light_water_reactor",
+  "tree": "technology",
+  "description": "Light-water reactors use ordinary water both to cool the core and to slow neutrons. Because water captures more neutrons than graphite or heavy water, their fuel is enriched to roughly 3-5% uranium-235. Pressurised designs came from the US naval programme, which also built Shippingport in 1957; boiling-water designs grew from Idaho's BORAX tests, which lit Arco in 1955.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "NUC-80",
+    "claims": [
+     "Light-water reactors use uranium enriched to about 3.5-5%; natural uranium suffices only with graphite or heavy water"
+    ]
+   },
+   {
+    "sourceId": "NUC-119",
+    "claims": [
+     "Commercial reactors use uranium enriched to roughly 3-5%"
+    ]
+   },
+   {
+    "sourceId": "NUC-69",
+    "claims": [
+     "Rickover's Naval Reactors led Shippingport; critical December 1957"
+    ]
+   },
+   {
+    "sourceId": "NUC-72",
+    "claims": [
+     "BORAX tests of boiling water; BORAX-III lit Arco on 17 July 1955; GE's commercial BWR built on BORAX"
+    ]
+   },
+   {
+    "sourceId": "NUC-88",
+    "claims": [
+     "About 308 PWR and 45 BWR of about 417 units"
+    ]
+   }
+  ],
+  "uncertainty": null,
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Each factual claim compared with the claims recorded in register entries reused from sources/nuclear-geology-sources.json (search-result summaries captured by lane D11 on 2026-10-22). This lane's own WebSearch call was refused (shared search budget exhausted, 2026-10-22) and WebFetch is blocked, so no page was opened and no new search was run.",
+   "notes": "The comparison of neutron capture is inferred from NUC-80's statement that only graphite or heavy water allows natural uranium."
+  },
+  "mechanicLink": "Knowledge-only as a facility: a reactor family for nuclear_power and the prerequisite of nuclear_submarine (the naval application reaches the battle layer only as a unit, M7); any reactor mechanic needs a CR (OPEN DECISION)."
+ },
+ {
+  "id": "reprocessing",
+  "tree": "technology",
+  "description": "Reprocessing dissolves spent reactor fuel in nitric acid and separates uranium and plutonium from fission products by solvent extraction, the PUREX method. Wartime separation chemistry worked out at Oak Ridge's X-10 was used at Hanford to extract weapons plutonium. Civil plants such as France's La Hague, operating since 1976, recycle plutonium into mixed-oxide fuel. The United States runs none.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "NUC-121",
+    "claims": [
+     "PUREX: fuel dissolved in nitric acid, uranium and plutonium separated by solvent extraction; La Hague since 1976; plutonium recycled as MOX"
+    ]
+   },
+   {
+    "sourceId": "NUC-56",
+    "claims": [
+     "X-10 helped develop the chemical separation used at Hanford"
+    ]
+   },
+   {
+    "sourceId": "NUC-122",
+    "claims": [
+     "No civil reprocessing plants operate in the USA"
+    ]
+   },
+   {
+    "sourceId": "NUC-117",
+    "claims": [
+     "Reprocessing technology is open to misuse (proliferation)"
+    ]
+   }
+  ],
+  "uncertainty": "The wartime Hanford process (bismuth phosphate) differed from later PUREX; whether reprocessing is worth its cost and proliferation risk remains contested between countries.",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Each factual claim compared with the claims recorded in register entries reused from sources/nuclear-geology-sources.json (search-result summaries captured by lane D11 on 2026-10-22). This lane's own WebSearch call was refused (shared search budget exhausted, 2026-10-22) and WebFetch is blocked, so no page was opened and no new search was run.",
+   "notes": ""
+  },
+  "mechanicLink": "Knowledge-only: reprocessing plants are nuclear-layer facilities the frozen Spine does not sanction (any mechanic needs a CR, OPEN DECISION); prerequisite of fast_breeder_reactor and one route to fission_weapon."
+ },
+ {
+  "id": "uranium_enrichment",
+  "tree": "technology",
+  "description": "Enrichment raises the share of fissile uranium-235 above its natural 0.7 per cent. Ore concentrate is first converted to uranium hexafluoride. Wartime Oak Ridge used electromagnetic separators wound with borrowed Treasury silver and the vast K-25 gaseous-diffusion plant; centrifuges later cut the electricity needed about fiftyfold. Reactor fuel needs 3-5%, weapons far more, so the step is internationally safeguarded.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "NUC-169",
+    "claims": [
+     "Natural uranium is about 0.7% U-235"
+    ]
+   },
+   {
+    "sourceId": "NUC-102",
+    "claims": [
+     "Yellowcake is converted to uranium hexafluoride at a conversion plant"
+    ]
+   },
+   {
+    "sourceId": "NUC-107",
+    "claims": [
+     "Y-12 calutrons; Treasury silver replaced copper in the magnet windings"
+    ]
+   },
+   {
+    "sourceId": "NUC-105",
+    "claims": [
+     "K-25 passed UF6 through over 3,000 diffusion stages"
+    ]
+   },
+   {
+    "sourceId": "NUC-81",
+    "claims": [
+     "Diffusion about 2,500 kWh per SWU versus about 50 for centrifuges"
+    ]
+   },
+   {
+    "sourceId": "NUC-120",
+    "claims": [
+     "Commercial fuel is LEU at 3-5% U-235"
+    ]
+   },
+   {
+    "sourceId": "NUC-115",
+    "claims": [
+     "High enriched uranium is direct-use material under IAEA safeguards"
+    ]
+   }
+  ],
+  "uncertainty": "Centrifuge adoption was slowed by engineering difficulty; enrichment spread unevenly and remains one of the most restricted technologies.",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Each factual claim compared with the claims recorded in register entries reused from sources/nuclear-geology-sources.json (search-result summaries captured by lane D11 on 2026-10-22). This lane's own WebSearch call was refused (shared search budget exhausted, 2026-10-22) and WebFetch is blocked, so no page was opened and no new search was run.",
+   "notes": ""
+  },
+  "mechanicLink": "Knowledge-only: enrichment plants are not Spine-sanctioned facilities (any mechanic, such as electricity per SWU, needs a CR, OPEN DECISION); prerequisite of light_water_reactor and one route to fission_weapon."
+ },
+ {
+  "id": "uranium_milling",
+  "tree": "technology",
+  "description": "Radioactive ore processing began with radium: in 1898 the Curies traced it through Joachimsthal pitchblende residues, and a Joachimsthal works held a radium monopoly in 1909-1913. Modern uranium mills crush ore, leach it with sulphuric acid and precipitate yellowcake, recovering 90-95% of the uranium. Over half of today's uranium is dissolved underground in place; mill tailings stay radioactive.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "NUC-15",
+    "claims": [
+     "The Curies worked with pitchblende and reported radium on 26 December 1898"
+    ]
+   },
+   {
+    "sourceId": "NUC-17",
+    "claims": [
+     "Joachimsthal residues supplied for the radium work"
+    ]
+   },
+   {
+    "sourceId": "NUC-04",
+    "claims": [
+     "The factory held a radium monopoly 1909-1913"
+    ]
+   },
+   {
+    "sourceId": "NUC-100",
+    "claims": [
+     "Mill crushes, grinds, leaches (usually sulphuric acid), precipitates yellowcake; tailings hold radioactive material"
+    ]
+   },
+   {
+    "sourceId": "NUC-101",
+    "claims": [
+     "Mills extract 90-95% of the uranium"
+    ]
+   },
+   {
+    "sourceId": "NUC-97",
+    "claims": [
+     "In situ leaching produces more than half of world uranium"
+    ]
+   }
+  ],
+  "uncertainty": "Radium output later shifted to Colorado Plateau and Belgian Congo ores [NUC-10, NUC-05].",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Each factual claim compared with the claims recorded in register entries reused from sources/nuclear-geology-sources.json (search-result summaries captured by lane D11 on 2026-10-22). This lane's own WebSearch call was refused (shared search budget exhausted, 2026-10-22) and WebFetch is blocked, so no page was opened and no new search was run.",
+   "notes": ""
+  },
+  "mechanicLink": "Knowledge-only: uranium milling is a nuclear-layer facility the frozen Spine does not sanction; any mechanic (ore to concentrate with a radioactive tailings stock) needs a CR (OPEN DECISION)."
+ },
+ {
+  "id": "geophysical_prospecting",
+  "tree": "technology",
+  "description": "Geophysical prospecting measures physical contrasts underground to find deposits with no surface trace. Swedish miners traced iron ore with magnetic compasses; later magnetometers mapped magnetite bodies. Roland Eötvös's torsion balance sensed density differences, locating an oil structure at Egbell in 1915 and Texas salt domes from 1924. Reflection-seismic tests began in Oklahoma in 1921; electrical methods targeted sulphide ores.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "NUC-248",
+    "claims": [
+     "Compass used to locate Swedish iron ore (dated 1640 in an abstract); field magnetometers from 1915"
+    ]
+   },
+   {
+    "sourceId": "NUC-246",
+    "claims": [
+     "Eotvos torsion balance (1888); first gravimetric oil survey at Egbell (1915); Nash salt dome, Texas, 1924"
+    ]
+   },
+   {
+    "sourceId": "NUC-244",
+    "claims": [
+     "First reflection-seismograph field test, central Oklahoma, 4 June 1921"
+    ]
+   },
+   {
+    "sourceId": "NUC-249",
+    "claims": [
+     "Magnetic prospection, later airborne"
+    ]
+   }
+  ],
+  "uncertainty": "The 1640 date for compass prospecting rests on a low-confidence abstract [NUC-248]; the node record cites Thalen's 1879 survey method. Results include false positives and misses.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with the claims recorded in register entries reused from sources/nuclear-geology-sources.json (search-result summaries captured by lane D11 on 2026-10-22); claims listed in notes rest on general knowledge. This lane's own WebSearch call was refused (shared search budget exhausted, 2026-10-22) and WebFetch is blocked, so no page was opened and no new search was run.",
+   "notes": "General knowledge, not corroborated: electrical methods for sulphide ores (Schlumberger, about 1912-13, per the node record)."
+  },
+  "mechanicLink": "PROPOSED, deferred: survey work over observed territory would identify concealed iron, oil, copper, salt and sulphur prospects with false positives and misses, never proving size or grade."
+ },
+ {
+  "id": "nuclear_physics",
+  "tree": "technology",
+  "description": "Nuclear physics studies the atom's tiny, dense nucleus, identified by Ernest Rutherford in 1911. Isotopes, the neutron (James Chadwick, 1932) and artificial radioactivity (1934) followed. In December 1938 Otto Hahn and Fritz Strassmann found barium among products of neutron-irradiated uranium; Lise Meitner and Otto Frisch explained it as nuclear splitting, and Niels Bohr traced slow-neutron fission to uranium-235.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "NUC-27",
+    "claims": [
+     "Rutherford (May 1911) explained alpha scattering by a small dense nucleus"
+    ]
+   },
+   {
+    "sourceId": "NUC-21",
+    "claims": [
+     "Soddy formulated the isotope concept in 1913"
+    ]
+   },
+   {
+    "sourceId": "NUC-32",
+    "claims": [
+     "Chadwick showed the neutral particle in 1932"
+    ]
+   },
+   {
+    "sourceId": "NUC-34",
+    "claims": [
+     "Artificial radioactivity announced 15 January 1934"
+    ]
+   },
+   {
+    "sourceId": "NUC-40",
+    "claims": [
+     "December 1938: Hahn and Strassmann showed the product was barium"
+    ]
+   },
+   {
+    "sourceId": "NUC-41",
+    "claims": [
+     "Meitner and Frisch interpreted it as splitting and named it fission"
+    ]
+   },
+   {
+    "sourceId": "NUC-44",
+    "claims": [
+     "Bohr reasoned in February 1939 that U-235 is responsible for slow-neutron fission"
+    ]
+   }
+  ],
+  "uncertainty": "Meitner's exclusion from the 1944 Nobel Prize remains controversial [NUC-43]; Ida Noddack had suggested nuclear splitting in 1934 [NUC-40].",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Each factual claim compared with the claims recorded in register entries reused from sources/nuclear-geology-sources.json (search-result summaries captured by lane D11 on 2026-10-22). This lane's own WebSearch call was refused (shared search budget exhausted, 2026-10-22) and WebFetch is blocked, so no page was opened and no new search was run.",
+   "notes": ""
+  },
+  "mechanicLink": "Knowledge-only (class C): common root of the chain reaction, enrichment, heavy water, isotope production and fusion research; no simulated effect."
+ },
+ {
+  "id": "radiation_detection",
+  "tree": "technology",
+  "description": "Radiation detectors make invisible ionising radiation measurable. Early workers counted alpha particles as flashes on zinc sulphide screens. Hans Geiger built an electrical counter in Rutherford's laboratory from 1908, developed with Walther Müller in 1928 into a tube sensitive to many kinds of radiation. Wilson's cloud chamber (1911) showed particle tracks; film badges and, from 1948, sodium-iodide scintillators extended measurement.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "NUC-153",
+    "claims": [
+     "Individual alpha-particle flashes on zinc sulfide (Crookes, spinthariscope 1903)"
+    ]
+   },
+   {
+    "sourceId": "NUC-27",
+    "claims": [
+     "Geiger and Marsden counted flashes on zinc sulfide screens"
+    ]
+   },
+   {
+    "sourceId": "NUC-150",
+    "claims": [
+     "Geiger built an alpha counter in Rutherford's laboratory (1908-1911); the 1928 Geiger-Muller version detects many kinds of radiation"
+    ]
+   },
+   {
+    "sourceId": "NUC-152",
+    "claims": [
+     "Wilson's cloud chamber (from 1911) made charged-particle paths visible"
+    ]
+   },
+   {
+    "sourceId": "NUC-157",
+    "claims": [
+     "First true film badge designed in the early 1930s"
+    ]
+   },
+   {
+    "sourceId": "NUC-154",
+    "claims": [
+     "NaI(Tl) detectors developed in 1948 became the standard gamma scintillator"
+    ]
+   }
+  ],
+  "uncertainty": null,
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Each factual claim compared with the claims recorded in register entries reused from sources/nuclear-geology-sources.json (search-result summaries captured by lane D11 on 2026-10-22). This lane's own WebSearch call was refused (shared search budget exhausted, 2026-10-22) and WebFetch is blocked, so no page was opened and no new search was run.",
+   "notes": ""
+  },
+  "mechanicLink": "Knowledge-only: the shared enabler of nuclear physics, radiation protection, radiometric prospecting and isotope work; no simulated effect."
+ },
+ {
+  "id": "radioactivity",
+  "tree": "technology",
+  "description": "Radioactivity is the spontaneous emission of radiation by unstable atoms. In 1896 Henri Becquerel found that uranium salts fogged wrapped photographic plates without sunlight. Marie and Pierre Curie, measuring tiny electric currents, identified polonium and radium in pitchblende in 1898. Rutherford and Frederick Soddy explained the rays as atoms transforming into other elements; handlers soon found radiation burns skin.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "NUC-11",
+    "claims": [
+     "Becquerel's plates developed on 1 March 1896 showed images without sunlight"
+    ]
+   },
+   {
+    "sourceId": "NUC-12",
+    "claims": [
+     "Uranium salts fogged plates wrapped in opaque paper"
+    ]
+   },
+   {
+    "sourceId": "NUC-18",
+    "claims": [
+     "Marie Curie measured ionization currents with the Curie electrometer"
+    ]
+   },
+   {
+    "sourceId": "NUC-15",
+    "claims": [
+     "Polonium (July 1898) and radium (December 1898) from pitchblende"
+    ]
+   },
+   {
+    "sourceId": "NUC-19",
+    "claims": [
+     "Rutherford and Soddy's disintegration theory (1902-1903)"
+    ]
+   },
+   {
+    "sourceId": "NUC-20",
+    "claims": [
+     "Radioactivity ascribed to spontaneous disintegration of atoms"
+    ]
+   },
+   {
+    "sourceId": "NUC-134",
+    "claims": [
+     "Becquerel's radium burn; Pierre Curie's deliberate exposure; 1901 paper on physiological effects"
+    ]
+   }
+  ],
+  "uncertainty": "Becquerel's discovery is sometimes described as accidental; he was deliberately testing phosphorescent salts and found the effect without light [NUC-11].",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Each factual claim compared with the claims recorded in register entries reused from sources/nuclear-geology-sources.json (search-result summaries captured by lane D11 on 2026-10-22). This lane's own WebSearch call was refused (shared search budget exhausted, 2026-10-22) and WebFetch is blocked, so no page was opened and no new search was run.",
+   "notes": ""
+  },
+  "mechanicLink": "Knowledge-only: records the radium era and the harm of exposure; prerequisite of radiation_detection, radiotherapy and uranium_milling; no simulated effect."
+ },
+ {
+  "id": "radioisotope_production",
+  "tree": "technology",
+  "description": "Radioisotopes can be made by bombarding stable atoms with particles. Irène Joliot-Curie and Frédéric Joliot made the first artificial radioactive isotope in 1934, and Ernest Lawrence's cyclotrons soon produced hundreds more. Reactors made isotopes plentiful: Oak Ridge sent its first, carbon-14, to a St Louis cancer hospital in August 1946. Cobalt-60 now sterilises medical devices, and iridium-192 serves industrial radiography.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "NUC-34",
+    "claims": [
+     "Alpha-bombarded aluminium yielded radioactive phosphorus (artificial radioactivity), January 1934"
+    ]
+   },
+   {
+    "sourceId": "NUC-36",
+    "claims": [
+     "Cyclotron (1929); hundreds of radioisotopes found with it"
+    ]
+   },
+   {
+    "sourceId": "NUC-196",
+    "claims": [
+     "2 August 1946: first reactor-produced medical radioisotope (carbon-14) shipped to the Barnard Free Skin and Cancer Hospital, St Louis"
+    ]
+   },
+   {
+    "sourceId": "NUC-210",
+    "claims": [
+     "Gamma irradiation (cobalt-60) for medical-device sterilization"
+    ]
+   },
+   {
+    "sourceId": "NUC-209",
+    "claims": [
+     "Industrial radiography uses iridium-192 and cobalt-60 sealed sources"
+    ]
+   }
+  ],
+  "uncertainty": null,
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Each factual claim compared with the claims recorded in register entries reused from sources/nuclear-geology-sources.json (search-result summaries captured by lane D11 on 2026-10-22). This lane's own WebSearch call was refused (shared search budget exhausted, 2026-10-22) and WebFetch is blocked, so no page was opened and no new search was run.",
+   "notes": ""
+  },
+  "mechanicLink": "Knowledge-only: isotope production is a nuclear-layer facility the frozen Spine does not sanction (any decaying-stock mechanic needs a CR, OPEN DECISION); its knowledge feeds nuclear_medicine."
+ },
+ {
+  "id": "radiometric_prospecting",
+  "tree": "technology",
+  "description": "Radiometric prospecting seeks uranium and thorium by detecting the gamma radiation around rocks rich in them. In the American uranium boom after the 1948 government price guarantee, Geological Survey teams drove roads with Geiger counters; airborne surveys were established by 1958. Modern spectrometers map potassium, uranium and thorium separately. About one exploration project in a thousand finds an economic deposit.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "NUC-175",
+    "claims": [
+     "USGS, for the AEC, prospected with car-mounted Geiger-Mueller counters; uranium- or thorium-rich rocks surrounded by a high gamma field"
+    ]
+   },
+   {
+    "sourceId": "NUC-183",
+    "claims": [
+     "AEC uranium price guarantee from 1948"
+    ]
+   },
+   {
+    "sourceId": "NUC-182",
+    "claims": [
+     "AEC guaranteed prices and set off a Colorado Plateau uranium rush"
+    ]
+   },
+   {
+    "sourceId": "NUC-176",
+    "claims": [
+     "By 1958 airborne radioactivity surveys were established"
+    ]
+   },
+   {
+    "sourceId": "NUC-178",
+    "claims": [
+     "Gamma-ray spectrometry maps potassium, uranium and thorium"
+    ]
+   },
+   {
+    "sourceId": "NUC-180",
+    "claims": [
+     "About one in 1,000 exploration projects finds an economic uranium deposit"
+    ]
+   }
+  ],
+  "uncertainty": "The depth reach of gamma surveys is not stated by the reused sources (brief Q2); anomalies include false positives and misses.",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Each factual claim compared with the claims recorded in register entries reused from sources/nuclear-geology-sources.json (search-result summaries captured by lane D11 on 2026-10-22). This lane's own WebSearch call was refused (shared search budget exhausted, 2026-10-22) and WebFetch is blocked, so no page was opened and no new search was run.",
+   "notes": ""
+  },
+  "mechanicLink": "Knowledge-only (contract): would identify near-surface concealed uranium occurrences with false positives and misses, but uranium has no Spine-sanctioned consumer, so realization is part of the civil-nuclear CR (OPEN DECISION)."
+ }
+]

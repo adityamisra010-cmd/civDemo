@@ -1,0 +1,693 @@
+[
+  {
+    "id": "kin_council",
+    "tree": "civics",
+    "description": "A council of elders brings together the heads of households or lineages to settle quarrels, share out common land, water or hunting grounds, and agree on joint action. Its authority rests on age, kinship and persuasion rather than force. Ethnographers have recorded such councils among many foraging and farming peoples; their prehistoric antiquity is inferred, not dated.",
+    "wordCount": 57,
+    "sources": [],
+    "uncertainty": "No direct archaeological date: the practice is inferred from ethnography and leaves few material traces; its form varied widely between societies.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: ethnographic recording of elder councils among foragers and farmers; authority by persuasion rather than force."
+    },
+    "mechanicLink": "PROPOSED civic-micro (not in content today): completion grants knowledge only ('a council of household heads deciding common matters by consensus'); under M8 it would join the polity's regime module set (council of elders) and make the 'call a council' crisis remedy available - implementation deferred, no regime entity kind exists."
+  },
+  {
+    "id": "hereditary_rank",
+    "tree": "civics",
+    "description": "Hereditary rank exists when status and leadership pass by descent within particular families, so control of land, herds and surplus is inherited rather than won anew each generation. Archaeologists infer it from burials: at Varna in Bulgaria, graves of about 4600-4200 BCE range from plain pits to a few rich in gold. Whether such wealth was inherited is debated.",
+    "wordCount": 59,
+    "sources": [
+      {
+        "sourceId": "MAT1-031",
+        "claims": [
+          "Varna necropolis graves dated about 4600-4200 BCE",
+          "Varna graves contain large quantities of worked gold"
+        ]
+      }
+    ],
+    "uncertainty": "Reading unequal grave goods as inherited (rather than achieved) rank is an archaeological inference; ranked societies arose independently in many regions at different dates.",
+    "factCheck": {
+      "status": "partially-checked",
+      "checkedBy": "drafting lane",
+      "method": "Varna date range and gold finds compared with the register record MAT1-031 (claims recorded by the materials lane from a search summary, 2026-10-22); no page opened by this lane.",
+      "notes": "This lane's own WebSearch budget was exhausted before any search (first queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. Only the Varna date and gold are corroborated, via an existing register entry. Uncorroborated: the general definition of a ranked society; the contrast between plain and gold-rich graves at Varna; the debate over inheritance."
+    },
+    "mechanicLink": "PROPOSED civic-micro (not in content today): completion grants knowledge only ('rank and office inherited within leading lineages'); under M8 it is the regime module of chiefdom, kingship and feudal forms, and under M9 an operand of the Aristocracy emergence predicate - both deferred."
+  },
+  {
+    "id": "oath_alliance",
+    "tree": "civics",
+    "description": "Before writing, separate villages or kin groups could bind themselves together through public oaths, exchanges of gifts and marriages between their families, calling down divine or communal sanctions on anyone who broke faith. Such alliances are known from ethnography and inferred for prehistory. The earliest written examples, from Ebla in Syria around 2400 BCE, already record oaths sworn before gods.",
+    "wordCount": 60,
+    "sources": [],
+    "uncertainty": "Pre-literate oath alliances are inferred by ethnographic analogy, not dated; the Ebla date is approximate (about the 24th century BCE).",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Ebla treaty texts of about 2400 BCE including oaths before gods; ethnographic attestation of oath, gift and marriage alliances."
+    },
+    "mechanicLink": "PROPOSED civic-micro (not in content today): completion grants knowledge only ('alliances between communities sealed by oath, gifts and intermarriage'); under M8 Diplomacy it would define a sworn alliance relation and the binding module of the tribal confederacy - implementation deferred, no diplomatic relation type exists."
+  },
+  {
+    "id": "organized_priesthood",
+    "tree": "civics",
+    "description": "An organized priesthood is a body of full-time religious specialists who serve a temple, keep its festival calendar and manage its lands, herds and offerings. In southern Mesopotamia a long sequence of rebuilt shrines at Eridu begins in the sixth or fifth millennium BCE, and by about 3300-3000 BCE temple institutions at Uruk administered large estates and workforces.",
+    "wordCount": 58,
+    "sources": [],
+    "uncertainty": "Whether the early Eridu shrines were staffed by full-time priests is inferred; the balance between temple and palace in the Uruk economy is debated. Priesthoods also arose independently elsewhere (Egypt, Mesoamerica, China).",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: start of the Eridu shrine sequence; Uruk temple administration of estates and workers about 3300-3000 BCE."
+    },
+    "mechanicLink": "PROPOSED civic-micro (not in content today): completion grants knowledge only ('a temple priesthood keeping the ritual calendar; temple estates managed by priests'); under M9 it is the institutional operand of Clergy emergence and under M8 the priestly-authority regime module - both deferred."
+  },
+  {
+    "id": "chiefdom",
+    "tree": "civics",
+    "description": "A chiefdom, in anthropologists' usage, is a regional society of several villages under a paramount chief from a high-ranking lineage. The chief gathers tribute in food and goods, redistributes much of it at feasts, and leads in war and ritual, but rules through kin and allies without a bureaucracy or written law. Tonga in Polynesia is a classic ethnographic case.",
+    "wordCount": 60,
+    "sources": [],
+    "uncertainty": "'Chiefdom' is a modern analytical category; whether particular archaeological cultures were chiefdoms, and whether some Polynesian polities (e.g. Hawaii at contact) were already early states, is debated.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: tribute and redistribution as defining traits; Tonga as a classic ethnographic case."
+    },
+    "mechanicLink": "PROPOSED civic-macro regime form (not in content today): completion grants knowledge only ('a regional chiefdom under a paramount chief'); under M8 the form is adopted as the module set hereditary_rank, and the government label is derived, never stored - deferred."
+  },
+  {
+    "id": "tribal_confederacy",
+    "tree": "civics",
+    "description": "A tribal confederacy joins autonomous tribes or chiefdoms in a sworn league. Each member keeps its own leaders and customs, while a shared council handles war, peace and disputes between members, sometimes under a common war leader. The Xiongnu of the Mongolian steppe formed one around 209 BCE; the Haudenosaunee (Iroquois) Confederacy is another, though its founding date is debated.",
+    "wordCount": 60,
+    "sources": [],
+    "uncertainty": "Haudenosaunee founding is dated variously from about the 12th to the 16th century CE; the internal structure of the Xiongnu polity (confederation or state) is debated.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Xiongnu confederation about 209 BCE; Haudenosaunee council structure and the founding-date debate."
+    },
+    "mechanicLink": "PROPOSED civic-macro regime form (not in content today): completion grants knowledge only ('a sworn league of autonomous tribes'); under M8 the form is adopted as the module set oath_alliance, label derived not stored - deferred."
+  },
+  {
+    "id": "law_code",
+    "tree": "civics",
+    "description": "Written law sets rules and penalties down in a public text, so judges can apply a fixed wording rather than remembered custom alone. Among the earliest surviving collections are the laws of Ur-Namma of Ur, about 2100 BCE, and of Hammurabi of Babylon, about 1750 BCE, whose stele is in the Louvre. How closely courts followed such texts is debated.",
+    "wordCount": 60,
+    "sources": [],
+    "uncertainty": "Dates are approximate (Middle Chronology); scholars debate whether Mesopotamian 'codes' were binding statutes or royal statements of justice. Written law arose independently in other script traditions (e.g. China).",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Ur-Namma about 2100 BCE; Hammurabi about 1750 BCE; stele in the Louvre; debate over courts' use of the texts."
+    },
+    "mechanicLink": "Existing civic (MEASURED): completion satisfies the A3 supporting milestone a3_law and makes inst.law_code knowledge-eligible; PROPOSED under the D-P slice the institution is realized as a law court whose maturity enters Unrest.ServiceOffset."
+  },
+  {
+    "id": "taxation",
+    "tree": "civics",
+    "description": "Early taxation took the form of tribute in kind: a counted share of grain, livestock or craft goods owed to a ruler or temple. In Uruk-period Mesopotamia, from about 3300 BCE, officials recorded receipts and rations on clay tablets and sealed stored goods; in early dynastic Egypt, wealth was counted and harvests assessed, partly in light of the Nile flood.",
+    "wordCount": 60,
+    "sources": [],
+    "uncertainty": "Whether early Uruk deliveries were taxes, rents or temple obligations is debated; Egyptian assessment practice is reconstructed from later and fragmentary records.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Uruk-period accounting on clay tablets and sealing of stores from about 3300 BCE; early Egyptian counts and Nile-linked harvest assessment."
+    },
+    "mechanicLink": "Existing civic (MEASURED): the only atom of governance.taxationRequires, so the tax edict is operational from Age III; PROPOSED it also roots the tax_farming and corvee_labour instruments."
+  },
+  {
+    "id": "appointed_officials",
+    "tree": "civics",
+    "description": "Rulers who govern through appointed officials rely on agents they choose, pay and can dismiss, who act on written instructions and report in writing, holding office by commission, not birth. Old Kingdom Egypt, from about 2600 BCE, had ranked royal officials headed by a vizier, and the Third Dynasty of Ur (about 2100-2000 BCE) placed governors over its provinces.",
+    "wordCount": 59,
+    "sources": [],
+    "uncertainty": "In practice many appointed offices tended to become hereditary; dates are approximate.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Old Kingdom officials under a vizier; Ur III provincial governors."
+    },
+    "mechanicLink": "PROPOSED civic-micro (not in content today): completion grants knowledge only ('officials appointed and removed by the ruler, acting on written orders'); under M8 it is the officialdom regime module of kingship and empire forms and under M9 an operand of Bureaucrats emergence - both deferred."
+  },
+  {
+    "id": "corvee_labour",
+    "tree": "civics",
+    "description": "Corvée is labour owed to the state rather than produce: households supply workers for a set period to dig canals, build walls and roads, or raise monuments, organized in rotating gangs under officials. Old Kingdom Egypt used rotating crews on royal building projects, and comparable labour duties existed in Mesopotamia, imperial China and the Inca empire (the mit'a).",
+    "wordCount": 58,
+    "sources": [],
+    "uncertainty": "How far Egyptian pyramid crews were conscripted rather than paid or volunteer is debated; terms and burdens varied widely between states.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: rotating crews in Old Kingdom building; labour duties in Mesopotamia and China; the Inca mit'a."
+    },
+    "mechanicLink": "PROPOSED civic-micro policy (not in content today): completion grants knowledge only ('labour service owed to the state, worked in rotating gangs'); under M8 GovernanceSystem and ConstructionSystem would read it as a labour levy diverted to public construction, felt as an exaction and limited by administrative reach - deferred."
+  },
+  {
+    "id": "elite_council",
+    "tree": "civics",
+    "description": "A council of notables is a standing body limited to leading families, office-holders or the wealthy, which deliberates on war, law and finance and may advise, restrain or replace a single ruler. Sparta's gerousia, a council of elders sitting with its two kings and attested by the seventh century BCE, and the senate of the Roman Republic are well-known examples.",
+    "wordCount": 60,
+    "sources": [],
+    "uncertainty": "The date of Sparta's constitutional arrangements (the 'Great Rhetra') is uncertain; the early Roman senate is known mainly from much later accounts.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: the gerousia sitting with two kings and its seventh-century attestation; the Roman senate as an example."
+    },
+    "mechanicLink": "PROPOSED civic-micro (not in content today): completion grants knowledge only ('a council of leading families deliberating on war, law and finance'); under M8 it is the oligarchic council module of city-state and republican forms and makes the 'call a council' crisis remedy available - deferred."
+  },
+  {
+    "id": "royal_envoys",
+    "tree": "civics",
+    "description": "Envoys carried sealed letters and gifts between rulers, travelling under protection and received according to an agreed protocol. Archives at Ebla in Syria, of about the 24th century BCE, include diplomatic correspondence, and the Amarna letters, cuneiform tablets of about 1360-1330 BCE found in Egypt, record envoys exchanged between the pharaoh and kings of Babylon, Mitanni, Hatti and Assyria.",
+    "wordCount": 59,
+    "sources": [],
+    "uncertainty": "Dates are approximate; protections for envoys were customary and were sometimes violated.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Ebla diplomatic correspondence; Amarna letters' date, script and correspondents."
+    },
+    "mechanicLink": "PROPOSED civic-micro (not in content today): completion grants knowledge only ('accredited envoys carrying sealed letters between rulers'); under M8 Diplomacy it would open a diplomatic channel to a known polity - deferred, no diplomacy system exists."
+  },
+  {
+    "id": "sacral_kingship",
+    "tree": "civics",
+    "description": "Sacred kingship treats the ruler as divine or divinely chosen, and makes the king the chief mediator between gods and people through ritual, so that obedience becomes a religious duty upheld by priesthoods. Egyptian kings of the first dynasties, around 3100-2900 BCE, were identified with the god Horus; comparable ideas arose independently elsewhere, for example among the Inca.",
+    "wordCount": 58,
+    "sources": [],
+    "uncertainty": "The degree to which kings were regarded as gods rather than as divinely chosen varied between cultures and periods; early Egyptian dates are approximate.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: identification of early Egyptian kings with Horus; Inca royal claims of solar descent."
+    },
+    "mechanicLink": "PROPOSED civic-micro (not in content today): completion grants knowledge only ('kingship sanctioned by the gods and upheld by temple ritual'); under M8 it is a religious legitimacy source for monarchic module sets, with legitimacy produced through the Clergy under M9 - deferred."
+  },
+  {
+    "id": "service_tenure",
+    "tree": "civics",
+    "description": "Under service tenure a ruler grants land, or the income from land, to people who owe military or other service in return, so an army can be supported without a cash payroll. Hammurabi's laws, of about 1750 BCE, regulate such holdings, known as ilku. Comparable arrangements include the fiefs of medieval Europe and the timars of the Ottoman empire.",
+    "wordCount": 59,
+    "sources": [],
+    "uncertainty": "Service tenures arose independently in many places with different rules of revocation and inheritance; Babylonian dates are approximate.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: regulation of ilku service holdings in Hammurabi's laws; fiefs and timars as comparable arrangements."
+    },
+    "mechanicLink": "PROPOSED civic-micro (not in content today): completion grants knowledge only ('land grants held in return for military service'); under M7 the battle layer would raise formations from service holders, and under M9 it becomes an Aristocracy operand once tenures are hereditary - knowledge-only until then."
+  },
+  {
+    "id": "succession_law",
+    "tree": "civics",
+    "description": "A rule of succession fixes who inherits rule, whether by birth order, designation by the ruler or election within a defined group, and how a regency works, so a ruler's death need not reopen the struggle for power. The Hittite Proclamation of Telipinu, of about 1500 BCE, set an order of royal heirs after a period of violent dynastic conflict.",
+    "wordCount": 60,
+    "sources": [],
+    "uncertainty": "The Telipinu date is approximate; such rules were frequently contested or set aside in practice.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Telipinu's proclamation, its date and its order of heirs following dynastic violence."
+    },
+    "mechanicLink": "PROPOSED civic-micro (not in content today): completion grants knowledge only ('a fixed rule naming the ruler's heir'); under M8 succession work it is the rule applied when a ruler dies - deferred, no ruler or succession state exists."
+  },
+  {
+    "id": "sworn_treaties",
+    "tree": "civics",
+    "description": "Sworn treaties are written agreements between rulers, sealed by oaths before the gods, with lists of divine witnesses and curses on whoever breaks them. They fixed peace, borders, alliance and the return of fugitives, and each party kept a copy. A well-preserved example is the treaty between Ramesses II of Egypt and the Hittite king Hattusili III, about 1259 BCE.",
+    "wordCount": 60,
+    "sources": [],
+    "uncertainty": "An earlier treaty between Ebla and Abarsal (about the 24th century BCE) is often cited as the oldest known; the Egyptian-Hittite treaty survives in both Egyptian and Akkadian versions.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: treaty components (oaths, divine witnesses, curses, fugitives); the Ramesses II-Hattusili III treaty about 1259 BCE."
+    },
+    "mechanicLink": "PROPOSED civic-micro (not in content today): completion grants knowledge only ('written treaties sworn before the gods and kept by both parties'); under M8 Diplomacy it would define the treaty object between polities - deferred, no treaty table exists."
+  },
+  {
+    "id": "city_state_oligarchy",
+    "tree": "civics",
+    "description": "In an oligarchic city-state a single city and its surrounding countryside govern themselves through a council drawn from leading families, which chooses the magistrates and controls law and finance; any popular assembly ratifies more than it decides. Many Greek poleis of the archaic and classical periods were governed this way, as were several Italian communes after about 1100 CE.",
+    "wordCount": 59,
+    "sources": [],
+    "uncertainty": "Constitutions changed often within a single city, and the line between oligarchy and other forms was drawn differently by ancient writers.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: oligarchic government in many Greek poleis; Italian communes after about 1100 CE."
+    },
+    "mechanicLink": "PROPOSED civic-macro regime form (not in content today): completion grants knowledge only ('a city governed by a council of leading families'); under M8 the form is adopted as the module set elite_council AND law_code, label derived not stored - deferred."
+  },
+  {
+    "id": "territorial_kingship",
+    "tree": "civics",
+    "description": "Territorial kingship unites many cities and villages under one hereditary king, who governs through a royal household and appointed officials, commands the army and acts as supreme judge, with authority resting on divine sanction or dynastic right. Early examples arose separately in Egypt, unified around 3100 BCE, Akkad under Sargon about 2300 BCE, and Shang China from about 1600 BCE.",
+    "wordCount": 60,
+    "sources": [],
+    "uncertainty": "All three dates are approximate; Egyptian unification may have been gradual, and the traditional Shang start date precedes the earliest written records (about 1250 BCE).",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Egyptian unification about 3100 BCE; Sargon of Akkad about 2300 BCE; Shang from about 1600 BCE."
+    },
+    "mechanicLink": "PROPOSED civic-macro regime form (not in content today): completion grants knowledge only ('a realm of many settlements under a hereditary king'); under M8 the form is adopted as the module set (sacral_kingship OR succession_law) AND appointed_officials, label derived not stored - deferred."
+  },
+  {
+    "id": "legal_code_roman",
+    "tree": "civics",
+    "description": "Systematic law organizes legal rules into a reasoned whole, with general principles, categories of persons, property and obligations, and trained jurists who interpret and teach it. Roman jurists developed this approach, later compiled in Justinian's Corpus Juris Civilis of 529-534 CE. Comparable traditions include Islamic jurisprudence and the Chinese statutory codes, such as the Tang code of the seventh century.",
+    "wordCount": 60,
+    "sources": [],
+    "uncertainty": "The node id names Rome but the concept fits several independent traditions; dates for the Tang code's versions and commentary vary (624-653 CE).",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Justinian's compilation 529-534 CE; Roman jurists' systematization; the Tang code's seventh-century date."
+    },
+    "mechanicLink": "Existing civic (MEASURED): an atom of the research stage requirement, the A5 CORE milestone a5_systematic_law, and inst.university eligibility; it also makes inst.guild and inst.legal_code_roman knowledge-eligible."
+  },
+  {
+    "id": "census",
+    "tree": "civics",
+    "description": "A census counts a state's people, households and property at intervals, through registration by officials, to assess taxes, labour and military duties. Early Egyptian kings recorded regular counts of cattle and other wealth; Rome's censors registered citizens and their property, in principle every five years; and China's Han dynasty recorded about 57 million people in 2 CE.",
+    "wordCount": 57,
+    "sources": [],
+    "uncertainty": "Egyptian counts are known from fragmentary annals; ancient census figures counted registered taxpayers and may undercount the population.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: early Egyptian counts of cattle; five-yearly Roman census; Han figure of about 57 million in 2 CE."
+    },
+    "mechanicLink": "Existing civic (MEASURED): satisfies the A4 supporting milestone a4_census and makes six institutions knowledge-eligible, none realized; PROPOSED it becomes the hub prerequisite of the administration strand."
+  },
+  {
+    "id": "coined_wage",
+    "tree": "civics",
+    "description": "Wage labour in coin pays workers in money rather than in rations, land or goods, so work and its reward are measured in a common unit. Coinage began in Lydia and Ionia in the late seventh or sixth century BCE. In classical Athens, workers on public buildings such as the Erechtheion received daily wages in coin, recorded in inscribed accounts.",
+    "wordCount": 60,
+    "sources": [],
+    "uncertainty": "Wages paid in weighed silver existed in Mesopotamia long before coinage; the date of the first coins is debated within the late 7th to mid-6th century BCE.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: origin of coinage in Lydia and Ionia; daily coin wages in the Erechtheion building accounts."
+    },
+    "mechanicLink": "Existing civic (MEASURED): satisfies the A5 supporting milestone a5_wages and makes inst.coined_wage knowledge-eligible, unrealized; PROPOSED under M9 it is the operand of Laborers emergence."
+  },
+  {
+    "id": "citizen_assembly",
+    "tree": "civics",
+    "description": "A popular assembly gathers all free adult members of a community, historically almost always men, to decide on war and peace, approve laws and choose leaders by acclamation or vote. Assemblies appear in many Greek communities from about the eighth and seventh centuries BCE, and the Roman historian Tacitus described assemblies of armed free men among Germanic peoples.",
+    "wordCount": 58,
+    "sources": [],
+    "uncertainty": "Early Greek assemblies are known mostly from poetry and later sources; Tacitus wrote from a Roman perspective and his accounts are not neutral.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Greek assemblies from the eighth to seventh centuries BCE; Tacitus's description of Germanic assemblies."
+    },
+    "mechanicLink": "PROPOSED civic-micro (not in content today): completion grants knowledge only ('an assembly of free members deciding by vote'); under M8 it is the popular-assembly regime module with a broad enfranchisement vector and makes the 'call elections or an assembly' crisis remedy available - deferred."
+  },
+  {
+    "id": "elected_magistracies",
+    "tree": "civics",
+    "description": "Elected magistracies fill executive offices by vote for a fixed, usually one-year term, often shared between colleagues, and holders answer for their conduct when the term ends. Athens listed annual archons from about 683 BCE, though early archons were not chosen by popular vote; Rome's paired consuls, by tradition first elected in 509 BCE, are the classic example.",
+    "wordCount": 58,
+    "sources": [],
+    "uncertainty": "Early Athenian archon lists and the Roman founding date are traditional; the method of choosing archons changed over time (later by lot).",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: annual archons from about 683 BCE; non-popular selection of early archons; consuls from 509 BCE by tradition."
+    },
+    "mechanicLink": "PROPOSED civic-micro (not in content today): completion grants knowledge only ('executive offices filled by election for fixed terms'); under M8 it is the elected-magistracy regime module of republican forms - deferred."
+  },
+  {
+    "id": "land_registry",
+    "tree": "civics",
+    "description": "A land registry is a public record, kept by officials, of each plot's boundaries, holder and dues; it is evidence of title and the basis of assessment. Egyptian scribes surveyed fields for assessment from the third millennium BCE; England's Domesday survey of 1086 recorded landholdings; and Robert Torrens's system of registered title began in South Australia in 1858.",
+    "wordCount": 58,
+    "sources": [],
+    "uncertainty": "Early surveys recorded holdings for assessment rather than conclusive title; the Domesday survey was a one-time inquiry rather than a continuously kept register.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Egyptian field surveys in the third millennium BCE; Domesday 1086; Torrens title in South Australia 1858."
+    },
+    "mechanicLink": "PROPOSED civic-micro institution (not in content today): completion grants knowledge only ('a public register of land, holders and dues'); under M8 a founded registry office would improve assessment where it operates, a capacity term inside the felt-burden equation - deferred, new entity."
+  },
+  {
+    "id": "provincial_administration",
+    "tree": "civics",
+    "description": "Provincial administration divides a realm into provinces, each under a governor sent by the centre to levy taxes, raise troops and judge in the ruler's name, bound to the capital by reports and inspection. Akkad placed governors over conquered cities around 2300 BCE; Assyria reorganized its provinces under Tiglath-Pileser III after 745 BCE; Persia's satrapies followed from about 520 BCE.",
+    "wordCount": 60,
+    "sources": [],
+    "uncertainty": "Akkadian dates are approximate; how far each empire's governors were truly appointees rather than co-opted local rulers varied.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Akkadian governors about 2300 BCE; Assyrian reorganization after 745 BCE; Achaemenid satrapies from about 520 BCE."
+    },
+    "mechanicLink": "PROPOSED civic-micro (not in content today): completion grants knowledge only ('provinces under appointed governors answering to the capital'); as an R4 candidate GovernanceSystem would measure administrative reach from designated provincial seats as well as the capital, a condition inside the existing reach term - conditional on M6 ruling."
+  },
+  {
+    "id": "standing_army",
+    "tree": "civics",
+    "description": "A standing army is a permanent professional force, paid and supplied by the state in peace and war, which replaces or supplements seasonal levies, making soldiering a full-time occupation. An inscription of Sargon of Akkad, about 2300 BCE, claims 5,400 men ate daily before him; Assyria under Tiglath-Pileser III, after 745 BCE, expanded a permanent royal army.",
+    "wordCount": 58,
+    "sources": [],
+    "uncertainty": "Royal inscriptions are boastful; whether Sargon's men were a true standing army is debated, as is the extent of Tiglath-Pileser III's reforms.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Sargon inscription's figure of 5,400 men; Tiglath-Pileser III's expansion of a permanent army."
+    },
+    "mechanicLink": "PROPOSED civic-micro (not in content today): completion grants knowledge only ('a permanent army paid and supplied by the state'); under M7 the battle layer would maintain professional formations in peace, and under M9 it is the operand of Soldiers emergence - knowledge-only until then."
+  },
+  {
+    "id": "tax_farming",
+    "tree": "civics",
+    "description": "Tax farming hands the collection of a tax to private contractors, who bid for the right, pay the state an agreed sum and keep whatever more they collect. Classical Athens auctioned tax contracts; Roman publicani collected provincial revenues under contract in the late republic; and France's General Farm, created in 1681, collected indirect taxes until the Revolution abolished it.",
+    "wordCount": 59,
+    "sources": [],
+    "uncertainty": "Arrangements differed in whether contractors paid in advance; dates for Athenian contracting are approximate (fifth and fourth centuries BCE).",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Athenian tax auctions; Roman publicani; French General Farm 1681 and its revolutionary abolition."
+    },
+    "mechanicLink": "PROPOSED civic-micro tax instrument (not in content today): completion grants knowledge only ('collection of taxes contracted to private tax farmers'); as an R4 laws-lite candidate GovernanceSystem would apply it to the flow-only tax edict, so extraction no longer scales with reach while felt burden is heavier - conditional on M6 ruling."
+  },
+  {
+    "id": "theocracy",
+    "tree": "civics",
+    "description": "In a theocracy, supreme political authority belongs to religious office-holders, or to a ruler whose title is religious, and religious law serves as the law of the state. Examples include Thebes under the high priests of Amun from about 1070 BCE, the Papal States from 756 CE, and Tibet under the Dalai Lamas' Ganden Phodrang government from 1642.",
+    "wordCount": 58,
+    "sources": [],
+    "uncertainty": "Labels vary: some cases combine clerical rule with secular officials or foreign overlords; dates are approximate for the Theban case.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Theban high priests from about 1070 BCE; Papal States from 756 CE; Ganden Phodrang from 1642."
+    },
+    "mechanicLink": "PROPOSED civic-macro regime form (not in content today): completion grants knowledge only ('government by religious office under religious law'); under M8 the form is adopted as the module set organized_priesthood AND (law_code OR sacral_kingship), label derived not stored - deferred."
+  },
+  {
+    "id": "craft_guilds",
+    "tree": "civics",
+    "description": "Craft guilds are associations of masters in a trade that control admission, apprenticeship, quality and often prices, and represent their members before town or state authorities. Roman craft associations, the collegia, were well established by the late republic, and chartered guilds spread through European towns from the eleventh and twelfth centuries CE. Comparable bodies, such as India's srenis, existed elsewhere.",
+    "wordCount": 60,
+    "sources": [],
+    "uncertainty": "Whether Roman collegia regulated trades as later guilds did is debated; economic historians disagree about guilds' net effects on quality and innovation.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Roman collegia by the late republic; European chartered guilds from the 11th-12th centuries; Indian srenis."
+    },
+    "mechanicLink": "PROPOSED civic-micro (not in content today): completion grants knowledge only ('chartered associations of master craftsmen controlling admission and training'); under M9 guild openness becomes a mobility policy on the Artisan flow, and inst.guild may be re-pointed to this civic (open decision) - deferred."
+  },
+  {
+    "id": "municipal_charter",
+    "tree": "civics",
+    "description": "A municipal charter is a written grant by which a ruler lets a town govern itself, with its own council, magistrates, courts and market, for loyalty and fixed payments. Bronze tablets of the Lex Irnitana, from Roman Spain about 91 CE, preserve such a town law, and many European towns obtained charters from the eleventh and twelfth centuries CE.",
+    "wordCount": 59,
+    "sources": [],
+    "uncertainty": "Roman municipal laws were imperial regulations rather than negotiated grants; medieval charters varied greatly in the liberties granted.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Lex Irnitana bronze tablets from Roman Spain about 91 CE; spread of European town charters from the 11th-12th centuries."
+    },
+    "mechanicLink": "PROPOSED civic-micro policy (not in content today): completion grants knowledge only ('town self-government under a written charter'); under M8 it would be an autonomy grant that raises a settlement's attachment without ceding the claim - deferred, no autonomy grant exists."
+  },
+  {
+    "id": "religious_toleration",
+    "tree": "civics",
+    "description": "Religious toleration lets communities of more than one faith worship openly and keep their own institutions without civil penalty for belonging to a minority. Ashoka's edicts in third-century BCE India urged respect between sects; the Edict of Milan in 313 CE allowed Christians to worship in the Roman empire; and France's Edict of Nantes, in 1598, granted Protestants limited rights.",
+    "wordCount": 60,
+    "sources": [],
+    "uncertainty": "Toleration was often partial and revocable (the Edict of Nantes was revoked in 1685); Ashoka's edicts expressed policy ideals whose enforcement is unknown.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Ashoka's edicts on respect between sects; Edict of Milan 313 CE; Edict of Nantes 1598 and its limited rights."
+    },
+    "mechanicLink": "PROPOSED civic-micro policy (not in content today): completion grants knowledge only ('legal toleration of more than one faith'); under M9 it would remove the religious-discrimination grievance source for minority faiths - deferred."
+  },
+  {
+    "id": "assembly_democracy",
+    "tree": "civics",
+    "description": "In assembly democracy the citizens govern directly. At Athens after the reforms of Cleisthenes in 508/507 BCE, an assembly open to every citizen voted on laws, war and peace; in its developed form most officials were chosen by lot for one-year terms and audited afterwards. Citizenship was limited to adult men, excluding women, enslaved people and resident foreigners.",
+    "wordCount": 59,
+    "sources": [],
+    "uncertainty": "The use of lot and pay for office developed over the fifth century BCE rather than all at once; ancient sources on Cleisthenes are limited.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Cleisthenes' reforms 508/507 BCE; selection by lot, one-year terms and audits; exclusions from citizenship."
+    },
+    "mechanicLink": "PROPOSED civic-macro regime form (not in content today): completion grants knowledge only ('government by an assembly of all citizens'); under M8 the form is adopted as the module set citizen_assembly AND law_code, label derived not stored - deferred."
+  },
+  {
+    "id": "bureaucratic_empire",
+    "tree": "civics",
+    "description": "A bureaucratic empire governs a large realm of many peoples from a capital through salaried, ranked officials, appointed provincial governors, registers, standard taxes and a standing army; the dynasty heads the system but rules through it. Achaemenid Persia from about 520 BCE, China after the Qin unification of 221 BCE, and imperial Rome are often cited examples.",
+    "wordCount": 57,
+    "sources": [
+      {
+        "sourceId": "SCI-029",
+        "claims": [
+          "Qin unification of China in 221 BCE",
+          "after unification the Qin emperor imposed standard weights and measures across the empire"
+        ]
+      }
+    ],
+    "uncertainty": "How bureaucratic each case was is debated; the early Roman empire relied heavily on cities and a small salaried administration.",
+    "factCheck": {
+      "status": "partially-checked",
+      "checkedBy": "drafting lane",
+      "method": "Qin unification date compared with the register record SCI-029 (claims recorded by the early-science lane from a search summary, 2026-10-22); no page opened by this lane.",
+      "notes": "This lane's own WebSearch budget was exhausted before any search (first queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. Only the Qin date is corroborated, via an existing register entry. Uncorroborated: Achaemenid administration from about 520 BCE; the defining traits as a description of imperial Rome."
+    },
+    "mechanicLink": "PROPOSED civic-macro regime form (not in content today): completion grants knowledge only ('an empire governed through salaried officials and provinces'); under M8 the form is adopted as the module set provincial_administration AND standing_army, label derived not stored - deferred."
+  },
+  {
+    "id": "classical_republic",
+    "tree": "civics",
+    "description": "A mixed-constitution republic has no monarch. Annually elected magistrates, serving in pairs or colleges, hold executive power; a senate of former magistrates guides policy and finance; and citizen assemblies elect officials and pass laws, so that power is shared among the three. Rome, whose republic traditionally began in 509 BCE, is the case the Greek historian Polybius analysed this way.",
+    "wordCount": 60,
+    "sources": [],
+    "uncertainty": "The 509 BCE founding date is traditional; the 'mixed constitution' is an ancient theory, and Rome's practice was more oligarchic than the model suggests.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: 509 BCE traditional founding; Polybius's analysis of Rome as a mixed constitution."
+    },
+    "mechanicLink": "PROPOSED civic-macro regime form (not in content today): completion grants knowledge only ('a republic of elected magistrates, senate and assemblies'); under M8 the form is adopted as the module set elected_magistracies AND elite_council, label derived not stored - deferred."
+  },
+  {
+    "id": "joint_stock",
+    "tree": "civics",
+    "description": "A joint-stock company divides its capital into transferable shares held by many investors and has a legal identity and management separate from its owners, letting it pool large sums for long, risky ventures. England's East India Company (1600) and the Dutch East India Company (1602), whose shares traded in Amsterdam, were influential early examples, building on older partnership forms.",
+    "wordCount": 59,
+    "sources": [],
+    "uncertainty": "The English company at first raised capital voyage by voyage and adopted permanent joint stock only in the 1650s; earlier joint-stock ventures (e.g. the Muscovy Company) and medieval precedents exist.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: founding dates 1600 and 1602; Amsterdam trading of Dutch company shares; separation of ownership and management."
+    },
+    "mechanicLink": "Existing civic (MEASURED): satisfies a7_company and makes inst.joint_stock and inst.central_bank knowledge-eligible, unrealized; PROPOSED it becomes the prerequisite of central_banking and a Capitalists operand under M9."
+  },
+  {
+    "id": "civil_service_examinations",
+    "tree": "civics",
+    "description": "Civil service examinations recruit officials through competitive written tests on a fixed curriculum, open in principle beyond the hereditary elite, with graded degrees qualifying holders for office. China's imperial examinations began under the Sui dynasty around 605 CE and lasted until 1905; Korea adopted them in 958, and Britain introduced competitive civil service examinations from 1855.",
+    "wordCount": 56,
+    "sources": [],
+    "uncertainty": "The Sui start date is given variously (587-605 CE); in practice wealth and education limited who could compete. Open competition in Britain was generalized only in 1870.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Sui start about 605 CE; abolition 1905; Korean adoption 958; British examinations from 1855."
+    },
+    "mechanicLink": "PROPOSED civic-micro (not in content today): completion grants knowledge only ('recruitment of officials by competitive written examination'); under M9 it is the mobility route into the Bureaucrats class, and under M8 one route to the absolute-monarchy form - deferred."
+  },
+  {
+    "id": "commercial_law",
+    "tree": "civics",
+    "description": "Merchant law is the body of rules and specialized courts that enforce contracts, partnerships, bills and sales between traders who may be strangers, quickly and across jurisdictions. Islamic jurists elaborated partnership and credit law from about the eighth century CE, and in medieval Europe fair and town courts applied customary merchant law to disputes between travelling traders.",
+    "wordCount": 57,
+    "sources": [],
+    "uncertainty": "Historians debate whether a single, uniform European 'law merchant' existed or whether practice was local; dates for early Islamic commercial jurisprudence are approximate.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Islamic partnership and credit law from about the eighth century; fair and town courts in medieval Europe."
+    },
+    "mechanicLink": "PROPOSED civic-micro (not in content today): completion grants knowledge only ('merchant courts enforcing contracts between strangers'); under M8 it is the commercial module of the mercantile republic, and later possibly a term in foreign-trade transaction cost (M10+) - deferred."
+  },
+  {
+    "id": "representative_assembly",
+    "tree": "civics",
+    "description": "A representative assembly summons spokesmen of the realm's estates or communities, typically nobles, clergy and towns, to consent to taxes and new laws and to petition for redress of grievances. The Cortes of León in 1188 included representatives of towns, and in 1265 Simon de Montfort's English parliament summoned burgesses from towns alongside knights of the shires.",
+    "wordCount": 57,
+    "sources": [],
+    "uncertainty": "Which assembly counts as the first representative parliament is disputed; composition and powers varied widely between realms.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: town representatives at León 1188; burgesses and knights in the 1265 parliament."
+    },
+    "mechanicLink": "PROPOSED civic-micro (not in content today): completion grants knowledge only ('representatives of estates and towns consenting to taxation'); under M8 it is the consent-of-representatives regime module of constitutional and parliamentary forms - deferred."
+  },
+  {
+    "id": "feudal_monarchy",
+    "tree": "civics",
+    "description": "In a feudal monarchy the king grants land and rights of justice to vassals for military service and counsel, who grant fiefs to their own vassals, so public authority is divided along a hierarchy of mostly hereditary holdings. The pattern is often traced to post-Carolingian France, about 900 CE; historians debate how useful 'feudal' is as a label.",
+    "wordCount": 58,
+    "sources": [],
+    "uncertainty": "'Feudalism' is a later historians' construct; critics argue it imposes false uniformity on varied medieval arrangements. Norman England (from 1066) is another commonly cited case.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: the vassal-fief hierarchy; its tracing to post-Carolingian France about 900 CE; the historiographical debate."
+    },
+    "mechanicLink": "PROPOSED civic-macro regime form (not in content today): completion grants knowledge only ('a monarchy of vassals holding fiefs for service'); under M8 the form is adopted as the module set service_tenure AND (succession_law OR sacral_kingship), label derived not stored - deferred."
+  },
+  {
+    "id": "merchant_republic",
+    "tree": "civics",
+    "description": "A mercantile republic is governed by councils drawn from merchant families: a great council elects smaller councils and a head of state with narrowly limited powers, and policy favours long-distance trade. Venice is the best-known case; in 1297 its Great Council largely closed membership to established families. Genoa and Hanseatic towns such as Lübeck had comparable merchant-led governments.",
+    "wordCount": 58,
+    "sources": [],
+    "uncertainty": "The 1297 'closing' was gradual and its effects debated; Hanseatic towns were self-governing cities within the Empire rather than fully sovereign republics.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Venetian council structure; the 1297 closing of the Great Council; Genoa and Lübeck as comparable cases."
+    },
+    "mechanicLink": "PROPOSED civic-macro regime form (not in content today): completion grants knowledge only ('a republic governed by merchant councils'); under M8 the form is adopted as the module set commercial_law AND (elected_magistracies OR municipal_charter), label derived not stored - deferred."
+  },
+  {
+    "id": "military_rule",
+    "tree": "civics",
+    "description": "Under military rule the armed forces, through their commanders or a council of officers, hold supreme power, govern by decree and subordinate or suspend civilian institutions, and rulers depend on the army's backing. Historical forms vary widely, including Japan's Kamakura shogunate from the 1180s-1190s, the Mamluk sultanate of Egypt and Syria (1250-1517), and many twentieth-century juntas.",
+    "wordCount": 56,
+    "sources": [],
+    "uncertainty": "The Kamakura shogunate coexisted with the imperial court, and its founding is dated 1185 or 1192; Mamluk rulers were drawn from a military slave elite rather than a modern officer corps.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Kamakura shogunate in the 1180s-1190s; Mamluk sultanate 1250-1517; twentieth-century juntas."
+    },
+    "mechanicLink": "PROPOSED civic-macro regime form (not in content today): completion grants knowledge only ('government by the armed forces'); under M8 the form is adopted as the module set standing_army OR service_tenure, label derived not stored - deferred."
+  },
+  {
+    "id": "patent",
+    "tree": "civics",
+    "description": "A patent is a temporary exclusive right that a state grants an inventor for a new device or process, in exchange for disclosing it, under a set legal procedure. Venice passed a general patent statute in 1474; England's 1624 Statute of Monopolies curbed royal monopolies but kept invention patents; France and the United States enacted patent laws in 1790-1791.",
+    "wordCount": 59,
+    "sources": [],
+    "uncertainty": "Disclosure through a written specification became a firm requirement only in the eighteenth century; individual privileges for inventions predate 1474.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Venetian statute 1474; Statute of Monopolies 1624; US (1790) and French (1791) patent laws."
+    },
+    "mechanicLink": "Existing civic (MEASURED): satisfies a7_patent and makes inst.patent knowledge-eligible, unrealized; any consumer would be an M10+ innovation model."
+  },
+  {
+    "id": "bill_of_rights",
+    "tree": "civics",
+    "description": "A bill of rights is a law binding the ruler that guarantees specified rights of subjects or citizens, such as due process, petition, and freedom from arbitrary arrest and from taxation without consent. Magna Carta (1215) is often cited as a precursor; the English Bill of Rights (1689) and the United States Bill of Rights (1791) are landmark examples.",
+    "wordCount": 59,
+    "sources": [],
+    "uncertainty": "Magna Carta protected mainly barons and free men and was soon annulled and reissued; court enforcement of such rights developed unevenly.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Magna Carta 1215 as a precursor; English Bill of Rights 1689; US Bill of Rights 1791."
+    },
+    "mechanicLink": "PROPOSED civic-micro policy (not in content today): completion grants knowledge only ('rights guaranteed by law against the ruler, enforceable in court'); under M9 it would satisfy the Dignity/Liberty need and under M8 constrain which repression verbs remain available - deferred."
+  },
+  {
+    "id": "central_banking",
+    "tree": "civics",
+    "description": "A central bank is a public bank that holds the government's accounts, issues notes and settles payments between other banks, and later became lender of last resort in crises. Sweden's Riksbank, founded in 1668, and the Bank of England, founded in 1694 to lend to the government, are usually counted among the earliest, though their central functions developed gradually.",
+    "wordCount": 59,
+    "sources": [],
+    "uncertainty": "Which institution was the first 'central bank' depends on definition; lender-of-last-resort practice developed mostly in the nineteenth century.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Riksbank 1668; Bank of England 1694 and its lending to government; gradual development of central functions."
+    },
+    "mechanicLink": "PROPOSED civic-micro institution (not in content today): grants knowledge ('a public bank holding state accounts and issuing notes') and would re-point inst.central_bank from joint_stock; knowledge-only until a monetary model exists (M10+)."
+  },
+  {
+    "id": "civil_police",
+    "tree": "civics",
+    "description": "A professional police force is a salaried civil body under public authority that patrols, prevents crime and keeps public order, distinct from both the army and private or volunteer watchmen. Paris gained a lieutenant-general of police in 1667, and London's Metropolitan Police, established in 1829 under Robert Peel, became a widely copied model of uniformed patrol policing.",
+    "wordCount": 57,
+    "sources": [],
+    "uncertainty": "Earlier urban watches and imperial security forces (e.g. Rome's vigiles) blur the line; the Paris office combined policing with wide administrative duties.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+      "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first three queries on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Paris lieutenant-general of police 1667; London Metropolitan Police 1829 under Peel."
+    },
+    "mechanicLink": "PROPOSED civic-micro institution (not in content today): completion grants knowledge only ('a salaried civil police force under public authority'); under M8 policing would enter riot propensity in the unrest ladder, and under M9 it satisfies the Safety need - deferred, new entity."
+  }
+]

@@ -1,0 +1,189 @@
+[
+ {
+  "id": "smartphone",
+  "tree": "technology",
+  "description": "A smartphone joins a mobile telephone, a general-purpose pocket computer and a rechargeable lithium-ion battery, using cellular data to reach the internet wherever coverage exists. Handheld devices combining phones and personal organisers appeared in the 1990s, such as IBM's Simon (1994). Touchscreen models from 2007 onward, including Apple's iPhone and Android phones, spread the form worldwide within about a decade.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "What counts as the 'first' smartphone depends on definition (IBM Simon, Nokia Communicator, BlackBerry, iPhone); adoption pace varied widely by country.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: IBM Simon sold in 1994; iPhone 2007 and first Android phone 2008; worldwide spread within about a decade."
+  },
+  "mechanicLink": "Knowledge-only today (completion row, class C, no dependant); PROPOSED candidate effect on media and information reach (D-041 C1, binds M8) has no designed mechanism yet."
+ },
+ {
+  "id": "cyber_warfare",
+  "tree": "technology",
+  "description": "Cyber operations use computer networks to spy on, disrupt or damage an opponent's systems, while defenders rely on encryption, authentication, monitoring and prompt repair of software flaws. Stuxnet, malicious code publicly identified in 2010, sabotaged uranium-enrichment centrifuges at Iran's Natanz plant. It is often called the first known code built to cause physical destruction; no government has officially acknowledged responsibility.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Attribution of Stuxnet (widely reported as a United States-Israeli operation) is unofficial; whether it was the first physically destructive cyber attack depends on what earlier incidents are counted.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Stuxnet publicly identified in 2010; target centrifuges at Natanz; absence of official acknowledgement."
+  },
+  "mechanicLink": "Knowledge-only today (unlock-audit class C, no consequences); prerequisite of the repeatable frontier_cyber line; kept unchanged in the proposal."
+ },
+ {
+  "id": "quantum_computing",
+  "tree": "technology",
+  "description": "A quantum computer stores information in qubits, which can hold superpositions and become entangled, so some calculations proceed in ways ordinary computers cannot efficiently imitate. Richard Feynman argued in 1981-82 that they could simulate physics. In 2019 Google's 53-qubit Sycamore processor ran a narrow sampling task claimed to be beyond classical reach, a claim IBM disputed. Early machines remain noisy.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "The 2019 'quantum supremacy' claim was disputed (IBM estimated a classical simulation in days) and later classical algorithms narrowed the gap; several groups and approaches (superconducting, trapped-ion, photonic) contributed to early quantum computing.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Feynman's 1981 lecture published 1982; Sycamore 53 working qubits, 2019; IBM's dispute of the claim."
+  },
+  "mechanicLink": "Knowledge-only today (unlock-audit class C, limited quantum simulation); prerequisite of fault_tolerant_quantum; kept unchanged in the proposal."
+ },
+ {
+  "id": "weather_prediction",
+  "tree": "technology",
+  "description": "Numerical weather prediction forecasts the atmosphere by solving equations for motion, heat and moisture on a grid, starting from conditions reported by stations and radio balloons. Lewis Fry Richardson hand-computed a forecast during the First World War; published in 1922, it failed badly. In 1950 a Princeton team including Jule Charney produced the first successful computer forecasts, on ENIAC.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Operational routine forecasting began in the mid-1950s (Sweden and the United States are both cited); the 1950 ENIAC runs used a simplified one-layer model and took about as long as the weather they forecast.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Richardson's hand forecast during the First World War and 1922 book; 1950 ENIAC forecasts by the Princeton group (Charney, Fjortoft, von Neumann)."
+  },
+  "mechanicLink": "Knowledge-only today (completion row, class C); PROPOSED (arch-JKL section 9.4, OWED-K1) as the carrier of a hazard and harvest-forecast readout, implementation deferred to M9."
+ },
+ {
+  "id": "fault_tolerant_quantum",
+  "tree": "technology",
+  "description": "Fault-tolerant quantum computing is a goal rather than an achieved technology: machines correcting their own errors faster than errors arise, keeping long calculations reliable. Quantum error-correcting codes, first proposed by Peter Shor in 1995, spread one robust logical qubit across many fragile physical ones. If built at scale, such machines could simulate molecules and materials beyond practical classical reach.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Speculative: no large fault-tolerant machine exists; timelines, the best qubit technology and the size of the practical advantage for chemistry are all contested.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Shor's 1995 nine-qubit code as the first quantum error-correcting code; logical versus physical qubits."
+  },
+  "mechanicLink": "Knowledge-only speculative leaf (completion row, class C); counts toward engineering-subtree exhaustion before the recursive frontier nodes open; no consumer planned."
+ },
+ {
+  "id": "general_ai",
+  "tree": "technology",
+  "description": "General machine intelligence means hypothetical computer systems able to learn and perform most intellectual tasks people can, not one narrow job. The idea runs from Alan Turing's 1950 paper on machine thinking and the 1956 Dartmouth workshop to recent large language models. Whether current methods can reach it, when, and how it should be governed remain open, strongly disputed questions.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Speculative and definition-dependent: there is no agreed test for general intelligence, and expert forecasts of if and when it could exist differ widely.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Turing's 1950 paper 'Computing Machinery and Intelligence'; the 1956 Dartmouth summer workshop."
+  },
+  "mechanicLink": "Knowledge-only speculative capstone (completion row, class C); PROPOSED candidate consumer is the labour-per-output coefficient documented on frontier_computation (M11+), no mechanism exists."
+ },
+ {
+  "id": "space_solar",
+  "tree": "technology",
+  "description": "Space-based solar power is a proposed system in which large satellites collect sunlight in high orbit, above clouds and in near-continuous daylight, and beam the energy to ground receivers as microwaves or laser light. Peter Glaser described such a design in 1968. Small power-beaming tests have flown, but launch and assembly costs have so far prevented any working power station.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Speculative: no operational plant exists; cost, efficiency of beaming, and safety and spectrum issues are unresolved, and national programmes have repeatedly been studied and shelved.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Glaser's 1968 proposal (Science article; patent granted 1973); in-orbit power-beaming demonstrations (e.g., Caltech, 2023)."
+  },
+  "mechanicLink": "PROPOSED: makes project.probe_acceleration knowledge-eligible (class J) with no realizing system; any generation effect is M11+ energy and space content."
+ },
+ {
+  "id": "frontier_energy",
+  "tree": "technology",
+  "description": "Energy-conversion research seeks more useful work per unit of fuel or sunlight. Physics sets ceilings: Sadi Carnot's 1824 analysis bounds any heat engine's efficiency by its operating temperatures, and William Shockley and Hans-Joachim Queisser calculated in 1961 that a single-junction solar cell cannot convert much more than about a third of sunlight. Combined-cycle plants and multi-junction cells show continuing gains.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "NAT1-075",
+    "claims": [
+     "Carnot gave the first successful theory of the maximum efficiency of heat engines"
+    ]
+   }
+  ],
+  "uncertainty": "Practical limits sit well below the theoretical ceilings and depend on materials, cost and operating conditions; the precise single-junction limit varies with assumptions (about 30-34 percent).",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Carnot claim compared with the claims_supported text of existing register entry NAT1-075 (a search-summary-based record from another lane), not re-searched this session; the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Remaining text from general knowledge.",
+   "notes": "Carnot's theory of the maximum efficiency of heat engines matches register entry NAT1-075 (recorded by another lane). Uncorroborated this session: Carnot's 1824 date; Shockley-Queisser 1961 limit of about a third; combined-cycle and multi-junction examples."
+  },
+  "mechanicLink": "PROPOSED repeatable line (completes once today, class H); its documented M11+ descriptor closes a fraction of the gap to the Carnot and Shockley-Queisser limits in the energy system's generation equation."
+ },
+ {
+  "id": "frontier_computation",
+  "tree": "technology",
+  "description": "Computation research seeks more calculation per unit of energy, material and labour. For decades transistor counts on chips doubled roughly every two years, a trend Gordon Moore described in 1965 and revised in 1975; the pace has since slowed. Rolf Landauer argued in 1961 that erasing one bit must release a minimum of heat, a floor far below present chips.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "The end or slowing of Moore's law is dated differently by different analysts; how closely practical computing can approach the Landauer limit is an open research question.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Moore's 1965 paper (annual doubling) and 1975 revision (two years); Landauer's 1961 IBM paper on the heat cost of erasure."
+  },
+  "mechanicLink": "PROPOSED repeatable line (completes once today, class H); its documented M11+ descriptor lowers labour per unit of administrative or automated output toward the Landauer limit."
+ },
+ {
+  "id": "frontier_cyber",
+  "tree": "technology",
+  "description": "Cyber research is the contest between attackers and defenders of networked systems. Any advantage is relative and temporary: new software brings new flaws, discovered weaknesses are patched, and techniques spread to rivals. The field spans cryptography, secure software design, intrusion detection and human error, such as staff tricked into revealing passwords. Governments, companies and criminal groups all invest in it.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": null,
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). The text makes general, undated claims about the field; check the characterisation of its sub-fields and actors."
+  },
+  "mechanicLink": "PROPOSED repeatable line (completes once today, class H); its documented M11+ descriptor sets reconnaissance and denial effectiveness relative to rivals in the D-039 information quantities."
+ },
+ {
+  "id": "programmable_computer",
+  "tree": "technology",
+  "description": "The first programmable digital computers performed long calculations automatically, following instructions set by punched tape, switches or plugboard wiring rather than held in memory. They arose largely independently: Konrad Zuse's relay-based Z3 ran in Berlin in 1941; valve-based Colossus machines attacked German teleprinter ciphers at Bletchley Park from 1944; and ENIAC, completed in Philadelphia in 1945, computed artillery tables.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Which machine was 'first' depends on criteria (programmable, electronic, general-purpose, Turing-complete); Colossus was special-purpose, and the first Colossus was tested in late 1943 before entering service in early 1944. Stibitz's relay calculators at Bell Labs are a further independent strand.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Z3 operational 1941 in Berlin; Colossus at Bletchley Park from early 1944; ENIAC completed late 1945 for ballistic tables."
+  },
+  "mechanicLink": "PROPOSED (split from computer): knowledge-only completion row and the prerequisite of the stored-program computer node; reachable by a valve or a relay-switching route."
+ },
+ {
+  "id": "semiconductor_physics",
+  "tree": "technology",
+  "description": "Semiconductor physics explains why materials like silicon and germanium conduct electricity better than insulators but worse than metals. In 1931 Alan Wilson used quantum mechanics to describe their energy bands; Walter Schottky and Nevill Mott explained rectifying metal contacts in 1938-39, clarifying radio crystal detectors. In 1940 Russell Ohl at Bell Labs found a silicon junction generating voltage under light.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Band theory was built by several physicists (Bloch, Peierls, Wilson and others); Schottky and Mott (and Davydov) worked on rectification largely independently; the p-n junction was understood only gradually after Ohl's 1940 observation.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', disputed points flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Wilson's 1931 band theory of semiconductors; Schottky and Mott rectifier theory 1938-39; Ohl's 1940 silicon p-n junction photovoltaic observation."
+  },
+  "mechanicLink": "PROPOSED (split from transistor): knowledge-only completion row and the prerequisite of transistor and solar_pv."
+ }
+]

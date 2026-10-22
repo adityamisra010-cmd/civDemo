@@ -1,0 +1,978 @@
+[
+ {
+  "id": "fire_making",
+  "tree": "technology",
+  "description": "Controlled fire became a technology when people learned to hold hearths at chosen temperatures. At Pinnacle Point, South Africa, silcrete was deliberately heated by about 164,000 years ago, making the stone easier to flake into fine points. Managed fire also cooked food in earth ovens and burned landscapes to renew plants. When hominins first used fire remains debated.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "MAT1-006",
+    "claims": [
+     "silcrete heated about 164,000 years ago at Pinnacle Point",
+     "heating made silcrete easier to flake (pressure flaking)"
+    ]
+   }
+  ],
+  "uncertainty": "The earliest use of fire by hominins is debated (claims range over more than a million years); heat treatment at Pinnacle Point (~164 kya) is one well-dated marker of controlled pyrotechnology, and routine use is often placed around 70 kya.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D06 design lane recorded from its WebSearch summaries (research/lane-notes/D06-energy-engineering.md §17, registered here as ENG1-xxx) and (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch returned no results (shared per-turn budget exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated via MAT1-006: Pinnacle Point ~164 kya and the flaking benefit. Not corroborated (general knowledge): earth-oven cooking, landscape burning, and the debate over first fire use."
+  },
+  "mechanicLink": "Knowledge-only trunk root (unlock-audit class C): records managed hearths, heat treatment, earth ovens and planned burning with no current effect; it is the prerequisite of every pyrotechnology node."
+ },
+ {
+  "id": "lamp",
+  "tree": "technology",
+  "description": "A lamp makes fire portable and steady: a hollowed stone holds animal fat that burns on a wick of plant fibre. Stone lamps are known from Upper Palaeolithic sites in France, among them a carved sandstone lamp from Lascaux, a cave painted roughly 17,000 years ago. Lamps gave a small, steady light for working in deep caves.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Wick materials are inferred from residues and experiments; dates for Lascaux are given as roughly 17,000-19,000 years ago depending on the method.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch returned no results (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or design-lane record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: fat fuel and wick, the Lascaux sandstone lamp, the ~17,000-year date, and the use in deep caves. Needs a search pass before any check status above unverified."
+  },
+  "mechanicLink": "Accepted knowledge-only leaf (class C): completion records deep cave use and night work; lighting and working hours are not modelled, and it has no dependant."
+ },
+ {
+  "id": "charcoal",
+  "tree": "technology",
+  "description": "Charcoal is wood heated with little air, so water and volatile substances are driven off and nearly pure carbon remains. Burned in earth-covered piles, it gives hotter, cleaner fires than wood, and early metal smelting relied on it. Demand for it consumed woodlands; as charcoal grew costly in Britain, Abraham Darby smelted iron with coke at Coalbrookdale in 1709.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "MAT2-003",
+    "claims": [
+     "charcoal for furnaces becoming more expensive"
+    ]
+   },
+   {
+    "sourceId": "MAT2-002",
+    "claims": [
+     "Darby smelted iron with coke at Coalbrookdale in 1709"
+    ]
+   }
+  ],
+  "uncertainty": "When charcoal was first made deliberately is uncertain; the node dates it with the first smelting (about the sixth to fifth millennium BCE), which varies by region.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D06 design lane recorded from its WebSearch summaries (research/lane-notes/D06-energy-engineering.md §17, registered here as ENG1-xxx) and (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch returned no results (shared per-turn budget exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated via MAT2-003 and MAT2-002: rising charcoal cost and Darby's 1709 coke smelting. Not corroborated (general knowledge): the pyrolysis mechanism, covered piles, and woodland consumption."
+  },
+  "mechanicLink": "Knowledge-only trunk technique (class C): records smelting fuel and higher kiln temperatures; it sits on the path to the metal-smelting nodes."
+ },
+ {
+  "id": "bellows",
+  "tree": "technology",
+  "description": "Bellows force air into a fire, raising its temperature beyond what natural draught allows. Leather bags or skins stretched over clay pots were pumped by hand or foot to feed furnaces. Egyptian tomb paintings of about 1500 BCE show workers treading such bellows; earlier Near Eastern pot-bellows and possible Chalcolithic examples are debated. Medieval blast furnaces later used water-driven bellows.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "ENG1-026",
+    "claims": [
+     "earlier Near Eastern pot-bellows evidence"
+    ]
+   },
+   {
+    "sourceId": "ENG1-027",
+    "claims": [
+     "pot-bellows evidence reviewed"
+    ]
+   },
+   {
+    "sourceId": "ENG1-028",
+    "claims": [
+     "possible Chalcolithic bellows (Abu Matar), tentative"
+    ]
+   },
+   {
+    "sourceId": "MAT1-057",
+    "claims": [
+     "water-driven bellows at the medieval Lapphyttan blast furnace"
+    ]
+   }
+  ],
+  "uncertainty": "The earliest bellows are not securely dated: the node uses Egyptian New Kingdom depictions (~1500 BCE), but Near Eastern pot-bellows and possible Chalcolithic finds at Abu Matar may be much earlier.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D06 design lane recorded from its WebSearch summaries (research/lane-notes/D06-energy-engineering.md §17, registered here as ENG1-xxx) and (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch returned no results (shared per-turn budget exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated: earlier pot-bellows evidence and its unsettled status (ENG1-026/027/028, design-lane record); water-driven bellows at Lapphyttan (MAT1-057). Not corroborated: the Egyptian tomb depiction date (~1500 BCE, e.g. the tomb of Rekhmire) and foot-treading."
+  },
+  "mechanicLink": "Knowledge-only trunk application (class C): records forced draught for hotter furnaces and is a prerequisite of cast_iron (and blast_furnace_water in D02's proposal)."
+ },
+ {
+  "id": "water_mill",
+  "tree": "technology",
+  "description": "A water mill uses a flowing stream to turn a wheel that drives millstones, replacing human or animal labour in grinding grain. Evidence from the Greek world, including a debated site at Perachora, points to water mills by about the third century BCE. Roman engineers spread them widely, and Han China developed water-powered machinery independently by the first century CE.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Origins are debated: Greek texts and the Perachora installation suggest the third century BCE, but dating and interpretation are contested; Chinese water power developed independently.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch returned no results (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or design-lane record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: third-century BCE Greek evidence, Perachora, Roman spread, independent Han development. Needs a search pass."
+  },
+  "mechanicLink": "Realized today as one route to the Age 6 supporting milestone a6_mills; building.water_mill and building.paper_mill are eligible with no realizing system (milling effects PROPOSED for later production chains)."
+ },
+ {
+  "id": "trip_hammer",
+  "tree": "technology",
+  "description": "A trip hammer is a heavy beam lifted by cams on a turning water-wheel shaft and then dropped under its own weight. Chinese writers of the Han period, around the turn of the first century CE, describe water-powered hammers husking grain; later they crushed ore and pounded fibres. Medieval Europe used similar cam-driven hammers for forging iron and fulling cloth.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Han dating is approximate (the node uses about 40 BCE; the clearest text, by Huan Tan, is usually placed in the early first century CE).",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch returned no results (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or design-lane record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: the Han texts and their date, uses for grain, ore and fibre, and the European forge and fulling use. Needs a search pass."
+  },
+  "mechanicLink": "Knowledge-only trunk application (class C): records mechanised processing and ore crushing and is the prerequisite of fulling_mill (D07)."
+ },
+ {
+  "id": "windmill_vertical",
+  "tree": "technology",
+  "description": "In a vertical-axis windmill, sails of cloth or reed matting turn around an upright shaft, so the wind drives the millstone directly without gearing. Such mills are associated with Sistan, on the arid borderland of Iran and Afghanistan, where strong seasonal winds blow. Geographers writing in Arabic described them by the tenth century; earlier reports are uncertain.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Earlier origins (a seventh-century anecdote) are uncertain; the node's ~700 CE date is an estimate.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch returned no results (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or design-lane record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: Sistan location, design, tenth-century descriptions. Needs a search pass."
+  },
+  "mechanicLink": "Trunk node (PROPOSED relocation from the Engineering subtree): building.windmill becomes eligible without the research stage, with no realizing system yet; milling effects are deferred to production chains."
+ },
+ {
+  "id": "windmill_post",
+  "tree": "technology",
+  "description": "A post mill carries its whole body, sails and gearing on one upright post, so the miller can turn it to face the wind. Documents first record such mills in England and Flanders in the late twelfth century. Needing no river, they spread through manors and monasteries; later windmills with turning caps also drained low-lying land, notably in the Netherlands.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Whether the European horizontal-axis windmill drew on knowledge of Persian mills is debated; most historians treat it as a separate development.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch returned no results (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or design-lane record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: post-mill design, late-twelfth-century records in England and Flanders, manorial spread, drainage use. Needs a search pass."
+  },
+  "mechanicLink": "Realized today as the second route to the Age 6 supporting milestone a6_mills (PROPOSED move to the trunk); building.windmill is eligible with no realizing system."
+ },
+ {
+  "id": "steam_atmospheric",
+  "tree": "technology",
+  "description": "Thomas Newcomen's engine of 1712 used the pressure of the air, not of steam, to do work. Steam filled a cylinder, a jet of cold water condensed it, and the partial vacuum let the atmosphere push a piston down, rocking a beam that worked mine pumps. Its first cylinders were brass; cast-iron cylinders came from Coalbrookdale in the 1720s.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "ENG1-001",
+    "claims": [
+     "Newcomen 1712, brass cylinders",
+     "cast-iron cylinders from Coalbrookdale from the 1720s"
+    ]
+   },
+   {
+    "sourceId": "ENG1-002",
+    "claims": [
+     "Coalbrookdale cast-iron cylinders from the 1720s"
+    ]
+   },
+   {
+    "sourceId": "ENG1-003",
+    "claims": [
+     "Coalbrookdale iron founding supplied cylinders"
+    ]
+   }
+  ],
+  "uncertainty": "Newcomen's 1712 Dudley Castle engine is the usual first; Thomas Savery's earlier steam pump (1698) worked differently.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D06 design lane recorded from its WebSearch summaries (research/lane-notes/D06-energy-engineering.md §17, registered here as ENG1-xxx) and (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch returned no results (shared per-turn budget exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated via the design-lane record: 1712, brass cylinders, Coalbrookdale cast iron from the 1720s. Not corroborated (general knowledge): the condensing-jet mechanism and the mine-pumping use."
+  },
+  "mechanicLink": "Knowledge-only (class C): records mine drainage and deep coal mining; it opens the steam line toward steam_separate_condenser and the Age 8 core."
+ },
+ {
+  "id": "steam_separate_condenser",
+  "tree": "technology",
+  "description": "James Watt saw that the atmospheric engine wasted fuel by cooling and reheating its cylinder at every stroke. His remedy, patented in 1769, was a separate vessel where steam condensed while the cylinder stayed hot. Engines built by Boulton and Watt from the 1770s used much less coal for the same work, so steam power paid far from coalfields.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Fuel savings varied by engine; figures quoted range widely.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch returned no results (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or design-lane record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: Watt's diagnosis, the 1769 patent, Boulton and Watt engines from the 1770s, the fuel saving. Needs a search pass."
+  },
+  "mechanicLink": "Knowledge-only (class C): records economic steam power away from coalfields; prerequisite of steam_rotary and of D04's thermodynamics."
+ },
+ {
+  "id": "steam_rotary",
+  "tree": "technology",
+  "description": "Early steam engines pumped water with an up-and-down beam. Between 1781 and 1784 Boulton and Watt made their engine turn a shaft through the sun-and-planet gear and made it double-acting, with steam pushing the piston both ways. Rotary engines could drive textile and other machinery directly, so factories no longer had to stand beside fast rivers.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "The sun-and-planet gear is often credited to William Murdoch; it was used partly because James Pickard held a 1780 patent on a crank arrangement.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch returned no results (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or design-lane record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: 1781-84 dates, sun-and-planet gear, double action, factory use. Needs a search pass."
+  },
+  "mechanicLink": "Realized today: completion carries the Age 8 core milestone a8_steam (unlock-audit class B)."
+ },
+ {
+  "id": "steam_high_pressure",
+  "tree": "technology",
+  "description": "High-pressure engines used steam well above atmospheric pressure to drive the piston directly, without a condenser or heavy beam. Richard Trevithick in Cornwall and Oliver Evans in the United States built such engines around 1800-1804. Compact and powerful, they could move themselves: Trevithick's locomotive ran at Penydarren, Wales, in 1804. Their boilers needed wrought iron, made in quantity by puddling.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "MAT2-007",
+    "claims": [
+     "puddling (Cort, 1784) produced wrought iron"
+    ]
+   }
+  ],
+  "uncertainty": "Dates for the first high-pressure engines vary between about 1800 and 1804 by builder.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D06 design lane recorded from its WebSearch summaries (research/lane-notes/D06-energy-engineering.md §17, registered here as ENG1-xxx) and (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch returned no results (shared per-turn budget exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated via MAT2-007: puddling produced wrought iron. Not corroborated (general knowledge): Trevithick and Evans, the 1800-1804 range, Penydarren 1804."
+  },
+  "mechanicLink": "Knowledge-only (class C): records the locomotive, steamboat and portable engine as knowledge; the transport units themselves belong to dependant nodes."
+ },
+ {
+  "id": "dynamo",
+  "tree": "technology",
+  "description": "A dynamo turns mechanical work into electric current by spinning coils through a magnetic field, using the induction Michael Faraday discovered in 1831. Early generators with permanent magnets were weak. In 1866-67 Werner Siemens, Charles Wheatstone and others made machines that fed part of their output to their own electromagnets, and Zénobe Gramme's dynamo of 1871 gave steady current.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "NAT1-058",
+    "claims": [
+     "Faraday discovered electromagnetic induction in 1831"
+    ]
+   }
+  ],
+  "uncertainty": "Priority for self-excitation is disputed: Ányos Jedlik and others described the principle earlier; Siemens and Wheatstone announced it almost simultaneously in 1867.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D06 design lane recorded from its WebSearch summaries (research/lane-notes/D06-energy-engineering.md §17, registered here as ENG1-xxx) and (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch returned no results (shared per-turn budget exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated via NAT1-058: Faraday 1831. Not corroborated (general knowledge): self-excitation in 1866-67 and Gramme's 1871 machine."
+  },
+  "mechanicLink": "Knowledge-only (class C): records electricity as a produced capacity; prerequisite of electric_light and electricity_generation."
+ },
+ {
+  "id": "electric_light",
+  "tree": "technology",
+  "description": "An incandescent lamp makes light by heating a thin filament until it glows inside a glass bulb emptied of air, so the filament does not burn. Many inventors tried the idea; around 1878-80 Joseph Swan in England and Thomas Edison in the United States produced durable carbon-filament lamps. Unlike arc lamps, they were small, safe indoors and individually switched.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Priority between Swan and Edison was contested; earlier experimental lamps by others predate both.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch returned no results (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or design-lane record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: filament-in-vacuum principle, Swan and Edison 1878-80, comparison with arc lamps. Needs a search pass."
+  },
+  "mechanicLink": "Knowledge-only (class C): records night work and urban lighting demand; it is the demand side required by electricity_generation."
+ },
+ {
+  "id": "electricity_generation",
+  "tree": "technology",
+  "description": "A central power station generates electricity in one place and sells it to many customers over wires. In 1882 Edison's companies opened stations at Holborn Viaduct in London and Pearl Street in New York, where steam engines drove dynamos supplying direct current to nearby lamps. Low-voltage direct current could not travel far, so each station served only its surrounding district.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Godalming, England, had a public supply in 1881 (water-powered); which station was 'first' depends on definition.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch returned no results (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or design-lane record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: 1882 openings at Holborn Viaduct and Pearl Street, steam-driven dynamos, short DC range. Needs a search pass."
+  },
+  "mechanicLink": "Realized today: completion carries the Age 9 core milestone a9_electricity; building.power_station is eligible with no realizing system, and generation capacity is deferred to the M11+ energy system (PROPOSED)."
+ },
+ {
+  "id": "electric_motor",
+  "tree": "technology",
+  "description": "An electric motor reverses the dynamo, turning current into rotation, a possibility opened when Hans Christian Oersted saw a current deflect a compass needle in 1820. Battery-driven motors of the 1830s were too costly for real work. Once stations supplied current in the 1880s, practical direct-current motors and polyphase alternating-current motors spread to trams, lifts and factory machines.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "NAT1-058",
+    "claims": [
+     "Oersted (1820) saw a compass needle deflect near a current"
+    ]
+   }
+  ],
+  "uncertainty": "Polyphase induction motors were developed independently by Galileo Ferraris and Nikola Tesla in 1885-88.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D06 design lane recorded from its WebSearch summaries (research/lane-notes/D06-energy-engineering.md §17, registered here as ENG1-xxx) and (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch returned no results (shared per-turn budget exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated via NAT1-058: Oersted 1820. Not corroborated (general knowledge): 1830s battery motors, 1880s practical motors, trams, lifts and factory drives."
+  },
+  "mechanicLink": "Knowledge-only (class C): records unit drive and electric traction; prerequisite of electric_traction, electric_vehicle, skyscraper and submarine."
+ },
+ {
+  "id": "internal_combustion",
+  "tree": "technology",
+  "description": "A high-speed petrol engine burns a volatile liquid fuel inside its cylinders and turns much faster than stationary gas engines, giving more power for its weight. Gottlieb Daimler and Wilhelm Maybach at Cannstatt (1883-84) and Karl Benz at Mannheim (1885) developed such engines independently. They ran on light petroleum spirit: in 1888 Bertha Benz bought some at a Wiesloch pharmacy.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "ENG1-015",
+    "claims": [
+     "Daimler-Maybach 1883-84",
+     "Benz 1885"
+    ]
+   },
+   {
+    "sourceId": "ENG1-016",
+    "claims": [
+     "Daimler-Maybach and Benz high-speed engines"
+    ]
+   },
+   {
+    "sourceId": "ENG1-017",
+    "claims": [
+     "ligroin fuel; Wiesloch pharmacy on the 1888 drive"
+    ]
+   },
+   {
+    "sourceId": "ENG1-018",
+    "claims": [
+     "1888 drive; fuel bought at a pharmacy in Wiesloch"
+    ]
+   }
+  ],
+  "uncertainty": "Daimler-Maybach and Benz worked independently; exact first-run dates differ between sources by about a year.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D06 design lane recorded from its WebSearch summaries (research/lane-notes/D06-energy-engineering.md §17, registered here as ENG1-xxx) and (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch returned no results (shared per-turn budget exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated via the design-lane record: Daimler-Maybach 1883-84, Benz 1885, ligroin, Wiesloch pharmacy 1888. Not corroborated: Cannstatt and Mannheim locations and the speed and power-to-weight comparison."
+  },
+  "mechanicLink": "Realized today: completion carries the Age 9 core milestone a9_combustion; vehicles are realized by dependant nodes (PROPOSED split leaves the stationary engine to gas_engine)."
+ },
+ {
+  "id": "ac_transmission",
+  "tree": "technology",
+  "description": "Alternating current can be raised by a transformer to high voltage, sent far with small losses, and lowered again for use. Engineers at the Ganz works in Budapest built practical closed-core transformers in 1884-85. In 1891 a three-phase line carried power about 175 km from Lauffen to Frankfurt, and from 1896 Niagara's generators supplied Buffalo.",
+  "wordCount": 55,
+  "sources": [
+   {
+    "sourceId": "ENG1-004",
+    "claims": [
+     "Ganz closed-core transformer 1884-85"
+    ]
+   },
+   {
+    "sourceId": "ENG1-005",
+    "claims": [
+     "Ganz closed-core transformer 1884-85"
+    ]
+   },
+   {
+    "sourceId": "ENG1-006",
+    "claims": [
+     "Ganz closed-core transformer 1884-85"
+    ]
+   },
+   {
+    "sourceId": "ENG1-007",
+    "claims": [
+     "Lauffen-Frankfurt 1891, about 175 km"
+    ]
+   },
+   {
+    "sourceId": "ENG1-008",
+    "claims": [
+     "Lauffen-Frankfurt 1891"
+    ]
+   },
+   {
+    "sourceId": "ENG1-009",
+    "claims": [
+     "Niagara power to Buffalo, November 1896"
+    ]
+   },
+   {
+    "sourceId": "ENG1-010",
+    "claims": [
+     "Niagara to Buffalo 1896"
+    ]
+   }
+  ],
+  "uncertainty": "Gaulard and Gibbs showed open-core transformers in 1881-84; the Ganz closed-core design is the usual practical starting point. Rival DC and AC systems competed in the late 1880s.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D06 design lane recorded from its WebSearch summaries (research/lane-notes/D06-energy-engineering.md §17, registered here as ENG1-xxx) and (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch returned no results (shared per-turn budget exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated via the design-lane record: Ganz 1884-85, Lauffen-Frankfurt 1891 about 175 km, Niagara-Buffalo 1896. Not corroborated: the general loss mechanism (standard physics)."
+  },
+  "mechanicLink": "PROPOSED new node split from electricity_generation: completion makes infra.power_grid knowledge-eligible; grid connectivity between settlements is deferred to the M11+ energy system."
+ },
+ {
+  "id": "gas_engine",
+  "tree": "technology",
+  "description": "The stationary gas engine burned its fuel inside the cylinder instead of under a boiler. Étienne Lenoir's engine of 1860 in Paris ran on coal gas without compressing it and used fuel wastefully. In 1876 Nikolaus Otto's engine, built at Deutz, compressed the gas-air mixture before igniting it in a four-stroke cycle, making small boiler-less workshop engines economical.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "ENG1-015",
+    "claims": [
+     "Lenoir 1860",
+     "Otto four-stroke compression engine 1876"
+    ]
+   },
+   {
+    "sourceId": "ENG1-016",
+    "claims": [
+     "Lenoir 1860; Otto 1876"
+    ]
+   }
+  ],
+  "uncertainty": "Alphonse Beau de Rochas described the four-stroke principle in an 1862 patent; Otto's 1876 engine was the first successful one, and his patent was later challenged.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D06 design lane recorded from its WebSearch summaries (research/lane-notes/D06-energy-engineering.md §17, registered here as ENG1-xxx) and (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch returned no results (shared per-turn budget exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated via the design-lane record: Lenoir 1860, Otto's four-stroke compression engine 1876. Not corroborated: coal-gas fuel, Deutz, and the efficiency comparison."
+  },
+  "mechanicLink": "PROPOSED new node split from internal_combustion: completion row only; prerequisite of internal_combustion and diesel; a stationary power effect is deferred (no fuel good exists)."
+ },
+ {
+  "id": "water_turbine",
+  "tree": "technology",
+  "description": "A water turbine passes water under pressure through curved blades in a closed casing, extracting more energy than an open wheel, especially from high falls. Benoît Fourneyron's turbine of 1827 in France, James Francis's design at Lowell, Massachusetts (1849), and Lester Pelton's impulse wheel in California (1879) made high heads usable. Turbines later drove hydroelectric generators.",
+  "wordCount": 56,
+  "sources": [
+   {
+    "sourceId": "ENG1-013",
+    "claims": [
+     "Fourneyron 1827, Francis 1849, Pelton 1879",
+     "turbines made high heads usable"
+    ]
+   },
+   {
+    "sourceId": "ENG1-014",
+    "claims": [
+     "Fourneyron 1827, Francis 1849, Pelton 1879"
+    ]
+   },
+   {
+    "sourceId": "ENG1-007",
+    "claims": [
+     "turbine-driven generator at Lauffen, 1891"
+    ]
+   }
+  ],
+  "uncertainty": "Pelton's wheel is dated 1879 (development) or 1880 (patent) in different sources.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D06 design lane recorded from its WebSearch summaries (research/lane-notes/D06-energy-engineering.md §17, registered here as ENG1-xxx) and (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch returned no results (shared per-turn budget exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated via the design-lane record: Fourneyron 1827, Francis 1849, Pelton 1879, high heads, turbine-driven generation. Not corroborated: the relative-efficiency statement."
+  },
+  "mechanicLink": "PROPOSED new node: completion row only; prerequisite of hydroelectric (dams drive turbines, not water wheels)."
+ },
+ {
+  "id": "jet_engine",
+  "tree": "technology",
+  "description": "A turbojet draws in air, compresses it, burns fuel in it and expands the hot gas through a turbine that drives the compressor; the remaining exhaust pushes the aircraft forward. Frank Whittle in Britain and Hans von Ohain in Germany developed the idea independently in the 1930s. Von Ohain's engine flew in August 1939, Whittle's in 1941.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Independent development: Whittle patented in 1930 and ran an engine in 1937; von Ohain's engine flew first (Heinkel He 178, August 1939).",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch returned no results (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or design-lane record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: turbojet cycle, Whittle and von Ohain independence, flight dates 1939 and 1941. Needs a search pass."
+  },
+  "mechanicLink": "Knowledge-only (class C): records jet aircraft and global air travel; prerequisite of gas_turbine_power and the jet aircraft nodes."
+ },
+ {
+  "id": "steam_turbine",
+  "tree": "technology",
+  "description": "A steam turbine draws work from expanding steam with rows of blades on a spinning shaft instead of a piston. In 1884 Charles Parsons built a multi-stage turbine where steam expanded in many small steps; Gustaf de Laval developed an impulse design in Sweden. Turbines suited high-speed generators, and Parsons's Turbinia showed their speed at sea in 1897.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": null,
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch returned no results (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or design-lane record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: Parsons 1884, multi-stage expansion, de Laval, Turbinia 1897. Needs a search pass."
+  },
+  "mechanicLink": "Deferred (class F): completion makes unit.aircraft_carrier eligible with no realizing system; also records efficient generation as knowledge."
+ },
+ {
+  "id": "diesel",
+  "tree": "technology",
+  "description": "Rudolf Diesel began from heat-engine theory. In an 1893 treatise he proposed an engine approaching the ideal efficiency described by Sadi Carnot, igniting fuel by the heat of strongly compressed air rather than by a spark. After years of trials a working engine was tested in 1897. Diesel engines later powered ships, submarines, locomotives, lorries and generators.",
+  "wordCount": 57,
+  "sources": [
+   {
+    "sourceId": "ENG1-019",
+    "claims": [
+     "1893 treatise; engine to approach the Carnot cycle"
+    ]
+   },
+   {
+    "sourceId": "ENG1-020",
+    "claims": [
+     "1893 treatise based on Carnot"
+    ]
+   },
+   {
+    "sourceId": "NAT1-075",
+    "claims": [
+     "Carnot's theory of maximum heat-engine efficiency"
+    ]
+   }
+  ],
+  "uncertainty": "Herbert Akroyd Stuart's hot-bulb oil engine (1890) also used compression, though not compression ignition in Diesel's sense.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D06 design lane recorded from its WebSearch summaries (research/lane-notes/D06-energy-engineering.md §17, registered here as ENG1-xxx) and (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch returned no results (shared per-turn budget exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated: 1893 treatise and Carnot basis (ENG1-019/020, NAT1-075). Not corroborated: compression ignition description, 1897 test, later uses."
+  },
+  "mechanicLink": "Knowledge-only (class C): records heavy transport, submarines and generators as knowledge (PROPOSED prerequisite gas_engine and thermodynamics)."
+ },
+ {
+  "id": "computer",
+  "tree": "technology",
+  "description": "A stored-program computer keeps its instructions in the same fast memory as its data, so a new program can be loaded instead of rewiring the machine. The Manchester Baby ran the first such program in June 1948, using a cathode-ray-tube store developed from wartime radar work. Cambridge's EDSAC, with mercury delay-line memory, began regular service in 1949.",
+  "wordCount": 57,
+  "sources": [
+   {
+    "sourceId": "ENG1-021",
+    "claims": [
+     "Manchester Baby 1948 with a Williams-Kilburn CRT store",
+     "mercury delay lines derived from radar"
+    ]
+   },
+   {
+    "sourceId": "ENG1-022",
+    "claims": [
+     "Williams-Kilburn tube grew out of radar work"
+    ]
+   }
+  ],
+  "uncertainty": "The stored-program concept is associated with the 1945 EDVAC report and with Turing's 1946 design; attribution is debated.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D06 design lane recorded from its WebSearch summaries (research/lane-notes/D06-energy-engineering.md §17, registered here as ENG1-xxx) and (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch returned no results (shared per-turn budget exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated via the design-lane record: Manchester Baby 1948, CRT store from radar, mercury delay lines from radar. Not corroborated: the June 1948 month and EDSAC's 1949 start."
+  },
+  "mechanicLink": "Realized today: completion carries the Age 9 supporting milestone a9_computing (PROPOSED split leaves earlier programmable machines to programmable_computer)."
+ },
+ {
+  "id": "transistor",
+  "tree": "technology",
+  "description": "A transistor uses a semiconductor crystal to amplify or switch a current, doing a vacuum tube's work with far less power and heat. At Bell Telephone Laboratories, John Bardeen and Walter Brattain built a point-contact transistor in December 1947, and William Shockley designed the junction transistor in 1948, building on the p-n junction Russell Ohl had found in 1940.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "ENG1-023",
+    "claims": [
+     "Ohl found the p-n junction in 1940"
+    ]
+   },
+   {
+    "sourceId": "ENG1-024",
+    "claims": [
+     "Ohl 1940 p-n junction"
+    ]
+   }
+  ],
+  "uncertainty": "Field-effect devices were patented earlier (Lilienfeld, 1920s) but not built successfully.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D06 design lane recorded from its WebSearch summaries (research/lane-notes/D06-energy-engineering.md §17, registered here as ENG1-xxx) and (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch returned no results (shared per-turn budget exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated via the design-lane record: Ohl's 1940 p-n junction. Not corroborated: Bardeen and Brattain December 1947, Shockley 1948."
+  },
+  "mechanicLink": "Knowledge-only (class C): records reliable small electronics; prerequisite of integrated_circuit, satellite and solar_pv (PROPOSED split moves the science to semiconductor_physics)."
+ },
+ {
+  "id": "integrated_circuit",
+  "tree": "technology",
+  "description": "An integrated circuit forms transistors, resistors and their connections together on one piece of semiconductor instead of wiring separate parts. Jack Kilby at Texas Instruments demonstrated one in 1958, and Robert Noyce at Fairchild devised a planar silicon version in 1959, independently. Patterning by photolithography, related to photographic printing, let factories make many identical chips together.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Kilby and Noyce are both credited; patent disputes followed.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch returned no results (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or design-lane record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: Kilby 1958, Noyce 1959, planar process, photolithography. Needs a search pass."
+  },
+  "mechanicLink": "Deferred: building.semiconductor_fab is eligible with no realizing system; a fab's output needs an electronics good (M11+ content, PROPOSED)."
+ },
+ {
+  "id": "microprocessor",
+  "tree": "technology",
+  "description": "A microprocessor places a computer's entire central processing unit on one chip. Intel's 4004, released in 1971 for a Japanese calculator maker, held about 2,300 transistors and handled four bits at a time. Cheap processors soon controlled instruments, appliances and vehicles, and made small general-purpose computers affordable. Other firms developed comparable chips at about the same time.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Other early single-chip or few-chip processors (for example in Texas Instruments calculators and a US military flight computer) have priority claims.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch returned no results (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or design-lane record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: 4004 in 1971, calculator customer, about 2,300 transistors, 4-bit, later uses. Needs a search pass."
+  },
+  "mechanicLink": "Knowledge-only (class C): records personal computing and embedded control; prerequisite of cmos_vlsi."
+ },
+ {
+  "id": "hydroelectric",
+  "tree": "technology",
+  "description": "A hydroelectric station drops water from a dam or diverted river through turbines that drive generators. The Adams station at Niagara Falls, opened in 1895, was a landmark: from 1896 it sent three-phase alternating current to Buffalo. Large dams later gave cheap continuous power to energy-hungry industries such as aluminium smelting, whose electrolytic process dates from 1886.",
+  "wordCount": 57,
+  "sources": [
+   {
+    "sourceId": "ENG1-009",
+    "claims": [
+     "Adams plant 1895; Buffalo 1896 by three-phase AC"
+    ]
+   },
+   {
+    "sourceId": "ENG1-010",
+    "claims": [
+     "Niagara 1895; Buffalo 1896"
+    ]
+   },
+   {
+    "sourceId": "ENG1-013",
+    "claims": [
+     "turbines made high heads usable"
+    ]
+   },
+   {
+    "sourceId": "MAT2-024",
+    "claims": [
+     "Hall and Heroult electrolysis patents, 1886"
+    ]
+   }
+  ],
+  "uncertainty": "Small hydroelectric installations predate Niagara (for example Cragside, England, 1878, and Appleton, Wisconsin, 1882); the node dates the dam-scale station from 1895.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D06 design lane recorded from its WebSearch summaries (research/lane-notes/D06-energy-engineering.md §17, registered here as ENG1-xxx) and (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch returned no results (shared per-turn budget exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated: Niagara 1895 and Buffalo 1896 (design-lane record), turbines, Hall-Heroult 1886 (MAT2-024). Not corroborated: dams powering aluminium industries as a general pattern."
+  },
+  "mechanicLink": "Deferred: building.hydroelectric_dam is eligible with no realizing system; river head as grid capacity is deferred to the M11+ energy system (PROPOSED)."
+ },
+ {
+  "id": "solar_pv",
+  "tree": "technology",
+  "description": "A photovoltaic cell turns sunlight directly into electric current at a junction between two kinds of semiconductor. Russell Ohl observed the effect in a silicon p-n junction in 1940. In 1954 Daryl Chapin, Calvin Fuller and Gerald Pearson at Bell Laboratories made a practical silicon cell of about six per cent efficiency; satellites were early users from 1958.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "ENG1-023",
+    "claims": [
+     "Ohl 1940 p-n junction photovoltaic effect"
+    ]
+   },
+   {
+    "sourceId": "ENG1-024",
+    "claims": [
+     "Ohl 1940 photovoltaic effect"
+    ]
+   }
+  ],
+  "uncertainty": "The photovoltaic effect was first observed by Edmond Becquerel in 1839 in an electrolytic cell; selenium cells of the 1880s were very inefficient.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D06 design lane recorded from its WebSearch summaries (research/lane-notes/D06-energy-engineering.md §17, registered here as ENG1-xxx) and (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch returned no results (shared per-turn budget exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated via the design-lane record: Ohl 1940. Not corroborated: Bell Labs 1954 team, ~6 percent efficiency, satellite use from 1958 (Vanguard 1)."
+  },
+  "mechanicLink": "Deferred: building.solar_farm is eligible with no realizing system; sunlight as generation capacity is deferred to the M11+ energy system (PROPOSED)."
+ },
+ {
+  "id": "lithium_battery",
+  "tree": "technology",
+  "description": "A lithium-ion battery stores energy by moving lithium ions between two host materials that take them into their crystal layers. John Goodenough's group proposed a lithium cobalt oxide cathode in 1980, Akira Yoshino built a safer cell with a carbon anode in 1985, and commercial sales began in 1991. These light, rechargeable cells suited portable electronics and later electric vehicles.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Stanley Whittingham's 1970s work on intercalation electrodes preceded Goodenough's; the 2019 Nobel Prize in Chemistry recognised all three.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch returned no results (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or design-lane record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: intercalation mechanism, Goodenough 1980, Yoshino 1985, commercial 1991. Needs a search pass."
+  },
+  "mechanicLink": "Knowledge-only (class C): records portable electronics, electric vehicles and grid storage; one route to grid_storage."
+ },
+ {
+  "id": "cmos_vlsi",
+  "tree": "technology",
+  "description": "Very-large-scale integration put tens of thousands and then millions of transistors on a single chip. It relied on CMOS logic, invented in 1963 by Frank Wanlass and Chih-Tang Sah, which draws little power except when switching, and on structured design methods popularised by Carver Mead and Lynn Conway around 1980. The cost of each transistor fell steadily.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": null,
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch returned no results (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or design-lane record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: CMOS 1963 (Wanlass and Sah), Mead and Conway around 1980, falling transistor cost. Needs a search pass."
+  },
+  "mechanicLink": "Knowledge-only (class C): records cheap computation and embedded control; prerequisite of personal_computer and gpu_parallel."
+ },
+ {
+  "id": "gas_turbine_power",
+  "tree": "technology",
+  "description": "A power-station gas turbine burns gas or oil to spin a turbine coupled to a generator, adapting jet-engine principles to continuous duty. In the combined cycle, widely adopted from the 1970s, hot exhaust also raises steam for a second turbine, recovering otherwise wasted heat. Its blades run hotter than ordinary steels tolerate, relying on nickel superalloys such as Nimonic 80.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "MAT2-027",
+    "claims": [
+     "Nimonic 80 introduced in 1941 and became the standard rotor-blade material of British gas turbines"
+    ]
+   }
+  ],
+  "uncertainty": "The first utility gas turbine (Neuchâtel, Switzerland, 1939) predates the node's 1950s date; combined-cycle adoption dates vary by country.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D06 design lane recorded from its WebSearch summaries (research/lane-notes/D06-energy-engineering.md §17, registered here as ENG1-xxx) and (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch returned no results (shared per-turn budget exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated via MAT2-027: Nimonic 80 as gas-turbine blade alloy. Not corroborated: combined-cycle principle and 1970s adoption."
+  },
+  "mechanicLink": "Knowledge-only (class C): records efficient dispatchable generation; prerequisite of carbon_capture and frontier_energy; dispatchable gas capacity is deferred to M11+ (PROPOSED)."
+ },
+ {
+  "id": "wind_turbine_modern",
+  "tree": "technology",
+  "description": "A modern wind turbine turns a rotor of a few long blades to drive a generator that feeds the electricity grid. Johannes Juul's Gedser turbine of 1957 in Denmark used an induction generator kept in step with the grid, a layout later called the Danish concept. From the 1980s Danish manufacturers produced such turbines in series, with glass-fibre composite blades.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "ENG1-025",
+    "claims": [
+     "Gedser turbine 1957 with grid-synchronised induction generator"
+    ]
+   }
+  ],
+  "uncertainty": "Wind-electric generators existed from the 1880s (Blyth, Brush, la Cour); the node dates the modern grid-connected design from the 1980s.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D06 design lane recorded from its WebSearch summaries (research/lane-notes/D06-energy-engineering.md §17, registered here as ENG1-xxx) and (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch returned no results (shared per-turn budget exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated via the design-lane record: Gedser 1957 and its grid-connected induction generator. Not corroborated: series production in the 1980s and composite blades."
+  },
+  "mechanicLink": "Deferred: building.wind_farm is eligible with no realizing system; intermittent wind capacity on the grid is deferred to the M11+ energy system (PROPOSED)."
+ },
+ {
+  "id": "grid_storage",
+  "tree": "technology",
+  "description": "Grid-scale storage holds surplus electricity and returns it when demand peaks or wind and sunlight fall away. The oldest method is pumped storage: water is pumped uphill and later released through turbines, used in Switzerland and Italy from the late nineteenth century. It still holds most installed storage capacity, while large battery installations multiplied in the 2010s.",
+  "wordCount": 57,
+  "sources": [
+   {
+    "sourceId": "ENG1-011",
+    "claims": [
+     "early Swiss pumped storage, dates vary"
+    ]
+   },
+   {
+    "sourceId": "ENG1-012",
+    "claims": [
+     "pumped storage over 94 percent of installed storage"
+    ]
+   }
+  ],
+  "uncertainty": "The first pumped-storage plant is variously dated (Zurich 1882 is cited; other sources give the 1890s).",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with (a) claims the D06 design lane recorded from its WebSearch summaries (research/lane-notes/D06-energy-engineering.md §17, registered here as ENG1-xxx) and (b) register entries of other corpus lanes reused by id; this drafting lane's own WebSearch returned no results (shared per-turn budget exhausted) and WebFetch is blocked, so no page or summary was seen by this lane.",
+   "notes": "Corroborated via the design-lane record: early Swiss pumped storage (weak), majority share of installed storage. Not corroborated: Italian plants and 2010s battery growth."
+  },
+  "mechanicLink": "Knowledge-only (class C), no dependant: storage shifting capacity across time is deferred to the M11+ energy system (PROPOSED); reachable by battery or pumped-hydro routes."
+ },
+ {
+  "id": "smart_grid",
+  "tree": "technology",
+  "description": "A smart grid adds digital metering, communication and automatic control to the electricity network. Operators can then see conditions almost as they happen, and customers' demand can respond to prices or shortages. Networked meters and sensors spread in many countries during the 2000s, helping to balance variable wind and solar output and many small producers.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "The term has no single definition; national programmes differ in scope and dates.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch returned no results (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or design-lane record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: 2000s spread of networked meters and the balancing role. Needs a search pass."
+  },
+  "mechanicLink": "Knowledge-only (class C), no dependant: demand response and distributed dispatch are deferred to the M11+ energy system (PROPOSED)."
+ },
+ {
+  "id": "programming_languages",
+  "tree": "technology",
+  "description": "High-level programming languages let people write instructions in notation close to mathematics or English, which a compiler translates into machine code. FORTRAN, developed by John Backus's team at IBM and released in 1957, showed that compiled programs could run efficiently enough for scientific work. COBOL, LISP and ALGOL soon followed, making software easier to write and share.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Earlier systems (Zuse's Plankalkül design, Autocode, Grace Hopper's A-0) preceded FORTRAN; which counts as the first high-level language depends on definition.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch returned no results (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or design-lane record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: FORTRAN 1957 at IBM under Backus, efficiency claim, successors. Needs a search pass."
+  },
+  "mechanicLink": "Knowledge-only (class C): records software at scale; prerequisite of operating_system, relational_database, public_key_crypto and machine_learning."
+ },
+ {
+  "id": "operating_system",
+  "tree": "technology",
+  "description": "An operating system is the software that manages a computer's processor, memory, storage and devices, sharing them among programs and users. Time-sharing systems of the 1960s, such as CTSS and Multics at MIT, let many users work at once. Unix, begun at Bell Labs in 1969 and largely rewritten in the C language by 1973, could be moved between machines.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Batch monitors of the 1950s already performed some operating-system functions.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch returned no results (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or design-lane record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: CTSS and Multics, Unix 1969, C rewrite 1973, portability. Needs a search pass."
+  },
+  "mechanicLink": "Knowledge-only (class C): records multi-user computing and software portability; prerequisite of personal_computer."
+ },
+ {
+  "id": "relational_database",
+  "tree": "technology",
+  "description": "A relational database stores information as tables of rows and columns and retrieves it by stating what is wanted rather than how to find it. Edgar F. Codd of IBM set out the relational model in a 1970 paper. Research systems in the 1970s and commercial products around 1980 followed, and the SQL query language became the common standard.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": null,
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch returned no results (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or design-lane record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: Codd 1970, 1970s research systems, commercial products around 1980, SQL standardisation. Needs a search pass."
+  },
+  "mechanicLink": "Knowledge-only (class C): records national-scale administration and transaction systems; prerequisite of cloud_computing."
+ },
+ {
+  "id": "personal_computer",
+  "tree": "technology",
+  "description": "A personal computer is cheap and small enough for one person to own and use. Microcomputer kits appeared in 1974-75, and in 1977 the Apple II, Commodore PET and TRS-80 were sold ready-built to homes, schools and offices. Programs such as the VisiCalc spreadsheet of 1979 made them business tools, and IBM's PC of 1981 widened adoption.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Earlier single-user machines (for example the Xerox Alto, 1973) were not sold widely; the 'first' personal computer depends on definition.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch returned no results (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or design-lane record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: 1974-75 kits, the 1977 machines, VisiCalc 1979, IBM PC 1981. Needs a search pass."
+  },
+  "mechanicLink": "Knowledge-only (class C): records individual computing and office automation."
+ },
+ {
+  "id": "public_key_crypto",
+  "tree": "technology",
+  "description": "Public-key cryptography uses a pair of keys: one can be published so anyone can encrypt messages or check signatures, while only its owner holds the other. Whitfield Diffie and Martin Hellman published the idea in 1976, and Rivest, Shamir and Adleman described the RSA system in 1977. British government cryptographers had found similar methods earlier, kept secret until 1997.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Ellis, Cocks and Williamson at GCHQ devised equivalent methods in 1970-74; their work was declassified in 1997.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch returned no results (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or design-lane record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: Diffie-Hellman 1976, RSA 1977, GCHQ precedence and 1997 disclosure. Needs a search pass."
+  },
+  "mechanicLink": "Knowledge-only (class C): records secure networks, digital signatures and e-commerce."
+ },
+ {
+  "id": "gpu_parallel",
+  "tree": "technology",
+  "description": "Graphics processors were built to compute colours for millions of screen pixels at once, using many simple cores working in parallel. Chips marketed as GPUs appeared in 1999, and from 2006-07 programming tools such as NVIDIA's CUDA let scientists use them for general calculations. They suited simulation and matrix arithmetic, later the core workload of machine learning.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Massively parallel supercomputers existed from the 1980s; the node dates the commodity parallel processor from 1999 and general-purpose use from 2007.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch returned no results (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or design-lane record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: 1999 GPU, CUDA 2006-07, matrix workloads. Needs a search pass."
+  },
+  "mechanicLink": "Knowledge-only (class C): records large-scale numerical computation; prerequisite of deep_learning."
+ },
+ {
+  "id": "machine_learning",
+  "tree": "technology",
+  "description": "Machine learning builds programs that improve by fitting models to examples rather than following hand-written rules. Its roots include statistics and early learning machines such as the perceptron of the late 1950s. Backpropagation, popularised in 1986 by David Rumelhart, Geoffrey Hinton and Ronald Williams, trained networks with hidden layers, while decision trees and support-vector machines developed alongside.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Backpropagation was described earlier (Linnainmaa 1970; Werbos 1974); the 1986 paper made it widely used.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch returned no results (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or design-lane record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: perceptron dating, 1986 backpropagation paper, parallel methods. Needs a search pass."
+  },
+  "mechanicLink": "Knowledge-only (class C): records pattern recognition and prediction from data; prerequisite of deep_learning."
+ },
+ {
+  "id": "deep_learning",
+  "tree": "technology",
+  "description": "Deep learning trains neural networks with many layers on large datasets, each layer learning features from the one below. The methods had accumulated for decades, but in 2012 a network trained on graphics processors by Alex Krizhevsky, Ilya Sutskever and Geoffrey Hinton sharply cut errors in the ImageNet image-recognition contest. Similar methods soon advanced speech recognition and translation.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Deep networks had earlier successes (for example in speech recognition around 2009-2011); 2012 is a conventional marker.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch returned no results (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or design-lane record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: the 2012 ImageNet result, the team, GPU training, later applications. Needs a search pass."
+  },
+  "mechanicLink": "Knowledge-only (class C): records machine perception and automated translation; prerequisite of large_language_models."
+ },
+ {
+  "id": "large_language_models",
+  "tree": "technology",
+  "description": "Large language models are neural networks trained on vast amounts of text to predict the next word, from which they learn to answer questions, summarise, translate and write code. The transformer architecture, published by Google researchers in 2017, made such training efficient on parallel hardware. From about 2020 very large models showed broad abilities, though they can state errors fluently.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Scale thresholds and the nature of the abilities are actively debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch returned no results (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or design-lane record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: 2017 transformer publication, about-2020 scale change. Needs a search pass."
+  },
+  "mechanicLink": "Knowledge-only (class C): records machine-generated text and code and knowledge assistance."
+ },
+ {
+  "id": "cloud_computing",
+  "tree": "technology",
+  "description": "Cloud computing rents processing power and storage from large networked data centres on demand, instead of each organisation running its own servers. Amazon Web Services launched rented storage and computing in 2006, and other firms followed. Users pay for what they use and can expand quickly, while the physical machines are concentrated in a few very large facilities.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Time-sharing bureaus of the 1960s rented computing earlier; the node dates the modern service model from 2006.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No claim compared with any source: this drafting lane's WebSearch returned no results (shared per-turn budget exhausted), WebFetch is blocked, and no registered source or design-lane record covers this node's claims. Written from general knowledge with cautious wording.",
+   "notes": "Uncorroborated: AWS 2006 launch and the service model. Needs a search pass."
+  },
+  "mechanicLink": "Deferred: building.data_centre is eligible with no realizing system; a computation-capacity consumer is M11+ content (PROPOSED)."
+ }
+]

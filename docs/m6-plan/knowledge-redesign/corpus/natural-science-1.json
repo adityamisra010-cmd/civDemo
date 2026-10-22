@@ -1,0 +1,1317 @@
+[
+ {
+  "id": "astrolabe",
+  "tree": "technology",
+  "description": "The planispheric astrolabe flattens the sky onto a plate by stereographic projection, so an observer who sights a star or the Sun can read off the hour and latitude. The projection goes back to Hipparchus and Ptolemy; the oldest dated instrument, signed by Nastulus, was made in the Islamic world in 927/928 CE, where astrolabes also timed prayers.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "NAT1-003",
+    "claims": [
+     "stereographic projection credited to Hipparchus; treated in Ptolemy's Planisphaerium",
+     "Nastulus, 927/928"
+    ]
+   },
+   {
+    "sourceId": "NAT1-001",
+    "claims": [
+     "oldest surviving astrolabe is Islamic, dated 927/928"
+    ]
+   },
+   {
+    "sourceId": "NAT1-002",
+    "claims": [
+     "used to establish prayer times"
+    ]
+   }
+  ],
+  "uncertainty": "Whether any ancient Greek instrument was a true astrolabe is uncertain; Ptolemy's device may have lacked sighting parts. The Nastulus attribution of the 927/928 instrument came from a combined search summary and needs page-level confirmation.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked); claims not corroborated are listed in notes.",
+   "notes": "Corroborated: Greek projection, 927/928 date, prayer-time use. Not separately corroborated: 'brass plate' and reading latitude by sighting (general knowledge of the instrument); the Nastulus name is attributed only probably to NAT1-003."
+  },
+  "mechanicLink": "Grants building.observatory (class J), which no system yet realizes, so it has no current effect (deferred owner ConstructionSystem; milestone M6); records latitude, prayer times, surveying. PROPOSED rewire: prerequisite astronomy_geometric (was astronomy_geometric and gearing); prerequisite of celestial_navigation."
+ },
+ {
+  "id": "gunpowder",
+  "tree": "technology",
+  "description": "Gunpowder mixes saltpetre (potassium nitrate), sulphur and charcoal; the saltpetre supplies oxygen, so the mixture burns fiercely without air. Chinese alchemists searching for elixirs came upon such mixtures by the ninth century. The Wujing Zongyao, compiled about 1040-1044, holds the earliest surviving military formulas, which were low in saltpetre and made incendiaries rather than explosives.",
+  "wordCount": 55,
+  "sources": [
+   {
+    "sourceId": "NAT1-004",
+    "claims": [
+     "originated in ninth-century China"
+    ]
+   },
+   {
+    "sourceId": "NAT1-005",
+    "claims": [
+     "alchemists seeking elixirs"
+    ]
+   },
+   {
+    "sourceId": "NAT1-007",
+    "claims": [
+     "Wujing Zongyao 1044, earliest formula"
+    ]
+   },
+   {
+    "sourceId": "NAT1-006",
+    "claims": [
+     "compiled c. 1040-1044",
+     "at most about 50% saltpetre: incendiary, not explosive"
+    ]
+   }
+  ],
+  "uncertainty": "Earlier alchemical texts (about 808 and 858) describe saltpetre-sulphur mixtures; which counts as the first gunpowder depends on definition. The Wujing Zongyao is dated 1040-1044 or 1044.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked); claims not corroborated are listed in notes.",
+   "notes": "The low-saltpetre/incendiary claim rests on a Wikipedia summary only (also recorded in the D04 lane notes as RESEARCHED). Oxygen-supplying role of saltpetre is standard chemistry seen in an unregistered search summary."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); records incendiaries, fire lances, bombs (grant list also carries a duplicate 'Fire lance' string). Prerequisite alchemy; prerequisite of saltpetre_refining."
+ },
+ {
+  "id": "saltpetre_refining",
+  "tree": "technology",
+  "description": "Saltpetre rarely occurs pure: it forms as crusts and in nitre-rich soils mixed with other salts. Refiners leached such earth with water, often adding lime and wood ash, then boiled the liquor and crystallised potassium nitrate, repeating to purify it. Where and when systematic refining began is uncertain; detailed European recipes survive in fifteenth-century gunners' manuals.",
+  "wordCount": 56,
+  "sources": [
+   {
+    "sourceId": "NAT1-008",
+    "claims": [
+     "leaching nitre-bed material mixed with lime and wood ash",
+     "boiling house concentration",
+     "Feuerwerkbuecher of the fifteenth century"
+    ]
+   },
+   {
+    "sourceId": "NAT1-006",
+    "claims": [
+     "Chinese alchemists identified saltpetre by its purple flame by 492"
+    ]
+   }
+  ],
+  "uncertainty": "The node dates refining to about 1000 CE in China; this search did not corroborate a date for Chinese refining. Interpretation of medieval recipes is itself debated.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked); claims not corroborated are listed in notes.",
+   "notes": "Not corroborated: recrystallisation as the repeated purification step (standard chemistry) and the natural occurrence as crusts. The 492 purple-flame test is cited from Wikipedia and is not used in the text."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); records reliable high-nitrate powder. Prerequisite gunpowder; prerequisite of cannon_early, corned_powder, sulphuric_acid."
+ },
+ {
+  "id": "trigonometry",
+  "tree": "technology",
+  "description": "Trigonometry relates angles to lengths. Aryabhata's Aryabhatiya of 499 CE tabulated the half-chord, the ancestor of the sine, at steps of 3 degrees 45 minutes. Astronomers in the Islamic world extended the method: in the late tenth century Abu al-Wafa used the tangent, compiled finer tables and proved the sine rule for spherical triangles, used in astronomical computation.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "NAT1-010",
+    "claims": [
+     "Aryabhatiya 499 CE",
+     "half-chord (ardha-jya) as first sine",
+     "steps of 3 degrees 45 minutes"
+    ]
+   },
+   {
+    "sourceId": "NAT1-011",
+    "claims": [
+     "use of the tangent; sine and tangent tables at 15-minute intervals"
+    ]
+   },
+   {
+    "sourceId": "NAT1-012",
+    "claims": [
+     "law of sines for spherical triangles"
+    ]
+   }
+  ],
+  "uncertainty": "Credit is contested: al-Khwarizmi produced a tangent table in the ninth century, and al-Khujandi or Abu Nasr Mansur may share the spherical sine rule. Earlier Greek chord tables (Hipparchus, Ptolemy) preceded the sine.",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Every factual claim compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+   "notes": "All dated and attributed claims matched the summaries; 'used in astronomical computation' is a descriptive gloss."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); records astronomical tables, navigation (later), surveying. PROPOSED rewire: prerequisites astronomy_geometric and (hindu_arabic or numeral_sexagesimal) (was astronomy_geometric and hindu_arabic); prerequisite of celestial_navigation, heliocentrism, mercator."
+ },
+ {
+  "id": "optics_ibn_haytham",
+  "tree": "technology",
+  "description": "Ibn al-Haytham's Book of Optics, written in Cairo between about 1010 and 1021, argued that we see because light reflected from objects enters the eye, rejecting the older idea of rays sent out from the eye. He supported claims with controlled set-ups, such as light admitted through a small hole into a darkened chamber. Latin translations later shaped European optics.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "NAT1-013",
+    "claims": [
+     "intromission model; rejection of extramission",
+     "settled in Cairo"
+    ]
+   },
+   {
+    "sourceId": "NAT1-014",
+    "claims": [
+     "written in Cairo c. 1010-1021",
+     "camera obscura / darkened chamber"
+    ]
+   }
+  ],
+  "uncertainty": "His birth and death dates (about 965 to about 1040) are uncertain, and accounts of house arrest under al-Hakim come from later biographers. How far his procedure anticipates modern experimental method is debated.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked); claims not corroborated are listed in notes.",
+   "notes": "Not corroborated with a registered source: the Latin translation and its European influence (seen only in a Wikipedia-derived summary, translation about 1200)."
+  },
+  "mechanicLink": "Grants inst.scientific_society (class J), which no system yet realizes, so it has no current effect (deferred owner InstitutionsSystem; milestone M6); records theory of vision, experimental method as a stated procedure. Prerequisites geometry_axiomatic and glass_blowing; prerequisite of spectacles."
+ },
+ {
+  "id": "double_entry",
+  "tree": "technology",
+  "description": "Double-entry bookkeeping records every transaction twice, as a debit in one account and an equal credit in another, so the books can be checked by balancing them. Surviving early examples include a Florentine firm's ledger of 1299-1300 and Genoa's treasury accounts of 1340. Luca Pacioli's printed account of 1494 codified Venetian practice for a wide readership.",
+  "wordCount": 56,
+  "sources": [
+   {
+    "sourceId": "NAT1-016",
+    "claims": [
+     "Farolfi ledger 1299-1300",
+     "Genoese Massari accounts 1340"
+    ]
+   },
+   {
+    "sourceId": "NAT1-015",
+    "claims": [
+     "early Genoese records",
+     "Pacioli 1494 set out the method of Venice"
+    ]
+   }
+  ],
+  "uncertainty": "Which record is the 'first' depends on what counts as complete double entry; Genoese forms from about 1327 and Venetian ledgers are also cited. Benedetto Cotrugli described the method in manuscript (1458) before Pacioli's print.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked); claims not corroborated are listed in notes.",
+   "notes": "The 1299-1300 and 1340 dates rest on a Wikipedia summary consistent with ICAEW; the Farolfi firm's base at Nimes is omitted. 'Wide readership' is interpretive."
+  },
+  "mechanicLink": "Realized today (class B): completing it supplies the supporting fact age:a6_finance to AgeTransitionSystem's Age 6 milestone; records auditable accounts, capital as a measured quantity, banking (next). Prerequisites hindu_arabic and paper and bill_of_exchange; no dependant."
+ },
+ {
+  "id": "corned_powder",
+  "tree": "technology",
+  "description": "Early gunpowder was a loose meal whose ingredients could separate in transport and burned unevenly. Corning, attested in Europe in the fifteenth century, mixed the ingredients wet and broke the dried cake into grains of chosen size. The air spaces between grains made burning faster and more consistent, and grained powder later proved more resistant to damp.",
+  "wordCount": 57,
+  "sources": [
+   {
+    "sourceId": "NAT1-009",
+    "claims": [
+     "ingredients separated",
+     "wet mixing and grains",
+     "air spaces give more efficient combustion",
+     "about 1450"
+    ]
+   }
+  ],
+  "uncertainty": "Dating is approximate (mid-fifteenth century; one account gives about 1450 at Nuremberg), and the story of an accidental discovery is unproven. Corned powder's early use in hand guns rather than large cannon is a RESEARCHED claim in the D04 lane notes, not re-checked here.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked); claims not corroborated are listed in notes.",
+   "notes": "The damp-resistance point comes from a naval-history summary (seventeenth century) not registered. Sources are enthusiast and society publications rather than peer-reviewed histories."
+  },
+  "mechanicLink": "Realized today (class B): completing it supplies the supporting fact age:a7_powder to AgeTransitionSystem's Age 7 milestone; records reliable cannon, handguns. Prerequisite saltpetre_refining; prerequisite of matchlock."
+ },
+ {
+  "id": "heliocentrism",
+  "tree": "technology",
+  "description": "Nicolaus Copernicus's On the Revolutions (1543) placed the Sun at the centre and treated Earth as one of the planets, though he kept circular orbits. Using Tycho Brahe's careful observations, Johannes Kepler showed in Astronomia nova (1609) that Mars moves on an ellipse and sweeps equal areas in equal times. The Sun-centred system remained contested for decades.",
+  "wordCount": 57,
+  "sources": [
+   {
+    "sourceId": "NAT1-017",
+    "claims": [
+     "Copernicus 1543, Sun at centre, circular orbits",
+     "Kepler used Tycho's data after 1601"
+    ]
+   },
+   {
+    "sourceId": "NAT1-018",
+    "claims": [
+     "Kepler's first two laws, Mars, Astronomia nova 1609"
+    ]
+   }
+  ],
+  "uncertainty": "Aristarchus of Samos had proposed a Sun-centred arrangement in antiquity; Copernicus's model still used epicycles. The pace of acceptance varied by country and community.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked); claims not corroborated are listed in notes.",
+   "notes": "'Contested for decades' is general historical knowledge, not corroborated in this search."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); records accurate planetary prediction. Prerequisites astronomy_geometric and trigonometry; prerequisite of mechanics_newtonian."
+ },
+ {
+  "id": "telescope",
+  "tree": "technology",
+  "description": "The first telescopes came from Dutch spectacle makers. In October 1608 the States General in The Hague considered a patent for Hans Lipperhey's instrument but refused it as too easy to copy, and others claimed the idea. Galileo built stronger instruments from 1609 and in March 1610, in Sidereus Nuncius, reported bodies circling Jupiter.",
+  "wordCount": 54,
+  "sources": [
+   {
+    "sourceId": "NAT1-019",
+    "claims": [
+     "October 1608 patent application in The Hague",
+     "refused as too easy to copy"
+    ]
+   },
+   {
+    "sourceId": "NAT1-021",
+    "claims": [
+     "Lipperhey, Janssen and Metius all associated"
+    ]
+   },
+   {
+    "sourceId": "NAT1-020",
+    "claims": [
+     "Galileo improved it from 1609",
+     "March 1610 Sidereus Nuncius, moons orbiting Jupiter"
+    ]
+   }
+  ],
+  "uncertainty": "Priority among Lipperhey, Jacob Metius and Zacharias Janssen is disputed; earlier claims for Italian or English devices are unproven.",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Every factual claim compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+   "notes": ""
+  },
+  "mechanicLink": "Grants building.observatory (class J), which no system yet realizes, so it has no current effect (deferred owner ConstructionSystem (building.observatory, deferred entity); milestone M6); records Jupiter's moons, naval reconnaissance (D-039 B). Prerequisite spectacles; prerequisite of optical_telegraph, space_telescope, spectroscopy."
+ },
+ {
+  "id": "microscope",
+  "tree": "technology",
+  "description": "Dutch spectacle makers combined lenses in a tube around 1600, and the name microscope was coined in 1625. Robert Hooke's Micrographia (1665) described the 'cells' of cork. Antoni van Leeuwenhoek's tiny single lenses, magnifying up to about 270 times, revealed microorganisms, which he described in letters to the Royal Society from the 1670s.",
+  "wordCount": 53,
+  "sources": [
+   {
+    "sourceId": "NAT1-022",
+    "claims": [
+     "Janssens credited with early tube microscope",
+     "Faber coined the word in 1625"
+    ]
+   },
+   {
+    "sourceId": "NAT1-023",
+    "claims": [
+     "Micrographia 1665; cork cells"
+    ]
+   },
+   {
+    "sourceId": "NAT1-024",
+    "claims": [
+     "single lenses up to about 270x",
+     "animalcules from 1675 in letters to the Royal Society"
+    ]
+   }
+  ],
+  "uncertainty": "Who built the first compound microscope (the Janssens around 1590, Galileo, Drebbel) is uncertain; Micrographia is occasionally dated 1667 for a reissue.",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Every factual claim compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+   "notes": ""
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); records cells, microorganisms. Prerequisite spectacles; prerequisite of cell_theory, germ_theory, metallography."
+ },
+ {
+  "id": "mechanics_newtonian",
+  "tree": "technology",
+  "description": "Isaac Newton's Principia (1687) set out three laws of motion and a law of universal gravitation, and used them to derive Kepler's planetary laws mathematically. A single set of principles now covered falling bodies, projectiles and orbits, giving engineers and astronomers a shared method of calculation, though Newton declined to propose a cause for gravity.",
+  "wordCount": 55,
+  "sources": [
+   {
+    "sourceId": "NAT1-025",
+    "claims": [
+     "Principia 1687; three laws; universal gravitation"
+    ]
+   },
+   {
+    "sourceId": "NAT1-026",
+    "claims": [
+     "mathematical derivation of Kepler's laws"
+    ]
+   }
+  ],
+  "uncertainty": "Hooke disputed priority over the inverse-square law; one source dates the work 1686 (the year it was presented to the Royal Society).",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked); claims not corroborated are listed in notes.",
+   "notes": "Not corroborated: application to projectiles and engineers, and Newton's refusal to propose a cause of gravity (general knowledge)."
+  },
+  "mechanicLink": "Realized today (class B): completing it supplies the supporting fact age:a7_science to AgeTransitionSystem's Age 7 milestone; records engineering from first principles, ballistics, celestial mechanics. Prerequisites heliocentrism and algebra and calculus; prerequisite of glider, relativity, rocket, water_turbine."
+ },
+ {
+  "id": "calculus",
+  "tree": "technology",
+  "description": "Calculus is the mathematics of continuous change: rates of change (derivatives) and accumulated quantities (integrals). Isaac Newton worked out his method of fluxions by about 1671 but left it unpublished for decades, while Gottfried Leibniz published his differential calculus in 1684. A bitter priority dispute followed; a Royal Society report of 1712, shaped largely by Newton, went against Leibniz.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "NAT1-027",
+    "claims": [
+     "Nova Methodus 1684",
+     "fluxions 1671, printed 1736",
+     "biased committee"
+    ]
+   },
+   {
+    "sourceId": "NAT1-028",
+    "claims": [
+     "Commercium epistolicum 1712; Newton's dominant role"
+    ]
+   }
+  ],
+  "uncertainty": "Historians now regard the two as independent inventors; Newton's first work on the method dates from the mid-1660s. Earlier methods (Archimedes, the Kerala school, Fermat) anticipated parts of calculus.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked); claims not corroborated are listed in notes.",
+   "notes": "The definition of derivatives and integrals is standard mathematics, not a sourced claim; independence of invention appears in uncertainty only."
+  },
+  "mechanicLink": "Grants inst.statistics_vital (class J), which no system yet realizes, so it has no current effect (deferred owner InstitutionsSystem; milestone M6); records physics, engineering, economics (later). Prerequisites algebra and geometry_axiomatic; prerequisite of electromagnetism, mechanics_newtonian, programmable_computer, thermodynamics."
+ },
+ {
+  "id": "barometer_vacuum",
+  "tree": "technology",
+  "description": "In 1643 Evangelista Torricelli, following a suggestion by Galileo, inverted a mercury-filled glass tube in a dish: the column dropped and left an apparently empty space above it, and its height varied with the air's pressure. Otto von Guericke's air pump of about 1650 and the pump Robert Hooke built for Robert Boyle made vacuum experiments repeatable.",
+  "wordCount": 57,
+  "sources": [
+   {
+    "sourceId": "NAT1-029",
+    "claims": [
+     "1643 Torricelli, Galileo's suggestion, mercury tube, vacuum above"
+    ]
+   },
+   {
+    "sourceId": "NAT1-030",
+    "claims": [
+     "Guericke's pump about 1650",
+     "Hooke built Boyle's pump; results 1660"
+    ]
+   }
+  ],
+  "uncertainty": "Guericke's pump is dated 1647 or about 1650; whether the space above the mercury was a true vacuum was disputed at the time.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked); claims not corroborated are listed in notes.",
+   "notes": "Not corroborated in this search: that the column height varies with air pressure (standard physics)."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); records weather prediction, the concept behind the atmospheric engine. Prerequisites glass_blowing and mechanics_archimedean; prerequisite of balloon, chemistry_quantitative, electric_light, steam_atmospheric, steam_separate_condenser, xray."
+ },
+ {
+  "id": "probability_statistics",
+  "tree": "technology",
+  "description": "Probability became mathematics in 1654, when Blaise Pascal and Pierre de Fermat exchanged letters on dividing the stakes of an interrupted game. Jacob Bernoulli's Ars Conjectandi, published posthumously in 1713, proved that observed frequencies approach the underlying probability as trials multiply. Pierre-Simon Laplace's 1812 treatise built these ideas into general methods of calculation and inference.",
+  "wordCount": 55,
+  "sources": [
+   {
+    "sourceId": "NAT1-031",
+    "claims": [
+     "1654 letters; problem of points"
+    ]
+   },
+   {
+    "sourceId": "NAT1-032",
+    "claims": [
+     "posthumous 1713"
+    ]
+   },
+   {
+    "sourceId": "NAT1-033",
+    "claims": [
+     "law of large numbers in Part IV"
+    ]
+   },
+   {
+    "sourceId": "NAT1-034",
+    "claims": [
+     "Laplace 1812"
+    ]
+   }
+  ],
+  "uncertainty": "Cardano had treated games of chance earlier (published 1663). Statistics also grew from population counts (Graunt, 1662) and astronomical error theory (Gauss, Legendre), not covered here.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked); claims not corroborated are listed in notes.",
+   "notes": "Corroborated: 1654, 1713, law of large numbers, Laplace 1812. 'Methods of inference' is a characterisation not checked against a source."
+  },
+  "mechanicLink": "PROPOSED new node with no current effect beyond its completion row; records mathematics of chance and inference, statistical analysis of counts and errors. Prerequisite algebra; prerequisite of epidemiology, genetics_mendel, machine_learning."
+ },
+ {
+  "id": "taxonomy",
+  "tree": "technology",
+  "description": "Biological classification sorts living things into nested groups and gives each a stable name. Carl Linnaeus's Systema Naturae (1735) ranked organisms in kingdoms, classes, orders, genera and species. His Species Plantarum (1753) used two-word names consistently for nearly 6,000 plants and is still the formal starting point for scientific plant names.",
+  "wordCount": 52,
+  "sources": [
+   {
+    "sourceId": "NAT1-035",
+    "claims": [
+     "1735 hierarchy of kingdoms to species"
+    ]
+   },
+   {
+    "sourceId": "NAT1-036",
+    "claims": [
+     "1753 binomial names; nearly 6,000 species; starting point of botanical nomenclature"
+    ]
+   }
+  ],
+  "uncertainty": "Earlier systematists such as John Ray (Historia Plantarum, from 1686) shaped the species concept; zoological names start from the tenth edition of Systema Naturae (1758).",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Every factual claim compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+   "notes": "Ray's role is in uncertainty only and was not corroborated."
+  },
+  "mechanicLink": "PROPOSED new node with no current effect beyond its completion row; records systematic naming and classification of species. Prerequisite printing_press; prerequisite of evolution."
+ },
+ {
+  "id": "chemistry_quantitative",
+  "tree": "technology",
+  "description": "Antoine Lavoisier made chemistry a science of measured weights. Weighing every input and product, gases included, he showed that metals gain weight when burned because they combine with oxygen, undermining the phlogiston theory. His Traité élémentaire de chimie (1789) stated that matter is conserved through a chemical operation and listed simple substances he treated as provisional elements.",
+  "wordCount": 57,
+  "sources": [
+   {
+    "sourceId": "NAT1-038",
+    "claims": [
+     "weighed all components including gases",
+     "metals gain weight by combining with oxygen; against phlogiston"
+    ]
+   },
+   {
+    "sourceId": "NAT1-037",
+    "claims": [
+     "Traite 1789; conservation of matter"
+    ]
+   },
+   {
+    "sourceId": "NAT1-039",
+    "claims": [
+     "qualitative to quantitative; provisional list of simple substances"
+    ]
+   }
+  ],
+  "uncertainty": "Others (Black, Cavendish, Priestley, Scheele) supplied key gases and measurements, and Marie-Anne Paulze Lavoisier contributed to the laboratory work; the 'chemical revolution' was a collective change.",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Every factual claim compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+   "notes": ""
+  },
+  "mechanicLink": "Grants building.research_laboratory (class J), which no system yet realizes, so it has no current effect (deferred owner ConstructionSystem; milestone M6); records predictable chemical process, all later industrial chemistry. Prerequisites distillation and barometer_vacuum; prerequisite of agricultural_chemistry, anaesthesia, antiviral_drugs, breech_loading_rifle, carbon_capture, catalytic_converter, endocrinology, gas_engine, haber_bosch, lithium_battery, metallography, oral_rehydration, organic_chemistry, periodic_system, petroleum_refining, photography, plastics, portland_cement, refrigeration, soda_leblanc, spectroscopy."
+ },
+ {
+  "id": "sulphuric_acid",
+  "tree": "technology",
+  "description": "Sulphuric acid became the basic reagent of chemical industry. Earlier makers burned sulphur with saltpetre over water in fragile glass vessels. In 1746 John Roebuck, in Birmingham, replaced them with chambers of riveted lead sheet, a cheap metal the acid barely attacks, cutting costs sharply. The acid then fed soda making and, from the 1840s, superphosphate fertiliser.",
+  "wordCount": 57,
+  "sources": [
+   {
+    "sourceId": "NAT1-040",
+    "claims": [
+     "1746 lead chambers replaced glass globes; reduced costs"
+    ]
+   },
+   {
+    "sourceId": "NAT1-041",
+    "claims": [
+     "Birmingham; riveted lead sheet; lead resists the acid"
+    ]
+   },
+   {
+    "sourceId": "NAT1-042",
+    "claims": [
+     "alternative date 1747 for the lead chambers"
+    ]
+   },
+   {
+    "sourceId": "NAT1-043",
+    "claims": [
+     "Leblanc soda process used sulphuric acid"
+    ]
+   },
+   {
+    "sourceId": "AGR1-085",
+    "claims": [
+     "Lawes patented treating phosphate rock with sulphuric acid in 1842"
+    ]
+   }
+  ],
+  "uncertainty": "Some sources date Roebuck's chambers to 1747. The earlier glass-vessel method (Joshua Ward) burning sulphur with saltpetre is recorded in the lane notes, not re-checked here.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked); claims not corroborated are listed in notes.",
+   "notes": "Not corroborated in this search: that the earlier method burned sulphur with saltpetre over water (D04 lane notes, RESEARCHED from other pages). 'Basic reagent of chemical industry' is a characterisation."
+  },
+  "mechanicLink": "Grants building.chemical_works (class J), which no system yet realizes, so it has no current effect (deferred owner ConstructionSystem (building.chemical_works, deferred entity) + M11+ chemical goods; milestone M10+); records bleaching, soda, fertiliser, explosives. PROPOSED rewire: prerequisites distillation and saltpetre_refining (was distillation and glass_lead); prerequisite of bleach_chlorine, chemical_fertilizer, dynamite, soda_leblanc, uranium_milling."
+ },
+ {
+  "id": "soda_leblanc",
+  "tree": "technology",
+  "description": "Soda (sodium carbonate), needed for glass, soap and textiles, long came from plant ashes. Nicolas Leblanc patented a French process in 1791 that made it from common salt: treating salt with sulphuric acid, then roasting the product with limestone and coal. It bound soda making to the acid industry; its acid fumes later prompted Britain's Alkali Act of 1863.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "NAT1-043",
+    "claims": [
+     "Leblanc 1791; salt and sulphuric acid; spurred acid demand"
+    ]
+   },
+   {
+    "sourceId": "NAT1-044",
+    "claims": [
+     "15-year patent 1791; scaled up by 1793"
+    ]
+   }
+  ],
+  "uncertainty": "The Leblanc process was later displaced by the Solvay ammonia-soda process (from the 1860s).",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked); claims not corroborated are listed in notes.",
+   "notes": "Not corroborated: plant-ash origin of earlier soda, the limestone-and-coal second step, the uses for glass, soap and textiles, and the Alkali Act of 1863 (general knowledge)."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); later realization owner ProductionSystem (M11+ alkali good and recipe) (deferred, M10+); records glass and soap at scale, pollution (the Alkali Act 1863). Prerequisites sulphuric_acid and chemistry_quantitative; prerequisite of aluminium."
+ },
+ {
+  "id": "bleach_chlorine",
+  "tree": "technology",
+  "description": "Bleaching linen and cotton once took weeks of soaking and exposure to sunlight. In 1785 Claude-Louis Berthollet showed that chlorine bleaches fabric, and by 1791 the method was in commercial use in England. Charles Tennant's bleaching powder of 1799, chlorine absorbed in slaked lime at Glasgow, could be stored and shipped; the same hypochlorite chemistry later disinfected water.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "NAT1-045",
+    "claims": [
+     "1785 chlorine bleaches; commercial in England by 1791"
+    ]
+   },
+   {
+    "sourceId": "NAT1-046",
+    "claims": [
+     "bleaching powder, chlorine and slaked lime, St Rollox 1799",
+     "easier to handle and ship"
+    ]
+   },
+   {
+    "sourceId": "NAT1-047",
+    "claims": [
+     "St Rollox works, Glasgow"
+    ]
+   }
+  ],
+  "uncertainty": "Sources differ on the St Rollox dates (works founded 1797 or 1800; patent 1799).",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked); claims not corroborated are listed in notes.",
+   "notes": "Not corroborated: the earlier weeks-long sun bleaching and the later use of hypochlorite for water disinfection (general knowledge)."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); later realization owner M9 society (public-health / disease system); M11+ textile finishing (deferred, M9); records cotton finishing at industrial pace. Prerequisite sulphuric_acid; no dependant."
+ },
+ {
+  "id": "synthetic_dye",
+  "tree": "technology",
+  "description": "In 1856 William Perkin, a teenage student trying to synthesise the antimalarial quinine, instead obtained a purple dye from aniline, a coal-tar product. He patented mauveine and opened a factory in 1857. Chemists then searched for other coal-tar colours, beginning with magenta; by 1914 German firms produced about 90 percent of the world's dyes.",
+  "wordCount": 54,
+  "sources": [
+   {
+    "sourceId": "NAT1-048",
+    "claims": [
+     "1856, attempting quinine, aniline from coal tar",
+     "patent 1856, factory 1857"
+    ]
+   },
+   {
+    "sourceId": "NAT1-050",
+    "claims": [
+     "teenager"
+    ]
+   },
+   {
+    "sourceId": "NAT1-049",
+    "claims": [
+     "magenta followed",
+     "Germany about 90% by 1914"
+    ]
+   }
+  ],
+  "uncertainty": "The exact composition of mauveine was resolved only much later.",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Every factual claim compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+   "notes": ""
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); records cheap colour, the corporate research laboratory. PROPOSED rewire: prerequisites organic_chemistry and coke and dyeing (was chemistry_quantitative and coke); prerequisite of hormonal_contraception, plastics, sulfonamides."
+ },
+ {
+  "id": "haber_bosch",
+  "tree": "technology",
+  "description": "Plants need fixed nitrogen, yet the nitrogen in air is unreactive. By 1908 Fritz Haber showed that high pressure and a catalyst could make ammonia directly from nitrogen and hydrogen. Carl Bosch's team at BASF, running thousands of catalyst trials, scaled it up, and the Oppau plant began production in 1913. Its ammonia supplied fertiliser and, in wartime, explosives.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "NAT1-052",
+    "claims": [
+     "by 1908 high pressure plus catalyst; to Bosch at BASF 1909"
+    ]
+   },
+   {
+    "sourceId": "NAT1-053",
+    "claims": [
+     "industrial scale; more than 20,000 experiments"
+    ]
+   },
+   {
+    "sourceId": "NAT1-054",
+    "claims": [
+     "Oppau 1913",
+     "fertiliser and munitions"
+    ]
+   },
+   {
+    "sourceId": "NAT1-051",
+    "claims": [
+     "Nobel 1918 for synthesis of ammonia from its elements"
+    ]
+   }
+  ],
+  "uncertainty": "Sources give 1911 (construction) or 1913 (operation) for Oppau; Walther Nernst disputed Haber's equilibrium data, and Alwin Mittasch's catalyst work is often under-credited.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked); claims not corroborated are listed in notes.",
+   "notes": "Not corroborated: the inertness of atmospheric nitrogen and plants' need for fixed nitrogen (standard chemistry and agronomy)."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); later realization owner ProductionSystem through D01's fertiliser chain (chemical_fertilizer, new D01 node, deferred M10+) (deferred, M10+); records yield ceiling raised ~2×, population beyond organic limit. PROPOSED rewire: prerequisites chemistry_quantitative and open_hearth and thermodynamics (was chemistry_quantitative and open_hearth and electricity_generation); prerequisite of green_revolution."
+ },
+ {
+  "id": "dynamite",
+  "tree": "technology",
+  "description": "Nitroglycerin is powerful but dangerously shock-sensitive; an 1864 explosion at the Nobel works killed Alfred Nobel's younger brother Emil. Nobel found that soaking it into kieselguhr, a porous siliceous earth, gave a dry granular solid that could still be detonated deliberately. Patented in 1867, dynamite made blasting rock in mines, quarries and tunnels far safer.",
+  "wordCount": 55,
+  "sources": [
+   {
+    "sourceId": "NAT1-056",
+    "claims": [
+     "1864 explosion killed Emil"
+    ]
+   },
+   {
+    "sourceId": "NAT1-055",
+    "claims": [
+     "kieselguhr; dry granular; detonatable",
+     "patented 1867; safer than nitroglycerin"
+    ]
+   },
+   {
+    "sourceId": "NAT1-057",
+    "claims": [
+     "1867 patents in Britain, Sweden, USA"
+    ]
+   }
+  ],
+  "uncertainty": null,
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked); claims not corroborated are listed in notes.",
+   "notes": "Not corroborated: specific uses in mines, quarries and tunnels (general knowledge; Britannica calls it a blasting explosive)."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); later realization owner M11+ extraction and infrastructure content (hard-rock mining; tunnel or rock-cut edge classes) (deferred, M10+); records hard-rock excavation at scale, Alpine tunnels. PROPOSED rewire: prerequisites sulphuric_acid and organic_chemistry (was sulphuric_acid and chemistry_quantitative); no dependant."
+ },
+ {
+  "id": "electromagnetism",
+  "tree": "technology",
+  "description": "Alessandro Volta's pile of 1800, a stack of metal discs separated by moist card, gave the first continuous electric current. In 1820 Hans Christian Ørsted saw a compass needle swing beside a current-carrying wire, and André-Marie Ampère soon showed that parallel currents attract. In 1831 Michael Faraday produced current from changing magnetism, the principle of generators.",
+  "wordCount": 56,
+  "sources": [
+   {
+    "sourceId": "NAT1-059",
+    "claims": [
+     "first continuous current"
+    ]
+   },
+   {
+    "sourceId": "NAT1-058",
+    "claims": [
+     "Volta 1800",
+     "Oersted 1820 compass",
+     "Ampere parallel currents attract",
+     "Faraday induction 1831"
+    ]
+   }
+  ],
+  "uncertainty": "Others (Joseph Henry in the United States) observed induction about the same time.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked); claims not corroborated are listed in notes.",
+   "notes": "'The principle of generators' is a standard gloss not separately corroborated; pile materials (silver, zinc, moist card) matched a summary."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); records motor, generator, telegraph. Prerequisite calculus; prerequisite of dynamo, electricity_generation, electromagnetic_field_theory, geophysical_prospecting, radioactivity, telegraph, xray. Remaining part of a PROPOSED split: this node keeps the experimental laws (1800-1831); Maxwell-Hertz field theory moves to electromagnetic_field_theory."
+ },
+ {
+  "id": "petroleum_refining",
+  "tree": "technology",
+  "description": "Crude oil is a mixture of hydrocarbons that boil at different temperatures, so heating separates lighter and heavier fractions. In Lviv in the early 1850s the pharmacists Ignacy Łukasiewicz and Jan Zeh distilled lamp oil (kerosene); a kerosene lamp lit a hospital operation there in 1853. Łukasiewicz opened a refinery in 1856, three years before Edwin Drake's Pennsylvania well.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "NAT1-062",
+    "claims": [
+     "Lukasiewicz and Zeh distilled kerosene",
+     "hospital operation July 1853",
+     "refinery at Ulaszowice 1856"
+    ]
+   },
+   {
+    "sourceId": "MAT1-063",
+    "claims": [
+     "Drake's well, Titusville, Pennsylvania, 1859"
+    ]
+   }
+  ],
+  "uncertainty": "Earlier distillation of oil and shale oil (for example in Scotland and Romania) complicates 'first refinery' claims; sources differ on whether a Bobrka refinery of 1854 preceded Ulaszowice.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked); claims not corroborated are listed in notes.",
+   "notes": "The boiling-range basis of refining is standard chemistry, not separately corroborated."
+  },
+  "mechanicLink": "Grants building.refinery (class J), which no system yet realizes, so it has no current effect (deferred owner ConstructionSystem (building.refinery, deferred entity) + M11+ crude-oil and fuel goods; DiscoverySystem (proposed, T6.7) for the concealed-petroleum identification, with survey work (IMPLEMENTATION DEFERRED, M11+); milestone M10+); records lamp oil, fuel for ICE. PROPOSED rewire: prerequisite chemistry_quantitative (was distillation and mining_shaft); prerequisite of automobile_mass, internal_combustion, motor_road, plastics."
+ },
+ {
+  "id": "photography",
+  "tree": "technology",
+  "description": "Photography fixes the image formed by a lens with light-sensitive silver compounds. Louis Daguerre's process, announced in Paris in 1839, gave a single sharp image on a silvered copper plate. William Henry Fox Talbot showed his own paper process the same year; his calotype, patented in 1841, produced a negative from which many positive prints could be made.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "NAT1-063",
+    "claims": [
+     "announced Paris 1839",
+     "silvered copper plate with silver iodide; unique image"
+    ]
+   },
+   {
+    "sourceId": "NAT1-064",
+    "claims": [
+     "Talbot presented to the Royal Society 1839",
+     "calotype patented February 1841; negative gives many prints"
+    ]
+   }
+  ],
+  "uncertainty": "Nicephore Niepce made earlier permanent camera images in the 1820s, and Hippolyte Bayard also devised a paper process in 1839.",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Every factual claim compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+   "notes": ""
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); records visual record, D-039 reconnaissance by camera (later). Prerequisites chemistry_quantitative and glass_lead; prerequisite of earth_observation, integrated_circuit, radioactivity, television, xray."
+ },
+ {
+  "id": "evolution",
+  "tree": "technology",
+  "description": "Charles Darwin and Alfred Russel Wallace reached the theory of evolution by natural selection independently; their papers were read together at the Linnean Society in London on 1 July 1858. Darwin's On the Origin of Species followed in November 1859. Variation, inheritance and unequal survival explained how species change, drawing on breeders' experience and naturalists' classifications.",
+  "wordCount": 56,
+  "sources": [
+   {
+    "sourceId": "NAT1-066",
+    "claims": [
+     "Wallace's essay reached Darwin in June 1858"
+    ]
+   },
+   {
+    "sourceId": "NAT1-065",
+    "claims": [
+     "papers read 1 July 1858",
+     "Origin published 24 November 1859"
+    ]
+   }
+  ],
+  "uncertainty": "Earlier evolutionary ideas existed (Lamarck, Robert Chambers); natural selection's acceptance lagged behind acceptance of common descent.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked); claims not corroborated are listed in notes.",
+   "notes": "The last sentence (mechanism and its basis in breeding and classification) is general knowledge, not corroborated in this search."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); records biology as a science, breeding theory. PROPOSED rewire: prerequisites selective_breeding and taxonomy and stratigraphy (was selective_breeding); prerequisite of antibiotic_resistance."
+ },
+ {
+  "id": "cell_theory",
+  "tree": "technology",
+  "description": "Cell theory holds that living things are built of cells. The botanist Matthias Schleiden argued this for plants in 1838 and the zoologist Theodor Schwann extended it to animals in 1839. Rudolf Virchow added that every cell arises from a pre-existing cell, rejecting Schwann's idea of cells forming from fluid, and in 1858 located disease in cells themselves.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "NAT1-067",
+    "claims": [
+     "Schleiden 1838 plants; Schwann 1839 animals",
+     "Virchow 1855 all cells from cells"
+    ]
+   },
+   {
+    "sourceId": "NAT1-068",
+    "claims": [
+     "1858 refutation of blastema theory"
+    ]
+   },
+   {
+    "sourceId": "NAT1-069",
+    "claims": [
+     "cellular pathology"
+    ]
+   }
+  ],
+  "uncertainty": "Virchow's aphorism is dated 1855 (article) or 1858 (Cellularpathologie); Robert Remak's earlier evidence for cell division is often overlooked.",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Every factual claim compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+   "notes": ""
+  },
+  "mechanicLink": "PROPOSED new node with no current effect beyond its completion row; records cells as the units of life, cellular pathology. Prerequisite microscope; prerequisite of genetics_mendel."
+ },
+ {
+  "id": "electromagnetic_field_theory",
+  "tree": "technology",
+  "description": "James Clerk Maxwell's 1865 paper 'A Dynamical Theory of the Electromagnetic Field' joined electricity and magnetism in equations that predicted waves travelling at the speed of light, and he concluded that light is such a wave. Around 1887-88 Heinrich Hertz generated and detected these waves with spark gaps, showing that they reflect and travel at light's speed.",
+  "wordCount": 57,
+  "sources": [
+   {
+    "sourceId": "NAT1-060",
+    "claims": [
+     "Maxwell 1865 paper; waves at the speed of light; light as an electromagnetic wave",
+     "Hertz about 1888; spark gap; reflection; speed of light"
+    ]
+   },
+   {
+    "sourceId": "NAT1-061",
+    "claims": [
+     "Hertz first produced and detected the waves"
+    ]
+   }
+  ],
+  "uncertainty": "Maxwell's 1865 theory was recast in its familiar four-equation form by Oliver Heaviside and others in the 1880s; some historians argue Maxwell himself said little about generating the waves.",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Every factual claim compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+   "notes": ""
+  },
+  "mechanicLink": "PROPOSED new node with no current effect beyond its completion row; records radio (theory), light as an electromagnetic wave. Prerequisite electromagnetism; prerequisite of quantum_mechanics, radar, radio, relativity. Split part (Maxwell-Hertz) of the former electromagnetism node; describes only the field theory and waves."
+ },
+ {
+  "id": "organic_chemistry",
+  "tree": "technology",
+  "description": "Organic chemistry studies the compounds of carbon. In 1828 Friedrich Wöhler made urea, known from living bodies, from inorganic starting materials, weakening the belief that such compounds need a vital force, although the effect was gradual. From 1858 structural theory showed which atoms bond to which, and August Kekulé proposed the ring structure of benzene in 1865.",
+  "wordCount": 57,
+  "sources": [
+   {
+    "sourceId": "NAT1-070",
+    "claims": [
+     "1828 urea from inorganic materials",
+     "impact on vitalism muted and gradual"
+    ]
+   },
+   {
+    "sourceId": "NAT1-071",
+    "claims": [
+     "1858 structural formulas",
+     "Kekule's benzene ring 1865"
+    ]
+   }
+  ],
+  "uncertainty": "Kekulé's later dream story is doubted, and Loschmidt and Couper drew comparable formulas; Archibald Couper and Aleksandr Butlerov share credit for structural theory.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked); claims not corroborated are listed in notes.",
+   "notes": "Corroborated: 1828, vitalism, 1858 structural theory, 1865 benzene. Not corroborated: Kekulé's personal role in the 1858 theory (only implied)."
+  },
+  "mechanicLink": "PROPOSED new node with no current effect beyond its completion row; records carbon compounds analysed, synthesised and drawn as structures. Prerequisite chemistry_quantitative; prerequisite of dynamite, synthetic_dye."
+ },
+ {
+  "id": "periodic_system",
+  "tree": "technology",
+  "description": "In 1869 Dmitri Mendeleev arranged the known elements by atomic weight so that similar properties recurred at regular intervals, leaving gaps for undiscovered ones. He forecast the properties of 'eka-aluminium' and 'eka-silicon', matched by gallium (1875) and germanium (1886). Lothar Meyer published a comparable periodic table in 1870 but was more reluctant to predict new elements.",
+  "wordCount": 56,
+  "sources": [
+   {
+    "sourceId": "NUC-29",
+    "claims": [
+     "1869 table with gaps; eka-aluminium (gallium 1875) and eka-silicon (germanium 1886)"
+    ]
+   },
+   {
+    "sourceId": "NAT1-072",
+    "claims": [
+     "Meyer's 1870 table; reluctance to predict"
+    ]
+   }
+  ],
+  "uncertainty": "Meyer had drafted a table about 1868; Newlands, de Chancourtois and others proposed earlier periodic arrangements.",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Every factual claim compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+   "notes": ""
+  },
+  "mechanicLink": "PROPOSED new node with no current effect beyond its completion row; records predictive ordering of the elements. Prerequisite chemistry_quantitative; prerequisite of quantum_mechanics."
+ },
+ {
+  "id": "spectroscopy",
+  "tree": "technology",
+  "description": "A spectroscope spreads light into its colours so that fine lines can be measured. Around 1814 Joseph von Fraunhofer charted hundreds of dark lines in sunlight without explaining them. In 1859-60 Gustav Kirchhoff and Robert Bunsen showed that each element emits and absorbs its own lines, found caesium and rubidium, and identified iron, sodium and other elements in the Sun.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "NAT1-074",
+    "claims": [
+     "Fraunhofer 1814 hundreds of dark lines, unexplained"
+    ]
+   },
+   {
+    "sourceId": "NUC-233",
+    "claims": [
+     "spectral analysis about 1859; caesium and rubidium"
+    ]
+   },
+   {
+    "sourceId": "NAT1-073",
+    "claims": [
+     "explanation of dark lines; iron, sodium and others in the Sun"
+    ]
+   }
+  ],
+  "uncertainty": "Fraunhofer's count is given as 574 or over 700; rubidium is dated 1860 or 1861. William Wollaston saw a few solar lines in 1802.",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Every factual claim compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+   "notes": ""
+  },
+  "mechanicLink": "PROPOSED new node with no current effect beyond its completion row; records chemical analysis by spectral lines, composition of the stars. Prerequisites telescope and chemistry_quantitative; prerequisite of quantum_mechanics."
+ },
+ {
+  "id": "thermodynamics",
+  "tree": "technology",
+  "description": "Thermodynamics is the science of heat, work and energy. Sadi Carnot's 1824 study of heat engines showed that their efficiency has an upper limit. After James Joule and others showed in the 1840s that heat and work are interchangeable forms of energy, Rudolf Clausius (1850) and William Thomson, later Lord Kelvin (1851), stated its laws; Clausius named entropy in 1865.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "NAT1-075",
+    "claims": [
+     "Carnot's theory of maximum efficiency of heat engines"
+    ]
+   },
+   {
+    "sourceId": "NAT1-076",
+    "claims": [
+     "Clausius 1850 second law; entropy 1865; Joule's experiments"
+    ]
+   },
+   {
+    "sourceId": "NAT1-077",
+    "claims": [
+     "Mayer and Joule 1840s energy conservation; Kelvin 1851"
+    ]
+   }
+  ],
+  "uncertainty": "Julius Robert Mayer has a competing claim to energy conservation. Ludwig Boltzmann's statistical interpretation of entropy (1870s) is part of the node but not described in the text.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked); claims not corroborated are listed in notes.",
+   "notes": "The 1824 date of Carnot's Reflections was not explicitly confirmed by the summaries; Boltzmann's 1877 work was not corroborated and is left out of the text."
+  },
+  "mechanicLink": "PROPOSED new node with no current effect beyond its completion row; records laws of energy and entropy, efficiency limits of heat engines, chemical equilibrium. Prerequisites steam_separate_condenser and calculus; prerequisite of diesel, haber_bosch, quantum_mechanics, refrigeration, steam_turbine."
+ },
+ {
+  "id": "vacuum_tube",
+  "tree": "technology",
+  "description": "A vacuum tube controls electrons flowing from a heated electrode through an evacuated bulb. John Ambrose Fleming's diode of 1904 let current pass one way only, which made it a radio detector. In 1906 Lee de Forest sought a patent for what became his three-electrode Audion, whose grid let a weak signal control a stronger current.",
+  "wordCount": 56,
+  "sources": [
+   {
+    "sourceId": "NAT1-078",
+    "claims": [
+     "Fleming diode 1904"
+    ]
+   },
+   {
+    "sourceId": "NAT1-079",
+    "claims": [
+     "25 October 1906 patent application",
+     "grid between cathode and anode enabled amplification"
+    ]
+   }
+  ],
+  "uncertainty": "Patent numbers and grant dates for both devices differ between sources; de Forest's understanding of how the Audion worked was limited, and others (notably at AT&T and GE) developed high-vacuum amplifiers.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked); claims not corroborated are listed in notes.",
+   "notes": "Not corroborated: the heated-cathode description and the diode's role as radio detector (Fleming's patent title refers to detecting alternating currents)."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); records voice radio, long-distance telephone, first computers. Prerequisites electric_light and radio; prerequisite of atomic_clock, laser, programmable_computer, radar, radiation_detection, radio_broadcasting, transistor."
+ },
+ {
+  "id": "quantum_mechanics",
+  "tree": "technology",
+  "description": "Quantum mechanics describes matter and light at the atomic scale, where energy comes in discrete amounts. Max Planck introduced energy quanta in 1900, and Niels Bohr quantised atomic orbits in 1913. In 1925 Werner Heisenberg, Max Born and Pascual Jordan formulated matrix mechanics, and in 1926 Erwin Schrödinger published wave mechanics; the two proved mathematically equivalent.",
+  "wordCount": 56,
+  "sources": [
+   {
+    "sourceId": "NAT1-081",
+    "claims": [
+     "Planck 1900",
+     "Bohr 1913",
+     "matrix mechanics 1925",
+     "Schroedinger 1926",
+     "equivalence"
+    ]
+   },
+   {
+    "sourceId": "NAT1-080",
+    "claims": [
+     "Born and Jordan as pivotal as Heisenberg"
+    ]
+   }
+  ],
+  "uncertainty": "Historians debate how far the two formulations are equivalent in content, not just mathematics; Pauli's exclusion principle (1925) and Dirac's work are part of the same synthesis.",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Every factual claim compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked).",
+   "notes": ""
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); records semiconductors, nuclear physics, chemistry explained. PROPOSED rewire: prerequisites electromagnetic_field_theory and thermodynamics and spectroscopy and periodic_system and radioactivity (was electromagnetism); prerequisite of atomic_clock, dna_structure, laser, lithium_battery, nanotechnology, nuclear_physics, quantum_computing, semiconductor_physics, superconductivity_applied."
+ },
+ {
+  "id": "genetics_mendel",
+  "tree": "technology",
+  "description": "Gregor Mendel crossed garden peas in Brno and, by counting offspring, found that traits pass on as separate units in predictable ratios. Presented in 1865 and published in 1866, his results were rarely cited. In 1900 Hugo de Vries, Carl Correns and Erich von Tschermak rediscovered them, and from 1902 Sutton and Boveri linked inheritance to chromosomes.",
+  "wordCount": 57,
+  "sources": [
+   {
+    "sourceId": "NAT1-082",
+    "claims": [
+     "presented 1865, published 1866",
+     "cited three times in 35 years",
+     "rediscovered 1900 by de Vries, Correns, Tschermak"
+    ]
+   },
+   {
+    "sourceId": "NAT1-083",
+    "claims": [
+     "Sutton and Boveri chromosome theory 1902-1904"
+    ]
+   },
+   {
+    "sourceId": "AGR2-019",
+    "claims": [
+     "early application of Mendelian analysis to wheat breeding"
+    ]
+   }
+  ],
+  "uncertainty": "Whether each rediscoverer worked independently of Mendel's paper, and whether Mendel's data are 'too good' (Fisher's critique), are debated.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked); claims not corroborated are listed in notes.",
+   "notes": "Not corroborated: the description of Mendel's findings as separate units in predictable ratios (standard genetics)."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); records scientific breeding, molecular biology (next). PROPOSED rewire: prerequisites cell_theory and probability_statistics (was evolution and microscope); prerequisite of dna_structure, scientific_plant_breeding."
+ },
+ {
+  "id": "dna_structure",
+  "tree": "technology",
+  "description": "In 1953 James Watson and Francis Crick proposed that DNA is a double helix of two strands joined by paired bases, suggesting how genes are copied. It drew on X-ray data, including Rosalind Franklin and Raymond Gosling's Photo 51, published alongside it in Nature. Watson, Crick and Maurice Wilkins shared the 1962 Nobel Prize; Franklin died in 1958.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "NAT1-085",
+    "claims": [
+     "Photo 51 by Franklin and Gosling, in Nature 25 April 1953 alongside Watson and Crick"
+    ]
+   },
+   {
+    "sourceId": "NAT1-084",
+    "claims": [
+     "1962 Nobel to Watson, Crick and Wilkins; Franklin died 1958"
+    ]
+   },
+   {
+    "sourceId": "NAT1-086",
+    "claims": [
+     "Franklin's contribution"
+    ]
+   }
+  ],
+  "uncertainty": "Franklin's share of the discovery and the use of her data without her knowledge are actively re-examined (2023 and 2025 scholarship). The node also covers the genetic code (1960s), not described here.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results from the listed sources (pages not opened; WebFetch blocked); claims not corroborated are listed in notes.",
+   "notes": "Not corroborated: paired-base description and copying implication (standard biology)."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); records genetic engineering, forensics, medicine by genome. PROPOSED rewire: prerequisites genetics_mendel and quantum_mechanics and xray (was genetics_mendel and quantum_mechanics and photography); prerequisite of antiviral_drugs, dna_sequencing, genetic_engineering, monoclonal_antibodies."
+ },
+ {
+  "id": "genetic_engineering",
+  "tree": "technology",
+  "description": "Recombinant DNA joins genetic material from different sources and copies it in living cells. In 1973 Stanley Cohen and Herbert Boyer inserted foreign DNA into a bacterial plasmid that Escherichia coli then copied as it multiplied. An Asilomar meeting in 1975 set safety guidelines, and human insulin made by engineered bacteria was approved for medical use in 1982.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Paul Berg's group made recombinant DNA molecules in 1972; the 1982 insulin approval was in the United States.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "None: this session's WebSearch budget (shared across agents) was exhausted before this node was searched; the text was written from general knowledge with cautious wording and has no corroborating source.",
+   "notes": "No source retrieved: dates (1973, 1975, 1982) and names are from general knowledge and need checking."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); records synthetic insulin, GM crops, vaccines by design. Prerequisites dna_structure and antibiotic_broad; prerequisite of crispr, mrna_vaccines."
+ },
+ {
+  "id": "plastics",
+  "tree": "technology",
+  "description": "Synthetic polymers are long chain molecules built from small repeating units. Leo Baekeland's Bakelite, patented around 1907-1909 from phenol and formaldehyde, was the first fully synthetic plastic and set hard when heated. In the 1930s polyethylene was made at ICI in Britain and nylon at DuPont in the United States; petroleum later became the main raw material.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Celluloid (1860s-1870s) was an earlier semi-synthetic plastic; the Bakelite patent was filed in 1907 and granted in 1909.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "None: this session's WebSearch budget (shared across agents) was exhausted before this node was searched; the text was written from general knowledge with cautious wording and has no corroborating source.",
+   "notes": "No source retrieved; all dates and attributions from general knowledge."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); records cheap durable materials, textiles without fibre crops. Prerequisites petroleum_refining and chemistry_quantitative and synthetic_dye; prerequisite of additive_manufacturing, composites, desalination, drip_irrigation."
+ },
+ {
+  "id": "atomic_clock",
+  "tree": "technology",
+  "description": "An atomic clock keeps time by counting the frequency of radiation that atoms absorb or emit when changing energy state, a frequency identical for every atom of the element. Louis Essen and Jack Parry built the first practical caesium clock at Britain's National Physical Laboratory in 1955. Since 1967 the second has been defined by caesium-133.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "An ammonia-based frequency standard at the US National Bureau of Standards (1949) preceded the caesium clock.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "None: this session's WebSearch budget (shared across agents) was exhausted before this node was searched; the text was written from general knowledge with cautious wording and has no corroborating source.",
+   "notes": "No source retrieved; names and dates from general knowledge."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); records navigation, network synchronisation. PROPOSED rewire: prerequisites quantum_mechanics and vacuum_tube (was quantum_mechanics and longitude_problem); prerequisite of gps."
+ },
+ {
+  "id": "relativity",
+  "tree": "technology",
+  "description": "Albert Einstein's special relativity (1905) held that light's speed is the same for all observers, so measured time and length depend on motion, and implied that mass and energy are equivalent. His general relativity (1915) described gravity as the curvature of spacetime. Satellite navigation clocks must be corrected for both effects, by about 38 microseconds a day.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Lorentz, Poincaré and others developed parts of the mathematics before 1905.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "None: this session's WebSearch budget (shared across agents) was exhausted before this node was searched; the text was written from general knowledge with cautious wording and has no corroborating source.",
+   "notes": "No source retrieved; the 38-microsecond GPS figure is also cited in the proposal's rationale but was not checked here."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); records mass-energy equivalence, orbital timing corrections (GPS). PROPOSED rewire: prerequisites electromagnetic_field_theory and mechanics_newtonian (was electromagnetism and mechanics_newtonian); prerequisite of gps, nuclear_physics."
+ },
+ {
+  "id": "laser",
+  "tree": "technology",
+  "description": "A laser amplifies light by stimulated emission, a process Albert Einstein described in 1917, giving a narrow beam of one wavelength with its waves in step. Charles Townes's group built the microwave maser in 1954, and Theodore Maiman operated the first laser, with a ruby crystal, at Hughes Research Laboratories in 1960. Cutting, surgery, measurement and fibre-optic communication followed.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Priority for the laser concept was contested in patent disputes (Gordon Gould versus Townes and Schawlow); Soviet physicists Basov and Prokhorov also developed the maser.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "None: this session's WebSearch budget (shared across agents) was exhausted before this node was searched; the text was written from general knowledge with cautious wording and has no corroborating source.",
+   "notes": "No source retrieved; names and dates from general knowledge."
+  },
+  "mechanicLink": "Grants project.probe_acceleration (class J), which no system yet realizes, so it has no current effect (deferred owner none; milestone M6); records coherent light, precision cutting, optical communication. Prerequisites quantum_mechanics and vacuum_tube; prerequisite of fibre_optics, guided_munitions, nuclear_fusion_research."
+ },
+ {
+  "id": "superconductivity_applied",
+  "tree": "technology",
+  "description": "In 1911 Heike Kamerlingh Onnes found that mercury cooled by liquid helium to about 4 kelvin loses all electrical resistance. Practical use waited for alloys such as niobium-titanium that stay superconducting in strong magnetic fields; from the 1960s they were wound into powerful magnets. Such magnets serve hospital MRI scanners, particle accelerators and fusion experiments, but need costly cooling.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "High-temperature superconductors (1986 onward) work above liquid-nitrogen temperature but are harder to make into wire.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "None: this session's WebSearch budget (shared across agents) was exhausted before this node was searched; the text was written from general knowledge with cautious wording and has no corroborating source.",
+   "notes": "No source retrieved; dates and materials from general knowledge."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); records high-field magnets, MRI, particle accelerators, fusion confinement. Prerequisites quantum_mechanics and refrigeration; prerequisite of nuclear_fusion_research, quantum_computing."
+ },
+ {
+  "id": "space_probe",
+  "tree": "technology",
+  "description": "An interplanetary probe is an uncrewed spacecraft sent beyond Earth's orbit to study other worlds at close range. The American Mariner 2 flew past Venus in December 1962, the first successful planetary flyby, and measured a very hot surface. Such missions depend on precise orbital calculation, long-range radio links and electronics that survive years in space.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Earlier Soviet Venus and Mars attempts (1961-1962) failed or lost contact.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "None: this session's WebSearch budget (shared across agents) was exhausted before this node was searched; the text was written from general knowledge with cautious wording and has no corroborating source.",
+   "notes": "No source retrieved; mission facts from general knowledge."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); records exploration of other worlds. Prerequisites satellite and computer; prerequisite of asteroid_mining, frontier_propulsion, fusion_propulsion."
+ },
+ {
+  "id": "space_telescope",
+  "tree": "technology",
+  "description": "A telescope above the atmosphere escapes its blurring and sees ultraviolet, infrared and X-ray light that barely reaches the ground. The Hubble Space Telescope, launched in 1990, needed corrective optics installed by astronauts in 1993 because its main mirror was misshaped. Space observatories have since measured the universe's expansion rate and found thousands of planets around other stars.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Earlier orbiting observatories (for example OAO-2, 1968, and X-ray satellites from 1970) preceded Hubble; exoplanet counts come mainly from the Kepler mission and ground surveys.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "None: this session's WebSearch budget (shared across agents) was exhausted before this node was searched; the text was written from general knowledge with cautious wording and has no corroborating source.",
+   "notes": "No source retrieved; facts from general knowledge."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); records observation across the spectrum, exoplanet detection. Prerequisites satellite and telescope; no dependant."
+ },
+ {
+  "id": "pcr",
+  "tree": "technology",
+  "description": "The polymerase chain reaction copies a chosen stretch of DNA millions of times by repeatedly heating and cooling a sample with short primers and a DNA-copying enzyme. Kary Mullis devised it at the Cetus Corporation in 1983 and shared the 1993 Nobel Prize in Chemistry. A heat-stable enzyme from the hot-spring bacterium Thermus aquaticus made the cycles practical.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Colleagues at Cetus contributed substantially to making PCR work; the proposal's link to genome sequencing (sequence-tagged sites, 1989) is in the D04 lane notes.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "None: this session's WebSearch budget (shared across agents) was exhausted before this node was searched; the text was written from general knowledge with cautious wording and has no corroborating source.",
+   "notes": "No source retrieved; facts from general knowledge. The D04 lane notes cite a genome.gov page on sequence-tagged sites, not retrieved by this drafting lane."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); records genetic testing, forensics. PROPOSED rewire: prerequisite dna_sequencing (was dna_structure); prerequisite of genome_sequencing."
+ }
+]

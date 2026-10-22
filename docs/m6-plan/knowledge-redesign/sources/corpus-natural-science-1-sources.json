@@ -1,0 +1,1262 @@
+[
+ {
+  "id": "NAT1-001",
+  "title": "Epact: Scientific Instruments of Medieval and Renaissance Europe (astrolabe article)",
+  "author_org": "Museum of the History of Science, Oxford",
+  "published": null,
+  "url": "https://www.mhs.ox.ac.uk/epact/article.php?ArticleID=2",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "The earliest astrolabe to survive is an Islamic instrument dated 927/928 CE"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-002",
+  "title": "Science in the Islamic World",
+  "author_org": "History of Science Museum, University of Oxford",
+  "published": null,
+  "url": "https://www.hsm.ox.ac.uk/science-islamic-world",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Astrolabes were used to establish prayer times and the qibla",
+   "Islamic tradition attributed the astrolabe's invention to Ptolemy"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-003",
+  "title": "An Introductory History of Astrolabes",
+  "author_org": "Centre for the History of Science, Technology and Medicine (chstm.org)",
+  "published": null,
+  "url": "https://chstm.org/node/2951",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Hipparchus (c. 150 BCE) is credited with stereographic projection",
+   "Ptolemy's Planisphaerium (c. 150 CE) treats the projection",
+   "Earliest surviving dated astrolabe associated with Nastulus, 927/928"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain. The Nastulus attribution appeared in the summary without a clear source page."
+ },
+ {
+  "id": "NAT1-004",
+  "title": "gunpowder summary",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/summary/gunpowder",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Gunpowder originated in ninth-century China and reached the West in the thirteenth century",
+   "Later standard proportions of about 75:15:10 saltpetre, charcoal, sulphur"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-005",
+  "title": "The History of Rocket Science",
+  "author_org": "Smithsonian Magazine",
+  "published": null,
+  "url": "https://www.smithsonianmag.com/innovation/the-history-of-rocket-science-4078981/",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "Chinese Taoist alchemists came upon the gunpowder mixture while seeking elixirs",
+   "Chinese defenders of Kaifeng used 'arrows of flying fire' in 1232"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-006",
+  "title": "History of gunpowder",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/History_of_gunpowder",
+  "accessed": "2026-10-22",
+  "type": "community",
+  "claims_supported": [
+   "The Wujing Zongyao (c. 1040-1044) contains the earliest known written gunpowder formulas",
+   "Its mixtures contain at most about 50% saltpetre and are incendiary rather than explosive",
+   "A Taoist text of about 808 and one of 858 describe saltpetre-sulphur mixtures",
+   "A text of 492 notes that saltpetre burns with a purple flame"
+  ],
+  "confidence": "low",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Used only alongside other sources; not sole authority for the dated claims except the nitrate-content figure, which is flagged in the corpus notes."
+ },
+ {
+  "id": "NAT1-007",
+  "title": "Gunpowder (encyclopedia entry)",
+  "author_org": "Encyclopedia.com",
+  "published": null,
+  "url": "https://www.encyclopedia.com/history/modern-europe/british-and-irish-history/gunpowder",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The Wujing Zongyao was compiled in 1044 and contains the earliest chemical formula for gunpowder"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-008",
+  "title": "Making saltpetre, part 1 (Medieval Gunpowder Research Group report no. 11, September 2013)",
+  "author_org": "University of Leeds (School of History hosted report)",
+  "published": null,
+  "url": "https://ahc.leeds.ac.uk/download/downloads/id/85/no-11-making-saltpetre---part-1-september-2013.pdf",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Crude saltpetre was leached from nitre beds mixed with lime and wood ash and concentrated in a boiling house",
+   "Details of medieval refining remain open to interpretation from the texts",
+   "The earliest European recipe sources are the Feuerwerkbuecher of the fifteenth and early sixteenth centuries"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-009",
+  "title": "Gunpowder Developments",
+  "author_org": "hundredyearswar.com (hosted at Heriot-Watt University staff pages)",
+  "published": null,
+  "url": "https://www.macs.hw.ac.uk/~hwloidl/hundredyearswar.com/Books/History/Gunp0011.htm",
+  "accessed": "2026-10-22",
+  "type": "community",
+  "claims_supported": [
+   "Corning (granulation) probably dates from about 1450",
+   "Corning mixed ingredients wet and formed grains, stopping the ingredients separating",
+   "Air spaces between grains allow more efficient combustion"
+  ],
+  "confidence": "low",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain. Enthusiast site; used only for the general corning account."
+ },
+ {
+  "id": "NAT1-010",
+  "title": "Aryabhata and the Construction of the First Trigonometric Table",
+  "author_org": "arXiv preprint",
+  "published": null,
+  "url": "https://arxiv.org/pdf/2309.13577",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "The sine first appears in the Aryabhatiya (499 CE) as the half-chord (ardha-jya)",
+   "The table is given at intervals of 3 degrees 45 minutes"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "NAT1-011",
+  "title": "Abu'l-Wafa (940-998) - Biography",
+  "author_org": "MacTutor History of Mathematics, University of St Andrews",
+  "published": null,
+  "url": "https://mathshistory.st-andrews.ac.uk/Biographies/Abul-Wafa/",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Abu al-Wafa is best known for the first use of the tangent function and for sine and tangent tables at 15-minute intervals"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "NAT1-012",
+  "title": "Abu al-Wafa",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/biography/Abu-al-Wafa",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Abu al-Wafa simplified spherical trigonometry and proved the law of sines for general spherical triangles"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "NAT1-013",
+  "title": "Ibn al-Haytham",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/biography/Ibn-al-Haytham",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "His Kitab al-manazir (Optics) explained vision as the passive reception of light rays reflected from objects, against extramission theories",
+   "He settled in Cairo"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-014",
+  "title": "Ibn al-Haytham (965-1039) - Biography",
+  "author_org": "MacTutor History of Mathematics, University of St Andrews",
+  "published": null,
+  "url": "https://mathshistory.st-andrews.ac.uk/Biographies/Al-Haytham/",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "The Book of Optics was written in Cairo between about 1010 and 1021",
+   "He described the camera obscura",
+   "His birth and death dates are uncertain"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-015",
+  "title": "Earliest books on bookkeeping",
+  "author_org": "ICAEW Library",
+  "published": null,
+  "url": "https://icaew.com/library/library-collection/historical-accounting-literature/earliest-books-on-bookkeeping",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Early Genoese double-entry records (from about 1327)",
+   "Pacioli's 1494 Summa set out Venetian bookkeeping methods"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-016",
+  "title": "Double-entry bookkeeping",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Double-entry_bookkeeping",
+  "accessed": "2026-10-22",
+  "type": "community",
+  "claims_supported": [
+   "The Farolfi ledger of 1299-1300 is the earliest extant evidence of full double entry",
+   "The Genoese Massari accounts of 1340 are a complete double-entry system"
+  ],
+  "confidence": "low",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Supports dates also discussed by ICAEW; flagged in the corpus notes."
+ },
+ {
+  "id": "NAT1-017",
+  "title": "Whose Revolution? Copernicus, Brahe and Kepler",
+  "author_org": "Library of Congress",
+  "published": null,
+  "url": "https://www.loc.gov/collections/finding-our-place-in-the-cosmos-with-carl-sagan/articles-and-essays/modeling-the-cosmos/whose-revolution-copernicus-brahe-and-kepler",
+  "accessed": "2026-10-22",
+  "type": "archive",
+  "claims_supported": [
+   "Copernicus (1543) placed the Sun at the centre and kept circular orbits",
+   "Kepler gained access to Tycho Brahe's observations after Tycho's death in 1601"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-018",
+  "title": "Astronomy: Copernicus",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/science/astronomy/Copernicus",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Kepler's first two laws (ellipse; equal areas) were formulated for Mars and published in Astronomia nova (1609)"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-019",
+  "title": "The First Telescopes (Cosmology: Tools)",
+  "author_org": "American Institute of Physics",
+  "published": null,
+  "url": "https://history.aip.org/exhibits/cosmology/tools/tools-first-telescopes.htm",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "In October 1608 the States General in The Hague considered a patent application for a telescope",
+   "The patent was refused as the device was too easy to copy; Lipperhey was employed to make binocular versions"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-020",
+  "title": "Galileo and the Telescope",
+  "author_org": "Library of Congress",
+  "published": null,
+  "url": "https://www.loc.gov/collections/finding-our-place-in-the-cosmos-with-carl-sagan/articles-and-essays/modeling-the-cosmos/galileo-and-the-telescope",
+  "accessed": "2026-10-22",
+  "type": "archive",
+  "claims_supported": [
+   "Galileo improved the instrument from 1609",
+   "In March 1610 he published Sidereus Nuncius, reporting bodies orbiting Jupiter"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-021",
+  "title": "Did Galileo invent the telescope? (StarChild)",
+  "author_org": "NASA Goddard Space Flight Center",
+  "published": null,
+  "url": "https://starchild.gsfc.nasa.gov/docs/StarChild/questions/question37.html",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Lipperhey, Janssen and Metius are each associated with early telescopes"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-022",
+  "title": "Microscope: History of optical microscopes",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/technology/microscope/History-of-optical-microscopes",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The Janssens are credited with an early two-lens tube microscope but published no observations",
+   "The word microscope was coined by Giovanni Faber in 1625"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-023",
+  "title": "Robert Hooke",
+  "author_org": "University of California Museum of Paleontology",
+  "published": null,
+  "url": "https://ucmp.berkeley.edu/history/hooke.html",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Micrographia (1665) described the pores of cork as cells, using a compound microscope"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "NAT1-024",
+  "title": "Antonie van Leeuwenhoek and the dawn of microscopic observation: a narrative review",
+  "author_org": "PubMed Central (journal article)",
+  "published": null,
+  "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12862032/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Leeuwenhoek used single lenses reaching about 40 to 270 times",
+   "He reported 'animalcules' from 1675 in letters to the Royal Society"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-025",
+  "title": "Principia",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/Principia",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Principia (1687) presents the three laws of motion and the law of universal gravitation"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "NAT1-026",
+  "title": "The epic journey from Kepler's laws to Newton's law of universal gravitation revisited",
+  "author_org": "arXiv preprint",
+  "published": null,
+  "url": "https://arxiv.org/pdf/0801.0308",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Newton gave a mathematical derivation of Kepler's planetary laws"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-027",
+  "title": "Gottfried Leibniz (1646-1716) - Biography",
+  "author_org": "MacTutor History of Mathematics, University of St Andrews",
+  "published": null,
+  "url": "https://mathshistory.st-andrews.ac.uk/Biographies/Leibniz/",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Leibniz published his differential calculus in Nova Methodus (1684)",
+   "Newton's method of fluxions dates from 1671 but was printed only in 1736",
+   "The Royal Society committee was biased and did not ask Leibniz for his account"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "NAT1-028",
+  "title": "Isaac Newton (Stanford Encyclopedia of Philosophy)",
+  "author_org": "Stanford Encyclopedia of Philosophy",
+  "published": null,
+  "url": "https://plato.stanford.edu/entries/newton/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "The Royal Society's Commercium epistolicum (1712) sided with Newton, who played a dominant role in it"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-029",
+  "title": "Evangelista Torricelli",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/biography/Evangelista-Torricelli",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "In 1643, following a suggestion by Galileo, Torricelli inverted a mercury-filled tube in a dish, leaving a vacuum above the column"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-030",
+  "title": "Air pump (In depth)",
+  "author_org": "Museo Galileo",
+  "published": null,
+  "url": "https://catalogue.museogalileo.it/indepth/AirPump.html",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Otto von Guericke built an air pump around 1650 and demonstrated the Magdeburg hemispheres (1657)",
+   "Hooke built an air pump to Boyle's specification; results published 1660"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-031",
+  "title": "Blaise Pascal (1623-1662) - Biography",
+  "author_org": "MacTutor History of Mathematics, University of St Andrews",
+  "published": null,
+  "url": "https://mathshistory.st-andrews.ac.uk/Biographies/Pascal/",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Pascal and Fermat exchanged five letters in summer 1654 and solved the problem of points for two players"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-032",
+  "title": "Ars Conjectandi",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/Ars-Conjectandi",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Jacob Bernoulli's Ars Conjectandi was published posthumously in 1713"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "NAT1-033",
+  "title": "Jacob Bernoulli (1655-1705) - Biography",
+  "author_org": "MacTutor History of Mathematics, University of St Andrews",
+  "published": null,
+  "url": "https://mathshistory.st-andrews.ac.uk/Biographies/Bernoulli_Jacob/",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Ars Conjectandi was printed in Basel, incomplete; Part IV contains the law of large numbers"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-034",
+  "title": "Interpretations of Probability (Stanford Encyclopedia of Philosophy)",
+  "author_org": "Stanford Encyclopedia of Philosophy",
+  "published": null,
+  "url": "https://plato.stanford.edu/entries/probability-interpret/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Laplace's classical definition of probability dates to 1812"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-035",
+  "title": "Systema Naturae",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/Systema-Naturae",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Systema Naturae (1735) introduced a hierarchical classification of kingdoms, classes, orders, genera and species"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-036",
+  "title": "Species Plantarum",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/topic/Species-Plantarum",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Species Plantarum (1753) applied two-word names consistently and described nearly 6,000 plant species",
+   "It is the starting point of botanical nomenclature"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-037",
+  "title": "The Chemical Revolution of Antoine-Laurent Lavoisier (National Historic Chemical Landmark)",
+  "author_org": "American Chemical Society",
+  "published": null,
+  "url": "https://www.acs.org/education/whatischemistry/landmarks/lavoisier.html",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The Traite elementaire de chimie (1789) stated that an equal quantity of matter exists before and after a chemical operation"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "NAT1-038",
+  "title": "Antoine-Laurent Lavoisier",
+  "author_org": "Science History Institute",
+  "published": null,
+  "url": "https://www.sciencehistory.org/education/scientific-biographies/antoine-laurent-lavoisier/",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Lavoisier weighed all components of a reaction, including gases",
+   "Metals gain weight on burning because oxygen combines with them, contradicting phlogiston theory"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "NAT1-039",
+  "title": "Chemistry: the chemical revolution",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/science/chemistry/The-chemical-revolution",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Lavoisier turned chemistry from a qualitative to a quantitative science",
+   "He regarded his list of simple substances as provisional"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-040",
+  "title": "John Roebuck",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/biography/John-Roebuck",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "In 1746 Roebuck replaced glass globes with lead chambers for sulphuric acid, sharply reducing costs"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "NAT1-041",
+  "title": "Sulfuric acid: pumping up the volume (Today's Chemist at Work)",
+  "author_org": "American Chemical Society",
+  "published": null,
+  "url": "https://pubsapp.acs.org/subscribe/archive/tcaw/10/i09/html/09chemch.html",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "Roebuck's Birmingham chamber was made of riveted lead sheets, lead being the only cheap metal resistant to the acid"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "NAT1-042",
+  "title": "History of the Chemical Industry 1750 to 1930",
+  "author_org": "Royal Society of Chemistry (Education)",
+  "published": null,
+  "url": "https://edu.rsc.org/download?ac=509455",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Dates the introduction of lead chambers to 1747"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Recorded for the date discrepancy only."
+ },
+ {
+  "id": "NAT1-043",
+  "title": "History of technology: Chemicals",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/technology/history-of-technology/Chemicals",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Leblanc's 1791 soda process, starting from salt and sulphuric acid, spurred demand for the acid"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-044",
+  "title": "Nicolas Leblanc: revolutionary discoveries",
+  "author_org": "The Chemical Engineer (IChemE)",
+  "published": null,
+  "url": "https://www.thechemicalengineer.com/features/cewctw-nicolas-leblanc-revolutionary-discoveries/",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "Leblanc obtained a 15-year patent in 1791 and scaled the process up by 1793"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "NAT1-045",
+  "title": "Claude-Louis Berthollet",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/biography/Claude-Louis-Berthollet",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "In 1785 Berthollet found that chlorine bleaches fabrics; by 1791 the method was in commercial use in England"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "NAT1-046",
+  "title": "Bleach",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/technology/bleach-chemistry",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Tennant's bleaching powder (chlorine and slaked lime) was perfected at St Rollox, Glasgow, in 1799",
+   "The powder was easier to handle and ship than chlorine"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-047",
+  "title": "Charles Tennant (1768-1838)",
+  "author_org": "Grace's Guide to British Industrial History",
+  "published": null,
+  "url": "https://www.gracesguide.co.uk/Charles_Tennant_(1768-1838)",
+  "accessed": "2026-10-22",
+  "type": "community",
+  "claims_supported": [
+   "Tennant and partners opened the St Rollox works in 1797; it became the largest chemical works in the world"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "NAT1-048",
+  "title": "William Henry Perkin",
+  "author_org": "Science History Institute",
+  "published": null,
+  "url": "https://www.sciencehistory.org/education/scientific-biographies/william-henry-perkin/",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Perkin obtained mauveine in 1856 while attempting to synthesise quinine from aniline, a coal-tar product",
+   "He patented it in 1856 and opened a factory in 1857"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-049",
+  "title": "Dye: synthetic dyes",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/technology/dye/Synthetic-dyes",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Fuchsine (magenta) followed mauveine within three years",
+   "By 1914 Germany produced about 90 percent of the world's dyes"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-050",
+  "title": "August 26: Teenager invents purple (Today in History)",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/today-in-history/August-26-Teenager-Invents-Purple",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Perkin was a teenager when he discovered mauveine"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked). Title seen in results; claim inferred from the title."
+ },
+ {
+  "id": "NAT1-051",
+  "title": "The Nobel Prize in Chemistry 1918",
+  "author_org": "Nobel Prize Outreach (NobelPrize.org)",
+  "published": null,
+  "url": "https://www.nobelprize.org/prizes/chemistry/1918/summary/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Haber's prize was for the synthesis of ammonia from its elements; it was awarded in 1919"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "NAT1-052",
+  "title": "Fritz Haber (Britannica scholars article)",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://kids.britannica.com/scholars/article/Fritz-Haber/38696",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "By 1908 Haber showed that high pressure with a suitable catalyst made ammonia synthesis practical; the process passed to Bosch at BASF in 1909"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-053",
+  "title": "Carl Bosch",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/biography/Carl-Bosch",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Bosch transferred Haber's process to industrial scale; more than 20,000 experiments included a search for catalysts",
+   "Bosch shared the 1931 Nobel Prize with Bergius for high-pressure methods"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-054",
+  "title": "The industrialization of the Haber-Bosch process",
+  "author_org": "Chemical and Engineering News (American Chemical Society)",
+  "published": null,
+  "url": "https://pubs.acs.org/doi/10.1021/cen-10126-cover2",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "Oppau began operation in 1913",
+   "Mittasch found the promoted iron catalyst",
+   "Ammonia was produced for fertiliser and munitions"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-055",
+  "title": "Dynamite",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/technology/dynamite",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Dynamite, patented by Alfred Nobel in 1867, is a nitroglycerin blasting explosive far safer to handle",
+   "Nitroglycerin absorbed in kieselguhr gave a dry granular solid that could still be detonated"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "NAT1-056",
+  "title": "Alfred Nobel",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/biography/Alfred-Nobel",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "An 1864 explosion at the Nobel factory killed his younger brother Emil"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "NAT1-057",
+  "title": "Alfred Nobel - his life and work",
+  "author_org": "Nobel Prize Outreach (NobelPrize.org)",
+  "published": null,
+  "url": "https://www.nobelprize.org/alfred-nobel/alfred-nobel-his-life-and-work/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "In 1867 Nobel obtained dynamite patents in several countries including Britain, Sweden and the United States"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-058",
+  "title": "Electromagnetism: foundations of electrochemistry and electrodynamics",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/science/electromagnetism/Foundations-of-electrochemistry-and-electrodynamics",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Volta's pile (1800) gave continuous current",
+   "Oersted (1820) saw a compass needle deflect near a current",
+   "Ampere showed parallel currents attract",
+   "Faraday discovered electromagnetic induction in 1831"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-059",
+  "title": "Alessandro Volta's voltaic pile (iconic objects)",
+  "author_org": "Royal Institution",
+  "published": null,
+  "url": "https://www.rigb.org/our-history/iconic-objects/iconic-objects-list/voltaic-pile",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "The voltaic pile was the first source of continuous electric current"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-060",
+  "title": "Light as electromagnetic radiation",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/science/light/Light-as-electromagnetic-radiation",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Maxwell's 1865 paper 'A Dynamical Theory of the Electromagnetic Field' predicted waves at the speed of light and identified light as such a wave",
+   "Hertz about 1888 produced and detected the waves, showed reflection and speed equal to light"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-061",
+  "title": "Maxwell, Hertz, the Maxwellians, and the early history of electromagnetic waves",
+  "author_org": "IEEE (journal article)",
+  "published": null,
+  "url": "https://ieeexplore.ieee.org/stampPDF/getPDF.jsp?arnumber=1203114",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Maxwell did not discuss generating or detecting electromagnetic waves; Hertz's experiments first did so"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-062",
+  "title": "Jan Jozef Ignacy Lukasiewicz (1822-82)",
+  "author_org": "European Route of Industrial Heritage (ERIH)",
+  "published": null,
+  "url": "https://www.erih.net/how-it-started/stories-about-people-biographies/biography/lukasiewicz",
+  "accessed": "2026-10-22",
+  "type": "community",
+  "claims_supported": [
+   "Lukasiewicz and Jan Zeh, Lviv pharmacists, distilled kerosene from crude oil",
+   "A kerosene lamp lit a hospital operation in Lviv in July 1853",
+   "He opened a refinery at Ulaszowice in 1856"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-063",
+  "title": "Timeline of the Daguerreotype Era",
+  "author_org": "Library of Congress",
+  "published": null,
+  "url": "https://www.loc.gov/collections/daguerreotypes/articles-and-essays/timeline-of-the-daguerreotype-era/",
+  "accessed": "2026-10-22",
+  "type": "archive",
+  "claims_supported": [
+   "Daguerre's process was announced in Paris in 1839",
+   "It used a silver-coated copper plate sensitised with silver iodide and gave a unique image"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-064",
+  "title": "William Henry Fox Talbot (1800-1877) and the Invention of Photography",
+  "author_org": "The Metropolitan Museum of Art",
+  "published": null,
+  "url": "https://www.metmuseum.org/essays/william-henry-fox-talbot-1800-1877-and-the-invention-of-photography",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Talbot presented his process to the Royal Society in early 1839",
+   "The calotype was developed in 1840 and patented in February 1841; its negative gave many positive prints"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-065",
+  "title": "1 July 2018: 160th anniversary of the presentation of 'On the tendency of species to form varieties'",
+  "author_org": "The Linnean Society of London",
+  "published": null,
+  "url": "https://www.linnean.org/news/2018/07/01/1st-july-2018-160th-anniversary-of-the-presentation-of-on-the-tendency-of-species-to-form-varieties",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The Darwin-Wallace papers were read at the Linnean Society on 1 July 1858 by Lyell and Hooker and published on 20 August 1858",
+   "On the Origin of Species was published on 24 November 1859"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "NAT1-066",
+  "title": "Darwin to Charles Lyell, 18 [June 1858]",
+  "author_org": "Darwin Correspondence Project, University of Cambridge",
+  "published": null,
+  "url": "https://www.darwinproject.ac.uk/view/letters/DCP-LETT-2285",
+  "accessed": "2026-10-22",
+  "type": "archive",
+  "claims_supported": [
+   "Darwin received Wallace's essay setting out natural selection in June 1858"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-067",
+  "title": "Cell theory",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/science/cell-theory",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Schleiden (plants, 1838) and Schwann (animals, 1839) held that tissues are composed of cells",
+   "In 1855 Virchow affirmed that all cells arise from pre-existing cells"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-068",
+  "title": "The Cellular Theory (journal article)",
+  "author_org": "PubMed Central (journal article)",
+  "published": null,
+  "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6108677/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "In 1858 Virchow refuted Schwann's blastema theory with 'omnis cellula e cellula'"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-069",
+  "title": "Rudolf Virchow",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/biography/Rudolf-Virchow",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Virchow's cellular pathology located disease in individual cells"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-070",
+  "title": "Friedrich Woehler",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/biography/Friedrich-Wohler",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "In 1828 Woehler synthesised urea from inorganic starting materials",
+   "Its impact on vitalism was initially muted and qualified"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-071",
+  "title": "Chemistry's quixotic beginnings (C&EN books review)",
+  "author_org": "Chemical and Engineering News (American Chemical Society)",
+  "published": null,
+  "url": "https://pubsapp.acs.org/cen/books/8251/8251books1.html",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "Structural formulas of 1858 showed which atoms were linked to which",
+   "Kekule published his benzene ring formula in 1865"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-072",
+  "title": "Lothar Meyer",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/biography/Lothar-Meyer",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Meyer published his periodic table in 1870 and was reluctant to predict undiscovered elements"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "NAT1-073",
+  "title": "Gustav Robert Kirchhoff",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/biography/Gustav-Robert-Kirchhoff",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Kirchhoff explained the dark solar lines and identified iron, calcium, magnesium, sodium, nickel and chromium in the Sun"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-074",
+  "title": "Astronomy: the rise of astrophysics",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/science/astronomy/The-rise-of-astrophysics",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Fraunhofer (1814) mapped hundreds of dark lines in the solar spectrum without explaining them"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-075",
+  "title": "Nicolas Sadi Carnot and the Science of Thermodynamics",
+  "author_org": "MacTutor History of Mathematics, University of St Andrews",
+  "published": null,
+  "url": "https://mathshistory.st-andrews.ac.uk/SH/carnot_sadi_sh.pdf",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Carnot gave the first successful theory of the maximum efficiency of heat engines; it drew little attention in his lifetime"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-076",
+  "title": "Rudolf Clausius (1822-1888) - Biography",
+  "author_org": "MacTutor History of Mathematics, University of St Andrews",
+  "published": null,
+  "url": "https://mathshistory.st-andrews.ac.uk/Biographies/Clausius/",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Clausius's 1850 paper stated a version of the second law",
+   "He introduced entropy in 1865",
+   "Experiments of Rumford, Mayer and Joule showed heat and work are forms of energy transfer"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-077",
+  "title": "Bluff your way in the second law of thermodynamics",
+  "author_org": "arXiv preprint",
+  "published": null,
+  "url": "https://arxiv.org/pdf/cond-mat/0005327",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Mayer and Joule established energy conservation in the 1840s",
+   "Kelvin (1851) accepted the first law and restated Carnot's theorem"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-078",
+  "title": "Diode",
+  "author_org": "Engineering and Technology History Wiki (IEEE History Center)",
+  "published": null,
+  "url": "https://ethw.org/Diode",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "John Ambrose Fleming invented the diode in 1904"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-079",
+  "title": "Lee de Forest - Audion (primary sources)",
+  "author_org": "IEEE REACH",
+  "published": null,
+  "url": "https://reach.ieee.org/primary-sources/lee-de-forest-audion/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "On 25 October 1906 de Forest applied for a patent on a device for amplifying feeble electrical currents",
+   "Adding a grid between cathode and anode allowed amplification"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-080",
+  "title": "Demythologizing quantum history",
+  "author_org": "Physics Today (American Institute of Physics)",
+  "published": null,
+  "url": "https://physicstoday.aip.org/features/demythologizing-quantum-history",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Born's and Jordan's contributions to matrix mechanics were as pivotal as Heisenberg's"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-081",
+  "title": "One Hundred Years of Quantum Physics",
+  "author_org": "arXiv preprint",
+  "published": null,
+  "url": "https://arxiv.org/pdf/quant-ph/0008092",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Planck introduced energy quanta in 1900",
+   "Bohr postulated quantised orbits in 1913",
+   "Born, Heisenberg and Jordan completed matrix mechanics in 1925; Schroedinger published wave mechanics in 1926; the two are equivalent"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-082",
+  "title": "Bicentennial of Gregor Johann Mendel's birth: Mendel's work still addresses geneticists in 2022",
+  "author_org": "PubMed Central (journal article)",
+  "published": null,
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9494156/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Mendel presented his results in 1865 and published in 1866",
+   "The paper was cited only three times in 35 years",
+   "De Vries, Correns and Tschermak rediscovered it in 1900"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-083",
+  "title": "1902: Chromosome Theory of Heredity",
+  "author_org": "National Human Genome Research Institute (genome.gov)",
+  "published": null,
+  "url": "https://www.genome.gov/25520242/online-education-kit-1902-chromosome-theory-of-heredity",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Sutton and Boveri proposed that chromosomes carry hereditary factors (1902-1904)"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ },
+ {
+  "id": "NAT1-084",
+  "title": "Francis Crick, Rosalind Franklin, James Watson, and Maurice Wilkins",
+  "author_org": "Science History Institute",
+  "published": null,
+  "url": "https://www.sciencehistory.org/education/scientific-biographies/francis-crick-rosalind-franklin-james-watson-and-maurice-wilkins/",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Watson, Crick and Wilkins shared the 1962 Nobel Prize; Franklin died in 1958"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "NAT1-085",
+  "title": "New research challenges misconceptions about Rosalind Franklin's famed Photo 51",
+  "author_org": "Science History Institute",
+  "published": null,
+  "url": "https://www.sciencehistory.org/about/news/new-research-challenges-misconceptions-about-photo-51/",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Franklin and Raymond Gosling took Photo 51, which appeared in Nature on 25 April 1953 beside Watson and Crick's paper"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "NAT1-086",
+  "title": "What Rosalind Franklin truly contributed to the discovery of DNA's structure",
+  "author_org": "Nature",
+  "published": null,
+  "url": "https://www.nature.com/articles/d41586-023-01313-5",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Documents suggest Franklin was an equal contributor to solving the structure"
+  ],
+  "confidence": "high",
+  "notes": "Seen as WebSearch result summary only; page not opened (WebFetch blocked).  Claims taken from a combined summary of several results on the same topic; attribution of each claim to this page is probable, not certain."
+ }
+]

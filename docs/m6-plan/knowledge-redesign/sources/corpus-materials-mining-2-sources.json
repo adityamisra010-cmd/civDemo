@@ -1,0 +1,595 @@
+[
+ {
+  "id": "MAT2-001",
+  "title": "Coalbrookdale Co",
+  "author_org": "Grace's Guide to British Industrial History",
+  "published": null,
+  "url": "https://www.gracesguide.co.uk/Coalbrookdale_Co",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Coalbrookdale was not strictly the world's first coke-fired blast furnace but the first in Europe to operate successfully for more than a few years"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT2-002",
+  "title": "Iron Bridge: history (Pioneers of industry)",
+  "author_org": "English Heritage",
+  "published": null,
+  "url": "https://www.english-heritage.org.uk/visit/places/iron-bridge/history",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Abraham Darby smelted iron with coke made from local coal at Coalbrookdale in 1709",
+   "Coke smelting made mass production of cast iron economically viable"
+  ],
+  "confidence": "high",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT2-003",
+  "title": "Invention of coke smelting (Research Starters)",
+  "author_org": "EBSCO",
+  "published": null,
+  "url": "https://www.ebsco.com/research-starters/history/invention-coke-smelting",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Charcoal for furnaces was becoming more expensive; raw coal's sulphur made it unsuitable for iron",
+   "Coke firing proved cheaper and allowed much larger furnaces"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked). Attribution of these points among the result set is by summary wording."
+ },
+ {
+  "id": "MAT2-004",
+  "title": "George Ravenscroft (print article)",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/print/article/492277",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Ravenscroft obtained a seven-year patent in 1674 for a glass resembling rock crystal",
+   "When pieces lost transparency (crizzling) he added lead, usually as red lead, giving a denser, more refractive glass"
+  ],
+  "confidence": "high",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT2-005",
+  "title": "George Ravenscroft (people record)",
+  "author_org": "Toledo Museum of Art",
+  "published": null,
+  "url": "https://emuseum.toledomuseum.org/people/5344/george--ravenscroft",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Ravenscroft developed lead glass in 1676 to reduce crizzling",
+   "Formula perfected by 1681; over 100 glasshouses produced lead glass within 20 years"
+  ],
+  "confidence": "high",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT2-006",
+  "title": "Achromatic lens",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Achromatic_lens",
+  "accessed": "2026-10-22",
+  "type": "community",
+  "claims_supported": [
+   "John Dollond patented an achromatic lens combining crown and flint glass in 1758",
+   "Chester Moor Hall had made achromatic lenses earlier (1730-1750) without publishing"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked). Used only for the low-stakes flint-glass lens link; consistent with Grace's Guide and Science Museum results in the same search."
+ },
+ {
+  "id": "MAT2-007",
+  "title": "Henry Cort (c.1741-1800)",
+  "author_org": "European Route of Industrial Heritage (ERIH)",
+  "published": null,
+  "url": "https://www.erih.net/how-it-started/stories-about-people-biographies/biography/cort",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Cort patented grooved rolling mills for iron bars in 1783",
+   "Cort's 1784 patent covered puddling: pig iron stirred in a reverberatory furnace to oxidise its carbon, giving wrought iron"
+  ],
+  "confidence": "high",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT2-008",
+  "title": "Henry Cort",
+  "author_org": "Grace's Guide to British Industrial History",
+  "published": null,
+  "url": "https://www.gracesguide.co.uk/Henry_Cort",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Puddling was made fully practical at Cyfarthfa, Merthyr Tydfil (Crawshay, Homfray), from the late 1780s-1790s",
+   "Peter Onions patented a similar process in 1783"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked). The search summary gave these points without naming which of the Cort pages stated each; attribution here is by the result set."
+ },
+ {
+  "id": "MAT2-009",
+  "title": "Henry Cort and the Jamaican foundry claim (article)",
+  "author_org": "Historical Metallurgy Society (Historical Metallurgy journal)",
+  "published": null,
+  "url": "https://hmsjournal.org/index.php/home/article/view/674/666",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "A claim (Bulstrode) that Cort took the rolling idea from a Jamaican foundry is contested and under assessment"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT2-010",
+  "title": "Hot blast",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Hot_blast",
+  "accessed": "2026-10-22",
+  "type": "community",
+  "claims_supported": [
+   "Neilson's British patent of 1828 for heated air in furnaces",
+   "Heating the blast to about 300 F cut fuel from 8.06 to 5.16 tons of coal per ton of iron",
+   "Hot blast allowed raw coal instead of coke",
+   "Thomas Botfield's January 1828 patent gives him a historical claim; Neilson won the litigation"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked). Figures consistent with the Glasgow Story and Nature centenary results."
+ },
+ {
+  "id": "MAT2-011",
+  "title": "The Glasgow Story: hot blast and the iron industry",
+  "author_org": "The Glasgow Story",
+  "published": null,
+  "url": "https://theglasgowstory.com/story/?id=TGSCH08",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Neilson was manager at the Glasgow gas works",
+   "Hot blast made local blackband ironstone usable as the main raw material and was rapidly adopted in the west of Scotland"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked). Attribution among results by summary wording."
+ },
+ {
+  "id": "MAT2-012",
+  "title": "The centenary of the hot blast",
+  "author_org": "Nature 122",
+  "published": "1928",
+  "url": "https://www.nature.com/articles/122317a0",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Neilson's hot blast (1828) inaugurated a century of advance in fuel economy"
+  ],
+  "confidence": "high",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT2-013",
+  "title": "Bessemer process (print article)",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/print/article/63059",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Bessemer presented his process at the British Association meeting in Cheltenham, August 1856",
+   "Air blown through molten pig iron removed impurities and heated the metal",
+   "William Kelly reached a similar idea independently in the United States (US patent 1857)"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked). Article identity inferred from the result set (print id 63059); the claims were stated across the results for this query."
+ },
+ {
+  "id": "MAT2-014",
+  "title": "Open-hearth process",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://britannica.com/technology/open-hearth-process",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Carl Wilhelm Siemens's regenerative furnace preheated gas and air with waste heat",
+   "Pierre and Emile Martin first used it to make steel in 1864",
+   "The open hearth rose to importance from the late 1860s"
+  ],
+  "confidence": "high",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT2-015",
+  "title": "Pierre-Emile Martin",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Pierre-%C3%89mile_Martin",
+  "accessed": "2026-10-22",
+  "type": "community",
+  "claims_supported": [
+   "Martin's first open-hearth steel experiments at Sireuil, France, in 1865"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked). Agrees with a 1900 University of Sydney engineering lecture in the same results; Britannica gives 1864."
+ },
+ {
+  "id": "MAT2-016",
+  "title": "Sidney Thomas",
+  "author_org": "Grace's Guide to British Industrial History",
+  "published": null,
+  "url": "https://www.gracesguide.co.uk/Sidney_Thomas",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Thomas and his cousin Percy Gilchrist experimented at Blaenavon",
+   "A basic lining (lime or magnesian limestone) took phosphorus into the slag",
+   "Announced at the Iron and Steel Institute in 1878; paper read May 1879"
+  ],
+  "confidence": "high",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT2-017",
+  "title": "Thomas, Sidney Gilchrist (1850-1885), metallurgist and inventor",
+  "author_org": "Dictionary of Welsh Biography (National Library of Wales)",
+  "published": null,
+  "url": "https://biography.wales/article/s-THOM-GIL-1850",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The process made the large phosphoric iron-ore deposits usable",
+   "It was especially valuable on the European continent where phosphoric ores were common"
+  ],
+  "confidence": "high",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT2-018",
+  "title": "Gilchrist-Thomas process",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Gilchrist%E2%80%93Thomas_process",
+  "accessed": "2026-10-22",
+  "type": "community",
+  "claims_supported": [
+   "The process favoured rapid growth of the Lorraine iron and steel industry",
+   "Phosphorus-rich slag was sold as fertiliser ('Thomas meal')"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked). Fertiliser use also supported by a 1935 US Minerals Yearbook result in the same search."
+ },
+ {
+  "id": "MAT2-019",
+  "title": "Hard-headed man (Distillations magazine)",
+  "author_org": "Science History Institute",
+  "published": null,
+  "url": "https://www.sciencehistory.org/stories/magazine/hard-headed-man/",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Joseph Aspdin patented 'Portland cement' in 1824, named for Portland stone",
+   "His product may have been too lightly burned to be true portland cement",
+   "His son William Aspdin saved and ground the clinker"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked). Attribution among cement results by summary wording."
+ },
+ {
+  "id": "MAT2-020",
+  "title": "Cement: history of cement",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://britannica.com/technology/cement-building-material/History-of-cement",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The real prototype of modern portland cement was perhaps Isaac Charles Johnson's, in south-eastern England about 1850"
+  ],
+  "confidence": "high",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT2-021",
+  "title": "Cliffe Cement Works",
+  "author_org": "Cliffe History (local history society site)",
+  "published": null,
+  "url": "https://cliffehistory.co.uk/cement.html",
+  "accessed": "2026-10-22",
+  "type": "community",
+  "claims_supported": [
+   "Johnson, works manager at J B White, Swanscombe, fired chalk and clay at much higher temperatures (1400-1500 C) to vitrified clinker, c. 1845"
+  ],
+  "confidence": "low",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked). Only source for the 1845 date; Britannica says about 1850."
+ },
+ {
+  "id": "MAT2-022",
+  "title": "Sorby's metallurgical researches (Historical Metallurgy 31)",
+  "author_org": "R. Edyvean and C. Hammond, Historical Metallurgy Society",
+  "published": "1997",
+  "url": "https://hmsjournal.org/index.php/home/article/view/317",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Sorby's metallurgical researches date to 1863-65: polished and etched specimens, reflected-light microscopy, photomicrography",
+   "Full publication followed in 1886-87"
+  ],
+  "confidence": "high",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT2-023",
+  "title": "Names around iron and steel",
+  "author_org": "Kiel University (Faculty of Engineering, materials science course notes)",
+  "published": null,
+  "url": "https://www.tf.uni-kiel.de/matwis/amat/iss/kap_9/advanced/t9_4_1.html",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Roberts-Austen drew a first Fe-C diagram in 1897, revised 1899",
+   "Bakhuis Roozeboom, invited by Roberts-Austen, produced the first phase-rule diagram (c. 1900)",
+   "Austenite is named after Roberts-Austen"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT2-024",
+  "title": "History of aluminium",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/History_of_aluminium",
+  "accessed": "2026-10-22",
+  "type": "community",
+  "claims_supported": [
+   "Hall and Heroult independently filed patents in 1886 for electrolysis of alumina dissolved in molten cryolite",
+   "Bayer process dated 1889 (other sources 1888)"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT2-025",
+  "title": "Charles Martin Hall (Research Starters)",
+  "author_org": "EBSCO",
+  "published": null,
+  "url": "https://www.ebsco.com/research-starters/history/charles-martin-hall/",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "By summer 1886 Hall had obtained aluminium samples and applied for a patent"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT2-026",
+  "title": "Historical development of aluminum production",
+  "author_org": "Total Materia",
+  "published": null,
+  "url": "https://www.totalmateria.com/articles/historical-development-aluminum-production/",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "Hall-Heroult and Bayer processes together cut the aluminium price by about 80 percent by 1890 compared with 1854",
+   "Bayer's cheaper alumina from bauxite began the era of cheap aluminium (1888)"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked). Attribution of the price figure among results by summary wording."
+ },
+ {
+  "id": "MAT2-027",
+  "title": "INCO Triangle (1 July 1957 issue)",
+  "author_org": "International Nickel Company of Canada (via Greater Sudbury Museums)",
+  "published": "1957",
+  "url": "https://www.sudburymuseums.ca/triangle/data/INCOTriangle-19570701.pdf",
+  "accessed": "2026-10-22",
+  "type": "archive",
+  "claims_supported": [
+   "In 1939 the British government asked Mond Nickel to investigate high-temperature alloys",
+   "Over 1,000 experimental alloys were made in about a year; Nimonic 80 introduced commercially in 1941",
+   "Nickel-chromium (about 80:20) with titanium; Nimonic 80 became the standard rotor-blade material of British gas turbines"
+  ],
+  "confidence": "high",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT2-028",
+  "title": "Effect of chromium on Nimonic 80 (thesis abstract)",
+  "author_org": "Istanbul Technical University",
+  "published": null,
+  "url": "https://polen.itu.edu.tr/items/76d711a3-9887-48f9-9f58-8a5718a21e01",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "A 1926 Heraeus patent added aluminium to Ni-Cr-Fe alloys; Pilling and Merica filed US precipitation-hardening patents in 1929"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT2-029",
+  "title": "Open University digital archive: superalloys programme",
+  "author_org": "The Open University",
+  "published": null,
+  "url": "https://www.open.ac.uk/library/digital-archive/video:00525_5264",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Titanium and aluminium form the gamma-prime precipitate that strengthens nickel superalloys at high temperature"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT2-030",
+  "title": "Fibre-reinforced plastic",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Fibre-reinforced_plastic",
+  "accessed": "2026-10-22",
+  "type": "community",
+  "claims_supported": [
+   "Games Slayter of Owens-Illinois produced glass fibres with a jet of compressed air; patent applied for 1933",
+   "Owens-Corning 'Fiberglas' (1936) and a du Pont resin (1936) made glass-fibre composites possible"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked). Dates partly conflict with commercial history pages in the same results (merger 1935 or 1938)."
+ },
+ {
+  "id": "MAT2-031",
+  "title": "Carbon fibers",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Carbon_fibers",
+  "accessed": "2026-10-22",
+  "type": "community",
+  "claims_supported": [
+   "High-strength carbon fibre process developed in 1963 by W. Watt, L. N. Phillips and W. Johnson at the Royal Aircraft Establishment, Farnborough",
+   "Earlier high-carbon fibres: Union Carbide (1958), Millington rayon process (1960)"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT2-032",
+  "title": "The scanning tunneling microscope",
+  "author_org": "IBM (corporate history)",
+  "published": null,
+  "url": "https://www.ibm.com/history/scanning-tunneling-microscope",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "Binnig and Rohrer introduced the STM at IBM in 1981 (some sources 1982)",
+   "Nobel Prize in Physics 1986"
+  ],
+  "confidence": "high",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT2-033",
+  "title": "Nanotechnology (IBM history)",
+  "author_org": "IBM (corporate history)",
+  "published": null,
+  "url": "https://www.ibm.com/history/nanotechnology",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "In 1989 Eigler and Schweizer at IBM Almaden positioned xenon atoms with an STM tip to spell 'IBM'",
+   "Bethune (IBM) and Iijima (NEC) independently found catalysts for single-wall nanotubes in 1993"
+  ],
+  "confidence": "high",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT2-034",
+  "title": "Nanotechnology history (encyclopedia entry 29575)",
+  "author_org": "Encyclopedia.pub (MDPI)",
+  "published": null,
+  "url": "https://encyclopedia.pub/entry/29575",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Fullerenes discovered 1985; structural assignment of carbon nanotubes 1991 (Iijima, NEC)"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT2-035",
+  "title": "Hayabusa2 capsule contents (ISAS news)",
+  "author_org": "JAXA Institute of Space and Astronautical Science",
+  "published": null,
+  "url": "https://cosmos.isas.jaxa.jp/?p=340",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Hayabusa2 returned a capsule with samples of asteroid Ryugu; more material than anticipated was found"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked). Planned December 2020 return also stated in JpGU 2016 abstract U02-05 (Hayabusa2/OSIRIS-REx collaboration)."
+ },
+ {
+  "id": "MAT2-036",
+  "title": "The asteroid mining bubble has burst",
+  "author_org": "MIT Technology Review",
+  "published": "2019",
+  "url": "https://www.technologyreview.com/2019/06/26/134510/asteroid-mining-bubble-burst-history/",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "Planetary Resources was bought by ConsenSys (2018) and Deep Space Industries by Bradford Space (2019)",
+   "Their asteroid-mining plans are on hold, perhaps indefinitely"
+  ],
+  "confidence": "high",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT2-037",
+  "title": "Bradford buys Deep Space Industries, shifting focus from asteroid mining to green propulsion",
+  "author_org": "GeekWire",
+  "published": "2019",
+  "url": "https://www.geekwire.com/2019/bradford-buys-deep-space-industries-shifting-focus-asteroid-mining-green-propulsion/",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "Bradford Space acquired Deep Space Industries at the start of 2019"
+  ],
+  "confidence": "high",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT2-038",
+  "title": "Quick facts: Department of Materials Science and Engineering",
+  "author_org": "Northwestern University McCormick School of Engineering",
+  "published": null,
+  "url": "https://www.mccormick.northwestern.edu/materials-science/about/quick-facts.html",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Northwestern's department, grown from metallurgy (1955), became the world's first Department of Materials Science in 1958"
+  ],
+  "confidence": "medium",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked). Institutional self-description; other results give 1959 for the name change."
+ },
+ {
+  "id": "MAT2-039",
+  "title": "The evolving curriculum in materials science and engineering (Daedalus)",
+  "author_org": "American Academy of Arts & Sciences",
+  "published": null,
+  "url": "https://www.amacad.org/publication/daedalus/evolving-curriculum-materials-science-engineering",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Northwestern's metallurgy department changed its name to materials science in January 1959"
+  ],
+  "confidence": "high",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked)."
+ },
+ {
+  "id": "MAT2-040",
+  "title": "Materials Genome Initiative: the first five years",
+  "author_org": "White House Office of Science and Technology Policy (archived)",
+  "published": "2016",
+  "url": "https://obamawhitehouse.archives.gov/blog/2016/08/01/materials-genome-initiative-first-five-years",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The Materials Genome Initiative was announced on 24 June 2011 to develop and deploy new materials faster"
+  ],
+  "confidence": "high",
+  "notes": "Seen as search-result summary only; page not opened (WebFetch blocked)."
+ }
+]

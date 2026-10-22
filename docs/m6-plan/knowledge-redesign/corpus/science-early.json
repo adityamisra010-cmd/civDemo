@@ -1,0 +1,822 @@
+[
+ {
+  "id": "dog_domestication",
+  "tree": "technology",
+  "description": "Dogs descend from wolves and were domesticated by hunter-gatherers long before farming. Genetic estimates of when the lineages separated range from about 15,000 to over 30,000 years ago, and single versus multiple origins are debated. A puppy buried with two people at Bonn-Oberkassel, Germany, about 14,200 years ago had survived repeated distemper, apparently through human care.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "SCI-003",
+    "claims": [
+     "Divergence estimates vary widely; single or multiple origins debated"
+    ]
+   },
+   {
+    "sourceId": "SCI-002",
+    "claims": [
+     "Bonn-Oberkassel dated about 14,200 years ago; burial with two people"
+    ]
+   },
+   {
+    "sourceId": "SCI-001",
+    "claims": [
+     "Distemper episodes; survival argued to imply human care"
+    ]
+   }
+  ],
+  "uncertainty": "Date and place(s) of domestication are unresolved; genetic divergence dates are upper bounds, not domestication dates, and wolf-dog interbreeding complicates them. Older candidate dogs (Goyet, Razboinichya) are disputed.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results (2026-10-22) recorded in sources; pages not opened (WebFetch unavailable). Claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: that domestication preceded farming (follows from the dates but no source stated it)."
+  },
+  "mechanicLink": "Knowledge-only today (unlock-audit class C, no simulated effect); root of the herding line (prerequisite of sheep_goat). PROPOSED change is classification only (domain agriculture); prerequisites, Age and cost unchanged."
+ },
+ {
+  "id": "ochre_processing",
+  "tree": "technology",
+  "description": "Ochres are iron-rich earths that grind into red or yellow pigment. At Blombos Cave, South Africa, people about 100,000 years ago rubbed ochre on quartzite slabs into powder, mixed it with other ingredients and stored the liquid in two abalone shells, beside grindstones and bone tools. Its purpose, decoration, skin protection or something else, remains unknown.",
+  "wordCount": 57,
+  "sources": [
+   {
+    "sourceId": "SCI-004",
+    "claims": [
+     "About 100,000 years ago; mixture stored in two abalone shells; grindstones and bone in the toolkit; use unknown"
+    ]
+   },
+   {
+    "sourceId": "SCI-005",
+    "claims": [
+     "Ochre rubbed on quartzite slabs into powder and combined with other materials"
+    ]
+   }
+  ],
+  "uncertainty": "Ochre use is older than Blombos at other African sites; the Blombos kit is the earliest known processing workshop, not the first use of pigment. The purpose of the mixture is unknown.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results (2026-10-22) recorded in sources; pages not opened (WebFetch unavailable). Claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: that ochres are iron-oxide-rich earths giving red or yellow pigment."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect). Prerequisite grinding_stone; prerequisite of dyeing and an OR route into copper_smelting. PROPOSED change is classification only (domain materials)."
+ },
+ {
+  "id": "tally_notation",
+  "tree": "technology",
+  "description": "Notches cut into bone store a count outside memory. Notched bones from Border Cave, southern Africa, over 40,000 years old, are read as notational, and the Ishango bone from the Congo, about 20,000 years old, bears grouped notches. Whether they record numbers, lunar months or something else is debated; one study found Ishango poorly suited to exact calculation.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "SCI-006",
+    "claims": [
+     "Border Cave notched bones likely notational; dated over 40,000 years"
+    ]
+   },
+   {
+    "sourceId": "SCI-008",
+    "claims": [
+     "Ishango about 20,000 years; numerical and calendrical readings contested"
+    ]
+   },
+   {
+    "sourceId": "SCI-007",
+    "claims": [
+     "Ishango performance well below precision needed for exact calculation"
+    ]
+   }
+  ],
+  "uncertainty": "The node's anchors are ~44 kya (Lebombo/Border Cave) and ~20 kya (Ishango); published dates for the Border Cave material run about 44,000-40,000 years. Whether any notched bone is a deliberate count is contested.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results (2026-10-22) recorded in sources; pages not opened (WebFetch unavailable). Claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: that Ishango lies in the Congo (eastern DR Congo, Semliki valley); the general statement that notches store a count outside memory is the node's framing."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect). Prerequisite bone_tools; causal root of token_counting, chinese_script and calendar_lunar. Kept unchanged in the proposal."
+ },
+ {
+  "id": "calendar_lunar",
+  "tree": "technology",
+  "description": "Counting the Moon's phases gives a way to track time through the year. At Warren Field, Aberdeenshire, Scotland, hunter-gatherers dug a line of pits around 8000 BCE that its excavators read as mirroring lunar phases and months, aligned on midwinter sunrise so the count could be reset annually to the solar year. This remains the excavators' hypothesis.",
+  "wordCount": 57,
+  "sources": [
+   {
+    "sourceId": "SCI-009",
+    "claims": [
+     "8th millennium BCE pit group; lunar phases and months; midwinter sunrise alignment"
+    ]
+   },
+   {
+    "sourceId": "SCI-010",
+    "claims": [
+     "Aberdeenshire location; annual recalibration to the solar year"
+    ]
+   }
+  ],
+  "uncertainty": "The calendrical reading of the Warren Field pits is the excavation team's interpretation; no independent critique was found. Lunar counting may be much older (see tally_notation) but is not demonstrable.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results (2026-10-22) recorded in sources; pages not opened (WebFetch unavailable). Claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: that the builders were hunter-gatherers (inferred from the 8th-millennium BCE Mesolithic date in Scotland; the node record also states it)."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect). Prerequisite tally_notation; prerequisite of calendar_civil and an astronomy_records route. PROPOSED cost correction: institutional factor lowered, since Warren Field had no state behind it (4,180 to 620)."
+ },
+ {
+  "id": "numeral_sexagesimal",
+  "tree": "technology",
+  "description": "In base-60 place value, one wedge sign can mean 1, 60 or 3,600 by its position, so one set of rules serves multiplication, division and fractions. Mesopotamian scribes adopted it for calculation probably in the Ur III period, about 2100-2000 BCE, converting their measures into it. Lacking a zero sign or point, readers judged magnitude from context.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "SCI-012",
+    "claims": [
+     "Earliest systematic use in Ur III, about 2112-2004 BCE"
+    ]
+   },
+   {
+    "sourceId": "SCI-013",
+    "claims": [
+     "Place value probably introduced in Ur III"
+    ]
+   },
+   {
+    "sourceId": "SCI-011",
+    "claims": [
+     "Scribes converted measures into sexagesimal multiples and fractions to calculate"
+    ]
+   },
+   {
+    "sourceId": "SCI-018",
+    "claims": [
+     "No true zero symbol and no sexagesimal point; magnitude ambiguous"
+    ]
+   }
+  ],
+  "uncertainty": "The date of introduction is inferred from sparse Ur III evidence (marginal calculations on a few dozen tablets); some scholars (e.g. Friberg) debate earlier traces. A placeholder sign for internal zeros appears only much later.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results (2026-10-22) recorded in sources; pages not opened (WebFetch unavailable). Claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: the example values 1, 60 and 3,600 for one sign by position (follows from base-60 place value)."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect). Requires cuneiform (a must-hold Babylonian dependency pinned by test); prerequisite of arithmetic_babylonian. Kept unchanged in the proposal."
+ },
+ {
+  "id": "arithmetic_babylonian",
+  "tree": "technology",
+  "description": "Old Babylonian scribal schools, around 1900-1600 BCE, taught calculation through standard tables learned by copying: multiplication tables, and reciprocal tables that replaced division, since dividing by a number meant multiplying by its reciprocal. A school tablet from Nippur preserves a teacher's and a pupil's copy of the 45-times table, both containing errors. Such training served land measurement, rations and accounts.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "SCI-017",
+    "claims": [
+     "Multiplication and reciprocal tables standard in scribal schools; division by multiplying by the reciprocal"
+    ]
+   },
+   {
+    "sourceId": "SCI-016",
+    "claims": [
+     "Nippur tablet about 1900-1600 BCE with teacher's and student's copies of the 45 times table, both with errors"
+    ]
+   }
+  ],
+  "uncertainty": "'Old Babylonian' spans roughly 2000-1600 BCE; the node's anchor of ~1800 BCE sits inside it. Curricula differed between cities.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results (2026-10-22) recorded in sources; pages not opened (WebFetch unavailable). Claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: that this training served land measurement, rations and accounts (the practical uses of scribal arithmetic)."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect). Prerequisite numeral_sexagesimal; after the PROPOSED surveying rewire its dependants are abacus and astronomy_records. Its 'tax assessment' text is pinned by a governance test; Taxation remains a civic gate."
+ },
+ {
+  "id": "surveying",
+  "tree": "technology",
+  "description": "Measuring fields and recording their sides and areas let early administrations assess land and settle claims. Tablets from Shuruppak in Mesopotamia, about 2600 BCE, already tabulate areas computed from lengths, and Egyptian papyri of the second millennium BCE work out the areas of fields. Keeping such results beyond one surveyor's memory depended on a written system of numbers.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "SCI-014",
+    "claims": [
+     "Shuruppak tables about 2600 BCE quantify areas from lengths"
+    ]
+   },
+   {
+    "sourceId": "SCI-015",
+    "claims": [
+     "VAT 12593 lists lengths with products as area measures"
+    ]
+   },
+   {
+    "sourceId": "SCI-035",
+    "claims": [
+     "Rhind papyrus computes the area of a round field"
+    ]
+   }
+  ],
+  "uncertainty": "The node's anchor (~2,500 BCE, Egypt and Mesopotamia) is supported for Mesopotamia by the Shuruppak tables; Egyptian field measurement is certainly older than the surviving papyri but is attested here only through them.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results (2026-10-22) recorded in sources; pages not opened (WebFetch unavailable). Claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: that measurement served land assessment and the settling of claims; that durable results required written numbers (the node's causal premise)."
+  },
+  "mechanicLink": "Knowledge-only today (class C; its capability strings are display only). PROPOSED rewire: prerequisite becomes any written numeration (cuneiform OR hieroglyphic OR chinese_script OR mesoamerican_script) instead of the later arithmetic_babylonian. 'Taxation by area' is text only: the Taxation civic is the sole tax gate."
+ },
+ {
+  "id": "horse_domestication",
+  "tree": "technology",
+  "description": "Horse husbandry began on the Eurasian steppes. At Botai, Kazakhstan, people depended heavily on horses by about 3500 BCE, though whether those animals were domestic is disputed; genomes show they were not ancestors of today's horses. The modern domestic lineage emerged near the lower Don and Volga and spread across much of western Eurasia from about 2200 BCE.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "SCI-019",
+    "claims": [
+     "DOM1 at Botai mid-4th millennium BCE; DOM2 dominant around 2200 BCE"
+    ]
+   },
+   {
+    "sourceId": "SCI-020",
+    "claims": [
+     "Botai not ancestral to modern horses; DOM2 from lower Don-Volga; Botai domestication disputed"
+    ]
+   }
+  ],
+  "uncertainty": "Botai may represent intensive exploitation or management rather than full domestication (Taylor and Barron-Ortiz versus Outram). The 2200 BCE date is for the spread of DOM2, not its first domestication.",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results (2026-10-22) recorded in sources; pages not opened (WebFetch unavailable).",
+   "notes": ""
+  },
+  "mechanicLink": "Deferred today (unlock-audit class J): infra.courier_relay has no realizing system. Prerequisite cattle; prerequisite of chariot, cavalry and collar_harness. PROPOSED: classification only; courier relays await a transport packet (M10+), and there is no horse good."
+ },
+ {
+  "id": "donkey",
+  "tree": "technology",
+  "description": "Donkeys descend from African wild asses. Genomes of over two hundred modern and thirty-one ancient animals point to a single domestication in Africa around 5000 BCE, followed by spread into Eurasia. At Abydos in Egypt, ten donkeys buried in an early royal funerary complex, about 3000 BCE, show joint damage from carrying loads, although their bones still look partly wild.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "SCI-021",
+    "claims": [
+     "207 modern and 31 ancient genomes; single African domestication about 5000 BCE; later expansion into Eurasia"
+    ]
+   },
+   {
+    "sourceId": "SCI-022",
+    "claims": [
+     "Ten Abydos donkeys; load-carrying pathologies; intermediate morphology"
+    ]
+   },
+   {
+    "sourceId": "SCI-023",
+    "claims": [
+     "Abydos donkeys about 5,000 years old, early transport use"
+    ]
+   }
+  ],
+  "uncertainty": "The genomic study places domestication in Africa; press reports narrowing it to East Africa go beyond the paper's wording. The Abydos burials are usually attributed to the reign of an early First Dynasty king.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results (2026-10-22) recorded in sources; pages not opened (WebFetch unavailable). Claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: descent from the African wild ass (the comparison species in the sources, but ancestry was not stated in the summaries)."
+  },
+  "mechanicLink": "Deferred today (unlock-audit class J): activity.caravans has no realizing system. Prerequisite cattle; one OR route into trade. PROPOSED: corrected anchor and classification; a caravan carrier tier later (M10+) that must never gate trade arbitrage."
+ },
+ {
+  "id": "camel",
+  "tree": "technology",
+  "description": "Two camel species were domesticated separately. Two-humped Bactrian camels were domesticated in Central Asia and were present in southern Turkmenistan by the third millennium BCE. One-humped dromedaries, descended from wild herds of south-east Arabia, appear as domestic animals much later; a Babylonian school text of about 1300 BCE calls one the \"donkey of the Sealand\". The timing remains debated.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "SCI-024",
+    "claims": [
+     "Domestic Bactrians in southern Turkmenistan by the third millennium BCE; domestic dromedaries later; Nippur text about 1300 BCE"
+    ]
+   },
+   {
+    "sourceId": "SCI-025",
+    "claims": [
+     "Wild south-east Arabian dromedaries founded the domestic gene pool; timing debated"
+    ]
+   }
+  ],
+  "uncertainty": "Dromedary domestication is often placed around the late second to early first millennium BCE (the node uses ~1,000 BCE), but where and when remain debated. The Bactrian anchor (~2,500 BCE) fits the Turkmenistan evidence.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results (2026-10-22) recorded in sources; pages not opened (WebFetch unavailable). Claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: that Bactrian domestication itself occurred in Central Asia rests on a genome-study summary whose details were not confirmed."
+  },
+  "mechanicLink": "Deferred today (unlock-audit class J): activity.caravans has no realizing system. Prerequisite cattle; one OR route into trade. PROPOSED: classification only; a desert caravan carrier tier later (M10+)."
+ },
+ {
+  "id": "standard_weights",
+  "tree": "technology",
+  "description": "A balance supports fair exchange only if weights agree. Indus cities from about 2500 BCE used chert cubes on one standard, a common unit near 13.7 grams, scaling by doubling and then by tens. Mesopotamia counted shekels, minas and talents in sixties, with local variation. After unifying China in 221 BCE, the Qin state imposed uniform weights by edict.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "SCI-026",
+    "claims": [
+     "Chert cubes; binary then decimal steps; unit about 13.7 g"
+    ]
+   },
+   {
+    "sourceId": "SCI-027",
+    "claims": [
+     "Standard adopted throughout the Indus, about 2500-1900 BCE"
+    ]
+   },
+   {
+    "sourceId": "SCI-028",
+    "claims": [
+     "Shekel, mina, talent in sexagesimal ratios with local variation"
+    ]
+   },
+   {
+    "sourceId": "SCI-029",
+    "claims": [
+     "Qin standardisation of weights and measures after 221 BCE"
+    ]
+   }
+  ],
+  "uncertainty": "Securely dated third-millennium Mesopotamian weights are scarce; the units are attested in texts from about 2600 BCE. Indus date ranges vary between sources.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results (2026-10-22) recorded in sources; pages not opened (WebFetch unavailable). Claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: the opening principle that fair exchange by balance requires agreed weights (a framing, not a historical claim)."
+  },
+  "mechanicLink": "Knowledge-only today (class C); prerequisite of hacksilver and so of coinage_electrum. PROPOSED rewire: chinese_script added as an alternative script so a Chinese-route polity is not forced through proto-writing. 'Taxation by weight' is text only."
+ },
+ {
+  "id": "calendar_civil",
+  "tree": "technology",
+  "description": "Egypt's administrators used a civil year of twelve 30-day months plus five extra days. With no leap day until 22 BCE, its new year slipped through the seasons by about one day every four years, realigning with the dawn rising of Sirius only after some 1,460 years. Its origin is disputed; proposals cluster near 2800 BCE.",
+  "wordCount": 57,
+  "sources": [
+   {
+    "sourceId": "SCI-030",
+    "claims": [
+     "12 x 30 + 5 days; no leap day until 22 BCE; drift of a day per four years; 1,461 civil = 1,460 Julian years; origin disputed, proposals near 2780-2770 BCE"
+    ]
+   }
+  ],
+  "uncertainty": "The inauguration date rests on the contested assumption that the calendar began at a Sothic coincidence; the origin of the 365-day count is itself debated (Parker, Neugebauer).",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results (2026-10-22) recorded in sources; pages not opened (WebFetch unavailable). Claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "Only one (reference) source corroborates this entry; the link to Sirius's dawn rising is from the same source. Additional scholarly confirmation not obtained."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect). Requires calendar_lunar and a script; prerequisite of water_clock. PROPOSED cost correction (institutional factor at law_code's level; 5,910 to 1,760) and mesoamerican_script added as a script alternative."
+ },
+ {
+  "id": "water_clock",
+  "tree": "technology",
+  "description": "A water clock measures time by a steady flow of water, not by the sky, so it works at night. The oldest surviving one, an outflow vessel from Karnak made under Amenhotep III around 1390-1350 BCE, has twelve columns of marks, one per month, to allow for changing night lengths. An earlier official, Amenemhet, claimed its invention in his tomb.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "SCI-031",
+    "claims": [
+     "Karnak alabaster outflow clock, reign of Amenhotep III; twelve columns of holes matched to month names"
+    ]
+   },
+   {
+    "sourceId": "SCI-032",
+    "claims": [
+     "Oldest surviving water clock; Amenemhet's tomb inscription (16th century BCE) claims invention"
+    ]
+   }
+  ],
+  "uncertainty": "Reign dates for Amenhotep III differ by a few decades between chronologies. The node anchor (~1,500 BCE) reflects the Amenemhet text rather than the surviving clock.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results (2026-10-22) recorded in sources; pages not opened (WebFetch unavailable). Claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: that the twelve monthly scales compensate for the seasonal change in the length of night hours (standard interpretation, not in the summaries)."
+  },
+  "mechanicLink": "Knowledge-only today (class C); a dead end. PROPOSED: D07 is asked to make it an AND prerequisite of escapement_verge; if declined it stays knowledge-only by design, as no mechanic reads hours before M11+."
+ },
+ {
+  "id": "geometry_practical",
+  "tree": "technology",
+  "description": "Scribes in Egypt and Mesopotamia calculated areas and volumes with tested rules rather than proofs. Egypt's Moscow papyrus, of about 1850-1700 BCE, finds the volume of a truncated pyramid, and the Rhind papyrus, copied around 1650-1550 BCE, treats a round field nine units across as a square of side eight. Old Babylonian tablets of about 1800 BCE solve comparable problems.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "SCI-033",
+    "claims": [
+     "Moscow papyrus problem 14 frustum volume; date about 1850 or 1700 BCE"
+    ]
+   },
+   {
+    "sourceId": "SCI-034",
+    "claims": [
+     "Frustum method; Rhind pi approximation 256/81"
+    ]
+   },
+   {
+    "sourceId": "SCI-035",
+    "claims": [
+     "Rhind about 1650 BCE; round field of diameter 9 as square of side 8"
+    ]
+   },
+   {
+    "sourceId": "SCI-017",
+    "claims": [
+     "Old Babylonian school mathematics"
+    ]
+   }
+  ],
+  "uncertainty": "Papyrus dates vary by source (Moscow about 1850-1700 BCE; Rhind copied about 1650-1550 BCE from an older text). Later practical geometry in India (Sulba Sutras) and Han China belongs to this node's scope but was not checked this session.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results (2026-10-22) recorded in sources; pages not opened (WebFetch unavailable). Claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: that Old Babylonian tablets of about 1800 BCE solve comparable area and volume problems (supported only indirectly via SCI-017 and SCI-018); the 'rules rather than proofs' framing."
+  },
+  "mechanicLink": "Knowledge-only today (class C). PROPOSED re-anchor: Age A4 to A3 with costs unchanged; mesoamerican_script added as a script alternative; prerequisite of geometry_axiomatic and, under the proposal, of algebra."
+ },
+ {
+  "id": "astronomy_records",
+  "tree": "technology",
+  "description": "From at least 652 BCE until about 60 BCE, Babylonian scholars kept regular diaries of the Moon, planets and other phenomena, alongside notes of events; most surviving tablets are in the British Museum. Separate eclipse reports reach back to 747 BCE. Records kept over such long spans let them anticipate eclipses with an 18-year cycle now called the Saros.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "SCI-036",
+    "claims": [
+     "Earliest diary 652 BCE"
+    ]
+   },
+   {
+    "sourceId": "SCI-037",
+    "claims": [
+     "Diaries 652-60 BCE; about 1,000 tablets mostly in the British Museum; eclipse reports from 747 BCE"
+    ]
+   },
+   {
+    "sourceId": "SCI-038",
+    "claims": [
+     "Saros scheme used for eclipse prediction"
+    ]
+   }
+  ],
+  "uncertainty": "The node anchor (~750 BCE, Nabonassar era) refers to the eclipse series, not the diaries. Chinese eclipse records, also cited by the node, were not checked this session.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results (2026-10-22) recorded in sources; pages not opened (WebFetch unavailable). Claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: that the Saros spans about 18 years (223 lunar months)."
+  },
+  "mechanicLink": "Deferred today (unlock-audit class J): inst.natural_philosophy has no realizing system. Prerequisite of calendar_lunisolar, monsoon_sailing and latitude_sailing. PROPOSED: mesoamerican_script added to the non-Babylonian route; eligibility to found natural philosophy once institutions get a lifecycle (T6.11, M6)."
+ },
+ {
+  "id": "calendar_lunisolar",
+  "tree": "technology",
+  "description": "Twelve lunar months fall about eleven days short of a solar year, so lunisolar calendars periodically insert an extra month. From about 499 BCE Babylon regulated these with a 19-year cycle of 235 months, seven of them added, applied without exception by about 380 BCE. Meton proposed the same cycle at Athens in 432 BCE, possibly learning it from Babylon.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "SCI-039",
+    "claims": [
+     "Regulated by a 19-year cycle from about 499 BCE; without exception by 380 BCE"
+    ]
+   },
+   {
+    "sourceId": "SCI-040",
+    "claims": [
+     "Seven intercalary months in 19 years, 235 months"
+    ]
+   },
+   {
+    "sourceId": "SCI-041",
+    "claims": [
+     "Meton 432 BCE; Babylon used the cycle earlier; possible transmission"
+    ]
+   }
+  ],
+  "uncertainty": "Start dates in the sources range from about 499 to 490 BCE; whether Meton learned the cycle from Babylon is uncertain.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results (2026-10-22) recorded in sources; pages not opened (WebFetch unavailable). Claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: that twelve lunar months fall about eleven days short of a solar year."
+  },
+  "mechanicLink": "Knowledge-only today (class C, a dead end). PROPOSED: prerequisite of astronomy_geometric (its period relations supply mean motions), and cost correction (institutional factor lowered; 3,520 to 1,240)."
+ },
+ {
+  "id": "geometry_axiomatic",
+  "tree": "technology",
+  "description": "Axiomatic geometry derives every result by proof from a few stated starting points. Greek thinkers sought proofs from at least the sixth century BCE, and Euclid's Elements, compiled at Alexandria around 300 BCE, organised earlier work into thirteen books deducing hundreds of propositions from definitions, postulates and common notions. Doubts about its fifth, parallel, postulate eventually produced non-Euclidean geometries.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "SCI-042",
+    "claims": [
+     "Elements about 300 BCE, thirteen books; propositions deduced from definitions, postulates and common notions; fifth postulate and non-Euclidean geometry"
+    ]
+   },
+   {
+    "sourceId": "SCI-043",
+    "claims": [
+     "Thales credited with the first proof; Euclid organised earlier knowledge"
+    ]
+   }
+  ],
+  "uncertainty": "Euclid's life is poorly known and the Elements compiles earlier work; Thales' role is known only from later reports.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results (2026-10-22) recorded in sources; pages not opened (WebFetch unavailable). Claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: dating Thales, and so the start of Greek proof, to the sixth century BCE."
+  },
+  "mechanicLink": "Realized today (unlock-audit class B): A5 supporting fact a5_geometry, the university building and the research stage atom '(geometry_axiomatic OR algebra)'. Kept unchanged; under the PROPOSED algebra rewire it is no longer must-hold for the stage."
+ },
+ {
+  "id": "mechanics_archimedean",
+  "tree": "technology",
+  "description": "Archimedes of Syracuse, about 287-212 BCE, treated weights and floating bodies with geometric proof. In On the Equilibrium of Planes he proved the law of the lever and located centres of gravity; On Floating Bodies states that an immersed body is pushed up by a force equal to the weight of fluid displaced. He died when Rome took Syracuse.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "SCI-044",
+    "claims": [
+     "Dates about 287-212 BCE; lever law and centres of gravity; buoyancy principle; died at the Roman capture of Syracuse"
+    ]
+   }
+  ],
+  "uncertainty": "Accounts of Archimedes' death differ; machines credited to him by later writers are partly legendary.",
+  "factCheck": {
+   "status": "search-corroborated",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results (2026-10-22) recorded in sources; pages not opened (WebFetch unavailable).",
+   "notes": ""
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect). Prerequisite geometry_axiomatic; its applications are separate dependants (water_screw, gearing, printing_press's screw press, barometer_vacuum). Kept unchanged."
+ },
+ {
+  "id": "astronomy_geometric",
+  "tree": "technology",
+  "description": "Geometric astronomy models the motions of the Sun, Moon and planets with circles so that their positions can be calculated. Hipparchus, in the second century BCE, combined Greek geometry with older Greek and Babylonian observations to estimate precession and compile a catalogue of about 850 stars. Ptolemy's Almagest, written at Alexandria in the second century CE, systematised such models.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "SCI-045",
+    "claims": [
+     "Hipparchus used older Greek and Babylonian observations; precession; catalogue about 850 stars about 129 BCE"
+    ]
+   },
+   {
+    "sourceId": "SCI-046",
+    "claims": [
+     "Debate over Hipparchus' access to Babylonian data; Almagest second century CE"
+    ]
+   }
+  ],
+  "uncertainty": "How directly Hipparchus used Babylonian records is debated (Toomer versus later critics). Ptolemy's Alexandrian location and the circle-based models are standard accounts not specifically checked.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results (2026-10-22) recorded in sources; pages not opened (WebFetch unavailable). Claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: that the models combine circles (deferents and epicycles); that Ptolemy worked at Alexandria."
+  },
+  "mechanicLink": "Deferred today (unlock-audit class J): building.observatory has no realizing system. PROPOSED rewire: requires geometry_axiomatic AND calendar_lunisolar (replacing astronomy_records, reached through calendar_lunisolar). Prerequisite of astrolabe, cartography, heliocentrism and trigonometry."
+ },
+ {
+  "id": "abacus",
+  "tree": "technology",
+  "description": "Counting boards and abaci let people calculate by moving pebbles or beads in columns, without written figures. A marble board from Salamis, Greece, of about 300 BCE, is the oldest surviving one, although some think it served for games. The Chinese bead abacus, the suanpan, grew from counting-rod practice and is pictured in Ming-dynasty books.",
+  "wordCount": 55,
+  "sources": [
+   {
+    "sourceId": "SCI-047",
+    "claims": [
+     "Salamis Tablet about 300 BCE, marble, earliest surviving counting board"
+    ]
+   },
+   {
+    "sourceId": "SCI-048",
+    "claims": [
+     "Pebbles moved on a marble board to calculate"
+    ]
+   },
+   {
+    "sourceId": "SCI-049",
+    "claims": [
+     "Some consider it a gaming board"
+    ]
+   },
+   {
+    "sourceId": "SCI-050",
+    "claims": [
+     "Suanpan derived from counting rods; illustrated in 1573 and 1592 Ming books"
+    ]
+   }
+  ],
+  "uncertainty": "The node record says the suanpan is first illustrated in 1436 CE; this session's search found illustrations of 1573 and 1592 and could not confirm 1436. An earlier text of about 190 CE (Xu Yue) is disputed. Roman hand abaci are also part of the node's anchor.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results (2026-10-22) recorded in sources; pages not opened (WebFetch unavailable). Claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: the Roman hand abacus (mentioned only in uncertainty)."
+  },
+  "mechanicLink": "Knowledge-only today (class C), a justified dead end: no mechanic models calculation friction. Prerequisite arithmetic_babylonian OR chinese_script, unchanged; possible later reader is the M6 authority/bandwidth economy (OPEN)."
+ },
+ {
+  "id": "alchemy",
+  "tree": "technology",
+  "description": "Alchemy sought to transform substances, perfecting metals or preparing elixirs, and joined craft knowledge with philosophy and religion. In China it was tied to Daoist pursuits of longevity. In Roman Egypt, Greek-writing practitioners drew on goldsmiths' techniques; Zosimos of Panopolis, active around 300 CE, is the earliest whose writings survive. Whether these traditions share an origin is an open question.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "SCI-053",
+    "claims": [
+     "Alexandrian roots in goldsmiths' craft, philosophy and religion; Zosimos about 300 CE earliest attested author; Chinese alchemy tied to Daoism and longevity; common origin open"
+    ]
+   },
+   {
+    "sourceId": "SCI-051",
+    "claims": [
+     "Zosimos the leading Graeco-Egyptian alchemist; writings fragmentary"
+    ]
+   }
+  ],
+  "uncertainty": "Dates of origin are uncertain (the node gives ~200 BCE China and ~100 CE Alexandria); the Greek corpus is largely pseudepigraphic. The node's link to Chinese gunpowder (~850 CE) was not corroborated by credible sources this session.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results (2026-10-22) recorded in sources; pages not opened (WebFetch unavailable). Claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: the general definition (transformation of metals, elixirs)."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect). Prerequisite copper_smelting AND (chinese_script OR alphabet_vowels); founds two lines, distillation and gunpowder. Kept unchanged."
+ },
+ {
+  "id": "distillation",
+  "tree": "technology",
+  "description": "Distillation separates liquids by boiling them and condensing the vapour. Greek alchemical writings from Roman Egypt describe stills, and Zosimos credits an earlier woman alchemist, Maria, with apparatus including a three-armed still. Arabic works attributed to al-Kindi in the ninth century describe distilling wine, and Latin recipes for \"burning water\", alcohol from wine, appeared in the twelfth century.",
+  "wordCount": 58,
+  "sources": [
+   {
+    "sourceId": "SCI-051",
+    "claims": [
+     "Zosimos drew on Maria"
+    ]
+   },
+   {
+    "sourceId": "SCI-052",
+    "claims": [
+     "Three-armed still and other apparatus attributed to Maria"
+    ]
+   },
+   {
+    "sourceId": "SCI-054",
+    "claims": [
+     "al-Kindi attributed works describe distilling wine; twelfth-century Latin aqua ardens recipes"
+    ]
+   },
+   {
+    "sourceId": "SCI-055",
+    "claims": [
+     "Arabic origin of 'alembic'"
+    ]
+   }
+  ],
+  "uncertainty": "Attributions of apparatus to Maria rest on Zosimos and are not secure; her dates (first to third century CE) are uncertain. Earlier South Asian ceramic 'stills' are disputed.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results (2026-10-22) recorded in sources; pages not opened (WebFetch unavailable). Claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: the general definition of distillation."
+  },
+  "mechanicLink": "Knowledge-only today (class C). PROPOSED rewire: requires alchemy AND (glass_blowing OR sheet_metal), since early stills were also made of copper or bronze; where later chemistry needs glass it is stated on those nodes."
+ },
+ {
+  "id": "counting_rods",
+  "tree": "technology",
+  "description": "In early China, numbers were laid out with rods on a counting board, one column per decimal place, an empty column standing for zero. Bamboo slips carbon-dated to about 305 BCE hold the oldest known decimal multiplication table. The Nine Chapters, compiled by Han times, used red and black rods for positive and negative quantities in solving linear equations.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "SCI-056",
+    "claims": [
+     "Slips about 305 BCE, oldest decimal multiplication table"
+    ]
+   },
+   {
+    "sourceId": "SCI-057",
+    "claims": [
+     "Carbon-dated about 305 BCE, Warring States"
+    ]
+   },
+   {
+    "sourceId": "SCI-058",
+    "claims": [
+     "Fangcheng on a counting board; positive and negative procedure"
+    ]
+   },
+   {
+    "sourceId": "SCI-059",
+    "claims": [
+     "Red and black rods; Nine Chapters dating debated"
+    ]
+   }
+  ],
+  "uncertainty": "The node's ~400 BCE anchor for physical rods (a Chu tomb at Changsha) was not confirmed this session. The Nine Chapters' compilation date is debated (first century BCE to first century CE; earliest surviving commentary 263 CE).",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results (2026-10-22) recorded in sources; pages not opened (WebFetch unavailable). Claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: that a blank column marked zero; dating the Nine Chapters' compilation to Han times."
+  },
+  "mechanicLink": "NEW node, PROPOSED: requires chinese_script and on completion writes a knowledge row only. With geometry_practical it opens algebra as an alternative to hindu_arabic, and through algebra it can satisfy the research stage atom."
+ },
+ {
+  "id": "hindu_arabic",
+  "tree": "technology",
+  "description": "Indian mathematicians developed decimal place-value numerals with a sign for zero by the mid-first millennium CE, and in 628 Brahmagupta set out rules for calculating with zero and negative numbers. Al-Khwarizmi's treatise on Indian reckoning, written in Baghdad around 820, spread the system westward, and Fibonacci's Liber Abaci of 1202 promoted it in a Europe still using Roman numerals.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "SCI-060",
+    "claims": [
+     "Brahmagupta 628 treats zero as a number"
+    ]
+   },
+   {
+    "sourceId": "SCI-061",
+    "claims": [
+     "First rules for zero and negative numbers"
+    ]
+   },
+   {
+    "sourceId": "SCI-062",
+    "claims": [
+     "Al-Khwarizmi in Baghdad around 820; book on Hindu numerals"
+    ]
+   },
+   {
+    "sourceId": "SCI-063",
+    "claims": [
+     "Liber Abaci 1202 introduced the numerals to Europe"
+    ]
+   }
+  ],
+  "uncertainty": "The emergence of the full place-value system with zero in India is dated from inscriptions and texts of the fifth to seventh centuries; the precise date is debated.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results (2026-10-22) recorded in sources; pages not opened (WebFetch unavailable). Claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: development of Indian decimal place-value numerals with zero by the mid-first millennium CE (the node's ~500 CE anchor)."
+  },
+  "mechanicLink": "Realized today (unlock-audit class B): A6 supporting fact a6_numerals. Prerequisite brahmi; prerequisite of double_entry and trigonometry and, under the proposal, one of two OR routes into algebra."
+ },
+ {
+  "id": "algebra",
+  "tree": "technology",
+  "description": "Algebra finds unknown quantities by general rules. In Baghdad around 820, al-Khwarizmi gave the first systematic treatment of linear and quadratic equations, justifying steps geometrically, and his title gave the subject its name. In India Brahmagupta had already given rules for zero and negatives; in China, Qin Jiushao (1247) and Zhu Shijie (1303) solved high-degree equations.",
+  "wordCount": 56,
+  "sources": [
+   {
+    "sourceId": "SCI-062",
+    "claims": [
+     "Al-Khwarizmi around 820; first systematic solution of linear and quadratic equations; geometric justification"
+    ]
+   },
+   {
+    "sourceId": "SCI-061",
+    "claims": [
+     "Brahmagupta's rules for zero and negative numbers"
+    ]
+   },
+   {
+    "sourceId": "SCI-065",
+    "claims": [
+     "Qin Jiushao 1247; Zhu Shijie reduced systems to one polynomial"
+    ]
+   },
+   {
+    "sourceId": "SCI-064",
+    "claims": [
+     "Jade Mirror 1303, up to four unknowns"
+    ]
+   }
+  ],
+  "uncertainty": "Algebra had several independent roots (Babylonian problem texts, Indian, Chinese, Islamic); 'first systematic' refers to al-Khwarizmi's treatise and is a common historians' characterisation.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Claims compared with summarized WebSearch results (2026-10-22) recorded in sources; pages not opened (WebFetch unavailable). Claims listed in notes rest on general knowledge and were not corroborated this session.",
+   "notes": "General knowledge, not corroborated: that 'algebra' comes from al-jabr in al-Khwarizmi's title (stated in one summary of a weak source)."
+  },
+  "mechanicLink": "Realized today (unlock-audit class D): university building and the research stage atom (OR'd with geometry_axiomatic); prerequisite of calculus and mechanics_newtonian. PROPOSED rewire: (hindu_arabic OR counting_rods) AND geometry_practical, so the stage no longer requires Greek axiomatic geometry."
+ }
+]

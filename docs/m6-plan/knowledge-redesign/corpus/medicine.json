@@ -1,0 +1,496 @@
+[
+ {
+  "id": "trepanation",
+  "tree": "technology",
+  "description": "Trepanation is the deliberate removal of a piece of the skull vault by scraping, grooving or drilling, first with stone tools. Healed bone edges show that many patients survived. A burial at Ensisheim, Alsace, dated about 5100-4900 BCE, is among the earliest widely accepted cases, and the practice arose independently elsewhere, notably in the pre-Columbian Andes.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "An earlier Mesolithic case at Vasilyevka II, Ukraine (about 7300-6200 cal BCE), has been argued but is debated. Why trepanation was performed (injury, headache, ritual) is usually unknown and probably varied.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Ensisheim dating; survival shown by healed edges; independent Andean practice; tool techniques."
+  },
+  "mechanicLink": "Knowledge-only (capability string 'cranial surgery'); PROPOSED at most a negligible head-injury survival term if the M9 health model carries injury mortality, and possibly none; off every gate."
+ },
+ {
+  "id": "medicine_recorded",
+  "tree": "technology",
+  "description": "Medical texts fixed treatments in writing, so remedies could be copied and taught beyond one healer's memory. A Sumerian clay tablet from Nippur, of about 2100 BCE, lists prescriptions. The Egyptian Edwin Smith papyrus, copied about 1600 BCE from older material, sets out 48 injury cases in order: examination, diagnosis, a verdict on treatability, then treatment.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Dates of the Nippur tablet and of the Edwin Smith papyrus's lost originals are approximate; writing-based medicine also developed separately in China, where surviving manuscripts are later.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Nippur tablet date and content; Edwin Smith papyrus date, 48 cases and case structure."
+  },
+  "mechanicLink": "Knowledge-only today ('transmissible treatment', 'surgical procedure record'); prerequisite of clinical medicine and so on the cheapest route to the research stage and the university."
+ },
+ {
+  "id": "medicine_hippocratic",
+  "tree": "technology",
+  "description": "Clinical medicine treats illness as a natural process to be observed at the bedside, recorded and reasoned about, not only as divine action. Several traditions systematised it in the first millennium BCE: the Hippocratic writings of Greece, from about 430 BCE; Ayurvedic compendia attributed to Charaka and Sushruta in India; and China's Inner Canon of the Yellow Emperor.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "The Indian and Chinese texts were compiled over centuries and their dates are debated; the node's emerged field gives about 600 BCE for India and about 200 BCE for China as indicative only. The traditions developed largely independently.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Hippocratic writings from about 430 BCE; attribution of compendia to Charaka and Sushruta; Inner Canon; naturalistic approach."
+  },
+  "mechanicLink": "Realized today: the research-stage atom and a requirement of building.university, building.hospital and inst.hospital; PROPOSED M9 gives hospitals a Health-need and case-fatality consumer once the disease model exists."
+ },
+ {
+  "id": "pharmacology",
+  "tree": "technology",
+  "description": "A pharmacopoeia is a systematic catalogue of medicinal substances: what each is, where it comes from, how it is prepared and what it treats. The Greek physician Dioscorides compiled De materia medica in the first century CE, describing about 600 plants, and it was copied for some fifteen centuries. China's Shennong herbal classic and Indian compendia built comparable traditions.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The Shennong bencao jing was compiled around the Han period (the emerged field gives about 200 CE) from older material; plant counts in De materia medica vary by manuscript and edition.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Dioscorides first century CE; about 600 plants; long copying history; Shennong text dating."
+  },
+  "mechanicLink": "Deferred to M9: the knowledge half of building.hospital and inst.hospital; PROPOSED a founded hospital supplies the Health need and lowers case fatality and base mortality in its coverage area."
+ },
+ {
+  "id": "surgery_instruments",
+  "tree": "technology",
+  "description": "A surgical instrument set is a standardised kit of specialised tools: scalpels, probes, forceps, hooks, specula and bone levers, usually of bronze or iron. Roman sets survive from Pompeii, buried in 79 CE, and from a second-century doctor's grave at Bingen, Germany. Indian texts in the Sushruta tradition also list instruments. Roman legionary forts had dedicated hospitals.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Instrument lists in the Sushruta tradition are hard to date; Roman military hospitals (valetudinaria) are known mainly from fort plans, and their staffing is partly inferred.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Pompeii and Bingen finds and dates; instrument types and metals; Sushruta instrument lists; legionary hospitals."
+  },
+  "mechanicLink": "Deferred: knowledge half of inst.military_medicine; PROPOSED M7 a military hospital lowers the killed share of battle casualties and returns wounded to strength, and M9 adds a small trauma and cataract-surgery term."
+ },
+ {
+  "id": "inoculation",
+  "tree": "technology",
+  "description": "Variolation protected against smallpox by deliberately infecting a healthy person with material from a smallpox sore or scab, usually producing a milder illness and lasting immunity. It was practised in China, where powdered scabs were blown into the nose, and in India, the Ottoman world and West Africa before reaching Britain in 1721. Recipients could still die or infect others.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Chinese practice is documented by the sixteenth century and possibly earlier; dates for India and Africa are uncertain. The mortality of variolation (about 0.5-2 % of recipients, against 20-30 % for natural smallpox) is cited in the node record, not checked here.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Chinese nasal method; practice in India, Ottoman world, West Africa; arrival in Britain 1721; risk of death and transmission."
+  },
+  "mechanicLink": "Knowledge-only ('immunisation'); PROPOSED M9 susceptibility channel moves a share of smallpox-class susceptibles to immune at the cost of induced cases and onward transmission, with coverage set by adoption."
+ },
+ {
+  "id": "anatomy_dissection",
+  "tree": "technology",
+  "description": "Systematic anatomy describes the body's structures from repeated human dissection rather than inherited authority. Andreas Vesalius's De humani corporis fabrica, printed in Basel in 1543, corrected errors that Galen had drawn partly from animal dissection and set its text beside detailed woodcut plates. Human dissection had been taught in Italian universities since the early fourteenth century.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "This node is the structural-anatomy part of a split; blood circulation now belongs to the physiology node. How far printing made the Fabrica's method systematic is an inference in the node record.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Fabrica printed Basel 1543; Galen's reliance on animal dissection; woodcut plates; teaching dissection in Italy from the early 1300s."
+  },
+  "mechanicLink": "Knowledge-only ('accurate surgery'); prerequisite of surgical anaesthesia and of physiology in the PROPOSED split, which moves the circulation of the blood to the new physiology node."
+ },
+ {
+  "id": "physiology",
+  "tree": "technology",
+  "description": "Physiology studies how the body's parts work, not only what they look like. William Harvey's De motu cordis (1628) used ligature experiments and estimates of how much blood the heart pumps to show that blood circulates continuously. Ibn al-Nafis had described the blood's passage through the lungs in thirteenth-century Cairo. Capillaries, which closed Harvey's circuit, were first seen in 1661.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Whether Ibn al-Nafis's account influenced later European writers is debated. Capillaries were reported by Marcello Malpighi in 1661.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: De motu cordis 1628 and Harvey's methods; Ibn al-Nafis pulmonary transit; capillaries 1661."
+  },
+  "mechanicLink": "PROPOSED new node (split from anatomy_dissection), knowledge-only ('circulation of the blood', 'experimental physiology'); prerequisite of endocrinology and of blood transfusion."
+ },
+ {
+  "id": "vaccination",
+  "tree": "technology",
+  "description": "Vaccination replaced smallpox material with cowpox, a related cattle disease, giving protection without variolation's risk of severe smallpox. Edward Jenner tested it in England in 1796, drawing on the rural belief that milkmaids who caught cowpox escaped smallpox; the farmer Benjamin Jesty had tried it in 1774. Vaccination spread worldwide within decades. Smallpox eradication was certified in 1980.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Jenner was not the first to use cowpox but the first to test and publish it systematically. Eradication was the outcome of a coordinated WHO programme (1967-1977), not of the knowledge alone.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Jenner 1796; Jesty 1774; milkmaid belief; worldwide spread within decades; eradication certified 1980."
+  },
+  "mechanicLink": "Knowledge-only ('smallpox control'); PROPOSED M9 susceptibility channel without variolation's induced deaths; eradication needs a coordinated vaccination programme (an M8/M9 policy or institution), not knowledge alone."
+ },
+ {
+  "id": "anaesthesia",
+  "tree": "technology",
+  "description": "Surgical anaesthesia makes a patient insensible to pain for the length of an operation. In Boston in 1846, William Morton publicly demonstrated ether during surgery at Massachusetts General Hospital, and chloroform followed in Edinburgh in 1847. In Japan, Hanaoka Seishū had operated under an herbal general anaesthetic in 1804. Painless surgery permitted slower, more deliberate operations.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Priority is disputed: Crawford Long used ether in Georgia from 1842 but published later, and Horace Wells tried nitrous oxide in 1845. Hanaoka's method did not spread beyond Japan.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Morton 1846 at Massachusetts General Hospital; chloroform Edinburgh 1847; Hanaoka 1804."
+  },
+  "mechanicLink": "Knowledge-only ('long, deliberate surgery'); PROPOSED M9 operative-mortality term with hospitals; prerequisite of antiseptic surgery."
+ },
+ {
+  "id": "germ_theory",
+  "tree": "technology",
+  "description": "Germ theory holds that specific microorganisms cause specific infectious diseases. Microbes had been seen through Leeuwenhoek's microscopes in the 1670s, but evidence for disease causation came between about 1860 and 1880. Louis Pasteur linked microbes to fermentation and spoilage, and Robert Koch tied anthrax (1876) and then tuberculosis (1882) to identified bacteria using culture and staining.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Earlier contagion ideas (for example Fracastoro, 1546) preceded the theory; acceptance was gradual and contested into the 1880s and beyond.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Leeuwenhoek 1670s; Pasteur fermentation work; Koch anthrax 1876 and tuberculosis 1882; culture and staining methods."
+  },
+  "mechanicLink": "Realized today: A8 supporting Age fact (a8_germ) and requirement of infra.sewerage_system; PROPOSED M9 transmission channel in which hygiene and sanitation lower transmission where realized."
+ },
+ {
+  "id": "antisepsis",
+  "tree": "technology",
+  "description": "Antiseptic surgery applied germ theory to wounds. In Glasgow from 1867, Joseph Lister treated dressings, instruments and incisions with carbolic acid and reported fewer infections after compound fractures. Aseptic practice later aimed to keep germs out entirely, with sterilised instruments, gowns and gloves. Together with anaesthesia, it made abdominal and other long operations survivable far more often.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Ignaz Semmelweis had cut childbed-fever deaths in Vienna by handwashing in 1847, before germ theory, but his explanation was not accepted. The shift from antiseptic to aseptic technique took place gradually in the 1880s-1890s.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Lister Glasgow 1867, carbolic acid, compound fractures; later asepsis; survival of abdominal surgery."
+  },
+  "mechanicLink": "Knowledge-only ('abdominal surgery', 'survival of wounds'); PROPOSED M9 surgical and wound-infection case-fatality term with hospitals; prerequisite of organ transplantation."
+ },
+ {
+  "id": "epidemiology",
+  "tree": "technology",
+  "description": "Epidemiology studies how disease is distributed across populations and why. In 1662 John Graunt analysed London's bills of mortality, counting deaths by cause. In 1854 John Snow mapped cholera deaths around a Soho water pump and compared water companies' customers, arguing that cholera spread through water. Randomised trials, such as Britain's 1948 streptomycin trial, extended its comparative method.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Snow's waterborne explanation was not widely accepted at the time; the cholera bacterium was identified later (Pacini 1854, Koch 1883). Population counting and controlled comparison have several precursors.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Graunt 1662 bills of mortality; Snow 1854 Soho pump and water-company comparison; 1948 MRC streptomycin trial."
+  },
+  "mechanicLink": "PROPOSED new node, knowledge-only: in the M9 transmission channel surveillance shortens the delay before quarantine or water-source interventions act and improves their targeting; knowledge basis for inst.statistics_vital and a pre-germ-theory route to sanitation."
+ },
+ {
+  "id": "antibiotic_penicillin",
+  "tree": "technology",
+  "description": "Penicillin was the first antibiotic to be produced industrially. Alexander Fleming noticed in London in 1928 that a Penicillium mould killed bacteria around it. Howard Florey, Ernst Chain and colleagues at Oxford purified it and showed its effect in patients in 1940-41. Wartime deep-tank fermentation in the United States made mass production possible by 1943-44.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "The node bundles discovery (1928) with industrial production (1943); credit for the work is shared among many researchers and firms, and civilian availability came later than military supply.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Fleming 1928; Oxford purification and trials 1940-41; US deep-tank fermentation by 1943-44."
+  },
+  "mechanicLink": "Realized today: A9 supporting Age fact (a9_antibiotics); PROPOSED M9 case-fatality channel for bacterial infection (wounds, pneumonia, puerperal sepsis) with hospitals."
+ },
+ {
+  "id": "antibiotic_broad",
+  "tree": "technology",
+  "description": "Later antibiotics widened the range of bacteria that drugs could treat. Streptomycin, isolated from a soil microbe in Selman Waksman's laboratory in 1943, was the first effective drug against tuberculosis. Chloramphenicol (1947) and the tetracyclines (from 1948) followed, found by screening soil organisms and made with fermentation methods developed for penicillin.",
+  "wordCount": 51,
+  "sources": [],
+  "uncertainty": "Credit for streptomycin was disputed between Waksman and his student Albert Schatz. 'Broad-spectrum' strictly fits chloramphenicol and tetracyclines better than streptomycin.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Streptomycin 1943 from Waksman's laboratory; first effective tuberculosis drug; chloramphenicol 1947; tetracyclines 1948; soil screening and fermentation."
+  },
+  "mechanicLink": "Knowledge-only ('tuberculosis curable', 'routine surgery'); PROPOSED M9 term for endemic bacterial burden in adult base mortality and case fatality; prerequisite of genetic engineering and antibiotic resistance management."
+ },
+ {
+  "id": "antibiotic_resistance",
+  "tree": "technology",
+  "description": "Antibiotic resistance arises because drugs select for bacteria that survive them. A penicillin-destroying enzyme was described in 1940, and resistant staphylococci spread through hospitals in the 1950s. Britain's 1948 streptomycin trial showed tuberculosis becoming resistant under single-drug treatment, which led to combination therapy. Managing resistance relies on surveillance, prudent prescribing and new drugs.",
+  "wordCount": 53,
+  "sources": [],
+  "uncertainty": "Dating 'resistance management' as a body of practice is approximate (the node gives about 1960); stewardship programmes became formal much later and vary widely by country.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Penicillinase 1940; hospital staphylococci 1950s; 1948 trial and combination therapy."
+  },
+  "mechanicLink": "Knowledge-only ('sustaining antibiotic efficacy'); PROPOSED M9: if antibiotic efficacy decays as resistance accumulates with use, this knowledge slows that decay; PROPOSED prerequisite change adds epidemiology."
+ },
+ {
+  "id": "vaccine_lab",
+  "tree": "technology",
+  "description": "Laboratory vaccines are made by deliberately weakening or killing pathogens grown under controlled conditions. Louis Pasteur produced attenuated vaccines against chicken cholera and anthrax between 1879 and 1881, and gave a rabies vaccine to a person in 1885. Growing viruses in cell culture later enabled Jonas Salk's inactivated polio vaccine, licensed in 1955.",
+  "wordCount": 53,
+  "sources": [],
+  "uncertainty": "Pasteur's anthrax method drew on, and competed with, work by others (notably Toussaint). Large falls in childhood deaths depended on vaccination programmes and coverage, not on laboratory knowledge alone.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Pasteur chicken cholera and anthrax 1879-1881; rabies 1885; cell culture; Salk vaccine licensed 1955."
+  },
+  "mechanicLink": "Knowledge-only ('childhood mortality collapse'); PROPOSED M9 susceptibility channel for childhood diseases, whose size depends on vaccination programmes (adoption)."
+ },
+ {
+  "id": "blood_transfusion",
+  "tree": "technology",
+  "description": "Blood transfusion replaces lost blood from a donor. Richard Lower transfused blood between dogs in 1665 and early human attempts followed, but many ended in harm. Karl Landsteiner's discovery of the ABO blood groups in Vienna in 1901 explained the dangerous reactions. Cross-matching, citrate anticoagulant from 1914 and cold storage made blood banks possible, including Chicago's in 1937.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Several hospitals claim early blood banks; Chicago's Cook County Hospital (1937) is often cited as the first in the United States. Citrate was introduced by several workers around 1914-1915.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Lower 1665; ABO groups 1901; citrate 1914; Chicago blood bank 1937."
+  },
+  "mechanicLink": "Knowledge-only ('surgical and trauma survival'); PROPOSED prerequisite repair to immunology AND physiology; PROPOSED M9 haemorrhage case-fatality term with hospitals and blood banks."
+ },
+ {
+  "id": "hormonal_contraception",
+  "tree": "technology",
+  "description": "The oral contraceptive uses synthetic hormones resembling progesterone to stop ovulation. It joined reproductive endocrinology to steroid chemistry: Russell Marker's route from Mexican wild yams made steroids cheap, and norethindrone was synthesised in Mexico City in 1951. Gregory Pincus, John Rock and colleagues ran clinical trials, and a pill was first approved for contraception in the United States in 1960.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Several laboratories and many trial participants contributed; the first approved pill (Enovid) used a related progestin, norethynodrel. Legal access and uptake differed greatly between countries and decades.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Marker's yam route; norethindrone 1951 Mexico City; Pincus and Rock trials; US approval 1960."
+  },
+  "mechanicLink": "Knowledge-only ('fertility as a chosen variable'); PROPOSED prerequisite repair to endocrinology AND synthetic_dye; PROPOSED M9 fertility channel where adoption (culture, religion, policy) allows, with no birth changed by knowledge alone."
+ },
+ {
+  "id": "xray",
+  "tree": "technology",
+  "description": "X-rays are invisible, penetrating radiation that Wilhelm Röntgen discovered on 8 November 1895 while experimenting with a cathode-ray tube in Würzburg. Because bone absorbs them more strongly than soft tissue, his early images showed the bones of a hand. Within months doctors used radiographs to locate fractures and embedded bullets. Early operators, unaware of the hazard, suffered serious radiation injuries.",
+  "wordCount": 60,
+  "sources": [
+   {
+    "sourceId": "NUC-13",
+    "claims": [
+     "X-rays discovered on 8 November 1895 during cathode-ray-tube experiments",
+     "Early radiographs showed the bones of a hand"
+    ]
+   },
+   {
+    "sourceId": "NUC-133",
+    "claims": [
+     "Early X-ray operators suffered serious radiation injuries (Edison's assistant Clarence Dally)"
+    ]
+   }
+  ],
+  "uncertainty": null,
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "Discovery date, cathode-ray-tube setting, hand radiographs and operator injuries compared with summarized search results in existing register entries NUC-13 and NUC-133 (reused by id; retrieved by an earlier lane on 2026-10-22, pages not opened). Remaining claims rest on general knowledge, listed in notes.",
+   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Würzburg as location; medical use within months to locate fractures and bullets; differential absorption by bone as the stated mechanism."
+  },
+  "mechanicLink": "Knowledge-only ('diagnosis', 'crystallography'); PROPOSED M9 diagnostic coefficient inside treatment terms (fractures, tuberculosis detection); prerequisite of cross-sectional imaging and of scientific nodes in other lanes."
+ },
+ {
+  "id": "organ_transplant",
+  "tree": "technology",
+  "description": "Organ transplantation replaces a failing organ with one from a donor. In Boston in 1954, Joseph Murray's team transplanted a kidney between identical twins, avoiding immune rejection. Transplants between unrelated people needed drugs to suppress rejection: azathioprine in the early 1960s, then cyclosporine, approved in the early 1980s, which greatly improved survival of kidney, liver and heart grafts.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Earlier kidney transplants (from the 1930s) failed through rejection; the node's 1954 date marks surgical success, while durable unrelated-donor transplants depended on later immunosuppressants.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Murray 1954 identical twins in Boston; azathioprine early 1960s; cyclosporine approval early 1980s; improved graft survival."
+  },
+  "mechanicLink": "Knowledge-only ('organ failure survivable'); PROPOSED M9 small base-mortality term for organ failure in older cohorts, with hospitals."
+ },
+ {
+  "id": "chemotherapy",
+  "tree": "technology",
+  "description": "Cancer chemotherapy treats tumours with drugs that kill dividing cells. Paul Ehrlich had coined the word for synthetic drugs against microbes. In the 1940s nitrogen mustards were tested against lymphoma, and in 1948 Sidney Farber reported temporary remissions in children with leukaemia using aminopterin, an antifolate. Combination regimens later cured many childhood leukaemias and Hodgkin lymphoma.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "The lineage from sulfonamide antimetabolite research to antifolate cancer drugs is partly an inference in the node record. Cure rates vary greatly by cancer type and period.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Ehrlich's coinage; nitrogen mustards 1940s; Farber 1948 aminopterin remissions; combination cures."
+  },
+  "mechanicLink": "Knowledge-only ('cancer treatment'); PROPOSED prerequisite repair to sulfonamides and material re-score; PROPOSED M9 term for cancer deaths in older cohorts, with hospitals."
+ },
+ {
+  "id": "medical_imaging",
+  "tree": "technology",
+  "description": "Cross-sectional imaging shows slices through the body instead of overlapping shadows. Godfrey Hounsfield's computed tomography scanner, which rotated an X-ray source and detectors and rebuilt the image by computer, scanned its first patient in London in 1971. Magnetic resonance imaging uses strong magnetic fields and radio waves, not ionising radiation, and produced its first human body scan in 1977.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Allan Cormack developed the mathematics of tomography independently; credit for MRI is divided (Lauterbur and Mansfield received the 2003 Nobel Prize; Damadian made the 1977 body scan). The node bundles CT and MRI.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Hounsfield CT and first patient 1971; MRI principle; first human body scan 1977."
+  },
+  "mechanicLink": "Knowledge-only ('non-invasive diagnosis'); PROPOSED material re-score; PROPOSED M9 diagnostic coefficient inside cancer and trauma treatment terms where hospitals cover the settlement."
+ },
+ {
+  "id": "antiviral_drugs",
+  "tree": "technology",
+  "description": "Antiviral drugs interfere with a virus's own replication while sparing the patient's cells. Acyclovir, developed at Burroughs Wellcome from 1974 with Gertrude Elion's team, is activated mainly inside herpes-infected cells. Zidovudine became the first approved HIV drug in 1987, and from 1996 combinations of drugs with different targets made HIV a manageable chronic infection where treatment was available.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Access to HIV combination therapy reached much of the world only in the 2000s and remains uneven. Earlier antivirals (for example idoxuridine, 1960s) had limited use.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Acyclovir 1974, Burroughs Wellcome, Elion; activation in infected cells; zidovudine 1987; combination therapy 1996."
+  },
+  "mechanicLink": "Knowledge-only ('viral disease treatable'); PROPOSED material re-score; PROPOSED M9 case-fatality and chronic-burden term for viral infection, with hospitals."
+ },
+ {
+  "id": "monoclonal_antibodies",
+  "tree": "technology",
+  "description": "Monoclonal antibodies are identical antibodies made by a single cloned cell line, all binding one chosen target. In 1975 Georges Köhler and César Milstein in Cambridge fused antibody-producing cells with myeloma cells, creating immortal 'hybridoma' lines. Engineered versions became precise diagnostic reagents and, from the late 1980s and 1990s, medicines against cancers and autoimmune diseases.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "The first therapeutic monoclonal antibody was approved in 1986 (muromonab, against transplant rejection); wide therapeutic use came with humanised and chimeric antibodies from the late 1990s.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Köhler and Milstein 1975 Cambridge; hybridoma method; diagnostic and therapeutic uses from late 1980s-1990s."
+  },
+  "mechanicLink": "Knowledge-only ('targeted therapy', 'precise diagnostics'); PROPOSED prerequisite repair to dna_structure AND immunology; PROPOSED M9 base-mortality term for cancer and autoimmune disease with hospitals, plus a diagnostic coefficient."
+ },
+ {
+  "id": "ivf",
+  "tree": "technology",
+  "description": "In-vitro fertilisation joins egg and sperm outside the body and returns the resulting embryo to the uterus. It rests on reproductive endocrinology, which allows ovulation to be timed or stimulated, and on embryo culture. Louise Brown, the first child born after IVF, was born in England in 1978 after work by Robert Edwards and Patrick Steptoe, using a natural cycle.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Ovarian stimulation, rather than the natural cycle used in 1978, became standard in the 1980s. Access depends heavily on cost, law and religion.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Louise Brown 1978; Edwards and Steptoe; natural-cycle method."
+  },
+  "mechanicLink": "Knowledge-only ('assisted reproduction'); PROPOSED prerequisite repair to endocrinology; PROPOSED small M9 fertility term (infertility treatment) where adoption allows."
+ },
+ {
+  "id": "mrna_vaccines",
+  "tree": "technology",
+  "description": "An mRNA vaccine delivers genetic instructions, packaged in lipid nanoparticles, so that the body's own cells make a viral protein and prime the immune system. It drew on decades of work, including chemically modified nucleosides that reduce unwanted inflammation (Karikó and Weissman, 2005). After the SARS-CoV-2 genome was published in January 2020, authorised vaccines were in use by that December.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Many groups contributed to mRNA delivery and design over thirty years; the speed of 2020 also reflected funding, parallel manufacturing and earlier coronavirus research. Global access was uneven.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Lipid nanoparticle delivery; Karikó and Weissman 2005; genome publication January 2020; authorisation December 2020."
+  },
+  "mechanicLink": "Knowledge-only ('rapid vaccine design'); PROPOSED M9 epidemic response: shortens the delay between a novel epidemic and vaccine availability, when the susceptibility channel can start acting."
+ },
+ {
+  "id": "oral_rehydration",
+  "tree": "technology",
+  "description": "Oral rehydration therapy treats the dehydration of diarrhoeal diseases such as cholera with a drink of clean water, salts and glucose. Glucose helps the gut absorb sodium, and water follows, even during infection. Trials in Dhaka and Calcutta in the late 1960s showed that it worked, and during the 1971 Bangladesh refugee crisis it sharply reduced cholera deaths.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "The physiological basis (sodium-glucose co-transport) was established in the early 1960s by several groups; global uptake depended on health-worker programmes from the late 1970s.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Composition; sodium-glucose mechanism; Dhaka and Calcutta trials late 1960s; 1971 refugee camps."
+  },
+  "mechanicLink": "Knowledge-only ('child mortality from diarrhoea collapses'); PROPOSED M9 case-fatality term for diarrhoeal disease in child cohorts (0-9), with reach set by adoption through health workers."
+ },
+ {
+  "id": "frontier_medicine",
+  "tree": "technology",
+  "description": "Biomedical research is the continuing, organised effort to understand disease at the level of genes, cells and populations and to turn that understanding into treatment. Since the late twentieth century it has drawn on genome sequencing, large clinical trials and computing. Its results arrive unevenly: some conditions became treatable or preventable, while others, including many dementias, still resist.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "As a repeatable node it stands for open-ended research rather than a dated discovery.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Use of genome sequencing, large trials and computing; dementia example."
+  },
+  "mechanicLink": "Repeatable node; repeat effects are deferred by D-046; once ruled, each level would enter the M9 base-mortality channel ('longer lives per level')."
+ },
+ {
+  "id": "endocrinology",
+  "tree": "technology",
+  "description": "Endocrinology studies hormones, chemical messengers that glands release into the blood. In London in 1902, William Bayliss and Ernest Starling showed that secretin from the intestine triggers pancreatic secretion; Starling introduced the word hormone in 1905. In Toronto in 1922, a team of Frederick Banting, Charles Best, James Collip and John Macleod first treated a diabetic patient with purified insulin.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Gland extracts were used earlier (thyroid extract for myxoedema, 1891). Credit for insulin was disputed within the Toronto team.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Bayliss and Starling 1902 secretin; 'hormone' 1905; Toronto insulin 1922 and team members."
+  },
+  "mechanicLink": "PROPOSED new node, knowledge-only ('insulin therapy', 'hormone replacement'); PROPOSED M9 base-mortality term for diabetes and endocrine disease in adult cohorts; prerequisite of the oral contraceptive and IVF."
+ },
+ {
+  "id": "immunology",
+  "tree": "technology",
+  "description": "Immunology studies the body's defences against infection and foreign material. In Berlin in 1890, Emil von Behring and Kitasato Shibasaburō showed that serum from immunised animals neutralised diphtheria and tetanus toxins, founding serum therapy. In Vienna in 1901, Karl Landsteiner used the clumping of red cells by serum to identify blood groups, later central to transfusion and diagnosis.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Immunology has several roots (Metchnikoff's cellular theory, Ehrlich's antibody theory); the node dates it from serum therapy and serology.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Behring and Kitasato 1890 Berlin antitoxin; Landsteiner 1901 Vienna blood groups."
+  },
+  "mechanicLink": "PROPOSED new node, knowledge-only; PROPOSED M9 case-fatality term for toxin diseases (diphtheria antitoxin) with hospitals; prerequisite of blood transfusion and monoclonal antibodies."
+ },
+ {
+  "id": "sulfonamides",
+  "tree": "technology",
+  "description": "Sulfonamides were the first synthetic drugs to cure common bacterial infections inside the body. At Bayer's laboratories in Elberfeld, Germany, Gerhard Domagk found in 1932 that the red dye Prontosil protected mice from streptococci; results appeared in 1935. Researchers in Paris then showed that the active part was sulfanilamide. Deaths from childbed fever fell from the mid-1930s.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Bayer was then part of IG Farben, and the chemists Klarer and Mietzsch synthesised the dye. Ehrlich's arsenical Salvarsan (1910) was an earlier synthetic antimicrobial, against syphilis.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "No comparison possible: written from general knowledge with cautious wording; no source retrieved this session.",
+   "notes": "WebSearch budget for this run was exhausted before any search for this batch (the first query on 2026-10-22 returned 'search budget used up'); WebFetch is blocked. No new source was retrieved, so none is cited. Uncorroborated: Domagk 1932 Elberfeld; Prontosil publication 1935; Paris sulfanilamide finding; mid-1930s fall in puerperal-sepsis deaths (cited in the node record from Loudon 1987, not checked)."
+  },
+  "mechanicLink": "PROPOSED new node, knowledge-only; PROPOSED M9 case-fatality term for bacterial infection, including childbirth-linked deaths in fertile cohorts; prerequisite of chemotherapy."
+ }
+]

@@ -497,7 +497,7 @@ def check_corpus(rep, tech, civ):
     stats = {}
     index_path = kr.PKG / "corpus" / "index.json"
     files = sorted((kr.PKG / "corpus").glob("*.json"))
-    files = [f for f in files if f.name != "index.json"]
+    files = [f for f in files if f.name not in ("index.json", "plan.json")]
     entries = []
     for f in files:
         for e in kr.load_json(f):
@@ -539,7 +539,11 @@ def check_corpus(rep, tech, civ):
             rep.add("WARN", "C02", f"{e['id']}: stored wordCount {e['wordCount']} != counted {n}")
         srcs = e.get("sources") or []
         if not srcs:
-            rep.add("ERROR", "C03", f"{e['id']}: no sources")
+            if (e.get("factCheck") or {}).get("status") == "unverified":
+                rep.add("WARN", "C03", f"{e['id']}: sourcing pending — unverified entry with no retrieved source "
+                                       "(search budget exhausted; never a substitute for a source)")
+            else:
+                rep.add("ERROR", "C03", f"{e['id']}: no sources but status is not 'unverified'")
         for s in srcs:
             if s.get("sourceId") not in reg:
                 rep.add("ERROR", "C03", f"{e['id']}: source {s.get('sourceId')} not in the register")

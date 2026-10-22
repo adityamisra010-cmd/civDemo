@@ -1,0 +1,975 @@
+[
+ {
+  "id": "SCI-001",
+  "title": "Emotional bond between humans and dogs goes back 14,000 years",
+  "author_org": "Leiden University (news)",
+  "published": "2018",
+  "url": "https://www.universiteitleiden.nl/en/news/2018/02/emotional-bond-between-humans-and-dogs-goes-back-14000-years",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Bonn-Oberkassel dog buried with two humans about 14,000 years ago",
+   "The young dog had canine distemper; its survival is argued to imply human care"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full. Summarises Janssens et al., Journal of Archaeological Science 2018 (doi 10.1016/j.jas.2018.01.004)."
+ },
+ {
+  "id": "SCI-002",
+  "title": "Archaeologists re-examine the famous 14,000 year old dog of Bonn-Oberkassel, Germany",
+  "author_org": "UCL Human Evolution (news)",
+  "published": "2018",
+  "url": "https://www.ucl.ac.uk/human-evolution/news/bonn-oberkassel-dog-death-disease-feb-2018",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Bonn-Oberkassel dog dated 14,223 plus or minus 58 years",
+   "Oldest known domestic dog burial"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-003",
+  "title": "Domestication of the dog",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Domestication_of_the_dog",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Genetic estimates of the dog-wolf divergence vary between studies (roughly 15,000 to 40,000 years)",
+   "Whether dogs were domesticated once or several times is debated",
+   "Bonn-Oberkassel is the earliest dog most researchers accept"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full. Used to locate and frame the contested range only, not as sole authority."
+ },
+ {
+  "id": "SCI-004",
+  "title": "A 100,000-year-old ochre-processing workshop at Blombos Cave, South Africa (Henshilwood et al., Science 2011)",
+  "author_org": "University of South Florida Digital Commons (repository record)",
+  "published": "2011",
+  "url": "https://digitalcommons.usf.edu/kip_articles/115",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Liquefied ochre-rich mixture produced and stored in two abalone (Haliotis midae) shells about 100,000 years ago",
+   "Toolkit included grindstones, hammerstones, bone and charcoal",
+   "Use of the mixture unknown; decoration and skin protection are possibilities"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-005",
+  "title": "Oldest-known 'paint factory' (Blombos Cave, 2011 news release)",
+  "author_org": "ScienceDaily",
+  "published": "2011",
+  "url": "https://www.sciencedaily.com/releases/2011/10/111013141807.htm",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "Ochre was rubbed on quartzite slabs to make powder, then combined with other materials; a bone was probably used to stir"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-006",
+  "title": "Early evidence of San material culture represented by organic artifacts from Border Cave, South Africa (d'Errico et al., PNAS 2012)",
+  "author_org": "PubMed Central",
+  "published": "2012",
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3421171",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Notched bones from Border Cave likely used for notational purposes",
+   "Associated items directly dated to about 42,000-40,000 years before present; press reports give up to 44,000"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-007",
+  "title": "Was the Ishango bone - 'the oldest numerical device' - a mathematical tool? An empirical approach",
+  "author_org": "eScholarship, University of California (Cognitive Science Society proceedings)",
+  "published": "2024",
+  "url": "https://escholarship.org/uc/item/5sk7g51r",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Ishango bone about 20,000 years old",
+   "Tested performance on numerical tasks was well below the precision needed for exact calculation"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-008",
+  "title": "Ishango bone",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Ishango_bone",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Ishango bone about 20,000 years old, found by Jean de Heinzelin in 1950, who argued for simple arithmetic",
+   "Lebombo bone (about 42,000 years) interpreted as a lunar calendar or tally; interpretations contested"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full. Used to locate the debate; contested claims are framed as interpretations."
+ },
+ {
+  "id": "SCI-009",
+  "title": "Time and a place: a luni-solar 'time-reckoner' from 8th millennium BC Scotland (Gaffney et al., Internet Archaeology 34)",
+  "author_org": "Internet Archaeology",
+  "published": "2013",
+  "url": "https://intarch.ac.uk/journal/issue34/1/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Warren Field pit group built in the 8th millennium BC",
+   "Pits interpreted as mimicking lunar phases and tracking lunar months",
+   "Alignment on the south-east horizon at midwinter sunrise"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-010",
+  "title": "The beginning of time?",
+  "author_org": "University of Birmingham (news)",
+  "published": "2013",
+  "url": "https://www.birmingham.ac.uk/news-archive/2013/the-beginning-of-time-1",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Warren Field, Crathes, Aberdeenshire; about 10,000 years old",
+   "Midwinter sunrise alignment allowed the lunar count to be recalibrated annually to the solar year",
+   "Each pit interpreted as a month"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full. Interpretation is the research team's; no independent critique found in search."
+ },
+ {
+  "id": "SCI-011",
+  "title": "Robson and Leick 2007 (chapter on Mesopotamian mathematics and metrology)",
+  "author_org": "Oracc / Digital Corpus of Cuneiform Mathematical Texts",
+  "published": "2007",
+  "url": "https://oracc.museum.upenn.edu/dccmt/downloads/robson-leick-2007.pdf",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Informal calculations on the edges of Ur III accounts show professional scribes adopting sexagesimal place value",
+   "Scribes converted measures into sexagesimal multiples and fractions of a basic unit to calculate"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-012",
+  "title": "Chapter on sexagesimal place-value notation (Springer, 2022)",
+  "author_org": "Springer",
+  "published": "2022",
+  "url": "https://link.springer.com/10.1007/978-3-030-98361-1_5",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Earliest systematic use of place-value notation in mathematical texts dates to the Ur III period, about 2112-2004 BCE",
+   "Positional numbers appear on only a few dozen Ur III administrative tablets, mostly in margins"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-013",
+  "title": "Sumerian metrological numeration systems",
+  "author_org": "St. Lawrence University (D. Melville)",
+  "published": null,
+  "url": "https://myslu.stlawu.edu/~dmel/mesomath/sumerian.html",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Place-value system probably introduced in the Ur III period at the end of the third millennium BCE"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-014",
+  "title": "Early-Dynastic tables from Southern Mesopotamia, or the multiple facets of the quantification of surfaces",
+  "author_org": "arXiv (C. Proust and colleagues)",
+  "published": "2020",
+  "url": "https://arxiv.org/pdf/2011.03406",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Shuruppak (Fara) tables of about 2600 BCE quantify surfaces, giving areas computed from lengths",
+   "VAT 12593 probably produced by the scholarly milieu of Shuruppak"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-015",
+  "title": "Sumerian earliest known math table (VAT 12593)",
+  "author_org": "National Museum of Mathematics (MoMath) with Wolfram",
+  "published": null,
+  "url": "https://wolframcloud.com/obj/history-of-mathematics/production/artifacts/sumerian-earliest-known-math-table",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "VAT 12593, Shuruppak about 2600 BCE, lists lengths with their products as area measures"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-016",
+  "title": "School multiplication tablet (Nippur)",
+  "author_org": "Penn Museum",
+  "published": null,
+  "url": "https://www.penn.museum/collections/object.php?irn=566206",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Nippur school tablet dated about 1900-1600 BCE with a teacher's and a student's copy of the 45 times table, both with errors"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-017",
+  "title": "Old Babylonian multiplication and reciprocal tables",
+  "author_org": "Stony Brook University (catalogue)",
+  "published": null,
+  "url": "https://www.math.stonybrook.edu/~tony/scgp/catalogue/bab-mult.html",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Multiplication and reciprocal tables were standard in scribal schools",
+   "No division tables: division by n was done by multiplying by its reciprocal"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-018",
+  "title": "Plimpton 322",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Plimpton_322",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Early Babylonian notation had no true zero symbol and no sexagesimal point, so magnitude was ambiguous"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-019",
+  "title": "Librado et al. 2021 summary: two horse domestication processes (DOM1, DOM2)",
+  "author_org": "Deutsches Archaeologisches Institut (e-Forschungsberichte)",
+  "published": "2021",
+  "url": "https://publications.dainst.org/journals/efb/article/view/3691",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "DOM1 (Botai) mid-4th millennium BCE in the Kazakh steppe",
+   "DOM2 became dominant across much of western Eurasia around 2200 BCE"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-020",
+  "title": "Outram 2023, Frontiers in Environmental Archaeology (horse domestication review)",
+  "author_org": "Frontiers",
+  "published": "2023",
+  "url": "https://www.frontiersin.org/journals/environmental-archaeology/articles/10.3389/fearc.2023.1134068/full",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Botai horses are not the source of the modern domestic lineage (DOM2) but related to the Przewalski clade",
+   "DOM2 appeared in the Pontic-Caspian steppe, lower Don-Volga, and spread after about 2000 BCE",
+   "Taylor and Barron-Ortiz argue Botai shows intensive exploitation rather than full domestication"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-021",
+  "title": "The genomic history and global expansion of domestic donkeys (Todd et al., Science 2022)",
+  "author_org": "Bar-Ilan University research portal",
+  "published": "2022",
+  "url": "https://cris.biu.ac.il/en/publications/the-genomic-history-and-global-expansion-of-domestic-donkeys/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "207 modern and 31 ancient donkey genomes analysed",
+   "Single domestication in Africa about 5000 BCE, followed by expansions into Eurasia"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-022",
+  "title": "Domestication of the donkey: timing, processes, and indicators (Rossel et al., PNAS 2008)",
+  "author_org": "PubMed Central",
+  "published": "2008",
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC2268817",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Ten donkeys buried in three graves in an early royal funerary complex at Abydos",
+   "All show osteopathologies consistent with load carrying",
+   "Morphology intermediate between wild ass and domestic donkey"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-023",
+  "title": "WUSTL researcher finds evidence of earliest transport use of donkeys",
+  "author_org": "Washington University in St. Louis (news)",
+  "published": "2008",
+  "url": "https://source.washu.edu/2008/04/wustl-researcher-finds-evidence-of-earliest-transport-use-of-donkeys/",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Abydos donkeys about 5,000 years old are early evidence of donkeys used for transport"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-024",
+  "title": "Camels in the biblical world of the ancient Near East (Heide and Peters)",
+  "author_org": "ANE Today, American Society of Overseas Research",
+  "published": null,
+  "url": "https://anetoday.org/heide-peters-camels-ancient/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Domestic Bactrian camels present in southern Turkmenistan by the third millennium BCE",
+   "Domestic dromedaries appear much later than Bactrians in the Arabian evidence",
+   "Earliest textual witness: a Middle Babylonian school text from Nippur about 1300 BCE calling the dromedary 'donkey of the Sea[land]'"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-025",
+  "title": "Review of dromedary domestication (Ethnobiology Letters)",
+  "author_org": "Society of Ethnobiology",
+  "published": null,
+  "url": "https://ojs.ethnobiology.org/index.php/ebl/article/download/261/125",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Domestication timing in south-east Arabia reasonably established but place and reasons unclear",
+   "Wild dromedaries of the south-east Arabian coast are the likely founders of the domestic gene pool"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full. Exact article title not shown in the search summary."
+ },
+ {
+  "id": "SCI-026",
+  "title": "Weights, Harappa",
+  "author_org": "Harappa.com (Harappa Archaeological Research Project)",
+  "published": null,
+  "url": "https://www.harappa.com/slide/weights-harappa",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Indus weights mostly chert cubes",
+   "Binary sequence for lower denominations, decimal steps for higher",
+   "Common unit about 13.6-13.7 g"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-027",
+  "title": "Weight (collection object)",
+  "author_org": "Chhatrapati Shivaji Maharaj Vastu Sangrahalaya",
+  "published": null,
+  "url": "https://csmvs.in/collections/weight/",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Indus weights followed a predetermined standard adopted throughout the Indus region, about 2500-1900 BCE"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-028",
+  "title": "Study of Mesopotamian balance weights (Nippur and Ebla evidence)",
+  "author_org": "Journal.fi (open-access journal article)",
+  "published": null,
+  "url": "https://journal.fi/store/article/view/87562/46943",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Sphendonoid haematite weights common at Nippur",
+   "Shekel standard about 8.4 g; 60 shekels to a mina and 60 minas to a talent, with local variation",
+   "Shekel, mina and talent attested in cuneiform texts from about 2600 BCE"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full. The search summary blended several academic results; the mapping of each claim to this URL is approximate."
+ },
+ {
+  "id": "SCI-029",
+  "title": "Shandong exhibition: Qin standard weight with the edict of 221 BCE",
+  "author_org": "Asianart.com (exhibition catalogue)",
+  "published": null,
+  "url": "https://www.asianart.com/exhibitions/shandong/9.html",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "After unification in 221 BCE the Qin emperor decreed standard weights and measures across the empire, inscribed on official weights"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-030",
+  "title": "Sothic cycle",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Sothic_cycle",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Egyptian civil calendar of 12 months of 30 days plus 5 epagomenal days",
+   "No leap day until 22 BCE; the calendar drifted about one day every four years",
+   "1,461 civil years equal 1,460 Julian years",
+   "Origin of the calendar and of the 365-day year disputed; proposals near 2780-2770 BCE"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-031",
+  "title": "WCO 1: Amenhotep III, Karnak (water clock database)",
+  "author_org": "McMaster University, Ancient Egyptian Astronomy project",
+  "published": null,
+  "url": "https://aea.mcmaster.ca/index.php/en/database/water-clocks/wco-1-amenhotep-iii-karnak",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Karnak alabaster outflow water clock from the reign of Amenhotep III (about 1390-1350 BCE)",
+   "Interior has twelve columns of holes, each matched with a month name on the rim"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-032",
+  "title": "The oldest surviving water clock or clepsydra",
+  "author_org": "HistoryofInformation.com (J. Norman)",
+  "published": null,
+  "url": "https://www.historyofinformation.com/detail.php?id=3067",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Karnak clock is the oldest surviving water clock",
+   "The tomb inscription of the official Amenemhet (16th century BCE) claims he invented a water clock"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-033",
+  "title": "Moscow Mathematical Papyrus",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Moscow_Mathematical_Papyrus",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Problem 14 computes the volume of a frustum (truncated pyramid)",
+   "Date given variously as about 1850 BCE (13th dynasty) or about 1700 BCE"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-034",
+  "title": "Notes on Eves, Chapter 2.9 (Egyptian geometry)",
+  "author_org": "East Tennessee State University (R. Gardner)",
+  "published": null,
+  "url": "https://faculty.etsu.edu/gardnerr/3040/Notes-Eves6/Eves6-2-9.pdf",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Moscow papyrus frustum volume method",
+   "Rhind papyrus uses an approximation of pi equal to 256/81"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-035",
+  "title": "History of mathematics questions (Egyptian mathematics)",
+  "author_org": "Cedarville University (D. Frey)",
+  "published": null,
+  "url": "https://darrinfrey.people.cedarville.edu/441histq.pdf",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Rhind papyrus about 1650 BCE",
+   "Round field of diameter 9 treated as a square of side 8 (Rhind problem 50)"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-036",
+  "title": "Babylonian astronomical diaries: treasure trove",
+  "author_org": "CAENO project",
+  "published": null,
+  "url": "https://caeno.org/index.php/contents-1/1-introduction",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Earliest regular astronomical watch (diary) dated 652 BCE; latest 61 BCE"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-037",
+  "title": "Babylonian astronomy lecture slides (M. Ossendrijver)",
+  "author_org": "Freie Universitaet Berlin",
+  "published": null,
+  "url": "https://userpage.fu-berlin.de/ossendrijver/isaw-2.pdf",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Diaries run 652-60 BCE; about 1,000 tablets, nearly all from Babylon and in the British Museum",
+   "Eclipse reports cover 747-10 BCE"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-038",
+  "title": "Encyclopedia entry on Babylonian astronomy and eclipse prediction",
+  "author_org": "Springer reference work",
+  "published": null,
+  "url": "https://link.springer.com/referenceworkentry/10.1007%2F978-1-4020-4425-0_8482",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "The Saros eclipse scheme was used to the end of the cuneiform record",
+   "Mathematical methods to calculate eclipses developed from at least the fifth century BCE"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-039",
+  "title": "Babylonian calendar",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Babylonian_calendar",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "From about 499 BCE intercalation regulated by a 19-year lunisolar cycle",
+   "By 380 BCE months regulated by the cycle without exception"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-040",
+  "title": "Calendars (Rochberg-Halton and VanderKam, Anchor Bible Dictionary 1992)",
+  "author_org": "Center for Online Judaic Studies (reproduction)",
+  "published": "1992",
+  "url": "https://cojs.org/calendars-_francesca_rochberg-halton_and_james_c-_vanderkam-_anchor_bible_dictionary_-ed-_david_noel_freedman-_doubleday-_new_york_1992/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "19-year scheme with seven intercalary months (19 x 12 + 7 = 235 months) in use from sometime after 500 BCE"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-041",
+  "title": "Bulletin of the Jao Tsung-I Academy of Sinology, issue 2 (2015), article 1",
+  "author_org": "Hong Kong Baptist University",
+  "published": "2015",
+  "url": "https://jas.hkbu.edu.hk/content/dam/jas-assets/publications/bulletin-of-the-jao-tsung-i-academy-of-sinology/issue-2-may-2015/1.pdf",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "The cycle is named after Meton of Athens (432 BCE) but Babylon used it earlier; Meton may have learned it from Babylonian sources"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-042",
+  "title": "Euclid's Elements",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Euclid%27s_Elements",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Elements compiled about 300 BCE in thirteen books",
+   "Results deduced from definitions, postulates and common notions (465 propositions)",
+   "Questioning the fifth (parallel) postulate led to non-Euclidean geometries"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-043",
+  "title": "Course notes, Chapter 1 (Greek geometry)",
+  "author_org": "University of Kentucky (D. Royster)",
+  "published": null,
+  "url": "https://www.ms.uky.edu/~droyster/courses/spring02/classnotes/Chapter01.pdf",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Thales credited with the first known proof",
+   "Euclid collected and organised earlier knowledge"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-044",
+  "title": "Archimedes (Dictionary of Scientific Biography entry)",
+  "author_org": "MacTutor History of Mathematics, University of St Andrews",
+  "published": null,
+  "url": "https://mathshistory.st-andrews.ac.uk/DSB/Archimedes.pdf",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Archimedes of Syracuse, about 287-212 BCE, killed when Rome took Syracuse",
+   "On the Equilibrium of Planes: proof of the law of the lever and centres of gravity of figures",
+   "On Floating Bodies: buoyant force equals the weight of fluid displaced"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-045",
+  "title": "Hipparchus (biographical encyclopedia entry)",
+  "author_org": "MacTutor History of Mathematics, University of St Andrews",
+  "published": null,
+  "url": "https://mathshistory.st-andrews.ac.uk/BEA/hipparchus_bea.pdf",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Hipparchus compared his observations with older Greek and Babylonian ones to estimate precession",
+   "His star catalogue, about 129 BCE, listed about 850 stars"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-046",
+  "title": "Hipparchus",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Hipparchus",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Toomer suggested Ptolemy's Babylonian observations came via a list compiled by Hipparchus; others doubt direct access",
+   "Ptolemy's Almagest dated to the second century CE"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-047",
+  "title": "The Salamis Tablet, the earliest surviving counting board",
+  "author_org": "HistoryofInformation.com (J. Norman)",
+  "published": null,
+  "url": "https://www.historyofinformation.com/detail.php?id=1360",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Salamis Tablet, about 300 BCE, marble, the earliest surviving counting board"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-048",
+  "title": "Salamis tablet, marble",
+  "author_org": "Computer History Museum",
+  "published": null,
+  "url": "https://www.computerhistory.org/revolution/artifact/1/128",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Salamis Tablet is a marble counting board on which pebbles were moved to calculate"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-049",
+  "title": "Salamis Tablet",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Salamis_Tablet",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Some scholars think the Salamis Tablet was a gaming board rather than a calculating device"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-050",
+  "title": "Suanpan",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Suanpan",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Xu Yue's text of about 190 CE describes a calculating device whose design is unknown",
+   "A 1573 Ming book illustrates a suanpan; Cheng Dawei's 1592 treatise also illustrates it",
+   "Bead abacus principles derived from counting rods and board"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full. The 1436 first-illustration date in the node record was not confirmed by this search."
+ },
+ {
+  "id": "SCI-051",
+  "title": "Zosimos of Panopolis",
+  "author_org": "Encyclopedia.com (Complete Dictionary of Scientific Biography)",
+  "published": null,
+  "url": "https://www.encyclopedia.com/doc/1G2-2830906235.html",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Zosimos the most important Graeco-Egyptian alchemist; works survive in fragments",
+   "Zosimos drew on the earlier Mary (Maria) the Jewess"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-052",
+  "title": "Classic kit: Mary's bath",
+  "author_org": "Chemistry World (Royal Society of Chemistry)",
+  "published": null,
+  "url": "https://www.chemistryworld.com/opinion/classic-kit-marys-bath/3004925.article",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "Apparatus attributed to Maria by Zosimos includes the kerotakis, the three-armed still (tribikos) and the water bath"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-053",
+  "title": "Alchemy",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Alchemy",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Western alchemy traced to Greek and Roman Alexandria, rooted in Egyptian goldsmiths' craft, Greek philosophy and religious traditions",
+   "Zosimos, about 300 CE, is the earliest attested author",
+   "Chinese alchemy closely tied to Daoism and longevity",
+   "Whether Chinese, Indian and Western alchemy share a common origin is an open question"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-054",
+  "title": "Alcohol (chemistry)",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Alcohol_(chemistry)",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Arabic works attributed to al-Kindi (about 801-873) describe distilling wine",
+   "Twelfth-century Latin recipes for aqua ardens, alcohol from distilled wine"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-055",
+  "title": "Thank these master alchemists for the magic of alcohol",
+  "author_org": "Atlas Obscura",
+  "published": null,
+  "url": "https://www.atlasobscura.com/articles/distillation-alcohol-invention-muslim",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "Scholars of the Islamic world developed distillation apparatus; 'alembic' derives from Arabic al-anbiq"
+  ],
+  "confidence": "low",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-056",
+  "title": "Tsinghua bamboo slips: oldest decimal multiplication table",
+  "author_org": "Tsinghua University (news)",
+  "published": "2017",
+  "url": "https://www.tsinghua.edu.cn/en/info/1245/4956.htm",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "21 Tsinghua bamboo slips of about 305 BCE form a decimal multiplication table, recognised in 2017 as the oldest known"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-057",
+  "title": "Ancient times table hidden in Chinese bamboo strips",
+  "author_org": "Scientific American (reprinting Nature News)",
+  "published": "2014",
+  "url": "https://www.scientificamerican.com/article/ancient-times-table-hidden-in-chinese-bamboo-strips",
+  "accessed": "2026-10-22",
+  "type": "press",
+  "claims_supported": [
+   "Slips carbon-dated to about 305 BCE, Warring States period",
+   "Table multiplies numbers up to 99.5, including halves"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-058",
+  "title": "The Chinese Roots of Linear Algebra (R. Hart, 2010)",
+  "author_org": "Johns Hopkins University Press",
+  "published": "2010",
+  "url": "https://press.jhu.edu/books/title/10232/chinese-roots-linear-algebra",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Fangcheng procedures manipulated counting rods on a counting board to solve systems of linear equations",
+   "Includes a procedure for positive and negative numbers"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-059",
+  "title": "The Nine Chapters on the Mathematical Art",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/The_Nine_Chapters_on_the_Mathematical_Art",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Red and black rods represented positive and negative numbers",
+   "Chapter 8 method resembles Gaussian elimination",
+   "Dating debated; Liu Hui's commentary of 263 CE is the oldest surviving source"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-060",
+  "title": "The men who invented zero",
+  "author_org": "The Open University (MathEd blog)",
+  "published": "2022",
+  "url": "https://www.open.ac.uk/blogs/MathEd/index.php/2022/08/25/the-men-who-invented-zero",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Brahmagupta's Brahmasphutasiddhanta (628 CE) treats zero as a number with rules of arithmetic"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-061",
+  "title": "Much ado about zero",
+  "author_org": "arXiv",
+  "published": "2016",
+  "url": "https://arxiv.org/pdf/1601.05983",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Brahmasphutasiddhanta is the first book with arithmetic rules for zero and negative numbers (debts and fortunes)"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-062",
+  "title": "Al-Khwarizmi (student project page)",
+  "author_org": "University of Kentucky, Department of Mathematics",
+  "published": null,
+  "url": "https://www.ms.uky.edu/~carl/ma330/project2/al-khwa21.html",
+  "accessed": "2026-10-22",
+  "type": "university",
+  "claims_supported": [
+   "Al-Khwarizmi worked in Baghdad at the House of Wisdom around 820",
+   "His algebra gave the first systematic solution of linear and quadratic equations, with geometric justification",
+   "His book on Hindu numerals (Latin De numero indorum) expounded the digits 0-9 and decimal place value"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-063",
+  "title": "Modern mathematics (Untold Islam)",
+  "author_org": "Maslaha",
+  "published": null,
+  "url": "https://www.maslaha.org/untold-islam/features/modern-mathematics",
+  "accessed": "2026-10-22",
+  "type": "community",
+  "claims_supported": [
+   "Fibonacci's Liber Abaci (1202) introduced Hindu-Arabic numerals to European practice when Roman numerals were in use, drawing on al-Khwarizmi"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-064",
+  "title": "Zhu Shijie (biography)",
+  "author_org": "MacTutor History of Mathematics, University of St Andrews",
+  "published": null,
+  "url": "https://mathshistory.st-andrews.ac.uk/Biographies/Zhu_Shijie/",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Jade Mirror of the Four Unknowns (1303) uses up to four unknowns",
+   "The book was later lost in China and recovered only in the nineteenth century"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ },
+ {
+  "id": "SCI-065",
+  "title": "Zhu Shijie",
+  "author_org": "Wikipedia",
+  "published": null,
+  "url": "https://en.wikipedia.org/wiki/Zhu_Shijie",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Zhu reduced systems in up to four unknowns to one polynomial and solved it by Qin Jiushao's method",
+   "Qin Jiushao's Mathematical Treatise in Nine Sections dated 1247"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 as a WebSearch result summary; WebFetch unavailable, page not read in full."
+ }
+]

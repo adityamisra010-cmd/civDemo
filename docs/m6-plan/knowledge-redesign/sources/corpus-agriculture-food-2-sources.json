@@ -1,0 +1,331 @@
+[
+  {
+    "id": "AGR2-001",
+    "title": "Hart-Parr Tractor (National Historic Mechanical Engineering Landmark brochure no. 190)",
+    "author_org": "American Society of Mechanical Engineers",
+    "published": null,
+    "url": "https://www.asme.org/wwwasmeorg/media/ResourceFiles/AboutASME/Who We Are/Engineering History/Landmarks/190-Hart-Parr-Tractor.pdf",
+    "accessed": "2026-10-22",
+    "type": "reference",
+    "claims_supported": [
+      "John Froelich of Clayton County, Iowa, used a petrol (gasoline) tractor during the 1892 threshing season",
+      "Benjamin Holt of Stockton, California, built a horse-drawn combine in 1886"
+    ],
+    "confidence": "high",
+    "notes": "Seen as search-result summary only; page not opened (WebFetch blocked)."
+  },
+  {
+    "id": "AGR2-002",
+    "title": "110 Years Pass Since the First Test of the Steam-Powered Track-Type Tractor",
+    "author_org": "Caterpillar Inc.",
+    "published": "2014",
+    "url": "https://www.caterpillar.com/en/news/caterpillarNews/history/110-years-pass-since-the-first-test-of-the-steam-powered-track-type-tractor.html",
+    "accessed": "2026-10-22",
+    "type": "industry",
+    "claims_supported": [
+      "Benjamin Holt first tested a steam-powered track-type tractor at Stockton, California, on 24 November 1904",
+      "Soft peat soils around Stockton trapped horses and wheeled engines"
+    ],
+    "confidence": "medium",
+    "notes": "Company history of a successor firm; facts consistent with other search results (HCEA, Farm Collector). Summary only; page not opened. Published year inferred from the 110th-anniversary title."
+  },
+  {
+    "id": "AGR2-003",
+    "title": "Henry Ford: Tractors (digital collections set)",
+    "author_org": "The Henry Ford (museum)",
+    "published": null,
+    "url": "https://www.thehenryford.org/collections/explore/sets/detail/henry-ford-tractors",
+    "accessed": "2026-10-22",
+    "type": "museum",
+    "claims_supported": [
+      "The Fordson tractor went into production in 1917",
+      "The Fordson was a lightweight, mass-produced tractor affordable to ordinary farmers"
+    ],
+    "confidence": "high",
+    "notes": "Summary only; page not opened. 1917 production start also given by Gas Engine Magazine (Early Ford Tractor Development)."
+  },
+  {
+    "id": "AGR2-004",
+    "title": "The 20th Century Transformation of U.S. Agriculture and Farm Policy (republication)",
+    "author_org": "Brewminate (republishing USDA Economic Research Service, Economic Information Bulletin 3, 2005)",
+    "published": null,
+    "url": "https://brewminate.com/the-20th-century-transformation-of-u-s-agriculture-and-farm-policy/",
+    "accessed": "2026-10-22",
+    "type": "press",
+    "claims_supported": [
+      "Estimated share of the US labour force in agriculture fell from about 41 percent in 1900 to 1.9 percent in 2000",
+      "Tractors, combines and other machinery drove the change"
+    ],
+    "confidence": "medium",
+    "notes": "Republication of a USDA ERS bulletin; original PDF not retrieved. The 1900 share is contested (other estimates from the 1900 Census near 36 percent), so the text says 'over a third'."
+  },
+  {
+    "id": "AGR2-005",
+    "title": "Farm Labor (topic page)",
+    "author_org": "USDA Economic Research Service",
+    "published": null,
+    "url": "https://www.ers.usda.gov/topics/farm-economy/farm-labor",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "From 1950 to 1990 US farm employment declined as mechanisation raised agricultural productivity"
+    ],
+    "confidence": "high",
+    "notes": "Summary only; page not opened."
+  },
+  {
+    "id": "AGR2-006",
+    "title": "What Israeli drips did for the world",
+    "author_org": "The Times of Israel",
+    "published": null,
+    "url": "https://www.timesofisrael.com/what-israeli-drips-did-for-the-world/",
+    "accessed": "2026-10-22",
+    "type": "press",
+    "claims_supported": [
+      "Simcha Blass developed modern drip irrigation",
+      "Netafim was founded in 1965 with Kibbutz Hatzerim",
+      "First farm sales in 1967, followed by export"
+    ],
+    "confidence": "medium",
+    "notes": "Summary only; page not opened."
+  },
+  {
+    "id": "AGR2-007",
+    "title": "Simcha Blass",
+    "author_org": "Wikipedia",
+    "published": null,
+    "url": "https://en.wikipedia.org/wiki/Simcha_Blass",
+    "accessed": "2026-10-22",
+    "type": "reference",
+    "claims_supported": [
+      "Blass used longer, larger passageways and friction inside a plastic emitter to slow water instead of tiny clog-prone holes",
+      "Kibbutz Hatzerim in the Negev first tried the emitters"
+    ],
+    "confidence": "medium",
+    "notes": "Used only for finding/corroboration alongside AGR2-006 and AGR2-008; not sole authority."
+  },
+  {
+    "id": "AGR2-008",
+    "title": "To Conserve Water for Agriculture, a Solution from the Desert",
+    "author_org": "MIT Sloan Management Review",
+    "published": null,
+    "url": "https://sloanreview.mit.edu/?p=34741",
+    "accessed": "2026-10-22",
+    "type": "university",
+    "claims_supported": [
+      "Drip irrigation conserves water in agriculture",
+      "Netafim origin with Simcha Blass and Kibbutz Hatzerim"
+    ],
+    "confidence": "medium",
+    "notes": "Summary only; page not opened."
+  },
+  {
+    "id": "AGR2-009",
+    "title": "The Evolution of Farm Data - Part I",
+    "author_org": "Ag Leader Technology",
+    "published": null,
+    "url": "https://www.agleader.com/?p=5382",
+    "accessed": "2026-10-22",
+    "type": "industry",
+    "claims_supported": [
+      "Yield-monitor development began in 1986; a widely adopted yield monitor reached market in 1992"
+    ],
+    "confidence": "medium",
+    "notes": "Manufacturer's own history; summary only."
+  },
+  {
+    "id": "AGR2-010",
+    "title": "Brief History of Precision Agriculture in Australia",
+    "author_org": "Precision Agriculture Laboratory, University of Sydney",
+    "published": "2019",
+    "url": "https://precision-agriculture.sydney.edu.au/wp-content/uploads/2019/08/Brief-History-of-PA-in-Australia.pdf",
+    "accessed": "2026-10-22",
+    "type": "university",
+    "claims_supported": [
+      "Yield monitors arrived in Australia in 1993",
+      "Yield maps from combines logged against GPS position showed within-field variation"
+    ],
+    "confidence": "high",
+    "notes": "Summary only; page not opened."
+  },
+  {
+    "id": "AGR2-011",
+    "title": "17 Innovations That Shaped The Precision Ag Revolution",
+    "author_org": "PrecisionAg (trade press)",
+    "published": null,
+    "url": "https://www.precisionag.com/systems-management/guidance/17-innovations-that-shaped-the-precision-ag-revolution/",
+    "accessed": "2026-10-22",
+    "type": "press",
+    "claims_supported": [
+      "Variable-rate technology used by early adopters in the late 1990s",
+      "GPS auto-guidance first used in 1996; adoption grew in the early 2000s"
+    ],
+    "confidence": "medium",
+    "notes": "Trade press; summary only."
+  },
+  {
+    "id": "AGR2-012",
+    "title": "Precision farming keynote (Club of Bologna proceedings)",
+    "author_org": "K. Noack (Club of Bologna)",
+    "published": null,
+    "url": "https://clubofbologna.org/ew/ew_proceedings/KNR_Noack.pdf",
+    "accessed": "2026-10-22",
+    "type": "academic",
+    "claims_supported": [
+      "Civil GPS became available to agriculture in the early 1990s",
+      "Lack of standards for application maps and communication protocols slowed uptake"
+    ],
+    "confidence": "medium",
+    "notes": "Conference paper; summary only. Inconsistent returns in the late 1990s reported by AGR2-011's companion PrecisionAg article ('The Crooked Road To Precision Ag Progress')."
+  },
+  {
+    "id": "AGR2-013",
+    "title": "International Research Team Announces Finished Rice Genome",
+    "author_org": "J. Craig Venter Institute",
+    "published": "2005",
+    "url": "https://www.jcvi.org/media-center/international-research-team-announces-finished-rice-genome",
+    "accessed": "2026-10-22",
+    "type": "academic",
+    "claims_supported": [
+      "Finished rice genome published in Nature in August 2005",
+      "About 400 million bases and 37,544 genes on 12 chromosomes",
+      "International Rice Genome Sequencing Project established 1997, cultivar Nipponbare",
+      "Rice is a reference for related cereals"
+    ],
+    "confidence": "high",
+    "notes": "Summary only. A 2006 JARQ review dates completion to 2004; publication was 2005."
+  },
+  {
+    "id": "AGR2-014",
+    "title": "Towards CRISPR/Cas crops - bringing together genomics and genome editing (review)",
+    "author_org": "A. Scheben et al., New Phytologist",
+    "published": "2016",
+    "url": "https://www.jkip.kit.edu/molbio/download/2016%20review%20Scheben%20et%20al.pdf",
+    "accessed": "2026-10-22",
+    "type": "academic",
+    "claims_supported": [
+      "Genome editing can pursue yield and stress-tolerance goals combined with genomics",
+      "Barriers include incomplete reference genomes and unclear legal status of edited crops"
+    ],
+    "confidence": "high",
+    "notes": "Title reconstructed from the search summary; summary only."
+  },
+  {
+    "id": "AGR2-015",
+    "title": "CRISPR/Cas genome editing in crop improvement (review)",
+    "author_org": "G. Nerkar et al., Frontiers in Genetics",
+    "published": "2022",
+    "url": "https://doaj.org/article/291b55c6af364ee188a2d7f717426da5",
+    "accessed": "2026-10-22",
+    "type": "academic",
+    "claims_supported": [
+      "Genome editing modifies specific sites without leaving foreign DNA"
+    ],
+    "confidence": "high",
+    "notes": "Summary only; exact article title not shown in the result."
+  },
+  {
+    "id": "AGR2-016",
+    "title": "U.S. approves CRISPR mushroom, corn, but Britain unsure how it will regulate import",
+    "author_org": "Genetic Literacy Project",
+    "published": "2016",
+    "url": "https://geneticliteracyproject.org/2016/04/25/u-s-approves-crispr-mushroom-corn-but-britain-unsure-how-it-will-regulate-import/",
+    "accessed": "2026-10-22",
+    "type": "press",
+    "claims_supported": [
+      "US regulators cleared CRISPR-edited crops for commercial use in 2016 while other jurisdictions treated them differently"
+    ],
+    "confidence": "low",
+    "notes": "Advocacy-leaning outlet; used only for the claim that regulation differs between countries."
+  },
+  {
+    "id": "AGR2-017",
+    "title": "Geoengineering the climate: science, governance and uncertainty",
+    "author_org": "The Royal Society",
+    "published": "2009",
+    "url": "https://royalsociety.org/news-resources/publications/2009/geoengineering-climate/",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "Divides geoengineering into carbon dioxide removal and solar radiation management",
+      "CDR methods regarded as preferable to SRM",
+      "SRM lowers temperatures rapidly but does not affect CO2 levels",
+      "No method yet shown effective at affordable cost with acceptable environmental impacts"
+    ],
+    "confidence": "high",
+    "notes": "Summary only; report not opened."
+  },
+  {
+    "id": "AGR2-018",
+    "title": "Stop emitting CO2 or geoengineering could be our only hope",
+    "author_org": "The Royal Society",
+    "published": "2009",
+    "url": "https://royalsociety.org/news/2009/stop-co2/",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "Geoengineering defined as deliberate large-scale intervention in the climate system",
+      "Report's preference for carbon dioxide removal over solar radiation management"
+    ],
+    "confidence": "high",
+    "notes": "Press release; summary only."
+  },
+  {
+    "id": "AGR2-019",
+    "title": "Mendel's laws and wheat breeding: note on Biffen's results",
+    "author_org": "Nature",
+    "published": "1905",
+    "url": "https://www.nature.com/articles/069093a0.pdf",
+    "accessed": "2026-10-22",
+    "type": "academic",
+    "claims_supported": [
+      "Biffen concluded that susceptibility to rust in wheat is a definite Mendelian character"
+    ],
+    "confidence": "high",
+    "notes": "Contemporary note; summary only. Biffen's paper: Journal of Agricultural Science 1 (1905)."
+  },
+  {
+    "id": "AGR2-020",
+    "title": "History of the Plant Breeding Institute, Trumpington",
+    "author_org": "Trumpington Local History Group",
+    "published": null,
+    "url": "https://trumpingtonlocalhistorygroup.org/subjects/subjects_pbihistory",
+    "accessed": "2026-10-22",
+    "type": "community",
+    "claims_supported": [
+      "Biffen bred the yellow-rust-resistant wheat Little Joss, released 1910"
+    ],
+    "confidence": "medium",
+    "notes": "Dates Biffen's demonstration to 1906, against 1905 elsewhere; used only for Little Joss."
+  },
+  {
+    "id": "AGR2-021",
+    "title": "How hybrids rocked the corn industry",
+    "author_org": "Farm Progress",
+    "published": "2026",
+    "url": "https://www.farmprogress.com/corn/how-hybrids-rocked-the-corn-industry",
+    "accessed": "2026-10-22",
+    "type": "press",
+    "claims_supported": [
+      "George Shull (Cold Spring Harbor) published on crossing pure lines in 1908; Edward East reached the finding independently",
+      "Hybrid corn rose from 6 percent of Iowa acres in 1935 to about 99 percent by 1942",
+      "Hybrid seed had to be bought each year"
+    ],
+    "confidence": "medium",
+    "notes": "Agricultural press; summary only."
+  },
+  {
+    "id": "AGR2-022",
+    "title": "Pioneer Turns 100",
+    "author_org": "DTN/Progressive Farmer",
+    "published": "2026",
+    "url": "https://www.dtnpf.com/agriculture/web/ag/crops/article/2026/03/11/pioneering-corn-production",
+    "accessed": "2026-10-22",
+    "type": "press",
+    "claims_supported": [
+      "Hi-Bred Corn Co., forerunner of Pioneer Hi-Bred, founded 20 April 1926 to produce hybrid seed corn"
+    ],
+    "confidence": "medium",
+    "notes": "Summary only."
+  }
+]

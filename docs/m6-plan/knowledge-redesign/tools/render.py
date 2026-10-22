@@ -69,7 +69,7 @@ def load():
     inv = kr.load_json(kr.DATA / "current-tree-inventory.json")
     corpus = {}
     for f in sorted((kr.PKG / "corpus").glob("*.json")):
-        if f.name == "index.json":
+        if f.name in ("index.json", "plan.json"):
             continue
         for e in kr.load_json(f):
             corpus[e["id"]] = dict(e, _file=f.name)

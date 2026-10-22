@@ -1,0 +1,204 @@
+[
+ {
+  "id": "spinning_jenny",
+  "tree": "technology",
+  "description": "The spinning jenny let one worker spin several threads at once. A hand-turned wheel drove a row of spindles while a sliding clamp drew out the cotton, imitating a spinner's hand. James Hargreaves of Lancashire built it around 1764 and patented it in 1770. Early machines carried eight spindles; jenny yarn was soft, suited mainly to weft.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "The build date is usually given as about 1764-1767; the 1770 patent date is firmer. Spindle counts grew quickly beyond the first eight.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this batch's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Hargreaves as inventor; about 1764 date and 1770 patent; Lancashire origin; eight spindles on early machines; soft yarn used mainly as weft."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); records multi-spindle hand spinning. Prerequisite spinning_wheel (PROPOSED, replacing 'spinning_wheel AND flying_shuttle'); prerequisite of spinning_mule."
+ },
+ {
+  "id": "water_frame",
+  "tree": "technology",
+  "description": "The water frame spun strong cotton thread by drawing fibre between pairs of rollers turning at rising speeds, then twisting it onto a bobbin with a flyer. Richard Arkwright patented it in 1769, adapting roller drafting tried by Lewis Paul and John Wyatt in 1738. Its firm yarn suited warp. Arkwright's water-powered mill at Cromford ran from 1771 in shifts.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Credit is contested: Thomas Highs and the clockmaker John Kay were linked to the design, and Arkwright's patent was later annulled (1785). A horse-driven mill in Nottingham preceded Cromford.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this batch's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: 1769 patent; Paul and Wyatt roller drafting (patent 1738); flyer-and-bobbin twisting; warp-strength yarn; Cromford mill opening 1771; shift working."
+  },
+  "mechanicLink": "Deferred: completion makes building.textile_mill eligible (with power_loom as the alternative route) but no system builds it yet; PROPOSED for T6.11 as a per-building capacity term on the live weaving recipe. Prerequisites spinning_wheel AND water_mill (PROPOSED); prerequisite of spinning_mule."
+ },
+ {
+  "id": "spinning_mule",
+  "tree": "technology",
+  "description": "The spinning mule, completed by Samuel Crompton near Bolton around 1779, joined the jenny's moving carriage to the water frame's drafting rollers, hence its hybrid name. Rollers drew the cotton out; the carriage then ran back, stretching and twisting it further. The thread was fine and strong enough for muslins, long imported mainly from India. Crompton never patented it.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Completion is dated 1779 in most accounts, after several years of work; the self-acting mule (Richard Roberts, 1820s-1830s) was a later stage not described here.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this batch's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Crompton as inventor; Bolton (Hall i' th' Wood) setting; about 1779; combination of carriage and rollers; fine strong yarn for muslins; absence of a patent."
+  },
+  "mechanicLink": "Knowledge-only today (class C, no simulated effect); records fine cotton spinning. Prerequisites spinning_jenny AND water_frame (PROPOSED); no dependant after the PROPOSED removal of its power_loom edge."
+ },
+ {
+  "id": "power_loom",
+  "tree": "technology",
+  "description": "A power loom performs weaving's repeated motions by machine: raising warp threads, throwing the shuttle across, and beating in the weft. It mechanised John Kay's flying shuttle (1733). Edmund Cartwright patented early designs from 1785, but practical looms needed later improvements by others. By about 1820 steam looms were spreading in Britain; Waltham, Massachusetts, wove by water power from 1814.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Which improvement made the loom 'practical' is a matter of emphasis (Horrocks's iron looms of the 1800s-1810s, Roberts's of 1822); adoption dates differ by region and fabric.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this batch's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Kay's flying shuttle 1733; Cartwright patents from 1785; spread of steam looms by about 1820; Boston Manufacturing Company mill at Waltham weaving by water power from 1814."
+  },
+  "mechanicLink": "Deferred: completion makes building.textile_mill eligible (with water_frame as the alternative route) but no system builds it yet; PROPOSED for T6.11 as a capacity term on the weaving recipe. Prerequisites flying_shuttle AND (water_mill OR steam_rotary) (PROPOSED)."
+ },
+ {
+  "id": "cotton_gin_saw",
+  "tree": "technology",
+  "description": "A saw gin separates cotton fibre from its sticky seeds: toothed discs on a turning cylinder pull lint through slots too narrow for seeds. Eli Whitney patented a wire-toothed gin in 1793; Hodgen Holmes's 1796 patent used circular saws. Cheap ginning made short-staple upland cotton profitable across the American South, where the resulting boom greatly expanded plantation slavery.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Priority between Whitney's wire teeth and Holmes's saws was litigated; older roller gins (used in India for centuries) cleaned long-staple cotton but not green-seed upland cotton.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this batch's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Whitney 1793 patent with wire teeth; Holmes 1796 saw patent; slot-and-teeth mechanism; upland short-staple profitability; expansion of slavery linked to the cotton boom."
+  },
+  "mechanicLink": "Knowledge-only today (class C, accepted dead end, no dependant); records short-staple cotton cleaning. Prerequisites cotton_gin_roller AND wire_drawing; a ginning recipe is deferred to M10+."
+ },
+ {
+  "id": "jacquard",
+  "tree": "technology",
+  "description": "A Jacquard head selects which warp threads rise for each weft pass from a chain of punched cards: where a card has a hole, the linked hook lifts its thread. It automated the drawloom's figure harness, worked by an assistant, the drawboy. Joseph-Marie Jacquard developed it in Lyon about 1804, building on earlier devices by Bouchon (1725), Falcon (1728) and Vaucanson (1745).",
+  "wordCount": 62,
+  "sources": [],
+  "uncertainty": "Dates for Jacquard's device vary between 1801 (first exhibition) and 1804-1805 (the working card mechanism); the earlier Lyon devices are dated 1725 (Bouchon), 1728 (Falcon) and 1745 (Vaucanson).",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this batch's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Card-reading hook mechanism; replacement of the drawboy; Lyon; about 1804; predecessors Bouchon 1725, Falcon, Vaucanson."
+  },
+  "mechanicLink": "Knowledge-only today (class C); its completion is the measured knowledge condition of computer's Eureka ('punched-card control is known'). Prerequisites drawloom AND paper (PROPOSED); PROPOSED dependant punched_card_tabulation."
+ },
+ {
+  "id": "reinforced_concrete",
+  "tree": "technology",
+  "description": "Reinforced concrete embeds iron or steel bars in concrete: the concrete resists crushing, the metal carries tension, and both expand similarly with heat. Joseph Monier, a Paris gardener, patented reinforced planters in 1867 and later wider uses; Joseph-Louis Lambot and William Wilkinson had experimented earlier. François Hennebique's 1892 system joined beams and columns into monolithic frames for buildings and bridges.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Several people share the origin (Lambot's boat about 1848, Wilkinson's 1854 patent, Monier 1867, Hennebique 1892, and US work by Thaddeus Hyatt and Ernest Ransome); the node's date follows Monier.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this batch's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Monier 1867 patent and occupation; Lambot and Wilkinson earlier work; Hennebique 1892 system; compression-tension division and similar thermal expansion."
+  },
+  "mechanicLink": "Knowledge-only today (class J: infra.sewerage_system names it but is unrealized, PROPOSED to move to sanitary_engineering). Prerequisites portland_cement AND bessemer; dependants high_speed_rail, hydroelectric and motor_road (skyscraper's edge PROPOSED removed)."
+ },
+ {
+  "id": "sanitary_engineering",
+  "tree": "technology",
+  "description": "Sanitary engineering moved water and waste through piped networks. In 1829 James Simpson's slow-sand filters began cleaning Thames water for London's Chelsea Waterworks. After Hamburg's 1842 fire, William Lindley planned sewers built from 1843. London's main drainage, designed by Joseph Bazalgette and built mostly in 1859-1875, used brick sewers and steam pumps, while many still blamed disease on foul air.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Completion dates of London's main drainage are given variously (main works by about 1865-1875, extensions later); earlier sewers and filters existed elsewhere on a smaller scale.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this batch's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Simpson's Chelsea filter 1829; Hamburg fire 1842 and Lindley sewers from 1843; Bazalgette's design; 1859-1875 construction; brick and steam pumping; prevailing miasma theory."
+  },
+  "mechanicLink": "PROPOSED new node: completion would make infra.sewerage_system eligible (re-pointed from 'germ_theory AND reinforced_concrete'); building it waits on T6.11 and a per-settlement health term. Prerequisites steam_rotary AND fired_brick."
+ },
+ {
+  "id": "structural_iron",
+  "tree": "technology",
+  "description": "Iron became a structural material in Britain once coke smelting made cast iron plentiful. The Iron Bridge at Coalbrookdale, cast by Abraham Darby III, was erected in 1779 and opened in 1781. Shrewsbury's Ditherington Flax Mill (1797) had an internal frame of iron columns and beams to resist fire. London's Crystal Palace of 1851 assembled prefabricated iron and glass.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "MAT2-002",
+    "claims": [
+     "Coke smelting at Coalbrookdale (from 1709) made the mass production of cast iron economically viable"
+    ]
+   }
+  ],
+  "uncertainty": "Ditherington is commonly called the first iron-framed building, though its outer walls are load-bearing brick; the Iron Bridge's dates are given as 1779 (erection) or 1781 (opening).",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "First sentence compared with the search-result summary of a source registered by another lane (MAT2-002, English Heritage); the shared WebSearch budget was exhausted at this batch's first query (2026-10-22) and WebFetch is blocked, so the remaining claims rest on general knowledge with cautious wording.",
+   "notes": "Corroborated (via MAT2-002, search summary): coke smelting at Coalbrookdale made cast iron economically mass-produced. Not corroborated: Darby III as builder; 1779 erection and 1781 opening; Ditherington 1797 iron frame for fire resistance; Crystal Palace 1851 prefabrication."
+  },
+  "mechanicLink": "PROPOSED new knowledge-only node (no simulated effect; no iron good exists): records iron bridges and iron-framed buildings. Prerequisite coke; PROPOSED prerequisite of skyscraper."
+ },
+ {
+  "id": "skyscraper",
+  "tree": "technology",
+  "description": "A steel-frame skyscraper carries floors and outer walls on a metal skeleton of columns and beams instead of thick masonry, so height no longer requires ever-thicker base walls. Chicago's Home Insurance Building, designed by William Le Baron Jenney and completed in 1885, is often called the first, though this is debated. Cheap steel, fireproofing and passenger elevators made such towers usable.",
+  "wordCount": 61,
+  "sources": [],
+  "uncertainty": "The Home Insurance Building's frame mixed cast iron, wrought iron and some Bessemer steel, and other buildings are proposed as 'first'; electric elevators arrived after it (from 1889).",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this batch's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Jenney as designer; Chicago; 1885 completion; debated 'first' status; role of steel, fireproofing and elevators."
+  },
+  "mechanicLink": "Deferred: completion makes building.skyscraper eligible, but no consumer equation exists (dwellings have no density limit), so realization waits for an urban density mechanism (M10+). Prerequisites structural_iron AND bessemer AND electric_motor (PROPOSED)."
+ },
+ {
+  "id": "numerical_control",
+  "tree": "technology",
+  "description": "Numerical control directs a machine tool by coded instructions instead of a machinist's hands. John Parsons proposed the idea for cutting aircraft parts, and MIT's Servomechanisms Laboratory demonstrated a tape-controlled milling machine in 1952. In 1961 the Unimate, a programmable arm designed by George Devol and promoted by Joseph Engelberger, began handling hot die-castings at a General Motors plant.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Credit for numerical control is shared between Parsons and the MIT laboratory (with US Air Force funding) and was disputed; the Unimate plant is usually placed in New Jersey.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this batch's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Parsons's proposal for aircraft parts; MIT demonstration 1952 with punched tape; Unimate 1961 at General Motors; Devol and Engelberger roles; die-casting task."
+  },
+  "mechanicLink": "Knowledge-only today (unlock-audit class C, no simulated effect); records flexible automation. Prerequisites computer AND milling_machine; prerequisite of additive_manufacturing."
+ },
+ {
+  "id": "desalination",
+  "tree": "technology",
+  "description": "Desalination removes dissolved salt from seawater or brackish water. Ships and chemists distilled small amounts for centuries, but large plants came after the Second World War. Multi-stage flash plants, boiling heated brine in chambers of falling pressure, spread from about 1960, often beside Gulf power stations. Reverse osmosis forces water through a membrane; practical membranes emerged at UCLA around 1960.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Dates for the first multi-stage flash plant (late 1950s) and the Loeb-Sourirajan membrane (1959-1960) vary by source; the first municipal reverse-osmosis plant is usually dated to the mid-1960s in California.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this batch's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Shipboard and laboratory distillation before 1945; multi-stage flash principle and spread from about 1960; pairing with power plants in the Gulf; Loeb and Sourirajan membrane at UCLA about 1960."
+  },
+  "mechanicLink": "Deferred: completion makes building.desalination_plant eligible for coastal settlements; PROPOSED for T6.11 as a feed to the per-settlement water/health term. Prerequisites electricity_generation AND (distillation OR plastics) (PROPOSED)."
+ },
+ {
+  "id": "additive_manufacturing",
+  "tree": "technology",
+  "description": "Additive manufacturing builds an object layer by layer from a digital design instead of cutting it from a block or casting it in a mould. Charles Hull filed a patent on stereolithography, which hardens liquid resin with ultraviolet light, in 1984; it was granted in 1986. Hideo Kodama in Japan had described similar layering in 1981, and other methods followed.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Priority is shared: Kodama (1981) and a French patent application (1984) preceded or paralleled Hull; laser sintering and fused-deposition methods came in the late 1980s.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was exhausted at this batch's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', debated attributions flagged).",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Check first: Hull 1984 filing and 1986 grant; stereolithography principle; Kodama 1981 publication."
+  },
+  "mechanicLink": "Knowledge-only today (class C, accepted dead end); records complex parts without tooling, with a tooling-free recipe variant deferred to M11+ industries. Prerequisites numerical_control AND plastics (PROPOSED)."
+ }
+]

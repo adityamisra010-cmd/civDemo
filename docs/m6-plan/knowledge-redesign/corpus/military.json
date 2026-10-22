@@ -1,0 +1,586 @@
+[
+ {
+  "id": "atlatl",
+  "tree": "technology",
+  "description": "A spear-thrower is a short board or shaft with a hook that engages the butt of a light spear, or dart, lengthening the arm's lever so the dart flies farther. Carved examples survive from Upper Palaeolithic France, roughly 20,000 to 15,000 years ago. Aboriginal Australians and peoples of the Americas also used it; Aztec warriors still did.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The proposal dates emergence to about 30,000 years ago in Europe; the oldest surviving examples are younger, and earlier use is inferred from projectile points and debated. Australian and American traditions are generally treated as separate developments.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: date range of the oldest carved French spear-throwers; use in Aboriginal Australia and by Aztec warriors at contact."
+  },
+  "mechanicLink": "Knowledge-only (class C): records ranged hunting of large game, which has no realizing system because hunting is baseline and never research-gated; kept in the proposal as a dead end by explicit justification."
+ },
+ {
+  "id": "bow_simple",
+  "tree": "technology",
+  "description": "A simple bow is a single wooden stave bent by a string; drawing it stores energy that is released into a light arrow. Stone points from Sibudu Cave, South Africa, about 64,000 years old, have been read as arrow tips from wear and residues. Wooden arrows from Stellmoor, northern Germany, date to the end of the last Ice Age.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Bow use before preserved bows and arrows is inferred, not observed; the Sibudu interpretation is debated, and the bow may have been invented more than once.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Sibudu points about 64,000 years old interpreted as arrow tips; Stellmoor arrows dated to the end of the last Ice Age (the node record gives about 10,000 years ago)."
+  },
+  "mechanicLink": "Deferred to the Battle layer (M7): grants unit.archers (class F, no realizing system yet) and records ranged hunting and combat; prerequisite cordage."
+ },
+ {
+  "id": "sling",
+  "tree": "technology",
+  "description": "A sling is a pouch on two cords: whirled and released, it hurls a stone or a clay or lead bullet with great force. Made of fibre or leather, slings seldom survive; early use is inferred from shaped projectiles. Herders used slings to guard flocks, and Assyrian reliefs of the siege of Lachish, 701 BCE, show slingers beside archers.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Earliest use is inferred (the node record gives about 10,000 years ago); the node record dates the oldest preserved slings to about 2500 BCE, which was not checked here.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Assyrian Lachish reliefs (701 BCE) showing slingers; use by herders; inference of early use from shaped projectiles."
+  },
+  "mechanicLink": "Deferred to the Battle layer (M7): grants unit.slingers (class F, no realizing system yet); PROPOSED to gain the new traction_trebuchet as a dependant, since that engine is a sling on a lever."
+ },
+ {
+  "id": "chariot",
+  "tree": "technology",
+  "description": "A war chariot is a light two-wheeled vehicle with spoked wheels, drawn by horses and carrying a driver and a fighter. The oldest known spoke-wheeled chariots come from Sintashta culture burials in the southern Urals, about 2000 BCE. Within centuries chariots were used from Egypt and Anatolia to China, where Shang tombs at Anyang of about 1200 BCE contain them.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Whether Sintashta vehicles were practical war chariots or mainly prestige or burial vehicles is debated, and chariot use in the Near East may draw on more than one source.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Sintashta spoke-wheeled chariot burials about 2000 BCE; Shang chariot burials at Anyang about 1200 BCE; spread to Egypt and Anatolia."
+  },
+  "mechanicLink": "Deferred to the Battle layer (M7): grants unit.chariot (class F, no realizing system yet); requires wheel_spoked and horse_domestication."
+ },
+ {
+  "id": "composite_bow",
+  "tree": "technology",
+  "description": "A composite bow laminates a wooden core, horn on the belly, which resists compression, and sinew on the back, which resists stretching, bonded with hide or fish glue. The result is short yet powerful, suited to shooting from chariots and horseback. Composite bows are depicted across the Near East and steppe by the second millennium BCE; Tutankhamun's tomb held several.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "First appearance is disputed: some read earlier Mesopotamian images as composite bows, and the steppe and Near Eastern traditions are hard to date separately.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: horn-wood-sinew construction with hide or fish glue; second-millennium BCE dating; composite bows among Tutankhamun's grave goods."
+  },
+  "mechanicLink": "Deferred to the Battle layer (M7): with cavalry grants unit.horse_archers (class F, no realizing system yet); PROPOSED prerequisite correction replaces birch_tar with hide_working, since hide or fish glue, not birch tar, bonded the bow."
+ },
+ {
+  "id": "cavalry",
+  "tree": "technology",
+  "description": "Cavalry means fighting from horseback rather than from chariots. Riding is older than mounted warfare, but organised mounted units are clearest from the ninth century BCE, when Assyrian reliefs show riders in pairs, one holding both horses' reins while the other shoots. On the steppe, mounted archery underpinned the power of peoples such as the Scythians and Xiongnu.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "How early people rode horses, and when riding became military, is debated; the node record gives about 900 BCE on the steppe and 850 BCE for Assyria.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Assyrian reliefs of paired riders in the ninth century BCE; mounted archery among Scythians and Xiongnu."
+  },
+  "mechanicLink": "Deferred to the Battle layer (M7): with composite_bow grants unit.horse_archers (class F, no realizing system yet); prerequisite horse_domestication."
+ },
+ {
+  "id": "saddle",
+  "tree": "technology",
+  "description": "Early saddles were cushions of leather and felt stitched together, like those preserved in frozen Pazyryk burials in the Altai Mountains, of about the fifth to third centuries BCE. They spread the rider's weight and eased long journeys. Later saddles were built on a rigid frame, the tree, which kept pressure off the horse's spine and could carry stirrups.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The date and place of the first rigid-framed saddle are uncertain; the node record gives about 200 BCE, and several regions are candidates.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Pazyryk felt and leather saddles of the fifth to third centuries BCE; role of the rigid tree."
+  },
+  "mechanicLink": "Knowledge-only (class C): records long-distance riding; PROPOSED prerequisite sewing (stitched leather and felt) with cavalry; its only dependant is the stirrup."
+ },
+ {
+  "id": "siege_ram",
+  "tree": "technology",
+  "description": "Neo-Assyrian armies of the ninth to seventh centuries BCE attacked city walls with battering rams housed in wheeled, roofed frames, some built as towers with archers on top, pushed up earth ramps to the wall. Palace reliefs of Sennacherib's siege of Lachish in Judah, 701 BCE, depict the method, and archaeologists have excavated the Assyrian siege ramp there.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": null,
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: wheeled roofed Assyrian rams from the ninth century BCE; Lachish reliefs and excavated siege ramp, 701 BCE."
+  },
+  "mechanicLink": "Deferred to the Battle layer (M7): grants unit.siege_engine (class F, listed with no recruiter); PROPOSED merge absorbs siege_tower, since rams, towers and ramps formed one Assyrian siege complex."
+ },
+ {
+  "id": "crossbow",
+  "tree": "technology",
+  "description": "A crossbow mounts a short, stiff bow crosswise on a stock and holds the drawn string with a trigger, so it can be loaded in advance and aimed steadily. Bronze trigger mechanisms survive in China from the Warring States period, when armies issued crossbows in large numbers. A magazine-fed repeating version from Chu remained in use until the late Qing.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Chinese origins are dated variously from about the seventh to the fourth century BCE; the Greek belly-bow (gastraphetes), about 400 BCE, is usually treated as a separate development.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Warring States bronze trigger mechanisms; mass issue to armies; Chu repeating crossbow in use until the late Qing."
+  },
+  "mechanicLink": "Deferred to the Battle layer (M7): grants unit.crossbowmen (class F, knowledge-eligible, no recruiter); PROPOSED merge absorbs crossbow_repeating as a variant, not a new principle."
+ },
+ {
+  "id": "naval_ram",
+  "tree": "technology",
+  "description": "From around the eighth century BCE, Mediterranean war galleys carried a bronze-sheathed ram at the waterline, turning the oared ship itself into a weapon. The trireme, with three tiers of rowers, became the leading type by the late sixth century BCE. The Athlit ram, found off Israel and dated to about the second century BCE, survives intact.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Phoenician and Greek priority for the ram is uncertain; early depictions are open to interpretation.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: bronze rams from about the eighth century BCE; trireme dominance by the late sixth century BCE; Athlit ram date and find place."
+  },
+  "mechanicLink": "Deferred to the Battle layer (M7): grants unit.war_galley (class F, no realizing system yet); requires plank_boat and casting_closed."
+ },
+ {
+  "id": "torsion_artillery",
+  "tree": "technology",
+  "description": "Torsion artillery stored energy in tightly twisted bundles of sinew or hair rope that drove two throwing arms. Greek engineers developed it in the fourth century BCE, probably under Philip II of Macedon, from earlier bow-powered catapults. Later writers such as Philon of Byzantium recorded formulas sizing the spring to the weight of the shot: engineering by calculation.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "The attribution to Philip II's engineers is probable rather than certain; the node record dates the formula to about 250 BCE.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: fourth-century BCE Macedonian development; descent from the gastraphetes; Philon's calibre formula."
+  },
+  "mechanicLink": "Deferred to the Battle layer (M7): grants unit.siege_engine (class F, no realizing system yet); PROPOSED to lose the counterweight trebuchet as a dependant, since that engine works on a different principle."
+ },
+ {
+  "id": "stirrup",
+  "tree": "technology",
+  "description": "Stirrups give a rider footholds, steadying the seat for archery and close combat. Single mounting stirrups appear in China by the fourth century CE; the earliest dated pair, from the tomb of Feng Sufu in northeast China, who died in 415 CE, is wood sheathed in metal. Paired stirrups reached Europe by about the seventh century, probably with the Avars.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "How much stirrups changed mounted shock combat in Europe is long debated; the role of the Avars as carriers is probable, not certain.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Chinese single stirrups by the fourth century CE; Feng Sufu pair (415 CE) of metal-sheathed wood; arrival in Europe about the seventh century."
+  },
+  "mechanicLink": "Deferred to the Battle layer (M7): grants unit.heavy_cavalry (class F, knowledge-eligible) and is named by the PROPOSED unit.cuirassiers (open decision); prerequisites saddle and iron_bloomery."
+ },
+ {
+  "id": "traction_trebuchet",
+  "tree": "technology",
+  "description": "The traction trebuchet is a pivoting beam with a sling on its long arm; a crew hauling ropes on the short arm whips it round, releasing a stone. Mohist texts of fourth- or third-century BCE China describe such engines. Avars and Byzantines were using them in the Mediterranean world by the late sixth century CE.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "Dating of the Mohist texts is approximate, and the route by which the engine travelled west is not documented in detail.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Mohist textual description; arrival in the Mediterranean by the late sixth century CE; Avar and Byzantine use."
+  },
+  "mechanicLink": "PROPOSED new node, deferred to the Battle layer (M7): adds a route to unit.siege_engine and becomes the prerequisite of the counterweight trebuchet; requires sling and timber_frame."
+ },
+ {
+  "id": "cannon_early",
+  "tree": "technology",
+  "description": "Early cannon drive a projectile from a closed metal tube with the gas of burning gunpowder, which reached Europe from China in the thirteenth century. The oldest known guns are Chinese: a bronze gun found at Xanadu bears a date corresponding to 1298. An English manuscript depicts a gun in 1326. Many early European guns were hooped wrought-iron staves.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "NAT1-004",
+    "claims": [
+     "Gunpowder reached the West in the thirteenth century"
+    ]
+   }
+  ],
+  "uncertainty": "An undated Wuwei bronze gun may be older than the Xanadu gun (contextually 1214–1227 in the node record); dates of first use in Europe and China remain uncertain.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "This lane's own search budget was exhausted at its first query (2026-10-22); the claim marked below was compared with the claims_supported field of a register entry that another drafting lane recorded from a WebSearch result summary this session (page not opened by anyone). All other claims rest on general knowledge. Compared: gunpowder reaching the West in the thirteenth century (NAT1-004).",
+   "notes": "Not corroborated: Xanadu gun date 1298; 1326 English manuscript illustration; wrought-iron stave-and-hoop construction."
+  },
+  "mechanicLink": "Deferred to the Battle layer (M7): grants unit.artillery (class F, no realizing system yet); PROPOSED prerequisites saltpetre_refining and casting_closed OR iron_bloomery, reflecting bronze and wrought-iron routes."
+ },
+ {
+  "id": "trebuchet",
+  "tree": "technology",
+  "description": "The counterweight trebuchet replaced the hauling crew of the earlier lever engine with a heavy weighted box on the short arm, giving more power and consistent shots. It appears in the eastern Mediterranean, in Byzantine and Islamic contexts, during the twelfth century. Engineers from the Islamic world built such machines for the Mongol siege of Xiangyang in 1273.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "The precise place and decade of the first counterweight machine are uncertain; hybrid machines with both crew and counterweight probably came first.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: twelfth-century appearance in the eastern Mediterranean; Muslim engineers' machines at Xiangyang, 1273."
+  },
+  "mechanicLink": "Deferred to the Battle layer (M7): grants unit.siege_engine (class F); PROPOSED prerequisite traction_trebuchet replaces torsion_artillery, whose edge was not causal."
+ },
+ {
+  "id": "longbow",
+  "tree": "technology",
+  "description": "The longbow is a tall self bow, often of yew, about the archer's height, with a heavy draw. English armies of the fourteenth and fifteenth centuries combined massed archers with dismounted men-at-arms, as at Crécy in 1346. Its power came less from new technique than from years of practice; bows from the Mary Rose, sunk 1545, show their size.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Welsh and English origins are hard to separate from the long European tradition of self bows; draw weights are estimated from surviving bows.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: yew self bow; Crécy 1346 tactics; Mary Rose bows (sunk 1545)."
+  },
+  "mechanicLink": "Deferred to the Battle layer (M7): grants unit.longbowmen, the regional A6 branch (class F, no realizing system yet); prerequisite bow_simple."
+ },
+ {
+  "id": "plate_armour",
+  "tree": "technology",
+  "description": "Plate armour covers the body with shaped, hardened iron or steel plates articulated at the joints. European armourers moved from mail reinforced with plates to complete plate harness during the fourteenth century; by the early fifteenth, full harness was usual for wealthy men-at-arms. Quenching and tempering made plates hard but not brittle. A harness typically weighed 15 to 25 kilograms.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Not every armour was hardened; quality varied widely between workshops, and weights are typical ranges.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: fourteenth-century transition to full plate; quench-and-temper hardening; typical weight 15 to 25 kg."
+  },
+  "mechanicLink": "Deferred to the Battle layer (M7): equipment of knights and men-at-arms in the unit families; PROPOSED unit.cuirassiers (with stirrup and wheellock) is an open decision; otherwise knowledge-only."
+ },
+ {
+  "id": "greek_fire",
+  "tree": "technology",
+  "description": "Greek fire was a liquid incendiary used by the Byzantine navy, projected from pressurised siphons in the bows of ships. Byzantine tradition credits a refugee architect from Syria named Kallinikos, with its first use during the Arab sieges of Constantinople around 672–678. The composition was a closely guarded state secret, probably petroleum-based, and its formula was later lost.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Ingredients and the siphon mechanism remain debated; the Kallinikos story comes from later Byzantine sources.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: siphon projection; Kallinikos attribution; first use around 672–678; loss of the formula."
+  },
+  "mechanicLink": "Knowledge-only (class C): records a naval incendiary with no realizing system; candidate equipment for M7 naval auto-resolve, with no mechanic designed here."
+ },
+ {
+  "id": "cannon_cast_bronze",
+  "tree": "technology",
+  "description": "Gun founders adopted the methods of bell founders, casting large bronze barrels in one piece in loam moulds. During the fifteenth century cast bronze became a preferred material for European and Ottoman artillery, as it was less prone than early wrought-iron pieces to burst violently. Ottoman bronze bombards helped breach the walls of Constantinople in 1453, prompting new fortification designs.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "The pace of the shift from wrought iron to bronze varied by region; wrought-iron guns remained in use alongside cast bronze.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: bell-founding methods for guns; fifteenth-century preference for bronze; Ottoman bronze guns at Constantinople, 1453."
+  },
+  "mechanicLink": "Deferred to the Battle layer (M7): grants unit.artillery (class F); PROPOSED prerequisite casting_closed replaces lost_wax (flagged for the Director); prerequisite of the bastion fort."
+ },
+ {
+  "id": "cannon_cast_iron",
+  "tree": "technology",
+  "description": "Cast-iron guns were cheaper than bronze because iron is far more plentiful than copper and tin, though they were heavier and more likely to burst. Founders in the Weald of Sussex, England, cast serviceable iron muzzle-loaders from 1543, using water-powered blast furnaces. Cheap iron ordnance later armed merchant ships and warships in large numbers, notably from English and Swedish foundries.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Earlier cast-iron guns existed in China and elsewhere; 1543 marks the first sustained English production, not a universal first.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Wealden cast-iron guns from 1543; water-powered blast furnaces; later English and Swedish iron ordnance."
+  },
+  "mechanicLink": "Deferred to the Battle layer (M7): grants unit.artillery (class F); prerequisite of ship_of_line; PROPOSED to lose the tank as a dependant."
+ },
+ {
+  "id": "matchlock",
+  "tree": "technology",
+  "description": "The matchlock was the first mechanical firing lock: a curved lever, the serpentine, lowers a smouldering cord into a pan of priming powder, so the shooter can keep aiming while firing. Matchlock arquebuses spread in Europe in the later fifteenth century, using granulated, or corned, powder. Portuguese traders brought them to Japan in 1543, where smiths soon produced copies.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Dating of the first matchlocks and of corned powder is debated; corning is generally placed around the mid-fifteenth century.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: later fifteenth-century spread; use of corned powder; Portuguese arrival in Japan in 1543 and local copying."
+  },
+  "mechanicLink": "Deferred to the Battle layer (M7): grants unit.musketeers (class F); PROPOSED prerequisite corned_powder replaces crossbow, with cannon_early."
+ },
+ {
+  "id": "wheellock",
+  "tree": "technology",
+  "description": "The wheellock struck sparks by spinning a serrated steel wheel, driven by a wound spring, against a piece of pyrite, so a gun could be carried loaded and fired without a burning match. It appeared around 1500 in southern Germany or northern Italy. Costly and intricate, it made one-handed pistols practical for horsemen and for concealed carry.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "The place of invention is disputed; drawings attributed to Leonardo da Vinci show a similar mechanism, and their priority is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: spring-driven wheel against pyrite; origin about 1500 in southern Germany or northern Italy; use in cavalry pistols."
+  },
+  "mechanicLink": "Deferred to the Battle layer (M7): pistol of the PROPOSED unit.cuirassiers (open decision); requires matchlock and escapement_verge; prerequisite of the flintlock."
+ },
+ {
+  "id": "flintlock",
+  "tree": "technology",
+  "description": "The flintlock produced sparks by striking a flint, held in the cock, against a hinged steel, the frizzen, which also covered the priming pan. It is usually credited to the French gunmaker Marin le Bourgeoys in the early 1600s, refining earlier snaphance locks. Simpler and cheaper than the wheellock, it armed most European infantry from the late 1600s.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Attribution to le Bourgeoys is conventional; related locks developed in several places.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: le Bourgeoys attribution and early-1600s date; adoption by European infantry from the late 1600s."
+  },
+  "mechanicLink": "Deferred to the Battle layer (M7): grants unit.musketeers (class F); PROPOSED to gain breech_loading_rifle as a dependant."
+ },
+ {
+  "id": "trace_italienne",
+  "tree": "technology",
+  "description": "The bastion fort, or trace italienne, answered siege cannon with low, thick, earth-backed walls faced in masonry, and angular bastions projecting from them. Bastions let defenders' guns sweep every face of the wall, leaving no dead ground at the foot of the curtain. Italian engineers developed the system around 1500, and it spread across Europe and to European overseas outposts.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Credit is shared among several Italian engineers, and the transition from round towers was gradual.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Italian development around 1500; elimination of dead ground; spread across Europe and overseas."
+  },
+  "mechanicLink": "Grants building.bastion_fort (class J): construction PROPOSED for ConstructionSystem and its defensive effect for the Battle layer (M7); PROPOSED added prerequisite stone_fortification."
+ },
+ {
+  "id": "ship_of_line",
+  "tree": "technology",
+  "description": "A ship of the line was a large sailing warship with two or three gun decks, strong enough to take a place in the line of battle, in which fleets sailed in single file to fire broadsides. English and Dutch navies formalised the line in the 1650s and 1660s. Such ships carried from about sixty to over a hundred guns.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "The line of battle evolved over several decades; the node record gives about 1650.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: formalisation of the line in English and Dutch navies in the 1650s–1660s; gun counts."
+  },
+  "mechanicLink": "Deferred to the Battle layer (M7): grants unit.ship_of_the_line (class F, no realizing system yet); requires carrack and cannon_cast_iron."
+ },
+ {
+  "id": "rifling",
+  "tree": "technology",
+  "description": "Rifling cuts spiral grooves inside a gun barrel so the projectile spins and flies straighter. Gunmakers around Vienna and Nuremberg made rifled barrels by about 1500, though who first did so is disputed. Rifles were accurate but slow to load, so they stayed largely with hunters and specialist marksmen; general military issue came only in the nineteenth century.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Named early makers (Kollner, about 1498; Kotter, about 1520) are uncertain attributions.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: rifled barrels around Vienna and Nuremberg by about 1500; disputed attribution; slow loading; general issue in the nineteenth century."
+  },
+  "mechanicLink": "PROPOSED new node, deferred to the Battle layer (M7): PROPOSED unit.rangers (open decision); prerequisite of breech_loading_rifle and rifled_artillery; requires matchlock."
+ },
+ {
+  "id": "breech_loading_rifle",
+  "tree": "technology",
+  "description": "Breech-loading rifles take the cartridge at the rear of the barrel, so soldiers can reload quickly, even lying down. Prussia adopted Dreyse's needle gun, firing a paper cartridge, in 1841. From the 1860s metallic cartridges sealed the breech reliably, and bolt-action rifles followed. Smokeless powder, from the late 1880s, extended range and hid firing positions.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "Earlier breech-loaders existed (for example in the United States from 1819); the node record dates the type from 1841.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Prussian adoption of the needle gun in 1841; metallic cartridges and bolt actions from the 1860s; smokeless powder from the late 1880s."
+  },
+  "mechanicLink": "PROPOSED new node, deferred to the Battle layer (M7): PROPOSED unit.line_infantry (open decision); prerequisite of machine_gun."
+ },
+ {
+  "id": "machine_gun",
+  "tree": "technology",
+  "description": "A machine gun fires continuously while the trigger is held. Richard Gatling's 1862 design rotated several barrels with a hand crank. Hiram Maxim's gun of 1884 was fully automatic, using recoil energy to reload from a cloth belt, with a water jacket cooling the barrel. In the First World War, machine guns, wire and artillery helped produce trench deadlock.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Maxim guns first used black-powder cartridges and were adapted for smokeless powder in the late 1880s.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Gatling 1862 hand-cranked multi-barrel; Maxim 1884 recoil-operated belt-fed; role in First World War deadlock."
+  },
+  "mechanicLink": "PROPOSED new node, deferred to the Battle layer (M7): PROPOSED unit.machine_guns (open decision); prerequisite of tank; requires breech_loading_rifle."
+ },
+ {
+  "id": "rifled_artillery",
+  "tree": "technology",
+  "description": "Rifled breech-loading guns fired elongated shells that spun in flight, reaching farther and more accurately than round shot. William Armstrong's built-up wrought-iron breech-loader, developed at Elswick in the 1850s, was adopted by the British army at the end of that decade. Alfred Krupp's cast-steel breech-loaders, adopted by Prussia in the 1860s, proved durable and widely exported.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Britain later returned to muzzle-loaders for some years; national adoption dates differ by gun type.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Armstrong gun (Elswick, 1850s) and British adoption; Krupp cast-steel guns adopted by Prussia in the 1860s."
+  },
+  "mechanicLink": "PROPOSED new node, deferred to the Battle layer (M7): PROPOSED unit.field_artillery (open decision); prerequisite of tank; requires rifling, puddling and slide_rest_lathe."
+ },
+ {
+  "id": "tank",
+  "tree": "technology",
+  "description": "A tank is an armoured, tracked vehicle carrying its own guns. British designers drew on the crawler track of agricultural tractors such as Benjamin Holt's, first tested in 1904, to cross trenches. Tanks first went into action at Flers-Courcelette on the Somme in September 1916, some carrying six-pounder guns, others only machine guns. Early tanks were slow and unreliable.",
+  "wordCount": 59,
+  "sources": [
+   {
+    "sourceId": "AGR2-002",
+    "claims": [
+     "Benjamin Holt first tested a track-type tractor in 1904"
+    ]
+   }
+  ],
+  "uncertainty": "France developed tanks in parallel, and the direct ancestry of British track designs is more complex than a single tractor lineage.",
+  "factCheck": {
+   "status": "partially-checked",
+   "checkedBy": "drafting lane",
+   "method": "This lane's own search budget was exhausted at its first query (2026-10-22); the claim marked below was compared with the claims_supported field of a register entry that another drafting lane recorded from a WebSearch result summary this session (page not opened by anyone). All other claims rest on general knowledge. Compared: Holt's first test of a track-type tractor in 1904 (AGR2-002).",
+   "notes": "Not corroborated: first action at Flers-Courcelette, September 1916; six-pounder 'male' and machine-gun 'female' armament; reliability."
+  },
+  "mechanicLink": "Deferred to the Battle layer (M7): grants unit.tank (class F); PROPOSED rewire replaces cannon_cast_iron with rifled_artillery and machine_gun."
+ },
+ {
+  "id": "radar",
+  "tree": "technology",
+  "description": "Radar detects distant objects by transmitting radio pulses and timing their echoes. It rests on the electromagnetic waves Heinrich Hertz demonstrated in the late 1880s. In the 1930s Britain, Germany, the United States and others developed it largely in parallel; Britain's Chain Home stations operated by the late 1930s. The cavity magnetron, from 1940, made compact microwave sets possible.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Several nations developed radar independently and secretly, so priority claims differ by definition.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Hertz's demonstration in the late 1880s; parallel 1930s development; Chain Home; cavity magnetron 1940."
+  },
+  "mechanicLink": "Knowledge-only (class C): display string only, since research never widens fog sight in M6; candidate reconnaissance class for the Battle layer (M7); prerequisite of stealth, missile_defence and guided_missile."
+ },
+ {
+  "id": "icbm",
+  "tree": "technology",
+  "description": "An intercontinental ballistic missile is a rocket that carries a warhead thousands of kilometres, mostly above the atmosphere, before re-entering at very high speed. The Soviet R-7 made the first successful long-range flight in August 1957 and soon afterwards launched Sputnik. Usually armed with thermonuclear warheads, ICBMs became central to Cold War deterrence and to later arms-control treaties.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": null,
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: R-7 first successful flight in August 1957 and Sputnik launch; thermonuclear warheads; role in arms control."
+  },
+  "mechanicLink": "Deferred to the Battle layer (M7): grants unit.icbm (class F, knowledge-eligible); its realization milestone follows D11's recommendation on nuclear weapons; requires rocket, thermonuclear and computer."
+ },
+ {
+  "id": "guided_munitions",
+  "tree": "technology",
+  "description": "Precision-guided munitions steer onto a marked or located target. American laser-guided bombs, homing on laser light reflected from the target, destroyed the Thanh Hoa bridge in North Vietnam in 1972 after years of failed raids with unguided bombs. From the 1990s, bombs guided by satellite navigation could strike set coordinates in any weather. Misidentified targets still cause civilian deaths.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "This part describes only precision-guided bombs and munitions; guided missiles are a separate PROPOSED node.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Thanh Hoa bridge destroyed by laser-guided bombs in 1972; satellite-guided bombs from the 1990s."
+  },
+  "mechanicLink": "Knowledge-only (class C): candidate owner Battle layer (M7) air-strike missions; PROPOSED split keeps this precision part (prerequisites laser, computer, guided_missile) as prerequisite of missile_defence and frontier_military."
+ },
+ {
+  "id": "stealth",
+  "tree": "technology",
+  "description": "Stealth, or low observability, reduces how easily radar, infrared and other sensors detect an aircraft, using shapes that deflect radar waves away from the transmitter and radar-absorbent materials. The American F-117, first flown in 1981, used flat faceted surfaces because computers of the time could calculate their radar returns; its unstable shape required computerised fly-by-wire control.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": null,
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: F-117 first flight 1981; faceting chosen for computability; fly-by-wire requirement."
+  },
+  "mechanicLink": "Deferred to the Battle layer (M7): grants unit.stealth_aircraft (class F); PROPOSED added prerequisite aircraft, with composites, radar and computer."
+ },
+ {
+  "id": "combat_drone",
+  "tree": "technology",
+  "description": "Remotely piloted aircraft are flown by crews on the ground through radio and satellite links. Reconnaissance drones are decades older, but long-endurance surveillance became practical with satellite navigation and compact electronics. The American Predator flew unarmed reconnaissance from 1995, and armed versions carrying missiles were used from 2001. Many states, and some non-state groups, now use them.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "The node record gives 1990s–2000s; earlier target and reconnaissance drones date from the mid-twentieth century.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Predator unarmed from 1995 and armed from 2001; dependence on satellite navigation and compact electronics."
+  },
+  "mechanicLink": "Deferred to the Battle layer (M7): grants unit.combat_drone (class F); requires gps, microprocessor and aircraft, not guided_munitions, since early drones flew unarmed."
+ },
+ {
+  "id": "missile_defence",
+  "tree": "technology",
+  "description": "Missile defence tries to detect, track and destroy attacking missiles before they reach their targets. The 1972 Anti-Ballistic Missile Treaty limited American and Soviet systems, which then relied on nuclear-armed interceptors. In 1984 an American test destroyed a target warhead by direct collision, the hit-to-kill approach later used by several systems. Interception remains difficult against large or decoy-laden attacks.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Effectiveness of deployed systems is contested and depends heavily on test conditions.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: ABM Treaty 1972; nuclear-armed interceptors; first hit-to-kill intercept in 1984."
+  },
+  "mechanicLink": "Knowledge-only (class C): no unit family realizes interception; candidate owner the Battle layer (M7) strike resolution; requires radar and guided_munitions."
+ },
+ {
+  "id": "frontier_military",
+  "tree": "technology",
+  "description": "Since the Second World War, many states have funded permanent military research through government laboratories, defence agencies and contracts with industry and universities; the United States created ARPA in 1958 after Sputnik. Such programmes seek advantage over rivals rather than one decisive invention, and each side's gains often prompt countermeasures. Some results, such as computer networking, found civilian use.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "How much civilian technology owes to military funding, as opposed to parallel civilian work, is debated case by case.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: creation of ARPA in 1958 after Sputnik; ARPA's role in early computer networking."
+  },
+  "mechanicLink": "Repeatable node owned by ResearchSystem (class H): records combat effectiveness relative to rivals; kept unchanged under D-046; prerequisite guided_munitions."
+ },
+ {
+  "id": "guided_missile",
+  "tree": "technology",
+  "description": "Guided missiles combine propulsion with a guidance system that corrects their course in flight. Germany's Henschel Hs 293, a rocket-boosted, radio-controlled glide bomb, sank Allied ships from 1943. In the 1950s radar- and infrared-homing missiles, such as the American Sidewinder, entered service for air defence and air combat, without needing lasers or stored-program computers.",
+  "wordCount": 54,
+  "sources": [],
+  "uncertainty": "This split part covers missiles of the 1940s–1950s; precision-guided bombs remain in guided_munitions.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane",
+   "method": "Not compared with any source: the shared WebSearch budget was already exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts) and checked for consistency with the node record.",
+   "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Hs 293 rocket-boosted radio guidance and ship sinkings from 1943; Sidewinder service in the 1950s."
+  },
+  "mechanicLink": "PROPOSED new split part of guided_munitions, knowledge-only: candidate owner the Battle layer (M7); requires rocket and radar; prerequisite of guided_munitions."
+ }
+]

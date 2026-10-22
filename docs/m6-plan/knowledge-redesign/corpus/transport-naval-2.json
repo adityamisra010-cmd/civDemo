@@ -1,0 +1,227 @@
+[
+  {
+    "id": "crewed_spaceflight",
+    "tree": "technology",
+    "description": "Crewed spaceflight means sending people beyond the atmosphere and bringing them back alive, which demands life support, a heat shield for re-entry and reliable guidance. On 12 April 1961 the Soviet cosmonaut Yuri Gagarin made one orbit of Earth in Vostok 1. The United States flew suborbital missions that year and its first orbital flight, John Glenn's, in February 1962.",
+    "wordCount": 60,
+    "sources": [],
+    "uncertainty": null,
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts).",
+      "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Vostok 1 on 12 April 1961 (one orbit, Gagarin); US suborbital flights in 1961; Glenn's orbital flight in February 1962."
+    },
+    "mechanicLink": "Knowledge-only today (class C): records human operations in orbit and is the prerequisite of lunar_flight and space_station; kept unchanged in the proposal."
+  },
+  {
+    "id": "lunar_flight",
+    "tree": "technology",
+    "description": "Crewed lunar flight required leaving Earth orbit, crossing roughly 384,000 kilometres, landing, and surviving a very fast re-entry. NASA's Apollo 8 orbited the Moon in December 1968, and in July 1969 Apollo 11's Neil Armstrong and Buzz Aldrin walked on its surface. Six Apollo missions landed between 1969 and 1972, returning about 382 kilograms of lunar samples.",
+    "wordCount": 58,
+    "sources": [],
+    "uncertainty": null,
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts).",
+      "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Apollo 8 lunar orbit December 1968; Apollo 11 landing July 1969 (Armstrong, Aldrin); six landings 1969-1972; about 382 kg of samples; mean Earth-Moon distance about 384,000 km."
+    },
+    "mechanicLink": "Knowledge-only capstone (crewed deep-space operations); PROPOSED: no consequence before a space-project owner exists (M11+ content)."
+  },
+  {
+    "id": "space_station",
+    "tree": "technology",
+    "description": "A space station is an orbiting habitat where crews live for weeks or months, working in near-weightlessness. The Soviet Union launched Salyut 1 in 1971, and the American Skylab followed in 1973. Mir was assembled in orbit from 1986. The International Space Station, built by several partner agencies, began assembly in 1998 and has hosted crews continuously since November 2000.",
+    "wordCount": 60,
+    "sources": [],
+    "uncertainty": null,
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts).",
+      "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Salyut 1 1971; Skylab 1973; Mir assembly from 1986; ISS assembly from 1998 and continuous crew since November 2000."
+    },
+    "mechanicLink": "Knowledge-only capstone (permanent orbital presence, microgravity research); PROPOSED: no consequence before a space-project owner exists (M11+ content)."
+  },
+  {
+    "id": "reusable_launch",
+    "tree": "technology",
+    "description": "Reusable launch vehicles recover expensive hardware instead of discarding it. The US Space Shuttle (1981 to 2011) reused its orbiter and solid boosters but needed costly refurbishment between missions. In December 2015 SpaceX landed the first stage of a Falcon 9 orbital rocket upright after launch, using engine relights, grid fins and satellite navigation; reflights followed in 2017.",
+    "wordCount": 58,
+    "sources": [],
+    "uncertainty": "'First' depends on definition: Blue Origin landed its suborbital New Shepard booster in November 2015, a month before the Falcon 9 orbital-class landing; the Shuttle was partially reusable decades earlier.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts).",
+      "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Shuttle service 1981-2011 and refurbishment burden; Falcon 9 first-stage landing December 2015; first booster reflight 2017; role of grid fins and satellite navigation in landing guidance."
+    },
+    "mechanicLink": "Knowledge-only today (cheap access to orbit); prerequisite of frontier_launch; kept in the proposal and re-pointed to orbital_launch_vehicle AND gps AND composites."
+  },
+  {
+    "id": "earth_observation",
+    "tree": "technology",
+    "description": "Earth observation uses satellite instruments to image land, oceans and atmosphere repeatedly. Weather and military reconnaissance satellites returned images from 1960, but systematic civilian land monitoring began when NASA launched the first Landsat satellite in July 1972, recording multispectral images. Repeated coverage lets analysts track crops, forest loss, floods and mineral prospects, though cloud and resolution limit visibility.",
+    "wordCount": 58,
+    "sources": [],
+    "uncertainty": "Military reconnaissance imagery long predated and was classified for decades; 'first' civilian observation depends on whether weather satellites (TIROS, 1960) count.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts).",
+      "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Weather (TIROS 1) and reconnaissance (Corona) imagery from 1960; Landsat 1 (then ERTS-1) launched July 1972 with a multispectral scanner; applications to crops, forests, floods, minerals."
+    },
+    "mechanicLink": "Knowledge-only today; PROPOSED and OPEN: a realized imaging satellite as a pointed observer for the fog lane (D-039) and a remote-sensing identification carrier for D11; completion reveals no land and sets no extent bit (D-040)."
+  },
+  {
+    "id": "high_speed_rail",
+    "tree": "technology",
+    "description": "High-speed rail runs passenger trains at sustained speeds above roughly 200 kilometres per hour on dedicated, carefully engineered track. Japan opened the Tokaido Shinkansen between Tokyo and Shin-Osaka in October 1964, using electric multiple-unit trains, gentle curves, tunnels and viaducts. France followed with the TGV in 1981. Over medium distances, such lines often rival air travel on door-to-door journey time.",
+    "wordCount": 60,
+    "sources": [],
+    "uncertainty": "The speed threshold defining 'high-speed' varies by country and standard (commonly 200-250 km/h for new lines).",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts).",
+      "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Tokaido Shinkansen opened October 1964 Tokyo-Shin-Osaka with electric multiple units; TGV Paris-Lyon service 1981; competitiveness with air travel over medium distances."
+    },
+    "mechanicLink": "Knowledge-only leaf today; PROPOSED: a dedicated high-speed rail edge class (speed, capacity) once rail edges exist."
+  },
+  {
+    "id": "jet_airliner",
+    "tree": "technology",
+    "description": "Jet airliners carry passengers on gas-turbine engines, cruising higher and faster than piston aircraft. Britain's de Havilland Comet began scheduled service in 1952, but fatal crashes later traced to metal fatigue grounded it in 1954. Boeing's 707, entering service in 1958, helped make long-haul jet travel commercially viable. Turbine blades of creep-resistant nickel alloys kept such engines dependable.",
+    "wordCount": 58,
+    "sources": [],
+    "uncertainty": null,
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts).",
+      "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Comet scheduled service 1952; grounding 1954 after crashes attributed to fatigue; Boeing 707 service entry 1958; nickel superalloy (Nimonic-type) turbine blades."
+    },
+    "mechanicLink": "Knowledge-only leaf today; PROPOSED: passenger air routes between airfields as an edge type (D-009 'air corridor'); prerequisites now include superalloy; completion reveals no land (D-040)."
+  },
+  {
+    "id": "electric_vehicle",
+    "tree": "technology",
+    "description": "Electric cars are not new: battery vehicles were common in some cities around 1900 before petrol cars overtook them. The modern electric vehicle pairs a mass-produced car body with rechargeable lithium-ion battery packs and efficient electric motors. Tesla's Roadster, delivered from 2008, showed lithium cells could give useful range; falling battery costs since then have enabled wider, though uneven, adoption.",
+    "wordCount": 60,
+    "sources": [],
+    "uncertainty": "Many manufacturers and earlier prototypes contributed; choosing 2008 marks one commercial lithium-ion car, not the origin of electric road vehicles. Adoption differs greatly between countries.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts).",
+      "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Battery electric cars common around 1900 before petrol cars dominated; Tesla Roadster deliveries from 2008 with lithium-ion cells; falling battery costs since."
+    },
+    "mechanicLink": "Knowledge-only today (road transport without oil); PROPOSED: road vehicles drawing on electricity instead of petroleum once energy/fuel goods exist (M11+); prerequisite now includes automobile_mass."
+  },
+  {
+    "id": "helicopter",
+    "tree": "technology",
+    "description": "A helicopter lifts and steers itself with powered rotating wings, so it can hover, take off vertically and land without runways. Rotor torque and uneven blade forces defeated many early attempts. In 1935 and 1936 France's Breguet-Dorand Gyroplane Laboratoire and Germany's Focke-Wulf Fw 61 made controlled flights; Igor Sikorsky's VS-300 (1939) then established the single main rotor with tail rotor.",
+    "wordCount": 60,
+    "sources": [],
+    "uncertainty": "'First practical helicopter' is contested between the Breguet-Dorand machine, the Fw 61 and Sikorsky's designs; the answer depends on the criteria used.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts).",
+      "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Breguet-Dorand Gyroplane Laboratoire 1935; Focke-Wulf Fw 61 1936; Sikorsky VS-300 1939 with single main rotor and tail rotor; torque and asymmetric-lift problems."
+    },
+    "mechanicLink": "Deferred: vertical lift and runway-free air mobility; grants unit.helicopter eligibility (M7)."
+  },
+  {
+    "id": "fusion_propulsion",
+    "tree": "technology",
+    "description": "Fusion propulsion is a proposed way to drive spacecraft by expelling the products of nuclear fusion, which release vastly more energy per kilogram than chemical fuels. None has been built. Design studies such as the British Interplanetary Society's Project Daedalus in the 1970s sketched an uncrewed probe reaching a nearby star in about fifty years, assuming undemonstrated technology.",
+    "wordCount": 58,
+    "sources": [],
+    "uncertainty": "Entirely speculative: controlled fusion for propulsion has not been demonstrated, and study figures depend on unproven assumptions.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts).",
+      "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: No fusion engine exists; Project Daedalus (British Interplanetary Society, 1970s) studied an uncrewed probe to a nearby star (Barnard's Star) in about fifty years."
+    },
+    "mechanicLink": "Speculative node, deferred: PROPOSED interstellar probe project once a space owner exists (M11+ content)."
+  },
+  {
+    "id": "frontier_launch",
+    "tree": "technology",
+    "description": "Reaching low orbit means accelerating a payload to about 7.8 kilometres per second, roughly 30 megajoules per kilogram plus the climb. That energy is cheap; launch prices were historically dominated by hardware discarded after each flight, propellant handling and small production runs. Reuse, larger vehicles and higher flight rates have cut prices per kilogram; further gains are uncertain.",
+    "wordCount": 59,
+    "sources": [],
+    "uncertainty": "Future launch costs are projections; reported price-per-kilogram figures vary with vehicle, orbit and accounting method.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts).",
+      "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Orbital velocity about 7.8 km/s and kinetic energy about 30 MJ/kg; energy cost small relative to price; reuse and flight rate reducing price per kilogram."
+    },
+    "mechanicLink": "Repeatable leaf, documented only: PROPOSED per-level launch-cost reduction closing a fixed fraction of the gap to the orbital-energy limit (~33 MJ/kg), once repeatable mechanics and a space owner exist (M11+)."
+  },
+  {
+    "id": "frontier_propulsion",
+    "tree": "technology",
+    "description": "The rocket equation governs space travel: a craft's final speed depends on how fast it expels propellant and how much of its starting mass is fuel. Chemical rockets expel gas at a few kilometres per second; ion thrusters, flown on probes such as Deep Space 1 (1998) and Dawn, reach far higher exhaust speeds at very low thrust.",
+    "wordCount": 58,
+    "sources": [],
+    "uncertainty": null,
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts).",
+      "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Rocket equation (speed depends on exhaust velocity and mass ratio); chemical exhaust a few km/s; ion propulsion on Deep Space 1 (launched 1998) and Dawn with higher exhaust velocity and low thrust."
+    },
+    "mechanicLink": "Repeatable leaf, documented only: PROPOSED per-level transit-speed gain closing a fixed fraction of the gap to a light-speed fraction limit, once repeatable mechanics and a space owner exist (M11+)."
+  },
+  {
+    "id": "motor_road",
+    "tree": "technology",
+    "description": "A motor road, or highway, is built for fast motor traffic alone, with limited access points and few or no level crossings. Italy's Milano-Laghi autostrada, opened in 1924, was a tolled road reserved for motor vehicles; Germany's Cologne-Bonn road of 1932 is often cited as an early crossing-free, dual-carriageway motorway. Such roads made trucking a major channel for long-distance freight.",
+    "wordCount": 60,
+    "sources": [],
+    "uncertainty": "Which road counts as the 'first' motorway depends on definition (motor-only, tolled, dual carriageway, crossing-free); early American parkways are also cited.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts).",
+      "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Milano-Laghi autostrada opened 1924 as a toll road for motor vehicles; Cologne-Bonn road 1932 as an early crossing-free dual-carriageway motorway; highways and road freight."
+    },
+    "mechanicLink": "Realized today: grants infrastructure infra.road_highway, the live highway class 6 (ADR-032), the bulk road-freight corridor; kept unchanged."
+  },
+  {
+    "id": "submarine",
+    "tree": "technology",
+    "description": "Submarines travel beneath the surface by flooding and emptying ballast tanks to change buoyancy. Practical boats around 1900, such as John Holland's design for the US Navy, ran petrol engines on the surface and battery-powered electric motors underwater. In the First World War, German U-boat campaigns against merchant shipping showed the submarine's strategic weight and helped prompt Allied convoys.",
+    "wordCount": 59,
+    "sources": [],
+    "uncertainty": "Many inventors contributed (earlier human-powered and steam boats); 'first practical' submarine is a matter of definition.",
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts).",
+      "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Ballast-tank buoyancy control; USS Holland commissioned 1900 with petrol engine surfaced and battery-electric drive submerged; WWI U-boat campaigns against shipping; Allied convoys adopted 1917."
+    },
+    "mechanicLink": "Knowledge-only (new node): PROPOSED eligibility for a conventional-submarine identity if D09 adds one (M7) and the prerequisite of nuclear_submarine."
+  },
+  {
+    "id": "orbital_launch_vehicle",
+    "tree": "technology",
+    "description": "An orbital launch vehicle is a staged, guided rocket able to reach orbital speed, about 7.8 kilometres per second at low altitude. Earlier missiles such as the German V-2 (1944) reached only a fraction of that speed. The Soviet R-7, built as an intercontinental missile, first flew full range in August 1957 and launched Sputnik 1 on 4 October.",
+    "wordCount": 60,
+    "sources": [],
+    "uncertainty": null,
+    "factCheck": {
+      "status": "unverified",
+      "checkedBy": "drafting lane",
+      "method": "Not compared with any source: the shared WebSearch budget was exhausted at this lane's first query (2026-10-22) and WebFetch is blocked. Text written from general knowledge with cautious wording (ranges, 'about', attributions limited to well-established facts).",
+      "notes": "No claim corroborated this session and no source recorded (none invented). Claims to check first: Low-orbit velocity about 7.8 km/s; V-2 operational 1944 at a fraction of orbital speed; R-7 first full-range flight August 1957; Sputnik 1 launched 4 October 1957."
+    },
+    "mechanicLink": "Deferred (split from rocket): takes building.spaceport and project.orbital_launch requirements; PROPOSED orbital launch campaigns as construction projects (tier G, nothing consumes them before M11+); prerequisite of satellite."
+  }
+]
