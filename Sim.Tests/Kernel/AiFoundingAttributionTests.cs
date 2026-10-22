@@ -69,11 +69,16 @@ public class AiFoundingAttributionTests
     /// CONTROL: ReservationsLayoutAttributionTests.AiWorldSeed42Turn300_MovedForTheV34LayoutAlone — the v33 projection
     /// (SchemaProjection.V33, asserting 0 hold rows) returns OLD byte for byte, and the PreReservations twin gives the same
     /// world. `sim run --founded --seed 42 --turns 300 --ai-empires 1` on this tree prints the NEW value.</summary>
-    internal const string S1cTurn300 = "25f4799d581d8de72dc15d487bcba54cb9db399208aba065963eb1f257e9fd10";
+    // ADR-043 RE-PIN (2026-10-22, D-062 Track CP; VALUE + LAYOUT, MEASURED on this tree by the agent writing this line):
+    // 25f4799d581d8de7… -> 5623de7a2e550414…. CAUSE: schema v35 appends CivicsPoints (two Empire accounts) and the two
+    // research lanes — the AI orders civics on their own lane, funded by Civics Points. CONTROL:
+    // CivicsPointsAttributionTests.AiWorldSeed42Turn300_MovedForCivicsPointsAlone (TestConfigs.PreTrackCp and CP off
+    // alone return OLD through SchemaProjection.V34; the stage gate off alone returns NEW).
+    internal const string S1cTurn300 = "5623de7a2e550414fee0f6351a47082e20aaf08c206681df97aa28bd7e28e1c3";
 
     /// <summary>Batch 3 (D-054, integration R1): THE CYLINDER-ALONE LINK — the live AI world through the v32 projection
     /// (the two v33 tables dropped, asserted EMPTY): the AI hash the W1 stage measured with the cylinder and no v33 layout.</summary>
-    private const string S1cTurn300AtV32 = "0ce1d4d9af1590351636b0aacd18c3400b110d59d04c7aa07bce9a9bbcf3a19d";
+    internal const string S1cTurn300AtV32 = "0ce1d4d9af1590351636b0aacd18c3400b110d59d04c7aa07bce9a9bbcf3a19d";
 
     /// <summary>The turn the first AI Found Settlement order is stamped (state 36 is the first that differs).</summary>
     private const long FirstFoundingStamp = 35;
@@ -146,7 +151,10 @@ public class AiFoundingAttributionTests
         }
         Assert.True(live.Terrain!.WrapX);
         Assert.Equal(S1cTurn300, WorldHash.ComputeHex(live));
-        Assert.Equal(S1cTurn300AtV32, SchemaProjection.V32(live));   // batch 3: the cylinder-alone link (no v33 row)
+        // ADR-043 (2026-10-22) CAUSE BLOCK: the live world now carries Civics Points accounts and the AI's civics lane
+        // (behaviour, not layout), so the batch-3 cylinder-alone link is asserted on the pre-CP live world instead:
+        // ReservationsLayoutAttributionTests.AiWorldSeed42Turn300_MovedForTheV34LayoutAlone (SchemaProjection.V32 of the
+        // TestConfigs.PreTrackCp run = S1cTurn300AtV32).
         Assert.NotEqual(S1cPreD053Turn300, S1cTurn300);
     }
 }

@@ -272,18 +272,26 @@ public static class AvailableActionsQuery
 
     /// <summary>Set a research target (Id 1) among the AVAILABLE nodes — the mask ResearchSystem applies — with
     /// each node's EffectiveCost, retained progress and whether it is the current target; clear the target
-    /// (Id 2) when one is set. Research runs only for registered Empires.</summary>
+    /// (Id 2) when one is set. Research runs only for registered Empires. ADR-043 (two-lane model): Current marks either
+    /// lane's target; Id 2 ("research.clear-target") clears the TECHNOLOGY lane and Id 3 ("research.clear-civics-target")
+    /// the CIVICS lane, each listed only while its lane holds a target.</summary>
     public static void Research(IReadOnlyWorldState world, SimConfig cfg, PolityId polity, List<ActionDescriptor> into)
     {
         if (cfg.Research is not { } content || !EmpireQuery.TryGetCommandSource(world, polity, out _)) return;
         bool[] available = ResearchQuery.AvailableMask(content, ResearchQuery.CompletedMask(world, content, polity));
-        bool hasTarget = ResearchQuery.TryGetTarget(world, polity, out ResearchNodeId current);
+        bool twoLanes = content.Tuning.TwoLanes;
+        ResearchNodeId current = default, civic = default;
+        bool hasTarget = twoLanes
+            ? ResearchQuery.TryGetTarget(world, content, polity, ResearchTree.Technology, out current)
+            : ResearchQuery.TryGetTarget(world, polity, out current);
+        bool hasCivic = twoLanes && ResearchQuery.TryGetTarget(world, content, polity, ResearchTree.Civics, out civic);
 
         var targets = ImmutableArray.CreateBuilder<ActionTarget>();
         for (int i = 0; i < available.Length; i++)
         {
             if (!available[i]) continue;
-            targets.Add(NodeTarget(world, content, polity, i, hasTarget && content.Nodes[i].Key.Value == current.Value));
+            int key = content.Nodes[i].Key.Value;
+            targets.Add(NodeTarget(world, content, polity, i, (hasTarget && key == current.Value) || (hasCivic && key == civic.Value)));
         }
         if (targets.Count > 0)
             into.Add(new ActionDescriptor(
@@ -294,6 +302,10 @@ public static class AvailableActionsQuery
             into.Add(new ActionDescriptor(
                 ActionDomain.Research, 2, ActionKind.Order, "research.clear-target", "Clear research target",
                 OrderKind.SetResearchTarget, [NodeTarget(world, content, polity, index, true)], null, ActionProvenance.None));
+        if (hasCivic && content.IndexOf(civic) is int civicIndex and >= 0)
+            into.Add(new ActionDescriptor(
+                ActionDomain.Research, 3, ActionKind.Order, "research.clear-civics-target", "Clear civics target",
+                OrderKind.SetResearchTarget, [NodeTarget(world, content, polity, civicIndex, true)], null, ActionProvenance.None));
     }
 
     private static ActionTarget NodeTarget(IReadOnlyWorldState world, ResearchContent content, PolityId polity, int index, bool current)

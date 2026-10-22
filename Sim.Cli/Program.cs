@@ -120,12 +120,13 @@ namespace Sim.Cli
                 both canonical streams in schema order and reports the first
                 divergent table/row/field (doubles as R text + 64-bit pattern)
                 and a per-table summary; exit 0 identical, 1 different. A
-                schema-v32 or schema-v33 save is migrated on load and says so
+                schema-v32, -v33 or -v34 save is migrated on load and says so
                 in one line on stderr; stdout is unchanged in shape. v32: its
-                terrain is regenerated flat and the three tables added since
+                terrain is regenerated flat and the four tables added since
                 v32 (ConstructionProgress, ResourceAllocations,
-                ConstructionHolds) are added empty. v33: ConstructionHolds is
-                added empty.
+                ConstructionHolds, CivicsPoints) are added empty. v33:
+                ConstructionHolds and CivicsPoints are added empty. v34:
+                CivicsPoints is added empty.
 
                 --from-save continues a saved world in this process (D-055):
                 --turns N more steps; --save-at is an absolute turn after the

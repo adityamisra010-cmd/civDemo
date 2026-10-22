@@ -27,7 +27,7 @@ public class TaxGrievanceSchemaTests
     [Fact]
     public void SchemaV32_PopulatedTaxGrievances_LengthRoundTripAndHashExact()
     {
-        Assert.Equal(34, CanonicalSchema.Version);   // v33: D-054 ConstructionProgress + ResourceAllocations (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins)
+        Assert.Equal(35, CanonicalSchema.Version);   // v33: D-054 ConstructionProgress + ResourceAllocations (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins) (v35: ADR-043 CivicsPoints — 2026-10-22 cause: the schema bump alone)
         WorldState world = Populated();
 
         using var ms = new MemoryStream();
@@ -43,7 +43,8 @@ public class TaxGrievanceSchemaTests
         // D-055 (2026-10-16) CAUSE BLOCK: v34 appends ConstructionHolds after them — one more EMPTY count prefix, so the
         // trailer is 3 × 4 bytes (was 2 × 4). The layout alone; every row offset below is unchanged relative to it.
         byte[] bytes = ms.ToArray();
-        const int V33Trailer = 3 * 4;
+        // ADR-043 (v35, 2026-10-22) CAUSE BLOCK: CivicsPoints follows, EMPTY here — 4 × 4 bytes (was 3 × 4). The layout alone.
+        const int V33Trailer = 4 * 4;
         Assert.All(bytes[^V33Trailer..], x => Assert.Equal(0, x));
         Assert.Equal(0x7FF8_0000_0000_0D07, BitConverter.ToInt64(bytes, bytes.Length - V33Trailer - 8));
         Assert.Equal(1, BitConverter.ToInt32(bytes, bytes.Length - V33Trailer - 12));

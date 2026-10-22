@@ -1,6 +1,6 @@
 # Research → gameplay unlock audit
 
-**Generated** by `scripts/research-gameplay-unlock-audit.py` from the canonical content (research.json sha256 `7a3bf38896f443e4…`). Do not edit by hand; CI runs `--check`. Every row is derived from content links; the only mapping in the script is per consumer type (§1), which names no node.
+**Generated** by `scripts/research-gameplay-unlock-audit.py` from the canonical content (research.json sha256 `82ebac8acc977ba5…`). Do not edit by hand; CI runs `--check`. Every row is derived from content links; the only mapping in the script is per consumer type (§1), which names no node.
 
 ## 1. How a node's consequence is realized (per consumer type)
 
@@ -36,7 +36,7 @@ Each node is counted once, under its primary class (precedence H, B, E, D, G, F,
 | J | Explicitly deferred | every consequence is an entity no system of this milestone realizes | 70 |
 | | **nodes** | Technology 426 + Civics 7 | **433** |
 
-Node→consequence links by consumer type: activity 10, age 41, building 15, deferred 219, institution 40, recipe 2, road 6, stage 5, tax 1, trade 1.
+Node→consequence links by consumer type: activity 10, age 41, building 15, deferred 219, institution 40, recipe 2, road 6, stage 4, tax 1, trade 1.
 
 ## 3. Baseline (class A)
 
@@ -626,7 +626,7 @@ Columns: class (primary, then all), prerequisites, knowledge (capability strings
 | `motor_road` | tech | A9 | E | automobile_mass AND reinforced_concrete AND petroleum_refining | highway infrastructure class: motor road, the bulk road-freight corridor | `infra.road_highway` → road class `infra.road_highway` | yes | yes | Roads |
 | `trade` | tech | A3 | B | token_counting AND (donkey OR camel OR sail_square) | formal exchange between settlements; commercial arbitrage along connected routes; foreign trade across polity boundaries | `activity.trade` → sim.json trade.entity (trade between settlements) | yes | yes | Trade |
 | `law_code` | civics | A3 | B (BJ) | (cuneiform OR hieroglyphic OR chinese_script) | — | `age:a3_law` → Age 3 milestone `a3_law` (supporting)<br>`inst.law_code` → no realizing system | yes | partly (rest deferred) | Age |
-| `legal_code_roman` | civics | A4 | B (BDJ) | law_code | — | `age:a5_systematic_law` → Age 5 milestone `a5_systematic_law` (core)<br>`inst.guild` → no realizing system<br>`inst.legal_code_roman` → no realizing system<br>`inst.scientific_society` → no realizing system via `inst.university`<br>`inst.university` → project `military university` founds<br>`inst.university` → project `medical university` founds<br>`inst.university` → project `engineering university` founds<br>`inst.university` → project `natural science university` founds<br>`inst.university` → project `agricultural university` founds<br>`stage` → research.json researchStage.requires | yes | partly (rest deferred) | Age, Construction, Research |
+| `legal_code_roman` | civics | A4 | B (BDJ) | law_code | — | `age:a5_systematic_law` → Age 5 milestone `a5_systematic_law` (core)<br>`inst.guild` → no realizing system<br>`inst.legal_code_roman` → no realizing system<br>`inst.scientific_society` → no realizing system via `inst.university`<br>`inst.university` → project `military university` founds<br>`inst.university` → project `medical university` founds<br>`inst.university` → project `engineering university` founds<br>`inst.university` → project `natural science university` founds<br>`inst.university` → project `agricultural university` founds | yes | partly (rest deferred) | Age, Construction |
 | `census` | civics | A4 | B (BJ) | (cuneiform OR hieroglyphic OR chinese_script) AND stamp_seal | — | `age:a4_census` → Age 4 milestone `a4_census` (supporting)<br>`inst.census` → no realizing system<br>`inst.mass_media_broadcast` → no realizing system via `inst.mass_schooling`<br>`inst.mass_schooling` → no realizing system<br>`inst.military_medicine` → no realizing system<br>`inst.mint_institution` → no realizing system<br>`inst.quarantine` → no realizing system<br>`inst.statistics_vital` → no realizing system | yes | partly (rest deferred) | Age |
 | `coined_wage` | civics | A4 | B (BJ) | coinage_electrum | — | `age:a5_wages` → Age 5 milestone `a5_wages` (supporting)<br>`inst.coined_wage` → no realizing system | yes | partly (rest deferred) | Age |
 | `patent` | civics | A7 | B (BJ) | legal_code_roman AND printing_press | — | `age:a7_patent` → Age 7 milestone `a7_patent` (supporting)<br>`inst.patent` → no realizing system | yes | partly (rest deferred) | Age |

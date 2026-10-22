@@ -240,14 +240,19 @@ public class CliConstructionLifecycleTests
             Run(Q17Orders(dir), 2, null, 2, v34);
             (int exit, string stdout, string stderr) = Sim("diff", v33, v34, "--size", "256");
             Assert.Equal(1, exit);
-            Assert.Equal(new[] { "note: " + v33 + ": migrated from save schema v33: ConstructionHolds was added empty; the hash "
-                + "printed is the v34 hash (SchemaProjection.V33 gives the v33 build's)." }, CliProcess.Lines(stderr));
+            // ADR-043 (2026-10-22) RE-PIN of the note: v35 adds CivicsPoints empty too, and the hash printed is v35's.
+            Assert.Equal(new[] { "note: " + v33 + ": migrated from save schema v33: ConstructionHolds and CivicsPoints were added empty; the hash "
+                + "printed is the v35 hash (SchemaProjection.V33 gives the v33 build's)." }, CliProcess.Lines(stderr));
             string[] lines = CliProcess.Lines(stdout);
             int first = Array.IndexOf(lines, "FIRST DIVERGENT FIELD");
             Assert.True(first >= 0, stdout);
             Assert.Equal(["  table  ConstructionHolds", "  row    (block-level)", "  field  RowCount (Int32)", "  A      0", "  B      1"], lines[(first + 1)..(first + 6)]);
-            Assert.Equal(["ConstructionHolds"], Flagged(stdout));
+            // ADR-043 (2026-10-22) CAUSE BLOCK: this build's save is v35 and its world carries the player's Civics Points account
+            // (Track CP accrues every step), so the v35 block is flagged too — 0 rows on the v33 side, 2 on this build's (the
+            // player's and the AI Empire's accounts). The first divergent field is unchanged (ConstructionHolds comes first).
+            Assert.Equal(["ConstructionHolds", "CivicsPoints"], Flagged(stdout));
             Assert.Matches(@"^\s*ConstructionHolds\s+0\s+1\s+0\s+0\s+-\s+<--$", SummaryRow(stdout, "ConstructionHolds"));
+            Assert.Matches(@"^\s*CivicsPoints\s+0\s+2\s+0\s+0\s+-\s+<--$", SummaryRow(stdout, "CivicsPoints"));
 
             string resave = Path.Combine(dir, "v33-resaved-as-v34.civsnap");
             WorldState loaded = SaveFiles.Load(v33, 256);

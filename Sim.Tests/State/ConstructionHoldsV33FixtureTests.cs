@@ -200,8 +200,10 @@ public class ConstructionHoldsV33FixtureTests
         }
         // (d) the re-save's layout: header 34, the v33 stream, ONE empty section-61 prefix, the same trailer.
         Assert.Equal(CanonicalSchema.Version, BitConverter.ToInt32(v34, 8));
-        Assert.Equal(v33.Length + 4, v34.Length);
-        byte[] expected = [.. v33[..8], .. BitConverter.GetBytes(CanonicalSchema.Version), .. v33[12..^4], 0, 0, 0, 0, .. v33[^4..]];
+        // ADR-043 (v35, 2026-10-22) CAUSE BLOCK: this build saves v35 — TWO empty prefixes (sections 61 and 62) inserted
+        // before the trailer (was one). The layout alone.
+        Assert.Equal(v33.Length + 8, v34.Length);
+        byte[] expected = [.. v33[..8], .. BitConverter.GetBytes(CanonicalSchema.Version), .. v33[12..^4], 0, 0, 0, 0, 0, 0, 0, 0, .. v33[^4..]];
         Assert.Equal(expected, v34);
         WorldState reloaded = Snapshot.Load(new MemoryStream(v34), Terrain());
 
@@ -364,8 +366,9 @@ public class ConstructionHoldsV33FixtureTests
     {
         string fixture = FixturePath();
         WorldState loaded = SaveFiles.Load(fixture, 256, out string? note);
-        Assert.Equal("note: " + fixture + ": migrated from save schema v33: ConstructionHolds was added empty; the hash "
-            + "printed is the v34 hash (SchemaProjection.V33 gives the v33 build's).", note);
+        // ADR-043 (2026-10-22) RE-PIN of the note: v35 adds CivicsPoints empty too, and the hash printed is v35's.
+        Assert.Equal("note: " + fixture + ": migrated from save schema v33: ConstructionHolds and CivicsPoints were added empty; the hash "
+            + "printed is the v35 hash (SchemaProjection.V33 gives the v33 build's).", note);
         Assert.Equal(V33SaveHash, SchemaProjection.V33(loaded));       // what the note claims
 
         (int exit, string stdout, string stderr) = CliProcess.Run(Limit, "hash", fixture, "--size", "256");

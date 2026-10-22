@@ -59,7 +59,10 @@ public class CylinderAttributionAi1024Tests : IClassFixture<CylinderAttributionA
     /// horizon; its world 300 is the existing pinned run.</summary>
     public sealed class Arms
     {
-        public SimConfig On { get; } = TestConfigs.Sim();
+        // ADR-043 (2026-10-22) CAUSE BLOCK: was TestConfigs.Sim(). Track CP is NEWER than every layer these rigs attribute
+        // (the H2 gate, WS1, relief), so by the R4 rule the shared ON arm is the pre-CP world (TestConfigs.PreTrackCp) and
+        // every measured value below stands; its turn-300 world is the v34 pinned run through SchemaProjection.V34.
+        public SimConfig On { get; } = TestConfigs.PreTrackCp(TestConfigs.Sim());
         public R.Arm Live { get; }
 
         public Arms() =>
@@ -77,7 +80,7 @@ public class CylinderAttributionAi1024Tests : IClassFixture<CylinderAttributionA
         R.Arm live = _arms.Live;
         Assert.True(live.At(0).Terrain!.WrapX);
         Assert.Equal(2, live.At(0).Polities.Count);
-        Assert.Equal(AiFoundingAttributionTests.S1cTurn300, live.Hashes[PinnedRunTurn]);
+        Assert.Equal(CivicsPointsAttributionTests.V34AiTurn300, SchemaProjection.V34(live.At(PinnedRunTurn)));   // ADR-043: the v34 run
     }
 
     /// <summary>#5 — the tax Age gate. With the gate stripped the AI levies at T while still below the gate's Age; the
@@ -123,7 +126,8 @@ public class CylinderAttributionAi1024Tests : IClassFixture<CylinderAttributionA
         R.Arm twin = R.Run(R.Ai1024(), "ws1-off", off, AbsenceHorizon, keep: [AbsenceHorizon]);
         Assert.Equal(-1, R.FirstDifferent(live, twin));
         R.AssertLogsEqualBefore(live.Log, twin.Log, AbsenceHorizon);
-        Assert.Equal(AiFoundingAttributionTests.S1cTurn300, twin.Hashes[AbsenceHorizon]);
+        Assert.Equal(live.Hashes[AbsenceHorizon], twin.Hashes[AbsenceHorizon]);
+        Assert.Equal(CivicsPointsAttributionTests.V34AiTurn300, SchemaProjection.V34(live.At(AbsenceHorizon)));   // ADR-043: the v34 run
         WorldState end = live.At(Horizon);
         Assert.Equal((0, 0), (R.SeamCrossingPairs(end), R.WrappedDonorOrders(end)));
     }
@@ -142,6 +146,7 @@ public class CylinderAttributionAi1024Tests : IClassFixture<CylinderAttributionA
         R.Arm twin = R.Run(R.Ai1024(), "relief-off", off, AbsenceHorizon);
         Assert.Equal(-1, R.FirstDifferent(live, twin));
         R.AssertLogsEqualBefore(live.Log, twin.Log, AbsenceHorizon);
-        Assert.Equal(AiFoundingAttributionTests.S1cTurn300, twin.Hashes[AbsenceHorizon]);
+        Assert.Equal(live.Hashes[AbsenceHorizon], twin.Hashes[AbsenceHorizon]);
+        Assert.Equal(CivicsPointsAttributionTests.V34AiTurn300, SchemaProjection.V34(live.At(AbsenceHorizon)));   // ADR-043: the v34 run
     }
 }

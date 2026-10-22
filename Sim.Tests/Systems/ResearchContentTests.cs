@@ -236,9 +236,23 @@ public class ResearchContentTests
         for (int i = 0; i < mask.Length; i++) mask[i] = Canonical.Nodes[i].Branch < 0; // everything but the subtrees
         Assert.True(ResearchQuery.StageReached(Canonical, mask));
         Assert.False(ResearchQuery.StageReached(Canonical, new bool[mask.Length]));
-        // The stage needs a Civic (legal_code_roman) as well as technology: Tree 2 knowledge opens Tree 1's subtrees.
+        // SUPERSEDED 2026-10-22 (D-062 / ADR-043): the stage no longer needs the Civic legal_code_roman — civics are funded
+        // by their own Civics Points, so the stage (technology knowledge) holds WITHOUT it. Was: removing legal_code_roman
+        // left the stage unreached ("Tree 2 knowledge opens Tree 1's subtrees"). inst.university still needs the civic:
+        // ResearchUnlockPipelineTests.T14_CivicPlusTechnologyPrerequisites_BothMustHold.
         mask[Canonical.IndexOfId("legal_code_roman")] = false;
-        Assert.False(ResearchQuery.StageReached(Canonical, mask));
+        Assert.True(ResearchQuery.StageReached(Canonical, mask));
+        // Technology alone suffices: no Civics node at all.
+        for (int i = 0; i < mask.Length; i++) if (Canonical.Nodes[i].Tree == ResearchTree.Civics) mask[i] = false;
+        Assert.True(ResearchQuery.StageReached(Canonical, mask));
+        Assert.Equal("medicine_hippocratic AND (geometry_axiomatic OR algebra) AND stamp_seal", Canonical.Stage.Source);
+        // Each remaining atom is still needed.
+        foreach (string atom in (string[])["medicine_hippocratic", "stamp_seal"])
+        {
+            bool[] without = (bool[])mask.Clone();
+            without[Canonical.IndexOfId(atom)] = false;
+            Assert.False(ResearchQuery.StageReached(Canonical, without));
+        }
     }
 
     [Fact]

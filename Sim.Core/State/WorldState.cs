@@ -818,6 +818,19 @@ public record struct ResourceAllocationRow(PolityId Polity, int BuildingsPercent
 public record struct ConstructionHoldRow(int Purse, int Good, long Units);
 
 /// <summary>
+/// ADR-043 (v35, D-062 — the Director's 2026-10-22 ruling): one knowledge holder's CIVICS POINTS (CP) account, in
+/// integer thousandths ("milli-CP"). CP is the Civics lane's own currency: generated per sim-year (law 3,
+/// cpMilli = floor(1000 × c × P^β × dtYears)), BANKED without cap or loss, and spent only on the holder's Civics
+/// target. <c>BalanceMilli</c> is the bank; <c>GeneratedMilli</c> and <c>SpentMilli</c> are the cumulative totals that
+/// make the bank auditable. INVARIANT (ADR-043 §5, asserted every step in tests):
+/// <c>BalanceMilli == GeneratedMilli − SpentMilli</c>, every field ≥ 0. Owned by ResearchSystem. At most one row per
+/// holder (a roster polity, or a city-state's reserved local key), in ascending <c>Polity</c> order; a holder that
+/// never generated CP has no row. NOT a conserved stock (law 1 covers people, money and goods; CP is none of them) —
+/// so no Ledger flow; the identity above is its audit. Stored as <c>long</c> so the bank is exact (no double drift).
+/// </summary>
+public record struct CivicsPointsRow(PolityId Polity, long BalanceMilli, long GeneratedMilli, long SpentMilli);
+
+/// <summary>
 /// M4-D — a completed structure, counted per (settlement, project).
 ///
 /// NOT a Conserved stock, and that is a considered choice rather than an
@@ -1264,6 +1277,9 @@ public interface IReadOnlyWorldState
     /// <summary>D-055 (v34): each purse's set-aside units per good this step — owned by ConstructionSystem, cleared every
     /// construction step; never a simulation input.</summary>
     IReadOnlyTable<ConstructionHoldRow> ConstructionHolds { get; }
+
+    /// <summary>ADR-043 (v35): each knowledge holder's banked Civics Points account (milli-CP) — owned by ResearchSystem.</summary>
+    IReadOnlyTable<CivicsPointsRow> CivicsPoints { get; }
 }
 
 /// <summary>
@@ -1470,6 +1486,9 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>D-055 (v34): each purse's set-aside units per good this step — owned by ConstructionSystem.</summary>
     public Table<ConstructionHoldRow> ConstructionHolds { get; }
 
+    /// <summary>ADR-043 (v35): each knowledge holder's banked Civics Points account — owned by ResearchSystem.</summary>
+    public Table<CivicsPointsRow> CivicsPoints { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
@@ -1531,6 +1550,7 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<ConstructionProgressRow> IReadOnlyWorldState.ConstructionProgress => ConstructionProgress;
     IReadOnlyTable<ResourceAllocationRow> IReadOnlyWorldState.ResourceAllocations => ResourceAllocations;
     IReadOnlyTable<ConstructionHoldRow> IReadOnlyWorldState.ConstructionHolds => ConstructionHolds;
+    IReadOnlyTable<CivicsPointsRow> IReadOnlyWorldState.CivicsPoints => CivicsPoints;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -1596,6 +1616,7 @@ public sealed class WorldState : IReadOnlyWorldState
         ConstructionProgress = new Table<ConstructionProgressRow>();
         ResourceAllocations = new Table<ResourceAllocationRow>();
         ConstructionHolds = new Table<ConstructionHoldRow>();
+        CivicsPoints = new Table<CivicsPointsRow>();
     }
 
     private WorldState(
@@ -1631,7 +1652,7 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<InstitutionRow> institutions, Table<ConstructionLaborRow> constructionLabor,
         Table<TaxGrievanceRow> taxGrievances,
         Table<ConstructionProgressRow> constructionProgress, Table<ResourceAllocationRow> resourceAllocations,
-        Table<ConstructionHoldRow> constructionHolds)
+        Table<ConstructionHoldRow> constructionHolds, Table<CivicsPointsRow> civicsPoints)
     {
         Seed = seed;
         Clock = clock;
@@ -1696,6 +1717,7 @@ public sealed class WorldState : IReadOnlyWorldState
         ConstructionProgress = constructionProgress;
         ResourceAllocations = resourceAllocations;
         ConstructionHolds = constructionHolds;
+        CivicsPoints = civicsPoints;
     }
 
     /// <summary>
@@ -1721,7 +1743,8 @@ public sealed class WorldState : IReadOnlyWorldState
             AgeStates.Clone(), AgeEligibility.Clone(), AgeTransitions.Clone(), MilitaryUnits.Clone(),
             UnitConversions.Clone(), TransportEdges.Clone(), RoadDevelopments.Clone(),
             TaxPolicies.Clone(), Institutions.Clone(), ConstructionLabor.Clone(), TaxGrievances.Clone(),
-            ConstructionProgress.Clone(), ResourceAllocations.Clone(), ConstructionHolds.Clone())
+            ConstructionProgress.Clone(), ResourceAllocations.Clone(), ConstructionHolds.Clone(),
+            CivicsPoints.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };

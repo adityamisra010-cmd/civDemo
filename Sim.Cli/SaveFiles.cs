@@ -135,13 +135,18 @@ public static class SaveFiles
     {
         if (!CanonicalSchema.IsReadable(version) || version == CanonicalSchema.Version) return null;
         string current = CanonicalSchema.Version.ToString(System.Globalization.CultureInfo.InvariantCulture);
-        return version == 32
-            ? "note: " + path + ": migrated from save schema v32: the three tables added since v32 (ConstructionProgress,"
-              + " ResourceAllocations, ConstructionHolds) were added empty; the hash printed is the v" + current
-              + " hash (SchemaProjection.V32 gives the v32 build's). Its terrain was regenerated flat (no v32 world was a"
-              + " cylinder) and its queued entries are at progress 0, ordered as enqueued on turn -1."
-            : "note: " + path + ": migrated from save schema v33: ConstructionHolds was added empty; the hash printed is"
-              + " the v" + current + " hash (SchemaProjection.V33 gives the v33 build's).";
+        // ADR-043 (v35): CivicsPoints joins every older version's list of tables added empty.
+        return version switch
+        {
+            32 => "note: " + path + ": migrated from save schema v32: the four tables added since v32 (ConstructionProgress,"
+                  + " ResourceAllocations, ConstructionHolds, CivicsPoints) were added empty; the hash printed is the v" + current
+                  + " hash (SchemaProjection.V32 gives the v32 build's). Its terrain was regenerated flat (no v32 world was a"
+                  + " cylinder) and its queued entries are at progress 0, ordered as enqueued on turn -1.",
+            33 => "note: " + path + ": migrated from save schema v33: ConstructionHolds and CivicsPoints were added empty; the hash"
+                  + " printed is the v" + current + " hash (SchemaProjection.V33 gives the v33 build's).",
+            _ => "note: " + path + ": migrated from save schema v34: CivicsPoints was added empty (every Civics Points bank starts"
+                  + " at zero); the hash printed is the v" + current + " hash (SchemaProjection.V34 gives the v34 build's).",
+        };
     }
 
     /// <summary>The worldgen a save of header version <paramref name="version"/> is regenerated with: the shipped

@@ -44,7 +44,15 @@
    "status": "content-derived; calibration adjustments: none"
   },
   "cityStatePaceFraction": 0.25,
-  "_cityStatePaceFraction": "R2a (docs/city-state-progression.md; Director decisions 4 and 12). TUNE, CHOSEN (L6): an UNCONTROLLED settlement researches autonomously with RP = cityStatePaceFraction x rpPerTurn(its own population). Reference: Civ VI city-states do not research at all; the Director rules ours progress slowly. 0.25 of the organized rate (before the sublinearity penalty of being one settlement) keeps a city-state substantially slower than a civilization of the same population. 0 disables city-state research."
+  "_cityStatePaceFraction": "R2a (docs/city-state-progression.md; Director decisions 4 and 12). TUNE, CHOSEN (L6): an UNCONTROLLED settlement researches autonomously with RP = cityStatePaceFraction x rpPerTurn(its own population). Reference: Civ VI city-states do not research at all; the Director rules ours progress slowly. 0.25 of the organized rate (before the sublinearity penalty of being one settlement) keeps a city-state substantially slower than a civilization of the same population. 0 disables city-state research.",
+  "civicsPoints": {
+   "enabled": true,
+   "coefficientPerYear": 0.008,
+   "exponent": 0.699,
+   "unit": "Civics Points per sim-year, integrated over dtYears (law 3) and banked in integer milli-CP: generated per step = floor(1000 x coefficientPerYear x population^exponent x dtYears); a city-state's is x cityStatePaceFraction",
+   "status": "PROPOSED (ADR-043; D-062) \u2014 tunable"
+  },
+  "_civicsPoints": "ADR-043 (D-062, the Director's 2026-10-22 ruling): Civics Points fund ONLY the Civics target; Research Points fund ONLY the Technology target. CP is banked without cap or loss (Balance = Generated - Spent). Population is the same input RP reads; the PROPOSED coefficient 0.008/yr equals RP's 0.08/turn at a 10-year turn. enabled false restores the v34 one-pool model (civics funded by RP, one target) \u2014 the attribution switch. Other CP sources (institutions, specialists, embassies, spies, artists, scholars) and the RP<->CP exchange are DEFERRED."
  },
  "baseline": [
   {
@@ -251,8 +259,8 @@
   }
  ],
  "researchStage": {
-  "requires": "medicine_hippocratic AND (geometry_axiomatic OR algebra) AND stamp_seal AND legal_code_roman",
-  "_doc": "Knowledge-level reading of the university / research institutional stage (D-044 R4): building.university's technology requirement AND building.library's AND inst.university's requirement with institution references expanded to their knowledge requirements. Institutional presence is not evaluable (no institutions system); ADR-029 \u00a78."
+  "requires": "medicine_hippocratic AND (geometry_axiomatic OR algebra) AND stamp_seal",
+  "_doc": "Knowledge-level reading of the university / research institutional stage (D-044 R4): building.university's technology requirement AND building.library's AND inst.university's requirement with institution references expanded to their knowledge requirements. Institutional presence is not evaluable (no institutions system); ADR-029 \u00a78. D-062 / ADR-043 (2026-10-22): the civic atom legal_code_roman is DROPPED from the stage \u2014 civics are funded by their own Civics Points, so a technology gate on a civic would couple the two lanes; inst.university still requires library AND legal_code_roman (the institution, not the stage, needs the civic)."
  },
  "universityTypes": [
   {

@@ -90,7 +90,8 @@ public class AiResearchGoalTests
 
         // UNIVERSITY: building.university's requirement and inst.university's, the latter's institutions expanded
         // (library → archive, scribal_school) — exactly the research stage's closure (D-044 R4: the stage exists
-        // to support specialized universities).
+        // to support specialized universities). ADR-043 (2026-10-22): the stage dropped legal_code_roman, so the stage's
+        // closure is now a STRICT subset of the university goal — the civic stays in it through inst.university.
         bool[] university = Goals(w, universityOnly);
         Assert.Equal(Closure("medicine_hippocratic", "geometry_axiomatic", "algebra", "legal_code_roman",
             "cuneiform", "hieroglyphic", "chinese_script", "stamp_seal"), university);
@@ -101,6 +102,8 @@ public class AiResearchGoalTests
             for (int i = 0; i < stage.Length; i++) stage[i] |= closure[i];
         }
         Assert.True(Subset(stage, university), "every node the research stage needs is a university goal");
+        Assert.False(stage[Research.IndexOfId("legal_code_roman")]);       // ADR-043: not a stage atom any more
+        Assert.True(university[Research.IndexOfId("legal_code_roman")]);   // ...but inst.university still needs it
         UniversityRigs.Grant(w, Research, Rival);
         Assert.DoesNotContain(true, Goals(w, universityOnly));   // both entities eligible: the goal is met
     }

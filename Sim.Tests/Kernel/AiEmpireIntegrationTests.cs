@@ -301,14 +301,23 @@ public class AiEmpireIntegrationTests
         // BATCH 3 / D-054 RE-PIN (integration R1, 2026-10-14; MEASURED on this tree by the agent writing this line, in-test
         // harness): levy 423/424 -> 422/423 (still on the AI's first A3 turn: A3 423 -> 422); road 134/135 unchanged.
         // CAUSE: the cylinder alone; ATTRIBUTION as above (the twin returns 134/135, 423/424, A3 423).
-        Assert.Equal((134L, 135L, 422L, 423L), (p.Road, p.FirstRoad, p.Tax, p.FirstTax));
-        Assert.Equal(422L, p.A3At);                          // the AI entered A3 (decided 421; ADR-035: 463 -> 458 -> 462 -> 461; D-051 1(b): 461 -> 451; S1c: 451 -> 423; batch 3: 423 -> 422)
+        // ADR-043 RE-PIN (2026-10-22, D-062 Track CP; MEASURED on this tree by the agent writing this line, in-test harness):
+        // levy 422/423 -> 440/441 (still on the AI's first A3 turn: A3 422 -> 440); road 134/135, targets, first build and
+        // the advance unchanged. CAUSE: the two research lanes — the Taxation civic (and every civic in the Age closure) is
+        // now funded by Civics Points on its own lane instead of by the one RP pool, so the civic side of the A3 closure
+        // completes on CP pace. ATTRIBUTION: OneAiEmpire_WithTheCylinderOff_EveryPinReturnsItsBatch2Value now runs on the
+        // pre-CP world (TestConfigs.PreTrackCp, the R4 rule) and returns 423/424; CivicsPointsAttributionTests proves Track
+        // CP is the whole of the AI world's turn-300 move.
+        Assert.Equal((134L, 135L, 440L, 441L), (p.Road, p.FirstRoad, p.Tax, p.FirstTax));
+        Assert.Equal(440L, p.A3At);                          // the AI entered A3 (decided 421; ADR-035: 463 -> 458 -> 462 -> 461; D-051 1(b): 461 -> 451; S1c: 451 -> 423; batch 3: 423 -> 422)
 
         // S1c (ADR-036 §8): the AI EXPANDS through the player's Found Settlement order — one per 350 years at most, each
         // a colony it controls. MEASURED on this tree: eight orders by the first levy, the polity holding 6 + 8 = 14
         // settlements (ages.json a4_expansion's 14 met from turn 358). Batch 3 (D-054): unchanged on the cylinder.
-        Assert.Equal([35L, 71L, 107L, 143L, 179L, 215L, 286L, 357L], p.Founds);
-        Assert.Equal(14, p.Controlled);
+        // ADR-043 RE-PIN (2026-10-22, D-062 Track CP; MEASURED): the later first levy (440) lets a ninth founding (stamped
+        // 428, the founding cadence unchanged) stand before it: 8 -> 9 orders, 14 -> 15 settlements.
+        Assert.Equal([35L, 71L, 107L, 143L, 179L, 215L, 286L, 357L, 428L], p.Founds);
+        Assert.Equal(15, p.Controlled);
     }
 
     /// <summary>
@@ -321,7 +330,9 @@ public class AiEmpireIntegrationTests
     [Fact]
     public void OneAiEmpire_WithTheCylinderOff_EveryPinReturnsItsBatch2Value()
     {
-        CanonicalAiPins p = RunCanonicalAi(TestConfigs.PreCylinderWorldgen(TestConfigs.Worldgen()));
+        // ADR-043 (2026-10-22) CAUSE BLOCK: the control runs on the pre-CP world (TestConfigs.PreTrackCp) — Track CP is newer
+        // than the cylinder, so by the R4 rule the older layer's twin strips it; the batch-2 values return unchanged.
+        CanonicalAiPins p = RunCanonicalAi(TestConfigs.PreCylinderWorldgen(TestConfigs.Worldgen()), TestConfigs.PreTrackCp(Cfg));
         Assert.Equal((26L, 4L, 221L, 222L), (p.Target1, p.FirstBuild, p.Advance, p.AdvancedAt));
         Assert.Equal((134L, 135L, 423L, 424L), (p.Road, p.FirstRoad, p.Tax, p.FirstTax));
         Assert.Equal(423L, p.A3At);

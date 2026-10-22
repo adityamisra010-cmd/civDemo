@@ -59,6 +59,10 @@ internal static class ResearchRigs
         public List<string> Recursive { get; } = [];
         public List<string> Speculative { get; } = [];
         public bool WithBaseline { get; set; } = true;
+        /// <summary>ADR-043: tuning.civicsPoints — null (the default) = absent, the v34 ONE-POOL model every pre-ADR-043
+        /// rig test pins. Rig calibration when on: CP per sim-year = 1.0 × P^0.5, so 10 000 people accrue EXACTLY
+        /// 100 CP a sim-year — 1 000 CP (1 000 000 milli-CP) a dt-10 turn.</summary>
+        public (bool Enabled, double Coefficient, double Exponent)? CivicsPoints { get; set; }
 
         public string Json()
         {
@@ -199,6 +203,13 @@ internal static class ResearchRigs
                         ["formula"] = "BaseCost = U × K^magnitude", ["U"] = CostU, ["U_basis"] = "rig", ["K"] = CostK,
                         ["K_basis"] = "rig", ["magnitude"] = "sum of factors", ["status"] = "rig",
                     },
+                    ["civicsPoints"] = CivicsPoints is { } cp
+                        ? new JsonObject
+                        {
+                            ["enabled"] = cp.Enabled, ["coefficientPerYear"] = cp.Coefficient, ["exponent"] = cp.Exponent,
+                            ["unit"] = "CP per sim-year", ["status"] = "rig calibration",
+                        }
+                        : null,
                 },
                 ["baseline"] = WithBaseline
                     ? new JsonArray(new JsonObject

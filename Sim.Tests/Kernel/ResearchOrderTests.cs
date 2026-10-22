@@ -29,11 +29,19 @@ public class ResearchOrderTests
         Assert.Equal(set, RoundTrip(set)[0]);
         OrderRecord clear = OrderRecord.From(13, new PolityId(1), OrderKind.SetResearchTarget, -1, 0.0);
         Assert.Equal(clear, RoundTrip(clear)[0]);
+        // ADR-043 (2026-10-22): −2 clears the CIVICS lane — the same shape and wire format, now valid at load.
+        OrderRecord clearCivics = OrderRecord.From(14, new PolityId(1), OrderKind.SetResearchTarget, -2, 0.0);
+        Assert.Equal(clearCivics, RoundTrip(clearCivics)[0]);
+        Assert.Equal(-2, ResearchQuery.ClearCivicsTargetId);
+        Assert.Equal(-1, ResearchQuery.ClearTechnologyTargetId);
     }
 
+    // ADR-043 (2026-10-22) RE-PIN of the malformed set: −2 left it (it clears the Civics lane now); −3 is the first
+    // negative key that is malformed.
     [Theory]
     [InlineData(0, 0.0, "node key must be a research.json key")]
-    [InlineData(-2, 0.0, "node key must be a research.json key")]
+    [InlineData(-3, 0.0, "node key must be a research.json key")]
+    [InlineData(int.MinValue, 0.0, "-2 to clear the Civics target")]
     [InlineData(5, 1.0, "Amount is reserved and must be 0")]
     [InlineData(5, double.NaN, "Amount is reserved and must be 0")]
     public void SetResearchTarget_AMalformedPayload_IsRejectedAtLoad(int target, double amount, string fragment)

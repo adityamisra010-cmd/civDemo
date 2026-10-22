@@ -45,21 +45,25 @@ public class ConstructionHoldsSchemaV34Tests
     [Fact]
     public void SchemaV34_PopulatedHolds_ExpectedLengthBitExactRoundTripAndHashEquality()
     {
-        Assert.Equal(34, CanonicalSchema.Version);
+        Assert.Equal(35, CanonicalSchema.Version);   // v35 (ADR-043 CivicsPoints, 2026-10-22): the schema bump alone
         WorldState world = Populated();
         Assert.Null(Reservations.InvariantViolation(world.ConstructionHolds));   // a table a rule could write
         byte[] bytes = SchemaProjection.Serialize(world);
         Assert.Equal(CanonicalSchema.ExpectedLength(world), bytes.Length);
         Assert.Equal(4 * 16, CanonicalSchema.ExpectedLength(world) - CanonicalSchema.ExpectedLength(new WorldState(34)));   // 16 bytes a row
 
-        // Section 61 is the LAST block: its count prefix, then each row as Purse, Good, Units (little-endian).
-        int start = bytes.Length - 4 - 4 * 16;
+        // Section 61 was the LAST block at v34: its count prefix, then each row as Purse, Good, Units (little-endian).
+        // ADR-043 (v35, 2026-10-22) CAUSE BLOCK: section 62 (CivicsPoints, EMPTY here) follows it — every offset below moves
+        // by its 4-byte zero count prefix (`tail`). The layout alone.
+        const int tail = 4;
+        Assert.Equal(0, BitConverter.ToInt32(bytes, bytes.Length - tail));
+        int start = bytes.Length - tail - 4 - 4 * 16;
         Assert.Equal(4, BitConverter.ToInt32(bytes, start));
         Assert.Equal(int.MinValue, BitConverter.ToInt32(bytes, start + 4));
         Assert.Equal(-3, BitConverter.ToInt32(bytes, start + 4 + 16));             // −1 − settlement 2
         Assert.Equal(7, BitConverter.ToInt32(bytes, start + 4 + 16 + 4));
         Assert.Equal(12L, BitConverter.ToInt64(bytes, start + 4 + 16 + 8));
-        Assert.Equal(long.MaxValue, BitConverter.ToInt64(bytes, bytes.Length - 8));
+        Assert.Equal(long.MaxValue, BitConverter.ToInt64(bytes, bytes.Length - tail - 8));
 
         using (var ms = new MemoryStream(bytes))
         using (var reader = new BinaryReader(ms))
@@ -93,7 +97,7 @@ public class ConstructionHoldsSchemaV34Tests
         w.ConstructionHolds.Add(new ConstructionHoldRow(Reservations.SettlementPurse(new SettlementId(3)), 2, 5));
         w.ConstructionHolds.Add(new ConstructionHoldRow(Reservations.PolityPurse(new PolityId(1)), 2, 999_999));
         byte[] file = Saved(w);
-        Assert.Equal(34, BitConverter.ToInt32(file, 8));
+        Assert.Equal(CanonicalSchema.Version, BitConverter.ToInt32(file, 8));   // ADR-043: this build saves v35 (was the literal 34)
         Assert.Equal(8 + 4 + 8 + 8 + CanonicalSchema.ExpectedLength(w) + 4, file.Length);
         Assert.Equal(TopologyFlags.WrapX, BitConverter.ToInt32(file, file.Length - 4));
         WorldState back = Snapshot.Load(new MemoryStream(file), Sim.Core.Worldgen.Worldgen.Generate(TestConfigs.DevWorldgen(), 42));
@@ -172,11 +176,13 @@ public class ConstructionHoldsSchemaV34Tests
     [Fact]
     public void TheReadableSet_Is32_33_34_ThroughOneHelper_AndEveryReaderAgrees()
     {
+        // ADR-043 (2026-10-22) CAUSE BLOCK: v35 joined the set ({32, 33, 34, 35}; CivicsPointsSchemaV35Tests pins it), so the
+        // version above the set is 36 (was 35) and LayoutFor(34) is the layout less the v35 block. Re-rigged, not re-pinned.
         foreach (int v in new[] { 32, 33, 34 }) Assert.True(CanonicalSchema.IsReadable(v));
-        foreach (int v in new[] { 31, 35, 0, 27, -1, int.MaxValue }) Assert.False(CanonicalSchema.IsReadable(v));
+        foreach (int v in new[] { 31, 36, 0, 27, -1, int.MaxValue }) Assert.False(CanonicalSchema.IsReadable(v));
 
-        // CanonicalSchema.Read: the three read; the rest are refused.
-        foreach (int v in new[] { 31, 35, 0, 27 })
+        // CanonicalSchema.Read: the readable ones read; the rest are refused.
+        foreach (int v in new[] { 31, 36, 0, 27 })
             Assert.Throws<ArgumentOutOfRangeException>(() => CanonicalSchema.Read(new BinaryReader(new MemoryStream(new byte[64])), v, out _));
 
         // Snapshot.Load: v32 (the batch-2 fixture), v33 (the batch-3 fixture) and v34 (a save of this build) load.
@@ -189,20 +195,21 @@ public class ConstructionHoldsSchemaV34Tests
         WorldState v34 = Snapshot.Load(new MemoryStream(Saved(Populated())));
         Assert.Equal(4, v34.ConstructionHolds.Count);
 
-        // SnapshotDiff.LayoutFor: v34 the whole layout, v33 less one block, v32 less three; the rest refused.
-        Assert.Equal(SnapshotDiff.Layout.Length, SnapshotDiff.LayoutFor(34).Length);
-        Assert.Equal("ConstructionHolds", SnapshotDiff.Layout[^1].Name);
-        Assert.Equal(SnapshotDiff.Layout.Length - 1, SnapshotDiff.LayoutFor(33).Length);
+        // SnapshotDiff.LayoutFor: v34 the layout less the v35 block, v33 less two, v32 less four; the rest refused.
+        Assert.Equal(SnapshotDiff.Layout.Length - 1, SnapshotDiff.LayoutFor(34).Length);
+        Assert.Equal("ConstructionHolds", SnapshotDiff.LayoutFor(34)[^1].Name);
+        Assert.Equal(SnapshotDiff.Layout.Length - 2, SnapshotDiff.LayoutFor(33).Length);
         Assert.Equal("ResourceAllocations", SnapshotDiff.LayoutFor(33)[^1].Name);
-        Assert.Equal(SnapshotDiff.Layout.Length - 3, SnapshotDiff.LayoutFor(32).Length);
+        Assert.Equal(SnapshotDiff.Layout.Length - 4, SnapshotDiff.LayoutFor(32).Length);
         Assert.Equal("TaxGrievance", SnapshotDiff.LayoutFor(32)[^1].Name);
-        foreach (int v in new[] { 31, 35, 0, 27 })
+        foreach (int v in new[] { 31, 36, 0, 27 })
             Assert.Throws<ArgumentOutOfRangeException>(() => SnapshotDiff.LayoutFor(v));
 
-        // SaveFiles.MigrationNote: a note for the two older members, none for this build's or any refused version.
+        // SaveFiles.MigrationNote: a note for each older member, none for this build's or any refused version.
         Assert.NotNull(SaveFiles.MigrationNote("x", 32));
         Assert.NotNull(SaveFiles.MigrationNote("x", 33));
-        foreach (int v in new[] { 34, 31, 35, 0, 27 }) Assert.Null(SaveFiles.MigrationNote("x", v));
+        Assert.NotNull(SaveFiles.MigrationNote("x", 34));
+        foreach (int v in new[] { 35, 31, 36, 0, 27 }) Assert.Null(SaveFiles.MigrationNote("x", v));
     }
 
     /// <summary>The ConstructionHolds block's layout widths sum to the row width: a populated v34 stream walks to EXACTLY
@@ -210,23 +217,25 @@ public class ConstructionHoldsSchemaV34Tests
     [Fact]
     public void SnapshotDiff_WalksAPopulatedV34Stream_ToItsEnd_AndAV33StreamAgainstItsMigratedV34Stream_DiffersOnlyInTheEmptyBlock()
     {
+        // ADR-043 (2026-10-22) CAUSE BLOCK: this build's stream is v35 — walked as v35, the holds block is second to last
+        // (CivicsPoints, empty, follows it), and the migrated stream is 8 bytes longer than the v33 one (was 4).
         byte[] bytes = SchemaProjection.Serialize(Populated());
-        SnapshotDiff.Result self = SnapshotDiff.CompareStreams(bytes, 34, bytes, 34);
+        SnapshotDiff.Result self = SnapshotDiff.CompareStreams(bytes, CanonicalSchema.Version, bytes, CanonicalSchema.Version);
         Assert.True(self.Identical);
         Assert.Equal(bytes.Length, self.BytesWalkedA);
-        Assert.Equal(4, self.Tables[^1].RowsA);
-        Assert.Equal("ConstructionHolds", self.Tables[^1].Table);
+        Assert.Equal(4, self.Tables[^2].RowsA);
+        Assert.Equal("ConstructionHolds", self.Tables[^2].Table);
 
         byte[] v33File = ConstructionHoldsV33FixtureTests.FixtureFile();
         byte[] v33Stream = v33File[(8 + 4 + 8 + 8)..^4];
         WorldState migrated = Snapshot.Load(new MemoryStream(v33File), Sim.Core.Worldgen.Worldgen.Generate(TestConfigs.Worldgen() with { SizePx = 256 }, 42));
         byte[] v34Stream = SchemaProjection.Serialize(migrated);
-        SnapshotDiff.Result cross = SnapshotDiff.CompareStreams(v33Stream, 33, v34Stream, 34);
+        SnapshotDiff.Result cross = SnapshotDiff.CompareStreams(v33Stream, 33, v34Stream, CanonicalSchema.Version);
         Assert.True(cross.First is null, "a v33 stream and its migrated v34 stream differ only by the empty v34 block");
         Assert.Equal(v33Stream.Length, cross.BytesWalkedA);
         Assert.Equal(v34Stream.Length, cross.BytesWalkedB);
         Assert.Equal((0, 0), (cross.Tables[^1].RowsA, cross.Tables[^1].RowsB));
-        Assert.Equal(v33Stream.Length + 4, v34Stream.Length);
+        Assert.Equal(v33Stream.Length + 8, v34Stream.Length);
     }
 
     // ================================================================== the switch

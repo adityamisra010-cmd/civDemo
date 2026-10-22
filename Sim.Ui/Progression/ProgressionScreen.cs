@@ -68,6 +68,13 @@ public sealed partial class ProgressionScreen
     /// <summary>Whether a content node belongs to the tree on show.</summary>
     private bool InTab(int contentIndex) => Content.Nodes[contentIndex].Tree == (ResearchTree)((int)Tab + 1);
 
+    /// <summary>The tree of the open tab.</summary>
+    private ResearchTree TabTree => (ResearchTree)((int)Tab + 1);
+
+    /// <summary>ADR-043: the target the capsule shows — the open tab's lane target in the two-lane model (Technology and
+    /// Civics targets are shown separately); in the one-pool model the one target, whichever tree.</summary>
+    private int? CapsuleTarget(ResearchSnapshot s) => s.TwoLanes ? s.TargetOn(TabTree, s.Nodes) : s.TargetIndex;
+
     /// <summary>The node the detail panel shows: the hovered card, else the selected node of the tree on show, or -1.</summary>
     public int DetailNode => Hovered >= 0 ? Hovered : Selected >= 0 && InTab(Selected) ? Selected : -1;
 
@@ -217,7 +224,7 @@ public sealed partial class ProgressionScreen
     public int FrontierNode()
     {
         if (Snapshot is null) return -1;
-        if (Snapshot.TargetIndex is int t && Content.Nodes[t].Tree == (ResearchTree)((int)Tab + 1)) return t;
+        if (Snapshot.TargetOn(TabTree, Snapshot.Nodes) is int t) return t;
         int focus = -1, bestCol = int.MaxValue;
         for (int v = 0; v < Graph.OwnCount; v++)
         {
@@ -553,9 +560,11 @@ public sealed partial class ProgressionScreen
         EraMarks.Close(d, t, close, t.Ink.Text, 121);
         _hits.Add(new HitRegion(close, HitKind.Close, 0));
         double rx = close.X - Sp(14);
-        d.Write(t, rx, Sp(6), Snapshot.PointsPerTurn.ToString("0.0", CultureInfo.InvariantCulture), Px(TypeRole.Kpi, FontRole.Numeric),
+        // ADR-043: on the Civics tab of the two-lane model the rate is the Civics Points a turn accrues.
+        bool civicRate = Snapshot.TwoLanes && TabTree == ResearchTree.Civics;
+        d.Write(t, rx, Sp(6), Snapshot.PointsPerTurnOn(TabTree).ToString("0.0", CultureInfo.InvariantCulture), Px(TypeRole.Kpi, FontRole.Numeric),
             t.Ink.OnChromeAccent, TextAlign.Right, FontRole.Numeric);
-        d.Write(t, rx, Sp(6) + Line(Px(TypeRole.Kpi, FontRole.Numeric)) - Sp(4), "research / turn", Px(TypeRole.Caption), t.Ink.OnChromeSoft, TextAlign.Right);
+        d.Write(t, rx, Sp(6) + Line(Px(TypeRole.Kpi, FontRole.Numeric)) - Sp(4), civicRate ? "civics / turn" : "research / turn", Px(TypeRole.Caption), t.Ink.OnChromeSoft, TextAlign.Right);
 
         // Lens slots between the two blocks, geometry from the era-invariant measure (the same slots in every era).
         double x0 = Sp(150), right = _w - Sp(190);
@@ -666,7 +675,7 @@ public sealed partial class ProgressionScreen
         EraTheme t = Theme;
         ResearchSnapshot s = Snapshot!;
         double caps = Px(TypeRole.Caption, FontRole.Caps), body = Px(TypeRole.Body, FontRole.Heading);
-        if (s.TargetIndex is int ti)
+        if (CapsuleTarget(s) is int ti)
         {
             PanelFrame.Paint(d, cap, t, 140, FrameKind.Chip, t.Semantic.ActiveFill, A(t.Semantic.Active, 0.8), 1.0);
             ResearchNodeView v = s.Nodes[ti];
@@ -966,7 +975,7 @@ public sealed partial class ProgressionScreen
         RectD c = Canvas;
         var row = new RectD(c.X, c.Y - ControlRowH, c.W, ControlRowH);
         PanelFrame.Paint(d, row, t, 104, FrameKind.Bar);
-        bool hasTarget = Snapshot!.TargetIndex is int ti && Content.Nodes[ti].Tree == (ResearchTree)((int)Tab + 1);
+        bool hasTarget = Snapshot!.TargetOn(TabTree, Snapshot.Nodes) is int;
         (string Label, HitKind Kind, bool On)[] buttons =
         [
             (hasTarget ? "JUMP TO TARGET" : "JUMP TO FRONTIER", HitKind.Frontier, false),
@@ -1029,8 +1038,9 @@ public sealed partial class ProgressionScreen
     {
         ResearchSnapshot s = Snapshot!;
         ResearchNodeView v = s.Nodes[contentIndex];
-        string Turns(double remaining) => s.PointsPerTurn > 0
-            ? "~" + Math.Ceiling(Math.Max(0, remaining) / s.PointsPerTurn).ToString("0", CultureInfo.InvariantCulture) + " turns" : "";
+        double rate = s.PointsPerTurnOn(v.Tree);   // ADR-043: a civic is paid in CP in the two-lane model
+        string Turns(double remaining) => rate > 0
+            ? "~" + Math.Ceiling(Math.Max(0, remaining) / rate).ToString("0", CultureInfo.InvariantCulture) + " turns" : "";
         static string Join(params string[] parts)
         {
             var kept = new List<string>(parts.Length);
@@ -1256,7 +1266,7 @@ public sealed partial class ProgressionScreen
                 + m.Width(t, dep.Length.ToString(CultureInfo.InvariantCulture), small, FontRole.Numeric) + Sp(14) * z;
         }
         string numeral = ResearchTreeLayout.AgeNumeral(v.Age);
-        string cost = Num(v.EffectiveCost) + " RP";
+        string cost = Num(v.EffectiveCost) + " " + Snapshot!.UnitOn(v.Tree);
         string discount = detail >= 4 && v.EffectiveCost < v.BaseCost && v.State != NodeState.Completed ? "-" + Pct(1 - v.EffectiveCost / v.BaseCost) : "";
         double room = right - Sp(4) * z - stubsW - (x + pad);
         string meta = cost + "  ·  Age " + numeral;
@@ -1418,7 +1428,16 @@ public sealed partial class ProgressionScreen
         foreach (string line in FlowText.Wrap(m, intro, TypeRole.Body, _scale, w)) { d.Write(t, x, y, line, body, t.Ink.TextSoft); y += FlowText.Slot(TypeRole.Body, _scale); }
         y += Sp(12);
         y = Stat(d, m, x, w, y, "Research stage", s.StageReached ? "reached" : "not yet reached", s.StageReached ? Ink.Positive : Ink.Progress);
-        y = Stat(d, m, x, w, y, "Research per turn", s.PointsPerTurn.ToString("0.0", CultureInfo.InvariantCulture) + " RP", Ink.Knowledge);
+        if (s.TwoLanes && Graph.Tree == ResearchTree.Civics)
+        {
+            // ADR-043: the Civics lane's own currency — what a turn accrues and what is banked (no loss, no cap).
+            y = Stat(d, m, x, w, y, "Civics per turn", s.CivicsPerTurn.ToString("0.0", CultureInfo.InvariantCulture) + " CP", Ink.Knowledge);
+            y = Stat(d, m, x, w, y, "Civics Points banked", s.CivicsBalance.ToString("0.0", CultureInfo.InvariantCulture) + " CP", Ink.Knowledge);
+        }
+        else
+        {
+            y = Stat(d, m, x, w, y, "Research per turn", s.PointsPerTurn.ToString("0.0", CultureInfo.InvariantCulture) + " RP", Ink.Knowledge);
+        }
         y = Stat(d, m, x, w, y, "Completed", Graph.Tree == ResearchTree.Technology ? s.CompletedTechnology + " of " + Content.TechnologyCount : s.CompletedCivics + " of " + Content.CivicsCount, t.Ink.Text);
         int avail = 0;
         for (int v = 0; v < Graph.OwnCount; v++) if (s.Nodes[Graph.Vertices[v].ContentIndex].Available) avail++;
@@ -1469,17 +1488,19 @@ public sealed partial class ProgressionScreen
 
         // COST, the turns it would take, and the action directly under them.
         y = Heading(d, m, x, w, y, "COST", 1);
-        y = Stat(d, m, x, w, y, "Base cost", Num(n.BaseCost) + " RP", t.Ink.TextSoft);
+        string unit = s.UnitOn(n.Tree);
+        double rate = s.PointsPerTurnOn(n.Tree);
+        y = Stat(d, m, x, w, y, "Base cost", Num(n.BaseCost) + " " + unit, t.Ink.TextSoft);
         foreach ((string uni, double f) in n.CostTerms)
             y = Stat(d, m, x, w, y, "  " + ResearchTreeLayout.Title(uni) + " university", "× " + f.ToString("0.00", CultureInfo.InvariantCulture), Ink.Positive);
-        y = Stat(d, m, x, w, y, "Effective cost" + (n.FloorBinds ? " (floor)" : ""), Num(n.EffectiveCost) + " RP", t.Ink.Text);
+        y = Stat(d, m, x, w, y, "Effective cost" + (n.FloorBinds ? " (floor)" : ""), Num(n.EffectiveCost) + " " + unit, t.Ink.Text);
         if (n.State != NodeState.Completed)
         {
             EraMarks.Progress(d, t, new RectD(x, y + Sp(4), w, t.Controls.Progress == ProgressStyle.Notches ? Sp(11) : Sp(8)), n.Fraction,
                 n.State == NodeState.CurrentTarget ? sm.Active : sm.Progress, 192);
             y += Sp(20);
-            string turns = s.PointsPerTurn > 0 ? "  ·  ~" + Math.Ceiling(Math.Max(0, n.EffectiveCost - n.Progress) / s.PointsPerTurn).ToString("0", CultureInfo.InvariantCulture) + " turns at the current rate" : "";
-            foreach (string line in FlowText.Wrap(m, Num(n.Progress) + " / " + Num(n.EffectiveCost) + " RP" + turns, TypeRole.Data, _scale, w, FontRole.Numeric))
+            string turns = rate > 0 ? "  ·  ~" + Math.Ceiling(Math.Max(0, n.EffectiveCost - n.Progress) / rate).ToString("0", CultureInfo.InvariantCulture) + " turns at the current rate" : "";
+            foreach (string line in FlowText.Wrap(m, Num(n.Progress) + " / " + Num(n.EffectiveCost) + " " + unit + turns, TypeRole.Data, _scale, w, FontRole.Numeric))
             { d.Write(t, x, y, line, data, t.Ink.TextSoft, TextAlign.Left, FontRole.Numeric); y += FlowText.Slot(TypeRole.Data, _scale); }
         }
         y += Sp(8);

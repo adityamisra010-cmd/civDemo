@@ -61,7 +61,12 @@ public static class SingleSwitchTwins
     public static SimConfig PreTradeKnowledgeOnly(SimConfig cfg)
     {
         if (cfg.Trade.Entity is null) throw new ArgumentException("trade.entity is already null (trade ungated)", nameof(cfg));
-        return cfg with { Research = TestConfigs.PreTradeKnowledge(cfg).Research, Trade = cfg.Trade with { Entity = null } };
+        // ADR-043 (2026-10-22): the chained twin's research content now strips Track CP too (the R4 rule); a SINGLE switch keeps
+        // the input's Track CP — the shipped two-lane config gets the pre-R2a content with Track CP as shipped.
+        var research = cfg.Research is { Tuning.TwoLanes: true }
+            ? TestConfigs.PreR2aResearchKeepingTrackCp()
+            : TestConfigs.PreTradeKnowledge(cfg).Research;
+        return cfg with { Research = research, Trade = cfg.Trade with { Entity = null } };
     }
 
     /// <summary>S1c alone: sim.json colonization.aiFounding.enabled false (no AI Found Settlement order; the chained twin is

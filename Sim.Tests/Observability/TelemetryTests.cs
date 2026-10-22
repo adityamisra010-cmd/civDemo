@@ -45,7 +45,7 @@ public class TelemetryTests
                 Assert.DoesNotContain("ObservationLog", File.ReadAllText(file));
             }
         }
-        Assert.Equal(34, CanonicalSchema.Version);   // nothing here is serialized into the schema (v26 is ADR-029's research tables) (v31: ADR-033 D6/D10 Institutions + ConstructionLabor) (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins)
+        Assert.Equal(35, CanonicalSchema.Version);   // nothing here is serialized into the schema (v26 is ADR-029's research tables) (v31: ADR-033 D6/D10 Institutions + ConstructionLabor) (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins) (v35: ADR-043 CivicsPoints — 2026-10-22 cause: the schema bump alone)
     }
 
     [Fact]
@@ -173,7 +173,7 @@ public class TelemetryTests
         // (3) NOT IN THE SCHEMA. The canonical version is T4.21-1's v25 and this
         // packet did not touch it; neither the section types nor their JSON keys
         // appear in the serializer or in WorldState.
-        Assert.Equal(34, CanonicalSchema.Version);   // v31: ADR-033 D6/D10 Institutions + ConstructionLabor (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins)
+        Assert.Equal(35, CanonicalSchema.Version);   // v31: ADR-033 D6/D10 Institutions + ConstructionLabor (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins) (v35: ADR-043 CivicsPoints — 2026-10-22 cause: the schema bump alone)
         string root = RepoPaths.Root();
         foreach (string file in new[] { "Sim.Core/Kernel/CanonicalSchema.cs", "Sim.Core/State/WorldState.cs" })
         {

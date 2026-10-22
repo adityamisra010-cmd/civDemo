@@ -15,7 +15,8 @@ namespace Sim.Cli;
 /// <c>--auto cheapest</c> is a MEASUREMENT DRIVER, not an AI. Before each step, if
 /// the polity has no target and something is available, it appends a
 /// SetResearchTarget order stamped with the current turn, choosing the cheapest
-/// available node (ResearchQuery.CheapestAvailable: EffectiveCost, then key). The run
+/// available node (ResearchQuery.CheapestAvailable: EffectiveCost, then key) — ADR-043: in the two-lane model, per
+/// LANE (a free Technology lane gets the cheapest available technology, a free Civics lane the cheapest civic). The run
 /// therefore exercises the real order pathway, and <c>--emit-orders</c> writes the
 /// log so that `sim run --founded --orders` replays the same world.
 /// Output is invariant-culture and ordered by node key, so it is deterministic.
@@ -55,10 +56,17 @@ internal static class ResearchCli
         bool stageSeen = false;
         for (int t = 1; t <= turns; t++)
         {
-            if (auto is not null && !ResearchQuery.TryGetTarget(world, polity, out _)
+            if (auto is not null && !content.Tuning.TwoLanes && !ResearchQuery.TryGetTarget(world, polity, out _)
                 && ResearchQuery.CheapestAvailable(world, content, polity) is { } pick)
             {
                 orders.Append(OrderRecord.From(world.Clock.Turn, polity, OrderKind.SetResearchTarget, pick.Value, 0.0));
+            }
+            if (auto is not null && content.Tuning.TwoLanes)
+            {
+                foreach (ResearchTree lane in (ResearchTree[])[ResearchTree.Technology, ResearchTree.Civics])
+                    if (!ResearchQuery.TryGetTarget(world, content, polity, lane, out _)
+                        && ResearchQuery.CheapestAvailable(world, content, polity, lane) is { } lanePick)
+                        orders.Append(OrderRecord.From(world.Clock.Turn, polity, OrderKind.SetResearchTarget, lanePick.Value, 0.0));
             }
             OrderValidation.ValidateAtDelivery(orders.BatchFor(world.Clock.Turn), turnZero, world); // ADR-034
             world = executor.Step(world);
@@ -101,17 +109,47 @@ internal static class ResearchCli
         Console.WriteLine($"research report: seed {seed}, turn {world.Clock.Turn} (sim-year {Year(world)}), polity {polity.Value}, {orderCount} order(s)");
         long population = ResearchQuery.Population(world, polity);
         ResearchTuning tu = content.Tuning;
-        Console.WriteLine($"Research Points: {F(ResearchQuery.ResearchPointPool(world, content, polity))} RP this turn from population {population} " +
-                          $"(calibration: {F(tu.RpCoefficient)} x P^{F(tu.RpExponent)} per turn, never x dt — ADR-030); one shared pool for both trees");
-        if (ResearchQuery.TryGetTarget(world, polity, out ResearchNodeId target))
+        if (!tu.TwoLanes)
         {
-            ResearchNode n = Node(content, target);
-            ResearchQuery.CostBreakdown cost = ResearchQuery.EffectiveCostBreakdown(world, content, polity, target);
-            Console.WriteLine($"active target: {n.Id} ({Where(content, n)}) {F(ResearchQuery.Progress(world, polity, target))} / {F(cost.EffectiveCost)} RP");
+            Console.WriteLine($"Research Points: {F(ResearchQuery.ResearchPointPool(world, content, polity))} RP this turn from population {population} " +
+                              $"(calibration: {F(tu.RpCoefficient)} x P^{F(tu.RpExponent)} per turn, never x dt — ADR-030); one shared pool for both trees");
+            if (ResearchQuery.TryGetTarget(world, polity, out ResearchNodeId target))
+            {
+                ResearchNode n = Node(content, target);
+                ResearchQuery.CostBreakdown cost = ResearchQuery.EffectiveCostBreakdown(world, content, polity, target);
+                Console.WriteLine($"active target: {n.Id} ({Where(content, n)}) {F(ResearchQuery.Progress(world, polity, target))} / {F(cost.EffectiveCost)} RP");
+            }
+            else
+            {
+                Console.WriteLine("active target: none — this turn's RP reaches no node and is not stored (no general bank, D-044 R20-D)");
+            }
         }
         else
         {
-            Console.WriteLine("active target: none — this turn's RP reaches no node and is not stored (no general bank, D-044 R20-D)");
+            CivicsPointsTuning cp = tu.CivicsPoints!;
+            CivicsPointsRow account = ResearchQuery.CivicsPointsAccount(world, polity);
+            Console.WriteLine($"Research Points: {F(ResearchQuery.ResearchPointPool(world, content, polity))} RP this turn from population {population} " +
+                              $"(calibration: {F(tu.RpCoefficient)} x P^{F(tu.RpExponent)} per turn, never x dt — ADR-030); funds the Technology target only");
+            Console.WriteLine($"Civics Points: {F(ResearchQuery.CivicsPointsPerYear(tu, population))} CP per sim-year " +
+                              $"({F(cp.CoefficientPerYear)} x P^{F(cp.Exponent)} x dtYears — ADR-043); funds the Civics target only; " +
+                              $"banked {F(account.BalanceMilli / 1000.0)} CP (generated {F(account.GeneratedMilli / 1000.0)}, spent {F(account.SpentMilli / 1000.0)})");
+            foreach (ResearchTree lane in (ResearchTree[])[ResearchTree.Technology, ResearchTree.Civics])
+            {
+                string unit = lane == ResearchTree.Civics ? "CP" : "RP";
+                string label = lane == ResearchTree.Civics ? "civics target" : "technology target";
+                if (ResearchQuery.TryGetTarget(world, content, polity, lane, out ResearchNodeId target))
+                {
+                    ResearchNode n = Node(content, target);
+                    ResearchQuery.CostBreakdown cost = ResearchQuery.EffectiveCostBreakdown(world, content, polity, target);
+                    Console.WriteLine($"{label}: {n.Id} ({Where(content, n)}) {F(ResearchQuery.Progress(world, polity, target))} / {F(cost.EffectiveCost)} {unit}");
+                }
+                else
+                {
+                    Console.WriteLine(lane == ResearchTree.Civics
+                        ? "civics target: none — Civics Points stay banked (no loss, no cap; ADR-043)"
+                        : "technology target: none — this turn's RP reaches no node and is not stored (no general bank, D-044 R20-D)");
+                }
+            }
         }
         bool stage = ResearchQuery.IsStageReached(world, content, polity);
         Console.WriteLine($"research stage (university / research institutional stage): {(stage ? "REACHED — all five subtrees open" : "not reached — subtrees closed")}");

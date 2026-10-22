@@ -47,7 +47,20 @@ public sealed record ResearchCostModel(double U, double K);
 public sealed record ResearchTuning(
     double RpCoefficient, double RpExponent, IReadOnlyList<(double Population, double ResearchPoints)> RpAnchors,
     double EffectiveCostFloorFraction, double AccelerationCreditCeilingFraction, ResearchCostModel CostModel,
-    double CityStatePaceFraction = 0.0);
+    double CityStatePaceFraction = 0.0, CivicsPointsTuning? CivicsPoints = null)
+{
+    /// <summary>ADR-043: whether the two-lane model is on — Research Points fund only the Technology target and Civics
+    /// Points fund only the Civics target. Off (tuning.civicsPoints absent or enabled false) is the v34 one-pool model
+    /// exactly: one target in either tree, funded by RP, and no CivicsPoints row is ever written (the attribution twin).</summary>
+    public bool TwoLanes => CivicsPoints is { Enabled: true };
+}
+
+/// <summary>
+/// ADR-043 (D-062) — Civics Points tuning. CP per SIM-YEAR = <see cref="CoefficientPerYear"/> × population^
+/// <see cref="Exponent"/>, integrated over dtYears (law 3 as written — unlike RP, CP is NOT a per-turn exception) and
+/// stored in integer milli-CP: generated per step = floor(1000 × c × P^β × dtYears). Values are PROPOSED (ADR-043 §3).
+/// </summary>
+public sealed record CivicsPointsTuning(bool Enabled, double CoefficientPerYear, double Exponent);
 
 /// <summary>A baseline capability (D-045 §1): something a newly founded civilization can do with
 /// ZERO completed research nodes. It lives OUTSIDE the research graph — no node, no completed row
@@ -801,8 +814,19 @@ public static class ResearchContentLoader
         if (t.CityStatePaceFraction is double pace && !(double.IsFinite(pace) && pace >= 0.0 && pace < 1.0))
             throw Fail($"tuning.cityStatePaceFraction {Inv(pace)} must be in [0, 1): an uncontrolled settlement progresses " +
                        "SLOWER than an organized civilization of the same population (Director decision 4/12); 0 disables it.");
+        CivicsPointsTuning? civics = null;
+        if (t.CivicsPoints is { } cp)
+        {
+            if (!(double.IsFinite(cp.CoefficientPerYear) && cp.CoefficientPerYear > 0.0 && cp.CoefficientPerYear <= 1.0))
+                throw Fail($"tuning.civicsPoints.coefficientPerYear {Inv(cp.CoefficientPerYear)} must be in (0, 1]: Civics Points " +
+                           "per sim-year per population^exponent (ADR-043).");
+            if (!(double.IsFinite(cp.Exponent) && cp.Exponent > 0.0 && cp.Exponent < 1.0))
+                throw Fail($"tuning.civicsPoints.exponent {Inv(cp.Exponent)} must be in (0, 1): Civics Points are sublinear in " +
+                           "population, as Research Points are (architecture §8.1.2).");
+            civics = new CivicsPointsTuning(cp.Enabled, cp.CoefficientPerYear, cp.Exponent);
+        }
         return new ResearchTuning(rp.Coefficient, rp.Exponent, anchors, t.EffectiveCostFloorFraction,
-            t.AccelerationCreditCeilingFraction, new ResearchCostModel(cm.U, cm.K), t.CityStatePaceFraction ?? 0.0);
+            t.AccelerationCreditCeilingFraction, new ResearchCostModel(cm.U, cm.K), t.CityStatePaceFraction ?? 0.0, civics);
     }
 
     private static readonly (string Name, double Min, double Max)[] CostFactorRanges =
@@ -1398,7 +1422,15 @@ public static class ResearchContentLoader
         [property: JsonPropertyName("accelerationCreditCeilingFraction"), JsonRequired] double AccelerationCreditCeilingFraction,
         [property: JsonPropertyName("accelerationCreditSources"), JsonRequired] string[] AccelerationCreditSources,
         [property: JsonPropertyName("costModel"), JsonRequired] CostModelJson CostModel,
-        [property: JsonPropertyName("cityStatePaceFraction")] double? CityStatePaceFraction = null);
+        [property: JsonPropertyName("cityStatePaceFraction")] double? CityStatePaceFraction = null,
+        [property: JsonPropertyName("civicsPoints")] CivicsPointsJson? CivicsPoints = null);
+
+    private sealed record CivicsPointsJson(
+        [property: JsonPropertyName("enabled"), JsonRequired] bool Enabled,
+        [property: JsonPropertyName("coefficientPerYear"), JsonRequired] double CoefficientPerYear,
+        [property: JsonPropertyName("exponent"), JsonRequired] double Exponent,
+        [property: JsonPropertyName("unit"), JsonRequired] string Unit,
+        [property: JsonPropertyName("status"), JsonRequired] string Status);
 
     private sealed record RpPerTurnJson(
         [property: JsonPropertyName("coefficient"), JsonRequired] double Coefficient,

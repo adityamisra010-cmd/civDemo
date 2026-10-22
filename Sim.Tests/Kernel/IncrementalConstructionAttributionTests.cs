@@ -44,7 +44,10 @@ public class IncrementalConstructionAttributionTests
     private const string Batch2ToySeed42Turn200 = "5994e97838d275d3dd2a82cc6d0df1e23c70d2a9bbe412f4ba44538e043db180";
     private const string Batch2FirstReignTurn40 = "467f2cb6f5e8ff8171840de57dc44999d2f0347b3b8af8c9ef8451e199d22abb";
 
-    private static SimConfig Shipped => TestConfigs.Sim();
+    // ADR-043 (2026-10-22) CAUSE BLOCK: was TestConfigs.Sim(). Track CP (the two research lanes and Civics Points) is NEWER
+    // than every layer this class attributes, so by the R4 rule its controls run on the pre-CP world — the shipped config
+    // with Track CP off (TestConfigs.PreTrackCp), whose v32 projection is the batch-2 world exactly as before.
+    private static SimConfig Shipped => TestConfigs.PreTrackCp(TestConfigs.Sim());
 
     [Fact]
     public void TheShippedContent_SwitchesIncrementalConstructionOn_AndEveryOlderTwinStripsIt()
@@ -76,6 +79,8 @@ public class IncrementalConstructionAttributionTests
             Assert.False(ConstructionQuery.Incremental(twin));
             Assert.False(twin.Construction!.Reservations);
             Assert.False(Reservations.Enabled(twin));
+            Assert.False(TestConfigs.PreIncrementalConstruction(TestConfigs.Sim()).Research!.Tuning.TwoLanes);   // ADR-043: R4
+            Assert.False(twin.Research!.Tuning.TwoLanes);   // ADR-043 (2026-10-22): every older twin strips Track CP too
         }
     }
 
@@ -114,7 +119,7 @@ public class IncrementalConstructionAttributionTests
     [Fact]
     public void FoundedGoldenSeed42Turn300_MovedForTheV33LayoutAlone()
     {
-        WorldState live = SnapshotTests.RunFoundedGolden(null, TestConfigs.PreD054Worldgen());
+        WorldState live = SnapshotTests.RunFoundedGolden(Shipped, TestConfigs.PreD054Worldgen());
         Assert.Equal(Batch2Founded, SchemaProjection.V32(live));           // no v33 row; the rest is batch 2's world
         Assert.NotEqual(Batch2Founded, WorldHash.ComputeHex(live));        // ...and the two empty prefixes did move the pin
         Assert.Equal(Batch2Founded, SchemaProjection.V32(SnapshotTests.RunFoundedGolden(TestConfigs.PreD054Sim(Shipped), TestConfigs.PreD054Worldgen())));
@@ -123,7 +128,7 @@ public class IncrementalConstructionAttributionTests
     [Fact]
     public void DrivenGoldenSeed42Turn300_MovedForTheV33LayoutAlone()
     {
-        (WorldState live, _) = DrivenGoldenTests.RunDriven(300, null, TestConfigs.PreD054Worldgen());
+        (WorldState live, _) = DrivenGoldenTests.RunDriven(300, Shipped, TestConfigs.PreD054Worldgen());
         Assert.Equal(Batch2Driven, SchemaProjection.V32(live));
         Assert.NotEqual(Batch2Driven, WorldHash.ComputeHex(live));
         (WorldState off, _) = DrivenGoldenTests.RunDriven(300, TestConfigs.PreD054Sim(Shipped), TestConfigs.PreD054Worldgen());
@@ -136,7 +141,7 @@ public class IncrementalConstructionAttributionTests
         WorldState toy = SnapshotTests.CanonicalExecutor().Run(SnapshotTests.Genesis(42), 200);
         Assert.Equal(Batch2ToySeed42Turn200, SchemaProjection.V32(toy));
         Assert.NotEqual(Batch2ToySeed42Turn200, WorldHash.ComputeHex(toy));
-        WorldState reign = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, null, TestConfigs.PreD054Worldgen());
+        WorldState reign = Sim.Tests.Systems.FirstReignTests.Replay(40, out _, Shipped, TestConfigs.PreD054Worldgen());
         Assert.Equal(Batch2FirstReignTurn40, SchemaProjection.V32(reign));
         Assert.NotEqual(Batch2FirstReignTurn40, WorldHash.ComputeHex(reign));
     }

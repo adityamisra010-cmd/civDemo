@@ -944,7 +944,9 @@ public class EmpireFoodAllocationTests
         // PreD054Sim), compared through the v32 projection.
         (WorldState off, _) = Sim.Tests.Kernel.DrivenGoldenTests.RunDriven(300, TestConfigs.PreD053(TestConfigs.Sim()), TestConfigs.PreD054Worldgen());
         Assert.Equal(De86aceDrivenGolden, SchemaProjection.V32(off));
-        (WorldState on, _) = Sim.Tests.Kernel.DrivenGoldenTests.RunDriven(300, TestConfigs.Sim(), TestConfigs.PreD054Worldgen());
+        // ADR-043 (2026-10-22) CAUSE BLOCK: the ON arm runs on the pre-CP world (TestConfigs.PreTrackCp — the R4 rule: Track CP
+        // is newer than relief), so its v32 projection is defined (no CP account) and the claim is relief's alone.
+        (WorldState on, _) = Sim.Tests.Kernel.DrivenGoldenTests.RunDriven(300, TestConfigs.PreTrackCp(TestConfigs.Sim()), TestConfigs.PreD054Worldgen());
         Assert.NotEqual(De86aceDrivenGolden, SchemaProjection.V32(on));
     }
 

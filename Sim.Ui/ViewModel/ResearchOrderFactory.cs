@@ -27,4 +27,9 @@ public static class ResearchOrderFactory
     /// while there is no target, RP reaches no node (R20-D).</summary>
     public static OrderRecord ClearTarget(IReadOnlyWorldState world, PolityId issuer) =>
         ResearchQuery.ClearTargetOrder(world, issuer);
+
+    /// <summary>ADR-043: the order that clears ONE lane's target (−1 Technology, −2 Civics), stamped with the CURRENT
+    /// turn — exactly <see cref="ResearchQuery.ClearTargetOrder(IReadOnlyWorldState, PolityId, ResearchTree)"/>.</summary>
+    public static OrderRecord ClearTarget(IReadOnlyWorldState world, PolityId issuer, ResearchTree lane) =>
+        ResearchQuery.ClearTargetOrder(world, issuer, lane);
 }

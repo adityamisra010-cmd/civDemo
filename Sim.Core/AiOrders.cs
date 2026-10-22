@@ -65,7 +65,7 @@ public static class AiOrders
             PolityId polity = row.Id;
             if (EmpireQuery.IsExtinct(world, polity)) continue;
 
-            if (AiResearchPolicy.Decide(world, cfg, polity) is { } research) result.Add(research);
+            result.AddRange(AiResearchPolicy.DecideAll(world, cfg, polity));   // ADR-043: up to one order per lane
             if (cfg.Ages is { } ages && AgeAdvancePolicy.Decide(world, ages, polity) is { } advance) result.Add(advance);
             if (RoadDevelopmentPolicy.Decide(world, cfg, polity) is { } roads) result.Add(roads);
             result.AddRange(AiConstructionPolicy.Decide(world, cfg, polity,

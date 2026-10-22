@@ -193,10 +193,13 @@ public static class TestConfigs
     /// (SchemaProjection.HashAtSchemaV32) returns the batch-2 references byte for byte. D-055 (2026-10-16): it switches
     /// off reservations too (the newer layer, the R4 rule; the loader refuses reservations without incremental), so it
     /// still returns them exactly as before.</summary>
-    public static SimConfig PreIncrementalConstruction(SimConfig cfg) =>
-        cfg.Construction is { } c
+    public static SimConfig PreIncrementalConstruction(SimConfig cfg)
+    {
+        cfg = PreTrackCp(cfg);   // ADR-043 (2026-10-22): the R4 rule — Track CP is newer than every construction layer
+        return cfg.Construction is { } c
             ? cfg with { Construction = c with { Incremental = false, AllocationRatios = false, Reservations = false, ContinueWithinTurn = false } }
             : cfg;
+    }
 
     /// <summary>D-054 WS2 (2026-10-14) — THE BUILDING/ROADS SPLIT SWITCHED OFF: sim.json construction.allocationRatios
     /// false, so kind-12 orders are ignored at delivery, no ResourceAllocationRow is written, and building work goes first
@@ -214,14 +217,20 @@ public static class TestConfigs
     /// single-layer twin (only the reservations switch changes). D-058 (2026-10-19): by the R4 rule (an older layer twin
     /// strips every newer layer) it also switches off the newer continueWithinTurn layer, so a PreReservations world is
     /// still batch 3's byte for byte.</summary>
-    public static SimConfig PreReservations(SimConfig cfg) =>
-        cfg.Construction is { } c ? cfg with { Construction = c with { Reservations = false, ContinueWithinTurn = false } } : cfg;
+    public static SimConfig PreReservations(SimConfig cfg)
+    {
+        cfg = PreTrackCp(cfg);   // ADR-043 (2026-10-22): the R4 rule strips the newer Track CP layer too
+        return cfg.Construction is { } c ? cfg with { Construction = c with { Reservations = false, ContinueWithinTurn = false } } : cfg;
+    }
 
     /// <summary>D-058 (2026-10-19; the Director's ruling "build one at a time … 7 built, 1 under construction, 1 not
     /// started") — CONTINUATION WITHIN THE TURN SWITCHED OFF: sim.json construction.continueWithinTurn false, so a completing
     /// head's leftover capacity never reaches the next entry of its queue in the same step (the promoted entry is a head from
     /// the NEXT step) — the batch-4 rule exactly. A SINGLE-LAYER twin (only this switch changes): every pin D-058 moves is
     /// attributed through it.</summary>
+    // ADR-043 (2026-10-22): deliberately NOT R4-chained to Track CP — it is D-058's SINGLE-LAYER twin, compared turn by turn
+    // with the live run (AllocationScenarioD058AttributionTests: hash-identical through world 118), so only its own switch
+    // may differ. The chained twins (PreReservations, PreIncrementalConstruction and older) strip Track CP.
     public static SimConfig PreContinueWithinTurn(SimConfig cfg) =>
         cfg.Construction is { } c ? cfg with { Construction = c with { ContinueWithinTurn = false } } : cfg;
 
@@ -262,10 +271,65 @@ public static class TestConfigs
     /// sim.json trade.entity null (trade ungated). A pure data change: the attribution controls run every older
     /// layer control on PreR1(PreR2a) so each pre-R2a constant is unmoved, and the R2a controls prove that removing
     /// the layer returns the pre-R2a pins byte for byte.</summary>
+    // ======================================================================
+    // ADR-043 (D-062, 2026-10-22) — TRACK CP: THE RESEARCH STAGE GATE AND CIVICS POINTS. Two content layers of
+    // research.json, each with its own single-layer twin, and the pair (the v34 research content exactly).
+    // ======================================================================
+
+    /// <summary>ADR-043 — CIVICS POINTS SWITCHED OFF: research.json tuning.civicsPoints removed, so the engine is the v34
+    /// ONE-POOL model (one target in either tree, funded by RP; no CivicsPoints row is ever written). A single-layer twin:
+    /// the stage gate stays as shipped.</summary>
+    public static SimConfig PreCivicsPoints(SimConfig cfg) => cfg.Research is null ? cfg : cfg with { Research = NoCivicsPoints.Value };
+
+    /// <summary>ADR-043 — THE OLD RESEARCH STAGE: researchStage.requires with the civic atom legal_code_roman restored
+    /// (the v34 gate). A single-layer twin: Civics Points stay on.</summary>
+    public static SimConfig PreStageGate(SimConfig cfg) => cfg.Research is null ? cfg : cfg with { Research = OldStage.Value };
+
+    /// <summary>ADR-043 — TRACK CP OFF: both layers at once (the v34 research content byte for byte in behaviour), so a
+    /// world stepped under it is the v34 world plus the empty section-62 count prefix — its v34 projection
+    /// (SchemaProjection.V34) is the v34 hash. Every OLDER chained twin strips it (the R4 rule).</summary>
+    public static SimConfig PreTrackCp(SimConfig cfg) => cfg.Research is null ? cfg : cfg with { Research = V34Research.Value };
+
+    /// <summary>The v34 stage expression (ADR-043 dropped its last atom).</summary>
+    public const string V34StageRequires = "medicine_hippocratic AND (geometry_axiomatic OR algebra) AND stamp_seal AND legal_code_roman";
+
+    /// <summary>ADR-043: undoes Track CP's research.json changes on a parsed document — <paramref name="civics"/> removes
+    /// tuning.civicsPoints, <paramref name="stage"/> restores the v34 stage expression.</summary>
+    public static void UndoTrackCp(System.Text.Json.Nodes.JsonObject doc, bool civics, bool stage)
+    {
+        if (civics)
+        {
+            doc["tuning"]!.AsObject().Remove("civicsPoints");
+            doc["tuning"]!.AsObject().Remove("_civicsPoints");
+        }
+        if (stage) doc["researchStage"]!["requires"] = V34StageRequires;
+    }
+
+    private static global::Sim.Core.Systems.Research.ResearchContent LoadResearchVariant(bool civics, bool stage)
+    {
+        using var stream = global::Sim.Data.DataFiles.OpenResearch();
+        var doc = System.Text.Json.Nodes.JsonNode.Parse(stream)!.AsObject();
+        UndoTrackCp(doc, civics, stage);
+        using var goods = global::Sim.Data.DataFiles.OpenGoods();
+        return global::Sim.Core.Systems.Research.ResearchContentLoader.Load(doc.ToJsonString(), GoodsConfigLoader.Load(goods));
+    }
+
+    private static readonly Lazy<global::Sim.Core.Systems.Research.ResearchContent> NoCivicsPoints = new(() => LoadResearchVariant(true, false));
+    private static readonly Lazy<global::Sim.Core.Systems.Research.ResearchContent> OldStage = new(() => LoadResearchVariant(false, true));
+    private static readonly Lazy<global::Sim.Core.Systems.Research.ResearchContent> V34Research = new(() => LoadResearchVariant(true, true));
+
     public static SimConfig PreTradeKnowledge(SimConfig cfg) =>
         PreForager(cfg) with { Research = PreR2aResearch.Value, Trade = PreForager(cfg).Trade with { Entity = null } };
 
-    private static readonly Lazy<global::Sim.Core.Systems.Research.ResearchContent> PreR2aResearch = new(() =>
+    /// <summary>ADR-043: the pre-R2a research content WITH Track CP kept as shipped — what a SINGLE-LAYER trade twin of a
+    /// two-lane config carries (SingleSwitchTwins.PreTradeKnowledgeOnly), so only the R2a layer differs.</summary>
+    public static global::Sim.Core.Systems.Research.ResearchContent PreR2aResearchKeepingTrackCp() => PreR2aResearchWithCp.Value;
+
+    private static readonly Lazy<global::Sim.Core.Systems.Research.ResearchContent> PreR2aResearchWithCp = new(() => LoadPreR2a(undoTrackCp: false));
+
+    private static readonly Lazy<global::Sim.Core.Systems.Research.ResearchContent> PreR2aResearch = new(() => LoadPreR2a(undoTrackCp: true));
+
+    private static global::Sim.Core.Systems.Research.ResearchContent LoadPreR2a(bool undoTrackCp)
     {
         using var stream = global::Sim.Data.DataFiles.OpenResearch();
         var doc = System.Text.Json.Nodes.JsonNode.Parse(stream)!.AsObject();
@@ -274,12 +338,13 @@ public static class TestConfigs
         var ents = doc["entities"]!.AsArray();
         for (int i = ents.Count - 1; i >= 0; i--) if ((string?)ents[i]!["id"] == "activity.trade") ents.RemoveAt(i);
         doc["tuning"]!.AsObject().Remove("cityStatePaceFraction");
+        if (undoTrackCp) UndoTrackCp(doc, civics: true, stage: true);   // ADR-043: the R4 rule — an older twin strips every newer layer
         using var goods = global::Sim.Data.DataFiles.OpenGoods();
         using var sim = global::Sim.Data.DataFiles.OpenSim();
         using var needs = global::Sim.Data.DataFiles.OpenNeeds();
         SimConfig plain = SimConfigLoader.Load(sim, needs, goods);
         return global::Sim.Core.Systems.Research.ResearchContentLoader.Load(doc.ToJsonString(), plain.Goods);
-    });
+    }
 
     /// <summary>R2a: the knowledge closure of the Trade capability (sim.json trade.entity), completed for EVERY
     /// polity of <paramref name="w"/> — for tests whose subject is the trade economy, not research.</summary>

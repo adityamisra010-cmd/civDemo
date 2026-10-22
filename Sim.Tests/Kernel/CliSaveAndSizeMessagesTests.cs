@@ -41,17 +41,22 @@ public class CliSaveAndSizeMessagesTests
         string? note = SaveFiles.MigrationNote("x.civsnap", 32);
         Assert.NotNull(note);
         Assert.DoesNotContain('\n', note);
-        Assert.Equal("note: x.civsnap: migrated from save schema v32: the three tables added since v32 (ConstructionProgress, "
-            + "ResourceAllocations, ConstructionHolds) were added empty; the hash printed is the v34 hash (SchemaProjection.V32 "
+        // ADR-043 (2026-10-22) RE-PIN of the texts: schema v35 appends CivicsPoints, so each older header names it too and
+        // the hash printed is the v35 hash. Was (v34): "the three tables added since v32 (ConstructionProgress,
+        // ResourceAllocations, ConstructionHolds) … the v34 hash …" and "v33: ConstructionHolds was added empty; … the v34 hash".
+        Assert.Equal("note: x.civsnap: migrated from save schema v32: the four tables added since v32 (ConstructionProgress, "
+            + "ResourceAllocations, ConstructionHolds, CivicsPoints) were added empty; the hash printed is the v35 hash (SchemaProjection.V32 "
             + "gives the v32 build's). Its terrain was regenerated flat (no v32 world was a cylinder) and its queued entries are "
             + "at progress 0, ordered as enqueued on turn -1.", note);
         string? v33 = SaveFiles.MigrationNote("x.civsnap", 33);
-        Assert.Equal("note: x.civsnap: migrated from save schema v33: ConstructionHolds was added empty; the hash printed is "
-            + "the v34 hash (SchemaProjection.V33 gives the v33 build's).", v33);
+        Assert.Equal("note: x.civsnap: migrated from save schema v33: ConstructionHolds and CivicsPoints were added empty; the hash printed is "
+            + "the v35 hash (SchemaProjection.V33 gives the v33 build's).", v33);
+        Assert.Equal("note: x.civsnap: migrated from save schema v34: CivicsPoints was added empty (every Civics Points bank starts "
+            + "at zero); the hash printed is the v35 hash (SchemaProjection.V34 gives the v34 build's).", SaveFiles.MigrationNote("x.civsnap", 34));
         Assert.Null(SaveFiles.MigrationNote("x.civsnap", CanonicalSchema.Version));
-        foreach (int refused in new[] { 31, 35, 0, 27 })
+        foreach (int refused in new[] { 31, 36, 0, 27 })
             Assert.Null(SaveFiles.MigrationNote("x.civsnap", refused));                     // refused, not migrated
-        Assert.Equal(34, CanonicalSchema.Version);   // the notes' texts name v34: a schema bump must revisit them
+        Assert.Equal(35, CanonicalSchema.Version);   // the notes' texts name v34: a schema bump must revisit them (v35: ADR-043 CivicsPoints — 2026-10-22 cause: the schema bump alone)
     }
 
     [Fact]
@@ -96,10 +101,11 @@ public class CliSaveAndSizeMessagesTests
         (int exit, string stdout, string stderr) = CliProcess.Run(Limit);
         Assert.Equal((1, ""), (exit, stdout));
         string usage = string.Join(" ", CliProcess.Lines(stderr).Select(l => l.Trim()));
-        Assert.Contains("A schema-v32 or schema-v33 save is migrated on load and says so in one line on stderr; stdout is"
-            + " unchanged in shape. v32: its terrain is regenerated flat and the three tables added since v32"
-            + " (ConstructionProgress, ResourceAllocations, ConstructionHolds) are added empty. v33: ConstructionHolds is added"
-            + " empty.", usage);
+        // ADR-043 (2026-10-22) RE-PIN of the usage text: v34 saves migrate too, and CivicsPoints is added empty to each.
+        Assert.Contains("A schema-v32, -v33 or -v34 save is migrated on load and says so in one line on stderr; stdout is"
+            + " unchanged in shape. v32: its terrain is regenerated flat and the four tables added since v32"
+            + " (ConstructionProgress, ResourceAllocations, ConstructionHolds, CivicsPoints) are added empty. v33:"
+            + " ConstructionHolds and CivicsPoints are added empty. v34: CivicsPoints is added empty.", usage);
         Assert.DoesNotContain("the two v33 tables", usage);
     }
 
@@ -461,7 +467,8 @@ public class CliSaveAndSizeMessagesTests
             Assert.DoesNotContain(lines, l => l.StartsWith("  reproduce with: sim replay", StringComparison.Ordinal));
             Assert.Contains("  reproduce with: sim inspect --manifest session-7166834e1157f6bc.json (it rebuilds a v32 session on the flat map v32 used)", lines);
             // D-055 (2026-10-16) CAUSE BLOCK: "(schema v33)" -> "(schema v34)" — the line names this build's schema; v34 is it now.
-            Assert.Contains("          not with this build's sim replay: it founds the cylinder this build ships (schema v34), not that flat map.", lines);
+            // ADR-043 (2026-10-22) CAUSE BLOCK: "(schema v34)" -> "(schema v35)" — the line names this build's schema.
+            Assert.Contains("          not with this build's sim replay: it founds the cylinder this build ships (schema v35), not that flat map.", lines);
             Assert.Contains("          The build that recorded the session (dev, local) replays it with: "
                 + "sim replay --founded --seed 42 --orders orders-7166834e1157f6bc.bin --turns 8", lines);
         }
@@ -531,8 +538,10 @@ public class CliSaveAndSizeMessagesTests
     [Fact]
     public void TheReproduceLine_IsThisBuildsReplay_FromV34_AndNamesSimInspect_ForAFlatSchema()
     {
+        // ADR-043 (2026-10-22) RE-PIN: this build is schema v35, so "this build's" manifest is v35 (was the literal v34) and
+        // the older-schema lines name v35. The local keeps its historical name.
         var v34 = new SessionManifest(
-            Seed: 7, SizePx: 252, Settlements: null, SchemaVersion: 34,
+            Seed: 7, SizePx: 252, Settlements: null, SchemaVersion: 35,
             BuildSha: "abc1234", BuildDate: "2026-10-15", StartedAt: "x",
             OrdersFile: "orders-a.bin", ChronicleFile: "chronicle-a.txt", TraceFile: "trace-a.csv",
             TelemetryFile: "telemetry-a.jsonl", Platform: SessionManifest.ReferencePlatform);
@@ -545,7 +554,7 @@ public class CliSaveAndSizeMessagesTests
         Assert.Equal(2, v33Lines.Length);
         Assert.Equal("  reproduce with: the build that recorded the session (abc1234, 2026-10-15): "
             + "sim replay --founded --seed 7 --size 252 --orders orders-a.bin --turns 5", v33Lines[0]);
-        Assert.Equal("          not with this build's sim replay: this build is schema v34 and the session was recorded "
+        Assert.Equal("          not with this build's sim replay: this build is schema v35 and the session was recorded "
             + "under v33, so no replay here reproduces its hashes (D-008).", v33Lines[1]);
 
         SessionManifest v32 = v34 with { SchemaVersion = 32, SizePx = 250, BuildSha = "dev", BuildDate = "local" };
@@ -553,7 +562,7 @@ public class CliSaveAndSizeMessagesTests
         string[] lines = text.Split('\n');
         Assert.Equal(3, lines.Length);
         Assert.Equal("  reproduce with: sim inspect --manifest session-a.json (it rebuilds a v32 session on the flat map v32 used)", lines[0]);
-        Assert.Equal("          not with this build's sim replay: it founds the cylinder this build ships (schema v34), not that flat map.", lines[1]);
+        Assert.Equal("          not with this build's sim replay: it founds the cylinder this build ships (schema v35), not that flat map.", lines[1]);
         Assert.Equal("          The build that recorded the session (dev, local) replays it with: "
             + "sim replay --founded --seed 7 --size 250 --orders orders-a.bin --turns 5", lines[2]);
         Assert.StartsWith("  reproduce with: sim inspect --manifest session-a.json (it rebuilds a v31 session",

@@ -79,7 +79,13 @@ public enum OrderKind
     /// persistent directive (D-042 §6.2): the target stays until it completes or
     /// another order changes it.
     ///
-    /// Range-validated at LOAD (TargetId is a key ≥ 1 or exactly -1; Amount == 0). Whether the node exists
+    /// ADR-043 (v35, D-062): TWO LANES. With research.json tuning.civicsPoints enabled, the Empire holds one target
+    /// PER TREE — the node key selects the lane (a Technology node sets the Technology target, funded by RP; a Civics
+    /// node sets the Civics target, funded by Civics Points), so a civic order no longer displaces the technology
+    /// target. -1 clears the TECHNOLOGY lane; -2 (new) clears the CIVICS lane. With civicsPoints off, -1 clears the
+    /// one target as before and -2 clears it only when it is a civic.
+    ///
+    /// Range-validated at LOAD (TargetId is a key ≥ 1, -1 or -2; Amount == 0). Whether the node exists
     /// and is AVAILABLE to this Empire is content- and state-dependent, so it is
     /// checked where the order is consumed (ResearchSystem, the ConstructionSystem
     /// precedent); an order naming an unavailable node changes nothing. DELIVERY: an
@@ -432,10 +438,10 @@ public sealed class OrderLog
                         $">= 0, got {record.TargetId}.");
                 break;
             case OrderKind.SetResearchTarget:
-                if (record.TargetId != -1 && record.TargetId < 1)
+                if (record.TargetId != -1 && record.TargetId != -2 && record.TargetId < 1)
                     throw new SnapshotFormatException(
                         $"order[{index}] (turn {record.Turn}): SetResearchTarget node key must be a " +
-                        $"research.json key (>= 1) or -1 to clear the target, got {record.TargetId}.");
+                        $"research.json key (>= 1), -1 to clear the Technology target or -2 to clear the Civics target, got {record.TargetId}.");
                 if (record.Amount != 0.0) // NaN fails this too
                     throw new SnapshotFormatException(
                         $"order[{index}] (turn {record.Turn}): SetResearchTarget Amount is reserved and must be 0, got " +

@@ -43,14 +43,21 @@ public class Batch2SessionResumeTests
     /// count prefixes (8 zero bytes); its v32 hash is the SHA-256 of the stream without them.
     /// D-055 (2026-10-16) CAUSE BLOCK (X1 (d)): v34 appends a third table, ConstructionHolds (section 61), so the
     /// projection asserts it empty too and drops 12 bytes (8 + 4) — the layout alone; nothing else changed.</summary>
+    /// ADR-043 (2026-10-22) CAUSE BLOCK: v35 appends CivicsPoints (section 62). The resume replays under this build's rules,
+    /// in which every Empire accrues Civics Points from turn 1 (an account row each) — on this 8-turn world no civic is yet
+    /// available, so the accounts are Track CP's whole footprint (Sim.Tests' CivicsPointsAttributionTests.
+    /// TheCpLayer_ActsFromTheFirstStep_TheTwinIsTheV34WorldAtTurnZero). The projection clears them and drops 16 bytes.
     private static string HashAtSchemaV32(WorldState world)
     {
         Assert.Equal((0, 0, 0), (world.ConstructionProgress.Count, world.ResourceAllocations.Count, world.ConstructionHolds.Count));
+        WorldState c = world.Clone();
+        Assert.True(c.CivicsPoints.Count <= c.Polities.Count, "one CP account per Empire at most");
+        c.CivicsPoints.Clear();
         using var buffer = new MemoryStream();
-        using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true)) CanonicalSchema.Write(world, writer);
+        using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true)) CanonicalSchema.Write(c, writer);
         byte[] full = buffer.ToArray();
-        for (int i = full.Length - 12; i < full.Length; i++) Assert.Equal(0, full[i]);
-        return Convert.ToHexStringLower(SHA256.HashData(full.AsSpan(0, full.Length - 12)));
+        for (int i = full.Length - 16; i < full.Length; i++) Assert.Equal(0, full[i]);
+        return Convert.ToHexStringLower(SHA256.HashData(full.AsSpan(0, full.Length - 16)));
     }
 
     [Fact]

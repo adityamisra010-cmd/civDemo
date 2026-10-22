@@ -208,7 +208,11 @@ jobs:
           # two CLI processes, byte-identical logs, last line the value below). CONTROL:
           # ReservationsLayoutAttributionTests.FoundedGoldenSeed42Turn300_MovedForTheV34LayoutAlone (the v33
           # projection, SchemaProjection.V33, returns 40115e28… byte for byte).
-          FOUNDED_GOLDEN=0f29efc733024c451b7ebc2e8435fdd8a6032d158922430cb290778a98056d3c
+          # ADR-043 RE-PIN (2026-10-22, D-062 Track CP): 0f29efc7… -> 5c56a1f9… — schema v35 appends CivicsPoints
+          # (section 62) and the player Empire accrues Civics Points every step (one account row; this order-less
+          # world sets no research target). CONTROL: CivicsPointsAttributionTests.FoundedGoldenSeed42Turn300_MovedForCivicsPointsAlone
+          # (TestConfigs.PreTrackCp returns 0f29efc7… through SchemaProjection.V34).
+          FOUNDED_GOLDEN=5c56a1f958ce66da0de11d43f023a4bb13610a815d87283b74040696b19d6ad9
           if [ "$(tail -n 1 f-run-a.log)" != "$FOUNDED_GOLDEN" ]; then
             echo "FOUNDED RUN DIVERGED FROM PINNED GOLDEN:"
             echo "  expected $FOUNDED_GOLDEN"

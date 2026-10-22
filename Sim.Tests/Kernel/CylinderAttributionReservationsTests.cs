@@ -55,7 +55,10 @@ public class CylinderAttributionReservationsTests : IClassFixture<CylinderAttrib
     /// <summary>The ON arm, the OFF arm and a second ON run (determinism), each kept on every world to the horizon.</summary>
     public sealed class Arms
     {
-        public SimConfig On { get; } = TestConfigs.Sim();
+        // ADR-043 (2026-10-22) CAUSE BLOCK: was TestConfigs.Sim(). The OFF twin (PreReservations) now strips the newer Track CP
+        // layer too (the R4 rule), so the ON arm is the pre-CP world as well — the two arms still differ by the reservations
+        // switch alone, and every measured value of this class stands.
+        public SimConfig On { get; } = TestConfigs.PreTrackCp(TestConfigs.Sim());
         public SimConfig Off { get; }
         public R.Arm Live { get; }
         public R.Arm Twin { get; }
@@ -67,7 +70,7 @@ public class CylinderAttributionReservationsTests : IClassFixture<CylinderAttrib
             int[] all = [0, 1, 2, 3, 4, 5];
             Live = R.Run(R.DevQ17(), "on", On, Horizon, keep: all, probes: [R.HoldRow]);
             Twin = R.Run(R.DevQ17(), "reservations-off", Off, Horizon, keep: all, probes: [R.HoldRow]);
-            Again = R.Run(R.DevQ17(), "on-again", TestConfigs.Sim(), Horizon);
+            Again = R.Run(R.DevQ17(), "on-again", TestConfigs.PreTrackCp(TestConfigs.Sim()), Horizon);
         }
     }
 
