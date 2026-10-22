@@ -90,3 +90,8 @@ dated amendment (its §1, §2, §4 and §7 as affected by this record). The repo
 by "a dated Director ruling on this spec" (m6-spec §6); the Director's instruction rules the decisions above and
 authorizes their implementation but does not ratify the remaining spec text, so the spec is recorded as **DRAFT,
 AMENDED BY D-062; the D-062 slice AUTHORIZED FOR IMPLEMENTATION** — not "RATIFIED" as a whole.
+
+`CLAUDE.md`'s "Current milestone" line still reads "no active packets until `docs/m6-spec.md` is ratified". The agent's
+edit of that line was refused by the session's safety checks and reverted; the line is the Director's to change (by hand
+or by granting the agent permission). Until then, this record is the authority for the D-062 slice.
+
