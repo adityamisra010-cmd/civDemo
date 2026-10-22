@@ -1,0 +1,3649 @@
+[
+ {
+  "id": "NUC-01",
+  "title": "Uranium - Element information, properties and uses",
+  "author_org": "Royal Society of Chemistry (Periodic Table)",
+  "published": null,
+  "url": "https://periodic-table.rsc.org/element/92/uranium",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Klaproth identified uranium (as an oxide) in pitchblende in 1789 and named it after Uranus",
+   "Klaproth could not reduce the oxide to metal",
+   "Peligot (1841) showed Klaproth's product was uranium dioxide and made the metal by reducing uranium tetrachloride with potassium"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-02",
+  "title": "Uranium and Depleted Uranium",
+  "author_org": "World Nuclear Association",
+  "published": null,
+  "url": "https://world-nuclear.org/information-library/nuclear-fuel-cycle/uranium-resources/uranium-and-depleted-uranium",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "Corroborates Klaproth's 1789 identification of uranium in pitchblende"
+  ],
+  "confidence": "medium",
+  "notes": "Industry association. Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-03",
+  "title": "Jachymov: Cradle of the Atomic Age",
+  "author_org": "Oak Ridge Associated Universities, Museum of Radiation and Radioactivity",
+  "published": null,
+  "url": "https://www.orau.org/health-physics-museum/articles/jachymov-cradle-of-the-atomic-age.html",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Jachymov pitchblende was found to contain uranium in the mid-1800s and uranium became a colouring agent for Bohemian glass and ceramics"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-04",
+  "title": "Rediscovery of the Elements: Jachymov (Joachimsthal)",
+  "author_org": "The Hexagon, Rediscovery of the Elements series (PDF hosted on a University of North Texas faculty site)",
+  "published": null,
+  "url": "https://sites.itservices.cas.unt.edu/~jimm/rediscovery%206-10-2021/Hexagon%20Articles/jachymov%20(joachimsthal).pdf",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Silver boom at Joachimsthal from the late 15th / early 16th century",
+   "Miners called the uranium mineral 'Pechblende' (bad-luck mineral); pitchblende reported from the district as early as 1565",
+   "A Joachimsthal silver works was converted to uranium-colour production in 1847; Patera's uranium-yellow method 1851; plant built 1854",
+   "The Curies ordered processed residue from the uranium-colour factory (this source: about 10 tonnes) and found polonium and radium in 1898",
+   "The factory held a radium monopoly 1909-1913"
+  ],
+  "confidence": "medium",
+  "notes": "Popular history column written by chemists; the residue quantity conflicts with APS (about one ton). Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-05",
+  "title": "Mining's Bohemian boomtown",
+  "author_org": "CIM Magazine (Canadian Institute of Mining, Metallurgy and Petroleum)",
+  "published": null,
+  "url": "https://magazine.cim.org/en/in-search/minings-bohemian-boomtown/",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "Radium spa and consumer-product era at Joachimsthal; new US and Belgian Congo mines ended its radium dominance",
+   "Heavy health cost to miners and residents"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-06",
+  "title": "Uranium glass (All About Glass glossary)",
+  "author_org": "Corning Museum of Glass",
+  "published": null,
+  "url": "https://allaboutglass.cmog.org/definition/uranium-glass",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Earliest reference to uranium glass is 1817; Josef Riedel popularized it from 1834",
+   "'Canary glass' name from the 1840s; 'Vaseline glass' probably from the 1950s"
+  ],
+  "confidence": "medium",
+  "notes": "The 1817 date is the least secure. Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-07",
+  "title": "Vaseline and Uranium Glass (ca. 1930s)",
+  "author_org": "ORAU Museum of Radiation and Radioactivity",
+  "published": null,
+  "url": "https://www.orau.org/health-physics-museum/collection/consumer/glass/vaseline-uranium-glass.html",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Uranium first used to colour glass in the 1830s",
+   "Use paused during WWII and resumed around 1959 with depleted uranium"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-08",
+  "title": "Fiestaware (ca. 1930s)",
+  "author_org": "ORAU Museum of Radiation and Radioactivity",
+  "published": null,
+  "url": "https://www.orau.org/health-physics-museum/collection/consumer/ceramics/fiestaware.html",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Fiesta dinnerware introduced 1936 by the Homer Laughlin China Company",
+   "Red glaze coloured with uranium oxide; up to about 14% of the glaze by weight was uranium",
+   "Red production stopped in WWII when the government took the company's uranium; resumed 1959 using depleted uranium"
+  ],
+  "confidence": "medium",
+  "notes": "Another ORAU article attributes the stop to the 1946 Atomic Energy Act. Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-09",
+  "title": "Radioactivity in Antiques (RadTown)",
+  "author_org": "US Environmental Protection Agency",
+  "published": null,
+  "url": "https://www.epa.gov/radtown/radioactivity-antiques",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Some Fiestaware made before 1973 used depleted uranium in the glaze",
+   "EPA advises against using antique orange-red Fiestaware or uranium glass for food or drink"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-10",
+  "title": "Uranium, its impact on the national and global energy mix; and its history, distribution, production, nuclear fuel-cycle, future, and relation to the environment (Circular 1141)",
+  "author_org": "W. I. Finch, U.S. Geological Survey",
+  "published": "1997",
+  "url": "https://pubs.usgs.gov/circ/c1141/c1141.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Uranium first found in the United States in the Central City district, Colorado, in 1871",
+   "The 1898 discovery of radium spurred a wide search for uranium minerals",
+   "Colorado Plateau carnotite was the world's main radium source 1912-1922 and a vanadium source 1924-1945",
+   "Most economic US uranium occurs in sandstones; vein deposits occur in hard rock",
+   "Uranium recovered from Florida phosphorites as a phosphoric-acid by-product since 1975"
+  ],
+  "confidence": "medium",
+  "notes": "Search extract partly OCR-garbled. Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-11",
+  "title": "March 1, 1896: Henri Becquerel Discovers Radioactivity",
+  "author_org": "American Physical Society, APS News",
+  "published": "2008",
+  "url": "https://www.aps.org/apsnews/2008/02/becquerel-discovers-radioactivity",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Becquerel was testing whether phosphorescent uranium salts emitted X-ray-like rays after sunlight exposure",
+   "Overcast weather; plates developed on 1 March 1896 showed strong images without sunlight",
+   "Marie Curie coined the term 'radioactivity'",
+   "Becquerel shared the 1903 Nobel Prize with Pierre and Marie Curie"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-12",
+  "title": "Henri Becquerel - Biographical",
+  "author_org": "Nobel Prize Outreach (NobelPrize.org)",
+  "published": null,
+  "url": "https://www.nobelprize.org/prizes/physics/1903/becquerel/biographical/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Uranium salts fogged photographic plates wrapped in opaque paper; Becquerel attributed the emission to the uranium atom",
+   "Half of the 1903 Nobel Prize in Physics"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-13",
+  "title": "November 8, 1895: Roentgen's Discovery of X-Rays",
+  "author_org": "American Physical Society, APS News",
+  "published": "2001",
+  "url": "https://www.aps.org/apsnews/2001/11/1895-roentgens-discovery-xrays",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "X-rays discovered on 8 November 1895 during cathode-ray-tube experiments",
+   "First report submitted 28 December 1895; early radiographs of hands"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-14",
+  "title": "Wilhelm Conrad Rontgen - Biographical",
+  "author_org": "Nobel Prize Outreach (NobelPrize.org)",
+  "published": null,
+  "url": "https://www.nobelprize.org/prizes/physics/1901/rontgen/biographical/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Rontgen received the first Nobel Prize in Physics (1901) for the discovery of X-rays"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-15",
+  "title": "Marie and Pierre Curie and the discovery of polonium and radium",
+  "author_org": "Nobel Prize Outreach (NobelPrize.org)",
+  "published": null,
+  "url": "https://www.nobelprize.org/prizes/themes/marie-and-pierre-curie-and-the-discovery-of-polonium-and-radium/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The Curies worked with pitchblende",
+   "By late June 1898 they had a substance about 300 times more active than uranium; a July 1898 paper announced a new element (polonium)",
+   "On 26 December 1898 they reported a second, barium-like active substance and proposed the name radium"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-16",
+  "title": "Marie Curie - Facts",
+  "author_org": "Nobel Prize Outreach (NobelPrize.org)",
+  "published": null,
+  "url": "https://www.nobelprize.org/prizes/physics/1903/marie-curie/facts/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "1903 Physics prize shared with Pierre Curie and Henri Becquerel",
+   "1911 Chemistry prize for the discovery of radium and polonium and the isolation of radium",
+   "Only person awarded Nobel Prizes in two different sciences"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-17",
+  "title": "December 1898: The Curies Discover Radium",
+  "author_org": "American Physical Society, APS News",
+  "published": "2004",
+  "url": "https://www.aps.org/publications/apsnews/200412/history.cfm",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Radium was found in a barium-bearing fraction of pitchblende",
+   "The Austrian government supplied about a ton of residues from the state works at Joachimsthal",
+   "Electrometer measurements traced the active fractions"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-18",
+  "title": "Marie Curie and the Science of Radioactivity (online exhibit)",
+  "author_org": "American Institute of Physics, Center for History of Physics",
+  "published": null,
+  "url": "https://history.aip.org/exhibits/curie/pierre.htm",
+  "accessed": "2026-10-22",
+  "type": "archive",
+  "claims_supported": [
+   "Pierre and Jacques Curie built a piezoelectric quartz electrometer able to measure faint currents",
+   "Marie Curie used it for exact measurements of the ionization produced in air by uranium rays"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-19",
+  "title": "Ernest Rutherford - Biographical",
+  "author_org": "Nobel Prize Outreach (NobelPrize.org)",
+  "published": null,
+  "url": "https://www.nobelprize.org/prizes/chemistry/1908/rutherford/biographical/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "1908 Chemistry prize 'for his investigations into the disintegration of the elements, and the chemistry of radioactive substances'",
+   "With Soddy at McGill developed the disintegration theory (first version 1902, refined 1903)",
+   "Reported alpha and beta rays (1898-1899)"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-20",
+  "title": "The origins of the conceptions of isotopes (Nobel lecture)",
+  "author_org": "Frederick Soddy (NobelPrize.org)",
+  "published": "1922",
+  "url": "https://www.nobelprize.org/uploads/2018/06/soddy-lecture.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The 1903 interpretation ascribed radioactivity to spontaneous disintegration of the atoms of the radio-element",
+   "Beta rays are expelled electrons; alpha particles are helium atoms carrying two positive charges"
+  ],
+  "confidence": "high",
+  "notes": "Primary source (lecture). Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-21",
+  "title": "Frederick Soddy - Biographical",
+  "author_org": "Nobel Prize Outreach (NobelPrize.org)",
+  "published": null,
+  "url": "https://www.nobelprize.org/prizes/chemistry/1921/soddy/biographical/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Soddy formulated the isotope concept in 1913 and introduced the word 'isotope'",
+   "1921 Chemistry prize for work on the origin and nature of isotopes"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-22",
+  "title": "Paul Villard",
+  "author_org": "Physics Today (American Institute of Physics)",
+  "published": null,
+  "url": "https://physicstoday.aip.org/news/paul-villard",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "In 1900 Villard observed a penetrating radiation from radium that a magnetic field did not deflect",
+   "He did not treat it as a new kind of ray; Rutherford later named it gamma (dated 1903 by other sources in the same search)",
+   "Villard received little credit in his lifetime"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-23",
+  "title": "John Dalton & the Theory of Atomism",
+  "author_org": "Science History Institute",
+  "published": null,
+  "url": "https://www.sciencehistory.org/education/scientific-biographies/john-dalton/",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Dalton's A New System of Chemical Philosophy appeared in parts from 1808 to 1827",
+   "Atoms treated as indestructible, each element's atoms identified by their mass"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-24",
+  "title": "Remembering John Dalton",
+  "author_org": "Royal Society of Chemistry",
+  "published": "2016",
+  "url": "https://www.rsc.org/news/2016/december/remembering-john-dalton",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Dalton presented a first table of relative atomic weights in 1803 (published 1805)",
+   "Atomic weights stayed uncertain for years because molecular formulas could not be determined"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-25",
+  "title": "Atomic model",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/science/atomic-model",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Dalton's New System was the first application of atomic theory to chemistry; Part II appeared in 1810"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-26",
+  "title": "J.J. Thomson - Facts",
+  "author_org": "Nobel Prize Outreach (NobelPrize.org)",
+  "published": null,
+  "url": "https://www.nobelprize.org/prizes/physics/1906/thomson/facts/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "In 1897 Thomson showed cathode rays consist of particles (electrons) and measured their charge-to-mass ratio by electric and magnetic deflection",
+   "The 1906 prize cited his work on the conduction of electricity by gases"
+  ],
+  "confidence": "high",
+  "notes": "Credit for the electron is discussed in the literature (an arXiv commentary in the same search notes Kaufmann's parallel e/m measurement). Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-27",
+  "title": "May, 1911: Rutherford and the Discovery of the Atomic Nucleus",
+  "author_org": "American Physical Society, APS News",
+  "published": "2006",
+  "url": "https://www.aps.org/apsnews/2006/05/rutherford-discovery-atomic-nucleus",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Geiger and Marsden (1909) saw rare large-angle scattering of alpha particles from gold foil, counted as flashes on zinc sulfide screens",
+   "Rutherford (May 1911) explained it by a small, dense, positively charged nucleus"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-28",
+  "title": "Rutherford's Nuclear World: The Story of the Discovery of the Nucleus (online exhibit)",
+  "author_org": "American Institute of Physics",
+  "published": null,
+  "url": "https://history.aip.org/exhibits/rutherford/sections/alpha-particles-atom.html",
+  "accessed": "2026-10-22",
+  "type": "archive",
+  "claims_supported": [
+   "Corroborates the alpha-scattering experiments and the nuclear model"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-29",
+  "title": "Development of the periodic table",
+  "author_org": "Royal Society of Chemistry (Periodic Table)",
+  "published": null,
+  "url": "https://periodic-table.rsc.org/about",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Mendeleev's 1869 table left gaps; predicted eka-aluminium (gallium, found 1875) and eka-silicon (germanium, found 1886)"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-30",
+  "title": "Francis W. Aston - Facts",
+  "author_org": "Nobel Prize Outreach (NobelPrize.org)",
+  "published": null,
+  "url": "https://www.nobelprize.org/prizes/chemistry/1922/aston/facts/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Aston's mass spectrograph (1919) revealed isotopes in many non-radioactive elements; whole-number rule; 1922 Chemistry prize"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-31",
+  "title": "James Chadwick - Facts",
+  "author_org": "Nobel Prize Outreach (NobelPrize.org)",
+  "published": null,
+  "url": "https://www.nobelprize.org/prizes/physics/1935/chadwick/facts/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "1935 Physics prize for the discovery of the neutron"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-32",
+  "title": "May 1932: Chadwick reports the discovery of the neutron",
+  "author_org": "American Physical Society, APS News",
+  "published": "2007",
+  "url": "https://www.aps.org/apsnews/2007/05/may-1932-chadwick-discovery-neutron",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Bothe and Becker (1930) found a very penetrating radiation from beryllium bombarded by alpha particles",
+   "Chadwick (1932) showed it consisted of neutral particles with about the proton's mass"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-33",
+  "title": "Harold C. Urey - Biographical",
+  "author_org": "Nobel Prize Outreach (NobelPrize.org)",
+  "published": null,
+  "url": "https://www.nobelprize.org/prizes/chemistry/1934/urey/biographical/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Urey's group demonstrated deuterium (heavy hydrogen) in 1931; 1934 Chemistry prize 'for his discovery of heavy hydrogen'"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-34",
+  "title": "Irene Joliot-Curie - Biographical (with 1935 award ceremony speech)",
+  "author_org": "Nobel Prize Outreach (NobelPrize.org)",
+  "published": null,
+  "url": "https://www.nobelprize.org/prizes/chemistry/1935/joliot-curie/biographical/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Aluminium bombarded with alpha particles kept emitting radiation: a radioactive phosphorus isotope had been made (artificial radioactivity)",
+   "Announced to the French Academy of Sciences on 15 January 1934",
+   "1935 Chemistry prize to Frederic Joliot and Irene Joliot-Curie for the synthesis of new radioactive elements"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-35",
+  "title": "Enrico Fermi - Facts (and Nobel lecture)",
+  "author_org": "Nobel Prize Outreach (NobelPrize.org)",
+  "published": null,
+  "url": "https://www.nobelprize.org/prizes/physics/1938/fermi/facts/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Fermi first produced neutron-induced radioactivity on 20 March 1934 and irradiated over sixty elements",
+   "Neutrons slowed by passage through water or paraffin were far more effective at inducing reactions (slow neutrons)",
+   "1938 Physics prize"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-36",
+  "title": "Ernest Lawrence - Facts and Biographical",
+  "author_org": "Nobel Prize Outreach (NobelPrize.org)",
+  "published": null,
+  "url": "https://www.nobelprize.org/prizes/physics/1939/lawrence/facts/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "1939 Physics prize for the invention and development of the cyclotron and results obtained with it, especially artificial radioactive elements",
+   "Nobel biographical material dates the cyclotron to 1929; hundreds of radioisotopes were found with it"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-37",
+  "title": "A Few Important Events in Lawrence's Life",
+  "author_org": "Lawrence Berkeley National Laboratory",
+  "published": null,
+  "url": "https://www2.lbl.gov/Science-Articles/Archive/timeline.html",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Radiation Laboratory established 1936; Segre's first artificial element (technetium) came from material irradiated in the Berkeley cyclotron"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-38",
+  "title": "Technetium - Element information, properties and uses",
+  "author_org": "Royal Society of Chemistry (Periodic Table)",
+  "published": null,
+  "url": "https://periodic-table.rsc.org/element/43/technetium",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Perrier and Segre at Palermo identified technetium in 1937 in molybdenum irradiated in the Berkeley cyclotron; name from Greek for artificial",
+   "RSC regards earlier 'masurium' claims as having been laid to rest"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-39",
+  "title": "It's Elemental: The Periodic Table - Technetium",
+  "author_org": "Chemical & Engineering News (American Chemical Society)",
+  "published": null,
+  "url": "https://pubsapp.acs.org/cen/80th/technetium.html",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "A reanalysis argues the Noddacks' 1925 'masurium' spectra could reflect natural fission-produced technetium"
+  ],
+  "confidence": "medium",
+  "notes": "Minority and disputed view; included to document the dispute. Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-40",
+  "title": "On the belated discovery of fission",
+  "author_org": "Physics Today (American Institute of Physics)",
+  "published": "2015",
+  "url": "https://physicstoday.aip.org/features/on-the-belated-discovery-of-fission",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "In December 1938 Hahn and Strassmann showed the supposed radium product was barium; paper submitted 22 December 1938",
+   "Ida Noddack (1934) suggested the nucleus might break into several large fragments; the idea was not followed up",
+   "Fermi's 1934 transuranic interpretation was accepted too uncritically by his successors"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-41",
+  "title": "The Discovery of Fission - Moments of Discovery",
+  "author_org": "American Institute of Physics",
+  "published": null,
+  "url": "https://history.aip.org/exhibits/mod/fission/fission1/03.html",
+  "accessed": "2026-10-22",
+  "type": "archive",
+  "claims_supported": [
+   "Meitner and Frisch interpreted the result as a splitting of the uranium nucleus and borrowed the word 'fission' from biology",
+   "Their Nature letter was submitted 16 January and published 11 February 1939",
+   "In spring 1939 groups in Paris and at Columbia found two or three neutrons emitted per fission, enough in principle for a chain reaction"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-42",
+  "title": "December 1938: Discovery of Nuclear Fission",
+  "author_org": "American Physical Society, APS News",
+  "published": "2007",
+  "url": "https://www.aps.org/apsnews/2007/12/december-1938-discovery-nuclear-fission",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Corroborates the Hahn-Strassmann chemistry and the Meitner-Frisch interpretation"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-43",
+  "title": "A Nobel Tale of Postwar Injustice",
+  "author_org": "Physics Today (American Institute of Physics)",
+  "published": "1997",
+  "url": "https://physicstoday.aip.org/features/a-nobel-tale-of-postwar-injustice",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "The 1944 Chemistry prize went to Hahn alone, decided in November 1945",
+   "Exclusion of Meitner (and Strassmann) remains controversial; reasons include difficulty judging an interdisciplinary discovery and wartime isolation"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-44",
+  "title": "Mechanism of fission",
+  "author_org": "Physics Today (American Institute of Physics)",
+  "published": null,
+  "url": "https://physicstoday.aip.org/features/mechanism-of-fission",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "In February 1939 Bohr reasoned that the rare isotope U-235 is responsible for slow-neutron fission",
+   "Bohr and Wheeler published their theory of fission on 1 September 1939",
+   "A U-235 sample separated by Nier allowed Dunning's Columbia group to confirm the prediction in early 1940"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-45",
+  "title": "Number of Neutrons Liberated in the Nuclear Fission of Uranium",
+  "author_org": "H. von Halban, F. Joliot, L. Kowarski, Nature 143, 680",
+  "published": "1939-04-22",
+  "url": "https://www.nature.com/articles/143680a0",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Primary report that secondary neutrons are released in uranium fission"
+  ],
+  "confidence": "medium",
+  "notes": "Only the abstract was seen; the two-to-three neutrons figure is from the AIP chronology. Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-46",
+  "title": "Leo Szilard (profile)",
+  "author_org": "Atomic Heritage Foundation / National Museum of Nuclear Science & History",
+  "published": null,
+  "url": "https://ahf.nuclearmuseum.org/ahf/profile/leo-szilard/",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Szilard conceived a neutron chain reaction on 12 September 1933 in London",
+   "He patented the idea in 1934 and assigned the patent to the British Admiralty (1936)",
+   "Historians note parts of the patent's physics were wrong"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-47",
+  "title": "Timeline",
+  "author_org": "Atomic Heritage Foundation / National Museum of Nuclear Science & History",
+  "published": null,
+  "url": "https://ahf.nuclearmuseum.org/ahf/nuc-history/timeline/",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Szilard's patent application of 4 July 1934 covered neutron chain reactions and the idea of a critical mass"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-48",
+  "title": "Patent on world's first reactor was a long time coming",
+  "author_org": "Argonne National Laboratory",
+  "published": "1996",
+  "url": "https://www.ne.anl.gov/About/hn/news960518.shtml",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The Fermi-Szilard reactor patent was very hard to obtain and issued only in 1955"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-49",
+  "title": "Neutronic Reactor (US Patent 2,708,656)",
+  "author_org": "E. Fermi and L. Szilard, assigned to the US Atomic Energy Commission (OSTI record)",
+  "published": "1955",
+  "url": "https://www.osti.gov/biblio/4386606",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The Fermi-Szilard 'Neutronic Reactor' patent issued in May 1955; the application was filed 19 December 1944"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-50",
+  "title": "Chicago Pile 1: A bold nuclear physics experiment with enduring impact",
+  "author_org": "Argonne National Laboratory",
+  "published": null,
+  "url": "https://www.anl.gov/article/chicago-pile-1-a-bold-nuclear-physics-experiment-with-enduring-impact",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "CP-1 achieved the first self-sustaining, controlled nuclear chain reaction on 2 December 1942 at the University of Chicago",
+   "A pile of graphite blocks with embedded uranium metal and oxide, controlled by cadmium rods"
+  ],
+  "confidence": "high",
+  "notes": "Claims corroborated across the ANL, UChicago, DOE and APS results of one search. Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-51",
+  "title": "The first nuclear reactor, explained",
+  "author_org": "University of Chicago News",
+  "published": null,
+  "url": "https://news.uchicago.edu/explainer/first-nuclear-reactor-explained",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "CP-1 was built in a squash court under the stands of Stagg Field; 49 people were present",
+   "In 1943 it was moved to Site A (now Cook County forest preserve) and rebuilt with shielding as CP-2"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-52",
+  "title": "10 Intriguing Facts About the World's First Nuclear Chain Reaction",
+  "author_org": "US Department of Energy, Office of Nuclear Energy",
+  "published": null,
+  "url": "https://www.energy.gov/ne/articles/10-intriguing-facts-about-worlds-first-nuclear-chain-reaction",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Corroborates CP-1 date, setting and construction"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-53",
+  "title": "Chicago Pile-1: Ushering in the Atomic Age",
+  "author_org": "Atomic Heritage Foundation / National Museum of Nuclear Science & History",
+  "published": null,
+  "url": "https://ahf.nuclearmuseum.org/chicago-pile-1-ushering-atomic-age/",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "CP-1 first ran at about 0.5 W thermal and was later operated at up to about 200 W",
+   "Accounts of the start time and run duration differ"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-54",
+  "title": "Historic and modern nuclear graphite impurities: pathways to improved performance",
+  "author_org": "OSTI (US DOE laboratory authors)",
+  "published": null,
+  "url": "https://www.osti.gov/pages/servlets/purl/3009423",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "CP-1 used relatively high-purity electrode-grade graphite from National Carbon; boron impurity was held to fractions of a ppm"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-55",
+  "title": "Myths of Nuclear Graphite in World War II, with Original Translations",
+  "author_org": "arXiv preprint",
+  "published": "2024",
+  "url": "https://arxiv.org/pdf/2405.20801",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "National Carbon's 'AGOT' nuclear-grade graphite beat earlier material on purity; the last shipment was added to CP-1 on 2 December 1942",
+   "Graphite purity (neutron-absorbing impurities such as boron) was a decisive wartime problem"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-56",
+  "title": "X-10 Graphite Reactor",
+  "author_org": "US National Park Service, Manhattan Project National Historical Park",
+  "published": null,
+  "url": "https://www.nps.gov/places/000/x-10-graphite-reactor.htm",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "X-10 at Oak Ridge, built by DuPont in about nine months, went critical on 4 November 1943",
+   "Natural-uranium, graphite-moderated, air-cooled pilot plutonium reactor with 1,248 horizontal channels",
+   "Produced 326 g of plutonium for research and helped develop the chemical separation used at Hanford; trained hundreds of chemists and engineers",
+   "Shut down 4 November 1963; National Historic Landmark 1965"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-57",
+  "title": "The B Reactor National Historic Landmark",
+  "author_org": "US Department of Energy, Office of Environmental Management",
+  "published": null,
+  "url": "https://www.energy.gov/em/articles/b-reactor-national-historic-landmark",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Hanford B was the world's first full-scale plutonium production reactor, graphite-moderated and cooled with Columbia River water",
+   "Fuel loaded 13 September 1944; critical 26 September 1944 (OSTI history gives 27 September)",
+   "A roughly 1,200-ton graphite stack pierced by 2,004 aluminium tubes"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-58",
+  "title": "EBR-I lights up the history of nuclear energy development",
+  "author_org": "Idaho National Laboratory",
+  "published": null,
+  "url": "https://inl.gov/feature-story/ebr-i-lights-up-the-history-of-nuclear-energy-development/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "On 20 December 1951 EBR-I produced the first usable electricity from nuclear energy, lighting four bulbs",
+   "First liquid-metal-cooled fast reactor; first reactor at the National Reactor Testing Station, Idaho"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-59",
+  "title": "9 Notable Facts About the World's First Nuclear Power Plant - EBR-I",
+  "author_org": "US Department of Energy, Office of Nuclear Energy",
+  "published": null,
+  "url": "https://www.energy.gov/ne/articles/9-notable-facts-about-worlds-first-nuclear-power-plant-ebr-i",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The four bulbs were 200 W each (Argonne's account says 100 W)",
+   "As a breeder, EBR-I made more fuel than it consumed"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-60",
+  "title": "APS-1 Obninsk - Reactor Details",
+  "author_org": "IAEA Power Reactor Information System (PRIS)",
+  "published": null,
+  "url": "https://pris.iaea.org/PRIS/CountryStatistics/ReactorDetails.aspx?current=447",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Type LWGR, model AM-1; first criticality 6 May 1954; first grid connection 27 June 1954; permanent shutdown 29 April 2002"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-61",
+  "title": "Country Nuclear Power Profiles: Russia (2020 edition)",
+  "author_org": "International Atomic Energy Agency",
+  "published": "2020",
+  "url": "https://www-pub.iaea.org/MTCD/publications/PDF/cnpp2020/countryprofiles/Russia/Russia.htm",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "On 27 June 1954 a 5,000 kW nuclear plant at Obninsk was put into operation and connected to the grid, a world first"
+  ],
+  "confidence": "high",
+  "notes": "An older IAEA Bulletin item gives 26 June 1954, 17:30. Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-62",
+  "title": "60 years since the day that changed the nuclear industry",
+  "author_org": "Sellafield Ltd / Nuclear Decommissioning Authority (GOV.UK)",
+  "published": "2016",
+  "url": "https://www.gov.uk/government/news/60-years-since-the-day-that-changed-the-nuclear-industry",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Calder Hall was opened by Queen Elizabeth II on 17 October 1956 and generated for 47 years until 2003"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-63",
+  "title": "Decommissioning the world's first commercial nuclear power station",
+  "author_org": "Nuclear Decommissioning Authority blog (GOV.UK)",
+  "published": null,
+  "url": "https://nda.blog.gov.uk/decommissioning-the-worlds-first-commercial-nuclear-power-station/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Calder Hall had four Magnox reactors; the 'first' title was contested by the Soviet station supplying its grid"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-64",
+  "title": "Nuclear Development in the United Kingdom",
+  "author_org": "World Nuclear Association",
+  "published": null,
+  "url": "https://world-nuclear.org/information-library/appendices/nuclear-development-in-the-united-kingdom",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "Calder Hall was grid-connected from August 1956",
+   "Magnox: natural uranium metal fuel, graphite moderator, carbon dioxide coolant; Calder Hall and Chapelcross were conceived as dual-purpose (power and defence plutonium), the latter ending in the 1960s",
+   "AGR: enriched oxide fuel in stainless steel, gas above 600 C, about 40% thermal efficiency; 14 reactors at 7 twin-unit stations built 1976-1989"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-65",
+  "title": "The development of Calder Hall and Chapelcross as base load nuclear power stations",
+  "author_org": "IAEA International Nuclear Information System (INIS) record",
+  "published": null,
+  "url": "https://inis.iaea.org/records/4d6m0-8xe26",
+  "accessed": "2026-10-22",
+  "type": "archive",
+  "claims_supported": [
+   "Calder Hall was first conceived as a dual-purpose reactor with weapons plutonium as the main priority"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-66",
+  "title": "UK marks 60th anniversary of Calder Hall",
+  "author_org": "World Nuclear News",
+  "published": "2016",
+  "url": "https://world-nuclear-news.org/articles/uk-marks-60th-anniversary-of-calder-hall",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "Corroborates the 17 October 1956 opening"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-67",
+  "title": "Windscale AGR (reactor database)",
+  "author_org": "World Nuclear Association",
+  "published": null,
+  "url": "https://world-nuclear.org/nuclear-reactor-database/details/Windscale-AGR",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "The Windscale AGR prototype went critical on 9 August 1962, was grid-connected in February 1963, rated about 24 MWe, shut 1981"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-68",
+  "title": "December 23, 1957: Shippingport",
+  "author_org": "US Department of Energy (history series)",
+  "published": null,
+  "url": "https://www.energy.gov/management/december-23-1957-shippingport",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Shippingport reached full power on 23 December 1957; DOE calls it the world's first full-scale nuclear power plant (devoted to civilian power)"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-69",
+  "title": "Atoms on the Grid! - Shippingport, 1957",
+  "author_org": "American Nuclear Society, Nuclear Newswire",
+  "published": null,
+  "url": "https://www.ans.org/news/article-2093/atoms-on-the-grid-shippingport-1957/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Shippingport went critical 2 December 1957 and was synchronized with the grid on 18 December 1957",
+   "Duquesne Light built the generating side and operated the plant; Westinghouse designed the reactor; Rickover's Naval Reactors led the project"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-70",
+  "title": "Shippingport Atomic Power Station - National Historic Mechanical Engineering Landmark",
+  "author_org": "American Society of Mechanical Engineers",
+  "published": null,
+  "url": "https://www.asme.org/wwwasmeorg/media/resourcefiles/aboutasme/who%20we%20are/engineering%20history/landmarks/47-shippingport-nuclear-power-station.pdf",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Corroborates Shippingport as the first large-scale US plant operated solely to produce electricity"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-71",
+  "title": "Nautilus (SSN-571)",
+  "author_org": "Naval History and Heritage Command",
+  "published": null,
+  "url": "https://www.history.navy.mil/browse-by-topic/ships/submarines/uss-nautilus.html",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "On 17 January 1955 Nautilus signalled 'underway on nuclear power'",
+   "NHHC pages describe the plant as a Westinghouse submarine thermal reactor; a DOE report in the same search results describes it as the pressurized-water design"
+  ],
+  "confidence": "high",
+  "notes": "The pressurized-water attribution comes from a DOE report returned in the same search, not from this page alone. Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-72",
+  "title": "Light Water Reactors Technology Development",
+  "author_org": "Argonne National Laboratory",
+  "published": null,
+  "url": "https://www.ne.anl.gov/About/reactors/lwr3.shtml",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "BORAX-I (1953) tested boiling water as coolant and moderator and was deliberately destroyed in a 1954 test",
+   "BORAX-III lit the town of Arco, Idaho on 17 July 1955",
+   "EBWR followed in 1956; General Electric's commercial BWR built on Argonne's BORAX work"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-73",
+  "title": "55 Reactors",
+  "author_org": "Idaho National Laboratory",
+  "published": null,
+  "url": "https://inl.gov/history/reactors/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Corroborates the BORAX series"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-74",
+  "title": "Outline History of Nuclear Energy",
+  "author_org": "World Nuclear Association",
+  "published": null,
+  "url": "https://world-nuclear.org/information-library/current-and-future-generation/outline-history-of-nuclear-energy",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "Yankee Rowe (Westinghouse PWR, 250 MWe) started up in 1960 and ran to 1992; Dresden-1 (GE BWR, 250 MWe) started up in 1960"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-75",
+  "title": "Nuclear Power in the USA",
+  "author_org": "World Nuclear Association",
+  "published": null,
+  "url": "https://world-nuclear.org/information-library/country-profiles/countries-t-z/usa-nuclear-power",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "Corroborates Dresden-1 as an early privately financed commercial plant"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-76",
+  "title": "1946-1964 (corporate history)",
+  "author_org": "National Research Council Canada",
+  "published": null,
+  "url": "https://nrc.canada.ca/en/corporate/history/1946-1964",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "ZEEP at Chalk River went critical on 5 September 1945, the first reactor outside the United States, using natural uranium in heavy water"
+  ],
+  "confidence": "high",
+  "notes": "Other Canadian sources give 6 September 1945. Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-77",
+  "title": "History of Nuclear in Canada",
+  "author_org": "Canadian Nuclear Association",
+  "published": null,
+  "url": "https://cna.ca/history-of-nuclear-in-canada/",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "NPD at Rolphton (1962, about 20 MWe) was Canada's first electricity-producing reactor and the CANDU prototype",
+   "Douglas Point came online in 1968 (220 MWe)",
+   "In 1951 the first cobalt-60 external-beam cancer treatment was given in London, Ontario, and a second 11 days later in Saskatoon"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-78",
+  "title": "Decommissioning the Douglas Point Prototype Reactor",
+  "author_org": "Canadian Nuclear Laboratories",
+  "published": null,
+  "url": "https://www.cnl.ca/en/home/environmental-stewardship/decommissioning/douglas-point/default.aspx",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Douglas Point (about 200 MWe) showed CANDU could be scaled up for commercial generation"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-79",
+  "title": "Heavy Water Reactors: Status and Projected Development (Technical Reports Series No. 407)",
+  "author_org": "International Atomic Energy Agency",
+  "published": null,
+  "url": "https://www-pub.iaea.org/MTCD/publications/PDF/TRS407_scr/D407_scr1.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "PHWR/CANDU: fuel in individually cooled pressure tubes inside a calandria of heavy-water moderator; separate coolant and moderator circuits",
+   "High neutron economy allows natural uranium fuel; on-power refuelling",
+   "PHWRs operate in Argentina, Canada, China, India, Pakistan, Republic of Korea and Romania (about 6% of world nuclear electricity at publication)"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-80",
+  "title": "Nuclear Power Reactors (overview)",
+  "author_org": "World Nuclear Association",
+  "published": null,
+  "url": "https://world-nuclear.org/information-library/nuclear-power-reactors/overview/nuclear-power-reactors",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "A reactor can run on natural (unenriched) uranium if graphite or heavy water is the moderator; light-water reactors use uranium enriched to about 3.5-5%",
+   "RBMKs use graphite with light-water cooling and about 2% enriched fuel"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-81",
+  "title": "Module 1.0: Introduction to Uranium Enrichment (fuel cycle training)",
+  "author_org": "US Nuclear Regulatory Commission",
+  "published": null,
+  "url": "https://www.nrc.gov/docs/ML1204/ML12045A049.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Enrichment energy: gaseous diffusion about 2,500 kWh per SWU versus about 50 kWh per SWU for modern centrifuges; new capacity is centrifuge",
+   "Centrifuge viability was shown by the 1960s but adoption was slowed by engineering and material difficulties and diffusion's success"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-82",
+  "title": "INSAG-7: The Chernobyl Accident: Updating of INSAG-1 (Safety Series No. 75)",
+  "author_org": "International Atomic Energy Agency",
+  "published": null,
+  "url": "https://www-pub.iaea.org/MTCD/publications/PDF/Pub913e_web.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The RBMK is a graphite-moderated, boiling-water, channel-type reactor",
+   "INSAG-7 identified the positive void coefficient and the possibility of a positive scram as key shortcomings behind the 1986 accident"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-83",
+  "title": "RBMK Reactors (appendix)",
+  "author_org": "World Nuclear Association",
+  "published": null,
+  "url": "https://world-nuclear.org/information-library/appendices/rbmk-reactors",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "Post-1986 modifications (extra absorbers, higher enrichment) reduced the RBMK void effect"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-84",
+  "title": "Chernobyl: Chapter I. The site and accident sequence",
+  "author_org": "OECD Nuclear Energy Agency",
+  "published": null,
+  "url": "https://oecd-nea.org/jcms/pl_28271/chernobyl-chapter-i-the-site-and-accident-sequence",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Corroborates the RBMK design and accident sequence"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-85",
+  "title": "Fast Neutron Reactors",
+  "author_org": "World Nuclear Association",
+  "published": null,
+  "url": "https://world-nuclear.org/information-library/current-and-future-generation/fast-neutron-reactors",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "France operated Phenix 1973-2009; Superphenix (1,200 MWe) was closed in 1998",
+   "BN-600 and BN-800 are the main operating sodium-cooled fast reactors"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-86",
+  "title": "Education and Training Series #24: The BN-600 and BN-800 Operating Experience",
+  "author_org": "Generation IV International Forum",
+  "published": "2018",
+  "url": "https://www.gen-4.org/resources/webinars/education-and-training-series-24-bn-600-and-bn-800-operating-experience",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "More than a third of world sodium-fast-reactor operating experience is Soviet/Russian; BN-600 grid-connected April 1980, full power 1981"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-87",
+  "title": "Phenix and Superphenix Feedback Experience (webinar)",
+  "author_org": "Generation IV International Forum (CEA presenter)",
+  "published": "2017",
+  "url": "https://www.gen-4.org/gif/upload/docs/application/pdf/2017-12/gifiv_webinar_phenix_superphenix_final_guidez.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Superphenix confirmed industrial-scale sodium fast reactor design choices but was shut down early"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-88",
+  "title": "Operational & Suspended Reactors by Type",
+  "author_org": "IAEA Power Reactor Information System (PRIS)",
+  "published": null,
+  "url": "https://pris.iaea.org/PRIS/WorldStatistics/OperationalReactorsByType.aspx",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Snapshot of about 417 units: 308 PWR, 46 PHWR, 45 BWR, 8 GCR (UK AGRs), 7 LWGR (Russian RBMKs), 2 FBR"
+  ],
+  "confidence": "medium",
+  "notes": "Snapshot date uncertain (roughly 2024-2025); live counts change. Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-89",
+  "title": "Nuclear Power Reactors in the World (Reference Data Series No. 2, 2026 edition)",
+  "author_org": "International Atomic Energy Agency",
+  "published": "2026",
+  "url": "https://www-pub.iaea.org/MTCD/publications/PDF/RDS-2_46web.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Annual reference compilation using PRIS data to 31 December 2025"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-90",
+  "title": "Six Global Trends in Nuclear Power You Should Know",
+  "author_org": "International Atomic Energy Agency (news)",
+  "published": "2025",
+  "url": "https://www.iaea.org/newscenter/news/six-global-trends-in-nuclear-power-you-should-know",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "As of 19 November 2025, 416 reactors provided 376.3 GW(e) of capacity"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-91",
+  "title": "Review of nuclear energy (World Nuclear Outlook Report, chapter 1)",
+  "author_org": "World Nuclear Association",
+  "published": null,
+  "url": "https://world-nuclear.org/our-association/publications/world-nuclear-outlook-report/chapter-1-review-of-nuclear-energy",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "Nuclear supplied about 9% of world electricity in 2024, down from about 17% in the mid-1990s"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-92",
+  "title": "World Nuclear Performance Report 2025 (press statement)",
+  "author_org": "World Nuclear Association",
+  "published": "2025",
+  "url": "https://world-nuclear.org/news-and-media/press-statements/world-nuclear-performance-report-2025-nuclear-delivers-record-breaking-year-in-electricity-generation",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "Record 2,667 TWh of nuclear electricity in 2024; average capacity factor 83%"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-93",
+  "title": "Backgrounder on the Three Mile Island Accident",
+  "author_org": "US Nuclear Regulatory Commission",
+  "published": null,
+  "url": "https://www.nrc.gov/reading-rm/doc-collections/fact-sheets/3mile-isle",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "TMI-2 partially melted down on 28 March 1979, the most serious accident in US commercial operation, with small releases",
+   "Consequences included operator training and staffing reform, emergency planning, resident inspectors and the industry's INPO"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-94",
+  "title": "The Fukushima Daiichi Accident: Report by the Director General",
+  "author_org": "International Atomic Energy Agency",
+  "published": null,
+  "url": "https://www-pub.iaea.org/mtcd/publications/pdf/pub1710-reportbythedg-web.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The 11 March 2011 earthquake cut off-site power and the tsunami disabled backup power, causing extended station blackout at several units"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-95",
+  "title": "Nuclear Power in France",
+  "author_org": "World Nuclear Association",
+  "published": null,
+  "url": "https://world-nuclear.org/information-library/country-profiles/countries-a-f/france",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "In 1974, after the first oil shock, France decided to expand nuclear capacity rapidly; nuclear now supplies roughly 70% of its electricity"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-96",
+  "title": "Country Nuclear Power Profiles: France (2022 edition)",
+  "author_org": "International Atomic Energy Agency",
+  "published": "2022",
+  "url": "https://www-pub.iaea.org/MTCD/publications/PDF/cnpp2022/countryprofiles/France/France.htm",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "In 2021 nuclear plants produced 360.7 TWh, over 70% of French generation"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-97",
+  "title": "In Situ Leach Mining of Uranium",
+  "author_org": "World Nuclear Association",
+  "published": null,
+  "url": "https://world-nuclear.org/information-library/nuclear-fuel-cycle/mining-of-uranium/in-situ-leach-mining-of-uranium",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "In situ leaching produces more than half of world uranium (about 55-56% in 2022-2024)",
+   "ISL dissolves uranium from a porous ore body underground and pumps the solution to the surface"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-98",
+  "title": "Uranium Mining Overview",
+  "author_org": "World Nuclear Association",
+  "published": null,
+  "url": "https://world-nuclear.org/information-library/nuclear-fuel-cycle/mining-of-uranium/uranium-mining-overview",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "Uranium ore is mined by open-cut or underground methods depending on depth, or recovered by ISL"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-99",
+  "title": "Uranium and Nuclear Power in Kazakhstan",
+  "author_org": "World Nuclear Association",
+  "published": null,
+  "url": "https://world-nuclear.org/information-library/country-profiles/countries-g-n/kazakhstan",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "Kazakhstan extracts uranium only by ISL; it became the leading producer in 2009 and supplied about 39-40% of world mine output in 2024-2025",
+   "Kazakh ISL uses high acid concentrations without an oxidant"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-100",
+  "title": "Conventional Uranium Mills",
+  "author_org": "US Nuclear Regulatory Commission",
+  "published": null,
+  "url": "https://www.nrc.gov/materials/uranium-recovery/extraction-methods/conventional-mills",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "A conventional mill crushes and grinds ore, leaches it (usually sulphuric acid, sometimes alkaline), purifies by solvent extraction or ion exchange, precipitates and dries 'yellowcake'",
+   "The leftover rock goes to tailings impoundments that hold radioactive material above discharge limits"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-101",
+  "title": "F201S Fuel Cycle Processes - 02 - Uranium Recovery (training module)",
+  "author_org": "US Nuclear Regulatory Commission",
+  "published": null,
+  "url": "https://www.nrc.gov/docs/ML1204/ML12045A004.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Mills generally extract 90-95% of the uranium in the ore",
+   "Yellowcake is about 80% U3O8 (another NRC document gives about 85%)"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-102",
+  "title": "Uranium Conversion",
+  "author_org": "US Nuclear Regulatory Commission",
+  "published": null,
+  "url": "https://www.nrc.gov/materials/fuel-cycle-fac/ur-conversion",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "At a conversion plant yellowcake is reacted with fluorine to produce uranium hexafluoride (UF6); Metropolis, Illinois is the only US conversion plant"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-103",
+  "title": "Conversion and Deconversion",
+  "author_org": "World Nuclear Association",
+  "published": null,
+  "url": "https://world-nuclear.org/information-library/nuclear-fuel-cycle/conversion-enrichment-and-fabrication/conversion-and-deconversion",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "Metropolis converts U3O8 to impure UF6 then purifies it by two-stage distillation; the plant restarted in 2023 after more than five idle years"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-104",
+  "title": "Uranium Enrichment",
+  "author_org": "World Nuclear Association",
+  "published": null,
+  "url": "https://world-nuclear.org/information-library/nuclear-fuel-cycle/conversion-enrichment-and-fabrication/uranium-enrichment",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "Enrichment cost tracks electricity use: diffusion about 2,500 kWh/SWU, centrifuge about 50 kWh/SWU",
+   "France's Georges Besse II centrifuge plant replaced the Eurodif diffusion plant at Tricastin"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-105",
+  "title": "K-25 Gaseous Diffusion Plant",
+  "author_org": "US National Park Service, Manhattan Project National Historical Park",
+  "published": null,
+  "url": "https://www.nps.gov/places/000/k-25-gaseous-diffusion-plant.htm",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "K-25 was a half-mile-long building that passed UF6 through over 3,000 diffusion stages with nickel barriers",
+   "It employed over 10,000 workers in 1945; its uranium went into the Little Boy weapon"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-106",
+  "title": "History (Oak Ridge Office of Environmental Management)",
+  "author_org": "US Department of Energy",
+  "published": null,
+  "url": "https://www.energy.gov/orem/history",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "K-25 construction began in June 1943 and finished in early 1945; diffusion operations ended in the 1980s (1985/1987)"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-107",
+  "title": "Y-12 Beta-3 Racetracks",
+  "author_org": "US Department of Energy (history)",
+  "published": null,
+  "url": "https://www.energy.gov/management/y-12-beta-3-racetracks",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Y-12 separated U-235 electromagnetically in calutrons",
+   "About 15,000 tons of Treasury silver replaced scarce copper in the magnet windings"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-108",
+  "title": "Highlights of Y-12's History",
+  "author_org": "Y-12 National Security Complex (US DOE/NNSA)",
+  "published": null,
+  "url": "https://www.y12.doe.gov/about/history/highlights-y-12%E2%80%99s-history",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "14,700 tons of silver were borrowed; the final return took place in 1970"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-109",
+  "title": "Nuclear Fuel and its Fabrication",
+  "author_org": "World Nuclear Association",
+  "published": null,
+  "url": "https://world-nuclear.org/information-library/nuclear-fuel-cycle/conversion-enrichment-and-fabrication/fuel-fabrication",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "Fabricators convert UF6 or UO3 to UO2 powder, press and sinter pellets, seal them in zirconium-alloy tubes and build assemblies",
+   "LWR fuel is enriched up to about 4.8% U-235; zirconium's low neutron absorption allows lower enrichment"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-110",
+  "title": "Nuclear Fuel Cycle Information System (IAEA-TECDOC-1613)",
+  "author_org": "International Atomic Energy Agency",
+  "published": null,
+  "url": "https://www-pub.iaea.org/MTCD/Publications/PDF/te_1613_web.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "PWRs, BWRs and RBMKs use zirconium-alloy cladding; Zircaloy-2 for BWRs and Zircaloy-4 for PWRs"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-111",
+  "title": "History of the development of zirconium alloys for use in nuclear reactors",
+  "author_org": "H. G. Rickover et al. (OSTI technical report)",
+  "published": "1975",
+  "url": "https://www.osti.gov/biblio/4240391",
+  "accessed": "2026-10-22",
+  "type": "archive",
+  "claims_supported": [
+   "About 2% hafnium in natural zirconium gave it high neutron absorption; Bureau of Mines researchers removed the hafnium and zirconium was chosen for naval reactors",
+   "Kroll's zirconium work at the Bureau of Mines station in Albany, Oregon"
+  ],
+  "confidence": "medium",
+  "notes": "First-person retrospective account. Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-112",
+  "title": "International Strategic Minerals Inventory Summary Report - Zirconium (Circular 930-L)",
+  "author_org": "U.S. Geological Survey",
+  "published": "1992",
+  "url": "https://pubs.usgs.gov/circ/1992/0930l/report.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "About 90% of zirconium metal produced is hafnium-free and used for nuclear fuel cladding",
+   "Zircon is chlorinated to zirconium tetrachloride and reduced with magnesium to zirconium sponge"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-113",
+  "title": "Henri Moissan - Facts",
+  "author_org": "Nobel Prize Outreach (NobelPrize.org)",
+  "published": null,
+  "url": "https://www.nobelprize.org/prizes/chemistry/1906/moissan/facts/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "1906 Chemistry prize for isolating fluorine and for the electric furnace"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-114",
+  "title": "The discovery of fluorine",
+  "author_org": "Royal Society of Chemistry (Education in Chemistry)",
+  "published": null,
+  "url": "https://edu.rsc.org/feature/the-discovery-of-fluorine/2020249.article",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Moissan isolated fluorine on 26 June 1886 by electrolysing potassium bifluoride in anhydrous hydrogen fluoride; the approach is still used industrially"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-115",
+  "title": "IAEA Safeguards Glossary, 2022 edition",
+  "author_org": "International Atomic Energy Agency",
+  "published": "2022",
+  "url": "https://www-pub.iaea.org/MTCD/Publications/PDF/PUB2003_web.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "High enriched uranium (20% U-235 or more) is direct-use material; low enriched, natural and depleted uranium are indirect-use material"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-116",
+  "title": "Management of high enriched uranium for peaceful purposes (IAEA-TECDOC-1452)",
+  "author_org": "International Atomic Energy Agency",
+  "published": null,
+  "url": "https://www-pub.iaea.org/MTCD/Publications/PDF/te_1452_web.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "LEU: U-235 assay from natural up to 20%; HEU: 20% or more"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-117",
+  "title": "Safeguards to Prevent Nuclear Proliferation",
+  "author_org": "World Nuclear Association",
+  "published": null,
+  "url": "https://world-nuclear.org/information-library/safety-and-security/non-proliferation/safeguards-to-prevent-nuclear-proliferation",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "Power reactors themselves are not the proliferation concern; enrichment and reprocessing technologies are open to misuse"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-118",
+  "title": "Nuclear Proliferation and the Potential Threat of Nuclear Terrorism (statement)",
+  "author_org": "International Atomic Energy Agency, Director General",
+  "published": null,
+  "url": "https://www.iaea.org/newscenter/statements/nuclear-proliferation-and-potential-threat-nuclear-terrorism",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Much of the relevant hardware is dual-use; tighter control of enrichment and reprocessing was proposed"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-119",
+  "title": "Beyond Oppenheimer: How Nuclear Weapons and Nuclear Reactors are Different",
+  "author_org": "US Department of Energy, Office of Nuclear Energy",
+  "published": null,
+  "url": "https://www.energy.gov/ne/articles/beyond-oppenheimer-how-nuclear-weapons-and-nuclear-reactors-are-different",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Commercial reactors use uranium enriched to roughly 3-5% U-235, formed into ceramic pellets in sealed metal tubes",
+   "Weapons require uranium enriched to over 90% or plutonium in concentrated form"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-120",
+  "title": "Uranium Enrichment, Explained",
+  "author_org": "US Department of Energy, Office of Nuclear Energy",
+  "published": null,
+  "url": "https://www.energy.gov/ne/articles/uranium-enrichment-explained",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Nearly all commercial reactor fuel is LEU at 3-5% U-235; HALEU is 5-19.75%"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-121",
+  "title": "Processing of Used Nuclear Fuel",
+  "author_org": "World Nuclear Association",
+  "published": null,
+  "url": "https://world-nuclear.org/information-library/nuclear-fuel-cycle/fuel-recycling/processing-of-used-nuclear-fuel",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "All commercial reprocessing uses PUREX: fuel dissolved in nitric acid and uranium and plutonium separated by solvent extraction",
+   "La Hague has reprocessed oxide fuel since 1976 (about 1,700 t/yr licensed); THORP (900 t/yr) ran 1994-November 2018",
+   "Recovered plutonium is recycled as MOX fuel"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-122",
+  "title": "Status and trends in spent fuel reprocessing (IAEA-TECDOC-1467)",
+  "author_org": "International Atomic Energy Agency",
+  "published": "2005",
+  "url": "https://www-pub.iaea.org/MTCD/Publications/PDF/te_1467_web.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "No civil reprocessing plants operate in the USA although three were built",
+   "Spent MOX is hotter and more radioactive, complicating its reprocessing"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-123",
+  "title": "Backgrounder on Dry Cask Storage of Spent Nuclear Fuel",
+  "author_org": "US Nuclear Regulatory Commission",
+  "published": null,
+  "url": "https://www.nrc.gov/reading-rm/doc-collections/fact-sheets/dry-cask-storage",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Spent fuel is first cooled in pools, then may be moved to dry casks, which frees pool space"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-124",
+  "title": "Backgrounder on Radioactive Waste",
+  "author_org": "US Nuclear Regulatory Commission",
+  "published": null,
+  "url": "https://www.nrc.gov/reading-rm/doc-collections/fact-sheets/radwaste",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Fuel is typically cooled at least five years in the pool before transfer to casks"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-125",
+  "title": "Classification of Radioactive Waste (GSG-1) - workshop presentation",
+  "author_org": "International Atomic Energy Agency (GNSSN)",
+  "published": null,
+  "url": "https://gnssn.iaea.org/main/ANNuR/Activity%20Documents%20%20Public/Regional%20Workshop%20on%20Management%20a%20Safe%20Disposal%20of%20Radioactive%20Waste/CLASSIFICATION%20OF%20RW.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "GSG-1 defines exempt, very short lived, very low level, low level, intermediate level and high level waste by activity and half-life",
+   "High level waste is matched to deep geological disposal; LLW to engineered near-surface facilities"
+  ],
+  "confidence": "medium",
+  "notes": "Secondary IAEA presentation of GSG-1. Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-126",
+  "title": "WIPP History/Timeline",
+  "author_org": "US Department of Energy, Waste Isolation Pilot Plant",
+  "published": null,
+  "url": "https://wipp.energy.gov/historytimeline.asp",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The first waste shipment arrived at WIPP from Los Alamos on 26 March 1999",
+   "WIPP lies about 2,150 feet underground in an ancient salt formation near Carlsbad, New Mexico, for defence transuranic waste"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-127",
+  "title": "Fight for WIPP: A History of the Nation's Deep Geologic Nuclear Waste Repository",
+  "author_org": "US Department of Energy, Office of Environmental Management",
+  "published": null,
+  "url": "https://www.energy.gov/em/articles/fight-wipp-history-nations-deep-geologic-nuclear-waste-repository",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Corroborates WIPP's 1999 opening"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-128",
+  "title": "Onkalo SNF repository passes safety assessment",
+  "author_org": "American Nuclear Society, Nuclear Newswire",
+  "published": "2026-08-10",
+  "url": "https://www.ans.org/news/article-8280/onkalo-snf-repository-passes-safety-assessment/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "In August 2026 Finland's regulator STUK found no radiation or nuclear-safety obstacle to granting Onkalo an operating licence"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-129",
+  "title": "Regulator in final stages of Finnish repository licence review",
+  "author_org": "World Nuclear News",
+  "published": null,
+  "url": "https://world-nuclear-news.org/articles/regulator-in-final-stages-of-finnish-repository-licence-review",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "Posiva applied on 30 December 2021 for an operating licence running from March 2024 to the end of 2070",
+   "The government makes the final licensing decision; STUK must separately confirm readiness to start operation"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-130",
+  "title": "Posiva begins drilling disposal holes at Finland's Onkalo repository (ANS news, Finland tag)",
+  "author_org": "American Nuclear Society, Nuclear Newswire",
+  "published": "2026",
+  "url": "https://www.ans.org/news/tag-finland/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Posiva began drilling the first deposition hole for a spent-fuel canister in late August 2026",
+   "Search extracts also gave a planned capacity of 6,500 tonnes of spent fuel in 3,250 canisters"
+  ],
+  "confidence": "low",
+  "notes": "Attribution of the capacity figures among the search results is uncertain. Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-131",
+  "title": "The Oklo reactors: natural analogues to nuclear waste repositories",
+  "author_org": "IAEA International Nuclear Information System (INIS) record",
+  "published": null,
+  "url": "https://inis.iaea.org/records/4hzk2-zm093",
+  "accessed": "2026-10-22",
+  "type": "archive",
+  "claims_supported": [
+   "The Oklo site retained large quantities of fission waste for about two billion years; actinides stayed largely in place while some fission products migrated"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-132",
+  "title": "The Oklo phenomenon as an analogue of radioactive waste disposal. A review",
+  "author_org": "OSTI / ETDE record",
+  "published": null,
+  "url": "https://www.osti.gov/etdeweb/biblio/10145377",
+  "accessed": "2026-10-22",
+  "type": "archive",
+  "claims_supported": [
+   "Oklo serves as a long-timescale natural analogue for geological repositories"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-133",
+  "title": "Clarence Dally - The Man Who Gave Thomas Edison X-Ray Vision",
+  "author_org": "Smithsonian Magazine",
+  "published": null,
+  "url": "https://www.smithsonianmag.com/history/clarence-dally-the-man-who-gave-thomas-edison-x-ray-vision-123713565/",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Edison's assistant Clarence Dally developed lesions by 1900, underwent amputations, and died in 1904 of metastatic skin cancer",
+   "Edison abandoned X-ray work after the injuries"
+  ],
+  "confidence": "high",
+  "notes": "The 'first American radiation death' label is hedged in other sources. Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-134",
+  "title": "Pierre Curie, 1859-1906",
+  "author_org": "PubMed Central (journal article)",
+  "published": null,
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC1891197/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Becquerel suffered a skin burn from a radium tube carried in his waistcoat pocket",
+   "Pierre Curie deliberately exposed his arm to radium for about ten hours; a joint Becquerel-Curie paper on physiological effects appeared in 1901"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-135",
+  "title": "Radium Part I: Opening Pandora's Box (History 101)",
+  "author_org": "US Nuclear Regulatory Commission",
+  "published": null,
+  "url": "https://www.nrc.gov/education-regulatory-research/history-101/radium-part-i-opening-pandoras-box",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Dial painters ingested radium by lip-pointing brushes; New Jersey reformers obtained a compensation law covering 'radium necrosis' and lip-pointing was halted"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-136",
+  "title": "Facts and ideas from anywhere (Radium Girls history)",
+  "author_org": "PubMed Central (journal column)",
+  "published": null,
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC5595405/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Radium Luminous Materials Corporation (founded 1913) became the United States Radium Corporation in 1921; dial demand surged in WWI",
+   "A dentist alerted state authorities; by 1923 a painter's jaw disease was linked to radium"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-137",
+  "title": "Radium Dial Workers: Back to the Future",
+  "author_org": "OSTI (journal manuscript)",
+  "published": null,
+  "url": "https://www.osti.gov/pages/servlets/purl/1824983",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "The radium dial workers' experience shaped industrial radiation-safety standards used in the Manhattan Project"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-138",
+  "title": "History (ICRP)",
+  "author_org": "International Commission on Radiological Protection",
+  "published": null,
+  "url": "https://www.icrp.org/page.asp?id=9",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "ICRP was founded in 1928 at the Second International Congress of Radiology in Stockholm as the International X-ray and Radium Protection Committee (IXRPC); Rolf Sievert was first chair",
+   "It was renamed ICRP in 1950 to cover non-medical uses",
+   "The first (1928) recommendations protected medical staff using X-rays and radium"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-139",
+  "title": "The International Commission on Radiological Protection at 90",
+  "author_org": "International Commission on Radiological Protection",
+  "published": "2018",
+  "url": "https://www.icrp.org/admin/ICRP%20at%2090.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The 1925 first International Congress of Radiology considered the need for a protection committee, created in 1928"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-140",
+  "title": "The History of ICRP and the Evolution of its Policies",
+  "author_org": "International Commission on Radiological Protection",
+  "published": null,
+  "url": "https://www.icrp.org/docs/The%20History%20of%20ICRP%20and%20the%20Evolution%20of%20its%20Policies.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The committee issued no recommendations in 1931 and gave its first dose-limit recommendation at the next (1934) meeting",
+   "Publication 26 (1977) introduced justification, optimisation and dose limitation; limits were reduced to roughly today's values in 1990"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-141",
+  "title": "A comprehensive review of dose limits, triage systems and measurement tools for consequence management of nuclear and radiological emergencies",
+  "author_org": "PubMed Central (journal article)",
+  "published": null,
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11170981/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "By 1954 public limits were set at one-tenth of worker limits; ICRP 26 (1977) set 50 mSv per year for workers"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-142",
+  "title": "Dose limits to the lens of the eye: International Basic Safety Standards and related guidance (ICRP 2013 symposium)",
+  "author_org": "International Commission on Radiological Protection",
+  "published": "2013",
+  "url": "https://www.icrp.org/docs/ICRP2013%20S2%20Boal.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "ICRP Publication 103 (2007): occupational effective dose 20 mSv per year averaged over defined 5-year periods; public 1 mSv per year",
+   "A 2011 ICRP statement lowered the occupational eye-lens limit to 20 mSv per year"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-143",
+  "title": "Why Did They Call It That? The Origin of Selected Radiological and Nuclear Terms",
+  "author_org": "ORAU Museum of Radiation and Radioactivity",
+  "published": null,
+  "url": "https://www.orau.org/health-physics-museum/articles/selected-radiological-nuclear-terms.html",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "The term 'health physics' arose at the University of Chicago Metallurgical Laboratory in 1942 (most likely coined by Robert Stone or Arthur Compton)"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-144",
+  "title": "The Chicago Met Lab",
+  "author_org": "Atomic Heritage Foundation / National Museum of Nuclear Science & History",
+  "published": null,
+  "url": "https://ahf.nuclearmuseum.org/ranger/tour-stop/chicago-met-lab/",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "A health-physics group formed at the Met Lab in 1942 and, led by Ernest Wollan, moved to Oak Ridge"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-145",
+  "title": "Minimize Your Exposure",
+  "author_org": "US Nuclear Regulatory Commission",
+  "published": null,
+  "url": "https://www.nrc.gov/facilities-safety/radiation-protection/how-the-nrc-protects-you/minimize-your-exposure",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Protection principles: limit time, increase distance, use shielding (lead, concrete, water), plus containment"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-146",
+  "title": "ALARA (training slides)",
+  "author_org": "US Nuclear Regulatory Commission",
+  "published": null,
+  "url": "https://www.nrc.gov/docs/ML1204/ML12044A227.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "ALARA: keep exposures as far below limits as reasonably achievable",
+   "Doubling distance cuts exposure rate by four; glove boxes and ventilation are engineering controls"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-147",
+  "title": "Uranium mining and lung cancer: a legacy of the nuclear age",
+  "author_org": "PubMed Central (journal article)",
+  "published": null,
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12558138/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Uranium mining with limited radiation control produced high lung-cancer rates in former miners",
+   "Reports from the Erzgebirge suggested about half of miners died of lung cancer; most cancers appeared ten or more years after first exposure"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-148",
+  "title": "Schneeberg lung disease and uranium mining in the Saxon Ore Mountains (Erzgebirge)",
+  "author_org": "PubMed record (journal article)",
+  "published": null,
+  "url": "https://pubmed.ncbi.nlm.nih.gov/8427263/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Agricola described high respiratory mortality among Erzgebirge miners in the 16th century",
+   "Harting and Hesse reported the lung-cancer hazard in 1879; radiation was suspected as cause from about 1921"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-149",
+  "title": "Radiation Exposure Compensation Program",
+  "author_org": "US Department of Justice, Civil Division",
+  "published": null,
+  "url": "https://www.justice.gov/civil/reca",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "RECA covers uranium miners, millers, core drillers and ore transporters employed 1942-1990 in listed states, for diseases including lung cancer",
+   "Lump-sum award of $100,000 for uranium workers; current filing deadline 31 December 2027"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-150",
+  "title": "June 1911: Invention of the Geiger Counter",
+  "author_org": "American Physical Society, APS News",
+  "published": "2012",
+  "url": "https://www.aps.org/apsnews/2012/06/june-1911-invention-geiger-counter",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Geiger, in Rutherford's laboratory, built an alpha-particle counter (1908-1911)",
+   "The 1928 Geiger-Muller version could detect many kinds of ionizing radiation"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-151",
+  "title": "Walther Bothe and Bruno Rossi: the birth and development of coincidence methods in cosmic-ray physics",
+  "author_org": "arXiv preprint (published in American Journal of Physics)",
+  "published": "2011",
+  "url": "https://arxiv.org/pdf/1106.1365",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Geiger and Muller announced their counting tube on 7 July 1928",
+   "The tube counts single ionizing particles but cannot identify their type or energy"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-152",
+  "title": "C.T.R. Wilson - Facts",
+  "author_org": "Nobel Prize Outreach (NobelPrize.org)",
+  "published": null,
+  "url": "https://www.nobelprize.org/prizes/physics/1927/wilson/facts/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "1927 Physics prize for making the paths of electrically charged particles visible by condensation of vapour (cloud chamber, from 1911)"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-153",
+  "title": "William Crookes and the Turbulent Luminous Sea",
+  "author_org": "ORAU Museum of Radiation and Radioactivity",
+  "published": null,
+  "url": "https://www.orau.org/health-physics-museum/articles/william-crookes-turbulent-luminous-sea.html",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Crookes saw individual alpha-particle flashes on zinc sulfide; his spinthariscope was first shown at a Royal Society soiree on 15 May 1903"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-154",
+  "title": "Growth and Evaluation of Improved CsI:Tl and NaI:Tl Scintillators",
+  "author_org": "arXiv preprint",
+  "published": "2021",
+  "url": "https://arxiv.org/pdf/2106.10403",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Hofstadter developed and patented thallium-activated sodium iodide (NaI(Tl)) detectors in 1948; they became the standard gamma-ray scintillator"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-155",
+  "title": "Electroscopes (collection)",
+  "author_org": "ORAU Museum of Radiation and Radioactivity",
+  "published": null,
+  "url": "https://www.orau.org/health-physics-museum/collection/electroscopes/index.html",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Electroscopes with ion chambers were early radioactivity instruments; a gold-leaf electroscope at the University of Colorado measured the activity of uranium ore samples"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-156",
+  "title": "Ernest Wollan's Film Badge from Manhattan Project (ca. 1943)",
+  "author_org": "ORAU Museum of Radiation and Radioactivity",
+  "published": null,
+  "url": "https://www.orau.org/health-physics-museum/collection/dosimeters/film/ernest-wollan.html",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Wollan's Manhattan Project film badge used a cadmium filter to even out energy response"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-157",
+  "title": "Measuring radiation exposure then and now",
+  "author_org": "ORAU (blog)",
+  "published": null,
+  "url": "https://www.orau.org/blog/history/measuring-radiation-exposure-then-and-now.html",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Carl Braestrup designed the first true film badge in the early 1930s for New York City hospitals",
+   "Pocket ionization chambers, little used before WWII, were worn by almost everyone at risk in the Manhattan Project"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-158",
+  "title": "Mechanical Master-Slave Manipulator",
+  "author_org": "R. C. Goertz, Nucleonics (OSTI record)",
+  "published": "1954",
+  "url": "https://www.osti.gov/biblio/4399868",
+  "accessed": "2026-10-22",
+  "type": "archive",
+  "claims_supported": [
+   "Goertz (Argonne) described the mechanical master-slave manipulator for remote handling"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-159",
+  "title": "Ray Goertz Award",
+  "author_org": "American Nuclear Society",
+  "published": null,
+  "url": "https://www.ans.org/honors/award-goertz/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Argonne's remote-handling group (formed 1947) under Goertz developed force-reflecting master-slave manipulators; ANS award created 1985"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-160",
+  "title": "Radioisotope handling facilities and automation of radioisotope production (IAEA-TECDOC-1430)",
+  "author_org": "International Atomic Energy Agency",
+  "published": null,
+  "url": "https://www-pub.iaea.org/MTCD/Publications/PDF/te_1430_web.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Hot cells are exhausted, shielded enclosures equipped with remote tongs or master-slave manipulators for processing radioactive materials"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-161",
+  "title": "Geological Classification of Uranium Deposits and Description of Selected Examples (IAEA-TECDOC-1842)",
+  "author_org": "International Atomic Energy Agency",
+  "published": "2018",
+  "url": "https://www.iaea.org/publications/12346/geological-classification-of-uranium-deposits-and-description-of-selected-examples",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The IAEA's simple, descriptive classification of uranium deposits with worked examples"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-162",
+  "title": "IAEA Classification of Uranium Deposits (conference presentation, P. Bruneton)",
+  "author_org": "International Atomic Energy Agency",
+  "published": "2014",
+  "url": "https://www-pub.iaea.org/iaeameetings/cn216pn/Monday/Session1/187-Bruneton.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The 2013 IAEA scheme has 15 deposit types and 36 subtypes (e.g., intrusive, polymetallic hematite breccia complex, Proterozoic unconformity, sandstone)",
+   "Adopted in the NEA/IAEA Red Book from 2014"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-163",
+  "title": "Geology of Uranium Deposits",
+  "author_org": "World Nuclear Association",
+  "published": null,
+  "url": "https://world-nuclear.org/information-library/nuclear-fuel-cycle/uranium-resources/geology-of-uranium-deposits",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "Athabasca unconformity deposits have supplied all Saskatchewan production for 40 years, some ore near 20% uranium, richest at or just above the unconformity",
+   "Olympic Dam (hematite breccia complex) is the largest known uranium deposit; uranium is recovered only as a copper by-product"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-164",
+  "title": "Cigar Lake Operation, Northern Saskatchewan, Canada - NI 43-101 Technical Report (2023)",
+  "author_org": "Cameco Corporation",
+  "published": "2023",
+  "url": "https://www.cameco.com/sites/default/files/documents/cameco-2023-cigar-lake-technical-report.pdf",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "Cigar Lake is the world's highest-grade uranium mine, about 100 times the world average grade, at the Athabasca sandstone-basement contact"
+  ],
+  "confidence": "medium",
+  "notes": "Company disclosure. Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-165",
+  "title": "Uranium Provinces of North America - Their Definition, Distribution, and Models (Bulletin 2141)",
+  "author_org": "U.S. Geological Survey",
+  "published": null,
+  "url": "https://pubs.usgs.gov/bul/b2141/b2141.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Sandstone uranium deposits have two main subtypes: tabular (Colorado Plateau) and roll-front (Rocky Mountain basins, south Texas)"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-166",
+  "title": "Descriptive model of sandstone U (Bulletin 1693, Mineral Deposit Models)",
+  "author_org": "U.S. Geological Survey",
+  "published": null,
+  "url": "https://pubs.usgs.gov/bul/b1693/html/bull1ghh.htm",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Tabular deposits are concentrated by carbonaceous material; roll-fronts form at a regional redox interface with pyrite"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-167",
+  "title": "Supply of Uranium",
+  "author_org": "World Nuclear Association",
+  "published": null,
+  "url": "https://world-nuclear.org/information-library/nuclear-fuel-cycle/uranium-resources/supply-of-uranium",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "Average crustal uranium is about 2.7 ppm; granites and shales commonly hold 5-25 ppm"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-168",
+  "title": "The Front End of the Uranium Fuel Cycle (GC(50)/INF/3, attachment 6)",
+  "author_org": "International Atomic Energy Agency",
+  "published": "2006",
+  "url": "https://www.iaea.org/sites/default/files/gc/gc50inf-3-att6_en.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The Earth's crust holds about 2.7 ppm uranium and seawater about 0.003 ppm"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-169",
+  "title": "U.S. Geological Survey Open-File Report 93-679",
+  "author_org": "U.S. Geological Survey",
+  "published": "1993",
+  "url": "https://pubs.usgs.gov/of/1993/0679/report.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Natural uranium is about 99.3% U-238, 0.7% U-235 and 0.005% U-234"
+  ],
+  "confidence": "medium",
+  "notes": "Attribution of the isotope figures among the USGS reports returned by one search is inferred. Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-170",
+  "title": "Uranium 2024: Resources, Production and Demand",
+  "author_org": "OECD Nuclear Energy Agency and IAEA",
+  "published": null,
+  "url": "https://oecd-nea.org/jcms/pl_103179/uranium-2024-resources-production-and-demand",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Identified recoverable uranium resources were 7,934,500 tU (at up to USD 260/kgU) as of 1 January 2023"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-171",
+  "title": "Adequate uranium resources available, but sustained investment essential to support global nuclear capacity growth (press release)",
+  "author_org": "International Atomic Energy Agency / OECD NEA",
+  "published": "2026",
+  "url": "https://www.iaea.org/newscenter/pressreleases/adequate-uranium-resources-available-but-sustained-investment-essential-to-support-global-nuclear-capacity-growth",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Identified resources below USD 260/kgU exceed 8.1 million tonnes; 2024 production 61,924 tU",
+   "Typical lead times for developing uranium mining projects are 15-20 years"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-172",
+  "title": "Principles of a Resource/Reserve Classification for Minerals (Circular 831)",
+  "author_org": "U.S. Bureau of Mines and U.S. Geological Survey",
+  "published": "1980",
+  "url": "https://pubs.usgs.gov/circ/1980/0831/report.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Resources are classified by degree of geologic assurance and economic feasibility; identified vs undiscovered; subeconomic resources can become reserves as prices change"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-173",
+  "title": "Australasian Code for Reporting of Exploration Results, Mineral Resources and Ore Reserves (JORC Code, 2012 edition)",
+  "author_org": "Joint Ore Reserves Committee (AusIMM, AIG, Minerals Council of Australia)",
+  "published": "2012",
+  "url": "https://www.jorc.org/docs/JORC_code_2012.pdf",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "Mineral Resources are Inferred, Indicated or Measured; Ore Reserves (Probable, Proved) are the part of Indicated/Measured resources that is viable after Modifying Factors",
+   "Modifying Factors include mining, processing, metallurgical, infrastructure, economic, marketing, legal, environmental, social and governmental factors"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-174",
+  "title": "Standard definitions (CRIRSCO)",
+  "author_org": "Committee for Mineral Reserves International Reporting Standards",
+  "published": "2011",
+  "url": "https://crirsco.com/wp-content/uploads/2024/04/5_standard_definitions.pdf",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "International template mirroring the JORC resource/reserve categories"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-175",
+  "title": "Prospecting for Uranium with Car-Mounted Equipment (Trace Elements Investigations 65)",
+  "author_org": "J. M. Nelson, U.S. Geological Survey for the US Atomic Energy Commission",
+  "published": "1949",
+  "url": "https://pubs.usgs.gov/tei/065/report.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The USGS, working for the AEC, prospected for uranium with car-mounted Geiger-Mueller counters for several field seasons",
+   "Uranium- or thorium-rich rocks are surrounded by an abnormally high gamma field detectable along roads"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-176",
+  "title": "Airborne radioactivity surveys in geologic exploration (Trace Elements Investigations 662)",
+  "author_org": "R. M. Moxham, U.S. Geological Survey",
+  "published": "1958",
+  "url": "https://pubs.usgs.gov/publication/tei662",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "By 1958 airborne radioactivity surveys were established as a guide to uranium exploration"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-177",
+  "title": "Airborne Measurements of Terrestrial Radioactivity (Professional Paper 516-F)",
+  "author_org": "U.S. Geological Survey",
+  "published": null,
+  "url": "https://pubs.usgs.gov/pp/0516f/report.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The ARMS-I airborne system (six NaI(Tl) detectors) surveyed 1958-1961 over 23 areas"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-178",
+  "title": "Guidelines for radioelement mapping using gamma ray spectrometry data (IAEA-TECDOC-1363)",
+  "author_org": "International Atomic Energy Agency",
+  "published": "2003",
+  "url": "https://www-pub.iaea.org/MTCD/Publications/PDF/te_1363_web.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Gamma-ray spectrometry maps potassium, uranium and thorium using airborne, ground, car-borne, borehole and laboratory measurements"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-179",
+  "title": "Description of indicator plants and methods of botanical prospecting for uranium deposits on the Colorado Plateau (Bulletin 1030-M)",
+  "author_org": "H. L. Cannon, U.S. Geological Survey",
+  "published": "1957",
+  "url": "https://pubs.usgs.gov/publication/b1030M",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Selenium-indicator plants such as some Astragalus species marked mineralized ground in Colorado Plateau uranium prospecting"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-180",
+  "title": "Uranium Exploration Planning, Management and Practice (IAEA-TECDOC-2074)",
+  "author_org": "International Atomic Energy Agency",
+  "published": null,
+  "url": "https://www-pub.iaea.org/MTCD/Publications/PDF/TE-2074web.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Exploration proceeds from reconnaissance to advanced exploration to resource definition, with risk falling and spending rising",
+   "About one in 1,000 exploration projects finds an economic uranium deposit and about one in three of those reaches mining",
+   "Lead times from identifying a deposit to production returns can be decades"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-181",
+  "title": "Analysis of Uranium Supply to 2050",
+  "author_org": "International Atomic Energy Agency",
+  "published": null,
+  "url": "https://www-pub.iaea.org/MTCD/Publications/PDF/Pub1104_scr.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Typically 8-10 years from discovery to start of production, plus five or more years of exploration (older estimate)"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-182",
+  "title": "Utah's Uranium Boom",
+  "author_org": "Utah Division of State History (History to Go)",
+  "published": null,
+  "url": "https://historytogo.utah.gov/utahs-uranium-boom/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The AEC, sole legal buyer, guaranteed minimum prices, paid a $10,000 bonus for new high-grade deposits and built access roads",
+   "Charles Steen's Mi Vida strike (July 1952) lay in ground the AEC had judged barren; it set off a Colorado Plateau rush"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-183",
+  "title": "Atomic Legacy Discovery Guide: Colorado Plateau",
+  "author_org": "US Department of Energy, Office of Legacy Management",
+  "published": null,
+  "url": "https://www.energy.gov/lm/atomic-legacy-discovery-guide-colorado-plateau",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The AEC's uranium price guarantee dates from 1948",
+   "About 800 major uranium producers operated on the Colorado Plateau by the mid-1950s"
+  ],
+  "confidence": "medium",
+  "notes": "The 800-producer figure came through a combined extract of DOE Legacy Management pages; attribution to this page is probable, not certain. Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-184",
+  "title": "Manhattan Project: Procurement of Uranium",
+  "author_org": "US DOE Office of History and Heritage Resources (OSTI OpenNet)",
+  "published": null,
+  "url": "https://www.osti.gov/opennet/manhattan-project-history/Processes/UraniumMining/uranium-procurement.html",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The largest readily available stock was about 1,200 tons of Congo ore stored on Staten Island by Sengier's company; the Army bought it and about 3,000 more tons in the Congo"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-185",
+  "title": "Manhattan Project: Uranium Mines",
+  "author_org": "US DOE Office of History and Heritage Resources (OSTI OpenNet)",
+  "published": null,
+  "url": "https://www.osti.gov/opennet/manhattan-project-history/Places/Other/uranium-mines.html",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Shinkolobwe (Belgian Congo) supplied about two-thirds of Manhattan Project uranium and Eldorado (Canada) about one-sixth; Shinkolobwe averaged more than 2% uranium"
+  ],
+  "confidence": "medium",
+  "notes": "Share figures came through a combined search extract (OSTI/AHF). Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-186",
+  "title": "Edgar Sengier (profile)",
+  "author_org": "Atomic Heritage Foundation / National Museum of Nuclear Science & History",
+  "published": null,
+  "url": "https://ahf.nuclearmuseum.org/ahf/profile/edgar-sengier/",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Warned of the ore's importance, Sengier shipped about half the Congo stockpile to the United States in 1940"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-187",
+  "title": "Canada (location profile)",
+  "author_org": "Atomic Heritage Foundation / National Museum of Nuclear Science & History",
+  "published": null,
+  "url": "https://ahf.nuclearmuseum.org/ahf/location/canada/",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Gilbert LaBine found radium-uranium ore at Great Bear Lake in May 1930 and founded Eldorado; the mine reopened in 1942 to supply the US and the Canadian government took control"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-188",
+  "title": "Brief History of Uranium Mining in Canada",
+  "author_org": "World Nuclear Association",
+  "published": null,
+  "url": "https://world-nuclear.org/information-library/appendices/uranium-in-canada-appendix-1-brief-history-of-uran",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "Port Radium was Canada's original radium-uranium mine; Port Hope refinery from 1933"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-189",
+  "title": "Cigar Lake enters operation",
+  "author_org": "World Nuclear News",
+  "published": null,
+  "url": "https://world-nuclear-news.org/Articles/Cigar-Lake-enters-operation",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "Reports Cigar Lake's entry into operation after a long, flood-delayed development"
+  ],
+  "confidence": "medium",
+  "notes": "The article's date was not visible in the search extract. Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-190",
+  "title": "Uranium Royalty Corp. Form 40-F (annual information form, FY2021) - Cigar Lake section",
+  "author_org": "Uranium Royalty Corp. (SEC filing, citing Cameco)",
+  "published": "2021",
+  "url": "https://www.sec.gov/Archives/edgar/data/1711570/000149315221017998/ex99-1.htm",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "Cigar Lake was discovered in 1981 by surface drilling and delineated 1982-1986; test mining 1987-1992; underground development from 2005; commercial production 2015; care and maintenance in 2020"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-191",
+  "title": "Cameco Corporation Form 40-F (FY2009 annual information form)",
+  "author_org": "Cameco Corporation (SEC filing)",
+  "published": "2010",
+  "url": "https://www.sec.gov/Archives/edgar/data/0001009001/000095012310030961/o60848exv99w1.htm",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "Water inflows flooded Cigar Lake workings in April and October 2006 and again in August 2008"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-192",
+  "title": "Oklo - A Nuclear Reactor 1800 Million Years Ago (IAEA Bulletin)",
+  "author_org": "International Atomic Energy Agency",
+  "published": null,
+  "url": "https://www.iaea.org/sites/default/files/17304780204.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Natural fission reactors operated at Oklo, Gabon, about 1.8 billion years ago"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-193",
+  "title": "Nature's Nuclear Reactors: The 2-Billion-Year-Old Natural Fission Reactors in Gabon, Western Africa",
+  "author_org": "Scientific American (guest blog)",
+  "published": null,
+  "url": "https://blogs.scientificamerican.com/guest-blog/natures-nuclear-reactors-the-2-billion-year-old-natural-fission-reactors-in-gabon-western-africa/",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "In 1972 French analysts found Oklo uranium at 0.7171% U-235 instead of the usual 0.7202%",
+   "U-235 was then about 3.7% of uranium; groundwater moderated the reactions; about 16 reaction zones are known"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-194",
+  "title": "George de Hevesy - Facts",
+  "author_org": "Nobel Prize Outreach (NobelPrize.org)",
+  "published": null,
+  "url": "https://www.nobelprize.org/prizes/chemistry/1943/hevesy/facts/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "In 1913, after failing to separate radium D from lead, Hevesy realized a radioisotope could mark an element (tracer method)",
+   "His first tracer studies were published in 1923",
+   "1943 Chemistry prize, awarded in 1944, for isotopes as tracers in the study of chemical processes"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-195",
+  "title": "Tricking the Nazis and Transforming Medicine: George de Hevesy",
+  "author_org": "American Chemical Society",
+  "published": null,
+  "url": "https://www.acs.org/pressroom/reactions/library/george-de-hevesy.html",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Hevesy's tracer work extended to absorption, distribution and metabolism of compounds in the body"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-196",
+  "title": "The History of Isotopes at ORNL",
+  "author_org": "Oak Ridge National Laboratory",
+  "published": null,
+  "url": "https://www.ornl.gov/the-history-of-isotopes-at-ornl/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "On 2 August 1946 Oak Ridge shipped its first reactor-produced medical radioisotope (carbon-14) to the Barnard Free Skin and Cancer Hospital, St Louis",
+   "More than 1,000 shipments of 60 isotopes were made in the first year"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-197",
+  "title": "Expert Panel: Forecast Future Demand for Medical Isotopes",
+  "author_org": "US Department of Energy",
+  "published": "1999",
+  "url": "https://www.energy.gov/sites/prod/files/isotopedemand.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Dates the first shipment to 2 August 1946 from the Oak Ridge Graphite Reactor"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-198",
+  "title": "Celebrating the 60th Anniversary of Technetium-99m",
+  "author_org": "Brookhaven National Laboratory",
+  "published": null,
+  "url": "https://www.bnl.gov/newsroom/news.php?a=213162",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Walter Tucker, Powell Richards and Margaret Greene developed the first Tc-99m generator at Brookhaven (1957/1958)",
+   "The first generator order went to a hospital in 1961; demand soon passed production to commercial firms",
+   "Tc-99m accounts for about 80% of nuclear medicine imaging procedures worldwide"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-199",
+  "title": "Medical Radioisotopes still Produced but Facing Distribution Challenges Globally, Data Collected by IAEA Shows",
+  "author_org": "International Atomic Energy Agency (news)",
+  "published": null,
+  "url": "https://www.iaea.org/newscenter/news/medical-radioisotopes-still-produced-but-facing-distribution-challenges-globally-data-collected-by-iaea-shows",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Tc-99m is used in some 40 million procedures a year, about 80% of nuclear medicine procedures and 85% of diagnostic scans",
+   "Mo-99 (66-hour half-life) and Tc-99m (6 hours) must be produced continuously; producers listed in nine countries"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-200",
+  "title": "The Supply of Medical Radioisotopes (NEA/SEN/HLGMR(2017)2)",
+  "author_org": "OECD Nuclear Energy Agency",
+  "published": "2017",
+  "url": "https://www.oecd-nea.org/med-radio/docs/sen-hlgmr2017-2.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "30-40 million Tc-99m examinations per year worldwide",
+   "Supply reliability suffered from unexpected outages at Mo-99 producing research reactors"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-201",
+  "title": "Learning from the past: a century of accuracy, aspirations, and aspersions in brachytherapy",
+  "author_org": "PubMed Central (journal article)",
+  "published": null,
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9733622/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Radium sources were first placed in body cavities and later implanted as needles; heavy shielding was needed and old needles could leak"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-202",
+  "title": "Brachytherapy: The First 100 Years (presentation, B. S. Hilaris)",
+  "author_org": "American Association of Physicists in Medicine",
+  "published": "2011",
+  "url": "https://www.aapm.org/meetings/amos2/pdf/59-17224-55738-93.pdf",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Radium therapy institutes; Curie Institute (Institut du Radium, 1909) and the Fondation Curie (1920) as treatment and training centres"
+  ],
+  "confidence": "medium",
+  "notes": "The 1909 and 1920 dates came through a combined extract; attribution between this presentation and an Institut Curie press page is uncertain. Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-203",
+  "title": "The Cancer Bomb - Cobalt-60 (exhibit)",
+  "author_org": "University of Saskatchewan",
+  "published": null,
+  "url": "https://cobalt60.usask.ca/exhibit.php",
+  "accessed": "2026-10-22",
+  "type": "archive",
+  "claims_supported": [
+   "Harold Johns's Saskatoon cobalt-60 unit treated its first patient in November 1951 and over 6,700 patients until 1972",
+   "Saskatoon sources claim the first accurately calibrated cobalt-60 treatment"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-204",
+  "title": "Saul Hertz, MD, and the birth of radionuclide therapy",
+  "author_org": "PubMed Central (journal article)",
+  "published": null,
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC5407393/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "On 31 March 1941 Hertz gave the first radioiodine treatment for thyroid disease at Massachusetts General Hospital, using MIT cyclotron isotopes"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-205",
+  "title": "Berkeley Lab, Crucible of Nuclear Medicine",
+  "author_org": "Lawrence Berkeley National Laboratory",
+  "published": null,
+  "url": "https://www2.lbl.gov/Science-Articles/Archive/nuclear-med-history.html",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Hal Anger developed the scintillation camera at Berkeley in the 1950s (development 1952-1958)"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-206",
+  "title": "SPECT detectors: the Anger Camera and beyond",
+  "author_org": "PubMed Central (journal article)",
+  "published": null,
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3178269/",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "The Anger camera, a large NaI(Tl) crystal viewed by an array of photomultipliers, long remained the dominant SPECT detector"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-207",
+  "title": "Willard Libby and Radiocarbon Dating (National Historic Chemical Landmark)",
+  "author_org": "American Chemical Society",
+  "published": null,
+  "url": "https://www.acs.org/education/whatischemistry/landmarks/radiocarbon-dating.html",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Libby proposed radiocarbon dating in 1946 and with Arnold confirmed it against known-age samples in 1949",
+   "1960 Nobel Prize in Chemistry; the method now reaches about 50,000 years"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-208",
+  "title": "The clock that starts ticking when something dies",
+  "author_org": "Nobel Prize Outreach (NobelPrize.org)",
+  "published": null,
+  "url": "https://www.nobelprize.org/stories/carbon-14/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Corroborates Libby's radiocarbon method and 1960 prize"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-209",
+  "title": "The Use and Management of Sealed Radioactive Sources (GC(56)/INF/3, attachment 6)",
+  "author_org": "International Atomic Energy Agency",
+  "published": "2012",
+  "url": "https://www.iaea.org/sites/default/files/gc/gc56inf-3-att6_en.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Industrial radiography uses mostly iridium-192, cobalt-60 and selenium-75 sealed sources in portable shielded projectors"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-210",
+  "title": "Industrial Irradiation for a Better World (IAEA Bulletin)",
+  "author_org": "International Atomic Energy Agency",
+  "published": null,
+  "url": "https://www.iaea.org/bulletin/industrial-irradiation-for-a-better-world",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Irradiation is used for a little under half of medical devices needing sterilization, with gamma (cobalt-60) over 80% of that volume; accelerators are an alternative"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-211",
+  "title": "Gamma Facilities (NUCLEUS information resources)",
+  "author_org": "International Atomic Energy Agency",
+  "published": null,
+  "url": "https://nucleus.iaea.org/sites/diif/Pages/GammaRT.aspx",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "About 500 MCi of cobalt-60 is installed in about 200 irradiation facilities; large irradiators deliver 25-50 kGy for device sterilization; food irradiation is routine in many countries"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-212",
+  "title": "Manhattan Project: The Trinity Test, July 16, 1945",
+  "author_org": "US DOE Office of History and Heritage Resources (OSTI OpenNet)",
+  "published": null,
+  "url": "https://www.osti.gov/opennet/manhattan-project-history/Events/1945/trinity.htm",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The first nuclear explosion, a plutonium implosion device, was tested in New Mexico on 16 July 1945"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-213",
+  "title": "Manhattan Project (Manhattan Project National Historical Park)",
+  "author_org": "US National Park Service",
+  "published": null,
+  "url": "https://www.nps.gov/mapr/learn/manhattan-project.htm",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Army-run wartime programme under General Groves (officially June 1942-August 1947) that built the first atomic weapons",
+   "Uranium weapon used on Hiroshima 6 August 1945 and plutonium weapon on Nagasaki 9 August 1945"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-214",
+  "title": "Nuclear Testing 1945 - today",
+  "author_org": "CTBTO Preparatory Commission",
+  "published": null,
+  "url": "https://www.ctbto.org/nuclear-testing/history-of-nuclear-testing/nuclear-testing-1945-today/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "First tests: USSR 29 August 1949; UK October 1952; France February 1960; China 16 October 1964",
+   "First full-scale thermonuclear test (US, 'Ivy Mike') 1 November 1952; Soviet thermonuclear test November 1955"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-215",
+  "title": "Manhattan Project: Nuclear Proliferation, 1949-Present",
+  "author_org": "US DOE Office of History and Heritage Resources (OSTI OpenNet)",
+  "published": null,
+  "url": "https://www.osti.gov/opennet/manhattan-project-history/Events/1945-present/proliferation.htm",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Corroborates the sequence of first tests by the early nuclear-armed states"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-216",
+  "title": "Treaty on the Non-Proliferation of Nuclear Weapons (NPT)",
+  "author_org": "United Nations Office for Disarmament Affairs",
+  "published": null,
+  "url": "https://disarmament.unoda.org/en/our-work/weapons-mass-destruction/nuclear-weapons/treaty-non-proliferation-nuclear-weapons",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Opened for signature 1 July 1968; in force 5 March 1970; extended indefinitely in 1995; 191 states parties",
+   "A nuclear-weapon state is one that manufactured and exploded a nuclear device before 1 January 1967"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-217",
+  "title": "History (About the IAEA)",
+  "author_org": "International Atomic Energy Agency",
+  "published": null,
+  "url": "https://www.iaea.org/about/overview/history",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Eisenhower's 'Atoms for Peace' address to the UN General Assembly on 8 December 1953 led to the IAEA",
+   "The IAEA Statute entered into force on 29 July 1957"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-218",
+  "title": "Manhattan Project: People - Non-Technical Personnel",
+  "author_org": "US DOE Office of History and Heritage Resources (OSTI OpenNet)",
+  "published": null,
+  "url": "https://www.osti.gov/opennet/manhattan-project-history/People/NonTechnicalPersonnel/non-technical-personnel.html",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Peak Manhattan Project employment was nearly 129,000 (June 1944), mostly construction workers"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-219",
+  "title": "Manhattan Project Background Information and Preservation Work",
+  "author_org": "US Department of Energy, Office of Legacy Management",
+  "published": null,
+  "url": "https://www.energy.gov/lm/manhattan-project-background-information-and-preservation-work",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The project had cost about $2.2 billion by the end of the war"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-220",
+  "title": "Milestones in the Development of a National Infrastructure for Nuclear Power (NG-G-3.1 Rev. 1)",
+  "author_org": "International Atomic Energy Agency",
+  "published": "2015",
+  "url": "https://www-pub.iaea.org/MTCD/Publications/PDF/Pub1704_web.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The Milestones approach sets out 19 infrastructure issues addressed across three phases ending in milestones (decision, bidding, commissioning)",
+   "Human resource development underpins the other issues"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-221",
+  "title": "Electric Grid Reliability and Interface with Nuclear Power Plants (NG-T-3.8)",
+  "author_org": "International Atomic Energy Agency",
+  "published": null,
+  "url": "https://www.iaea.org/publications/8754/electric-grid-reliability-and-interface-with-nuclear-power-plants",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The largest generating unit is practically limited to about 10% of system load unless large load shedding is acceptable after a trip",
+   "The grid must keep reserves for unplanned trips and planned outages and be able to supply the tripped plant"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-222",
+  "title": "Electricity Transmission Systems",
+  "author_org": "World Nuclear Association",
+  "published": null,
+  "url": "https://world-nuclear.org/information-library/current-and-future-generation/electricity-transmission-grids",
+  "accessed": "2026-10-22",
+  "type": "industry",
+  "claims_supported": [
+   "Industry rule of thumb: no single unit above about one tenth of grid capacity (perhaps 15% with high reserves)"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-223",
+  "title": "Technical and Economic Aspects of Load Following with Nuclear Power Plants",
+  "author_org": "OECD Nuclear Energy Agency",
+  "published": "2011",
+  "url": "https://www.oecd-nea.org/jcms/pl_62445/technical-and-economic-aspects-of-load-following-with-nuclear-power-plants",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "European Utility Requirements: daily load cycling between 50% and 100% of rated power at 3-5% per minute",
+   "French load following reduces average capability factor by about 1.2%; the main economic cost is lost output"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-224",
+  "title": "A Manual on Fire Assaying and Determination of the Noble Metals in Geological Materials (Bulletin 1445)",
+  "author_org": "U.S. Geological Survey",
+  "published": null,
+  "url": "https://pubs.usgs.gov/bul/1445/report.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Finds at Troy II (about 2600 BC) and the Cappadocian tablets (2250-1950 BC) imply cupellation was practised in the third millennium BC",
+   "In cupellation lead oxide soaks into a porous (bone-ash) cupel, leaving gold and silver; it is an ancient quantitative analysis"
+  ],
+  "confidence": "medium",
+  "notes": "The dating is the manual authors' reading of archaeological evidence. Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-225",
+  "title": "Silver processing",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/technology/silver-processing",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Cupellation heats the lead residue to about 800 C under oxidizing conditions; silver and gold stay metallic while lead oxidizes"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-226",
+  "title": "Touchstone",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/technology/touchstone-metallurgy",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "A touchstone is a black siliceous stone; the streak of the test metal is compared with streaks of known purity, aided by nitric acid; still used for gold"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-227",
+  "title": "Pliny the Elder, The Natural History, Book XXXIII",
+  "author_org": "Perseus Digital Library (Tufts University)",
+  "published": null,
+  "url": "http://www.perseus.tufts.edu/hopper/text?doc=Perseus:abo:phi,0978,001:33+",
+  "accessed": "2026-10-22",
+  "type": "archive",
+  "claims_supported": [
+   "Pliny, citing Theophrastus, describes the touchstone (Lydian or Heraclian stone) and assayers' ability to judge gold, silver or copper content"
+  ],
+  "confidence": "medium",
+  "notes": "Classical primary text in translation. Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-228",
+  "title": "De Re Metallica (Agricola, translated by H. C. and L. H. Hoover)",
+  "author_org": "Project Gutenberg",
+  "published": "1912",
+  "url": "https://www.gutenberg.org/files/38015/38015-h/38015-h.htm",
+  "accessed": "2026-10-22",
+  "type": "archive",
+  "claims_supported": [
+   "De re metallica first appeared in Latin from Froben, Basel, in 1556, after Agricola's death; the Hoovers' English translation appeared in 1912"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-229",
+  "title": "Georgius Agricola",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/biography/Georgius-Agricola",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Agricola was town physician at Joachimsthal 1527-1533 and spent his spare time in mines and smelters",
+   "Bermannus (1530) was his first mineralogical treatise; De natura fossilium classified minerals; he favoured observation over ancient authority",
+   "De re metallica covered ore-body geology, mining and smelting"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-230",
+  "title": "Georgius Agricola (1494-1555)",
+  "author_org": "University of California Museum of Paleontology",
+  "published": null,
+  "url": "https://ucmp.berkeley.edu/history/agricola.html",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Agricola moved to the mining centre of Chemnitz (UCMP: 1536; Britannica: 1533)"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-231",
+  "title": "Blowpipe (instrument)",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/technology/blowpipe-instrument",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "The blowpipe technique for analysing ores was developed by the Swedish mineralogist Axel Fredrik Cronstedt; Berzelius and Hausmann applied it to qualitative analysis"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-232",
+  "title": "Axel Fredrik Cronstedt",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/biography/Axel-Fredrik-Cronstedt",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Cronstedt is credited with systematic use of blowpipes to analyse the chemical composition of minerals"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-233",
+  "title": "Robert Bunsen and Gustav Kirchhoff",
+  "author_org": "Science History Institute",
+  "published": null,
+  "url": "https://www.sciencehistory.org/education/scientific-biographies/robert-bunsen-and-gustav-kirchhoff/",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "Around 1859 Bunsen and Kirchhoff showed each element emits light of characteristic wavelengths (spectral analysis) and used it to discover caesium and rubidium"
+  ],
+  "confidence": "high",
+  "notes": "SHI dates both discoveries to 1860; RSC and APS give rubidium 1861. Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-234",
+  "title": "This Month in Physics History (May 2018: caesium)",
+  "author_org": "American Physical Society, APS News",
+  "published": "2018",
+  "url": "https://www.aps.org/apsnews/2018/05/this-month-in-physics-history",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "On 10 May 1860 Bunsen saw new blue spectral lines in mineral-spring water: caesium"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-235",
+  "title": "William Nicol",
+  "author_org": "Encyclopaedia Britannica",
+  "published": null,
+  "url": "https://www.britannica.com/biography/William-Nicol",
+  "accessed": "2026-10-22",
+  "type": "reference",
+  "claims_supported": [
+   "Nicol's calcite polarizing prism enabled polarized-light microscopy; in 1849 Sorby showed minerals in thin section could be identified by optical properties"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-236",
+  "title": "Nicholas Steno",
+  "author_org": "University of California Museum of Paleontology",
+  "published": null,
+  "url": "https://ucmp.berkeley.edu/history/steno.html",
+  "accessed": "2026-10-22",
+  "type": "academic",
+  "claims_supported": [
+   "Steno's 1669 Prodromus stated that sedimentary layers form horizontally and that lower layers are older (superposition, original horizontality)"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-237",
+  "title": "Scientist of the Day - Nicolaus Steno",
+  "author_org": "Linda Hall Library",
+  "published": null,
+  "url": "https://www.lindahall.org/about/news/scientist-of-the-day/nicolaus-steno/",
+  "accessed": "2026-10-22",
+  "type": "archive",
+  "claims_supported": [
+   "Steno held that strata were laid down horizontal and continuous, so tilted strata record later disturbance"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-238",
+  "title": "William 'Strata' Smith (1769-1839), the Father of English Geology (online exhibition)",
+  "author_org": "The Geological Society of London",
+  "published": null,
+  "url": "https://www.geolsoc.org.uk/the-library/online-exhibitions/william-strata-smith/",
+  "accessed": "2026-10-22",
+  "type": "archive",
+  "claims_supported": [
+   "Smith's 1815 map, the product of over fifteen years' work, is considered the first geological map of a whole country",
+   "His method: strata occur in a regular order and can be identified by the fossils they contain"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-239",
+  "title": "Britain's first geological map",
+  "author_org": "Natural History Museum, London",
+  "published": null,
+  "url": "https://www.nhm.ac.uk/discover/first-geological-map-of-britain.html",
+  "accessed": "2026-10-22",
+  "type": "museum",
+  "claims_supported": [
+   "The 1815 map measures about 2.6 m by 1.8 m in 15 sheets"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-240",
+  "title": "Our history",
+  "author_org": "British Geological Survey",
+  "published": null,
+  "url": "https://www.bgs.ac.uk/about-bgs/our-work/our-history/",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Founded in 1835, the BGS is the world's oldest national geological survey"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-241",
+  "title": "History of the British Geological Survey (BGS Earthwise)",
+  "author_org": "British Geological Survey",
+  "published": null,
+  "url": "https://earthwise.bgs.ac.uk/index.php/History_of_the_British_Geological_Survey",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "De la Beche began mapping privately in 1832; the Survey was formally established on 11 July 1835 within the Ordnance Survey",
+   "An 1845 Act created the Geological Survey of Great Britain and Ireland; a Museum of Economic Geology opened around 1839-1841"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-242",
+  "title": "Survey Manual 120.1 - Creation, Authority, Mission, and Functions",
+  "author_org": "U.S. Geological Survey",
+  "published": null,
+  "url": "https://www.usgs.gov/about/organization/science-support/survey-manual/1201-creation-mission-and-functions",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "The Organic Act of 3 March 1879 created the USGS for 'the classification of the public lands and examination of the geological structure, mineral resources, and products of the national domain'"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-243",
+  "title": "A Brief History of the U.S. Geological Survey",
+  "author_org": "M. C. Rabbitt, U.S. Geological Survey",
+  "published": "1986",
+  "url": "https://pubs.usgs.gov/book/1986/rabbitt-brief-history/report.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Clarence King, first Director, emphasized mining geology and mineral statistics"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-244",
+  "title": "Exploring Seismic Waves",
+  "author_org": "American Oil & Gas Historical Society",
+  "published": null,
+  "url": "https://aoghs.org/technology/exploring-reflection-seismography/",
+  "accessed": "2026-10-22",
+  "type": "community",
+  "claims_supported": [
+   "On 4 June 1921 Karcher and colleagues ran the first reflection-seismograph field test in central Oklahoma",
+   "Low oil prices meant no immediate demand"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-245",
+  "title": "John Karcher (SEG Wiki)",
+  "author_org": "Society of Exploration Geophysicists (wiki)",
+  "published": null,
+  "url": "https://wiki.seg.org/wiki/John_Karcher",
+  "accessed": "2026-10-22",
+  "type": "community",
+  "claims_supported": [
+   "Karcher later co-founded Geophysical Service Incorporated (1930) to sell reflection surveys to the oil industry"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-246",
+  "title": "U.S. Geological Survey Bulletin 925-D",
+  "author_org": "U.S. Geological Survey",
+  "published": null,
+  "url": "https://pubs.usgs.gov/bul/0925d/report.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Eotvos developed the torsion balance in 1888; the first gravimetric oil survey was at Egbell (1915)",
+   "US gravity prospecting began with the 1924 torsion-balance discovery of the Nash salt dome, Texas"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-247",
+  "title": "Torsion Balance Eotvos Instrument (SEG Wiki)",
+  "author_org": "Society of Exploration Geophysicists (wiki)",
+  "published": null,
+  "url": "https://wiki.seg.org/wiki/Torsion_Balance_Eotvos_Instrument_(additional)",
+  "accessed": "2026-10-22",
+  "type": "community",
+  "claims_supported": [
+   "Until 1938 the torsion balance contributed to discovering 79 Gulf Coast oil fields"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-248",
+  "title": "Geophysical Abstracts 136-139, January-December 1949 (Bulletin 966-A)",
+  "author_org": "U.S. Geological Survey",
+  "published": null,
+  "url": "https://pubs.usgs.gov/bul/0966a/report.pdf",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "An abstract dates geophysical prospecting to 1640, when the magnetic compass was first used to locate Swedish iron ore",
+   "Schmidt's 1915 field magnetometer boosted magnetic prospecting"
+  ],
+  "confidence": "low",
+  "notes": "The 1640 date is a tradition repeated in an old abstract. Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-249",
+  "title": "Magnetic prospection (SEG Wiki)",
+  "author_org": "Society of Exploration Geophysicists (wiki)",
+  "published": null,
+  "url": "https://wiki.seg.org/wiki/Magnetic_prospection",
+  "accessed": "2026-10-22",
+  "type": "community",
+  "claims_supported": [
+   "The fluxgate magnetometer, first used for airborne submarine detection in WWII, opened airborne magnetic surveying for mineral exploration"
+  ],
+  "confidence": "medium",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ },
+ {
+  "id": "NUC-250",
+  "title": "Assessing Mineral Resources (Mineral Resources Program)",
+  "author_org": "U.S. Geological Survey",
+  "published": null,
+  "url": "https://www.usgs.gov/programs/mineral-resources-program/assessing-mineral-resources",
+  "accessed": "2026-10-22",
+  "type": "official",
+  "claims_supported": [
+   "Quantitative assessment of undiscovered resources uses the properties of known deposits of the same type, because undiscovered deposits are unknown",
+   "Earth MRI uses mineral potential to prioritize new geophysical surveys and geological mapping"
+  ],
+  "confidence": "high",
+  "notes": "Retrieved 2026-10-22 via WebSearch result extract; WebFetch was unavailable this session (DNS failure), so the full page was not read."
+ }
+]

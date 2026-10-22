@@ -1,0 +1,1736 @@
+{
+ "lane": "D06-energy-engineering",
+ "summary": "D06 owns 52 nodes: 44 kept (23 of them with edits that leave the written cost unchanged - 9 prerequisite edits, the rest capability blocks or integration notes), 4 split (three also re-scored), 2 rebalanced by the prerequisite convention, 2 relocated, none merged or retired; 5 new nodes. Grid finding: infra.power_grid existed but was gated by the same node as the power station ('Central power station and grid'); split into Central power station (key 288, keeps the A9 CORE fact) and AC power transmission (transformer 1884-85, three-phase lines 1891), which now gates the grid entity and the grid-scale generation types (hydro, wind, storage, smart grid; D11 offered it as the precise grid edge of nuclear power-plant engineering). Bottlenecks split along their own content, workload roughly conserved: internal_combustion (134k) -> Stationary gas engine (Lenoir/Otto, the principle; feeds diesel) + High-speed petrol engine (key kept: Age fact and every vehicle consumer; now requires petroleum refining), -22.6 %; computer (535k) -> Programmable digital computer (relay OR valve routes, D05's request) + Stored-program computer (key kept; memory from radar), conserved; transistor (268k) -> Semiconductor physics + device, -20.3 %. steam_rotary is kept: no faithful split. Missing knowledge: Water turbine (dams drive turbines, not water wheels). Causal fixes: Newcomen engine no longer needs cast-iron cannon (early cylinders were brass); charcoal needs felling axes, not house framing; lithium-ion needs quantum theory of solids (shortest chain was 12 nodes); gas turbines need superalloys (D02); smartphone needs digital cellular data (D05). Coupling: both windmills move to the trunk (craft knowledge, D-044 R15). D04's thermodynamics (diesel, steam_turbine), D04's probability_statistics (machine_learning) and D05's automatic_switching (programmable_computer) are wired at integration (integrationRequests, override format). Dead ends get deferred owners (M8/M9/M10+) or explicit justification. Energy capabilities are knowledge-only or deferred to M11+ (milestone M10+). Everything is PROPOSED.",
+ "existing": [
+  {
+   "id": "fire_making",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Root of all pyrotechnology; scope already re-cut by D-047 ruling 2 (making and keeping fire is baseline). Key 1 is pinned by ResearchBaselineTests and the corpus-sync test. No change.",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "lamp",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Knowledge-only dead end ACCEPTED with an explicit justification: a cheap (180 RP) Upper Palaeolithic root of the lighting family, kept for educational value. Lighting and working hours are not modelled, and the candidate consumers were rejected as not causal: deep mines and early lighthouses were lit by torches and open fires, and the electric lamp owes nothing to the oil lamp's knowledge (INFERENCE).",
+   "changes": "capability block only (records the accepted dead end); no content change",
+   "nodeKind": "application",
+   "capability": {
+    "grants": [
+     "knowledge:deep cave use",
+     "knowledge:night work"
+    ],
+    "realizationOwner": "none",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: completion row only (unlock-audit class C); no dependant, no entity.",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide once complete.",
+    "unknownResource": "n/a",
+    "aiValuation": "Lowest priority; reached only through the cheapest-available fallback.",
+    "playerCommunication": "Glass Box: 'Knowledge only - no simulated effect' (deliberate leaf)."
+   }
+  },
+  {
+   "id": "charcoal",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Kept; one proxy edge replaced by the knowledge actually used. Charcoal burning in covered piles needs felled and split cordwood - the ground-edge felling axe of ground_stone_early, whose own capability text is 'resharpenable ground-edge felling axe; efficient heavy woodworking' - plus controlled low-oxygen pyrolysis (birch_tar's dry distillation). House framing (timber_frame, LBK longhouses) is not part of either (INFERENCE from the nodes' content).",
+   "changes": "prereq 'birch_tar AND timber_frame' -> 'birch_tar AND ground_stone_early'; two requirements before and after, so prereq_complexity 0.5 and cost 1,050 are unchanged",
+   "nodeKind": "technique",
+   "prereq": "birch_tar AND ground_stone_early",
+   "prereqRationale": "birch_tar: controlled pyrolysis without flame (the same reduced-oxygen principle). ground_stone_early: the resharpenable felling axe that makes cordwood at smelting scale. timber_frame removed: house carpentry is not knowledge charcoal burning needs (chronology/proxy edge).",
+   "compatibility": {
+    "saves": "Completed rows unaffected. ground_stone_early is itself a prerequisite of timber_frame, so every holder of the old prerequisites already holds the new one: no progress becomes dormant.",
+    "ids": "none",
+    "ui": "lock reason text only",
+    "ai": "The A4 core closure (iron_bloomery <- charcoal) no longer has to pass through timber_frame and shelter_hut; AI closures shrink slightly.",
+    "consumers": "iron_bloomery and blast_furnace_water unchanged; timber_frame keeps its other dependants.",
+    "tests": "Chronology test unaffected (charcoal is dated before 3000 BCE). timber_frame (key 52, allocation scenario) keeps its own cost and prerequisites. AI-empire goldens move with any content change; the three CI --check docs regenerate; allocation-scenario keys (12/17/2/8/52/74/53) and the v33 fixture key 2 are untouched."
+   }
+  },
+  {
+   "id": "bellows",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Kept; its consequence text is corrected. 'iron smelting feasible' claims an effect no edge carries: iron_bloomery does not require bellows, and the corpus dates bellows (~1,500 BCE, Egyptian depictions) after the bloomery (~1,800 BCE), so adding that edge would fail the chronology test. D02's review request is answered: earlier evidence exists (the Near Eastern pot-bellows corpus, Davey 1979 and the 2021 review; possible Chalcolithic bellows at Abu Matar, Rose et al. 2024, which its authors call 'probably the earliest evidence' - RESEARCHED, tentative) but no secure date earlier than ~1,800 BCE was established here, so the date is NOT altered (D-047: no date text is changed to make an edge pass). Recommended to the corpus fact-check stage; if it confirms an earlier date, iron_bloomery <- charcoal AND bellows becomes possible (D02 supports it). Bellows now feeds cast_iron and blast_furnace_water (D02 re-point).",
+   "changes": "capability text only: 'iron smelting feasible' -> 'forced draught for hotter furnaces (cast iron, blast furnace)'; the content's unlocks.capabilities string is edited the same way at implementation; emerged unchanged",
+   "nodeKind": "application",
+   "capability": {
+    "grants": [
+     "knowledge:hotter furnaces",
+     "knowledge:forced draught for high-temperature smelting and casting (cast iron, blast furnace)"
+    ],
+    "realizationOwner": "none",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: completion row only (class C); prerequisite of cast_iron (and blast_furnace_water in D02's proposal).",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide once complete.",
+    "unknownResource": "n/a",
+    "aiValuation": "Valued through the goal closures and the dependants it opens.",
+    "playerCommunication": "Knowledge only; the Glass Box card names the nodes it opens."
+   }
+  },
+  {
+   "id": "water_mill",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Kept in the trunk: a craft prime mover (Greek and Roman millwrights; Han China independently) that needed no organized scholarship (D-044 R15). It carries the A6 supporting fact a6_mills, which therefore never depends on the research stage. Gains the new dependant water_turbine.",
+   "changes": "capability block clarified (the Age fact is live; the two buildings are not); no content change",
+   "nodeKind": "application",
+   "capability": {
+    "grants": [
+     "knowledge:milling without human labour",
+     "knowledge:the energy resource type of ADR-019 §5",
+     "building:building.water_mill",
+     "building:building.paper_mill",
+     "age:a6_mills"
+    ],
+    "realizationOwner": "AgeTransitionSystem (a6_mills); buildings: ConstructionSystem (none realizes them yet)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: Age 6 supporting milestone a6_mills (any of water_mill, windmill_post) is live; building.water_mill and building.paper_mill are knowledge-eligible with no realizing system (class B (BJ)).",
+    "deferredEffect": "PROPOSED: tier D of docs/deferred-entity-realization-plan.md (production chains), a candidate for M6 T6.11 construction; a milling effect needs a mechanical-power or flour stage that does not exist (IMPLEMENTATION DEFERRED).",
+    "inputs": {
+     "resources": [],
+     "geography": [
+      "river with usable fall (site predicate, not modelled)"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Eligible everywhere; once realized, a site without a river head cannot build the mill.",
+    "unknownResource": "n/a (water is terrain, not a deposit).",
+    "aiValuation": "Counts toward a6_mills; otherwise valued through its dependants.",
+    "playerCommunication": "Age panel lists it as one way to meet a6_mills; building card: 'eligible - no system builds it yet'."
+   }
+  },
+  {
+   "id": "trip_hammer",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Craft application of the water mill (Han China, ~40 BCE); trunk placement is right (D-044 R15). Feeds fulling_mill (D07). No change.",
+   "changes": "none",
+   "nodeKind": "application"
+  },
+  {
+   "id": "windmill_vertical",
+   "disposition": [
+    "relocate"
+   ],
+   "rationale": "Moved from the Engineering subtree to the trunk. The Persian panemone of Sistan was millwrights' craft knowledge with no organized scholarship behind it; D-044 R15 keeps nodes that logically belong in the main trunk there. In the subtree, building.windmill waited on the university/research stage (measured ~1532 CE in the seed-42 run). Its only prerequisite (water_mill) is trunk and it has no dependants, so trunk closure holds; A6 is allowed in the trunk (V17 flags only A7+). Same reasoning as D07's relocation of seven medieval craft nodes.",
+   "changes": "branch engineering -> trunk; key, Age A6, cost 2,090, prerequisites and university relevance (Engineering primary, allowed for trunk nodes) unchanged",
+   "nodeKind": "application",
+   "branch": "trunk",
+   "compatibility": {
+    "saves": "Key unchanged; completed rows unaffected. Partial progress becomes usable before the research stage. Trunk nodes always pay BaseCost, so engineering-university cost modifiers stop applying (MEASURED rule, ResearchQuery.cs:316).",
+    "ids": "none",
+    "ui": "Moves from the Engineering lane to the Main Trunk lane of the progression screen.",
+    "ai": "Becomes available pre-stage; the cheapest-available fallback may take it earlier (AI goldens move).",
+    "consumers": "building.windmill (windmill_post OR windmill_vertical) becomes knowledge-eligible without the research stage.",
+    "tests": "ResearchContentTests branch counts (trunk +1, engineering -1 per node) and finite_nodes_to_exhaust of the six engineering recursive nodes (recomputed by integration). V17 does not apply (A6). AI-empire goldens move with any content change; the three CI --check docs regenerate; allocation-scenario keys (12/17/2/8/52/74/53) and the v33 fixture key 2 are untouched."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:milling in windy arid land",
+     "building:building.windmill"
+    ],
+    "realizationOwner": "ConstructionSystem (none realizes it yet)",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "MEASURED: building.windmill knowledge-eligible, no realizing system (class J).",
+    "deferredEffect": "PROPOSED: tier D (production chains) of the deferred-entity plan - candidate for M6 T6.11 construction; a milling effect is IMPLEMENTATION DEFERRED.",
+    "inputs": {
+     "resources": [],
+     "geography": [
+      "steady wind (not modelled)"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not realizable until a construction project and a milling stage exist.",
+    "unknownResource": "n/a (wind is climate, not a deposit).",
+    "aiValuation": "Valued through the goal closures and the dependants it opens.",
+    "playerCommunication": "Building card: 'eligible - no system builds it yet'; no longer locked behind universities."
+   }
+  },
+  {
+   "id": "windmill_post",
+   "disposition": [
+    "relocate"
+   ],
+   "rationale": "Moved from the Engineering subtree to the trunk for the same reason: the post mill (England and Flanders, ~1180 CE) spread through millwrights, manors and monasteries, not universities (D-044 R15). Both prerequisites (water_mill, sail_square) are trunk; it has no dependants; its Eureka condition (gearing) is a trunk node, so the Eureka is neither dead nor implied. The A6 supporting fact a6_mills (water_mill OR windmill_post) becomes reachable pre-stage by either route.",
+   "changes": "branch engineering -> trunk; key, Age A6, cost 4,970, prerequisites, Eureka and university relevance unchanged",
+   "nodeKind": "application",
+   "branch": "trunk",
+   "compatibility": {
+    "saves": "Key unchanged; completed rows unaffected. Partial progress becomes usable before the research stage. Trunk nodes always pay BaseCost, so engineering-university cost modifiers stop applying (MEASURED rule, ResearchQuery.cs:316).",
+    "ids": "none",
+    "ui": "Moves from the Engineering lane to the Main Trunk lane of the progression screen.",
+    "ai": "Becomes available pre-stage; the cheapest-available fallback may take it earlier (AI goldens move).",
+    "consumers": "building.windmill (windmill_post OR windmill_vertical) becomes knowledge-eligible without the research stage. The a6_mills milestone gains a second pre-stage route.",
+    "tests": "ResearchContentTests branch counts (trunk +1, engineering -1 per node) and finite_nodes_to_exhaust of the six engineering recursive nodes (recomputed by integration). V17 does not apply (A6). AI-empire goldens move with any content change; the three CI --check docs regenerate; allocation-scenario keys (12/17/2/8/52/74/53) and the v33 fixture key 2 are untouched."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:power without river head",
+     "knowledge:drainage (Netherlands)",
+     "building:building.windmill",
+     "age:a6_mills"
+    ],
+    "realizationOwner": "AgeTransitionSystem (a6_mills); building: ConstructionSystem (none realizes it yet)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: Age 6 supporting milestone a6_mills is live; building.windmill eligible with no realizing system (class B (BJ)).",
+    "deferredEffect": "PROPOSED: tier D (production chains) - candidate for M6 T6.11 construction; milling and drainage effects IMPLEMENTATION DEFERRED.",
+    "inputs": {
+     "resources": [],
+     "geography": [
+      "steady wind (not modelled)"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not realizable until a construction project and a milling stage exist.",
+    "unknownResource": "n/a (wind is climate, not a deposit).",
+    "aiValuation": "Counts toward a6_mills (second route); otherwise low.",
+    "playerCommunication": "Age panel lists it as one way to meet a6_mills."
+   }
+  },
+  {
+   "id": "steam_atmospheric",
+   "disposition": [
+    "rebalance"
+   ],
+   "rationale": "A proxy prerequisite is removed. Newcomen's first cylinders (1712) were brass, and cast-iron cylinders came from Coalbrookdale in the 1720s (RESEARCHED: Wikipedia 'Thomas Newcomen' and 'Coalbrookdale'; Britannica 'Abraham Darby'), i.e. from iron founding (cast_iron), not from cannon founding. The cannon-boring lineage that does matter (Wilkinson's boring mill, 1774) already reaches the rotative engine through cylinder_boring -> steam_rotary. barometer_vacuum (atmospheric pressure and the vacuum, Torricelli to Papin) and cast_iron stay.",
+   "changes": "prereq 'barometer_vacuum AND cast_iron AND cannon_cast_iron' -> 'barometer_vacuum AND cast_iron'; prereq_complexity 1.0 -> 0.5; magnitude 8.5 -> 8.0; cost 33,450 -> 23,650",
+   "nodeKind": "application",
+   "prereq": "barometer_vacuum AND cast_iron",
+   "prereqRationale": "barometer_vacuum: the engine works by condensing steam to make a vacuum that the atmosphere pushes against. cast_iron: cheap large castings made the engine affordable and widespread. cannon_cast_iron removed: early cylinders were brass; cannon boring matters only for Watt-era precision, carried by cylinder_boring.",
+   "factors": {
+    "novelty": 2.0,
+    "difficulty": 2.0,
+    "material": 1.5,
+    "institutional": 1.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "costRationale": "Only prereq_complexity moves (convention C-10/C-26): three top-level requirements -> two, 1.0 -> 0.5. novelty 2.0, difficulty 2.0 (A7 prior), material 1.5, institutional 1.5 (A7 prior), breadth 0.5 unchanged. Magnitude 8.5 -> 8.0; 33,450 -> 23,650 RP (-29 %).",
+   "compatibility": {
+    "saves": "Key kept. Lowered cost: progress >= 23,650 RP completes at the next step if the prerequisites hold. No prerequisite is added, so nothing becomes dormant.",
+    "ids": "none",
+    "ui": "lock reason no longer names cannon_cast_iron",
+    "ai": "A8 core closure (steam_rotary) is 9,800 RP cheaper; cannon_cast_iron stays in it through cylinder_boring.",
+    "consumers": "steam_separate_condenser unchanged; cannon_cast_iron (D09) loses a dependant and keeps cylinder_boring and ship_of_line.",
+    "tests": "Its Eureka (when: mining_shaft) stays neither dead nor implied (mining_shaft is not in the new closure; D02 confirms the trap). Calibration report regenerates. AI-empire goldens move with any content change; the three CI --check docs regenerate; allocation-scenario keys (12/17/2/8/52/74/53) and the v33 fixture key 2 are untouched."
+   }
+  },
+  {
+   "id": "steam_separate_condenser",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Watt's condenser (1769). Its barometer_vacuum edge is implied through steam_atmospheric but names the physics the condenser applies; left as authored (removing it would only re-price the node). Gains D04's new thermodynamics as a dependant (Carnot analysed condensing engines).",
+   "changes": "none",
+   "nodeKind": "application"
+  },
+  {
+   "id": "steam_rotary",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Kept as authored (A8 CORE a8_steam, 133,810 RP). Three splits were considered and rejected: (1) carving out the centrifugal governor (Boulton & Watt, 1788) - a later, separate small invention that the node's content (sun-and-planet gear, double action) does not bundle; carving it cannot lower the rotative engine's own magnitude without re-scoring the engine's novelty, which on an Age CORE node would be indistinguishable from pacing-driven re-pricing (D-046 §1); (2) rotary conversion versus double action and parallel motion - one engine (1781-84) serving the same dependants; (3) factory mill-work - no separable consumer, and factory nodes are D07's. Its cost question (novelty 2.0 against the separate condenser's 0.5) is recorded as an OPEN cost-consistency finding. Gains dependants gas_engine (this lane) and sanitary_engineering (D07); D07 made power_loom accept water_mill OR steam_rotary.",
+   "changes": "none",
+   "nodeKind": "application"
+  },
+  {
+   "id": "steam_high_pressure",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Trevithick and Evans (1804); puddled wrought-iron plate (puddling) is the causal boiler material. No change.",
+   "changes": "none",
+   "nodeKind": "application"
+  },
+  {
+   "id": "dynamo",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Self-excited generator (1866-67; Gramme 1871): experimental electromagnetism (D04's re-scoped node, Volta to Faraday) plus a rotary prime mover. No change.",
+   "changes": "none",
+   "nodeKind": "application"
+  },
+  {
+   "id": "electric_light",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Swan and Edison (1879): vacuum technique plus a dynamo supply. Kept; it is the demand side of the central station.",
+   "changes": "none",
+   "nodeKind": "application"
+  },
+  {
+   "id": "electricity_generation",
+   "disposition": [
+    "split"
+   ],
+   "rationale": "The node, named 'Central power station and grid', bundled two capabilities that ADR-019 §5.1 itself separates (electricity is 'generation capacity, grid connectivity and demand'): central generation with local DC distribution (Pearl Street and Holborn Viaduct, 1882) and high-voltage AC transmission (transformer 1884-85; three-phase transmission 1891), which carries power between settlements. The key keeps the generation part - the A9 CORE fact a9_electricity, building.power_station and every current dependant (aluminium, desalination, electric_motor, gas_turbine_power). The grid part becomes ac_transmission, which now gates infra.power_grid and the grid-scale generation types. Factors are left unchanged: the central station remains paradigm-founding (the electric utility) and broad; the grid is new workload on an optional branch, off the Age 9 core path.",
+   "changes": "split -> ac_transmission (new); name 'Central power station and grid' -> 'Central power station'; infra.power_grid requirement moves to ac_transmission (entityRequirementChanges); capability grants drop infra.power_grid; factors, cost 47,310, prerequisites, Eureka list and the Age fact unchanged; the description must drop 'AC transmission 1886-96' (corpus stage)",
+   "nodeKind": "infrastructure",
+   "name": "Central power station",
+   "splitInto": [
+    "ac_transmission"
+   ],
+   "capability": {
+    "grants": [
+     "knowledge:electricity as generation capacity (ADR-019 §5.1)",
+     "knowledge:electric motors and lighting supplied from a station",
+     "building:building.power_station",
+     "age:a9_electricity"
+    ],
+    "realizationOwner": "AgeTransitionSystem (a9_electricity); building.power_station: ConstructionSystem + an electricity capacity system (neither realizes it today)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: Age 9 core milestone a9_electricity is live; building.power_station is knowledge-eligible with no realizing system. (infra.power_grid moves to ac_transmission.)",
+    "deferredEffect": "M11+ (framework §10: energy systems): a station adds generation capacity in its settlement (ADR-019 §5.1). T6.11 (M6, PROPOSED) lists building.power_station in tier G for construction only; a capacity effect has no owner before M11+ (IMPLEMENTATION DEFERRED).",
+    "inputs": {
+     "resources": [
+      "fuel (coal - no such good exists)"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not realizable: no fuel good and no capacity system.",
+    "unknownResource": "The knowledge and the Age fact need no resource. Fuel supply would need coal identification (D11) once a coal good exists; research never reveals a deposit.",
+    "aiValuation": "A9 core: the AI core goal (closure of the next Age's core facts) targets it unchanged.",
+    "playerCommunication": "Age panel: core milestone. Building card: 'Power station eligible - no system builds it yet'. Grid infrastructure needs AC power transmission."
+   },
+   "compatibility": {
+    "saves": "Key 288 keeps generation and the Age fact. Holders of the old key do NOT hold ac_transmission: infra.power_grid becomes ineligible for them and hydroelectric, wind_turbine_modern, grid_storage and smart_grid need ac_transmission first (their partial progress stays dormant until it completes). A grant-on-load seam (give split-off keys to holders of the old key) would avoid this - OPEN DECISION raised package-wide.",
+    "ids": "288 kept; ac_transmission gets a new key from tools/integrate.py",
+    "ui": "renamed; the Glass Box consumer list for infra.power_grid moves to the new node",
+    "ai": "Age 9 core closure unchanged (the grid is not on it).",
+    "consumers": "infra.power_grid.requires 'electricity_generation' -> 'ac_transmission' (reverse-index unlock lists move with it, loader rule 19); hydroelectric, wind_turbine_modern, grid_storage, smart_grid re-pointed to ac_transmission (this lane); aluminium, desalination, electric_motor, gas_turbine_power keep key 288.",
+    "tests": "ResearchContentTests corpus-name pin (rename: add key 288 to the D-047 rename exceptions or update the corpus); research-gameplay-unlock-audit regenerates (CI --check). AI-empire goldens move with any content change; the three CI --check docs regenerate; allocation-scenario keys (12/17/2/8/52/74/53) and the v33 fixture key 2 are untouched."
+   }
+  },
+  {
+   "id": "electric_motor",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Practical DC and polyphase AC motors (1880s); needs a supply (the central station). Keeps electric_traction, electric_vehicle and skyscraper (D07 re-point) and gains submarine (D08 new). No change.",
+   "changes": "none",
+   "nodeKind": "application"
+  },
+  {
+   "id": "internal_combustion",
+   "disposition": [
+    "split",
+    "rebalance"
+   ],
+   "rationale": "The node bundled Otto's 1876 stationary four-stroke gas engine with the Daimler-Maybach and Benz high-speed petrol engines of 1883-86 (its own text: 'Otto 1876 four-stroke; Daimler/Benz 1885 vehicle'). These are distinct knowledge with distinct consumers: the stationary gas engine is the principle (internal combustion, the compression cycle) and the root of Diesel's engine; the high-speed engine needed refined liquid fuel and light, fast construction, and is what aircraft, cars, tanks and tractors use. The key stays with the high-speed engine, which keeps every current consumer and the A9 CORE fact a9_combustion, so no other lane must re-point (D01, D08, D09 already require internal_combustion for vehicles). The founding part becomes gas_engine, which takes the engine-architecture, combustion-chemistry and machining prerequisites. Liquid fuel is now explicit: Daimler's and Benz's engines ran on light petroleum spirit (ligroin, bought at a pharmacy on Bertha Benz's 1888 drive - RESEARCHED).",
+   "changes": "split -> gas_engine (new, upstream); name 'Internal combustion engine' -> 'High-speed petrol engine'; prereq 'milling_machine AND steam_rotary AND chemistry_quantitative' -> 'gas_engine AND petroleum_refining'; emerged '1876 CE' -> '1883-1886 CE ...' (still era-marked); factors novelty 2.0 -> 1.0, prereq_complexity 1.0 -> 0.5; magnitude 10.5 -> 9.0; cost 133,810 -> 47,310; family ice generation 1 unchanged",
+   "nodeKind": "application",
+   "name": "High-speed petrol engine",
+   "emerged": "1883-1886 CE (Daimler and Maybach, Cannstatt; Benz, Mannheim - independently)",
+   "prereq": "gas_engine AND petroleum_refining",
+   "prereqRationale": "gas_engine: the four-stroke compression cycle and the engine architecture the high-speed engine refined (Daimler and Maybach came from Otto's Deutz works). petroleum_refining: the volatile liquid fuel that carburation and high speed depend on (D04's processing node; finding and drilling for crude belong to D11/D02). milling_machine, steam_rotary and chemistry_quantitative are now reached through gas_engine, where they were actually used.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 1.5,
+    "institutional": 2.0,
+    "breadth": 1.5,
+    "prereq_complexity": 0.5
+   },
+   "splitInto": [
+    "gas_engine"
+   ],
+   "costRationale": "novelty 1.0: a major adaptation of an existing engine principle (the paradigm, scored 2.0, moves to gas_engine; scored once) | difficulty 2.5: A8 prior | material 1.5: light high-speed construction, carburettor and ignition (unchanged) | institutional 2.0: A8 prior (unchanged) | breadth 1.5: cars, aircraft, tanks, tractors, submarines, liquid-fuel rockets (unchanged) | prereq_complexity 0.5: two requirements. Magnitude 10.5 -> 9.0: 133,810 -> 47,310 RP. Split sum with gas_engine (56,260): 103,570 vs 133,810 (-22.6 %). Tier label T4 -> T2 (novelty 1.0).",
+   "capability": {
+    "grants": [
+     "knowledge:motor vehicle",
+     "knowledge:aircraft (next)",
+     "knowledge:tank (next)",
+     "age:a9_combustion"
+    ],
+    "realizationOwner": "AgeTransitionSystem (milestone fact)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: Age 9 core milestone a9_combustion is live (class B). Vehicle realization is in its dependants (units M7; motor transport M11+).",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [
+      "refined motor fuel (no such good exists)"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "The knowledge and the Age fact need no fuel; running engines would need a fuel good.",
+    "unknownResource": "Knowledge never reveals oil. Crude identification is D11's and drilling D02's (percussion_drilling); the Age fact holds on knowledge alone (law 4, D-040 B3).",
+    "aiValuation": "A9 core: the AI core goal now closes over gas_engine and petroleum_refining.",
+    "playerCommunication": "Age panel: core milestone. Lock reason names the stationary gas engine and petroleum refining."
+   },
+   "compatibility": {
+    "saves": "Key 291 keeps the Age fact and every vehicle consumer; completed rows stay completed. diesel now hangs on gas_engine, so an old save without it must research gas_engine before diesel (partial diesel progress dormant until then). Lowered cost: progress on 291 >= 47,310 completes at the next step if gas_engine and petroleum_refining are held, otherwise it is dormant until they are. Grant-on-load seam OPEN (package-wide).",
+    "ids": "291 kept; gas_engine gets a new key",
+    "ui": "renamed; tier/lane unchanged; lock reasons name the new prerequisites",
+    "ai": "AI core goal for Age 9 changes closure (adds gas_engine and petroleum_refining; drops nothing).",
+    "consumers": "aircraft, automobile_mass, mechanised_agriculture, tank, rocket and submarine (D08 new) keep key 291; diesel moves to gas_engine (this lane).",
+    "tests": "ResearchContentTests corpus-name pin (rename: add key 291 to the rename exceptions); chronology test (earliest year 1876 -> 1883; prerequisites 1860 and 1853 earlier; dependants 1903+ later); family 'ice' generations stay local (gas_engine carries no generation; automobile_mass gen 2 still > 1). AI-empire goldens move with any content change; the three CI --check docs regenerate; allocation-scenario keys (12/17/2/8/52/74/53) and the v33 fixture key 2 are untouched."
+   }
+  },
+  {
+   "id": "jet_engine",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Whittle and von Ohain, independently (1937-39). D-047 (Part C row 11) removed superalloy from its prerequisites because the first jets ran on heat-resisting steels; D02 agrees. Its factors (novelty 0.5, material 0.0 -> 11,830 RP) look low beside steam_turbine and diesel; recorded as an OPEN cost-consistency finding and not re-scored, because D-047 is the last ruling on this node. Its closure grows at integration (steam_turbine gains thermodynamics).",
+   "changes": "none",
+   "nodeKind": "application"
+  },
+  {
+   "id": "steam_turbine",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Parsons (1884). Written content unchanged. AT INTEGRATION (D04 request, accepted): multi-stage turbines are designed from the thermodynamics of steam expansion (Rankine 1859; INFERENCE as to strict necessity, accepted as knowledge actually needed for staged expansion), so the node gains D04's new id thermodynamics; not written here because a lane file references only existing ids.",
+   "changes": "none in this part. AT INTEGRATION: prereq 'steam_high_pressure AND open_hearth' -> 'steam_high_pressure AND open_hearth AND thermodynamics'; prereq_complexity 0.5 -> 1.0; magnitude 9.0 -> 9.5; cost 47,310 -> 66,900 (convention C-26; no other factor touched; integrator rounding)",
+   "nodeKind": "application",
+   "compatibility": {
+    "saves": "At integration: partial progress is dormant while thermodynamics is unmet; raised cost (remaining work +19,590 RP).",
+    "ids": "none",
+    "ui": "lock reason names thermodynamics",
+    "ai": "closures of jet_engine, gas_turbine_power and D11's nuclear_power grow by thermodynamics' closure",
+    "consumers": "jet_engine, nuclear_power (D11), unit.aircraft_carrier unchanged",
+    "tests": "chronology (thermodynamics 1824 < 1884). AI-empire goldens move with any content change; the three CI --check docs regenerate; allocation-scenario keys (12/17/2/8/52/74/53) and the v33 fixture key 2 are untouched."
+   }
+  },
+  {
+   "id": "diesel",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Diesel (1893-97). The compression-ignition engine descends from the four-stroke stationary engine, not from the petrol engine, so its engine prerequisite moves to gas_engine (count unchanged). AT INTEGRATION (D04 request, accepted): Diesel designed his engine to approach the Carnot cycle ('Theory and Construction of a Rational Heat Motor', 1893 - RESEARCHED), so it gains D04's new id thermodynamics. open_hearth stays: high compression needs strong steel. No petroleum edge: diesels ran on heavy oils and even vegetable oil.",
+   "changes": "prereq 'internal_combustion AND open_hearth' -> 'gas_engine AND open_hearth' (same count, cost 33,450 unchanged). AT INTEGRATION: + thermodynamics -> 'gas_engine AND open_hearth AND thermodynamics'; prereq_complexity 0.5 -> 1.0; magnitude 8.5 -> 9.0; cost 33,450 -> 47,310",
+   "nodeKind": "application",
+   "prereq": "gas_engine AND open_hearth",
+   "prereqRationale": "gas_engine: the four-stroke compression cycle Diesel's engine uses (Diesel worked from the stationary-engine tradition at MAN). open_hearth: steel for the high-pressure cylinder and crank. internal_combustion (now the high-speed petrol engine) is not part of the diesel lineage.",
+   "compatibility": {
+    "saves": "Old saves that completed internal_combustion but not gas_engine see diesel's progress go dormant until gas_engine completes (grant-on-load seam OPEN).",
+    "ids": "none",
+    "ui": "lock reason names the stationary gas engine (and thermodynamics after integration)",
+    "ai": "diesel closure changes; container_shipping (D08) inherits it",
+    "consumers": "container_shipping unchanged",
+    "tests": "chronology (gas_engine 1860, open_hearth 1865, thermodynamics 1824 all < 1897); family 'ice' generation 2 still above gas_engine's (none) and internal_combustion's 1. AI-empire goldens move with any content change; the three CI --check docs regenerate; allocation-scenario keys (12/17/2/8/52/74/53) and the v33 fixture key 2 are untouched."
+   }
+  },
+  {
+   "id": "computer",
+   "disposition": [
+    "split",
+    "rebalance"
+   ],
+   "rationale": "The node bundled the first programmable digital computers (Zuse's relay Z3 1941; Colossus 1943-44 and ENIAC 1945, programmed by plugboards and switches) with the stored-program computer (Manchester Baby 1948, EDSAC 1949) - its own text: 'ENIAC 1945 (tube), EDSAC 1949 (stored program)'. Accepted D05's request: split, keep a9_computing and all fourteen dependants on key 315 (every software, network and space node needs stored programs), score both parts 11.5. The key keeps the stored-program computer; the founding part becomes programmable_computer. The retained part requires radar (existing id) rather than vacuum_tube alone: the first stored-program machines held their programs in memories taken from radar - mercury delay lines (developed for radar moving-target filtering, used by EDVAC/EDSAC/ACE) and the Williams-Kilburn CRT store (from TRE radar work) - RESEARCHED; magnetic drums were a slightly later alternative not modelled. radar implies vacuum_tube.",
+   "changes": "split -> programmable_computer (new, upstream); prereq 'vacuum_tube AND calculus' -> 'programmable_computer AND radar'; emerged '1949 CE' -> '1948 CE Manchester Baby; 1949 CE EDSAC' (still marked); novelty 2.0 -> 1.0; magnitude 12.5 -> 11.5; cost 535,250 -> 267,620; name, Eureka (punched cards) and a9_computing unchanged",
+   "nodeKind": "application",
+   "emerged": "1948 CE (Manchester Baby); 1949 CE (EDSAC, Cambridge)",
+   "prereq": "programmable_computer AND radar",
+   "prereqRationale": "programmable_computer: automatic digital calculation by relay or valve switching. radar: the delay-line and CRT memories that let a machine hold its own program (implies vacuum_tube). calculus is implied through programmable_computer.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.5,
+    "material": 2.0,
+    "institutional": 3.0,
+    "breadth": 1.5,
+    "prereq_complexity": 0.5
+   },
+   "splitInto": [
+    "programmable_computer"
+   ],
+   "costRationale": "novelty 1.0: holding the program in memory is an architectural step realised within four years of ENIAC; the paradigm (programmable digital computation, 2.0) moves to programmable_computer and is scored once | difficulty 3.5, material 2.0, institutional 3.0, breadth 1.5, prereq_complexity 0.5 unchanged (two requirements). Magnitude 12.5 -> 11.5: 535,250 -> 267,620 RP. Split sum 267,620 x 2 = 535,240 vs 535,250 (workload conserved, as D05 proposed). Tier label T4 -> T2.",
+   "capability": {
+    "grants": [
+     "knowledge:programmable computation",
+     "knowledge:ballistics, codebreaking, then everything",
+     "age:a9_computing"
+    ],
+    "realizationOwner": "AgeTransitionSystem (milestone fact)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: Age 9 supporting milestone a9_computing is live (class B).",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide once complete.",
+    "unknownResource": "n/a",
+    "aiValuation": "Supporting Age fact plus fourteen dependants; high once Age 9 is the target.",
+    "playerCommunication": "Age panel: supporting milestone. Lock reason names the programmable computer and radar."
+   },
+   "compatibility": {
+    "saves": "Key 315 keeps a9_computing and all dependants. Old saves holding 315 keep it; holders do not hold programmable_computer (no consumer of it except 315, so nothing they hold is lost). Lowered cost: progress >= 267,620 completes at the next step if the new prerequisites hold; otherwise dormant. Its Eureka index 0 (punched cards, when: jacquard) is unchanged and stays neither dead nor implied - for that reason punched_card_tabulation (D05) is NOT made a prerequisite (it requires jacquard and would make the Eureka implied, which the loader refuses).",
+    "ids": "315 kept; programmable_computer gets a new key",
+    "ui": "lock reasons name programmable_computer and radar",
+    "ai": "a9_computing closure: +programmable_computer +radar (radar's own prerequisites are already in it), -267,630 RP on the node itself.",
+    "consumers": "all fourteen dependants unchanged (internet, satellite, microprocessor, programming_languages, numerical_control, icbm, guided_munitions, stealth, genome_sequencing, medical_imaging, space_probe, crewed_spaceflight, additive_manufacturing, weather_prediction).",
+    "tests": "chronology (1948 vs programmable_computer 1941, radar 1938); family 'computing' generation 1 kept (programmable_computer carries no generation). AI-empire goldens move with any content change; the three CI --check docs regenerate; allocation-scenario keys (12/17/2/8/52/74/53) and the v33 fixture key 2 are untouched."
+   }
+  },
+  {
+   "id": "transistor",
+   "disposition": [
+    "split",
+    "rebalance"
+   ],
+   "rationale": "The node bundled the understanding (semiconductor physics: band theory 1931, rectifier theory 1938-39, the p-n junction and its photovoltaic effect 1940) with its first great application, the transistor (1947-48). Its only scientific prerequisite was quantum mechanics itself. The key keeps the device and its consumers (integrated_circuit, satellite, solar_pv); the science becomes semiconductor_physics, which solar_pv also needs directly. Answer to D02 (c): the semiconductor-grade crystal step (Teal and Little 1950; Pfann's zone refining) stays inside the device's material factor (2.0) - no separate materials node, so nothing is double-counted.",
+   "changes": "split -> semiconductor_physics (new, upstream); prereq 'vacuum_tube AND quantum_mechanics' -> 'vacuum_tube AND semiconductor_physics' (same count); novelty 2.0 -> 1.0; magnitude 11.5 -> 10.5; cost 267,620 -> 133,810",
+   "nodeKind": "application",
+   "prereq": "vacuum_tube AND semiconductor_physics",
+   "prereqRationale": "semiconductor_physics: carriers, junctions and surface states - the knowledge Bardeen, Brattain and Shockley worked from. vacuum_tube: the amplifier and switching circuit theory the transistor was built to replace. quantum_mechanics is implied through semiconductor_physics.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 2.0,
+    "institutional": 3.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "splitInto": [
+    "semiconductor_physics"
+   ],
+   "costRationale": "novelty 1.0: the device applies the carved-out physics (the paradigm, solid-state electronics, is scored once on semiconductor_physics) | difficulty 3.0: A9 prior | material 2.0: semiconductor-grade crystals (unchanged; includes the crystal-growth step D02 asked about) | institutional 3.0: an industrial laboratory programme (unchanged) | breadth 1.0 (unchanged) | prereq_complexity 0.5. Magnitude 11.5 -> 10.5: 267,620 -> 133,810 RP. Split sum with semiconductor_physics (79,560): 213,370 vs 267,620 (-20.3 %). Tier label T4 -> T2.",
+   "compatibility": {
+    "saves": "Key 316 kept. Holders of 316 do not hold semiconductor_physics, so solar_pv (now requiring it) needs it first; partial solar_pv progress dormant until then (grant-on-load seam OPEN). Lowered cost: progress >= 133,810 completes at the next step if prerequisites hold.",
+    "ids": "316 kept; semiconductor_physics gets a new key",
+    "ui": "lock reason names semiconductor_physics",
+    "ai": "transistor closure: +semiconductor_physics -133,810 on the node",
+    "consumers": "integrated_circuit, satellite keep key 316; solar_pv re-pointed (this lane).",
+    "tests": "chronology (1947 vs 1931); family 'electronics' generation 2 still above vacuum_tube's 1. AI-empire goldens move with any content change; the three CI --check docs regenerate; allocation-scenario keys (12/17/2/8/52/74/53) and the v33 fixture key 2 are untouched."
+   }
+  },
+  {
+   "id": "integrated_circuit",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Kilby (1958) and Noyce (1959), independently; photolithography is the photography edge. One coherent invention: not split (a separate planar-process or crystal node would only re-price it). Capability milestone corrected to M10+ (a fab's output needs an electronics good).",
+   "changes": "capability block only",
+   "nodeKind": "application",
+   "capability": {
+    "grants": [
+     "knowledge:cheap computation",
+     "knowledge:the microprocessor",
+     "building:building.semiconductor_fab"
+    ],
+    "realizationOwner": "ConstructionSystem (none realizes it yet)",
+    "status": "deferred",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: building.semiconductor_fab knowledge-eligible, no realizing system (class J).",
+    "deferredEffect": "M11+ new-industries content: a fab turns silicon and chemical inputs into an electronics good (none exists). T6.11 (M6, PROPOSED) lists it in tier G for construction only.",
+    "inputs": {
+     "resources": [
+      "high-purity silicon, chemicals (no such goods)"
+     ],
+     "geography": [],
+     "infrastructure": [
+      "electricity supply (M11+)"
+     ],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not realizable: no inputs, no output good, no capacity system.",
+    "unknownResource": "n/a",
+    "aiValuation": "Valued through the goal closures and the dependants it opens.",
+    "playerCommunication": "Building card: 'eligible - no system builds it yet'."
+   }
+  },
+  {
+   "id": "microprocessor",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Intel 4004 (1971): one coherent invention. No change.",
+   "changes": "none",
+   "nodeKind": "application"
+  },
+  {
+   "id": "cmos_vlsi",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "VLSI and CMOS design methods (1970s-80s); D-047 row 16 kept its edge. No change.",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "hydroelectric",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Kept; two proxy edges corrected. Dams drive water turbines, not water wheels: the reaction and impulse turbines of Fourneyron (1827), Francis (1849) and Pelton (1879) made high heads usable (RESEARCHED: Britannica 'turbine'). Dam-scale stations serve distant cities, so they need the grid: the 1891 Lauffen-Frankfurt line was fed by a turbine-driven generator, and Niagara's Adams plant (1895) reached Buffalo by three-phase AC in November 1896 (RESEARCHED: ETHW milestones).",
+   "changes": "prereq 'electricity_generation AND reinforced_concrete AND water_mill' -> 'ac_transmission AND reinforced_concrete AND water_turbine'; three requirements before and after, so prereq_complexity 1.0 and cost 23,650 are unchanged; capability milestone corrected to M10+",
+   "nodeKind": "infrastructure",
+   "prereq": "ac_transmission AND reinforced_concrete AND water_turbine",
+   "prereqRationale": "ac_transmission: remote dams deliver only through high-voltage lines (implies electricity_generation). reinforced_concrete: the dam structure. water_turbine: the prime mover (replaces the water_mill proxy; water_mill is implied through water_turbine).",
+   "capability": {
+    "grants": [
+     "knowledge:cheap electricity",
+     "knowledge:aluminium (energy-gated)",
+     "building:building.hydroelectric_dam"
+    ],
+    "realizationOwner": "ConstructionSystem (structure) + M11+ electricity capacity system (neither exists for it)",
+    "status": "deferred",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: building.hydroelectric_dam knowledge-eligible, no realizing system (class J).",
+    "deferredEffect": "M11+ energy system: river head becomes grid capacity (ADR-019 §5.1). T6.11 (M6, PROPOSED) lists the dam in tier G for construction only.",
+    "inputs": {
+     "resources": [],
+     "geography": [
+      "river with head (derivable from TerrainSet rivers and elevation)"
+     ],
+     "infrastructure": [
+      "infra.power_grid"
+     ],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not realizable: no capacity system; once one exists, a site without river head cannot host a dam.",
+    "unknownResource": "n/a (rivers are terrain); fog only limits which sites the polity knows (fog lane).",
+    "aiValuation": "Valued through the goal closures and the dependants it opens.",
+    "playerCommunication": "Building card: 'eligible - needs a river with head and the grid; no system builds it yet'."
+   },
+   "compatibility": {
+    "saves": "Old saves holding electricity_generation but not ac_transmission/water_turbine see hydroelectric progress go dormant until both complete (grant-on-load seam OPEN).",
+    "ids": "none",
+    "ui": "lock reasons name the grid and the turbine",
+    "ai": "closure gains ac_transmission and water_turbine (+37,710 RP on the nodes themselves)",
+    "consumers": "building.hydroelectric_dam unchanged; becomes an alternative route to grid_storage",
+    "tests": "chronology (ac_transmission 1884, water_turbine 1827, reinforced_concrete 1867 < 1895). AI-empire goldens move with any content change; the three CI --check docs regenerate; allocation-scenario keys (12/17/2/8/52/74/53) and the v33 fixture key 2 are untouched."
+   }
+  },
+  {
+   "id": "solar_pv",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Bell Labs silicon cell (1954), built on the p-n junction whose photovoltaic effect Ohl found in 1940 (RESEARCHED) and on transistor-era silicon processing. The quantum_mechanics edge is replaced by the specific science it stood for. Gains communications_satellite (D05 new) as a dependant.",
+   "changes": "prereq 'transistor AND quantum_mechanics' -> 'semiconductor_physics AND transistor' (same count, cost 94,620 unchanged); capability milestone corrected to M10+",
+   "nodeKind": "application",
+   "prereq": "semiconductor_physics AND transistor",
+   "prereqRationale": "semiconductor_physics: junction photovoltaics (Ohl 1940). transistor: the silicon diffusion and device process the 1954 cell used. Both are named even though the first is implied by the second, exactly as the old quantum_mechanics edge was.",
+   "capability": {
+    "grants": [
+     "knowledge:distributed generation",
+     "knowledge:energy without fuel or river",
+     "building:building.solar_farm"
+    ],
+    "realizationOwner": "ConstructionSystem (structure) + M11+ electricity capacity system (neither exists for it)",
+    "status": "deferred",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: building.solar_farm knowledge-eligible, no realizing system (class J).",
+    "deferredEffect": "M11+ energy system: sunlight becomes generation capacity; T6.11 (M6, PROPOSED) lists the farm in tier G for construction only.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not realizable until a capacity system exists.",
+    "unknownResource": "n/a",
+    "aiValuation": "Valued through the goal closures and the dependants it opens.",
+    "playerCommunication": "Building card: 'eligible - no system builds it yet'."
+   },
+   "compatibility": {
+    "saves": "Holders of transistor without semiconductor_physics (impossible in new games; possible in old saves) see solar_pv dormant until it completes.",
+    "ids": "none",
+    "ui": "lock reason names semiconductor physics",
+    "ai": "closure unchanged in practice",
+    "consumers": "space_solar, frontier_energy, communications_satellite (D05) unchanged",
+    "tests": "chronology (1931, 1947 < 1954). AI-empire goldens move with any content change; the three CI --check docs regenerate; allocation-scenario keys (12/17/2/8/52/74/53) and the v33 fixture key 2 are untouched."
+   }
+  },
+  {
+   "id": "lithium_battery",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Kept; the anachronism is removed. Lithium-ion (Goodenough's layered-oxide cathode 1980, Yoshino's cell 1985, commercial 1991) rests on battery chemistry and on the solid-state chemistry of intercalation hosts, which is quantum theory of solids; today its shortest prerequisite chain is 12 nodes, from Lavoisier and Faraday alone. The battery lineage itself (Volta 1800) is now inside D04's re-scoped electromagnetism, implied through quantum_mechanics.",
+   "changes": "prereq 'chemistry_quantitative AND electromagnetism' -> 'chemistry_quantitative AND quantum_mechanics' (same count, cost 94,620 unchanged)",
+   "nodeKind": "application",
+   "prereq": "chemistry_quantitative AND quantum_mechanics",
+   "prereqRationale": "chemistry_quantitative: electrode and electrolyte chemistry. quantum_mechanics: band and crystal theory of intercalation compounds (Whittingham, Goodenough). electromagnetism (which D04 now starts at Volta's battery) is implied through quantum_mechanics in both the current and the proposed graph.",
+   "compatibility": {
+    "saves": "Old saves holding the old prerequisites but not quantum_mechanics see progress dormant until it completes.",
+    "ids": "none",
+    "ui": "lock reason names quantum mechanics",
+    "ai": "closure grows by quantum_mechanics' closure; electric_vehicle, grid_storage, smartphone later",
+    "consumers": "electric_vehicle (D08), grid_storage, smartphone unchanged",
+    "tests": "chronology (1789, 1925 < 1991). AI-empire goldens move with any content change; the three CI --check docs regenerate; allocation-scenario keys (12/17/2/8/52/74/53) and the v33 fixture key 2 are untouched."
+   }
+  },
+  {
+   "id": "gas_turbine_power",
+   "disposition": [
+    "rebalance"
+   ],
+   "rationale": "D02's request accepted: combined-cycle and heavy-duty gas turbines run continuously at turbine-inlet temperatures that only nickel superalloys (and later blade cooling) withstand - Nimonic 80 became the standard rotor-blade alloy of British gas turbines from 1941 (D02, RESEARCHED). This gives superalloy a causal consumer (D08's jet_airliner takes it too) without the jet_engine edge D-047 removed. electricity_generation stays explicit (power-plant knowledge).",
+   "changes": "prereq 'jet_engine AND electricity_generation' -> 'jet_engine AND electricity_generation AND superalloy'; prereq_complexity 0.5 -> 1.0; magnitude 9.0 -> 9.5; cost 47,310 -> 66,900; capability block adds the deferred owner",
+   "nodeKind": "application",
+   "prereq": "jet_engine AND electricity_generation AND superalloy",
+   "prereqRationale": "jet_engine: the gas-turbine core (aero-derivative lineage). electricity_generation: generator and station practice. superalloy: hot-section blades that set combined-cycle efficiency.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 1.5,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 1.0
+   },
+   "costRationale": "Only prereq_complexity moves (C-26): two requirements -> three, 0.5 -> 1.0. novelty 1.0, difficulty 3.0, material 1.5, institutional 2.5, breadth 0.5 unchanged. Magnitude 9.0 -> 9.5: 47,310 -> 66,900 RP (+41 %).",
+   "capability": {
+    "grants": [
+     "knowledge:efficient dispatchable generation"
+    ],
+    "realizationOwner": "none (M11+ electricity capacity system)",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: completion row only (class C); prerequisite of carbon_capture and frontier_energy.",
+    "deferredEffect": "M11+ energy system: dispatchable gas-fired capacity (needs a natural-gas good, which does not exist).",
+    "inputs": {
+     "resources": [
+      "natural gas (no such good)"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide once complete.",
+    "unknownResource": "Gas identification and drilling belong to D11/D02; research never reveals a field.",
+    "aiValuation": "Valued through the goal closures and the dependants it opens.",
+    "playerCommunication": "Knowledge only; the Glass Box card names the nodes it opens."
+   },
+   "compatibility": {
+    "saves": "Partial progress dormant while superalloy is unmet; remaining work +19,590 RP.",
+    "ids": "none",
+    "ui": "lock reason names superalloy",
+    "ai": "closure grows by superalloy (+66,910 and metallography if D02's re-point is accepted)",
+    "consumers": "carbon_capture (D04), frontier_energy unchanged; superalloy (D02) gains a dependant",
+    "tests": "superalloy (~1940 CE) vs gas_turbine_power (unmarked) - not checked by the chronology test, and historically earlier. AI-empire goldens move with any content change; the three CI --check docs regenerate; allocation-scenario keys (12/17/2/8/52/74/53) and the v33 fixture key 2 are untouched."
+   }
+  },
+  {
+   "id": "wind_turbine_modern",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Danish-concept turbines feed the AC grid directly (Juul's Gedser turbine, 1957, used an induction generator synchronised to the grid - RESEARCHED), so the grid, not generation alone, is the knowledge needed.",
+   "changes": "prereq 'composites AND electricity_generation' -> 'composites AND ac_transmission' (same count, cost 47,310 unchanged); capability milestone corrected to M10+",
+   "nodeKind": "application",
+   "prereq": "composites AND ac_transmission",
+   "prereqRationale": "composites: light, stiff blades. ac_transmission: grid connection and synchronisation (implies electricity_generation).",
+   "capability": {
+    "grants": [
+     "knowledge:generation capacity from wind",
+     "building:building.wind_farm"
+    ],
+    "realizationOwner": "ConstructionSystem (structure) + M11+ electricity capacity system (neither exists for it)",
+    "status": "deferred",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: building.wind_farm knowledge-eligible, no realizing system (class J).",
+    "deferredEffect": "M11+ energy system: intermittent generation capacity on the grid; T6.11 (M6, PROPOSED) lists the farm in tier G for construction only.",
+    "inputs": {
+     "resources": [],
+     "geography": [
+      "windy sites (not modelled)"
+     ],
+     "infrastructure": [
+      "infra.power_grid"
+     ],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not realizable until a capacity system exists.",
+    "unknownResource": "n/a",
+    "aiValuation": "Valued through the goal closures and the dependants it opens.",
+    "playerCommunication": "Building card: 'eligible - needs the grid; no system builds it yet'."
+   },
+   "compatibility": {
+    "saves": "Old saves holding electricity_generation but not ac_transmission see progress dormant until it completes.",
+    "ids": "none",
+    "ui": "lock reason names AC power transmission",
+    "ai": "closure +ac_transmission (+23,650 RP)",
+    "consumers": "building.wind_farm unchanged",
+    "tests": "AI-empire goldens move with any content change; the three CI --check docs regenerate; allocation-scenario keys (12/17/2/8/52/74/53) and the v33 fixture key 2 are untouched."
+   }
+  },
+  {
+   "id": "grid_storage",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Dead end resolved by a deferred owner, and a genuine alternative route added. Grid storage has two technical routes: pumped-storage hydro (Swiss and Italian plants from the 1880s-1900s; Zurich 1882 is cited as the first - dates vary between sources, RESEARCHED weak) which still holds most installed storage capacity (over 94 % by the International Hydropower Association's count - RESEARCHED), and battery installations (2010s). Both serve the grid, so the grid is required.",
+   "changes": "prereq 'lithium_battery AND electricity_generation' -> 'ac_transmission AND (lithium_battery OR hydroelectric)' (two top-level requirements, OR counted once: prereq_complexity 0.5 and cost 33,450 unchanged); emerged '2010s' -> '1880s-1900s pumped storage (Switzerland, Italy); 2010s battery installations' (left marker-free, so the 83-count pin is unchanged); capability adds the deferred owner",
+   "nodeKind": "infrastructure",
+   "prereq": "ac_transmission AND (lithium_battery OR hydroelectric)",
+   "emerged": "1880s-1900s pumped storage (Switzerland, Italy); 2010s battery installations",
+   "prereqRationale": "ac_transmission: storage time-shifts grid power. lithium_battery OR hydroelectric: two independent technical routes (electrochemical or pumped-hydro storage) - an OR for genuinely different paths, not to soften cost: each route carries its full chain (cheapest closures 856,140 via battery vs 905,220 via pumped hydro on the D06-only graph; 1,003,230 vs 885,010 with all current lane parts - MEASURED by the lane with tools/kr_lib.py).",
+   "capability": {
+    "grants": [
+     "knowledge:time-shifting generation",
+     "knowledge:stability with intermittent sources"
+    ],
+    "realizationOwner": "none (M11+ electricity capacity system)",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: completion row only (class C); no dependant.",
+    "deferredEffect": "M11+ energy system (ADR-019 §5.1): storage moves generation capacity across time to cover demand peaks and intermittent wind and solar output.",
+    "inputs": {
+     "resources": [],
+     "geography": [
+      "for pumped storage: two reservoirs at different heights"
+     ],
+     "infrastructure": [
+      "infra.power_grid"
+     ],
+     "institutions": []
+    },
+    "missingInputs": "Knowledge only until a capacity system exists.",
+    "unknownResource": "n/a",
+    "aiValuation": "Low until a capacity system exists; then valued with intermittent generation.",
+    "playerCommunication": "Knowledge only: 'storage needs an electricity system (not yet simulated)'."
+   },
+   "compatibility": {
+    "saves": "Old saves holding lithium_battery and electricity_generation but not ac_transmission see progress dormant until it completes.",
+    "ids": "none",
+    "ui": "lock reason shows the OR group",
+    "ai": "cheapest closure picks whichever storage route is cheaper for the polity",
+    "consumers": "none (leaf with a deferred owner)",
+    "tests": "chronology unaffected (marker-free); OR atoms are not must-hold. AI-empire goldens move with any content change; the three CI --check docs regenerate; allocation-scenario keys (12/17/2/8/52/74/53) and the v33 fixture key 2 are untouched."
+   }
+  },
+  {
+   "id": "smart_grid",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Dead end resolved by a deferred owner; the grid edge made explicit (networked control of transmission and demand is a property of the grid, not of a single station).",
+   "changes": "prereq 'internet AND electricity_generation' -> 'internet AND ac_transmission' (same count, cost 11,830 unchanged); capability adds the deferred owner",
+   "nodeKind": "infrastructure",
+   "prereq": "internet AND ac_transmission",
+   "prereqRationale": "internet: networked sensing and control. ac_transmission: the grid being controlled (implies electricity_generation).",
+   "capability": {
+    "grants": [
+     "knowledge:demand response",
+     "knowledge:distributed generation"
+    ],
+    "realizationOwner": "none (M11+ electricity capacity system)",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: completion row only (class C); no dependant.",
+    "deferredEffect": "M11+ energy system: demand-response and distributed-dispatch terms in the capacity balance.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [
+      "infra.power_grid",
+      "infra.internet_backbone"
+     ],
+     "institutions": []
+    },
+    "missingInputs": "Knowledge only until a capacity system exists.",
+    "unknownResource": "n/a",
+    "aiValuation": "Valued through the goal closures and the dependants it opens.",
+    "playerCommunication": "Knowledge only: 'needs an electricity system (not yet simulated)'."
+   },
+   "compatibility": {
+    "saves": "Progress dormant until ac_transmission completes in old saves lacking it.",
+    "ids": "none",
+    "ui": "lock reason names AC power transmission",
+    "ai": "closure +ac_transmission",
+    "consumers": "none (leaf with a deferred owner)",
+    "tests": "AI-empire goldens move with any content change; the three CI --check docs regenerate; allocation-scenario keys (12/17/2/8/52/74/53) and the v33 fixture key 2 are untouched."
+   }
+  },
+  {
+   "id": "programming_languages",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Compilers (FORTRAN 1957) on stored-program machines. No change.",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "operating_system",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Multics/Unix (1960s-70s). No change.",
+   "changes": "none",
+   "nodeKind": "application"
+  },
+  {
+   "id": "relational_database",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Codd's relational model (1970). No change.",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "personal_computer",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "1977: VLSI plus an operating system. No change.",
+   "changes": "none",
+   "nodeKind": "application"
+  },
+  {
+   "id": "public_key_crypto",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Diffie-Hellman 1976, RSA 1977. No change.",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "gpu_parallel",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Massively parallel processors (1999; general-purpose 2007). No change.",
+   "changes": "none",
+   "nodeKind": "application"
+  },
+  {
+   "id": "deep_learning",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Many-layer networks on GPUs (2012). No change.",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "large_language_models",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Transformer models at scale (2017-2020). No change.",
+   "changes": "none",
+   "nodeKind": "application"
+  },
+  {
+   "id": "cyber_warfare",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Network attack and defence (Stuxnet 2010); kept. No change.",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "quantum_computing",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Noisy intermediate-scale processors (2019). No change.",
+   "changes": "none",
+   "nodeKind": "application"
+  },
+  {
+   "id": "machine_learning",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Statistical learning and backpropagation (1980s). Written content unchanged. AT INTEGRATION (D04 request, accepted): statistical learning - estimation, likelihood, Bayesian inference - is applied probability theory, so the calculus edge (implied through programming_languages -> computer -> programmable_computer) is replaced by D04's new id probability_statistics; not written here because a lane file references only existing ids.",
+   "changes": "none in this part. AT INTEGRATION: prereq 'programming_languages AND calculus' -> 'programming_languages AND probability_statistics' (same count: prereq_complexity 0.5 and cost 47,310 unchanged)",
+   "nodeKind": "technique",
+   "compatibility": {
+    "saves": "At integration: progress dormant in old saves lacking probability_statistics.",
+    "ids": "none",
+    "ui": "lock reason names probability and statistics",
+    "ai": "closure gains probability_statistics (A7, cheap); calculus stays implied",
+    "consumers": "deep_learning unchanged",
+    "tests": "Age monotonic (A7 -> A9); machine_learning's emerged is marker-free (chronology test does not apply). AI-empire goldens move with any content change; the three CI --check docs regenerate; allocation-scenario keys (12/17/2/8/52/74/53) and the v33 fixture key 2 are untouched."
+   }
+  },
+  {
+   "id": "cloud_computing",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Rented computation in networked data centres (2006). Capability milestone corrected to M10+: a data centre's effect needs a computation or information consumer that has no owner before M11+.",
+   "changes": "capability block only",
+   "nodeKind": "infrastructure",
+   "capability": {
+    "grants": [
+     "knowledge:elastic computation",
+     "knowledge:global services",
+     "building:building.data_centre"
+    ],
+    "realizationOwner": "ConstructionSystem (none realizes it yet)",
+    "status": "deferred",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: building.data_centre knowledge-eligible, no realizing system (class J).",
+    "deferredEffect": "M11+ content: a computation-capacity consumer (none designed). T6.11 (M6, PROPOSED) lists it in tier G for construction only.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [
+      "electricity supply (M11+)",
+      "infra.internet_backbone"
+     ],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not realizable.",
+    "unknownResource": "n/a",
+    "aiValuation": "Valued through the goal closures and the dependants it opens.",
+    "playerCommunication": "Building card: 'eligible - no system builds it yet'."
+   }
+  },
+  {
+   "id": "smartphone",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "D05's request accepted: the smartphone's defining capability is mobile data, so its phone prerequisite becomes cellular_digital (which implies mobile_phone and gives cellular_digital a dependant). Remains a leaf: dead end given a candidate later owner, honestly labelled.",
+   "changes": "prereq 'mobile_phone AND personal_computer AND lithium_battery' -> 'cellular_digital AND personal_computer AND lithium_battery' (same count, cost 23,650 unchanged); capability adds a candidate deferred owner",
+   "nodeKind": "application",
+   "prereq": "cellular_digital AND personal_computer AND lithium_battery",
+   "prereqRationale": "cellular_digital: 2G/3G mobile data (implies mobile_phone). personal_computer: the general-purpose computer it miniaturises. lithium_battery: portable energy.",
+   "capability": {
+    "grants": [
+     "knowledge:ubiquitous computing",
+     "knowledge:mobile internet"
+    ],
+    "realizationOwner": "none",
+    "status": "knowledge-only",
+    "milestone": "M8",
+    "currentEffect": "MEASURED: completion row only (class C); no dependant.",
+    "deferredEffect": "Candidate only: personal mobile access raising information reach. D-041 C1 lists 'media and information reach, once such a system exists' among attachment drivers (binds M8); no mechanism is designed (IMPLEMENTATION DEFERRED).",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide once complete.",
+    "unknownResource": "n/a",
+    "aiValuation": "Valued through the goal closures and the dependants it opens.",
+    "playerCommunication": "Knowledge only."
+   },
+   "compatibility": {
+    "saves": "Progress dormant in old saves lacking cellular_digital.",
+    "ids": "none",
+    "ui": "lock reason names digital cellular networks",
+    "ai": "closure +cellular_digital (+8,360 RP)",
+    "consumers": "none",
+    "tests": "AI-empire goldens move with any content change; the three CI --check docs regenerate; allocation-scenario keys (12/17/2/8/52/74/53) and the v33 fixture key 2 are untouched."
+   }
+  },
+  {
+   "id": "weather_prediction",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Dead end resolved by a deferred owner. arch-JKL §9.4 (PROPOSED) designs forecasting not as a coefficient but as an observability capability - a gated readout of hazard likelihood that lets whoever issues orders respond earlier - and records its knowledge carrier as owed (OWED-K1). This node is that carrier. The first numerical forecast ran on ENIAC (1950).",
+   "changes": "capability block only",
+   "nodeKind": "technique",
+   "capability": {
+    "grants": [
+     "knowledge:harvest and disaster forecasting"
+    ],
+    "realizationOwner": "none (M9 society: disaster/crisis readout)",
+    "status": "knowledge-only",
+    "milestone": "M9",
+    "currentEffect": "MEASURED: completion row only (class C); no dependant.",
+    "deferredEffect": "PROPOSED (arch-JKL §9.4, OWED-K1): gates a hazard/forecast readout over DisasterRow and harvest weather (READ class under the observability taxonomy); the response stays the player's or the AI's (IMPLEMENTATION DEFERRED).",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide once complete.",
+    "unknownResource": "n/a",
+    "aiValuation": "Higher for polities exposed to harvest shocks once the readout exists.",
+    "playerCommunication": "Once realized: forecasts appear on the settlement food/disaster panel."
+   }
+  },
+  {
+   "id": "fault_tolerant_quantum",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Knowledge-only speculative capstone (TS tier) kept as an explicit justified leaf: D-046 keeps the speculative set; no consumer is planned and none is invented. It counts toward per-subtree exhaustion before the engineering recursive nodes open.",
+   "changes": "capability block only (records the accepted dead end)",
+   "nodeKind": "application",
+   "capability": {
+    "grants": [
+     "knowledge:quantum simulation of chemistry and materials"
+    ],
+    "realizationOwner": "none",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: completion row only (class C, speculative_finite); no dependant.",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide once complete.",
+    "unknownResource": "n/a",
+    "aiValuation": "Only as part of engineering-subtree exhaustion (opens the recursive nodes).",
+    "playerCommunication": "Knowledge only (speculative)."
+   }
+  },
+  {
+   "id": "general_ai",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Speculative capstone (TS tier). Dead end given the one consumer the corpus already documents for this family: the labour-per-output coefficient of frontier_computation (administration and automation). Pinned by ResearchOrderFactoryTests (id kept).",
+   "changes": "capability block only",
+   "nodeKind": "application",
+   "capability": {
+    "grants": [
+     "knowledge:automation of cognitive work"
+    ],
+    "realizationOwner": "none (M11+ automation/administration content)",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: completion row only (class C, speculative_finite); no dependant.",
+    "deferredEffect": "Candidate only: the labour per unit of administrative or automated output coefficient documented on frontier_computation (M11+); no mechanism exists.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide once complete.",
+    "unknownResource": "n/a",
+    "aiValuation": "Valued through the goal closures and the dependants it opens.",
+    "playerCommunication": "Knowledge only (speculative)."
+   }
+  },
+  {
+   "id": "space_solar",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Speculative (TS). Capability milestone corrected to M10+: the probe-acceleration project and any generation effect need systems that have no owner before M11+.",
+   "changes": "capability block only",
+   "nodeKind": "application",
+   "capability": {
+    "grants": [
+     "knowledge:generation without land or night",
+     "building:project.probe_acceleration"
+    ],
+    "realizationOwner": "ConstructionSystem (none realizes it yet)",
+    "status": "deferred",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: project.probe_acceleration knowledge-eligible, no realizing system (class J).",
+    "deferredEffect": "M11+ content (energy and space systems); T6.11 tier G lists the project for construction only.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not realizable.",
+    "unknownResource": "n/a",
+    "aiValuation": "Valued through the goal closures and the dependants it opens.",
+    "playerCommunication": "Project card: 'eligible - no system builds it yet'."
+   }
+  },
+  {
+   "id": "frontier_energy",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Repeatable line kept as ratified (D-046 G4: completes once; no level mechanic). Dead end resolved by naming the owner its own documented descriptor already implies.",
+   "changes": "capability block only; finite_nodes_to_exhaust (engineering) must be recomputed at integration: this lane alone adds four finite engineering nodes and moves two to the trunk (125 -> 127 before other lanes' changes).",
+   "nodeKind": "technique",
+   "capability": {
+    "grants": [
+     "knowledge:more generation per unit of fuel or sunlight"
+    ],
+    "realizationOwner": "ResearchSystem (repeatable)",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: completes once (class H); no consuming mechanism (descriptor status 'DOCUMENTED').",
+    "deferredEffect": "DOCUMENTED descriptor, unchanged: each level closes a fraction of the gap to the thermodynamic limit (Carnot; Shockley-Queisser) of conversion efficiency inside the M11+ energy system's generation equation. Levels remain D-044 Part D T6 (OPEN).",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide once complete.",
+    "unknownResource": "n/a",
+    "aiValuation": "Only after engineering-subtree exhaustion.",
+    "playerCommunication": "Repeatable: 'no effect simulated yet'."
+   }
+  },
+  {
+   "id": "frontier_computation",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Repeatable line kept as ratified (D-046). Dead end resolved by naming its documented consumer.",
+   "changes": "capability block only; finite_nodes_to_exhaust (engineering) must be recomputed at integration: this lane alone adds four finite engineering nodes and moves two to the trunk (125 -> 127 before other lanes' changes).",
+   "nodeKind": "technique",
+   "capability": {
+    "grants": [
+     "knowledge:administration and automation efficiency"
+    ],
+    "realizationOwner": "ResearchSystem (repeatable)",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: completes once (class H); no consuming mechanism.",
+    "deferredEffect": "DOCUMENTED descriptor, unchanged: labour per unit of administrative or automated output, closing on the Landauer limit (M11+ automation/administration content). Levels D-044 T6 (OPEN).",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide once complete.",
+    "unknownResource": "n/a",
+    "aiValuation": "Only after engineering-subtree exhaustion.",
+    "playerCommunication": "Repeatable: 'no effect simulated yet'."
+   }
+  },
+  {
+   "id": "frontier_cyber",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Repeatable line kept as ratified (D-046). Dead end resolved by naming its documented consumer.",
+   "changes": "capability block only; finite_nodes_to_exhaust (engineering) must be recomputed at integration: this lane alone adds four finite engineering nodes and moves two to the trunk (125 -> 127 before other lanes' changes).",
+   "nodeKind": "technique",
+   "capability": {
+    "grants": [
+     "knowledge:information offence and defence relative to rivals"
+    ],
+    "realizationOwner": "ResearchSystem (repeatable)",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: completes once (class H); no consuming mechanism.",
+    "deferredEffect": "DOCUMENTED descriptor, unchanged: reconnaissance and denial effectiveness relative to rivals in the D-039 information quantities; no cyber mechanism is planned before M11+. Levels D-044 T6 (OPEN).",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide once complete.",
+    "unknownResource": "n/a",
+    "aiValuation": "Only after engineering-subtree exhaustion.",
+    "playerCommunication": "Repeatable: 'no effect simulated yet'."
+   }
+  }
+ ],
+ "new": [
+  {
+   "id": "ac_transmission",
+   "name": "AC power transmission",
+   "branch": "engineering",
+   "age": "A8",
+   "domain": "energy",
+   "secondaryDomains": [
+    "infrastructure"
+   ],
+   "emerged": "1884-1885 CE closed-core transformer (Zipernowsky, Bláthy, Déri, Ganz works, Budapest); 1891 CE Lauffen-Frankfurt three-phase line; 1895-1896 CE Niagara-Buffalo",
+   "prereq": "electricity_generation",
+   "prereqRationale": "A transmission network carries the output of generating stations; the transformer applies Faraday's induction (electromagnetism, implied through electricity_generation -> dynamo). One requirement.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 1.5,
+    "institutional": 2.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.0
+   },
+   "costAnalog": "electric_motor",
+   "costRationale": "novelty 1.0: transformer and polyphase transmission apply known induction - typical, not paradigm | difficulty 2.5: A8 prior | material 1.5: copper conductors, porcelain insulators and transformer cores at network scale (as telegraph's 1.5) | institutional 2.0: A8 prior - utilities and electrical standards | breadth 1.0: the grid entity plus hydro, wind, storage, smart grid (and D11's nuclear station if accepted) | prereq_complexity 0.0: one requirement. Magnitude 8.0 -> 23,650 RP; identical factors to electric_motor (A8, 23,650). Split sum with electricity_generation (unchanged 47,310): 70,960 vs 47,310 (+50 %, under the doubling bound): the grid is new, separately priced workload on an optional branch off the Age 9 core path. Tier T2.",
+   "nodeKind": "infrastructure",
+   "primaryUniversity": "engineering",
+   "universityRelevance": [
+    {
+     "type": 3,
+     "name": "Engineering",
+     "role": "primary"
+    }
+   ],
+   "unlocks": {
+    "infrastructure": [
+     "infra.power_grid"
+    ]
+   },
+   "capability": {
+    "grants": [
+     "infrastructure:infra.power_grid",
+     "knowledge:electricity carried between settlements (grid connectivity, ADR-019 §5.1)",
+     "knowledge:transformers and polyphase AC"
+    ],
+    "realizationOwner": "none (M11+ electricity capacity system; no system builds infra.power_grid)",
+    "status": "deferred",
+    "milestone": "M10+",
+    "currentEffect": "PROPOSED: completion makes infra.power_grid knowledge-eligible (requirement moved here from electricity_generation); no system realizes it.",
+    "deferredEffect": "M11+ energy system (ADR-019 §5.1: generation capacity, grid connectivity, demand): a grid link lets one settlement's generation capacity serve another's demand.",
+    "inputs": {
+     "resources": [
+      "copper conductors and insulators (no such goods)"
+     ],
+     "geography": [],
+     "infrastructure": [
+      "building.power_station at one end"
+     ],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not realizable: no grid or capacity system; once one exists, a link needs generation at one end and demand at the other.",
+    "unknownResource": "n/a (no resource identification involved).",
+    "aiValuation": "Gate of hydroelectric, wind_turbine_modern, grid_storage and smart_grid (and nuclear_power if D11 accepts); no direct effect today.",
+    "playerCommunication": "'Power grid eligible - no grid system yet'; the Glass Box lists the generation types that need it."
+   },
+   "family": "electricity",
+   "generation": 4,
+   "splitFrom": "electricity_generation",
+   "whyDistinct": "electricity_generation ('Central power station and grid') bundled generation with transmission. Pearl Street (1882) supplied about a square mile by direct current; carrying power between cities needed the transformer (1884-85) and polyphase high-voltage lines (1891). ADR-019 §5.1 already treats grid connectivity as a different quantity from generation capacity, and the grid-scale generation types (dams, wind farms, storage, nuclear stations) need the second, not merely the first.",
+   "acceptanceTest": "With electricity_generation complete and ac_transmission not: IsKnowledgeEligible(infra.power_grid) is false and hydroelectric, wind_turbine_modern, grid_storage and smart_grid are unavailable; after completion all four become available and infra.power_grid eligible; the loader accepts infra.power_grid.requires = 'ac_transmission' with the reverse-index unlock moved (rule 19).",
+   "rationale": "Grid finding: the infrastructure entity existed, its knowledge did not.",
+   "compatibility": {
+    "saves": "New key; uncompleted in old saves (see electricity_generation for the grant-on-load question).",
+    "tests": "TechnologyCount and engineering branch/finite counts +1; unlock audit regenerates."
+   },
+   "eurekas": []
+  },
+  {
+   "id": "gas_engine",
+   "name": "Stationary gas engine",
+   "branch": "engineering",
+   "age": "A8",
+   "domain": "energy",
+   "secondaryDomains": [
+    "industry"
+   ],
+   "emerged": "1860 CE Lenoir gas engine (Paris); 1876 CE Otto four-stroke compression engine (Deutz)",
+   "prereq": "steam_rotary AND chemistry_quantitative AND milling_machine",
+   "prereqRationale": "steam_rotary: the gas engine reused the steam engine's cylinder, piston, crank, slide valves and flywheel (Lenoir's was a double-acting design on steam-engine lines). chemistry_quantitative: burning a measured gas-air charge. milling_machine: accurately machined cylinders, pistons and valve gear for compression. All three move here from internal_combustion, where they stood for exactly these needs.",
+   "factors": {
+    "novelty": 2.0,
+    "difficulty": 2.5,
+    "material": 0.75,
+    "institutional": 2.0,
+    "breadth": 1.0,
+    "prereq_complexity": 1.0
+   },
+   "costAnalog": "electromagnetism",
+   "costRationale": "novelty 2.0: internal combustion and the compression cycle - a new class of heat engine (the paradigm moves here from internal_combustion and is scored once) | difficulty 2.5: A8 prior | material 0.75: stationary cast-iron engines on town gas, less demanding than light high-speed engines | institutional 2.0: A8 prior - private engine works (Deutz) | breadth 1.0: the high-speed petrol engine, Diesel's engine and boiler-less workshop power | prereq_complexity 1.0: three requirements. Magnitude 9.25 -> 56,260 RP (same magnitude as electromagnetism as authored). Split sum with internal_combustion 103,570 vs 133,810 (-22.6 %). Tier T4.",
+   "nodeKind": "application",
+   "primaryUniversity": "engineering",
+   "universityRelevance": [
+    {
+     "type": 3,
+     "name": "Engineering",
+     "role": "primary"
+    }
+   ],
+   "capability": {
+    "grants": [
+     "knowledge:boiler-less stationary power for workshops (gas engines on town gas)",
+     "knowledge:the four-stroke compression cycle"
+    ],
+    "realizationOwner": "none (M11+ new-industries content)",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "PROPOSED: completion row only; prerequisite of internal_combustion and diesel.",
+    "deferredEffect": "M11+ new-industries content: a stationary power source for crafting and industry (needs a fuel good - town gas or coal - that does not exist).",
+    "inputs": {
+     "resources": [
+      "coal gas (no such good)"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Knowledge only; an engine would need a fuel good.",
+    "unknownResource": "Knowledge never reveals coal; fuel identification is D11's.",
+    "aiValuation": "On the Age 9 core path (through internal_combustion); valued by the core goal.",
+    "playerCommunication": "Knowledge only; the Glass Box card names the nodes it opens."
+   },
+   "family": "ice",
+   "generation": null,
+   "splitFrom": "internal_combustion",
+   "whyDistinct": "internal_combustion bundled Otto's 1876 stationary four-stroke gas engine with the Daimler-Maybach and Benz high-speed petrol engines of 1883-86. The first is the principle and powered workshops on town gas for decades; the second needed refined liquid fuel and light, fast construction and is what vehicles use. Diesel's engine descends from the first, not the second.",
+   "acceptanceTest": "internal_combustion is unavailable until gas_engine and petroleum_refining are complete; diesel is unavailable until gas_engine and open_hearth (and, after integration, thermodynamics) are complete; the Age 9 core fact a9_combustion still names internal_combustion and its cheapest closure contains gas_engine and petroleum_refining.",
+   "rationale": "Workload-conserving split of a 134k-RP Age CORE node into two causally distinct parts.",
+   "compatibility": {
+    "saves": "New key; uncompleted in old saves. Old holders of internal_combustion keep it; diesel waits on this node.",
+    "tests": "TechnologyCount, engineering counts +1; family 'ice' without generation keeps the generation-locality test green."
+   },
+   "eurekas": []
+  },
+  {
+   "id": "programmable_computer",
+   "name": "Programmable digital computer",
+   "branch": "engineering",
+   "age": "A9",
+   "domain": "engineering",
+   "secondaryDomains": [
+    "science"
+   ],
+   "emerged": "1941 CE Zuse Z3 (telephone relays, Berlin); 1943-1944 CE Colossus (valves, Post Office Dollis Hill and Bletchley Park); 1945 CE ENIAC (valves, Philadelphia)",
+   "prereq": "(vacuum_tube OR telephone) AND calculus",
+   "prereqRationale": "Two independent hardware routes (OR, independent inventions): valve switching (Colossus, ENIAC) or relay switching taken from telephone engineering (Zuse's Z3 and Stibitz's Bell Labs calculator were built from telephone relays; Colossus's designer Flowers was a Post Office telephone-exchange engineer - RESEARCHED). calculus: the numerical mathematics these machines automated (ballistic and flutter calculations). AT INTEGRATION (D05 request, accepted): telephone -> automatic_switching (D05's new id for relay switching logic) inside the OR group; requirement count and cost unchanged; not written here because a lane file references only existing ids. punched_card_tabulation (D05) is deliberately NOT required: computer's append-only Eureka (when: jacquard) would become implied, which the loader refuses.",
+   "factors": {
+    "novelty": 2.0,
+    "difficulty": 3.5,
+    "material": 2.0,
+    "institutional": 3.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "costAnalog": "transistor",
+   "costRationale": "novelty 2.0: programmable digital computation - the paradigm moves here from computer and is scored once | difficulty 3.5: above the A9 prior - machines of thousands of valves or relays (the original computer's score) | material 2.0: valves or relays by the thousand | institutional 3.0: wartime state programmes (above the A9 prior, as authored for computer) | breadth 0.5: one dependant (the stored-program computer) plus wartime ballistics and codebreaking | prereq_complexity 0.5: two top-level requirements (OR counted once). Magnitude 11.5 -> 267,620 RP, as D05 proposed; split sum 535,240 vs 535,250. Tier T4.",
+   "nodeKind": "application",
+   "primaryUniversity": "engineering",
+   "universityRelevance": [
+    {
+     "type": 3,
+     "name": "Engineering",
+     "role": "primary"
+    },
+    {
+     "type": 4,
+     "name": "Natural Science",
+     "role": "secondary"
+    }
+   ],
+   "capability": {
+    "grants": [
+     "knowledge:automatic digital calculation (ballistic tables, codebreaking)",
+     "knowledge:programs set by plugboards, switches or punched tape"
+    ],
+    "realizationOwner": "none",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "PROPOSED: completion row only; prerequisite of computer.",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide once complete.",
+    "unknownResource": "n/a",
+    "aiValuation": "On the path to the a9_computing supporting fact.",
+    "playerCommunication": "Knowledge only; the stored-program computer is the next step."
+   },
+   "family": "computing",
+   "generation": null,
+   "splitFrom": "computer",
+   "whyDistinct": "computer bundled the first programmable machines (programmed by rewiring and switches, built for codebreaking and ballistics) with the stored-program computer that every software, network and space node needs. They have different prerequisites - switching hardware (relays or valves) versus program-holding memory - and the first had genuinely independent routes (Zuse's relays; British and American valves).",
+   "acceptanceTest": "computer is unavailable until programmable_computer and radar are complete; programmable_computer is available via either vacuum_tube or telephone (automatic_switching after integration) with calculus; a9_computing still names computer.",
+   "rationale": "Workload-conserving split requested by D05 (cross-lane), adopted with D06's memory edge.",
+   "compatibility": {
+    "saves": "New key; uncompleted in old saves; holders of computer lose nothing (no other dependant).",
+    "tests": "TechnologyCount, engineering counts +1; chronology must-hold atom is calculus only."
+   },
+   "eurekas": []
+  },
+  {
+   "id": "semiconductor_physics",
+   "name": "Semiconductor physics",
+   "branch": "natural_science",
+   "age": "A9",
+   "domain": "science",
+   "secondaryDomains": [
+    "engineering",
+    "materials"
+   ],
+   "emerged": "1931 CE band theory of semiconductors (A. H. Wilson, Cambridge); 1938-1939 CE rectifier theory (Schottky, Mott); 1940 CE p-n junction and silicon photovoltaic effect (Ohl, Bell Labs)",
+   "prereq": "quantum_mechanics AND radio",
+   "prereqRationale": "quantum_mechanics: band theory applies quantum mechanics to crystals. radio: the semiconductor puzzle came from wireless receivers' crystal detectors (Pickard's silicon detector, 1906), whose rectification the band and barrier theories explained; Ohl's 1940 junction work began in Bell Labs' radio group (RESEARCHED). D05 keeps key 311 as wireless telegraphy (A8).",
+   "factors": {
+    "novelty": 2.0,
+    "difficulty": 3.0,
+    "material": 0.75,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "costAnalog": "genome_sequencing",
+   "costRationale": "novelty 2.0: the founding science of solid-state electronics (holes and electrons, junctions) - the paradigm moves here from transistor and is scored once | difficulty 3.0: A9 prior | material 0.75: purified germanium and silicon crystals were the subject of the science itself, not later test apparatus (C-07 respected) | institutional 2.5: A9 prior - university and industrial laboratories | breadth 1.0: transistor and solar cell, rectifiers and photodiodes | prereq_complexity 0.5: two requirements. Magnitude 9.75 -> 79,560 RP. Split sum with transistor 213,370 vs 267,620 (-20.3 %). Tier T4.",
+   "nodeKind": "science",
+   "primaryUniversity": "natural_science",
+   "universityRelevance": [
+    {
+     "type": 4,
+     "name": "Natural Science",
+     "role": "primary"
+    },
+    {
+     "type": 3,
+     "name": "Engineering",
+     "role": "secondary"
+    }
+   ],
+   "capability": {
+    "grants": [
+     "knowledge:band theory of solids and the p-n junction",
+     "knowledge:semiconductor rectifiers and photodiodes"
+    ],
+    "realizationOwner": "none",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "PROPOSED: completion row only; prerequisite of transistor and solar_pv.",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide once complete.",
+    "unknownResource": "n/a",
+    "aiValuation": "On every path to solid-state electronics and solar power.",
+    "playerCommunication": "Knowledge only; the transistor and the solar cell are its applications."
+   },
+   "family": "electronics",
+   "generation": null,
+   "splitFrom": "transistor",
+   "whyDistinct": "The transistor and the solar cell were engineered from semiconductor physics - band theory (1931), barrier theory (1938-39) and the p-n junction, whose photovoltaic effect Ohl found in 1940 - not from quantum mechanics directly. Separating understanding from application gives both devices their real root, lets the solar cell depend on junction physics, and halves the transistor's single-node wait. D04 did not add it and endorses this record (it stays in D06's part file).",
+   "acceptanceTest": "transistor and solar_pv are unavailable until semiconductor_physics is complete; semiconductor_physics is available once quantum_mechanics and radio are complete and the stage is reached.",
+   "rationale": "Understanding/application split of a 268k-RP node.",
+   "compatibility": {
+    "saves": "New key; old holders of transistor lack it (solar_pv waits on it).",
+    "tests": "TechnologyCount and natural_science branch/finite counts +1 (finite_nodes_to_exhaust of frontier_climate recomputed); family 'electronics' without generation."
+   },
+   "eurekas": []
+  },
+  {
+   "id": "water_turbine",
+   "name": "Water turbine",
+   "branch": "engineering",
+   "age": "A8",
+   "domain": "energy",
+   "secondaryDomains": [
+    "industry"
+   ],
+   "emerged": "1827 CE Fourneyron (France); 1849 CE Francis (Lowell, Massachusetts); 1879 CE Pelton (California)",
+   "prereq": "water_mill AND mechanics_newtonian",
+   "prereqRationale": "water_mill: water-power practice - heads, races, millwrighting. mechanics_newtonian: the hydrodynamic theory of reaction wheels (Euler's analysis of Segner's wheel, 1750s) behind Burdin's and his pupil Fourneyron's designs and Francis's systematic tests (INFERENCE on the exact lineage; the dates are RESEARCHED: Britannica 'turbine').",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.75,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "costAnalog": "puddling",
+   "costRationale": "novelty 1.0: a typical advance on water power | difficulty 2.5: A8 prior | material 0.75: cast-iron runners and guide vanes | institutional 2.0: A8 prior | breadth 0.5: hydroelectric stations and turbine-driven mills | prereq_complexity 0.5: two requirements. Magnitude 7.25 -> 14,060 RP (same magnitude as puddling). Tier T2.",
+   "nodeKind": "application",
+   "primaryUniversity": "engineering",
+   "universityRelevance": [
+    {
+     "type": 3,
+     "name": "Engineering",
+     "role": "primary"
+    }
+   ],
+   "capability": {
+    "grants": [
+     "knowledge:efficient water power at high heads (turbine-driven mills)",
+     "knowledge:the prime mover of hydroelectric stations"
+    ],
+    "realizationOwner": "none",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "PROPOSED: completion row only; prerequisite of hydroelectric.",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [],
+     "geography": [
+      "river with head (when realized through hydroelectric)"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide once complete.",
+    "unknownResource": "n/a",
+    "aiValuation": "Through hydroelectric (and grid_storage's pumped-storage route).",
+    "playerCommunication": "Knowledge only; the Glass Box card names the nodes it opens."
+   },
+   "family": "mill",
+   "generation": null,
+   "splitFrom": null,
+   "whyDistinct": "hydroelectric required water_mill, but dams drive turbines, not water wheels. The reaction and impulse turbines of Fourneyron, Francis and Pelton made high heads usable: Lauffen's 1891 generator and Niagara's 1895 plant ran on turbines. It also powered 19th-century mill towns. Missing knowledge with a real dependant.",
+   "acceptanceTest": "hydroelectric is unavailable until water_turbine (with ac_transmission and reinforced_concrete) is complete; water_turbine is available once water_mill and mechanics_newtonian are complete and the stage is reached.",
+   "rationale": "Missing knowledge a downstream capability genuinely needs (brief §7.3).",
+   "compatibility": {
+    "saves": "New key; old holders of hydroelectric keep it.",
+    "tests": "TechnologyCount, engineering counts +1."
+   },
+   "eurekas": []
+  }
+ ],
+ "entityRequirementChanges": [
+  {
+   "entity": "infra.power_grid",
+   "oldRequires": "electricity_generation",
+   "newRequires": "ac_transmission",
+   "reason": "A grid connecting settlements is high-voltage transmission (transformer 1884-85, three-phase lines 1891), not central generation; ADR-019 §5.1 separates grid connectivity from generation capacity. building.power_station stays on electricity_generation.",
+   "unlockListEdits": "electricity_generation drops infra.power_grid from its infrastructure unlock list; ac_transmission lists it (ResearchContent.cs:1246-1255 reverse index).",
+   "compatibility": "Holders of electricity_generation lose eligibility until they research ac_transmission (no alias seam). The entity is unrealized, so there is no gameplay effect today.",
+   "status": "PROPOSED; an entity-requirement re-point (same pattern as D07's entityRequirementChanges) - OPEN DECISION"
+  }
+ ],
+ "integrationRequests": {
+  "_doc": "Edges to OTHER lanes' new ids, which a lane file may not write into prereq. Each entry is in the override format tools/integrate.py reads from the coordinator-owned data/integration-overrides.json; nothing here is applied by this part file.",
+  "overrides": [
+   {
+    "id": "diesel",
+    "set": {
+     "prereq": "gas_engine AND open_hearth AND thermodynamics",
+     "factors": {
+      "novelty": 0.5,
+      "difficulty": 3.0,
+      "material": 1.5,
+      "institutional": 2.5,
+      "breadth": 0.5,
+      "prereq_complexity": 1.0
+     }
+    },
+    "dispositionAdd": [
+     "rebalance"
+    ],
+    "reason": "Diesel designed his engine to approach the Carnot cycle (1893 treatise - RESEARCHED). Third top-level requirement: prereq_complexity 0.5 -> 1.0, cost 33,450 -> 47,310 (C-26).",
+    "source": "D04 request (thermodynamics is D04's new id), accepted by D06"
+   },
+   {
+    "id": "steam_turbine",
+    "set": {
+     "prereq": "steam_high_pressure AND open_hearth AND thermodynamics",
+     "factors": {
+      "novelty": 0.5,
+      "difficulty": 3.0,
+      "material": 1.5,
+      "institutional": 2.5,
+      "breadth": 1.0,
+      "prereq_complexity": 1.0
+     }
+    },
+    "dispositionAdd": [
+     "rebalance"
+    ],
+    "reason": "Multi-stage turbines are designed from the thermodynamics of steam expansion (Rankine 1859). Third top-level requirement: prereq_complexity 0.5 -> 1.0, cost 47,310 -> 66,900 (C-26).",
+    "source": "D04 request (thermodynamics is D04's new id), accepted by D06"
+   },
+   {
+    "id": "machine_learning",
+    "set": {
+     "prereq": "programming_languages AND probability_statistics"
+    },
+    "reason": "Statistical learning is applied probability; calculus stays implied through programming_languages. Same requirement count: cost 47,310 unchanged.",
+    "source": "D04 request (probability_statistics is D04's new id), accepted by D06"
+   },
+   {
+    "id": "programmable_computer",
+    "set": {
+     "prereq": "(vacuum_tube OR automatic_switching) AND calculus"
+    },
+    "reason": "Relay route named by its own knowledge (automatic telephone switching, Strowger 1891) instead of the telephone proxy; requirement count and cost unchanged.",
+    "source": "D05 request (automatic_switching is D05's new id), accepted by D06"
+   }
+  ]
+ },
+ "crossLaneRequests": [
+  {
+   "targetLane": "D11-nuclear-geology",
+   "request": "Reply to your note (state at writing): OPTIONAL knowledge edge only. Your brief reads electricity_generation in nuclear_power as 'grid know-how'; that knowledge is now ac_transmission (D06 new, 'AC power transmission'), while electricity_generation is 'Central power station' (generation only) and stays a valid prerequisite. If the edge is meant as grid integration (unit size ~10 % of grid load), use '(reactor families) AND steam_turbine AND ac_transmission' - same count, prereq_complexity unchanged; ac_transmission implies electricity_generation. D06 accepts your Spine position: no civil-nuclear station enters any energy/grid contract without a CR, and nothing in D06's part implies one. FYI: steam_turbine gains thermodynamics at integration (closure grows); the A9 CORE fact a9_combustion now requires petroleum_refining - keep crude identification out of refining's prerequisites unless you intend it to join the Age 9 core path.",
+   "reason": "Your C22 note names 'grid know-how', which D06 split from central generation; the choice is yours."
+  },
+  {
+   "targetLane": "D04-natural-science",
+   "request": "(1) ACCEPTED your request: diesel and steam_turbine take thermodynamics at integration (recorded in their 'changes'; costs 33,450 -> 47,310 and 47,310 -> 66,900 by convention); D06 adds no thermodynamics node. (2) Noted with thanks: semiconductor_physics (natural_science, A9, 'quantum_mechanics AND radio', 79,560 RP) stays defined in D06's part file, as D04 endorsed; no parallel solid-state node. (3) D06 dropped its planned voltaic-pile/electrochemistry node because your re-scoped electromagnetism (Volta 1800 - Faraday 1831) already roots the battery lineage. (4) FYI: lithium_battery now requires chemistry_quantitative AND quantum_mechanics (electromagnetism implied), and petroleum_refining is on the Age 9 CORE path (internal_combustion requires it). (5) ACCEPTED: machine_learning takes probability_statistics at integration in place of the implied calculus edge (count and cost unchanged).",
+   "reason": "Avoid duplicate science nodes and keep D04's hubs' consumers informed."
+  },
+  {
+   "targetLane": "D05-communication-computing",
+   "request": "(1) ACCEPTED: computer split as you proposed - new programmable_computer ('(vacuum_tube OR telephone) AND calculus', 267,620) + retained computer (stored-program, 267,620), a9_computing and all 14 dependants on key 315. At integration replace telephone by your automatic_switching inside the OR group (no cost change). The retained computer requires radar (memory from radar delay lines and CRT stores; implies vacuum_tube) instead of vacuum_tube. punched_card_tabulation is NOT used: it requires jacquard, which would make computer's append-only Eureka (when: jacquard) implied - the loader refuses that; it needs another consumer (your M8 census route). (2) ACCEPTED: smartphone now requires cellular_digital (count and cost unchanged). (3) FYI: communications_satellite <- solar_pv noted (solar_pv now requires semiconductor_physics AND transistor); semiconductor_physics requires radio (key 311, wireless telegraphy) - keep that id.",
+   "reason": "Answers D05's two requests and states one loader constraint."
+  },
+  {
+   "targetLane": "D02-materials-mining",
+   "request": "(a) bellows: date NOT altered - earlier evidence (pot-bellows corpus; Abu Matar, tentative) did not yield a secure pre-1,800 BCE date in this lane's check; recommended to the corpus fact-check stage; the misleading text 'iron smelting feasible' is corrected in bellows' capability block. (b) ACCEPTED: gas_turbine_power now requires superalloy (prereq_complexity 0.5 -> 1.0, 47,310 -> 66,900) - with D08's jet_airliner, superalloy's consumers; not jet_engine. (c) The crystal-growth/zone-refining step stays in transistor's material factor (2.0): no separate materials node by either lane. (d) Noted: no mine-drainage edge on steam_atmospheric (its Eureka would become implied); D06 instead removed cannon_cast_iron from it.",
+   "reason": "Answers all four D02 points."
+  },
+  {
+   "targetLane": "D08-transport-naval",
+   "request": "Reply to your reply (closed): internal_combustion (key 291, required by aircraft, automobile_mass, rocket and your new submarine) is 'High-speed petrol engine' (Daimler-Maybach and Benz, 1883-86) requiring gas_engine (new: Lenoir/Otto stationary engine) AND petroleum_refining, so all of them inherit the fuel edge - agreed, no separate fuel edge. jet_engine keeps 'aircraft_metal AND steam_turbine'; steam_turbine gains thermodynamics at integration, so jet and airliner closures grow. superalloy on jet_airliner (yours) and on gas_turbine_power (D06) are consistent. submarine also gives electric_motor a new dependant.",
+   "reason": "Edges touching D08 nodes changed meaning or cost."
+  },
+  {
+   "targetLane": "D09-military",
+   "request": "FYI: radar becomes a prerequisite of computer (the stored-program computer's memory came from radar delay lines and CRT stores) - keep the id; your at-integration radar <- electromagnetic_field_theory is compatible. tank still requires internal_combustion, which now means the high-speed petrol engine (and inherits petroleum_refining). steam_atmospheric no longer requires cannon_cast_iron (early Newcomen cylinders were brass; the boring lineage stays through cylinder_boring).",
+   "reason": "A D09 node gains a D06 dependant; two edges into D09 nodes changed meaning."
+  },
+  {
+   "targetLane": "D01-agriculture-food",
+   "request": "FYI: mechanised_agriculture keeps internal_combustion, now the high-speed petrol engine requiring petroleum_refining (tractors ran on petrol and paraffin). Your at-integration refrigeration <- thermodynamics matches D06's diesel/steam_turbine edges.",
+   "reason": "Meaning of a D01 prerequisite changed."
+  },
+  {
+   "targetLane": "D07-industry-construction",
+   "request": "FYI and one offer: (1) D06 moved windmill_vertical and windmill_post to the trunk on the same D-044 R15 reasoning as your seven craft relocations. (2) New water_turbine (A8, 'water_mill AND mechanics_newtonian') is available if you want turbine-driven mills or factories to require it. (3) Hollerith tabulation exists as D05's punched_card_tabulation; it is not a prerequisite of computer (loader Eureka constraint, see the D05 reply).",
+   "reason": "Answers D07's suggestion and records the coupling decision."
+  }
+ ],
+ "openQuestions": [
+  "OPEN DECISION (package-wide): grant-on-load / alias seam for splits. Holders of electricity_generation (288), internal_combustion (291), computer (315) and transistor (316) in old saves do not hold ac_transmission, gas_engine, programmable_computer or semiconductor_physics; nodes re-pointed to the new parts (diesel, hydroelectric, wind_turbine_modern, grid_storage, smart_grid, solar_pv) go dormant for them. D06 recommends granting a split-off key to holders of the old key (needs a content-aware load hook - kernel change).",
+  "Integration-time edges to other lanes' new ids (D04's thermodynamics on diesel and steam_turbine; D05's automatic_switching in programmable_computer's OR group; D04's probability_statistics on machine_learning) are recorded in 'changes'/'prereqRationale', not written into prereq. Who applies them, and when are the resulting costs (+13,860 and +19,590 RP) re-checked?",
+  "steam_rotary (A8 CORE, 133,810 RP) is kept: no faithful split exists. Its novelty 2.0 against the separate condenser's 0.5 is a cost-consistency question for the Director (re-scoring an Age CORE node would read as pacing-driven re-pricing under D-046 §1).",
+  "Age tags: steam_turbine (1884) and diesel (1897) are A9 while haber_bosch (1913) and electricity_generation (1882) are A8. Re-dating would re-price through the Age prior (C-14); not done. Review?",
+  "jet_engine (11,830 RP: novelty 0.5, material 0.0) looks under-scored beside steam_turbine and diesel; D-047 reviewed its edges, not its factors. Re-score?",
+  "Which milestone owns the electricity capacity system of ADR-019 §5.1? T6.11 (M6, PROPOSED) lists the tier-G energy entities (power station, dam, solar and wind farms) for construction, but framework §10 puts energy systems at M11+; D06 marks their effects M10+ (validator vocabulary for M11+).",
+  "The Age 9 CORE closure now includes petroleum_refining (knowledge only, no resource gate). Acceptable, or should the high-speed engine's fuel stay an accelerator (Eureka) rather than a prerequisite?",
+  "bellows' date: earlier evidence exists but no secure pre-1,800 BCE date was established here; the corpus fact-check stage should decide (it would let D02 make iron_bloomery require bellows).",
+  "nuclear_power's grid edge: D11 keeps electricity_generation (generation knowledge); D06 offers ac_transmission as the precise 'grid know-how' edge. Director's choice; either is consistent with D11's frozen-Spine position that no civil-nuclear station enters an energy/grid contract without a CR."
+ ]
+}

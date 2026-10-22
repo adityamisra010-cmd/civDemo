@@ -1,0 +1,17 @@
+{
+  "schema": "session-manifest/v2",
+  "seed": 1,
+  "sizePx": null,
+  "settlements": null,
+  "aiEmpires": 1,
+  "schemaVersion": 34,
+  "buildSha": "dev",
+  "buildDate": "local",
+  "startedAt": "not recorded (headless run: Sim.Cli reads no wall clock)",
+  "ordersFile": "orders-acecbcc3c593aae7.bin",
+  "chronicleFile": "chronicle-acecbcc3c593aae7.txt",
+  "traceFile": "trace-acecbcc3c593aae7.csv",
+  "telemetryFile": "telemetry-acecbcc3c593aae7.jsonl",
+  "platform": "ubuntu.24.04-x64",
+  "forensicFile": "forensic-acecbcc3c593aae7.jsonl"
+}

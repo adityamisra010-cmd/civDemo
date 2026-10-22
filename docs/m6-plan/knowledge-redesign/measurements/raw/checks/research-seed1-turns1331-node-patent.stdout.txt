@@ -1,0 +1,51 @@
+research report: seed 1, turn 1331 (sim-year 5950), polity 1, 204 order(s)
+Research Points: 764.022 RP this turn from population 494164 (calibration: 0.08 x P^0.699 per turn, never x dt — ADR-030); one shared pool for both trees
+active target: none — this turn's RP reaches no node and is not stored (no general bank, D-044 R20-D)
+research stage (university / research institutional stage): REACHED — all five subtrees open
+view                        complete / total   available
+  Tree 1 — Main Technology        166 / 177          6
+  Tree 1 — 1.1 Military             9 / 37           1
+  Tree 1 — 1.2 Medicine             1 / 22           1
+  Tree 1 — 1.3 Engineering         12 / 131          1
+  Tree 1 — 1.4 Natural Science      6 / 44           8
+  Tree 1 — 1.5 Agriculture          6 / 15           1
+  Tree 2 — Civics                   4 / 7            0
+available now (18): coinage_electrum, water_mill, concrete_pozzolan, cast_iron, paper, cartography, astrolabe, caravel, telescope, microscope, calculus, barometer_vacuum, macadam, sulphuric_acid, petroleum_refining, vaccination, evolution, canning
+partial progress kept on 2 node(s):
+  paper                      4732 / 11830
+  vaccination                4732 / 11830
+Eurekas fired: 5
+acceleration credit (one pool per node, <= 40% of base): Eureka 17292 RP, foreign exposure 0 RP (no foreign-exposure source exists yet)
+specialized-university cost modifiers: none (no institutions system writes them yet; EffectiveCost = BaseCost)
+knowledge-eligible registry entities: 65 of 135
+baseline capabilities (outside the research graph, available with zero completed nodes): 13
+  baseline.settlement_founding       Settlement founding — ColonizationSystem — a colony is founded when famine-flight migrants have no viable settlement to move to (MigrationSystem demand), or by a Found Settlement order (OrderKind 9, D-051 §5, ADR-036) from a settlement the issuer controls to an unclaimed, reachable site; founding is instantaneous — no settler unit exists
+  baseline.exploration               Scouting and exploration — not yet simulated — no mobile agents exist (D-043) [not yet simulated]
+  baseline.basic_military            Basic military (clubmen or equivalent) — not yet simulated — the battle layer is a later milestone (D-011) [not yet simulated]
+  baseline.food_gathering            Basic food and resource gathering — ProductionSystem — the Farming, Herding/fishing and Extraction sectors produce food and goods with no research (HarvestWeatherSystem supplies only the harvest multiplier); no sector is gated: research changes the ACTIVITY a sector expresses (activity.farming, .herding, .logging, .mining; sectorActivities) (ADR-033 D1); one exception changes output: with farming.preCultivation on (sim.json), the Farming sector harvests wild food at the forager rates until activity.farming is eligible for the settlement, and the cultivated yield applies once it is (R2a)
+  baseline.construction              Basic internal construction — ConstructionSystem — an EnqueueConstruction order queues a project; the first project in a settlement's queue is built a little each turn, as far as its materials and builders allow, and is complete when all its materials and work have gone in (what has gone in is kept while it waits and lost only if it is cancelled; D-054); no Builder unit
+  baseline.migration                 Migration and resettlement — MigrationSystem — people move between settlements with no research
+  baseline.fire                      Fire: making, keeping and cooking — not separately simulated — fire is known before the simulation begins (D-047 ruling 2); no node gates it, and fire_making is advanced controlled-fire use [not yet simulated]
+  baseline.primitive_hafted_tools    Primitive tools and simple hafting — not separately simulated — the tools good comes from crafting recipes that read no research; simple hafting and binding need no node (D-047 ruling 3), composite hafting is technology-owned [not yet simulated]
+  baseline.basic_fishing             Basic fishing (shore, net, trap and spear) — ProductionSystem — the Herding/fishing sector produces food from turn 1 with no research; activity.fishing requires no node (D-047 rulings 4-6), fish weirs and line/pelagic fishing are technology-owned
+  baseline.primitive_water_transport Primitive riverine and shore-hugging craft — not yet simulated as vessels — no vessel, port or sea route exists; river movement is priced from founding by the TraversalLattice river-corridor coefficient, which reads no research (D-047 ruling 7) [not yet simulated]
+  baseline.basic_shelter             Basic shelter — HousingSystem — dwellings are endowed at founding and built and maintained with no research and no order
+  baseline.basic_paths               Basic paths and overland movement — PathBuildSystem — dirt paths (the DirtPath edge type) accrue from use with no research and no order (D-047 ruling 8)
+  baseline.hunting                   Hunting — ProductionSystem — SIMULATED as the Herding/fishing sector's yield from wild-animal (livestock) deposits: the sector's labour turns each settlement's livestock deposit into livestock with no research. No separate hunting sector, prey population or hunting mechanism exists (the Director lists hunting as baseline, integration directive 2026-10-02; ADR-033 D1)
+milestones:
+    50 nodes complete by turn 326 (sim-year 2880)
+   100 nodes complete by turn 641 (sim-year 4455)
+   150 nodes complete by turn 967 (sim-year 5434)
+  research stage reached at turn 996 (sim-year 5492) — the five subtrees open
+   200 nodes complete by turn 1281 (sim-year 5925)
+node patent (key 1005): Patent system — Tree 2 Civics, domain governance, age A7
+  state: LOCKED; subtree open: True
+  prerequisites: legal_code_roman AND printing_press -> not satisfied
+    legal_code_roman           complete
+    printing_press             missing
+  cost: base 4180 RP = U x K^5.5 (tier T2; novelty 1, difficulty 2, material 0, institutional 1.5, breadth 0.5, prerequisites 0.5)
+  effective: max(floor 836, modified 4180) = 4180 RP; progress 0
+  acceleration pool: ceiling 1672 RP; credited Eureka 0, foreign exposure 0 (offered 0); headroom 1672
+  eurekas: 0/0 fired (0 evaluable today); weight fired 0 of 0
+  unlocks: 0 capabilities, 1 entities, 0 dependent nodes
+world hash 39491854361441924f83e007794958eed12b2e4a9474475a6f0fc6539f4492a8

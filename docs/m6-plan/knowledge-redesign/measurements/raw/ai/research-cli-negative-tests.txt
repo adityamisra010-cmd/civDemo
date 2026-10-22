@@ -1,0 +1,18 @@
+$ dotnet Sim.Cli/bin/Release/net10.0/Sim.Cli.dll research --seed 42 --turns 30 --orders raw/ai/ai-run-orders-seed42.bin --polity 2
+error: order[0] (turn 0): SetResearchTarget is issued by polity 2, which is not a registered Empire in this world (1 registered). An order's actor is the issuing Empire's PolityId, never a player/AI marker.
+exit=2
+
+$ dotnet Sim.Cli/bin/Release/net10.0/Sim.Cli.dll research --seed 42 --turns 1 --polity 2
+error: --polity 2 is not a registered Empire in this world
+exit=1
+
+$ dotnet Sim.Cli/bin/Release/net10.0/Sim.Cli.dll research --seed 42 --turns 1 --ai-empires 1
+error: unknown option '--ai-empires'
+exit=1
+
+$ dotnet Sim.Cli/bin/Release/net10.0/Sim.Cli.dll run --founded --seed 42 --ai-empires 1 --turns 5 --report   (what --report prints for a founded run)
+run complete: seed 42, 5 turns, hash 6770711c63318d0004d221494d32f415c03c0b5d726e3b5cb5df529bb2c2d8cf
+turn 5, year 50.0 since epoch
+biomass: stocks 0 (conserved: True)
+toyGood: stocks 0 (conserved: True)
+exit=0

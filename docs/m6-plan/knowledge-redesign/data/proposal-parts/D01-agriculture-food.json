@@ -1,0 +1,1569 @@
+{
+ "lane": "D01-agriculture-food",
+ "summary": "D01 keeps 30 of its 46 nodes unchanged and changes 16, with no split, merge or retirement (so it needs no save alias). (1) A6 coupling: heavy_plough, horse_collar, rice_champa and sugar_refining are practitioner crafts that the Age-based classification rule (ADR-029 §8 R1) placed in the Agriculture subtree; they move to the trunk (D-044 §15), so entering A6 no longer requires the research stage. heavy_plough's prerequisite changes from the Han cast-iron mouldboard (iron_mouldboard <- cast_iron) to the causal European set plough_ard AND iron_bloomery AND wheel_solid: its closure falls from 28 nodes / 59,470 RP to 19 / 27,570 and the A6 AI core goal becomes all-trunk. (2) Regional alternatives without new clicks: orchard and terrace accept root-crop farmers; beer accepts any domesticated cereal; pig is domesticated from the dog root, not behind sheep and goats (China); sugar crystallisation needs cane growing and boiling vessels, not fermentation and distillation; Tull's drill rests on the ard and horse traction, not the Norfolk rotation; cereal_domesticated is renamed for what it is (wheat and barley). (3) Causal gaps closed: selective_breeding needs livestock; drip irrigation needs irrigation. (4) Cost consistency: material 2.0 on cereal_cultivation, cereal_domesticated and maize (above tin bronze, while rice, millet, sorghum and tubers score 0.0) is re-scored to 0.0. (5) Five new nodes: cotton_cultivation (trunk, an independently domesticated fibre crop) and, in the subtree, agricultural_chemistry (science) -> chemical_fertilizer (application; mineral inputs identified by D11), scientific_plant_breeding (genetics -> hybrid and HYV breeding) and farm_machinery (threshers, reapers, iron ploughs: the missing step between Tull and the tractor). The subtree now starts at A7 and still holds 15 nodes (14 finite). Farming yield depends on research today only through the first activity.farming member; every other agricultural effect is deferred with a named owner. Replies to the lanes that wrote to D01 are in crossLaneRequests: D04's thermodynamics edge on refrigeration is accepted as an integration override, and mechanised_agriculture is re-dated to its emergence (1892/1904 CE) for D09's tank edge.",
+ "existing": [
+  {
+   "id": "fishing_hook",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Hook-and-line gear for deep-water and pelagic species is a real advance on baseline shore fishing (D-047 rulings 4/6); cordage (the line) is causal. Dead end resolved by a named deferred owner.",
+   "changes": "none (capability block documented)",
+   "capability": {
+    "grants": [
+     "knowledge:pelagic fishing",
+     "knowledge:deep-water line fishing"
+    ],
+    "realizationOwner": "none today; ProductionSystem (Herding/fishing sector) once fish stocks differ by water zone",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: none (class C). Fish come from each settlement's fish deposit with no research (baseline.basic_fishing).",
+    "deferredEffect": "IMPLEMENTATION DEFERRED: an offshore/pelagic fish stock as a second fish term worked by the Herding/fishing sector, reachable only by boat (D08 raft/dugout) from a coast - M10+.",
+    "inputs": {
+     "resources": [
+      "fish (deposit good)"
+     ],
+     "geography": [
+      "sea coast or large lake"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Inland settlements gain nothing; without boats the deep-water stock is unreachable.",
+    "unknownResource": "Fish-bearing water must lie in known extent; the existing Eureka waits for resources/terrain state.",
+    "aiValuation": "Low; coastal settlements only, and only once the deferred fish term exists.",
+    "playerCommunication": "Knowledge-only: deep-water fishing is not simulated yet."
+   }
+  },
+  {
+   "id": "grinding_stone",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Root of seed processing; its 'wild cereal harvesting' technique is the phase before cultivation wherever cereals were ground (Levant, Mesoamerica). Kept as cereal_cultivation's causal prerequisite; whole-grain boiling cultures (rice, millet porridge) are an INFERENCE-level caveat recorded in the notes.",
+   "changes": "none"
+  },
+  {
+   "id": "cereal_cultivation",
+   "disposition": [
+    "rebalance"
+   ],
+   "rationale": "Generic pre-domestication cultivation of wild cereals: the common step before every regional cereal domestication (wheat/barley, rice, millet, maize, sorghum). Its closure (grinding_stone) is causal. Its material score is out of line with every sibling crop node; its emerged text named only the Levant.",
+   "changes": "factors.material 2.0 -> 0.0 (magnitude 5.25 -> 3.25; cost 3,520 -> 880); emerged names the independent centres",
+   "emerged": "~11,500 BCE Levant (PPNA); independently by ~8,000 BCE in northern China (millet) and by ~7,000 BCE on the Yangtze (rice) and in Mesoamerica (maize)",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.25,
+    "breadth": 1.5,
+    "prereq_complexity": 0.0
+   },
+   "costRationale": "novelty 1.0 - authored, unchanged | difficulty 0.5 - A2 prior, unchanged | material 0.0 (was 2.0) - material means material requirements (ledger 7.4): sowing and tending a wild grass needs no engineered material (sickle and quern are separate nodes); 2.0 is the loader maximum and exceeds tin_bronze (1.5), while the sibling crop nodes rice_wet, millet, sorghum_pearl_millet, root_crop, legume and flax all score 0.0 | institutional 0.25 - A2 prior, unchanged | breadth 1.5 - authored (farming yield switch, 12 dependants) | prereq_complexity 0.0 - one requirement. Content reason (peer consistency) only; not chosen for pacing (D-046 §1). Old 3,520 RP -> new 880 RP.",
+   "compatibility": {
+    "saves": "Keys unchanged. Stored progress >= 880 completes at the next step with no RP spent (engine audit 7.3).",
+    "ids": "unchanged",
+    "ui": "cost display only; the Age II card still names this node",
+    "ai": "The A2 core goal's remaining closure falls 3,890 -> 1,250 RP, below the first road goal (track_road closure 3,850): at turn 0 an AI empire now works the A2 core first; AI-empire goldens move.",
+    "consumers": "ages.json a2_cultivation and activity.farming unchanged.",
+    "tests": "AiPolicyTests.AiResearch_WorksTheCheapestRemainingGoal_ItsCheapestAvailableNode_ThenAnythingCheapest asserts the road goal wins at turn 0 because 3,850 < 3,890 - that premise inverts (Director-ruled re-statement); calibration report and the three CI --check docs regenerate; no cost literal of this node is pinned; the chronology test still reads -11,500."
+   },
+   "capability": {
+    "grants": [
+     "production:activity.farming",
+     "knowledge:predictable harvest location",
+     "knowledge:larger stands",
+     "age:a2_cultivation"
+    ],
+    "realizationOwner": "ProductionSystem (Farming yield via LabourActivities.HarvestsWildFood) + LabourActivities (label)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: activity.farming requires 'cereal_cultivation OR root_crop OR rice_wet OR millet OR maize OR sorghum_pearl_millet'. With sim.json farming.preCultivation enabled, the FIRST member the settlement's knowledge holds switches its Farming sector from wild-food rates (2.0 food per arable km2 per year, 4.3 per gatherer) to cultivated rates (26.0, 5.0): LabourActivities.HarvestsWildFood, ProductionSystem.cs:276-288. Further members change only the sector label. (research.json _doc 'production unchanged' is wrong here: engine audit Doc!=code 1.)",
+    "deferredEffect": "IMPLEMENTATION DEFERRED: crop-package suitability (which crop suits which climate, water and soil) inside the Farming land side - today every member gives the same yield; owner ProductionSystem/CatchmentSystem, M10+.",
+    "inputs": {
+     "resources": [],
+     "geography": [
+      "arable catchment (CatchmentSummaryRow.EffectiveArableKm2)"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No arable catchment: the land side is 0 whatever is known.",
+    "unknownResource": "n/a: crops are knowledge, not deposits; the wild progenitor is only a future Eureka circumstance.",
+    "aiValuation": "Value the CHEAPEST available member first (the 13x land-ceiling switch); later members are worth only their dependants until crop suitability exists. Wild-progenitor Eurekas wait for resources/terrain state.",
+    "playerCommunication": "Farming label names the crop knowledge in use; the food panel shows the cultivated yield once the first crop node is known."
+   }
+  },
+  {
+   "id": "cereal_domesticated",
+   "disposition": [
+    "rebalance"
+   ],
+   "rationale": "The node is the Southwest Asian founder cereals (einkorn, emmer, barley), one regional domestication beside rice, millet, maize and sorghum; the generic name hid that once fermentation_grain lists all five. Same material inconsistency as cereal_cultivation. A prerequisite edge from sickle was considered and rejected (the sickle-selection hypothesis is contested).",
+   "changes": "name 'Domesticated cereal' -> 'Wheat and barley domestication'; factors.material 2.0 -> 0.0 (magnitude 5.25 -> 3.25; cost 3,520 -> 880)",
+   "name": "Wheat and barley domestication",
+   "factors": {
+    "novelty": 2.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "costRationale": "novelty 2.0 - authored (domestication syndrome) | difficulty 0.5 - A2 prior | material 0.0 (was 2.0) - the domestic plant is the outcome, not a material requirement; rice_wet, also novelty 2.0, scores 0.0 | institutional 0.25 - A2 prior | breadth 0.5 - authored | prereq_complexity 0.0 - one requirement. Old 3,520 RP -> new 880 RP.",
+   "compatibility": {
+    "saves": "Key unchanged; stored progress >= 880 completes next step.",
+    "ids": "id unchanged; display name changes",
+    "ui": "name and cost",
+    "ai": "cheaper ancestor of fermentation_grain and crop_rotation_norfolk; AI-empire goldens move",
+    "consumers": "none outside research",
+    "tests": "ResearchContentTests.Canonical_IntegratesEveryCorpusTechnology_InCorpusOrder_WithItsStableId pins corpus names: add this id to the renamed-node map (test edit)."
+   }
+  },
+  {
+   "id": "rice_wet",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Yangtze wet-rice domestication: a genuine regional alternative under generic cultivation; activity.farming member.",
+   "changes": "none (capability block documented)",
+   "capability": {
+    "grants": [
+     "production:activity.farming",
+     "knowledge:highest yield per area of any pre-modern cereal",
+     "knowledge:dense population"
+    ],
+    "realizationOwner": "ProductionSystem (Farming yield via LabourActivities.HarvestsWildFood) + LabourActivities (label)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: activity.farming requires 'cereal_cultivation OR root_crop OR rice_wet OR millet OR maize OR sorghum_pearl_millet'. With sim.json farming.preCultivation enabled, the FIRST member the settlement's knowledge holds switches its Farming sector from wild-food rates (2.0 food per arable km2 per year, 4.3 per gatherer) to cultivated rates (26.0, 5.0): LabourActivities.HarvestsWildFood, ProductionSystem.cs:276-288. Further members change only the sector label. (research.json _doc 'production unchanged' is wrong here: engine audit Doc!=code 1.)",
+    "deferredEffect": "IMPLEMENTATION DEFERRED: crop-package suitability (which crop suits which climate, water and soil) inside the Farming land side - today every member gives the same yield; owner ProductionSystem/CatchmentSystem, M10+.",
+    "inputs": {
+     "resources": [],
+     "geography": [
+      "arable catchment (CatchmentSummaryRow.EffectiveArableKm2)"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No arable catchment: the land side is 0 whatever is known.",
+    "unknownResource": "n/a: crops are knowledge, not deposits; the wild progenitor is only a future Eureka circumstance.",
+    "aiValuation": "Value the CHEAPEST available member first (the 13x land-ceiling switch); later members are worth only their dependants until crop suitability exists. Wild-progenitor Eurekas wait for resources/terrain state.",
+    "playerCommunication": "Farming label names the crop knowledge in use; the food panel shows the cultivated yield once the first crop node is known."
+   }
+  },
+  {
+   "id": "millet",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Yellow River dry-farming domestication (broomcorn and foxtail millet): regional alternative; activity.farming member.",
+   "changes": "none (capability block documented)",
+   "capability": {
+    "grants": [
+     "production:activity.farming",
+     "knowledge:dryland agriculture without irrigation"
+    ],
+    "realizationOwner": "ProductionSystem (Farming yield via LabourActivities.HarvestsWildFood) + LabourActivities (label)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: activity.farming requires 'cereal_cultivation OR root_crop OR rice_wet OR millet OR maize OR sorghum_pearl_millet'. With sim.json farming.preCultivation enabled, the FIRST member the settlement's knowledge holds switches its Farming sector from wild-food rates (2.0 food per arable km2 per year, 4.3 per gatherer) to cultivated rates (26.0, 5.0): LabourActivities.HarvestsWildFood, ProductionSystem.cs:276-288. Further members change only the sector label. (research.json _doc 'production unchanged' is wrong here: engine audit Doc!=code 1.)",
+    "deferredEffect": "IMPLEMENTATION DEFERRED: crop-package suitability (which crop suits which climate, water and soil) inside the Farming land side - today every member gives the same yield; owner ProductionSystem/CatchmentSystem, M10+.",
+    "inputs": {
+     "resources": [],
+     "geography": [
+      "arable catchment (CatchmentSummaryRow.EffectiveArableKm2)"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No arable catchment: the land side is 0 whatever is known.",
+    "unknownResource": "n/a: crops are knowledge, not deposits; the wild progenitor is only a future Eureka circumstance.",
+    "aiValuation": "Value the CHEAPEST available member first (the 13x land-ceiling switch); later members are worth only their dependants until crop suitability exists. Wild-progenitor Eurekas wait for resources/terrain state.",
+    "playerCommunication": "Farming label names the crop knowledge in use; the food panel shows the cultivated yield once the first crop node is known."
+   }
+  },
+  {
+   "id": "maize",
+   "disposition": [
+    "rebalance"
+   ],
+   "rationale": "Mesoamerican domestication from teosinte, a regional alternative under generic cultivation; same material inconsistency as the other crop nodes.",
+   "changes": "factors.material 2.0 -> 0.0 (magnitude 5.75 -> 3.75; cost 4,970 -> 1,240)",
+   "factors": {
+    "novelty": 2.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.25,
+    "breadth": 1.0,
+    "prereq_complexity": 0.0
+   },
+   "costRationale": "novelty 2.0 - authored (most transformed crop) | difficulty 0.5 - A2 prior, authored (the protracted domestication is noted, not re-scored) | material 0.0 (was 2.0) - no material requirement beyond its siblings, which score 0.0 | institutional 0.25 - A2 prior | breadth 1.0 - authored | prereq_complexity 0.0 - one requirement. Old 4,970 RP -> new 1,240 RP.",
+   "compatibility": {
+    "saves": "Key unchanged; stored progress >= 1,240 completes next step.",
+    "ids": "unchanged",
+    "ui": "cost display",
+    "ai": "cheaper route to nixtamalization and new_world_crops; AI-empire goldens move",
+    "consumers": "activity.farming unchanged",
+    "tests": "ResearchContentTests activity requirement string unchanged; no cost pin."
+   },
+   "capability": {
+    "grants": [
+     "production:activity.farming",
+     "knowledge:New World staple",
+     "knowledge:nixtamalization required for nutrition (separate node)"
+    ],
+    "realizationOwner": "ProductionSystem (Farming yield via LabourActivities.HarvestsWildFood) + LabourActivities (label)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: activity.farming requires 'cereal_cultivation OR root_crop OR rice_wet OR millet OR maize OR sorghum_pearl_millet'. With sim.json farming.preCultivation enabled, the FIRST member the settlement's knowledge holds switches its Farming sector from wild-food rates (2.0 food per arable km2 per year, 4.3 per gatherer) to cultivated rates (26.0, 5.0): LabourActivities.HarvestsWildFood, ProductionSystem.cs:276-288. Further members change only the sector label. (research.json _doc 'production unchanged' is wrong here: engine audit Doc!=code 1.)",
+    "deferredEffect": "IMPLEMENTATION DEFERRED: crop-package suitability (which crop suits which climate, water and soil) inside the Farming land side - today every member gives the same yield; owner ProductionSystem/CatchmentSystem, M10+.",
+    "inputs": {
+     "resources": [],
+     "geography": [
+      "arable catchment (CatchmentSummaryRow.EffectiveArableKm2)"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No arable catchment: the land side is 0 whatever is known.",
+    "unknownResource": "n/a: crops are knowledge, not deposits; the wild progenitor is only a future Eureka circumstance.",
+    "aiValuation": "Value the CHEAPEST available member first (the 13x land-ceiling switch); later members are worth only their dependants until crop suitability exists. Wild-progenitor Eurekas wait for resources/terrain state.",
+    "playerCommunication": "Farming label names the crop knowledge in use; the food panel shows the cultivated yield once the first crop node is known."
+   }
+  },
+  {
+   "id": "sorghum_pearl_millet",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Sahel domestication of drought-tolerant cereals: regional alternative; activity.farming member.",
+   "changes": "none (capability block documented)",
+   "capability": {
+    "grants": [
+     "production:activity.farming",
+     "knowledge:drought-tolerant staple"
+    ],
+    "realizationOwner": "ProductionSystem (Farming yield via LabourActivities.HarvestsWildFood) + LabourActivities (label)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: activity.farming requires 'cereal_cultivation OR root_crop OR rice_wet OR millet OR maize OR sorghum_pearl_millet'. With sim.json farming.preCultivation enabled, the FIRST member the settlement's knowledge holds switches its Farming sector from wild-food rates (2.0 food per arable km2 per year, 4.3 per gatherer) to cultivated rates (26.0, 5.0): LabourActivities.HarvestsWildFood, ProductionSystem.cs:276-288. Further members change only the sector label. (research.json _doc 'production unchanged' is wrong here: engine audit Doc!=code 1.)",
+    "deferredEffect": "IMPLEMENTATION DEFERRED: crop-package suitability (which crop suits which climate, water and soil) inside the Farming land side - today every member gives the same yield; owner ProductionSystem/CatchmentSystem, M10+.",
+    "inputs": {
+     "resources": [],
+     "geography": [
+      "arable catchment (CatchmentSummaryRow.EffectiveArableKm2)"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No arable catchment: the land side is 0 whatever is known.",
+    "unknownResource": "n/a: crops are knowledge, not deposits; the wild progenitor is only a future Eureka circumstance.",
+    "aiValuation": "Value the CHEAPEST available member first (the 13x land-ceiling switch); later members are worth only their dependants until crop suitability exists. Wild-progenitor Eurekas wait for resources/terrain state.",
+    "playerCommunication": "Farming label names the crop knowledge in use; the food panel shows the cultivated yield once the first crop node is known."
+   }
+  },
+  {
+   "id": "root_crop",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Vegeculture (taro, yam, potato, manioc) is an independent root of farming with no prerequisite. It now also opens orchard, terrace, sugar crystallisation and cotton (vegetative-propagation and generic cultivation knowledge), so tuber-farming centres are not forced through cereals for those.",
+   "changes": "none (capability block documented; new dependants: orchard, terrace, sugar_refining, cotton_cultivation)",
+   "capability": {
+    "grants": [
+     "production:activity.farming",
+     "knowledge:staple without cereal",
+     "knowledge:no granary needed - stored in ground"
+    ],
+    "realizationOwner": "ProductionSystem (Farming yield via LabourActivities.HarvestsWildFood) + LabourActivities (label)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: activity.farming requires 'cereal_cultivation OR root_crop OR rice_wet OR millet OR maize OR sorghum_pearl_millet'. With sim.json farming.preCultivation enabled, the FIRST member the settlement's knowledge holds switches its Farming sector from wild-food rates (2.0 food per arable km2 per year, 4.3 per gatherer) to cultivated rates (26.0, 5.0): LabourActivities.HarvestsWildFood, ProductionSystem.cs:276-288. Further members change only the sector label. (research.json _doc 'production unchanged' is wrong here: engine audit Doc!=code 1.)",
+    "deferredEffect": "IMPLEMENTATION DEFERRED: crop-package suitability (which crop suits which climate, water and soil) inside the Farming land side - today every member gives the same yield; owner ProductionSystem/CatchmentSystem, M10+.",
+    "inputs": {
+     "resources": [],
+     "geography": [
+      "arable catchment (CatchmentSummaryRow.EffectiveArableKm2)"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No arable catchment: the land side is 0 whatever is known.",
+    "unknownResource": "n/a: crops are knowledge, not deposits; the wild progenitor is only a future Eureka circumstance.",
+    "aiValuation": "Value the CHEAPEST available member first (the 13x land-ceiling switch); later members are worth only their dependants until crop suitability exists. Wild-progenitor Eurekas wait for resources/terrain state.",
+    "playerCommunication": "Farming label names the crop knowledge in use; the food panel shows the cultivated yield once the first crop node is known."
+   }
+  },
+  {
+   "id": "legume",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Pulses were co-domesticated with cereals in every centre; the cereal_cultivation edge stands for seed-crop cultivation knowledge. Feeds crop_rotation_norfolk (clover).",
+   "changes": "none"
+  },
+  {
+   "id": "orchard",
+   "disposition": [
+    "rewire"
+   ],
+   "rationale": "Fruit-tree cultivation is reached by seed farmers and by vegeculture farmers alike: an OR route with no added click.",
+   "changes": "prereq 'cereal_cultivation' -> 'cereal_cultivation OR root_crop' (cost unchanged, 440)",
+   "prereq": "cereal_cultivation OR root_crop",
+   "prereqRationale": "Fruit cultivars are kept true by vegetative propagation (cuttings, later grafting) - RESEARCHED (Zohary and Spiegel-Roy 1975 as discussed in later reviews) - which is root_crop's clonal technique; Levantine seed farmers (olive, vine, fig, date) and New Guinea vegeculture farmers (bananas) both took up tree crops. One OR group counts once: prereq_complexity stays 0.0.",
+   "compatibility": {
+    "saves": "Completed rows unaffected; the node becomes reachable earlier for root-crop holders.",
+    "ids": "unchanged",
+    "ui": "an extra prerequisite edge (OR)",
+    "ai": "closure may shrink (root_crop route); goldens move",
+    "consumers": "oil_press and silk keep orchard as prerequisite",
+    "tests": "none pinned"
+   }
+  },
+  {
+   "id": "sickle",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Natufian reaping blade, a real technique. A prerequisite edge into cereal_domesticated was considered and REJECTED: the claim that sickle reaping selected the non-shattering rachis (Hillman and Davies 1990) is questioned by later work, and uprooting also selects. Dead end resolved by a deferred owner.",
+   "changes": "none (capability block documented)",
+   "capability": {
+    "grants": [
+     "knowledge:efficient cereal harvest"
+    ],
+    "realizationOwner": "none today; ProductionSystem (Farming labour side)",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: none (class C). Harvest tools are already part of the tools good (toolYieldBonusMax), which needs no research.",
+    "deferredEffect": "IMPLEMENTATION DEFERRED: a harvest-technique coefficient inside the Farming labour side (the harvest labour peak), realized with the tools good - M10+.",
+    "inputs": {
+     "resources": [
+      "tools (good)"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Without tools the technique has nothing to equip.",
+    "unknownResource": "n/a",
+    "aiValuation": "Low; prerequisite of nothing - research when cheapest.",
+    "playerCommunication": "Knowledge-only: harvest labour is not modelled separately."
+   }
+  },
+  {
+   "id": "digging_stick_hoe",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Hafted tillage blade; the causal ancestor of the ard (an ard is a dragged hoe).",
+   "changes": "none"
+  },
+  {
+   "id": "nixtamalization",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Alkaline cooking that frees niacin: the condition for maize as a sole staple without pellagra. maize and pottery are causal. Dead end resolved by an M9 owner.",
+   "changes": "none (capability block documented)",
+   "capability": {
+    "grants": [
+     "knowledge:maize as sole staple without deficiency"
+    ],
+    "realizationOwner": "none today; M9 society/disease model (diet-deficiency disease)",
+    "status": "knowledge-only",
+    "milestone": "M9",
+    "currentEffect": "MEASURED: none (class C); no diet composition or deficiency disease is simulated.",
+    "deferredEffect": "IMPLEMENTATION DEFERRED: if M9 models diet-related disease, pellagra risk in maize-dependent settlements is removed where this knowledge is held.",
+    "inputs": {
+     "resources": [
+      "lime or wood ash"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Needs lime or ash (abundant; not a modelled good).",
+    "unknownResource": "n/a",
+    "aiValuation": "None until the M9 consumer exists.",
+    "playerCommunication": "Knowledge-only: nutrition is not simulated yet."
+   }
+  },
+  {
+   "id": "sheep_goat",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Zagros/Taurus domestication on the prey pathway; dog edge kept (herding dogs). Herding identity and the A2 supporting fact.",
+   "changes": "none (capability block documented: label only)",
+   "capability": {
+    "grants": [
+     "production:activity.herding",
+     "knowledge:meat on the hoof",
+     "knowledge:selective flock breeding",
+     "age:a2_herding"
+    ],
+    "realizationOwner": "LabourActivities (sector label) + AgeTransitionSystem (a2_herding supporting fact)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: activity.herding = 'sheep_goat OR cattle' only RELABELS the Herding/fishing sector ('Herding & fishing'); livestock output comes from the settlement's livestock deposit with or without research (baseline.hunting; ADR-033 D1). No production effect.",
+    "deferredEffect": "IMPLEMENTATION DEFERRED: managed herds as a stock that grows by breeding instead of a fixed wild deposit rate (livestock reproduction, pasture, fodder) - ProductionSystem, M10+.",
+    "inputs": {
+     "resources": [
+      "livestock (deposit good)"
+     ],
+     "geography": [
+      "pasture (moisture channel)"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No livestock deposit: nothing to herd; the label still changes.",
+    "unknownResource": "n/a (wild-animal presence is a future Eureka circumstance).",
+    "aiValuation": "Label and Age-fact value only today; do not expect more food from it.",
+    "playerCommunication": "Herding label; the card states that output is unchanged until managed herds are simulated."
+   }
+  },
+  {
+   "id": "cattle",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Taurine and zebu domestications; the sheep_goat edge (prey-pathway herding experience) kept as INFERENCE. Herding identity member.",
+   "changes": "none (capability block documented: label only)",
+   "capability": {
+    "grants": [
+     "production:activity.herding",
+     "knowledge:large-animal traction (with yoke)",
+     "knowledge:dairy",
+     "knowledge:dung fuel"
+    ],
+    "realizationOwner": "LabourActivities (sector label)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: activity.herding = 'sheep_goat OR cattle' only RELABELS the Herding/fishing sector ('Herding & fishing'); livestock output comes from the settlement's livestock deposit with or without research (baseline.hunting; ADR-033 D1). No production effect.",
+    "deferredEffect": "IMPLEMENTATION DEFERRED: managed herds as a stock that grows by breeding instead of a fixed wild deposit rate (livestock reproduction, pasture, fodder) - ProductionSystem, M10+.",
+    "inputs": {
+     "resources": [
+      "livestock (deposit good)"
+     ],
+     "geography": [
+      "pasture (moisture channel)"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No livestock deposit: nothing to herd; the label still changes.",
+    "unknownResource": "n/a (wild-animal presence is a future Eureka circumstance).",
+    "aiValuation": "Label and Age-fact value only today; do not expect more food from it.",
+    "playerCommunication": "Herding label; the card states that output is unchanged until managed herds are simulated."
+   }
+  },
+  {
+   "id": "pig",
+   "disposition": [
+    "rewire"
+   ],
+   "rationale": "Pigs were domesticated independently in China and in northern Mesopotamia; requiring sheep and goats first imposed one centre's sequence on the other. Dead end resolved by a deferred owner.",
+   "changes": "prereq 'sheep_goat' -> 'dog_domestication' (one requirement; cost unchanged, 220)",
+   "prereq": "dog_domestication",
+   "prereqRationale": "RESEARCHED: independent pig domestication in China (~6,000 BCE) and northern Mesopotamia (~7,500 BCE) (Larson et al. 2010, PNAS; J. Archaeol. Research review), while sheep reached China only around the late 4th-3rd millennium BCE (Longshan/Qijia zooarchaeology): the sheep_goat edge is chronology from one centre. Pigs followed a commensal/prey route needing only the earlier knowledge of keeping animals - dog_domestication, the graph's first domestication (INFERENCE).",
+   "compatibility": {
+    "saves": "Completed rows unaffected; stored progress stays valid (prerequisite is a root completed early).",
+    "ids": "unchanged",
+    "ui": "edge moves",
+    "ai": "cheaper closure (480 vs 1,100 RP); goldens move",
+    "consumers": "none",
+    "tests": "dog_domestication gains a dependant; the tests naming dog_domestication/sheep_goat check labels, not availability sets (read: AvailableActionsQueryTests:128, TurnOneActionSurfaceTests:250)."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:meat without pasture"
+    ],
+    "realizationOwner": "none today; ProductionSystem (Herding sector)",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: none (class C); pigs are not an activity.herding member.",
+    "deferredEffect": "IMPLEMENTATION DEFERRED: livestock raised on settlement waste and fodder rather than on pasture deposits (a livestock term not bounded by the moisture-channel deposit) - M10+.",
+    "inputs": {
+     "resources": [
+      "food waste or fodder"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "n/a",
+    "unknownResource": "n/a",
+    "aiValuation": "Low until the deferred term exists.",
+    "playerCommunication": "Knowledge-only."
+   }
+  },
+  {
+   "id": "milking",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Secondary-products dairying; (sheep_goat OR cattle) and containers (pottery) are causal. Dead end resolved by a deferred owner.",
+   "changes": "none (capability block documented)",
+   "capability": {
+    "grants": [
+     "knowledge:dairy food",
+     "knowledge:sustained yield without slaughter",
+     "knowledge:cheese making"
+    ],
+    "realizationOwner": "none today; ProductionSystem (Herding sector)",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: none (class C).",
+    "deferredEffect": "IMPLEMENTATION DEFERRED: food from living herds (milk, cheese) as an output of the livestock stock without slaughter - needs managed herds as a stock (see sheep_goat) - M10+.",
+    "inputs": {
+     "resources": [
+      "livestock"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No herd, no dairy.",
+    "unknownResource": "n/a",
+    "aiValuation": "Low until managed herds exist.",
+    "playerCommunication": "Knowledge-only."
+   }
+  },
+  {
+   "id": "animal_traction",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Yoking cattle; causal parent of the ard and the wheel.",
+   "changes": "none"
+  },
+  {
+   "id": "fermentation_grain",
+   "disposition": [
+    "rewire"
+   ],
+   "rationale": "Brewing arose with every regional grain (barley beer, rice and millet drinks, maize chicha, sorghum beer); requiring the Southwest Asian wheat/barley node imposed one centre's crop. OR route, no added click.",
+   "changes": "prereq 'cereal_domesticated AND pottery_open_fired' -> '(cereal_domesticated OR rice_wet OR millet OR maize OR sorghum_pearl_millet) AND pottery_open_fired' (cost unchanged, 620)",
+   "prereq": "(cereal_domesticated OR rice_wet OR millet OR maize OR sorghum_pearl_millet) AND pottery_open_fired",
+   "prereqRationale": "Any domesticated grain surplus can be malted and brewed (INFERENCE from the regional brewing traditions; the secure early evidence, Godin Tepe ~3,500 BCE, is barley); pottery vessels are causal. The OR group counts once: two requirements, prereq_complexity stays 0.5.",
+   "compatibility": {
+    "saves": "Completed rows unaffected.",
+    "ids": "unchanged",
+    "ui": "OR edges",
+    "ai": "closure may shrink; goldens move",
+    "consumers": "antibiotic_penicillin (D10) keeps it as prerequisite",
+    "tests": "none pinned"
+   }
+  },
+  {
+   "id": "fermentation_fruit",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Wine, mead and fruit drinks in pottery (Jiahu, Georgia); causal. (Its dependant lacquer is flagged to D02 as non-causal.)",
+   "changes": "none"
+  },
+  {
+   "id": "oil_press",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Olive pressing; orchard and dry-stone press bases are causal; building.oil_press is a tier D deferred entity (T6.11, PROPOSED). An '(orchard OR flax)' widening for linseed/sesame oil was considered and not proposed (early linseed pressing not verified).",
+   "changes": "none"
+  },
+  {
+   "id": "salt_extraction",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Brine evaporation (briquetage pottery) or rock-salt mining. A clear case of knowledge vs resource: the technique is researchable anywhere, but salt deposits are geography and no salt good exists.",
+   "changes": "none (capability block documented: resource chain)",
+   "capability": {
+    "grants": [
+     "knowledge:salting meat and fish",
+     "knowledge:salt as a trade good"
+    ],
+    "realizationOwner": "none today; ProductionSystem (extraction + preservation) once a salt good exists",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: none (class C); no salt good or deposit exists (fog audit 2.2). Dependant glass_glaze.",
+    "deferredEffect": "IMPLEMENTATION DEFERRED: a salt good extracted from brine springs, salt pans or rock salt, consumed to preserve fish and livestock for storage and trade (perishables are not stored today) - M10+ (new resource and consumer).",
+    "inputs": {
+     "resources": [
+      "salt (no good yet)",
+      "fuel for brine boiling"
+     ],
+     "geography": [
+      "brine spring, salt pan, sea coast or rock-salt deposit"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not realizable without an identified salt source.",
+    "unknownResource": "Never reveals a salt deposit; identification of brine/rock salt is requested from D11; the existing Eureka ('brine springs, salt pans or a sea coast') waits for resources/terrain state.",
+    "aiValuation": "Value only where a known coast or identified salt source lies in known extent.",
+    "playerCommunication": "'You know how to make salt; no known salt source' when blocked."
+   }
+  },
+  {
+   "id": "flax",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Levantine founder fibre crop; feeds spinning (with wool, and cotton if D07 adopts the OR).",
+   "changes": "none"
+  },
+  {
+   "id": "terrace",
+   "disposition": [
+    "rewire"
+   ],
+   "rationale": "Terracing is crop-agnostic slope management; its own emerged text cites the Andes, where terraces grew tubers: tuber farmers must be able to reach it. OR route, no added click.",
+   "changes": "prereq 'stone_dry AND cereal_cultivation' -> 'stone_dry AND (cereal_cultivation OR root_crop)' (cost unchanged, 620)",
+   "prereq": "stone_dry AND (cereal_cultivation OR root_crop)",
+   "prereqRationale": "Dry-stone walling (stone_dry) and any field cultivation (seed or vegetative) are causal; the OR group counts once, so prereq_complexity stays 0.5.",
+   "compatibility": {
+    "saves": "Completed rows unaffected.",
+    "ids": "unchanged",
+    "ui": "OR edge",
+    "ai": "closure may shrink; goldens move",
+    "consumers": "infra.terraces requirement unchanged",
+    "tests": "none pinned"
+   },
+   "capability": {
+    "grants": [
+     "infrastructure:infra.terraces",
+     "knowledge:hillside cultivation",
+     "knowledge:erosion control"
+    ],
+    "realizationOwner": "ConstructionSystem (infrastructure) + CatchmentSystem (effective arable on slopes)",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "MEASURED: infra.terraces is declared but no system realizes it (class J).",
+    "deferredEffect": "IMPLEMENTATION DEFERRED: built terraces add effective arable area on sloping catchment cells (deferred-entity tier C; T6.11 in the PROPOSED M6 spec).",
+    "inputs": {
+     "resources": [
+      "stone",
+      "labour"
+     ],
+     "geography": [
+      "sloping arable land"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No slopes, no gain; without stone and labour the terraces cannot be built.",
+    "unknownResource": "Slopes are terrain, known within known extent.",
+    "aiValuation": "Value by the sloping arable land in known extent.",
+    "playerCommunication": "Eligible: 'terraces are not simulated yet' until T6.11."
+   }
+  },
+  {
+   "id": "plough_ard",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Animal-drawn scratch plough; animal_traction and the hoe are causal. Now the direct ancestor of the heavy plough and of Tull's drill.",
+   "changes": "none (new dependants: heavy_plough, seed_drill_tull)"
+  },
+  {
+   "id": "beekeeping",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Managed hives (Egypt ~2,400 BCE). No downstream edge is causal (lost-wax casting is older and used wild wax). Dead end resolved by a deferred owner; educational value: the only concentrated sweetener before sugar.",
+   "changes": "none (capability block documented)",
+   "capability": {
+    "grants": [
+     "knowledge:honey",
+     "knowledge:beeswax for casting and sealing"
+    ],
+    "realizationOwner": "none today; ProductionSystem (a honey/wax good)",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: none (class C).",
+    "deferredEffect": "IMPLEMENTATION DEFERRED: honey and wax goods from managed hives - M10+ (new goods).",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "n/a",
+    "unknownResource": "n/a",
+    "aiValuation": "Low.",
+    "playerCommunication": "Knowledge-only."
+   }
+  },
+  {
+   "id": "rotary_quern",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Rotating handmill (rotary motion from the wheel); causal parent of the water mill.",
+   "changes": "none"
+  },
+  {
+   "id": "iron_mouldboard",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Han cast-iron mouldboard plough (~100 BCE; RESEARCHED, Bray). It no longer gates heavy_plough: the European heavy plough used wrought-iron coulters and shares, not cast iron. It stays the Chinese route into iron ploughs as an OR alternative of farm_machinery (the China-to-Dutch transmission behind the 1730 Rotherham plough is plausible but unproven - INFERENCE) and is proposed as a regional equivalent in the A6 core fact (OPEN DECISION).",
+   "changes": "none to the node; its dependant changes from heavy_plough to farm_machinery (OR route)"
+  },
+  {
+   "id": "seed_drill",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Han multi-tube drill with iron-tipped coulters; plough_ard and cast_iron causal; alternative route to seed_drill_tull.",
+   "changes": "none"
+  },
+  {
+   "id": "heavy_plough",
+   "disposition": [
+    "relocate",
+    "rewire"
+   ],
+   "rationale": "A peasant and smith's craft adopted across northern Europe centuries before its universities: it does not causally need organized scholarship. It sat in the Agriculture subtree only because ADR-029 §8 rule R1 classed every A6+ node by domain, which forces a node into a subtree against D-044 §15 and ties the A6 CORE fact to the research stage. Its old prerequisite was the Han cast-iron plough, a separate regional development.",
+   "changes": "branch agriculture -> trunk; prereq 'iron_mouldboard AND wheel_solid' -> 'plough_ard AND iron_bloomery AND wheel_solid'; prereq_complexity 0.5 -> 1.0 (magnitude 5.25 -> 5.75; cost 3,520 -> 4,970); primary university Agricultural kept (legal in the trunk)",
+   "branch": "trunk",
+   "prereq": "plough_ard AND iron_bloomery AND wheel_solid",
+   "prereqRationale": "The early-medieval heavy plough (in use among some Slavs by ~568 CE on linguistic evidence; the Carolingian 'carruca' - RESEARCHED) carried an iron share and coulter forged from bloomery iron, a mouldboard (commonly wooden) and a wheeled forecarriage; European cast iron is centuries later. plough_ard (plough and traction), iron_bloomery (share, coulter) and wheel_solid (the forecarriage the node is named for) are the causal set, all trunk nodes. The cast_iron route (iron_mouldboard) is the Han plough and was chronology from another region.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.75,
+    "institutional": 1.25,
+    "breadth": 0.0,
+    "prereq_complexity": 1.0
+   },
+   "costRationale": "novelty 1.0 - authored | difficulty 1.75 - A6 prior, authored | material 0.75 - authored (iron share and coulter) | institutional 1.25 - A6 prior, authored | breadth 0.0 - authored, unchanged (0.5 would match the other tillage nodes; noted as a cost finding, not proposed) | prereq_complexity 1.0 (was 0.5) - three top-level requirements by convention. Old 3,520 RP -> new 4,970 RP; closure 28 nodes / 59,470 RP -> 19 nodes / 27,570 RP (greedy upper bound).",
+   "compatibility": {
+    "saves": "Key unchanged; completed rows keep their meaning. Progress stored while the research stage was closed was dormant and becomes live (the node no longer waits for the stage). No alias needed. Stored progress on a save whose holder lacks plough_ard, iron_bloomery or wheel_solid stays dormant until they are complete; holders of iron_mouldboard lose nothing.",
+    "ids": "unchanged",
+    "ui": "moves from the Agriculture lane to Main Trunk; the 'research stage' lock reason disappears; depth 7 -> 5",
+    "ai": "A6 core goal closure (AiResearchPolicy.CoreGoalClosure) becomes all-trunk, so the engine-audit Q11 gap (goal skipped while its last node waits behind the closed stage) no longer applies to A6; A7 (printing_press) remains the first stage-bound Age. MEASURED context: in the four AI baselines the stage opened at turns 702-716 and A5 entry (~turn 1225) was binding, so A6 was not stage-bound there; under the cheapest-first driver heavy_plough never completed behind cast_iron. AI-empire goldens move.",
+    "consumers": "ages.json a6_heavy_plough keeps naming this id; the agricultural_university cost modifier no longer applies (trunk nodes always pay BaseCost)",
+    "tests": "ResearchContentTests branch counts [177,37,22,131,44,15] and finite-per-subtree [36,21,125,43,14] move (this lane alone: trunk 182, agriculture 15, agriculture finite 14); frontier_crops' repeatable descriptor finite_nodes_to_exhaust stays 14 only if all four new agriculture nodes are accepted; three CI --check docs regenerate."
+   },
+   "capability": {
+    "grants": [
+     "age:a6_heavy_plough",
+     "knowledge:cultivation of heavy clay soils",
+     "knowledge:urbanisation of the north",
+     "knowledge:three-field rotation"
+    ],
+    "realizationOwner": "AgeTransitionSystem (a6_heavy_plough CORE fact)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: satisfies the A6 CORE research fact; no production effect. After relocation the fact no longer requires the research stage (medicine_hippocratic, geometry_axiomatic OR algebra, stamp_seal, legal_code_roman); A6 entry stays behind A5 entry, which already needs legal_code_roman.",
+    "deferredEffect": "IMPLEMENTATION DEFERRED: heavy clay soils count as effective arable (catchment fertility weighting) and the three-field system lowers the fallow share assumed in the Farming land side (CR-002 assumes medium fallow) - ProductionSystem/CatchmentSystem, M10+.",
+    "inputs": {
+     "resources": [
+      "iron (share, coulter)",
+      "draught oxen (livestock)"
+     ],
+     "geography": [
+      "heavy clay lowland soils"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Without draught animals and iron the plough cannot be used; the Age fact is knowledge-only and is met regardless.",
+    "unknownResource": "n/a (soils are terrain).",
+    "aiValuation": "Core Age goal: valued through the A6 core closure, now all-trunk.",
+    "playerCommunication": "Age panel: 'Heavy wheeled plough' is the Age VI core research; no research-stage lock."
+   }
+  },
+  {
+   "id": "horse_collar",
+   "disposition": [
+    "relocate"
+   ],
+   "rationale": "Harness-makers' craft (China ~500 CE, Europe ~900 CE) with no scholarly prerequisite; its prerequisite collar_harness (renamed 'Breast-strap harness' by D08) is trunk; its dependants (seed_drill_tull, farm_machinery; D08 removed horseshoe's edge) may require a trunk node. D-044 §15: not forced into a subtree.",
+   "changes": "branch agriculture -> trunk",
+   "branch": "trunk",
+   "compatibility": {
+    "saves": "Key unchanged; completed rows keep their meaning. Progress stored while the research stage was closed was dormant and becomes live (the node no longer waits for the stage). No alias needed.",
+    "ids": "unchanged",
+    "ui": "moves from the Agriculture lane to Main Trunk; the 'research stage' lock reason disappears",
+    "ai": "closure all-trunk; reachable pre-stage; goldens move",
+    "consumers": "the agricultural_university cost modifier no longer applies (trunk nodes always pay BaseCost)",
+    "tests": "ResearchContentTests branch counts [177,37,22,131,44,15] and finite-per-subtree [36,21,125,43,14] move (this lane alone: trunk 182, agriculture 15, agriculture finite 14); frontier_crops' repeatable descriptor finite_nodes_to_exhaust stays 14 only if all four new agriculture nodes are accepted; three CI --check docs regenerate."
+   }
+  },
+  {
+   "id": "rice_champa",
+   "disposition": [
+    "relocate"
+   ],
+   "rationale": "Early-ripening, drought-tolerant Champa rice was obtained from Fujian and distributed by the Song court after the 1012 CE drought (RESEARCHED) - state dissemination of a farmers' variety, not university science. rice_wet is trunk. Dead end resolved by a deferred owner.",
+   "changes": "branch agriculture -> trunk",
+   "branch": "trunk",
+   "compatibility": {
+    "saves": "Key unchanged; completed rows keep their meaning. Progress stored while the research stage was closed was dormant and becomes live (the node no longer waits for the stage). No alias needed.",
+    "ids": "unchanged",
+    "ui": "moves from the Agriculture lane to Main Trunk; the 'research stage' lock reason disappears",
+    "ai": "reachable pre-stage; goldens move",
+    "consumers": "the agricultural_university cost modifier no longer applies (trunk nodes always pay BaseCost)",
+    "tests": "ResearchContentTests branch counts [177,37,22,131,44,15] and finite-per-subtree [36,21,125,43,14] move (this lane alone: trunk 182, agriculture 15, agriculture finite 14); frontier_crops' repeatable descriptor finite_nodes_to_exhaust stays 14 only if all four new agriculture nodes are accepted; three CI --check docs regenerate."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:two harvests per year",
+     "knowledge:drought-tolerant early rice"
+    ],
+    "realizationOwner": "none today; ProductionSystem (Farming land side)",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: none (class C).",
+    "deferredEffect": "IMPLEMENTATION DEFERRED: double cropping on watered rice land raises food per arable km2 per year where the season allows - needs crop- and water-specific farming (see the crop-package question), M10+.",
+    "inputs": {
+     "resources": [],
+     "geography": [
+      "warm, watered rice land"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No rice land, no gain.",
+    "unknownResource": "n/a",
+    "aiValuation": "Value by watered rice land in known extent once the deferred term exists.",
+    "playerCommunication": "Knowledge-only: double cropping is not simulated yet."
+   }
+  },
+  {
+   "id": "sugar_refining",
+   "disposition": [
+    "relocate",
+    "rewire"
+   ],
+   "rationale": "Crystallising cane sugar was an Indian craft (Gupta period, ~350 CE) spread by merchants and the Islamic world, not a product of organized scholarship. Its old prerequisites were non-causal. Dead end resolved by a deferred owner.",
+   "changes": "branch agriculture -> trunk; prereq 'fermentation_fruit AND distillation' -> 'root_crop AND pottery_open_fired' (two requirements; cost unchanged, 2,090)",
+   "branch": "trunk",
+   "prereq": "root_crop AND pottery_open_fired",
+   "prereqRationale": "Crystallisation needs a cane crop and vessels to boil the juice down (RESEARCHED: Gupta-period crystallisation ~350 CE; sugarcane domesticated in New Guinea). Cane is propagated from stem cuttings, the root_crop clonal technique (INFERENCE for the knowledge link). Fermentation consumes sugar and distillation is not used to crystallise it: both old edges were non-causal. Two requirements: prereq_complexity stays 0.5.",
+   "compatibility": {
+    "saves": "Key unchanged; completed rows keep their meaning. Progress stored while the research stage was closed was dormant and becomes live (the node no longer waits for the stage). No alias needed.",
+    "ids": "unchanged",
+    "ui": "moves from the Agriculture lane to Main Trunk; the 'research stage' lock reason disappears",
+    "ai": "closure 31 nodes / 60,810 RP -> 5 / 6,690; reachable pre-stage; goldens move",
+    "consumers": "the agricultural_university cost modifier no longer applies (trunk nodes always pay BaseCost); distillation and fermentation_fruit keep other dependants (no new dead end)",
+    "tests": "ResearchContentTests branch counts [177,37,22,131,44,15] and finite-per-subtree [36,21,125,43,14] move (this lane alone: trunk 182, agriculture 15, agriculture finite 14); frontier_crops' repeatable descriptor finite_nodes_to_exhaust stays 14 only if all four new agriculture nodes are accepted; three CI --check docs regenerate."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:storable sweetener",
+     "knowledge:plantation economy (later)"
+    ],
+    "realizationOwner": "none today; ProductionSystem (crafting recipe)",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: none (class C).",
+    "deferredEffect": "IMPLEMENTATION DEFERRED: a sugar good boiled from a cane crop (storable calories, trade good) by a crafting recipe - M10+ (new crop good and consumer).",
+    "inputs": {
+     "resources": [
+      "sugarcane (no good yet)",
+      "fuel"
+     ],
+     "geography": [
+      "tropical or subtropical cropland"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not realizable without cane land and fuel.",
+    "unknownResource": "n/a",
+    "aiValuation": "Low until the sugar good exists.",
+    "playerCommunication": "Knowledge-only."
+   }
+  },
+  {
+   "id": "crop_rotation_norfolk",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Four-course rotation (wheat/turnips/barley/clover): legume and wheat-barley are causal. Kept in the subtree by the A7+ convention although it is practitioner knowledge (noted). No longer gates Tull's drill.",
+   "changes": "none (dependant seed_drill_tull removed; selective_breeding kept)"
+  },
+  {
+   "id": "seed_drill_tull",
+   "disposition": [
+    "rewire"
+   ],
+   "rationale": "Tull's horse drill (1701). Its European route rested on the Norfolk rotation, an association rather than a cause.",
+   "changes": "prereq 'seed_drill OR (crop_rotation_norfolk AND horse_collar)' -> 'seed_drill OR (plough_ard AND horse_collar)' (one OR group; cost unchanged, 2,960)",
+   "prereq": "seed_drill OR (plough_ard AND horse_collar)",
+   "prereqRationale": "A drill opens seed furrows with share-like coulters (the ard's share) and is horse-drawn (horse collar): both causal. A field rotation is not needed to build or use a drill. The Han seed_drill remains the alternative route. One OR group counts once: prereq_complexity stays 0.0.",
+   "compatibility": {
+    "saves": "Completed rows unaffected; stored progress may go dormant only on a save lacking plough_ard or horse_collar and seed_drill.",
+    "ids": "unchanged",
+    "ui": "edges move",
+    "ai": "closure changes; goldens move",
+    "consumers": "mechanised_agriculture keeps it",
+    "tests": "none pinned"
+   }
+  },
+  {
+   "id": "selective_breeding",
+   "disposition": [
+    "rewire"
+   ],
+   "rationale": "Systematic livestock breeding (Bakewell, 1760s) with no livestock in its closure: a missing causal prerequisite. Feeds evolution (D04).",
+   "changes": "prereq 'crop_rotation_norfolk' -> 'crop_rotation_norfolk AND (sheep_goat OR cattle)'; prereq_complexity 0.0 -> 0.5 (magnitude 5.0 -> 5.5; cost 2,960 -> 4,180)",
+   "prereq": "crop_rotation_norfolk AND (sheep_goat OR cattle)",
+   "prereqRationale": "Breeding livestock needs livestock (sheep_goat OR cattle - Bakewell bred both); the fodder rotation that wintered selected breeding stock stays the second causal requirement. Two top-level requirements.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.0,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "costRationale": "novelty 1.0, difficulty 2.0 (A7 prior), material 0.0, institutional 1.5 (A7 prior), breadth 0.5 - authored, unchanged | prereq_complexity 0.5 (was 0.0) - two requirements by convention. Old 2,960 RP -> new 4,180 RP.",
+   "compatibility": {
+    "saves": "Completed rows unaffected; stored progress on a holder without livestock goes dormant (shown Partial) until sheep_goat or cattle is complete.",
+    "ids": "unchanged",
+    "ui": "edge and cost",
+    "ai": "goldens move",
+    "consumers": "evolution (D04) keeps it",
+    "tests": "none pinned"
+   }
+  },
+  {
+   "id": "new_world_crops",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Kept, but it conflates diffusion with invention: the Columbian exchange moved existing crop knowledge between farming peoples by contact. carrack (ocean contact) and maize OR root_crop (the crop types) stay. OPEN DECISION recorded on modelling crop transfer as exposure under T6.10.",
+   "changes": "none (capability block documented)",
+   "capability": {
+    "grants": [
+     "knowledge:potato and maize in the Old World",
+     "knowledge:wheat, rice and sugar in the Americas"
+    ],
+    "realizationOwner": "none today; diffusion (T6.10, PROPOSED) for the transfer, ProductionSystem for crop suitability",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: none (class C).",
+    "deferredEffect": "IMPLEMENTATION DEFERRED: once contact within known extent and diffusion exist, transferred crops should arrive as exposure credit on the crop nodes; the yield effect of new crops on unsuitable land needs crop-package suitability (M10+).",
+    "inputs": {
+     "resources": [],
+     "geography": [
+      "contact with the other hemisphere"
+     ],
+     "infrastructure": [
+      "ocean shipping (activity.ocean_shipping)"
+     ],
+     "institutions": []
+    },
+    "missingInputs": "No ocean contact, no transfer.",
+    "unknownResource": "Crops of an unknown continent cannot be adopted; contact must exist in known extent.",
+    "aiValuation": "None until diffusion and crop suitability exist.",
+    "playerCommunication": "Knowledge-only: crop transfer is not simulated yet."
+   }
+  },
+  {
+   "id": "refrigeration",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Vapour-compression cold (dated by Linde, 1876); chemistry_quantitative (refrigerants) and steam_rotary (compressor drive) causal; cryogenics descendant (superconductivity_applied). D01 ACCEPTS D04's request to add D04's new thermodynamics (1824 CE, A8) - Linde designed his machine from thermodynamic efficiency - as an integration override, because a lane part may not name another lane's new id (see crossLaneRequests).",
+   "changes": "none in this part; integration override requested: prereq + thermodynamics, prereq_complexity 0.5 -> 1.0 (cost 23,650 -> 33,450)"
+  },
+  {
+   "id": "canning",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Heat-sealed preservation (Appert 1810, tinplate cans); glass and sheet metal containers causal; germ theory correctly NOT a prerequisite (pinned D-047 example). Dead end resolved by a deferred owner.",
+   "changes": "none (capability block documented)",
+   "capability": {
+    "grants": [
+     "knowledge:army and navy provisions",
+     "knowledge:spoilage to near zero"
+    ],
+    "realizationOwner": "none today; ConsumptionSystem (stores) and a provisions supply consumer",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: none (class C). Only grain is stored (8%/yr spoilage); perishables are eaten, not stored.",
+    "deferredEffect": "IMPLEMENTATION DEFERRED: a preserved-food good that lets fish and livestock enter stores with negligible spoilage; formation provisions are a candidate M7 battle-layer supply consumer (not assumed) - M10+.",
+    "inputs": {
+     "resources": [
+      "tinplate or glass",
+      "fuel"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No containers, no canning.",
+    "unknownResource": "n/a",
+    "aiValuation": "Low until preserved goods exist.",
+    "playerCommunication": "Knowledge-only."
+   }
+  },
+  {
+   "id": "green_revolution",
+   "disposition": [
+    "rewire"
+   ],
+   "rationale": "Semi-dwarf, fertilizer-responsive wheat and rice (1960s). Genetics alone does not breed a variety and N alone does not feed it: the parents are now the breeding technique and the fertilizer chain.",
+   "changes": "prereq 'haber_bosch AND genetics_mendel AND irrigation_canal' -> 'scientific_plant_breeding AND chemical_fertilizer AND haber_bosch AND irrigation_canal' (still >=3 requirements; cost unchanged, 16,730)",
+   "prereq": "scientific_plant_breeding AND chemical_fertilizer AND haber_bosch AND irrigation_canal",
+   "prereqRationale": "The varieties were bred by scientific plant breeding (which requires genetics_mendel) to respond to heavy NPK fertilizer (chemical_fertilizer: soil science and P/K supply; haber_bosch: cheap fixed nitrogen) under controlled water (irrigation_canal). prereq_complexity stays 1.0.",
+   "compatibility": {
+    "saves": "Completed rows unaffected; stored progress goes dormant until the new parents are complete.",
+    "ids": "unchanged",
+    "ui": "edges",
+    "ai": "closure 88 -> 93 nodes; goldens move",
+    "consumers": "none",
+    "tests": "none pinned"
+   },
+   "capability": {
+    "grants": [
+     "knowledge:high-yield semi-dwarf wheat and rice",
+     "knowledge:famine ended in Asia"
+    ],
+    "realizationOwner": "none today; ProductionSystem (Farming land side)",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: none (class C).",
+    "deferredEffect": "IMPLEMENTATION DEFERRED: a higher-yield seed-variety state for wheat/rice settlements that needs fertilizer and water inputs to realize (no inputs, no gain) - M10+.",
+    "inputs": {
+     "resources": [
+      "fertilizer (no good yet)",
+      "irrigation water"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not realizable without fertilizer and irrigation.",
+    "unknownResource": "n/a",
+    "aiValuation": "None until the variety state exists.",
+    "playerCommunication": "Knowledge-only."
+   }
+  },
+  {
+   "id": "mechanised_agriculture",
+   "disposition": [
+    "rewire"
+   ],
+   "rationale": "Tractor and combine: the combine integrates the reaper and the threshing machine, which the graph lacked. Its emerged anchor marked mass adoption (~1920) rather than emergence; it now names the first petrol tractor and Holt's track-type tractor (RESEARCHED), as D09 requested so that the tank (1916 CE) may require it for track knowledge.",
+   "changes": "prereq 'internal_combustion AND seed_drill_tull' -> 'internal_combustion AND seed_drill_tull AND farm_machinery'; prereq_complexity 0.5 -> 1.0 (magnitude 7.5 -> 8.0; cost 16,730 -> 23,650); emerged '~1,920 CE' -> emergence anchors (earliest 1892 CE)",
+   "emerged": "1892 CE petrol tractor (Froelich); 1904 CE track-type tractor (Holt, steam; petrol 1908); mass-produced tractors from 1917 CE; combines common by the 1930s",
+   "prereq": "internal_combustion AND seed_drill_tull AND farm_machinery",
+   "prereqRationale": "The tractor needs the engine and pulls the implement line (drills); the combine harvester descends from the horse-drawn reaper and threshing machine (farm_machinery). Three requirements.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 1.0
+   },
+   "costRationale": "novelty 1.0, difficulty 3.0 (A9 prior), material 0.0, institutional 2.5 (A9 prior), breadth 0.5 - authored, unchanged | prereq_complexity 1.0 (was 0.5) - three requirements by convention. Old 16,730 RP -> new 23,650 RP.",
+   "compatibility": {
+    "saves": "Completed rows unaffected; stored progress dormant until farm_machinery is complete.",
+    "ids": "unchanged",
+    "ui": "edge and cost",
+    "ai": "goldens move",
+    "consumers": "precision_agriculture keeps it; tank (D09) may add it as a prerequisite",
+    "tests": "chronology test: earliest marked year 1920 -> 1892, still after every AND prerequisite (internal_combustion 1876, farm_machinery 1786, seed_drill_tull 1701); dated-node count unchanged"
+   }
+  },
+  {
+   "id": "drip_irrigation",
+   "disposition": [
+    "rewire"
+   ],
+   "rationale": "Drip irrigation is an irrigation technique delivered through plastic emitters, but irrigation was missing from its closure. Dead end resolved by a deferred owner.",
+   "changes": "prereq 'plastics' -> 'plastics AND (irrigation_basin OR irrigation_canal)'; prereq_complexity 0.0 -> 0.5 (magnitude 8.0 -> 8.5; cost 23,650 -> 33,450)",
+   "prereq": "plastics AND (irrigation_basin OR irrigation_canal)",
+   "prereqRationale": "Plastic tubing and emitters (plastics) applied to the practice of watering crops (either irrigation tradition): both causal. Two requirements.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 1.5,
+    "institutional": 2.5,
+    "breadth": 0.0,
+    "prereq_complexity": 0.5
+   },
+   "costRationale": "novelty 1.0, difficulty 3.0 (A9 prior), material 1.5 (plastics), institutional 2.5 (A9 prior), breadth 0.0 - authored, unchanged | prereq_complexity 0.5 (was 0.0) - two requirements by convention. Old 23,650 RP -> new 33,450 RP.",
+   "compatibility": {
+    "saves": "Completed rows unaffected.",
+    "ids": "unchanged",
+    "ui": "edge and cost",
+    "ai": "goldens move",
+    "consumers": "irrigation_basin/irrigation_canal (D07) gain a dependant",
+    "tests": "none pinned"
+   },
+   "capability": {
+    "grants": [
+     "knowledge:crops on arid land with little water"
+    ],
+    "realizationOwner": "none today; CatchmentSystem/ProductionSystem (water-limited arable)",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: none (class C).",
+    "deferredEffect": "IMPLEMENTATION DEFERRED: arid catchment cells count as effective arable with low water use - needs a water budget in the land side, M10+.",
+    "inputs": {
+     "resources": [
+      "plastic tubing (no good yet)",
+      "water source"
+     ],
+     "geography": [
+      "arid or semi-arid cropland"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No water source, no drip system.",
+    "unknownResource": "n/a",
+    "aiValuation": "None until a water budget exists.",
+    "playerCommunication": "Knowledge-only."
+   }
+  },
+  {
+   "id": "precision_agriculture",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Site-specific inputs from satellite position and sensors; gps and mechanised_agriculture causal. Dead end resolved by a deferred owner.",
+   "changes": "none (capability block documented)",
+   "capability": {
+    "grants": [
+     "knowledge:input efficiency per field"
+    ],
+    "realizationOwner": "none today; ProductionSystem (input use per arable km2)",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: none (class C).",
+    "deferredEffect": "IMPLEMENTATION DEFERRED: less fertilizer and seed per unit of yield once those inputs exist as goods (see chemical_fertilizer) - M10+.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Without the input goods there is nothing to economise.",
+    "unknownResource": "n/a",
+    "aiValuation": "None until input goods exist.",
+    "playerCommunication": "Knowledge-only."
+   }
+  },
+  {
+   "id": "frontier_crops",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Repeatable crop genomics (D-046: keep the ten repeatables; repeat mechanics deferred). Its descriptor counts the agriculture subtree's finite nodes (14 before and after this lane's changes).",
+   "changes": "none (capability block documented)",
+   "capability": {
+    "grants": [
+     "knowledge:higher yield per km2"
+    ],
+    "realizationOwner": "ResearchSystem (repeatable) today; ProductionSystem later",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: completes once (repeat mechanics DEFERRED, D-046 G4); no effect.",
+    "deferredEffect": "IMPLEMENTATION DEFERRED: a per-level yield improvement as a variety state read by the Farming land side, once repeat mechanics are ruled - M10+.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "n/a",
+    "unknownResource": "n/a",
+    "aiValuation": "Only after the agriculture subtree is exhausted.",
+    "playerCommunication": "Knowledge-only; repeat levels not yet active."
+   }
+  },
+  {
+   "id": "frontier_climate",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Repeatable climate engineering (natural_science branch; partitioned to D01 by domain). Kept unchanged.",
+   "changes": "none (capability block documented)",
+   "capability": {
+    "grants": [
+     "knowledge:environmental remediation"
+    ],
+    "realizationOwner": "ResearchSystem (repeatable) today; none later until an atmosphere/climate state exists",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: completes once; no effect; no climate state exists.",
+    "deferredEffect": "IMPLEMENTATION DEFERRED: remediation capacity against a future atmosphere/climate stock (M11+ energy and environment systems).",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "n/a",
+    "unknownResource": "n/a",
+    "aiValuation": "Only after the natural_science subtree is exhausted.",
+    "playerCommunication": "Knowledge-only."
+   }
+  }
+ ],
+ "new": [
+  {
+   "id": "cotton_cultivation",
+   "name": "Cotton cultivation",
+   "branch": "trunk",
+   "age": "A2",
+   "domain": "agriculture",
+   "secondaryDomains": [
+    "industry"
+   ],
+   "emerged": "~5,500 BCE Mehrgarh (Indus, cotton fibres); ~4,000 BCE coastal Peru (Huaca Prieta textiles); four species domesticated independently",
+   "prereq": "cereal_cultivation OR root_crop",
+   "prereqRationale": "Growing a fibre crop needs field-cultivation knowledge, seed or vegetative: Mehrgarh cotton grew among wheat-barley farmers, Peruvian cotton among early coastal cultivators. One OR group: prereq_complexity 0.0.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "costAnalog": "flax (A2 fibre crop, identical factors, 440 RP)",
+   "costRationale": "novelty 1.0 - a new crop, typical | difficulty 0.5 - A2 prior | material 0.0 - no engineered material, as for its crop siblings | institutional 0.25 - A2 prior | breadth 0.5 - one fibre capability (spinning, ginning) | prereq_complexity 0.0 - one OR group. Magnitude 2.25 -> 440 RP.",
+   "nodeKind": "technique",
+   "primaryUniversity": "agriculture",
+   "capability": {
+    "grants": [
+     "knowledge:cotton fibre crop",
+     "knowledge:cotton textiles (spinning, with spinning_spindle)"
+    ],
+    "realizationOwner": "none today; ProductionSystem (a cultivated fibre source)",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "PROPOSED new node; no effect.",
+    "deferredEffect": "IMPLEMENTATION DEFERRED: cultivated fibre - today the fiber good comes only from wild deposits via the Extraction sector; a fibre crop would let farmland produce fiber - M10+. Dependants requested from D07: spinning_spindle (OR member) and cotton_gin_roller.",
+    "inputs": {
+     "resources": [],
+     "geography": [
+      "warm arable land"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No warm cropland, no cotton.",
+    "unknownResource": "n/a",
+    "aiValuation": "Low until a cultivated fibre source exists; spinning route if D07 adopts the OR.",
+    "playerCommunication": "Knowledge-only until fibre crops are simulated."
+   },
+   "eurekas": [
+    {
+     "text": "Wild cotton grows in range",
+     "kind": "environmental",
+     "class": "future-system:resources/terrain",
+     "weight": 0.4,
+     "justification": "The same wild-progenitor circumstance as flax, millet and maize: domestication began where wild Gossypium grew."
+    }
+   ],
+   "family": null,
+   "generation": null,
+   "splitFrom": null,
+   "whyDistinct": "The second great plant fibre, domesticated independently four times (South Asia, Africa/Arabia, coastal Peru, Mesoamerica): the textile route the graph lacked (flax and wool are Southwest Asian). It gives the cotton gin a crop to gin and spinning an alternative fibre.",
+   "acceptanceTest": "Content: available with only cereal_cultivation complete and with only root_crop complete; trunk, A2; completion leaves Farming and Extraction output bit-identical (knowledge-only pin) and its card names the deferred owner. If D07 adopts the edges: spinning_spindle available via cotton_cultivation with neither flax nor wool; cotton_gin_roller unavailable without it."
+  },
+  {
+   "id": "agricultural_chemistry",
+   "name": "Agricultural chemistry",
+   "branch": "agriculture",
+   "age": "A8",
+   "domain": "agriculture",
+   "secondaryDomains": [
+    "science"
+   ],
+   "emerged": "1813 CE Davy, Elements of Agricultural Chemistry; 1840 CE Liebig; 1843 CE Rothamsted field experiments",
+   "prereq": "chemistry_quantitative",
+   "prereqRationale": "The mineral theory of plant nutrition rests on quantitative analysis of plants, soils and manures (chemistry_quantitative). The practices it explained (rotation, manuring) are its object, not a prerequisite. One requirement.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "costAnalog": "soda_leblanc (A8 applied chemistry, 7.0 = 11,830): novelty +0.5 here (a new field), material -1.5 (a theory needs no works), breadth +0.5, one prerequisite fewer -> 6.0",
+   "costRationale": "novelty 1.0 - a new applied science, typical | difficulty 2.5 - A8 prior | material 0.0 - a theory; its apparatus belongs to chemistry_quantitative | institutional 2.0 - A8 prior (experiment stations, agricultural colleges) | breadth 0.5 - soil fertility, fertilizer | prereq_complexity 0.0 - one requirement. Magnitude 6.0 -> 5,910 RP.",
+   "nodeKind": "science",
+   "primaryUniversity": "agriculture",
+   "capability": {
+    "grants": [
+     "knowledge:mineral theory of plant nutrition (N, P, K; law of the minimum)",
+     "knowledge:soil and manure analysis",
+     "knowledge:replicated field experiments"
+    ],
+    "realizationOwner": "ResearchSystem (prerequisite of chemical_fertilizer)",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "PROPOSED new node; no effect beyond making chemical_fertilizer researchable.",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": [
+      "agricultural_university type (existing; cost relief only)"
+     ]
+    },
+    "missingInputs": "n/a (pure knowledge).",
+    "unknownResource": "n/a",
+    "aiValuation": "Gateway value only: toward fertilizer and the HYV package.",
+    "playerCommunication": "Science node: explains soil fertility; makes mineral fertilizer researchable."
+   },
+   "eurekas": [],
+   "family": null,
+   "generation": null,
+   "splitFrom": null,
+   "whyDistinct": "Separates understanding (why soils lose fertility: mineral nutrients, the law of the minimum, measured by replicated field experiments) from application (fertilizer manufacture). It is the first agricultural knowledge that genuinely came from organized scholarship and experiment stations - what the Agriculture subtree should hold.",
+   "acceptanceTest": "Content: unavailable before the research stage and chemistry_quantitative; chemical_fertilizer unavailable until it and sulphuric_acid are complete; completion changes no production (pin)."
+  },
+  {
+   "id": "chemical_fertilizer",
+   "name": "Chemical fertilizer",
+   "branch": "agriculture",
+   "age": "A8",
+   "domain": "agriculture",
+   "secondaryDomains": [
+    "industry"
+   ],
+   "emerged": "1842 CE superphosphate patent (Lawes, England); guano and Chilean nitrate traded from the 1840s",
+   "prereq": "agricultural_chemistry AND sulphuric_acid",
+   "prereqRationale": "Superphosphate is phosphate (bone, then rock) treated with sulphuric acid (sulphuric_acid), and deciding what to apply where needs the nutrient theory (agricultural_chemistry). Mineral sources (phosphate rock, potash salts, nitrates) are realization INPUTS, not knowledge prerequisites. Two requirements.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 1.5,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "costAnalog": "synthetic_dye (A8 industrial chemistry with mineral inputs, identical factors, 23,650 RP)",
+   "costRationale": "novelty 1.0 - typical | difficulty 2.5 - A8 prior | material 1.5 - acid works and mineral raw materials, as synthetic_dye/soda_leblanc | institutional 2.0 - A8 prior (fertilizer industry) | breadth 0.5 - one capability (soil nutrients) and one dependant | prereq_complexity 0.5 - two requirements. Magnitude 8.0 -> 23,650 RP.",
+   "nodeKind": "application",
+   "primaryUniversity": "agriculture",
+   "capability": {
+    "grants": [
+     "knowledge:superphosphate and potash manufacture",
+     "production:recipe.fertilizer (proposed entity; IMPLEMENTATION DEFERRED)",
+     "knowledge:mineral fertilizer application"
+    ],
+    "realizationOwner": "ProductionSystem (crafting recipe + Farming land-side input)",
+    "status": "deferred",
+    "milestone": "M10+",
+    "currentEffect": "PROPOSED new node; no effect; prerequisite of green_revolution.",
+    "deferredEffect": "IMPLEMENTATION DEFERRED: a fertilizer good made by a recipe (phosphate rock or bone + sulphuric acid; potash salts; nitrates) and applied per arable km2 as a mechanism in the Farming land side (nutrient input replacing part of the fallow the CR-002 derivation assumes) - M10+ (new goods and consumers).",
+    "inputs": {
+     "resources": [
+      "phosphate rock, bone or guano",
+      "potash salts",
+      "nitrate (caliche) or guano",
+      "sulphuric acid"
+     ],
+     "geography": [
+      "phosphate, potash or nitrate deposits (identified by D11 knowledge)"
+     ],
+     "infrastructure": [
+      "chemical works (building.chemical_works, deferred tier D)"
+     ],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not realizable: without an identified, accessible nutrient source (or imports) and sulphuric acid no fertilizer can be made; the knowledge stays inert.",
+    "unknownResource": "Never reveals a deposit (framework §6). Until identification knowledge (D11) and known extent show a phosphate/potash/nitrate deposit, fertilizer can come only by trade, once a fertilizer good exists.",
+    "aiValuation": "Value only with a known or tradeable nutrient source in known extent; never from world truth.",
+    "playerCommunication": "Blocked state reads 'You know how to make fertilizer; no known phosphate, potash or nitrate source'."
+   },
+   "eurekas": [],
+   "family": null,
+   "generation": null,
+   "splitFrom": null,
+   "whyDistinct": "The application step: making and applying mineral fertilizer. The clearest case of knowledge versus resources - knowing superphosphate is useless without an identified phosphate source and acid - and the missing step behind the 19th-century yield rise and the HYV package.",
+   "acceptanceTest": "M6: completion makes no entity eligible and leaves Farming output bit-identical (pin); green_revolution unavailable without it; the card lists the missing inputs and grants no identification (no deposit is revealed)."
+  },
+  {
+   "id": "farm_machinery",
+   "name": "Horse-drawn farm machinery",
+   "branch": "agriculture",
+   "age": "A8",
+   "domain": "agriculture",
+   "secondaryDomains": [
+    "industry"
+   ],
+   "emerged": "1786 CE threshing machine (Meikle, Scotland; patented 1788); 1828-1834 CE reapers (Bell, McCormick, Hussey); 1837 CE steel plough (Deere)",
+   "prereq": "(heavy_plough OR iron_mouldboard) AND horse_collar AND crank_connecting_rod",
+   "prereqRationale": "Reapers cut with a reciprocating knife driven through a crank from the land wheel and threshers spin a beater drum (crank_connecting_rod); they and the new iron ploughs were horse-drawn (horse_collar); the iron and steel ploughs descend from a mouldboard-plough tradition - the European heavy plough or the Han iron mouldboard (OR; the Han-to-Dutch transmission is plausible but unproven, INFERENCE). Three top-level requirements.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.75,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 1.0
+   },
+   "costAnalog": "power_loom (A8 iron-parts machine, 7.25 = 14,070); +0.5 for a third requirement -> 7.75",
+   "costRationale": "novelty 1.0 - a new machine class, typical | difficulty 2.5 - A8 prior | material 0.75 - cast-iron gearing and steel knives, as power_loom and bicycle | institutional 2.0 - A8 prior (implement makers) | breadth 0.5 - harvest and tillage labour; parent of the combine | prereq_complexity 1.0 - three requirements. Magnitude 7.75 -> 19,890 RP.",
+   "nodeKind": "application",
+   "primaryUniversity": "agriculture",
+   "capability": {
+    "grants": [
+     "knowledge:mechanical reaper and threshing machine",
+     "knowledge:factory-made iron and steel ploughs",
+     "production:farm implements (proposed equipment good; IMPLEMENTATION DEFERRED)"
+    ],
+    "realizationOwner": "ProductionSystem (Farming labour side)",
+    "status": "deferred",
+    "milestone": "M10+",
+    "currentEffect": "PROPOSED new node; no effect; prerequisite of mechanised_agriculture.",
+    "deferredEffect": "IMPLEMENTATION DEFERRED: farm implements as an equipment good (iron, timber) that raises output per farmer on the labour side, on the template of the existing tools mechanism (toolsPerFarmerToEquip, toolYieldBonusMax), and needs draught horses from the livestock stock - so fewer farmers feed a settlement and labour moves to other sectors - M10+.",
+    "inputs": {
+     "resources": [
+      "iron or steel",
+      "timber",
+      "draught horses (livestock)"
+     ],
+     "geography": [],
+     "infrastructure": [
+      "workshop or foundry"
+     ],
+     "institutions": []
+    },
+    "missingInputs": "Without iron, timber and draught animals the implements cannot be made or pulled.",
+    "unknownResource": "n/a",
+    "aiValuation": "Value by farm labour share once the equipment good exists.",
+    "playerCommunication": "Knowledge-only until the implement good exists; card names the missing inputs."
+   },
+   "eurekas": [],
+   "family": null,
+   "generation": null,
+   "splitFrom": null,
+   "whyDistinct": "The first mechanisation of farming (threshers, reapers, iron and steel ploughs, 1780s-1830s) was horse- or gin-powered and preceded the engine by a century; the graph jumped from Tull's drill to the tractor. It carries the labour-saving capability that freed workers for industry and is the causal parent of the combine harvester.",
+   "acceptanceTest": "Content: available via heavy_plough and via iron_mouldboard (each route tested alone) with horse_collar and crank_connecting_rod; mechanised_agriculture unavailable without it; completion leaves Farming output bit-identical until the implement good exists (pin)."
+  },
+  {
+   "id": "scientific_plant_breeding",
+   "name": "Scientific plant breeding",
+   "branch": "agriculture",
+   "age": "A9",
+   "domain": "agriculture",
+   "secondaryDomains": [
+    "science"
+   ],
+   "emerged": "1905 CE Mendelian wheat breeding (Biffen, Cambridge); 1908 CE inbred-hybrid maize method (Shull); hybrid seed sold from 1926 CE",
+   "prereq": "genetics_mendel",
+   "prereqRationale": "Breeding by planned crosses and inbred-hybrid combination applies Mendelian inheritance (genetics_mendel, which already carries evolution and the breeders' tradition of selective_breeding in its closure). One requirement.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "costAnalog": "green_revolution (A9, 7.5 = 16,730): same prior and material; breadth 0.5 vs 0.0, one requirement vs three -> 7.0 (= desalination, weather_prediction, 11,830)",
+   "costRationale": "novelty 1.0 - typical | difficulty 3.0 - A9 prior | material 0.0 - field plots and controlled pollination | institutional 2.5 - A9 prior (breeding stations, seed firms) | breadth 0.5 - hybrid seed and the HYV programme | prereq_complexity 0.0 - one requirement. Magnitude 7.0 -> 11,830 RP.",
+   "nodeKind": "technique",
+   "primaryUniversity": "agriculture",
+   "capability": {
+    "grants": [
+     "knowledge:planned crosses and selection on Mendelian lines",
+     "knowledge:hybrid seed (heterosis)",
+     "knowledge:replicated variety trials"
+    ],
+    "realizationOwner": "ProductionSystem (seed-variety state) - IMPLEMENTATION DEFERRED",
+    "status": "deferred",
+    "milestone": "M10+",
+    "currentEffect": "PROPOSED new node; no effect; prerequisite of green_revolution.",
+    "deferredEffect": "IMPLEMENTATION DEFERRED: higher-yielding varieties as a property of the seed a settlement plants (a variety state read by the Farming land side); hybrid seed must be bought each year (a seed good or trade flow) - M10+.",
+    "inputs": {
+     "resources": [
+      "seed stock"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": [
+      "breeding station (no entity; agricultural_university type exists)"
+     ]
+    },
+    "missingInputs": "n/a",
+    "unknownResource": "n/a",
+    "aiValuation": "Gateway to green_revolution; no effect alone.",
+    "playerCommunication": "Knowledge-only until seed varieties are simulated."
+   },
+   "eurekas": [],
+   "family": null,
+   "generation": null,
+   "splitFrom": null,
+   "whyDistinct": "Genetics (science) is not breeding (technique): Mendelian crossing, inbred-hybrid maize and replicated trials turned genetics into better seed; hybrid maize (Iowa 6% in 1935 to near 100% in 1942) and the semi-dwarf HYVs are its applications. Separating it gives green_revolution its real parent.",
+   "acceptanceTest": "Content: green_revolution unavailable without it even with genetics_mendel complete; completion changes no production (pin); card names the deferred seed-variety owner."
+  }
+ ],
+ "crossLaneRequests": [
+  {
+   "targetLane": "D11-nuclear-geology",
+   "request": "Provide identification knowledge (resource-kind nodes or identification: grants on existing nodes) for phosphate rock and guano, potash salts, nitrate (caliche) deposits and salt (brine springs, rock salt), and say which node grants each. D01's new chemical_fertilizer and existing salt_extraction list these as realization inputs and never reveal deposits.",
+   "reason": "Framework s6 chain: knowing how to make fertilizer or salt is not knowing where the minerals are; none of these is a good or deposit today (fog audit 2.2)."
+  },
+  {
+   "targetLane": "D07-industry-construction",
+   "request": "(a) Add D01's new cotton_cultivation as an OR member of spinning_spindle's fibre group ('cordage AND (flax OR wool OR cotton_cultivation)') and as a prerequisite of cotton_gin_roller ('wheel_solid AND cotton_cultivation'). (b) Consider 'cereal_cultivation OR root_crop' for irrigation_basin and irrigation_canal (taro pond-fields; Andean canal irrigation of tubers). (c) FYI: crank_connecting_rod is a prerequisite of the new farm_machinery; drip_irrigation now requires (irrigation_basin OR irrigation_canal).",
+   "reason": "A cotton gin needs a cotton crop (today wheel_solid alone); cotton is an independently domesticated fibre (Indus, Peru, Mesoamerica); irrigation was not confined to cereal farmers."
+  },
+  {
+   "targetLane": "D08-transport-naval",
+   "request": "Acknowledged, no further request: D08's part already resolves both points D01 raised (horseshoe now requires iron_bloomery AND horse_domestication, not horse_collar; collar_harness is renamed 'Breast-strap harness', so the padded collar is horse_collar's alone). horse_collar moves to the trunk; its dependants are seed_drill_tull and the new farm_machinery.",
+   "reason": "Reply to D08's FYI; avoids a duplicated invention."
+  },
+  {
+   "targetLane": "D04-natural-science",
+   "request": "ACCEPTED (D04 asked D01): at integration set refrigeration {prereq: 'chemistry_quantitative AND steam_rotary AND thermodynamics', factors: {novelty 1.0, difficulty 2.5, material 1.5, institutional 2.0, breadth 0.5, prereq_complexity 1.0}}, dispositionAdd ['rebalance'] - cost 23,650 -> 33,450 by the V19 convention. thermodynamics (A8, earliest 1824 CE) passes Age monotonicity and the chronology test against refrigeration (1876 CE). Also keep chemistry_quantitative, sulphuric_acid (A8) and genetics_mendel (A9) at their Ages: they gain the dependants agricultural_chemistry, chemical_fertilizer and scientific_plant_breeding.",
+   "reason": "Linde designed his 1876 machine from thermodynamic efficiency (D04, RESEARCHED); a lane part may not name another lane's new id, so the edge is an integration override. A later Age on the three D04 parents would invert the new D01 nodes' Ages (V05)."
+  },
+  {
+   "targetLane": "D09-military",
+   "request": "DONE in this part: mechanised_agriculture's emerged now reads '1892 CE petrol tractor (Froelich); 1904 CE track-type tractor (Holt, steam; petrol 1908); ...' (earliest 1892 CE), so tank (1916 CE) may require it for track knowledge without failing the chronology test; both are A9. D01 agrees to the edge (D09 or the integrator adds it to tank).",
+   "reason": "Holt's 24 November 1904 track-type tractor (RESEARCHED) precedes the 1916 tank; the old '~1,920 CE' anchor marked mass adoption, not emergence."
+  },
+  {
+   "targetLane": "D03-science-early",
+   "request": "Done: sugar_refining no longer requires fermentation_fruit or distillation; it now requires root_crop AND pottery_open_fired (cane growing and boiling vessels). FYI: dog_domestication gains pig as a dependant (pig no longer requires sheep_goat).",
+   "reason": "Reply to D03's request; independent pig domestication in China before sheep or goats arrived."
+  },
+  {
+   "targetLane": "D12-civics",
+   "request": "Acknowledged: D01 splits neither cereal_cultivation nor sheep_goat; both keep their keys and contents (cereal_cultivation is re-scored only), so hereditary_rank and organized_priesthood keep valid prerequisites.",
+   "reason": "Reply to D12's request."
+  },
+  {
+   "targetLane": "D02-materials-mining",
+   "request": "Re-examine lacquer <- fermentation_fruit: urushi lacquer is cured tree sap, and fruit fermentation is not causally needed. FYI: cast_iron no longer sits in the A6 core closure (heavy_plough now needs iron_bloomery).",
+   "reason": "Non-causal edge noticed on a D01 node's dependant."
+  },
+  {
+   "targetLane": "D10-medicine",
+   "request": "If the M9 disease model includes diet-deficiency disease (pellagra in maize-dependent diets; scurvy), name nixtamalization (and canning/refrigeration for preserved fresh food) as its knowledge consumers. Veterinary medicine (livestock vaccines, e.g. anthrax 1881) was considered by D01 and left to D10's vaccine_lab scope.",
+   "reason": "nixtamalization's only plausible realization owner is M9 public health."
+  }
+ ],
+ "openQuestions": [
+  "OPEN DECISION (A6 core fact): the relocation removes the research-stage coupling; should a6_heavy_plough also accept regional equivalents of medieval agricultural intensification - 'heavy_plough OR iron_mouldboard' (heavy-soil mouldboard ploughs, Europe vs Han China) and possibly rice_champa (Song double cropping)? The AI core goal would become the union closure (it works the cheapest available member). Not applied: ages.json is Age content.",
+  "OPEN DECISION (A2 core fact): a2_cultivation names cereal_cultivation only, but New Guinea, the Andes and West Africa farmed tubers without cereals. 'cereal_cultivation OR root_crop' would let a vegeculture polity enter A2; root_crop is a 440-RP root node, so AI A2 entry would come much earlier and AiPolicyTests' turn-0 premise and AI goldens would move. Not applied.",
+  "Director decision (ratified content, digest X-08): the material 2.0 -> 0.0 re-score of cereal_cultivation, cereal_domesticated and maize is a content-consistency fix, but it lowers the A2 CORE node 3,520 -> 880 RP and makes the AI work the A2 core before the first road at turn 0 (AiPolicyTests premise). Applied here as PROPOSED.",
+  "new_world_crops conflates diffusion with invention. Once contact in known extent (S2a) and diffusion (T6.10) exist, should crop transfer be exposure credit on the transferred crop nodes, with new_world_crops kept as acclimatisation knowledge, or retired (which would need the alias/remap seam)?",
+  "Crop-package suitability: activity.farming treats every crop alike, so the regional alternatives (rice, millet, maize, sorghum, tubers, wheat/barley) differ only in label. Which owner and milestone (M10+?) should add crop-climate-water suitability so that the choice of crop package matters mechanically?",
+  "New agricultural goods and states (fertilizer, farm implements, seed varieties, salt, sugar, preserved food) carry most deferred effects in this lane; framework §10 puts new goods at M11+, while the PROPOSED M6 spec's T6.11 realizes tiers C-D (terraces, oil press). Which milestone owns agricultural inputs?"
+ ]
+}

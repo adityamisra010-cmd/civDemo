@@ -1,0 +1,1129 @@
+{
+ "lane": "D02-materials-mining",
+ "summary": "D02 keeps 47 of its 57 nodes, re-scopes the prerequisites of 10 on causal grounds (one at D04's request) and adds 3 nodes (cupellation, percussion_drilling, metallography). Iron-vs-bronze verdict: iron_bloomery's factors match its peers; its closure (10 nodes / 14,320 RP) was cheaper than the A3 CORE fact (9 / 15,250) because its only prerequisite was charcoal, so bloomery smelting needed no furnace knowledge. Proposed iron_bloomery <- charcoal AND kiln_updraft (prereq_complexity 0 -> 0.5 by convention: 8,360 -> 11,830 RP; closure 14 / 26,130). Copper smelting stays an accelerator (the node's own Eureka): requiring it would make that Eureka implied, which the loader refuses, and would deny the debated sub-Saharan route; bellows would fail the chronology test. Other causal fixes: microliths need blade production; lost-wax predates closed moulds and tin bronze, so it rests on open casting; pattern welding needs steel, not tempering; lacquer owes nothing to fermentation; hydraulic concrete needs lime, not the arch; cast iron needs casting and the water-powered blast furnace needs bellows (each replacing a redundant atom, cost unchanged); superalloys rest on scientific metallurgy; aluminium needs industrial alkali for its alumina (D04's request, cost unchanged). New nodes: metallography separates the science of metals from steelmaking; cupellation supplies the silver weighed-silver exchange and fire assay need; percussion drilling is the extraction step of the brine, gas and oil chains (D04 made petroleum_refining processing-only). The bronze chain is documented exactly (MEASURED): ungated copper-ore and tin-ore -> bronze casting gated by tin_bronze -> bronze as the only metal for tools; arsenical bronze opens A3 without any recipe. Identification (cassiterite and others) is requested from D11; extraction-depth gating is an open decision. Net workload +21,230 RP (0.19 % of 11.21M).",
+ "existing": [
+  {
+   "id": "knapping_oldowan",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Root of percussion flaking; content accurate. Kept unchanged on purpose: allocation-scenario key 2 and the v33 fixture premise (AI order for key 2 at turn 0) depend on it.",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "knapping_levallois",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Prepared-core flaking; accurate. The causal edge knapping_oldowan -> knapping_levallois was considered and not added: it removes a turn-0 root (founding and AI premises) for an A1 refinement with no gameplay consequence (lane notes, rejected candidates).",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "knapping_blade",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Blade production; accurate. Prerequisite of bone_tools and, under this proposal, of microlith (microliths are bladelet segments).",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "pressure_flaking",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Knowledge-only dead end kept with an explicit justification: an Upper Palaeolithic craft refinement (Solutrean laurel leaves, Clovis points) with educational value and no realizing owner (tool quality is not modelled); optional and the cheapest node in the tree (260 RP). Making heat_treatment_stone its prerequisite was rejected: obsidian and fine flint were pressure-flaked untreated.",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "heat_treatment_stone",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Knowledge-only dead end kept with an explicit justification: the earliest pyrotechnology applied to a material property (Pinnacle Point, ~164 kya); conceptually ancestral to metal heat treatment but not knowledge that quenching or tempering actually needs, and no owner models stone-tool quality.",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "microlith",
+   "disposition": [
+    "rewire"
+   ],
+   "rationale": "Missing causal edge: microliths are segments of bladelets (the node's own text: 'small geometric blade segments set in series'); without blade production there is nothing to segment. hafting stays (they are set in wood or bone hafts).",
+   "changes": "prereq 'hafting' -> 'hafting AND knapping_blade'; prereq_complexity 0.0 -> 0.5; cost 260 -> 370",
+   "prereq": "hafting AND knapping_blade",
+   "prereqRationale": "hafting: microliths are useful only set in series in a haft (existing edge). knapping_blade: the bladelets they are cut from come from prismatic blade cores (Howiesons Poort and Mesolithic microliths are bladelet-based industries). Both are knowledge actually needed; neither is chronology.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.0,
+    "material": 0.0,
+    "institutional": 0.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "costRationale": "novelty 1.0 unchanged (typical: a new tool concept on known techniques); difficulty 0.0 unchanged (A1 prior); material 0.0 unchanged (local stone, wood, adhesive); institutional 0.0 unchanged (A1 prior); breadth 0.5 unchanged (sickle and composite arms downstream); prereq_complexity 0.0 -> 0.5 (two top-level requirements by the ledger convention). 260 -> 370 RP; the only change is the convention consequence of a causal edge.",
+   "compatibility": {
+    "saves": "Key 7 unchanged. Completed microlith stays completed. Partial progress held without knapping_blade is dormant until it completes; cost 260 -> 370 (progress kept).",
+    "ids": "none: no id or key change",
+    "ui": "Locked reason may name knapping_blade; depth 2 -> 3 (knapping_blade sits at depth 1).",
+    "ai": "Changes when microlith (and sickle, D01) become available to AI and city-state research; AI-empire and driven goldens move with any change to research sequences (engine audit Q14); the three CI --check docs (unlock audit, corpus audit, calibration report) regenerate. ",
+    "consumers": "No entity names microlith; dependant sickle (D01) inherits the extra edge (its closure +2 nodes, +890 RP incl. the cost rise).",
+    "tests": "No test pins microlith. D-047 chronology test (ResearchContentTests.cs:486-525) re-checked by scratch emulation: no must-hold prerequisite is dated after its dependent. AI-empire and driven goldens move with any change to research sequences (engine audit Q14); the three CI --check docs (unlock audit, corpus audit, calibration report) regenerate. "
+   },
+   "nodeKind": "application"
+  },
+  {
+   "id": "ground_stone_early",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Class B (activity.logging joins the Extraction identity); allocation-scenario key 8 and several tests pin it; accurate.",
+   "changes": "none",
+   "nodeKind": "application"
+  },
+  {
+   "id": "adhesive_natural",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Compound adhesives; accurate; its name is pinned by ResearchContentTests. Under this proposal it also becomes the prerequisite of lacquer (resin and sap processing).",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "birch_tar",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Manufactured adhesive by dry distillation; accurate; prerequisite of charcoal and the composite bow.",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "hafting",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Class F (unit.spearmen, realized by the M7 battle layer); D-047 baseline wording pinned in ResearchBaselineTests; accurate.",
+   "changes": "none",
+   "nodeKind": "application"
+  },
+  {
+   "id": "bone_tools",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Bone and antler working needs burins (blade technology); accurate; prerequisite of tally_notation and chinese_script.",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "pottery_open_fired",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Class B: recipe.pottery_firing (goods.json: 2 clay + 0.5 timber -> 1 pottery) and the A2 supporting fact a2_pottery; heavily pinned in tests; accurate.",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "kiln_updraft",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Class J (building.kiln, no realizing system). Its own text calls it the thermal precondition for smelting; under this proposal it is the furnace prerequisite of iron_bloomery as it already is of copper_smelting. It stops being cast_iron's direct prerequisite (still reached through bellows).",
+   "changes": "none",
+   "nodeKind": "application"
+  },
+  {
+   "id": "potters_wheel_fast",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Knowledge-only dead end given a later realization owner rather than a dependant: a wheel-thrown pottery recipe (a second recipe, not a modifier) owned by ProductionSystem at M10+.",
+   "changes": "capability block overridden (deferredEffect added); no graph change",
+   "capability": {
+    "grants": [
+     "knowledge:pottery at scale",
+     "knowledge:standardised wares (bevel-rim bowls)"
+    ],
+    "realizationOwner": "none today (ProductionSystem when the recipe exists)",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED (unlock audit class C): no consequence; pottery is made by recipe.pottery_firing, gated by pottery_open_fired.",
+    "deferredEffect": "PROPOSED, IMPLEMENTATION DEFERRED (M10+ production depth): a second recipe 'wheel-thrown pottery' with the pottery-firing inputs and a lower laborPerOutput, eligible with this node; a distinct recipe the Crafting share can run (a mechanism), never a percentage on the existing recipe.",
+    "inputs": {
+     "resources": [
+      "clay",
+      "timber"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "as pottery-firing: no clay or timber, no output",
+    "unknownResource": "n/a (clay and timber are ungated deposits)",
+    "aiValuation": "none until the recipe exists; then by labour saved per pottery unit",
+    "playerCommunication": "'Knowledge only: thrown pottery is not yet a separate craft in the simulation.'"
+   },
+   "nodeKind": "application"
+  },
+  {
+   "id": "copper_native",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Cold-hammering and annealing of native copper; accurate; one of the two ore-recognition routes in copper_smelting's OR group.",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "copper_smelting",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Reduction smelting; class J (building.smithy, no realizing system). Prerequisites and Eureka unchanged (its stock_copper_ore Eureka is the only Eureka the tests allow to read that stock). Capability block overridden to state the goods relation exactly.",
+   "changes": "capability block overridden (goods relation stated); no graph change",
+   "capability": {
+    "grants": [
+     "building:building.smithy",
+     "knowledge:cast copper tools",
+     "knowledge:copper as trade good"
+    ],
+    "realizationOwner": "none (building.smithy has no realizing system)",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "MEASURED: no production consequence of its own. copper-ore (good 7, elevation channel, depositSpread 0.8) is extracted ungated from turn 1 and is consumed only by recipe.bronze_casting, which tin_bronze gates; smelting is folded into that recipe. Its machine-evaluable Eureka reads stock_copper_ore > 0 (40 % credit). building.smithy (copper_smelting OR iron_bloomery) is listed, never built.",
+    "deferredEffect": "building.smithy if the deferred-entity programme realizes it (T6.11 decides); a copper (metal) good is not proposed by this lane.",
+    "inputs": {
+     "resources": [
+      "copper-ore (good 7)",
+      "timber (good 4) as fuel"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "the Eureka cannot fire without copper-ore stock; completion is unaffected",
+    "unknownResource": "today every deposit is known; under fog the Eureka holds only for extracted (hence located) ore - D11 owns identification",
+    "aiValuation": "as the gate of tin_bronze/arsenical_bronze (A3 core) and of the furnace line; unchanged",
+    "playerCommunication": "'Smelting known: copper ore feeds bronze casting once tin bronze is known.'"
+   },
+   "nodeKind": "technique"
+  },
+  {
+   "id": "casting_open",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Pouring molten copper into one-piece moulds; accurate. Under this proposal it is also the casting prerequisite of lost_wax and cast_iron.",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "gold_silver_native",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Native gold and silver working (Varna gold); accurate. Under this proposal it is also a prerequisite of the new cupellation node (knowing silver as a material).",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "lacquer",
+   "disposition": [
+    "rewire"
+   ],
+   "rationale": "Non-causal edge removed: lacquer is the sap of the lacquer tree applied in thin layers and cured by polymerization; fermenting fruit (wine) is not knowledge it needs. Its knowledge base is collecting and processing natural resins and binders (adhesive_natural) - INFERENCE. Remains a knowledge-only dead end with an explicit justification: an East Asian craft of high educational value with no luxury-goods owner.",
+   "changes": "prereq 'fermentation_fruit' -> 'adhesive_natural'; factors re-checked, unchanged (one requirement, prereq_complexity 0.0); cost 310 unchanged",
+   "prereq": "adhesive_natural",
+   "prereqRationale": "adhesive_natural (engineered resin and sap binders) is the knowledge of gathering and working plant exudates that lacquer refines into a coating; fermentation_fruit was an association edge, not a causal one.",
+   "costRationale": "factors unchanged (1.0, 0.5, 0.0, 0.25, 0.0, 0.0): still one top-level requirement; 310 RP.",
+   "compatibility": {
+    "saves": "Key 163 unchanged; completed state kept. Partial progress held without adhesive_natural is dormant until it completes (adhesive_natural is a 260 RP root).",
+    "ids": "none: no id or key change",
+    "ui": "Becomes available far earlier (after a root rather than after pottery and wine); depth 4 -> 1.",
+    "ai": "Cheapest-available pickers (the --auto cheapest driver, city states) may take it early; AI-empire and driven goldens move with any change to research sequences (engine audit Q14); the three CI --check docs (unlock audit, corpus audit, calibration report) regenerate. ",
+    "consumers": "No entity names lacquer; fermentation_fruit (D01) keeps sugar_refining as a dependant.",
+    "tests": "No test pins lacquer. D-047 chronology test (ResearchContentTests.cs:486-525) re-checked by scratch emulation: no must-hold prerequisite is dated after its dependent. AI-empire and driven goldens move with any change to research sequences (engine audit Q14); the three CI --check docs (unlock audit, corpus audit, calibration report) regenerate. "
+   },
+   "nodeKind": "technique"
+  },
+  {
+   "id": "arsenical_bronze",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Accurate (most early 'bronze' was arsenical copper) and satisfies the A3 CORE fact. Unchanged; its Eureka is pinned by a D-047 test. Capability block overridden to state the measured asymmetry: Age entry without any recipe.",
+   "changes": "capability block overridden (realized consequence stated exactly); no graph change",
+   "capability": {
+    "grants": [
+     "age:a3_bronze",
+     "knowledge:harder tools and weapons without tin trade",
+     "knowledge:arsenic poisoning of smiths"
+    ],
+    "realizationOwner": "AgeTransitionSystem (a3_bronze CORE milestone fact, OR with tin_bronze)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED (unlock audit class B): satisfies a3_bronze. It makes NO recipe eligible: there is no arsenical-ore good and recipe.bronze_casting requires tin_bronze, so a polity entering A3 this way cannot make the bronze good (the supporting fact a3_bronze_stock >= 50 then needs tin_bronze or traded bronze) and gains no tools (toolmaking consumes bronze).",
+    "deferredEffect": "None proposed. An arsenical-copper recipe would need an arsenical-ore good identified by D11 (OPEN DECISION, lane notes).",
+    "inputs": {
+     "resources": [
+      "arsenic-bearing copper ore (not a good)"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "n/a - nothing to realize beyond the Age fact",
+    "unknownResource": "the Eureka (arsenical ore smelted locally) is future-system:resources/terrain",
+    "aiValuation": "cheapest route to the A3 CORE fact (1,050 RP vs tin_bronze 7,030); the AI polity completes it about 410-450 turns before tin_bronze in all four seeds (measurements/baseline-ai-node-completions.csv, reconstructed and labelled INFERENCE there)",
+    "playerCommunication": "Age panel should add: 'Arsenical bronze opens the Bronze Age but not bronze casting; tin bronze is needed to cast bronze and make tools.'"
+   },
+   "nodeKind": "technique"
+  },
+  {
+   "id": "tin_bronze",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Accurate; the only node that realizes a metal good. Unchanged pending D11's tin-identification node (crossLaneRequests): when it exists, D02 accepts tin_bronze <- copper_smelting AND <identification> with prereq_complexity 0 -> 0.5 (7,030 -> 9,950 RP). Capability block overridden to document the bronze chain exactly.",
+   "changes": "capability block overridden (bronze chain stated exactly); no graph change",
+   "capability": {
+    "grants": [
+     "production:recipe.bronze_casting",
+     "age:a3_bronze",
+     "knowledge:standardised alloy",
+     "knowledge:long-distance tin trade dependency",
+     "knowledge:Bronze weapons",
+     "knowledge:Bronze armour"
+    ],
+    "realizationOwner": "ProductionSystem (CraftingQuery.IsRecipeAvailable) + AgeTransitionSystem (a3_bronze)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED (unlock audit class B): makes recipe.bronze_casting eligible - goods.json bronze-casting: 8 copper-ore + 1 tin-ore + 2 timber -> 1 bronze per execution, 0.4 person-years, also requires artisan_share > 0.05 - and satisfies a3_bronze. copper-ore (spread 0.8) and tin-ore (spread 0.9) are per-settlement deposits on the elevation channel, extracted ungated from turn 1. Bronze is the only input metal of the baseline toolmaking recipe (1 bronze + 1 timber -> 2 tools), so this node is the knowledge gate of all domestic tool production: the farm tool factor (up to +30 %, toolYieldBonusMax 0.3), the workshop project (10 tools) and highway roads (1 tool per km), unless bronze or tools arrive by trade. Its Eureka reads stock_tin_ore > 0.",
+    "deferredEffect": "Under fog: tin ore must be identified (D11) before an unobserved deposit can be worked; D02 requests a cassiterite-identification prerequisite (crossLaneRequests).",
+    "inputs": {
+     "resources": [
+      "copper-ore (good 7)",
+      "tin-ore (good 8)",
+      "timber (good 4)"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": [
+      "artisan class share > 5 % (recipe predicate)"
+     ]
+    },
+    "missingInputs": "eligible but idle: with no tin-ore (local or traded) the recipe produces nothing; the Glass Box should name the missing ore",
+    "unknownResource": "today all deposits are known; under fog an unidentified tin deposit cannot feed the recipe (research never reveals it)",
+    "aiValuation": "high: the only route to bronze and tools; more valuable where tin-ore is held (Eureka)",
+    "playerCommunication": "'Bronze casting is possible where copper and tin ore are available' (the P10 now-usable shortcut fires on this recipe)."
+   },
+   "nodeKind": "technique"
+  },
+  {
+   "id": "casting_closed",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Two-piece and closed moulds; tin_bronze edge kept. An OR (arsenical_bronze OR tin_bronze) was considered - closed moulds were used for arsenical copper in places before tin bronze - but the evidence this lane found was not conclusive and the change would move the A7 CORE closure (printing_press); recorded as an open question.",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "lost_wax",
+   "disposition": [
+    "rewire"
+   ],
+   "rationale": "Chronology inversion fixed (D-047 r1, R-04): lost-wax casting predates closed moulds and tin bronze - the Mehrgarh amulet (unalloyed copper, site occupation 4500-3600 BCE, Thoury et al. 2016) and the Nahal Mishmar hoard (~3,700 BCE, arsenical copper) - yet the node required casting_closed (~3,000 BCE), which requires tin_bronze. The CI chronology test exempts dependants dated before 3000 BCE, so the inversion was never caught. What lost-wax needs is pouring molten metal into a mould (casting_open); the clay investment is ceramic knowledge already in its closure.",
+   "changes": "prereq 'casting_closed' -> 'casting_open'; emerged adds the Mehrgarh anchor; factors re-checked, unchanged (one requirement); cost 1,480 unchanged",
+   "prereq": "casting_open",
+   "prereqRationale": "casting_open: melting copper and pouring it into a mould is the casting knowledge the wax-model process uses; the closed bivalve mould is a separate, later technique, and tin bronze is not needed (Mehrgarh: pure copper; Nahal Mishmar: arsenical copper).",
+   "emerged": "~4,000 BCE Mehrgarh (unalloyed copper amulet); ~3,700 BCE Nahal Mishmar; Indus ~2,500 BCE",
+   "costRationale": "factors unchanged (1.0, 1.0, 0.75, 0.75, 0.5, 0.0): still one top-level requirement; 1,480 RP.",
+   "compatibility": {
+    "saves": "Key 83 unchanged; completed state kept. Partial progress held without casting_open is dormant until it completes.",
+    "ids": "none: no id or key change",
+    "ui": "Available earlier (after open casting rather than after tin bronze); depth 7 -> 6.",
+    "ai": "AI and driver may reach it earlier; AI-empire and driven goldens move with any change to research sequences (engine audit Q14); the three CI --check docs (unlock audit, corpus audit, calibration report) regenerate. ",
+    "consumers": "Dependant cannon_cast_bronze (D09) no longer inherits tin_bronze through lost_wax: its closure stops guaranteeing tin bronze, so D02 asks D09 to name tin_bronze explicitly (crossLaneRequests).",
+    "tests": "No test pins lost_wax. The earliest marked year moves -3700 -> -4000 (still exempt as pre-3000 BCE); the count of dated nodes is unchanged. AI-empire and driven goldens move with any change to research sequences (engine audit Q14); the three CI --check docs (unlock audit, corpus audit, calibration report) regenerate. "
+   },
+   "nodeKind": "technique"
+  },
+  {
+   "id": "sheet_metal",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Bronze sheet working (vessels, helmets, armour by raising and chasing); the tin_bronze edge is kept because its capability strings are bronze-specific; prerequisite of plate_armour and canning.",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "mining_shaft",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Class B: activity.mining joins the Extraction identity (a label). Kept; read as metal-ore mining (its copper_smelting edge); Neolithic flint mines are precedent in its text. Capability block overridden to state the extraction role exactly and the proposed extraction ladder (OPEN DECISION).",
+   "changes": "capability block overridden (extraction role stated exactly); no graph change",
+   "capability": {
+    "grants": [
+     "production:activity.mining",
+     "knowledge:ore from depth",
+     "knowledge:sustained metal supply",
+     "knowledge:Fire-setting",
+     "knowledge:Mining under walls"
+    ],
+    "realizationOwner": "LabourActivities (Extraction identity label); ProductionSystem output unchanged",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED (unlock audit class B): activity.mining 'joins' the Extraction sector identity - a label; extraction is ungated and unchanged (every deposit with abundance > 0 is worked from turn 1, ProductionSystem.cs:369-415). Its knowledge feeds three Eurekas (steam_atmospheric, railway, dynamite) and the prerequisite of qanat (D04's proposal removes its stand-in edge into petroleum_refining).",
+    "deferredEffect": "PROPOSED (OPEN DECISION with the fog lane and D11): if new deep deposits are gated while surface ores stay baseline (F-46), this node becomes the extraction-eligibility gate for underground lodes above the water table; deeper tiers would be steam_atmospheric (pumping) and, for fluids, percussion_drilling.",
+    "inputs": {
+     "resources": [
+      "any deposit good (today all are surface and ungated)"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "none today (label only)",
+    "unknownResource": "mining never creates or reveals a deposit; under the proposed ladder it reaches deposits D11 identification has made known",
+    "aiValuation": "low today (label and Eureka source); high under the ladder",
+    "playerCommunication": "'Mining is known: your extractors are now called miners. Output is unchanged.'"
+   },
+   "nodeKind": "technique"
+  },
+  {
+   "id": "fired_brick",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Class J (infra.urban_drainage, infra.sewer). Accurate. Its mudbrick conjunct is redundant (kiln_updraft already requires mudbrick) and inflates prereq_complexity by 0.5; not re-scored here - a package-level rule is asked (openQuestions).",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "glass_glaze",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Glaze and faience; salt_extraction stands for collecting evaporite salts such as natron (INFERENCE); the natron/plant-ash Eureka carries the circumstance. Accurate.",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "glass_core",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Core-formed glass vessels (~1,600 BCE); accurate.",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "iron_bloomery",
+   "disposition": [
+    "rewire"
+   ],
+   "rationale": "MEASURED anomaly resolved on causal grounds. The node's factors match its peers, but its only prerequisite was charcoal, so bloomery smelting - reducing ore with charcoal in a furnace at roughly 1,100-1,300 C - was reachable with no furnace knowledge at all; that missing edge, not the scoring, made its closure (10 nodes / 14,320 RP) cheaper than the A3 CORE fact (9 / 15,250). kiln_updraft (an enclosed firing chamber, controlled atmosphere, 'the thermal precondition for smelting') is the knowledge every centre needed, including the sub-Saharan clay shaft furnaces (INFERENCE: the tree's kiln node stands for building an enclosed high-temperature chamber, which a smelting furnace is). Copper smelting stays an accelerator, not a requirement: the node's own Eureka (when: copper_smelting) says so ('Not a prerequisite: African iron may be independent'); making it a prerequisite would make that Eureka implied, which the loader refuses (Eurekas are append-only), and would deny the debated independent-invention route. Bellows were not used: their emerged (~1,500 BCE) post-dates iron (~1,800 BCE) and the chronology test would fail (D06 request).",
+   "changes": "prereq 'charcoal' -> 'charcoal AND kiln_updraft'; prereq_complexity 0.0 -> 0.5; cost 8,360 -> 11,830; cheapest closure 10 nodes / 14,320 RP -> 14 nodes / 26,130 RP (A3 CORE fact unchanged at 9 / 15,250)",
+   "prereq": "charcoal AND kiln_updraft",
+   "prereqRationale": "charcoal: the fuel and reductant of every bloomery (existing edge). kiln_updraft: a closed high-temperature chamber holding a reducing atmosphere - without it ore cannot be reduced to a bloom; it is the furnace knowledge shared by the copper-smelting centres (Anatolia, Iran, the Levant, South Asia, China) and by sub-Saharan clay-furnace smelting, whose independence from a copper tradition is debated (reviewed by S. B. Alpern, History in Africa 32, 2005; the early Termit and Nok dates are contested). Not added: copper_smelting (makes the existing Eureka implied; denies the African route), bellows (chronology), an OR of the two (encodes forced draught on one route only and makes the copper route's Eureka automatic).",
+   "factors": {
+    "novelty": 2.0,
+    "difficulty": 1.25,
+    "material": 0.75,
+    "institutional": 1.0,
+    "breadth": 1.5,
+    "prereq_complexity": 0.5
+   },
+   "costRationale": "novelty 2.0 unchanged (a new metal and hot forging: paradigm-founding); difficulty 1.25 unchanged (A4 prior; a narrow reduction window, slag control, bloom consolidation); material 0.75 unchanged (ore is near-ubiquitous; charcoal in quantity); institutional 1.0 unchanged (A4 prior); breadth 1.5 unchanged (Age CORE fact, nine dependants, tools and weapons); prereq_complexity 0.0 -> 0.5 (two top-level requirements by the ledger convention). 8,360 -> 11,830 RP. Not chosen to hit an Age duration: the cost moves only through the convention consequence of the causal edge.",
+   "capability": {
+    "grants": [
+     "age:a4_iron",
+     "building:building.smithy",
+     "knowledge:iron tools and weapons",
+     "knowledge:metal without long-distance trade",
+     "knowledge:Iron agricultural tools",
+     "knowledge:Iron fastenings",
+     "knowledge:Forging",
+     "knowledge:Massed heavy infantry"
+    ],
+    "realizationOwner": "AgeTransitionSystem (a4_iron CORE milestone fact); building.smithy unrealized",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED (unlock audit class B (BJ)): satisfies the A4 CORE fact a4_iron; building.smithy (copper_smelting OR iron_bloomery) has no realizing system. There is no iron-ore and no iron good (goods.json, 14 goods), so iron makes no tools: every tool in the simulation is made from bronze.",
+    "deferredEffect": "PROPOSED (OPEN DECISION, M10+ new resources with D-051 section 2 availability classes): an iron-ore deposit good (common, surface, ungated like copper-ore) and two ProductionSystem recipes - bloomery smelting (iron-ore + timber as charcoal -> iron) and iron toolmaking (iron + timber -> tools) - so that 'metal without long-distance trade' becomes a real alternative to the tin-dependent bronze route.",
+    "inputs": {
+     "resources": [
+      "iron ore (not a good)",
+      "charcoal from timber (good 4)"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "eligible, nothing to smelt today; the Age fact is the only realized consequence",
+    "unknownResource": "iron ores (bog iron, haematite, laterite) are near-ubiquitous: recommended to stay surface-ungated, with no identification gate",
+    "aiValuation": "A4 CORE goal. The AI's goal closure gains kiln_updraft, which the AI has already completed on its A3 path (turn 393 vs iron at 490, seed 42; INFERENCE from measurements/baseline-ai-node-completions.csv), so its path changes mainly by iron's own +3,470 RP before the unchanged 40 % copper-smelting Eureka credit.",
+    "playerCommunication": "Age panel: 'The Iron Age needs bloomery iron: charcoal and a kiln-built furnace.' Glass Box: 'Iron tools are not yet modelled; tools come from bronze.'"
+   },
+   "compatibility": {
+    "saves": "Key 110 unchanged. A completed iron_bloomery stays completed (no re-validation). Partial progress held without kiln_updraft is dormant until it completes (UI 'Partial'); cost 8,360 -> 11,830 (progress kept, applied to the new cost). The Eureka index (0) and its paid credit are untouched.",
+    "ids": "none: no id or key change",
+    "ui": "Locked reason may name kiln_updraft; depth stays 4; the Age panel's next-research link toward a4_iron may point at kiln_updraft.",
+    "ai": "AI A4 core-goal closure gains kiln_updraft (usually already complete); AI-empire and driven goldens move with any change to research sequences (engine audit Q14); the three CI --check docs (unlock audit, corpus audit, calibration report) regenerate. ",
+    "consumers": "Entity requirements unchanged (building.smithy). ages.json a4_iron unchanged. Every dependant inherits kiln_updraft in its closure (steel_carburized, cast_iron, blast_furnace_water, glass_blowing, wire_drawing, stirrup, horseshoe, compass_magnetic, stone_fortification, and under other lanes' proposals heavy_plough (D01, the A6 CORE fact) and cannon_early (D09, an OR alternative)); most already held it.",
+    "tests": "No test pins iron_bloomery's prerequisite or cost. D-047 chronology test (ResearchContentTests.cs:486-525) re-checked by scratch emulation: no must-hold prerequisite is dated after its dependent. Implied/dead-Eureka emulation: copper_smelting is not guaranteed by charcoal AND kiln_updraft (Eureka stays a circumstance). AI-empire and driven goldens move with any change to research sequences (engine audit Q14); the three CI --check docs (unlock audit, corpus audit, calibration report) regenerate. "
+   },
+   "nodeKind": "technique"
+  },
+  {
+   "id": "steel_carburized",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Cementation of bloomery iron in charcoal (~1,200 BCE); accurate. Under this proposal it is also pattern_welding's prerequisite.",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "quenching",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Quench hardening (Idalion knife, ~1,100 BCE); accurate; T1 refinement.",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "tempering",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Reheating quenched steel; accurate. Loses pattern_welding as a dependant (re-scoped), keeps plate_armour.",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "wootz",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Crucible steel; prerequisites accurate (carburizing knowledge; refractory crucibles in a kiln-built furnace). Knowledge-only dead end kept with an explicit justification: independent South Asian and Central Asian centres of high educational value; no steel good. The emerged anchor is corrected to the sourced dates: crucible steel at Kodumanal ~2nd-3rd c. BCE and South India/Sri Lanka from ~300 BCE; Merv and Akhsiket 8th-12th c. CE (a distinct co-fusion process). The Central Asian route (cast iron + bloomery iron) cannot be an OR here: cast_iron is A5 and wootz A4 (Age monotonicity).",
+   "changes": "emerged corrected '~500 BCE South India (Kodumanal)' -> sourced anchors; no graph change; cost unchanged",
+   "emerged": "~300 BCE South India and Sri Lanka (Kodumanal, Mel-siruvalur, Tissamaharama); 8th-12th c. CE Central Asia (Merv, Akhsiket)",
+   "compatibility": {
+    "saves": "No effect (text only).",
+    "ids": "none: no id or key change",
+    "ui": "Card text only.",
+    "ai": "None.",
+    "consumers": "None (no dependants).",
+    "tests": "Earliest marked year -500 -> -300; wootz has no dependants, so the chronology test is unaffected; the dated-node count is unchanged."
+   },
+   "nodeKind": "technique"
+  },
+  {
+   "id": "pattern_welding",
+   "disposition": [
+    "rewire"
+   ],
+   "rationale": "Chronology-only edge replaced: pattern welding forge-welds strips of iron and steel into one blade; it needs steel (and the forge welding every bloomery smith already practised), not the quench-and-temper cycle, and pattern-welded blades were often not quench-hardened. Remains a knowledge-only dead end with an explicit justification (craft technique of La Tene, Migration-period and Viking swords; no blade or weapon-quality owner).",
+   "changes": "prereq 'tempering' -> 'steel_carburized'; factors re-checked, unchanged (one requirement); cost 2,490 unchanged",
+   "prereq": "steel_carburized",
+   "prereqRationale": "steel_carburized supplies the hard steel layers; forge welding is part of bloomery smithing (iron_bloomery, in the closure). tempering was a chronology edge (the heat-treatment line came first in time, not as needed knowledge) - INFERENCE from the technique.",
+   "costRationale": "factors unchanged (1.0, 1.25, 1.5, 1.0, 0.0, 0.0): still one top-level requirement; 2,490 RP.",
+   "compatibility": {
+    "saves": "Key 116 unchanged; completed state kept; partial progress held without steel_carburized is dormant until it completes.",
+    "ids": "none: no id or key change",
+    "ui": "Available earlier (after carburized steel); depth 8 -> 6.",
+    "ai": "AI-empire and driven goldens move with any change to research sequences (engine audit Q14); the three CI --check docs (unlock audit, corpus audit, calibration report) regenerate. ",
+    "consumers": "No entity or dependant.",
+    "tests": "No test pins pattern_welding. D-047 chronology test (ResearchContentTests.cs:486-525) re-checked by scratch emulation: no must-hold prerequisite is dated after its dependent. AI-empire and driven goldens move with any change to research sequences (engine audit Q14); the three CI --check docs (unlock audit, corpus audit, calibration report) regenerate. "
+   },
+   "nodeKind": "technique"
+  },
+  {
+   "id": "glass_blown_precursor",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Cast and mosaic glass (~700 BCE); accurate.",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "concrete_pozzolan",
+   "disposition": [
+    "rewire"
+   ],
+   "rationale": "Non-causal edge removed: hydraulic concrete is a material - lime mortar with volcanic ash that sets under water - and making it does not need the arch. Roman maritime concrete was laid in harbour piers and moles with no arches at all (Bay of Naples before the late 2nd c. BCE; Cosa piers; Caesarea ~25 BCE; ROMACONS). Vaults and domes, which do need the arch, are realized by vault_dome and bridge_stone, which require arch AND concrete_pozzolan themselves.",
+   "changes": "prereq 'lime_plaster AND arch' -> 'lime_plaster'; prereq_complexity 0.5 -> 0.0; cost 11,830 -> 8,360; cheapest closure 16 nodes / 37,390 RP -> 4 nodes / 12,220 RP",
+   "prereq": "lime_plaster",
+   "prereqRationale": "lime_plaster: burning limestone to quicklime and slaking it is the binder chemistry pozzolanic concrete extends (adding volcanic ash or crushed fired clay makes the lime set hydraulically). arch: removed - a structural form, not knowledge the material needs; identification of pozzolana is the existing future-system Eureka (D11 territory).",
+   "factors": {
+    "novelty": 2.0,
+    "difficulty": 1.5,
+    "material": 0.75,
+    "institutional": 1.25,
+    "breadth": 1.0,
+    "prereq_complexity": 0.0
+   },
+   "costRationale": "novelty 2.0 unchanged (a new material class: a binder that sets under water); difficulty 1.5 unchanged (A5 prior); material 0.75 unchanged (lime plus pozzolana and aggregate); institutional 1.25 unchanged (A5 prior; organized building trades); breadth 1.0 unchanged (domes, vaults, bridges and harbour works through three dependants); prereq_complexity 0.5 -> 0.0 (one top-level requirement). 11,830 -> 8,360 RP: the convention consequence of removing a non-causal edge, not a pacing choice.",
+   "compatibility": {
+    "saves": "Key 148 unchanged. Cost falls 11,830 -> 8,360: a save holding >= 8,360 RP of progress completes it at the next step with no RP spent (engine audit Q14 'Change cost'); completed state kept.",
+    "ids": "none: no id or key change",
+    "ui": "Locked reason no longer names arch; depth 11 -> 2.",
+    "ai": "It is a SUPPORTING Age fact (a5_concrete), not a CORE goal, so AI core goals are unaffected; cheapest-available pickers may take it earlier; AI-empire and driven goldens move with any change to research sequences (engine audit Q14); the three CI --check docs (unlock audit, corpus audit, calibration report) regenerate. ",
+    "consumers": "vault_dome and bridge_stone still require arch AND concrete_pozzolan; portland_cement unchanged (its kiln_updraft conjunct stops being redundant). ages.json a5_concrete unchanged; arch (D07) keeps three dependants.",
+    "tests": "No test pins concrete_pozzolan. D-047 chronology test (ResearchContentTests.cs:486-525) re-checked by scratch emulation: no must-hold prerequisite is dated after its dependent. AI-empire and driven goldens move with any change to research sequences (engine audit Q14); the three CI --check docs (unlock audit, corpus audit, calibration report) regenerate. "
+   },
+   "nodeKind": "technique"
+  },
+  {
+   "id": "glass_blowing",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Glassblowing with an iron blowpipe (~50 BCE); accurate (the earliest blown tubes may predate metal pipes, but practical blowing used iron pipes).",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "window_glass",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Window panes; accurate as a class (Roman cast panes, later blown crown and cylinder glass).",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "cast_iron",
+   "disposition": [
+    "rewire"
+   ],
+   "rationale": "Missing causal edge supplied, redundant atom removed: cast iron is CAST - liquid iron poured into moulds - yet no casting knowledge was a prerequisite, while kiln_updraft was listed although bellows already requires it. Replacing kiln_updraft with casting_open keeps three independent requirements (prereq_complexity 1.0, cost unchanged) and records what Chinese cast iron built on: the foundry practice of the bronze casters (D. B. Wagner's view as summarized in secondary sources: casting arose separately, probably in the south, possibly from furnaces for melting bronze). iron_bloomery is kept: the same summaries place bloomery iron first in China (northwest, ~8th c. BCE).",
+   "changes": "prereq 'iron_bloomery AND bellows AND kiln_updraft' -> 'iron_bloomery AND bellows AND casting_open'; factors re-checked, unchanged (three requirements, prereq_complexity 1.0); cost 16,730 unchanged",
+   "prereq": "iron_bloomery AND bellows AND casting_open",
+   "prereqRationale": "iron_bloomery: knowing iron ore yields iron (kept). bellows: the strong blast that melts iron (>1,150 C) (kept; it implies kiln_updraft, hence the removal). casting_open: pouring molten metal into moulds - the capability strings (mass-cast tools, cookware, ploughshares) are castings. A no-bloomery OR route (bronze foundry straight to the blast furnace) was considered and not adopted: secondary sources only.",
+   "costRationale": "factors unchanged (2.0, 1.5, 0.75, 1.25, 1.0, 1.0): still three top-level requirements; 16,730 RP.",
+   "compatibility": {
+    "saves": "Key 155 unchanged; completed state kept; partial progress held without casting_open is dormant until it completes.",
+    "ids": "none: no id or key change",
+    "ui": "Locked reason may name casting_open; depth unchanged (5).",
+    "ai": "The A6 CORE closure (heavy_plough via iron_mouldboard) is recomputed with casting_open in it; AI-empire and driven goldens move with any change to research sequences (engine audit Q14); the three CI --check docs (unlock audit, corpus audit, calibration report) regenerate. ",
+    "consumers": "building.blast_furnace (blast_furnace_water OR cast_iron) unchanged; dependants iron_mouldboard, seed_drill, cannon_early, steam_atmospheric inherit casting_open (their closures already reach copper smelting in most cases).",
+    "tests": "No test pins cast_iron. D-047 chronology test (ResearchContentTests.cs:486-525) re-checked by scratch emulation: no must-hold prerequisite is dated after its dependent. AI-empire and driven goldens move with any change to research sequences (engine audit Q14); the three CI --check docs (unlock audit, corpus audit, calibration report) regenerate. "
+   },
+   "nodeKind": "technique"
+  },
+  {
+   "id": "brass_calamine",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Cementation brass (Roman, 1st c. BCE; industrial ~1550 CE); accurate. Knowledge-only dead end kept with an explicit justification: no zinc or brass good, and no instrument node actually needs brass (astrolabes, telescopes and clocks were also made of other metals).",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "spectacles",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Ground lenses (~1,286 CE Pisa); accurate; prerequisite of telescope and microscope.",
+   "changes": "none",
+   "nodeKind": "application"
+  },
+  {
+   "id": "blast_furnace_water",
+   "disposition": [
+    "rewire"
+   ],
+   "rationale": "Redundant atom replaced by the causal one: the water-powered blast furnace is a furnace blown by water-driven bellows, but bellows were not a prerequisite while charcoal was listed although iron_bloomery already requires it. Replacing charcoal with bellows keeps three independent requirements (prereq_complexity 1.0, cost unchanged).",
+   "changes": "prereq 'iron_bloomery AND crank_connecting_rod AND charcoal' -> 'iron_bloomery AND crank_connecting_rod AND bellows'; factors re-checked, unchanged; cost 7,030 unchanged",
+   "prereq": "iron_bloomery AND crank_connecting_rod AND bellows",
+   "prereqRationale": "iron_bloomery: iron smelting (kept; implies charcoal). crank_connecting_rod: converting the waterwheel's rotation into the bellows stroke (kept). bellows: the blowing device the water drives - knowledge actually needed; charcoal removed only because it is implied.",
+   "costRationale": "factors unchanged (0.5, 1.75, 0.75, 1.25, 1.0, 1.0): still three top-level requirements; 7,030 RP.",
+   "compatibility": {
+    "saves": "Key 210 unchanged; completed state kept; partial progress held without bellows is dormant until it completes.",
+    "ids": "none: no id or key change",
+    "ui": "Locked reason may name bellows; depth unchanged.",
+    "ai": "AI-empire and driven goldens move with any change to research sequences (engine audit Q14); the three CI --check docs (unlock audit, corpus audit, calibration report) regenerate. ",
+    "consumers": "building.blast_furnace unchanged; dependants coke and cannon_cast_iron inherit bellows (usually already present through cast_iron).",
+    "tests": "No test pins blast_furnace_water. D-047 chronology test (ResearchContentTests.cs:486-525) re-checked by scratch emulation: no must-hold prerequisite is dated after its dependent. AI-empire and driven goldens move with any change to research sequences (engine audit Q14); the three CI --check docs (unlock audit, corpus audit, calibration report) regenerate. "
+   },
+   "nodeKind": "application"
+  },
+  {
+   "id": "wire_drawing",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Water-powered wire drawing (~1,350) defines the industrial capability; earlier hand drawplates are noted in its date; accurate.",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "coke",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Darby, 1709; accurate. Its coal Eureka is future-system:resources/terrain - coal identification is D11's (crossLaneRequests).",
+   "changes": "none",
+   "nodeKind": "application"
+  },
+  {
+   "id": "glass_lead",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Ravenscroft lead crystal (1674): optical flint glass and tableware; accurate.",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "puddling",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Cort, 1784; class B (A8 supporting fact a8_iron). The steam_rotary edge was reviewed and kept: an OR with water power for the rolling mill was considered and rejected because bessemer (<- puddling) would then bypass the steam blowing engines its converters needed.",
+   "changes": "none",
+   "nodeKind": "application"
+  },
+  {
+   "id": "hot_blast",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Neilson, 1828; accurate.",
+   "changes": "none",
+   "nodeKind": "application"
+  },
+  {
+   "id": "bessemer",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Bessemer converter (1856); class J (building.steelworks); accurate.",
+   "changes": "none",
+   "nodeKind": "application"
+  },
+  {
+   "id": "open_hearth",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Siemens-Martin (1865); class J (building.steelworks); accurate.",
+   "changes": "none",
+   "nodeKind": "application"
+  },
+  {
+   "id": "basic_process",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Gilchrist-Thomas basic lining (1878): steel from phosphoric ores; accurate.",
+   "changes": "none",
+   "nodeKind": "application"
+  },
+  {
+   "id": "portland_cement",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Aspdin 1824 / Johnson 1845; class J (building.cement_works). Unchanged; its kiln_updraft conjunct stops being redundant once concrete_pozzolan no longer reaches the kiln through arch.",
+   "changes": "none",
+   "nodeKind": "application"
+  },
+  {
+   "id": "aluminium",
+   "disposition": [
+    "rewire"
+   ],
+   "rationale": "Accepted cross-lane request (D04): commodity aluminium needs industrial alkali. Hall-Heroult cells (1886) electrolyse alumina, and alumina at industrial scale came from alkali processes - bauxite heated with soda (Le Chatelier, 1855) and, from 1887-88, digested in caustic soda (Bayer); Deville's earlier chemical route reduced aluminium chloride with sodium made from soda. soda_leblanc replaces chemistry_quantitative, which it already requires, so the edge is added at no cost. Bauxite identification is D11's.",
+   "changes": "prereq 'electricity_generation AND chemistry_quantitative' -> 'electricity_generation AND soda_leblanc'; factors re-checked, unchanged (two requirements, prereq_complexity 0.5); cost 47,310 unchanged",
+   "prereq": "electricity_generation AND soda_leblanc",
+   "prereqRationale": "electricity_generation: cheap continuous current for the electrolytic cell (kept). soda_leblanc: industrial alkali for refining bauxite to alumina (the cell's feed) - knowledge actually needed; it requires chemistry_quantitative, which is therefore dropped as implied. Resolves soda_leblanc's dead end (D04).",
+   "costRationale": "factors unchanged (1.0, 3.0, 1.5, 2.5, 0.5, 0.5): still two top-level requirements; 47,310 RP.",
+   "compatibility": {
+    "saves": "Key 306 unchanged; completed state kept; partial progress held without soda_leblanc is dormant until it completes.",
+    "ids": "none: no id or key change",
+    "ui": "Locked reason may name soda_leblanc; depth may rise by one.",
+    "ai": "aircraft_metal and liquid_fuel_rocket (D08 splits rocket; its aluminium edge moves there) gain the alkali branch (sulphuric_acid and soda_leblanc) where not already complete; AI-empire and driven goldens move with any change to research sequences (engine audit Q14); the three CI --check docs (unlock audit, corpus audit, calibration report) regenerate. ",
+    "consumers": "No entity names aluminium; dependants aircraft_metal and (under D08's split) liquid_fuel_rocket inherit the edge.",
+    "tests": "No test pins aluminium. D-047 chronology test (ResearchContentTests.cs:486-525) re-checked by scratch emulation: no must-hold prerequisite is dated after its dependent. AI-empire and driven goldens move with any change to research sequences (engine audit Q14); the three CI --check docs (unlock audit, corpus audit, calibration report) regenerate. "
+   },
+   "nodeKind": "application"
+  },
+  {
+   "id": "superalloy",
+   "disposition": [
+    "rewire"
+   ],
+   "rationale": "Understanding separated from application: nickel-chromium superalloys strengthened by titanium and aluminium (1929 onward; Nimonic 80, 1941, the standard rotor-blade alloy of British gas turbines) were designed with the physical metallurgy of precipitation hardening, which the new metallography node represents; chemistry_quantitative becomes implied through it. Still a dead end pending D06/D08 (crossLaneRequests): durable gas turbines and jet airliners are its causal consumers; jet_engine (1939) is not - the first jet engines (1937-1939) predate Nimonic 80 (1941), so that edge would also fail the chronology test.",
+   "changes": "prereq 'open_hearth AND chemistry_quantitative' -> 'open_hearth AND metallography'; factors re-checked, unchanged (two requirements); cost 66,910 unchanged",
+   "prereq": "open_hearth AND metallography",
+   "prereqRationale": "open_hearth: industrial alloy-steel melting practice (kept). metallography: microstructure and phase knowledge needed to design precipitation-hardened alloys (replaces chemistry_quantitative, which metallography requires).",
+   "costRationale": "factors unchanged (1.0, 3.0, 2.0, 2.5, 0.5, 0.5); 66,910 RP.",
+   "compatibility": {
+    "saves": "Key 307 unchanged; completed state kept; partial progress held without metallography is dormant until it completes (a stage-gated A8 node).",
+    "ids": "none: no id or key change",
+    "ui": "Locked reason names metallography; depth +1.",
+    "ai": "AI-empire and driven goldens move with any change to research sequences (engine audit Q14); the three CI --check docs (unlock audit, corpus audit, calibration report) regenerate. ",
+    "consumers": "No entity or dependant.",
+    "tests": "No test pins superalloy. D-047 chronology test (ResearchContentTests.cs:486-525) re-checked by scratch emulation: no must-hold prerequisite is dated after its dependent. AI-empire and driven goldens move with any change to research sequences (engine audit Q14); the three CI --check docs (unlock audit, corpus audit, calibration report) regenerate. "
+   },
+   "nodeKind": "application"
+  },
+  {
+   "id": "composites",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Fibre-reinforced polymers; accurate. A split into glass-fibre and carbon-fibre composites was considered and rejected: its three dependants (reusable_launch, stealth, wind_turbine_modern) do not divide by fibre and the node (66,910 RP) is no bottleneck.",
+   "changes": "none",
+   "nodeKind": "application"
+  },
+  {
+   "id": "nanotechnology",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Bundles nanomaterials and sub-100 nm fabrication; not split - single dependant (frontier_materials), no bottleneck (66,910 RP). The fabrication half overlaps D06's cmos_vlsi line (noted, lane notes).",
+   "changes": "none",
+   "nodeKind": "application"
+  },
+  {
+   "id": "asteroid_mining",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Speculative-finite node (counts toward the engineering subtree exhaustion rule). Knowledge-only dead end kept with an explicit justification: off-world resources have no owner in any planned milestone.",
+   "changes": "none",
+   "nodeKind": "application"
+  },
+  {
+   "id": "frontier_materials",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Recursive node (D-046: keep the ten repeatables, defer their mechanics). Dead end given its documented realization owner.",
+   "changes": "capability block overridden (deferredEffect from its own repeatable descriptor); no graph change",
+   "capability": {
+    "grants": [
+     "knowledge:lighter, cheaper structures"
+    ],
+    "realizationOwner": "ResearchSystem (repeatable, completes once today); consuming mechanism ConstructionSystem (documented, not built)",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED (class H): completes once (D-044 R11); available only after every finite engineering node is complete.",
+    "deferredEffect": "DOCUMENTED in its repeatable descriptor, IMPLEMENTATION DEFERRED (D-046 repeat mechanics): each level lowers construction material input per project, closing a fixed fraction of the remaining gap to a physical limit (DD-14) - a coefficient inside the construction resolution equation (law 2).",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "n/a",
+    "unknownResource": "n/a",
+    "aiValuation": "end-of-subtree only",
+    "playerCommunication": "'Repeatable research: no effect until repeat mechanics exist.'"
+   },
+   "nodeKind": "science"
+  }
+ ],
+ "new": [
+  {
+   "id": "cupellation",
+   "name": "Silver refining by cupellation",
+   "branch": "trunk",
+   "age": "A3",
+   "domain": "materials",
+   "secondaryDomains": [
+    "industry"
+   ],
+   "emerged": "~3,600 BCE Tepe Sialk (Iran); ~3,300 BCE Habuba Kabira (Syria) and Fatmali-Kalecik (Anatolia) - litharge from cupellation",
+   "prereq": "copper_smelting AND gold_silver_native",
+   "prereqRationale": "copper_smelting: smelting ore to metal in a furnace - the tree's node for reduction smelting (lead smelting has no node of its own; INFERENCE); argentiferous lead must first be smelted to lead bullion. gold_silver_native: knowing and valuing silver as a material, which is what the process recovers. Both are knowledge actually needed; neither is chronology (cupellation is ~1,400 years after both).",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.0,
+    "material": 0.75,
+    "institutional": 0.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "costAnalog": "wheel_spoked",
+   "costRationale": "novelty 1.0 (a new refining principle - oxidizing the base metal away - built on smelting; typical, not paradigm-founding); difficulty 1.0 (A3 prior; about 1,000 C with an air blast, within Chalcolithic furnaces); material 0.75 (argentiferous lead ore, bone-ash or marl cupels, a blown hearth; as copper smelting); institutional 0.75 (A3 prior; specialist metalworkers, palace and temple demand); breadth 0.5 (silver supply for weighed-silver exchange and later coinage; fire assay); prereq_complexity 0.5 (two top-level requirements). Magnitude 4.5 -> 2,090 RP, the same profile as wheel_spoked (A3).",
+   "nodeKind": "technique",
+   "primaryUniversity": "engineering",
+   "universityRelevance": [
+    {
+     "type": 3,
+     "name": "Engineering",
+     "role": "primary"
+    },
+    {
+     "type": 4,
+     "name": "Natural Science",
+     "role": "secondary"
+    }
+   ],
+   "capability": {
+    "grants": [
+     "knowledge:silver separated from argentiferous lead by oxidizing the lead to litharge",
+     "knowledge:fire assay of gold and silver (cupellation at small scale)"
+    ],
+    "realizationOwner": "none",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "PROPOSED: completion row only; no lead, silver or argentiferous ore good exists (goods.json, 14 goods).",
+    "deferredEffect": "Prerequisite of weighed silver (hacksilver, D05) and of fire assay (D11) if those lanes adopt the edges; with new goods (M10+), a ProductionSystem recipe refining a silver good from an argentiferous-lead-ore deposit that D11 identification makes known.",
+    "inputs": {
+     "resources": [
+      "argentiferous lead ore (galena) - not a good",
+      "bone ash or marl for cupels"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "eligible but never realizable today: no ore good to refine",
+    "unknownResource": "research never reveals a deposit; argentiferous galena would need D11 identification under fog",
+    "aiValuation": "low until a consumer adopts it; then through the A5 coinage CORE closure (hacksilver -> coinage_electrum)",
+    "playerCommunication": "'Knowledge only: silver can be refined from lead ores; no silver-bearing ore is modelled yet.'"
+   },
+   "eurekas": [
+    {
+     "text": "Argentiferous lead ore (galena) is smelted locally",
+     "when": null,
+     "kind": "environmental",
+     "justification": "Cupellation arose where silver-bearing lead ores were worked (eastern Anatolia, northern Syria, the Iranian plateau; later Laurion). No goods or resource state distinguishes argentiferous ore yet.",
+     "system": "resources/terrain",
+     "evaluable_now": false,
+     "weight": 0.4,
+     "source": "authored",
+     "class": "future-system:resources/terrain"
+    }
+   ],
+   "family": null,
+   "generation": null,
+   "splitFrom": null,
+   "whyDistinct": "Most ancient silver did not come from native silver (gold_silver_native, which cannot supply silver at scale) but from argentiferous lead ores, refined by cupellation from the 4th millennium BCE (litharge at Tepe Sialk, Habuba Kabira, Fatmali-Kalecik). It is the material basis of weighed-silver exchange and silver coinage, and fire assay is the same process in miniature - a real dependency for two other lanes, and a clean example of processing knowledge that needs an identified ore.",
+   "acceptanceTest": "Validator/loader: available once copper_smelting and gold_silver_native are complete; completing it writes only its completion row and makes nothing realizable (no ore good); if D05 adopts the edge, hacksilver is unavailable until cupellation completes and the AI A5-coinage CORE closure lists cupellation.",
+   "compatibility": {
+    "saves": "New key: absent from old saves (uncompleted on load); no lineage, nothing to migrate.",
+    "ids": "new id, unique against the inventory",
+    "ui": "new card; lane as its branch",
+    "ai": "joins AI cheapest-available choices once available; AI-empire and driven goldens move with any change to research sequences (engine audit Q14); the three CI --check docs (unlock audit, corpus audit, calibration report) regenerate. ",
+    "consumers": "no entity requirement names it; dependants only through the edges listed (and cross-lane adoption)",
+    "tests": "New keys from 427 (integrator). ResearchContentTests pins move: TechnologyCount 426 (+3 from this lane), branch counts [177, 37, 22, 131, 44, 15] (trunk +1, engineering +2 from this lane), finite nodes per subtree (engineering 125 -> 127: every engineering recursive descriptor's finite_nodes_to_exhaust is loader-checked), Eureka totals 81 on 80 nodes / 17 evaluable / 15 knowledge conditions (this lane adds 2 Eurekas, 1 evaluable knowledge condition). Era-marked emerged anchors keep the 83 undated texts at 83; the D-047 chronology test passes in scratch emulation. AI-empire and driven goldens move with any change to research sequences (engine audit Q14); the three CI --check docs (unlock audit, corpus audit, calibration report) regenerate. "
+   }
+  },
+  {
+   "id": "percussion_drilling",
+   "name": "Deep percussion drilling",
+   "branch": "engineering",
+   "age": "A6",
+   "domain": "materials",
+   "secondaryDomains": [
+    "energy"
+   ],
+   "emerged": "Song dynasty, 960-1279 CE (percussion-drilled brine and gas wells, Sichuan); 1835 CE Shenhai well, 1,001 m; 1859 CE Drake well (cable tool, Pennsylvania)",
+   "prereq": "iron_bloomery AND well",
+   "prereqRationale": "iron_bloomery: heavy iron drill bits lifted and dropped to pulverize rock. well: sinking a shaft to reach groundwater and lifting liquid from depth - the concept drilling extends to depths no dug well reaches. Both are knowledge actually needed. Not used: mining_shaft (drilling is not shaft digging); salt_extraction (motivation, carried by the Eureka instead).",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.75,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "costAnalog": "spectacles",
+   "costRationale": "novelty 1.0 (a new extraction method distinct from digging; typical); difficulty 1.75 (A6 prior; heavy bits, casings, recovering stuck tools); material 0.75 (iron bits, bamboo or timber derricks, casings and cables); institutional 1.25 (A6 prior; the Sichuan salt industry's capital and specialist crews); breadth 0.5 (brine and gas wells; petroleum wells and prospecting boreholes through adopting lanes); prereq_complexity 0.5 (two top-level requirements). Magnitude 5.75 -> 4,970 RP, the same profile as spectacles (A6).",
+   "nodeKind": "application",
+   "primaryUniversity": "engineering",
+   "universityRelevance": [
+    {
+     "type": 3,
+     "name": "Engineering",
+     "role": "primary"
+    }
+   ],
+   "capability": {
+    "grants": [
+     "knowledge:cased boreholes hundreds of metres deep for brine and natural gas",
+     "knowledge:drilled wells reach fluids no shaft can (later petroleum)"
+    ],
+    "realizationOwner": "none",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "PROPOSED: completion row only; no brine, natural-gas or petroleum good exists.",
+    "deferredEffect": "The extraction step of the fluid-resource chains (identification by D11 -> extraction by drilling -> processing, e.g. petroleum_refining, which D04 now proposes as processing-only): with new resources (M10+), the extraction-eligibility gate for brine, natural-gas and crude-oil deposits in ProductionSystem; borehole prospecting (D11) if adopted.",
+    "inputs": {
+     "resources": [
+      "iron for bits",
+      "timber (good 4) for derricks and casings"
+     ],
+     "geography": [
+      "a known fluid deposit (D11 identification)"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "eligible but not realizable: no fluid deposit goods",
+    "unknownResource": "drilling never creates or reveals a deposit; it reaches one that D11 identification has made known",
+    "aiValuation": "low until fluid deposits exist; then as the extraction gate of the oil and gas chains",
+    "playerCommunication": "'Knowledge only: deep drilling is known; no brine, gas or oil deposits are modelled yet.'"
+   },
+   "eurekas": [
+    {
+     "text": "Salt is made from brine drawn from springs or wells",
+     "when": "salt_extraction",
+     "kind": "precursor demand",
+     "justification": "Deep drilling was developed by the brine-salt producers of Sichuan, and Drake's well (1859) was drilled by salt-well drillers. The condition is a circumstance (salt_extraction is not on any path to this node), not an implied cost cut.",
+     "system": "research (knowledge state)",
+     "evaluable_now": true,
+     "weight": 0.4,
+     "source": "authored",
+     "class": "machine-evaluable"
+    }
+   ],
+   "family": "mining",
+   "generation": null,
+   "splitFrom": null,
+   "whyDistinct": "Drilling is a different extraction technique from shaft mining: it reaches fluids (brine, natural gas, oil) at depths no shaft could, and it is the extraction knowledge oil wells rest on - the step D04's processing-only petroleum_refining now leaves to the extraction lane. An independent Chinese invention (Sichuan brine wells; Shenhai well 1,001 m in 1835) later transferred to the first oil wells - historical and educational value plus a real dependency for D04 and D11.",
+   "acceptanceTest": "Validator/loader: available after the research stage once iron_bloomery and well are complete; its Eureka fires only when salt_extraction is complete and is neither implied nor dead (scratch emulation); completion writes only its row; it gates nothing today (knowledge-only until fluid deposits exist, M10+).",
+   "compatibility": {
+    "saves": "New key: absent from old saves (uncompleted on load); no lineage, nothing to migrate.",
+    "ids": "new id, unique against the inventory",
+    "ui": "new card; lane as its branch",
+    "ai": "joins AI cheapest-available choices once available; AI-empire and driven goldens move with any change to research sequences (engine audit Q14); the three CI --check docs (unlock audit, corpus audit, calibration report) regenerate. ",
+    "consumers": "no entity requirement names it; dependants only through the edges listed (and cross-lane adoption)",
+    "tests": "New keys from 427 (integrator). ResearchContentTests pins move: TechnologyCount 426 (+3 from this lane), branch counts [177, 37, 22, 131, 44, 15] (trunk +1, engineering +2 from this lane), finite nodes per subtree (engineering 125 -> 127: every engineering recursive descriptor's finite_nodes_to_exhaust is loader-checked), Eureka totals 81 on 80 nodes / 17 evaluable / 15 knowledge conditions (this lane adds 2 Eurekas, 1 evaluable knowledge condition). Era-marked emerged anchors keep the 83 undated texts at 83; the D-047 chronology test passes in scratch emulation. AI-empire and driven goldens move with any change to research sequences (engine audit Q14); the three CI --check docs (unlock audit, corpus audit, calibration report) regenerate. "
+   }
+  },
+  {
+   "id": "metallography",
+   "name": "Scientific metallurgy (metallography)",
+   "branch": "engineering",
+   "age": "A8",
+   "domain": "materials",
+   "secondaryDomains": [
+    "science"
+   ],
+   "emerged": "1863-1865 CE Sheffield (Sorby: etched steel under reflected-light microscopy); 1877-1900 CE Martens, Osmond, Le Chatelier, Roberts-Austen (iron-carbon diagram)",
+   "prereq": "microscope AND chemistry_quantitative",
+   "prereqRationale": "microscope: polished and etched sections read under the microscope are the method itself. chemistry_quantitative: composition analysis and, with physical chemistry, the phase relations that explain hardening, tempering and alloying. Both are knowledge actually needed. Not used: any steelmaking node - steel had been made for three millennia before it was understood; the craft is not knowledge the science needs (the subject material exists from A4).",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.75,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "costAnalog": "puddling",
+   "costRationale": "novelty 1.0 (a new sub-discipline applying microscopy and physical chemistry to metals; typical, not a new paradigm of science like chemistry_quantitative 2.0); difficulty 2.5 (A8 prior; specimen preparation, photomicrography, pyrometry); material 0.75 (microscope, polishing and etching kit, pyrometers - a science node is not scored for later apparatus); institutional 2.0 (A8 prior; iron-and-steel institutes, mining schools, laboratories); breadth 0.5 (designed alloys: superalloy in this lane; candidates elsewhere); prereq_complexity 0.5 (two top-level requirements). Magnitude 7.25 -> 92.4 x 2^7.25 = 14,065, which the integrator rounds to 14,060 RP; puddling (A8, same magnitude) ships 14,070 - both inside the loader tolerance.",
+   "nodeKind": "science",
+   "primaryUniversity": "engineering",
+   "universityRelevance": [
+    {
+     "type": 3,
+     "name": "Engineering",
+     "role": "primary"
+    },
+    {
+     "type": 4,
+     "name": "Natural Science",
+     "role": "secondary"
+    }
+   ],
+   "capability": {
+    "grants": [
+     "knowledge:microstructure of metals read from polished and etched sections",
+     "knowledge:iron-carbon constitution explains hardening, tempering and alloying"
+    ],
+    "realizationOwner": "none",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "PROPOSED: completion row only; makes superalloy available (prerequisite).",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "none - knowledge only",
+    "unknownResource": "n/a",
+    "aiValuation": "as the prerequisite of superalloy (and of any node another lane hangs on it); no direct effect",
+    "playerCommunication": "'Knowledge only: why steel hardens and how alloys are designed; required by Superalloys.'"
+   },
+   "eurekas": [],
+   "family": null,
+   "generation": null,
+   "splitFrom": null,
+   "whyDistinct": "It separates understanding from application in metallurgy, where the gap was historically enormous: bloomery iron, crucible steel, the blast furnace and even the Bessemer converter were all practised without knowing what steel is. The science (Sorby 1863-65; the iron-carbon diagram by 1900) is what made designed alloys possible - precipitation-hardened superalloys among them - so it is a real dependency, not a relabelled craft node.",
+   "acceptanceTest": "Validator/loader: an engineering-subtree A8 node available after the research stage once microscope and chemistry_quantitative are complete; superalloy is unavailable until it completes; completion writes only its row; the Glass Box classifies it knowledge-only with superalloy as its dependant. The engineering finite count rises (recursive descriptors updated by the integrator).",
+   "compatibility": {
+    "saves": "New key: absent from old saves (uncompleted on load); no lineage, nothing to migrate.",
+    "ids": "new id, unique against the inventory",
+    "ui": "new card; lane as its branch",
+    "ai": "joins AI cheapest-available choices once available; AI-empire and driven goldens move with any change to research sequences (engine audit Q14); the three CI --check docs (unlock audit, corpus audit, calibration report) regenerate. ",
+    "consumers": "no entity requirement names it; dependants only through the edges listed (and cross-lane adoption)",
+    "tests": "New keys from 427 (integrator). ResearchContentTests pins move: TechnologyCount 426 (+3 from this lane), branch counts [177, 37, 22, 131, 44, 15] (trunk +1, engineering +2 from this lane), finite nodes per subtree (engineering 125 -> 127: every engineering recursive descriptor's finite_nodes_to_exhaust is loader-checked), Eureka totals 81 on 80 nodes / 17 evaluable / 15 knowledge conditions (this lane adds 2 Eurekas, 1 evaluable knowledge condition). Era-marked emerged anchors keep the 83 undated texts at 83; the D-047 chronology test passes in scratch emulation. AI-empire and driven goldens move with any change to research sequences (engine audit Q14); the three CI --check docs (unlock audit, corpus audit, calibration report) regenerate. "
+   }
+  }
+ ],
+ "crossLaneRequests": [
+  {
+   "targetLane": "D11-nuclear-geology",
+   "request": "Design identification prerequisites D02's processing nodes can require: (a) tin-ore (cassiterite, alluvial and lode) recognition - D02 will accept tin_bronze <- copper_smelting AND <your node> (tin_bronze prereq_complexity 0 -> 0.5, 7,030 -> 9,950 RP); (b) for copper ores, coordinate with copper_smelting's existing OR group (copper_native OR ochre_processing), which already stands for knowing the green ore through native copper or malachite pigment - extend or reference it rather than duplicate; (c) fire assay of precious-metal ores can require D02's new cupellation (assay is cupellation in miniature); (d) extraction of fluids is D02's: D04 asked you to own crude-oil identification AND drilling - D02 proposes percussion_drilling as the drilling (extraction) node, so please own identification only and let borehole prospecting require percussion_drilling if you design it (avoids a duplicate); (e) iron ore: D02 recommends no identification gate (near-ubiquitous surface ores); coal (coke), pozzolana (concrete), argentiferous galena (cupellation), bauxite (aluminium), kaolin (porcelain, not proposed) are the identification needs of D02 nodes.",
+   "reason": "Research never creates deposits; processing knowledge (D02) must not also be the identification knowledge (D11). tin_bronze today has no identification step although tin sources were the Bronze Age bottleneck, and the deep-resource extraction ladder (mining_shaft, steam_atmospheric, percussion_drilling) only works on deposits D11 makes known."
+  },
+  {
+   "targetLane": "D06-energy-engineering",
+   "request": "(a) Review bellows' emerged (~1,500 BCE, Egyptian depictions) against earlier evidence - the pot-bellows corpus (Davey 1979; 2021 review) and possible Chalcolithic bellows at Abu Matar (Rose et al. 2024, tentative) - and its unlock text 'iron smelting feasible', which the graph does not carry: D02 made kiln_updraft, not bellows, iron_bloomery's furnace prerequisite because bellows' date would fail the chronology test; if bellows is re-dated before ~1,800 BCE D02 would support iron_bloomery <- charcoal AND bellows (bellows implies kiln_updraft). (b) Consider superalloy as a prerequisite of gas_turbine_power (durable turbine blades; Nimonic 80 became the standard rotor-blade alloy of British gas turbines from 1941) - not of jet_engine (1939 engines ran on heat-resistant steels; the chronology test would fail). (c) If you split transistor/integrated_circuit, the semiconductor-grade crystal step (single-crystal growth, Teal and Little 1950; zone refining, Pfann early 1950s) is the materials half; D02 did not add it unilaterally because, without a matching cut in the integrated circuit's material factor, it would double-count workload - say whether D06 or D02 should own it. (d) Note: do not make steam_atmospheric require a mine-drainage node: its Eureka (when: mining_shaft) would become implied and the loader refuses that.",
+   "reason": "Causal accuracy of the iron line and the only causal consumer for superalloy (otherwise a dead end); avoids a duplicate semiconductor-materials node; records a loader trap D02 found."
+  },
+  {
+   "targetLane": "D04-natural-science",
+   "request": "Answer to your request: accepted - aluminium <- electricity_generation AND soda_leblanc (chemistry_quantitative dropped as implied, so aluminium's cost is unchanged). D02 agrees petroleum_refining is processing-only; the extraction step you assigned to D11 is D02's new percussion_drilling (D11 owns identification). No edge into petroleum_refining is requested: refining needs crude as a physical input, not drilling knowledge.",
+   "reason": "Closes the D04 -> D02 request and keeps the oil chain's three stages (identification D11, extraction D02, processing D04) with one owner each."
+  },
+  {
+   "targetLane": "D05-communication-computing",
+   "request": "Consider hacksilver <- standard_weights AND cupellation (cupellation already requires gold_silver_native): weighed silver in Mesopotamia and the Levant was overwhelmingly refined from argentiferous lead, with litharge evidence from the 4th millennium BCE. Impact: the A5 coinage CORE closure gains cupellation (2,090 RP) and copper_smelting's branch if not already complete (the AI completes copper_smelting on its A3 path, MEASURED).",
+   "reason": "Supplies the material knowledge silver money needs and gives D02's new cupellation node its causal consumer."
+  },
+  {
+   "targetLane": "D09-military",
+   "request": "Ids kept as you asked (casting_closed, iron_bloomery, puddling, basic_process, cast_iron, birch_tar). Please name tin_bronze explicitly in cannon_cast_bronze (gunmetal), e.g. cannon_early AND lost_wax AND tin_bronze, or swap lost_wax for casting_closed (the bell-founding and loam-mould tradition you cite), which implies tin_bronze.",
+   "reason": "D02 re-scoped lost_wax to rest on open casting (lost-wax predates closed moulds and tin bronze), and your cannon_early now admits the wrought-iron route, so cannon_cast_bronze no longer guarantees tin_bronze in its closure; bronze cannon cannot be cast without the alloy."
+  },
+  {
+   "targetLane": "D08-transport-naval",
+   "request": "If D06 declines (b), consider superalloy as a prerequisite of jet_airliner (Comet 1952, 707 1958): commercial jet service rested on creep-resistant turbine-blade alloys.",
+   "reason": "The alternative causal consumer for superalloy (otherwise a knowledge-only dead end)."
+  }
+ ],
+ "openQuestions": [
+  "OPEN DECISION (Director): should the A3 CORE fact stay 'arsenical_bronze OR tin_bronze'? It is historically right, but MEASURED, only tin_bronze realizes the bronze good - and bronze is the only input of tools - so an arsenical-route polity enters A3 unable to cast bronze or make tools, and cannot meet a3_bronze_stock without tin_bronze or trade. D02 recommends keeping the OR and saying so in the Age panel.",
+  "OPEN DECISION (M10+ resources): realize iron_bloomery with an iron-ore deposit good (surface, ungated) and bloomery-smelting and iron-toolmaking recipes, so iron becomes the tin-free route to tools it historically was. Today iron has no production consequence at all.",
+  "OPEN DECISION (with the fog lane and D11): if surface ores stay ungated and new deep resources are identification-gated, D02 proposes the extraction ladder mining_shaft (underground lodes above the water table) -> steam_atmospheric (below it) -> dynamite (hard rock at scale), with percussion_drilling for fluids; a pre-steam drainage node (Roman drainage wheels, Agricola 1556) would be added only when deep deposits exist. Who owns the gate - ProductionSystem extraction or the proposed DiscoverySystem?",
+  "Package rule: redundant conjuncts (a prerequisite already implied by another, e.g. fired_brick's mudbrick, formerly cast_iron's kiln_updraft and blast_furnace_water's charcoal) inflate prereq_complexity. Should the validator flag them and the convention count only independent requirements?",
+  "Historical check requested: (a) casting_closed could take an OR (arsenical_bronze OR tin_bronze) if closed-mould casting of arsenical copper before tin bronze is confirmed; (b) Wagner's view that Chinese casting arose separately in the south could justify a no-bloomery route to cast_iron; neither adopted on the evidence found.",
+  "Implied-Eureka trap (MEASURED loader rule 24 + append-only Eurekas): a node whose Eureka condition is a knowledge atom can never take that atom as a prerequisite; three Eurekas read mining_shaft, which blocks mining-depth nodes upstream of steam_atmospheric, railway and dynamite. Should the package let a lane retire a Eureka when it promotes its condition to a prerequisite (needs a save-index rule)?"
+ ],
+ "_note": "nodeKind on existing records is PROPOSED classification metadata (craft processes = technique; devices, plants and industrial processes = application; understanding = science); it changes no content."
+}

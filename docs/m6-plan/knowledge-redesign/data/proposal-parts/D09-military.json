@@ -1,0 +1,1268 @@
+{
+ "lane": "D09-military",
+ "summary": "D09 keeps the military tree's shape and fixes what is causally wrong or missing. Eight kept nodes get prerequisite corrections that replace non-causal or imprecise edges with the knowledge that actually enabled each weapon, all at unchanged cost (cannon_early: refined saltpetre and cast bronze OR wrought iron, not cast iron; matchlock: corned powder, not the crossbow; cannon_cast_bronze: closed-mould casting with its alloy; saddle: sewing — requests of D04, D02 and D07, accepted; trebuchet: from the new traction trebuchet, not torsion engines; composite_bow: hide glue, not birch tar; tank: rifled guns and machine guns, not cast-iron cannon; stealth: requires the aeroplane). The empty A8 of the military subtree (flintlock 1610 -> tank 1916) is filled with four causally chained nodes (rifling, breech-loading rifle, rifled breech-loading artillery, machine gun) that give the A7–A9 unit-family identities ('rifled firearms', 'rifles', 'steel guns', 'machine guns') the knowledge they presume. guided_munitions (189k RP) is split into the 1950s guided missile and precision-guided munitions, conserving workload exactly and removing the laser from the missile's closure. Two variant dead ends merge into their survivors (siege_tower -> siege_ram, crossbow_repeating -> crossbow); trace_italienne gains masonry fortification and is re-priced by the convention; the other dead ends get a realization owner (plate_armour via a PROPOSED cuirassier entity) or an explicit justification (atlatl, greek_fire, missile_defence). All unit grants remain eligibility only, realized by the M7 battle layer; five PROPOSED unit entities are an OPEN DECISION for T6.12. Net workload +48,810 RP (+0.4 %).",
+ "existing": [
+  {
+   "id": "atlatl",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "technique",
+   "rationale": "Kept, knowledge-only by explicit justification (a dead end with no owner): the oldest mechanical projectile launcher (~30 kya Europe; still the Aztec war weapon at contact). Its consequence, ranged hunting, has no realizing system — hunting is baseline (D-045/D-047, baseline.hunting) and is never gated by research — and no later node descends from it (the bow is an independent invention). Merging it into another node would misstate history.",
+   "changes": "capability block only (knowledge-only until M11+ stated); no field change",
+   "capability": {
+    "grants": [
+     "knowledge:ranged hunting of large game (an improvement on baseline hunting, never a gate)"
+    ],
+    "realizationOwner": "none",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "none beyond the completion row (unlock-audit class C, MEASURED)",
+    "deferredEffect": "knowledge-only until a hunting/production-depth system exists (M11+ depth); light infantry's A1 scouts stay baseline (D-045: scouting may never be research-gated)",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "n/a — no physical input",
+    "unknownResource": "n/a",
+    "aiValuation": "no AI goal reaches it; taken only as a cheap trunk node by the cheapest-available fallback",
+    "playerCommunication": "Research panel: 'Knowledge only — no simulated consequence yet (hunting is baseline)'"
+   }
+  },
+  {
+   "id": "bow_simple",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "military",
+   "rationale": "Causal (a string needs cordage); realizes unit.archers, the archers identity of ranged_infantry (A2) in unit-families.json — consistent. Pinned by AgeProgressionTests (lines 260, 504).",
+   "changes": "none"
+  },
+  {
+   "id": "sling",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "military",
+   "rationale": "Causal; realizes unit.slingers (slingers, ranged_infantry A1). Gains one dependant, the new traction_trebuchet (a trebuchet is a sling on a lever). Breadth not re-scored: one extra dependant does not widen the node's own capability.",
+   "changes": "none to the node (new dependant traction_trebuchet)"
+  },
+  {
+   "id": "chariot",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "military",
+   "rationale": "Causal (spoked wheel + horse); realizes unit.chariot (chariots, heavy_cavalry A3) — consistent.",
+   "changes": "none"
+  },
+  {
+   "id": "composite_bow",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "military",
+   "rationale": "Kept with one prerequisite corrected: the composite bow is horn, wood and sinew bonded with hide or fish glue; birch BARK was a protective covering, birch TAR was never its adhesive, so the birch_tar edge was not causal (RESEARCHED). Realizes unit.horse_archers with cavalry — consistent with horse_archers (ranged_cavalry A4).",
+   "prereq": "bow_simple AND sheep_goat AND hide_working",
+   "prereqRationale": "bow_simple: the stave bow it laminates. sheep_goat: herd horn (and sinew) for belly and back. hide_working: hide (collagen) glue, the laminating adhesive. birch_tar removed (not the adhesive; RESEARCHED).",
+   "changes": "prereq: 'bow_simple AND sheep_goat AND birch_tar' -> 'bow_simple AND sheep_goat AND hide_working'; three conjuncts either way, so prereq_complexity 1.0 and cost 1,760 are unchanged; depth unchanged (2)",
+   "compatibility": {
+    "saves": "Completed rows stay valid. Partial progress held without hide_working goes dormant until it is known (hide_working is a 620-RP A1 node, done by turn ~126 in the measured runs).",
+    "ids": "unchanged",
+    "ui": "edge redrawn from hide_working instead of birch_tar",
+    "ai": "closure gains hide_working and loses birch_tar for this node; AI-empire pins may move",
+    "consumers": "birch_tar keeps its other dependant (charcoal); hide_working gains a dependant",
+    "tests": "D047 chronology test unaffected (hide_working ~100 kya); AI-empire goldens may move; regenerate the three CI --check docs"
+   }
+  },
+  {
+   "id": "cavalry",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "military",
+   "rationale": "Causal; with composite_bow realizes unit.horse_archers. The light_cavalry identities (horse_scouts A3, light_horse A4) have no realizedBy by design (ADR-031 gap audit); mapping them is T6.12's.",
+   "changes": "none"
+  },
+  {
+   "id": "saddle",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Kept with one prerequisite made precise (D07's request, accepted): early saddles (Pazyryk, ~5th–3rd century BCE) were stitched leather and felt cushions, so sewing — which itself requires hide_working — is the knowledge actually used. The framed saddle is the real enabler of the stirrup, its only dependant.",
+   "prereq": "cavalry AND sewing",
+   "prereqRationale": "cavalry: riding to war. sewing: stitched leather and felt (it implies hide_working, the edge it replaces).",
+   "changes": "prereq: 'cavalry AND hide_working' -> 'cavalry AND sewing'; two conjuncts either way, so prereq_complexity 0.5 and cost 1,760 are unchanged",
+   "compatibility": {
+    "saves": "Completed rows stay valid; partial progress held without sewing (a 260-RP A1 node) goes dormant until it is known.",
+    "ids": "unchanged",
+    "ui": "edge redrawn from sewing",
+    "ai": "closure gains sewing (260 RP)",
+    "consumers": "sewing (D07) gains its first causal dependant; hide_working keeps its other dependants",
+    "tests": "chronology test passes (sewing ~50 kya)"
+   }
+  },
+  {
+   "id": "siege_ram",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "military",
+   "name": "Battering ram and siege tower",
+   "emerged": "~900 BCE Assyria (wheeled, roofed rams); ram-towers and assault ramps by ~700 BCE (Lachish 701 BCE)",
+   "rationale": "Merge survivor: absorbs siege_tower. Assyrian rams were housed in wheeled towers and brought to the wall up built ramps (Lachish, 701 BCE) — one siege-engine complex, one knowledge node (RESEARCHED). Realizes unit.siege_engine, the siege_rams identity ('Rams and siege towers', A4) — the unit family already treats them as one. Factors unchanged: the absorbed content is incremental engineering by the same siege corps.",
+   "changes": "name 'Battering ram' -> 'Battering ram and siege tower'; emerged text widened (still era-marked, earliest ~900 BCE unchanged); unlocks.capabilities gains 'assault over walls' (from siege_tower); loses its only dependant (siege_tower, retired); factors and cost 4,970 unchanged; Eureka list unchanged (append-only)",
+   "compatibility": {
+    "saves": "unaffected (key 124 kept; meaning widened, nothing removed)",
+    "ids": "unchanged",
+    "ui": "name and description change; the siege_tower vertex disappears",
+    "ai": "none beyond the retired neighbour",
+    "consumers": "unit.siege_engine unchanged",
+    "tests": "ResearchContentTests corpus-name pin (node i has the corpus name, six D-047 renames excepted) needs a seventh exception; regenerate the three CI --check docs"
+   },
+   "capability": {
+    "grants": [
+     "knowledge:breach walls",
+     "knowledge:assault over walls (siege towers and ramps, merged from siege_tower)",
+     "unit:unit.siege_engine"
+    ],
+    "realizationOwner": "Battle layer (M7)",
+    "status": "deferred",
+    "milestone": "M7",
+    "currentEffect": "none beyond the completion row; unit.siege_engine is knowledge-eligible (listed, no recruiter — class F, MEASURED)",
+    "deferredEffect": "M7 recruitment may read this eligibility for the siege family (siege_rams identity, A4; later identities follow the Age); modernization of existing formations stays Age-driven, automatic and free (ADR-031) — no combat mechanic is designed here. D-039 Part D (M7): fortification is computed from what a settlement has built, so this knowledge never changes a wall; it only makes the engine eligible.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No goods are consumed: unit equipment is declarative in unit-families.json and iron, steel, saltpetre and horses are not goods (fog audit §2.2, MEASURED). Eligible-but-unrealizable is the normal state until the M7 battle layer recruits.",
+    "unknownResource": "n/a — no deposit-gated input; fog does not gate eligibility.",
+    "aiValuation": "No AI research goal reads military knowledge today (goals: next-Age core facts, road class, tax, university — AiResearchPolicy, MEASURED); reached through the cheapest-available fallback. Once M7 exists, value unit eligibility from threats the polity has itself observed (sighted formations, known fortifications) — never from unseen rivals' state (fog symmetry).",
+    "playerCommunication": "Research panel lists the unit as 'eligible — fielded by the battle layer (M7)'; no recruit action is shown before M7 (one predicate, every caller: AvailableActionsQuery lists only actions that exist)."
+   }
+  },
+  {
+   "id": "siege_tower",
+   "disposition": [
+    "merge"
+   ],
+   "mergeInto": "siege_ram",
+   "nodeKind": "military",
+   "retireReason": "Dead end (no dependant, no entity, no Age fact, no Eureka) whose content is part of the survivor's: the Assyrian ram was mounted in a wheeled tower and brought up a ramp.",
+   "rationale": "Merged into siege_ram. Every holder of siege_tower also holds siege_ram (siege_tower requires it), so no polity loses any capability; the 880 RP click with no consequence disappears. Preserving the id (S1-33) was considered: it would keep a node that makes nothing eligible and has no successor.",
+   "changes": "key 125 retired (reserved forever); 'assault over walls' moves to siege_ram's capabilities",
+   "compatibility": {
+    "saves": "No knowledge loss (all holders hold siege_ram). Completed/progress/credit rows on key 125 stay dormant forever (no alias/remap seam — package-level OPEN DECISION); a saved target is cleared next step.",
+    "ids": "id siege_tower and key 125 retired, never reused",
+    "ui": "vertex removed; no UI rig or preview names siege_tower (engine audit Appendix A, MEASURED)",
+    "ai": "the cheapest-first fallback loses an 880-RP trunk option (measured completing 2 turns after siege_ram)",
+    "consumers": "none (MEASURED: no dependant, entity, Age fact, stage atom or Eureka)",
+    "tests": "ResearchContentTests corpus sync (node i <-> key i+1 for keys < 425), TechnologyCount and the trunk branch count move; regenerate the three CI --check docs"
+   }
+  },
+  {
+   "id": "crossbow",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "military",
+   "rationale": "Merge survivor: absorbs crossbow_repeating (the Chu magazine-fed repeater of the 4th century BCE, used until the late Qing, is a variant of this weapon, not a new principle — RESEARCHED). Prerequisites causal (stave bow; cast-bronze trigger lock). Realizes unit.crossbowmen (crossbowmen, ranged_infantry A6 mainline) — consistent. Factors unchanged.",
+   "changes": "unlocks.capabilities gains 'magazine-fed repeating crossbow (rapid fire at short range)' from crossbow_repeating; loses two dependants (crossbow_repeating, merged; matchlock, whose crossbow edge is replaced by corned_powder — see matchlock); factors and cost 4,180 unchanged",
+   "compatibility": {
+    "saves": "unaffected (key 127 kept)",
+    "ids": "unchanged",
+    "ui": "description widened; dependant vertices removed",
+    "ai": "none",
+    "consumers": "torsion_artillery and unit.crossbowmen unchanged",
+    "tests": "none beyond the retired neighbour's"
+   },
+   "capability": {
+    "grants": [
+     "knowledge:mass conscript archery",
+     "knowledge:magazine-fed repeating crossbow (rapid fire at short range)",
+     "unit:unit.crossbowmen"
+    ],
+    "realizationOwner": "Battle layer (M7)",
+    "status": "deferred",
+    "milestone": "M7",
+    "currentEffect": "none beyond the completion row; unit.crossbowmen is knowledge-eligible (class F, MEASURED)",
+    "deferredEffect": "M7 recruitment may read this eligibility for the crossbowmen identity (ranged_infantry, A6 mainline); modernization of existing formations stays Age-driven, automatic and free (ADR-031) — no combat mechanic is designed here.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No goods are consumed: unit equipment is declarative in unit-families.json and iron, steel, saltpetre and horses are not goods (fog audit §2.2, MEASURED). Eligible-but-unrealizable is the normal state until the M7 battle layer recruits.",
+    "unknownResource": "n/a — no deposit-gated input; fog does not gate eligibility.",
+    "aiValuation": "No AI research goal reads military knowledge today (goals: next-Age core facts, road class, tax, university — AiResearchPolicy, MEASURED); reached through the cheapest-available fallback. Once M7 exists, value unit eligibility from threats the polity has itself observed (sighted formations, known fortifications) — never from unseen rivals' state (fog symmetry).",
+    "playerCommunication": "Research panel lists the unit as 'eligible — fielded by the battle layer (M7)'; no recruit action is shown before M7 (one predicate, every caller: AvailableActionsQuery lists only actions that exist)."
+   }
+  },
+  {
+   "id": "naval_ram",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "military",
+   "rationale": "Causal (plank hull + cast-bronze ram); realizes unit.war_galley (war_galleys, naval_combat A4) — consistent.",
+   "changes": "none"
+  },
+  {
+   "id": "torsion_artillery",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "military",
+   "rationale": "Causal (D-047 r1 #5: grew from the gastraphetes); realizes unit.siege_engine. Loses its dependant trebuchet, whose edge was not causal (see trebuchet).",
+   "changes": "none to the node (dependant trebuchet removed)"
+  },
+  {
+   "id": "crossbow_repeating",
+   "disposition": [
+    "merge"
+   ],
+   "mergeInto": "crossbow",
+   "nodeKind": "military",
+   "retireReason": "Dead end (no dependant, no entity, no Age fact, no Eureka) that is a variant of its survivor: a magazine-fed crossbow.",
+   "rationale": "Merged into crossbow. Every holder also holds crossbow (it requires it), so nothing is lost; the repeater's history (Qinjiazui tomb 47, 4th century BCE; service until the late Qing) moves into the crossbow's description.",
+   "changes": "key 160 retired (reserved forever); its capability string moves to crossbow",
+   "compatibility": {
+    "saves": "No knowledge loss (all holders hold crossbow). Rows on key 160 stay dormant forever (no alias/remap seam — package-level OPEN DECISION).",
+    "ids": "id crossbow_repeating and key 160 retired, never reused",
+    "ui": "vertex removed; no UI rig names it (MEASURED)",
+    "ai": "the cheapest-first fallback loses a 1,240-RP trunk option",
+    "consumers": "none (MEASURED)",
+    "tests": "corpus sync, TechnologyCount and trunk count as for siege_tower; regenerate the CI --check docs"
+   }
+  },
+  {
+   "id": "stirrup",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "military",
+   "rationale": "Kept. The framed saddle is the causal enabler. iron_bloomery is kept as the metalworking proxy for rigid stirrups although the earliest dated pair (Feng Sufu, 415 CE) is wood sheathed in gilt bronze and iron (RESEARCHED): a low-impact proxy (iron is an A4 core fact), not worth a change. Realizes unit.heavy_cavalry (knights, heavy_cavalry A6) — consistent; named by the PROPOSED unit.cuirassiers.",
+   "changes": "none to the node; if the PROPOSED unit.cuirassiers entity is ratified, unlocks.units gains it (reverse-index rule)",
+   "capability": {
+    "grants": [
+     "knowledge:lance charge",
+     "knowledge:heavy cavalry",
+     "unit:unit.heavy_cavalry",
+     "unit:unit.cuirassiers (PROPOSED entity, with plate_armour and wheellock — OPEN DECISION, T6.12)"
+    ],
+    "realizationOwner": "Battle layer (M7)",
+    "status": "deferred",
+    "milestone": "M7",
+    "currentEffect": "none beyond the completion row; unit.heavy_cavalry is knowledge-eligible (class F, MEASURED)",
+    "deferredEffect": "M7 recruitment may read this eligibility for the knights identity (heavy_cavalry, A6) and, if ratified, cuirassiers (A7); modernization of existing formations stays Age-driven, automatic and free (ADR-031) — no combat mechanic is designed here.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No goods are consumed: unit equipment is declarative in unit-families.json and iron, steel, saltpetre and horses are not goods (fog audit §2.2, MEASURED). Eligible-but-unrealizable is the normal state until the M7 battle layer recruits.",
+    "unknownResource": "n/a — no deposit-gated input; fog does not gate eligibility.",
+    "aiValuation": "No AI research goal reads military knowledge today (goals: next-Age core facts, road class, tax, university — AiResearchPolicy, MEASURED); reached through the cheapest-available fallback. Once M7 exists, value unit eligibility from threats the polity has itself observed (sighted formations, known fortifications) — never from unseen rivals' state (fog symmetry).",
+    "playerCommunication": "Research panel lists the unit as 'eligible — fielded by the battle layer (M7)'; no recruit action is shown before M7 (one predicate, every caller: AvailableActionsQuery lists only actions that exist). The unit entity is PROPOSED (OPEN DECISION, T6.12): until it is ratified the panel shows the knowledge only."
+   }
+  },
+  {
+   "id": "cannon_early",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "military",
+   "rationale": "Kept with both prerequisites corrected. Barrel metal: the first guns were cast BRONZE in China (Wuwei bronze cannon, contextually 1214–1227; Xanadu gun 1298) and forged WROUGHT-IRON staves and hoops in Europe (bombards of the Mons Meg type) — two regional material routes, hence an OR; cast-iron guns are a later development already represented by cannon_cast_iron (1543 CE), so the cast_iron edge was not causal (RESEARCHED). Propellant: the 1040s formulas (at most ~50 % saltpetre) were incendiary; a gun needs high-nitrate powder, i.e. refined saltpetre — D04's request, accepted (shift RESEARCHED by D04; the necessity of purification is INFERENCE). saltpetre_refining requires gunpowder, so it replaces the gunpowder edge. Realizes unit.artillery — consistent with bombards (siege A7).",
+   "prereq": "saltpetre_refining AND (casting_closed OR iron_bloomery)",
+   "prereqRationale": "saltpetre_refining: high-nitrate propellant powder (it requires gunpowder, which is therefore implied). casting_closed OR iron_bloomery: a barrel cast in bronze (Chinese route) or forged from wrought-iron staves and hoops (European route). cast_iron removed (a later gun metal; RESEARCHED).",
+   "changes": "prereq: 'gunpowder AND cast_iron' -> 'saltpetre_refining AND (casting_closed OR iron_bloomery)'; two conjuncts (the OR group counts once), so prereq_complexity 0.5 and cost 7,030 are unchanged",
+   "compatibility": {
+    "saves": "Completed rows stay valid. Partial progress held without saltpetre_refining goes dormant until it is known; the metal side never makes progress dormant (cast_iron requires iron_bloomery).",
+    "ids": "unchanged",
+    "ui": "edges redrawn (OR group; from saltpetre_refining instead of gunpowder)",
+    "ai": "cheapest closure 70,950 -> 54,820 (cast_iron, bellows and kiln no longer required; saltpetre_refining added) — MEASURED by a scratch closure run; AI-empire pins may move",
+    "consumers": "cannon_early lies on the A8 core path (cylinder_boring <- cannon_cast_iron <- cannon_cast_bronze), so the Age-core closures that contain steam_rotary gain saltpetre_refining (+4,180 RP); with cannon_cast_bronze's re-point (-1,480, lost_wax) the net is +2,700 RP: A8 steam_rotary 389,980 -> 392,680; A9 electricity_generation 560,960 -> 563,660 and internal_combustion 629,960 -> 632,660 (MEASURED by a scratch closure run); cast_iron stays in them through steam_atmospheric; reachability unchanged. gunpowder keeps saltpetre_refining as its dependant; cast_iron keeps three dependants",
+    "tests": "D047 chronology test passes (saltpetre_refining ~1,000 CE < cannon_early ~1,280 CE; OR atoms are not must-hold); AI-empire goldens; regenerate CI --check docs"
+   }
+  },
+  {
+   "id": "trebuchet",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "military",
+   "rationale": "Kept with its prerequisite corrected. The counterweight trebuchet (12th-century Mediterranean) is the man-hauled traction trebuchet with a counterweight in place of the crew; the lever-sling engine came west from China (late 6th–7th century). Torsion engines store energy in twisted sinew — a different principle; the Thessalonica account contrasts the Avars' rope-pulled engines with Byzantine torsion artillery (RESEARCHED). Realizes unit.siege_engine (trebuchets, siege A6).",
+   "prereq": "traction_trebuchet",
+   "prereqRationale": "traction_trebuchet: the beam, pivot and sling machine it refines. torsion_artillery removed (different mechanism, no line of descent; RESEARCHED).",
+   "changes": "prereq: 'torsion_artillery' -> 'traction_trebuchet' (new node); one prerequisite either way, so factors and cost 5,910 are unchanged",
+   "compatibility": {
+    "saves": "Completed rows stay valid. Partial progress on trebuchet held without traction_trebuchet goes dormant until it is known (a 2,490-RP trunk node); a saved target on it is cleared while unavailable.",
+    "ids": "unchanged",
+    "ui": "edge redrawn from the new traction_trebuchet",
+    "ai": "measured runs complete trebuchet at turns ~1,120–1,145 behind torsion_artillery; it now follows traction_trebuchet",
+    "consumers": "torsion_artillery loses its only dependant (keeps unit.siege_engine)",
+    "tests": "D047 chronology test passes (~350 BCE < ~1,100 CE); AI-empire goldens; regenerate CI --check docs"
+   }
+  },
+  {
+   "id": "longbow",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "military",
+   "rationale": "Causal (a self bow scaled up; the decisive factor was training, not new knowledge); realizes unit.longbowmen, the regional branch at A6 — consistent.",
+   "changes": "none"
+  },
+  {
+   "id": "plate_armour",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "military",
+   "rationale": "Kept; the dead end is resolved by a realization owner. Causal prerequisites (sheet metal + quench-and-temper). Plate is declared equipment of knights and men_at_arms (A6) and the cuirass of cuirassiers (A7) in unit-families.json. PROPOSED: a unit entity unit.cuirassiers requiring stirrup AND plate_armour AND wheellock — 16th-century cuirassiers were three-quarter-armoured horsemen whose main weapon was the wheellock pistol (RESEARCHED). If the entity is declined, plate armour stays knowledge-only with M7 as its candidate owner (equipment eligibility).",
+   "changes": "capability block only; if unit.cuirassiers is ratified, unlocks.units gains it (reverse-index rule)",
+   "capability": {
+    "grants": [
+     "knowledge:near-immunity to arrows and blades",
+     "unit:unit.cuirassiers (PROPOSED entity: stirrup AND plate_armour AND wheellock -> cuirassiers, heavy_cavalry A7 — OPEN DECISION, T6.12)"
+    ],
+    "realizationOwner": "Battle layer (M7)",
+    "status": "deferred",
+    "milestone": "M7",
+    "currentEffect": "none beyond the completion row (unlock-audit class C today, MEASURED)",
+    "deferredEffect": "M7 recruitment may read this eligibility for the cuirassiers identity (heavy_cavalry, A7) if the entity is ratified; otherwise as declared equipment ('plate armour', 'cuirasses') of knights, men_at_arms and cuirassiers; modernization of existing formations stays Age-driven, automatic and free (ADR-031) — no combat mechanic is designed here. Knights (A6) are NOT re-gated on plate: knights fought in mail for centuries before full plate (~1400).",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No goods are consumed: unit equipment is declarative in unit-families.json and iron, steel, saltpetre and horses are not goods (fog audit §2.2, MEASURED). Eligible-but-unrealizable is the normal state until the M7 battle layer recruits.",
+    "unknownResource": "n/a — no deposit-gated input; fog does not gate eligibility.",
+    "aiValuation": "No AI research goal reads military knowledge today (goals: next-Age core facts, road class, tax, university — AiResearchPolicy, MEASURED); reached through the cheapest-available fallback. Once M7 exists, value unit eligibility from threats the polity has itself observed (sighted formations, known fortifications) — never from unseen rivals' state (fog symmetry).",
+    "playerCommunication": "Research panel lists the unit as 'eligible — fielded by the battle layer (M7)'; no recruit action is shown before M7 (one predicate, every caller: AvailableActionsQuery lists only actions that exist). The unit entity is PROPOSED (OPEN DECISION, T6.12): until it is ratified the panel shows the knowledge only."
+   }
+  },
+  {
+   "id": "greek_fire",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "military",
+   "rationale": "Kept, knowledge-only by explicit justification: a regionally specific, state-guarded incendiary (Constantinople, ~672 CE) whose formula was lost, so no later knowledge descends from it; it teaches that secrecy can end a technology (institutional 1.75 already scores the state monopoly). Its only candidate consumer is M7 naval combat, which stays auto-resolve (D-011 §5); no mechanic is designed here. Eureka (naphtha seeps) unchanged.",
+   "changes": "capability block only",
+   "capability": {
+    "grants": [
+     "knowledge:naval incendiary projected from siphons"
+    ],
+    "realizationOwner": "none (candidate: Battle layer (M7) naval auto-resolve, as equipment of galley identities)",
+    "status": "knowledge-only",
+    "milestone": "M7",
+    "currentEffect": "none beyond the completion row (class C, MEASURED)",
+    "deferredEffect": "candidate equipment eligibility for the A5–A6 galley identities if M7's naval resolution reads equipment knowledge; otherwise knowledge-only (M10+)",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "none modelled: petroleum is not a good",
+    "unknownResource": "its Eureka (surface naphtha seeps) waits for a resources/terrain system; research never reveals a seep (framework §6)",
+    "aiValuation": "No AI research goal reads military knowledge today (goals: next-Age core facts, road class, tax, university — AiResearchPolicy, MEASURED); reached through the cheapest-available fallback. Once M7 exists, value unit eligibility from threats the polity has itself observed (sighted formations, known fortifications) — never from unseen rivals' state (fog symmetry).",
+    "playerCommunication": "Research panel: 'Knowledge only — a lost Byzantine secret; no simulated consequence yet'"
+   }
+  },
+  {
+   "id": "cannon_cast_bronze",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "military",
+   "rationale": "Kept; one prerequisite re-pointed within D-047 r1 #9's own reasoning ('Bell-founding (lost-wax/closed casting) is' the cause — RATIFIED; this touches a D-047 Part C edge and is flagged for the Director). Large bronze guns were cast like bells, in closed loam moulds, and need the bronze alloy. D02 re-scopes lost_wax onto open casting (lost-wax predates closed moulds and tin bronze), and cannon_early now admits the wrought-iron route, so 'cannon_early AND lost_wax' no longer guarantees tin bronze in the closure. casting_closed (which requires tin_bronze) carries both the founding technique and the alloy — D02's request, option (b), accepted. Realizes unit.artillery (bombards, A7).",
+   "prereq": "cannon_early AND casting_closed",
+   "prereqRationale": "cannon_early: the gun and its propellant. casting_closed: closed-mould (bell-founding) casting of large pieces, which requires tin_bronze — the gunmetal. lost_wax removed (it no longer implies the alloy; bell-founding used loam moulds).",
+   "changes": "prereq: 'cannon_early AND lost_wax' -> 'cannon_early AND casting_closed'; two conjuncts either way, so prereq_complexity 0.5 and cost 7,030 are unchanged",
+   "compatibility": {
+    "saves": "No dormancy under today's graph (lost_wax requires casting_closed, so every holder of lost_wax holds it); under D02's re-scope a polity with lost_wax but without casting_closed would wait for casting_closed.",
+    "ids": "unchanged",
+    "ui": "edge redrawn from casting_closed",
+    "ai": "closure loses lost_wax (1,480 RP); casting_closed and tin_bronze are already in most closures",
+    "consumers": "lost_wax (D02) loses its only dependant — D02 offered this option and owns lost_wax's resolution. cannon_cast_bronze is on the A8 core path (cylinder_boring): its own closure 91,410 -> 73,800 (with cannon_early's edits), and the Age-core closures move by the net +2,700 RP stated on cannon_early (MEASURED)",
+    "tests": "chronology test passes (casting_closed ~3,000 BCE); regenerate CI --check docs"
+   }
+  },
+  {
+   "id": "cannon_cast_iron",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "military",
+   "rationale": "Causal (gun-founding + water-powered blast furnace); realizes unit.artillery. Loses the tank as a dependant (a cast-iron muzzle-loader is not a tank gun); keeps cylinder_boring, ship_of_line and steam_atmospheric.",
+   "changes": "none to the node (dependant tank removed)"
+  },
+  {
+   "id": "matchlock",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "military",
+   "rationale": "Kept with one prerequisite replaced (D04's request, accepted). The arquebus is the hand cannon (cannon_early) with a serpentine lock, fired with granulated powder: corned powder went first into hand-held guns while serpentine powder stayed with early cannon (RESEARCHED by D04 — Hall's corning thesis, dating debated; consistent with D-047 r1 #9). The crossbow edge stood for role succession (crossbowmen -> arquebusiers, which the unit family already encodes) and an unsourced trigger/stock transfer (INFERENCE), so it is the weaker edge and is replaced. corned_powder, the A7 supporting fact, gains its first in-tree dependant. Realizes unit.musketeers (musketeers, heavy_infantry A7); gains the dependant rifling.",
+   "prereq": "cannon_early AND corned_powder",
+   "prereqRationale": "cannon_early: the hand-held gun barrel the lock is fitted to. corned_powder: the granulated, faster-burning powder of 15th-century handguns (RESEARCHED by D04, dating debated). crossbow removed (role succession, not knowledge; trigger transfer unsourced).",
+   "changes": "prereq: 'cannon_early AND crossbow' -> 'cannon_early AND corned_powder'; two conjuncts either way, so prereq_complexity 0.5 and cost 4,180 are unchanged",
+   "compatibility": {
+    "saves": "Completed rows stay valid. Partial progress held without corned_powder goes dormant until it is known (2,090 RP; completed at turns ~1,190 in the measured seed-42 run).",
+    "ids": "unchanged",
+    "ui": "edge redrawn from corned_powder instead of crossbow",
+    "ai": "closure gains corned_powder and saltpetre_refining, loses crossbow; AI-empire pins may move",
+    "consumers": "crossbow loses this dependant (keeps torsion_artillery and unit.crossbowmen); corned_powder (D04) gains its first dependant; unit.musketeers unchanged",
+    "tests": "D047 chronology test passes (corned_powder ~1,420 CE < matchlock ~1,475 CE); regenerate CI --check docs"
+   }
+  },
+  {
+   "id": "wheellock",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "military",
+   "rationale": "Causal (clockwork spring lock: escapement_verge stands for the precision-mechanism craft). Not a dead end (flintlock depends on it). The wheellock made a firearm usable one-handed on horseback; it is the pistol of the PROPOSED unit.cuirassiers (with plate_armour and stirrup).",
+   "changes": "capability block only; if unit.cuirassiers is ratified, unlocks.units gains it",
+   "capability": {
+    "grants": [
+     "knowledge:pistol",
+     "knowledge:mounted firearms",
+     "unit:unit.cuirassiers (PROPOSED entity — OPEN DECISION, T6.12)"
+    ],
+    "realizationOwner": "Battle layer (M7)",
+    "status": "deferred",
+    "milestone": "M7",
+    "currentEffect": "none beyond the completion row (class C today, MEASURED)",
+    "deferredEffect": "M7 recruitment may read this eligibility for the cuirassiers identity (heavy_cavalry, A7) if the entity is ratified; modernization of existing formations stays Age-driven, automatic and free (ADR-031) — no combat mechanic is designed here.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No goods are consumed: unit equipment is declarative in unit-families.json and iron, steel, saltpetre and horses are not goods (fog audit §2.2, MEASURED). Eligible-but-unrealizable is the normal state until the M7 battle layer recruits.",
+    "unknownResource": "n/a — no deposit-gated input; fog does not gate eligibility.",
+    "aiValuation": "No AI research goal reads military knowledge today (goals: next-Age core facts, road class, tax, university — AiResearchPolicy, MEASURED); reached through the cheapest-available fallback. Once M7 exists, value unit eligibility from threats the polity has itself observed (sighted formations, known fortifications) — never from unseen rivals' state (fog symmetry).",
+    "playerCommunication": "Research panel lists the unit as 'eligible — fielded by the battle layer (M7)'; no recruit action is shown before M7 (one predicate, every caller: AvailableActionsQuery lists only actions that exist). The unit entity is PROPOSED (OPEN DECISION, T6.12): until it is ratified the panel shows the knowledge only."
+   }
+  },
+  {
+   "id": "flintlock",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "military",
+   "rationale": "Causal (snaphance/French lock from the wheellock's spark ignition); realizes unit.musketeers. Gains a dependant: breech_loading_rifle (the percussion lock is the flintlock's mechanism with a hammer for a cock). Its technique strings 'Drill and the printed manual' describe an institutional practice (D12's domain); kept as display text only.",
+   "changes": "none to the node (new dependant breech_loading_rifle)"
+  },
+  {
+   "id": "trace_italienne",
+   "disposition": [
+    "rebalance"
+   ],
+   "nodeKind": "infrastructure",
+   "rationale": "Missing causal knowledge added: the bastion trace re-engineered the masonry curtain-and-tower wall — lower, thicker, earth-backed walls with masonry facings and angled bastions that remove the dead ground of round towers (RESEARCHED). It needs the masonry-fortification tradition (stone_fortification), the artillery it answers (cannon_cast_bronze) and the flanking-fire geometry (geometry_axiomatic). This also gives a coherent fortification line: city wall -> castle -> bastion fort. Realization owner corrected: building.bastion_fort is deferred-entity tier E (M7 battle layer), not an M6 construction realization (docs/deferred-entity-realization-plan.md:57-63, MEASURED).",
+   "prereq": "cannon_cast_bronze AND geometry_axiomatic AND stone_fortification",
+   "prereqRationale": "cannon_cast_bronze: the siege guns the trace answers and the guns its bastions mount. geometry_axiomatic: layout of mutually flanking faces. stone_fortification: the masonry fortification engineering it transforms (walls, gates, ditches).",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.0,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 0.5,
+    "prereq_complexity": 1.0
+   },
+   "costRationale": "Only prereq_complexity moves (0.5 -> 1.0: three top-level conjuncts, convention). novelty 1.0 unchanged (a new fortification principle); difficulty 2.0 = A7 prior; material 0.0 (earth, brick, stone); institutional 1.5 = A7 prior; breadth 0.5 (one building class). Magnitude 5.5 -> 6.0; cost 4,180 -> 5,910.",
+   "changes": "prereq gains 'AND stone_fortification'; prereq_complexity 0.5 -> 1.0; cost 4,180 -> 5,910",
+   "compatibility": {
+    "saves": "Completed rows stay valid. Partial progress held without stone_fortification goes dormant until it is known; progress keeps its RP value against the higher cost (nothing completes for free).",
+    "ids": "unchanged",
+    "ui": "edge added; cost shown 5,910",
+    "ai": "closure gains stone_fortification (3,520, trunk A4); AI-empire pins may move",
+    "consumers": "stone_fortification (D07) gains its first dependant; building.bastion_fort unchanged",
+    "tests": "cost/calibration CI doc regenerated; chronology test passes (~1,300 BCE < ~1,500 CE)"
+   },
+   "capability": {
+    "grants": [
+     "knowledge:cannon-resistant fortification",
+     "building:building.bastion_fort"
+    ],
+    "realizationOwner": "ConstructionSystem (builds the structure) + Battle layer (M7) (its defensive effect, D-039 D1)",
+    "status": "deferred",
+    "milestone": "M7",
+    "currentEffect": "none beyond the completion row; building.bastion_fort has no realizing system (class J, MEASURED)",
+    "deferredEffect": "deferred-entity tier E (M7): the bastion fort becomes buildable and, per D-039 D1, siege difficulty is computed from what a settlement has built — knowledge never fortifies a place",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "no construction project exists for building.bastion_fort today (MEASURED: not in goods.json projects); its materials are defined when tier E makes it buildable (M7), and a settlement lacking them would then hold eligibility without being able to complete it",
+    "unknownResource": "n/a — no deposit-gated input",
+    "aiValuation": "No AI research goal reads military knowledge today (goals: next-Age core facts, road class, tax, university — AiResearchPolicy, MEASURED); reached through the cheapest-available fallback. Once M7 exists, value unit eligibility from threats the polity has itself observed (sighted formations, known fortifications) — never from unseen rivals' state (fog symmetry).",
+    "playerCommunication": "Research panel: 'Makes the bastion fort eligible — built from M7 when fortification starts to count in sieges'"
+   }
+  },
+  {
+   "id": "ship_of_line",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "military",
+   "rationale": "Causal (full-rigged hull + cheap cast-iron guns in numbers); realizes unit.ship_of_the_line (ships_of_the_line, naval_combat A7) — consistent.",
+   "changes": "none"
+  },
+  {
+   "id": "tank",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "military",
+   "rationale": "Kept with its armament prerequisite corrected: the 1916 tank was an armoured, tracked carrier for quick-firing rifled guns ('male') or machine guns ('female') — not for cast-iron muzzle-loaders (RESEARCHED). cannon_cast_iron is replaced by the knowledge that actually armed it: rifled_artillery and machine_gun (both new). The crawler track it came from (Holt tractor, 1904) has no node of its own; mechanised_agriculture is dated ~1,920 CE, after the tank, so it cannot be an AND prerequisite (cross-lane request to D01). Realizes unit.tank (tanks, heavy_cavalry A9).",
+   "prereq": "internal_combustion AND basic_process AND rifled_artillery AND machine_gun",
+   "prereqRationale": "internal_combustion: the engine. basic_process: cheap mass steel for armour plate (kept). rifled_artillery: its quick-firing breech-loading guns. machine_gun: its secondary (or, on 'female' tanks, only) armament and the weapon it was built to defeat. cannon_cast_iron removed (not a tank gun).",
+   "changes": "prereq: 'internal_combustion AND basic_process AND cannon_cast_iron' -> 'internal_combustion AND basic_process AND rifled_artillery AND machine_gun'; four conjuncts (>= 3), so prereq_complexity 1.0 and cost 23,650 are unchanged",
+   "compatibility": {
+    "saves": "Completed rows stay valid. Partial progress on tank held without rifled_artillery and machine_gun goes dormant until both are known; old saves that hold tank do not acquire the new nodes.",
+    "ids": "unchanged",
+    "ui": "edges redrawn",
+    "ai": "closure gains rifling, breech_loading_rifle, machine_gun, rifled_artillery (~47k RP)",
+    "consumers": "cannon_cast_iron loses a dependant; unit.tank unchanged",
+    "tests": "chronology test passes (1855/1862 < 1916 CE); regenerate CI --check docs"
+   }
+  },
+  {
+   "id": "radar",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Causal (valve electronics + electromagnetic theory). Not a dead end: stealth, missile_defence and the new guided_missile depend on it. Its string 'D-039 B reconnaissance at radio range' is display only: D-040 B3 forbids research unlocking reach, so radar never widens M6 fog sight; a radar-equipped reconnaissance CLASS is a candidate for M7 (D-047 r7/r8 class unlocks). D04 splits electromagnetism and asks that radar require the new electromagnetic_field_theory (Maxwell–Hertz waves, 1865–1888 CE) instead: D09 AGREES (radar is the reflection of electromagnetic waves) but cannot name a non-existing id here (brief §9), so the substitution is to be applied at integration — two conjuncts either way, cost unchanged, chronology passes (1865 < 1938 CE).",
+   "changes": "capability block only (no fog effect stated); at integration, prereq 'vacuum_tube AND electromagnetism' -> 'vacuum_tube AND electromagnetic_field_theory' (D04's new id, agreed)",
+   "capability": {
+    "grants": [
+     "knowledge:air defence",
+     "knowledge:navigation",
+     "knowledge:reconnaissance at radio range (display only in M6)"
+    ],
+    "realizationOwner": "none (candidate: Battle layer (M7) reconnaissance class)",
+    "status": "knowledge-only",
+    "milestone": "M7",
+    "currentEffect": "none beyond the completion row (class C, MEASURED)",
+    "deferredEffect": "candidate M7 reconnaissance class for formations (D-039 B); never an M6 sight-budget change (D-040 B3; D-K: one TUNE budget)",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "n/a",
+    "unknownResource": "n/a",
+    "aiValuation": "No AI research goal reads military knowledge today (goals: next-Age core facts, road class, tax, university — AiResearchPolicy, MEASURED); reached through the cheapest-available fallback. Once M7 exists, value unit eligibility from threats the polity has itself observed (sighted formations, known fortifications) — never from unseen rivals' state (fog symmetry).",
+    "playerCommunication": "Research panel: 'Prerequisite of guided missiles, stealth and missile defence; no map effect'"
+   }
+  },
+  {
+   "id": "icbm",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "military",
+   "rationale": "Kept unchanged. A leaf granting unit.icbm (icbm_forces, strategic_missile A9 branch): splitting it would add a click without removing a bottleneck (nothing waits on it). The thermonuclear edge is kept as causal (INFERENCE: the first ICBMs were conceived as carriers of thermonuclear warheads) but the warhead belongs to D11, which recommends whether nuclear weapons are realized at M7 or later (Spine: deterrence abstraction only); this node's realization milestone follows that recommendation. D09 designs no nuclear weapon.",
+   "changes": "capability block only (D11 dependency stated)",
+   "capability": {
+    "grants": [
+     "knowledge:intercontinental strike",
+     "unit:unit.icbm"
+    ],
+    "realizationOwner": "Battle layer (M7)",
+    "status": "deferred",
+    "milestone": "M7",
+    "currentEffect": "none beyond the completion row; unit.icbm is knowledge-eligible (class F, MEASURED)",
+    "deferredEffect": "M7 recruitment may read this eligibility for the icbm_forces identity (strategic_missile, A9); modernization of existing formations stays Age-driven, automatic and free (ADR-031) — no combat mechanic is designed here. Whether nuclear delivery is realized in M7 or in a later deterrence abstraction is D11's recommendation.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No goods are consumed: unit equipment is declarative in unit-families.json and iron, steel, saltpetre and horses are not goods (fog audit §2.2, MEASURED). Eligible-but-unrealizable is the normal state until the M7 battle layer recruits.",
+    "unknownResource": "n/a — no deposit-gated input; fog does not gate eligibility.",
+    "aiValuation": "No AI research goal reads military knowledge today (goals: next-Age core facts, road class, tax, university — AiResearchPolicy, MEASURED); reached through the cheapest-available fallback. Once M7 exists, value unit eligibility from threats the polity has itself observed (sighted formations, known fortifications) — never from unseen rivals' state (fog symmetry).",
+    "playerCommunication": "Research panel lists the unit as 'eligible — fielded by the battle layer (M7)'; no recruit action is shown before M7 (one predicate, every caller: AvailableActionsQuery lists only actions that exist)."
+   }
+  },
+  {
+   "id": "guided_munitions",
+   "disposition": [
+    "split",
+    "rebalance"
+   ],
+   "nodeKind": "military",
+   "splitInto": [
+    "guided_missile"
+   ],
+   "rationale": "Split a conflation: guided MISSILES (1943 rocket-boosted radio-guided anti-ship missile; 1950s radar- and infrared-homing surface-to-air and air-to-air missiles) were bundled with PRECISION-guided munitions (laser-guided bombs, Thanh Hoa bridge 1972; later satellite-guided). The bundle forced the laser (1960) before any guided weapon — a causal error — and made one 189k-RP target. Key 403 keeps the part its consumers need (missile_defence, frontier_military: modern hit-to-kill and precision strike); the 1950s missile becomes guided_missile.",
+   "prereq": "laser AND computer AND guided_missile",
+   "prereqRationale": "laser: target designation for laser-guided weapons. computer: digital guidance (cruise-missile terrain matching, satellite guidance). guided_missile: seeker-and-control-fin guidance it refines; it replaces rocket, which guided_missile already requires (a laser-guided bomb has no motor).",
+   "factors": {
+    "novelty": 0.5,
+    "difficulty": 3.0,
+    "material": 2.0,
+    "institutional": 3.0,
+    "breadth": 0.5,
+    "prereq_complexity": 1.0
+   },
+   "costRationale": "novelty 1.0 -> 0.5: precision terminal guidance refines the guided missile now carved out. difficulty 3.5 -> 3.0: the missile-guidance engineering moved to guided_missile; the precision kit (seeker, control fins on a standard bomb) sits at the A9 prior. material 2.0 unchanged (laser designators, semiconductor seekers). institutional 3.0 unchanged (state programmes). breadth 0.5 unchanged. prereq_complexity 1.0 unchanged (three conjuncts). Magnitude 11.0 -> 10.0; cost 189,240 -> 94,620. Split sum 94,620 + 94,620 = 189,240 = the original workload (conserved).",
+   "changes": "name unchanged ('Precision-guided munitions'); prereq 'laser AND rocket AND computer' -> 'laser AND computer AND guided_missile'; factors re-scored (11.0 -> 10.0); cost 189,240 -> 94,620; emerged text unchanged ('1972 laser-guided bombs' — unmarked, so the 83-unmarked pin does not move)",
+   "compatibility": {
+    "saves": "Key 403 keeps the retained part. Old saves that completed 403 do NOT receive guided_missile (no remap seam — package-level OPEN DECISION); since guided_missile's only consumer is 403 itself, no eligibility is lost. Partial progress on 403 >= 94,620 completes next step with no RP spent (MEASURED rule); progress held without guided_missile goes dormant until it is known.",
+    "ids": "unchanged",
+    "ui": "cost shown 94,620; new prerequisite vertex guided_missile",
+    "ai": "same closure workload; the laser is no longer in the closure of the 1950s missile",
+    "consumers": "missile_defence and frontier_military keep this key as prerequisite",
+    "tests": "calibration/corpus/unlock CI docs regenerated; military finite count +1 for the new part (see frontier_military)"
+   },
+   "capability": {
+    "grants": [
+     "knowledge:precision strike (laser- and satellite-guided weapons)"
+    ],
+    "realizationOwner": "none (candidate: Battle layer (M7) air-strike missions)",
+    "status": "knowledge-only",
+    "milestone": "M7",
+    "currentEffect": "none beyond the completion row (class C, MEASURED)",
+    "deferredEffect": "candidate capability input for D-011's 'air strike' verb, which must be gated on capability, not era (D-039 A5); no mechanic designed here. Not a dead end: missile_defence and frontier_military require it.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "n/a",
+    "unknownResource": "n/a",
+    "aiValuation": "No AI research goal reads military knowledge today (goals: next-Age core facts, road class, tax, university — AiResearchPolicy, MEASURED); reached through the cheapest-available fallback. Once M7 exists, value unit eligibility from threats the polity has itself observed (sighted formations, known fortifications) — never from unseen rivals' state (fog symmetry).",
+    "playerCommunication": "Research panel: 'Prerequisite of missile defence and military research; no map effect yet'"
+   }
+  },
+  {
+   "id": "stealth",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "military",
+   "rationale": "Kept with a missing causal prerequisite added: the node makes unit.stealth_aircraft eligible but did not require powered flight — a polity could field stealth aircraft without knowing the aeroplane. aircraft is added (low-observable shaping is airframe design; the faceted F-117 also needed digital fly-by-wire, already covered by computer). A leaf: not split (nothing waits on it).",
+   "prereq": "composites AND radar AND computer AND aircraft",
+   "prereqRationale": "composites: radar-absorbent materials. radar: the threat whose returns it shapes away. computer: radar cross-section prediction and fly-by-wire of an unstable airframe. aircraft: the airframe itself (added).",
+   "changes": "prereq gains 'AND aircraft'; four conjuncts (>= 3), so prereq_complexity 1.0 and cost 133,810 are unchanged",
+   "compatibility": {
+    "saves": "Completed rows stay valid; partial progress held without aircraft goes dormant until it is known.",
+    "ids": "unchanged",
+    "ui": "edge added from aircraft",
+    "ai": "closure gains aircraft (47,310) where absent",
+    "consumers": "aircraft (D08) gains a dependant; unit.stealth_aircraft unchanged",
+    "tests": "regenerate CI --check docs (stealth's emerged '1981 F-117' is unmarked, untested)"
+   }
+  },
+  {
+   "id": "combat_drone",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "military",
+   "rationale": "Causal (D-047 r1 #15 KEEP for gps); realizes unit.combat_drone. Adding guided_munitions for the 'strike' string was considered and rejected: the Predator flew unarmed from 1995 to 2001, so reconnaissance drones do not need precision munitions.",
+   "changes": "none"
+  },
+  {
+   "id": "missile_defence",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "military",
+   "rationale": "Kept, knowledge-only by explicit justification: a distinct defensive capability (interception) with high educational value (ABM treaty 1972, hit-to-kill from 1984) and no unit family to realize it — unit-families.json has no air- or missile-defence role. Prerequisites causal (tracking radar + precision terminal guidance of modern hit-to-kill interceptors). The battle layer is its candidate owner; whether an air-defence role is added is T6.12's question (open questions).",
+   "changes": "capability block only",
+   "capability": {
+    "grants": [
+     "knowledge:defence against ballistic and cruise missiles"
+    ],
+    "realizationOwner": "none (candidate: Battle layer (M7) strike resolution)",
+    "status": "knowledge-only",
+    "milestone": "M7",
+    "currentEffect": "none beyond the completion row (class C, MEASURED)",
+    "deferredEffect": "candidate interception capability read by the M7 strategic-strike resolution (a coefficient inside a named equation, law 2) or by an air-defence role T6.12 may add; nothing designed here",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "n/a",
+    "unknownResource": "n/a",
+    "aiValuation": "No AI research goal reads military knowledge today (goals: next-Age core facts, road class, tax, university — AiResearchPolicy, MEASURED); reached through the cheapest-available fallback. Once M7 exists, value unit eligibility from threats the polity has itself observed (sighted formations, known fortifications) — never from unseen rivals' state (fog symmetry).",
+    "playerCommunication": "Research panel: 'Knowledge only until the battle layer (M7)'"
+   }
+  },
+  {
+   "id": "frontier_military",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "military",
+   "rationale": "Kept (repeatable, D-046: keep the ten repeatables, do not redesign them). Its prerequisite guided_munitions keeps key 403 through the split.",
+   "changes": "repeatable.availability.finite_nodes_to_exhaust must equal the new count of finite military-subtree nodes (loader rule 27): 36 today; D09 adds five (rifling, breech_loading_rifle, rifled_artillery, machine_gun, guided_missile) and retires none in the subtree, so 41 + the net change from other lanes' military-branch nodes (D08 owns 13, D11 owns 2) — the integrator must recompute it",
+   "compatibility": {
+    "saves": "unaffected (completes once today; levels are an open question, D-044 Part D T6)",
+    "ids": "unchanged",
+    "ui": "lock reason 'subtree not exhausted' counts five more nodes",
+    "ai": "none",
+    "consumers": "none",
+    "tests": "ResearchContentTests finite-per-subtree pin [36, 21, 125, 43, 14] moves (military 36 -> 41 + others)"
+   }
+  }
+ ],
+ "new": [
+  {
+   "id": "traction_trebuchet",
+   "name": "Traction trebuchet",
+   "branch": "trunk",
+   "age": "A5",
+   "domain": "military",
+   "secondaryDomains": [
+    "construction"
+   ],
+   "emerged": "~350 BCE China (Mohist texts, 4th century BCE); Mediterranean by ~600 CE (Avars, Byzantines)",
+   "prereq": "sling AND timber_frame",
+   "prereqRationale": "sling: the engine is a sling on the long arm of a lever — the sling and its release are the knowledge it scales up. timber_frame: the pivoting beam and its supporting frame. Both trunk, both far older (~10 kya, ~5,500 BCE).",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.5,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "costRationale": "novelty 1.0: a new artillery principle (lever and sling, neither tension nor torsion). difficulty 1.5: A5 prior (beam balance and release learned empirically). material 0.0: timber, rope and a leather pouch. institutional 1.25: A5 prior (teams of dozens to hundreds of trained haulers). breadth 0.5: one unit family path plus the counterweight trebuchet. prereq_complexity 0.5: two conjuncts. Magnitude 4.75 -> 2,490 RP.",
+   "costAnalog": "stirrup",
+   "nodeKind": "military",
+   "primaryUniversity": "military",
+   "universityRelevance": [
+    {
+     "type": 1,
+     "name": "Military",
+     "role": "primary"
+    },
+    {
+     "type": 3,
+     "name": "Engineering",
+     "role": "secondary"
+    }
+   ],
+   "family": "siege",
+   "generation": null,
+   "splitFrom": null,
+   "unlocks": {
+    "units": [
+     "unit.siege_engine"
+    ],
+    "capabilities": [
+     "stone-throwing artillery by lever and sling (crew-hauled)"
+    ]
+   },
+   "capability": {
+    "grants": [
+     "knowledge:stone-throwing artillery by lever and sling (crew-hauled)",
+     "unit:unit.siege_engine"
+    ],
+    "realizationOwner": "Battle layer (M7)",
+    "status": "deferred",
+    "milestone": "M7",
+    "currentEffect": "none beyond the completion row; unit.siege_engine becomes knowledge-eligible once its requires gains the fourth alternative 'siege_ram OR torsion_artillery OR traction_trebuchet OR trebuchet'",
+    "deferredEffect": "M7 recruitment may read this eligibility for the siege family (siege_rams/torsion_engines/trebuchets realizations follow the Age); modernization of existing formations stays Age-driven, automatic and free (ADR-031) — no combat mechanic is designed here. An independent (East Asian) route to siege artillery: a polity may reach siege engines without rams or torsion engines.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No goods are consumed: unit equipment is declarative in unit-families.json and iron, steel, saltpetre and horses are not goods (fog audit §2.2, MEASURED). Eligible-but-unrealizable is the normal state until the M7 battle layer recruits.",
+    "unknownResource": "n/a — no deposit-gated input; fog does not gate eligibility.",
+    "aiValuation": "No AI research goal reads military knowledge today (goals: next-Age core facts, road class, tax, university — AiResearchPolicy, MEASURED); reached through the cheapest-available fallback. Once M7 exists, value unit eligibility from threats the polity has itself observed (sighted formations, known fortifications) — never from unseen rivals' state (fog symmetry).",
+    "playerCommunication": "Research panel lists the unit as 'eligible — fielded by the battle layer (M7)'; no recruit action is shown before M7 (one predicate, every caller: AvailableActionsQuery lists only actions that exist)."
+   },
+   "eurekas": [],
+   "whyDistinct": "A genuinely separate invention and principle — the man-hauled lever-sling engine of Warring States China, the dominant siege artillery of East Asia and of the Mediterranean from the late 6th to the 12th century — and the real ancestor of the counterweight trebuchet, whose current edge from torsion artillery is not causal. It adds an alternative route to the siege family.",
+   "acceptanceTest": "Loader accepts it (trunk A5, trunk-only prerequisites, cost 2,490 within tolerance, one primary university). With sling, timber_frame and traction_trebuchet complete and siege_ram, torsion_artillery and trebuchet not, IsKnowledgeEligible(unit.siege_engine) is true; trebuchet is available iff traction_trebuchet is complete (torsion_artillery alone no longer suffices); completion writes exactly one ResearchCompleted row and no MilitaryUnits row.",
+   "rationale": "PROPOSED new trunk node; corrects the trebuchet's lineage (RESEARCHED).",
+   "compatibility": {
+    "saves": "new key; starts uncompleted in old saves",
+    "ids": "new id",
+    "ui": "new trunk vertex",
+    "ai": "a 2,490-RP trunk option for the cheapest-first fallback; AI-empire pins may move",
+    "consumers": "unit.siege_engine requires gains an OR alternative; trebuchet's prerequisite",
+    "tests": "TechnologyCount/trunk count; unlock audit class F count +1"
+   }
+  },
+  {
+   "id": "rifling",
+   "name": "Rifled barrel",
+   "branch": "military",
+   "age": "A7",
+   "domain": "military",
+   "secondaryDomains": [
+    "industry"
+   ],
+   "emerged": "~1500 CE Vienna and Nuremberg (spiral grooves; Kollner 1498 and Kotter c. 1520 are named, attribution disputed); general military issue only from the early 1800s",
+   "prereq": "matchlock",
+   "prereqRationale": "matchlock: a gun barrel and its ignition to rifle. Straight 'soot grooves' already appear on small arms by ~1480; the step is cutting them helically (RESEARCHED).",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.0,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.0
+   },
+   "costRationale": "novelty 1.0: a new principle (spin-stabilised projectile) applied to an existing weapon. difficulty 2.0: A7 prior (cutting even helical grooves on a rifling bench). material 0.0: ordinary gun barrels. institutional 1.5: A7 prior (gunsmith craft). breadth 1.0: the whole rifled-weapon line (rifles, rifled artillery) plus a light-infantry identity. prereq_complexity 0.0: one prerequisite. Magnitude 5.5 -> 4,180 RP.",
+   "costAnalog": "matchlock",
+   "nodeKind": "military",
+   "primaryUniversity": "military",
+   "universityRelevance": [
+    {
+     "type": 1,
+     "name": "Military",
+     "role": "primary"
+    },
+    {
+     "type": 3,
+     "name": "Engineering",
+     "role": "secondary"
+    }
+   ],
+   "family": "firearm",
+   "generation": null,
+   "splitFrom": null,
+   "unlocks": {
+    "capabilities": [
+     "accurate aimed fire at long range (rifles)"
+    ]
+   },
+   "capability": {
+    "grants": [
+     "knowledge:accurate aimed fire at long range (rifles)",
+     "unit:unit.rangers (PROPOSED entity -> rangers, light_infantry A7, equipment 'rifled firearms' — OPEN DECISION, T6.12)"
+    ],
+    "realizationOwner": "Battle layer (M7)",
+    "status": "deferred",
+    "milestone": "M7",
+    "currentEffect": "none beyond the completion row; prerequisite of breech_loading_rifle and rifled_artillery",
+    "deferredEffect": "M7 recruitment may read this eligibility for the rangers identity (light_infantry, A7: early modern rangers and jägers); modernization of existing formations stays Age-driven, automatic and free (ADR-031) — no combat mechanic is designed here.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No goods are consumed: unit equipment is declarative in unit-families.json and iron, steel, saltpetre and horses are not goods (fog audit §2.2, MEASURED). Eligible-but-unrealizable is the normal state until the M7 battle layer recruits.",
+    "unknownResource": "n/a — no deposit-gated input; fog does not gate eligibility.",
+    "aiValuation": "No AI research goal reads military knowledge today (goals: next-Age core facts, road class, tax, university — AiResearchPolicy, MEASURED); reached through the cheapest-available fallback. Once M7 exists, value unit eligibility from threats the polity has itself observed (sighted formations, known fortifications) — never from unseen rivals' state (fog symmetry).",
+    "playerCommunication": "Research panel lists the unit as 'eligible — fielded by the battle layer (M7)'; no recruit action is shown before M7 (one predicate, every caller: AvailableActionsQuery lists only actions that exist). The unit entity is PROPOSED (OPEN DECISION, T6.12): until it is ratified the panel shows the knowledge only."
+   },
+   "eurekas": [],
+   "whyDistinct": "Rifling is the hinge of the A7->A8 weapons line: every rifle and every rifled gun descends from it. Today the military subtree jumps from the flintlock (1610) to the tank (1916) with no node for rifled weapons, although unit-families.json declares 'rifled firearms', 'rifles' and 'steel guns' for four A7–A8 identities.",
+   "acceptanceTest": "Available iff matchlock is complete and the subtree is open; cost 4,180 within tolerance; completing it makes the rifling atom of breech_loading_rifle and rifled_artillery hold; if unit.rangers is ratified, IsKnowledgeEligible(unit.rangers) flips true and no MilitaryUnits row is written; chronology test passes (~1500 >= ~1475 CE).",
+   "rationale": "PROPOSED new military-subtree node filling the rifled-weapons gap.",
+   "compatibility": {
+    "saves": "new key",
+    "ids": "new id",
+    "ui": "new vertex in the military lane",
+    "ai": "none today",
+    "consumers": "breech_loading_rifle, rifled_artillery",
+    "tests": "military finite count +1 (frontier_military descriptor)"
+   }
+  },
+  {
+   "id": "breech_loading_rifle",
+   "name": "Breech-loading rifle",
+   "branch": "military",
+   "age": "A8",
+   "domain": "military",
+   "secondaryDomains": [
+    "industry"
+   ],
+   "emerged": "1841 CE Dreyse needle gun (Prussia); metallic-cartridge and bolt-action rifles from the 1860s",
+   "prereq": "rifling AND flintlock AND chemistry_quantitative AND interchangeable_parts",
+   "prereqRationale": "rifling: the rifled barrel. flintlock: the lock mechanism the percussion lock inherits (a hammer for a cock; early breech-loaders such as the Hall rifle of 1819 were flintlocks). chemistry_quantitative: fulminate priming chemistry (percussion caps and primed cartridges). interchangeable_parts: gauged machine-made breech parts at army scale (Hall's breech-loading rifle of 1819 is often described as the first firearm made with fully interchangeable parts — RESEARCHED, sources differ on the priority claim).",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 1.0,
+    "prereq_complexity": 1.0
+   },
+   "costRationale": "novelty 1.0: a new firearm class (a self-contained primed cartridge loaded at the breech). difficulty 2.5: A8 prior (gas-tight breech). material 0.0: firearm-family convention (matchlock, wheellock, flintlock 0.0); the metals come from its prerequisites. institutional 2.0: A8 prior (state arsenals). breadth 1.0: rifle infantry, marksmen and carbine cavalry identities plus the machine gun. prereq_complexity 1.0: four conjuncts. Magnitude 7.5 -> 16,730 RP.",
+   "costAnalog": "interchangeable_parts",
+   "nodeKind": "military",
+   "primaryUniversity": "military",
+   "universityRelevance": [
+    {
+     "type": 1,
+     "name": "Military",
+     "role": "primary"
+    },
+    {
+     "type": 3,
+     "name": "Engineering",
+     "role": "secondary"
+    }
+   ],
+   "family": "firearm",
+   "generation": 4,
+   "splitFrom": null,
+   "unlocks": {
+    "capabilities": [
+     "rapid aimed fire from cover (breech-loading)"
+    ]
+   },
+   "capability": {
+    "grants": [
+     "knowledge:rapid aimed fire from cover (breech-loading)",
+     "unit:unit.line_infantry (PROPOSED entity -> line_infantry, heavy_infantry A8, equipment 'rifles, bayonets' — OPEN DECISION, T6.12)"
+    ],
+    "realizationOwner": "Battle layer (M7)",
+    "status": "deferred",
+    "milestone": "M7",
+    "currentEffect": "none beyond the completion row; prerequisite of machine_gun",
+    "deferredEffect": "M7 recruitment may read this eligibility for the line_infantry identity (heavy_infantry, A8); sharpshooters and carbine_cavalry (A8) are candidates for T6.12; modernization of existing formations stays Age-driven, automatic and free (ADR-031) — no combat mechanic is designed here.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No goods are consumed: unit equipment is declarative in unit-families.json and iron, steel, saltpetre and horses are not goods (fog audit §2.2, MEASURED). Eligible-but-unrealizable is the normal state until the M7 battle layer recruits.",
+    "unknownResource": "n/a — no deposit-gated input; fog does not gate eligibility.",
+    "aiValuation": "No AI research goal reads military knowledge today (goals: next-Age core facts, road class, tax, university — AiResearchPolicy, MEASURED); reached through the cheapest-available fallback. Once M7 exists, value unit eligibility from threats the polity has itself observed (sighted formations, known fortifications) — never from unseen rivals' state (fog symmetry).",
+    "playerCommunication": "Research panel lists the unit as 'eligible — fielded by the battle layer (M7)'; no recruit action is shown before M7 (one predicate, every caller: AvailableActionsQuery lists only actions that exist). The unit entity is PROPOSED (OPEN DECISION, T6.12): until it is ratified the panel shows the knowledge only."
+   },
+   "eurekas": [
+    {
+     "text": "A rival's breech-loader-armed infantry has been met in battle",
+     "kind": "world event",
+     "class": "future-system:world events",
+     "weight": 0.4,
+     "justification": "The needle gun was decisive at Königgrätz (1866); the Chassepot, a needle-gun derivative, entered French service that year, and Germany's Mauser followed in 1871 — war exposure accelerated breech-loader adoption (RESEARCHED)."
+    }
+   ],
+   "whyDistinct": "The decisive A8 infantry weapon — rifled, breech-loaded, cartridge-fed — which unit-families.json already presumes (line_infantry 'rifles, bayonets'; sharpshooters 'rifles'; carbine_cavalry 'carbines') with no knowledge behind it. Firearm generation 4 after the flintlock.",
+   "acceptanceTest": "Available iff rifling, flintlock, chemistry_quantitative and interchangeable_parts are complete; cost 16,730 within tolerance; machine_gun becomes available the next step; D047 generation test passes (firearm 4 > flintlock 3); chronology test passes (1841 >= 1820 CE); its Eureka is future-system (evaluable count 17 unchanged).",
+   "rationale": "PROPOSED new node; fills the empty A8 of the military subtree.",
+   "compatibility": {
+    "saves": "new key",
+    "ids": "new id",
+    "ui": "new vertex",
+    "ai": "none today",
+    "consumers": "machine_gun",
+    "tests": "Eureka count pin (81 on 80 nodes) moves by one"
+   }
+  },
+  {
+   "id": "rifled_artillery",
+   "name": "Rifled breech-loading artillery",
+   "branch": "military",
+   "age": "A8",
+   "domain": "military",
+   "secondaryDomains": [
+    "materials",
+    "industry"
+   ],
+   "emerged": "1855 CE Armstrong (wrought-iron built-up breech-loader, Elswick); Krupp cast-steel breech-loaders, 1860s (Prussia the first army to adopt steel guns)",
+   "prereq": "rifling AND puddling AND slide_rest_lathe",
+   "prereqRationale": "rifling: the grooved bore and elongated shell. puddling: wrought iron in quantity for built-up tubes shrunk under compression (Armstrong); steel guns (Krupp) come through the same iron line. slide_rest_lathe: precision screw-cutting and machining of breech mechanisms (interrupted screw, sliding wedge).",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.75,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 1.0
+   },
+   "costRationale": "novelty 1.0: a new artillery class (rifled, breech-loaded, shell-firing). difficulty 2.5: A8 prior. material 0.75: built-up wrought-iron or cast-steel tubes, heavy forgings (as puddling, iron_hull 0.75). institutional 2.0: A8 prior (Woolwich, Elswick, Essen). breadth 0.5: the field artillery identity and the tank's gun. prereq_complexity 1.0: three conjuncts. Magnitude 7.75 -> 19,890 RP.",
+   "costAnalog": "screw_propeller",
+   "nodeKind": "military",
+   "primaryUniversity": "military",
+   "universityRelevance": [
+    {
+     "type": 1,
+     "name": "Military",
+     "role": "primary"
+    },
+    {
+     "type": 3,
+     "name": "Engineering",
+     "role": "secondary"
+    }
+   ],
+   "family": "cannon",
+   "generation": 4,
+   "splitFrom": null,
+   "unlocks": {
+    "capabilities": [
+     "accurate long-range guns firing explosive shells"
+    ]
+   },
+   "capability": {
+    "grants": [
+     "knowledge:accurate long-range guns firing explosive shells",
+     "unit:unit.field_artillery (PROPOSED entity -> field_artillery, siege A8, equipment 'steel guns, shells' — OPEN DECISION, T6.12)"
+    ],
+    "realizationOwner": "Battle layer (M7)",
+    "status": "deferred",
+    "milestone": "M7",
+    "currentEffect": "none beyond the completion row; prerequisite of tank",
+    "deferredEffect": "M7 recruitment may read this eligibility for the field_artillery identity (siege, A8); modernization of existing formations stays Age-driven, automatic and free (ADR-031) — no combat mechanic is designed here. D-011's era-gated 'bombard' verb should be gated on capability such as this, not on era (D-039 A5).",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No goods are consumed: unit equipment is declarative in unit-families.json and iron, steel, saltpetre and horses are not goods (fog audit §2.2, MEASURED). Eligible-but-unrealizable is the normal state until the M7 battle layer recruits.",
+    "unknownResource": "n/a — no deposit-gated input; fog does not gate eligibility.",
+    "aiValuation": "No AI research goal reads military knowledge today (goals: next-Age core facts, road class, tax, university — AiResearchPolicy, MEASURED); reached through the cheapest-available fallback. Once M7 exists, value unit eligibility from threats the polity has itself observed (sighted formations, known fortifications) — never from unseen rivals' state (fog symmetry).",
+    "playerCommunication": "Research panel lists the unit as 'eligible — fielded by the battle layer (M7)'; no recruit action is shown before M7 (one predicate, every caller: AvailableActionsQuery lists only actions that exist). The unit entity is PROPOSED (OPEN DECISION, T6.12): until it is ratified the panel shows the knowledge only."
+   },
+   "eurekas": [],
+   "whyDistinct": "The artillery generation that ended smoothbore guns (cannon generation 4) and the gun that armed the tank; the siege family's A8 identity (field_artillery: 'steel guns, shells') has no knowledge behind it today.",
+   "acceptanceTest": "Available iff rifling, puddling and slide_rest_lathe are complete; cost 19,890 within tolerance; tank requires it; D047 generation test passes (cannon 4 > cast iron 3, reached transitively through slide_rest_lathe <- cylinder_boring <- cannon_cast_iron); chronology passes (1855 >= 1800 CE).",
+   "rationale": "PROPOSED new node; fills the empty A8 of the military subtree and repairs the tank's armament edge.",
+   "compatibility": {
+    "saves": "new key",
+    "ids": "new id",
+    "ui": "new vertex",
+    "ai": "none today",
+    "consumers": "tank",
+    "tests": "military finite count +1"
+   }
+  },
+  {
+   "id": "machine_gun",
+   "name": "Machine gun",
+   "branch": "military",
+   "age": "A8",
+   "domain": "military",
+   "secondaryDomains": [
+    "industry"
+   ],
+   "emerged": "1862 CE Gatling (hand-cranked, multi-barrel); 1884 CE Maxim (recoil-operated, belt-fed)",
+   "prereq": "breech_loading_rifle",
+   "prereqRationale": "breech_loading_rifle: the self-contained cartridge and breech mechanism that make mechanical feeding, firing and extraction possible. Smokeless powder is NOT required: Maxim's first guns fired black-powder cartridges; the mechanism was reworked for smokeless rounds in 1887–1889 (RESEARCHED).",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "costRationale": "novelty 1.0: repeated fire driven by a mechanism (crank, then recoil). difficulty 2.5: A8 prior. material 0.0: firearm-family convention. institutional 2.0: A8 prior. breadth 0.5: the machine-gun-team identity and the tank. prereq_complexity 0.0: one prerequisite. Magnitude 6.0 -> 5,910 RP.",
+   "costAnalog": "milling_machine",
+   "nodeKind": "military",
+   "primaryUniversity": "military",
+   "universityRelevance": [
+    {
+     "type": 1,
+     "name": "Military",
+     "role": "primary"
+    },
+    {
+     "type": 3,
+     "name": "Engineering",
+     "role": "secondary"
+    }
+   ],
+   "family": "firearm",
+   "generation": null,
+   "splitFrom": null,
+   "unlocks": {
+    "capabilities": [
+     "sustained automatic fire"
+    ]
+   },
+   "capability": {
+    "grants": [
+     "knowledge:sustained automatic fire",
+     "unit:unit.machine_guns (PROPOSED entity -> machine_gun_teams, ranged_infantry A9, equipment 'machine guns' — OPEN DECISION, T6.12)"
+    ],
+    "realizationOwner": "Battle layer (M7)",
+    "status": "deferred",
+    "milestone": "M7",
+    "currentEffect": "none beyond the completion row; prerequisite of tank",
+    "deferredEffect": "M7 recruitment may read this eligibility for the machine_gun_teams identity (ranged_infantry, A9); modernization of existing formations stays Age-driven, automatic and free (ADR-031) — no combat mechanic is designed here.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No goods are consumed: unit equipment is declarative in unit-families.json and iron, steel, saltpetre and horses are not goods (fog audit §2.2, MEASURED). Eligible-but-unrealizable is the normal state until the M7 battle layer recruits.",
+    "unknownResource": "n/a — no deposit-gated input; fog does not gate eligibility.",
+    "aiValuation": "No AI research goal reads military knowledge today (goals: next-Age core facts, road class, tax, university — AiResearchPolicy, MEASURED); reached through the cheapest-available fallback. Once M7 exists, value unit eligibility from threats the polity has itself observed (sighted formations, known fortifications) — never from unseen rivals' state (fog symmetry).",
+    "playerCommunication": "Research panel lists the unit as 'eligible — fielded by the battle layer (M7)'; no recruit action is shown before M7 (one predicate, every caller: AvailableActionsQuery lists only actions that exist). The unit entity is PROPOSED (OPEN DECISION, T6.12): until it is ratified the panel shows the knowledge only."
+   },
+   "eurekas": [],
+   "whyDistinct": "Automatic fire is the knowledge that created trench deadlock and that the tank was built to defeat; unit-families.json declares 'machine guns' for an A9 identity with no knowledge behind it.",
+   "acceptanceTest": "Available iff breech_loading_rifle is complete; cost 5,910 within tolerance; tank requires it; chronology passes (1862 >= 1841 CE); if unit.machine_guns is ratified its eligibility flips and nothing is constructed.",
+   "rationale": "PROPOSED new node; gives the tank its real armament prerequisite.",
+   "compatibility": {
+    "saves": "new key",
+    "ids": "new id",
+    "ui": "new vertex",
+    "ai": "none today",
+    "consumers": "tank",
+    "tests": "military finite count +1"
+   }
+  },
+  {
+   "id": "guided_missile",
+   "name": "Guided missile",
+   "branch": "military",
+   "age": "A9",
+   "domain": "military",
+   "secondaryDomains": [
+    "engineering"
+   ],
+   "emerged": "1943 CE Henschel Hs 293 (rocket-boosted, radio-guided anti-ship missile); radar- and infrared-homing surface-to-air and air-to-air missiles in the 1950s",
+   "prereq": "rocket AND radar",
+   "prereqRationale": "rocket: the rocket ENGINE and its guidance heritage (the V-2 line, unit.missile). INTEGRATION NOTE: D08 splits rocket — the key becomes the orbital launch vehicle (R-7, 1957 CE) and the engine becomes the new liquid_fuel_rocket (1926; 1942–1944 CE). D09 cannot name a non-existing id (brief §9), so this atom must be re-pointed to liquid_fuel_rocket at integration; left on the re-scoped rocket it would be wrong and would fail the chronology test (1957 > 1943 CE). radar: target tracking and homing — the guidance electronics of surface-to-air and air-to-air missiles (radar command, semi-active homing); radio command and infrared homing belong to the same valve-electronics tradition (INFERENCE). No laser: guided missiles predate it by fifteen years.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 1.5,
+    "institutional": 3.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "costRationale": "novelty 1.0: a weapon that steers itself. difficulty 3.0: A9 prior. material 1.5: seekers, gyroscopes and servo electronics (as aircraft_metal 1.5). institutional 3.0: state weapons programmes (as radar 3.0). breadth 1.0: surface-to-air, air-to-air and anti-ship classes plus precision munitions. prereq_complexity 0.5: two conjuncts. Magnitude 10.0 -> 94,620 RP — half of the original 189,240 (split conserves workload).",
+   "costAnalog": "vacuum_tube",
+   "nodeKind": "military",
+   "primaryUniversity": "military",
+   "universityRelevance": [
+    {
+     "type": 1,
+     "name": "Military",
+     "role": "primary"
+    },
+    {
+     "type": 3,
+     "name": "Engineering",
+     "role": "secondary"
+    }
+   ],
+   "family": "rocket",
+   "generation": null,
+   "splitFrom": "guided_munitions",
+   "unlocks": {
+    "capabilities": [
+     "surface-to-air, air-to-air and anti-ship missiles"
+    ]
+   },
+   "capability": {
+    "grants": [
+     "knowledge:surface-to-air, air-to-air and anti-ship missiles"
+    ],
+    "realizationOwner": "none (candidate: Battle layer (M7))",
+    "status": "knowledge-only",
+    "milestone": "M7",
+    "currentEffect": "none beyond the completion row; prerequisite of guided_munitions",
+    "deferredEffect": "candidate equipment eligibility for the A9 air and naval_combat identities and for an air-defence role that unit-families.json does not define (T6.12); nothing designed here",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "n/a",
+    "unknownResource": "n/a",
+    "aiValuation": "No AI research goal reads military knowledge today (goals: next-Age core facts, road class, tax, university — AiResearchPolicy, MEASURED); reached through the cheapest-available fallback. Once M7 exists, value unit eligibility from threats the polity has itself observed (sighted formations, known fortifications) — never from unseen rivals' state (fog symmetry).",
+    "playerCommunication": "Research panel: 'Prerequisite of precision-guided munitions; knowledge only until M7'"
+   },
+   "eurekas": [
+    {
+     "text": "A rival's long-range bombers threaten the polity's cities",
+     "kind": "world event",
+     "class": "future-system:world events",
+     "weight": 0.4,
+     "justification": "Surface-to-air missiles were developed against bomber fleets during and after the Second World War; the circumstance is evaluable only when the battle layer exists (INFERENCE)."
+    }
+   ],
+   "whyDistinct": "Carved out of guided_munitions: the 1940s–1950s guided missile is a separate capability (air defence, anti-ship) that needs neither the laser nor the stored-program computer, which the bundle forced on it.",
+   "acceptanceTest": "Available iff rocket and radar are complete; cost 94,620 within tolerance; guided_munitions (key 403) requires it; the laser is absent from guided_missile's prerequisite closure; split sum 94,620 + 94,620 = 189,240; chronology passes (1943 >= 1926 and 1938 CE) once 'rocket' is re-pointed to D08's liquid_fuel_rocket.",
+   "rationale": "PROPOSED split part of key 403; its rocket atom is re-pointed at integration (D08's split).",
+   "compatibility": {
+    "saves": "new key; holders of key 403 in old saves do not acquire it (no remap seam)",
+    "ids": "new id",
+    "ui": "new vertex",
+    "ai": "none today",
+    "consumers": "guided_munitions",
+    "tests": "military finite count +1; Eureka count pin moves"
+   }
+  }
+ ],
+ "crossLaneRequests": [
+  {
+   "targetLane": "D02-materials-mining",
+   "request": "Your request is ACCEPTED as option (b): cannon_cast_bronze now requires 'cannon_early AND casting_closed' (lost_wax removed), so lost_wax loses its only dependant — please resolve it on your side. D09's other edges into your nodes: cannon_early requires (casting_closed OR iron_bloomery) instead of cast_iron; composite_bow no longer requires birch_tar; the new rifled_artillery requires puddling. Thank you for keeping casting_closed, iron_bloomery, puddling, basic_process, cast_iron and birch_tar.",
+   "reason": "Bronze guns were cast like bells in closed loam moulds and need the alloy (D-047 r1 #9 reasoning); the first guns were cast bronze or forged wrought iron, cast iron came later (RESEARCHED)."
+  },
+  {
+   "targetLane": "D07-industry-construction",
+   "request": "Your saddle request is ACCEPTED (saddle <- cavalry AND sewing). Keep hide_working, sewing, timber_frame, stone_fortification, interchangeable_parts and slide_rest_lathe (or tell D09): they carry D09 dependants (composite_bow; saddle; traction_trebuchet; trace_italienne — the retained fortification part of your split is exactly what the bastion trace transforms; breech_loading_rifle; rifled_artillery).",
+   "reason": "Causal edges (hide glue; stitched saddles; trebuchet frame; masonry fortification; machine-made breech parts)."
+  },
+  {
+   "targetLane": "D08-transport-naval",
+   "request": "(1) Your rocket request is ACCEPTED in substance: after D09's split the rocket edge no longer sits on guided_munitions but on the new guided_missile ('rocket AND radar'); at integration re-point that atom to your liquid_fuel_rocket (D09 cannot name a non-existing id) — otherwise the chronology test fails (1957 > 1943 CE). icbm stays on rocket (the R-7 was also the first ICBM). (2) Keep aircraft (new D09 dependant: stealth). (3) Consider a torpedo (Whitehead, 1866) and a diesel-electric submarine (Holland, ~1900): the naval_combat identity 'destroyers' (A9 mainline, the torpedo-boat destroyer) has no knowledge realizer, and nuclear_submarine has no conventional-submarine ancestor. D09 adds neither (vessels are D08's domain).",
+   "reason": "Guided weapons use rocket motors, not orbital launchers; unit-family consistency for the naval line."
+  },
+  {
+   "targetLane": "D01-agriculture-food",
+   "request": "mechanised_agriculture is dated '~1,920 CE', but the crawler tractor the tank was built from is Holt's 1904 machine. If D01 re-dates the node to the crawler tractor (e.g. '1904 CE Holt crawler; mass tractors 1910s–1920s'), D09 recommends adding it to the tank's prerequisites (track knowledge).",
+   "reason": "Holt tractors inspired the British and French tanks (RESEARCHED); today the chronology test would reject the edge (1920 > 1916 CE)."
+  },
+  {
+   "targetLane": "D11-nuclear-geology",
+   "request": "Keep the id thermonuclear or tell D09: icbm requires it (warhead). D09 designs no nuclear weapon; icbm's realization milestone follows D11's recommendation on nuclear weapons.",
+   "reason": "The first ICBMs were conceived as carriers of thermonuclear warheads (INFERENCE); the edge is kept."
+  },
+  {
+   "targetLane": "D04-natural-science",
+   "request": "Your three requests to D09 are ACCEPTED: (a) matchlock now requires corned_powder (replacing crossbow; corned_powder gains its first dependant); (b) cannon_early now requires saltpetre_refining (replacing gunpowder, which it implies); (c) radar should require electromagnetic_field_theory instead of electromagnetism — D09 cannot name your new id, so please apply (c) at integration. Keep gunpowder, saltpetre_refining, corned_powder, chemistry_quantitative, electromagnetism and laser (D09 dependants; chemistry_quantitative gains breech_loading_rifle; laser leaves the new guided_missile's closure but stays a prerequisite of guided_munitions). D09 rejected a smokeless-powder node (no causal dependant in D09's graph: the Maxim gun began on black powder); if D04 adds one as propellant chemistry, its consumer lies outside D09.",
+   "reason": "Propellants require the right chemistry; avoid a duplicate propellant node; keep the A7 fact honest."
+  },
+  {
+   "targetLane": "D12-civics",
+   "request": "Acknowledged: D09 adds no technology node for standing armies, conscription, general staffs or land-for-service and no technology prerequisite naming a civic. flintlock's technique strings 'Drill and the printed manual' describe an institutional practice (drill regulations) that is yours; D09 keeps them as display text only.",
+   "reason": "Military knowledge vs military institutions boundary (brief; D12's request)."
+  }
+ ],
+ "openQuestions": [
+  "OPEN DECISION (T6.12 / research content): add five inert unit entities in M6 content — unit.rangers (requires rifling), unit.line_infantry (breech_loading_rifle), unit.field_artillery (rifled_artillery), unit.machine_guns (machine_gun), unit.cuirassiers (stirrup AND plate_armour AND wheellock) — each the realizedBy of an existing unit-families.json identity (rangers 104, line_infantry 307, field_artillery 805, machine_gun_teams 408, cuirassiers 604) that has none today; or defer entity creation to M7. Recommendation: add them inert in M6 (like the 23), because M7 consumes M6's capability state and should not invent the knowledge mapping. Without them, these nodes stay valid (each has a dependant) except plate_armour, which falls back to knowledge-only.",
+  "OPEN DECISION (M7 contract, T6.12/H7): ADR-031 modernization is Age-driven and knowledge-blind, so a polity can hold by modernization an identity whose realizedBy entity it is not eligible to recruit. Which governs at recruitment — the entity's knowledge requirement or the Age realization — must be stated before unit entities become live.",
+  "OPEN QUESTION (T6.12): unit-families.json has no air- or missile-defence role; radar, guided_missile and missile_defence therefore stay knowledge-only. Should a role be added, or should these remain knowledge inputs to M7 resolution equations (law 2: coefficients inside named equations, never free buffs)?",
+  "OPEN QUESTION (M7): D-011 lists era-gated verbs (bombard, air strike, dig-in) while D-039 A5 says nothing gates on era; the capability gates would be knowledge such as siege engines/rifled_artillery (bombard) and aircraft/guided_munitions (air strike). Field entrenchment (dig-in) has no knowledge node and should stay baseline unless M7 rules otherwise.",
+  "Package-level OPEN DECISION (raised once by the package): the alias/remap seam — merged keys 125 and 160 and the split key 403 leave dormant rows and give old saves no grant of guided_missile.",
+  "INTEGRATION NOTE (agreed with other lanes, not encodable here because the ids are new): re-point guided_missile's 'rocket' atom to D08's liquid_fuel_rocket, and radar's 'electromagnetism' atom to D04's electromagnetic_field_theory. Both keep the conjunct count (no cost change); without the first, guided_missile fails the chronology test once D08's split lands."
+ ]
+}

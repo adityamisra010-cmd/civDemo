@@ -1,0 +1,2293 @@
+{
+ "lane": "D07-industry-construction",
+ "summary": "PROPOSED. D07 reviewed its 54 nodes: 25 kept, 25 rebalanced (D07 uses 'rebalance' for prerequisite repairs; 9 of them change factors), 8 relocated (4 also rebalanced) and 1 split, with 4 new nodes. (1) Coupling: seven medieval craft nodes (fulling mill, spinning wheel, treadle loom, roller gin, crank, verge escapement, pound lock) leave the Engineering subtree for the trunk, because they waited on the research stage (measured ~1532 CE) although artisans and millwrights spread them centuries earlier; all their prerequisites are trunk. (2) Causality: chronology ladders and analogy edges are replaced by knowledge actually needed - the water-supply ladder (qanat -> tunnel -> channel), the textile ladder (shuttle -> jenny -> frame -> mule -> power loom becomes wheel -> jenny / wheel + water -> frame; jenny + frame -> mule; shuttle + power -> loom), type founding (now the press's precondition, moved to the trunk with it - D05 accepted), interchangeable parts (no type-founding analogy), the arch (mudbrick, as its own anchor says), lime plaster (Natufian, before mudbrick), the verge escapement (water clock, not crank - D03's request), the pound lock (timber gates, not hull joinery), the skyscraper (structural iron, not reinforced concrete). (3) Alternative routes by material, crop or prime mover: wells (stone OR timber), irrigation (cereals OR root crops - D01's request), vaults (concrete OR brick OR ashlar), stone bridges (concrete OR ashlar), the power loom (water OR steam), desalination (distillation OR membranes). (4) Four new nodes: ashlar_masonry (split from stone_fortification; civil stone building no longer waits on military architecture), drawloom (the pattern loom Jacquard automated; silk's first dependant), structural_iron (iron bridges and frames, the real predecessor of the steel-frame skyscraper) and sanitary_engineering (sewerage and filtered water; infra.sewerage_system no longer hangs on germ theory and reinforced concrete). (5) Realization: only stone_dry's Built road class is realized today; water, sanitation, irrigation, fishing and textile-mill entities are T6.11 (M6) candidates with named consumer equations and blockers; castles and walls are M7; bridges, canals, harbours, lighthouses and skyscrapers are M10+.",
+ "existing": [
+  {
+   "id": "cordage",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "technique",
+   "rationale": "Founding fibre technique: 11 dependants and the root of the textile family. Allocation-scenario key 12 (completion turns pinned) - unchanged.",
+   "changes": "none"
+  },
+  {
+   "id": "basketry",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "technique",
+   "rationale": "Containers and fish traps before pottery; gates pottery_open_fired (the R1 recipe chain) and keeps infra.fish_weir (D-047 ruling 5). Capability block corrected: the auto-fill names no owner.",
+   "changes": "none (capability block overridden)",
+   "capability": {
+    "grants": [
+     "knowledge:carrying",
+     "knowledge:storage",
+     "knowledge:sieving",
+     "knowledge:fish traps",
+     "infrastructure:infra.fish_weir"
+    ],
+    "realizationOwner": "ConstructionSystem (project) + ProductionSystem fish-yield term (PROPOSED)",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "MEASURED: class J - infra.fish_weir is listed but has no realizing system; dependants papyrus, pottery_open_fired.",
+    "deferredEffect": "T6.11 tier C (PROPOSED): a built weir whose effect is a bounded term inside the Herding/fishing sector's fish extraction (rate = workers x perWorker x fish abundance; ProductionSystem.cs:363-415). Blocker: no per-structure production-capacity term exists (deferred-entity plan §A, the same blocker as building.kiln/smithy).",
+    "inputs": {
+     "resources": [
+      "timber",
+      "fiber"
+     ],
+     "geography": [
+      "river or tidal shore with a fish deposit"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not buildable until T6.11 realizes it; a settlement with no fish deposit gains nothing (no deposit row, nothing produced).",
+    "unknownResource": "n/a: stone, clay, timber and fiber are common deposit goods (D-051 §2 floor); fog limits where a polity knows them, never whether research reveals them (it does not).",
+    "aiValuation": "MEASURED: valued only as a prerequisite (goal closures, cheapest fallback). PROPOSED: give the entity no value until its realizing system exists (no phantom value for an unbuildable structure).",
+    "playerCommunication": "Research panel lists the fish weir as 'eligible - not yet buildable (planned: T6.11)' with the missing owner named; no construction button appears until a realizing system exists (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "shelter_hut",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "technique",
+   "rationale": "Advanced framed dwelling; D-047 records it as non-owning (baseline.basic_shelter exists without it). Gates timber_frame. Allocation-scenario key 17 - unchanged.",
+   "changes": "none"
+  },
+  {
+   "id": "hide_working",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "technique",
+   "rationale": "Leather and fur preparation; five dependants (bellows, collar_harness, saddle, sewing, siege_ram).",
+   "changes": "none"
+  },
+  {
+   "id": "sewing",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "technique",
+   "rationale": "Eyed needles and tailored clothing (~50 kya Denisova; widespread ~30 kya) let people settle cold regions: real educational weight. Baseline clothing and shelter exist without it. It is no longer a dead end: at D07's request D09 made the saddle and D08 the breast-strap harness require it (stitched leather and felt).",
+   "changes": "none to the node (gains dependants saddle and collar_harness through D09's and D08's records; capability block overridden)",
+   "capability": {
+    "grants": [
+     "knowledge:fitted clothing",
+     "knowledge:tents",
+     "knowledge:bags",
+     "knowledge:Tailored fur clothing"
+    ],
+    "realizationOwner": "none (knowledge only)",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class C - no dependant today (dead end).",
+    "deferredEffect": "Dependants (ACCEPTED): saddle ('cavalry AND sewing', D09) and collar_harness ('horse_domestication AND sewing', D08); same counts, no cost change. Realization M10+: a clothing good on the Comfort/Shelter ladder (needs.json lists pottery and cloth only).",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: completion is polity-wide knowledge (D-044 R11).",
+    "unknownResource": "n/a: no deposit good is involved; research never places, reveals or proves a deposit (framework §6).",
+    "aiValuation": "MEASURED: valued only through AiResearchPolicy goal closures and the cheapest-available fallback; it reads no capability text and no unknown cell.",
+    "playerCommunication": "Research panel: knowledge only; the card names what it leads to. No action is listed (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "wool",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "technique",
+   "rationale": "Fleece-bearing sheep: the animal branch of spinning_spindle's (flax OR wool) fibre alternative.",
+   "changes": "none"
+  },
+  {
+   "id": "mudbrick",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "technique",
+   "rationale": "Root earth-building technique (~9,000 BCE Jericho). Dependants become fired_brick, kiln_updraft and arch (the true arch was first built in mudbrick); lime_plaster no longer requires it.",
+   "changes": "none to the node (dependants change through lime_plaster's and arch's records; capability block overridden)",
+   "capability": {
+    "grants": [
+     "knowledge:permanent multi-room house",
+     "knowledge:storehouse",
+     "knowledge:wall",
+     "building:building.city_wall"
+    ],
+    "realizationOwner": "ConstructionSystem (project) + Battle layer (M7) for the defensive effect",
+    "status": "deferred",
+    "milestone": "M7",
+    "currentEffect": "MEASURED: class J - building.city_wall (mudbrick OR stone_dry) is listed but unrealized; dependants fired_brick, kiln_updraft, lime_plaster.",
+    "deferredEffect": "building.city_wall: its effect is defence (siege, revolt) in the M7 battle layer (deferred-entity plan tier B); construction alone could ride T6.11 but would have no consumer before M7.",
+    "inputs": {
+     "resources": [
+      "clay",
+      "timber"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not buildable; when realized it needs clay and timber (common goods).",
+    "unknownResource": "n/a: stone, clay, timber and fiber are common deposit goods (D-051 §2 floor); fog limits where a polity knows them, never whether research reveals them (it does not).",
+    "aiValuation": "MEASURED: valued only as a prerequisite (goal closures, cheapest fallback). PROPOSED: give the entity no value until its realizing system exists (no phantom value for an unbuildable structure).",
+    "playerCommunication": "Research panel lists the city wall as 'eligible - not yet buildable (defence arrives with the battle layer, M7)' with the missing owner named; no construction button appears until a realizing system exists (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "lime_plaster",
+   "disposition": [
+    "rebalance"
+   ],
+   "nodeKind": "technique",
+   "rationale": "Causality fix. Lime burning needs controlled high-temperature fire, not mudbrick: high-quality lime plaster sealed Natufian burials about 12,000 years ago (Nahal Ein Gev II), before mudbrick (~9,000 BCE Jericho). The mudbrick edge was chronology and context, not knowledge needed.",
+   "changes": "prereq 'mudbrick AND fire_making' -> 'fire_making'; prereq_complexity 0.5 -> 0.0; magnitude 4.25 -> 3.75; cost 1,760 -> 1,240; emerged adds the Natufian anchor (earliest marked year -8,000 -> -10,000).",
+   "prereq": "fire_making",
+   "prereqRationale": "Quicklime comes from burning limestone at about 800-900 °C and slaking it: controlled high-temperature fire (fire_making) is the causal input. RESEARCHED: Natufian burial plaster ~12,000 years ago (Nahal Ein Gev II); Hayonim Cave quicklime ~10,400-10,000 BCE; mudbrick ~9,000 BCE.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 1.5,
+    "institutional": 0.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "costRationale": "novelty 1.0 unchanged (first chemically transformed building material) · difficulty 0.5 unchanged (A2 prior) · material 1.5 unchanged (limestone burnt and slaked) · institutional 0.25 unchanged (A2 prior) · breadth 0.5 unchanged (floors, walls, statuary; one dependant) · prereq_complexity 0.5 -> 0.0 (one requirement). Cost 1,760 -> 1,240.",
+   "emerged": "~10,000 BCE late Natufian Levant (Nahal Ein Gev II burial plaster); ~8,000 BCE PPNB floors and statues (Ain Ghazal, Yiftahel)",
+   "compatibility": {
+    "saves": "Keys unchanged; completed rows unaffected. Lower cost: saved progress at or above 1,240 completes on the next step with no RP spent (engine-audit Q14).",
+    "ids": "unchanged",
+    "ui": "Available without mudbrick; lock reason shrinks to fire_making.",
+    "ai": "A2 trunk node with a lower cost and earlier availability: AI-empire goldens move (attributed re-pin).",
+    "consumers": "concrete_pozzolan (D02) keeps its prerequisites; its closure no longer forces mudbrick through lime_plaster (arch still needs mudbrick). Depth unchanged.",
+    "tests": "D047 chronology test reads the new earliest year (-10,000, still before its dependant); CI --check docs regenerate."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:waterproof floors",
+     "knowledge:plastered walls",
+     "knowledge:plaster statuary"
+    ],
+    "realizationOwner": "none",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class C - capability strings only; dependant concrete_pozzolan (A5 supporting fact a5_concrete).",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: completion is polity-wide knowledge (D-044 R11).",
+    "unknownResource": "n/a: no deposit good is involved; research never places, reveals or proves a deposit (framework §6).",
+    "aiValuation": "MEASURED: valued only through AiResearchPolicy goal closures and the cheapest-available fallback; it reads no capability text and no unknown cell.",
+    "playerCommunication": "Research panel: knowledge only; the card names what it leads to. No action is listed (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "timber_frame",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "technique",
+   "rationale": "Post-and-beam construction. Allocation-scenario key 52 - unchanged. It gains dependants: well (timber-lined OR route) and canal_lock (timber gates).",
+   "changes": "none (dependants change through well's and canal_lock's records)"
+  },
+  {
+   "id": "stone_dry",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "technique",
+   "rationale": "Dry-stone construction: one of the two atoms of the realized Built road class. Allocation-scenario key 53 and 18 test lines pin it - unchanged. Capability block completed with the deferred wall and harbour.",
+   "changes": "none (capability block overridden; gains dependant ashlar_masonry, loses direct dependant stone_fortification, which now reaches it through ashlar_masonry)",
+   "capability": {
+    "grants": [
+     "knowledge:durable walls",
+     "knowledge:megaliths",
+     "knowledge:terracing",
+     "knowledge:Megalithic construction",
+     "infrastructure:infra.road_built",
+     "building:building.city_wall",
+     "building:building.harbour"
+    ],
+    "realizationOwner": "RoadDevelopmentSystem (Built road class); ConstructionSystem for the wall and harbour (unrealized)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class E (EJ) - atom of infra.road_built ('track_road AND stone_dry'); RoadDevelopmentSystem builds the Built road class (sim.json roads edgeType 3: 2 stone + 0.5 timber per km) once both hold, enforced via BestKnownClass. building.city_wall and building.harbour are listed, unrealized.",
+    "deferredEffect": "building.city_wall: M7 (defence). building.harbour: M10+ - its consumer is sea routes and shipping, which do not exist (activity.coastal_shipping is unrealized; D-047 ruling 7 keeps vessels out of research).",
+    "inputs": {
+     "resources": [
+      "stone",
+      "timber"
+     ],
+     "geography": [],
+     "infrastructure": [
+      "an inter-city route of at most 600 km (sim.json roads.maxRouteKm)"
+     ],
+     "institutions": []
+    },
+    "missingInputs": "Road building consumes stone and timber per km; a settlement without stone must import it, and construction waits for materials (D-054).",
+    "unknownResource": "n/a: stone, clay, timber and fiber are common deposit goods (D-051 §2 floor); fog limits where a polity knows them, never whether research reveals them (it does not).",
+    "aiValuation": "MEASURED: the AI road goal (AiResearchPolicy goal 1, the next unknown road class) values it as an atom of infra.road_built; no value for the unrealized wall or harbour.",
+    "playerCommunication": "Roads panel offers the Built road class once track_road AND stone_dry are complete; the wall and harbour show as eligible, not buildable."
+   }
+  },
+  {
+   "id": "well",
+   "disposition": [
+    "rebalance"
+   ],
+   "nodeKind": "infrastructure",
+   "rationale": "Alternative route by regional material. A well needs a lined shaft: stone lining in the Levant and Cyprus (Atlit-Yam ~8,000 BCE) or timber lining in Neolithic Europe (LBK oak-lined wells, timber felled 5206-5098 BCE). The single stone_dry edge erased the timber tradition. Capability block corrected (no owner in the auto-fill).",
+   "changes": "prereq 'stone_dry' -> 'stone_dry OR timber_frame' (one OR group = one requirement: prereq_complexity stays 0.0; cost unchanged 440); emerged adds the LBK anchor (earliest year unchanged, -8,000).",
+   "prereq": "stone_dry OR timber_frame",
+   "prereqRationale": "Either lining tradition suffices: fitted stone (Levant, Cyprus) or squared timber boxes (LBK Saxony). Genuine regional alternatives, not a cost softener: the cost is unchanged and both branches are A2 trunk.",
+   "emerged": "~8,000 BCE Atlit-Yam (stone-lined); ~5,200 BCE LBK oak-lined wells (Saxony)",
+   "compatibility": {
+    "saves": "Widening only: no polity loses availability; nothing goes dormant.",
+    "ids": "unchanged",
+    "ui": "Lock reason becomes 'stone_dry or timber_frame'.",
+    "ai": "Reachable earlier on timber-first paths: AI-empire goldens may move (attributed).",
+    "consumers": "qanat unchanged; D02's new percussion_drilling requires well.",
+    "tests": "Chronology test unaffected (OR atoms are not must-hold)."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:settlement away from rivers",
+     "knowledge:reliable water in drought",
+     "infrastructure:infra.well"
+    ],
+    "realizationOwner": "ConstructionSystem (project) + per-settlement health seam (PROPOSED term)",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "MEASURED: class J - infra.well listed, no realizing system; dependant qanat.",
+    "deferredEffect": "T6.11 tier A (PROPOSED): a built well whose consumer is a bounded water-supply term. The nearest live equation is THE per-settlement health seam (InstitutionEffects.MortalityMultiplier, Institutions.cs:287-301; today medical universities only) - a coverage term beside them, bounded and saturating. If T6.11 does not add it: M9 (disease model).",
+    "inputs": {
+     "resources": [
+      "stone or timber"
+     ],
+     "geography": [
+      "groundwater within digging depth (not modelled)"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not buildable until T6.11 realizes it; lining needs stone or timber (common goods).",
+    "unknownResource": "n/a: stone, clay, timber and fiber are common deposit goods (D-051 §2 floor); fog limits where a polity knows them, never whether research reveals them (it does not).",
+    "aiValuation": "MEASURED: valued only as a prerequisite (goal closures, cheapest fallback). PROPOSED: give the entity no value until its realizing system exists (no phantom value for an unbuildable structure).",
+    "playerCommunication": "Research panel lists the well as 'eligible - not yet buildable (planned: T6.11)' with the missing owner named; no construction button appears until a realizing system exists (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "spinning_spindle",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "technique",
+   "rationale": "Drop spindle with whorl; the (flax OR wool) alternative is a genuine fibre route. Dependants loom_warp_weighted, spinning_wheel and now dyeing. Pending edit accepted from D01: cotton joins the fibre OR group once D01's cotton_cultivation is integrated (see pendingCrossLaneEdits).",
+   "changes": "none in this file (gains dependant dyeing through dyeing's record; pending OR member cotton_cultivation applied at integration)"
+  },
+  {
+   "id": "loom_warp_weighted",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "The first frame loom for wide cloth (~5,500 BCE loom weights). Capability block corrected: the textile-workshop institution is a T6.11 D-M question, and the guild is D12's civic institution.",
+   "changes": "none to the node (loses dependant dyeing; capability block overridden)",
+   "capability": {
+    "grants": [
+     "knowledge:cloth",
+     "knowledge:sailcloth (later)",
+     "institution:inst.textile_workshop"
+    ],
+    "realizationOwner": "InstitutionsSystem (T6.11, D-M)",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "MEASURED: class J - inst.textile_workshop ('loom_warp_weighted AND archive') and through it inst.guild ('textile_workshop AND legal_code_roman'); neither is realized. Dependants fulling_mill, horizontal_loom, sail_square, silk.",
+    "deferredEffect": "T6.11 under D-M (an institution is a founded, hosted, maturing row with one owner and at least one consumer): the palace or temple textile workshop's consumer would be capacity of the live weaving recipe. inst.guild is an institution of regulation - D12 proposes re-pointing it to 'textile_workshop AND craft_guilds' (its OD-05). M10+: a productivity variant of the live weaving recipe (fiber -> cloth, laborPerOutput 0.1; cloth feeds the Comfort need). Needs a supersession rule: Crafting labour splits EQUALLY among available recipes (MEASURED ProductionSystem.cs:463-490), so a variant would share labour with baseline weaving instead of replacing it.",
+    "inputs": {
+     "resources": [
+      "fiber",
+      "timber"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": [
+      "inst.archive (for the workshop)"
+     ]
+    },
+    "missingInputs": "No physical input: completion is polity-wide knowledge (D-044 R11).",
+    "unknownResource": "n/a: no deposit good is involved; research never places, reveals or proves a deposit (framework §6).",
+    "aiValuation": "MEASURED: valued only as a prerequisite (goal closures, cheapest fallback). PROPOSED: give the entity no value until its realizing system exists (no phantom value for an unbuildable structure).",
+    "playerCommunication": "Research panel lists the textile workshop as 'eligible - not yet buildable (planned: T6.11 under D-M)' with the missing owner named; no construction button appears until a realizing system exists (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "dyeing",
+   "disposition": [
+    "rebalance"
+   ],
+   "nodeKind": "technique",
+   "rationale": "Causality fix. Dye is fixed to fibre or yarn, not to the loom: the oldest indigo-dyed cotton (Huaca Prieta, ~4,000 BCE) is weft-twined from dyed yarn. Pigment preparation and spun fibre are the causal inputs. No longer a dead end: at D07's request D04 made synthetic_dye require it.",
+   "changes": "prereq 'loom_warp_weighted AND ochre_processing' -> 'spinning_spindle AND ochre_processing' (same count: prereq_complexity stays 0.5; cost unchanged 1,240).",
+   "prereq": "spinning_spindle AND ochre_processing",
+   "prereqRationale": "Dyeing acts on fibre or yarn (spinning_spindle) with prepared colourants and mineral mordants (ochre_processing). The loom is irrelevant: yarn is dyed before or after weaving, and twined fabrics were dyed. RESEARCHED: Huaca Prieta indigo, ~6,000 years ago, on weft-twined cotton.",
+   "compatibility": {
+    "saves": "Widening only; nothing goes dormant.",
+    "ids": "unchanged",
+    "ui": "Lock reason becomes spinning_spindle and ochre_processing.",
+    "ai": "Available earlier: AI-empire goldens may move (attributed).",
+    "consumers": "loom_warp_weighted loses a dependant.",
+    "tests": "Chronology test: -4,000 against prerequisites -6,000 and -100,000 (passes)."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:coloured cloth",
+     "knowledge:status signalling",
+     "knowledge:dye as trade good"
+    ],
+    "realizationOwner": "none (knowledge only)",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class C - no dependant (dead end).",
+    "deferredEffect": "Dependant (D04, ACCEPTED): synthetic_dye ('organic_chemistry AND coke AND dyeing') - the synthetic-dye industry (Perkin 1856, synthetic alizarin 1868) replaced natural dyestuffs inside an existing dyeing trade. Realization M10+: a dyed-cloth quality variant on the Comfort ladder or a dyestuff trade good (no dye good exists).",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: completion is polity-wide knowledge (D-044 R11).",
+    "unknownResource": "n/a: no deposit good is involved; research never places, reveals or proves a deposit (framework §6).",
+    "aiValuation": "MEASURED: valued only through AiResearchPolicy goal closures and the cheapest-available fallback; it reads no capability text and no unknown cell.",
+    "playerCommunication": "Research panel: knowledge only; the card names what it leads to. No action is listed (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "irrigation_basin",
+   "disposition": [
+    "rebalance"
+   ],
+   "nodeKind": "infrastructure",
+   "rationale": "Basin irrigation (Nile and Indus mode), widened to root-crop farmers. Entity-bearing; D01's drip_irrigation gives it a dependant. Capability block corrected (the auto-fill names no owner).",
+   "changes": "prereq 'cereal_cultivation' -> 'cereal_cultivation OR root_crop' (one OR group = one requirement: prereq_complexity stays 0.0; cost unchanged 440); capability block overridden.",
+   "prereq": "cereal_cultivation OR root_crop",
+   "prereqRationale": "Irrigation needs a cultivated crop worth watering, not a cereal specifically: bunded and flooded fields of taro (Pacific pondfields) and canal-watered Andean fields of tubers and maize stand beside the Nile, Indus and Mesopotamian cereal modes. Accepting D01's request; root_crop is an existing A2 trunk node.",
+   "compatibility": {
+    "saves": "Widening only (an OR alternative); nothing goes dormant.",
+    "ids": "unchanged",
+    "ui": "Lock reason becomes 'cereal_cultivation or root_crop'.",
+    "ai": "Reachable by root-crop-first polities: AI-empire goldens may move (attributed). root_crop is named in 23 test lines, but none of them reads irrigation.",
+    "consumers": "Unchanged consumers; D01's drip_irrigation now names (irrigation_basin OR irrigation_canal).",
+    "tests": "Chronology unaffected (OR atoms are not must-hold)."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:cultivation on floodplain",
+     "knowledge:predictable harvest from flood",
+     "infrastructure:infra.basin_irrigation"
+    ],
+    "realizationOwner": "ConstructionSystem (project) + Farming output term (PROPOSED)",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "MEASURED: class J - infra.basin_irrigation listed, no realizing system.",
+    "deferredEffect": "T6.11 tier C (PROPOSED): a built basin system whose consumer is a bounded term in Farming output - farming already reads the catchment's arable km2 (CatchmentSummaries; ProductionSystem.cs:255-258). Shared with D01's yield design.",
+    "inputs": {
+     "resources": [
+      "timber"
+     ],
+     "geography": [
+      "seasonally flooding river floodplain"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not buildable until T6.11; without a flooding river it has nothing to trap.",
+    "unknownResource": "n/a: stone, clay, timber and fiber are common deposit goods (D-051 §2 floor); fog limits where a polity knows them, never whether research reveals them (it does not).",
+    "aiValuation": "MEASURED: valued only as a prerequisite (goal closures, cheapest fallback). PROPOSED: give the entity no value until its realizing system exists (no phantom value for an unbuildable structure).",
+    "playerCommunication": "Research panel lists basin irrigation as 'eligible - not yet buildable (planned: T6.11)' with the missing owner named; no construction button appears until a realizing system exists (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "irrigation_canal",
+   "disposition": [
+    "rebalance"
+   ],
+   "nodeKind": "infrastructure",
+   "rationale": "Canal irrigation (Samarra/Choga Mami ~6,000 BCE), widened to root-crop farmers; gates canal_lock, noria and green_revolution, and D01's drip_irrigation. Capability block corrected (no owner in the auto-fill).",
+   "changes": "prereq 'cereal_cultivation' -> 'cereal_cultivation OR root_crop' (one OR group: prereq_complexity stays 0.0; cost unchanged 1,760); capability block overridden.",
+   "prereq": "cereal_cultivation OR root_crop",
+   "prereqRationale": "Irrigation needs a cultivated crop worth watering, not a cereal specifically: bunded and flooded fields of taro (Pacific pondfields) and canal-watered Andean fields of tubers and maize stand beside the Nile, Indus and Mesopotamian cereal modes. Accepting D01's request; root_crop is an existing A2 trunk node.",
+   "compatibility": {
+    "saves": "Widening only (an OR alternative); nothing goes dormant.",
+    "ids": "unchanged",
+    "ui": "Lock reason becomes 'cereal_cultivation or root_crop'.",
+    "ai": "Reachable by root-crop-first polities: AI-empire goldens may move (attributed). root_crop is named in 23 test lines, but none of them reads irrigation.",
+    "consumers": "Unchanged consumers; D01's drip_irrigation now names (irrigation_basin OR irrigation_canal).",
+    "tests": "Chronology unaffected (OR atoms are not must-hold)."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:cultivation beyond rainfall",
+     "knowledge:arable extension",
+     "knowledge:salinisation (long-run consequence)",
+     "infrastructure:infra.canal_irrigation"
+    ],
+    "realizationOwner": "ConstructionSystem (project) + Farming output term (PROPOSED)",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "MEASURED: class J - infra.canal_irrigation listed, no realizing system; dependants canal_lock, green_revolution, noria.",
+    "deferredEffect": "T6.11 tier C (PROPOSED): a canal network whose consumer is the Farming catchment's arable extent or yield (bounded); salinisation is a later depletion mechanism (no soil state exists today).",
+    "inputs": {
+     "resources": [
+      "timber"
+     ],
+     "geography": [
+      "a river above the fields to be watered"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not buildable until T6.11; needs a river source.",
+    "unknownResource": "n/a: stone, clay, timber and fiber are common deposit goods (D-051 §2 floor); fog limits where a polity knows them, never whether research reveals them (it does not).",
+    "aiValuation": "MEASURED: valued only as a prerequisite (goal closures, cheapest fallback). PROPOSED: give the entity no value until its realizing system exists (no phantom value for an unbuildable structure).",
+    "playerCommunication": "Research panel lists irrigation canals as 'eligible - not yet buildable (planned: T6.11)' with the missing owner named; no construction button appears until a realizing system exists (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "stone_fortification",
+   "disposition": [
+    "split",
+    "rebalance"
+   ],
+   "nodeKind": "infrastructure",
+   "rationale": "The node bundled a construction technique (ashlar masonry) with a military application (towers, gates, flanking walls), so a civil lighthouse - and implicitly every dressed-stone bridge and vault - rested on military architecture. The dressed-stone technique is carved out as ashlar_masonry; the retained key keeps the fortification and building.castle, and gains its first dependant from D09 (trace_italienne: bastion forts grow from masonry fortification).",
+   "changes": "splitInto ashlar_masonry. prereq 'stone_dry AND surveying AND (tin_bronze OR iron_bloomery)' -> 'ashlar_masonry AND surveying' (stone cutting with metal tools now lives in ashlar_masonry); prereq_complexity 1.0 -> 0.5; magnitude 5.25 -> 4.75; cost 3,520 -> 2,490. building.lighthouse re-pointed to ashlar_masonry (entityRequirementChanges); building.castle stays.",
+   "prereq": "ashlar_masonry AND surveying",
+   "prereqRationale": "A fortified circuit is dressed-stone construction (ashlar_masonry) laid out on the ground with towers and gates (surveying). The metal-tool alternative (tin_bronze OR iron_bloomery) was the stone-cutting requirement; it is absorbed by ashlar_masonry's copper-tool requirement.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.25,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "costRationale": "novelty 1.0 unchanged · difficulty 1.25 unchanged (A4 prior) · material 0.0 unchanged (the stone-working material content moved to ashlar_masonry) · institutional 1.5 unchanged (state-built citadels, above the A4 prior as before) · breadth 0.5 unchanged (castle) · prereq_complexity 1.0 -> 0.5 (two requirements). Cost 3,520 -> 2,490; with ashlar_masonry (2,960) the pair costs 5,450 (1.55x), because the carved-out technique is broader (breadth 1.0) than the fortification it was hidden in.",
+   "splitInto": [
+    "ashlar_masonry"
+   ],
+   "compatibility": {
+    "saves": "Key 126 kept. Old holders of stone_fortification do NOT receive ashlar_masonry (no alias seam), so they lose building.lighthouse eligibility (an unrealized entity: no gameplay effect today). Recommend the alias/remap seam (package-level OPEN DECISION). Saved progress above 2,490 completes next step.",
+    "ids": "unchanged; ashlar_masonry gets a new key",
+    "ui": "Lighthouse moves to the ashlar_masonry card; the lock reason becomes ashlar_masonry.",
+    "ai": "Cheaper but behind a new node: AI-empire goldens move (attributed).",
+    "consumers": "building.lighthouse requirement 'stone_fortification' -> 'ashlar_masonry'; the unlock lists (reverse index, ResearchContent.cs:1246-1255) move with it.",
+    "tests": "No test pins the id; unlock audit and the CI --check docs regenerate; the educational description must drop the lighthouse."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:walls resisting rams",
+     "knowledge:gate defence",
+     "building:building.castle"
+    ],
+    "realizationOwner": "ConstructionSystem (project) + Battle layer (M7)",
+    "status": "deferred",
+    "milestone": "M7",
+    "currentEffect": "MEASURED: class J - building.castle ('stone_fortification AND vault_dome') and building.lighthouse listed, unrealized; no dependant.",
+    "deferredEffect": "building.castle: defence (siege) in the M7 battle layer (deferred-entity plan tier E); construction alone has no consumer before M7.",
+    "inputs": {
+     "resources": [
+      "stone",
+      "timber"
+     ],
+     "geography": [
+      "defensible site"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not buildable before M7; when realized it needs stone (common good).",
+    "unknownResource": "n/a: stone, clay, timber and fiber are common deposit goods (D-051 §2 floor); fog limits where a polity knows them, never whether research reveals them (it does not).",
+    "aiValuation": "MEASURED: valued only as a prerequisite (goal closures, cheapest fallback). PROPOSED: give the entity no value until its realizing system exists (no phantom value for an unbuildable structure).",
+    "playerCommunication": "Research panel lists the castle as 'eligible - not yet buildable (defence arrives with the battle layer, M7)' with the missing owner named; no construction button appears until a realizing system exists (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "qanat",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "infrastructure",
+   "rationale": "Persian qanat: well-digging, surveying and mining combined. Entity-bearing. It loses its only dependant (aqueduct_tunnel), whose edge was a chronology ladder.",
+   "changes": "none to the node (dependant aqueduct_tunnel removed through that record; capability block overridden)",
+   "capability": {
+    "grants": [
+     "knowledge:settlement in arid zones",
+     "knowledge:irrigation without river",
+     "infrastructure:infra.qanat"
+    ],
+    "realizationOwner": "ConstructionSystem (project) + Farming/water term (PROPOSED)",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "MEASURED: class J - infra.qanat listed, no realizing system; Eureka 'An aquifer upslope of an arid plain' (future-system:resources/terrain).",
+    "deferredEffect": "T6.11 tier C (PROPOSED): a qanat supplies irrigation and drinking water to an arid settlement - a bounded term in Farming arable extent and in the same water/health term as infra.well. Its Eureka becomes evaluable only when terrain/aquifer state exists.",
+    "inputs": {
+     "resources": [
+      "stone",
+      "timber"
+     ],
+     "geography": [
+      "aquifer upslope of an arid plain (not modelled)"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not buildable until T6.11; without an upslope aquifer it has no source.",
+    "unknownResource": "The aquifer is terrain, not a deposit good; nothing identifies it today. Research never reveals it.",
+    "aiValuation": "MEASURED: valued only as a prerequisite (goal closures, cheapest fallback). PROPOSED: give the entity no value until its realizing system exists (no phantom value for an unbuildable structure).",
+    "playerCommunication": "Research panel lists the qanat as 'eligible - not yet buildable (planned: T6.11)' with the missing owner named; no construction button appears until a realizing system exists (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "aqueduct_tunnel",
+   "disposition": [
+    "rebalance"
+   ],
+   "nodeKind": "infrastructure",
+   "rationale": "Causality fix. A rock-cut water tunnel needs tunnelling and alignment, not the Persian qanat: Hezekiah's Siloam tunnel (~700 BCE) and the two-ended Eupalinian tunnel (~550 BCE) owe nothing to qanats. The qanat -> tunnel -> channel -> arcade chain was a chronology ladder.",
+   "changes": "prereq 'qanat AND surveying' -> 'mining_shaft AND surveying' (same count: prereq_complexity stays 0.5; cost unchanged 1,760).",
+   "prereq": "mining_shaft AND surveying",
+   "prereqRationale": "Tunnelling through rock (mining_shaft: shafts and galleries) aligned and levelled from both ends (surveying).",
+   "compatibility": {
+    "saves": "No polity loses availability (every qanat holder already holds mining_shaft and surveying); nothing goes dormant.",
+    "ids": "unchanged",
+    "ui": "Lock reason becomes mining_shaft and surveying.",
+    "ai": "Reachable without qanat: AI-empire goldens may move.",
+    "consumers": "qanat loses its dependant; infra.aqueduct unchanged.",
+    "tests": "Chronology: -700 against -4,000 and -2,500 (passes)."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:urban water supply under siege",
+     "knowledge:settlement beyond local water",
+     "infrastructure:infra.aqueduct"
+    ],
+    "realizationOwner": "ConstructionSystem (project) + per-settlement health/water term (PROPOSED)",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "MEASURED: class J - infra.aqueduct (OR with aqueduct_channel, aqueduct_arcade) listed, unrealized; dependant aqueduct_channel (removed by D07).",
+    "deferredEffect": "T6.11 tier C (PROPOSED): the aqueduct's consumer is the same water/health coverage term as infra.well (health seam), plus a settlement-size enabler if density limits ever exist; otherwise M9.",
+    "inputs": {
+     "resources": [
+      "stone",
+      "timber",
+      "tools"
+     ],
+     "geography": [
+      "a spring or river above the settlement"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not buildable until T6.11.",
+    "unknownResource": "n/a: stone, clay, timber and fiber are common deposit goods (D-051 §2 floor); fog limits where a polity knows them, never whether research reveals them (it does not).",
+    "aiValuation": "MEASURED: valued only as a prerequisite (goal closures, cheapest fallback). PROPOSED: give the entity no value until its realizing system exists (no phantom value for an unbuildable structure).",
+    "playerCommunication": "Research panel lists the aqueduct as 'eligible - not yet buildable (planned: T6.11)' with the missing owner named; no construction button appears until a realizing system exists (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "aqueduct_channel",
+   "disposition": [
+    "rebalance"
+   ],
+   "nodeKind": "infrastructure",
+   "rationale": "Causality fix. A long gravity channel needs a precise gradient (surveying) and a masonry conduit (stone_dry); Sennacherib's channel-and-bridge system (~690 BCE) did not derive from tunnels.",
+   "changes": "prereq 'aqueduct_tunnel AND stone_dry' -> 'surveying AND stone_dry' (same count: prereq_complexity stays 0.5; cost unchanged 2,490).",
+   "prereq": "surveying AND stone_dry",
+   "prereqRationale": "Levelling a channel over tens of kilometres (surveying) and building its masonry bed and bridges (stone_dry).",
+   "compatibility": {
+    "saves": "Widening only (every holder of the old chain holds surveying and stone_dry).",
+    "ids": "unchanged",
+    "ui": "Lock reason becomes surveying and stone_dry.",
+    "ai": "Reachable earlier: AI-empire goldens may move.",
+    "consumers": "aqueduct_arcade unchanged.",
+    "tests": "Chronology: -690 against -2,500 and -10,000 (passes)."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:long-distance urban water",
+     "infrastructure:infra.aqueduct"
+    ],
+    "realizationOwner": "ConstructionSystem (project) + per-settlement health/water term (PROPOSED)",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "MEASURED: class J - infra.aqueduct listed, unrealized; dependant aqueduct_arcade.",
+    "deferredEffect": "As aqueduct_tunnel: T6.11 tier C water/health term, else M9.",
+    "inputs": {
+     "resources": [
+      "stone",
+      "timber"
+     ],
+     "geography": [
+      "a source above the settlement"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not buildable until T6.11.",
+    "unknownResource": "n/a: stone, clay, timber and fiber are common deposit goods (D-051 §2 floor); fog limits where a polity knows them, never whether research reveals them (it does not).",
+    "aiValuation": "MEASURED: valued only as a prerequisite (goal closures, cheapest fallback). PROPOSED: give the entity no value until its realizing system exists (no phantom value for an unbuildable structure).",
+    "playerCommunication": "Research panel lists the aqueduct as 'eligible - not yet buildable (planned: T6.11)' with the missing owner named; no construction button appears until a realizing system exists (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "arch",
+   "disposition": [
+    "rebalance"
+   ],
+   "nodeKind": "technique",
+   "rationale": "Causality fix consistent with the node's own anchor: the true arch was first built in MUDBRICK (~2,000 BCE Ur). Fired brick is a durability refinement, not a requirement; it stays available as a vaulting material (vault_dome's OR group).",
+   "changes": "prereq 'fired_brick AND surveying' -> 'mudbrick AND surveying' (same count: prereq_complexity stays 0.5; cost unchanged 1,760).",
+   "prereq": "mudbrick AND surveying",
+   "prereqRationale": "Voussoirs in compression need a masonry unit (mudbrick, the material of the first true arches) and laid-out geometry for the curve and its centring (surveying).",
+   "compatibility": {
+    "saves": "Widening only: every fired_brick holder holds mudbrick.",
+    "ids": "unchanged",
+    "ui": "Lock reason becomes mudbrick and surveying.",
+    "ai": "Reachable without kiln and fired brick: AI-empire goldens may move.",
+    "consumers": "aqueduct_arcade, bridge_stone, vault_dome (and concrete_pozzolan unless D02's own edit lands: D02 drops arch from it); depth unchanged (the surveying path is the longest).",
+    "tests": "Chronology: -2,000 against -9,000 and -2,500 (passes)."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:spans without lintels",
+     "knowledge:gates, bridges, vaults"
+    ],
+    "realizationOwner": "none",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class C - capability strings only; dependants aqueduct_arcade, bridge_stone, concrete_pozzolan, vault_dome.",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: completion is polity-wide knowledge (D-044 R11).",
+    "unknownResource": "n/a: no deposit good is involved; research never places, reveals or proves a deposit (framework §6).",
+    "aiValuation": "MEASURED: valued only through AiResearchPolicy goal closures and the cheapest-available fallback; it reads no capability text and no unknown cell.",
+    "playerCommunication": "Research panel: knowledge only; the card names what it leads to. No action is listed (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "olive_press_beam",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Lever-and-weight press (Ekron's ~800 BCE industrial quarter). A justified dead end: it is the condition of printing_press's evaluable Eureka ('A screw press is in use for wine or oil'), so the press lineage accelerates printing without gating it. Making it a prerequisite would turn that Eureka into a refused implied Eureka, and Eureka lists are append-only.",
+   "changes": "none (capability block overridden: dead-end justification)",
+   "capability": {
+    "grants": [
+     "knowledge:oil at export scale"
+    ],
+    "realizationOwner": "ResearchSystem (Eureka condition of printing_press); none for production",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: class C - no dependant; it is the knowledge condition of printing_press's evaluable Eureka (weight 0.4).",
+    "deferredEffect": "M10+: an oil-pressing capacity variant behind building.oil_press (D01's oil_press gates that building; no oil good exists).",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: completion is polity-wide knowledge (D-044 R11).",
+    "unknownResource": "n/a: no deposit good is involved; research never places, reveals or proves a deposit (framework §6).",
+    "aiValuation": "MEASURED: valued only through AiResearchPolicy goal closures and the cheapest-available fallback; it reads no capability text and no unknown cell.",
+    "playerCommunication": "Research panel: knowledge only; the card names what it leads to. No action is listed (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "water_screw",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Archimedes screw for lifting water. Its dependant screw_propeller is causal: Smith's 1836 propeller began as a wooden Archimedean screw (the ship Archimedes, 1839).",
+   "changes": "none"
+  },
+  {
+   "id": "noria",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Bucket wheel for lift irrigation (saqiya ~300 BCE Egypt; stream-driven later). A justified dead end: no entity represents lift irrigation, and no later node needs the device.",
+   "changes": "none (capability block overridden: dead-end justification)",
+   "capability": {
+    "grants": [
+     "knowledge:irrigation above river level",
+     "knowledge:arable extension"
+    ],
+    "realizationOwner": "none until an irrigation term exists",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: class C - no dependant (dead end).",
+    "deferredEffect": "Lift irrigation extends watered land above the gravity canal's reach. The honest owner is the irrigation realization: T6.11 tier C adds a lift term beside infra.canal_irrigation, otherwise M10+. A Eureka link to water_mill was considered and rejected (water mills and water-lifting wheels appear together in the 3rd-century-BCE Greek world, Lewis 1997, and water_mill's pool is already full at 0.4).",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: completion is polity-wide knowledge (D-044 R11).",
+    "unknownResource": "n/a: no deposit good is involved; research never places, reveals or proves a deposit (framework §6).",
+    "aiValuation": "MEASURED: valued only through AiResearchPolicy goal closures and the cheapest-available fallback; it reads no capability text and no unknown cell.",
+    "playerCommunication": "Research panel: knowledge only; the card names what it leads to. No action is listed (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "gearing",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Gear trains (Antikythera ~150 BCE). Dependants astrolabe, crank_connecting_rod and escapement_verge; the treadle loom no longer requires it.",
+   "changes": "none (loses dependant horizontal_loom through that record)"
+  },
+  {
+   "id": "vault_dome",
+   "disposition": [
+    "rebalance"
+   ],
+   "nodeKind": "technique",
+   "rationale": "Material alternative (OR). Vaulting is the arch extended; the material is regional: Roman pozzolanic concrete (Pantheon), fired brick (Byzantine domes), dressed stone (medieval rib vaults). With pozzolana as the only route, castles and sewers waited on Roman concrete.",
+   "changes": "prereq 'arch AND concrete_pozzolan' -> 'arch AND (concrete_pozzolan OR fired_brick OR ashlar_masonry)' (an OR group counts once: prereq_complexity stays 0.5; cost unchanged 3,520); emerged adds the brick dome (earliest year unchanged, -100).",
+   "prereq": "arch AND (concrete_pozzolan OR fired_brick OR ashlar_masonry)",
+   "prereqRationale": "arch: the structural principle. The OR is the vaulting material: concrete (Rome), fired brick (Byzantium, Persia) or dressed stone (Romanesque and Gothic). These are genuine regional alternatives; the cost is unchanged.",
+   "emerged": "~100 BCE Rome (concrete; Pantheon 126 CE); 537 CE Constantinople (brick dome of Hagia Sophia); medieval stone rib vaults",
+   "compatibility": {
+    "saves": "Widening only; nothing goes dormant.",
+    "ids": "unchanged",
+    "ui": "Lock reason shows the material alternatives.",
+    "ai": "Reachable without concrete. MEASURED: AiResearchPolicy unions OR branches in goal closures (AiResearchPolicy.cs:184-195); vault_dome is in no AI goal closure today.",
+    "consumers": "building.castle, building.bathhouse, infra.sewer become eligible earlier on brick or stone paths (all unrealized).",
+    "tests": "Chronology: must-hold atom arch (-2,000) before -100 (passes)."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:baths",
+     "knowledge:basilicas",
+     "knowledge:large public interiors",
+     "building:building.bathhouse",
+     "building:building.castle",
+     "infrastructure:infra.sewer"
+    ],
+    "realizationOwner": "ConstructionSystem (projects); health seam (sewer, PROPOSED); Battle layer (castle, M7); M9 (bathhouse)",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "MEASURED: class J - building.bathhouse (with aqueduct_arcade), building.castle (with stone_fortification), infra.sewer (with fired_brick) listed, all unrealized.",
+    "deferredEffect": "infra.sewer: T6.11 tier C (PROPOSED), a bounded coverage term in the per-settlement health seam. building.castle: M7 (defence). building.bathhouse: tier F, M9 (public health and comfort).",
+    "inputs": {
+     "resources": [
+      "stone",
+      "clay",
+      "timber"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not buildable until each entity's owner exists.",
+    "unknownResource": "n/a: stone, clay, timber and fiber are common deposit goods (D-051 §2 floor); fog limits where a polity knows them, never whether research reveals them (it does not).",
+    "aiValuation": "MEASURED: valued only as a prerequisite (goal closures, cheapest fallback). PROPOSED: give the entity no value until its realizing system exists (no phantom value for an unbuildable structure).",
+    "playerCommunication": "Research panel lists the sewer, castle and bathhouse as 'eligible - not yet buildable (owners T6.11, M7, M9)' with the missing owner named; no construction button appears until a realizing system exists (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "bridge_stone",
+   "disposition": [
+    "rebalance"
+   ],
+   "nodeKind": "infrastructure",
+   "rationale": "Material alternative (OR). A masonry arch bridge needs the arch plus a durable pier and voussoir material: Roman concrete-cored bridges (Pons Fabricius ~62 BCE) or dressed-stone bridges built with no concrete (Zhaozhou, 595-605 CE: limestone slabs joined with iron dovetails). Capability block corrected (the auto-fill names no owner).",
+   "changes": "prereq 'arch AND concrete_pozzolan' -> 'arch AND (concrete_pozzolan OR ashlar_masonry)' (same count: prereq_complexity stays 0.5; cost unchanged 2,490); emerged adds Zhaozhou (earliest year unchanged, -62).",
+   "prereq": "arch AND (concrete_pozzolan OR ashlar_masonry)",
+   "prereqRationale": "arch: the spanning principle. The OR is the pier and voussoir material: Roman concrete or dressed stone. RESEARCHED: Zhaozhou (Anji) bridge 595-605 CE, an open-spandrel segmental stone arch.",
+   "emerged": "~62 BCE Rome (Pons Fabricius); 605 CE China (Zhaozhou open-spandrel segmental arch)",
+   "compatibility": {
+    "saves": "Widening only.",
+    "ids": "unchanged",
+    "ui": "Lock reason shows the alternatives.",
+    "ai": "In no AI goal closure today.",
+    "consumers": "infra.bridge (unrealized).",
+    "tests": "Chronology: must-hold atom arch (-2,000) before -62 (passes)."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:permanent river crossing",
+     "knowledge:road network integrity",
+     "infrastructure:infra.bridge"
+    ],
+    "realizationOwner": "Transport packet (DW-059, D08's shared owner for network edge types; RoadDevelopmentSystem is the analogue)",
+    "status": "deferred",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: class J - infra.bridge listed, no realizing system; no dependant.",
+    "deferredEffect": "infra.bridge changes road rules, and transport is FROZEN (deferred-entity plan tier C). Owner: the transport packet (DW-059, the unscheduled transport design conversation; D08 names it for every network edge type, D-040 B4). M10+ unless the Director rules it into T6.11.",
+    "inputs": {
+     "resources": [
+      "stone",
+      "timber"
+     ],
+     "geography": [
+      "a river crossing on a road route"
+     ],
+     "infrastructure": [
+      "a road route that crosses the river"
+     ],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not buildable until a transport packet realizes bridges.",
+    "unknownResource": "n/a: stone, clay, timber and fiber are common deposit goods (D-051 §2 floor); fog limits where a polity knows them, never whether research reveals them (it does not).",
+    "aiValuation": "MEASURED: valued only as a prerequisite (goal closures, cheapest fallback). PROPOSED: give the entity no value until its realizing system exists (no phantom value for an unbuildable structure).",
+    "playerCommunication": "Research panel lists the stone bridge as 'eligible - not yet buildable (needs a transport ruling; M10+)' with the missing owner named; no construction button appears until a realizing system exists (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "aqueduct_arcade",
+   "disposition": [
+    "rebalance"
+   ],
+   "nodeKind": "infrastructure",
+   "rationale": "Redundant-requirement fix. surveying is already required through aqueduct_channel, so it is not an independent requirement (ledger: 'independent requirements; top-level AND requirements count'). Removing it re-scores prerequisite complexity.",
+   "changes": "prereq 'aqueduct_channel AND arch AND surveying' -> 'aqueduct_channel AND arch'; prereq_complexity 1.0 -> 0.5; magnitude 5.75 -> 5.25; cost 4,970 -> 3,520.",
+   "prereq": "aqueduct_channel AND arch",
+   "prereqRationale": "A channel carried across valleys on arches: aqueduct_channel (gradient and conduit, including the surveying) and arch (the arcade).",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.5,
+    "material": 0.0,
+    "institutional": 1.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "costRationale": "novelty 1.0 unchanged · difficulty 1.5 unchanged (A5 prior) · material 0.0 unchanged · institutional 1.75 unchanged (Roman water administration, above the A5 prior as before) · breadth 0.5 unchanged · prereq_complexity 1.0 -> 0.5 (two independent requirements; surveying is implied by aqueduct_channel). Cost 4,970 -> 3,520 (-29 %): the old value counted one requirement twice.",
+   "compatibility": {
+    "saves": "Lower cost: saved progress at or above 3,520 completes next step with no RP; nothing goes dormant.",
+    "ids": "unchanged",
+    "ui": "Lock reason drops surveying.",
+    "ai": "Cheaper: AI-empire goldens may move.",
+    "consumers": "building.bathhouse, infra.aqueduct (unrealized).",
+    "tests": "Chronology: -312 against -690 and -2,000 (passes)."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:city of a million",
+     "knowledge:baths",
+     "knowledge:fountains",
+     "building:building.bathhouse",
+     "infrastructure:infra.aqueduct"
+    ],
+    "realizationOwner": "ConstructionSystem (project) + per-settlement health/water term (PROPOSED); M9 for the bathhouse",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "MEASURED: class J - building.bathhouse and infra.aqueduct listed, unrealized; no dependant.",
+    "deferredEffect": "infra.aqueduct: T6.11 tier C water/health term (as aqueduct_channel). building.bathhouse: tier F, M9.",
+    "inputs": {
+     "resources": [
+      "stone",
+      "timber",
+      "clay"
+     ],
+     "geography": [
+      "a valley between source and city"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not buildable until T6.11.",
+    "unknownResource": "n/a: stone, clay, timber and fiber are common deposit goods (D-051 §2 floor); fog limits where a polity knows them, never whether research reveals them (it does not).",
+    "aiValuation": "MEASURED: valued only as a prerequisite (goal closures, cheapest fallback). PROPOSED: give the entity no value until its realizing system exists (no phantom value for an unbuildable structure).",
+    "playerCommunication": "Research panel lists the arcaded aqueduct and bath as 'eligible - not yet buildable (planned: T6.11 / M9)' with the missing owner named; no construction button appears until a realizing system exists (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "silk",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "technique",
+   "rationale": "Sericulture: no longer a dead end. It is the causal input of the new drawloom - pattern weaving was developed for silk (Han jin brocade) - which leads to jacquard.",
+   "changes": "none (gains dependant drawloom through the new record)"
+  },
+  {
+   "id": "fulling_mill",
+   "disposition": [
+    "relocate"
+   ],
+   "nodeKind": "application",
+   "rationale": "Coupling fix: medieval craft knowledge sat in the Engineering subtree, so it waited on the research stage (MEASURED baseline: the stage opens at turn ~1016, about 1532 CE) - centuries after its historical spread among artisans and millwrights who had no universities. Its prerequisites are all trunk, so it moves to the Main Trunk (Age and cost unchanged unless stated). Water-powered fulling (~1,000 CE Europe) was millwright and clothier craft.",
+   "changes": "branch engineering -> trunk (prerequisites trip_hammer and loom_warp_weighted are trunk); Age A6 and cost 4,970 unchanged; capability block overridden.",
+   "branch": "trunk",
+   "compatibility": {
+    "saves": "Keys unchanged. Partial progress becomes usable before the research stage (it is no longer gated by the stage); completed rows unaffected.",
+    "ids": "unchanged (no rename)",
+    "ui": "Lane moves from Engineering to Main Trunk (ResearchTreeLayout.cs:139-141); lock reason 'research stage' disappears.",
+    "ai": "Available pre-stage, so cheapest-fallback choices shift: AI-empire goldens move (attributed re-pin). The engineering university discount no longer applies (trunk always pays BaseCost, ResearchQuery.cs:316).",
+    "consumers": "Subtree dependants keep working (a subtree node may require trunk knowledge).",
+    "tests": "ResearchContentTests branch counts [177, 37, 22, 131, 44, 15] and engineering finite_nodes_to_exhaust (125, on the six engineering recursive nodes) move; CI --check docs regenerate."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:cloth finishing at scale",
+     "knowledge:relocation of textile industry to rivers",
+     "building:building.fulling_mill"
+    ],
+    "realizationOwner": "ConstructionSystem (project) + weaving-recipe capacity term (PROPOSED)",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "MEASURED: class J - building.fulling_mill listed, no realizing system; no dependant.",
+    "deferredEffect": "T6.11 tier D (PROPOSED): the mill as a per-building capacity or labour term on the live weaving recipe - the same shape as the deferred-entity plan's first slice (kiln and smithy on their recipes). Blocker: no per-building production-capacity term exists.",
+    "inputs": {
+     "resources": [
+      "timber",
+      "stone"
+     ],
+     "geography": [
+      "river with usable fall (water_mill)"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not buildable until T6.11; useless without a river (the water_mill Eureka's terrain state).",
+    "unknownResource": "n/a: stone, clay, timber and fiber are common deposit goods (D-051 §2 floor); fog limits where a polity knows them, never whether research reveals them (it does not).",
+    "aiValuation": "MEASURED: valued only as a prerequisite (goal closures, cheapest fallback). PROPOSED: give the entity no value until its realizing system exists (no phantom value for an unbuildable structure).",
+    "playerCommunication": "Research panel lists the fulling mill as 'eligible - not yet buildable (planned: T6.11)' with the missing owner named; no construction button appears until a realizing system exists (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "spinning_wheel",
+   "disposition": [
+    "relocate"
+   ],
+   "nodeKind": "application",
+   "rationale": "Coupling fix: medieval craft knowledge sat in the Engineering subtree, so it waited on the research stage (MEASURED baseline: the stage opens at turn ~1016, about 1532 CE) - centuries after its historical spread among artisans and millwrights who had no universities. Its prerequisites are all trunk, so it moves to the Main Trunk (Age and cost unchanged unless stated). The wheel-driven spindle (~1,000 CE India or China; Europe ~1,280) was a domestic and workshop device.",
+   "changes": "branch engineering -> trunk (prerequisites spinning_spindle and wheel_solid are trunk); Age A6 and cost 4,970 unchanged; gains dependant water_frame.",
+   "branch": "trunk",
+   "compatibility": {
+    "saves": "Keys unchanged. Partial progress becomes usable before the research stage (it is no longer gated by the stage); completed rows unaffected.",
+    "ids": "unchanged (no rename)",
+    "ui": "Lane moves from Engineering to Main Trunk (ResearchTreeLayout.cs:139-141); lock reason 'research stage' disappears.",
+    "ai": "Available pre-stage, so cheapest-fallback choices shift: AI-empire goldens move (attributed re-pin). The engineering university discount no longer applies (trunk always pays BaseCost, ResearchQuery.cs:316).",
+    "consumers": "Subtree dependants keep working (a subtree node may require trunk knowledge).",
+    "tests": "ResearchContentTests branch counts [177, 37, 22, 131, 44, 15] and engineering finite_nodes_to_exhaust (125, on the six engineering recursive nodes) move; CI --check docs regenerate."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:thread supply keeping pace with looms"
+    ],
+    "realizationOwner": "none (knowledge only); ProductionSystem recipe variant later",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class C - capability string only; dependant spinning_jenny (D07 adds water_frame).",
+    "deferredEffect": "M10+: a productivity variant of the live weaving recipe (fiber -> cloth, laborPerOutput 0.1; cloth feeds the Comfort need). Needs a supersession rule: Crafting labour splits EQUALLY among available recipes (MEASURED ProductionSystem.cs:463-490), so a variant would share labour with baseline weaving instead of replacing it.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: completion is polity-wide knowledge (D-044 R11).",
+    "unknownResource": "n/a: no deposit good is involved; research never places, reveals or proves a deposit (framework §6).",
+    "aiValuation": "MEASURED: valued only through AiResearchPolicy goal closures and the cheapest-available fallback; it reads no capability text and no unknown cell.",
+    "playerCommunication": "Research panel: knowledge only; the card names what it leads to. No action is listed (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "horizontal_loom",
+   "disposition": [
+    "relocate",
+    "rebalance"
+   ],
+   "nodeKind": "application",
+   "rationale": "Coupling fix: medieval craft knowledge sat in the Engineering subtree, so it waited on the research stage (MEASURED baseline: the stage opens at turn ~1016, about 1532 CE) - centuries after its historical spread among artisans and millwrights who had no universities. Its prerequisites are all trunk, so it moves to the Main Trunk (Age and cost unchanged unless stated). The treadle loom is documented in China by the second century BCE (Laoguanshan pattern-loom models, Chengdu, ~150 BCE) and reached the Islamic world and Europe about a millennium later (11th-century parts at Haithabu, Gdansk, Novgorod). It is re-dated to its Han origin (A6 -> A5) and its gearing edge removed: treadles work the heddles through cords, levers and pulleys, not gear trains.",
+   "changes": "branch engineering -> trunk; Age A6 -> A5; prereq 'loom_warp_weighted AND gearing' -> 'loom_warp_weighted'; prereq_complexity 0.5 -> 0.0; difficulty 1.75 -> 1.5 (A5 prior, re-dating re-prices); magnitude 5.75 -> 5.0; cost 4,970 -> 2,960; emerged rewritten (earliest year 1,000 -> -150); dependant jacquard moves to drawloom.",
+   "branch": "trunk",
+   "age": "A5",
+   "prereq": "loom_warp_weighted",
+   "prereqRationale": "A loom (loom_warp_weighted carries frame, heddles and shed) plus foot treadles: a lever-and-cord mechanism with no gear train, so no further knowledge node is required. RESEARCHED: Laoguanshan models (2nd half of the 2nd century BCE) show treadle-operated pattern looms.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.5,
+    "material": 0.75,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "costRationale": "novelty 1.0 unchanged (a typical advance: hands freed, faster and wider cloth) · difficulty 1.75 -> 1.5 (A5 prior after re-dating to Han China) · material 0.75 unchanged (wooden frame, shafts, treadles) · institutional 1.25 unchanged (A5 = A6 prior) · breadth 0.5 unchanged (flying_shuttle, drawloom) · prereq_complexity 0.5 -> 0.0 (one requirement). Cost 4,970 -> 2,960.",
+   "emerged": "~150 BCE China (Han treadle pattern looms, Laoguanshan, Chengdu); ~1,000 CE Islamic world and Europe (11th-century loom parts at Haithabu, Gdansk, Novgorod)",
+   "compatibility": {
+    "saves": "Keys unchanged. Pre-stage availability; lower cost: saved progress at or above 2,960 completes next step with no RP.",
+    "ids": "unchanged (no rename)",
+    "ui": "Lane Engineering -> Main Trunk; Age tier label A6 -> A5; lock reason drops gearing.",
+    "ai": "Available pre-stage, so cheapest-fallback choices shift: AI-empire goldens move (attributed re-pin). The engineering university discount no longer applies (trunk always pays BaseCost, ResearchQuery.cs:316).",
+    "consumers": "flying_shuttle unchanged; jacquard now reaches it through drawloom.",
+    "tests": "ResearchContentTests branch counts [177, 37, 22, 131, 44, 15] and engineering finite_nodes_to_exhaust (125, on the six engineering recursive nodes) move; CI --check docs regenerate. Chronology: -150 against loom_warp_weighted (-5,500 marked), passes; its dependants flying_shuttle (1,733) and drawloom (-150) pass."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:professional weaving",
+     "knowledge:guild cloth industry"
+    ],
+    "realizationOwner": "none (knowledge only); ProductionSystem recipe variant later",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class C - capability strings only; dependants flying_shuttle, jacquard (D07: flying_shuttle, drawloom).",
+    "deferredEffect": "M10+: a productivity variant of the live weaving recipe (fiber -> cloth, laborPerOutput 0.1; cloth feeds the Comfort need). Needs a supersession rule: Crafting labour splits EQUALLY among available recipes (MEASURED ProductionSystem.cs:463-490), so a variant would share labour with baseline weaving instead of replacing it.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: completion is polity-wide knowledge (D-044 R11).",
+    "unknownResource": "n/a: no deposit good is involved; research never places, reveals or proves a deposit (framework §6).",
+    "aiValuation": "MEASURED: valued only through AiResearchPolicy goal closures and the cheapest-available fallback; it reads no capability text and no unknown cell.",
+    "playerCommunication": "Research panel: knowledge only; the card names what it leads to. No action is listed (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "cotton_gin_roller",
+   "disposition": [
+    "relocate"
+   ],
+   "nodeKind": "application",
+   "rationale": "Coupling fix: medieval craft knowledge sat in the Engineering subtree, so it waited on the research stage (MEASURED baseline: the stage opens at turn ~1016, about 1532 CE) - centuries after its historical spread among artisans and millwrights who had no universities. Its prerequisites are all trunk, so it moves to the Main Trunk (Age and cost unchanged unless stated). The Indian roller gin (~500 CE) was a village craft device.",
+   "changes": "branch engineering -> trunk (prerequisite wheel_solid is trunk); Age A6 and cost 2,090 unchanged.",
+   "branch": "trunk",
+   "compatibility": {
+    "saves": "Keys unchanged. Partial progress becomes usable before the research stage (it is no longer gated by the stage); completed rows unaffected.",
+    "ids": "unchanged (no rename)",
+    "ui": "Lane moves from Engineering to Main Trunk (ResearchTreeLayout.cs:139-141); lock reason 'research stage' disappears.",
+    "ai": "Available pre-stage, so cheapest-fallback choices shift: AI-empire goldens move (attributed re-pin). The engineering university discount no longer applies (trunk always pays BaseCost, ResearchQuery.cs:316).",
+    "consumers": "Subtree dependants keep working (a subtree node may require trunk knowledge).",
+    "tests": "ResearchContentTests branch counts [177, 37, 22, 131, 44, 15] and engineering finite_nodes_to_exhaust (125, on the six engineering recursive nodes) move; CI --check docs regenerate."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:cotton as a mass fibre"
+    ],
+    "realizationOwner": "none (knowledge only)",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class C - capability string only; dependant cotton_gin_saw.",
+    "deferredEffect": "Pending edit (accepted from D01, applied at integration because cotton_cultivation is a new D01 id): prereq 'wheel_solid AND cotton_cultivation' (prereq_complexity 0.0 -> 0.5, cost 2,090 -> 2,960). M10+: a ginning step raising usable fiber from the cotton crop (no ginning recipe exists).",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: completion is polity-wide knowledge (D-044 R11).",
+    "unknownResource": "n/a: no deposit good is involved; research never places, reveals or proves a deposit (framework §6).",
+    "aiValuation": "MEASURED: valued only through AiResearchPolicy goal closures and the cheapest-available fallback; it reads no capability text and no unknown cell.",
+    "playerCommunication": "Research panel: knowledge only; the card names what it leads to. No action is listed (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "crank_connecting_rod",
+   "disposition": [
+    "relocate"
+   ],
+   "nodeKind": "application",
+   "rationale": "Coupling fix: medieval craft knowledge sat in the Engineering subtree, so it waited on the research stage (MEASURED baseline: the stage opens at turn ~1016, about 1532 CE) - centuries after its historical spread among artisans and millwrights who had no universities. Its prerequisites are all trunk, so it moves to the Main Trunk (Age and cost unchanged unless stated). The crank and connecting rod was millwright knowledge (Hierapolis sawmill ~3rd century CE; general medieval use). It already lies on the A8 core closure (steam_rotary), so pre-stage availability also lets the AI's core goal progress before the stage (engine-audit Q11 gap), and it lets D02 move medieval ironworking (blast_furnace_water, wire_drawing) to the trunk if D02 wishes.",
+   "changes": "branch engineering -> trunk (prerequisites gearing and water_mill are trunk); Age A6 and cost 4,180 unchanged; loses dependant escapement_verge.",
+   "branch": "trunk",
+   "compatibility": {
+    "saves": "Keys unchanged. Partial progress becomes usable before the research stage (it is no longer gated by the stage); completed rows unaffected.",
+    "ids": "unchanged (no rename)",
+    "ui": "Lane moves from Engineering to Main Trunk (ResearchTreeLayout.cs:139-141); lock reason 'research stage' disappears.",
+    "ai": "Available pre-stage, so cheapest-fallback choices shift: AI-empire goldens move (attributed re-pin). The engineering university discount no longer applies (trunk always pays BaseCost, ResearchQuery.cs:316).",
+    "consumers": "steam_rotary (A8 core fact a8_steam), blast_furnace_water and wire_drawing keep it as a prerequisite; escapement_verge no longer needs it.",
+    "tests": "ResearchContentTests branch counts [177, 37, 22, 131, 44, 15] and engineering finite_nodes_to_exhaust (125, on the six engineering recursive nodes) move; CI --check docs regenerate."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:sawmills",
+     "knowledge:pumps",
+     "knowledge:bellows"
+    ],
+    "realizationOwner": "none (knowledge only)",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class C - capability strings only; dependants blast_furnace_water, escapement_verge, steam_rotary, wire_drawing (D07 removes escapement_verge).",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: completion is polity-wide knowledge (D-044 R11).",
+    "unknownResource": "n/a: no deposit good is involved; research never places, reveals or proves a deposit (framework §6).",
+    "aiValuation": "MEASURED: valued only through AiResearchPolicy goal closures and the cheapest-available fallback; it reads no capability text and no unknown cell.",
+    "playerCommunication": "Research panel: knowledge only; the card names what it leads to. No action is listed (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "escapement_verge",
+   "disposition": [
+    "relocate",
+    "rebalance"
+   ],
+   "nodeKind": "application",
+   "rationale": "Coupling fix: medieval craft knowledge sat in the Engineering subtree, so it waited on the research stage (MEASURED baseline: the stage opens at turn ~1016, about 1532 CE) - centuries after its historical spread among artisans and millwrights who had no universities. Its prerequisites are all trunk, so it moves to the Main Trunk (Age and cost unchanged unless stated). The verge escapement was clockmakers' craft (~1,280s Europe). Its crank edge is not causal - the verge-and-foliot turns a weight-driven gear train into oscillation with no crank or connecting rod - and is replaced by water_clock, the timekeeping tradition the mechanical clock grew out of (accepting D03's request in modified form).",
+   "changes": "branch engineering -> trunk; prereq 'gearing AND crank_connecting_rod' -> 'gearing AND water_clock' (same count: prereq_complexity stays 0.5; Age A6 and cost 7,030 unchanged).",
+   "branch": "trunk",
+   "prereq": "gearing AND water_clock",
+   "prereqRationale": "gearing: the weight-driven gear train and crown wheel. water_clock: regulated, equal-unit timekeeping and the striking clockwork the mechanical clock replaced (Yi Xing's water-driven escapement 725 CE; Su Song 1088-1092; medieval monastic water clocks). INFERENCE: the European verge's descent from water-clock practice is the mainstream reading, not certain.",
+   "compatibility": {
+    "saves": "Keys unchanged. Pre-stage availability. Holders without water_clock who held crank_connecting_rod would see the node become unavailable: their partial progress is dormant until water_clock completes (engine-audit Q14 'Change prerequisites').",
+    "ids": "unchanged (no rename)",
+    "ui": "Lane moves from Engineering to Main Trunk (ResearchTreeLayout.cs:139-141); lock reason 'research stage' disappears.",
+    "ai": "Available pre-stage, so cheapest-fallback choices shift: AI-empire goldens move (attributed re-pin). The engineering university discount no longer applies (trunk always pays BaseCost, ResearchQuery.cs:316).",
+    "consumers": "slide_rest_lathe (machine-tool chain to internal_combustion, A9 core), longitude_problem, wheellock unchanged.",
+    "tests": "ResearchContentTests branch counts [177, 37, 22, 131, 44, 15] and engineering finite_nodes_to_exhaust (125, on the six engineering recursive nodes) move; CI --check docs regenerate. Chronology: 1,280 against gearing (-150) and water_clock (-1,500), passes."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:uniform hours",
+     "knowledge:the precision-mechanism craft tradition"
+    ],
+    "realizationOwner": "none (knowledge only)",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class C - capability strings only; dependants longitude_problem, slide_rest_lathe, wheellock.",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: completion is polity-wide knowledge (D-044 R11).",
+    "unknownResource": "n/a: no deposit good is involved; research never places, reveals or proves a deposit (framework §6).",
+    "aiValuation": "MEASURED: valued only through AiResearchPolicy goal closures and the cheapest-available fallback; it reads no capability text and no unknown cell.",
+    "playerCommunication": "Research panel: knowledge only; the card names what it leads to. No action is listed (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "canal_lock",
+   "disposition": [
+    "relocate",
+    "rebalance"
+   ],
+   "nodeKind": "infrastructure",
+   "rationale": "Coupling fix: medieval craft knowledge sat in the Engineering subtree, so it waited on the research stage (MEASURED baseline: the stage opens at turn ~1016, about 1532 CE) - centuries after its historical spread among artisans and millwrights who had no universities. Its prerequisites are all trunk, so it moves to the Main Trunk (Age and cost unchanged unless stated). The pound lock (Qiao Weiyue 984 CE on the Grand Canal; Europe ~1,400) is canal hydraulics plus heavy timber gates. The mortise-and-tenon hull edge was demand, not knowledge: boats are the lock's users.",
+   "changes": "branch engineering -> trunk; prereq 'irrigation_canal AND mortise_hull' -> 'irrigation_canal AND timber_frame' (same count: prereq_complexity stays 0.5; Age A6 and cost 4,180 unchanged).",
+   "branch": "trunk",
+   "prereq": "irrigation_canal AND timber_frame",
+   "prereqRationale": "irrigation_canal: channel hydraulics, levelling and water control. timber_frame: framed carpentry for the gates and lock chamber.",
+   "compatibility": {
+    "saves": "Keys unchanged. Holders without timber_frame would see the node become unavailable (practically none: timber_frame is A2 and cheap); otherwise widening.",
+    "ids": "unchanged (no rename)",
+    "ui": "Lane moves from Engineering to Main Trunk (ResearchTreeLayout.cs:139-141); lock reason 'research stage' disappears.",
+    "ai": "Available pre-stage, so cheapest-fallback choices shift: AI-empire goldens move (attributed re-pin). The engineering university discount no longer applies (trunk always pays BaseCost, ResearchQuery.cs:316).",
+    "consumers": "canal_navigation unchanged; mortise_hull (D08) loses a dependant.",
+    "tests": "ResearchContentTests branch counts [177, 37, 22, 131, 44, 15] and engineering finite_nodes_to_exhaust (125, on the six engineering recursive nodes) move; CI --check docs regenerate. RoadDevelopmentTests' dry-dock test reads canal_lock's unlocks only (still none). Chronology: 984 against -6,000 and -5,500, passes."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:navigable canals over hills",
+     "knowledge:Grand Canal at full function"
+    ],
+    "realizationOwner": "none (knowledge only)",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class C - capability strings only; dependant canal_navigation.",
+    "deferredEffect": "Realized only through canal_navigation's network edge class (transport packet DW-059, M10+).",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: completion is polity-wide knowledge (D-044 R11).",
+    "unknownResource": "n/a: no deposit good is involved; research never places, reveals or proves a deposit (framework §6).",
+    "aiValuation": "MEASURED: valued only through AiResearchPolicy goal closures and the cheapest-available fallback; it reads no capability text and no unknown cell.",
+    "playerCommunication": "Research panel: knowledge only; the card names what it leads to. No action is listed (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "type_founding",
+   "disposition": [
+    "relocate",
+    "rebalance"
+   ],
+   "nodeKind": "technique",
+   "rationale": "Causality fix. Casting interchangeable type from punch-struck matrices in an adjustable hand mould, with a lead-tin-antimony type metal, was a precondition of movable-type printing, not its sequel - yet the node required the press it made possible. It is re-pointed to its causal input (closed-mould metal casting) and becomes the press's prerequisite: D05 ACCEPTED 'printing_press <- type_founding' at integration, with a matching printing_press re-score (material 0.75 -> 0.25), on condition that type_founding moves to the trunk with the press (a goldsmith's craft needing no organized scholarship). Its analogy edge to interchangeable_parts is dropped (see that record).",
+   "changes": "branch engineering -> trunk (A7 kept: one validator V17 WARN, the same justified exception D05 takes for printing_press); prereq 'printing_press' -> 'casting_closed' (one requirement either way: prereq_complexity stays 0.0; cost unchanged 8,360); emerged anchor 1,450 -> '1,440-1,450 CE'; dependant interchangeable_parts removed; dependant printing_press added by D05 at integration.",
+   "branch": "trunk",
+   "prereq": "casting_closed",
+   "prereqRationale": "Type is cast metal: an alloy poured into a matrix held in a mould (closed-mould casting). Gutenberg trained as a goldsmith; punch-cutting and casting are metalworking knowledge. The press, ink and composing remain printing_press's own content.",
+   "emerged": "~1,440-1,450 CE Strasbourg and Mainz (Gutenberg's adjustable hand mould and type metal)",
+   "compatibility": {
+    "saves": "Keys unchanged. Completed rows stay completed; the node becomes available before the research stage and before printing_press; partial progress stays valid.",
+    "ids": "unchanged (no rename)",
+    "ui": "Lane Engineering -> Main Trunk; lock reason becomes casting_closed (no stage).",
+    "ai": "Enters the A7 core closure through printing_press (D05's edge): the AI core goal reaches it before the stage; AI-empire goldens move (attributed).",
+    "consumers": "interchangeable_parts loses it; printing_press gains it (D05, at integration).",
+    "tests": "ResearchContentTests branch counts [177, 37, 22, 131, 44, 15] and engineering finite_nodes_to_exhaust (125, on the six engineering recursive nodes) move; CI --check docs regenerate. Chronology: 1,440 against casting_closed (-3,000), passes; printing_press (1,450) >= 1,440. The emerged text stays era-marked (the 83-count pin is unaffected)."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:standardised parts at scale",
+     "knowledge:type metal and the adjustable hand mould"
+    ],
+    "realizationOwner": "none (knowledge only)",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class C - capability string only; dependant interchangeable_parts (removed by D07).",
+    "deferredEffect": "Dependant (D05, ACCEPTED at integration): printing_press 'type_founding AND mechanics_archimedean AND paper', with printing_press 39,780 -> 28,130 RP, so press + type founding = 36,490 RP against 39,780 (the A7 core workload is roughly conserved). If the edge lapsed, the fallback is a merge into printing_press.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: completion is polity-wide knowledge (D-044 R11).",
+    "unknownResource": "n/a: no deposit good is involved; research never places, reveals or proves a deposit (framework §6).",
+    "aiValuation": "MEASURED: valued only through AiResearchPolicy goal closures and the cheapest-available fallback; it reads no capability text and no unknown cell.",
+    "playerCommunication": "Research panel: knowledge only; the card names what it leads to. No action is listed (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "canal_navigation",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "infrastructure",
+   "rationale": "Summit-level freight canals with locks (Canal du Midi 1681; Bridgewater 1761). Kept at A7 in Engineering (A7-A9 sit in subtrees). Note for the corpus stage: Chinese summit canals came earlier (the Grand Canal's Huitong section 1289; Song Li's water supply 1411) - INFERENCE, not re-checked this session. Capability block corrected (no owner in the auto-fill).",
+   "changes": "none (capability block overridden)",
+   "capability": {
+    "grants": [
+     "knowledge:bulk inland transport at 1/4 road cost",
+     "knowledge:coal to cities",
+     "infrastructure:infra.navigation_canal"
+    ],
+    "realizationOwner": "Transport packet (DW-059, D08's shared owner for network edge types): a canal edge class beside the road classes",
+    "status": "deferred",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: class J - infra.navigation_canal listed, no realizing system.",
+    "deferredEffect": "A canal is a network edge class with its own speed and capacity (the road-class pattern, sim.json roads.classes). Transport is FROZEN (deferred-entity plan tier C); owner the transport packet (DW-059, unscheduled), as D08 records for every network edge type: M10+ unless ruled into T6.11.",
+    "inputs": {
+     "resources": [
+      "stone",
+      "timber"
+     ],
+     "geography": [
+      "a water supply at the summit level",
+      "terrain between two settlements"
+     ],
+     "infrastructure": [
+      "the route the canal serves"
+     ],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not buildable until a transport packet exists.",
+    "unknownResource": "n/a: stone, clay, timber and fiber are common deposit goods (D-051 §2 floor); fog limits where a polity knows them, never whether research reveals them (it does not).",
+    "aiValuation": "MEASURED: valued only as a prerequisite (goal closures, cheapest fallback). PROPOSED: give the entity no value until its realizing system exists (no phantom value for an unbuildable structure).",
+    "playerCommunication": "Research panel lists the navigation canal as 'eligible - not yet buildable (needs a transport ruling; M10+)' with the missing owner named; no construction button appears until a realizing system exists (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "cylinder_boring",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Wilkinson's 1774 boring mill: on the A8 core closure (steam_rotary) and the root of the machine-tool family.",
+   "changes": "none"
+  },
+  {
+   "id": "slide_rest_lathe",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Maudslay's screw-cutting lathe (~1,800 CE). Capability block corrected: a screw-thread standard is a technical norm, not an institution with founding, maturity and a consumer.",
+   "changes": "none (capability block overridden)",
+   "capability": {
+    "grants": [
+     "knowledge:precise screws",
+     "knowledge:standard threads",
+     "knowledge:every later machine",
+     "institution:inst.standard_threads"
+    ],
+    "realizationOwner": "InstitutionsSystem (T6.11, D-M) - D07 recommends reclassification",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "MEASURED: class J - inst.standard_threads listed, no realizing system; dependants interchangeable_parts, milling_machine.",
+    "deferredEffect": "T6.11 under D-M: inst.standard_threads fails the D-M institution shape (no founding, host, maturity or consumer). D07 recommends reclassifying it as knowledge on this node (Whitworth 1841, Sellers 1864); a standards body, if wanted, is a D12 civic-made institution.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: completion is polity-wide knowledge (D-044 R11).",
+    "unknownResource": "n/a: no deposit good is involved; research never places, reveals or proves a deposit (framework §6).",
+    "aiValuation": "MEASURED: valued only as a prerequisite (goal closures, cheapest fallback). PROPOSED: give the entity no value until its realizing system exists (no phantom value for an unbuildable structure).",
+    "playerCommunication": "Research panel lists standard screw threads as 'eligible - not yet buildable (under review in T6.11)' with the missing owner named; no construction button appears until a realizing system exists (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "interchangeable_parts",
+   "disposition": [
+    "rebalance"
+   ],
+   "nodeKind": "technique",
+   "rationale": "Causality fix and conflation fix. Interchangeable manufacture rests on precision machine tools, jigs and gauges (Blanc's musket locks 1785; the Portsmouth block mills 1803; Springfield and Harpers Ferry in the 1820s). Type founding was an analogy (identical parts from a matrix), not knowledge the armouries used (type_founding now precedes printing_press instead). The capability text also claimed 'mass production' and the 'Moving assembly line' (Ford 1913), a century-later organisational technique; those strings leave this 1820 node and are offered to automobile_mass (D08), which already bundles the assembly line. Kept as a hub: D08's bicycle and D09's breech_loading_rifle now require it.",
+   "changes": "prereq 'slide_rest_lathe AND type_founding' -> 'slide_rest_lathe'; prereq_complexity 0.5 -> 0.0; magnitude 7.5 -> 7.0; cost 16,730 -> 11,830; capability strings re-scoped.",
+   "prereq": "slide_rest_lathe",
+   "prereqRationale": "Precision machine tools with repeatable settings (slide_rest_lathe) plus fixtures and gauges, which are this node's own content.",
+   "factors": {
+    "novelty": 0.5,
+    "difficulty": 2.5,
+    "material": 1.5,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "costRationale": "novelty 0.5 unchanged (an extension of precision machining) · difficulty 2.5 unchanged (A8 prior) · material 1.5 unchanged (hardened gauges, jigs) · institutional 2.0 unchanged (A8 prior; armoury system) · breadth 0.5 unchanged (automobile_mass) · prereq_complexity 0.5 -> 0.0 (one requirement). Cost 16,730 -> 11,830.",
+   "compatibility": {
+    "saves": "Keys unchanged; saved progress at or above 11,830 completes next step with no RP.",
+    "ids": "unchanged",
+    "ui": "Lock reason drops type_founding; capability text changes.",
+    "ai": "Cheaper and earlier: AI goldens move only if an AI reaches A8 (none in the 300-turn pins).",
+    "consumers": "automobile_mass (D08) unchanged.",
+    "tests": "Chronology: 1,820 against slide_rest_lathe (1,800), passes; generation metadata (machine_tool 3) unchanged."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:gauge-and-jig manufacture of identical parts",
+     "knowledge:field repair",
+     "knowledge:the American system of manufactures"
+    ],
+    "realizationOwner": "none (knowledge only)",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class C - capability strings only ('mass production', 'field repair'; technique 'Moving assembly line'); dependant automobile_mass.",
+    "deferredEffect": "M10+: manufacturing productivity (lower labour per output in tool and machinery recipes) once industrial recipes exist.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: completion is polity-wide knowledge (D-044 R11).",
+    "unknownResource": "n/a: no deposit good is involved; research never places, reveals or proves a deposit (framework §6).",
+    "aiValuation": "MEASURED: valued only through AiResearchPolicy goal closures and the cheapest-available fallback; it reads no capability text and no unknown cell.",
+    "playerCommunication": "Research panel: knowledge only; the card names what it leads to. No action is listed (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "milling_machine",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Rotary multi-tooth cutter (~1818, North/Whitney); on the A9 core closure (internal_combustion).",
+   "changes": "none"
+  },
+  {
+   "id": "flying_shuttle",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Kay's 1733 shuttle. Its causal dependant becomes power_loom (automatic picking mechanises the flying shuttle); the jenny no longer requires it (that edge was demand, not knowledge).",
+   "changes": "none to the node (dependants change through spinning_jenny's and power_loom's records)"
+  },
+  {
+   "id": "spinning_jenny",
+   "disposition": [
+    "rebalance"
+   ],
+   "nodeKind": "application",
+   "rationale": "Causality fix. The jenny is a multi-spindle spinning wheel with a moving clamp (Hargreaves 1764). The flying shuttle created the demand (the yarn shortage), not the knowledge - an induced-innovation edge, removed.",
+   "changes": "prereq 'spinning_wheel AND flying_shuttle' -> 'spinning_wheel'; prereq_complexity 0.5 -> 0.0; magnitude 6.5 -> 6.0; cost 8,360 -> 5,910.",
+   "prereq": "spinning_wheel",
+   "prereqRationale": "spinning_wheel: drafting and twisting with a driven spindle, multiplied across eight spindles.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "costRationale": "novelty 1.0 unchanged · difficulty 2.5 unchanged (A8 prior) · material 0.0 unchanged · institutional 2.0 unchanged (A8 prior) · breadth 0.5 unchanged (spinning_mule) · prereq_complexity 0.5 -> 0.0 (one requirement). Cost 8,360 -> 5,910; spinning_mule rises by the same 2,450, so the chain's workload is conserved.",
+   "compatibility": {
+    "saves": "Keys unchanged; saved progress at or above 5,910 completes next step.",
+    "ids": "unchanged",
+    "ui": "Lock reason drops flying_shuttle.",
+    "ai": "No AI pin reaches A8.",
+    "consumers": "water_frame no longer needs it; spinning_mule now does.",
+    "tests": "Chronology: 1,764 against spinning_wheel (1,000), passes."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:thread x8 per worker"
+    ],
+    "realizationOwner": "none (knowledge only)",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class C - capability string only; dependant water_frame (D07: spinning_mule).",
+    "deferredEffect": "M10+: a productivity variant of the live weaving recipe (fiber -> cloth, laborPerOutput 0.1; cloth feeds the Comfort need). Needs a supersession rule: Crafting labour splits EQUALLY among available recipes (MEASURED ProductionSystem.cs:463-490), so a variant would share labour with baseline weaving instead of replacing it.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: completion is polity-wide knowledge (D-044 R11).",
+    "unknownResource": "n/a: no deposit good is involved; research never places, reveals or proves a deposit (framework §6).",
+    "aiValuation": "MEASURED: valued only through AiResearchPolicy goal closures and the cheapest-available fallback; it reads no capability text and no unknown cell.",
+    "playerCommunication": "Research panel: knowledge only; the card names what it leads to. No action is listed (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "water_frame",
+   "disposition": [
+    "rebalance"
+   ],
+   "nodeKind": "application",
+   "rationale": "Causality fix. Arkwright's frame combined roller drafting (Paul and Wyatt, 1738), the flyer-and-bobbin of the flyer spinning wheel and water power; it owes nothing to the jenny's moving carriage.",
+   "changes": "prereq 'spinning_jenny AND water_mill' -> 'spinning_wheel AND water_mill' (same count: prereq_complexity stays 0.5; cost unchanged 8,360). Capability block overridden.",
+   "prereq": "spinning_wheel AND water_mill",
+   "prereqRationale": "spinning_wheel: the flyer and bobbin (the frame is a mechanised flyer wheel with drafting rollers). water_mill: the prime mover that made the frame a factory machine.",
+   "compatibility": {
+    "saves": "Keys unchanged. A holder of spinning_jenny always holds spinning_wheel, so no availability is lost.",
+    "ids": "unchanged",
+    "ui": "Lock reason becomes spinning_wheel and water_mill.",
+    "ai": "No AI pin reaches A8.",
+    "consumers": "spinning_mule; building.textile_mill.",
+    "tests": "Chronology: 1,769 against 1,000 and -300, passes."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:cotton thread at industrial scale",
+     "knowledge:the factory system",
+     "building:building.textile_mill"
+    ],
+    "realizationOwner": "ConstructionSystem (project) + weaving-recipe capacity term (PROPOSED)",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "MEASURED: class J - building.textile_mill ('water_frame OR power_loom') listed, unrealized; dependant spinning_mule.",
+    "deferredEffect": "T6.11 tier D (PROPOSED): the textile mill as a per-building capacity term on the live weaving recipe (with fiber and power inputs), the same shape as the fulling mill. Blocker: no per-building production-capacity term exists. M10+: a productivity variant of the live weaving recipe (fiber -> cloth, laborPerOutput 0.1; cloth feeds the Comfort need). Needs a supersession rule: Crafting labour splits EQUALLY among available recipes (MEASURED ProductionSystem.cs:463-490), so a variant would share labour with baseline weaving instead of replacing it.",
+    "inputs": {
+     "resources": [
+      "fiber",
+      "timber",
+      "stone"
+     ],
+     "geography": [
+      "river with usable fall (water power)"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not buildable until T6.11; useless without fiber supply and water power.",
+    "unknownResource": "n/a: stone, clay, timber and fiber are common deposit goods (D-051 §2 floor); fog limits where a polity knows them, never whether research reveals them (it does not).",
+    "aiValuation": "MEASURED: valued only as a prerequisite (goal closures, cheapest fallback). PROPOSED: give the entity no value until its realizing system exists (no phantom value for an unbuildable structure).",
+    "playerCommunication": "Research panel lists the textile mill as 'eligible - not yet buildable (planned: T6.11)' with the missing owner named; no construction button appears until a realizing system exists (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "spinning_mule",
+   "disposition": [
+    "rebalance"
+   ],
+   "nodeKind": "application",
+   "rationale": "Causality fix. Crompton's mule (1779) combined the jenny's moving carriage with the frame's drafting rollers; both are causal, so both are required.",
+   "changes": "prereq 'water_frame' -> 'spinning_jenny AND water_frame'; prereq_complexity 0.0 -> 0.5; magnitude 6.0 -> 6.5; cost 5,910 -> 8,360.",
+   "prereq": "spinning_jenny AND water_frame",
+   "prereqRationale": "spinning_jenny: the moving carriage that drafts and twists. water_frame: the roller drafting. The mule is literally their hybrid.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "costRationale": "novelty 1.0 unchanged · difficulty 2.5 unchanged (A8 prior) · material 0.0 unchanged · institutional 2.0 unchanged (A8 prior) · breadth 0.5 unchanged (fine counts) · prereq_complexity 0.0 -> 0.5 (two requirements). Cost 5,910 -> 8,360, offsetting the jenny's reduction.",
+   "compatibility": {
+    "saves": "Keys unchanged. A holder of water_frame without spinning_jenny sees the node become unavailable: partial progress dormant until the jenny completes.",
+    "ids": "unchanged",
+    "ui": "Lock reason adds spinning_jenny.",
+    "ai": "No AI pin reaches A8.",
+    "consumers": "power_loom no longer requires it.",
+    "tests": "Chronology: 1,779 against 1,764 and 1,769, passes."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:fine cotton competitive with India"
+    ],
+    "realizationOwner": "none (knowledge only)",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class C - capability string only; dependant power_loom (removed by D07: the mule spins, the loom weaves).",
+    "deferredEffect": "No dependant after D07's edits. M10+: a productivity variant of the live weaving recipe (fiber -> cloth, laborPerOutput 0.1; cloth feeds the Comfort need). Needs a supersession rule: Crafting labour splits EQUALLY among available recipes (MEASURED ProductionSystem.cs:463-490), so a variant would share labour with baseline weaving instead of replacing it. Engineering-subtree finite node: it also gates the engineering repeatables through the exhaustion rule (MEASURED ResearchQuery.cs:99-116).",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: completion is polity-wide knowledge (D-044 R11).",
+    "unknownResource": "n/a: no deposit good is involved; research never places, reveals or proves a deposit (framework §6).",
+    "aiValuation": "MEASURED: valued only through AiResearchPolicy goal closures and the cheapest-available fallback; it reads no capability text and no unknown cell.",
+    "playerCommunication": "Research panel: knowledge only; the card names what it leads to. No action is listed (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "power_loom",
+   "disposition": [
+    "rebalance"
+   ],
+   "nodeKind": "application",
+   "rationale": "Causality fix plus an alternative route. A power loom mechanises Kay's picking (the flying shuttle's picker and shuttle race) and needs a prime mover - steam (Cartwright 1785; practical looms by ~1820) or water (the Waltham-Lowell mills from 1814). The mule spins yarn: an economic predecessor, not knowledge.",
+   "changes": "prereq 'spinning_mule AND steam_rotary' -> 'flying_shuttle AND (water_mill OR steam_rotary)' (same count: prereq_complexity stays 0.5; cost unchanged 14,070). Capability block overridden.",
+   "prereq": "flying_shuttle AND (water_mill OR steam_rotary)",
+   "prereqRationale": "flying_shuttle: automatic picking. The OR is the prime mover: water (Lowell) or steam (Lancashire), genuinely different historical routes; cost unchanged.",
+   "compatibility": {
+    "saves": "Keys unchanged. A holder of spinning_mule AND steam_rotary without flying_shuttle cannot exist (the old chain required it), so nothing goes dormant.",
+    "ids": "unchanged",
+    "ui": "Lock reason becomes flying_shuttle and a power source.",
+    "ai": "Reachable before steam_rotary through water_mill; no AI pin reaches A8.",
+    "consumers": "building.textile_mill (unrealized).",
+    "tests": "Chronology: must-hold atom flying_shuttle (1,733) before 1,785, passes (OR atoms are not read)."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:cloth at industrial scale",
+     "building:building.textile_mill"
+    ],
+    "realizationOwner": "ConstructionSystem (project) + weaving-recipe capacity term (PROPOSED)",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "MEASURED: class J - building.textile_mill (OR with water_frame) listed, unrealized; no dependant.",
+    "deferredEffect": "As water_frame: T6.11 tier D capacity term on the weaving recipe. M10+: a productivity variant of the live weaving recipe (fiber -> cloth, laborPerOutput 0.1; cloth feeds the Comfort need). Needs a supersession rule: Crafting labour splits EQUALLY among available recipes (MEASURED ProductionSystem.cs:463-490), so a variant would share labour with baseline weaving instead of replacing it.",
+    "inputs": {
+     "resources": [
+      "fiber",
+      "timber",
+      "stone"
+     ],
+     "geography": [
+      "river with usable fall, or a steam engine"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not buildable until T6.11.",
+    "unknownResource": "n/a: stone, clay, timber and fiber are common deposit goods (D-051 §2 floor); fog limits where a polity knows them, never whether research reveals them (it does not).",
+    "aiValuation": "MEASURED: valued only as a prerequisite (goal closures, cheapest fallback). PROPOSED: give the entity no value until its realizing system exists (no phantom value for an unbuildable structure).",
+    "playerCommunication": "Research panel lists the textile mill as 'eligible - not yet buildable (planned: T6.11)' with the missing owner named; no construction button appears until a realizing system exists (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "cotton_gin_saw",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Whitney's 1793 gin made upland short-staple cotton economic and drove the expansion of plantation slavery: high educational weight. A justified dead end: the mechanised spinning machines (1764-1779) predate it and need no saw gin, so no causal dependant exists in the tree.",
+   "changes": "none (capability block overridden: dead-end justification)",
+   "capability": {
+    "grants": [
+     "knowledge:short-staple cotton economic"
+    ],
+    "realizationOwner": "none until a fibre-processing recipe exists",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: class C - no dependant (dead end).",
+    "deferredEffect": "M10+: a ginning recipe that turns a cotton crop into usable fiber (D01 proposes the crop node cotton_cultivation; no ginning recipe or fiber-quality state exists). Engineering-subtree finite node: it gates the engineering repeatables through the exhaustion rule.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: completion is polity-wide knowledge (D-044 R11).",
+    "unknownResource": "n/a: no deposit good is involved; research never places, reveals or proves a deposit (framework §6).",
+    "aiValuation": "MEASURED: valued only through AiResearchPolicy goal closures and the cheapest-available fallback; it reads no capability text and no unknown cell.",
+    "playerCommunication": "Research panel: knowledge only; the card names what it leads to. No action is listed (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "jacquard",
+   "disposition": [
+    "rebalance"
+   ],
+   "nodeKind": "application",
+   "rationale": "Causality fix. The Jacquard head automates the drawloom's figure harness, the drawboy's job (Bouchon 1725, Falcon 1728, Vaucanson 1745, Jacquard 1804), so it requires the new drawloom; punched cards need paper. The dead end is resolved outside D07: D05's new punched_card_tabulation (Hollerith 1889-1890) requires jacquard, and jacquard remains the MEASURED condition of computer's evaluable Eureka ('Punched-card control is known').",
+   "changes": "prereq 'horizontal_loom AND paper' -> 'drawloom AND paper' (drawloom implies horizontal_loom; same count: prereq_complexity stays 0.5; cost unchanged 9,950).",
+   "prereq": "drawloom AND paper",
+   "prereqRationale": "drawloom: the figure harness the punched cards select. paper: the cards (pasteboard) and Bouchon's perforated paper roll.",
+   "compatibility": {
+    "saves": "Keys unchanged. A holder of horizontal_loom AND paper without drawloom sees jacquard become unavailable: partial progress dormant until drawloom (2,960 RP) completes.",
+    "ids": "unchanged",
+    "ui": "Lock reason becomes drawloom and paper.",
+    "ai": "No AI pin reaches A8.",
+    "consumers": "computer's Eureka condition unchanged (still evaluable, not implied, not dead).",
+    "tests": "ResearchContentTests' Eureka pins unchanged; chronology: 1,804 against drawloom (-150) and paper (-100), passes."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:complex patterns without a drawboy",
+     "knowledge:stored program (concept)"
+    ],
+    "realizationOwner": "none (knowledge only); ResearchSystem reads it as computer's Eureka condition",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class C - no dependant today; it is the knowledge condition of computer's evaluable Eureka (weight 0.4).",
+    "deferredEffect": "Dependant (D05, PROPOSED): punched_card_tabulation ('jacquard AND telegraph'). Realization M10+: a figured-textile recipe variant.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: completion is polity-wide knowledge (D-044 R11).",
+    "unknownResource": "n/a: no deposit good is involved; research never places, reveals or proves a deposit (framework §6).",
+    "aiValuation": "MEASURED: valued only through AiResearchPolicy goal closures and the cheapest-available fallback; it reads no capability text and no unknown cell.",
+    "playerCommunication": "Research panel: knowledge only; the card names what it leads to. No action is listed (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "reinforced_concrete",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "technique",
+   "rationale": "Monier 1867 / Hennebique 1892. The node is unchanged, but infra.sewerage_system no longer names it (19th-century sewerage used brick and Portland cement; see sanitary_engineering), and skyscraper no longer requires it (the first steel-frame skyscrapers used none). Its motor_road edge and pinned string are untouched.",
+   "changes": "none to the node; entity consumer infra.sewerage_system moves to sanitary_engineering (entityRequirementChanges); dependant skyscraper removed through that record; capability block overridden.",
+   "compatibility": {
+    "saves": "Keys unchanged; holders lose infra.sewerage_system eligibility unless they also hold sanitary_engineering (an unrealized entity: no gameplay effect today; alias seam OPEN).",
+    "ids": "unchanged",
+    "ui": "The sewerage entity leaves its card.",
+    "ai": "Unchanged: motor_road (road goal) still requires it.",
+    "consumers": "motor_road, hydroelectric, high_speed_rail unchanged; RoadDevelopmentTests' T33 (motor_road depth = 1 + reinforced_concrete depth) unaffected by D07 (its prerequisites are unchanged).",
+    "tests": "Unlock audit and --check docs regenerate (reverse-index edit)."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:frames, bridges, high-rise"
+    ],
+    "realizationOwner": "none (knowledge only)",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class J - infra.sewerage_system ('germ_theory AND reinforced_concrete') listed, unrealized; dependants high_speed_rail, hydroelectric, motor_road (its road class infra.road_highway is realized), skyscraper.",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: completion is polity-wide knowledge (D-044 R11).",
+    "unknownResource": "n/a: no deposit good is involved; research never places, reveals or proves a deposit (framework §6).",
+    "aiValuation": "MEASURED: valued only through AiResearchPolicy goal closures and the cheapest-available fallback; it reads no capability text and no unknown cell.",
+    "playerCommunication": "Research panel: knowledge only; the card names what it leads to. No action is listed (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "skyscraper",
+   "disposition": [
+    "rebalance"
+   ],
+   "nodeKind": "infrastructure",
+   "rationale": "Causality fix. The Chicago steel frame (Home Insurance Building 1885) grew out of iron-framed mills and halls (Ditherington 1797, the 'grandfather of skyscrapers'; Crystal Palace 1851): structural iron, cheap structural steel and electric elevators. Reinforced concrete (Hennebique 1892) was not part of the first steel-frame skyscrapers, and it made bessemer a redundant conjunct.",
+   "changes": "prereq 'bessemer AND electric_motor AND reinforced_concrete' -> 'structural_iron AND bessemer AND electric_motor' (three requirements: prereq_complexity stays 1.0; cost unchanged 66,910). Capability block overridden.",
+   "prereq": "structural_iron AND bessemer AND electric_motor",
+   "prereqRationale": "structural_iron: the frame and its connections; bessemer: cheap rolled structural steel; electric_motor: electric elevators, which carried buildings beyond the height steam and hydraulic lifts allowed.",
+   "compatibility": {
+    "saves": "Keys unchanged. A holder of bessemer, electric_motor and reinforced_concrete without structural_iron sees the node become unavailable: partial progress dormant until structural_iron completes.",
+    "ids": "unchanged",
+    "ui": "Lock reason replaces reinforced_concrete with structural_iron.",
+    "ai": "No AI pin reaches A9.",
+    "consumers": "building.skyscraper (unrealized).",
+    "tests": "Chronology: 1,885 against structural_iron (1,779), bessemer (1,856), electric_motor (1,885), passes."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:density without sprawl",
+     "building:building.skyscraper"
+    ],
+    "realizationOwner": "ConstructionSystem (project) + housing capacity (none yet)",
+    "status": "deferred",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: class J - building.skyscraper listed, no realizing system.",
+    "deferredEffect": "T6.11 lists tier G, but no consumer equation exists: HousingSystem dwellings have no land or density limit (MEASURED HousingSystem.cs), so a skyscraper would change nothing. M10+, with an urban density or land-rent mechanism.",
+    "inputs": {
+     "resources": [
+      "stone",
+      "timber"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not buildable; no iron or steel goods exist, so the frame itself is unrealizable before M11+ goods.",
+    "unknownResource": "No iron-ore or coal good exists (MEASURED: 14 goods); research never reveals deposits.",
+    "aiValuation": "MEASURED: valued only as a prerequisite (goal closures, cheapest fallback). PROPOSED: give the entity no value until its realizing system exists (no phantom value for an unbuildable structure).",
+    "playerCommunication": "Research panel lists the skyscraper as 'eligible - not yet buildable (needs an urban density mechanism; M10+)' with the missing owner named; no construction button appears until a realizing system exists (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "numerical_control",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "NC machine tools (1952) and industrial robots (1961). A split into NC and robotics was rejected: neither part has a consumer, so a split would add a dead end.",
+   "changes": "none"
+  },
+  {
+   "id": "desalination",
+   "disposition": [
+    "rebalance"
+   ],
+   "nodeKind": "application",
+   "rationale": "Missing knowledge. Fresh water from seawater needs a separation process: thermal distillation (multi-stage flash in the 1950s, built into dual-purpose power plants) or polymer membranes (reverse osmosis in the 1960s). Electricity alone desalinates nothing.",
+   "changes": "prereq 'electricity_generation' -> 'electricity_generation AND (distillation OR plastics)'; prereq_complexity 0.0 -> 0.5; magnitude 7.0 -> 7.5; cost 11,830 -> 16,730. Capability block overridden.",
+   "prereq": "electricity_generation AND (distillation OR plastics)",
+   "prereqRationale": "electricity_generation: power and the dual-purpose plants that host thermal desalination. The OR is the separation process: distillation (multi-stage flash) or plastics (polymer reverse-osmosis membranes), genuinely different technologies.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "costRationale": "novelty 1.0 unchanged · difficulty 3.0 unchanged (A9 prior) · material 0.0 unchanged · institutional 2.5 unchanged (A9 prior) · breadth 0.5 unchanged (one plant class) · prereq_complexity 0.0 -> 0.5 (two requirements: power and a separation process). Cost 11,830 -> 16,730.",
+   "compatibility": {
+    "saves": "Keys unchanged; partial progress dormant for holders of electricity_generation without distillation or plastics (distillation is A5 trunk, so practically none).",
+    "ids": "unchanged",
+    "ui": "Lock reason adds the separation process.",
+    "ai": "No AI pin reaches A9.",
+    "consumers": "building.desalination_plant (unrealized).",
+    "tests": "emerged '1950s flash; 1960s reverse osmosis' carries no era marker (one of the 83), so the chronology test does not read it - unchanged on purpose."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:water supply independent of rivers and rain",
+     "building:building.desalination_plant"
+    ],
+    "realizationOwner": "ConstructionSystem (project) + per-settlement water/health term (PROPOSED)",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "MEASURED: class J - building.desalination_plant listed, no realizing system.",
+    "deferredEffect": "T6.11 tier G (PROPOSED): a plant feeding the same water-supply term as wells and aqueducts (health seam), for coastal settlements; meaningful only once that term exists (else M9).",
+    "inputs": {
+     "resources": [
+      "stone",
+      "timber"
+     ],
+     "geography": [
+      "coastline (seawater)"
+     ],
+     "infrastructure": [
+      "power supply (infra.power_grid, unrealized)"
+     ],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not buildable until T6.11; inland settlements cannot use it.",
+    "unknownResource": "n/a: seawater is geography, not a deposit good.",
+    "aiValuation": "MEASURED: valued only as a prerequisite (goal closures, cheapest fallback). PROPOSED: give the entity no value until its realizing system exists (no phantom value for an unbuildable structure).",
+    "playerCommunication": "Research panel lists the desalination plant as 'eligible - not yet buildable (planned: T6.11)' with the missing owner named; no construction button appears until a realizing system exists (ADR-033: only actions that exist are listed)."
+   }
+  },
+  {
+   "id": "additive_manufacturing",
+   "disposition": [
+    "rebalance"
+   ],
+   "nodeKind": "application",
+   "rationale": "Redundant-requirement fix: computer is implied by numerical_control. A justified dead end: manufacturing productivity has no owner before M11+ industries.",
+   "changes": "prereq 'numerical_control AND plastics AND computer' -> 'numerical_control AND plastics'; prereq_complexity 1.0 -> 0.5; magnitude 7.5 -> 7.0; cost 16,730 -> 11,830.",
+   "prereq": "numerical_control AND plastics",
+   "prereqRationale": "numerical_control: digitally controlled motion (and, through it, the computer). plastics: the first printed material (stereolithography resins).",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.0,
+    "prereq_complexity": 0.5
+   },
+   "costRationale": "novelty 1.0 unchanged · difficulty 3.0 unchanged (A9 prior) · material 0.0 unchanged · institutional 2.5 unchanged (A9 prior) · breadth 0.0 unchanged (no dependant) · prereq_complexity 1.0 -> 0.5 (two independent requirements; computer is implied). Cost 16,730 -> 11,830.",
+   "compatibility": {
+    "saves": "Keys unchanged; saved progress at or above 11,830 completes next step.",
+    "ids": "unchanged",
+    "ui": "Lock reason drops computer.",
+    "ai": "No AI pin reaches A9.",
+    "consumers": "none.",
+    "tests": "emerged '1986' is unmarked (one of the 83); left unchanged so that pin is unaffected."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:complex parts without tooling"
+    ],
+    "realizationOwner": "none until M11+ industries",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: class C - no dependant (dead end).",
+    "deferredEffect": "M10+ (M11+ industries): a tooling-free variant of machinery and parts recipes. Engineering-subtree finite node: it gates the engineering repeatables through the exhaustion rule.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: completion is polity-wide knowledge (D-044 R11).",
+    "unknownResource": "n/a: no deposit good is involved; research never places, reveals or proves a deposit (framework §6).",
+    "aiValuation": "MEASURED: valued only through AiResearchPolicy goal closures and the cheapest-available fallback; it reads no capability text and no unknown cell.",
+    "playerCommunication": "Research panel: knowledge only; the card names what it leads to. No action is listed (ADR-033: only actions that exist are listed)."
+   }
+  }
+ ],
+ "new": [
+  {
+   "id": "ashlar_masonry",
+   "name": "Ashlar (dressed-stone) masonry",
+   "branch": "trunk",
+   "age": "A3",
+   "domain": "construction",
+   "secondaryDomains": [
+    "materials"
+   ],
+   "emerged": "~2,650 BCE Egypt (Djoser's step pyramid, Saqqara); ~600 BCE Greek temples; ~1,450 CE Inca Andes (independent)",
+   "prereq": "stone_dry AND copper_smelting",
+   "prereqRationale": "Dressing stone to true faces needs a masonry tradition (stone_dry: fitted walls and megaliths) and metal cutting tools: Old Kingdom masons cut limestone with copper chisels and sand-fed copper saws. Land surveying is not a requirement of the technique - and its anchor (~2,500 BCE) postdates Djoser; the fortification layout keeps surveying.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.0,
+    "material": 0.75,
+    "institutional": 0.75,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "costAnalog": "fired_brick (A3: 1.0/1.0/0.75/1.25/1.0/0.5) with institutional at the A3 prior (0.75)",
+   "costRationale": "novelty 1.0: a typical advance on dry stone (true faces, coursing) · difficulty 1.0: A3 prior · material 0.75: copper chisels and abrasive saws, quarrying · institutional 0.75: A3 prior (state works crews) · breadth 1.0: fortification, dressed-stone bridges and vaults, lighthouse · prereq_complexity 0.5: two requirements. Magnitude 5.0 -> 2,960 RP.",
+   "nodeKind": "technique",
+   "primaryUniversity": "engineering",
+   "unlocks": {
+    "capabilities": [
+     "dressed-stone walls, temples and towers",
+     "stone voussoirs for arches, bridges and vaults"
+    ],
+    "buildings": [
+     "building.lighthouse"
+    ]
+   },
+   "capability": {
+    "grants": [
+     "knowledge:dressed-stone walls, temples and towers",
+     "knowledge:stone voussoirs for arches, bridges and vaults",
+     "building:building.lighthouse"
+    ],
+    "realizationOwner": "ConstructionSystem (lighthouse project) + maritime routes (none yet)",
+    "status": "deferred",
+    "milestone": "M10+",
+    "currentEffect": "None today (new node, PROPOSED). On completion: building.lighthouse becomes knowledge-eligible (re-pointed from stone_fortification); stone_fortification becomes available with surveying; it is an OR material for bridge_stone and vault_dome.",
+    "deferredEffect": "building.lighthouse: its consumer is sea routes and shipping, which do not exist (activity.coastal_shipping is unrealized) - M10+. Construction alone could ride T6.11 tier B but would have no consumer.",
+    "inputs": {
+     "resources": [
+      "stone",
+      "tools"
+     ],
+     "geography": [
+      "building-stone deposit (stone good, elevation channel)"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Knowledge is polity-wide; building in dressed stone consumes stone, which a stoneless settlement must import.",
+    "unknownResource": "n/a: stone, clay, timber and fiber are common deposit goods (D-051 §2 floor); fog limits where a polity knows them, never whether research reveals them (it does not).",
+    "aiValuation": "PROPOSED: value it as the prerequisite of stone_fortification and the alternative route to bridges and vaults; no value for the unrealized lighthouse.",
+    "playerCommunication": "Ashlar masonry: cut-stone building. Opens fortification and lets stone bridges and vaults be built without concrete; the lighthouse is eligible, not yet buildable."
+   },
+   "family": "stone_building",
+   "splitFrom": "stone_fortification",
+   "whyDistinct": "The monumental cut-stone tradition (Egyptian pyramids and temples, Greek temples, Inca walls) is a construction capability distinct from military fortification, and civil structures need it: lighthouses, dressed-stone bridges and vaults. It was hidden inside 'Ashlar fortification', so civil building waited on military architecture.",
+   "acceptanceTest": "Content: trunk, A3, prereq 'stone_dry AND copper_smelting', cost 2,960 = round(92.4 x 2^5.0); building.lighthouse.requires == 'ashlar_masonry' with the reverse-index unlocks; stone_fortification.prereq == 'ashlar_masonry AND surveying'; bridge_stone and vault_dome list it in their OR groups; D047 chronology passes (-2,650 vs -10,000 and -5,000; stone_fortification -1,300 >= -2,650).",
+   "eurekas": [],
+   "generation": null,
+   "universityRelevance": [
+    {
+     "type": 3,
+     "name": "Engineering",
+     "role": "primary"
+    }
+   ]
+  },
+  {
+   "id": "drawloom",
+   "name": "Pattern loom (drawloom)",
+   "branch": "trunk",
+   "age": "A5",
+   "domain": "industry",
+   "secondaryDomains": [],
+   "emerged": "~150 BCE China (Laoguanshan pattern-loom models, Chengdu, for jin silk); drawloom with a figure harness perfected by ~700 CE (Tang China); later Byzantine, Islamic and Italian figured silks",
+   "prereq": "silk AND horizontal_loom",
+   "prereqRationale": "Figured weaving stores the pattern in the loom's harness (many pattern heddles, later a drawn figure harness) on a treadle loom (horizontal_loom). It was developed for silk (silk), whose fine, strong filaments allow the dense warps that figured jin and later damask need.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.5,
+    "material": 0.75,
+    "institutional": 1.25,
+    "breadth": 0.0,
+    "prereq_complexity": 0.5
+   },
+   "costAnalog": "noria (A5: identical profile 1.0/1.5/0.75/1.25/0.0/0.5)",
+   "costRationale": "novelty 1.0: a typical advance (pattern storage in the harness) · difficulty 1.5: A5 prior · material 0.75: multi-heddle harness, silk warps · institutional 1.25: A5 prior (state and royal silk workshops of Shu) · breadth 0.0: one dependant (jacquard) · prereq_complexity 0.5: two requirements. Magnitude 5.0 -> 2,960 RP.",
+   "nodeKind": "application",
+   "primaryUniversity": "engineering",
+   "unlocks": {
+    "capabilities": [
+     "figured (pattern-woven) silk and damask",
+     "a loom that stores a pattern in its harness"
+    ]
+   },
+   "capability": {
+    "grants": [
+     "knowledge:figured (pattern-woven) silk and damask",
+     "knowledge:a loom that stores a pattern in its harness"
+    ],
+    "realizationOwner": "none (knowledge only)",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "None today (new node, PROPOSED): knowledge only; prerequisite of jacquard; the first dependant of silk.",
+    "deferredEffect": "M10+: a figured-textile (luxury cloth) recipe variant or trade good on the Comfort ladder; no such good exists.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: completion is polity-wide knowledge (D-044 R11).",
+    "unknownResource": "n/a: no deposit good is involved; research never places, reveals or proves a deposit (framework §6).",
+    "aiValuation": "PROPOSED: valued only as jacquard's prerequisite (closure cost).",
+    "playerCommunication": "Pattern loom: the loom that stores a woven pattern, which Jacquard later automated. Knowledge only."
+   },
+   "family": "textile",
+   "whyDistinct": "It is the causal link the tree lacked. Jacquard's head automated the drawloom's figure harness (Bouchon 1725, Falcon 1728, Vaucanson 1745, Jacquard 1804), so jacquard needs it. It gives sericulture its first dependant (silk was a dead end), and it records the Han pattern looms of ~150 BCE, among the earliest machines that store a pattern.",
+   "acceptanceTest": "Content: trunk, A5, prereq 'silk AND horizontal_loom', cost 2,960; jacquard.prereq == 'drawloom AND paper'; silk lists drawloom as a dependant; D047 chronology passes (-150 vs silk -3,500 and horizontal_loom -150; jacquard 1,804 >= -150).",
+   "eurekas": [],
+   "generation": null,
+   "splitFrom": null,
+   "universityRelevance": [
+    {
+     "type": 3,
+     "name": "Engineering",
+     "role": "primary"
+    }
+   ]
+  },
+  {
+   "id": "structural_iron",
+   "name": "Structural iron (iron-framed buildings and bridges)",
+   "branch": "engineering",
+   "age": "A8",
+   "domain": "construction",
+   "secondaryDomains": [
+    "materials"
+   ],
+   "emerged": "1779 CE Coalbrookdale (the Iron Bridge); 1797 CE Shrewsbury (Ditherington flax mill, the first iron-framed building); 1851 CE London (Crystal Palace)",
+   "prereq": "coke",
+   "prereqRationale": "Large structural castings became affordable with coke-smelted iron (Darby's Coalbrookdale works cast the Iron Bridge). The new content is the frame and bridge knowledge itself. Wrought-iron tension members (puddling) refined it later but were not needed for the first iron bridge and frames.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 1.5,
+    "institutional": 2.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.0
+   },
+   "costAnalog": "electric_motor (A8: identical profile 1.0/2.5/1.5/2.0/1.0/0.0)",
+   "costRationale": "novelty 1.0: iron replaces timber and masonry in known structural forms · difficulty 2.5: A8 prior · material 1.5: large castings and, later, rolled sections · institutional 2.0: A8 prior · breadth 1.0: bridges, mills, halls and the steel frame · prereq_complexity 0.0: one requirement. Magnitude 8.0 -> 23,650 RP.",
+   "nodeKind": "technique",
+   "primaryUniversity": "engineering",
+   "unlocks": {
+    "capabilities": [
+     "iron bridges",
+     "fire-resistant iron-framed mills and halls",
+     "prefabricated iron-and-glass buildings"
+    ]
+   },
+   "capability": {
+    "grants": [
+     "knowledge:iron bridges",
+     "knowledge:fire-resistant iron-framed mills and halls",
+     "knowledge:prefabricated iron-and-glass buildings"
+    ],
+    "realizationOwner": "none (knowledge only)",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "None today (new node, PROPOSED): knowledge only; prerequisite of skyscraper.",
+    "deferredEffect": "M10+: iron bridges as a later class of infra.bridge (with the Director-ruled transport packet) and fire resistance of buildings; no iron good exists (MEASURED: 14 goods).",
+    "inputs": {
+     "resources": [
+      "iron (no good exists)",
+      "coal or coke (no good exists)"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Knowledge only today; any realization needs iron goods that do not exist, so nothing is buildable from it before M11+ goods.",
+    "unknownResource": "No iron-ore or coal good exists; realization waits for M11+ goods and D11's identification design. The node never reveals a deposit.",
+    "aiValuation": "PROPOSED: valued as skyscraper's prerequisite (closure cost).",
+    "playerCommunication": "Structural iron: iron bridges and iron-framed buildings. Knowledge only; leads to the steel-frame skyscraper."
+   },
+   "eurekas": [
+    {
+     "text": "A great fire destroys a timber-floored mill or warehouse",
+     "kind": "world event",
+     "class": "future-system:world events",
+     "weight": 0.4,
+     "evaluable_now": false,
+     "justification": "Iron framing spread as fire-proofing: the Albion Mills in London burned in 1791, and Bage's Ditherington mill of 1797 used cast-iron beams and columns with brick jack arches precisely to resist mill fires. INFERENCE for the causal weight; the dates are standard."
+    }
+   ],
+   "family": null,
+   "whyDistinct": "Iron as a structural material (bridges 1779, frames 1797, prefabricated halls 1851) is the missing step between cheap cast iron (coke) and the steel-frame skyscraper. The tree jumped there through reinforced concrete, which the first skyscrapers did not use.",
+   "acceptanceTest": "Content: engineering, A8, prereq 'coke', cost 23,650; skyscraper.prereq == 'structural_iron AND bessemer AND electric_motor'; the Eureka is future-system (not evaluable, so no order-less golden moves); D047 chronology passes (1,779 vs coke 1,709; skyscraper 1,885 >= 1,779).",
+   "generation": null,
+   "splitFrom": null,
+   "universityRelevance": [
+    {
+     "type": 3,
+     "name": "Engineering",
+     "role": "primary"
+    }
+   ]
+  },
+  {
+   "id": "sanitary_engineering",
+   "name": "Sanitary engineering (sewerage and filtered water)",
+   "branch": "engineering",
+   "age": "A8",
+   "domain": "infrastructure",
+   "secondaryDomains": [
+    "construction"
+   ],
+   "emerged": "1829 CE London (Chelsea slow-sand filter, James Simpson); from 1843 CE Hamburg (William Lindley's sewers after the 1842 fire); 1859-1875 CE London (Bazalgette's main drainage)",
+   "prereq": "steam_rotary AND fired_brick",
+   "prereqRationale": "A water-carriage sanitation network is brick conduits (egg-shaped sewers: fired_brick) plus steam pumping for mains pressure and the low-level lift of sewage (steam_rotary, which also brings cast-iron pipe-making). Germ theory is NOT a prerequisite: Hamburg (1843) and London (1859-1875) were built under miasma theory, and slow-sand filtration (1829) predates it too.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.75,
+    "institutional": 2.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "costAnalog": "reinforced_concrete (A8: 1.0/2.5/1.5/2.0/1.0/0.5) with material 0.75: brick and cast-iron pipe, not a new material",
+   "costRationale": "novelty 1.0: a typical advance (water carriage on a network) · difficulty 2.5: A8 prior · material 0.75: brick, hydraulic mortar, cast-iron mains, filter beds · institutional 2.0: A8 prior (municipal works boards) · breadth 1.0: sewerage, storm drainage, filtered water supply · prereq_complexity 0.5: two requirements. Magnitude 7.75 -> 19,890 RP.",
+   "nodeKind": "infrastructure",
+   "primaryUniversity": "engineering",
+   "universityRelevance": [
+    {
+     "type": 3,
+     "name": "Engineering",
+     "role": "primary"
+    },
+    {
+     "type": 2,
+     "name": "Medical",
+     "role": "secondary"
+    }
+   ],
+   "unlocks": {
+    "capabilities": [
+     "water-carriage sewerage and storm drainage",
+     "filtered, pressurised municipal water supply"
+    ],
+    "infrastructure": [
+     "infra.sewerage_system"
+    ]
+   },
+   "capability": {
+    "grants": [
+     "knowledge:water-carriage sewerage and storm drainage",
+     "knowledge:filtered, pressurised municipal water supply",
+     "infrastructure:infra.sewerage_system"
+    ],
+    "realizationOwner": "ConstructionSystem (project) + per-settlement health seam (PROPOSED term)",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "None today (new node, PROPOSED). On completion: infra.sewerage_system becomes knowledge-eligible (re-pointed from 'germ_theory AND reinforced_concrete').",
+    "deferredEffect": "T6.11 tier C (PROPOSED): a built network whose consumer is a bounded coverage term in THE per-settlement health seam (InstitutionEffects.MortalityMultiplier; today medical universities only), otherwise M9 (disease and public health). Adoption and funding go through a public-health institution (D12's public_health_board), never through an eligibility edge.",
+    "inputs": {
+     "resources": [
+      "clay (fired brick)",
+      "timber",
+      "stone"
+     ],
+     "geography": [
+      "a river or sea outfall"
+     ],
+     "infrastructure": [
+      "a piped water source"
+     ],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but not buildable until T6.11 realizes it; when built it consumes brick-making clay and timber, which a settlement without them must import.",
+    "unknownResource": "n/a: stone, clay, timber and fiber are common deposit goods (D-051 §2 floor); fog limits where a polity knows them, never whether research reveals them (it does not).",
+    "aiValuation": "PROPOSED: value it from the polity's own urban health burden once the health term exists (never from unknown cells); before that only its closure.",
+    "playerCommunication": "Sanitary engineering: sewers and filtered water. 'Sewerage and clean water' is eligible, not yet buildable (planned: T6.11)."
+   },
+   "eurekas": [
+    {
+     "text": "A cholera epidemic or great fire strikes a large city",
+     "kind": "world event",
+     "class": "future-system:world events",
+     "weight": 0.4,
+     "evaluable_now": false,
+     "justification": "Hamburg's 1842 fire opened the way for Lindley's sewers; London's cholera epidemics (1832-1866) and the 1858 'Great Stink' produced Bazalgette's main drainage. RESEARCHED dates; the causal reading is standard."
+    }
+   ],
+   "family": "water_supply",
+   "whyDistinct": "Sanitation engineering, a D07 domain the tree lacked, is distinct from medicine (germ theory) and from a material (reinforced concrete). The current requirement of infra.sewerage_system ('germ_theory AND reinforced_concrete') is anachronistic for the 1829-1875 systems, which used brick, Portland cement and steam pumps under miasma theory.",
+   "acceptanceTest": "Content: engineering, A8, prereq 'steam_rotary AND fired_brick', cost 19,890; infra.sewerage_system.requires == 'sanitary_engineering' with the reverse-index unlocks (germ_theory and reinforced_concrete no longer list it); D047 chronology passes (1,829 vs steam_rotary 1,781). Realization (T6.11): a built network lowers the settlement's health-seam multiplier within its bound - a consumer test.",
+   "generation": null,
+   "splitFrom": null
+  }
+ ],
+ "entityRequirementChanges": [
+  {
+   "entity": "building.lighthouse",
+   "oldRequires": "stone_fortification",
+   "newRequires": "ashlar_masonry",
+   "reason": "A lighthouse is a civil tower in dressed stone (the Pharos ~280 BCE), not military architecture; the split of stone_fortification separates the technique from the fortification.",
+   "unlockListEdits": "stone_fortification drops building.lighthouse; ashlar_masonry lists it (ResearchContent.cs:1246-1255 reverse index).",
+   "compatibility": "Holders of stone_fortification lose eligibility until they research ashlar_masonry (no alias seam). The entity is unrealized, so there is no gameplay effect today.",
+   "status": "PROPOSED; an entity-requirement re-point (cf. D12's OD-05 pattern) - OPEN DECISION"
+  },
+  {
+   "entity": "infra.sewerage_system",
+   "oldRequires": "germ_theory AND reinforced_concrete",
+   "newRequires": "sanitary_engineering",
+   "reason": "Eligibility is engineering knowledge. Sewerage and filtration (Chelsea 1829, Hamburg 1843, London 1859-1875) were built with brick, Portland cement and steam pumps under miasma theory, before germ theory or reinforced concrete. Public-health motive is adoption (D12 public_health_board) and M9 valuation, not eligibility.",
+   "unlockListEdits": "germ_theory and reinforced_concrete drop infra.sewerage_system; sanitary_engineering lists it.",
+   "compatibility": "Holders of germ_theory AND reinforced_concrete lose eligibility until they research sanitary_engineering (unrealized entity: no gameplay effect today).",
+   "alternativeConsidered": "D10's '(germ_theory OR epidemiology) AND ...' would gate building on a public-health theory; recorded as an OPEN option for the Director: 'sanitary_engineering AND (germ_theory OR epidemiology)'.",
+   "status": "PROPOSED; OPEN DECISION"
+  }
+ ],
+ "pendingCrossLaneEdits": [
+  {
+   "id": "spinning_spindle",
+   "field": "prereq",
+   "from": "cordage AND (flax OR wool)",
+   "to": "cordage AND (flax OR wool OR cotton_cultivation)",
+   "dependsOnNewId": "cotton_cultivation (D01)",
+   "costEffect": "none (one OR group: prereq_complexity stays 0.5; cost 620)",
+   "reason": "Cotton was domesticated independently (Mehrgarh ~5,500 BCE; coastal Peru ~4,000 BCE) and spun on drop spindles; a third fibre alternative.",
+   "status": "ACCEPTED by D07; apply at integration"
+  },
+  {
+   "id": "cotton_gin_roller",
+   "field": "prereq",
+   "from": "wheel_solid",
+   "to": "wheel_solid AND cotton_cultivation",
+   "dependsOnNewId": "cotton_cultivation (D01)",
+   "costEffect": "prereq_complexity 0.0 -> 0.5; magnitude 4.5 -> 5.0; cost 2,090 -> 2,960 (factors otherwise unchanged)",
+   "reason": "A gin separates cotton fibre from seed: it needs the cotton crop.",
+   "status": "ACCEPTED by D07; apply at integration"
+  }
+ ],
+ "crossLaneRequests": [
+  {
+   "targetLane": "D05-communication-computing",
+   "request": "Your condition is met: type_founding moves to the trunk (A7; one V17 WARN, the same exception as printing_press) with prereq 'casting_closed' and emerged '~1,440-1,450 CE'. Please apply at integration, as your record states: printing_press 'type_founding AND mechanics_archimedean AND paper' with material 0.75 -> 0.25 (39,780 -> 28,130 RP; press + type founding 36,490 RP). Thank you for punched_card_tabulation: it resolves jacquard's dead end (jacquard now requires D07's new drawloom AND paper; your edge is unaffected).",
+   "reason": "Type casting is the causal precondition of the press, not its sequel; trunk closure requires both in the trunk; the A7 core workload is roughly conserved."
+  },
+  {
+   "targetLane": "D09-military",
+   "request": "Reply: thank you for accepting saddle <- sewing. hide_working, sewing, timber_frame, interchangeable_parts and slide_rest_lathe are kept. stone_fortification keeps key 126 but is split: it now requires 'ashlar_masonry AND surveying' (cost 3,520 -> 2,490) and keeps building.castle; building.lighthouse moves to ashlar_masonry. Your trace_italienne edge is unaffected.",
+   "reason": "Coordination of D09 dependants on D07 nodes."
+  },
+  {
+   "targetLane": "D08-transport-naval",
+   "request": "Reply, no action required: thank you for applying collar_harness <- 'horse_domestication AND sewing' and for adopting 'moving assembly line (Ford, 1913)' and 'mass production' in automobile_mass (D07 removes them from the 1820 interchangeable_parts node). bridge_stone, canal_lock and canal_navigation now name your shared owner, the transport packet (DW-059), in their deferredEffect. canal_lock no longer requires mortise_hull; it uses timber_frame for the gates. bicycle's interchangeable_parts edge is fine (the node is kept; its cost falls 16,730 -> 11,830).",
+   "reason": "Coordination: the assembly line was developed for and with the mass-produced automobile; a lock's users are boats, but its knowledge is canal hydraulics and gate carpentry."
+  },
+  {
+   "targetLane": "D04-natural-science",
+   "request": "Reply, no action required: thank you for making synthetic_dye require dyeing ('organic_chemistry AND coke AND dyeing'; prereq_complexity 0.5 -> 1.0, cost 23,650 -> 33,450), which resolves D07's dyeing dead end. Agreed that a terrain-crossing tunnel class belongs to the transport packet (DW-059) and should name dynamite there; D07's aqueduct_tunnel is the ancient rock-cut water tunnel. The chemical-industry nodes stay with D04; D07 adds none.",
+   "reason": "The synthetic-dye industry replaced natural dyestuffs inside an existing dyeing trade: Perkin's mauve (1856) needed mordant dyeing to be usable, and synthetic alizarin (1868) reproduced madder. It also gives D07's dyeing a causal dependant."
+  },
+  {
+   "targetLane": "D01-agriculture-food",
+   "request": "Reply - accepted. (a) spinning_spindle 'cordage AND (flax OR wool OR cotton_cultivation)' (one OR group: cost unchanged) and cotton_gin_roller 'wheel_solid AND cotton_cultivation' (prereq_complexity 0.0 -> 0.5, cost 2,090 -> 2,960). Because cotton_cultivation is a NEW D01 id, D07 records both as pendingCrossLaneEdits for the integrator (the lane brief allows only existing ids in a lane's own records). (b) Applied now: irrigation_basin and irrigation_canal require 'cereal_cultivation OR root_crop' (cost unchanged). (c) Noted: farm_machinery's crank edge (the crank moves to the trunk, which helps your A8 node) and drip_irrigation's irrigation edge.",
+   "reason": "A cotton gin needs a cotton crop; cotton is an independently domesticated fibre (Mehrgarh, coastal Peru); irrigation was not confined to cereal farmers."
+  },
+  {
+   "targetLane": "D10-medicine",
+   "request": "Reply to your request on infra.sewerage_system: D07 removes reinforced_concrete as you suggested and re-points the entity to the new sanitary_engineering node (steam_rotary AND fired_brick). D07 does not add (germ_theory OR epidemiology): it would gate building on a public-health theory, which is adoption and valuation, not eligibility. The alternative is recorded for the Director as an OPEN option. Germ-theory water treatment (chlorination 1908) remains available to D10 as a practice.",
+   "reason": "Sewerage preceded germ theory (Hamburg 1843, London 1859-1875) and Snow's 1854 study; filtration dates from 1829. Engineering knowledge is what eligibility should read."
+  },
+  {
+   "targetLane": "D03-science-early",
+   "request": "Accepted in modified form: escapement_verge becomes 'gearing AND water_clock' (D07 drops crank_connecting_rod as non-causal, so the count and the 7,030 cost are unchanged), and the node moves to the trunk. water_clock's dead end is resolved.",
+   "reason": "Mechanical clockwork replaced the water clock's regulator; the crank plays no part in a verge escapement."
+  },
+  {
+   "targetLane": "D02-materials-mining",
+   "request": "FYI, no action required: (1) arch now requires mudbrick, not fired_brick; your concrete_pozzolan no longer requires arch, which is consistent. (2) lime_plaster no longer requires mudbrick (Natufian lime plaster predates mudbrick), so concrete_pozzolan's closure shrinks to fire_making -> lime_plaster. (3) crank_connecting_rod moves to the trunk: blast_furnace_water keeps it, and D02 could move medieval ironworking (blast_furnace_water, wire_drawing) to the trunk if it judges them craft knowledge. (4) New D07 nodes depend on D02 knowledge: ashlar_masonry on copper_smelting, structural_iron on coke. (5) Your percussion_drilling <- well edge is fine; well now accepts stone OR timber lining.",
+   "reason": "Coordination of shared closures; the A5 supporting fact a5_concrete (concrete_pozzolan) gets cheaper."
+  },
+  {
+   "targetLane": "D06-energy-engineering",
+   "request": "FYI, no action required: crank_connecting_rod (a prerequisite of steam_rotary) moves to the trunk; escapement_verge no longer requires the crank; power_loom accepts water_mill OR steam_rotary; sanitary_engineering requires steam_rotary; desalination now requires 'electricity_generation AND (distillation OR plastics)'. A noria -> water_mill Eureka was considered and rejected (water_mill's Eureka pool is full at 0.4).",
+   "reason": "Coordination of closures that pass through D06's nodes."
+  },
+  {
+   "targetLane": "D12-civics",
+   "request": "Boundary confirmations: (1) D07 supports your re-point of inst.guild to 'textile_workshop AND craft_guilds'. (2) inst.standard_threads is a technical norm; D07 recommends T6.11 reclassify it as knowledge on slide_rest_lathe - if a standards body is wanted, it is yours. (3) Your public_health_board governs adoption and funding of infra.sewerage_system; D07 adds no technology -> civic edge.",
+   "reason": "Organizational knowledge (technology) versus institutions and regulation (civics), as the lane brief directs."
+  }
+ ],
+ "openQuestions": [
+  "Alias/remap seam (package-level OPEN DECISION): the stone_fortification split and the two entity re-points remove eligibility from old holders (building.lighthouse; infra.sewerage_system). Both entities are unrealized, so there is no gameplay loss today; a remap that grants ashlar_masonry to holders of stone_fortification would close it.",
+  "The part-file schema has no field for entity-requirement changes; D07 adds a top-level 'entityRequirementChanges' list (two re-points). The integrator needs to carry it (and the reverse-index unlock edits) or the Director rules them separately, as D12's OD-05.",
+  "Water and sanitation realization (well, qanat, aqueducts, sewer, sanitary_engineering, desalination plant): realize them in T6.11 as bounded coverage terms in the existing per-settlement health seam (InstitutionEffects.MortalityMultiplier), or wait for the M9 disease model? D07 recommends the T6.11 path as the nearest honest equation.",
+  "Textile realization: should cloth productivity knowledge become variants of the live weaving recipe? Crafting labour splits equally among available recipes (ProductionSystem.cs:463-490), so a supersession rule is needed first (M10+ design decision).",
+  "inst.standard_threads: reclassify as knowledge (D07's recommendation) or keep it as a D12 standards institution under D-M?",
+  "Convention V17 keeps every A7-A9 node in a subtree. Some 18th-century textile inventions (flying shuttle 1733, jenny 1764) were artisan knowledge too; D07 leaves them in Engineering. Should the convention bend for craft inventions?",
+  "infra.sewerage_system: engineering-only eligibility (D07) versus 'sanitary_engineering AND (germ_theory OR epidemiology)' (D10's alternative)?",
+  "Two accepted edits depend on D01's new cotton_cultivation and are recorded under pendingCrossLaneEdits (spinning_spindle's fibre OR group; cotton_gin_roller's crop requirement). The integrator, or a later D07 pass, must apply them once that id is ratified."
+ ]
+}

@@ -1,0 +1,1692 @@
+{
+ "lane": "D05-communication-computing",
+ "summary": "D05 keeps the writing, record and money core intact (all Age facts, the research-stage atom stamp_seal and every civic prerequisite keep their ids and consumers) and makes four kinds of change. (1) Causal placement: the printing and finance nodes that ADR-029 rule R1 put in Engineering only because they are A6+ (woodblock_print, both movable types, paper_money, bill_of_exchange, printing_press) move to the trunk; printing is a craft innovation that did not need organized scholarship, and all their prerequisites are already trunk. With D01's heavy_plough relocation A6 entry becomes stage-free, but A7 entry stays stage-coupled through its technological/systemic supporting facts (D04/D08 nodes), so this is causal hygiene, not a pacing fix. printing_press's factors are kept in this file; at integration D05 accepts D07's re-pointed type_founding as its precondition with a material re-score (36,490 vs 39,780 RP), conditional on type_founding also moving to the trunk. (2) Two bundle splits that conserve or reduce workload: radio -> wireless telegraphy (key kept, re-dated A8) + radio_broadcasting, removing the vacuum_tube causal inversion; satellite -> orbital satellite (key kept, material re-scored) + communications_satellite. (3) Four new nodes with real dependencies or owners: mesoamerican_script (the independent calendar-rooted invention of writing, requested by D03 for the Maya mathematical tradition), automatic_switching (cellular and relay-computing base), punched_card_tabulation (administrative data processing; gives jacquard a dependant), optical_telegraph (pre-electric state signalling for M7/M8). (4) Dead ends resolved by owners or requested dependants (movable_type_metal, fibre_optics, cellular_digital), and capability blocks for all 30 nodes (trade's auto-fill owner corrected). The stored-program computer split belongs to D06 and is requested with a concrete design. Other lanes' requests accepted at integration (they name new ids): radio <- electromagnetic_field_theory (D04), hacksilver <- cupellation (D02); submarine_cable now requires steamboat (D08).",
+ "existing": [
+  {
+   "id": "token_counting",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Clay accounting tokens are the causal root of Mesopotamian record keeping; they carry the a3_writing fact and are prerequisites of taxation (the tax-edict civic), trade, standard_weights, proto_writing and hieroglyphic. The fire_making edge was reviewed: many tokens were baked, so it stays.",
+   "changes": "none",
+   "nodeKind": "technique",
+   "capability": {
+    "grants": [
+     "knowledge:record of quantity without memory",
+     "age:a3_writing"
+    ],
+    "realizationOwner": "AgeTransitionSystem (a3_writing supporting fact)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: unlock-audit class B; satisfies Age 3 supporting fact a3_writing (OR proto_writing); prerequisite of taxation, trade, standard_weights, proto_writing, hieroglyphic",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "none: knowledge with no physical input",
+    "unknownResource": "n/a: no resource input",
+    "aiValuation": "ancestor of the AI tax goal (taxation) and of trade; valued through those goals",
+    "playerCommunication": "Counting tokens: meets the A3 'Record keeping' milestone and leads to taxation and inter-settlement trade."
+   }
+  },
+  {
+   "id": "stamp_seal",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Research-stage atom and the stamp half of inst.archive (archive -> library -> university founding); also the relief-stamping precursor of coinage and woodblock printing. All edges causal; keep.",
+   "changes": "none",
+   "nodeKind": "technique",
+   "capability": {
+    "grants": [
+     "knowledge:marking ownership",
+     "knowledge:sealing stores",
+     "knowledge:administrative control",
+     "institution:inst.archive",
+     "stage:research_stage"
+    ],
+    "realizationOwner": "ResearchSystem (research stage) + ConstructionSystem/InstitutionsSystem (university founding chain via inst.archive)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class D; atom of researchStage.requires; inst.archive (with a script) is part of inst.library -> inst.university, which all five university founding projects need; inst.archive itself has no realizing system",
+    "deferredEffect": "inst.archive realized as a founded institution (M6 T6.11 (PROPOSED: deferred-entity realization), tier A)",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": [
+      "inst.archive (deferred)"
+     ]
+    },
+    "missingInputs": "none: knowledge with no physical input",
+    "unknownResource": "n/a: no resource input",
+    "aiValuation": "stage atom and university-goal ancestor: high",
+    "playerCommunication": "Needed for the research stage and for a state archive; the archive has no effect of its own until institutions are realized."
+   }
+  },
+  {
+   "id": "proto_writing",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Proto-cuneiform accounting tablets (Uruk IV): the a3_writing fact, the taxation OR group and the root of cuneiform. Keep.",
+   "changes": "none",
+   "nodeKind": "technique",
+   "capability": {
+    "grants": [
+     "knowledge:administrative records beyond memory",
+     "age:a3_writing"
+    ],
+    "realizationOwner": "AgeTransitionSystem (a3_writing supporting fact)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class B; Age 3 supporting fact a3_writing; prerequisite of cuneiform, standard_weights, taxation",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "none: knowledge with no physical input",
+    "unknownResource": "n/a: no resource input",
+    "aiValuation": "tax-goal ancestor (taxation's writing OR group)",
+    "playerCommunication": "Accounting tablets: meets 'Record keeping' and opens full cuneiform writing."
+   }
+  },
+  {
+   "id": "cuneiform",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Full logo-syllabic writing (Sumerian, then Akkadian and others); one of the three independent script routes in the writing OR group (14 node prerequisites in 4 lanes and 6 entity requirements read it). Keep.",
+   "changes": "none",
+   "nodeKind": "technique",
+   "capability": {
+    "grants": [
+     "knowledge:law",
+     "knowledge:literature",
+     "knowledge:letters",
+     "knowledge:history",
+     "building:building.school",
+     "building:building.library",
+     "institution:inst.scribal_school",
+     "institution:inst.archive",
+     "institution:inst.natural_philosophy",
+     "institution:inst.historiography"
+    ],
+    "realizationOwner": "ConstructionSystem + InstitutionsSystem (inst.scribal_school/inst.archive feed inst.library -> inst.university founding)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class D; makes the university founding chain eligible through inst.scribal_school and inst.archive; school, library, scribal school, archive, natural philosophy and historiography have no realizing system",
+    "deferredEffect": "school, library, scribal school, archive, natural philosophy and historiography realized (M6 T6.11 (PROPOSED: deferred-entity realization), tiers A/B and the 27 inst.*); literacy/culture effects M9",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": [
+      "inst.scribal_school (deferred)",
+      "inst.archive (deferred)"
+     ]
+    },
+    "missingInputs": "none: knowledge with no physical input",
+    "unknownResource": "n/a: no resource input",
+    "aiValuation": "university-goal and civic (law_code, census, taxation) ancestor; the cheapest member of the OR group suffices",
+    "playerCommunication": "A full writing system: written law, census and schools become possible; buildings and institutions it allows are not yet built by any system."
+   }
+  },
+  {
+   "id": "hieroglyphic",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Egyptian route of the writing OR group (independent or stimulus-diffused, debated); prerequisite edge from token_counting (record of quantity) stays. Keep.",
+   "changes": "none",
+   "nodeKind": "technique",
+   "capability": {
+    "grants": [
+     "knowledge:monumental inscription",
+     "knowledge:administration",
+     "building:building.school",
+     "building:building.library",
+     "institution:inst.scribal_school",
+     "institution:inst.archive",
+     "institution:inst.natural_philosophy",
+     "institution:inst.historiography"
+    ],
+    "realizationOwner": "ConstructionSystem + InstitutionsSystem (inst.scribal_school/inst.archive feed inst.library -> inst.university founding)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class D; makes the university founding chain eligible through inst.scribal_school and inst.archive; school, library, scribal school, archive, natural philosophy and historiography have no realizing system",
+    "deferredEffect": "school, library, scribal school, archive, natural philosophy and historiography realized (M6 T6.11 (PROPOSED: deferred-entity realization), tiers A/B and the 27 inst.*); literacy/culture effects M9",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": [
+      "inst.scribal_school (deferred)",
+      "inst.archive (deferred)"
+     ]
+    },
+    "missingInputs": "none: knowledge with no physical input",
+    "unknownResource": "n/a: no resource input",
+    "aiValuation": "university-goal and civic (law_code, census, taxation) ancestor; the cheapest member of the OR group suffices",
+    "playerCommunication": "A full writing system: written law, census and schools become possible; buildings and institutions it allows are not yet built by any system."
+   }
+  },
+  {
+   "id": "chinese_script",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Independent Chinese invention (Anyang oracle bones); the only script route without clay tokens (tally_notation AND bone_tools), a genuine alternative path. Keep.",
+   "changes": "none",
+   "nodeKind": "technique",
+   "capability": {
+    "grants": [
+     "knowledge:royal divination record",
+     "knowledge:continuous script tradition to today",
+     "building:building.school",
+     "building:building.library",
+     "institution:inst.scribal_school",
+     "institution:inst.archive",
+     "institution:inst.natural_philosophy",
+     "institution:inst.historiography"
+    ],
+    "realizationOwner": "ConstructionSystem + InstitutionsSystem (inst.scribal_school/inst.archive feed inst.library -> inst.university founding)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class D; makes the university founding chain eligible through inst.scribal_school and inst.archive; school, library, scribal school, archive, natural philosophy and historiography have no realizing system",
+    "deferredEffect": "school, library, scribal school, archive, natural philosophy and historiography realized (M6 T6.11 (PROPOSED: deferred-entity realization), tiers A/B and the 27 inst.*); literacy/culture effects M9",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": [
+      "inst.scribal_school (deferred)",
+      "inst.archive (deferred)"
+     ]
+    },
+    "missingInputs": "none: knowledge with no physical input",
+    "unknownResource": "n/a: no resource input",
+    "aiValuation": "university-goal and civic (law_code, census, taxation) ancestor; the cheapest member of the OR group suffices",
+    "playerCommunication": "A full writing system: written law, census and schools become possible; buildings and institutions it allows are not yet built by any system."
+   }
+  },
+  {
+   "id": "papyrus",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Egyptian writing surface; its consumer is building.library (OR with scripts and paper), realized in T6.11. No dependant is causal (bills, archives and the alphabet worked on other media too), so it stays a realization-owned leaf.",
+   "changes": "none",
+   "nodeKind": "application",
+   "capability": {
+    "grants": [
+     "knowledge:portable documents",
+     "knowledge:archives",
+     "knowledge:Egyptian export monopoly",
+     "building:building.library"
+    ],
+    "realizationOwner": "ConstructionSystem (building.library)",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "MEASURED: class J; building.library has no realizing system",
+    "deferredEffect": "library buildable (M6 T6.11 (PROPOSED: deferred-entity realization), tier B)",
+    "inputs": {
+     "resources": [
+      "fiber (good 9) stands in for papyrus sedge"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "eligible but not realizable until T6.11; no papyrus or document good exists in the 14-good roster",
+    "unknownResource": "papyrus sedge is not a distinct resource (generic fiber deposit); no identification needed",
+    "aiValuation": "low: building.library is also met by any script or paper",
+    "playerCommunication": "A light writing surface; counts toward a library once libraries can be built."
+   }
+  },
+  {
+   "id": "abjad",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Consonantal alphabet (Proto-Sinaitic to Phoenician): a4_alphabet fact, building.school, inst.aramaic_admin, and the root of alphabet_vowels and brahmi. The OR over full scripts encodes 'a writing system is known' (stimulus), which is causal. Keep.",
+   "changes": "none",
+   "nodeKind": "technique",
+   "capability": {
+    "grants": [
+     "knowledge:cheap literacy",
+     "knowledge:commercial records without a scribal class",
+     "age:a4_alphabet",
+     "building:building.school",
+     "institution:inst.aramaic_admin"
+    ],
+    "realizationOwner": "AgeTransitionSystem (a4_alphabet supporting fact)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class B; Age 4 supporting fact a4_alphabet; school and Aramaic administration have no realizing system",
+    "deferredEffect": "school and Aramaic administrative script realized (M6 T6.11 (PROPOSED: deferred-entity realization), tier B); administrative reach M8; literacy M9",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "none: knowledge with no physical input",
+    "unknownResource": "n/a: no resource input",
+    "aiValuation": "a4_alphabet supporting fact; ancestor of hindu_arabic (a6_numerals) via brahmi and of bill_of_exchange",
+    "playerCommunication": "An alphabet learnable in weeks: meets 'Alphabetic script' and opens schools."
+   }
+  },
+  {
+   "id": "alphabet_vowels",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Greek full phonemic alphabet; dependant alchemy (OR with chinese_script). Keep.",
+   "changes": "none",
+   "nodeKind": "technique",
+   "capability": {
+    "grants": [
+     "knowledge:unambiguous phonetic record",
+     "knowledge:literature in vernacular"
+    ],
+    "realizationOwner": "none (knowledge; prerequisite of alchemy)",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class C; capability strings only; prerequisite of alchemy",
+    "deferredEffect": "literacy/culture effects M9 (no owner before)",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "none: knowledge with no physical input",
+    "unknownResource": "n/a: no resource input",
+    "aiValuation": "low; alchemy ancestor only",
+    "playerCommunication": "Vowel signs: full phonemic writing; no direct effect today."
+   }
+  },
+  {
+   "id": "brahmi",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Indic alphasyllabary (Aramaic-derived or independent, debated); prerequisite of hindu_arabic (a6_numerals, algebra and the stage OR). Keep.",
+   "changes": "none",
+   "nodeKind": "technique",
+   "capability": {
+    "grants": [
+     "knowledge:Indian literate tradition",
+     "building:building.school"
+    ],
+    "realizationOwner": "ConstructionSystem (building.school)",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "MEASURED: class J; building.school has no realizing system; prerequisite of hindu_arabic",
+    "deferredEffect": "school buildable (M6 T6.11 (PROPOSED: deferred-entity realization), tier B)",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "none: knowledge with no physical input",
+    "unknownResource": "n/a: no resource input",
+    "aiValuation": "ancestor of hindu_arabic -> algebra (stage OR atom): moderate",
+    "playerCommunication": "Brahmi script: leads to Hindu-Arabic numerals; schools once they can be built."
+   }
+  },
+  {
+   "id": "hacksilver",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Silver by weight as money before coins; the A5 coinage core's ancestor. Keep. D02's request is accepted for integration: weighed silver in Mesopotamia and the Levant was refined from argentiferous lead (litharge from the 4th millennium BCE), so cupellation is the causal silver input.",
+   "changes": "AT INTEGRATION (D02 request, accepted): prereq gold_silver_native -> cupellation (D02 new id, which itself requires gold_silver_native; count and cost unchanged; the a5_coinage CORE closure gains cupellation, 2,090 RP). Not written here because a lane file may reference only existing ids.",
+   "nodeKind": "technique",
+   "capability": {
+    "grants": [
+     "knowledge:exchange without barter",
+     "knowledge:value store",
+     "knowledge:price in shekels"
+    ],
+    "realizationOwner": "none (knowledge; prerequisite of coinage_electrum)",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class C; prerequisite of coinage_electrum",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [
+      "silver (no good: the 14-good roster has no precious metal)"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "no silver good exists, so weighed-silver exchange cannot be realized; prices stay grain-denominated (D-030)",
+    "unknownResource": "precious-metal deposits are not modelled; any future identification belongs to D11's resource chain",
+    "aiValuation": "core-goal ancestor (a5_coinage)",
+    "playerCommunication": "Silver by weight: the step before coinage."
+   }
+  },
+  {
+   "id": "coinage_electrum",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "A5 CORE fact (a5_coinage), building.mint, inst.mint_institution, and prerequisite of coined_wage, bill_of_exchange and paper_money. Factors fit the A4 prior. Keep.",
+   "changes": "none",
+   "nodeKind": "institutional",
+   "capability": {
+    "grants": [
+     "knowledge:state-guaranteed money",
+     "knowledge:mercenary pay",
+     "knowledge:market exchange at volume",
+     "knowledge:taxation in coin",
+     "age:a5_coinage",
+     "building:building.mint",
+     "institution:inst.mint_institution"
+    ],
+    "realizationOwner": "AgeTransitionSystem (a5_coinage CORE fact)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class B; Age 5 CORE fact a5_coinage; mint and state mint have no realizing system",
+    "deferredEffect": "mint and state mint realized (M6 T6.11 (PROPOSED: deferred-entity realization), tier B); money as an institution is deferred to its own milestone by D-030 (unscheduled: M10+)",
+    "inputs": {
+     "resources": [
+      "gold/silver/electrum (no good exists)"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": [
+      "inst.mint_institution (needs census)"
+     ]
+    },
+    "missingInputs": "eligible; a mint cannot strike coin until a precious-metal good and a money institution exist (D-030)",
+    "unknownResource": "the Eureka 'electrum occurs in range' waits for resource identification (future-system: resources/terrain)",
+    "aiValuation": "A5 CORE: core goal",
+    "playerCommunication": "Struck coinage: an A5 core milestone; minting and coin wages await a money system."
+   }
+  },
+  {
+   "id": "paper_money",
+   "disposition": [
+    "relocate"
+   ],
+   "branch": "trunk",
+   "rationale": "Song paper money (state jiaozi from the 1020s) needed woodblock printing, coinage and a fiscal state, not university scholarship. Its Engineering placement came only from ADR-029 rule R1 (Age >= A6 and domain communication -> Engineering), an overridable implementer resolution; D-044 R4 keeps trunk-logical nodes in the trunk. Both prerequisites are trunk after this proposal.",
+   "changes": "branch engineering -> trunk (A6 kept; factors, prerequisites and key unchanged)",
+   "nodeKind": "institutional",
+   "compatibility": {
+    "saves": "key unchanged; completed rows keep their meaning; partial progress, a saved target and Eureka credit stay valid and become usable before the research stage (the move is INTO the always-open trunk, so nothing goes dormant)",
+    "ids": "unchanged",
+    "ui": "moves from the 1.3 Engineering lane to Main Trunk (ResearchTreeLayout lanes by branch); the 'research stage' lock reason disappears",
+    "ai": "joins the pre-stage availability set, so AiResearchPolicy's cheapest-fallback choices can change: AI-empire goldens move (attribute them to this relocation)",
+    "tests": "ResearchContentTests branch counts (trunk +1, engineering -1 for this node) and researchSets finite_nodes_to_exhaust of the 6 recursive Engineering nodes (125, -1 for this node); IsTrunk-based checks; EffectiveCost no longer receives the Engineering-university factor (ResearchQuery.cs:316: trunk nodes pay BaseCost); regenerate the 3 CI --check docs. Not one of the pinned keys 12/17/2/8/52/74/53/2.",
+    "consumers": "inst.central_bank (joint_stock AND paper_money) no longer needs the research stage through paper_money; no Age fact"
+   },
+   "capability": {
+    "grants": [
+     "knowledge:money not limited by metal",
+     "knowledge:inflation (Yuan)",
+     "institution:inst.central_bank"
+    ],
+    "realizationOwner": "InstitutionsSystem (inst.central_bank)",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "MEASURED: class J; inst.central_bank has no realizing system",
+    "deferredEffect": "central bank realized (M6 T6.11 (PROPOSED: deferred-entity realization)); issuing paper currency is a monetary policy whose adoption belongs to M8, once money exists as an institution (D-030)",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": [
+      "inst.central_bank (needs joint_stock)"
+     ]
+    },
+    "missingInputs": "eligible; no money stock exists to denominate notes (prices are grain-equivalent, D-030)",
+    "unknownResource": "n/a: no resource input",
+    "aiValuation": "low; central-bank ancestor",
+    "playerCommunication": "Printed state notes; no effect until a money system exists."
+   }
+  },
+  {
+   "id": "bill_of_exchange",
+   "disposition": [
+    "relocate"
+   ],
+   "branch": "trunk",
+   "rationale": "A merchants' and notaries' instrument (12th-14th c.) built on coinage and commercial literacy; no university knowledge is causally needed. The Engineering placement was an ADR-029 R1 artifact. Relocation makes a6_finance (institutional_social) and joint_stock (a7_company) reachable without the research stage. Prerequisites are trunk.",
+   "changes": "branch engineering -> trunk (A6, finance gen 1, factors, prerequisites and key unchanged)",
+   "nodeKind": "technique",
+   "compatibility": {
+    "saves": "key unchanged; completed rows keep their meaning; partial progress, a saved target and Eureka credit stay valid and become usable before the research stage (the move is INTO the always-open trunk, so nothing goes dormant)",
+    "ids": "unchanged",
+    "ui": "moves from the 1.3 Engineering lane to Main Trunk (ResearchTreeLayout lanes by branch); the 'research stage' lock reason disappears",
+    "ai": "joins the pre-stage availability set, so AiResearchPolicy's cheapest-fallback choices can change: AI-empire goldens move (attribute them to this relocation)",
+    "tests": "ResearchContentTests branch counts (trunk +1, engineering -1 for this node) and researchSets finite_nodes_to_exhaust of the 6 recursive Engineering nodes (125, -1 for this node); IsTrunk-based checks; EffectiveCost no longer receives the Engineering-university factor (ResearchQuery.cs:316: trunk nodes pay BaseCost); regenerate the 3 CI --check docs. Not one of the pinned keys 12/17/2/8/52/74/53/2.",
+    "consumers": "a6_finance (OR double_entry) and joint_stock (civic, a7_company) no longer depend on the research stage through this node; double_entry (D04) keeps requiring it from its subtree (allowed)"
+   },
+   "capability": {
+    "grants": [
+     "knowledge:long-distance payment",
+     "knowledge:credit",
+     "knowledge:the merchant network as infrastructure",
+     "age:a6_finance"
+    ],
+    "realizationOwner": "AgeTransitionSystem (a6_finance supporting fact)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class B; Age 6 supporting fact a6_finance; prerequisite of double_entry and joint_stock",
+    "deferredEffect": "trade finance (payment without moving coin) once money exists (D-030) and M8 trade/diplomacy consume credit",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "none: knowledge with no physical input",
+    "unknownResource": "n/a: no resource input",
+    "aiValuation": "a6_finance supporting fact and joint_stock ancestor: moderate",
+    "playerCommunication": "Bills of exchange: meets 'Commercial finance' and leads to joint-stock companies."
+   }
+  },
+  {
+   "id": "paper",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Paper (China ~100 BCE; standardised 105 CE): a6_paper fact, paper mill, library, translation movement, and a causal prerequisite of both woodblock printing and the printing press (economic printing needed a cheap surface). Keep.",
+   "changes": "none",
+   "nodeKind": "application",
+   "capability": {
+    "grants": [
+     "knowledge:cheap records",
+     "knowledge:books",
+     "knowledge:bureaucratic scale",
+     "age:a6_paper",
+     "building:building.paper_mill",
+     "building:building.library",
+     "institution:inst.translation_movement"
+    ],
+    "realizationOwner": "AgeTransitionSystem (a6_paper supporting fact)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class B; Age 6 supporting fact a6_paper; paper mill, library and translation movement have no realizing system",
+    "deferredEffect": "paper mill (tier D), library (tier B) and translation movement realized (M6 T6.11 (PROPOSED: deferred-entity realization))",
+    "inputs": {
+     "resources": [
+      "fiber (good 9)"
+     ],
+     "geography": [],
+     "infrastructure": [
+      "water_mill for building.paper_mill"
+     ],
+     "institutions": []
+    },
+    "missingInputs": "eligible; no paper good exists, so mills have no product until T6.11 or M10+ add one",
+    "unknownResource": "n/a: no resource input",
+    "aiValuation": "a6_paper fact and printing_press (A7 CORE) ancestor: core-goal relevant",
+    "playerCommunication": "Cheap paper: meets 'Paper' and is required for printing."
+   }
+  },
+  {
+   "id": "woodblock_print",
+   "disposition": [
+    "relocate"
+   ],
+   "branch": "trunk",
+   "rationale": "Relief printing from carved blocks (Tang China/Korea by ~700 CE; Diamond Sutra 868) is a craft built on paper and seal-carving; it did not need organized scholarship. The subtree placement (ADR-029 R1 by Age) made East Asian printing wait for the university stage: 22,580 RP of non-causal requirements (INFERENCE, static closure: 20 nodes/54,560 RP with the stage vs 8/31,980 without). Prerequisites paper and stamp_seal are trunk.",
+   "changes": "branch engineering -> trunk (A6, printing gen 1, factors, prerequisites and key unchanged)",
+   "nodeKind": "application",
+   "compatibility": {
+    "saves": "key unchanged; completed rows keep their meaning; partial progress, a saved target and Eureka credit stay valid and become usable before the research stage (the move is INTO the always-open trunk, so nothing goes dormant)",
+    "ids": "unchanged",
+    "ui": "moves from the 1.3 Engineering lane to Main Trunk (ResearchTreeLayout lanes by branch); the 'research stage' lock reason disappears",
+    "ai": "joins the pre-stage availability set, so AiResearchPolicy's cheapest-fallback choices can change: AI-empire goldens move (attribute them to this relocation)",
+    "tests": "ResearchContentTests branch counts (trunk +1, engineering -1 for this node) and researchSets finite_nodes_to_exhaust of the 6 recursive Engineering nodes (125, -1 for this node); IsTrunk-based checks; EffectiveCost no longer receives the Engineering-university factor (ResearchQuery.cs:316: trunk nodes pay BaseCost); regenerate the 3 CI --check docs. Not one of the pinned keys 12/17/2/8/52/74/53/2.",
+    "consumers": "building.printing_house (printing_press OR woodblock_print) becomes eligible pre-stage; dependants movable_type_ceramic (also relocated) and paper_money (relocated) stay consistent"
+   },
+   "capability": {
+    "grants": [
+     "knowledge:mass religious texts",
+     "knowledge:paper money (Song)",
+     "knowledge:printed calendars",
+     "building:building.printing_house"
+    ],
+    "realizationOwner": "ConstructionSystem (building.printing_house)",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "MEASURED: class J; building.printing_house has no realizing system",
+    "deferredEffect": "printing house buildable (M6 T6.11 (PROPOSED: deferred-entity realization), tier D); book output feeds M9 literacy/culture",
+    "inputs": {
+     "resources": [
+      "paper (no good)",
+      "timber (good 4) for blocks"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "eligible; no paper or book good exists, so a printing house has no product until T6.11/M9 define one",
+    "unknownResource": "n/a: no resource input",
+    "aiValuation": "low until printing houses are realized; not on the A7 core path (the press is an independent route)",
+    "playerCommunication": "Woodblock printing: identical copies at scale; a printing house once buildings are realized."
+   }
+  },
+  {
+   "id": "movable_type_ceramic",
+   "disposition": [
+    "relocate"
+   ],
+   "branch": "trunk",
+   "rationale": "Bi Sheng's baked-clay type (1040s, recorded by Shen Kuo): a craft refinement of woodblock printing needing kiln firing; no scholarship. Moves with woodblock_print (its prerequisite) so the East Asian printing line is coherent in the trunk.",
+   "changes": "branch engineering -> trunk (A6, printing gen 2, factors, prerequisites and key unchanged)",
+   "nodeKind": "application",
+   "compatibility": {
+    "saves": "key unchanged; completed rows keep their meaning; partial progress, a saved target and Eureka credit stay valid and become usable before the research stage (the move is INTO the always-open trunk, so nothing goes dormant)",
+    "ids": "unchanged",
+    "ui": "moves from the 1.3 Engineering lane to Main Trunk (ResearchTreeLayout lanes by branch); the 'research stage' lock reason disappears",
+    "ai": "joins the pre-stage availability set, so AiResearchPolicy's cheapest-fallback choices can change: AI-empire goldens move (attribute them to this relocation)",
+    "tests": "ResearchContentTests branch counts (trunk +1, engineering -1 for this node) and researchSets finite_nodes_to_exhaust of the 6 recursive Engineering nodes (125, -1 for this node); IsTrunk-based checks; EffectiveCost no longer receives the Engineering-university factor (ResearchQuery.cs:316: trunk nodes pay BaseCost); regenerate the 3 CI --check docs. Not one of the pinned keys 12/17/2/8/52/74/53/2.",
+    "consumers": "dependant movable_type_metal (relocated with it); no entity or Age fact"
+   },
+   "capability": {
+    "grants": [
+     "knowledge:reusable type (limited by character count)"
+    ],
+    "realizationOwner": "none (knowledge; prerequisite of movable_type_metal)",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class C; prerequisite of movable_type_metal",
+    "deferredEffect": "printing output and literacy effects M9 (no owner before)",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "none: knowledge with no physical input",
+    "unknownResource": "n/a: no resource input",
+    "aiValuation": "low",
+    "playerCommunication": "Movable clay type: reusable but fragile; leads to metal type."
+   }
+  },
+  {
+   "id": "movable_type_metal",
+   "disposition": [
+    "relocate"
+   ],
+   "branch": "trunk",
+   "rationale": "Goryeo cast-metal type (recorded 1234; Jikji 1377, the oldest extant book printed with movable metal type). Moves with the East Asian printing line. DEAD-END JUSTIFICATION: it is the independent East Asian route to cast metal type and the last generation of that line; no later node causally needs it (the European press arose without demonstrated transmission), so it stays a leaf with a deferred M9 owner rather than gaining an invented edge.",
+   "changes": "branch engineering -> trunk (A6, printing gen 3, factors, prerequisites and key unchanged); capability block gains a deferred owner",
+   "nodeKind": "application",
+   "compatibility": {
+    "saves": "key unchanged; completed rows keep their meaning; partial progress, a saved target and Eureka credit stay valid and become usable before the research stage (the move is INTO the always-open trunk, so nothing goes dormant)",
+    "ids": "unchanged",
+    "ui": "moves from the 1.3 Engineering lane to Main Trunk (ResearchTreeLayout lanes by branch); the 'research stage' lock reason disappears",
+    "ai": "joins the pre-stage availability set, so AiResearchPolicy's cheapest-fallback choices can change: AI-empire goldens move (attribute them to this relocation)",
+    "tests": "ResearchContentTests branch counts (trunk +1, engineering -1 for this node) and researchSets finite_nodes_to_exhaust of the 6 recursive Engineering nodes (125, -1 for this node); IsTrunk-based checks; EffectiveCost no longer receives the Engineering-university factor (ResearchQuery.cs:316: trunk nodes pay BaseCost); regenerate the 3 CI --check docs. Not one of the pinned keys 12/17/2/8/52/74/53/2.",
+    "consumers": "none (leaf; no entity, Age fact or civic)"
+   },
+   "capability": {
+    "grants": [
+     "knowledge:durable reusable type"
+    ],
+    "realizationOwner": "M9 society (literacy/culture through printing output); none before",
+    "status": "knowledge-only",
+    "milestone": "M9",
+    "currentEffect": "MEASURED: class C; capability string only; leaf (validator V09 dead end today)",
+    "deferredEffect": "printing-house output with reusable metal type for large-character-set scripts, read by M9 literacy/culture; knowledge-only until then",
+    "inputs": {
+     "resources": [
+      "bronze (good 11) for type"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "none: knowledge with no physical input",
+    "unknownResource": "n/a: no resource input",
+    "aiValuation": "low; optional leaf",
+    "playerCommunication": "Cast bronze type: durable movable type; no direct effect until literacy and culture are simulated."
+   }
+  },
+  {
+   "id": "printing_press",
+   "disposition": [
+    "relocate"
+   ],
+   "branch": "trunk",
+   "rationale": "VERDICT: typographic printing is a craft innovation - a goldsmith's adjustable hand mould and type-metal alloy, oil-based ink and a screw press adapted from wine, oil and paper presses (Mainz c. 1450); it did not causally need organized scholarship. All three prerequisites (casting_closed, mechanics_archimedean, paper) are already trunk, so nothing else moves. The Engineering placement came from ADR-029 rule R1 (by Age), not from causality. Prerequisites and factors re-checked: no D05-internal split (mould, alloy, ink and press only work together as the Gutenberg system), but the causally prior type-casting half already exists as D07's type_founding, which D07 re-points to casting_closed; D05 accepts making the press require it at integration with a matching material re-score (see changes). Effects in the lane notes (A7 entry: unchanged in practice; patent: stage no longer in its closure).",
+   "changes": "AT INTEGRATION (D07 request, ACCEPTED on condition that D07 also relocates type_founding to the trunk - a trunk node may not require a subtree node): prereq casting_closed -> type_founding (key 216, which D07 re-points to casting_closed; count unchanged) and material 0.75 -> 0.25 because the type-metal and hand-mould content is carved out into type_founding (8.75 -> 8.25: 39,780 -> 28,130 RP; press + type_founding = 36,490 vs 39,780, -8.3 %: the A7 core workload is roughly conserved). Not written here: with today's type_founding (prereq printing_press, Engineering) it would create a cycle or a trunk-closure error. In this file: branch engineering -> trunk (A7 kept; factors 8.75 / 39,780 RP, prerequisites, Eureka and key unchanged). Produces one validator V17 WARN (trunk node at A7) - a requested, justified exception to the MEASURED A7+-in-subtrees convention",
+   "nodeKind": "application",
+   "compatibility": {
+    "saves": "key unchanged; completed rows keep their meaning; partial progress, a saved target and Eureka credit stay valid and become usable before the research stage (the move is INTO the always-open trunk, so nothing goes dormant)",
+    "ids": "unchanged",
+    "ui": "moves from the 1.3 Engineering lane to Main Trunk (ResearchTreeLayout lanes by branch); the 'research stage' lock reason disappears",
+    "ai": "joins the pre-stage availability set, so AiResearchPolicy's cheapest-fallback choices can change: AI-empire goldens move (attribute them to this relocation); AiResearchPolicy's A7 core goal now finds an available node before the stage (closes the engine-audit Q11 gap for a7_printing)",
+    "tests": "ResearchContentTests branch counts (trunk +1, engineering -1 for this node) and researchSets finite_nodes_to_exhaust of the 6 recursive Engineering nodes (125, -1 for this node); IsTrunk-based checks; EffectiveCost no longer receives the Engineering-university factor (ResearchQuery.cs:316: trunk nodes pay BaseCost); regenerate the 3 CI --check docs. Not one of the pinned keys 12/17/2/8/52/74/53/2.",
+    "consumers": "a7_printing (A7 CORE) no longer carries a hidden research-stage gate (and so no civic atom: legal_code_roman); patent (legal_code_roman AND printing_press) and inst.newspaper/inst.mass_schooling no longer need the stage through it; type_founding (D07) and anatomy_dissection (D10) stay in their subtrees (allowed)"
+   },
+   "capability": {
+    "grants": [
+     "knowledge:books at 1/100 the cost",
+     "knowledge:the public sphere",
+     "age:a7_printing",
+     "building:building.printing_house",
+     "institution:inst.newspaper",
+     "institution:inst.scientific_society",
+     "institution:inst.mass_schooling"
+    ],
+    "realizationOwner": "AgeTransitionSystem (a7_printing CORE fact)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class B; Age 7 CORE fact a7_printing; prerequisite of patent, type_founding, anatomy_dissection; printing house, periodical press, scientific society and mass schooling have no realizing system",
+    "deferredEffect": "printing house (tier D) and the three institutions realized (M6 T6.11 (PROPOSED: deferred-entity realization)); the public sphere and literacy effects M9",
+    "inputs": {
+     "resources": [
+      "paper (no good)",
+      "type metal (no lead/tin/antimony good; tin-ore exists)"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "eligible; printing houses have no product good until T6.11/M9 define one",
+    "unknownResource": "n/a: no resource input",
+    "aiValuation": "A7 CORE: core goal; reachable before the stage after relocation",
+    "playerCommunication": "Movable-type press: the A7 core milestone; newspapers, mass schooling and patents follow."
+   }
+  },
+  {
+   "id": "telegraph",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Electric telegraph (1837/1844): a8_telegraph fact, infra.telegraph_line, prerequisite of wireless telegraphy, telephone, submarine cable and the new punched-card tabulation. 66,910 RP is not a bundled mega-node. Keep.",
+   "changes": "none",
+   "nodeKind": "infrastructure",
+   "capability": {
+    "grants": [
+     "knowledge:near-instant long-distance messages",
+     "knowledge:D-039 A3 order latency collapse",
+     "age:a8_telegraph",
+     "infrastructure:infra.telegraph_line"
+    ],
+    "realizationOwner": "AgeTransitionSystem (a8_telegraph supporting fact)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class B; Age 8 supporting fact a8_telegraph; infra.telegraph_line has no realizing system",
+    "deferredEffect": "telegraph lines buildable (M6 T6.11 (PROPOSED: deferred-entity realization), tier C); M7 order latency falls only along BUILT lines (D-039 A3/A5: computed from signal infrastructure, not from knowledge); M8 administrative reach and diplomacy",
+    "inputs": {
+     "resources": [
+      "copper (no copper good: copper-ore exists)"
+     ],
+     "geography": [],
+     "infrastructure": [
+      "infra.telegraph_line (deferred)"
+     ],
+     "institutions": []
+    },
+    "missingInputs": "eligible; no line can be built until T6.11, so latency effects wait for M7",
+    "unknownResource": "n/a: no resource input",
+    "aiValuation": "a8_telegraph fact; ancestor of radio -> vacuum_tube (electronics gateway): high",
+    "playerCommunication": "Electric telegraph: meets 'Telegraph'; faster orders and reports arrive once lines can be built."
+   }
+  },
+  {
+   "id": "submarine_cable",
+   "disposition": [
+    "keep"
+   ],
+   "prereq": "telegraph AND steamboat",
+   "prereqRationale": "Laying cable needs a powered vessel that holds its course while paying out: the 1850 Channel cable was laid from the paddle tug Goliath and the 1851 cable from the hulk Blazer under tow by tugs, so the screw propeller is not causal; steamboat (1807) is. Requirement count unchanged (2), cost unchanged (D08 request, accepted).",
+   "rationale": "Ocean telegraph cables (Channel 1850-51, transatlantic 1866); realized by infra.submarine_cable in T6.11, with intercontinental contact and trade information for M8. Kept; prerequisite corrected from screw_propeller to steamboat.",
+   "changes": "prereq 'telegraph AND screw_propeller' -> 'telegraph AND steamboat' (count and cost unchanged; screw_propeller keeps its other dependant)",
+   "nodeKind": "infrastructure",
+   "compatibility": {
+    "saves": "completed rows stay; partial progress dormant only for a holder of screw_propeller without steamboat (steamboat precedes the screw in the tree, so in practice none)",
+    "ids": "unchanged",
+    "ui": "lock reason names steamboat",
+    "ai": "closure slightly cheaper (screw_propeller and water_screw leave it)",
+    "consumers": "infra.submarine_cable unchanged; communications_satellite's Eureka condition unchanged",
+    "tests": "chronology (1807 <= 1850)"
+   },
+   "capability": {
+    "grants": [
+     "knowledge:global information network",
+     "infrastructure:infra.submarine_cable"
+    ],
+    "realizationOwner": "ConstructionSystem (infra.submarine_cable)",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "MEASURED: class J; infra.submarine_cable has no realizing system",
+    "deferredEffect": "cable buildable (M6 T6.11 (PROPOSED: deferred-entity realization), tier G); M8 contact/diplomacy and trade information across oceans; also the Eureka condition of communications_satellite",
+    "inputs": {
+     "resources": [],
+     "geography": [
+      "sea crossing between known coasts"
+     ],
+     "infrastructure": [
+      "infra.telegraph_line at both ends"
+     ],
+     "institutions": []
+    },
+    "missingInputs": "eligible; no cable can be laid until T6.11; under fog only between known coasts (T6.8)",
+    "unknownResource": "n/a: no resource input",
+    "aiValuation": "low until M8 consumers exist",
+    "playerCommunication": "Undersea telegraph: continents linked in minutes once cables can be laid."
+   }
+  },
+  {
+   "id": "telephone",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Voice by wire (1876); infra.telephone_network; prerequisite of internet and the new automatic_switching (which now carries the cellular dependency). Keep.",
+   "changes": "none (its dependant mobile_phone now reaches it through automatic_switching)",
+   "nodeKind": "infrastructure",
+   "capability": {
+    "grants": [
+     "knowledge:real-time conversation at distance",
+     "infrastructure:infra.telephone_network"
+    ],
+    "realizationOwner": "ConstructionSystem (infra.telephone_network)",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "MEASURED: class J; infra.telephone_network has no realizing system",
+    "deferredEffect": "telephone network buildable (M6 T6.11 (PROPOSED: deferred-entity realization), tier C); capacity effects M10+",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "none: knowledge with no physical input",
+    "unknownResource": "n/a: no resource input",
+    "aiValuation": "ancestor of internet and automatic_switching; low direct value",
+    "playerCommunication": "Telephone: conversation at a distance once networks can be built."
+   }
+  },
+  {
+   "id": "satellite",
+   "disposition": [
+    "split",
+    "rebalance"
+   ],
+   "rationale": "BUNDLE: the node stood for space access (Sputnik 1, 1957), orbital reconnaissance and satellite communications (Telstar 1962, Syncom 3 1964, Intelsat I 1965) at 535,250 RP, the space cluster's gateway. The retained key keeps the first artificial satellite (orbit and radio, 1957: D08's request), its five dependants and a reworded observation string; relay communications move to communications_satellite. Prerequisites kept (rocket AND computer AND transistor: long-life satellites from Explorer 1 onward were transistorised).",
+   "changes": "split: 'satellite communication' capability moves to communications_satellite; material 2.0 -> 1.5 (12.5 -> 12.0; 535,250 -> 378,470 RP); recommended unlock-string edits: remove 'satellite communication' (moved) and 'GPS' (gps is its own node), and reword 'orbital reconnaissance (D-039 B: pointed becomes GLOBAL)' as a pointed orbital observer (D08 request; D-039 B3, D-040 B3); name, Age, branch, prerequisites and key unchanged",
+   "splitInto": [
+    "communications_satellite"
+   ],
+   "factors": {
+    "novelty": 2.0,
+    "difficulty": 3.5,
+    "material": 1.5,
+    "institutional": 3.0,
+    "breadth": 1.0,
+    "prereq_complexity": 1.0
+   },
+   "costRationale": "novelty 2.0: the first artificial satellite founds spaceflight (kept); difficulty 3.5: orbit insertion and tracking (kept); material 2.0 -> 1.5: the retained Sputnik/Explorer-class satellite (83.6 kg aluminium-alloy sphere, battery-powered transmitters) is materially modest beside its launcher, whose materials rocket scores at 2.0, and the long-life solar-array/transponder payload moves to communications_satellite; institutional 3.0: state space programme (kept); breadth 1.0: gateway to crewed flight, probes, telescopes, Earth observation, GPS and relay satellites (kept); prereq_complexity 1.0: three requirements (unchanged). Split pair 378,470 + 94,620 = 473,090 vs 535,250 (-11.6 %, within the one-quarter limit; the reduction is the material re-score). Not a pacing change: A9 is unreached in every measured run.",
+   "nodeKind": "application",
+   "compatibility": {
+    "saves": "key 309 keeps its dependants; holders do NOT receive communications_satellite (no alias/remap seam), losing only a knowledge string; progress >= 378,470 completes next step at no RP (cost lowered)",
+    "ids": "unchanged; new id communications_satellite",
+    "ui": "capability strings change (communications move to the new node; 'GPS' dropped); same lane and tier",
+    "ai": "space-cluster closures 223,690 RP lower (INFERENCE, static closure); no measured AI pin (A9 unreached)",
+    "consumers": "crewed_spaceflight, earth_observation, gps, space_probe, space_telescope unchanged; no entity, Age fact or civic",
+    "tests": "cost pins: none for this key; 3 CI --check docs regenerate"
+   },
+   "capability": {
+    "grants": [
+     "knowledge:orbital observation platform (a POINTED observer whose sight belongs to the fog lane; never a map reveal)",
+     "knowledge:orbit insertion, tracking and telemetry"
+    ],
+    "realizationOwner": "none today; a launched orbital observer would be a sight source in the fog lane's model (T6.7, PROPOSED) and a reconnaissance asset of the Battle layer (M7)",
+    "status": "knowledge-only",
+    "milestone": "M7",
+    "currentEffect": "MEASURED: class C; capability strings only; prerequisite of crewed_spaceflight, earth_observation, gps, space_probe, space_telescope",
+    "deferredEffect": "reconnaissance from orbit as a POINTED M7 asset realized through a launch project (project.orbital_launch, gated by rocket) - never a map reveal: D-040 B3 forbids a research unlock of reach and D-054 keeps 'satellites revealing the map' out of scope",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [
+      "building.spaceport and project.orbital_launch (gated by rocket, D08)"
+     ],
+     "institutions": []
+    },
+    "missingInputs": "eligible; no launch or space-asset system exists (M10+)",
+    "unknownResource": "n/a; orbital reconnaissance must observe only where pointed and must not create deposit or territory knowledge",
+    "aiValuation": "gateway to space nodes; very high cost: value only with space goals",
+    "playerCommunication": "Artificial satellite: orbit reached. Reconnaissance and relays need launch capability that the game does not yet simulate."
+   }
+  },
+  {
+   "id": "radio",
+   "disposition": [
+    "split",
+    "relocate",
+    "rebalance"
+   ],
+   "name": "Wireless telegraphy (radio)",
+   "age": "A8",
+   "emerged": "1895 CE (Marconi); transatlantic signal 1901 CE",
+   "rationale": "CONFLATION and CAUSAL INVERSION: 'Radio' stood for Marconi's spark wireless telegraphy (1895) AND tube-based voice broadcasting (1920), while vacuum_tube (D04) requires it - yet Fleming's 1904 valve was invented as a detector for wireless telegraphy and broadcasting needed the tube. The key stays with the part that preserves every consumer: a9_radio ('Radio communication'), building.radio_transmitter, vacuum_tube, weather_prediction; voice broadcasting becomes radio_broadcasting. The retained part is 1895-1901 technology, so its Age moves A9 -> A8 (both prerequisites are A8).",
+   "changes": "AT INTEGRATION (D04 request, accepted): prereq electromagnetism -> electromagnetic_field_theory (D04 new id, Maxwell 1865 / Hertz 1887-88; requirement count and cost unchanged; not written here because a lane file may reference only existing ids). Split (new radio_broadcasting takes broadcast media and inst.mass_media_broadcast); name 'Radio' -> 'Wireless telegraphy (radio)'; age A9 -> A8; emerged '1895 / 1920 CE' -> '1895 CE (Marconi); transatlantic signal 1901 CE' (earliest year unchanged); factors 10.5 -> 9.5 (133,810 -> 66,900 RP); prerequisites, branch, family/generation (broadcasting 1) and key unchanged; recommended unlock edits: remove 'broadcast media (D-041 C1)' and inst.mass_media_broadcast (moved)",
+   "splitInto": [
+    "radio_broadcasting"
+   ],
+   "factors": {
+    "novelty": 2.0,
+    "difficulty": 2.5,
+    "material": 1.5,
+    "institutional": 2.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "costRationale": "novelty 2.0: first communication by Hertzian waves (kept); difficulty 3.0 -> 2.5: A8 prior after re-dating to 1895-1901; material 1.5: spark transmitters, coherers, tall masts (kept); institutional 2.5 -> 2.0: A8 prior (one company and navies operating coast and ship stations); breadth 1.0: wireless command, the vacuum-tube detector, broadcasting (kept); prereq_complexity 0.5: two requirements (unchanged). Identical to telegraph, its A8 peer. Split pair 66,900 + 66,900 = 133,800 vs 133,810: workload conserved.",
+   "nodeKind": "application",
+   "compatibility": {
+    "saves": "key 311 now means wireless telegraphy: holders keep a9_radio, building.radio_transmitter and the vacuum_tube edge but do NOT hold radio_broadcasting (no alias/remap seam), so a resumed save loses inst.mass_media_broadcast eligibility and the new prerequisites of television and mobile_phone until it researches radio_broadcasting; progress on radio >= 66,900 completes next step at no RP",
+    "ids": "id unchanged; new id radio_broadcasting",
+    "ui": "name and Age label change (A9 -> A8: the tier moves earlier); capability strings change",
+    "ai": "the electronics gateway (vacuum_tube -> computer, transistor, laser, radar) is 66,910 RP cheaper in closure (INFERENCE, static closure); AI-empire goldens move only if the AI reaches it (it did not by turn 1630)",
+    "consumers": "a9_radio stays on key 311 and fits its own description ('Radio communication'; precedent: a6_paper names the A5 node paper); building.radio_transmitter stays; inst.mass_media_broadcast requirement must change radio -> radio_broadcasting (entity edit); television and mobile_phone prerequisites rewired; vacuum_tube (D04) and weather_prediction (D06) keep requiring radio",
+    "tests": "corpus-sync name pin (ResearchContentTests.cs:43-56, key < 425 carries the corpus name: a 7th rename exception); chronology test unaffected (earliest year stays 1895); generation test: television gen 2 -> 3; 3 CI --check docs"
+   },
+   "capability": {
+    "grants": [
+     "knowledge:wireless command (D-039 A)",
+     "knowledge:ship-to-shore wireless",
+     "age:a9_radio",
+     "building:building.radio_transmitter"
+    ],
+    "realizationOwner": "AgeTransitionSystem (a9_radio supporting fact)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class B; Age 9 supporting fact a9_radio; building.radio_transmitter has no realizing system; prerequisite of vacuum_tube, weather_prediction (and of radio_broadcasting)",
+    "deferredEffect": "radio stations buildable (M6 T6.11 (PROPOSED: deferred-entity realization), tier G); M7 wireless command reaching formations and ships without wires (D-039 A)",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [
+      "building.radio_transmitter (deferred)"
+     ],
+     "institutions": []
+    },
+    "missingInputs": "eligible; no station can be built until T6.11; command effects wait for M7",
+    "unknownResource": "n/a: no resource input",
+    "aiValuation": "a9_radio fact and vacuum_tube ancestor (electronics gateway): high",
+    "playerCommunication": "Wireless telegraphy: Morse by radio waves; meets 'Radio'. Voice broadcasting needs the vacuum tube."
+   }
+  },
+  {
+   "id": "television",
+   "disposition": [
+    "keep"
+   ],
+   "generation": 3,
+   "prereq": "radio_broadcasting AND photography",
+   "prereqRationale": "Broadcast television (1936) is radio broadcasting of a modulated picture signal plus photosensitive imaging: radio_broadcasting (which itself requires vacuum_tube) replaces the bare vacuum_tube atom; photography kept. Requirement count unchanged (2), so cost unchanged.",
+   "rationale": "Kept as the mass-visual-media node; only rewired onto the new broadcasting part of the radio split (and its family generation follows: broadcasting 1 radio, 2 radio_broadcasting, 3 television).",
+   "changes": "prereq 'vacuum_tube AND photography' -> 'radio_broadcasting AND photography'; family broadcasting generation 2 -> 3; cost unchanged (33,450)",
+   "nodeKind": "application",
+   "compatibility": {
+    "saves": "completed rows stay completed; partial progress is dormant while the polity lacks radio_broadcasting (prerequisite change); a saved target on it is cleared if it becomes unavailable",
+    "ids": "unchanged",
+    "ui": "lock reason names radio_broadcasting",
+    "ai": "closure cost unchanged (951,060 -> 951,050)",
+    "consumers": "inst.mass_media_broadcast unchanged apart from the radio -> radio_broadcasting entity edit",
+    "tests": "chronology (radio_broadcasting 1920 <= 1936); generation rule (television 3 > radio_broadcasting 2)"
+   },
+   "capability": {
+    "grants": [
+     "knowledge:mass visual media (D-041 C1)",
+     "institution:inst.mass_media_broadcast"
+    ],
+    "realizationOwner": "InstitutionsSystem (inst.mass_media_broadcast)",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "MEASURED: class J; inst.mass_media_broadcast has no realizing system",
+    "deferredEffect": "broadcast media institution realized (M6 T6.11 (PROPOSED: deferred-entity realization)); media reach for attachment and opinion M9 (D-041 C1)",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "none: knowledge with no physical input",
+    "unknownResource": "n/a: no resource input",
+    "aiValuation": "low until M9 media consumers exist",
+    "playerCommunication": "Broadcast television; effects arrive with the media system."
+   }
+  },
+  {
+   "id": "internet",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Packet-switched internetworking (ARPANET 1969, TCP/IP 1983, Web 1991) at 94,620 RP is below the bottleneck scale; a Web split was considered and rejected (no consumer distinguishes them). Prerequisites causal (computers as packet switches, telephone circuits, IC-based minicomputers). Keep.",
+   "changes": "none",
+   "nodeKind": "infrastructure",
+   "capability": {
+    "grants": [
+     "knowledge:global instant information",
+     "knowledge:D-039 A2 lag collapse",
+     "knowledge:D-041 media at global scale",
+     "infrastructure:infra.internet_backbone"
+    ],
+    "realizationOwner": "ConstructionSystem (infra.internet_backbone)",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "MEASURED: class J; infra.internet_backbone has no realizing system; prerequisite of cloud_computing, cyber_warfare, large_language_models, smart_grid",
+    "deferredEffect": "backbone buildable (M6 T6.11 (PROPOSED: deferred-entity realization), tier G); information reach M8/M9 (contact, diplomacy, media)",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "none: knowledge with no physical input",
+    "unknownResource": "n/a: no resource input",
+    "aiValuation": "ancestor of four D06 nodes; low direct value until M8/M9",
+    "playerCommunication": "The Internet: global instant information once the backbone and the systems that read it exist."
+   }
+  },
+  {
+   "id": "mobile_phone",
+   "disposition": [
+    "keep"
+   ],
+   "prereq": "radio_broadcasting AND microprocessor AND automatic_switching",
+   "prereqRationale": "Cellular telephony is two-way VOICE radio (radio_broadcasting carries voice modulation; bare wireless telegraphy does not) whose calls are routed by automatic exchanges with handoff between cells (automatic_switching, which implies telephone); microprocessor kept for cell control. Requirement count unchanged (3), cost unchanged.",
+   "rationale": "Kept; rewired onto the voice part of the radio split and onto automatic switching, the causal base of cellular switching.",
+   "changes": "prereq 'radio AND microprocessor AND telephone' -> 'radio_broadcasting AND microprocessor AND automatic_switching'; cost unchanged (33,450)",
+   "nodeKind": "infrastructure",
+   "compatibility": {
+    "saves": "completed rows stay; partial progress dormant until radio_broadcasting and automatic_switching are held",
+    "ids": "unchanged",
+    "ui": "lock reasons name the new prerequisites",
+    "ai": "closure +9,940 RP (automatic_switching); no measured AI pin",
+    "consumers": "infra.mobile_network unchanged; dependants cellular_digital and smartphone (D06) unchanged",
+    "tests": "chronology (1891 and 1920 <= 1979)"
+   },
+   "capability": {
+    "grants": [
+     "knowledge:ubiquitous communication",
+     "infrastructure:infra.mobile_network"
+    ],
+    "realizationOwner": "ConstructionSystem (infra.mobile_network)",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "MEASURED: class J; infra.mobile_network has no realizing system",
+    "deferredEffect": "cellular network buildable (M6 T6.11 (PROPOSED: deferred-entity realization), tier G); capacity effects M10+",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "none: knowledge with no physical input",
+    "unknownResource": "n/a: no resource input",
+    "aiValuation": "low; ancestor of cellular_digital and smartphone",
+    "playerCommunication": "Cellular telephony: a phone per person once networks can be built."
+   }
+  },
+  {
+   "id": "fibre_optics",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Low-loss glass fibre (Kao 1966, Corning 1970). DEAD-END RESOLUTION: no later node causally needs it without breaking chronology (internet 1969 predates it; the D-047 chronology test would fail), so it gets a deferred owner: long-haul network capacity when M11+ models it.",
+   "changes": "capability block gains a deferred owner (M10+); nothing else",
+   "nodeKind": "application",
+   "capability": {
+    "grants": [
+     "knowledge:high-bandwidth long-distance communication"
+    ],
+    "realizationOwner": "none until M10+ (telecommunication network capacity)",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: class C; capability string only; leaf (validator V09 dead end today)",
+    "deferredEffect": "raises the capacity of long-haul links (infra.internet_backbone, infra.submarine_cable) when network capacity is modelled (M11+); knowledge-only until then",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "none: knowledge with no physical input",
+    "unknownResource": "n/a: no resource input",
+    "aiValuation": "low; optional leaf",
+    "playerCommunication": "Optical fibre: bandwidth for future networks; no effect yet."
+   }
+  },
+  {
+   "id": "cellular_digital",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "Digital cellular (GSM 1991; data). DEAD-END RESOLUTION: the smartphone's defining capability is mobile data, so D06 is asked to make smartphone require cellular_digital instead of mobile_phone (same requirement count); plus a deferred M10+ owner.",
+   "changes": "capability block gains a deferred owner; cross-lane request to D06 for a dependant",
+   "nodeKind": "infrastructure",
+   "capability": {
+    "grants": [
+     "knowledge:mobile data"
+    ],
+    "realizationOwner": "none until M10+ (mobile-network capacity); dependant smartphone if D06 accepts",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: class C; capability string only; leaf (validator V09 dead end today)",
+    "deferredEffect": "mobile data capacity on infra.mobile_network when network capacity is modelled (M11+); prerequisite of smartphone (requested)",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "none: knowledge with no physical input",
+    "unknownResource": "n/a: no resource input",
+    "aiValuation": "low",
+    "playerCommunication": "Digital cellular networks carry data as well as voice."
+   }
+  },
+  {
+   "id": "trade",
+   "disposition": [
+    "keep"
+   ],
+   "rationale": "The inter-settlement Trade capability (R2a; realized today by TradeArbitrageSystem). Pinned by tests (prereq string, A3, trunk, 880 RP). Keep. The capability block is overridden because the auto-fill maps it to the labour-activity owner (its needle order tests 'activity' before 'trade').",
+   "changes": "none (capability block corrected: owner TradeArbitrageSystem)",
+   "nodeKind": "technique",
+   "capability": {
+    "grants": [
+     "knowledge:formal exchange between settlements",
+     "knowledge:commercial arbitrage along connected routes",
+     "knowledge:foreign trade across polity boundaries",
+     "trade:activity.trade"
+    ],
+    "realizationOwner": "TradeArbitrageSystem (TradeQuery.SettlementKnowsTrade on both endpoints)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class B; activity.trade is sim.json trade.entity: settlements trade only when both endpoints know it; every trade_volume Age fact (a3_exchange, a5_trade, a7_trade, a9_trade) therefore needs it",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [],
+     "geography": [
+      "a connected route between settlements"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "eligible with no route: no flow (unreachable pairs move 0)",
+    "unknownResource": "under fog (T6.8) trade only within known extent",
+    "aiValuation": "should be an AI GOAL: it opens TradeArbitrageSystem flows and the four trade-volume Age facts; today the AI reaches it only through the cheapest fallback (completion 1871-1994 CE in the four measured AI seeds, INFERENCE from the measurement package)",
+    "playerCommunication": "Trade between settlements and polities over connected routes."
+   }
+  }
+ ],
+ "new": [
+  {
+   "id": "radio_broadcasting",
+   "name": "Voice radio and broadcasting",
+   "branch": "engineering",
+   "age": "A9",
+   "domain": "communication",
+   "secondaryDomains": [
+    "science"
+   ],
+   "emerged": "1920 CE (KDKA, Pittsburgh: scheduled broadcasting); earlier experimental voice transmission",
+   "prereq": "radio AND vacuum_tube",
+   "prereqRationale": "radio: Hertzian-wave transmission and reception (Marconi's wireless) is the base; vacuum_tube: continuous-wave oscillators, modulation and amplification made voice transmitters practical - KDKA's 1920 transmitter was a ~100 W vacuum-tube set. Both are knowledge the capability needs.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 1.5,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "costAnalog": "xray",
+   "costRationale": "novelty 1.0: voice modulation and the broadcast model built on wireless and the tube, not a new paradigm; difficulty 3.0: A9 prior; material 1.5: tube transmitters and studio/transmitter plant (as radio); institutional 2.5: A9 prior - licensed stations, spectrum regulation, networks; breadth 1.0: mass media, voice command, television and mobile telephony depend on it; prereq_complexity 0.5: two requirements. 9.5 = 66,900 RP; with the retained radio the split conserves workload (133,800 vs 133,810).",
+   "nodeKind": "application",
+   "primaryUniversity": "engineering",
+   "universityRelevance": [
+    {
+     "type": 3,
+     "name": "Engineering",
+     "role": "primary"
+    }
+   ],
+   "family": "broadcasting",
+   "generation": 2,
+   "splitFrom": "radio",
+   "unlocks": {
+    "capabilities": [
+     "voice radio and broadcast transmission",
+     "broadcast media (D-041 C1)"
+    ],
+    "institutions": [
+     "inst.mass_media_broadcast"
+    ]
+   },
+   "capability": {
+    "grants": [
+     "knowledge:voice radio and broadcast transmission",
+     "knowledge:broadcast media (D-041 C1)",
+     "institution:inst.mass_media_broadcast"
+    ],
+    "realizationOwner": "InstitutionsSystem (inst.mass_media_broadcast, M6 T6.11 (PROPOSED: deferred-entity realization)); M9 media reach; M7 voice command",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "none today (new node); the entity it gates has no realizing system (MEASURED for inst.mass_media_broadcast)",
+    "deferredEffect": "with television and mass_schooling makes inst.mass_media_broadcast eligible (entity requirement edit radio -> radio_broadcasting); M9 attachment/opinion through media reach (D-041 C1); M7 voice command",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [
+      "building.radio_transmitter (gated by radio)"
+     ],
+     "institutions": [
+      "inst.mass_schooling (audience)"
+     ]
+    },
+    "missingInputs": "eligible; the broadcast institution is not realizable until T6.11; no electricity good or grid exists, so transmitter power is not modelled (M10+)",
+    "unknownResource": "n/a: no resource input",
+    "aiValuation": "ancestor of television and mobile_phone: moderate; rises with M9 media consumers",
+    "playerCommunication": "Voice and music to a mass audience. Requires the vacuum tube - wireless telegraphy alone sends Morse."
+   },
+   "eurekas": [],
+   "whyDistinct": "Separates the 1895 wireless-telegraph system from tube-based voice broadcasting (1920): different knowledge (continuous waves, modulation, amplification) and different capabilities (point-to-point wireless command vs mass media), and it removes a causal inversion - vacuum_tube, invented in 1904 as a wireless-telegraph detector, required the node that also stood for tube-based broadcasting.",
+   "acceptanceTest": "Graph: radio_broadcasting requires radio AND vacuum_tube; vacuum_tube stays researchable with radio alone (no cycle); television and mobile_phone list radio_broadcasting as a must-hold atom. Eligibility: with television and mass_schooling, holding radio_broadcasting (not radio alone) makes inst.mass_media_broadcast knowledge-eligible (ResearchQuery.IsKnowledgeEligible) after the entity edit.",
+   "compatibility": {
+    "saves": "new key; holders of radio (key 311) do not receive it (no alias seam)",
+    "ids": "new",
+    "ui": "new card in 1.3 Engineering",
+    "ai": "new optional node",
+    "consumers": "inst.mass_media_broadcast entity edit",
+    "tests": "branch/finite counts +1 Engineering; 3 CI docs"
+   }
+  },
+  {
+   "id": "communications_satellite",
+   "name": "Communications satellite",
+   "branch": "engineering",
+   "age": "A9",
+   "domain": "communication",
+   "secondaryDomains": [
+    "naval"
+   ],
+   "emerged": "1962 CE (Telstar 1); 1964 CE (Syncom 3, geostationary); 1965 CE (Intelsat I)",
+   "prereq": "satellite AND solar_pv",
+   "prereqRationale": "satellite: orbit insertion, tracking and telemetry; solar_pv: a relay must run for years - Vanguard 1 (1958) was the first solar-powered satellite and Telstar 1 carried 3,600 solar cells, while battery-only Sputnik 1 fell silent after about three weeks. Transistorised electronics come through satellite.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 1.5,
+    "institutional": 3.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "costAnalog": "solar_pv",
+   "costRationale": "novelty 1.0: applies the satellite as an active relay (proposed by Clarke in 1945), not a new paradigm; difficulty 3.0: A9 prior - geostationary insertion, station-keeping, microwave transponders; material 1.5: solar arrays and travelling-wave-tube amplifiers; institutional 3.0: above the A9 prior - an intergovernmental consortium (Intelsat, 1964) and a worldwide ground-station network, like gps 3.0; breadth 1.0: intercontinental telephony, live television and data relay; prereq_complexity 0.5: two requirements. 10.0 = 94,620 RP.",
+   "nodeKind": "application",
+   "primaryUniversity": "engineering",
+   "universityRelevance": [
+    {
+     "type": 3,
+     "name": "Engineering",
+     "role": "primary"
+    }
+   ],
+   "family": null,
+   "generation": null,
+   "splitFrom": "satellite",
+   "unlocks": {
+    "capabilities": [
+     "intercontinental telephone, television and data relay",
+     "satellite communication"
+    ]
+   },
+   "capability": {
+    "grants": [
+     "knowledge:intercontinental telephone, television and data relay",
+     "knowledge:satellite communication"
+    ],
+    "realizationOwner": "M8 politics/diplomacy (contact and information reach) and M9 media reach; no entity yet",
+    "status": "deferred",
+    "milestone": "M8",
+    "currentEffect": "none (new node; knowledge-only today)",
+    "deferredEffect": "intercontinental relay for contact/diplomacy information (M8) and global live media (M9, D-041 C1); a ground-station infrastructure entity is IMPLEMENTATION DEFERRED (M10+)",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [
+      "launch capability (project.orbital_launch, gated by rocket, D08)"
+     ],
+     "institutions": []
+    },
+    "missingInputs": "eligible; no launch or space-asset system exists (M10+)",
+    "unknownResource": "n/a: no resource input",
+    "aiValuation": "low until M8/M9 consumers exist; optional leaf",
+    "playerCommunication": "Relays telephone and television across oceans; no in-game effect until diplomacy and media systems read it."
+   },
+   "eurekas": [
+    {
+     "text": "Undersea cables already carry the polity's intercontinental traffic",
+     "when": "submarine_cable",
+     "kind": "precursor demand",
+     "class": "machine-evaluable",
+     "weight": 0.4,
+     "justification": "Communications satellites were developed by telephone carriers (AT&T's Telstar 1, 1962) and the COMSAT/Intelsat consortium to add intercontinental capacity alongside undersea cables (TAT-1 telephone cable, 1956); motive stated as INFERENCE. Not implied by the prerequisites (submarine_cable is not in the closure) and not dead."
+    }
+   ],
+   "whyDistinct": "Splits space access (1957) from relay communications (1962-65): different knowledge (long-life solar-powered transponders, station-keeping, a global ground segment) and a different capability (intercontinental telephony/TV/data relay) that was only a capability string on a 535k-RP gateway node.",
+   "acceptanceTest": "Graph: requires satellite AND solar_pv; completing it changes no realized system today (Glass Box KnowledgeOnly); its Eureka fires once when submarine_cable is complete; when the M8/M9 information-reach consumer is built it reads this node, not satellite.",
+   "compatibility": {
+    "saves": "new key; holders of satellite do not receive it (no alias seam)",
+    "ids": "new",
+    "ui": "new card in 1.3 Engineering",
+    "ai": "new optional leaf",
+    "consumers": "none today",
+    "tests": "branch/finite counts +1 Engineering; Eureka count +1 (ResearchContentTests.cs:171-183)"
+   }
+  },
+  {
+   "id": "automatic_switching",
+   "name": "Automatic telephone switching",
+   "branch": "engineering",
+   "age": "A8",
+   "domain": "communication",
+   "secondaryDomains": [
+    "engineering"
+   ],
+   "emerged": "1891 CE (Strowger patent); 1892 CE first automatic exchange (La Porte, Indiana)",
+   "prereq": "telephone",
+   "prereqRationale": "Electromechanical selectors switch telephone circuits; the knowledge needed is the telephone circuit itself (which already implies the telegraph's electromagnets and relays).",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.75,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "costAnalog": "telephone",
+   "costRationale": "novelty 1.0: automates an existing service with relay logic - typical, not paradigm-founding; difficulty 2.5: A8 prior; material 0.75: precision electromechanical selectors and relays (as telephone); institutional 2.0: A8 prior - operating companies rebuilding exchanges; breadth 0.5: network scale, cellular switching (and relay computing if D06 adopts it); prereq_complexity 0.0: one requirement. 6.75 = 9,950 RP, the same magnitude as telephone.",
+   "nodeKind": "application",
+   "primaryUniversity": "engineering",
+   "universityRelevance": [
+    {
+     "type": 3,
+     "name": "Engineering",
+     "role": "primary"
+    }
+   ],
+   "family": "telegraphy_telephony",
+   "generation": null,
+   "splitFrom": null,
+   "unlocks": {
+    "capabilities": [
+     "automatic telephone exchanges (dial service)",
+     "electromechanical relay switching logic"
+    ]
+   },
+   "capability": {
+    "grants": [
+     "knowledge:automatic telephone exchanges (dial service)",
+     "knowledge:electromechanical relay switching logic"
+    ],
+    "realizationOwner": "none until M10+ (telephone-network capacity and operator labour); dependant mobile_phone",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "none (new node)",
+    "deferredEffect": "raises telephone-network capacity and removes operator labour when infrastructure capacity is modelled (M11+); prerequisite of cellular telephony and a candidate relay route to programmable computation (D06)",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "none: knowledge with no physical input",
+    "unknownResource": "n/a: no resource input",
+    "aiValuation": "ancestor of mobile_phone; low direct value",
+    "playerCommunication": "Exchanges connect calls without operators; cellular networks depend on it."
+   },
+   "eurekas": [],
+   "whyDistinct": "Automatic switching (Strowger 1891, later crossbar) is what let telephone networks scale without operators, and its relay logic is the causal base of cellular switching and of relay computing - Zuse's Z3 (1941) and Stibitz's Bell Labs calculator (1940) were built from telephone relays. It creates real dependencies instead of a label.",
+   "acceptanceTest": "mobile_phone becomes available only after automatic_switching; completing automatic_switching changes no realized system today (Glass Box KnowledgeOnly with a dependant).",
+   "compatibility": {
+    "saves": "new key",
+    "ids": "new",
+    "ui": "new card in 1.3 Engineering",
+    "ai": "new node on the mobile_phone path",
+    "consumers": "mobile_phone prerequisite",
+    "tests": "branch/finite counts +1 Engineering"
+   }
+  },
+  {
+   "id": "punched_card_tabulation",
+   "name": "Punched-card tabulation",
+   "branch": "engineering",
+   "age": "A8",
+   "domain": "communication",
+   "secondaryDomains": [
+    "engineering",
+    "science"
+   ],
+   "emerged": "1889 CE (Hollerith patent); 1890 CE US census",
+   "prereq": "jacquard AND telegraph",
+   "prereqRationale": "jacquard: data encoded as holes in cards and read mechanically - the Jacquard loom is the recognised conceptual precedent (Hollerith experimented with it at Billings's suggestion; the conductor's ticket punch was the more direct spark), INFERENCE for causal weight; telegraph: pins closing electrical circuits that drive electromagnetic counters is telegraph-era electrical practice.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.75,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "costAnalog": "jacquard",
+   "costRationale": "novelty 1.0: mechanised data processing combining known card control and electrical counting; difficulty 2.5: A8 prior; material 0.75: card punches, contact presses and counters; institutional 2.0: A8 prior - census bureaus and insurers; breadth 0.5: administrative statistics and the data-processing lineage of computing; prereq_complexity 0.5: two requirements. 7.25 = 14,060 RP (jacquard 6.75 plus 0.5 breadth).",
+   "nodeKind": "application",
+   "primaryUniversity": "engineering",
+   "universityRelevance": [
+    {
+     "type": 3,
+     "name": "Engineering",
+     "role": "primary"
+    }
+   ],
+   "family": "computing",
+   "generation": null,
+   "splitFrom": null,
+   "unlocks": {
+    "capabilities": [
+     "mechanised tabulation of census and administrative records"
+    ]
+   },
+   "capability": {
+    "grants": [
+     "knowledge:mechanised tabulation of census and administrative records"
+    ],
+    "realizationOwner": "M8 politics/administration (census and assessment capacity; inst.census is realized in T6.11); D06 computing lineage (requested)",
+    "status": "deferred",
+    "milestone": "M8",
+    "currentEffect": "none (new node)",
+    "deferredEffect": "faster and larger census and assessment cycles as an input of administrative reach (M8); punched-card input/output precursor of programmable computation if D06 adopts the edge",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": [
+      "inst.census (requires the census civic)"
+     ]
+    },
+    "missingInputs": "eligible; no administration system reads tabulation capacity until M8",
+    "unknownResource": "n/a: no resource input",
+    "aiValuation": "low until M8; its Eureka rewards an existing census",
+    "playerCommunication": "Machines count punched cards: census results in weeks instead of years, once administration is simulated."
+   },
+   "eurekas": [
+    {
+     "text": "A national census is taken",
+     "when": "census",
+     "kind": "precursor demand",
+     "class": "machine-evaluable",
+     "weight": 0.4,
+     "justification": "Hollerith's tabulator was built for the 1890 US census after the 1880 count took most of a decade to tabulate. census is a civic node id (a cross-tree Eureka condition, not a prerequisite); not implied by the prerequisites and not dead."
+    }
+   ],
+   "whyDistinct": "Mechanised data processing is a distinct capability (administrative statistics at scale, 1890) and the industrial lineage of computing; it also gives jacquard's punched-card control its first real dependant.",
+   "acceptanceTest": "Available after jacquard AND telegraph (Engineering subtree, stage required); its Eureka fires once when census is complete; no realized effect until the M8 administration consumer exists (Glass Box KnowledgeOnly).",
+   "compatibility": {
+    "saves": "new key",
+    "ids": "new",
+    "ui": "new card in 1.3 Engineering",
+    "ai": "new optional node",
+    "consumers": "jacquard (D07) gains a dependant",
+    "tests": "branch/finite counts +1 Engineering; Eureka count +1; evaluable-Eureka count +1 (ResearchContentTests.cs:171-183)"
+   }
+  },
+  {
+   "id": "optical_telegraph",
+   "name": "Optical telegraph",
+   "branch": "engineering",
+   "age": "A7",
+   "domain": "communication",
+   "secondaryDomains": [
+    "military"
+   ],
+   "emerged": "1794 CE (Chappe line Paris-Lille)",
+   "prereq": "telescope",
+   "prereqRationale": "Each semaphore tower was read from the next, 5-15 km away, through a telescope; the articulated arms and codebook are simple once distant signals can be read reliably.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.0,
+    "material": 0.75,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "costAnalog": "longitude_problem",
+   "costRationale": "novelty 1.0: a coded relay network combining the telescope with mechanical semaphores, beyond binary beacon fires; difficulty 2.0: A7 prior; material 0.75: tower chains, articulated arms, telescopes; institutional 2.0: above the A7 prior - a state-built, state-run network with trained operators and codebooks (Chappe's lines served the government); breadth 0.5: state and military messages only; prereq_complexity 0.0: one requirement. 6.25 = 7,030 RP.",
+   "nodeKind": "infrastructure",
+   "primaryUniversity": "engineering",
+   "universityRelevance": [
+    {
+     "type": 3,
+     "name": "Engineering",
+     "role": "primary"
+    }
+   ],
+   "family": "telegraphy_telephony",
+   "generation": null,
+   "splitFrom": null,
+   "unlocks": {
+    "capabilities": [
+     "state semaphore signal network",
+     "strategic signalling over hundreds of kilometres in hours"
+    ]
+   },
+   "capability": {
+    "grants": [
+     "knowledge:state semaphore signal network",
+     "knowledge:strategic signalling over hundreds of kilometres in hours"
+    ],
+    "realizationOwner": "Battle layer (M7) command latency (D-039 A3/A5: signal infrastructure); M8 administrative reach; no entity yet",
+    "status": "deferred",
+    "milestone": "M7",
+    "currentEffect": "none (new node)",
+    "deferredEffect": "a signal-line infrastructure entity (IMPLEMENTATION DEFERRED) that shortens strategic order and report latency along BUILT tower chains (M7) and extends administrative reach (M8); never reveals territory or contacts (D-040 B3)",
+    "inputs": {
+     "resources": [],
+     "geography": [
+      "line-of-sight tower sites"
+     ],
+     "infrastructure": [
+      "tower chain (no entity yet)"
+     ],
+     "institutions": []
+    },
+    "missingInputs": "eligible; no tower line can be built until an entity and its M7/M8 consumers exist",
+    "unknownResource": "n/a: no resource input",
+    "aiValuation": "low until M7/M8 consumers exist",
+    "playerCommunication": "Semaphore towers relay coded messages by telescope - Paris to Lille in about half an hour; effects arrive with the battle layer and administration."
+   },
+   "eurekas": [],
+   "whyDistinct": "The first national telecommunication network (Chappe 1794; about 530 stations over 5,000 km by the 1840s) gave states rapid signalling half a century before electricity; it fills the gap between courier relays and the electric telegraph for the M7 command-latency and M8 administrative-reach owners.",
+   "acceptanceTest": "Available after telescope (Engineering subtree, stage required); completing it changes no realized system today (Glass Box KnowledgeOnly); when M7 models signal infrastructure, latency falls only along built lines, never by knowledge alone.",
+   "compatibility": {
+    "saves": "new key",
+    "ids": "new",
+    "ui": "new card in 1.3 Engineering",
+    "ai": "new optional leaf",
+    "consumers": "none today",
+    "tests": "branch/finite counts +1 Engineering"
+   }
+  },
+  {
+   "id": "mesoamerican_script",
+   "name": "Mesoamerican writing",
+   "branch": "trunk",
+   "age": "A3",
+   "domain": "communication",
+   "secondaryDomains": [
+    "science"
+   ],
+   "emerged": "~650 BCE calendar notation (San Andres, Tabasco); ~600-500 BCE Zapotec (San Jose Mogote); ~300 BCE Maya (San Bartolo)",
+   "prereq": "calendar_lunar",
+   "prereqRationale": "The earliest securely dated Mesoamerican signs are calendrical (day names and dates) and calendar notation was already widespread before the mid-first millennium BCE, so calendrical sky-reckoning (calendar_lunar, which already implies tally_notation for the bar-and-dot numerals) is the causal root; the 260-day count is not lunar, so the atom stands for calendar reckoning in general (INFERENCE). No clay tokens and no oracle bones: a genuinely different path from the other three scripts.",
+   "factors": {
+    "novelty": 2.0,
+    "difficulty": 1.0,
+    "material": 0.0,
+    "institutional": 0.75,
+    "breadth": 1.5,
+    "prereq_complexity": 0.0
+   },
+   "costAnalog": "hieroglyphic",
+   "costRationale": "novelty 2.0: an independent invention of full writing (as cuneiform, hieroglyphic, chinese_script); difficulty 1.0 and institutional 0.75: A3 prior (court scribes of early states); material 0.0: stone, stucco, bark paper and ceramics need no new material; breadth 1.5: the same downstream scope as its peers once it joins the generic-writing OR groups (D03's surveying, geometry_practical, calendar_civil, astronomy_records; entity OR groups requested); prereq_complexity 0.0: one requirement. 5.25 = 3,520 RP, equal to hieroglyphic: not a cheaper route - its closure (via calendar_lunar, 4,180 RP) costs more than chinese_script's.",
+   "nodeKind": "technique",
+   "primaryUniversity": "engineering",
+   "universityRelevance": [
+    {
+     "type": 3,
+     "name": "Engineering",
+     "role": "primary"
+    }
+   ],
+   "family": "writing",
+   "generation": 1,
+   "splitFrom": null,
+   "unlocks": {
+    "capabilities": [
+     "full writing grown from calendrical notation",
+     "dated dynastic monuments",
+     "bark-paper books"
+    ]
+   },
+   "capability": {
+    "grants": [
+     "knowledge:full writing grown from calendrical notation",
+     "knowledge:dated dynastic monuments",
+     "knowledge:bark-paper books"
+    ],
+    "realizationOwner": "none needed: it acts through prerequisite OR groups (an alternative member of the generic-writing groups)",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "none (new node)",
+    "deferredEffect": "joins the generic-writing OR groups of D03 nodes (offered by D03) and, if integration accepts, of school, library, scribal school, archive, natural philosophy and historiography (M6 T6.11 (PROPOSED: deferred-entity realization)), so a calendar-first civilization reaches the same written institutions; it is the script prerequisite D03 needs to express the Maya vigesimal place value with zero and the Venus and eclipse tables",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "none: knowledge with no physical input",
+    "unknownResource": "n/a: no resource input",
+    "aiValuation": "never cheaper than chinese_script (whose prerequisites every holder of calendar_lunar already has); low unless a Mesoamerican-specific dependant exists",
+    "playerCommunication": "Mesoamerican writing: an independent invention of full writing that grew out of the calendar."
+   },
+   "eurekas": [],
+   "whyDistinct": "One of the few independent inventions of writing (Mesoamerica, from about 650-500 BCE), and the only one rooted in calendrical notation rather than accounting tokens or divination; it gives the tree a script for the Maya mathematical and calendrical tradition that D03 asked for and must not invent itself.",
+   "acceptanceTest": "Graph: trunk, A3, requires calendar_lunar; Age monotone wherever it appears in an OR group (A3/A4 consumers); a polity holding it and none of cuneiform/hieroglyphic/chinese_script satisfies every generic-writing OR group it has been added to; it is never on a cheapest closure ahead of chinese_script.",
+   "compatibility": {
+    "saves": "new key",
+    "ids": "new",
+    "ui": "new card in Main Trunk",
+    "ai": "never cheaper than chinese_script",
+    "consumers": "D03 OR groups (offered); entity OR groups (requested from integration); civic/medicine OR groups optional (D12, D10)",
+    "tests": "trunk count +1; chronology test dated (-650; AND prerequisite calendar_lunar ~8000 BCE)"
+   }
+  }
+ ],
+ "crossLaneRequests": [
+  {
+   "targetLane": "D06-energy-engineering",
+   "request": "Split computer (535,250 RP) into causally distinct parts: a programmable-computation part (Zuse Z3 1941, Colossus 1943-44, ENIAC 1945) with prerequisite '(vacuum_tube OR automatic_switching) AND calculus' (optionally AND punched_card_tabulation for card/tape input-output), and the retained computer = stored-program electronic computer (Manchester Baby 1948, EDSAC 1949) requiring that part AND vacuum_tube. Keep a9_computing ('The electronic computer') and all 14 dependants on key 315; score the two parts about 11.5 each (267,620 x 2 = 535,240) so workload is conserved. D05 does not create these ids, to avoid collisions; automatic_switching and punched_card_tabulation are D05 NEW ids, so reference them at integration.",
+   "reason": "Bottleneck split into independently useful parts with a genuine alternative hardware route: the first working programmable machines were built from telephone relays (Z3; Stibitz's 1940 Bell Labs calculator) as well as from vacuum tubes. D05's new automatic_switching and punched_card_tabulation are the hooks."
+  },
+  {
+   "targetLane": "D06-energy-engineering",
+   "request": "smartphone: replace mobile_phone with cellular_digital in its prerequisite ('cellular_digital AND personal_computer AND lithium_battery'; requirement count and cost unchanged).",
+   "reason": "The smartphone's defining capability is mobile data (2G/3G); this gives cellular_digital (a V09 dead end) a causal dependant. Also FYI: communications_satellite (D05, new) requires solar_pv - keep that id."
+  },
+  {
+   "targetLane": "D04-natural-science",
+   "request": "Replies: (1) ACCEPTED - at integration radio requires electromagnetic_field_theory AND telegraph (your new id; count and cost unchanged). (2) CONFLICT on double_entry: D05 moves bill_of_exchange to the TRUNK (a merchants' instrument; ADR-029 R1 artifact), so your stated reason for Engineering ('the trunk is impossible') no longer holds; recommended: double_entry -> trunk (prerequisites hindu_arabic, paper, bill_of_exchange all trunk), keeping the finance family together and causally placed. If the Director prefers the family in Engineering, revert bill_of_exchange instead (no test pins its branch).",
+   "reason": "Coordinate the finance family across lanes; both choices remove double_entry from the natural-science exhaustion count."
+  },
+  {
+   "targetLane": "D04-natural-science",
+   "request": "Keep vacuum_tube requiring radio: key 311 now means wireless telegraphy (A8, 66,900 RP), which makes the edge causal (Fleming's 1904 valve was a wireless-telegraph detector). Do not make vacuum_tube require radio_broadcasting (that would be a cycle).",
+   "reason": "Radio split; Age monotonicity holds (vacuum_tube A9 >= radio A8)."
+  },
+  {
+   "targetLane": "D08-transport-naval",
+   "request": "Replies: (1) satellite's key stays on the first artificial satellite (orbit and radio, 1957) and keeps 'rocket AND computer AND transistor' - with your split, rocket = the orbital launch vehicle, so no edit. (2) Its reconnaissance string is reworded as a pointed orbital observer whose sight belongs to the fog lane (never a map reveal); its 'GPS' string is dropped (gps is your node). (3) ACCEPTED: submarine_cable now requires 'telegraph AND steamboat' (screw_propeller loses that dependant). (4) communications_satellite is a new D05 leaf; earth_observation stays yours.",
+   "reason": "Coordinate the space gateway: rocket (756,960) + satellite (now 378,470) is the closure of every space node."
+  },
+  {
+   "targetLane": "D01-agriculture-food",
+   "request": "Acknowledged: your heavy_plough relocation to the trunk removes the research stage from A6's CORE. With D05's bill_of_exchange (a6_finance) and the trunk nodes paper and water_mill, A6 entry is then reachable before the stage; no further request.",
+   "reason": "Printing-press coupling verdict: A7 entry inherits A6's gate (Ages advance one at a time)."
+  },
+  {
+   "targetLane": "D03-science-early",
+   "request": "Reply to your request (a): mesoamerican_script is added (trunk, A3, requires calendar_lunar, 3,520 RP, same factors as hieroglyphic). At integration (it is a D05 new id), please add it to the generic-writing OR groups you offered (surveying, geometry_practical, calendar_civil, astronomy_records' non-Babylonian route) and use it for any Maya-specific node (vigesimal place value with zero; Venus and eclipse tables). Do not add it to the cuneiform-specific nodes (numeral_sexagesimal). Noted (b): standard_weights accepting chinese_script.",
+   "reason": "Your OR groups are its dependants; without them the node has no consumer beyond the entity OR groups."
+  },
+  {
+   "targetLane": "D12-civics",
+   "request": "Optional, at integration (D05 new id): add mesoamerican_script to the generic-writing OR groups of law_code, census, appointed_officials and royal_envoys (and taxation if you accept moving its test-pinned prerequisite set). Confirmed: none of the nodes you listed (scripts, paper, printing_press, paper_money, telegraph, trade) is split; the only D05 splits are radio and satellite, which no civic names.",
+   "reason": "Consistency of the writing alternatives; your request on split keys is satisfied."
+  },
+  {
+   "targetLane": "D10-medicine",
+   "request": "Optional, at integration (D05 new id): add mesoamerican_script to medicine_recorded's writing OR group.",
+   "reason": "Consistency of the writing alternatives (Mesoamerican medical and herbal knowledge was recorded in later codices)."
+  },
+  {
+   "targetLane": "D12-civics",
+   "request": "No edit needed: patent (legal_code_roman AND printing_press) and joint_stock (bill_of_exchange AND legal_code_roman) keep their prerequisites, whose technology atoms move to the trunk, so a7_patent and a7_company no longer depend on the research stage. FYI: a khipu (knotted-cord) route for census/taxation was considered and rejected by D05; it is yours to take up if you add an administrative-records civic.",
+   "reason": "Civic prerequisites and Age facts hang on D05 nodes; ids and consumers are preserved."
+  },
+  {
+   "targetLane": "D07-industry-construction",
+   "request": "Replies: (1) type_founding -> printing_press edge ACCEPTED at integration, with printing_press material 0.75 -> 0.25 (press + type_founding 36,490 vs 39,780 RP), ON CONDITION that you relocate type_founding to the trunk (A7; its prerequisite casting_closed is trunk; a goldsmith's craft needing no organized scholarship - the same V17 exception as the press). printing_press is proposed for the trunk and a trunk node may not require a subtree node; if type_founding stays in Engineering the acceptance lapses (fallback: printing_press keeps casting_closed and your merge option returns). (2) jacquard gains the dependant punched_card_tabulation (D05 new: 'jacquard AND telegraph', Hollerith 1889-90), as your record anticipates.",
+   "reason": "Causal order of type casting before the press; trunk closure; workload-conserving split of the A7 core."
+  },
+  {
+   "targetLane": "D02-materials-mining",
+   "request": "ACCEPTED at integration: hacksilver requires 'standard_weights AND cupellation' (your new id; count and cost unchanged; the a5_coinage CORE closure gains cupellation, 2,090 RP).",
+   "reason": "Weighed silver was refined from argentiferous lead; gives cupellation its causal consumer."
+  },
+  {
+   "targetLane": "D09-military",
+   "request": "Signalling ids for any command or unit consumer: optical_telegraph (A7, new), telegraph (A8), radio = wireless telegraphy (A8), radio_broadcasting (A9 voice).",
+   "reason": "D-039 A3/A5: command latency derives from built signal infrastructure (M7); D05 keeps these as eligibility only."
+  },
+  {
+   "targetLane": "integration (entity requirements)",
+   "request": "Entity edits: (1) inst.mass_media_broadcast requires 'radio AND television AND mass_schooling' -> 'radio_broadcasting AND television AND mass_schooling'; radio's unlock lists drop inst.mass_media_broadcast and radio_broadcasting's gain it (reverse-index rule). (2) Add mesoamerican_script to the script OR groups of building.school, building.library, inst.scribal_school, inst.archive, inst.natural_philosophy and inst.historiography (and to its unlock lists). (3) Unlock-string edits on radio and satellite as stated in their records.",
+   "reason": "The part schema has no entity-requirement field; the loader requires unlock lists to be the exact reverse index of entity requirements."
+  }
+ ],
+ "openQuestions": [
+  "V17 exception: accept printing_press as a trunk node at A7 (the A7+-in-subtrees convention comes from ADR-029 rule R1, an overridable implementer resolution placing nodes by Age, against D-044 R4 'keep trunk-logical nodes in the trunk'), or keep it in Engineering and accept that the A7 CORE fact carries a non-causal research-stage gate - including the civic atom legal_code_roman, which D-061 Civics Points pacing would make binding (docket C.1).",
+  "A7 entry stays stage-coupled through its supporting facts even with D01's heavy_plough and D05's printing_press/bill_of_exchange in the trunk: every technological and systemic A7 option (caravel D08; corned_powder and mechanics_newtonian D04) is a subtree node and military realization is pending M7, so only two of the three required categories (institutional_social via patent/joint_stock; material_economic via trade volume) can hold before the stage. Intended (Early Modern = an organized-science development state), or should ages.json or D04/D08 offer a trunk-reachable technological/systemic fact (corned powder and the caravel were craft innovations)?",
+  "Alias/remap seam (raised once by the package): old saves holding radio (311) do not receive radio_broadcasting and holders of satellite (309) do not receive communications_satellite.",
+  "AI research goals (T6.16): the AI reaches trade only through the cheapest fallback (1871-1994 CE in the four measured AI seeds, INFERENCE), although every trade_volume Age fact depends on it; should trade become an AI goal?",
+  "mesoamerican_script joins the generic-writing OR groups only where the owning lane or integration adds it: D03 offered surveying, geometry_practical, calendar_civil and astronomy_records; should the six script entity requirements and the civic/medical OR groups (law_code, census, taxation, appointed_officials, royal_envoys, medicine_recorded) also accept it? (taxation's prerequisite set is test-pinned.)",
+  "printing_press Eureka 0 text says 'screw press' but its condition is olive_press_beam (a lever-and-weight press); a text-only correction ('Wine or oil presses are in use', same index and condition) would keep saves valid - left unedited here because Eureka lists are append-only by policy."
+ ]
+}

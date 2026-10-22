@@ -1,0 +1,592 @@
+{
+ "lane": "D03-science-early",
+ "summary": "PROPOSED. D03 keeps the trunk's early mathematics, astronomy, calendars and measurement, and makes them causally honest and less tied to one tradition. (1) Research stage: algebra required geometry_axiomatic, so the stage's '(geometry_axiomatic OR algebra)' offered no real alternative: every path went through Greek deductive geometry. Algebra now requires a positional calculating system (hindu_arabic OR the new counting_rods) AND geometry_practical. That opens Indian/Islamic and Chinese routes, and both cost more than the Greek route, so no cost is softened. (2) The three calendar nodes were the only A1–A5 nodes scored institutional 3.0, the scale maximum otherwise used by A8–A9 national programmes and astrolabe. They are re-scored to their Age priors, each with a stated content reason: calendar_lunar 4,180 → 620, calendar_civil 5,910 → 1,760, calendar_lunisolar 3,520 → 1,240. (3) Causality and chronology: surveying's Mesopotamian branch named Old Babylonian arithmetic (~1,800 BCE), about seven centuries after Sumerian field surveying; it now names cuneiform (Group B). Practical geometry is re-dated from Thales to Bronze Age Egypt and Babylonia (A4 → A3, cost unchanged). Geometric astronomy now builds on the luni-solar period relations (calendar_lunisolar), which is no longer a dead end. Distillation accepts copper or bronze apparatus as an alternative to blown glass. Standard weights accept the Chinese record-keeping route. (4) Classification: four domesticates and pigment processing are re-filed under agriculture/materials, matching their peers. One new node (counting_rods); no split, merge or retirement. The two remaining dead ends carry a cross-lane request (water_clock) or an explicit justification (abacus).",
+ "existing": [
+  {
+   "id": "dog_domestication",
+   "disposition": ["relocate"],
+   "rationale": "Classification only. Every other domesticate (sheep_goat, cattle, pig) has domain agriculture and an Agricultural primary university; the first domesticate is the only one filed under 'science'. Prerequisites, Age, cost and key are unchanged, and the node remains the root of the herding line (sheep_goat). Because the partition is generated from the domain field, a regenerated partition would hand this node to D01.",
+   "changes": "domain science → agriculture; secondaryDomains [agriculture] → [science]; universityRelevance primary Natural Science → Agricultural (Natural Science secondary). No other field.",
+   "domain": "agriculture",
+   "secondaryDomains": ["science"],
+   "universityRelevance": [
+    {"type": 5, "name": "Agricultural", "role": "primary"},
+    {"type": 4, "name": "Natural Science", "role": "secondary"}
+   ],
+   "nodeKind": "technique",
+   "compatibility": {
+    "saves": "none: rows store keys only; domain and university relevance are not persisted",
+    "ids": "none: id and key unchanged",
+    "ui": "classification label only: Technology lanes are laid out by branch, and domain sets lanes only in the Civics tree (ResearchTreeLayout.cs:125-131)",
+    "ai": "none: no AI policy reads domain or a trunk node's university relevance",
+    "consumers": "none: trunk nodes always pay BaseCost (ResearchQuery.cs:316), so a trunk node's primary university has no mechanical effect",
+    "tests": "no test pins a node's domain or university relevance; AvailableActionsQueryTests:128 and TurnOneActionSurfaceTests:250 name the id only"
+   }
+  },
+  {
+   "id": "ochre_processing",
+   "disposition": ["relocate"],
+   "rationale": "Classification only. Grinding and mixing mineral pigments is materials processing, and both dependants are materials/industry nodes with an Engineering primary university: copper_smelting (as an OR route) and dyeing. D-045 flagged the node as a technique candidate and the Director ruled it not moved; nodeKind 'technique' is a label, not a move. Prerequisites, Age and cost are unchanged.",
+   "changes": "domain science → materials; secondaryDomains [materials] → [science]; universityRelevance primary Natural Science → Engineering (Natural Science secondary). No other field.",
+   "domain": "materials",
+   "secondaryDomains": ["science"],
+   "universityRelevance": [
+    {"type": 3, "name": "Engineering", "role": "primary"},
+    {"type": 4, "name": "Natural Science", "role": "secondary"}
+   ],
+   "nodeKind": "technique",
+   "compatibility": {
+    "saves": "none (not persisted)",
+    "ids": "none",
+    "ui": "classification label only",
+    "ai": "none",
+    "consumers": "none (trunk node; university relevance has no cost effect)",
+    "tests": "none pin domain or university relevance"
+   }
+  },
+  {
+   "id": "tally_notation",
+   "disposition": ["keep"],
+   "rationale": "The earliest material counting records: Lebombo ~44 kya and Ishango ~20 kya. It is the causal root of token_counting, chinese_script and calendar_lunar. Scored at the A1 prior, giving magnitude 2.0 and 370 RP; correctly placed.",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "calendar_lunar",
+   "disposition": ["rebalance"],
+   "rationale": "Cost-consistency correction. The node is scored institutional 3.0, the maximum of the loader range. Among A1–A5 nodes only the three calendar nodes carry it; elsewhere it appears only on astrolabe (A6) and on A8–A9 programme-scale nodes such as locomotive, rocket and nuclear_fission. That makes a lunar month count cost more than the A2 CORE fact cereal_cultivation (3,520) and as much as copper_smelting. The node's own anchor, the Warren Field pit alignment of ~8,000 BCE, was built by Mesolithic hunter-gatherers, with no state, temple or scribal institution behind it. D-045 had classed it band M2, 'bounded new knowledge' (docs/research-corpus-audit-d045.md:167). Prerequisite and Age are unchanged.",
+   "changes": "factors.institutional 3.0 → 0.25; magnitude 5.5 → 2.75; cost 4,180 → 620 RP (−85 %).",
+   "factors": {"novelty": 1.0, "difficulty": 0.5, "material": 0.0, "institutional": 0.25, "breadth": 1.0, "prereq_complexity": 0.0},
+   "costRationale": "novelty 1.0 (unchanged): reckoning time by lunations is a new concept but not paradigm-founding · difficulty 0.5 (unchanged): A2 prior; counting phases extends tally practice · material 0 (unchanged): no apparatus is needed · institutional 3.0 → 0.25: A2 prior; the evidence is a hunter-gatherer monument, and no institution is required · breadth 1.0 (unchanged): seasonal and ritual timing, plus the base of calendar_civil, the non-Babylonian astronomy_records route and latitude_sailing · prereq_complexity 0 (unchanged): one prerequisite. The reason is the institutional score, not pacing (D-046 §1). The earlier completion it causes is a consequence, not the aim.",
+   "nodeKind": "technique",
+   "compatibility": {
+    "saves": "lowered cost: saved progress ≥ 620 RP completes at the next step with no RP spent (engine-audit Q14 'Change cost'); the node has no Eurekas",
+    "ids": "none",
+    "ui": "cost label",
+    "ai": "the driver reached it at turns 827–845 (MEASURED) and the AI polity at 1,332–1,587 (INFERENCE, measurements/baseline-ai-node-completions.csv), because it cost more than most A2–A3 nodes; it now falls early in cheapest-first order. AI-empire goldens move",
+    "consumers": "cheaper closures for calendar_civil, water_clock, the non-Babylonian astronomy_records route and latitude_sailing's calendar_lunar route (D08 notified)",
+    "tests": "no test pins its cost; regenerate the calibration report and the two other research --check docs; AI-empire attribution pins move"
+   }
+  },
+  {
+   "id": "numeral_sexagesimal",
+   "disposition": ["keep"],
+   "rationale": "Babylonian-specific by ratified design: ledger §6.2, 'Do not broaden those specific dependencies'. GroupB_TheBabylonianNodes_StillRequireCuneiform pins cuneiform as a must-hold atom. It was the first place-value notation (Ur III, ~2,100 BCE), so novelty 2.0 is earned; the other factors sit at the A3 prior.",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "arithmetic_babylonian",
+   "disposition": ["keep"],
+   "rationale": "Babylonian-specific (ledger §6.2; cuneiform must-hold test). The node itself is unchanged. After the surveying rewire its dependants are abacus and astronomy_records. Its 'tax assessment' capability text must stay, because GovernanceTests pins a tax string on it.",
+   "changes": "none (loses surveying as a dependant through surveying's own record)",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "surveying",
+   "disposition": ["relocate"],
+   "rationale": "Chronology and causality fix to the prerequisite. The Mesopotamian OR branch named arithmetic_babylonian, which is Old Babylonian school mathematics of ~1,800 BCE in content. Surveying is anchored at ~2,500 BCE, and Sumerian field-area tables from Fara/Shuruppak (~2,600–2,500 BCE) already compute quadrilateral fields. The edge therefore pointed at knowledge some seven centuries younger than the node it gated (D-047 r1). The generic dependency is a written numeration (Group B, ledger §6.2), which the Egyptian and Chinese branches already express. Graph position only; Age, cost and branch are unchanged.",
+   "changes": "prereq 'arithmetic_babylonian OR hieroglyphic OR chinese_script' → 'cuneiform OR hieroglyphic OR chinese_script'. Factors unchanged: still one OR group, so prereq_complexity stays 0.0. Capability block overridden: grants phrased as knowledge with no tax effect (D12 request).",
+   "prereq": "cuneiform OR hieroglyphic OR chinese_script",
+   "prereqRationale": "Measuring fields and recording their boundaries and areas needs a written numeration; any of the three scripts carries one, and all three are the ratified Group-B generic-writing set. The Babylonian branch now names cuneiform instead of Old Babylonian arithmetic. RESEARCHED: Fara area tables ~2,600–2,500 BCE; MEASURED from content: surveying ~2,500 BCE, arithmetic_babylonian ~1,800 BCE. Every holder of arithmetic_babylonian already holds cuneiform, so the change only widens availability.",
+   "nodeKind": "technique",
+   "capability": {
+    "grants": ["knowledge:measuring and recording field boundaries and areas", "knowledge:taxation by area (text only: the Taxation civic is the sole tax gate; title and dues belong to the civic land_registry)", "knowledge:construction layout"],
+    "realizationOwner": "none directly. Through dependants it reaches a realized road class (road_paved, RoadDevelopmentSystem) and the research stage (geometry_practical → geometry_axiomatic)",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: unlock-audit class C. The runtime capability strings 'land register', 'taxation by area' and 'construction layout' are display only. GovernanceTests (TheFourTaxationRefinementNodes_NoLongerOpenTheGate) pins a 'tax' substring, so a content packet that rephrases them must keep it or change the test.",
+    "deferredEffect": null,
+    "inputs": {"resources": [], "geography": [], "infrastructure": [], "institutions": []},
+    "missingInputs": "No physical input is modelled (cords, rods, levelling instruments).",
+    "unknownResource": "Not applicable.",
+    "aiValuation": "High indirect value: it lies on the cheapest path to the research stage and to paved roads.",
+    "playerCommunication": "Land surveying measures and records fields and lays out works. A register of title and dues is a civic institution (land registry), and the tax edict needs the Taxation civic."
+   },
+   "compatibility": {
+    "saves": "widening only: no polity loses availability, and no progress goes dormant",
+    "ids": "none",
+    "ui": "lock reasons and depth tiers of surveying and its descendants shift (loader depth cascade)",
+    "ai": "the AI university and road goals take the union over OR (AiResearchPolicy.cs:184-195) and no longer pull numeral_sexagesimal + arithmetic_babylonian (2,640 RP) through surveying; seed 42's AI researched them at turns 501/507, before surveying at 522 (INFERENCE, AI completion telemetry). AI-empire goldens move",
+    "consumers": "aqueduct_arcade, aqueduct_tunnel, arch, canal_navigation, geometry_practical, qanat, railway, road_paved and stone_fortification see a shorter Mesopotamian closure; cheapest closures are unchanged (the hieroglyphic and chinese_script routes stay cheapest)",
+    "tests": "GovernanceTests, GovernanceActionTests and ResearchUnlockPipelineTests grant surveying directly; its 'taxation by area' text is kept. Group B tests are unaffected (surveying is not in their lists)"
+   }
+  },
+  {
+   "id": "horse_domestication",
+   "disposition": ["relocate"],
+   "rationale": "Classification: a 'herd'-family domesticate like sheep_goat and cattle, so domain agriculture with transport as a secondary domain. The node is horse husbandry, whether horses were domesticated locally or arrived as introduced stock. Having horses is a resource question the simulation cannot yet model: there is no horse good. The capability block states that conflation instead of hiding it.",
+   "changes": "domain science → agriculture; secondaryDomains [agriculture, transport] → [transport, science]; universityRelevance primary Natural Science → Agricultural (Natural Science, Engineering secondary). Capability block overridden. Prerequisites, Age and cost unchanged.",
+   "domain": "agriculture",
+   "secondaryDomains": ["transport", "science"],
+   "universityRelevance": [
+    {"type": 5, "name": "Agricultural", "role": "primary"},
+    {"type": 4, "name": "Natural Science", "role": "secondary"},
+    {"type": 3, "name": "Engineering", "role": "secondary"}
+   ],
+   "nodeKind": "technique",
+   "capability": {
+    "grants": ["knowledge:riding", "knowledge:fast overland movement", "knowledge:horse traction", "infrastructure:infra.courier_relay"],
+    "realizationOwner": "none today. infra.courier_relay has no realizing system: deferred-entity plan tier C, frozen because a relay changes road rules and needs a Director-ruled transport packet. Units through its dependants (chariot, cavalry) belong to the Battle layer (M7)",
+    "status": "deferred",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: unlock-audit class J; infra.courier_relay has no realizing system. Prerequisite of chariot, cavalry and collar_harness.",
+    "deferredEffect": "Courier relays (with track_road) once a transport packet realizes relay infrastructure; unscheduled (IMPLEMENTATION DEFERRED). Mounted and chariot units arrive through the dependants at M7.",
+    "inputs": {"resources": ["horses: no such good exists; livestock is generic"], "geography": ["wild-horse range (western Eurasian steppe) for independent domestication; otherwise stock introduced through contact"], "infrastructure": ["track_road (courier relay)"], "institutions": []},
+    "missingInputs": "Eligible but not realizable: there is no horse stock, so the knowledge cannot become relays or mounted units until a resource or transport owner exists.",
+    "unknownResource": "Research never reveals wild herds. The Eureka 'wild horses roam the region' stays future-system:resources/terrain until known-territory resources exist.",
+    "aiValuation": "Through its dependants (chariot, cavalry, collar_harness) and the deferred relay; no yield today.",
+    "playerCommunication": "Horse husbandry is known. Courier relays and mounted units are not simulated yet, and horses are not modelled as a resource."
+   },
+   "compatibility": {
+    "saves": "none (classification only)",
+    "ids": "none",
+    "ui": "classification label only",
+    "ai": "none",
+    "consumers": "none",
+    "tests": "none pin domain or university relevance"
+   }
+  },
+  {
+   "id": "donkey",
+   "disposition": ["relocate"],
+   "rationale": "Classification ('herd' family → agriculture, with transport secondary). The emerged anchor is corrected to the genomic evidence: a single African domestication about 7,000 years ago (Todd et al., Science 2022), with load-bearing pathologies in donkeys buried at Abydos ~3,000 BCE (Rossel et al., PNAS 2008). The old text '~4,000 BCE Egypt/Sudan' is replaced.",
+   "changes": "domain science → agriculture; secondaryDomains [transport] → [transport, science]; universityRelevance primary Natural Science → Agricultural (Natural Science, Engineering secondary); emerged '~4,000 BCE Egypt/Sudan' → '~5,000 BCE Africa (genomic: one domestication, probably East Africa); ~3,000 BCE Abydos pack donkeys'. Capability block overridden. Prerequisites, Age and cost unchanged.",
+   "domain": "agriculture",
+   "secondaryDomains": ["transport", "science"],
+   "emerged": "~5,000 BCE Africa (genomic: one domestication, probably East Africa); ~3,000 BCE Abydos pack donkeys (Egypt)",
+   "universityRelevance": [
+    {"type": 5, "name": "Agricultural", "role": "primary"},
+    {"type": 4, "name": "Natural Science", "role": "secondary"},
+    {"type": 3, "name": "Engineering", "role": "secondary"}
+   ],
+   "nodeKind": "technique",
+   "capability": {
+    "grants": ["knowledge:pack transport", "knowledge:caravan trade", "production:activity.caravans"],
+    "realizationOwner": "none today for activity.caravans: deferred-entity plan tier C, and caravans alter transport cost, which is frozen. Its dependant trade is realized today (TradeArbitrageSystem via activity.trade)",
+    "status": "deferred",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: unlock-audit class J; activity.caravans has no realizing system. One OR route into the realized trade node: token_counting AND (donkey OR camel OR sail_square).",
+    "deferredEffect": "A caravan carrier tier once a logistics/transport packet realizes it. It may only add a carrier tier and must never gate TradeArbitrageSystem (research-capability-ownership). Unscheduled.",
+    "inputs": {"resources": ["donkeys: no such good; livestock is generic"], "geography": ["African wild-ass range for independent domestication; otherwise introduced stock"], "infrastructure": [], "institutions": []},
+    "missingInputs": "Knowledge only: no donkey stock or caravan carrier exists. The trade route it opens is realized through the trade node.",
+    "unknownResource": "Research never reveals wild asses; the environmental Eureka waits for a terrain/resource system.",
+    "aiValuation": "A cheap route to trade (realized) and to the deferred caravan tier.",
+    "playerCommunication": "Donkey husbandry is known and counts toward the Trade requirement. Caravans are not simulated yet."
+   },
+   "compatibility": {
+    "saves": "none",
+    "ids": "none",
+    "ui": "classification label and emerged text",
+    "ai": "none",
+    "consumers": "none; trade's prerequisite string is untouched (TradeResearchUnlockTests:124-130 pin it)",
+    "tests": "D047 chronology test: the earliest marked year moves −4,000 → −5,000, and the must-hold prerequisite cattle (~8,500 BCE) is earlier. Era-marked count unchanged (83 unmarked)"
+   }
+  },
+  {
+   "id": "camel",
+   "disposition": ["relocate"],
+   "rationale": "Classification ('herd' family → agriculture, transport secondary), matching donkey. The anchors are kept: dromedary ~1,000 BCE (SE Arabia), Bactrian ~2,500 BCE (Central Asia/Iran).",
+   "changes": "domain science → agriculture; secondaryDomains [transport] → [transport, science]; universityRelevance primary Natural Science → Agricultural (Natural Science, Engineering secondary). Capability block overridden. Prerequisites, Age, cost and emerged unchanged.",
+   "domain": "agriculture",
+   "secondaryDomains": ["transport", "science"],
+   "universityRelevance": [
+    {"type": 5, "name": "Agricultural", "role": "primary"},
+    {"type": 4, "name": "Natural Science", "role": "secondary"},
+    {"type": 3, "name": "Engineering", "role": "secondary"}
+   ],
+   "nodeKind": "technique",
+   "capability": {
+    "grants": ["knowledge:desert crossing", "knowledge:long-distance caravan", "production:activity.caravans"],
+    "realizationOwner": "none today for activity.caravans (tier C, frozen transport); its dependant trade is realized (TradeArbitrageSystem)",
+    "status": "deferred",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: unlock-audit class J; activity.caravans has no realizing system. One OR route into the realized trade node.",
+    "deferredEffect": "A desert caravan carrier tier, as for donkey; unscheduled.",
+    "inputs": {"resources": ["camels: no such good"], "geography": ["arid zones: Arabia (dromedary), Central Asia (Bactrian); otherwise introduced stock"], "infrastructure": [], "institutions": []},
+    "missingInputs": "Knowledge only: no camel stock or caravan carrier exists.",
+    "unknownResource": "Research never reveals wild camels; the environmental Eureka waits for a terrain/resource system.",
+    "aiValuation": "A route to trade (realized) and to the deferred caravan tier; higher value for arid territory once terrain is readable.",
+    "playerCommunication": "Camel husbandry is known and counts toward the Trade requirement. Caravans are not simulated yet."
+   },
+   "compatibility": {
+    "saves": "none",
+    "ids": "none",
+    "ui": "classification label only",
+    "ai": "none",
+    "consumers": "none",
+    "tests": "none pin domain; trade prerequisite pins are untouched"
+   }
+  },
+  {
+   "id": "standard_weights",
+   "disposition": ["relocate"],
+   "rationale": "Alternative-route fix. A state weight standard needs a record-keeping script: Group B generic writing, ledger §6.2. China standardized weights and measures in its own record-keeping tradition: Warring States state standards, then unification under Qin (221 BCE). The node excluded chinese_script, so a Chinese-route polity had to learn Mesopotamian proto-writing to reach hacksilver and coinage_electrum, the A5 CORE fact a5_coinage. Weights alone are kept: a separate length/capacity node was rejected (lane notes).",
+   "changes": "prereq 'token_counting AND (proto_writing OR hieroglyphic)' → 'token_counting AND (proto_writing OR hieroglyphic OR chinese_script)'. Factors unchanged: two top-level conjuncts, so prereq_complexity stays 0.5.",
+   "prereq": "token_counting AND (proto_writing OR hieroglyphic OR chinese_script)",
+   "prereqRationale": "token_counting supplies the accounting of quantities. The script group supplies a recorded standard, and chinese_script is the ratified generic alternative. This only widens the OR (no polity loses availability). The chronology test reads AND atoms only, and chinese_script (~1,250 BCE) is later than the ~2,600 BCE anchor, which is honest for an independent Chinese route.",
+   "nodeKind": "technique",
+   "capability": {
+    "grants": ["knowledge:fair exchange", "knowledge:taxation by weight", "knowledge:silver by weight (proto-money)", "knowledge:Balance scale"],
+    "realizationOwner": "none directly; through hacksilver → coinage_electrum it reaches the A5 CORE fact a5_coinage (AgeTransitionSystem)",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: unlock-audit class C; prerequisite of hacksilver (→ coinage_electrum, A5 CORE). 'Taxation by weight' is text only: R5 (Director 2026-10-04) made the Taxation civic the single tax gate.",
+    "deferredEffect": null,
+    "inputs": {"resources": [], "geography": [], "infrastructure": [], "institutions": []},
+    "missingInputs": "No physical input is modelled: balances and stone or metal weights are trivial material.",
+    "unknownResource": "Not applicable.",
+    "aiValuation": "As an ancestor of the A5 CORE coinage fact.",
+    "playerCommunication": "Standard weights lead to weighed silver and coinage. They do not open the tax edict; the Taxation civic does."
+   },
+   "compatibility": {
+    "saves": "widening only",
+    "ids": "none",
+    "ui": "lock reason text",
+    "ai": "the AI A5-core goal closure (union over OR) gains chinese_script, which is already in the AI university-goal union; AI-empire goldens may move",
+    "consumers": "hacksilver, coinage_electrum (a5_coinage) and coined_wage become reachable on a Chinese-script route without proto_writing",
+    "tests": "GovernanceTests, GovernanceActionTests and ResearchUnlockPipelineTests grant it directly; 'taxation by weight' kept (a tax string is pinned)"
+   }
+  },
+  {
+   "id": "calendar_civil",
+   "disposition": ["rebalance"],
+   "rationale": "Same anomaly as calendar_lunar: institutional 3.0, which made a 365-day administrative year the second-costliest A3 node (5,910), above every script. A civil year promulgated by a state administration justifies an institutional score above the A3 prior (0.75), at law_code's level (1.25), but not the scale maximum. D-045 band M2, 'useful refinement of existing calendar knowledge' (research-corpus-audit-d045.md:195). Prerequisite and Age are unchanged.",
+   "changes": "factors.institutional 3.0 → 1.25; magnitude 6.0 → 4.25; cost 5,910 → 1,760 RP (−70 %).",
+   "factors": {"novelty": 1.0, "difficulty": 1.0, "material": 0.0, "institutional": 1.25, "breadth": 0.5, "prereq_complexity": 0.5},
+   "costRationale": "novelty 1.0 (unchanged): a fixed 365-day year decoupled from lunations · difficulty 1.0 (unchanged): A3 prior · material 0 (unchanged) · institutional 3.0 → 1.25: a state calendar needs an administration to decree and keep it, scored like law_code (A3, 1.25) and not at the national-programme maximum · breadth 0.5 (unchanged): administrative dating and flood-season prediction, with one dependant (water_clock) · prereq_complexity 0.5 (unchanged): two conjuncts, calendar_lunar AND a script group.",
+   "nodeKind": "technique",
+   "compatibility": {
+    "saves": "lowered cost: saved progress ≥ 1,760 RP completes at the next step with no RP spent",
+    "ids": "none",
+    "ui": "cost label",
+    "ai": "driver turns 898–917 (MEASURED) and AI turns 1,370–1,398 (INFERENCE), both deferred by the old price; AI-empire goldens move",
+    "consumers": "cheaper closure for water_clock",
+    "tests": "no test pins its cost; regenerate the three research --check docs"
+   }
+  },
+  {
+   "id": "water_clock",
+   "disposition": ["keep"],
+   "rationale": "Kept: the clepsydra (Egypt, ~1,500 BCE; Karnak) is the first instrument to measure hours without the sky. It is a knowledge-only dead end today. Resolution: D07 is asked to make it a prerequisite of escapement_verge, because the escapement inherits regulated equal-hour timekeeping from the water clock. If D07 declines, the node stays knowledge-only by design and the capability block records the justification.",
+   "changes": "none (capability block overridden to record the dead-end resolution)",
+   "nodeKind": "application",
+   "capability": {
+    "grants": ["knowledge:night hours", "knowledge:temple timing"],
+    "realizationOwner": "none",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: unlock-audit class C; no dependant (dead end).",
+    "deferredEffect": "Requested of D07: an AND prerequisite of escapement_verge, whose own emerged text cites Su Song's water escapement. The lineage runs through Yi Xing's water-driven escapement (725 CE), Su Song's clock tower (1088 CE) and medieval monastic water clocks, which came before the verge (~1,280 CE). If declined, knowledge-only by design: no simulation consumer reads hours before M11+, as there is no time-discipline mechanic.",
+    "inputs": {"resources": [], "geography": [], "infrastructure": [], "institutions": []},
+    "missingInputs": "None modelled: a pierced pottery vessel.",
+    "unknownResource": "Not applicable.",
+    "aiValuation": "Low; only as an ancestor of escapement_verge if D07 accepts.",
+    "playerCommunication": "Water clock: measures hours at night. No simulated effect yet."
+   }
+  },
+  {
+   "id": "astronomy_records",
+   "disposition": ["keep"],
+   "rationale": "The observational base: Babylonian Astronomical Diaries (Nabonassar era ~750 BCE, surviving diaries from 652 BCE) and the Chinese eclipse records. The prerequisite already offers a Babylonian route (arithmetic) and an Egyptian/Chinese route (script + lunar calendar). Making both routes require calendar_lunar would be cleaner but would raise prereq_complexity (0.0 → 0.5) and narrow availability for no new capability, so it was rejected. Under the proposal its records reach geometric astronomy through calendar_lunisolar's period relations.",
+   "changes": "none (capability block overridden: J class, owner named)",
+   "nodeKind": "science",
+   "capability": {
+    "grants": ["knowledge:eclipse prediction (Saros)", "knowledge:planetary periods", "knowledge:the empirical base for Greek astronomy", "institution:inst.natural_philosophy"],
+    "realizationOwner": "InstitutionsSystem: inst.natural_philosophy (deferred, deferred-entity tier F)",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "MEASURED: unlock-audit class J; inst.natural_philosophy has no realizing system. Prerequisite of calendar_lunisolar, monsoon_sailing and latitude_sailing (OR); PROPOSED to reach astronomy_geometric through calendar_lunisolar.",
+    "deferredEffect": "Eligibility to found inst.natural_philosophy once deferred institutions get a lifecycle (T6.11); tier F, unscheduled.",
+    "inputs": {"resources": [], "geography": [], "infrastructure": [], "institutions": ["a scribal or temple record-keeping tradition (represented by the script prerequisite)"]},
+    "missingInputs": "Knowledge only; the institution it qualifies is not realized.",
+    "unknownResource": "Not applicable.",
+    "aiValuation": "As an ancestor of calendars, sailing and geometric astronomy; the institution is not yet an AI goal.",
+    "playerCommunication": "Systematic sky records are known. The natural-philosophy institution they qualify is not simulated yet."
+   }
+  },
+  {
+   "id": "calendar_lunisolar",
+   "disposition": ["rebalance"],
+   "rationale": "Two corrections. (a) The same institutional-3.0 anomaly: regularized intercalation was kept by temple astronomer-scribes, already priced in astronomy_records at the A4 prior (1.0). D-045 band M2, 'bounded refinement of calendrics' (research-corpus-audit-d045.md:223). (b) The node was a dead end, although its content (the 19-year cycle: 19 years = 235 months, regular in Babylon from ~499 BCE and adopted by Meton in 432 BCE) is exactly the period relations that geometric astronomy consumes as mean motions. astronomy_geometric now requires it (that edge is set in astronomy_geometric's record). Its breadth rises to match the new downstream scope.",
+   "changes": "factors.institutional 3.0 → 1.0; factors.breadth 0.0 → 0.5; magnitude 5.25 → 3.75; cost 3,520 → 1,240 RP (−65 %). Gains dependant astronomy_geometric through that node's record. Capability block overridden.",
+   "factors": {"novelty": 1.0, "difficulty": 1.25, "material": 0.0, "institutional": 1.0, "breadth": 0.5, "prereq_complexity": 0.0},
+   "costRationale": "novelty 1.0 (unchanged): a period relation that reconciles months and years · difficulty 1.25 (unchanged): A4 prior · material 0 (unchanged) · institutional 3.0 → 1.0: A4 prior; temple scribes, the same institution already scored in astronomy_records · breadth 0.0 → 0.5: a regulated religious/agricultural calendar plus the mean motions feeding astronomy_geometric · prereq_complexity 0 (unchanged): one prerequisite.",
+   "nodeKind": "technique",
+   "capability": {
+    "grants": ["knowledge:reliable religious and agricultural calendar", "knowledge:luni-solar period relations (19 years = 235 months) used as mean motions by geometric astronomy"],
+    "realizationOwner": "none (knowledge); prerequisite of astronomy_geometric",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "MEASURED today: unlock-audit class C, no dependant. PROPOSED: prerequisite of astronomy_geometric.",
+    "deferredEffect": null,
+    "inputs": {"resources": [], "geography": [], "infrastructure": [], "institutions": []},
+    "missingInputs": "None modelled.",
+    "unknownResource": "Not applicable.",
+    "aiValuation": "As an ancestor of astronomy_geometric (observatory, astrolabe, trigonometry, cartography and heliocentrism lines).",
+    "playerCommunication": "Intercalated calendar: the luni-solar cycles needed before geometric models of the heavens."
+   },
+   "compatibility": {
+    "saves": "lowered cost: saved progress ≥ 1,240 RP completes at the next step with no RP spent",
+    "ids": "none",
+    "ui": "cost label; now shown as a prerequisite of astronomy_geometric",
+    "ai": "driver turns 739–754 (MEASURED); AI 1,321–1,567 (INFERENCE); goldens move",
+    "consumers": "astronomy_geometric and its descendants gain this node in their closure (+1,240 RP)",
+    "tests": "no test pins it; regenerate the three --check docs"
+   }
+  },
+  {
+   "id": "geometry_practical",
+   "disposition": ["relocate", "rebalance"],
+   "rationale": "Historical re-anchoring. '~600 BCE Ionia' (Thales) dates the start of Greek deductive geometry, which is the prehistory of geometry_axiomatic. Area and volume computation is attested in Middle Kingdom Egypt (the Moscow papyrus, material ~1,850 BCE, with a frustum volume; the Rhind papyrus, copied ~1,550 BCE from a 12th-dynasty text) and in Old Babylonian mathematics (~1,800 BCE). The Sulba Sutras (India) and the Han Chinese classics came later. The Age metadata therefore moves A4 → A3, and difficulty and institutional take the A3 prior. Breadth rises because the node now underlies both deductive geometry and algebra. The two corrections happen to cancel, so the cost is unchanged.",
+   "changes": "age A4 → A3; emerged '~600 BCE Ionia' → Bronze Age Egypt and Babylonia (below); factors.difficulty 1.25 → 1.0, factors.institutional 1.0 → 0.75, factors.breadth 0.5 → 1.0; magnitude 4.25 → 4.25; cost 1,760 → 1,760 RP. Prerequisites unchanged.",
+   "age": "A3",
+   "emerged": "~1,850 BCE Egypt (Moscow papyrus; Rhind ~1,550 BCE); ~1,800 BCE Old Babylonian Mesopotamia; later the Sulba Sutras (India) and Han Chinese classics",
+   "factors": {"novelty": 1.0, "difficulty": 1.0, "material": 0.0, "institutional": 0.75, "breadth": 1.0, "prereq_complexity": 0.5},
+   "costRationale": "novelty 1.0 (unchanged): systematic area and volume rules · difficulty 1.25 → 1.0: A3 prior for Bronze Age scribal mathematics · material 0 (unchanged) · institutional 1.0 → 0.75: A3 prior; scribal schools are already priced in the scripts · breadth 0.5 → 1.0: construction and navigation calculation plus the base of geometry_axiomatic and (PROPOSED) algebra · prereq_complexity 0.5 (unchanged): surveying AND a script group. The magnitude stays 4.25 because two independent corrections cancel; no cost was targeted.",
+   "nodeKind": "technique",
+   "compatibility": {
+    "saves": "none: Age is metadata (D-044 R13) and the cost is unchanged",
+    "ids": "none",
+    "ui": "Age label A4 → A3 on the node card and tier labels",
+    "ai": "none: the AI reads Age only for core goals, and this node is not an Age fact",
+    "consumers": "no Age inversion: prerequisites are A3, dependants A5 (geometry_axiomatic) and A6 (algebra)",
+    "tests": "D047 chronology test: the earliest marked year moves −600 → −1,850, and its must-hold prerequisite surveying (~2,500 BCE) is earlier; GroupB_CuneiformFreePaths still reaches it without cuneiform; the existing description (Thales) must be rewritten by the corpus stage"
+   }
+  },
+  {
+   "id": "geometry_axiomatic",
+   "disposition": ["keep"],
+   "rationale": "Research-stage atom and A5 supporting fact (a5_geometry). Its cost is consistent with A5 peers: novelty 2.0 for the deductive method; difficulty and institutional at the A5 prior; breadth 1.5 for the university building, the stage and five dependants. In every measured run it is the stage atom completed last (driver turns 996–1,016, MEASURED; AI 702–716, INFERENCE; baseline-progression.md finding 2), so it is the binding stage atom, but it is not mispriced. Once algebra is rewired it is no longer must-hold for the stage.",
+   "changes": "none (loses algebra as a dependant through algebra's record; capability block overridden to state the stage role)",
+   "nodeKind": "science",
+   "capability": {
+    "grants": ["knowledge:proof", "knowledge:rigorous engineering calculation", "knowledge:transmissible without a teacher", "building:building.university", "stage:research_stage", "age:a5_geometry"],
+    "realizationOwner": "ConstructionSystem + InstitutionsSystem (university founding); ResearchSystem (research stage); AgeTransitionSystem (a5_geometry supporting fact)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: unlock-audit class B (BDG). age:a5_geometry; building.university → the five university founding projects; research-stage atom '(geometry_axiomatic OR algebra)'.",
+    "deferredEffect": null,
+    "inputs": {"resources": [], "geography": [], "infrastructure": [], "institutions": ["inst.university separately requires library AND legal_code_roman"]},
+    "missingInputs": "It completes only the building half of a university. Founding still needs inst.university's requirement, materials and builders.",
+    "unknownResource": "Not applicable.",
+    "aiValuation": "The cheaper of the two mathematics routes to the stage and the university goal.",
+    "playerCommunication": "Axiomatic geometry: one of two mathematics routes, with algebra, to universities and the specialized subtrees."
+   }
+  },
+  {
+   "id": "mechanics_archimedean",
+   "disposition": ["keep"],
+   "rationale": "Science node: lever law, centre of gravity, hydrostatics. Its applications are separate dependants (water_screw, gearing, the screw press in printing_press, barometer_vacuum), so no understanding/application split is needed. Difficulty 1.0 sits below the A5 prior and institutional 1.75 above it; together they equal the prior sum (2.75), so a re-score would not change the magnitude. Kept unchanged.",
+   "changes": "none",
+   "nodeKind": "science"
+  },
+  {
+   "id": "astronomy_geometric",
+   "disposition": ["relocate"],
+   "rationale": "Causal prerequisite and anchor fix. Predictive geometric models need mean motions, and the Greeks took those from Babylonian calendrical astronomy. Hipparchus (as relayed by Ptolemy) used Babylonian eclipse records back to 721 BCE and long-period month relations. The 19-year luni-solar cycle (Babylon from ~499 BCE; Meton 432 BCE) underlies the Callippic and Hipparchic year and month lengths. The edge therefore runs through calendar_lunisolar, which still requires astronomy_records. The anchor adds Hipparchus, whose solar and lunar models came three centuries before the Almagest.",
+   "changes": "prereq 'geometry_axiomatic AND astronomy_records' → 'geometry_axiomatic AND calendar_lunisolar'; emerged '~150 CE Ptolemy' → '~150 BCE Hipparchus (Rhodes); ~150 CE Ptolemy (Alexandria, Almagest)'. Factors unchanged: two conjuncts, so prereq_complexity stays 0.5. Capability block overridden.",
+   "prereq": "geometry_axiomatic AND calendar_lunisolar",
+   "prereqRationale": "geometry_axiomatic supplies the models (circles, epicycles, chords). calendar_lunisolar supplies the luni-solar period relations that fix their mean motions, and through it astronomy_records still supplies the observations. RESEARCHED: Ptolemy relays Hipparchus's use of a Babylonian lunar eclipse of 721 BCE; Babylonian intercalation followed the 19-year cycle from ~499 BCE. INFERENCE: the period-relation knowledge is what the geometric model consumes.",
+   "emerged": "~150 BCE Hipparchus (Rhodes); ~150 CE Ptolemy (Alexandria, Almagest)",
+   "nodeKind": "science",
+   "capability": {
+    "grants": ["knowledge:planetary prediction", "knowledge:star catalogue", "knowledge:the base for all astronomy until Kepler", "building:building.observatory"],
+    "realizationOwner": "ConstructionSystem: building.observatory (deferred, deferred-entity tier F)",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "MEASURED: unlock-audit class J; building.observatory has no realizing system. Prerequisite of astrolabe, cartography, heliocentrism and trigonometry.",
+    "deferredEffect": "Observatory construction once tier F is realized. Note: building.observatory accepts only astronomy_geometric, astrolabe or telescope, so it has no non-Greek route (open question).",
+    "inputs": {"resources": [], "geography": [], "infrastructure": [], "institutions": []},
+    "missingInputs": "Knowledge only; the observatory it qualifies is not realized.",
+    "unknownResource": "Not applicable.",
+    "aiValuation": "As an ancestor of navigation, cartography and later astronomy; not an AI goal today.",
+    "playerCommunication": "Geometric astronomy predicts planetary positions. Observatories are not simulated yet."
+   },
+   "compatibility": {
+    "saves": "narrowing: a polity holding geometry_axiomatic and astronomy_records but not calendar_lunisolar loses availability until it researches calendar_lunisolar (1,240 RP after rebalance). Partial progress stays dormant until then and a saved target is cleared (engine-audit Q14)",
+    "ids": "none",
+    "ui": "lock reason now names calendar_lunisolar; depth tiers of descendants shift",
+    "ai": "on no AI goal (the observatory is not a goal); AI-empire goldens move only through the general content change",
+    "consumers": "astrolabe, cartography, heliocentrism, trigonometry and building.observatory gain calendar_lunisolar in their closure (+1,240 RP; D04/D08 notified)",
+    "tests": "no test pins its prerequisite; D047 chronology test: earliest year 150 CE → −150, and its must-hold prerequisites geometry_axiomatic (−300) and calendar_lunisolar (−500) are earlier; its dependants' AND edges still hold (astrolabe/cartography 150 CE, trigonometry 500 CE, heliocentrism 1543)"
+   }
+  },
+  {
+   "id": "abacus",
+   "disposition": ["keep"],
+   "rationale": "Kept as a justified dead end, with its anchor corrected. The Chinese bead abacus (suanpan) is first illustrated in 1436 CE and clearly described from 1513 CE; the ~190 CE text attributed to Xu Yue is disputed and its device's design is unknown (Needham, via search summaries). Before that, Chinese calculation was done with counting rods (new node counting_rods). No consumer is forced: double_entry and bill_of_exchange rest on written numerals and paper, not on the abacus. The prerequisite is unchanged; routing the Chinese branch through counting_rods would narrow availability and override the ratified Group-B script alternative for no new capability.",
+   "changes": "emerged '~300 BCE Greece (Salamis tablet); Roman hand abacus; Chinese suanpan ~200 CE' → the text below (the earliest marked year stays −300); capability block overridden (dead-end justification).",
+   "emerged": "~300 BCE Greece (Salamis counting board); Roman hand abacus; Chinese suanpan first illustrated 1436 CE (an earlier text attributed to ~190 CE is disputed)",
+   "nodeKind": "application",
+   "capability": {
+    "grants": ["knowledge:commercial arithmetic without literacy"],
+    "realizationOwner": "none",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: unlock-audit class C; no dependant (dead end).",
+    "deferredEffect": "Justified dead end. For two millennia it was the main calculating instrument of Mediterranean and East Asian commerce and state accounts, but no simulation mechanic models calculation friction. A possible later reader is the authority/bandwidth economy, which R4 assigned to the M6 civic specification but which remains undefined (OPEN). Otherwise it stays knowledge-only by design until M11+ commerce content.",
+    "inputs": {"resources": [], "geography": [], "infrastructure": [], "institutions": []},
+    "missingInputs": "None modelled.",
+    "unknownResource": "Not applicable.",
+    "aiValuation": "Low: no consumer. Research it only when it is the cheapest available node.",
+    "playerCommunication": "Abacus: calculation without writing. It has no simulated effect yet."
+   },
+   "compatibility": {
+    "saves": "none",
+    "ids": "none",
+    "ui": "emerged text only",
+    "ai": "none",
+    "consumers": "none",
+    "tests": "D047 chronology test unaffected (earliest year −300 unchanged); GroupB_CuneiformFreePaths still reaches it via chinese_script"
+   }
+  },
+  {
+   "id": "alchemy",
+   "disposition": ["keep"],
+   "rationale": "Kept unchanged. It founds two independent lines: distillation (toward chemistry) and gunpowder (Chinese alchemists ~850 CE). Its difficulty 2.0 is the only A5 score above the A5 prior (1.5), and its breadth 0.5 understates two lines (1.0 by the rubric). Correcting both leaves the magnitude at 6.25, so no re-score is proposed. The literate-tradition OR (chinese_script OR alphabet_vowels) already gives a Chinese and a Hellenistic route; Islamic alchemy came through translated Greek texts.",
+   "changes": "none",
+   "nodeKind": "science"
+  },
+  {
+   "id": "distillation",
+   "disposition": ["relocate"],
+   "rationale": "Regional-material alternative. The alembic tradition did not depend on blown glass. Zosimos quotes Maria's instruction that the tubes be of copper or bronze, joints sealed with flour paste; glass was valued for watching reactions and for mercurial or sulphurous work. Copper and bronze stills are also known later, in the Islamic world and Jin–Yuan China (INFERENCE, not re-checked this session). Where later chemistry genuinely needs glass, the tree states it on those nodes: chemistry_quantitative requires barometer_vacuum, which requires glass_blowing. The acid nodes' vessels are D04's call; D04's part gives sulphuric_acid the lead-chamber route, 'distillation AND saltpetre_refining'. The early Gandhara ceramic 'stills' were not used as evidence: recent experimental work disputes them.",
+   "changes": "prereq 'alchemy AND glass_blowing' → 'alchemy AND (glass_blowing OR sheet_metal)'. Factors unchanged: two conjuncts, so prereq_complexity stays 0.5.",
+   "prereq": "alchemy AND (glass_blowing OR sheet_metal)",
+   "prereqRationale": "alchemy supplies the practice of heating, subliming and condensing substances. The apparatus is either blown-glass vessels or hammered copper/bronze vessels and tubes; sheet_metal is not in alchemy's closure (it needs tin_bronze), so the OR is a real material choice and not a free pass. RESEARCHED (search-corroborated): Zosimos citing Maria on copper/bronze tubes; the Gandhara still reappraised (Groat, Antiquity 2024/25). INFERENCE: glass is not necessary for basic distillation.",
+   "nodeKind": "technique",
+   "compatibility": {
+    "saves": "widening only",
+    "ids": "none",
+    "ui": "lock reason text",
+    "ai": "no dependant is on an AI goal",
+    "consumers": "greek_fire (D09), sugar_refining (D01), petroleum_refining, sulphuric_acid and chemistry_quantitative (D04) can be reached through the metal route. chemistry_quantitative keeps glass through barometer_vacuum; sulphuric_acid's vessel requirement is D04's (its part now gives the lead-chamber route)",
+    "tests": "none pin its prerequisite; the chronology test reads AND atoms only (alchemy, −200)"
+   }
+  },
+  {
+   "id": "hindu_arabic",
+   "disposition": ["keep"],
+   "rationale": "Indian decimal place value with zero (~500 CE; Brahmagupta's rules 628 CE), transmitted through Baghdad (~825 CE). Scored at the A6 prior with paradigm novelty. A6 supporting fact a6_numerals. It is a prerequisite of double_entry and trigonometry, and is now one of two OR routes into algebra.",
+   "changes": "none",
+   "nodeKind": "technique"
+  },
+  {
+   "id": "algebra",
+   "disposition": ["relocate"],
+   "rationale": "Research-stage finding (culturally narrow). Because algebra required geometry_axiomatic, the stage atom '(geometry_axiomatic OR algebra)' offered no real alternative: every path to the stage held Greek axiomatic geometry. Al-Khwarizmi's geometric demonstrations drew on Euclid, but algebra itself did not need them. Brahmagupta (628 CE) gave rules for zero, negatives and the quadratic without Euclidean proof. The Chinese fangcheng (Nine Chapters) and Song–Yuan polynomial algebra (1247–1303 CE) grew from counting-rod computation. Algebra's causal requirements are a positional calculating system and the area-based problem tradition of practical geometry. The Indian/Islamic route (hindu_arabic) and the Chinese route (counting_rods) both cost more than the Greek route to the stage, so the stage is broadened without being made cheaper.",
+   "changes": "prereq 'hindu_arabic AND geometry_axiomatic' → '(hindu_arabic OR counting_rods) AND geometry_practical'; emerged '~820 CE Baghdad' → '628 CE India (Brahmagupta); ~820 CE Baghdad (al-Khwarizmi); 1247–1303 CE China (Qin Jiushao, Li Ye, Zhu Shijie)'. Factors unchanged: two conjuncts, so prereq_complexity stays 0.5. Capability block overridden.",
+   "prereq": "(hindu_arabic OR counting_rods) AND geometry_practical",
+   "prereqRationale": "A positional system able to carry general computation (Indian numerals with zero, or Chinese counting rods), AND the area-and-measure problem tradition (geometry_practical) that algebra generalized in every centre. geometry_axiomatic is dropped because it encoded one tradition's justification, not a requirement. Every holder of the old prerequisite (hindu_arabic + geometry_axiomatic, hence geometry_practical) satisfies the new one, so availability only widens. calculus still requires geometry_axiomatic explicitly. RESEARCHED: Brahmasphutasiddhanta (628 CE) quadratic and sign rules.",
+   "emerged": "628 CE India (Brahmagupta); ~820 CE Baghdad (al-Khwarizmi); 1247–1303 CE China (Qin Jiushao, Li Ye, Zhu Shijie)",
+   "nodeKind": "science",
+   "capability": {
+    "grants": ["knowledge:inheritance calculation", "knowledge:engineering", "knowledge:later: all quantitative science", "building:building.university", "stage:research_stage"],
+    "realizationOwner": "ConstructionSystem + InstitutionsSystem (university founding); ResearchSystem (research stage)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: unlock-audit class D (DG). building.university → the five university founding projects; research-stage atom, OR'd with geometry_axiomatic; prerequisite of calculus and mechanics_newtonian.",
+    "deferredEffect": null,
+    "inputs": {"resources": [], "geography": [], "infrastructure": [], "institutions": ["inst.university separately requires library AND legal_code_roman"]},
+    "missingInputs": "As for geometry_axiomatic: it completes only the building half of a university.",
+    "unknownResource": "Not applicable.",
+    "aiValuation": "An alternative stage route, dearer than geometry_axiomatic; needed later for calculus and mechanics_newtonian. The AI should not chase it for the university goal while geometry_axiomatic is cheaper (open question on union-over-OR closures).",
+    "playerCommunication": "Algebra is an alternative to axiomatic geometry for founding universities. It is reached through Hindu-Arabic numerals or counting-rod arithmetic, together with practical geometry."
+   },
+   "compatibility": {
+    "saves": "widening only: no polity loses availability",
+    "ids": "none",
+    "ui": "lock reasons; the depth tier drops (loader depth cascade to calculus and mechanics_newtonian)",
+    "ai": "the AI university goal unions OR branches. It gains counting_rods (+3,520 RP) and loses nothing here, since geometry_axiomatic stays in the union through building.university's own OR. Combined with the surveying rewire (−2,640 RP), the net union change is +880 RP. AI-empire goldens move",
+    "consumers": "building.university and the research stage now have a geometry-free route; calculus still requires geometry_axiomatic",
+    "tests": "AiResearchGoalTests:95 computes closures from content (the stage ⊆ university-goal subset still holds); UniversityRigs and ResearchUnlockPipelineTests grant algebra/geometry_axiomatic directly; the stage test is unaffected; D047 chronology test: earliest year 820 → 628 CE, and the must-hold prerequisite geometry_practical (−1,850) is earlier"
+   }
+  }
+ ],
+ "new": [
+  {
+   "id": "counting_rods",
+   "name": "Counting-rod arithmetic",
+   "branch": "trunk",
+   "age": "A5",
+   "domain": "science",
+   "secondaryDomains": [],
+   "emerged": "~400 BCE China (Warring States counting rods from a Chu tomb at Changsha); ~305 BCE Tsinghua bamboo-slip decimal multiplication table; Nine Chapters methods compiled in Han times",
+   "prereq": "chinese_script",
+   "prereqRationale": "Rod numerals belong to the Chinese written record-keeping tradition: the same digit forms are written as well as laid out on the counting board, and the multiplication table is on bamboo slips. chinese_script is the only causal prerequisite; the rods themselves are trivial material.",
+   "factors": {"novelty": 2.0, "difficulty": 1.5, "material": 0.0, "institutional": 1.25, "breadth": 0.5, "prereq_complexity": 0.0},
+   "costRationale": "novelty 2.0: an independent decimal place-value calculating system (with a blank for zero and signed red/black rods), the same paradigm score as numeral_sexagesimal and hindu_arabic · difficulty 1.5: A5 prior · material 0: bamboo or bone rods · institutional 1.25: A5 prior; state scribes and calendar officials · breadth 0.5: one OR dependant (algebra) plus the board algorithms of the Nine Chapters · prereq_complexity 0: one prerequisite. Magnitude 5.25 → 3,520 RP.",
+   "costAnalog": "numeral_sexagesimal: the same profile for an independent place-value notation (N 2.0, B 0.5), scored at the A5 rather than the A3 prior (D 1.0 → 1.5, I 0.75 → 1.25). Same magnitude as astronomy_geometric and distillation at A5",
+   "nodeKind": "technique",
+   "primaryUniversity": "natural_science",
+   "capability": {
+    "grants": ["knowledge:decimal place-value calculation on a counting board (rod numerals, blank for zero)", "knowledge:signed (red/black) numbers in calculation", "knowledge:root extraction and elimination for simultaneous linear problems (Nine Chapters methods)"],
+    "realizationOwner": "ResearchSystem (knowledge only; OR route into algebra)",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "None today (new node, PROPOSED). On completion it writes a knowledge row. With geometry_practical it makes algebra available, as an alternative to hindu_arabic, and through algebra it satisfies the research stage's '(geometry_axiomatic OR algebra)' atom.",
+    "deferredEffect": null,
+    "inputs": {"resources": [], "geography": [], "infrastructure": [], "institutions": []},
+    "missingInputs": "No physical input is modelled.",
+    "unknownResource": "Not applicable.",
+    "aiValuation": "Value as an alternative route to algebra and hence to the university and stage atom. The AI policy should close over the cheapest satisfying alternative. Today it unions OR branches (AiResearchPolicy.cs:184-195), so it would research this node even when the geometry_axiomatic route is cheaper (open question).",
+    "playerCommunication": "Counting-rod arithmetic: Chinese decimal calculation on a counting board. With practical geometry it opens algebra, an alternative to Hindu-Arabic numerals."
+   },
+   "eurekas": [],
+   "family": "numeral",
+   "generation": null,
+   "splitFrom": null,
+   "whyDistinct": "An independent invention of decimal place-value calculation: rods ~400 BCE and the oldest known decimal multiplication table ~305 BCE. It is the computational base of the Nine Chapters' algebraic methods (fangcheng elimination, root extraction) and of the later Song–Yuan algebra. Without it the tree routes all algebra through Indian numerals and the research stage through Greek geometry. The ledger names counting rods as an approved Group-B alternative (§6.2: 'Chinese script, counting rods, Shang records').",
+   "acceptanceTest": "On the proposed content: (1) ReachWithout(geometry_axiomatic, hindu_arabic): algebra is reachable via chinese_script → counting_rods plus surveying → geometry_practical, building.university is knowledge-eligible, and StageReached holds. (2) With counting_rods complete but geometry_practical not, algebra is unavailable. (3) ReachWithout(counting_rods): algebra is still reachable through hindu_arabic. (4) The D047 chronology test passes, and the count of unmarked emerged texts stays 83."
+  }
+ ],
+ "crossLaneRequests": [
+  {
+   "targetLane": "D07-industry-construction",
+   "request": "Consider water_clock as an AND prerequisite of escapement_verge: 'gearing AND crank_connecting_rod AND water_clock'. That would move its prereq_complexity 0.5 → 1.0 unless restructured.",
+   "reason": "This resolves D03's water_clock dead end with a causal edge. The escapement inherits regulated equal-hour timekeeping from the clepsydra: Yi Xing's water-driven escapement (725 CE), Su Song's tower (1088 CE, cited in escapement_verge's own emerged), and medieval monastic water clocks before the verge (~1,280 CE). These anchors are general history-of-technology knowledge (Needham) and were not re-checked this session. If declined, D03 keeps water_clock as a justified knowledge-only leaf."
+  },
+  {
+   "targetLane": "D04-natural-science",
+   "request": "(a) trigonometry: widen 'hindu_arabic' to '(hindu_arabic OR numeral_sexagesimal)'. (b) astrolabe: re-examine 'gearing' and the institutional score of 3.0. (c) Note that astronomy_geometric now requires calendar_lunisolar (+1,240 RP in the closures of astrolabe, trigonometry and heliocentrism).",
+   "reason": "(a) Hipparchus's and Ptolemy's chord tables were computed in Babylonian sexagesimal place value; the Indian sine route keeps hindu_arabic. (b) The planispheric astrolabe is a stereographic-projection instrument, not a geared device (geared astrolabes are rare, ~1,000 CE). Its institutional 3.0 is the same scale-maximum anomaly D03 corrects on the calendars."
+  },
+  {
+   "targetLane": "D01-agriculture-food",
+   "request": "Re-examine sugar_refining's prerequisite 'fermentation_fruit AND distillation'. Note: distillation now also accepts sheet_metal apparatus.",
+   "reason": "Crystallized cane sugar (India ~350 CE) is made by boiling, clarifying and crystallizing juice; it involves neither fermentation nor distillation. D-045 flagged the node as 'boiling to crystal' (research-corpus-audit-d045.md, technique candidates). Distillation belongs to rum or arrack, not sugar."
+  },
+  {
+   "targetLane": "D08-transport-naval",
+   "request": "(a) calendar_lunar is re-scored 4,180 → 620 RP, which makes latitude_sailing's 'astronomy_records OR calendar_lunar' branch the cheap route; please confirm that a lunar calendar is the right stand-in for star-altitude and star-path knowledge. (b) cartography inherits calendar_lunisolar through astronomy_geometric (+1,240 RP). (c) Ownership: D03 owns astronomical knowledge (astronomy_records, calendar_lunisolar, astronomy_geometric); navigation applications should consume those nodes, not add parallel astronomy nodes.",
+   "reason": "Keeps the science/application boundary agreed in the D03 and D08 domain split and flags cost changes reaching D08 closures."
+  },
+  {
+   "targetLane": "D05-communication-computing",
+   "request": "(a) Consider a Mesoamerican writing node (Zapotec/Maya logosyllabic script). If added, D03 would add it to the generic-writing OR groups of surveying, geometry_practical and calendar_civil, and to astronomy_records' non-Babylonian route. (b) standard_weights now accepts chinese_script, so hacksilver and coinage_electrum are reachable without proto_writing.",
+   "reason": "(a) The Maya vigesimal place value with zero, the 365-day haab' and the Venus and eclipse tables are an independent mathematical and calendrical tradition that the tree cannot express without a script node: D03 must not invent a script. (b) Information about a change in the hacksilver and coinage chain."
+  },
+  {
+   "targetLane": "D11-nuclear-geology",
+   "request": "When resource identification and regional resources are designed, include domesticable animals (horse, donkey, camel) or state why not. Their presence or introduced stock should gate the realization of horse_domestication, donkey and camel. Research must never reveal wild herds, and the existing future-system Eurekas ('wild horses roam the region') would become evaluable from known territory.",
+   "reason": "The domestication nodes conflate husbandry knowledge with access to the animal. There is no horse, donkey or camel good (livestock is generic), so D03 can only record the gap in their capability blocks. D01 owns the other herd animals and may share the design."
+  },
+  {
+   "targetLane": "D12-civics",
+   "request": "Replies and information. (a) D03's earlier naming note is withdrawn: legal_code_roman is already displayed as 'Systematic law' (and medicine_hippocratic as 'Clinical medicine'). Only the ids carry a tradition, and ids are never renamed. (b) As requested, D03 keeps standard_weights, surveying and calendar_lunar in Technology. Surveying's grants are phrased as knowledge (measuring and recording boundaries) with no tax effect; title and dues are left to land_registry. (c) calendar_lunar is re-scored 4,180 → 620 RP, which shortens organized_priesthood's closure. (d) If official_statistics needs only positional arithmetic, '(hindu_arabic OR counting_rods)' is defensible once counting_rods is accepted (integrator to apply).",
+   "reason": "Answers D12's two requests to D03 and flags cost and route changes that reach D12's new civics."
+  },
+  {
+   "targetLane": "D10-medicine",
+   "request": "Reply to D10's note on epidemiology. D03 agrees that any positional calculating system serves for tabulating bills of mortality, so '(hindu_arabic OR counting_rods)' is defensible if counting_rods is accepted; the integrator should apply it. The research-stage naming note is withdrawn: medicine_hippocratic is already displayed as 'Clinical medicine'.",
+   "reason": "D10 cannot name a proposed id; recording D03's consent lets the integrator widen the edge."
+  }
+ ],
+ "openQuestions": [
+  "OPEN DECISION (AI policy, not content). AiResearchPolicy closes goals over the union of every OR alternative (MEASURED in code, AiResearchPolicy.cs:184-195), so alternative routes become de facto mandatory for AI polities. INFERENCE from measurements/baseline-ai-node-completions.csv, seed 42: the AI completed abjad (658), brahmi (662) and hindu_arabic (684), 10,310 RP of the algebra branch, before geometry_axiomatic (710), and numeral_sexagesimal and arithmetic_babylonian (501/507) before surveying (522). INFERENCE, computed with the policy's rule: the university-goal union closure is 60,440 RP over 29 nodes, against a cheapest closure of 28,660 over 18. Recommend closing each goal over its cheapest satisfying alternative, as tools/kr_lib.py's closure does. Every OR route this package adds on a goal path (e.g. counting_rods → algebra) otherwise costs AI polities RP.",
+  "building.observatory requires 'astronomy_geometric OR astrolabe OR telescope', so it has no route for the Babylonian, Chinese or Maya observatory traditions, which were calendrical and arithmetical. Should calendar_lunisolar be added as an alternative? Entity requirements are not in any lane part; this needs a coordinator or Director decision.",
+  "Disposition vocabulary gap: there is no label for a prerequisite rewire without a cost change. D03 uses 'relocate' for graph-position and classification changes (surveying, standard_weights, astronomy_geometric, distillation, algebra, the domain re-files), and 'keep' with stated changes for emerged-text-only corrections (abacus). The integrator should confirm or supply a 'rewire' label.",
+  "Research stage composition (Director-level): the mathematics atom is now a genuine choice, but either branch still makes it the costliest stage atom. In every measured run it completes last (driver turns 996–1,016; AI 702–716). The stage is a hand-written summary of the university entities (ADR-029), and no validator ties the two together. Is a mathematics atom intended to gate all five subtrees, or only the university building? D03 makes no change to the stage expression."
+ ]
+}

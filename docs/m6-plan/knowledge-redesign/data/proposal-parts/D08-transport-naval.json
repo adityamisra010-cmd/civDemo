@@ -1,0 +1,2127 @@
+{
+ "lane": "D08-transport-naval",
+ "summary": "D08 reviewed its 55 nodes: 37 kept (three with text edits), 13 rewired, 1 rewired and rebalanced (horseshoe), 1 split and rewired (rocket), 2 rebalanced, 1 relocated; 5 new nodes. The split removes the tree's largest bottleneck: rocket (756,960 RP, every factor at its maximum) keeps its key as the liquid-fuel rocket (engine, missiles; 378,470) and the new orbital_launch_vehicle (R-7, 1957: spaceport, orbital launch, satellite gateway; 189,240) carries the rest. Causal and chronology fixes: sledge no longer needs post-and-beam framing (an inversion), carrack no longer descends from the caravel (Genoese carraca a century earlier), celestial_navigation no longer needs a ship type, cartography no longer needs paved roads, horseshoe no longer needs the horse collar, iron_hull no longer needs the screw, bicycle, electric_vehicle and jet_airliner gain the manufacturing or material knowledge they need, aircraft gains gliding flight, gps gains relativity and rocket gains Newtonian mechanics. Content rebalances: road_paved (material) and locomotive (material and institutional at loader maxima). New alternative routes: sail on reed-bundle boats (raft OR dugout) and an ocean-going junk route to the oceanic class; new missing knowledge: balloon, glider and the conventional submarine. polynesian_canoe moves to the trunk (voyaging without writing should not wait for the research stage). Live consumers are preserved: all road classes, the A3/A5/A7/A8 supporting facts and every entity id. Fog: no D08 node reveals territory; three reveal-reading strings (cartography, gps, earth_observation) are reworded; navigation grants only access eligibility (transport classes realized by the unscheduled transport packet where coast, timber and builders exist) or travel and sight parameters proposed for the transport packet and the fog lane.",
+ "existing": [
+  {
+   "id": "raft",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Kept: the D-047 r7 improved craft (sea-crossing log or reed raft). No longer a dead end: reed-bundle boats carried the oldest known sails, so raft becomes the alternative hull route to sail_square.",
+   "changes": "none to this record (gains dependant sail_square through '(dugout OR raft)'). Its emerged text predates cordage's direct date only through the contested Flores claim; both are inferences and lashing needs cordage, so the edge stays.",
+   "capability": {
+    "grants": [
+     "knowledge:open-water crossing beyond sight of land",
+     "access:sea-edge.open-crossing (class eligibility only; no vessel, no reveal)"
+    ],
+    "realizationOwner": "transport packet (DW-059, unscheduled): a network edge type on the transport table (D-040 B4; ADR-032 §3 'future modes')",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: unlock-audit class C — capability string only; no consumer (V09 dead end today)",
+    "deferredEffect": "short open-water crossings (straits, island chains) become an eligible edge class where a coastal settlement has timber or reed and builders; the far shore enters the polity's extent only when a crossing is made (D-040 B2). completion writes only the completion row; it reveals no land and sets no extent bit (D-040 B1-B3)",
+    "inputs": {
+     "resources": [
+      "timber"
+     ],
+     "geography": [
+      "coastal or lakeshore settlement"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "eligible but never realized by a landlocked polity (D-040 B3: conditions, not dates)",
+    "unknownResource": "not applicable (timber is a common deposit good worked without research)",
+    "aiValuation": "low until sea edges exist; then valued from the polity's own known coastline (no unseen-land term, D-T)",
+    "playerCommunication": "Glass Box: knowledge only — sea crossings are not simulated yet; research never reveals land"
+   }
+  },
+  {
+   "id": "dugout",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Kept: the load-carrying hull class above baseline shore craft (D-047 r7); prerequisite of plank_boat, polynesian_canoe and (with raft as the alternative) sail_square.",
+   "changes": "none"
+  },
+  {
+   "id": "sledge",
+   "disposition": [
+    "rewire"
+   ],
+   "nodeKind": "application",
+   "rationale": "Prerequisite corrected under D-047 ruling 1: Mesolithic sledge runners (the node's own ~7,000 BCE anchor; Vis I, Vychegda, 7th-6th millennium BCE) predate the LBK timber-frame longhouses (~5,500 BCE) it required. Kept as a justified leaf: the vehicle before the wheel and still the haulage mode on snow and marsh.",
+   "changes": "prereq 'timber_frame' -> 'ground_stone_early' (one requirement as before: prereq_complexity 0.0, cost 520 unchanged)",
+   "prereq": "ground_stone_early",
+   "prereqRationale": "Runners and crossbars are carved timber: the ground-stone axe and adze (ground_stone_early) are the woodworking knowledge needed. Post-and-beam house framing (timber_frame, ~5,500 BCE) is later than the sledge and not used by it. A 'wagon = sledge on wheels' edge to cart was considered and rejected (unverified, INFERENCE only).",
+   "compatibility": {
+    "saves": "Key unchanged; every holder of timber_frame holds ground_stone_early (timber_frame requires it), so no held progress goes dormant",
+    "ids": "none",
+    "ui": "lock reason names ground_stone_early; depth falls",
+    "ai": "sledge available earlier (A1 closure); cheapest-fallback order may change — AI-empire goldens may move",
+    "consumers": "none (leaf)",
+    "tests": "none pin sledge"
+   },
+   "capability": {
+    "grants": [
+     "knowledge:heavy haulage without wheels (snow, mud, grass)"
+    ],
+    "realizationOwner": "transport packet (DW-059): draught-animal haulage lever (queue Q-C: effective bulk cost computed from available animals)",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: class C — capability string only (V09 dead end today)",
+    "deferredEffect": "a terrain-dependent haulage parameter (wheel-less haulage where wheels fail: snow, marsh) inside the transport packet's effective bulk-cost term; never a gate on baseline paths",
+    "inputs": {
+     "resources": [
+      "timber",
+      "livestock"
+     ],
+     "geography": [
+      "snow, marsh or grassland routes"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "eligible but contributes nothing until the transport packet reads it",
+    "unknownResource": "not applicable",
+    "aiValuation": "negligible until the transport packet reads it",
+    "playerCommunication": "Glass Box: knowledge only"
+   }
+  },
+  {
+   "id": "wheel_solid",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Kept: paradigm node and A3 supporting fact (a3_wheel); root of the wheel family (cart, wheel_spoked, rotary quern, noria, spinning wheel, heavy plough, siege ram).",
+   "changes": "none"
+  },
+  {
+   "id": "cart",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Kept as a justified leaf: the ox cart is the wheeled bulk-freight capability, and its realizing owner is the transport packet's draught-animal lever (Q-C), not a dependant node.",
+   "changes": "none",
+   "capability": {
+    "grants": [
+     "knowledge:bulk overland transport at cart range"
+    ],
+    "realizationOwner": "transport packet (DW-059): draught-animal haulage lever (queue Q-C: effective bulk cost computed from available animals)",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: class C — capability string only (V09 dead end today)",
+    "deferredEffect": "with draught animals drawn from the herding sector, wheeled haulage lowers the effective bulk cost of overland routes (Q-C, 'computed, never assigned') — the second lever against T3.6b escalation 1 (deadband above the price band)",
+    "inputs": {
+     "resources": [
+      "livestock",
+      "timber"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "eligible but realizes nothing where the settlement holds no livestock (Q-C reads available animals)",
+    "unknownResource": "not applicable",
+    "aiValuation": "negligible until the transport packet reads it",
+    "playerCommunication": "Glass Box: knowledge only — carts do not yet lower freight cost"
+   }
+  },
+  {
+   "id": "track_road",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "infrastructure",
+   "rationale": "Kept unchanged (live road class; 84 test lines pin it). The courier-relay entity it co-gates stays deferred.",
+   "changes": "none",
+   "capability": {
+    "grants": [
+     "infrastructure:infra.road_track",
+     "infrastructure:infra.road_built (with stone_dry)",
+     "infrastructure:infra.courier_relay (with horse_domestication; deferred)",
+     "knowledge:trackway infrastructure class (path tier: timber causeway and stoned track)",
+     "knowledge:wetland causeway class"
+    ],
+    "realizationOwner": "RoadDevelopmentSystem (Trackway, Built road); infra.courier_relay: none (deferred-entity plan tier C, frozen behind a director-ruled transport packet)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class E — RoadDevelopmentQuery.BestKnownClass makes Trackway (and, with stone_dry, Built road) buildable on DevelopRoads orders (ADR-032; sim.json roads.classes edge types 2-3)",
+    "deferredEffect": "courier relay stations (order and report latency, D-039 A) once a command owner exists — not scheduled; D12 relies on infra.courier_relay as the physical half of the state courier system (no duplicate civic)",
+    "inputs": {
+     "resources": [
+      "timber 1.0/km (Trackway)",
+      "stone 2.0 + timber 0.5 per km (Built road)"
+     ],
+     "geography": [
+      "settlement pairs within roads.maxRouteKm (600 km)"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "eligible but unbuilt when the issuer cannot pay the first step: the order ends at the longest affordable prefix (ADR-032 rulings 12-13, §10.3-10.4)",
+    "unknownResource": "not applicable (timber and stone are worked without research); under fog, routes only within known extent (T6.8, PROPOSED)",
+    "aiValuation": "AI road goal (AiResearchPolicy ordinal 1) targets the next unknown road class; RoadDevelopmentPolicy builds along its own PREV trade flows",
+    "playerCommunication": "Roads panel: class buildable, or the locked reason names the missing node"
+   }
+  },
+  {
+   "id": "wheel_spoked",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Kept: light spoked wheel (Sintashta ~2,000 BCE); casting_closed stands for the bronze tools of precise hub and felloe joinery; feeds chariot (D09).",
+   "changes": "none"
+  },
+  {
+   "id": "road_paved",
+   "disposition": [
+    "rebalance"
+   ],
+   "nodeKind": "infrastructure",
+   "rationale": "Re-scored on content: material 1.5 is the metallurgy class at A4-A5 (brass, steels, torsion springs); a paved road is layered stone, gravel and lime concrete — the concrete_pozzolan class (0.75). Everything else, including the A5 supporting fact and the live road class, unchanged.",
+   "changes": "factors material 1.5 -> 0.75; magnitude 6.75 -> 6.0; cost 9,950 -> 5,910",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.5,
+    "material": 0.75,
+    "institutional": 1.75,
+    "breadth": 1.0,
+    "prereq_complexity": 0.0
+   },
+   "costRationale": "novelty 1.0: an engineered road is a typical advance over the trackway. difficulty 1.5: A5 prior (survey, grading, drainage). material 0.75: quarried stone, gravel and lime-bound layers — the concrete_pozzolan class; 1.5 was out of line with every A5 stone-construction peer (bridge_stone 0, aqueduct_arcade 0, vault_dome 0, concrete_pozzolan 0.75). institutional 1.75: kept above the 1.25 prior — state road programmes and labour levies (Via Appia, Inca qhapaq ñan), like aqueduct_arcade. breadth 1.0: a live road class plus macadam downstream. prereq_complexity 0.0: one requirement (surveying). Old 9,950 -> new 5,910; only material moves, on a content reason (not pacing).",
+   "compatibility": {
+    "saves": "Key unchanged; progress >= 5,910 RP completes on the next step at no RP; Eureka credit already paid is not revised",
+    "ids": "none",
+    "ui": "cost shown 5,910",
+    "ai": "the AI road goal (ordinal 1) targets infra.road_paved after the Built road: its remaining closure cost falls by 4,040 RP, so goal timing can change — AI-empire goldens may move",
+    "consumers": "infra.road_paved (road class 4), A5 supporting fact a5_roads and macadam unchanged",
+    "tests": "RoadDevelopmentTests name the id, not the cost; the calibration report and corpus audit regenerate (CI --check); AI-empire goldens may move"
+   },
+   "capability": {
+    "grants": [
+     "age:a5_roads",
+     "infrastructure:infra.road_paved",
+     "knowledge:engineered paved road class: all-weather bulk transport",
+     "knowledge:engineered paved road class: military mobility"
+    ],
+    "realizationOwner": "RoadDevelopmentSystem (class 4, Paved road); AgeTransitionSystem (A5 supporting fact)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class B (BE) — age:a5_roads supporting milestone; road class infra.road_paved buildable",
+    "deferredEffect": "military mobility: the M7 battle layer's movement reads the same edge class (no new grant)",
+    "inputs": {
+     "resources": [
+      "stone 4.0 + timber 0.5 per km (sim.json roads.classes)"
+     ],
+     "geography": [
+      "settlement pairs within 600 km"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "eligible but unbuilt while stone is short: the order ends at the longest affordable prefix (ADR-032)",
+    "unknownResource": "not applicable; under fog, routes only within known extent (T6.8, PROPOSED)",
+    "aiValuation": "AI road goal ordinal 1 after the Built road",
+    "playerCommunication": "Roads panel; Age panel (A5 supporting milestone)"
+   }
+  },
+  {
+   "id": "collar_harness",
+   "disposition": [
+    "rewire"
+   ],
+   "nodeKind": "application",
+   "rationale": "Conflation fixed: the node bundled the breast-strap harness (Warring States China) with the padded collar (~5th century CE), which horse_collar (D01) already owns; name and emerged now describe the breast-strap harness only. On D07's request the leather requirement is sewing (stitched straps) instead of bare hide_working, which sewing contains. Id, key and factors kept.",
+   "changes": "name 'Breast-strap and collar harness' -> 'Breast-strap harness'; emerged '~300 BCE China (breast-strap); collar ~500 CE' -> as below; prereq 'horse_domestication AND hide_working' -> 'horse_domestication AND sewing' (two requirements as before; cost 2,490 unchanged); capability text 'horse ploughing (later)' dropped (the collar's, D01)",
+   "name": "Breast-strap harness",
+   "emerged": "~400–300 BCE China (Warring States; Chu lacquerware depiction); universal under the Han (202 BCE–220 CE)",
+   "prereq": "horse_domestication AND sewing",
+   "prereqRationale": "horse_domestication: the animal; sewing: stitched leather straps (sewing requires hide_working, so the leather knowledge stays in the closure).",
+   "compatibility": {
+    "saves": "Key unchanged; holders of the old requirements lacking sewing (260 RP, A1) see progress go dormant until sewing completes — every realistic holder already has it",
+    "ids": "none",
+    "ui": "name; lock reason may name sewing",
+    "ai": "closure gains sewing (260 RP)",
+    "consumers": "horse_collar (D01) still requires it — the padded collar builds on the strap harness; sewing (D07) gains a dependant",
+    "tests": "ResearchContentTests.Canonical_IntegratesEveryCorpusTechnology pins corpus names: add collar_harness to the renamed-node exception list"
+   },
+   "capability": {
+    "grants": [
+     "knowledge:efficient horse traction for carts and chariots (load on the chest, not the throat)"
+    ],
+    "realizationOwner": "transport packet (DW-059): draught-animal haulage lever (queue Q-C: effective bulk cost computed from available animals)",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: class C — capability strings only",
+    "deferredEffect": "horse haulage as an input to the effective bulk cost of overland routes (Q-C)",
+    "inputs": {
+     "resources": [
+      "livestock",
+      "hides"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "realizes nothing where no horses are kept",
+    "unknownResource": "not applicable",
+    "aiValuation": "stepping stone (horse_collar); negligible on its own until Q-C exists",
+    "playerCommunication": "Glass Box: knowledge only"
+   }
+  },
+  {
+   "id": "horseshoe",
+   "disposition": [
+    "rewire",
+    "rebalance"
+   ],
+   "nodeKind": "application",
+   "rationale": "Two content fixes: horse_collar is not knowledge a farrier needs (nailed shoes served riding and draught horses alike) — replaced by horse_domestication; institutional 1.75 had no content reason for a smithy craft — set to the A6 prior. Stays a justified leaf with a transport-packet consumer.",
+   "changes": "prereq 'iron_bloomery AND horse_collar' -> 'iron_bloomery AND horse_domestication' (two requirements as before); institutional 1.75 -> 1.25; magnitude 5.75 -> 5.25; cost 4,970 -> 3,520",
+   "prereq": "iron_bloomery AND horse_domestication",
+   "prereqRationale": "Forged iron (iron_bloomery) and the horse (horse_domestication) are what a nailed shoe needs. The horse_collar edge encoded the medieval co-adoption of collar, shoe and heavy plough — an association, not knowledge.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.75,
+    "institutional": 1.25,
+    "breadth": 0.0,
+    "prereq_complexity": 0.5
+   },
+   "costRationale": "novelty 1.0 typical. difficulty 1.75: A6 prior. material 0.75: forged iron, as the A6 iron peers. institutional 1.25: A6 prior — farriery needs no institution (1.75 was unexplained; the A6 1.75 peers are state works such as canal_lock and paper_money). breadth 0.0 unchanged. prereq_complexity 0.5: two requirements. Old 4,970 -> new 3,520.",
+   "compatibility": {
+    "saves": "Key unchanged; every holder of horse_collar holds horse_domestication (horse_collar <- collar_harness <- horse_domestication), so no held progress goes dormant; progress >= 3,520 completes next step",
+    "ids": "none",
+    "ui": "lock reason names horse_domestication; depth falls",
+    "ai": "reachable without the agriculture subtree's horse_collar; cheapest-fallback order may change",
+    "consumers": "none (leaf); horse_collar (D01) loses a dependant and keeps seed_drill_tull",
+    "tests": "none pin horseshoe"
+   },
+   "capability": {
+    "grants": [
+     "knowledge:sustained horse use on hard roads and wet ground"
+    ],
+    "realizationOwner": "transport packet (DW-059): draught-animal haulage lever (queue Q-C: effective bulk cost computed from available animals)",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: class C — capability string only (V09 dead end today)",
+    "deferredEffect": "shod horses sustain haulage on built roads and wet ground: an input to Q-C's effective bulk cost",
+    "inputs": {
+     "resources": [
+      "livestock"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "realizes nothing where no horses are kept",
+    "unknownResource": "not applicable",
+    "aiValuation": "negligible until the transport packet reads it",
+    "playerCommunication": "Glass Box: knowledge only"
+   }
+  },
+  {
+   "id": "sail_square",
+   "disposition": [
+    "rewire"
+   ],
+   "nodeKind": "application",
+   "rationale": "Kept as the improved coastal and seagoing class (D-047 r7). Prerequisite widened to an alternative hull: the oldest sail evidence belongs to seagoing reed-bundle boats (H3 As-Sabiyah, Kuwait), not only to log boats — a regional-materials OR; cost unchanged.",
+   "changes": "prereq 'dugout AND loom_warp_weighted' -> '(dugout OR raft) AND loom_warp_weighted' (two top-level requirements as before: prereq_complexity 0.5, cost 3,520 unchanged); emerged refined to cite the H3 evidence",
+   "prereq": "(dugout OR raft) AND loom_warp_weighted",
+   "prereqRationale": "A sail needs a hull and woven sailcloth. The hull may be a hollowed log (dugout) or a bundle boat of reed (raft covers lashed log and reed craft): ~5,500-5,300 BCE at H3 As-Sabiyah a painted two-masted boat lies beside bitumen fragments of seagoing reed-bundle boats (RESEARCHED: Carter 2006, Antiquity). loom_warp_weighted supplies the cloth.",
+   "emerged": "~5,500–5,300 BCE As-Sabiyah (H3, Kuwait: seagoing reed-bundle boats, painted two-masted boat); ~3,500 BCE Naqada II depictions (Nile)",
+   "compatibility": {
+    "saves": "Key unchanged; a widened OR never makes a held node unavailable",
+    "ids": "none",
+    "ui": "lock reason names either hull route",
+    "ai": "sail_square can open after raft (180 RP) instead of dugout (520 RP); the cheapest fallback may pick it earlier — AI-empire goldens may move",
+    "consumers": "trade ('token_counting AND (donkey OR camel OR sail_square)'), activity.coastal_shipping, lateen, monsoon_sailing and windmill_post unchanged",
+    "tests": "ResearchContentTests ruling-7 assertions (coastal_shipping requirement, 'coastal and seagoing transport class' string) unaffected; TradeResearchUnlockTests pin trade's string, not this one"
+   },
+   "capability": {
+    "grants": [
+     "production:activity.coastal_shipping",
+     "access:sea-edge.coastal-sail (class eligibility only)",
+     "knowledge:improved coastal and seagoing transport class (sail)",
+     "knowledge:upriver travel under sail instead of rowing",
+     "knowledge:river and coastal trade at scale under sail"
+    ],
+    "realizationOwner": "transport packet (DW-059, unscheduled): a network edge type on the transport table (D-040 B4; ADR-032 §3 'future modes'); activity.coastal_shipping has no realizing system (deferred-entity plan tier C, frozen transport)",
+    "status": "deferred",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: class J — activity.coastal_shipping declared, no realizing system; also one OR atom of the live trade gate (TradeQuery)",
+    "deferredEffect": "coastal and river sailing becomes an edge class (cheaper bulk freight along known coasts and navigable rivers) where a settlement has coast or river, timber and builders. completion writes only the completion row; it reveals no land and sets no extent bit (D-040 B1-B3)",
+    "inputs": {
+     "resources": [
+      "timber",
+      "cloth"
+     ],
+     "geography": [
+      "coastal or navigable-river settlement"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "eligible but unrealized away from water (D-040 B3)",
+    "unknownResource": "not applicable",
+    "aiValuation": "today only as one route to the trade gate; later valued from own known coastline",
+    "playerCommunication": "Glass Box: enables Trade (one route of three); coastal shipping itself is not simulated yet"
+   }
+  },
+  {
+   "id": "plank_boat",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Kept: sewn or pegged plank hulls worked with copper tools; root of the hull family and of naval_ram, cog, stern_rudder and mortise_hull.",
+   "changes": "none",
+   "capability": {
+    "grants": [
+     "building:building.harbour (with stone_dry)",
+     "knowledge:cargo vessels",
+     "knowledge:sea-going hulls"
+    ],
+    "realizationOwner": "ConstructionSystem for building.harbour (deferred-entity plan tier B; a T6.11 candidate, PROPOSED); its consequence needs sea edges (DW-059)",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "MEASURED: class J — building.harbour declared, no realizing system",
+    "deferredEffect": "a harbour project becomes buildable at coastal settlements; it has a consequence only once sea edges exist (DW-059), which the M6 realization pass must not invent",
+    "inputs": {
+     "resources": [
+      "timber",
+      "stone"
+     ],
+     "geography": [
+      "coastal settlement"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "eligible but not buildable inland",
+    "unknownResource": "not applicable",
+    "aiValuation": "none until a harbour has a consumer",
+    "playerCommunication": "Construction lists the harbour only when a realizing project exists; Glass Box shows it deferred"
+   }
+  },
+  {
+   "id": "mortise_hull",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "technique",
+   "rationale": "Kept: shell-first mortise-and-tenon hull (Uluburun; large cargo ships); feeds steamboat, canal_lock (D07) and stern_rudder.",
+   "changes": "none"
+  },
+  {
+   "id": "lateen",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Kept: fore-and-aft sail for windward work; feeds caravel and now the carrack's lateen mizzen.",
+   "changes": "none (gains dependant carrack)"
+  },
+  {
+   "id": "latitude_sailing",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "technique",
+   "rationale": "Kept: latitude by stars or sun, Pacific and Mediterranean independently. The OR carries both routes: astronomy_records for the literate one, calendar_lunar for the non-literate one — the nearest existing node for systematic sky-watching without writing (lunar months, heliacal star risings). Confirmed for D03, whose re-score makes that branch the cheap route; no parallel astronomy node is added (D03 owns astronomy).",
+   "changes": "none",
+   "capability": {
+    "grants": [
+     "knowledge:open-sea voyaging by latitude"
+    ],
+    "realizationOwner": "transport packet (DW-059, unscheduled): a network edge type on the transport table (D-040 B4; ADR-032 §3 'future modes')",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: class C — capability string only",
+    "deferredEffect": "a reliability parameter of open-sea edges (holding a latitude across open water) for vessels that are realized and sailing; completion writes only the completion row; it reveals no land and sets no extent bit (D-040 B1-B3)",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "not applicable",
+    "unknownResource": "not applicable",
+    "aiValuation": "stepping stone (polynesian_canoe)",
+    "playerCommunication": "Glass Box: knowledge only — navigation never reveals the map"
+   }
+  },
+  {
+   "id": "monsoon_sailing",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "technique",
+   "rationale": "Kept; no longer a dead end — the monsoon wind system is the route knowledge of the Indian Ocean oceanic class (new ocean_junk).",
+   "changes": "none (gains dependant ocean_junk)",
+   "capability": {
+    "grants": [
+     "knowledge:direct Arabia–India crossing",
+     "knowledge:Indian Ocean trade"
+    ],
+    "realizationOwner": "transport packet (DW-059, unscheduled): a network edge type on the transport table (D-040 B4; ADR-032 §3 'future modes')",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: class C — capability strings only (V09 dead end today)",
+    "deferredEffect": "seasonal open-sea crossings in monsoon waters (a timing parameter of realized sea edges); completion writes only the completion row; it reveals no land and sets no extent bit (D-040 B1-B3)",
+    "inputs": {
+     "resources": [],
+     "geography": [
+      "monsoon coast"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "not applicable",
+    "unknownResource": "not applicable",
+    "aiValuation": "stepping stone (ocean_junk)",
+    "playerCommunication": "Glass Box: knowledge only"
+   }
+  },
+  {
+   "id": "compass_magnetic",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Kept: magnetised needle (Shen Kuo's description 1088; navigation at sea recorded 1111-1117); now also feeds carrack and ocean_junk as their open-sea navigation knowledge.",
+   "changes": "none (gains dependants carrack, ocean_junk)",
+   "capability": {
+    "grants": [
+     "knowledge:navigation under cloud",
+     "knowledge:dead reckoning"
+    ],
+    "realizationOwner": "transport packet (DW-059, unscheduled): a network edge type on the transport table (D-040 B4; ADR-032 §3 'future modes')",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: class C — capability strings only",
+    "deferredEffect": "a reliability parameter of realized sea edges (steering out of sight of land and under overcast); never a sight or extent effect — completion writes only the completion row; it reveals no land and sets no extent bit (D-040 B1-B3)",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "not applicable",
+    "unknownResource": "not applicable",
+    "aiValuation": "stepping stone (portolan, caravel, carrack, ocean_junk)",
+    "playerCommunication": "Glass Box: knowledge only — the compass guides ships, it does not reveal the map"
+   }
+  },
+  {
+   "id": "stern_rudder",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Kept: hinged sternpost rudder; feeds cog, caravel and watertight_bulkhead. Its A6 tag trails its earliest centre (~100 CE China); left unchanged because re-dating re-prices (open question).",
+   "changes": "none"
+  },
+  {
+   "id": "watertight_bulkhead",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "technique",
+   "rationale": "Kept; no longer a dead end — compartmented hulls are the hull knowledge of the ocean-going junk (new ocean_junk).",
+   "changes": "none (gains dependant ocean_junk)"
+  },
+  {
+   "id": "portolan",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "technique",
+   "rationale": "Kept: compass-bearing coastal charts (Carte Pisane ~1275). The cartography edge is kept as generic map-making knowledge (the Ptolemaic grid itself was not used by portolan makers).",
+   "changes": "none",
+   "capability": {
+    "grants": [
+     "knowledge:coastal navigation by bearing and distance"
+    ],
+    "realizationOwner": "transport packet (DW-059, unscheduled): a network edge type on the transport table (D-040 B4; ADR-032 §3 'future modes')",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: class C — capability string only",
+    "deferredEffect": "charts of coasts the polity has already sailed: a route-reliability parameter of realized coastal edges; completion writes only the completion row; it reveals no land and sets no extent bit (D-040 B1-B3)",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "not applicable",
+    "unknownResource": "not applicable",
+    "aiValuation": "stepping stone (mercator)",
+    "playerCommunication": "Glass Box: knowledge only — charts record known coasts; they reveal nothing"
+   }
+  },
+  {
+   "id": "cog",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Kept: Hanseatic bulk carrier; with lateen and compass it is now the causal ancestor of the carrack (Italian builders took the cog's square rig and sternpost rudder).",
+   "changes": "none"
+  },
+  {
+   "id": "caravel",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Kept as the A7 supporting fact (a7_ocean) and one of four routes to the oceanic class; loses two non-causal dependant edges (celestial_navigation, carrack).",
+   "changes": "none to this record (celestial_navigation and carrack no longer require it)",
+   "capability": {
+    "grants": [
+     "age:a7_ocean",
+     "production:activity.ocean_shipping",
+     "access:sea-edge.oceanic (class eligibility only)",
+     "knowledge:coastal exploration against wind",
+     "knowledge:Atlantic islands",
+     "knowledge:West Africa"
+    ],
+    "realizationOwner": "AgeTransitionSystem (A7 supporting fact); transport packet (DW-059, unscheduled): a network edge type on the transport table (D-040 B4; ADR-032 §3 'future modes') for the oceanic class (activity.ocean_shipping: no realizing system, deferred-entity plan tier C)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class B (BJ) — age:a7_ocean supporting milestone; activity.ocean_shipping declared, unrealized",
+    "deferredEffect": "oceanic edges where a coastal settlement has timber and builders; new coasts enter extent only when a voyage reaches them (D-040 B2) — never on completion (M10+)",
+    "inputs": {
+     "resources": [
+      "timber",
+      "cloth"
+     ],
+     "geography": [
+      "coastal settlement"
+     ],
+     "infrastructure": [
+      "building.harbour (deferred)"
+     ],
+     "institutions": []
+    },
+    "missingInputs": "eligible but unrealized without a coast (D-040 B3)",
+    "unknownResource": "not applicable",
+    "aiValuation": "AI reaches it as an A7 supporting fact only through the cheapest fallback (supporting facts are not AI goals)",
+    "playerCommunication": "Age panel (A7 supporting milestone); Glass Box: ocean shipping not simulated yet; research reveals no land"
+   }
+  },
+  {
+   "id": "carrack",
+   "disposition": [
+    "rewire"
+   ],
+   "nodeKind": "application",
+   "rationale": "Prerequisite corrected: the carrack does not descend from the caravel — Genoese 'carraca' are recorded in the early 14th century, a century before the Portuguese exploration caravel, marrying the cog's square rig and sternpost rudder to a frame-first Mediterranean hull with a lateen mizzen. As an oceanic-class node it also needs open-sea navigation (the compass), like its siblings.",
+   "changes": "prereq 'caravel AND cog' -> 'cog AND lateen AND compass_magnetic'; prereq_complexity 0.5 -> 1.0; magnitude 5.5 -> 6.0; cost 4,180 -> 5,910; emerged '~1,450 CE' -> as below",
+   "prereq": "cog AND lateen AND compass_magnetic",
+   "prereqRationale": "cog: square rig and sternpost rudder (the northern features Italian builders adopted); lateen: the mizzen; compass_magnetic: open-sea navigation, in Mediterranean use by ~1300. caravel removed: a parallel and later Iberian type (RESEARCHED: DHM 'carraca' in a Genoese manuscript of the early 14th century; Southampton CMA on the cocha/carrack).",
+   "emerged": "~1,300–1,350 CE Genoa (carraca: cog rig and rudder on a frame-first hull, lateen mizzen); ~1,450 CE three-masted full-rigged ship",
+   "factors": {
+    "novelty": 0.5,
+    "difficulty": 2.0,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 1.0,
+    "prereq_complexity": 1.0
+   },
+   "costRationale": "novelty 0.5, difficulty 2.0 (A7 prior), material 0.0, institutional 1.5 (A7 prior), breadth 1.0 — unchanged; prereq_complexity 0.5 -> 1.0: three requirements under the convention. Old 4,180 -> new 5,910.",
+   "compatibility": {
+    "saves": "Key unchanged; every holder of caravel holds lateen and compass_magnetic, so a polity that held carrack's old prerequisites holds the new ones — no held progress goes dormant",
+    "ids": "none",
+    "ui": "lock reasons change; depth shallower",
+    "ai": "carrack (with building.dry_dock and activity.ocean_shipping) reachable without caravel; closures of new_world_crops (D01) and ship_of_line (D09) change — AI-empire goldens may move",
+    "consumers": "activity.ocean_shipping, building.dry_dock (ADR-032 §5), new_world_crops and ship_of_line keep their requirement on carrack",
+    "tests": "ResearchContentTests asserts carrack unlocks activity.ocean_shipping (unchanged); RoadDevelopmentTests 1120-1121 (dry dock on carrack) unchanged"
+   },
+   "capability": {
+    "grants": [
+     "production:activity.ocean_shipping",
+     "building:building.dry_dock",
+     "access:sea-edge.oceanic (class eligibility only)",
+     "knowledge:transoceanic cargo"
+    ],
+    "realizationOwner": "transport packet (DW-059, unscheduled): a network edge type on the transport table (D-040 B4; ADR-032 §3 'future modes') for the oceanic class; Battle layer (M7) for building.dry_dock (deferred-entity plan tier E)",
+    "status": "deferred",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: class J — activity.ocean_shipping and building.dry_dock declared, no realizing system",
+    "deferredEffect": "oceanic edges and dry docks where a coastal settlement has timber and builders; completion writes only the completion row; it reveals no land and sets no extent bit (D-040 B1-B3)",
+    "inputs": {
+     "resources": [
+      "timber",
+      "cloth"
+     ],
+     "geography": [
+      "coastal settlement"
+     ],
+     "infrastructure": [
+      "building.harbour (deferred)"
+     ],
+     "institutions": []
+    },
+    "missingInputs": "eligible but unrealized without a coast (D-040 B3)",
+    "unknownResource": "not applicable",
+    "aiValuation": "stepping stone (new_world_crops, ship_of_line); class value later from own known coastline",
+    "playerCommunication": "Glass Box: ocean shipping and dry docks not simulated yet; research reveals no land"
+   }
+  },
+  {
+   "id": "polynesian_canoe",
+   "disposition": [
+    "relocate"
+   ],
+   "nodeKind": "application",
+   "rationale": "Relocated from the Military subtree to the Main trunk: the node is oceanic voyaging by a society without writing, yet its subtree placed it behind the research stage (writing, law code, a university-level stage). Its prerequisites are trunk nodes; Age, cost and key unchanged.",
+   "changes": "branch military -> trunk (Age A6, cost 2,960, factors and universityRelevance unchanged; a Main-tree node pays BaseCost)",
+   "branch": "trunk",
+   "compatibility": {
+    "saves": "Key unchanged; progress held while the subtrees were closed becomes active instead of dormant; a completed node stays completed",
+    "ids": "none",
+    "ui": "lane moves from Military to Main Trunk (ResearchTreeLayout)",
+    "ai": "available before the research stage; the cheapest fallback may choose it early (activity.ocean_shipping eligibility, inert) — AI-empire goldens may move",
+    "consumers": "activity.ocean_shipping unchanged",
+    "tests": "branch-count pin [177, 37, …] and finite-per-subtree pin [36, …] move (trunk +1; military −1 here and +2 from the new ocean_junk and submarine); frontier_military finite_nodes_to_exhaust recomputed (37 with D08's changes alone)"
+   },
+   "capability": {
+    "grants": [
+     "production:activity.ocean_shipping",
+     "access:sea-edge.oceanic (class eligibility only)",
+     "knowledge:open-ocean colonisation over 3,000 km"
+    ],
+    "realizationOwner": "transport packet (DW-059, unscheduled): a network edge type on the transport table (D-040 B4; ADR-032 §3 'future modes') (activity.ocean_shipping: no realizing system, tier C)",
+    "status": "deferred",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: class J — activity.ocean_shipping declared, no realizing system",
+    "deferredEffect": "oceanic edges without compass or writing where coast, timber and builders exist; islands enter extent only when a voyage reaches them (D-040 B2). completion writes only the completion row; it reveals no land and sets no extent bit (D-040 B1-B3)",
+    "inputs": {
+     "resources": [
+      "timber",
+      "fiber"
+     ],
+     "geography": [
+      "coastal settlement"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "eligible but unrealized without a coast (D-040 B3)",
+    "unknownResource": "not applicable",
+    "aiValuation": "valued from own known coastline once sea edges exist",
+    "playerCommunication": "Glass Box: ocean voyaging not simulated yet; research reveals no land"
+   }
+  },
+  {
+   "id": "celestial_navigation",
+   "disposition": [
+    "rewire"
+   ],
+   "nodeKind": "technique",
+   "rationale": "The caravel edge encoded the need (ships crossing the equator lost the pole star), not knowledge: instruments and declination tables need the astrolabe and trigonometry, whatever ship carries them. Removing it also frees the longitude -> atomic clock -> GPS chain from a ship type.",
+   "changes": "prereq 'astrolabe AND trigonometry AND caravel' -> 'astrolabe AND trigonometry'; prereq_complexity 1.0 -> 0.5; magnitude 6.0 -> 5.5; cost 5,910 -> 4,180",
+   "prereq": "astrolabe AND trigonometry",
+   "prereqRationale": "The mariner's astrolabe and quadrant (astrolabe) and solar declination tables (trigonometry) are the knowledge; the hull it is used on is not.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.0,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "costRationale": "novelty 1.0, difficulty 2.0 (A7 prior), material 0.0, institutional 1.5 (A7 prior), breadth 0.5 — unchanged; prereq_complexity 1.0 -> 0.5: two requirements. Old 5,910 -> new 4,180.",
+   "compatibility": {
+    "saves": "Key unchanged; an AND requirement was removed, so nothing held becomes unavailable; progress >= 4,180 completes next step",
+    "ids": "none",
+    "ui": "lock reason no longer names caravel",
+    "ai": "longitude_problem, atomic_clock and gps closures no longer include caravel — AI-empire goldens may move",
+    "consumers": "longitude_problem unchanged",
+    "tests": "none pin it"
+   },
+   "capability": {
+    "grants": [
+     "knowledge:open-ocean position finding (latitude by instrument)"
+    ],
+    "realizationOwner": "transport packet (DW-059, unscheduled): a network edge type on the transport table (D-040 B4; ADR-032 §3 'future modes')",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: class C — capability string only",
+    "deferredEffect": "a reliability parameter of realized oceanic edges; completion writes only the completion row; it reveals no land and sets no extent bit (D-040 B1-B3)",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "not applicable",
+    "unknownResource": "not applicable",
+    "aiValuation": "stepping stone (longitude_problem)",
+    "playerCommunication": "Glass Box: knowledge only — navigation never reveals the map"
+   }
+  },
+  {
+   "id": "longitude_problem",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "technique",
+   "rationale": "Kept as a justified leaf: longitude by marine chronometer (Harrison H4, 1761). D04 removes atomic_clock's edge to it as non-causal (a caesium clock needs atomic physics, not the chronometer), so its consumer is now the transport packet's route-safety parameter. The lunar-distance solution was considered as an alternative node and rejected (no consumer distinguishes the two).",
+   "changes": "none",
+   "capability": {
+    "grants": [
+     "knowledge:east-west position at sea",
+     "knowledge:safe ocean routing"
+    ],
+    "realizationOwner": "transport packet (DW-059, unscheduled): a network edge type on the transport table (D-040 B4; ADR-032 §3 'future modes')",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: class C — capability strings only",
+    "deferredEffect": "a route-safety parameter of realized oceanic edges; completion writes only the completion row; it reveals no land and sets no extent bit (D-040 B1-B3)",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "not applicable",
+    "unknownResource": "not applicable",
+    "aiValuation": "stepping stone (atomic_clock, gps)",
+    "playerCommunication": "Glass Box: knowledge only — navigation never reveals the map"
+   }
+  },
+  {
+   "id": "mercator",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "technique",
+   "rationale": "Kept as a justified leaf: the conformal projection that made rhumb lines straight (1569) — a major cartographic milestone whose consumer is route planning on realized sea edges, not a dependant node.",
+   "changes": "none",
+   "capability": {
+    "grants": [
+     "knowledge:practical ocean charts"
+    ],
+    "realizationOwner": "transport packet (DW-059, unscheduled): a network edge type on the transport table (D-040 B4; ADR-032 §3 'future modes')",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: class C — capability string only (V09 dead end today)",
+    "deferredEffect": "rhumb-line route planning over realized oceanic edges within known extent; completion writes only the completion row; it reveals no land and sets no extent bit (D-040 B1-B3)",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "not applicable",
+    "unknownResource": "not applicable",
+    "aiValuation": "negligible until the transport packet reads it",
+    "playerCommunication": "Glass Box: knowledge only — charts record known waters; they reveal nothing"
+   }
+  },
+  {
+   "id": "cartography",
+   "disposition": [
+    "rewire"
+   ],
+   "nodeKind": "technique",
+   "rationale": "Prerequisite road_paved removed: Ptolemy's coordinates came from astronomy and itinerary distances, and Pei Xiu's grid maps had no paved roads — road building is not knowledge cartography needs (measured distance is surveying, already in astronomy_geometric's closure). The capability string that read as an extent reveal is reworded (D-040). D03's rewire of astronomy_geometric adds calendar_lunisolar to its closure; D12's new general_staff civic requires it.",
+   "changes": "prereq 'astronomy_geometric AND road_paved' -> 'astronomy_geometric'; prereq_complexity 0.5 -> 0.0; magnitude 4.75 -> 4.25; cost 2,490 -> 1,760; capability 'D-040 B1 computed extent made explicit' -> 'maps record the extent the polity has already discovered; they reveal nothing'",
+   "prereq": "astronomy_geometric",
+   "prereqRationale": "Mathematical cartography is a coordinate grid and a projection: geometric astronomy (latitude and longitude on a sphere). Distances come from surveying, which astronomy_geometric already requires (geometry_axiomatic <- geometry_practical <- surveying). The road_paved edge was a Roman context edge, not knowledge.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.5,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "costRationale": "novelty 1.0, difficulty 1.5 (A5 prior), material 0.0 (a method), institutional 1.25 (A5 prior), breadth 0.5 (portolan, mercator) — unchanged; prereq_complexity 0.5 -> 0.0: one requirement once the non-causal road_paved edge is removed. Old 2,490 -> new 1,760.",
+   "compatibility": {
+    "saves": "Key unchanged; an AND requirement was removed, so nothing held becomes unavailable; progress >= 1,760 completes next step",
+    "ids": "none",
+    "ui": "lock reason no longer names road_paved",
+    "ai": "portolan and mercator closures no longer include road_paved — AI-empire goldens may move",
+    "consumers": "portolan, mercator unchanged; road_paved keeps macadam as dependant",
+    "tests": "none pin cartography; the corpus audit regenerates"
+   },
+   "capability": {
+    "grants": [
+     "knowledge:maps as knowledge — a record of the extent the polity has already discovered"
+    ],
+    "realizationOwner": "none (knowledge-only); extent is owned by the fog lane's DiscoverySystem (T6.7, PROPOSED)",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class C — capability strings only (read for display)",
+    "deferredEffect": "none of its own: a map records known extent and reveals nothing (D-040 B1-B3); any future map exchange between polities (sharing extent by contact or treaty) would be a fog-lane/M8 mechanism, not a D08 grant",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "not applicable",
+    "unknownResource": "not applicable — no extent bit is written by completion",
+    "aiValuation": "stepping stone (portolan, mercator); it carries no information: the AI learns nothing about the map",
+    "playerCommunication": "Glass Box: knowledge only — maps do not reveal land"
+   }
+  },
+  {
+   "id": "locomotive",
+   "disposition": [
+    "rebalance"
+   ],
+   "nodeKind": "application",
+   "rationale": "Re-scored on content: material 2.0 and institutional 3.0 are the loader maxima (otherwise used only by A9 frontier nodes such as rocket and transistor); an 1804-1829 locomotive is a high-pressure engine on wrought-iron wheels built in an engineer's workshop (Trevithick, Stephenson). The network-scale institution stays on railway.",
+   "changes": "material 2.0 -> 1.5; institutional 3.0 -> 2.0; magnitude 9.0 -> 7.5; cost 47,310 -> 16,730; prereq unchanged",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 1.5,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "costRationale": "novelty 1.0: a steam engine on rails, a typical advance (railway keeps the 2.0). difficulty 2.5: A8 prior. material 1.5: wrought-iron boiler, cast cylinders, iron wheels — the steam_rotary / cylinder_boring class (2.0 was the rocket/transistor class). institutional 2.0: A8 prior — Penydarren 1804 and Rainhill 1829 were workshop projects (3.0 was the state-space-programme level; every other A8 node sits at 2.0-2.5). breadth 0.5 unchanged. prereq_complexity 0.0: one requirement. Old 47,310 -> new 16,730; a content correction, not a pacing change.",
+   "compatibility": {
+    "saves": "Key unchanged; progress >= 16,730 completes on the next step at no RP",
+    "ids": "none",
+    "ui": "cost shown 16,730",
+    "ai": "railway's closure (A8 supporting fact a8_rail) falls by 30,580 RP — AI-empire goldens may move",
+    "consumers": "railway unchanged",
+    "tests": "no test pins the cost; the calibration report regenerates"
+   }
+  },
+  {
+   "id": "railway",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "infrastructure",
+   "rationale": "Kept: A8 supporting fact (a8_rail) and the public locomotive railway. A wagonway prerequisite node was considered and rejected: railway's append-only Eureka already models mine wagonways as a circumstance (when: mining_shaft).",
+   "changes": "none",
+   "capability": {
+    "grants": [
+     "age:a8_rail",
+     "infrastructure:infra.railway",
+     "knowledge:national markets",
+     "knowledge:standard time",
+     "knowledge:military mobilisation by rail"
+    ],
+    "realizationOwner": "AgeTransitionSystem (A8 supporting fact); rail as a network edge type: transport packet (DW-059, unscheduled): a network edge type on the transport table (D-040 B4; ADR-032 §3 'future modes') (ADR-032 §10.8 defers rail; infra.railway is tier C)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class B (BJ) — age:a8_rail supporting milestone; infra.railway declared, no realizing system",
+    "deferredEffect": "rail edges built like road classes (materials per km, speed, capacity) where settlements are joined; M7 mobilisation reads the same edges (M10+)",
+    "inputs": {
+     "resources": [
+      "stone",
+      "timber",
+      "tools"
+     ],
+     "geography": [
+      "settlement pairs"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "eligible but unbuilt until the edge type exists",
+    "unknownResource": "not applicable",
+    "aiValuation": "reached through the cheapest fallback (supporting facts are not AI goals)",
+    "playerCommunication": "Age panel (A8 supporting milestone); Glass Box: railways not buildable yet"
+   }
+  },
+  {
+   "id": "steamboat",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Kept: steam navigation (Fulton 1807); feeds screw_propeller and now iron_hull.",
+   "changes": "none (gains dependant iron_hull)",
+   "capability": {
+    "grants": [
+     "knowledge:river commerce against current",
+     "knowledge:scheduled ocean crossing"
+    ],
+    "realizationOwner": "transport packet (DW-059, unscheduled): a network edge type on the transport table (D-040 B4; ADR-032 §3 'future modes')",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: class C — capability strings only",
+    "deferredEffect": "steam edges: upriver travel against the current and timetabled sea crossings as parameters of realized water edges; completion writes only the completion row; it reveals no land and sets no extent bit (D-040 B1-B3)",
+    "inputs": {
+     "resources": [
+      "timber"
+     ],
+     "geography": [
+      "navigable river or coast"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "not applicable",
+    "unknownResource": "not applicable",
+    "aiValuation": "stepping stone (screw_propeller, iron_hull)",
+    "playerCommunication": "Glass Box: knowledge only"
+   }
+  },
+  {
+   "id": "screw_propeller",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Kept: unit.ironclad eligibility (M7, with iron_hull); keeps dependants nuclear_submarine and submarine_cable, gains the new submarine (the only propulsor that works submerged) and loses iron_hull (iron hulls predate the screw).",
+   "changes": "none (iron_hull no longer requires it; gains dependant submarine)"
+  },
+  {
+   "id": "iron_hull",
+   "disposition": [
+    "rewire"
+   ],
+   "nodeKind": "application",
+   "rationale": "Prerequisite corrected: iron hulls predate the screw — Aaron Manby (built 1821, at sea 1822), the first iron steamship to go to sea, was a paddle steamer. Iron shipbuilding drew on wrought-iron plate and the riveted-plate practice of steam vessels. unit.ironclad still requires the screw AND the iron hull.",
+   "changes": "prereq 'puddling AND screw_propeller' -> 'puddling AND steamboat' (two requirements as before; cost 14,070 unchanged); emerged '1843 CE' -> as below",
+   "prereq": "puddling AND steamboat",
+   "prereqRationale": "puddling: wrought-iron plate in quantity; steamboat: the engine-carrying hull and its riveted boiler-plate practice (RESEARCHED: Aaron Manby, Horseley Ironworks, first iron ship to go to sea). The screw is not needed for an iron hull.",
+   "emerged": "1821–1822 CE (Aaron Manby, first iron steamship at sea); 1843 CE (SS Great Britain, iron screw liner)",
+   "compatibility": {
+    "saves": "Key unchanged; every holder of screw_propeller holds steamboat, so no held progress goes dormant",
+    "ids": "none",
+    "ui": "lock reason names steamboat",
+    "ai": "iron_hull reachable without the screw; container_shipping's closure changes",
+    "consumers": "unit.ironclad ('screw_propeller AND iron_hull') and container_shipping unchanged; gains the new submarine (pressure hull)",
+    "tests": "none pin it"
+   }
+  },
+  {
+   "id": "macadam",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "infrastructure",
+   "rationale": "Kept: live road class 5; institutional 2.5 above the A8 prior is content (turnpike trusts financed and administered the roads).",
+   "changes": "none"
+  },
+  {
+   "id": "bicycle",
+   "disposition": [
+    "rewire"
+   ],
+   "nodeKind": "application",
+   "rationale": "The 1885 safety bicycle needed precision mass-produced components (ball bearings, roller chain, steel tube) as well as case-hardened steel; with steel_carburized alone it was researchable centuries early. Stays a leaf whose consumer is aircraft's machine-evaluable Eureka ('Bicycle engineering is known').",
+   "changes": "prereq 'steel_carburized' -> 'interchangeable_parts AND steel_carburized'; prereq_complexity 0.0 -> 0.5; magnitude 6.25 -> 6.75; cost 7,030 -> 9,950",
+   "prereq": "interchangeable_parts AND steel_carburized",
+   "prereqRationale": "steel_carburized: case-hardened bearing cones and chain; interchangeable_parts: precision mass manufacture of small parts (~1820 onward), without which the 1880s machine is not buildable.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.75,
+    "institutional": 2.0,
+    "breadth": 0.0,
+    "prereq_complexity": 0.5
+   },
+   "costRationale": "novelty 1.0, difficulty 2.5 (A8 prior), material 0.75, institutional 2.0 (A8 prior), breadth 0.0 — unchanged; prereq_complexity 0.0 -> 0.5: two requirements. Old 7,030 -> new 9,950.",
+   "compatibility": {
+    "saves": "Key unchanged; a polity holding steel_carburized without interchangeable_parts sees progress on bicycle go dormant (Partial) until it does",
+    "ids": "none",
+    "ui": "lock reason names interchangeable_parts",
+    "ai": "bicycle later and dearer; aircraft's Eureka (when: bicycle) stays a circumstance — bicycle is on no path to aircraft (checked: not implied, not dead)",
+    "consumers": "aircraft Eureka[0] unchanged",
+    "tests": "Eureka count pins unchanged; none pin bicycle"
+   },
+   "capability": {
+    "grants": [
+     "knowledge:personal transport",
+     "knowledge:the precision-parts industry that built cars and aircraft"
+    ],
+    "realizationOwner": "none (knowledge-only); consumer: aircraft's machine-evaluable Eureka",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class C — capability strings only; the condition of aircraft's Eureka (0.4)",
+    "deferredEffect": "none before M11+ (personal mobility has no owning system)",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "not applicable",
+    "unknownResource": "not applicable",
+    "aiValuation": "Eureka value toward aircraft",
+    "playerCommunication": "Glass Box: knowledge only; speeds powered flight research (Eureka)"
+   }
+  },
+  {
+   "id": "electric_traction",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Kept: electric trams and metros (1881-1890); the A9 tag matches its 1884-1890 peers (steam_turbine, aluminium).",
+   "changes": "none"
+  },
+  {
+   "id": "high_speed_rail",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "infrastructure",
+   "rationale": "Kept as a justified leaf: its consumer is a rail edge class with higher speed (transport packet), not a dependant node.",
+   "changes": "none",
+   "capability": {
+    "grants": [
+     "knowledge:intercity travel faster than air over medium distance"
+    ],
+    "realizationOwner": "transport packet (DW-059, unscheduled): a network edge type on the transport table (D-040 B4; ADR-032 §3 'future modes')",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: class C — capability string only (V09 dead end today)",
+    "deferredEffect": "a dedicated high-speed rail edge class (speed, capacity) once rail edges exist",
+    "inputs": {
+     "resources": [
+      "stone",
+      "tools"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "not applicable",
+    "unknownResource": "not applicable",
+    "aiValuation": "negligible until rail edges exist",
+    "playerCommunication": "Glass Box: knowledge only"
+   }
+  },
+  {
+   "id": "automobile_mass",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Kept: mass production of the motor car (the invention is internal_combustion's 'motor vehicle'); feeds the live highway class (motor_road), catalytic_converter and now electric_vehicle. On D07's request it adopts the 'moving assembly line' and 'mass production' strings that D07 removes from the 1820 interchangeable_parts node.",
+   "changes": "capability strings added: 'moving assembly line (Ford, 1913)', 'mass production' (no prerequisite or cost change)",
+   "compatibility": {
+    "saves": "unaffected",
+    "ids": "none",
+    "ui": "display strings",
+    "ai": "none",
+    "consumers": "motor_road, catalytic_converter (D04), electric_vehicle",
+    "tests": "none pin the strings"
+   },
+   "capability": {
+    "grants": [
+     "knowledge:suburb",
+     "knowledge:trucking",
+     "knowledge:the road economy",
+     "knowledge:moving assembly line (Ford, 1913)",
+     "knowledge:mass production"
+    ],
+    "realizationOwner": "none (knowledge-only); road freight by lorry is a transport-packet parameter (DW-059)",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class C — capability strings only",
+    "deferredEffect": "motor freight on built roads as a capacity/cost parameter of the road classes once the transport packet prices vehicles (M10+); the highway class itself is already live through motor_road",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "not applicable",
+    "unknownResource": "not applicable",
+    "aiValuation": "stepping stone to the live highway class (AI road goal reaches motor_road through it)",
+    "playerCommunication": "Glass Box: knowledge only"
+   }
+  },
+  {
+   "id": "motor_road",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "infrastructure",
+   "rationale": "Kept unchanged: live highway class 6 (ADR-032); RoadDevelopmentTests pin key, prerequisite string and cost.",
+   "changes": "none"
+  },
+  {
+   "id": "electric_vehicle",
+   "disposition": [
+    "rewire"
+   ],
+   "nodeKind": "application",
+   "rationale": "Missing causal requirement: a modern electric vehicle is an automobile with a battery drivetrain — chassis, steering and mass production come from automobile_mass, not from the battery or the motor.",
+   "changes": "prereq 'lithium_battery AND electric_motor' -> 'lithium_battery AND electric_motor AND automobile_mass'; prereq_complexity 0.5 -> 1.0; magnitude 9.0 -> 9.5; cost 47,310 -> 66,900",
+   "prereq": "lithium_battery AND electric_motor AND automobile_mass",
+   "prereqRationale": "lithium_battery: energy storage; electric_motor: drive; automobile_mass: the mass-produced motor car the drivetrain goes into.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 1.5,
+    "institutional": 3.0,
+    "breadth": 0.0,
+    "prereq_complexity": 1.0
+   },
+   "costRationale": "novelty 1.0, difficulty 3.0 (A9 prior), material 1.5, institutional 3.0 (charging networks and battery supply chains), breadth 0.0 — unchanged; prereq_complexity 0.5 -> 1.0: three requirements. Old 47,310 -> new 66,900.",
+   "compatibility": {
+    "saves": "Key unchanged; a polity holding the battery and motor without automobile_mass sees progress go dormant until it does",
+    "ids": "none",
+    "ui": "lock reason names automobile_mass",
+    "ai": "later and dearer leaf",
+    "consumers": "none (leaf)",
+    "tests": "none pin it"
+   },
+   "capability": {
+    "grants": [
+     "knowledge:road transport without oil"
+    ],
+    "realizationOwner": "none before M11+ (no fuel or energy system; framework §8)",
+    "status": "knowledge-only",
+    "milestone": "M11+",
+    "currentEffect": "MEASURED: class C — capability string only (V09 dead end today)",
+    "deferredEffect": "road vehicles drawing on electricity instead of petroleum, once energy/fuel goods exist (M11+)",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "not applicable",
+    "unknownResource": "not applicable",
+    "aiValuation": "negligible",
+    "playerCommunication": "Glass Box: knowledge only"
+   }
+  },
+  {
+   "id": "aircraft",
+   "disposition": [
+    "rewire"
+   ],
+   "nodeKind": "application",
+   "rationale": "Missing knowledge added: powered flight needed gliding flight — Lilienthal's lift data and the Wrights' 1900-1902 gliders, on which three-axis control was developed — not only an engine. New prerequisite glider. The 'aerial reconnaissance' capability is restated as an M7 asset whose sight is the fog lane's (pointed, no reveal).",
+   "changes": "prereq 'internal_combustion' -> 'internal_combustion AND glider'; prereq_complexity 0.0 -> 0.5; magnitude 9.0 -> 9.5; cost 47,310 -> 66,900; capability text 'aerial reconnaissance (D-039 B: reconnaissance no longer walks)' -> 'aerial reconnaissance asset (pointed; its sight is owned by the fog lane)'",
+   "prereq": "internal_combustion AND glider",
+   "prereqRationale": "internal_combustion: a light petrol engine; glider: aerodynamic lift and three-axis control (RESEARCHED: Lilienthal 1891-1896; Wright gliders 1900-1902).",
+   "factors": {
+    "novelty": 2.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.5,
+    "prereq_complexity": 0.5
+   },
+   "costRationale": "novelty 2.0, difficulty 3.0 (A9 prior), material 0.0, institutional 2.5 (A9 prior), breadth 1.5 — unchanged; prereq_complexity 0.0 -> 0.5: two requirements. Old 47,310 -> new 66,900 (closure +29,540 with glider).",
+   "compatibility": {
+    "saves": "Key unchanged; a polity holding internal_combustion without glider sees progress on aircraft go dormant until glider completes; a completed aircraft stays completed",
+    "ids": "none",
+    "ui": "lock reason names glider",
+    "ai": "aircraft closure +29,540 RP; AI-empire goldens may move if an AI reaches A9",
+    "consumers": "unit.military_aircraft, unit.aircraft_carrier (with steam_turbine), building.airfield, aircraft_metal, helicopter and combat_drone unchanged",
+    "tests": "aircraft's Eureka (when: bicycle) stays valid — glider does not require bicycle (not implied)"
+   },
+   "capability": {
+    "grants": [
+     "unit:unit.military_aircraft",
+     "unit:unit.aircraft_carrier (with steam_turbine)",
+     "building:building.airfield",
+     "knowledge:air transport",
+     "knowledge:bombing",
+     "knowledge:aerial reconnaissance asset (pointed; sight owned by the fog lane)"
+    ],
+    "realizationOwner": "Battle layer (M7) for the units; ConstructionSystem for building.airfield (tier G); air routes: transport packet (DW-059, unscheduled): a network edge type on the transport table (D-040 B4; ADR-032 §3 'future modes')",
+    "status": "deferred",
+    "milestone": "M7",
+    "currentEffect": "MEASURED: class F (FJ) — units and airfield declared, no realizing system",
+    "deferredEffect": "M7: military aircraft as formations. PROPOSED (fog lane): an aircraft observer's sight budget carries a dimensionless vantage multiplier (D-039 B4) — pointed reconnaissance, never a global reveal (D-039 B3). Air routes as an edge type (DW-059, M10+).",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "eligible but no formation until M7 recruitment",
+    "unknownResource": "not applicable",
+    "aiValuation": "stepping stone (aircraft_metal, helicopter, combat_drone); military value from M7",
+    "playerCommunication": "Glass Box: unit eligibility only — no aircraft can be fielded before the Battle Layer"
+   }
+  },
+  {
+   "id": "aircraft_metal",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Kept: stressed-skin all-metal monoplane (1915/1935); feeds jet_engine (D06) and jet_airliner.",
+   "changes": "none"
+  },
+  {
+   "id": "jet_airliner",
+   "disposition": [
+    "rewire"
+   ],
+   "nodeKind": "application",
+   "rationale": "Missing knowledge (D02's request, accepted on its own causal merit whatever D06 decides for gas turbines): airline jet service rested on creep-resistant superalloy turbine blades — Nimonic 80 (1941) became the standard blade material of British gas turbines, Nimonic 80A blades ran in the Comet's de Havilland Ghost. Still a justified leaf: its consumer is an air-route edge class (D-009 'air corridor').",
+   "changes": "prereq 'jet_engine AND aircraft_metal' -> 'jet_engine AND aircraft_metal AND superalloy'; prereq_complexity 0.5 -> 1.0; magnitude 9.0 -> 9.5; cost 47,310 -> 66,900",
+   "prereq": "jet_engine AND aircraft_metal AND superalloy",
+   "prereqRationale": "jet_engine: the turbojet; aircraft_metal: the pressurised stressed-skin airframe; superalloy: long-life hot sections for commercial service (RESEARCHED: Nimonic 80, 1941, standard British turbine-blade alloy; used in the Ghost). The first jets (1939) ran on heat-resisting steels, so the edge belongs here, not on jet_engine.",
+   "factors": {
+    "novelty": 0.5,
+    "difficulty": 3.0,
+    "material": 2.0,
+    "institutional": 3.0,
+    "breadth": 0.0,
+    "prereq_complexity": 1.0
+   },
+   "costRationale": "novelty 0.5, difficulty 3.0 (A9 prior), material 2.0, institutional 3.0 (airlines, airports, ICAO), breadth 0.0 — unchanged; prereq_complexity 0.5 -> 1.0: three requirements. Old 47,310 -> new 66,900.",
+   "compatibility": {
+    "saves": "Key unchanged; a polity holding jet_engine and aircraft_metal without superalloy sees progress go dormant until superalloy completes",
+    "ids": "none",
+    "ui": "lock reason names superalloy",
+    "ai": "later and dearer leaf; resolves superalloy's dead end (D02)",
+    "consumers": "none (leaf)",
+    "tests": "ResearchContentTests frontier-exhaustion fixture names jet_airliner as a finite engineering node (unchanged: it stays finite and engineering)"
+   },
+   "capability": {
+    "grants": [
+     "knowledge:mass international travel"
+    ],
+    "realizationOwner": "transport packet (DW-059, unscheduled): a network edge type on the transport table (D-040 B4; ADR-032 §3 'future modes') (air corridors, D-009)",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: class C — capability string only (V09 dead end today)",
+    "deferredEffect": "passenger air routes between airfields as an edge type (D-009 'air corridor'); completion writes only the completion row; it reveals no land and sets no extent bit (D-040 B1-B3)",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "not applicable",
+    "unknownResource": "not applicable",
+    "aiValuation": "negligible until air edges exist",
+    "playerCommunication": "Glass Box: knowledge only"
+   }
+  },
+  {
+   "id": "helicopter",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Kept: unit.helicopter eligibility (M7). Emerged corrected to the first practical helicopters (1935-1936), which the Sikorsky-only text omitted.",
+   "changes": "emerged '1939–1942' -> as below (adds an era marker: the marker-free emerged count pinned at 83 falls by one)",
+   "emerged": "1935–1936 CE (Breguet-Dorand Gyroplane Laboratoire; Focke-Wulf Fw 61); 1939–1942 CE (Sikorsky VS-300, R-4)",
+   "compatibility": {
+    "saves": "unaffected",
+    "ids": "none",
+    "ui": "text only",
+    "ai": "none",
+    "consumers": "unit.helicopter unchanged",
+    "tests": "ResearchContentTests chronology test: Nodes.Count − 83 marker-free pin moves by one (now dated); the new dated edge aircraft (1903) -> helicopter (1935) passes"
+   }
+  },
+  {
+   "id": "rocket",
+   "disposition": [
+    "split",
+    "rewire"
+   ],
+   "nodeKind": "application",
+   "rationale": "The tree's most expensive node (756,960 RP, every factor at its loader maximum) bundled two causally distinct capabilities: the liquid-propellant rocket engine (Goddard 1926; A-4/V-2 1942-1944: ballistic and guided missiles) and the multistage orbital launch vehicle (R-7, 1957: spaceport, orbital launch, satellites). The key stays with the engine, which keeps the node's name, date and military consumers (unit.missile; D09's icbm and new guided_missile, boosted by a Walter liquid-propellant motor in 1943); the orbital part becomes orbital_launch_vehicle. On D04's request mechanics_newtonian replaces calculus (which it contains): the rocket equation and trajectories are Newtonian mechanics.",
+   "changes": "prereq 'internal_combustion AND aluminium AND calculus' -> 'internal_combustion AND aluminium AND mechanics_newtonian' (three requirements as before); factors 2.0/3.5/2.0/3.0/1.5/1.0 -> 2.0/3.5/2.0/2.5/1.0/1.0; magnitude 13.0 -> 12.0; cost 756,960 -> 378,470; entities building.spaceport and project.orbital_launch: requirement 'rocket' -> 'orbital_launch_vehicle' (reverse-index unlock lists move with them); capability 'satellite launch' moves to orbital_launch_vehicle; name, emerged, unit.missile and generation 1 unchanged",
+   "prereq": "internal_combustion AND aluminium AND mechanics_newtonian",
+   "prereqRationale": "internal_combustion: liquid-fuel combustion engineering — pumps, injection, a burning chamber (D06 now defines it as the high-speed petrol engine, which also brings petroleum_refining: Goddard's gasoline); aluminium: light tanks and structure (A-4); mechanics_newtonian: the rocket equation (Tsiolkovsky 1903) and trajectories derive from Newton's laws — it contains calculus, which it replaces (D04's request; requirement count unchanged). A de Laval nozzle edge (steam_turbine) was considered and not added: knowledge that is part of the engine itself.",
+   "factors": {
+    "novelty": 2.0,
+    "difficulty": 3.5,
+    "material": 2.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 1.0
+   },
+   "splitInto": [
+    "orbital_launch_vehicle"
+   ],
+   "costRationale": "novelty 2.0: propulsion without air, carrying its own oxidiser — paradigm-founding (kept). difficulty 3.5: combustion stability, regenerative cooling and turbopumps (the A-4's 1936-1944 development) — kept on the engine. material 2.0: cryogenic liquid oxygen and a cooled combustion chamber (kept). institutional 3.0 -> 2.5: the A9 prior — Goddard's private work proved the principle; the state-programme scale moves with orbital launch. breadth 1.5 -> 1.0: ballistic and guided missiles, sounding rockets and the orbital vehicle (spaceport, orbital launch and satellites move to the new node). prereq_complexity 1.0: three requirements. 12.0 -> 378,470 RP. Split total 378,470 + 189,240 = 567,710 vs 756,960 (−25.0 %, the framework's bound; exactly three-quarters by the model, 0.002 % more from the shipped node's 19-RP rounding): the bundle scored all six factors at their loader maxima, no single part reaches every maximum, and the exponential model makes parts of magnitude 12.0 and 11.0 sum to three-quarters of a 13.0 bundle. One 757k wait becomes two (378k, then 189k) with missiles usable in between.",
+   "compatibility": {
+    "saves": "Key 308 keeps its meaning (the liquid-fuel rocket). Old saves that completed rocket keep unit.missile eligibility and guided_missile/icbm availability, but do NOT hold orbital_launch_vehicle: they lose building.spaceport and project.orbital_launch eligibility (inert tier-G entities) and, once satellite is re-pointed, must research orbital_launch_vehicle (immediately available to them) before satellite — partial satellite progress is dormant meanwhile. An alias/remap seam (OPEN DECISION, raised once by the package) would grant the new key. Progress on rocket applies to the new 378,470 cost. MEASURED: no baseline run reaches A9 (about 234 nodes by 2100 on seed 42), so no recorded save holds rocket.",
+    "ids": "rocket kept (no rename); orbital_launch_vehicle new (key assigned by integrate.py)",
+    "ui": "cost shown 378,470; spaceport and orbital-launch cards link orbital_launch_vehicle",
+    "ai": "closures through rocket fall by 378,490 RP; satellite's closure gains 189,240 RP once re-pointed — net −189,250 RP on every space path",
+    "consumers": "unit.missile, guided_missile (D09, new), icbm (D09) keep 'rocket'; building.spaceport and project.orbital_launch move to orbital_launch_vehicle; reusable_launch (D08) re-points; satellite (D05) re-points with D05's consent",
+    "tests": "no test pins rocket's name, cost or prerequisite; generation test: orbital_launch_vehicle carries no generation (rocket gen 1 < satellite gen 2 still holds); +1 finite engineering node from this split (D08 adds three: orbital_launch_vehicle, balloon, glider — engineering finite_nodes_to_exhaust 125 -> 128 from D08 alone); unlock audit regenerates (spaceport and orbital-launch rows)"
+   },
+   "capability": {
+    "grants": [
+     "unit:unit.missile",
+     "knowledge:ballistic missile",
+     "knowledge:sounding rocket"
+    ],
+    "realizationOwner": "Battle layer (M7) for unit.missile eligibility",
+    "status": "deferred",
+    "milestone": "M7",
+    "currentEffect": "MEASURED: class F (FJ) today; after the split class F — unit.missile declared, no realizing system",
+    "deferredEffect": "ballistic-missile formations (unit family strategic_missile, identity ballistic_missiles realizedBy unit.missile) become recruitable in M7",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "eligible but no formation until M7 recruitment",
+    "unknownResource": "not applicable",
+    "aiValuation": "stepping stone (orbital_launch_vehicle, guided_missile, icbm) and missile forces",
+    "playerCommunication": "Glass Box: unit eligibility only — no missile can be fielded before the Battle Layer"
+   }
+  },
+  {
+   "id": "crewed_spaceflight",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Kept: crewed orbital flight (1961); feeds lunar_flight and space_station.",
+   "changes": "none"
+  },
+  {
+   "id": "lunar_flight",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Kept as a justified knowledge-only capstone: crewed lunar landing (1969) is a distinct achievement with high educational value; no space system exists before M11+, and a merge into crewed_spaceflight would lose a key for no gain.",
+   "changes": "none",
+   "capability": {
+    "grants": [
+     "knowledge:crewed deep-space operations"
+    ],
+    "realizationOwner": "none before M11+ (no space system)",
+    "status": "knowledge-only",
+    "milestone": "M11+",
+    "currentEffect": "MEASURED: class C — capability string only (V09 dead end today)",
+    "deferredEffect": "none before a space-project owner exists (M11+ content)",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "not applicable",
+    "unknownResource": "not applicable",
+    "aiValuation": "negligible",
+    "playerCommunication": "Glass Box: knowledge only"
+   }
+  },
+  {
+   "id": "space_station",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Kept as a justified knowledge-only capstone: long-duration orbital habitation (1971 Salyut; 1998 ISS) is distinct from lunar flight; no space system exists before M11+.",
+   "changes": "none",
+   "capability": {
+    "grants": [
+     "knowledge:permanent orbital presence",
+     "knowledge:microgravity research"
+    ],
+    "realizationOwner": "none before M11+ (no space system)",
+    "status": "knowledge-only",
+    "milestone": "M11+",
+    "currentEffect": "MEASURED: class C — capability strings only (V09 dead end today)",
+    "deferredEffect": "none before a space-project owner exists (M11+ content)",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "not applicable",
+    "unknownResource": "not applicable",
+    "aiValuation": "negligible",
+    "playerCommunication": "Glass Box: knowledge only"
+   }
+  },
+  {
+   "id": "reusable_launch",
+   "disposition": [
+    "rewire"
+   ],
+   "nodeKind": "application",
+   "rationale": "Re-pointed to the part of the rocket split it actually builds on: reusable stages are reusable orbital launch vehicles (Falcon 9, 2015), not the bare rocket engine.",
+   "changes": "prereq 'rocket AND gps AND composites' -> 'orbital_launch_vehicle AND gps AND composites' (three requirements as before; cost 133,810 unchanged)",
+   "prereq": "orbital_launch_vehicle AND gps AND composites",
+   "prereqRationale": "orbital_launch_vehicle: the staged orbital launcher whose first stage is recovered; gps: guided powered landing; composites: light reusable structures. rocket stays in the closure through orbital_launch_vehicle.",
+   "compatibility": {
+    "saves": "Key unchanged; an old save holding rocket but not orbital_launch_vehicle sees progress on reusable_launch go dormant until it researches orbital_launch_vehicle (available to it at once)",
+    "ids": "none",
+    "ui": "lock reason names orbital_launch_vehicle",
+    "ai": "closure gains orbital_launch_vehicle (189,240) and loses half of rocket's old cost (net −189,250)",
+    "consumers": "asteroid_mining (D02), space_solar (D06), frontier_launch unchanged",
+    "tests": "none pin it"
+   }
+  },
+  {
+   "id": "gps",
+   "disposition": [
+    "rewire"
+   ],
+   "nodeKind": "infrastructure",
+   "rationale": "Two fixes, cost unchanged. Missing knowledge (D04's request): GPS satellite clocks are offset for special and general relativity (about 38 microseconds a day; uncorrected, positions drift by kilometres a day), so relativity is knowledge GPS needs. The capability 'D-040 B1 extent: known everywhere' is a technology map reveal, forbidden by D-040 B3 and put out of scope by the D-054 instruction: satellite navigation fixes position, it does not tell a polity what land exists.",
+   "changes": "prereq 'satellite AND microprocessor AND atomic_clock' -> 'satellite AND microprocessor AND atomic_clock AND relativity' (three or more requirements: prereq_complexity stays 1.0, cost 189,240 unchanged); capability text 'D-040 B1 extent: known everywhere' -> 'position fixing to metres within known extent; no map knowledge'",
+   "prereq": "satellite AND microprocessor AND atomic_clock AND relativity",
+   "prereqRationale": "satellite: the orbiting clock platforms; microprocessor: receivers and ground control; atomic_clock: the timing standard; relativity: the clock-rate corrections without which the system drifts (RESEARCHED: the relativistic offset is built into the satellite clock frequency).",
+   "compatibility": {
+    "saves": "Key unchanged; a polity holding the old three requirements without relativity sees progress on gps go dormant until relativity completes",
+    "ids": "none",
+    "ui": "lock reason may name relativity; display string reworded",
+    "ai": "closure gains relativity (D04, 33,450 RP); resolves relativity's dead end",
+    "consumers": "combat_drone (D09), precision_agriculture (D01), reusable_launch unchanged",
+    "tests": "none pin gps or the string"
+   },
+   "capability": {
+    "grants": [
+     "knowledge:position fixing to metres within known extent (no map knowledge)",
+     "knowledge:precision agriculture",
+     "knowledge:guided munitions"
+    ],
+    "realizationOwner": "none today; consumers combat_drone (D09, M7), precision_agriculture (D01), reusable_launch",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class C — capability strings only",
+    "deferredEffect": "guidance for M7 units (combat_drone) and input efficiency for precision agriculture (D01); completion writes only the completion row; it reveals no land and sets no extent bit (D-040 B1-B3)",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "not applicable",
+    "unknownResource": "not applicable — position knowledge, not territory knowledge",
+    "aiValuation": "stepping stone (combat_drone, precision_agriculture, reusable_launch); no information value about the map",
+    "playerCommunication": "Glass Box: knowledge only — satellite navigation does not reveal land"
+   }
+  },
+  {
+   "id": "earth_observation",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Kept (cost unchanged); capability strings that read as global mapping are reworded: orbital imaging is a proposed observer for the fog lane (OPEN — the D-054 instruction keeps satellite reveal out of scope) and a possible remote-sensing identification carrier for D11, never a reveal.",
+   "changes": "capability text 'global mapping' -> 'orbital imaging of territory within its observers' sight (proposed; no map reveal)'; 'crop and resource monitoring' kept, read as monitoring of known land",
+   "compatibility": {
+    "saves": "unaffected",
+    "ids": "none",
+    "ui": "text only",
+    "ai": "none",
+    "consumers": "none (display strings)",
+    "tests": "none pin the strings"
+   },
+   "capability": {
+    "grants": [
+     "knowledge:orbital imaging (proposed observer; no map reveal)",
+     "knowledge:crop and resource monitoring of known land"
+    ],
+    "realizationOwner": "fog lane (DiscoverySystem, proposed) for any orbital vantage — OPEN; D11 for any remote-sensing identification",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: class C — capability strings only (V09 dead end today)",
+    "deferredEffect": "PROPOSED and OPEN: a realized imaging satellite as an observer whose sight budget carries a vantage multiplier (D-039 B4), pointed not global (D-039 B3); PROPOSED (D11): identification applied only to observed cells. completion writes only the completion row; it reveals no land and sets no extent bit (D-040 B1-B3)",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "not applicable",
+    "unknownResource": "identification (if D11 adopts it) applies only to cells the polity already observes",
+    "aiValuation": "negligible until the fog lane or D11 consume it",
+    "playerCommunication": "Glass Box: knowledge only — orbital imaging does not reveal the map"
+   }
+  },
+  {
+   "id": "container_shipping",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "technique",
+   "rationale": "Kept as a justified leaf: standard boxes (McLean 1956; ISO 1968) are a sea-freight cost class for the transport packet, not a dependant node.",
+   "changes": "none",
+   "capability": {
+    "grants": [
+     "knowledge:near-zero bulk transport cost by sea"
+    ],
+    "realizationOwner": "transport packet (DW-059, unscheduled): a network edge type on the transport table (D-040 B4; ADR-032 §3 'future modes')",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: class C — capability string only (V09 dead end today)",
+    "deferredEffect": "a containerised sea-freight edge class (cost per bulk unit, port handling) on realized sea edges",
+    "inputs": {
+     "resources": [
+      "tools"
+     ],
+     "geography": [
+      "coastal settlement"
+     ],
+     "infrastructure": [
+      "building.harbour (deferred)"
+     ],
+     "institutions": []
+    },
+    "missingInputs": "not applicable",
+    "unknownResource": "not applicable",
+    "aiValuation": "negligible until sea edges exist",
+    "playerCommunication": "Glass Box: knowledge only"
+   }
+  },
+  {
+   "id": "fusion_propulsion",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Kept (speculative set): fusion-driven spacecraft; the auto-filled milestone (M6) is wrong for an interstellar probe project (deferred-entity plan tier G).",
+   "changes": "none to content; capability block corrected (milestone M11+)",
+   "capability": {
+    "grants": [
+     "building:project.interstellar_probe",
+     "knowledge:interstellar probe"
+    ],
+    "realizationOwner": "none (project.interstellar_probe: deferred-entity plan tier G; no space system)",
+    "status": "deferred",
+    "milestone": "M11+",
+    "currentEffect": "MEASURED: class J — project.interstellar_probe declared, no realizing system",
+    "deferredEffect": "an interstellar probe project once a space owner exists (M11+ content)",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "not applicable",
+    "unknownResource": "not applicable",
+    "aiValuation": "negligible",
+    "playerCommunication": "Glass Box: knowledge only"
+   }
+  },
+  {
+   "id": "frontier_launch",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Kept as a justified repeatable leaf: recursive mechanics are DEFERRED (D-046 §G4) and a finite node may not require a recursive one (loader rule 27), so it can never have a dependant.",
+   "changes": "none",
+   "capability": {
+    "grants": [
+     "knowledge:cheaper space projects per level"
+    ],
+    "realizationOwner": "ResearchSystem (repeatable; mechanics deferred by D-046)",
+    "status": "knowledge-only",
+    "milestone": "M11+",
+    "currentEffect": "MEASURED: class H — repeatable; no effect",
+    "deferredEffect": "per-level launch-cost reduction once repeatable mechanics and a space owner exist (M11+)",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "not applicable",
+    "unknownResource": "not applicable",
+    "aiValuation": "negligible",
+    "playerCommunication": "Glass Box: knowledge only"
+   }
+  },
+  {
+   "id": "frontier_propulsion",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Kept as a justified repeatable leaf (same reasons as frontier_launch).",
+   "changes": "none",
+   "capability": {
+    "grants": [
+     "knowledge:faster interplanetary and interstellar transit"
+    ],
+    "realizationOwner": "ResearchSystem (repeatable; mechanics deferred by D-046)",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: class H — repeatable; no effect",
+    "deferredEffect": "per-level transit-speed gain once repeatable mechanics and a space owner exist (M11+)",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "not applicable",
+    "unknownResource": "not applicable",
+    "aiValuation": "negligible",
+    "playerCommunication": "Glass Box: knowledge only"
+   }
+  }
+ ],
+ "new": [
+  {
+   "id": "orbital_launch_vehicle",
+   "name": "Orbital launch vehicle",
+   "branch": "engineering",
+   "age": "A9",
+   "domain": "transport",
+   "secondaryDomains": [
+    "military",
+    "science"
+   ],
+   "emerged": "1957 CE (R-7: first full-range flight in August; Sputnik 1 launched 4 October)",
+   "prereq": "rocket",
+   "prereqRationale": "Orbit is reached by the staged, scaled liquid-propellant rocket with guidance: the engine (rocket) is the knowledge it needs, and through it the Newtonian mechanics of orbital velocity (D04's request lands on rocket). Computers and transistors are the satellite's requirements, not the launcher's (the R-7's control system was analogue with radio correction).",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.5,
+    "material": 2.0,
+    "institutional": 3.0,
+    "breadth": 1.5,
+    "prereq_complexity": 0.0
+   },
+   "costAnalog": "rocket (the bundle it is carved from: same Age, branch, difficulty and material)",
+   "costRationale": "novelty 1.0: multistaging and scale extend the rocket (the paradigm stays on rocket's 2.0). difficulty 3.5: orbital velocity, the hardest engineering of its age. material 2.0: lightweight high-strength structures and high-performance turbopumps. institutional 3.0: national space programmes. breadth 1.5: spaceport, orbital launch campaigns, satellites, crewed flight, probes, reusable launch. prereq_complexity 0.0: one requirement. 11.0 -> 189,240 RP.",
+   "nodeKind": "application",
+   "primaryUniversity": "engineering",
+   "universityRelevance": [
+    {
+     "type": 3,
+     "name": "Engineering",
+     "role": "primary"
+    },
+    {
+     "type": 1,
+     "name": "Military",
+     "role": "secondary"
+    }
+   ],
+   "capability": {
+    "grants": [
+     "building:building.spaceport (requirement moved from rocket)",
+     "building:project.orbital_launch (requirement moved from rocket)",
+     "knowledge:satellite launch",
+     "knowledge:orbital-class rocket"
+    ],
+    "realizationOwner": "ConstructionSystem for building.spaceport and project.orbital_launch (deferred-entity plan tier G); no space system exists",
+    "status": "deferred",
+    "milestone": "M11+",
+    "currentEffect": "none today (tier-G entities, no realizing system)",
+    "deferredEffect": "orbital launch campaigns as construction projects (tier G; T6.11 may add the project row earlier, nothing consumes it before M11+); satellites (D05) and crewed flight follow",
+    "inputs": {
+     "resources": [
+      "tools"
+     ],
+     "geography": [],
+     "infrastructure": [
+      "building.spaceport (deferred)"
+     ],
+     "institutions": []
+    },
+    "missingInputs": "eligible but nothing to launch until a space owner exists",
+    "unknownResource": "not applicable",
+    "aiValuation": "the gateway of every space node once satellite is re-pointed",
+    "playerCommunication": "Glass Box: deferred — no spaceport or launch can be built yet"
+   },
+   "eurekas": [],
+   "family": "rocket",
+   "generation": null,
+   "splitFrom": "rocket",
+   "unlocks": {
+    "capabilities": [
+     "satellite launch",
+     "orbital-class rocket"
+    ],
+    "buildings": [
+     "building.spaceport"
+    ],
+    "projects": [
+     "project.orbital_launch"
+    ]
+   },
+   "whyDistinct": "A distinct capability and a real dependency: ballistic and guided missiles (Hs 293 1943, V-2 1944) need only the rocket engine; orbit needs the staged, guided vehicle thirteen years later (R-7, 1957). Separating them removes a single 757k-RP wait and gives the space line its own gateway.",
+   "acceptanceTest": "building.spaceport and project.orbital_launch require orbital_launch_vehicle, not rocket; a polity holding rocket but not orbital_launch_vehicle is unit.missile-eligible and can research guided_missile and icbm, but (with D05's consented re-point) not satellite; orbital_launch_vehicle is unavailable until rocket completes.",
+   "rationale": "Carved out of rocket (split): the orbital half of the bundle. Takes building.spaceport and project.orbital_launch (entity requirements 'rocket' -> 'orbital_launch_vehicle'). No generation: rocket keeps generation 1 and satellite (D05, generation 2) follows; satellite's 'rocket' atom re-points here with D05's consent."
+  },
+  {
+   "id": "ocean_junk",
+   "name": "Ocean-going junk",
+   "branch": "military",
+   "age": "A6",
+   "domain": "naval",
+   "secondaryDomains": [
+    "transport"
+   ],
+   "emerged": "~1,100 CE Song China (compass navigation at sea recorded 1111–1117 CE); Quanzhou wreck ~1,275 CE (13 compartments); Zheng He's fleets 1405–1433 CE",
+   "prereq": "watertight_bulkhead AND compass_magnetic AND monsoon_sailing",
+   "prereqRationale": "watertight_bulkhead (stern_rudder in its closure): the compartmented hull; compass_magnetic: navigation out of sight of land (Zhu Yu's account of Guangzhou pilots, 1111-1117, RESEARCHED); monsoon_sailing: the seasonal wind system that timed the China–India crossings. No lateen and no European hull line: an independent route to the oceanic class.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 1.0
+   },
+   "costAnalog": "polynesian_canoe (A6, the other non-European oceanic route: 1.0/1.75/0/1.25/0.5/0.5)",
+   "costRationale": "novelty 1.0: a distinct ocean-going ship tradition built from known elements. difficulty 1.75 and institutional 1.25: A6 priors (state shipyards and trade offices existed, but the hull was commercial). material 0.0: timber hull, as cog and polynesian_canoe. breadth 0.5: the oceanic transport class, as polynesian_canoe. prereq_complexity 1.0: three requirements. 5.5 -> 4,180 RP.",
+   "nodeKind": "application",
+   "primaryUniversity": "military",
+   "universityRelevance": [
+    {
+     "type": 1,
+     "name": "Military",
+     "role": "primary"
+    },
+    {
+     "type": 3,
+     "name": "Engineering",
+     "role": "secondary"
+    }
+   ],
+   "capability": {
+    "grants": [
+     "production:activity.ocean_shipping (requirement extended to 'carrack OR caravel OR polynesian_canoe OR ocean_junk')",
+     "access:sea-edge.oceanic (class eligibility only)",
+     "knowledge:compartmented ocean-going hulls navigated by compass and monsoon"
+    ],
+    "realizationOwner": "transport packet (DW-059, unscheduled): a network edge type on the transport table (D-040 B4; ADR-032 §3 'future modes'); activity.ocean_shipping has no realizing system (tier C)",
+    "status": "deferred",
+    "milestone": "M10+",
+    "currentEffect": "none today beyond eligibility listing",
+    "deferredEffect": "an alternative (non-lateen) route to the oceanic class: oceanic edges where a coastal settlement has timber and builders; new coasts enter extent only when a voyage reaches them (D-040 B2). completion writes only the completion row; it reveals no land and sets no extent bit (D-040 B1-B3)",
+    "inputs": {
+     "resources": [
+      "timber"
+     ],
+     "geography": [
+      "coastal settlement"
+     ],
+     "infrastructure": [
+      "building.harbour (deferred)"
+     ],
+     "institutions": []
+    },
+    "missingInputs": "eligible but unrealized without a coast (D-040 B3)",
+    "unknownResource": "not applicable",
+    "aiValuation": "valued from own known coastline once sea edges exist",
+    "playerCommunication": "Glass Box: ocean shipping not simulated yet; research reveals no land"
+   },
+   "eurekas": [],
+   "family": "ocean_ship",
+   "generation": 1,
+   "splitFrom": null,
+   "unlocks": {
+    "capabilities": [
+     "oceanic transport class (junk)",
+     "Indian Ocean crossings by compass and monsoon"
+    ],
+    "activities": [
+     "activity.ocean_shipping"
+    ]
+   },
+   "whyDistinct": "An alternative route by independent invention to the oceanic transport class — compartmented hull, compass and monsoon (China to the Indian Ocean) — beside the Iberian caravel/carrack and the Polynesian canoe. It also gives watertight_bulkhead and monsoon_sailing, both dead ends today, their causal consumer.",
+   "acceptanceTest": "activity.ocean_shipping is knowledge-eligible for a polity holding ocean_junk and none of caravel, carrack, polynesian_canoe; ocean_junk is unavailable unless watertight_bulkhead, compass_magnetic and monsoon_sailing are complete; completion changes no known-extent bit (fog leak tests).",
+   "rationale": "New node. Extends activity.ocean_shipping's requirement (a content change to the entity; the ResearchContentTests ruling-7 assertion over caravel, carrack and polynesian_canoe still holds)."
+  },
+  {
+   "id": "balloon",
+   "name": "Balloon flight",
+   "branch": "engineering",
+   "age": "A8",
+   "domain": "transport",
+   "secondaryDomains": [
+    "military"
+   ],
+   "emerged": "1783 CE (Montgolfier hot-air and Charles hydrogen balloons; crewed flights 21 November and 1 December); 1794 CE first military observation balloon (Fleurus)",
+   "prereq": "barometer_vacuum",
+   "prereqRationale": "Aerostatics needs air understood as a fluid with weight and pressure (Torricelli, Pascal, the air pump): heated air or a lighter gas then floats by buoyancy (INFERENCE for the causal reading; dates RESEARCHED). Hydrogen (Cavendish 1766) has no node, and chemistry_quantitative (1789) is later than the balloon.",
+   "factors": {
+    "novelty": 2.0,
+    "difficulty": 2.5,
+    "material": 0.75,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "costAnalog": "bicycle (A8 engineering transport: difficulty 2.5, material 0.75, institutional 2.0)",
+   "costRationale": "novelty 2.0: the first human flight, a new medium of travel. difficulty 2.5 and institutional 2.0: A8 priors (Académie-sponsored trials, public subscription). material 0.75: varnished silk or rubberised envelope; hydrogen generated from iron and acid. breadth 0.5: observation balloons, the 1870-71 Paris balloon post, later airships. prereq_complexity 0.0: one requirement. 7.75 -> 19,890 RP.",
+   "nodeKind": "application",
+   "primaryUniversity": "engineering",
+   "universityRelevance": [
+    {
+     "type": 3,
+     "name": "Engineering",
+     "role": "primary"
+    },
+    {
+     "type": 1,
+     "name": "Military",
+     "role": "secondary"
+    }
+   ],
+   "capability": {
+    "grants": [
+     "knowledge:lighter-than-air flight",
+     "knowledge:aerial observation (proposed vantage of a realized observer)"
+    ],
+    "realizationOwner": "Battle layer (M7) for an observation-balloon asset; fog lane (DiscoverySystem, T6.7 PROPOSED) for its vantage",
+    "status": "knowledge-only",
+    "milestone": "M7",
+    "currentEffect": "none (new node; capability strings only)",
+    "deferredEffect": "PROPOSED: a realized observation balloon (crew and envelope; an M7 asset) multiplies its observer's sight budget by a dimensionless vantage factor (D-039 B4; m6-spec §3.2: vantage enters as a budget multiplier); pointed, never global (D-039 B3). completion writes only the completion row; it reveals no land and sets no extent bit (D-040 B1-B3)",
+    "inputs": {
+     "resources": [
+      "cloth"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "eligible but no effect until an M7 asset exists",
+    "unknownResource": "not applicable",
+    "aiValuation": "none until the fog lane prices vantage; then from the polity's own observers only",
+    "playerCommunication": "Glass Box: knowledge only — no balloon can be fielded before the Battle Layer; research never reveals the map"
+   },
+   "eurekas": [],
+   "family": "aviation",
+   "generation": null,
+   "splitFrom": null,
+   "unlocks": {
+    "capabilities": [
+     "lighter-than-air flight",
+     "aerial observation from a tethered balloon"
+    ]
+   },
+   "whyDistinct": "Missing knowledge with its own capability: human flight began 120 years before the aeroplane by a different principle (buoyancy, not lift), and its use — elevated observation — is exactly D-039 B4's vantage. The cleanest fog-compatible sight carrier in the tree.",
+   "acceptanceTest": "Completion writes only the completion row: known extent and visible sets are identical before and after under fog (no reveal); the Glass Box classifies the node KnowledgeOnly until an M7 asset consumes it.",
+   "rationale": "New node (missing knowledge)."
+  },
+  {
+   "id": "glider",
+   "name": "Gliding flight",
+   "branch": "engineering",
+   "age": "A8",
+   "domain": "transport",
+   "secondaryDomains": [
+    "science"
+   ],
+   "emerged": "1853 CE (Cayley's crewed glider, Brompton Dale); 1891–1896 CE (Lilienthal, about 2,000 glides); 1900–1902 CE (Wright gliders)",
+   "prereq": "mechanics_newtonian",
+   "prereqRationale": "Cayley's separation of lift, drag and thrust (On Aerial Navigation, 1809-10) applies Newtonian mechanics to a wing; nothing else in the tree is needed (wood, cloth and wire are crafts). INFERENCE for the edge; dates RESEARCHED.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.75,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "costAnalog": "bicycle (A8 engineering transport, same priors and material)",
+   "costRationale": "novelty 1.0: fixed-wing gliding (the powered aeroplane keeps the paradigm 2.0). difficulty 2.5 and institutional 2.0: A8 priors (individual experimenters, aeronautical societies). material 0.75: light wooden spars, fabric, wire bracing. breadth 0.5: aerodynamic data and three-axis control for the aeroplane. prereq_complexity 0.0: one requirement. 6.75 -> 9,950 RP.",
+   "nodeKind": "application",
+   "primaryUniversity": "engineering",
+   "universityRelevance": [
+    {
+     "type": 3,
+     "name": "Engineering",
+     "role": "primary"
+    },
+    {
+     "type": 4,
+     "name": "Natural Science",
+     "role": "secondary"
+    }
+   ],
+   "capability": {
+    "grants": [
+     "knowledge:gliding flight (aerodynamic lift, three-axis control)"
+    ],
+    "realizationOwner": "none (knowledge-only; prerequisite of aircraft)",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "none (new node; capability string only)",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "not applicable",
+    "unknownResource": "not applicable",
+    "aiValuation": "stepping stone in aircraft's closure",
+    "playerCommunication": "Glass Box: knowledge only — a prerequisite of powered flight"
+   },
+   "eurekas": [],
+   "family": "aviation",
+   "generation": null,
+   "splitFrom": null,
+   "unlocks": {
+    "capabilities": [
+     "gliding flight",
+     "aerodynamic lift data and three-axis control"
+    ]
+   },
+   "whyDistinct": "Missing knowledge a downstream capability genuinely needs: the aeroplane's lift data and control system were developed on gliders (Lilienthal's tables; the Wrights' 1902 glider) before an engine was fitted. Without it the tree says an engine alone makes flight.",
+   "acceptanceTest": "aircraft is unavailable to a polity holding internal_combustion without glider and available once glider completes; glider does not require bicycle, so aircraft's Eureka (when: bicycle) stays a circumstance (loader implied-Eureka check passes).",
+   "rationale": "New node (missing knowledge)."
+  },
+  {
+   "id": "submarine",
+   "name": "Submarine",
+   "branch": "military",
+   "age": "A9",
+   "domain": "naval",
+   "secondaryDomains": [
+    "military"
+   ],
+   "emerged": "1900 CE (USS Holland: petrol engine on the surface, battery-electric drive submerged); 1914–1918 CE U-boat campaigns",
+   "prereq": "screw_propeller AND iron_hull AND electric_motor AND internal_combustion",
+   "prereqRationale": "screw_propeller: the only propulsor that works submerged; iron_hull: a riveted metal pressure hull; electric_motor: battery-electric drive under water; internal_combustion: surface running and battery charging (RESEARCHED: USS Holland, commissioned 12 October 1900, a 50 hp Otto petrol engine plus a storage battery and electric motor).",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.75,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 1.0
+   },
+   "costAnalog": "tank (D09, the contemporaneous A9 armoured vehicle: 1.0/3.0/0.0/2.5/0.5/1.0)",
+   "costRationale": "novelty 1.0: a new vessel class assembled from known propulsion and hull knowledge. difficulty 3.0 and institutional 2.5: A9 priors (naval programmes). material 0.75: riveted steel pressure hull and a lead-acid battery plant (one step above the tank's 0.0 for the battery plant). breadth 0.5: undersea operations and the conventional ancestor of nuclear_submarine. prereq_complexity 1.0: four requirements. 8.75 -> 39,780 RP.",
+   "nodeKind": "military",
+   "primaryUniversity": "military",
+   "universityRelevance": [
+    {
+     "type": 1,
+     "name": "Military",
+     "role": "primary"
+    },
+    {
+     "type": 3,
+     "name": "Engineering",
+     "role": "secondary"
+    }
+   ],
+   "capability": {
+    "grants": [
+     "knowledge:submerged operation (ballast tanks, battery-electric drive)",
+     "knowledge:undersea warfare"
+    ],
+    "realizationOwner": "Battle layer (M7): a conventional-submarine unit identity would need a unit entity (D09; the naval_combat line has none today)",
+    "status": "knowledge-only",
+    "milestone": "M7",
+    "currentEffect": "none (new node; capability strings only)",
+    "deferredEffect": "eligibility knowledge for a conventional-submarine identity if D09 adds one (M7); with D11's re-point, the prerequisite of nuclear_submarine",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "eligible but no vessel until M7 recruitment",
+    "unknownResource": "not applicable",
+    "aiValuation": "stepping stone (nuclear_submarine once re-pointed); military value from M7",
+    "playerCommunication": "Glass Box: knowledge only — no submarine can be fielded before the Battle Layer"
+   },
+   "eurekas": [],
+   "family": "ship_powered",
+   "generation": null,
+   "splitFrom": null,
+   "unlocks": {
+    "capabilities": [
+     "submerged operation",
+     "undersea warfare"
+    ]
+   },
+   "whyDistinct": "The vessel class between the steam warship and the nuclear submarine — submerged hulls, ballast and battery-electric drive behind the 1914-1945 undersea campaigns. Fills the gap D09 reported: nuclear_submarine (D11) has no conventional ancestor, only screw_propeller.",
+   "acceptanceTest": "submarine is unavailable unless screw_propeller, iron_hull, electric_motor and internal_combustion are complete; with D11's re-point, nuclear_submarine is unavailable without submarine; completion creates no unit (M7).",
+   "rationale": "New node at D09's suggestion (vessels are D08's domain). The torpedo (Whitehead, 1866) was not added: it is a munition, D09's domain like guided_missile."
+  }
+ ],
+ "crossLaneRequests": [
+  {
+   "targetLane": "D05-communication-computing",
+   "request": "Point satellite's 'rocket' atom at orbital_launch_vehicle ('orbital_launch_vehicle AND computer AND transistor'; count and cost unchanged) — D05 consented to this in its part; the integrator may apply it. D08 keeps 'rocket' as the liquid-fuel rocket (engine, unit.missile), so D09's guided_missile and icbm need no edit.",
+   "reason": "The rocket split puts orbital (multistage) launch on orbital_launch_vehicle (R-7, 1957), the causal prerequisite of Sputnik; without the re-point satellite would be reachable from the bare engine."
+  },
+  {
+   "targetLane": "D05-communication-computing",
+   "request": "Consider submarine_cable 'telegraph AND screw_propeller' -> 'telegraph AND steamboat' (count and cost unchanged).",
+   "reason": "The screw is not causal: the 1850 Channel cable was laid from a paddle tug (Goliath) and the 1851 cable from a towed hulk (Blazer)."
+  },
+  {
+   "targetLane": "D11-nuclear-geology",
+   "request": "Re-point nuclear_submarine 'nuclear_fission AND screw_propeller' -> 'nuclear_fission AND submarine' (count and cost unchanged; screw_propeller stays in the closure through submarine). Separately: if D11 designs remote-sensing identification (identification applied to OBSERVED cells only), earth_observation (Landsat 1972) is the natural knowledge carrier; D08 gives it no identification grant itself.",
+   "reason": "Nautilus (1954) was a nuclear plant in a submarine design; the new D08 submarine (USS Holland, 1900) is the conventional ancestor D09 found missing. Resource identification is D11's design and must never reveal deposits or extent (framework §6)."
+  },
+  {
+   "targetLane": "D09-military",
+   "request": "FYI and two offers: (1) rocket stays the liquid-fuel rocket — guided_missile (Hs 293, Walter liquid-propellant booster) and icbm need no edit; unit.missile stays on rocket. (2) New D08 node submarine (1900): if D09 adds a conventional-submarine unit identity (M7) it is its knowledge carrier. (3) Torpedo declined: a munition, D09's domain like guided_missile — if a knowledge realizer for the 'destroyers' identity is wanted, D09 should own torpedo. (4) The naval_transport identities (plank_boats A3, seagoing_transports A6, oceanic_transports A7, steam_transports A8) have no realizedBy; their carriers would be plank_boat, cog, the oceanic-class nodes (caravel | carrack | polynesian_canoe | ocean_junk) and steamboat — eligibility only.",
+   "reason": "Reply to D09's request (keep rocket and aircraft; consider torpedo and submarine) and unit-family consistency (units stay eligibility-only until M7)."
+  },
+  {
+   "targetLane": "fog lane (fog-of-war proposal)",
+   "request": "(a) Own the proposed vantage multipliers of realized aerial observers — balloon (M7 asset), aircraft (M7), imaging satellites (earth_observation, M11+) — as dimensionless sight-budget multipliers (D-039 B4; m6-spec §3.2), pointed, never global. (b) When the transport packet realizes sea edges, let sight and extent follow realized voyages over water (Pathfinder.Isochrone never enters water nodes today; fog audit §4.7). (c) Confirm that no D08 node writes extent.",
+   "reason": "D-040 B2/B3: the map is discovered by reaching it; D08 grants access eligibility and travel or sight parameters only."
+  },
+  {
+   "targetLane": "D04-natural-science",
+   "request": "Replies, no D04 edit needed: relativity -> gps accepted (cost unchanged); mechanics_newtonian -> rocket accepted (it replaces calculus, which it contains; cost unchanged) and so reaches satellite and space_probe; longitude_problem is kept as a justified leaf (transport-packet route safety) after your atomic_clock rewire. FYI: new dependants balloon (barometer_vacuum) and glider (mechanics_newtonian); celestial_navigation now requires only astrolabe AND trigonometry.",
+   "reason": "Closes D04's three requests to D08."
+  },
+  {
+   "targetLane": "D03-science-early",
+   "request": "Reply, no D03 edit needed: calendar_lunar is confirmed as the non-literate stand-in in latitude_sailing's OR (systematic sky-watching without writing: lunar months, heliacal star risings); astronomy_records stays the literate route. D08 adds no astronomy node and consumes D03's (cartography <- astronomy_geometric only).",
+   "reason": "Answers D03's question and keeps the science/application boundary."
+  },
+  {
+   "targetLane": "D07-industry-construction",
+   "request": "Replies, no D07 edit needed: collar_harness <- 'horse_domestication AND sewing' accepted; automobile_mass adopts 'moving assembly line (Ford, 1913)' and 'mass production'. FYI: bicycle now requires interchangeable_parts; the transport-infrastructure leaves bridge_stone and canal_lock/canal_navigation (infra.navigation_canal) share D08's realization owner, the transport packet (DW-059) — consider naming it in their deferredEffect.",
+   "reason": "Closes D07's requests; one deferred owner for network edge types (D-009 bridges and canals; D-040 B4)."
+  },
+  {
+   "targetLane": "D02-materials-mining",
+   "request": "Reply, no D02 edit needed: D06 accepted gas_turbine_power <- superalloy; D08 also keeps jet_airliner <- superalloy on its causal merit (commercial engines' long-life hot sections), so both edges stand.",
+   "reason": "Closes D02's conditional request."
+  },
+  {
+   "targetLane": "D06-energy-engineering",
+   "request": "Reply to your FYI, no D06 edit needed: the final D08 part keeps the key on the engine, so the node you saw as liquid_fuel_rocket is 'rocket'; it keeps internal_combustion as liquid-fuel combustion engineering and, through your edit, inherits petroleum_refining, so no separate fuel edge is added. New dependants: submarine (on internal_combustion — USS Holland's petrol engine — and electric_motor); aircraft also requires the new glider. jet_airliner keeps superalloy on causal grounds beside your gas_turbine_power edge.",
+   "reason": "Closes D06's FYI; edges touching D06 nodes changed."
+  },
+  {
+   "targetLane": "D01-agriculture-food",
+   "request": "FYI, no edit required: new_world_crops' carrack closure changes (caravel out; lateen and compass in).",
+   "reason": "Edge touching a D01 node changed (D01 already acknowledged horseshoe and collar_harness)."
+  },
+  {
+   "targetLane": "D12-civics",
+   "request": "Reply, no D12 edit needed: cartography as a prerequisite of general_staff is consistent (cartography is now 'astronomy_geometric' only); infra.courier_relay stays the physical half of the courier system (deferred).",
+   "reason": "Closes D12's note."
+  }
+ ],
+ "openQuestions": [
+  "OPEN DECISION (raised once by the package): an alias/remap seam for splits — an old save holding 'rocket' does not get orbital_launch_vehicle and loses building.spaceport / project.orbital_launch eligibility (inert, tier G) until it researches the new node.",
+  "OPEN DECISION: schedule the transport packet (DW-059: Q-A rivers, Q-C draught animals, Q-E routes, D-040 sea travel). It is the realization owner of every D08 sea, rail, air and draught-animal class; until scheduled those effects stay knowledge-only or deferred (M10+).",
+  "Should A6 shipwright and farrier crafts (stern_rudder, cog, watertight_bulkhead, horseshoe) wait behind the research stage in subtrees? D08 relocates only polynesian_canoe, whose own description contradicts the gate.",
+  "a7_ocean names only caravel while four nodes now realize the oceanic class (caravel, carrack, polynesian_canoe, ocean_junk): keep the A7 fact as the early-modern Atlantic route, or widen it to any_of? Not changed here (Age content).",
+  "stern_rudder is tagged A6 though its earliest centre is ~100 CE China (A5); kept because re-dating re-prices.",
+  "Can coastal access be partly realized before the transport packet through the fog lane's coastal extent (fog audit open question 3: coast and sea in the extent)?",
+  "Satellite re-point: D05 consented to pointing satellite's 'rocket' atom at orbital_launch_vehicle; if neither D05's part nor an integration override applies it, satellite stays reachable from the bare engine (a causal gap, not a loader error)."
+ ]
+}

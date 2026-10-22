@@ -1,0 +1,1073 @@
+[
+  {
+    "id": "CIV-01",
+    "title": "mrobaczyk/civ6 - Civilization VI xml/sql/lua/txt files across updates (repository and commit history)",
+    "author_org": "GitHub user mrobaczyk (third-party mirror of Firaxis-authored files)",
+    "published": null,
+    "url": "https://github.com/mrobaczyk/civ6",
+    "accessed": "2026-10-22",
+    "type": "community",
+    "claims_supported": [
+      "Per-update snapshots of the shipped base-game and DLC-pack data exist from the 2016-10-20 initial release to the 2024-07-15 update (commit titles name each update and date)",
+      "Key snapshot SHAs used in this study: aec7461 (2016-10-20 release), dbb7e4a (2016-12-21), 5ad4758 (2017-02-24), c1b3fec (2017-03-28), e4f9979 (2018-02-07), a50b974 (2019-02-14), 9830425 (2019-09-10), ee7d534 (2020-05-21), 6a266fc (2020-08-27), 2a8aee7 (2020-09-24), 5a0d5f9 (2020-11-19), 2ddd96f (2021-04-22), 310319f (2024-07-15); the 25-snapshot comparison series also used 4938321, 0d5927b, d5d254c, d1f69cb, 7fd9364, 31670d7, acd5a2e, 845a0e2, b73b123, 4d8e2a0, ee3d6d0, f225e3d, 58db68c",
+      "The mirror does NOT contain the Rise and Fall (Expansion1) or Gathering Storm (Expansion2) ruleset data folders"
+    ],
+    "confidence": "medium",
+    "notes": "Commit history read with WebFetch (https://github.com/mrobaczyk/civ6/commits/main and .../commits/7fd9364da8b4ea893cb668a68207682b1836f207). Commit titles are the uploader's labels; the 2020-08-27 label matches the official patch-note date in CIV-27. Mirror fidelity not independently verified; values read from it are cited as game data (CIV-02..CIV-22) with this caveat. Proprietary files: facts extracted only, nothing copied."
+  },
+  {
+    "id": "CIV-02",
+    "title": "Civilization VI base ruleset data: Base/Assets/Gameplay/Data/Technologies.xml (release and update snapshots)",
+    "author_org": "Firaxis Games (game data), via CIV-01 mirror",
+    "published": "2016-10-20",
+    "url": "https://github.com/mrobaczyk/civ6/blob/310319f/Base/Assets/Gameplay/Data/Technologies.xml",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "68 technologies in the base ruleset at release and in the 2024-07-15 snapshot; Future Tech is repeatable from release",
+      "64 technology boost rows, every one with Boost=50 (50% of cost), unchanged in all 25 sampled base-ruleset snapshots 2016-10-20..2024-07-15",
+      "No boost row for Animal Husbandry, Mining, Pottery, Future Tech",
+      "Boost trigger classes enumerated in a BoostNames table: 56 at release, 62 in the latest snapshot",
+      "Cross-tree boosts: Stirrups, Banking, Scientific Theory and Robotics are boosted by completing a named civic (Feudalism, Guilds, The Enlightenment, Globalization)",
+      "Six late-game techs (Rocketry, Nuclear Fission, Satellites, Lasers, Stealth Technology, Nuclear Fusion) carry a boost row whose trigger is only obtainable by a Great Scientist or a spy",
+      "Exposure-type triggers: Writing boosted by meeting another civilization; Currency by a trade route; Chemistry by having a research agreement",
+      "Tech costs 25..2500; era medians 50/160/390/540/907.5/1250/1410/1850 (Ancient..Information); 90 prerequisite edges, max 4 prerequisites, 5 root techs",
+      "A data comment states some boost rows carry a unit field only as a hint for the AI"
+    ],
+    "confidence": "high",
+    "notes": "Downloaded raw at aec7461 and 310319f, plus the 25 snapshot SHAs listed in CIV-01, from raw.githubusercontent.com; counts computed locally. Base ruleset only - R&F/GS rulesets override these values in expansion files that were not retrievable."
+  },
+  {
+    "id": "CIV-03",
+    "title": "Civilization VI base ruleset data: Base/Assets/Gameplay/Data/Civics.xml (release and update snapshots)",
+    "author_org": "Firaxis Games (game data), via CIV-01 mirror",
+    "published": "2016-10-20",
+    "url": "https://github.com/mrobaczyk/civ6/blob/310319f/Base/Assets/Gameplay/Data/Civics.xml",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "50 civics at release; 51 from the 2017-03-28 snapshot, the addition being a repeatable Future Civic",
+      "48 civic boost rows, all Boost=50, unchanged 2016-10-20..2024-07-15 in the base ruleset; no boost for Code of Laws, Future Civic, Ideology",
+      "Cross-tree boosts: Games and Recreation, Colonialism, Mass Media, Cold War and Social Media are boosted by researching a named technology",
+      "Foreign Trade boosted by discovering another continent; Medieval Faires by maintaining trade routes; Political Philosophy by meeting city-states",
+      "Civic costs 20..3200; 69 prerequisite edges, max 2 prerequisites"
+    ],
+    "confidence": "high",
+    "notes": "Raw downloads at aec7461, 5ad4758, c1b3fec, 310319f and the snapshot series; counts computed locally."
+  },
+  {
+    "id": "CIV-04",
+    "title": "Civilization VI base ruleset data: Base/Assets/Gameplay/Data/Resources.xml (strategic resource reveal technologies)",
+    "author_org": "Firaxis Games (game data), via CIV-01 mirror",
+    "published": "2017-02-24",
+    "url": "https://github.com/mrobaczyk/civ6/blob/5ad4758/Base/Assets/Gameplay/Data/Resources.xml",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "Release (2016-10-20): Iron revealed by Bronze Working, Niter by Gunpowder, Coal by Steam Power, Oil by Combustion, Aluminum by Advanced Flight, Uranium by Nuclear Fission; Horses has no reveal technology",
+      "From the 2017-02-24 snapshot onward: Niter by Military Engineering, Coal by Industrialization, Oil by Steel, Aluminum by Radio, Uranium by Combined Arms (Iron and Horses unchanged); unchanged to 2024-07-15",
+      "Bonus-resource harvest yields are separately gated by technology (e.g., Cattle/Sheep/Deer by Animal Husbandry)"
+    ],
+    "confidence": "high",
+    "notes": "Compared raw files at aec7461, dbb7e4a, 5ad4758 and 310319f. Gathering Storm ruleset reveal technologies NOT established (expansion data unavailable; search budget exhausted)."
+  },
+  {
+    "id": "CIV-05",
+    "title": "Civilization VI base ruleset data: Base/Assets/Gameplay/Data/GlobalParameters.xml",
+    "author_org": "Firaxis Games (game data), via CIV-01 mirror",
+    "published": "2024-07-15",
+    "url": "https://github.com/mrobaczyk/civ6/blob/310319f/Base/Assets/Gameplay/Data/GlobalParameters.xml",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "Science per citizen 70% and culture per citizen 30% of a point (same at release)",
+      "Population-per-district parameter DISTRICT_POPULATION_REQUIRED_PER = 3 (limits districts per city)",
+      "Strategic resource minimum for unit production: 2 anywhere, 1 with the district (base ruleset; no per-unit consumption parameters)",
+      "Research agreement parameter of 10 percent; government base anarchy 2 turns; policy-change cost parameters exist",
+      "Unit experience parameters: max 10 XP per combat, 10 XP for revealing a natural wonder, 5 XP for a tribal village, max level 6",
+      "No parameter for a tech-cost reduction based on other civilizations knowing a technology was found among the base parameters"
+    ],
+    "confidence": "high",
+    "notes": "Raw downloads at aec7461 and 310319f; the last claim is an absence-of-evidence reading of data-exposed parameters only (engine code is closed)."
+  },
+  {
+    "id": "CIV-06",
+    "title": "Civilization VI base ruleset data: Base/Assets/Gameplay/Data/Buildings.xml (Great Library)",
+    "author_org": "Firaxis Games (game data), via CIV-01 mirror",
+    "published": "2024-07-15",
+    "url": "https://github.com/mrobaczyk/civ6/blob/310319f/Base/Assets/Gameplay/Data/Buildings.xml",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "Great Library: unlocked by the Recorded History civic, needs a Library and a Campus-adjacent site, +2 Science, +1 Great Scientist point per turn, two writing slots",
+      "Great Library grants every Ancient- and Classical-era technology boost (modifier with start era Ancient, end era Classical); becomes obsolete at the Renaissance era"
+    ],
+    "confidence": "high",
+    "notes": "Raw download at 310319f."
+  },
+  {
+    "id": "CIV-07",
+    "title": "Civilization VI base ruleset data: UnitOperations.xml and Text/en_US/Espionage_Text.xml (spy missions)",
+    "author_org": "Firaxis Games (game data), via CIV-01 mirror",
+    "published": "2024-07-15",
+    "url": "https://github.com/mrobaczyk/civ6/blob/310319f/Base/Assets/Gameplay/Data/UnitOperations.xml",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "A spy mission to steal a technology boost exists, targets the Campus district, takes 8 turns and has a base-probability parameter of 14 with level and counter-spy adjustments",
+      "Other spy missions include listening post (diplomatic visibility), sabotage, siphon funds, recruit partisans, great work heist, disrupt rocketry"
+    ],
+    "confidence": "high",
+    "notes": "Raw downloads at 310319f; text file https://github.com/mrobaczyk/civ6/blob/310319f/Base/Assets/Text/en_US/Espionage_Text.xml"
+  },
+  {
+    "id": "CIV-08",
+    "title": "Civilization VI base ruleset data: DiplomaticActions.xml and DealItems.xml",
+    "author_org": "Firaxis Games (game data), via CIV-01 mirror",
+    "published": "2024-07-15",
+    "url": "https://github.com/mrobaczyk/civ6/blob/310319f/Base/Assets/Gameplay/Data/DiplomaticActions.xml",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "Research agreements require Scientific Theory for both parties and only one may be active",
+      "Registered deal-item types: gold, resources, cities, units, agreements, great works, captives; a technology deal row exists but no technology deal type is registered and there is no map deal item"
+    ],
+    "confidence": "medium",
+    "notes": "Raw downloads at 310319f (DealItems: https://github.com/mrobaczyk/civ6/blob/310319f/Base/Assets/Gameplay/Data/DealItems.xml). That technology and map trading are absent in play is an INFERENCE from data only."
+  },
+  {
+    "id": "CIV-09",
+    "title": "Civilization VI base ruleset data: Leaders.xml and Text/en_US/Leaders_Text.xml (AI difficulty modifiers; Russia Grand Embassy)",
+    "author_org": "Firaxis Games (game data), via CIV-01 mirror",
+    "published": "2024-07-15",
+    "url": "https://github.com/mrobaczyk/civ6/blob/310319f/Base/Assets/Gameplay/Data/Leaders.xml",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "Every major civilization carries difficulty-scaling modifiers that apply to high-difficulty AI players: science, culture, production, gold and faith yield scaling, combat scaling, unit XP scaling, and a random free technology boost and civic boost on each new era",
+      "Low-difficulty human players receive combat and XP scaling",
+      "No data-level modifier concerns AI vision or map knowledge",
+      "Russia (Grand Embassy): trade routes to more advanced civilizations yield +1 Science or Culture per 3 technologies or civics the partner is ahead"
+    ],
+    "confidence": "high",
+    "notes": "Raw downloads at 310319f; text https://github.com/mrobaczyk/civ6/blob/310319f/Base/Assets/Text/en_US/Leaders_Text.xml. Engine-side AI logic is not in data."
+  },
+  {
+    "id": "CIV-10",
+    "title": "Civilization VI base ruleset data: Civilizations.xml and Text/en_US/Civilizations_Text.xml (China, Dynastic Cycle)",
+    "author_org": "Firaxis Games (game data), via CIV-01 mirror",
+    "published": "2016-10-20",
+    "url": "https://github.com/mrobaczyk/civ6/blob/310319f/Base/Assets/Gameplay/Data/Civilizations.xml",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "China's ability adds 10 to both technology and civic boost amounts at release and in the latest snapshot",
+      "The in-game description states boosts give China 60% instead of 50% (base ruleset), confirming the 50% base",
+      "Latest snapshot adds a random era boost to China on completing a wonder"
+    ],
+    "confidence": "high",
+    "notes": "Raw downloads at aec7461 and 310319f; text https://github.com/mrobaczyk/civ6/blob/310319f/Base/Assets/Text/en_US/Civilizations_Text.xml"
+  },
+  {
+    "id": "CIV-11",
+    "title": "Civilization VI base ruleset data: Governments.xml and Policies.xml",
+    "author_org": "Firaxis Games (game data), via CIV-01 mirror",
+    "published": "2024-07-15",
+    "url": "https://github.com/mrobaczyk/civ6/blob/310319f/Base/Assets/Gameplay/Data/Governments.xml",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "10 governments (Chiefdom plus nine), each unlocked by a civic, with fixed mixes of military, economic, diplomatic and wildcard slots",
+      "103 policy cards (34 military, 44 economic, 13 diplomatic, 12 great-person/wildcard), every one gated by a civic; same count at release"
+    ],
+    "confidence": "high",
+    "notes": "Raw downloads at 310319f and Policies.xml at aec7461 (https://github.com/mrobaczyk/civ6/blob/aec7461/Base/Assets/Gameplay/Data/Policies.xml)."
+  },
+  {
+    "id": "CIV-12",
+    "title": "Civilization VI base ruleset data: Districts.xml",
+    "author_org": "Firaxis Games (game data), via CIV-01 mirror",
+    "published": "2024-07-15",
+    "url": "https://github.com/mrobaczyk/civ6/blob/310319f/Base/Assets/Gameplay/Data/Districts.xml",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "District eligibility is gated by a technology (e.g., Campus by Writing, Encampment by Bronze Working, Industrial Zone by Apprenticeship) or by a civic (Theater Square by Drama and Poetry, Neighborhood by Urbanization, Entertainment Complex by Games and Recreation)",
+      "District buildings each add one specialist slot; a Campus specialist yields +2 Science",
+      "International trade routes earn +1 Science per Campus at the destination (and +1 Culture per Theater Square); domestic routes earn food/production"
+    ],
+    "confidence": "high",
+    "notes": "Raw download at 310319f."
+  },
+  {
+    "id": "CIV-13",
+    "title": "Civilization VI base ruleset data: UnitPromotions.xml and Units.xml",
+    "author_org": "Firaxis Games (game data), via CIV-01 mirror",
+    "published": "2024-07-15",
+    "url": "https://github.com/mrobaczyk/civ6/blob/310319f/Base/Assets/Gameplay/Data/UnitPromotions.xml",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "16 promotion classes; combat classes (including Recon) have 7 promotions over 4 levels; spies 11, apostles 9",
+      "66 unit types gated by a technology and 7 by a civic",
+      "Strategic-resource units (e.g., Swordsman and Knight need Iron, Musketman Niter, Ironclad Coal, Tank Oil, Fighter Aluminum, Nuclear Submarine Uranium)"
+    ],
+    "confidence": "high",
+    "notes": "Raw downloads at 310319f (Units: https://github.com/mrobaczyk/civ6/blob/310319f/Base/Assets/Gameplay/Data/Units.xml)."
+  },
+  {
+    "id": "CIV-14",
+    "title": "Civilization VI base ruleset data: GreatPeople.xml and GreatPeople_Scientists.xml",
+    "author_org": "Firaxis Games (game data), via CIV-01 mirror",
+    "published": "2024-07-15",
+    "url": "https://github.com/mrobaczyk/civ6/blob/310319f/Base/Assets/Gameplay/Data/GreatPeople_Scientists.xml",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "Each Great Person class is tied to a district (Scientist to Campus, Engineer to Industrial Zone, etc.)",
+      "21 named Great Scientists, three per era from Classical to Information, each needing a completed Campus to act"
+    ],
+    "confidence": "high",
+    "notes": "Raw downloads at 310319f."
+  },
+  {
+    "id": "CIV-15",
+    "title": "Civilization VI base ruleset data: GoodyHuts.xml (tribal villages)",
+    "author_org": "Firaxis Games (game data), via CIV-01 mirror",
+    "published": "2024-07-15",
+    "url": "https://github.com/mrobaczyk/civ6/blob/310319f/Base/Assets/Gameplay/Data/GoodyHuts.xml",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "Tribal-village rewards include one or two technology boosts, one or two civic boosts, a free technology and a free Scout",
+      "Some rewards carry a turn attribute (30 or 50) in data"
+    ],
+    "confidence": "high",
+    "notes": "Raw download at 310319f. That the turn attribute is an earliest-turn gate is an INFERENCE."
+  },
+  {
+    "id": "CIV-16",
+    "title": "Civilization VI in-game Civilopedia concepts text (Base/Assets/Text/en_US/Civilopedia_Concepts_Text.xml)",
+    "author_org": "Firaxis Games (in-game text), via CIV-01 mirror",
+    "published": "2024-07-15",
+    "url": "https://github.com/mrobaczyk/civ6/blob/310319f/Base/Assets/Text/en_US/Civilopedia_Concepts_Text.xml",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "Science accrues to a pool each turn; citizens give 0.7 Science each; the technology tree auto-plots the quickest route to a selected distant technology and queues its prerequisites (same for civics)",
+      "Boosts can also come from Great People, research agreements and team-shared research",
+      "Culture advances the civics tree, which unlocks policies, governments and some buildings, districts and diplomatic options",
+      "Diplomatic Visibility has five levels per civilization, gained from trade routes, delegations or embassies, a spy listening post, alliances, researching Printing, and one leader ability; higher levels reveal more gossip (from declarations and wonders up to opinions, government and agendas)",
+      "Spies arrive in the Renaissance; each civilization can have 5 (6 for Catherine); missions include stealing technology boosts",
+      "Ranged attacks need line of sight: mountains block it; units on hills or flying can see over obstructions",
+      "The civics text describes the Culture pool as emptied when a civic completes and does not mention overflow"
+    ],
+    "confidence": "high",
+    "notes": "Raw download at 310319f; base-game text, may differ under expansions. Paraphrased; nothing copied beyond short identifiers."
+  },
+  {
+    "id": "CIV-17",
+    "title": "Civilization VI in-game technology text (Base/Assets/Text/en_US/Technologies_Text.xml)",
+    "author_org": "Firaxis Games (in-game text), via CIV-01 mirror",
+    "published": "2024-07-15",
+    "url": "https://github.com/mrobaczyk/civ6/blob/310319f/Base/Assets/Text/en_US/Technologies_Text.xml",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "The six critical late-game technologies show a boost condition satisfiable only through a Great Scientist or a spy",
+      "Writing's boost condition is meeting another civilization"
+    ],
+    "confidence": "high",
+    "notes": "Raw download at 310319f."
+  },
+  {
+    "id": "CIV-18",
+    "title": "Civilization VI gameplay database schema (Base/Assets/Gameplay/Data/Schema/01_GameplaySchema.sql)",
+    "author_org": "Firaxis Games (game data), via CIV-01 mirror",
+    "published": "2020-05-21",
+    "url": "https://github.com/mrobaczyk/civ6/blob/ee7d534/Base/Assets/Gameplay/Data/Schema/01_GameplaySchema.sql",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "The technology prerequisite table references only technologies and the civic prerequisite table references only civics (no cross-tree prerequisite table)",
+      "The Boosts table can name a boosting technology or a boosting civic (cross-tree coupling lives in boosts)"
+    ],
+    "confidence": "high",
+    "notes": "Raw downloads at 9830425 and ee7d534 (diffed); no research-related schema change between them."
+  },
+  {
+    "id": "CIV-19",
+    "title": "Civilization VI Tech and Civic Shuffle game mode data and text (DLC/TreeRandomizer)",
+    "author_org": "Firaxis Games (game data), via CIV-01 mirror",
+    "published": "2020-08-27",
+    "url": "https://github.com/mrobaczyk/civ6/tree/main/DLC/TreeRandomizer",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "Mode marks technologies and civics hidden until a prerequisite is complete and gives them random prerequisites",
+      "Costs are drawn from per-era candidate cost lists (e.g., Ancient 50 or 80, Classical 120 or 200)",
+      "Mode text: shuffles techs and civics within their eras, trees identical for all players, nodes hidden until a prerequisite is earned",
+      "Mode has rows for the Gathering Storm-only technologies Buttress and Refining and five late governance civics",
+      "First present in the 2020-08-27 snapshot (absent 2020-07-23)"
+    ],
+    "confidence": "high",
+    "notes": "Raw downloads of Data/TreeRandomizer_Technologies_MODE.xml, _Civics_MODE.xml, _Expansion2_MODE.xml, _ConfigData.xml and Text/en_US/TreeRandomizer_ConfigText.xml at main; presence probed at 2dc7ee9 and 6a266fc."
+  },
+  {
+    "id": "CIV-20",
+    "title": "Civilization VI Babylon Pack data (DLC/Babylon/Data/Babylon_Civilizations.xml)",
+    "author_org": "Firaxis Games (game data), via CIV-01 mirror",
+    "published": "2020-11-19",
+    "url": "https://github.com/mrobaczyk/civ6/blob/main/DLC/Babylon/Data/Babylon_Civilizations.xml",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "Babylon's ability adds 100 to technology boost amount and applies -50% Science in all cities",
+      "Babylon data first present in the 2020-11-19 snapshot"
+    ],
+    "confidence": "high",
+    "notes": "Raw download at main; presence probed at dc72499 and 5a0d5f9. Ruleset-specific Babylon files (Expansion1/Expansion2) do not change the boost amount."
+  },
+  {
+    "id": "CIV-21",
+    "title": "Civilization VI Dramatic Ages game mode data (DLC/Byzantium_Gaul/Data/Byzantium_Gaul_DramaticAges_MODE.xml)",
+    "author_org": "Firaxis Games (game data), via CIV-01 mirror",
+    "published": "2020-09-24",
+    "url": "https://github.com/mrobaczyk/civ6/blob/main/DLC/Byzantium_Gaul/Data/Byzantium_Gaul_DramaticAges_MODE.xml",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "Mode disables commemorations (dedication choices set to zero) and has Civilopedia chapters for era score, golden ages, dark ages and free cities",
+      "Dark Age city loss is a difficulty-indexed parameter with separate values for human players (5 rising to 40 from Settler to Deity) and AI players (30 falling to 10)"
+    ],
+    "confidence": "high",
+    "notes": "Raw download at main; Byzantium_Gaul data first present in 2020-09-24 snapshot (absent 2020-08-27). Interpreting the value as a share of cities lost is an INFERENCE from the parameter name."
+  },
+  {
+    "id": "CIV-22",
+    "title": "Civilization VI base AI behavior trees data (Base/Assets/Gameplay/Data/BehaviorTrees.xml)",
+    "author_org": "Firaxis Games (game data), via CIV-01 mirror",
+    "published": "2024-07-15",
+    "url": "https://github.com/mrobaczyk/civ6/blob/310319f/Base/Assets/Gameplay/Data/BehaviorTrees.xml",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "Data-level AI behavior-tree node types (e.g., Find Unit Targets, Operation Move, Settle, SPY: Choose Mission) expose no visibility or fog condition; target finding runs in closed engine code"
+    ],
+    "confidence": "medium",
+    "notes": "Absence-of-evidence reading; cannot establish whether engine-side AI reads hidden information."
+  },
+  {
+    "id": "CIV-23",
+    "title": "Civ6-UIFiles: Gathering Storm UI scripts TopPanel_Expansion2.lua and PlotTooltip_Expansion2.lua",
+    "author_org": "Firaxis Games (UI scripts), mirrored by CivFanatics (civfanatics/Civ6-UIFiles)",
+    "published": null,
+    "url": "https://github.com/civfanatics/Civ6-UIFiles/blob/master/DLC/Expansion2/Replacements/TopPanel_Expansion2.lua",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "Gathering Storm tracks, per strategic resource and player: stockpile amount, stockpile cap, accumulation per turn, imports per turn, bonus per turn, unit demand per turn and power-plant demand per turn; displayed totals are capped at the stockpile cap",
+      "Plot tooltips show a resource only if it is visible to the local player (per-player resource visibility)"
+    ],
+    "confidence": "high",
+    "notes": "Repository README says it holds the unmodified shipped UI scripts and tracks patches. Raw downloads from master; PlotTooltip at https://github.com/civfanatics/Civ6-UIFiles/blob/master/DLC/Expansion2/Replacements/PlotTooltip_Expansion2.lua. What happens to accumulation above the cap is an INFERENCE."
+  },
+  {
+    "id": "CIV-24",
+    "title": "Civ6-UIFiles: Gathering Storm UI script AllianceResearchSupport.lua",
+    "author_org": "Firaxis Games (UI scripts), mirrored by CivFanatics",
+    "published": null,
+    "url": "https://github.com/civfanatics/Civ6-UIFiles/blob/master/DLC/Expansion2/Additions/AllianceResearchSupport.lua",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "A research alliance at the maximum level (3) shows an alliance research bonus on the tech tree when the player researches the same technology as the ally or a technology the ally already has (or vice versa)"
+    ],
+    "confidence": "medium",
+    "notes": "UI evidence of the condition only; the bonus size is not in the script and was not sourced."
+  },
+  {
+    "id": "CIV-25",
+    "title": "Civ6-UIFiles: Rise and Fall and Gathering Storm era UI scripts (EraProgressPanel.lua, EraSupport.lua)",
+    "author_org": "Firaxis Games (UI scripts), mirrored by CivFanatics",
+    "published": null,
+    "url": "https://github.com/civfanatics/Civ6-UIFiles/blob/master/DLC/Expansion2/Additions/EraProgressPanel.lua",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "Era score is shown per player with a breakdown by source; golden-age and dark-age thresholds are per player and built from a baseline tied to the previous era plus listed adjustments",
+      "The world era's end is estimated from a minimum end turn, a maximum end turn and a next-era countdown parameter (same logic in the Expansion1 and Expansion2 files)"
+    ],
+    "confidence": "medium",
+    "notes": "Expansion1 copy: https://github.com/civfanatics/Civ6-UIFiles/blob/master/DLC/Expansion1/Additions/EraProgressPanel.lua. That world eras are clock-bounded is an INFERENCE from API names used by the UI."
+  },
+  {
+    "id": "CIV-26",
+    "title": "Civ6-UIFiles: base UI scripts MinimapPanel.lua, FullscreenMapPopup.lua and Gathering Storm TechTree_Expansion2.lua",
+    "author_org": "Firaxis Games (UI scripts), mirrored by CivFanatics",
+    "published": null,
+    "url": "https://github.com/civfanatics/Civ6-UIFiles/blob/master/MinimapPanel.lua",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "The UI queries a per-player visibility object and draws only plots revealed to that player",
+      "The Gathering Storm tech tree has an unrevealed node status alongside boosted status and boost text per node"
+    ],
+    "confidence": "medium",
+    "notes": "Raw downloads from master; TechTree file https://github.com/civfanatics/Civ6-UIFiles/blob/master/DLC/Expansion2/Replacements/TechTree_Expansion2.lua"
+  },
+  {
+    "id": "CIV-27",
+    "title": "Patch Notes: August 27, 2020 (Civilization VI)",
+    "author_org": "2K / Firaxis Games (support.civilization.com)",
+    "published": "2020-08-27",
+    "url": "https://support.civilization.com/hc/en-us/articles/37661296703507-Patch-Notes-August-27-2020",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "The August 2020 free update added the Tech and Civic Shuffle mode: techs and civics shuffled within eras with different costs and prerequisites, identical trees for all players, hidden until a prerequisite is earned",
+      "The same update added a Natural Wonder picker"
+    ],
+    "confidence": "medium",
+    "notes": "Retrieved as a WebSearch result extract; the page itself could not be fetched (host unreachable from this session). Corroborated by game data (CIV-19)."
+  },
+  {
+    "id": "CIV-28",
+    "title": "Sid Meier's Civilization VI: Rise and Fall (2K newsroom game page) and Civilization VI: Rise and Fall (civilization.com)",
+    "author_org": "2K / Firaxis Games",
+    "published": null,
+    "url": "https://newsroom.2k.com/games/sid-meiers-civilization-vi-rise-and-fall",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "Rise and Fall adds Golden Ages and Dark Ages reached through milestone Historic Moments; recovering from a Dark Age into a Golden Age gives a stronger Heroic Age",
+      "Rise and Fall adds per-city Loyalty (low loyalty lowers yields and can make a city declare independence) and Governors that raise nearby loyalty"
+    ],
+    "confidence": "medium",
+    "notes": "WebSearch result extract; second page https://www.civilization.com/civilization-6-rise-and-fall/ appeared in the same results. Pages not fetched."
+  },
+  {
+    "id": "CIV-29",
+    "title": "Sid Meier's Civilization VI: Gathering Storm Now Available (2K newsroom) and Gathering Storm store page",
+    "author_org": "2K / Firaxis Games",
+    "published": null,
+    "url": "https://newsroom.2k.com/news/sid-meiers-civilizationr-vi-gathering-storm-now-available",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "Gathering Storm (released 2019-02-14) consumes strategic resources such as Coal and Oil, plus renewables, in power plants to supply city power",
+      "Adds environmental effects (volcanoes, storms, floods, droughts, climate change), a World Congress and Diplomatic Victory, and a Future Era extending both trees"
+    ],
+    "confidence": "medium",
+    "notes": "WebSearch result extracts; store page https://store.2k.com/game/buy-civilization-vi-gathering-storm. Pages not fetched."
+  },
+  {
+    "id": "CIV-30",
+    "title": "Patch Notes: June 18, 2019 (Civilization VI)",
+    "author_org": "2K / Firaxis Games (support.civilization.com)",
+    "published": "2019-06-18",
+    "url": "https://support.civilization.com/hc/en-us/articles/37662399287443-Patch-Notes-June-18-2019",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "Power plants use Uranium before Oil and Coal when available",
+      "Harbor buildings increase strategic resource stockpiles; England's mines accumulate 2 more resources per turn",
+      "Cuirassier resource requirement changed from Niter to Iron"
+    ],
+    "confidence": "medium",
+    "notes": "WebSearch result extract only."
+  },
+  {
+    "id": "CIV-31",
+    "title": "Patch Notes: February 25, 2021 (Civilization VI)",
+    "author_org": "2K / Firaxis Games (support.civilization.com)",
+    "published": "2021-02-25",
+    "url": "https://support.civilization.com/hc/en-us/articles/37660820843667-Patch-Notes-February-25-2021",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "The strategic resource requirement was removed from the Llanero and Oromo Cavalry"
+    ],
+    "confidence": "low",
+    "notes": "WebSearch result extract; attribution of this line to this page is as presented in the extract."
+  },
+  {
+    "id": "CIV-32",
+    "title": "Civ VI: Byzantium and Gaul Pack (official pack page) and New Frontier Pass: Byzantium and Gaul Pack Available Today (2K newsroom)",
+    "author_org": "2K / Firaxis Games",
+    "published": null,
+    "url": "https://civilization.2k.com/en-GB/civ-vi/new-frontier-pass/byzantium-gaul/",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "Dramatic Ages mode (optional; requires Rise and Fall or Gathering Storm): every new era is a Golden or Dark Age, both stronger than normal",
+      "Dark Ages can make cities rebel and part of an empire fall into Free Cities; extra era score in a Golden Age raises loyalty pressure on neighbours",
+      "Special policies replace dedications; era score comes from completing technologies or civics, promoting units through combat and Historic Moments"
+    ],
+    "confidence": "medium",
+    "notes": "WebSearch result extract; newsroom URL https://newsroom.2k.com/news/civilization-vi-new-frontier-pass-byzantium-gaul-pack-available-today. Corroborated by data (CIV-21)."
+  },
+  {
+    "id": "CIV-33",
+    "title": "Sid Meier's Civilization VI: Leader Pass To Bring 18 New Leader Selections (2K newsroom) and Civilization VI: Leader Pass (support article)",
+    "author_org": "2K / Firaxis Games",
+    "published": null,
+    "url": "https://newsroom.2k.com/news/sid-meiers-civilizationr-vi-leader-pass-to-bring-18-new-leader-selections-to-the-critically-acclaimed-strategy-game-on-pc-mac-and-ios",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "Leader Pass: six packs adding 18 leader selections (12 new leaders, 6 new personas), released 2022-11-21 through March 2023",
+      "Leader Pass reached PlayStation 4, Xbox One and Switch on 2023-08-29"
+    ],
+    "confidence": "medium",
+    "notes": "WebSearch result extract; support article https://support.civilization.com/hc/en-us/articles/37658016431891-Civilization-VI-Leader-Pass. No research-system change was found in Leader Pass sources."
+  },
+  {
+    "id": "CIV-34",
+    "title": "Civ VI December 2022 Update (official update notes)",
+    "author_org": "2K / Firaxis Games (civilization.com)",
+    "published": "2022-12-15",
+    "url": "https://civilization.com/news/entries/civ-vi-december-2022-update/",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "The AI no longer biases towards Science at the expense of all other yields (which had caused AI bankruptcy and unit disbanding)",
+      "An August 2023 update improved some Leader Pass leader abilities"
+    ],
+    "confidence": "medium",
+    "notes": "WebSearch result extract; update hub https://civilization.2k.com/civ-vi/update-notes/ appeared in the same results."
+  },
+  {
+    "id": "CIV-35",
+    "title": "Civilization VI - Babylon Pack (Microsoft Store listing)",
+    "author_org": "2K (store listing)",
+    "published": null,
+    "url": "https://www.xbox.com/en-US/games/store/civilization-vi-babylon-pack/9MVV6484VLW3",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "Babylon's Eurekas provide all of the Science for technologies but Science per turn is reduced"
+    ],
+    "confidence": "medium",
+    "notes": "WebSearch result extract; the -50% value comes from data (CIV-20)."
+  },
+  {
+    "id": "CIV-36",
+    "title": "Civilization VI's lead designer wants to shake up players",
+    "author_org": "Gamasutra (now Game Developer)",
+    "published": null,
+    "url": "https://gamasutra.com/design/-i-civilization-vi-i-s-lead-designer-wants-to-shake-up-players",
+    "accessed": "2026-10-22",
+    "type": "press",
+    "claims_supported": [
+      "Lead designer Ed Beach framed the new research model as 'active research', intended to stop players repeating the same tech path every game by tying research to map circumstances"
+    ],
+    "confidence": "low",
+    "notes": "WebSearch result extract that blended this article with secondary coverage; exact wording not verified against the original 2016 interview."
+  },
+  {
+    "id": "CIV-37",
+    "title": "Civilization 6 announced and detailed",
+    "author_org": "Well Played",
+    "published": null,
+    "url": "https://www.well-played.com.au/civilization-6-announced-detailed/",
+    "accessed": "2026-10-22",
+    "type": "press",
+    "claims_supported": [
+      "2016 announcement coverage: buildings move into district tiles with terrain bonuses; science tied to terrain (landlocked civs struggle with sailing techs); discoveries have quest-like actions that speed progress"
+    ],
+    "confidence": "medium",
+    "notes": "WebSearch result extract."
+  },
+  {
+    "id": "CIV-38",
+    "title": "The art of Civilization VI",
+    "author_org": "Digital Trends",
+    "published": null,
+    "url": "https://digitaltrends.com/gaming/art-civilization-vi",
+    "accessed": "2026-10-22",
+    "type": "press",
+    "claims_supported": [
+      "Civilization VI's fog of war was redesigned (art director Brian Busatti) to look like an old cartographic map that gives way to the live view"
+    ],
+    "confidence": "medium",
+    "notes": "WebSearch result extract."
+  },
+  {
+    "id": "CIV-39",
+    "title": "Six reasons Civilization VI was one of E3's most underappreciated gems",
+    "author_org": "Game Informer",
+    "published": "2016-06-17",
+    "url": "https://gameinformer.com/games/sid_meiers_civilization_vi/b/pc/archive/2016/06/17/six-reasons-civilization-vi-was-one-of-e3s-most-underappreciated-gems",
+    "accessed": "2026-10-22",
+    "type": "press",
+    "claims_supported": [
+      "The old-world-map aesthetic appears on areas after your units leave them (remembered, not live, view)"
+    ],
+    "confidence": "medium",
+    "notes": "WebSearch result extract."
+  },
+  {
+    "id": "CIV-40",
+    "title": "Everything we know about Civilization 6: Rise and Fall",
+    "author_org": "PC Gamer",
+    "published": null,
+    "url": "https://www.pcgamer.com/uk/civilization-6-rise-and-fall-expansion",
+    "accessed": "2026-10-22",
+    "type": "press",
+    "claims_supported": [
+      "Era score from Historic Moments decides the next age: high gives a Golden Age, low a Dark Age, otherwise a normal age",
+      "Dedications chosen each age add era score for following them; a Dark Age lifted to a Golden Age becomes a Heroic Age"
+    ],
+    "confidence": "medium",
+    "notes": "WebSearch result extract that also drew on the Fandom Age (Civ6) page (CIV-44)."
+  },
+  {
+    "id": "CIV-41",
+    "title": "Civilization VI: Gathering Storm Review",
+    "author_org": "The Sixth Axis",
+    "published": "2019-02-11",
+    "url": "https://www.thesixthaxis.com/2019/02/11/civilization-vi-gathering-storm-review/",
+    "accessed": "2026-10-22",
+    "type": "press",
+    "claims_supported": [
+      "In Gathering Storm a worked strategic resource tile produces a per-turn quantity (e.g., two Iron per turn) rather than a binary access"
+    ],
+    "confidence": "low",
+    "notes": "WebSearch result extract."
+  },
+  {
+    "id": "CIV-42",
+    "title": "Rise and Fall Eurekas nerfed to 40%",
+    "author_org": "CivFanatics forum (community thread)",
+    "published": null,
+    "url": "https://forums.civfanatics.com/threads/rise-and-fall-eurkas-nerfed-to-40.627427/",
+    "accessed": "2026-10-22",
+    "type": "community",
+    "claims_supported": [
+      "Players at the Rise and Fall launch reported Eurekas and Inspirations reduced to 40% from the earlier 50%"
+    ],
+    "confidence": "medium",
+    "notes": "WebSearch result extract; corroborated by CIV-44 and CIV-45; no official patch note retrieved."
+  },
+  {
+    "id": "CIV-43",
+    "title": "[NFP] The New Eureka System",
+    "author_org": "CivFanatics forum (community thread)",
+    "published": null,
+    "url": "https://forums.civfanatics.com/threads/the-new-eureka-system.658687/",
+    "accessed": "2026-10-22",
+    "type": "community",
+    "claims_supported": [
+      "Community observation (May 2020): boosts became 40% of the current (era-adjusted) cost rather than of base cost, e.g. 48% for a tech from a later era and 32% for one from an earlier era; in Rise and Fall they had been 40% of base cost"
+    ],
+    "confidence": "low",
+    "notes": "WebSearch result extract; single community account; no official confirmation found."
+  },
+  {
+    "id": "CIV-44",
+    "title": "Eureka (Civilization 6 Wiki) and Age (Civ6) (Civilization Wiki)",
+    "author_org": "Fandom community wikis",
+    "published": null,
+    "url": "https://civ6.fandom.com/wiki/Eureka",
+    "accessed": "2026-10-22",
+    "type": "community",
+    "claims_supported": [
+      "Boosts give 40% of the cost after Rise and Fall (50% before); +10% for China or with the Free Inquiry or Pen, Brush and Voice dedications; Babylon gets the full remaining cost",
+      "Age (Civ6): dedications are chosen when the world enters a new era; exceeding the high threshold earns a Golden Age"
+    ],
+    "confidence": "low",
+    "notes": "WebSearch result extracts; second page https://civilization.fandom.com/wiki/Age_(Civ6). The China +10 part is independently confirmed by data (CIV-10)."
+  },
+  {
+    "id": "CIV-45",
+    "title": "Guide: Eurekas and Inspirations Chart",
+    "author_org": "Steam Community guide (community)",
+    "published": null,
+    "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=1768497326",
+    "accessed": "2026-10-22",
+    "type": "community",
+    "claims_supported": [
+      "Boosts are 40% and can be raised by 10% with golden-age dedications"
+    ],
+    "confidence": "low",
+    "notes": "WebSearch result extract."
+  },
+  {
+    "id": "CIV-46",
+    "title": "Civilization VI May 2020 Update",
+    "author_org": "Civilization Wiki (Fandom, community)",
+    "published": null,
+    "url": "https://civilization.fandom.com/wiki/Civilization_VI_May_2020_Update",
+    "accessed": "2026-10-22",
+    "type": "community",
+    "claims_supported": [
+      "The May 2020 update (2020-05-21, version 1.0.1.501) launched the New Frontier Pass with the Maya and Gran Colombia Pack and the Apocalypse mode; the visible change list does not mention boost changes"
+    ],
+    "confidence": "low",
+    "notes": "WebSearch result extract; change list truncated in the extract."
+  },
+  {
+    "id": "CIV-47",
+    "title": "Culture and Science bursts?? (CivFanatics) and 'Civ 6 mechanics iceberg' (Reddit thread, read via a front-end mirror)",
+    "author_org": "CivFanatics forum; Reddit r/CivVI (community)",
+    "published": "2024-10-22",
+    "url": "https://forums.civfanatics.com/threads/culture-science-bursts.634340",
+    "accessed": "2026-10-22",
+    "type": "community",
+    "claims_supported": [
+      "Excess Science and Culture beyond a completed tech or civic is kept as overflow and generally carries over; instant yield sources and some bugs can wipe it"
+    ],
+    "confidence": "low",
+    "notes": "WebSearch result extracts; Reddit thread seen at https://lr.eu.psf.lt/r/CivVI/comments/1g9t5fb/civ_6_mechanics_iceberg (mirror of a 2024-10-22 Reddit post). Engine behaviour not verifiable from data."
+  },
+  {
+    "id": "CIV-48",
+    "title": "Fog of war (Sid Meier's Civilization VI General Discussions)",
+    "author_org": "Steam Community discussion (community)",
+    "published": null,
+    "url": "https://steamcommunity.com/app/289070/discussions/0/1843493219423834606/",
+    "accessed": "2026-10-22",
+    "type": "community",
+    "claims_supported": [
+      "A player believes the AI can see through fog of war (anecdote; no evidence offered)"
+    ],
+    "confidence": "low",
+    "notes": "WebSearch result extract; cited only to record that the claim circulates without evidence."
+  },
+  {
+    "id": "CIV-49",
+    "title": "Civilization VI: Rise and Fall",
+    "author_org": "Wikipedia (community-edited encyclopedia)",
+    "published": null,
+    "url": "https://en.wikipedia.org/wiki/Civilization_VI:_Rise_and_Fall",
+    "accessed": "2026-10-22",
+    "type": "community",
+    "claims_supported": [
+      "Rise and Fall released on 2018-02-08; the base-game February 7, 2018 update shipped one day earlier"
+    ],
+    "confidence": "medium",
+    "notes": "WebSearch result extract (also Fandom page Civilization VI February 7, 2018 Update)."
+  },
+  {
+    "id": "CIV-50",
+    "title": "Sid Meier's Civilization VI released",
+    "author_org": "CivFanatics (news)",
+    "published": "2016-10-21",
+    "url": "https://civfanatics.com/2016/10/21/sid-meiers-civilization-vi-released/",
+    "accessed": "2026-10-22",
+    "type": "community",
+    "claims_supported": [
+      "Civilization VI launched worldwide on 2016-10-21"
+    ],
+    "confidence": "medium",
+    "notes": "WebSearch result extract. The data mirror labels its first snapshot 2016-10-20."
+  },
+  {
+    "id": "C7-01",
+    "title": "Civilization VII Dev Diary #1: Ages",
+    "author_org": "Firaxis Games / 2K (civilization.2k.com)",
+    "published": null,
+    "url": "https://civilization.2k.com/civ-vii/game-guide/dev-diary/ages",
+    "accessed": "2026-10-22",
+    "type": "developer",
+    "claims_supported": [
+      "Launch design: three Ages (Antiquity, Exploration, Modern) of roughly 150-200 turns at standard speed, with a new civilization chosen at each transition",
+      "Age Progress fills from a small amount every turn plus larger amounts from Legacy Path milestones; a full meter ends the Age",
+      "Legacy Paths in Science, Military, Culture and Economy; completing a path gives a Golden Age legacy, failing every milestone a Dark Age legacy; Crises arrive near the end of an Age"
+    ],
+    "confidence": "medium",
+    "notes": "WebSearch result extracts (also https://civilization.2k.com/civ-vii/en-GB/game-guide/gameplay/ages-explanation/). Describes the 2025 launch design; later updates changed it (C7-03)."
+  },
+  {
+    "id": "C7-02",
+    "title": "Sid Meier's Civilization VII glossary",
+    "author_org": "Firaxis Games / 2K (civilization.2k.com)",
+    "published": null,
+    "url": "https://civilization.2k.com/civ-vii/glossary/",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "Each Age has its own Technology and Civics trees, swapped at the Age transition"
+    ],
+    "confidence": "medium",
+    "notes": "WebSearch result extract."
+  },
+  {
+    "id": "C7-03",
+    "title": "Civilization VII Test of Time Update - Triumphs and Victories (game guide pages)",
+    "author_org": "Firaxis Games / 2K (civilization.2k.com)",
+    "published": null,
+    "url": "https://civilization.2k.com/civ-vii/game-guide/gameplay/triumphs/",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "The Test of Time update removed Legacy Paths after criticism that they were too prescriptive, replacing them with optional Triumphs tied to six attributes and reworked Victories",
+      "Completed Major Triumphs grant Dedications for the next Age (three may be active); players can start and stay as any civilization in any Age",
+      "A researched technology can be studied further into a Mastery with its own benefits; Masteries feed the science victory's Innovation"
+    ],
+    "confidence": "medium",
+    "notes": "WebSearch result extracts; victories page https://civilization.2k.com/en-GB/civ-vii/game-guide/gameplay/victories/ and news https://civilization.2k.com/civ-vii/news/test-of-time-out-now/."
+  },
+  {
+    "id": "C7-04",
+    "title": "Civilization VII Update 1.4.0 (game update notes, 2026-05-19) and Patch Notes - May 19, 2026",
+    "author_org": "Firaxis Games / 2K",
+    "published": "2026-05-19",
+    "url": "https://civilization.2k.com/civ-vii/game-update-notes/2026-may-19-patch-1-4-0/",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "Almost all passive yield increases were removed from the Tech Tree, some replaced by other bonuses, and the tree reorganized; a Computation node was added in Modern; many tech and civic costs adjusted",
+      "Future Civic is repeatable in all Ages and Future Tech and Future Civic costs rise more with each repeat",
+      "Several leader abilities key off completing Technology or Civic Masteries"
+    ],
+    "confidence": "medium",
+    "notes": "WebSearch result extracts; support page https://support.civilization.com/hc/en-us/articles/51685242291219-Civilization-VII-Patch-Notes-May-19-2026."
+  },
+  {
+    "id": "C7-05",
+    "title": "Civilization VII Test of Time Update - Time-Tested Civs (game guide page)",
+    "author_org": "Firaxis Games / 2K (civilization.2k.com)",
+    "published": null,
+    "url": "https://civilization.2k.com/civ-vii/game-guide/gameplay/time-tested-civs/",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "Time-Tested civilizations get their own civics tree containing one civ-specific civic, one attribute-based civic shared with similar civs, and a Syncretism civic offering one of three adoption options per Age"
+    ],
+    "confidence": "medium",
+    "notes": "WebSearch result extract."
+  },
+  {
+    "id": "C4-01",
+    "title": "beyond-the-sword-sdk: unedited CvGameCoreDLL sources for Civilization IV: Beyond the Sword (CvPlayer.cpp, CvTeam.cpp, CvPlayerAI.cpp, CvPlot.cpp)",
+    "author_org": "Firaxis Games (SDK source), mirrored by GitHub user dguenms",
+    "published": null,
+    "url": "https://github.com/dguenms/beyond-the-sword-sdk",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "Research rate modifier adds TECH_COST_TOTAL_KNOWN_TEAM_MODIFIER times (living teams that we have met and that know the tech) divided by (all living teams), plus TECH_COST_KNOWN_PREREQ_MODIFIER per known alternative prerequisite",
+      "Research beyond a technology's cost becomes overflow carried into the next technology (normalised by the research modifier); with no research target the turn's research is stored as overflow",
+      "AI city-site values are computed only for plots revealed to the AI's team (all other plots keep a no-value marker), and resources are filtered by the team's reveal technology (an unrevealed resource reads as none); only starting-location placement uses unfiltered data"
+    ],
+    "confidence": "high",
+    "notes": "Raw downloads of CvGameCoreDLL/CvPlayer.cpp (calculateResearchModifier, turn research loop), CvTeam.cpp (setResearchProgress), CvPlayerAI.cpp (AI_updateFoundValues, AI_foundValue) and CvPlot.cpp (getBonusType) from master. Repository describes itself as unedited SDK sources."
+  },
+  {
+    "id": "C4-02",
+    "title": "The Number Crunching Thread (page 5)",
+    "author_org": "CivFanatics forum (community)",
+    "published": null,
+    "url": "https://forums.civfanatics.com/threads/the-number-crunching-thread.389702/page-5",
+    "accessed": "2026-10-22",
+    "type": "community",
+    "claims_supported": [
+      "TECH_COST_TOTAL_KNOWN_TEAM_MODIFIER is 30 in the unmodded game"
+    ],
+    "confidence": "low",
+    "notes": "WebSearch result extract; the same post discusses Civ V, so the attribution to Civ IV is uncertain."
+  },
+  {
+    "id": "C4-03",
+    "title": "Dawn of Civilization (Civ IV mod) Assets/XML/GlobalDefines.xml",
+    "author_org": "GitHub user dguenms (mod)",
+    "published": null,
+    "url": "https://github.com/dguenms/Dawn-of-Civilization/blob/master/Assets/XML/GlobalDefines.xml",
+    "accessed": "2026-10-22",
+    "type": "community",
+    "claims_supported": [
+      "The defines TECH_COST_TOTAL_KNOWN_TEAM_MODIFIER and TECH_COST_KNOWN_PREREQ_MODIFIER exist in the XML layer (mod values 30 and 20 on master, 20 and 20 on develop)"
+    ],
+    "confidence": "low",
+    "notes": "Raw downloads from master and develop. Mod values; not evidence of vanilla values."
+  },
+  {
+    "id": "EU4-01",
+    "title": "EU4 - Development Diary - 26th of May 2016",
+    "author_org": "Paradox Development Studio (Paradox forum)",
+    "published": "2016-05-26",
+    "url": "https://forum.paradoxplaza.com/forum/developer-diary/eu4-development-diary-26th-of-may-2016.937696/",
+    "accessed": "2026-10-22",
+    "type": "developer",
+    "claims_supported": [
+      "The penalty for not having embraced an institution grows by 1% per year"
+    ],
+    "confidence": "medium",
+    "notes": "WebSearch result extract (page 4 of the thread surfaced)."
+  },
+  {
+    "id": "EU4-02",
+    "title": "Institutions - Europa Universalis 4 Wiki",
+    "author_org": "Paradox-hosted wiki (community-edited)",
+    "published": null,
+    "url": "https://eu4.paradoxwikis.com/Institutions",
+    "accessed": "2026-10-22",
+    "type": "community",
+    "claims_supported": [
+      "Institutions appear in provinces and spread; a country may embrace one when at least 10% of its autonomy-adjusted development has it, paying 2.5 ducats per remaining development; once embraced it spreads rapidly through the rest of the country",
+      "Each technology requires specific institutions; missing them raises its cost (+15%, +30% or +50% per institution in the wiki's version), stacking as institutions accumulate"
+    ],
+    "confidence": "medium",
+    "notes": "WebSearch result extract; values are version-dependent (see EU4-03, EU4-04)."
+  },
+  {
+    "id": "EU4-03",
+    "title": "Patch 1.18 - Europa Universalis 4 Wiki",
+    "author_org": "Paradox-hosted wiki (community-edited)",
+    "published": null,
+    "url": "https://eu4.paradoxwikis.com/Patch_1.18",
+    "accessed": "2026-10-22",
+    "type": "community",
+    "claims_supported": [
+      "Patch 1.18: institution penalties tick up 1% per year after discovery, up to 50%"
+    ],
+    "confidence": "medium",
+    "notes": "WebSearch result extract."
+  },
+  {
+    "id": "EU4-04",
+    "title": "Europa Universalis IV - Development Diary 28th September 2021",
+    "author_org": "Paradox Tinto (Paradox forum)",
+    "published": "2021-09-28",
+    "url": "https://forum.paradoxplaza.com/forum/threads/europa-universalis-iv-development-diary-28th-september-2021.1492744/",
+    "accessed": "2026-10-22",
+    "type": "developer",
+    "claims_supported": [
+      "Later design: a technology costs 50% more for each required institution not yet embraced"
+    ],
+    "confidence": "medium",
+    "notes": "WebSearch result extract."
+  },
+  {
+    "id": "V3-01",
+    "title": "Victoria 3 - Dev Diary #27 - Technology",
+    "author_org": "Paradox Development Studio (Paradox forum)",
+    "published": null,
+    "url": "https://forum.paradoxplaza.com/forum/threads/victoria-3-dev-diary-27-technology.1502428/",
+    "accessed": "2026-10-22",
+    "type": "developer",
+    "claims_supported": [
+      "Technology spread: in each of three categories one technology is always spreading into the country, chosen automatically from current-era techs already invented elsewhere; spread speed depends heavily on literacy and is slowed by restrictive free-speech laws",
+      "A technology can only spread to a country that has all its prerequisites (developer reply in thread)",
+      "The Innovation a country can spend on active research is capped by literacy"
+    ],
+    "confidence": "medium",
+    "notes": "WebSearch result extract (2021 diary per extract; later patches may change numbers)."
+  },
+  {
+    "id": "V3-02",
+    "title": "Technology - Victoria 3 Wiki",
+    "author_org": "Paradox-hosted wiki (community-edited)",
+    "published": null,
+    "url": "https://vic3.paradoxwikis.com/Technology",
+    "accessed": "2026-10-22",
+    "type": "community",
+    "claims_supported": [
+      "Countries behind the leading edge receive technology spread; each week spreading techs accumulate points based mainly on literacy with an added random factor"
+    ],
+    "confidence": "medium",
+    "notes": "WebSearch result extract."
+  },
+  {
+    "id": "OW-01",
+    "title": "Old World Designer Notes #4: The Technology Deck",
+    "author_org": "Soren Johnson / Mohawk Games (designer-notes.com)",
+    "published": null,
+    "url": "https://www.designer-notes.com/?p=1703",
+    "accessed": "2026-10-22",
+    "type": "developer",
+    "claims_supported": [
+      "Rationale: a fixed tech tree lets veterans memorise one optimal order; Civilization I offered a random subset of available techs; the goal is hard choices plus transparency about why not every option is offered"
+    ],
+    "confidence": "medium",
+    "notes": "WebSearch result extract; page not fetched."
+  },
+  {
+    "id": "OW-02",
+    "title": "Old World (VideoGameGeek entry, press-kit description)",
+    "author_org": "VideoGameGeek",
+    "published": null,
+    "url": "https://videogamegeek.com/videogame/309820/old-world",
+    "accessed": "2026-10-22",
+    "type": "press",
+    "claims_supported": [
+      "Each available technology is a card; when choosing research the player draws four, picks one and discards the rest, which return only after the discard pile is reshuffled"
+    ],
+    "confidence": "medium",
+    "notes": "WebSearch result extract."
+  },
+  {
+    "id": "OW-03",
+    "title": "PC Preview - Old World (Worthplaying) and Old World video preview (CogConnected)",
+    "author_org": "Worthplaying; CogConnected",
+    "published": "2020-05-26",
+    "url": "https://worthplaying.com/article/2020/5/26/previews/119712-pc-preview-old-world/",
+    "accessed": "2026-10-22",
+    "type": "press",
+    "claims_supported": [
+      "Previews note the card system can slow pace while waiting for a wanted tech, and that abilities or advisors allow redrawing a hand"
+    ],
+    "confidence": "low",
+    "notes": "WebSearch result extract blended the two previews; second URL https://cogconnected.com/video/old-world-video-preview/."
+  },
+  {
+    "id": "HK-01",
+    "title": "Era Stars - Humankind Encyclopedia",
+    "author_org": "Amplitude Studios (Games2Gether)",
+    "published": null,
+    "url": "https://humankind-encyclopedia.games2gether.com/en-us/fame-cultures/game-content/era-stars",
+    "accessed": "2026-10-22",
+    "type": "official",
+    "claims_supported": [
+      "Seven Era Stars advance an era (one in the Neolithic); each era offers 21 (three per culture affinity across seven affinities: Aesthete, Agrarian, Builder, Expansionist, Merchant, Militarist, Scientist), each tracking a different statistic",
+      "Players may stay in an era to collect more stars; Competitive Spirit stars are granted periodically, without Fame, to players still in an era once someone has moved on"
+    ],
+    "confidence": "medium",
+    "notes": "WebSearch result extract mixing this page with HK-02; page not fetched."
+  },
+  {
+    "id": "HK-02",
+    "title": "Humankind Fame and Era Stars guide (PC Gamer) and Humankind tips (GamesRadar)",
+    "author_org": "PC Gamer; GamesRadar",
+    "published": null,
+    "url": "https://www.pcgamer.com/humankind-fame-era-stars/",
+    "accessed": "2026-10-22",
+    "type": "press",
+    "claims_supported": [
+      "Seven of 21 stars are needed per era (one in the Neolithic); affinity-matched stars pay more Fame; Transcend option keeps the current culture"
+    ],
+    "confidence": "medium",
+    "notes": "WebSearch result extracts; second URL https://www.gamesradar.com/humankind-tips-guide/."
+  },
+  {
+    "id": "AI-01",
+    "title": "GD Column 7: Our Cheatin' Hearts (also published as 'Analysis: Game AI and Our Cheatin' Hearts')",
+    "author_org": "Soren Johnson (designer-notes.com; Game Developer)",
+    "published": "2009",
+    "url": "https://www.designer-notes.com/?p=132",
+    "accessed": "2026-10-22",
+    "type": "developer",
+    "claims_supported": [
+      "Players know a developer can make the AI do anything, so transparent and consistent rules matter; people misjudge probability and often perceive cheating where none exists",
+      "In the original Civilization the AI could create units for free under the fog of war, visibly playing by different rules"
+    ],
+    "confidence": "medium",
+    "notes": "WebSearch result extracts; Game Developer copy https://www.gamedeveloper.com/game-platforms/analysis-game-ai-our-cheatin-hearts."
+  },
+  {
+    "id": "AI-02",
+    "title": "Playing to Lose: AI and Civilization (GDC 2008)",
+    "author_org": "Soren Johnson (designer-notes.com)",
+    "published": "2008",
+    "url": "https://www.designer-notes.com/playing-to-lose-ai-and-civilization-gdc-2008/",
+    "accessed": "2026-10-22",
+    "type": "developer",
+    "claims_supported": [
+      "A GDC 2008 talk on writing Civilization AI that sits between a 'good' and a 'fun' opponent; reconstructed by the author from audio and slides"
+    ],
+    "confidence": "low",
+    "notes": "WebSearch result extract; the talk's statements on fog of war were not retrieved."
+  }
+]

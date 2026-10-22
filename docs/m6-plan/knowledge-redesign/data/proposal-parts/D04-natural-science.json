@@ -1,0 +1,1525 @@
+{
+ "lane": "D04-natural-science",
+ "summary": "D04 keeps 24 of its 41 nodes unchanged, rewires 14 (causal prerequisite repairs; two of them also re-scored), splits two (one also rewired), relocates one, and adds nine nodes. Splits separate discovery from later theory or method where consumers differ: electromagnetism (experimental laws, key kept) / electromagnetic field theory, and genome_sequencing (genomics, key kept) / DNA sequencing - halving the subtree's largest single wait. Seven new nodes fill foundations the subtree lacked, each with an in-lane dependant: thermodynamics, spectroscopy, periodic system, organic chemistry, cell theory, biological classification, and probability and statistics. Non-causal edges are removed (astrolabe <- gearing, sulphuric_acid <- lead glass, haber_bosch <- electricity_generation, atomic_clock <- longitude_problem, petroleum_refining <- mining_shaft, genetics_mendel <- evolution) and dna_structure now needs xray. Costs move only with content: astrolabe -79 % (institutional outlier, one requirement), quantum_mechanics +41 % (four prerequisites; institutional to the A9 prior), evolution and synthetic_dye +41 % and petroleum_refining -29 % (prerequisite-complexity convention). double_entry moves to the trunk beside bill_of_exchange (with D05). Dead ends get dependants (pcr, corned_powder, soda_leblanc via D09/D02, relativity via D08's gps) or later owners (M9 public health for chlorine; M10+ for explosives, emissions); space_telescope stays a justified knowledge-only leaf. Requests from D01, D02, D03, D05, D06, D07, D08, D09, D10 and D12 are answered. Everything here is PROPOSED.",
+ "existing": [
+  {
+   "id": "astrolabe",
+   "disposition": [
+    "rewire",
+    "rebalance"
+   ],
+   "nodeKind": "application",
+   "prereq": "astronomy_geometric",
+   "prereqRationale": "The planispheric astrolabe is a stereographic-projection instrument (Hipparchus, Ptolemy's Planisphaerium): astronomy_geometric is the knowledge it needs. gearing is removed as non-causal - geared astrolabes are rare and late (~1000 CE) - as D03 also found. One requirement: prereq_complexity 0.5 -> 0.0.",
+   "rationale": "Kept as the instrument node (time, latitude, surveying; feeds celestial_navigation and the observatory entity). Two content corrections: the gearing edge is not knowledge the instrument needs, and its institutional score 3.0 is the corpus maximum, otherwise used only by state- or corporation-scale A9 programmes (no other A6 node exceeds 1.75); the astrolabe was a portable instrument made by individual craftsman-scholars (oldest dated survivor: Nastulus, 927/928 CE - RESEARCHED). Content re-score, not pacing.",
+   "changes": "prereq 'astronomy_geometric AND gearing' -> 'astronomy_geometric'; factors.institutional 3.0 -> 1.25; prereq_complexity 0.5 -> 0.0; magnitude 7.25 -> 5.0; cost 14,070 -> 2,960",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.25,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "costRationale": "novelty 1.0: new instrument class on the known stereographic projection (unchanged) | difficulty 2.25: precise engraving of plates and rete, above the A6 prior 1.75 (unchanged) | material 0.0: unchanged | institutional 1.25: A6 prior - a craftsman-scholar's workshop, not a state programme (was 3.0, the corpus maximum) | breadth 0.5: time, latitude, surveying (unchanged) | prereq_complexity 0.0: one requirement (gearing removed). Same magnitude as optics_ibn_haytham (5.0).",
+   "compatibility": {
+    "saves": "Key 190 kept. Lowered cost: stored progress >= 2,960 completes at the next step with no RP (engine-audit 7.3); the prerequisite change only removes a requirement, so nothing becomes dormant.",
+    "ids": "unchanged (190)",
+    "ui": "cost label; one fewer lock reason",
+    "ai": "cheaper target; AI-empire goldens re-pin if the AI now picks it earlier",
+    "consumers": "celestial_navigation and building.observatory unchanged; gearing keeps three other dependants",
+    "tests": "No test pins this node; chronology unaffected; calibration report and the other two CI --check docs regenerate."
+   }
+  },
+  {
+   "id": "gunpowder",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Correct node and edges: the saltpetre-sulphur-charcoal mixture came out of Chinese alchemy (alchemy edge is causal); feeds cannon_early and saltpetre_refining. The Wujing Zongyao (1040-44) formulas were at most ~50 % saltpetre - incendiary, not explosive (RESEARCHED) - which is why refining is its own node. Capability block adds the physical inputs and the resource rule.",
+   "changes": "none to content (nodeKind and capability inputs documented)",
+   "capability": {
+    "grants": [
+     "knowledge:incendiaries",
+     "knowledge:fire lances",
+     "knowledge:bombs",
+     "knowledge:Fire lance"
+    ],
+    "realizationOwner": "none (consumed through cannon_early -> unit.artillery, Battle layer M7)",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "unlock-audit class C: knowledge-only; prerequisite of cannon_early and saltpetre_refining",
+    "deferredEffect": "M7: gunpowder weapons are fielded through the military nodes' unit entities; M11+ only if saltpetre and sulphur become goods (a powder recipe)",
+    "inputs": {
+     "resources": [
+      "saltpetre (no good)",
+      "sulphur (no good)",
+      "charcoal (no good)"
+     ],
+     "geography": [
+      "nitre-bearing soils and caves (no deposit kind)"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Eligibility needs no input; any future powder recipe stays unrealizable without saltpetre and sulphur goods.",
+    "unknownResource": "Research never reveals saltpetre or sulphur (identification is D11/fog). The existing Eureka 'Saltpetre is available' (future-system:resources/terrain) waits for that resource state.",
+    "aiValuation": "Value through cannon_early and the powder chain (saltpetre_refining -> corned_powder, A7 milestone).",
+    "playerCommunication": "Knowledge of the mixture; weapons come from the military nodes; no powder production is simulated."
+   }
+  },
+  {
+   "id": "saltpetre_refining",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "technique",
+   "rationale": "Leaching and recrystallising nitre is the bottleneck technique for high-nitrate powder; it now also feeds sulphuric_acid (the Glauber/Ward process burns sulphur with saltpetre - RESEARCHED).",
+   "changes": "none (gains the dependant sulphuric_acid)",
+   "capability": {
+    "grants": [
+     "knowledge:reliable high-nitrate powder"
+    ],
+    "realizationOwner": "none",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "unlock-audit class C: knowledge-only; prerequisite of corned_powder and (proposed) sulphuric_acid",
+    "deferredEffect": "M11+ only if a saltpetre good exists: a refining recipe (nitre earth -> saltpetre)",
+    "inputs": {
+     "resources": [
+      "nitre earth / crude saltpetre (no good)"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Eligibility only; no recipe without a saltpetre good.",
+    "unknownResource": "Never reveals nitre sources; identification belongs to D11's resource chain.",
+    "aiValuation": "Value through corned_powder (A7 milestone a7_powder) and sulphuric_acid.",
+    "playerCommunication": "Technique known; no saltpetre good is simulated."
+   }
+  },
+  {
+   "id": "trigonometry",
+   "disposition": [
+    "rewire"
+   ],
+   "nodeKind": "science",
+   "prereq": "astronomy_geometric AND (hindu_arabic OR numeral_sexagesimal)",
+   "prereqRationale": "Accepts D03's request: trigonometric tables were computed in two place-value systems - Hipparchus's and Ptolemy's chords and the Islamic sine tables in Babylonian sexagesimal, the Indian sine tradition in decimal - so the numeral requirement is a genuine OR of alternative routes, not a cost softener. Still two top-level requirements (an OR group counts once): prereq_complexity 0.5 unchanged.",
+   "rationale": "Sine, tangent and spherical trigonometry (India ~500 CE; Islamic world ~900); causal for heliocentrism, celestial_navigation and mercator. The numeral prerequisite becomes an OR.",
+   "changes": "prereq 'astronomy_geometric AND hindu_arabic' -> 'astronomy_geometric AND (hindu_arabic OR numeral_sexagesimal)'; cost unchanged (4,180)",
+   "compatibility": {
+    "saves": "Key kept; the change only widens the prerequisite, so nothing becomes dormant and nothing completed is affected.",
+    "ids": "unchanged (205)",
+    "ui": "lock reason shows the OR",
+    "ai": "AiResearchPolicy closures change; AI-empire pins re-pin if the AI's choices move.",
+    "consumers": "celestial_navigation, heliocentrism, mercator unchanged",
+    "tests": "D-047 chronology test reads only must-hold atoms (astronomy_geometric); the three CI --check docs regenerate."
+   }
+  },
+  {
+   "id": "optics_ibn_haytham",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "science",
+   "rationale": "Experimental optics (Ibn al-Haytham, ~1020 CE) is the causal root of spectacles -> telescope and microscope -> spectroscopy, and an input of inst.scientific_society.",
+   "changes": "none"
+  },
+  {
+   "id": "double_entry",
+   "disposition": [
+    "relocate"
+   ],
+   "nodeKind": "technique",
+   "branch": "trunk",
+   "universityRelevance": [
+    {
+     "type": 3,
+     "name": "Engineering",
+     "role": "primary"
+    }
+   ],
+   "rationale": "Double-entry bookkeeping (Genoa and Florence, c. 1300) is a merchants' accounting technique, not natural science and not university knowledge. It is generation 2 of the 'finance' family; D05 moves generation 1 (bill_of_exchange) to the trunk and suggested the same here. In the trunk it no longer counts toward the natural-science exhaustion that frontier_climate waits on. All three prerequisites are trunk once D05's relocation applies; moving trees would need re-keying, so it stays a technology (D12 agrees).",
+   "changes": "branch natural_science -> trunk; universityRelevance: Engineering primary, matching bill_of_exchange (was Natural Science primary, Engineering secondary; trunk nodes pay BaseCost regardless). Key, prereq, cost, Age (A6), family/generation and the a6_finance milestone unchanged. Depends on D05's bill_of_exchange -> trunk (else validator V04).",
+   "compatibility": {
+    "saves": "Key 213 kept. Trunk nodes are researchable before the research stage, so nothing becomes dormant; completed rows unaffected.",
+    "ids": "unchanged (213)",
+    "ui": "moves from the 1.4 Natural Science lane to the Main Trunk",
+    "ai": "Researchable before the stage and always at BaseCost (no university modifier); the a6_finance supporting fact was already trunk-reachable through bill_of_exchange after D05; AI-empire pins may move",
+    "consumers": "a6_finance milestone (any_of double_entry, bill_of_exchange) unchanged",
+    "tests": "ResearchContentTests branch counts (natural_science -1, trunk +1) and the natural-science finite count (frontier_climate's finite_nodes_to_exhaust); generations test unaffected (gen 2 > bill_of_exchange gen 1); validator V04 requires bill_of_exchange in the trunk (D05)."
+   }
+  },
+  {
+   "id": "corned_powder",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "technique",
+   "rationale": "Granulated powder (second quarter of the 15th century); supporting A7 fact a7_powder (class B). Dead end resolved by a dependant: D09 accepted D04's request and makes matchlock require it - corned powder went first into hand-held guns while serpentine stayed with early cannon (RESEARCHED, dating debated).",
+   "changes": "none (gains dependant matchlock, D09)"
+  },
+  {
+   "id": "heliocentrism",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "science",
+   "rationale": "Copernicus 1543 / Kepler 1609; causal for mechanics_newtonian (Kepler's laws). The telescope is correctly not a prerequisite (Kepler worked from Tycho's naked-eye data).",
+   "changes": "none"
+  },
+  {
+   "id": "telescope",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Instrument node (Lippershey and Galileo, 1608-09). Gains a scientific dependant, spectroscopy (Fraunhofer viewed the solar spectrum through a telescope). Its 'naval reconnaissance (D-039 B)' string is knowledge text only: research never reveals territory (D-040 B3); any effect of optical instruments on sight is for the fog lane to rule.",
+   "changes": "none to content (gains dependants spectroscopy and D05's optical_telegraph; capability block states the no-reveal rule)",
+   "capability": {
+    "grants": [
+     "knowledge:Jupiter's moons",
+     "knowledge:naval reconnaissance (D-039 B)",
+     "building:building.observatory"
+    ],
+    "realizationOwner": "ConstructionSystem (building.observatory, deferred entity)",
+    "status": "deferred",
+    "milestone": "M6",
+    "currentEffect": "unlock-audit class J: building.observatory -> no realizing system",
+    "deferredEffect": "observatory per the deferred-entity plan (T6.11); no sight or known-extent effect is proposed",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide once complete.",
+    "unknownResource": "n/a: an instrument reveals no territory or deposit",
+    "aiValuation": "Value through spectroscopy -> quantum_mechanics and space_telescope; never as map knowledge.",
+    "playerCommunication": "Says that the telescope reveals no territory; reconnaissance belongs to the fog system."
+   }
+  },
+  {
+   "id": "microscope",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Compound and single-lens microscopes (1620s; Leeuwenhoek 1670s). Now feeds cell_theory (which replaces its direct edge into genetics_mendel) and still feeds germ_theory.",
+   "changes": "none (dependant genetics_mendel replaced by cell_theory; gains D02's metallography)"
+  },
+  {
+   "id": "mechanics_newtonian",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "science",
+   "rationale": "Principia 1687; supporting A7 milestone a7_science. Dependants: relativity, D08's new glider (Cayley) and - D08 accepted D04's request - rocket (the rocket equation and orbital mechanics), which puts it under satellite and space_probe. Pre-existing redundant conjunct (algebra is implied by calculus) noted in the lane notes, not re-priced here.",
+   "changes": "none (gains dependants glider and rocket, D08)"
+  },
+  {
+   "id": "calculus",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "science",
+   "rationale": "Newton and Leibniz; prerequisite of electromagnetism, mechanics, thermodynamics (new), computing and rocketry.",
+   "changes": "none (gains dependant thermodynamics)"
+  },
+  {
+   "id": "barometer_vacuum",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "science",
+   "rationale": "Atmospheric pressure and the vacuum (Torricelli 1643; air pumps 1650s): hub for pneumatic chemistry, the atmospheric engine, vacuum lamps, X-ray tubes and D08's new balloon. A split into 'air pressure' (science) and 'vacuum pump' (technique) was considered and rejected: both date to the same two decades and every consumer needs both.",
+   "changes": "none"
+  },
+  {
+   "id": "chemistry_quantitative",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "science",
+   "rationale": "Lavoisier's quantitative chemistry stays the chemistry hub; organic_chemistry, periodic_system and spectroscopy (new) hang below it, and petroleum_refining now requires it.",
+   "changes": "none (gains dependants)"
+  },
+  {
+   "id": "sulphuric_acid",
+   "disposition": [
+    "rewire"
+   ],
+   "nodeKind": "application",
+   "prereq": "distillation AND saltpetre_refining",
+   "prereqRationale": "The Glauber/Ward method (Twickenham, 1736) burned sulphur with saltpetre in the presence of steam; Roebuck (1746) moved it from glass vessels into lead chambers (RESEARCHED). glass_lead (Ravenscroft's lead-crystal glass, 1674) is not knowledge the process needs - the edge confused lead chambers with lead glass - so saltpetre_refining replaces it. Two conjuncts: prereq_complexity 0.5 unchanged.",
+   "rationale": "Lead-chamber sulphuric acid is the base of the heavy-chemical industry; a non-causal edge is fixed and the capability block records its inputs and M11+ realization.",
+   "changes": "prereq glass_lead -> saltpetre_refining; cost unchanged (33,450)",
+   "capability": {
+    "grants": [
+     "knowledge:bleaching",
+     "knowledge:soda",
+     "knowledge:fertiliser",
+     "knowledge:explosives",
+     "building:building.chemical_works"
+    ],
+    "realizationOwner": "ConstructionSystem (building.chemical_works, deferred entity) + M11+ chemical goods",
+    "status": "deferred",
+    "milestone": "M10+",
+    "currentEffect": "unlock-audit class J: building.chemical_works -> no realizing system",
+    "deferredEffect": "M11+: a sulphuric-acid good made in chemical works and consumed by soda, bleach, fertiliser and explosive recipes; the works building alone has nothing to make before then",
+    "inputs": {
+     "resources": [
+      "sulphur or pyrite (no good)",
+      "saltpetre (no good)"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Building eligible, works idle: no sulphur, pyrite or saltpetre goods exist.",
+    "unknownResource": "Never reveals sulphur or pyrite; identification belongs to D11.",
+    "aiValuation": "Value through soda_leblanc, bleach_chlorine, dynamite and D01's chemical_fertilizer.",
+    "playerCommunication": "Explains that a chemical works needs sulphur and nitre inputs the simulation does not yet have."
+   },
+   "compatibility": {
+    "saves": "Key kept; completed rows stay completed. Partial progress is dormant (UI 'Partial') while a new prerequisite is unmet and a saved target on it is cleared (engine-audit 7.3, Q14). Saltpetre_refining (A6) is usually already known by A8.",
+    "ids": "unchanged (275)",
+    "ui": "lock reason now names saltpetre_refining",
+    "ai": "AiResearchPolicy closures change; AI-empire pins re-pin if the AI's choices move.",
+    "consumers": "bleach_chlorine, dynamite, soda_leblanc, building.chemical_works unchanged; gains D01's chemical_fertilizer",
+    "tests": "D-047 chronology test re-checked by the lane (every must-hold edge dated earlier); depth cascades to descendants; AI-empire goldens move if choices change; the three CI --check docs regenerate."
+   }
+  },
+  {
+   "id": "soda_leblanc",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Synthetic alkali (Leblanc 1791; Solvay 1861) is a real industrial capability with no simulated consumer - a knowledge-only dead end today. Resolved by a dependant and a later owner: D02 accepted aluminium <- soda_leblanc (the Bayer process digests bauxite in caustic soda), and an M11+ alkali good would serve glass, soap, textiles and paper.",
+   "changes": "none to content (gains dependant aluminium, D02; M11+ owner assigned)",
+   "capability": {
+    "grants": [
+     "knowledge:glass and soap at scale",
+     "knowledge:pollution (the Alkali Act 1863)"
+    ],
+    "realizationOwner": "ProductionSystem (M11+ alkali good and recipe)",
+    "status": "deferred",
+    "milestone": "M10+",
+    "currentEffect": "unlock-audit class C: knowledge-only; gains dependant aluminium (D02)",
+    "deferredEffect": "M11+: a soda (alkali) good and recipe consumed by glass, soap, textile-finishing and aluminium (Bayer) recipes; a pollution externality if an environment model exists",
+    "inputs": {
+     "resources": [
+      "salt (no good)",
+      "sulphuric acid (no good)",
+      "limestone (no good)",
+      "coal (no good)"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but unrealizable: none of its inputs is a good.",
+    "unknownResource": "Never reveals salt or limestone; identification belongs to D11.",
+    "aiValuation": "Value through aluminium (D02) until M11+ alkali goods exist.",
+    "playerCommunication": "Knowledge only: no alkali industry is simulated yet."
+   }
+  },
+  {
+   "id": "bleach_chlorine",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Chlorine bleaching (Berthollet 1785; Tennant's bleaching powder 1799) is also the chemistry of hypochlorite disinfection - Labarraque's solution (1820s), Semmelweis's chlorinated-lime handwashing (1847), continuous water chlorination (Jersey City 1908). Dead end resolved by a later realization owner: M9 public health (with germ_theory) and M11+ textile finishing.",
+   "changes": "none to content (dead end resolved by an assigned M9 owner)",
+   "capability": {
+    "grants": [
+     "knowledge:cotton finishing at industrial pace"
+    ],
+    "realizationOwner": "M9 society (public-health / disease system); M11+ textile finishing",
+    "status": "deferred",
+    "milestone": "M9",
+    "currentEffect": "unlock-audit class C: knowledge-only; no dependant",
+    "deferredEffect": "M9: together with germ_theory, makes hypochlorite disinfection and water chlorination eligible for the public-health system (lower water-borne disease); M11+: bleaching as a cloth-finishing step if textile quality is modelled",
+    "inputs": {
+     "resources": [
+      "salt (no good)",
+      "sulphuric acid (no good)",
+      "manganese ore or lime (no good)"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but unrealizable until M9 health and M11+ chemical goods exist.",
+    "unknownResource": "Never reveals salt deposits; identification belongs to D11.",
+    "aiValuation": "Value from M9 health effects once they exist; low until then.",
+    "playerCommunication": "Knowledge only until the public-health system exists; then disinfection becomes a health measure."
+   }
+  },
+  {
+   "id": "synthetic_dye",
+   "disposition": [
+    "rewire"
+   ],
+   "nodeKind": "application",
+   "prereq": "organic_chemistry AND coke AND dyeing",
+   "prereqRationale": "Perkin (1856) was A. W. Hofmann's student working on organic synthesis from coal-tar aniline; the industry's later dyes (alizarin 1869, indigo 1880) came from structural organic chemistry, so organic_chemistry replaces chemistry_quantitative (implied through it). coke stays as the coal-tar source. dyeing is added at D07's request: mauve needed mordant dyeing to be usable on cloth and synthetic alizarin reproduced madder - the industry replaced dyestuffs inside an existing dyeing trade. Three conjuncts: prereq_complexity 0.5 -> 1.0.",
+   "rationale": "Perkin's mauve and the coal-tar dye industry; routed through the new organic_chemistry node and the dyeing craft it served (resolves dyeing's dead end in D07).",
+   "changes": "prereq 'chemistry_quantitative AND coke' -> 'organic_chemistry AND coke AND dyeing'; prereq_complexity 0.5 -> 1.0; magnitude 8.0 -> 8.5; cost 23,650 -> 33,450",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 1.5,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 1.0
+   },
+   "costRationale": "novelty 1.0 (unchanged) | difficulty 2.5: A8 prior (unchanged) | material 1.5: coal-tar intermediates, dye works (unchanged) | institutional 2.0: A8 prior (unchanged) | breadth 0.5: cheap colour, the industrial research laboratory (unchanged) | prereq_complexity 1.0: three conjuncts (was two) - convention C-10/C-26, no other factor touched.",
+   "compatibility": {
+    "saves": "Key kept; completed rows stay completed. Partial progress is dormant (UI 'Partial') while a new prerequisite is unmet and a saved target on it is cleared (engine-audit 7.3, Q14). Raised cost: remaining work grows by 9,800 RP.",
+    "ids": "unchanged (278)",
+    "ui": "lock reasons name organic_chemistry and dyeing",
+    "ai": "AiResearchPolicy closures change; AI-empire pins re-pin if the AI's choices move.",
+    "consumers": "plastics, and D10's sulfonamides and hormonal_contraception, depend on it; dyeing (D07) gains its first dependant",
+    "tests": "D-047 chronology test re-checked by the lane (every must-hold edge dated earlier); depth cascades to descendants; AI-empire goldens move if choices change; the three CI --check docs regenerate."
+   }
+  },
+  {
+   "id": "haber_bosch",
+   "disposition": [
+    "rewire"
+   ],
+   "nodeKind": "application",
+   "prereq": "chemistry_quantitative AND open_hearth AND thermodynamics",
+   "prereqRationale": "Haber's route rested on the thermodynamics of gas equilibria (Thermodynamik technischer Gasreaktionen, 1905; the high-pressure equilibrium dispute with Nernst - RESEARCHED); open_hearth stands for the high-pressure steel reactors Bosch built; chemistry for the catalyst search (Mittasch tested more than 2,500 catalysts - RESEARCHED). electricity_generation is removed: the Oppau plant (1913) made hydrogen by passing steam over glowing coke and took nitrogen from liquefied air (RESEARCHED) - electricity is not knowledge the process needs (the electric-arc nitrogen route is a different process). Three conjuncts: prereq_complexity 1.0 unchanged.",
+   "rationale": "Synthetic ammonia is the hinge of modern food supply; its scientific prerequisite (thermodynamics) was missing and a chronology-style edge (electricity_generation) is removed. Realization owner recorded (M11+ fertiliser good).",
+   "changes": "prereq electricity_generation -> thermodynamics; cost unchanged (66,910)",
+   "capability": {
+    "grants": [
+     "knowledge:yield ceiling raised ~2×",
+     "knowledge:population beyond organic limit"
+    ],
+    "realizationOwner": "ProductionSystem through D01's fertiliser chain (chemical_fertilizer, new D01 node, deferred M10+)",
+    "status": "deferred",
+    "milestone": "M10+",
+    "currentEffect": "unlock-audit class C: knowledge-only; prerequisite of green_revolution",
+    "deferredEffect": "M10+: synthetic nitrogen becomes an input of D01's fertiliser good (chemical_fertilizer), applied on the Farming land side to raise yield; nitrate for explosives if a munitions good exists",
+    "inputs": {
+     "resources": [
+      "coke or natural gas for hydrogen (no good)",
+      "air"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but unrealizable until fuel and fertiliser goods exist.",
+    "unknownResource": "Air is everywhere; fuel identification belongs to D11.",
+    "aiValuation": "High for food-limited polities once fertiliser exists; until then through green_revolution.",
+    "playerCommunication": "Knowledge of the process; no fertiliser production is simulated yet."
+   },
+   "compatibility": {
+    "saves": "Key kept; completed rows stay completed. Partial progress is dormant (UI 'Partial') while a new prerequisite is unmet and a saved target on it is cleared (engine-audit 7.3, Q14).",
+    "ids": "unchanged (281)",
+    "ui": "lock reason names thermodynamics",
+    "ai": "AiResearchPolicy closures change; AI-empire pins re-pin if the AI's choices move.",
+    "consumers": "green_revolution unchanged; electricity_generation keeps nine other dependants",
+    "tests": "D-047 chronology test re-checked by the lane (every must-hold edge dated earlier); depth cascades to descendants; AI-empire goldens move if choices change; the three CI --check docs regenerate."
+   }
+  },
+  {
+   "id": "dynamite",
+   "disposition": [
+    "rewire"
+   ],
+   "nodeKind": "application",
+   "prereq": "sulphuric_acid AND organic_chemistry",
+   "prereqRationale": "Nitroglycerine (Sobrero 1847) is an organic nitrate ester made with nitric and sulphuric acids; Nobel's 1867 stabilisation is organic-chemistry practice. organic_chemistry replaces chemistry_quantitative (implied through it). Two conjuncts: unchanged. The existing Eureka (mining_shaft) stays non-implied.",
+   "rationale": "Hard-rock blasting has no simulated consumer - a knowledge-only dead end. Resolved by a later realization owner: an M11+ extraction technique (requested for D02's extraction ladder) and the terrain-crossing tunnel class D-009 foresees, which D07 places in the transport packet DW-059.",
+   "changes": "prereq chemistry_quantitative -> organic_chemistry; cost unchanged (23,650); capability owner assigned",
+   "capability": {
+    "grants": [
+     "knowledge:hard-rock excavation at scale",
+     "knowledge:Alpine tunnels"
+    ],
+    "realizationOwner": "M11+ extraction and infrastructure content (hard-rock mining; tunnel or rock-cut edge classes)",
+    "status": "deferred",
+    "milestone": "M10+",
+    "currentEffect": "unlock-audit class C: knowledge-only; no dependant",
+    "deferredEffect": "M11+: an extraction technique raising hard-rock mining output (D02's extraction ladder) and the prerequisite of a terrain-crossing tunnel class (transport packet DW-059); M7 only if the battle layer models demolition",
+    "inputs": {
+     "resources": [
+      "glycerine (no good)",
+      "nitric and sulphuric acid (no good)",
+      "kieselguhr (no good)"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but unrealizable: no explosive good and no extraction or tunnel class consumes it.",
+    "unknownResource": "n/a (no deposit is revealed by knowing how to blast rock)",
+    "aiValuation": "Low until an extraction or tunnel consumer exists.",
+    "playerCommunication": "Knowledge only: no blasting, mining or tunnelling effect is simulated yet."
+   },
+   "compatibility": {
+    "saves": "Key kept; completed rows stay completed. Partial progress is dormant (UI 'Partial') while a new prerequisite is unmet and a saved target on it is cleared (engine-audit 7.3, Q14).",
+    "ids": "unchanged (282)",
+    "ui": "lock reason names organic_chemistry",
+    "ai": "AiResearchPolicy closures change; AI-empire pins re-pin if the AI's choices move.",
+    "consumers": "none (dead end)",
+    "tests": "D-047 chronology test re-checked by the lane (every must-hold edge dated earlier); depth cascades to descendants; AI-empire goldens move if choices change; the three CI --check docs regenerate. Implied-Eureka check: mining_shaft stays off every path to dynamite (verified on the proposed graph)."
+   }
+  },
+  {
+   "id": "electromagnetism",
+   "disposition": [
+    "split",
+    "rebalance"
+   ],
+   "nodeKind": "science",
+   "name": "Electromagnetism",
+   "emerged": "1800-1831 CE (Volta's battery 1800; Oersted 1820; Ampère; Faraday's induction 1831)",
+   "splitInto": [
+    "electromagnetic_field_theory"
+   ],
+   "rationale": "The node bundled two discoveries with different consumers: the experimental laws of current electricity and electromagnetism (Volta 1800 to Faraday 1831), which the telegraph, dynamo, generator, battery and X-ray tube need, and Maxwell's field theory with Hertz's waves (1865-88), which radio, radar, relativity and quantum theory need. The key stays with the experimental part: it keeps every current consumer and the A9 core chain to electricity_generation.",
+   "changes": "split -> electromagnetic_field_theory (new); name 'Electromagnetic theory' -> 'Electromagnetism'; emerged '1820-1865 CE' -> '1800-1831 CE (...)'; factors.difficulty 3.0 -> 2.5 (Maxwell's mathematics moves out); magnitude 9.25 -> 8.75; cost 56,260 -> 39,780; capability string 'radio (theory)' moves to the new node; prereq unchanged (calculus).",
+   "factors": {
+    "novelty": 2.0,
+    "difficulty": 2.5,
+    "material": 0.75,
+    "institutional": 2.0,
+    "breadth": 1.5,
+    "prereq_complexity": 0.0
+   },
+   "costRationale": "novelty 2.0: electricity and magnetism unified; induction (unchanged) | difficulty 2.5: A8 prior - experimental laws; the 3.0 reflected Maxwell's theory, now split off | material 0.75: batteries, coils, wire (unchanged) | institutional 2.0: A8 prior (unchanged) | breadth 1.5: motor, generator, telegraph, battery lineage (unchanged) | prereq_complexity 0.0: one requirement (calculus). Split sum 39,780 + 23,650 = 63,430 vs 56,260 (+12.7 %).",
+   "capability": {
+    "grants": [
+     "knowledge:motor",
+     "knowledge:generator",
+     "knowledge:telegraph"
+    ],
+    "realizationOwner": "none",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "unlock-audit class C: knowledge-only; prerequisite of telegraph, dynamo, electricity_generation, lithium_battery, radar, radio, xray and (new) electromagnetic_field_theory",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide once complete.",
+    "unknownResource": "n/a",
+    "aiValuation": "Value through the electricity chain (A9 core fact electricity_generation) and the telegraph.",
+    "playerCommunication": "Knowledge only; the realizing nodes are the electrical engineering nodes."
+   },
+   "compatibility": {
+    "saves": "Key 283 kept for the experimental part. Saves that completed it do NOT hold electromagnetic_field_theory: quantum_mechanics and relativity (and radio/radar if D05/D09 accept) become unavailable to such polities until the new node is researched; their partial progress goes dormant. Lowered cost: progress >= 39,780 completes next step. Recommend the alias/remap seam (grant the new part to holders of key 283) - OPEN DECISION.",
+    "ids": "283 kept; new key for electromagnetic_field_theory assigned by tools/integrate.py",
+    "ui": "renamed; new node beside it in the Natural Science lane",
+    "ai": "A9 core closure (electricity_generation) unchanged and cheaper; quantum/relativity closures grow; AI-empire pins move",
+    "consumers": "telegraph, dynamo, electricity_generation, lithium_battery, xray, radio, radar keep key 283; quantum_mechanics and relativity move to the new node (this lane); radio and radar are requested to move (D05, D09)",
+    "tests": "ResearchContentTests corpus-name pin (key 283 renamed: add it to the D-047 rename exceptions or update the corpus); chronology test (earliest year 1820 -> 1800, still before every dependant); branch and finite counts; the three CI --check docs."
+   }
+  },
+  {
+   "id": "petroleum_refining",
+   "disposition": [
+    "rewire"
+   ],
+   "nodeKind": "application",
+   "prereq": "chemistry_quantitative",
+   "emerged": "1853-1859 CE (Łukasiewicz's kerosene 1853 and refinery 1856; Drake's well 1859)",
+   "prereqRationale": "Refining is processing knowledge: fractional distillation of rock oil into kerosene and its purification, first done by chemists (Łukasiewicz, a pharmacist, in Lwów 1853; refinery 1856, before the 1859 Drake well - RESEARCHED; Silliman's 1855 fractional analysis). chemistry_quantitative carries that analysis and implies distillation, so the separate distillation conjunct is dropped as redundant (as D02 did for aluminium). mining_shaft is removed: digging or drilling for crude is extraction (D02's percussion_drilling; identification is D11's), not knowledge refining needs. One requirement: prereq_complexity 0.5 -> 0.0.",
+   "rationale": "Separates processing from extraction (framework section 6 chain, agreed with D02): the node is the refining technique; identification belongs to D11 and extraction to D02. Realization recorded as M11+ (crude-oil and fuel goods).",
+   "changes": "prereq 'distillation AND mining_shaft' -> 'chemistry_quantitative'; prereq_complexity 0.5 -> 0.0; magnitude 8.5 -> 8.0; cost 33,450 -> 23,650; emerged '1859 CE' -> '1853-1859 CE (...)' (still era-marked)",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 1.5,
+    "institutional": 2.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.0
+   },
+   "costRationale": "novelty 1.0 (unchanged) | difficulty 2.5: A8 prior (unchanged) | material 1.5: stills, treating plant (unchanged) | institutional 2.0: A8 prior (unchanged) | breadth 1.0: lamp oil, motor fuel, petrochemicals (unchanged) | prereq_complexity 0.0: one independent requirement (the non-causal mining_shaft is removed and distillation is implied) - convention C-10/C-26. Same magnitude as dynamite and synthetic dye's old score (8.0).",
+   "capability": {
+    "grants": [
+     "knowledge:lamp oil",
+     "knowledge:fuel for ICE",
+     "building:building.refinery"
+    ],
+    "realizationOwner": "ConstructionSystem (building.refinery, deferred entity) + M11+ crude-oil and fuel goods",
+    "status": "deferred",
+    "milestone": "M10+",
+    "currentEffect": "unlock-audit class J: building.refinery -> no realizing system",
+    "deferredEffect": "M11+: a refinery turns a crude-oil good into kerosene and motor-fuel goods consumed by engines and lamps",
+    "inputs": {
+     "resources": [
+      "crude oil (no good)"
+     ],
+     "geography": [
+      "oil seeps or fields (no deposit kind)"
+     ],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Refinery eligible but idle: no crude-oil good and no extraction chain exist.",
+    "unknownResource": "Refining knowledge never reveals oil: D11 identifies crude sources and D02's percussion_drilling extracts them. The existing Eureka 'Oil seeps or wells are in range' waits for that resource state.",
+    "aiValuation": "Value through automobile_mass, motor_road and plastics; under fog never from unknown oil.",
+    "playerCommunication": "Explains why a refinery stays idle: no identified, extracted crude source."
+   },
+   "compatibility": {
+    "saves": "Key kept; completed rows stay completed. Partial progress is dormant (UI 'Partial') while a new prerequisite is unmet and a saved target on it is cleared (engine-audit 7.3, Q14). Lowered cost: stored progress >= 23,650 completes at the next step.",
+    "ids": "unchanged (292)",
+    "ui": "lock reason names chemistry_quantitative",
+    "ai": "AiResearchPolicy closures change; AI-empire pins re-pin if the AI's choices move.",
+    "consumers": "automobile_mass, motor_road (prereq string pinned in RoadDevelopmentTests - unchanged), plastics, building.refinery unchanged; mining_shaft keeps qanat and activity.mining",
+    "tests": "D-047 chronology test re-checked by the lane (every must-hold edge dated earlier); depth cascades to descendants; AI-empire goldens move if choices change; the three CI --check docs regenerate."
+   }
+  },
+  {
+   "id": "photography",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Daguerre 1839 / Talbot 1841: photochemistry plus achromatic (flint-glass) lenses - the glass_lead edge is causal here. Loses its direct edge into dna_structure (which now goes through xray, itself built on photography); still feeds xray, television, integrated_circuit (photolithography), earth_observation.",
+   "changes": "none (direct dependant dna_structure removed)"
+  },
+  {
+   "id": "evolution",
+   "disposition": [
+    "rewire"
+   ],
+   "nodeKind": "science",
+   "prereq": "selective_breeding AND taxonomy",
+   "prereqRationale": "Darwin's and Wallace's theory explained the natural system of classification (Origin, ch. 13) and drew on artificial selection (Origin, ch. 1): both are knowledge the theory needs. Deep geological time (Lyell 1830-33) is a third input, requested from D11's geology node (new ids cannot be referenced here). Two conjuncts: prereq_complexity 0.0 -> 0.5.",
+   "rationale": "Evolution rested on livestock breeding alone; adding systematic classification makes its causal basis honest. Cost moves only through the prereq-complexity convention.",
+   "changes": "prereq selective_breeding -> selective_breeding AND taxonomy; prereq_complexity 0.0 -> 0.5; magnitude 7.5 -> 8.0; cost 16,730 -> 23,650",
+   "factors": {
+    "novelty": 2.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "costRationale": "novelty 2.0: paradigm (unchanged) | difficulty 3.0: synthesis across natural history, above the A8 prior (unchanged) | material 0.0: theory (unchanged) | institutional 2.0: A8 prior (unchanged) | breadth 0.5: biology as a science, breeding theory (unchanged) | prereq_complexity 0.5: two conjuncts (was one) - convention C-10/C-26.",
+   "compatibility": {
+    "saves": "Key kept; completed rows stay completed. Partial progress is dormant (UI 'Partial') while a new prerequisite is unmet and a saved target on it is cleared (engine-audit 7.3, Q14). Raised cost: remaining work grows by 6,920 RP.",
+    "ids": "unchanged (298)",
+    "ui": "lock reason names taxonomy",
+    "ai": "AiResearchPolicy closures change; AI-empire pins re-pin if the AI's choices move.",
+    "consumers": "antibiotic_resistance (D10) keeps it; genetics_mendel no longer requires it (see that record)",
+    "tests": "D-047 chronology test re-checked by the lane (every must-hold edge dated earlier); depth cascades to descendants; AI-empire goldens move if choices change; the three CI --check docs regenerate. Its Eureka (carrack OR caravel) stays non-implied: taxonomy requires only printing_press."
+   }
+  },
+  {
+   "id": "vacuum_tube",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Thermionic valves (Fleming 1904, de Forest 1906) - an electronics application filed in natural science; kept here (relocating a five-dependant hub would only relabel it). Gains atomic_clock as a dependant (electronic oscillators).",
+   "changes": "none (gains dependant atomic_clock)"
+  },
+  {
+   "id": "quantum_mechanics",
+   "disposition": [
+    "rewire",
+    "rebalance"
+   ],
+   "nodeKind": "science",
+   "prereq": "electromagnetic_field_theory AND thermodynamics AND spectroscopy AND periodic_system",
+   "prereqRationale": "Planck's quantum (1900) answered the black-body problem - electromagnetic radiation in thermal equilibrium, i.e. field theory plus thermodynamics and Boltzmann's statistical entropy; Bohr (1913) and Heisenberg (1925) worked from spectral lines (spectroscopy); Pauli's exclusion principle (1925) was formulated to explain the closing of electron groups behind the periodic system. Experimental electromagnetism is implied through field theory. If D11 adds an atomic-structure node predating quantum mechanics, D04 asks integration to add it here (prereq_complexity is already 1.0).",
+   "rationale": "The hub of modern physics had a single prerequisite (electromagnetism); it now rests on the sciences it actually synthesised. Two factor changes, each with its own content reason.",
+   "changes": "prereq electromagnetism -> four conjuncts; prereq_complexity 0.0 -> 1.0; institutional 3.0 -> 2.5; magnitude 10.0 -> 10.5; cost 94,620 -> 133,810",
+   "factors": {
+    "novelty": 2.0,
+    "difficulty": 3.5,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.5,
+    "prereq_complexity": 1.0
+   },
+   "costRationale": "novelty 2.0: paradigm (unchanged) | difficulty 3.5: hardest theory in the tree, above the A9 prior (unchanged) | material 0.0: theory; its apparatus, spectroscopy, is now its own node (unchanged) | institutional 2.5: A9 prior - university research groups and journals, like relativity, dna_structure and laser (was 3.0, the level of state or corporate programmes: rocket, satellite, computer, transistor, nuclear_fission) | breadth 1.5: semiconductors, lasers, nuclear physics, chemistry (unchanged) | prereq_complexity 1.0: four independent conjuncts (was one). Without the institutional re-score the convention alone would double the cost (189,240).",
+   "compatibility": {
+    "saves": "Key kept; completed rows stay completed. Partial progress is dormant (UI 'Partial') while a new prerequisite is unmet and a saved target on it is cleared (engine-audit 7.3, Q14). Raised cost: remaining work grows by 39,190 RP.",
+    "ids": "unchanged (320)",
+    "ui": "lock reasons name up to four prerequisites",
+    "ai": "Every A9 closure through quantum_mechanics grows (transistor, laser, nuclear_fission, solar_pv ...); AI-empire goldens move",
+    "consumers": "atomic_clock, dna_structure, laser, nanotechnology, nuclear_fission, quantum_computing, solar_pv, superconductivity_applied, transistor unchanged (their closures grow)",
+    "tests": "D-047 chronology test re-checked by the lane (every must-hold edge dated earlier); depth cascades to descendants; AI-empire goldens move if choices change; the three CI --check docs regenerate. Its Eureka (institutional, not evaluable) is unchanged."
+   }
+  },
+  {
+   "id": "genetics_mendel",
+   "disposition": [
+    "rewire"
+   ],
+   "nodeKind": "science",
+   "prereq": "cell_theory AND probability_statistics",
+   "prereqRationale": "The laws of inheritance were found by counting hybrid offspring and reading their ratios statistically (Mendel 1856-63, who had studied physics and mathematics in Vienna; rediscovered 1900), and the chromosome theory the node also covers (Sutton-Boveri 1902-03, Morgan 1915) needs cell biology - nuclei, mitosis, chromosomes. cell_theory (which requires microscope) replaces the bare microscope edge; probability_statistics replaces evolution, removed as non-causal: Mendel's laws came from hybridisation experiments that did not use natural selection. Two conjuncts: unchanged.",
+   "rationale": "Routes genetics through the knowledge it actually used (cell biology, statistical analysis of ratios). evolution keeps its other dependant (antibiotic_resistance, D10).",
+   "changes": "prereq 'evolution AND microscope' -> 'cell_theory AND probability_statistics'; cost unchanged (33,450)",
+   "compatibility": {
+    "saves": "Key kept; completed rows stay completed. Partial progress is dormant (UI 'Partial') while a new prerequisite is unmet and a saved target on it is cleared (engine-audit 7.3, Q14).",
+    "ids": "unchanged (332)",
+    "ui": "lock reasons name cell_theory and probability_statistics",
+    "ai": "AiResearchPolicy closures change; AI-empire pins re-pin if the AI's choices move.",
+    "consumers": "dna_structure, green_revolution and D01's new scientific_plant_breeding depend on it (D10 removes hormonal_contraception); its Eureka ('Statistical record-keeping exists', future-system) is unaffected",
+    "tests": "D-047 chronology test re-checked by the lane (every must-hold edge dated earlier); depth cascades to descendants; AI-empire goldens move if choices change; the three CI --check docs regenerate."
+   }
+  },
+  {
+   "id": "dna_structure",
+   "disposition": [
+    "rewire"
+   ],
+   "nodeKind": "science",
+   "prereq": "genetics_mendel AND quantum_mechanics AND xray",
+   "prereqRationale": "The double helix (1953) was read from X-ray diffraction photographs (Franklin and Gosling's Photo 51) and model-building on Pauling's quantum-mechanical chemical bond; the node's own cost note names X-ray crystallography as its apparatus. Accepts D10's request: xray (whose capability text already includes 'crystallography (DNA)') replaces photography, which stays implied through xray. Three conjuncts: unchanged.",
+   "rationale": "Molecular biology keeps one node (structure, code and replication machinery have the same consumers - no split); its apparatus edge is corrected.",
+   "changes": "prereq photography -> xray; cost unchanged (133,810)",
+   "compatibility": {
+    "saves": "Key kept; completed rows stay completed. Partial progress is dormant (UI 'Partial') while a new prerequisite is unmet and a saved target on it is cleared (engine-audit 7.3, Q14).",
+    "ids": "unchanged (333)",
+    "ui": "lock reason names xray",
+    "ai": "AiResearchPolicy closures change; AI-empire pins re-pin if the AI's choices move.",
+    "consumers": "antiviral_drugs, genetic_engineering, monoclonal_antibodies and dna_sequencing (new) depend on it; genome_sequencing and pcr now reach it through dna_sequencing; xray (D10) gains a second dependant",
+    "tests": "D-047 chronology test re-checked by the lane (every must-hold edge dated earlier); depth cascades to descendants; AI-empire goldens move if choices change; the three CI --check docs regenerate. The Director example (vacuum_tube not in xray's must-closure) is untouched."
+   }
+  },
+  {
+   "id": "genetic_engineering",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "technique",
+   "rationale": "Recombinant DNA (Cohen-Boyer 1973) is one technique; insulin (1982) and GM crops (1996) are applications realized by M9 health and D01/M11+ agriculture, so no split.",
+   "changes": "none"
+  },
+  {
+   "id": "plastics",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Synthetic polymers (Bakelite 1907 from coal-tar phenol; nylon and polyethylene in the 1930s); edges kept. chemistry_quantitative is implied through synthetic_dye - a pre-existing redundant conjunct noted in the lane notes, not re-priced here.",
+   "changes": "none"
+  },
+  {
+   "id": "atomic_clock",
+   "disposition": [
+    "rewire"
+   ],
+   "nodeKind": "application",
+   "prereq": "quantum_mechanics AND vacuum_tube",
+   "prereqRationale": "The caesium clock (Essen and Parry, 1955) locks an electronic quartz and microwave oscillator to an atomic transition: it needs atomic physics and electronics. longitude_problem (the marine chronometer) was a lineage edge - the atomic clock uses no chronometer knowledge - so it is removed (D08 is notified: it was longitude_problem's only dependant). Two conjuncts: unchanged.",
+   "rationale": "Chronology-only edge replaced by the electronics the clock is built from.",
+   "changes": "prereq longitude_problem -> vacuum_tube; cost unchanged (28,130)",
+   "compatibility": {
+    "saves": "Key kept; completed rows stay completed. Partial progress is dormant (UI 'Partial') while a new prerequisite is unmet and a saved target on it is cleared (engine-audit 7.3, Q14).",
+    "ids": "unchanged (345)",
+    "ui": "lock reason names vacuum_tube",
+    "ai": "AiResearchPolicy closures change; AI-empire pins re-pin if the AI's choices move.",
+    "consumers": "gps unchanged; longitude_problem (D08) loses its only dependant",
+    "tests": "D-047 chronology test re-checked by the lane (every must-hold edge dated earlier); depth cascades to descendants; AI-empire goldens move if choices change; the three CI --check docs regenerate."
+   }
+  },
+  {
+   "id": "relativity",
+   "disposition": [
+    "rewire"
+   ],
+   "nodeKind": "science",
+   "prereq": "electromagnetic_field_theory AND mechanics_newtonian",
+   "prereqRationale": "Special relativity (1905) was 'On the Electrodynamics of Moving Bodies': it needs Maxwell's field theory, not only the experimental laws. Two conjuncts: unchanged.",
+   "rationale": "Dead end resolved by a dependant: D08 accepted gps <- relativity (GPS clocks carry a ~38 microsecond-a-day relativistic correction). Mass-energy accounting in nuclear physics is also requested from D11.",
+   "changes": "prereq electromagnetism -> electromagnetic_field_theory; cost unchanged (33,450)",
+   "compatibility": {
+    "saves": "Key kept; completed rows stay completed. Partial progress is dormant (UI 'Partial') while a new prerequisite is unmet and a saved target on it is cleared (engine-audit 7.3, Q14).",
+    "ids": "unchanged (348)",
+    "ui": "lock reason names electromagnetic_field_theory",
+    "ai": "AiResearchPolicy closures change; AI-empire pins re-pin if the AI's choices move.",
+    "consumers": "gps (D08, accepted); D11 nuclear chain requested",
+    "tests": "D-047 chronology test re-checked by the lane (every must-hold edge dated earlier); depth cascades to descendants; AI-empire goldens move if choices change; the three CI --check docs regenerate."
+   }
+  },
+  {
+   "id": "laser",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "One capability (coherent light, maser 1954, ruby laser 1960). Stimulated emission is part of quantum_mechanics (Einstein 1917), so there is no separate discovery to split off; every consumer (fibre_optics, guided_munitions, probe acceleration) needs the device.",
+   "changes": "none"
+  },
+  {
+   "id": "superconductivity_applied",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Bundles the 1911 discovery with 1960s magnets, but both consumers (nuclear_fusion_research, quantum_computing) need the applied cryogenic engineering; a 'discovery' node would have the applied node as its only dependant - split rejected.",
+   "changes": "none"
+  },
+  {
+   "id": "space_probe",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Interplanetary probes (Mariner 2, 1962). Orbital mechanics now reaches it: D08 accepted rocket <- mechanics_newtonian, which covers satellite and space_probe. Its computer conjunct is implied by satellite (pre-existing; not re-priced).",
+   "changes": "none"
+  },
+  {
+   "id": "space_telescope",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "End of the observational lineage (telescope -> space telescope): full-spectrum astronomy, exoplanets. No simulated consumer and none planned before M11+; kept as a justified knowledge-only leaf for its scientific and educational value. Merging into space_probe was rejected: remote observation and in-situ exploration are distinct capabilities.",
+   "changes": "none"
+  },
+  {
+   "id": "pcr",
+   "disposition": [
+    "rewire"
+   ],
+   "nodeKind": "technique",
+   "prereq": "dna_sequencing",
+   "prereqRationale": "PCR primers are designed from known flanking sequence (Mullis 1983 built on oligonucleotide synthesis and sequence data): sequencing knowledge is needed; dna_structure stays implied. One conjunct: unchanged.",
+   "rationale": "Dead end resolved: PCR now feeds genome_sequencing - sequence-tagged-site PCR mapping (Olson et al. 1989) became the standard physical-mapping method of the Human Genome Project (RESEARCHED).",
+   "changes": "prereq dna_structure -> dna_sequencing; cost unchanged (47,310); gains dependant genome_sequencing",
+   "compatibility": {
+    "saves": "Key kept; completed rows stay completed. Partial progress is dormant (UI 'Partial') while a new prerequisite is unmet and a saved target on it is cleared (engine-audit 7.3, Q14).",
+    "ids": "unchanged (385)",
+    "ui": "lock reason names dna_sequencing",
+    "ai": "AiResearchPolicy closures change; AI-empire pins re-pin if the AI's choices move.",
+    "consumers": "genome_sequencing now requires it",
+    "tests": "D-047 chronology test re-checked by the lane (every must-hold edge dated earlier); depth cascades to descendants; AI-empire goldens move if choices change; the three CI --check docs regenerate."
+   }
+  },
+  {
+   "id": "genome_sequencing",
+   "disposition": [
+    "split",
+    "rewire",
+    "rebalance"
+   ],
+   "nodeKind": "technique",
+   "prereq": "pcr AND computer",
+   "emerged": "1986 automated sequencer; 1995 first bacterial genome; 2001-2003 human genome",
+   "splitInto": [
+    "dna_sequencing"
+   ],
+   "prereqRationale": "Genome-scale sequencing needs PCR (STS mapping; amplification for automated sequencing) and computers (automated sequencers, assembly); dna_sequencing is implied through pcr. Two conjuncts: unchanged.",
+   "rationale": "The subtree's largest node (267,620 RP) bundled the 1977 invention of reading DNA (Sanger; Maxam-Gilbert) with genome-scale genomics (automated sequencers, the Human Genome Project). The key stays with genomics because its consumers (crispr, mrna_vaccines, frontier_medicine) need genomes, not single reads.",
+   "changes": "split -> dna_sequencing (new); prereq dna_structure AND computer -> pcr AND computer; novelty 2.0 -> 1.0 (the paradigm, reading DNA, moves to dna_sequencing); magnitude 11.5 -> 10.5; cost 267,620 -> 133,810; emerged re-scoped to genomics (left marker-free, so the 83-count pin is unchanged)",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 2.0,
+    "institutional": 3.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "costRationale": "novelty 1.0: industrial scale-up of an existing method (was 2.0; the paradigm moves to dna_sequencing) | difficulty 3.0: A9 prior (unchanged) | material 2.0: automated capillary sequencers and dyes (unchanged) | institutional 3.0: international consortium and sequencing centres, above the A9 prior (unchanged) | breadth 1.0: genetic medicine, genome-based breeding (unchanged) | prereq_complexity 0.5: two conjuncts (unchanged). Split sum 133,810 + 94,620 = 228,430 vs 267,620 (-14.6 %); the largest single wait halves.",
+   "compatibility": {
+    "saves": "Key 386 kept for genomics. Saves that completed it do not hold dna_sequencing (harmless: its dependants need only key 386). Saves with partial genome_sequencing progress find it unavailable until pcr (now behind dna_sequencing) is known - progress dormant. Lowered cost: progress >= 133,810 completes next step. Recommend the alias/remap seam - OPEN DECISION.",
+    "ids": "386 kept; new key for dna_sequencing assigned by tools/integrate.py",
+    "ui": "same name; new node beside it",
+    "ai": "AiResearchPolicy closures change; AI-empire pins re-pin if the AI's choices move.",
+    "consumers": "crispr, frontier_medicine, mrna_vaccines unchanged",
+    "tests": "D-047 chronology test re-checked by the lane (every must-hold edge dated earlier); depth cascades to descendants; AI-empire goldens move if choices change; the three CI --check docs regenerate."
+   }
+  },
+  {
+   "id": "crispr",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "technique",
+   "rationale": "Programmable gene editing (2012): one capability; edges causal (genomics plus recombinant DNA).",
+   "changes": "none"
+  },
+  {
+   "id": "catalytic_converter",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Exhaust catalysis (1975) has no simulated consumer: no vehicle-emission or air-quality model exists. Dead end resolved by a later realization owner (M11+ environment content; M9 public health for air-quality effects); kept as a real application of catalysis chemistry.",
+   "changes": "none to content (owner assigned)",
+   "capability": {
+    "grants": [
+     "knowledge:vehicle emission control"
+    ],
+    "realizationOwner": "M11+ environment/pollution content (M9 public health for air-quality effects)",
+    "status": "deferred",
+    "milestone": "M10+",
+    "currentEffect": "unlock-audit class C: knowledge-only; no dependant",
+    "deferredEffect": "M11+: lowers emissions per unit of motor transport once vehicles and an emissions model exist",
+    "inputs": {
+     "resources": [
+      "platinum-group metals (no good)"
+     ],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Eligible but unrealizable until motor transport and emissions are simulated.",
+    "unknownResource": "Never reveals platinum-group deposits (D11).",
+    "aiValuation": "Low until an emissions model exists.",
+    "playerCommunication": "Knowledge only: no pollution is simulated yet."
+   }
+  },
+  {
+   "id": "carbon_capture",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "application",
+   "rationale": "Amine CO2 scrubbing, industrial from the 1970s; feeds frontier_climate (D01's repeatable). No change.",
+   "changes": "none"
+  }
+ ],
+ "new": [
+  {
+   "id": "taxonomy",
+   "name": "Biological classification",
+   "branch": "natural_science",
+   "age": "A7",
+   "domain": "science",
+   "secondaryDomains": [
+    "agriculture"
+   ],
+   "emerged": "1735 CE (Linnaeus, Systema Naturae); binomial names 1753",
+   "prereq": "printing_press",
+   "prereqRationale": "A cumulative natural history needed comparable printed descriptions and illustrations (printed herbals of the 1530s-40s; Linnaeus's system was a publishing programme). Specimens from voyages are a circumstance, modelled as a Eureka, not a requirement.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.0,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "costAnalog": "selective_breeding",
+   "costRationale": "novelty 1.0: a systematic method for an existing practice of natural history | difficulty 2.0: A7 prior | material 0.0: no apparatus beyond herbaria | institutional 1.5: A7 prior - botanical gardens, herbaria, academies | breadth 0.5: feeds evolution and systematic botany | prereq_complexity 0.0: one requirement. Same magnitude as selective_breeding (5.0).",
+   "nodeKind": "science",
+   "primaryUniversity": "natural_science",
+   "capability": {
+    "grants": [
+     "knowledge:systematic naming and classification of species"
+    ],
+    "realizationOwner": "none",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "completion row only; prerequisite of evolution",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide once complete.",
+    "unknownResource": "n/a",
+    "aiValuation": "Value through evolution -> genetics -> molecular biology.",
+    "playerCommunication": "Knowledge only; opens the theory of evolution."
+   },
+   "eurekas": [
+    {
+     "text": "Ocean voyaging returns specimens from distant regions",
+     "when": "carrack OR caravel",
+     "kind": "exposure",
+     "class": "machine-evaluable",
+     "weight": 0.4,
+     "evaluable_now": true,
+     "system": "research (knowledge state)",
+     "source": "authored",
+     "justification": "Specimens from long voyages - and Linnaeus's travelling students - supplied the material systematic classification organised; ocean-going ships are the knowledge state that makes such voyages possible. Not implied: taxonomy requires only printing_press."
+    }
+   ],
+   "family": null,
+   "generation": null,
+   "splitFrom": null,
+   "whyDistinct": "Systematic classification (Ray 1686, Linnaeus 1735) is the body of knowledge the theory of evolution explains; today evolution rests on livestock breeding alone. A distinct science with its own dependant.",
+   "acceptanceTest": "Loader: loads with cost 2,960 (factor sum 5.0), one natural_science primary, not an orphan. Graph: evolution is unavailable until taxonomy completes. Eureka: with carrack or caravel complete it fires once for 0.4 x 2,960 = 1,184 RP and passes the implied/dead checks. Completion writes only a ResearchCompletedRow.",
+   "rationale": "New biology foundation node; gives evolution an honest causal basis.",
+   "compatibility": {
+    "saves": "new key; starts uncompleted",
+    "tests": "New key appended by tools/integrate.py; TechnologyCount, the natural_science branch count and finite_nodes_to_exhaust of frontier_climate (43 -> 51 with this lane's changes) move; era-marked emerged, so the 83 marker-free pin is unchanged. Adds one evaluable knowledge Eureka (ResearchContentTests Eureka counts move)."
+   }
+  },
+  {
+   "id": "thermodynamics",
+   "name": "Thermodynamics",
+   "branch": "natural_science",
+   "age": "A8",
+   "domain": "science",
+   "secondaryDomains": [
+    "energy"
+   ],
+   "emerged": "1824-1877 CE (Carnot 1824; Joule 1840s; Clausius and Kelvin 1850-51; Boltzmann 1877)",
+   "prereq": "steam_separate_condenser AND calculus",
+   "prereqRationale": "The science of heat came from analysing heat engines: Carnot (1824) theorised the steam engine; Watt's separate-condenser engine practice and its indicator diagram, with Black's latent-heat measurements, gave the quantities Clapeyron (1834) turned into the pressure-volume cycle. The laws and statistical mechanics are calculus-based.",
+   "factors": {
+    "novelty": 2.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 1.5,
+    "prereq_complexity": 0.5
+   },
+   "costAnalog": "germ_theory",
+   "costRationale": "novelty 2.0: paradigm - conservation of energy and entropy | difficulty 3.0: above the A8 prior - abstract mathematical theory (as evolution and germ_theory) | material 0.0: theory; Joule's apparatus is modest | institutional 2.0: A8 prior | breadth 1.5: engines, refrigeration, chemical equilibrium, quantum theory | prereq_complexity 0.5: two conjuncts. Same magnitude as germ_theory (9.0).",
+   "nodeKind": "science",
+   "primaryUniversity": "natural_science",
+   "capability": {
+    "grants": [
+     "knowledge:laws of energy and entropy",
+     "knowledge:efficiency limits of heat engines",
+     "knowledge:chemical equilibrium"
+    ],
+    "realizationOwner": "none",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "completion row only; prerequisite of quantum_mechanics and haber_bosch",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide once complete.",
+    "unknownResource": "n/a",
+    "aiValuation": "Value through quantum_mechanics and haber_bosch (and refrigeration/diesel if accepted).",
+    "playerCommunication": "Knowledge only; the engines are separate engineering nodes."
+   },
+   "eurekas": [],
+   "family": null,
+   "generation": null,
+   "splitFrom": null,
+   "whyDistinct": "A missing hub: quantum_mechanics, haber_bosch, refrigeration and diesel have no science of heat behind them today. It separates understanding (energy, entropy) from the engines that apply it; the steam engines that predate it stay available without it.",
+   "acceptanceTest": "Graph: quantum_mechanics and haber_bosch are unavailable until it completes, while steam_atmospheric ... steam_high_pressure stay available without it. Loader: cost 47,310; chronology 1824 after 1769 and ~1670. Completion changes no entity eligibility.",
+   "rationale": "New physics hub with in-lane dependants and requested engineering consumers.",
+   "compatibility": {
+    "saves": "new key; starts uncompleted",
+    "tests": "New key appended by tools/integrate.py; TechnologyCount, the natural_science branch count and finite_nodes_to_exhaust of frontier_climate (43 -> 51 with this lane's changes) move; era-marked emerged, so the 83 marker-free pin is unchanged."
+   }
+  },
+  {
+   "id": "electromagnetic_field_theory",
+   "name": "Electromagnetic field theory",
+   "branch": "natural_science",
+   "age": "A8",
+   "domain": "science",
+   "secondaryDomains": [
+    "communication"
+   ],
+   "emerged": "1865-1888 CE (Maxwell 1865; Hertz's waves 1887-88)",
+   "prereq": "electromagnetism",
+   "prereqRationale": "Maxwell unified the experimental laws of Oersted, Ampère and Faraday into field equations and predicted electromagnetic waves; Hertz produced and detected them. The calculus Maxwell needed is implied through electromagnetism.",
+   "factors": {
+    "novelty": 2.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.0
+   },
+   "costAnalog": "evolution",
+   "costRationale": "novelty 2.0: paradigm - light is an electromagnetic wave; fields carry energy | difficulty 3.0: above the A8 prior - vector-calculus field theory | material 0.0: a theory; Hertz's spark-gap apparatus is simple | institutional 2.0: A8 prior | breadth 1.0: radio, radar, relativity, quantum theory | prereq_complexity 0.0: one requirement. Split from electromagnetism (sum +12.7 %).",
+   "nodeKind": "science",
+   "primaryUniversity": "natural_science",
+   "capability": {
+    "grants": [
+     "knowledge:radio (theory)",
+     "knowledge:light as an electromagnetic wave"
+    ],
+    "realizationOwner": "none",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "completion row only; prerequisite of quantum_mechanics and relativity (radio at integration - accepted by D05 - and radar if D09 accepts)",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide once complete.",
+    "unknownResource": "n/a",
+    "aiValuation": "Value through quantum_mechanics, relativity and wireless telegraphy.",
+    "playerCommunication": "Knowledge only."
+   },
+   "eurekas": [],
+   "family": "electricity",
+   "generation": null,
+   "splitFrom": "electromagnetism",
+   "whyDistinct": "Different consumers need different halves of the old node: telegraph, dynamo, generator, battery and X-ray tube need only the experimental laws (1800-31); radio, radar, relativity and quantum theory need Maxwell's theory and Hertz's waves (1865-88).",
+   "acceptanceTest": "Graph: telegraph, dynamo, electricity_generation, lithium_battery and xray stay available with electromagnetism alone; quantum_mechanics and relativity are unavailable until this node completes. Loader: cost 23,650; chronology 1865 after 1800.",
+   "rationale": "Split part of electromagnetism (Maxwell-Hertz).",
+   "compatibility": {
+    "saves": "new key; holders of electromagnetism do not receive it (no alias seam) - see electromagnetism's compatibility note",
+    "tests": "New key appended by tools/integrate.py; TechnologyCount, the natural_science branch count and finite_nodes_to_exhaust of frontier_climate (43 -> 51 with this lane's changes) move; era-marked emerged, so the 83 marker-free pin is unchanged."
+   }
+  },
+  {
+   "id": "spectroscopy",
+   "name": "Spectroscopy",
+   "branch": "natural_science",
+   "age": "A8",
+   "domain": "science",
+   "secondaryDomains": [],
+   "emerged": "1814-1860 CE (Fraunhofer's solar lines 1814; Kirchhoff and Bunsen's spectral analysis 1859-60)",
+   "prereq": "telescope AND chemistry_quantitative",
+   "prereqRationale": "Fraunhofer mapped the solar lines by viewing a prism's spectrum through a telescope; Kirchhoff and Bunsen's spectroscope (collimator, prism, telescope) analysed flames of purified salts - optical instrument plus quantitative chemistry. Their method found caesium and rubidium (1860-61, RESEARCHED).",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.75,
+    "institutional": 2.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "costAnalog": "photography",
+   "costRationale": "novelty 1.0: a new analytical method on known optics | difficulty 2.5: A8 prior | material 0.75: prisms or gratings, collimator, precision optics (as telescope) | institutional 2.0: A8 prior | breadth 1.0: chemical analysis, astrophysics, atomic physics | prereq_complexity 0.5: two conjuncts. Between telescope (6.75) and photography (8.5).",
+   "nodeKind": "technique",
+   "primaryUniversity": "natural_science",
+   "capability": {
+    "grants": [
+     "knowledge:chemical analysis by spectral lines",
+     "knowledge:composition of the stars"
+    ],
+    "realizationOwner": "none",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "completion row only; prerequisite of quantum_mechanics",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide once complete.",
+    "unknownResource": "n/a",
+    "aiValuation": "Value through quantum_mechanics; requested input to D11's atomic physics.",
+    "playerCommunication": "Knowledge only."
+   },
+   "eurekas": [],
+   "family": "optics",
+   "generation": null,
+   "splitFrom": null,
+   "whyDistinct": "The instrument link the tree lacks: quantum_mechanics' own cost note names spectroscopy as its apparatus, and atomic spectra drove Bohr's and Heisenberg's work. It also gives the telescope a scientific consumer and is the natural input to D11's atomic physics (helium; alpha particles identified spectroscopically, 1909).",
+   "acceptanceTest": "Graph: quantum_mechanics unavailable until spectroscopy completes; spectroscopy unavailable until telescope and chemistry_quantitative complete. Loader: cost 19,890; chronology 1814 after 1608 and 1789.",
+   "rationale": "New instrument/method node (the brief's missing measurement link).",
+   "compatibility": {
+    "saves": "new key; starts uncompleted",
+    "tests": "New key appended by tools/integrate.py; TechnologyCount, the natural_science branch count and finite_nodes_to_exhaust of frontier_climate (43 -> 51 with this lane's changes) move; era-marked emerged, so the 83 marker-free pin is unchanged."
+   }
+  },
+  {
+   "id": "organic_chemistry",
+   "name": "Organic chemistry",
+   "branch": "natural_science",
+   "age": "A8",
+   "domain": "science",
+   "secondaryDomains": [
+    "industry"
+   ],
+   "emerged": "1828-1865 CE (Wöhler's urea 1828; Liebig's analysis 1830s; Kekulé's structural theory 1858-65)",
+   "prereq": "chemistry_quantitative",
+   "prereqRationale": "Organic analysis and synthesis rest on Lavoisier's quantitative method (combustion analysis, conservation of mass).",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.75,
+    "institutional": 2.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.0
+   },
+   "costAnalog": "soda_leblanc",
+   "costRationale": "novelty 1.0: a new branch of an established science | difficulty 2.5: A8 prior | material 0.75: combustion-analysis apparatus, laboratory glassware | institutional 2.0: A8 prior - the teaching research laboratory (Giessen) | breadth 1.0: dyes, explosives, drugs, polymers | prereq_complexity 0.0: one requirement.",
+   "nodeKind": "science",
+   "primaryUniversity": "natural_science",
+   "capability": {
+    "grants": [
+     "knowledge:carbon compounds analysed, synthesised and drawn as structures"
+    ],
+    "realizationOwner": "none",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "completion row only; prerequisite of synthetic_dye and dynamite",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide once complete.",
+    "unknownResource": "n/a",
+    "aiValuation": "Value through synthetic_dye -> plastics and dynamite (and D10 drugs if accepted).",
+    "playerCommunication": "Knowledge only."
+   },
+   "eurekas": [
+    {
+     "text": "A teaching research laboratory is operating",
+     "kind": "institutional",
+     "class": "future-system:institutions",
+     "weight": 0.4,
+     "evaluable_now": false,
+     "system": "institutions (future)",
+     "source": "authored",
+     "justification": "Liebig's Giessen laboratory (from the 1820s) trained the organic chemists - Hofmann and Kekulé among them - who built the field; an operating research laboratory is the institutional circumstance."
+    }
+   ],
+   "family": "chemistry",
+   "generation": null,
+   "splitFrom": null,
+   "whyDistinct": "The scientific base of the dye, explosive, drug and polymer industries; synthetic_dye and dynamite hang directly on Lavoisier's general chemistry today.",
+   "acceptanceTest": "Graph: synthetic_dye and dynamite unavailable until it completes. Loader: cost 14,060 (integrator rounding of 92.4 x 2^7.25); chronology 1828 after 1789 and before 1856/1867. Its Eureka is future-system (when null).",
+   "rationale": "New chemistry node between general chemistry and the synthetic-chemical industries.",
+   "compatibility": {
+    "saves": "new key; starts uncompleted",
+    "tests": "New key appended by tools/integrate.py; TechnologyCount, the natural_science branch count and finite_nodes_to_exhaust of frontier_climate (43 -> 51 with this lane's changes) move; era-marked emerged, so the 83 marker-free pin is unchanged. Adds one non-evaluable Eureka (counts move)."
+   }
+  },
+  {
+   "id": "periodic_system",
+   "name": "Periodic system of the elements",
+   "branch": "natural_science",
+   "age": "A8",
+   "domain": "science",
+   "secondaryDomains": [],
+   "emerged": "1869 CE (Mendeleev; Lothar Meyer 1870)",
+   "prereq": "chemistry_quantitative",
+   "prereqRationale": "Periodicity was read from the elements' atomic weights and chemical properties - the quantitative chemistry of elements (Lavoisier; Dalton's atomic weights; Cannizzaro 1860).",
+   "factors": {
+    "novelty": 2.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "costAnalog": "vaccination",
+   "costRationale": "novelty 2.0: paradigm - a predictive law of the elements (gallium 1875, scandium 1879, germanium 1886 found as predicted) | difficulty 2.5: A8 prior | material 0.0: a classification theory | institutional 2.0: A8 prior | breadth 0.5: guides element discovery and atomic physics | prereq_complexity 0.0: one requirement. Same magnitude as vaccination (7.0).",
+   "nodeKind": "science",
+   "primaryUniversity": "natural_science",
+   "capability": {
+    "grants": [
+     "knowledge:predictive ordering of the elements"
+    ],
+    "realizationOwner": "none",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "completion row only; prerequisite of quantum_mechanics",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide once complete.",
+    "unknownResource": "n/a",
+    "aiValuation": "Value through quantum_mechanics; requested input to D11's atomic structure.",
+    "playerCommunication": "Knowledge only."
+   },
+   "eurekas": [
+    {
+     "text": "Spectral analysis has revealed previously unknown elements",
+     "when": "spectroscopy",
+     "kind": "precursor technology",
+     "class": "machine-evaluable",
+     "weight": 0.4,
+     "evaluable_now": true,
+     "system": "research (knowledge state)",
+     "source": "authored",
+     "justification": "Caesium, rubidium, thallium and indium (1860-63) were found by spectroscopy and entered the tables Mendeleev and Meyer arranged: spectral analysis gathered evidence for periodicity without being required for it. Not implied (spectroscopy is not an ancestor) and not dead."
+    }
+   ],
+   "family": "chemistry",
+   "generation": null,
+   "splitFrom": null,
+   "whyDistinct": "A landmark of chemistry absent from the tree. Pauli's exclusion principle (1925) was formulated to explain the periodic shell structure, so quantum mechanics needs it; it is also the natural input to D11's atomic-structure work (Moseley's atomic numbers, 1913).",
+   "acceptanceTest": "Graph: quantum_mechanics unavailable until it completes. Eureka: with spectroscopy complete it fires once for 0.4 x 11,830 = 4,732 RP. Loader: cost 11,830; passes the implied- and dead-Eureka checks.",
+   "rationale": "New chemistry node; in-lane dependant quantum_mechanics.",
+   "compatibility": {
+    "saves": "new key; starts uncompleted",
+    "tests": "New key appended by tools/integrate.py; TechnologyCount, the natural_science branch count and finite_nodes_to_exhaust of frontier_climate (43 -> 51 with this lane's changes) move; era-marked emerged, so the 83 marker-free pin is unchanged. Adds one evaluable knowledge Eureka (counts move)."
+   }
+  },
+  {
+   "id": "cell_theory",
+   "name": "Cell theory",
+   "branch": "natural_science",
+   "age": "A8",
+   "domain": "science",
+   "secondaryDomains": [
+    "medicine"
+   ],
+   "emerged": "1838-1858 CE (Schleiden 1838; Schwann 1839; Virchow 1855-58)",
+   "prereq": "microscope",
+   "prereqRationale": "Cells, nuclei and cell division were observed with improved compound microscopes; the theory generalises those observations.",
+   "factors": {
+    "novelty": 2.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.0
+   },
+   "costAnalog": "evolution",
+   "costRationale": "novelty 2.0: paradigm - all organisms are made of cells, every cell from a cell | difficulty 2.5: A8 prior | material 0.0: theory (the microscope is already a node) | institutional 2.0: A8 prior | breadth 1.0: genetics, pathology, microbiology | prereq_complexity 0.0: one requirement. Same magnitude as evolution's current 7.5.",
+   "nodeKind": "science",
+   "primaryUniversity": "natural_science",
+   "capability": {
+    "grants": [
+     "knowledge:cells as the units of life",
+     "knowledge:cellular pathology"
+    ],
+    "realizationOwner": "none",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "completion row only; prerequisite of genetics_mendel",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide once complete.",
+    "unknownResource": "n/a",
+    "aiValuation": "Value through genetics_mendel (and germ_theory if D10 accepts).",
+    "playerCommunication": "Knowledge only."
+   },
+   "eurekas": [],
+   "family": null,
+   "generation": null,
+   "splitFrom": null,
+   "whyDistinct": "The foundation of modern biology: the chromosome theory in genetics_mendel needs it (today genetics hangs on the bare microscope); requested as the basis of germ_theory (Schwann's and Cagniard-Latour's living yeast cells, 1837) and offered to D10's chemotherapy and endocrinology.",
+   "acceptanceTest": "Graph: genetics_mendel unavailable until cell_theory completes; microscope still feeds germ_theory. Loader: cost 16,730; chronology 1838 after ~1620 and before 1900.",
+   "rationale": "New biology foundation node.",
+   "compatibility": {
+    "saves": "new key; starts uncompleted",
+    "tests": "New key appended by tools/integrate.py; TechnologyCount, the natural_science branch count and finite_nodes_to_exhaust of frontier_climate (43 -> 51 with this lane's changes) move; era-marked emerged, so the 83 marker-free pin is unchanged."
+   }
+  },
+  {
+   "id": "probability_statistics",
+   "name": "Probability and statistics",
+   "branch": "natural_science",
+   "age": "A7",
+   "domain": "science",
+   "secondaryDomains": [
+    "medicine"
+   ],
+   "emerged": "1654-1812 CE (Pascal and Fermat 1654; Bernoulli's law of large numbers 1713; Laplace 1812)",
+   "prereq": "algebra",
+   "prereqRationale": "Probability began as combinatorial algebra (Pascal and Fermat's correspondence on games of chance, 1654; Huygens 1657); Bernoulli's law of large numbers (1713) made it a theory of inference from counts. Its later analytic form (Laplace, Gauss's least squares) used calculus, an extension rather than a precondition of the core.",
+   "factors": {
+    "novelty": 2.0,
+    "difficulty": 2.0,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.0
+   },
+   "costAnalog": "heliocentrism",
+   "costRationale": "novelty 2.0: paradigm - a mathematics of chance and inference | difficulty 2.0: A7 prior | material 0.0: mathematics | institutional 1.5: A7 prior - academies and correspondence networks | breadth 1.0: statistical genetics, epidemiology, insurance, statistical mechanics, machine learning | prereq_complexity 0.0: one requirement. Same magnitude as heliocentrism (6.5).",
+   "nodeKind": "science",
+   "primaryUniversity": "natural_science",
+   "capability": {
+    "grants": [
+     "knowledge:mathematics of chance and inference",
+     "knowledge:statistical analysis of counts and errors"
+    ],
+    "realizationOwner": "none",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "completion row only; prerequisite of genetics_mendel",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide once complete.",
+    "unknownResource": "n/a",
+    "aiValuation": "Value through genetics_mendel (and epidemiology / machine_learning if D10 / D06 accept).",
+    "playerCommunication": "Knowledge only."
+   },
+   "eurekas": [],
+   "family": null,
+   "generation": null,
+   "splitFrom": null,
+   "whyDistinct": "The tree has no node for the mathematics of chance and statistical inference, which Mendel's ratios, epidemiology, statistical mechanics, insurance and machine learning all use; D10 asked for one as the basis of its new epidemiology node. As an A7 mathematics node it can only live in a subtree, and Natural Science already holds calculus and trigonometry.",
+   "acceptanceTest": "Graph: genetics_mendel unavailable until it completes. Loader: cost 8,360 (factor sum 6.5); chronology 1654 after algebra (628 CE per D03's revised emerged, ~820 CE today) and before 1900. Completion changes no entity eligibility.",
+   "rationale": "New mathematics node with an in-lane dependant and requested medical and computing consumers.",
+   "compatibility": {
+    "saves": "new key; starts uncompleted",
+    "tests": "New key appended by tools/integrate.py; TechnologyCount, the natural_science branch count and finite_nodes_to_exhaust of frontier_climate (43 -> 51 with this lane's changes) move; era-marked emerged, so the 83 marker-free pin is unchanged."
+   }
+  },
+  {
+   "id": "dna_sequencing",
+   "name": "DNA sequencing",
+   "branch": "natural_science",
+   "age": "A9",
+   "domain": "science",
+   "secondaryDomains": [
+    "medicine"
+   ],
+   "emerged": "1975-1977 CE (Sanger; Maxam and Gilbert)",
+   "prereq": "dna_structure",
+   "prereqRationale": "Reading base order needs the molecular model of DNA and its replication enzymes (polymerase), which dna_structure ('molecular biology') covers.",
+   "factors": {
+    "novelty": 2.0,
+    "difficulty": 3.0,
+    "material": 1.5,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.0
+   },
+   "costAnalog": "genetic_engineering",
+   "costRationale": "novelty 2.0: paradigm - the first reading of genetic text (moved here from genome_sequencing) | difficulty 3.0: A9 prior | material 1.5: labelled nucleotides, enzymes, gel electrophoresis | institutional 2.5: A9 prior | breadth 1.0: PCR, diagnostics, genomics | prereq_complexity 0.0: one requirement. Split from genome_sequencing (sum -14.6 %).",
+   "nodeKind": "technique",
+   "primaryUniversity": "natural_science",
+   "capability": {
+    "grants": [
+     "knowledge:reading DNA base sequences"
+    ],
+    "realizationOwner": "none",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "completion row only; prerequisite of pcr (and through it genome_sequencing)",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide once complete.",
+    "unknownResource": "n/a",
+    "aiValuation": "Value through pcr -> genome_sequencing -> crispr and mrna_vaccines.",
+    "playerCommunication": "Knowledge only."
+   },
+   "eurekas": [],
+   "family": null,
+   "generation": null,
+   "splitFrom": "genome_sequencing",
+   "whyDistinct": "The 1977 laboratory method and 2001-era genomics are distinct capabilities two decades apart: PCR (1983) needs the method; genomics needs PCR and computers. The split halves the subtree's largest single wait (267,620 -> 133,810).",
+   "acceptanceTest": "Graph: pcr unavailable until dna_sequencing completes; genome_sequencing unavailable until pcr and computer complete. Loader: cost 94,620.",
+   "rationale": "Split part of genome_sequencing (the method).",
+   "compatibility": {
+    "saves": "new key; holders of genome_sequencing do not receive it (harmless)",
+    "tests": "New key appended by tools/integrate.py; TechnologyCount, the natural_science branch count and finite_nodes_to_exhaust of frontier_climate (43 -> 51 with this lane's changes) move; era-marked emerged, so the 83 marker-free pin is unchanged."
+   }
+  }
+ ],
+ "crossLaneRequests": [
+  {
+   "targetLane": "D08-transport-naval",
+   "request": "ACCEPTED by D08 (in its part, no integration action): gps requires relativity; rocket requires mechanics_newtonian; longitude_problem kept as a justified leaf after D04 removed atomic_clock's non-causal edge to it.",
+   "reason": "GPS clocks carry a ~38 microsecond-a-day relativistic correction; the rocket equation (Tsiolkovsky 1903) and orbital mechanics are Newtonian; the caesium clock needs atomic physics and electronics, not the marine chronometer."
+  },
+  {
+   "targetLane": "D08-transport-naval",
+   "request": "When the transport packet (DW-059) designs a terrain-crossing tunnel class, make it require dynamite (D07 points the class to that packet).",
+   "reason": "The Gotthard rail tunnel (1872-82) was driven with dynamite and pneumatic drills; resolves dynamite's dead end."
+  },
+  {
+   "targetLane": "D05-communication-computing",
+   "request": "ACCEPTED by D05 - integrator to apply: radio requires electromagnetic_field_theory AND telegraph (electromagnetic_field_theory replaces electromagnetism; count and cost unchanged).",
+   "reason": "Marconi's wireless (1895) used the waves Maxwell predicted (1865) and Hertz produced (1887-88); the experimental laws alone do not give radio."
+  },
+  {
+   "targetLane": "D05-communication-computing",
+   "request": "Done as D05 recommended: double_entry moves to the trunk beside bill_of_exchange; it depends on D05's bill_of_exchange -> trunk relocation (else validator V04).",
+   "reason": "Keeps the finance family (gen 1 and gen 2) together, causally placed outside the university stage."
+  },
+  {
+   "targetLane": "D09-military",
+   "request": "ACCEPTED by D09 - integrator to apply: radar requires electromagnetic_field_theory instead of electromagnetism (count and cost unchanged). D04 confirms D09's other two acceptances (matchlock <- corned_powder; cannon_early <- saltpetre_refining).",
+   "reason": "Radar is the reflection of electromagnetic waves (Hertz demonstrated reflection in 1887)."
+  },
+  {
+   "targetLane": "D06-energy-engineering",
+   "request": "ACCEPTED by D06 - integrator to apply: diesel and steam_turbine require thermodynamics (new D04 id; D06 adds no thermodynamics node). D04 endorses D06's semiconductor_physics (natural_science, A9) as designed; to keep the id defined once the record stays in D06's part file, and D04 adds no parallel solid-state node.",
+   "reason": "Diesel's 1893 treatise designed an engine to approach the Carnot cycle (RESEARCHED); staged turbine expansion is designed from steam thermodynamics (Rankine 1859). semiconductor_physics separates band and junction physics from the transistor, the same science/application split D04 applies."
+  },
+  {
+   "targetLane": "D06-energy-engineering",
+   "request": "At integration, consider making machine_learning require probability_statistics (new D04 id).",
+   "reason": "Statistical learning (estimation, likelihood, Bayesian inference) is applied probability theory; today machine_learning rests only on programming_languages and calculus."
+  },
+  {
+   "targetLane": "D01-agriculture-food",
+   "request": "ACCEPTED by D01 - integrator to apply D01's override: refrigeration requires chemistry_quantitative AND steam_rotary AND thermodynamics (pc 1.0). D04 keeps chemistry_quantitative, sulphuric_acid and genetics_mendel at their Ages and ids; haber_bosch's realization is stated through chemical_fertilizer, as D01 asked.",
+   "reason": "Linde, a professor of mechanical engineering, built the 1876 ammonia compressor as a thermodynamically efficient machine - it doubled the existing efficiency benchmark (RESEARCHED)."
+  },
+  {
+   "targetLane": "D02-materials-mining",
+   "request": "Consider dynamite in your proposed extraction ladder (hard-rock and open-pit mining). D04 notes D02's acceptance of aluminium <- soda_leblanc and agrees the oil chain has three owners: identification D11, extraction D02 (percussion_drilling), processing D04 (petroleum_refining).",
+   "reason": "Dynamite (1867) made hard-rock excavation economical; resolves its dead end."
+  },
+  {
+   "targetLane": "D07-industry-construction",
+   "request": "Done as D07 asked: synthetic_dye now requires dyeing (with organic_chemistry and coke; pc 1.0, cost 23,650 -> 33,450). D04 accepts that the tunnel class belongs to the transport packet.",
+   "reason": "Mauve needed mordant dyeing to be usable and synthetic alizarin reproduced madder."
+  },
+  {
+   "targetLane": "D10-medicine",
+   "request": "Done as D10 asked: dna_structure requires xray, and D04 adds probability_statistics - please make epidemiology require it at integration. Optional: germ_theory or chemotherapy could hook to cell_theory (D04 accepts D10's reason for keeping microscope). Please do not add duplicate probability or cell-theory nodes.",
+   "reason": "Snow's and Farr's epidemiology compared rates statistically; Schwann and Cagniard-Latour (1837) showed yeast is a living cell, a basis of Pasteur's fermentation work."
+  },
+  {
+   "targetLane": "D11-nuclear-geology",
+   "request": "At integration, add stratigraphy (your draft C03) as a prerequisite of evolution.",
+   "reason": "Deep time and the fossil succession (Smith 1815; Lyell 1830-33, which Darwin read on the Beagle) are knowledge natural selection needs; evolution's prereq_complexity would become 1.0 (+41 %)."
+  },
+  {
+   "targetLane": "D11-nuclear-geology",
+   "request": "Consider extending radioactivity (draft C06) to Rutherford's 1911 nuclear atom and adding it to quantum_mechanics' prerequisites at integration (its prereq_complexity is already 1.0, so its cost does not change); keep nuclear_physics after quantum_mechanics to avoid a cycle. Optionally use spectroscopy and periodic_system (new D04 ids) as inputs to radioactivity.",
+   "reason": "Bohr's 1913 quantum atom was built on the nucleus that alpha-particle scattering revealed; radium was confirmed by its spectrum (1898) and alpha particles identified as helium spectroscopically (Rutherford and Royds, 1909); Moseley's atomic numbers (1913) reorganised the periodic system."
+  },
+  {
+   "targetLane": "D11-nuclear-geology",
+   "request": "Use relativity (mass-energy equivalence) in nuclear_physics or nuclear_fission.",
+   "reason": "Nuclear binding energy is read from the mass defect via E = mc^2 (Aston's masses; Meitner and Frisch's ~200 MeV per fission, 1939); relativity already has gps (D08) as a dependant."
+  },
+  {
+   "targetLane": "D11-nuclear-geology",
+   "request": "Own identification of crude-oil sources (extraction is D02's percussion_drilling) and of saltpetre and sulphur for gunpowder and sulphuric_acid.",
+   "reason": "D04 makes petroleum_refining processing-only; a refinery stays unrealizable without an identified, extracted crude source. The Eurekas 'Oil seeps or wells are in range' and 'Saltpetre is available' wait for your resource state."
+  }
+ ],
+ "openQuestions": [
+  "Prerequisite complexity and deepening (Director): under C-10/C-26 adding causal prerequisites raises a hub's cost - quantum_mechanics +41 % even after its institutional re-score (the convention alone would double it), evolution and synthetic_dye +41 %. Should deepening re-price existing hubs, or should pc be frozen at the ratified graph?",
+  "Alias/remap seam (OPEN DECISION raised package-wide): splits (electromagnetism, genome_sequencing) and re-routed edges make previously available nodes unavailable in old saves (e.g. quantum_mechanics for a polity holding only electromagnetism). D04 recommends granting a split's new part to holders of the original key.",
+  "Integration-time edges to NEW ids cannot be written in part files (existing ids only). Accepted, for data/integration-overrides.json: radio and radar -> electromagnetic_field_theory (D05, D09); refrigeration, diesel and steam_turbine -> thermodynamics (D01, D06). Pending: machine_learning -> probability_statistics (D06), epidemiology -> probability_statistics (D10), evolution <- stratigraphy and quantum_mechanics <- radioactivity (D11). Who applies them, and when are the resulting costs re-checked?",
+  "inst.statistics_vital requires 'census AND calculus'; vital statistics (Graunt 1662, Halley 1693) rests on counting and probability, not calculus. With probability_statistics proposed, should the entity requirement become 'census AND probability_statistics' (an entity change outside any lane's part file)?",
+  "telescope's capability text 'naval reconnaissance (D-039 B)': should optical instruments ever enter the fog lane's sight budget (as a vantage multiplier), or stay knowledge-only under D-040 B3?",
+  "Pre-existing redundant conjuncts count toward prereq_complexity under the syntactic reading: mechanics_newtonian (algebra implied by calculus), heliocentrism (astronomy_geometric implied by trigonometry), plastics, catalytic_converter, carbon_capture (chemistry_quantitative implied), space_probe (computer implied by satellite), space_telescope (telescope now implied via satellite -> transistor -> quantum_mechanics -> spectroscopy). Re-score them under the 'independent requirements' reading or leave as ratified? Not changed here; D04's own new and rewired prerequisites contain no redundant conjunct.",
+  "space_telescope stays a justified knowledge-only leaf (no space-science consumer before M11+) - acceptable, or should a later space-science packet own it?"
+ ]
+}

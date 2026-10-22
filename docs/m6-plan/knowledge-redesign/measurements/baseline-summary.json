@@ -1,0 +1,8377 @@
+{
+ "_doc": "Per-seed key metrics. See baseline-progression.md for method and labels. MEASURED = printed by a CLI run; INFERENCE = derived from measured artefacts by the stated reconstruction rule (verified by the listed cross-checks).",
+ "configuration": {
+  "command": "dotnet Sim.Cli/bin/Release/net10.0/Sim.Cli.dll research --seed S --turns 1630 --auto cheapest --emit-orders ... --trace-population ... --node patent",
+  "turns": 1630,
+  "polity": 1,
+  "seeds": [
+   1,
+   2,
+   42,
+   7
+  ]
+ },
+ "seeds": {
+  "1": {
+   "MEASURED": {
+    "orders": 239,
+    "final_turn": 1630,
+    "final_simYear": 6100,
+    "final_population": 553245,
+    "final_rp_per_turn": 826.779,
+    "final_active_target": "coke",
+    "final_target_progress": 10728.123,
+    "final_target_cost": 14070.0,
+    "completed_by_view": {
+     "Main Technology": 174,
+     "1.1 Military": 11,
+     "1.2 Medicine": 2,
+     "1.3 Engineering": 29,
+     "1.4 Natural Science": 10,
+     "1.5 Agriculture": 6,
+     "Civics": 6
+    },
+    "available_at_end": 11,
+    "stage_turn": 996,
+    "stage_simYear": 5492,
+    "milestones_50": [
+     {
+      "count": 50,
+      "turn": 326,
+      "simYear": 2880
+     },
+     {
+      "count": 100,
+      "turn": 641,
+      "simYear": 4455
+     },
+     {
+      "count": 150,
+      "turn": 967,
+      "simYear": 5434
+     },
+     {
+      "count": 200,
+      "turn": 1281,
+      "simYear": 5925
+     }
+    ],
+    "eurekas_fired": 8,
+    "eureka_credit_rp": 54116.0,
+    "foreign_exposure_credit_rp": 0.0,
+    "partial_progress": [
+     {
+      "id": "printing_press",
+      "progress": 15912.0,
+      "cost": 39780.0
+     },
+     {
+      "id": "coke",
+      "progress": 10728.123,
+      "cost": 14070.0
+     },
+     {
+      "id": "germ_theory",
+      "progress": 18924.0,
+      "cost": 47310.0
+     }
+    ],
+    "cost_modifiers": "none (no institutions system writes them yet; EffectiveCost = BaseCost)",
+    "world_hash": "a11ab9b9884c65b3be264179e2580ccc2917b28b2050dca1131424a2908e21f7",
+    "population_turn0": 5410,
+    "population": {
+     "min": 5442,
+     "median": 240187.5,
+     "max": 553245,
+     "argmin": 1,
+     "argmax": 1630
+    },
+    "rp_per_turn": {
+     "min": 32.688,
+     "median": 461.4185,
+     "max": 826.779
+    },
+    "selected_turns": {
+     "1": {
+      "simYear": 10,
+      "dt": 10.0,
+      "population": 5442,
+      "rp": 32.688,
+      "completed": 0
+     },
+     "100": {
+      "simYear": 1000,
+      "dt": 10.0,
+      "population": 11538,
+      "rp": 55.274,
+      "completed": 11
+     },
+     "200": {
+      "simYear": 2000,
+      "dt": 10.0,
+      "population": 24706,
+      "rp": 94.115,
+      "completed": 22
+     },
+     "250": {
+      "simYear": 2500,
+      "dt": 10.0,
+      "population": 36141,
+      "rp": 122.781,
+      "completed": 31
+     },
+     "300": {
+      "simYear": 2750,
+      "dt": 5.0,
+      "population": 43674,
+      "rp": 140.154,
+      "completed": 45
+     },
+     "500": {
+      "simYear": 3750,
+      "dt": 5.0,
+      "population": 93413,
+      "rp": 238.454,
+      "completed": 72
+     },
+     "650": {
+      "simYear": 4500,
+      "dt": 5.0,
+      "population": 164885,
+      "rp": 354.731,
+      "completed": 101
+     },
+     "800": {
+      "simYear": 4950,
+      "dt": 3.0,
+      "population": 231836,
+      "rp": 450.144,
+      "completed": 124
+     },
+     "950": {
+      "simYear": 5400,
+      "dt": 3.0,
+      "population": 325908,
+      "rp": 571.141,
+      "completed": 147
+     },
+     "1000": {
+      "simYear": 5500,
+      "dt": 2.0,
+      "population": 351602,
+      "rp": 602.254,
+      "completed": 154
+     },
+     "1150": {
+      "simYear": 5800,
+      "dt": 2.0,
+      "population": 441220,
+      "rp": 705.836,
+      "completed": 177
+     },
+     "1200": {
+      "simYear": 5850,
+      "dt": 1.0,
+      "population": 458317,
+      "rp": 724.845,
+      "completed": 187
+     },
+     "1270": {
+      "simYear": 5920,
+      "dt": 1.0,
+      "population": 482932,
+      "rp": 751.841,
+      "completed": 198
+     },
+     "1400": {
+      "simYear": 5985,
+      "dt": 0.5,
+      "population": 507203,
+      "rp": 778.058,
+      "completed": 212
+     },
+     "1430": {
+      "simYear": 6000,
+      "dt": 0.5,
+      "population": 512967,
+      "rp": 784.228,
+      "completed": 216
+     },
+     "1630": {
+      "simYear": 6100,
+      "dt": 0.5,
+      "population": 553245,
+      "rp": 826.779,
+      "completed": 238
+     }
+    },
+    "dt_bands": [
+     {
+      "first_turn": 1,
+      "last_turn": 250,
+      "dtYears": 10.0,
+      "turns": 250,
+      "simYear_end": 2500
+     },
+     {
+      "first_turn": 251,
+      "last_turn": 650,
+      "dtYears": 5.0,
+      "turns": 400,
+      "simYear_end": 4500
+     },
+     {
+      "first_turn": 651,
+      "last_turn": 950,
+      "dtYears": 3.0,
+      "turns": 300,
+      "simYear_end": 5400
+     },
+     {
+      "first_turn": 951,
+      "last_turn": 1150,
+      "dtYears": 2.0,
+      "turns": 200,
+      "simYear_end": 5800
+     },
+     {
+      "first_turn": 1151,
+      "last_turn": 1270,
+      "dtYears": 1.0,
+      "turns": 120,
+      "simYear_end": 5920
+     },
+     {
+      "first_turn": 1271,
+      "last_turn": 1630,
+      "dtYears": 0.5,
+      "turns": 360,
+      "simYear_end": 6100
+     }
+    ],
+    "cumulative_rp_prior_report_convention": 739797.64
+   },
+   "INFERENCE": {
+    "completed_nodes": 238,
+    "completed_by_view": {
+     "Main Technology": 174,
+     "1.1 Military": 11,
+     "1.2 Medicine": 2,
+     "1.3 Engineering": 29,
+     "1.4 Natural Science": 10,
+     "1.5 Agriculture": 6,
+     "Civics": 6
+    },
+    "completed_by_age": {
+     "A1": 28,
+     "A2": 51,
+     "A3": 38,
+     "A4": 32,
+     "A5": 29,
+     "A6": 40,
+     "A7": 11,
+     "A8": 9
+    },
+    "completed_by_tree_branch_age": {
+     "civics/civics/A3": 2,
+     "civics/civics/A4": 3,
+     "civics/civics/A6": 1,
+     "technology/agriculture/A6": 3,
+     "technology/agriculture/A7": 3,
+     "technology/engineering/A5": 1,
+     "technology/engineering/A6": 18,
+     "technology/engineering/A7": 2,
+     "technology/engineering/A8": 8,
+     "technology/main/A1": 28,
+     "technology/main/A2": 51,
+     "technology/main/A3": 36,
+     "technology/main/A4": 29,
+     "technology/main/A5": 28,
+     "technology/main/A6": 2,
+     "technology/medicine/A7": 1,
+     "technology/medicine/A8": 1,
+     "technology/military/A6": 10,
+     "technology/military/A7": 1,
+     "technology/natural_science/A6": 6,
+     "technology/natural_science/A7": 4
+    },
+    "rp_generated_in_run": 739003.419,
+    "rp_applied_to_research": 689268.123,
+    "rp_overflow_lost": 49735.296,
+    "civics": [
+     {
+      "key": 1001,
+      "id": "law_code",
+      "age": "A3",
+      "base": 1240.0,
+      "target_turn": 615,
+      "completion": {
+       "turn": 619,
+       "simYear": 4345
+      }
+     },
+     {
+      "key": 1002,
+      "id": "legal_code_roman",
+      "age": "A4",
+      "base": 2490.0,
+      "target_turn": 664,
+      "completion": {
+       "turn": 671,
+       "simYear": 4563
+      }
+     },
+     {
+      "key": 1003,
+      "id": "census",
+      "age": "A4",
+      "base": 4970.0,
+      "target_turn": 876,
+      "completion": {
+       "turn": 886,
+       "simYear": 5208
+      }
+     },
+     {
+      "key": 1004,
+      "id": "coined_wage",
+      "age": "A4",
+      "base": 1240.0,
+      "target_turn": 1398,
+      "completion": {
+       "turn": 1400,
+       "simYear": 5985
+      }
+     },
+     {
+      "key": 1005,
+      "id": "patent",
+      "age": "A7",
+      "base": 4180.0,
+      "target_turn": null,
+      "completion": null
+     },
+     {
+      "key": 1006,
+      "id": "joint_stock",
+      "age": "A6",
+      "base": 2960.0,
+      "target_turn": 1405,
+      "completion": {
+       "turn": 1409,
+       "simYear": 5989
+      }
+     },
+     {
+      "key": 1007,
+      "id": "taxation",
+      "age": "A3",
+      "base": 1050.0,
+      "target_turn": 473,
+      "completion": {
+       "turn": 478,
+       "simYear": 3640
+      }
+     }
+    ],
+    "age_research_facts": [
+     {
+      "age": 2,
+      "age_id": "neolithic",
+      "role": "CORE",
+      "id": "a2_cultivation",
+      "kind": "research",
+      "nodes": [
+       "cereal_cultivation"
+      ],
+      "satisfied": {
+       "turn": 517,
+       "simYear": 3835
+      },
+      "via": "cereal_cultivation"
+     },
+     {
+      "age": 2,
+      "age_id": "neolithic",
+      "role": "SUPPORTING",
+      "id": "a2_pottery",
+      "kind": "research",
+      "nodes": [
+       "pottery_open_fired"
+      ],
+      "satisfied": {
+       "turn": 450,
+       "simYear": 3500
+      },
+      "via": "pottery_open_fired"
+     },
+     {
+      "age": 2,
+      "age_id": "neolithic",
+      "role": "SUPPORTING",
+      "id": "a2_herding",
+      "kind": "research",
+      "nodes": [
+       "sheep_goat"
+      ],
+      "satisfied": {
+       "turn": 132,
+       "simYear": 1320
+      },
+      "via": "sheep_goat"
+     },
+     {
+      "age": 3,
+      "age_id": "bronze",
+      "role": "CORE",
+      "id": "a3_bronze",
+      "kind": "research",
+      "nodes": [
+       "arsenical_bronze",
+       "tin_bronze"
+      ],
+      "satisfied": {
+       "turn": 785,
+       "simYear": 4905
+      },
+      "via": "arsenical_bronze"
+     },
+     {
+      "age": 3,
+      "age_id": "bronze",
+      "role": "SUPPORTING",
+      "id": "a3_writing",
+      "kind": "research",
+      "nodes": [
+       "proto_writing",
+       "token_counting"
+      ],
+      "satisfied": {
+       "turn": 225,
+       "simYear": 2250
+      },
+      "via": "token_counting"
+     },
+     {
+      "age": 3,
+      "age_id": "bronze",
+      "role": "SUPPORTING",
+      "id": "a3_law",
+      "kind": "research",
+      "nodes": [
+       "law_code"
+      ],
+      "satisfied": {
+       "turn": 619,
+       "simYear": 4345
+      },
+      "via": "law_code"
+     },
+     {
+      "age": 3,
+      "age_id": "bronze",
+      "role": "SUPPORTING",
+      "id": "a3_wheel",
+      "kind": "research",
+      "nodes": [
+       "wheel_solid"
+      ],
+      "satisfied": {
+       "turn": 582,
+       "simYear": 4160
+      },
+      "via": "wheel_solid"
+     },
+     {
+      "age": 4,
+      "age_id": "iron",
+      "role": "CORE",
+      "id": "a4_iron",
+      "kind": "research",
+      "nodes": [
+       "iron_bloomery"
+      ],
+      "satisfied": {
+       "turn": 1174,
+       "simYear": 5824
+      },
+      "via": "iron_bloomery"
+     },
+     {
+      "age": 4,
+      "age_id": "iron",
+      "role": "SUPPORTING",
+      "id": "a4_alphabet",
+      "kind": "research",
+      "nodes": [
+       "abjad"
+      ],
+      "satisfied": {
+       "turn": 720,
+       "simYear": 4710
+      },
+      "via": "abjad"
+     },
+     {
+      "age": 4,
+      "age_id": "iron",
+      "role": "SUPPORTING",
+      "id": "a4_census",
+      "kind": "research",
+      "nodes": [
+       "census"
+      ],
+      "satisfied": {
+       "turn": 886,
+       "simYear": 5208
+      },
+      "via": "census"
+     },
+     {
+      "age": 5,
+      "age_id": "classical",
+      "role": "CORE",
+      "id": "a5_systematic_law",
+      "kind": "research",
+      "nodes": [
+       "legal_code_roman"
+      ],
+      "satisfied": {
+       "turn": 671,
+       "simYear": 4563
+      },
+      "via": "legal_code_roman"
+     },
+     {
+      "age": 5,
+      "age_id": "classical",
+      "role": "CORE",
+      "id": "a5_coinage",
+      "kind": "research",
+      "nodes": [
+       "coinage_electrum"
+      ],
+      "satisfied": {
+       "turn": 1398,
+       "simYear": 5984
+      },
+      "via": "coinage_electrum"
+     },
+     {
+      "age": 5,
+      "age_id": "classical",
+      "role": "SUPPORTING",
+      "id": "a5_geometry",
+      "kind": "research",
+      "nodes": [
+       "geometry_axiomatic"
+      ],
+      "satisfied": {
+       "turn": 996,
+       "simYear": 5492
+      },
+      "via": "geometry_axiomatic"
+     },
+     {
+      "age": 5,
+      "age_id": "classical",
+      "role": "SUPPORTING",
+      "id": "a5_roads",
+      "kind": "research",
+      "nodes": [
+       "road_paved"
+      ],
+      "satisfied": {
+       "turn": 1331,
+       "simYear": 5950
+      },
+      "via": "road_paved"
+     },
+     {
+      "age": 5,
+      "age_id": "classical",
+      "role": "SUPPORTING",
+      "id": "a5_concrete",
+      "kind": "research",
+      "nodes": [
+       "concrete_pozzolan"
+      ],
+      "satisfied": {
+       "turn": 1519,
+       "simYear": 6044
+      },
+      "via": "concrete_pozzolan"
+     },
+     {
+      "age": 5,
+      "age_id": "classical",
+      "role": "SUPPORTING",
+      "id": "a5_wages",
+      "kind": "research",
+      "nodes": [
+       "coined_wage"
+      ],
+      "satisfied": {
+       "turn": 1400,
+       "simYear": 5985
+      },
+      "via": "coined_wage"
+     },
+     {
+      "age": 6,
+      "age_id": "medieval",
+      "role": "CORE",
+      "id": "a6_heavy_plough",
+      "kind": "research",
+      "nodes": [
+       "heavy_plough"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 6,
+      "age_id": "medieval",
+      "role": "SUPPORTING",
+      "id": "a6_paper",
+      "kind": "research",
+      "nodes": [
+       "paper"
+      ],
+      "satisfied": {
+       "turn": 1537,
+       "simYear": 6053
+      },
+      "via": "paper"
+     },
+     {
+      "age": 6,
+      "age_id": "medieval",
+      "role": "SUPPORTING",
+      "id": "a6_mills",
+      "kind": "research",
+      "nodes": [
+       "water_mill",
+       "windmill_post"
+      ],
+      "satisfied": {
+       "turn": 1425,
+       "simYear": 5997
+      },
+      "via": "water_mill"
+     },
+     {
+      "age": 6,
+      "age_id": "medieval",
+      "role": "SUPPORTING",
+      "id": "a6_finance",
+      "kind": "research",
+      "nodes": [
+       "double_entry",
+       "bill_of_exchange"
+      ],
+      "satisfied": {
+       "turn": 1405,
+       "simYear": 5987
+      },
+      "via": "bill_of_exchange"
+     },
+     {
+      "age": 6,
+      "age_id": "medieval",
+      "role": "SUPPORTING",
+      "id": "a6_numerals",
+      "kind": "research",
+      "nodes": [
+       "hindu_arabic"
+      ],
+      "satisfied": {
+       "turn": 913,
+       "simYear": 5289
+      },
+      "via": "hindu_arabic"
+     },
+     {
+      "age": 7,
+      "age_id": "early_modern",
+      "role": "CORE",
+      "id": "a7_printing",
+      "kind": "research",
+      "nodes": [
+       "printing_press"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 7,
+      "age_id": "early_modern",
+      "role": "SUPPORTING",
+      "id": "a7_ocean",
+      "kind": "research",
+      "nodes": [
+       "caravel"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 7,
+      "age_id": "early_modern",
+      "role": "SUPPORTING",
+      "id": "a7_powder",
+      "kind": "research",
+      "nodes": [
+       "corned_powder"
+      ],
+      "satisfied": {
+       "turn": 1166,
+       "simYear": 5816
+      },
+      "via": "corned_powder"
+     },
+     {
+      "age": 7,
+      "age_id": "early_modern",
+      "role": "SUPPORTING",
+      "id": "a7_science",
+      "kind": "research",
+      "nodes": [
+       "mechanics_newtonian"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 7,
+      "age_id": "early_modern",
+      "role": "SUPPORTING",
+      "id": "a7_patent",
+      "kind": "research",
+      "nodes": [
+       "patent"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 7,
+      "age_id": "early_modern",
+      "role": "SUPPORTING",
+      "id": "a7_company",
+      "kind": "research",
+      "nodes": [
+       "joint_stock"
+      ],
+      "satisfied": {
+       "turn": 1409,
+       "simYear": 5989
+      },
+      "via": "joint_stock"
+     },
+     {
+      "age": 8,
+      "age_id": "industrial",
+      "role": "CORE",
+      "id": "a8_steam",
+      "kind": "research",
+      "nodes": [
+       "steam_rotary"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 8,
+      "age_id": "industrial",
+      "role": "SUPPORTING",
+      "id": "a8_iron",
+      "kind": "research",
+      "nodes": [
+       "puddling"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 8,
+      "age_id": "industrial",
+      "role": "SUPPORTING",
+      "id": "a8_rail",
+      "kind": "research",
+      "nodes": [
+       "railway"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 8,
+      "age_id": "industrial",
+      "role": "SUPPORTING",
+      "id": "a8_telegraph",
+      "kind": "research",
+      "nodes": [
+       "telegraph"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 8,
+      "age_id": "industrial",
+      "role": "SUPPORTING",
+      "id": "a8_germ",
+      "kind": "research",
+      "nodes": [
+       "germ_theory"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 8,
+      "age_id": "industrial",
+      "role": "SUPPORTING",
+      "id": "a8_knowledge",
+      "kind": "research_count",
+      "tree": "technology",
+      "min": 200,
+      "satisfied": {
+       "turn": 1331,
+       "simYear": 5950
+      },
+      "via": null,
+      "final_count": 232
+     },
+     {
+      "age": 9,
+      "age_id": "modern",
+      "role": "CORE",
+      "id": "a9_electricity",
+      "kind": "research",
+      "nodes": [
+       "electricity_generation"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 9,
+      "age_id": "modern",
+      "role": "CORE",
+      "id": "a9_combustion",
+      "kind": "research",
+      "nodes": [
+       "internal_combustion"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 9,
+      "age_id": "modern",
+      "role": "SUPPORTING",
+      "id": "a9_radio",
+      "kind": "research",
+      "nodes": [
+       "radio"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 9,
+      "age_id": "modern",
+      "role": "SUPPORTING",
+      "id": "a9_antibiotics",
+      "kind": "research",
+      "nodes": [
+       "antibiotic_penicillin"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 9,
+      "age_id": "modern",
+      "role": "SUPPORTING",
+      "id": "a9_computing",
+      "kind": "research",
+      "nodes": [
+       "computer"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 9,
+      "age_id": "modern",
+      "role": "SUPPORTING",
+      "id": "a9_knowledge",
+      "kind": "research_count",
+      "tree": "technology",
+      "min": 280,
+      "satisfied": null,
+      "via": null,
+      "final_count": 232
+     }
+    ],
+    "technology_completed_final": 232,
+    "longest_single_target_waits": [
+     {
+      "id": "astrolabe",
+      "key": 190,
+      "branch": "natural_science",
+      "age": "A6",
+      "base": 14070.0,
+      "target_turn": 1565,
+      "completion_turn": 1583,
+      "turns": 18
+     },
+     {
+      "id": "woodblock_print",
+      "key": 199,
+      "branch": "engineering",
+      "age": "A6",
+      "base": 14070.0,
+      "target_turn": 1583,
+      "completion_turn": 1601,
+      "turns": 18
+     },
+     {
+      "id": "coinage_electrum",
+      "key": 121,
+      "branch": "main",
+      "age": "A4",
+      "base": 11830.0,
+      "target_turn": 1382,
+      "completion_turn": 1398,
+      "turns": 16
+     },
+     {
+      "id": "water_mill",
+      "key": 145,
+      "branch": "main",
+      "age": "A5",
+      "base": 11830.0,
+      "target_turn": 1409,
+      "completion_turn": 1425,
+      "turns": 16
+     },
+     {
+      "id": "cereal_cultivation",
+      "key": 29,
+      "branch": "main",
+      "age": "A2",
+      "base": 3520.0,
+      "target_turn": 502,
+      "completion_turn": 517,
+      "turns": 15
+     },
+     {
+      "id": "concrete_pozzolan",
+      "key": 148,
+      "branch": "main",
+      "age": "A5",
+      "base": 11830.0,
+      "target_turn": 1504,
+      "completion_turn": 1519,
+      "turns": 15
+     },
+     {
+      "id": "road_paved",
+      "key": 150,
+      "branch": "main",
+      "age": "A5",
+      "base": 9950.0,
+      "target_turn": 1317,
+      "completion_turn": 1331,
+      "turns": 14
+     },
+     {
+      "id": "pottery_open_fired",
+      "key": 47,
+      "branch": "main",
+      "age": "A2",
+      "base": 2490.0,
+      "target_turn": 437,
+      "completion_turn": 450,
+      "turns": 13
+     },
+     {
+      "id": "hacksilver",
+      "key": 120,
+      "branch": "main",
+      "age": "A3",
+      "base": 2960.0,
+      "target_turn": 489,
+      "completion_turn": 502,
+      "turns": 13
+     },
+     {
+      "id": "cereal_domesticated",
+      "key": 30,
+      "branch": "main",
+      "age": "A2",
+      "base": 3520.0,
+      "target_turn": 553,
+      "completion_turn": 566,
+      "turns": 13
+     }
+    ],
+    "idle_steps_without_target": 0
+   },
+   "CHECKS": {
+    "views": {
+     "Main Technology": [
+      174,
+      174
+     ],
+     "1.1 Military": [
+      11,
+      11
+     ],
+     "1.2 Medicine": [
+      2,
+      2
+     ],
+     "1.3 Engineering": [
+      29,
+      29
+     ],
+     "1.4 Natural Science": [
+      10,
+      10
+     ],
+     "1.5 Agriculture": [
+      6,
+      6
+     ],
+     "Civics": [
+      6,
+      6
+     ]
+    },
+    "views_ok": true,
+    "milestones": [
+     {
+      "count": 50,
+      "cli_turn": 326,
+      "recon_turn": 326,
+      "at_most_one_per_turn": true
+     },
+     {
+      "count": 100,
+      "cli_turn": 641,
+      "recon_turn": 641,
+      "at_most_one_per_turn": true
+     },
+     {
+      "count": 150,
+      "cli_turn": 967,
+      "recon_turn": 967,
+      "at_most_one_per_turn": true
+     },
+     {
+      "count": 200,
+      "cli_turn": 1281,
+      "recon_turn": 1281,
+      "at_most_one_per_turn": true
+     }
+    ],
+    "milestones_ok": true,
+    "stage_cli": 996,
+    "stage_recon": 996,
+    "stage_ok": true,
+    "rp_bound_failures": [],
+    "final_target": {
+     "id": "coke",
+     "reported_progress": 10728.123,
+     "rp_offered": 10728.123,
+     "eureka_possible": false
+    }
+   },
+   "SPOT_CHECKS_MEASURED": [
+    {
+     "turn": 1330,
+     "node": "patent",
+     "node_state": "LOCKED",
+     "node_progress": 0.0,
+     "technology_complete_cli": 199,
+     "civics_complete_cli": 4,
+     "active_target_cli": "road_paved",
+     "stage_reached_cli": true,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": true,
+     "state_ok": true,
+     "orders": 204,
+     "world_hash": "265869b78eded4dc34aa6a1b5cd6d4395ad7fd02bb39cd63be7c4adc41382682"
+    },
+    {
+     "turn": 1331,
+     "node": "patent",
+     "node_state": "LOCKED",
+     "node_progress": 0.0,
+     "technology_complete_cli": 200,
+     "civics_complete_cli": 4,
+     "active_target_cli": null,
+     "stage_reached_cli": true,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": null,
+     "state_ok": true,
+     "orders": 204,
+     "world_hash": "39491854361441924f83e007794958eed12b2e4a9474475a6f0fc6539f4492a8"
+    },
+    {
+     "turn": 1399,
+     "node": "coined_wage",
+     "node_state": "AVAILABLE",
+     "node_progress": 777.642,
+     "technology_complete_cli": 207,
+     "civics_complete_cli": 4,
+     "active_target_cli": "coined_wage",
+     "stage_reached_cli": true,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": true,
+     "state_ok": true,
+     "orders": 212,
+     "world_hash": "703ae357c86ae46ed0e375149ee527a6cf8cef2a28bb004849f36794c4729e9b"
+    },
+    {
+     "turn": 1400,
+     "node": "coined_wage",
+     "node_state": "COMPLETED",
+     "node_progress": 0.0,
+     "technology_complete_cli": 207,
+     "civics_complete_cli": 5,
+     "active_target_cli": null,
+     "stage_reached_cli": true,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": null,
+     "state_ok": true,
+     "orders": 212,
+     "world_hash": "da83b1559f96defee394bca4565bf5f6e9dd449b822722fcd9dd79ca63316615"
+    },
+    {
+     "turn": 1408,
+     "node": "joint_stock",
+     "node_state": "AVAILABLE",
+     "node_progress": 2337.895,
+     "technology_complete_cli": 208,
+     "civics_complete_cli": 5,
+     "active_target_cli": "joint_stock",
+     "stage_reached_cli": true,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": true,
+     "state_ok": true,
+     "orders": 214,
+     "world_hash": "91e6916b481606ff65ac2e83d8e980532174c775422a08fbf91de7de99306de5"
+    },
+    {
+     "turn": 1409,
+     "node": "joint_stock",
+     "node_state": "COMPLETED",
+     "node_progress": 0.0,
+     "technology_complete_cli": 208,
+     "civics_complete_cli": 6,
+     "active_target_cli": null,
+     "stage_reached_cli": true,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": null,
+     "state_ok": true,
+     "orders": 214,
+     "world_hash": "21813cc2ed788a0d757d2c1fae7680a8c04139de3f6bc24948321e8b6d527e20"
+    },
+    {
+     "turn": 477,
+     "node": "taxation",
+     "node_state": "AVAILABLE",
+     "node_progress": 891.27,
+     "technology_complete_cli": 70,
+     "civics_complete_cli": 0,
+     "active_target_cli": "taxation",
+     "stage_reached_cli": false,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": true,
+     "state_ok": true,
+     "orders": 71,
+     "world_hash": "ebc7c5c2e8bc3dae79291c93e0d46cea8dd8fca5e9567b001c36dbe059fa7283"
+    },
+    {
+     "turn": 478,
+     "node": "taxation",
+     "node_state": "COMPLETED",
+     "node_progress": 0.0,
+     "technology_complete_cli": 70,
+     "civics_complete_cli": 1,
+     "active_target_cli": null,
+     "stage_reached_cli": false,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": null,
+     "state_ok": true,
+     "orders": 71,
+     "world_hash": "1d0fcf514927624ee4ae839a88dcf68e3ef586731cd25c7da8f18fd91812dea0"
+    },
+    {
+     "turn": 618,
+     "node": "law_code",
+     "node_state": "AVAILABLE",
+     "node_progress": 973.823,
+     "technology_complete_cli": 93,
+     "civics_complete_cli": 1,
+     "active_target_cli": "law_code",
+     "stage_reached_cli": false,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": true,
+     "state_ok": true,
+     "orders": 95,
+     "world_hash": "0b6284ec679e21bd1e5ce4338e808da838565d2de8ad70e8d8f545ad875bce8f"
+    },
+    {
+     "turn": 619,
+     "node": "law_code",
+     "node_state": "COMPLETED",
+     "node_progress": 0.0,
+     "technology_complete_cli": 93,
+     "civics_complete_cli": 2,
+     "active_target_cli": null,
+     "stage_reached_cli": false,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": null,
+     "state_ok": true,
+     "orders": 95,
+     "world_hash": "c4d4acf13ba2b9f616bbee8553ca477439e08cadd92b14e3e857e4a8503d702b"
+    },
+    {
+     "turn": 670,
+     "node": "legal_code_roman",
+     "node_state": "AVAILABLE",
+     "node_progress": 2185.201,
+     "technology_complete_cli": 102,
+     "civics_complete_cli": 2,
+     "active_target_cli": "legal_code_roman",
+     "stage_reached_cli": false,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": true,
+     "state_ok": true,
+     "orders": 105,
+     "world_hash": "02c85ba10c70d673894670f03d979f261e8a09e34d59756029ec95fe9ec79697"
+    },
+    {
+     "turn": 671,
+     "node": "legal_code_roman",
+     "node_state": "COMPLETED",
+     "node_progress": 0.0,
+     "technology_complete_cli": 102,
+     "civics_complete_cli": 3,
+     "active_target_cli": null,
+     "stage_reached_cli": false,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": null,
+     "state_ok": true,
+     "orders": 105,
+     "world_hash": "663c35ae3fbbf41bab044bebc222690d66d637757ef9814d5d99ed3ce7d7c12c"
+    },
+    {
+     "turn": 885,
+     "node": "census",
+     "node_state": "AVAILABLE",
+     "node_progress": 4598.892,
+     "technology_complete_cli": 133,
+     "civics_complete_cli": 3,
+     "active_target_cli": "census",
+     "stage_reached_cli": false,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": true,
+     "state_ok": true,
+     "orders": 137,
+     "world_hash": "22864bda9cd561c5f8c551f9001f404c67a2c01eceb7c7c274bf7add79fc1955"
+    },
+    {
+     "turn": 886,
+     "node": "census",
+     "node_state": "COMPLETED",
+     "node_progress": 0.0,
+     "technology_complete_cli": 133,
+     "civics_complete_cli": 4,
+     "active_target_cli": null,
+     "stage_reached_cli": false,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": null,
+     "state_ok": true,
+     "orders": 137,
+     "world_hash": "bdbb55ef5ba1159a216ed7589fc2a25ae3db795f4ca4bc0cf26051d3fccdaded"
+    }
+   ]
+  },
+  "2": {
+   "MEASURED": {
+    "orders": 239,
+    "final_turn": 1630,
+    "final_simYear": 6100,
+    "final_population": 548460,
+    "final_rp_per_turn": 821.774,
+    "final_active_target": "coke",
+    "final_target_progress": 8205.673,
+    "final_target_cost": 14070.0,
+    "completed_by_view": {
+     "Main Technology": 174,
+     "1.1 Military": 11,
+     "1.2 Medicine": 2,
+     "1.3 Engineering": 29,
+     "1.4 Natural Science": 10,
+     "1.5 Agriculture": 6,
+     "Civics": 6
+    },
+    "available_at_end": 11,
+    "stage_turn": 998,
+    "stage_simYear": 5496,
+    "milestones_50": [
+     {
+      "count": 50,
+      "turn": 328,
+      "simYear": 2890
+     },
+     {
+      "count": 100,
+      "turn": 643,
+      "simYear": 4465
+     },
+     {
+      "count": 150,
+      "turn": 969,
+      "simYear": 5438
+     },
+     {
+      "count": 200,
+      "turn": 1284,
+      "simYear": 5927
+     }
+    ],
+    "eurekas_fired": 8,
+    "eureka_credit_rp": 54116.0,
+    "foreign_exposure_credit_rp": 0.0,
+    "partial_progress": [
+     {
+      "id": "printing_press",
+      "progress": 15912.0,
+      "cost": 39780.0
+     },
+     {
+      "id": "coke",
+      "progress": 8205.673,
+      "cost": 14070.0
+     },
+     {
+      "id": "germ_theory",
+      "progress": 18924.0,
+      "cost": 47310.0
+     }
+    ],
+    "cost_modifiers": "none (no institutions system writes them yet; EffectiveCost = BaseCost)",
+    "world_hash": "3b30a5fa318b637421a9e4aee3cec4cbe8ba40326e6d399f585ae0afcc78aff4",
+    "population_turn0": 5326,
+    "population": {
+     "min": 5382,
+     "median": 237793.0,
+     "max": 548460,
+     "argmin": 1,
+     "argmax": 1630
+    },
+    "rp_per_turn": {
+     "min": 32.435,
+     "median": 458.198,
+     "max": 821.774
+    },
+    "selected_turns": {
+     "1": {
+      "simYear": 10,
+      "dt": 10.0,
+      "population": 5382,
+      "rp": 32.435,
+      "completed": 0
+     },
+     "100": {
+      "simYear": 1000,
+      "dt": 10.0,
+      "population": 11391,
+      "rp": 54.781,
+      "completed": 11
+     },
+     "200": {
+      "simYear": 2000,
+      "dt": 10.0,
+      "population": 24352,
+      "rp": 93.17,
+      "completed": 22
+     },
+     "250": {
+      "simYear": 2500,
+      "dt": 10.0,
+      "population": 35647,
+      "rp": 121.606,
+      "completed": 31
+     },
+     "300": {
+      "simYear": 2750,
+      "dt": 5.0,
+      "population": 43094,
+      "rp": 138.85,
+      "completed": 44
+     },
+     "500": {
+      "simYear": 3750,
+      "dt": 5.0,
+      "population": 92182,
+      "rp": 236.253,
+      "completed": 72
+     },
+     "650": {
+      "simYear": 4500,
+      "dt": 5.0,
+      "population": 163115,
+      "rp": 352.065,
+      "completed": 101
+     },
+     "800": {
+      "simYear": 4950,
+      "dt": 3.0,
+      "population": 229575,
+      "rp": 447.071,
+      "completed": 124
+     },
+     "950": {
+      "simYear": 5400,
+      "dt": 3.0,
+      "population": 323240,
+      "rp": 567.869,
+      "completed": 146
+     },
+     "1000": {
+      "simYear": 5500,
+      "dt": 2.0,
+      "population": 348793,
+      "rp": 598.887,
+      "completed": 153
+     },
+     "1150": {
+      "simYear": 5800,
+      "dt": 2.0,
+      "population": 438035,
+      "rp": 702.271,
+      "completed": 177
+     },
+     "1200": {
+      "simYear": 5850,
+      "dt": 1.0,
+      "population": 454736,
+      "rp": 720.881,
+      "completed": 186
+     },
+     "1270": {
+      "simYear": 5920,
+      "dt": 1.0,
+      "population": 479103,
+      "rp": 747.67,
+      "completed": 198
+     },
+     "1400": {
+      "simYear": 5985,
+      "dt": 0.5,
+      "population": 502854,
+      "rp": 773.389,
+      "completed": 210
+     },
+     "1430": {
+      "simYear": 6000,
+      "dt": 0.5,
+      "population": 508486,
+      "rp": 779.433,
+      "completed": 215
+     },
+     "1630": {
+      "simYear": 6100,
+      "dt": 0.5,
+      "population": 548460,
+      "rp": 821.774,
+      "completed": 238
+     }
+    },
+    "dt_bands": [
+     {
+      "first_turn": 1,
+      "last_turn": 250,
+      "dtYears": 10.0,
+      "turns": 250,
+      "simYear_end": 2500
+     },
+     {
+      "first_turn": 251,
+      "last_turn": 650,
+      "dtYears": 5.0,
+      "turns": 400,
+      "simYear_end": 4500
+     },
+     {
+      "first_turn": 651,
+      "last_turn": 950,
+      "dtYears": 3.0,
+      "turns": 300,
+      "simYear_end": 5400
+     },
+     {
+      "first_turn": 951,
+      "last_turn": 1150,
+      "dtYears": 2.0,
+      "turns": 200,
+      "simYear_end": 5800
+     },
+     {
+      "first_turn": 1151,
+      "last_turn": 1270,
+      "dtYears": 1.0,
+      "turns": 120,
+      "simYear_end": 5920
+     },
+     {
+      "first_turn": 1271,
+      "last_turn": 1630,
+      "dtYears": 0.5,
+      "turns": 360,
+      "simYear_end": 6100
+     }
+    ],
+    "cumulative_rp_prior_report_convention": 735087.924
+   },
+   "INFERENCE": {
+    "completed_nodes": 238,
+    "completed_by_view": {
+     "Main Technology": 174,
+     "1.1 Military": 11,
+     "1.2 Medicine": 2,
+     "1.3 Engineering": 29,
+     "1.4 Natural Science": 10,
+     "1.5 Agriculture": 6,
+     "Civics": 6
+    },
+    "completed_by_age": {
+     "A1": 28,
+     "A2": 51,
+     "A3": 38,
+     "A4": 32,
+     "A5": 29,
+     "A6": 40,
+     "A7": 11,
+     "A8": 9
+    },
+    "completed_by_tree_branch_age": {
+     "civics/civics/A3": 2,
+     "civics/civics/A4": 3,
+     "civics/civics/A6": 1,
+     "technology/agriculture/A6": 3,
+     "technology/agriculture/A7": 3,
+     "technology/engineering/A5": 1,
+     "technology/engineering/A6": 18,
+     "technology/engineering/A7": 2,
+     "technology/engineering/A8": 8,
+     "technology/main/A1": 28,
+     "technology/main/A2": 51,
+     "technology/main/A3": 36,
+     "technology/main/A4": 29,
+     "technology/main/A5": 28,
+     "technology/main/A6": 2,
+     "technology/medicine/A7": 1,
+     "technology/medicine/A8": 1,
+     "technology/military/A6": 10,
+     "technology/military/A7": 1,
+     "technology/natural_science/A6": 6,
+     "technology/natural_science/A7": 4
+    },
+    "rp_generated_in_run": 734298.344,
+    "rp_applied_to_research": 686745.673,
+    "rp_overflow_lost": 47552.671,
+    "civics": [
+     {
+      "key": 1001,
+      "id": "law_code",
+      "age": "A3",
+      "base": 1240.0,
+      "target_turn": 617,
+      "completion": {
+       "turn": 621,
+       "simYear": 4355
+      }
+     },
+     {
+      "key": 1002,
+      "id": "legal_code_roman",
+      "age": "A4",
+      "base": 2490.0,
+      "target_turn": 666,
+      "completion": {
+       "turn": 673,
+       "simYear": 4569
+      }
+     },
+     {
+      "key": 1003,
+      "id": "census",
+      "age": "A4",
+      "base": 4970.0,
+      "target_turn": 878,
+      "completion": {
+       "turn": 888,
+       "simYear": 5214
+      }
+     },
+     {
+      "key": 1004,
+      "id": "coined_wage",
+      "age": "A4",
+      "base": 1240.0,
+      "target_turn": 1401,
+      "completion": {
+       "turn": 1403,
+       "simYear": 5986
+      }
+     },
+     {
+      "key": 1005,
+      "id": "patent",
+      "age": "A7",
+      "base": 4180.0,
+      "target_turn": null,
+      "completion": null
+     },
+     {
+      "key": 1006,
+      "id": "joint_stock",
+      "age": "A6",
+      "base": 2960.0,
+      "target_turn": 1408,
+      "completion": {
+       "turn": 1412,
+       "simYear": 5991
+      }
+     },
+     {
+      "key": 1007,
+      "id": "taxation",
+      "age": "A3",
+      "base": 1050.0,
+      "target_turn": 475,
+      "completion": {
+       "turn": 480,
+       "simYear": 3650
+      }
+     }
+    ],
+    "age_research_facts": [
+     {
+      "age": 2,
+      "age_id": "neolithic",
+      "role": "CORE",
+      "id": "a2_cultivation",
+      "kind": "research",
+      "nodes": [
+       "cereal_cultivation"
+      ],
+      "satisfied": {
+       "turn": 519,
+       "simYear": 3845
+      },
+      "via": "cereal_cultivation"
+     },
+     {
+      "age": 2,
+      "age_id": "neolithic",
+      "role": "SUPPORTING",
+      "id": "a2_pottery",
+      "kind": "research",
+      "nodes": [
+       "pottery_open_fired"
+      ],
+      "satisfied": {
+       "turn": 452,
+       "simYear": 3510
+      },
+      "via": "pottery_open_fired"
+     },
+     {
+      "age": 2,
+      "age_id": "neolithic",
+      "role": "SUPPORTING",
+      "id": "a2_herding",
+      "kind": "research",
+      "nodes": [
+       "sheep_goat"
+      ],
+      "satisfied": {
+       "turn": 132,
+       "simYear": 1320
+      },
+      "via": "sheep_goat"
+     },
+     {
+      "age": 3,
+      "age_id": "bronze",
+      "role": "CORE",
+      "id": "a3_bronze",
+      "kind": "research",
+      "nodes": [
+       "arsenical_bronze",
+       "tin_bronze"
+      ],
+      "satisfied": {
+       "turn": 787,
+       "simYear": 4911
+      },
+      "via": "arsenical_bronze"
+     },
+     {
+      "age": 3,
+      "age_id": "bronze",
+      "role": "SUPPORTING",
+      "id": "a3_writing",
+      "kind": "research",
+      "nodes": [
+       "proto_writing",
+       "token_counting"
+      ],
+      "satisfied": {
+       "turn": 226,
+       "simYear": 2260
+      },
+      "via": "token_counting"
+     },
+     {
+      "age": 3,
+      "age_id": "bronze",
+      "role": "SUPPORTING",
+      "id": "a3_law",
+      "kind": "research",
+      "nodes": [
+       "law_code"
+      ],
+      "satisfied": {
+       "turn": 621,
+       "simYear": 4355
+      },
+      "via": "law_code"
+     },
+     {
+      "age": 3,
+      "age_id": "bronze",
+      "role": "SUPPORTING",
+      "id": "a3_wheel",
+      "kind": "research",
+      "nodes": [
+       "wheel_solid"
+      ],
+      "satisfied": {
+       "turn": 584,
+       "simYear": 4170
+      },
+      "via": "wheel_solid"
+     },
+     {
+      "age": 4,
+      "age_id": "iron",
+      "role": "CORE",
+      "id": "a4_iron",
+      "kind": "research",
+      "nodes": [
+       "iron_bloomery"
+      ],
+      "satisfied": {
+       "turn": 1176,
+       "simYear": 5826
+      },
+      "via": "iron_bloomery"
+     },
+     {
+      "age": 4,
+      "age_id": "iron",
+      "role": "SUPPORTING",
+      "id": "a4_alphabet",
+      "kind": "research",
+      "nodes": [
+       "abjad"
+      ],
+      "satisfied": {
+       "turn": 722,
+       "simYear": 4716
+      },
+      "via": "abjad"
+     },
+     {
+      "age": 4,
+      "age_id": "iron",
+      "role": "SUPPORTING",
+      "id": "a4_census",
+      "kind": "research",
+      "nodes": [
+       "census"
+      ],
+      "satisfied": {
+       "turn": 888,
+       "simYear": 5214
+      },
+      "via": "census"
+     },
+     {
+      "age": 5,
+      "age_id": "classical",
+      "role": "CORE",
+      "id": "a5_systematic_law",
+      "kind": "research",
+      "nodes": [
+       "legal_code_roman"
+      ],
+      "satisfied": {
+       "turn": 673,
+       "simYear": 4569
+      },
+      "via": "legal_code_roman"
+     },
+     {
+      "age": 5,
+      "age_id": "classical",
+      "role": "CORE",
+      "id": "a5_coinage",
+      "kind": "research",
+      "nodes": [
+       "coinage_electrum"
+      ],
+      "satisfied": {
+       "turn": 1401,
+       "simYear": 5985
+      },
+      "via": "coinage_electrum"
+     },
+     {
+      "age": 5,
+      "age_id": "classical",
+      "role": "SUPPORTING",
+      "id": "a5_geometry",
+      "kind": "research",
+      "nodes": [
+       "geometry_axiomatic"
+      ],
+      "satisfied": {
+       "turn": 998,
+       "simYear": 5496
+      },
+      "via": "geometry_axiomatic"
+     },
+     {
+      "age": 5,
+      "age_id": "classical",
+      "role": "SUPPORTING",
+      "id": "a5_roads",
+      "kind": "research",
+      "nodes": [
+       "road_paved"
+      ],
+      "satisfied": {
+       "turn": 1334,
+       "simYear": 5952
+      },
+      "via": "road_paved"
+     },
+     {
+      "age": 5,
+      "age_id": "classical",
+      "role": "SUPPORTING",
+      "id": "a5_concrete",
+      "kind": "research",
+      "nodes": [
+       "concrete_pozzolan"
+      ],
+      "satisfied": {
+       "turn": 1522,
+       "simYear": 6046
+      },
+      "via": "concrete_pozzolan"
+     },
+     {
+      "age": 5,
+      "age_id": "classical",
+      "role": "SUPPORTING",
+      "id": "a5_wages",
+      "kind": "research",
+      "nodes": [
+       "coined_wage"
+      ],
+      "satisfied": {
+       "turn": 1403,
+       "simYear": 5986
+      },
+      "via": "coined_wage"
+     },
+     {
+      "age": 6,
+      "age_id": "medieval",
+      "role": "CORE",
+      "id": "a6_heavy_plough",
+      "kind": "research",
+      "nodes": [
+       "heavy_plough"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 6,
+      "age_id": "medieval",
+      "role": "SUPPORTING",
+      "id": "a6_paper",
+      "kind": "research",
+      "nodes": [
+       "paper"
+      ],
+      "satisfied": {
+       "turn": 1540,
+       "simYear": 6055
+      },
+      "via": "paper"
+     },
+     {
+      "age": 6,
+      "age_id": "medieval",
+      "role": "SUPPORTING",
+      "id": "a6_mills",
+      "kind": "research",
+      "nodes": [
+       "water_mill",
+       "windmill_post"
+      ],
+      "satisfied": {
+       "turn": 1428,
+       "simYear": 5999
+      },
+      "via": "water_mill"
+     },
+     {
+      "age": 6,
+      "age_id": "medieval",
+      "role": "SUPPORTING",
+      "id": "a6_finance",
+      "kind": "research",
+      "nodes": [
+       "double_entry",
+       "bill_of_exchange"
+      ],
+      "satisfied": {
+       "turn": 1408,
+       "simYear": 5989
+      },
+      "via": "bill_of_exchange"
+     },
+     {
+      "age": 6,
+      "age_id": "medieval",
+      "role": "SUPPORTING",
+      "id": "a6_numerals",
+      "kind": "research",
+      "nodes": [
+       "hindu_arabic"
+      ],
+      "satisfied": {
+       "turn": 915,
+       "simYear": 5295
+      },
+      "via": "hindu_arabic"
+     },
+     {
+      "age": 7,
+      "age_id": "early_modern",
+      "role": "CORE",
+      "id": "a7_printing",
+      "kind": "research",
+      "nodes": [
+       "printing_press"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 7,
+      "age_id": "early_modern",
+      "role": "SUPPORTING",
+      "id": "a7_ocean",
+      "kind": "research",
+      "nodes": [
+       "caravel"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 7,
+      "age_id": "early_modern",
+      "role": "SUPPORTING",
+      "id": "a7_powder",
+      "kind": "research",
+      "nodes": [
+       "corned_powder"
+      ],
+      "satisfied": {
+       "turn": 1168,
+       "simYear": 5818
+      },
+      "via": "corned_powder"
+     },
+     {
+      "age": 7,
+      "age_id": "early_modern",
+      "role": "SUPPORTING",
+      "id": "a7_science",
+      "kind": "research",
+      "nodes": [
+       "mechanics_newtonian"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 7,
+      "age_id": "early_modern",
+      "role": "SUPPORTING",
+      "id": "a7_patent",
+      "kind": "research",
+      "nodes": [
+       "patent"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 7,
+      "age_id": "early_modern",
+      "role": "SUPPORTING",
+      "id": "a7_company",
+      "kind": "research",
+      "nodes": [
+       "joint_stock"
+      ],
+      "satisfied": {
+       "turn": 1412,
+       "simYear": 5991
+      },
+      "via": "joint_stock"
+     },
+     {
+      "age": 8,
+      "age_id": "industrial",
+      "role": "CORE",
+      "id": "a8_steam",
+      "kind": "research",
+      "nodes": [
+       "steam_rotary"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 8,
+      "age_id": "industrial",
+      "role": "SUPPORTING",
+      "id": "a8_iron",
+      "kind": "research",
+      "nodes": [
+       "puddling"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 8,
+      "age_id": "industrial",
+      "role": "SUPPORTING",
+      "id": "a8_rail",
+      "kind": "research",
+      "nodes": [
+       "railway"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 8,
+      "age_id": "industrial",
+      "role": "SUPPORTING",
+      "id": "a8_telegraph",
+      "kind": "research",
+      "nodes": [
+       "telegraph"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 8,
+      "age_id": "industrial",
+      "role": "SUPPORTING",
+      "id": "a8_germ",
+      "kind": "research",
+      "nodes": [
+       "germ_theory"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 8,
+      "age_id": "industrial",
+      "role": "SUPPORTING",
+      "id": "a8_knowledge",
+      "kind": "research_count",
+      "tree": "technology",
+      "min": 200,
+      "satisfied": {
+       "turn": 1334,
+       "simYear": 5952
+      },
+      "via": null,
+      "final_count": 232
+     },
+     {
+      "age": 9,
+      "age_id": "modern",
+      "role": "CORE",
+      "id": "a9_electricity",
+      "kind": "research",
+      "nodes": [
+       "electricity_generation"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 9,
+      "age_id": "modern",
+      "role": "CORE",
+      "id": "a9_combustion",
+      "kind": "research",
+      "nodes": [
+       "internal_combustion"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 9,
+      "age_id": "modern",
+      "role": "SUPPORTING",
+      "id": "a9_radio",
+      "kind": "research",
+      "nodes": [
+       "radio"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 9,
+      "age_id": "modern",
+      "role": "SUPPORTING",
+      "id": "a9_antibiotics",
+      "kind": "research",
+      "nodes": [
+       "antibiotic_penicillin"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 9,
+      "age_id": "modern",
+      "role": "SUPPORTING",
+      "id": "a9_computing",
+      "kind": "research",
+      "nodes": [
+       "computer"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 9,
+      "age_id": "modern",
+      "role": "SUPPORTING",
+      "id": "a9_knowledge",
+      "kind": "research_count",
+      "tree": "technology",
+      "min": 280,
+      "satisfied": null,
+      "via": null,
+      "final_count": 232
+     }
+    ],
+    "technology_completed_final": 232,
+    "longest_single_target_waits": [
+     {
+      "id": "astrolabe",
+      "key": 190,
+      "branch": "natural_science",
+      "age": "A6",
+      "base": 14070.0,
+      "target_turn": 1568,
+      "completion_turn": 1586,
+      "turns": 18
+     },
+     {
+      "id": "woodblock_print",
+      "key": 199,
+      "branch": "engineering",
+      "age": "A6",
+      "base": 14070.0,
+      "target_turn": 1586,
+      "completion_turn": 1604,
+      "turns": 18
+     },
+     {
+      "id": "coinage_electrum",
+      "key": 121,
+      "branch": "main",
+      "age": "A4",
+      "base": 11830.0,
+      "target_turn": 1385,
+      "completion_turn": 1401,
+      "turns": 16
+     },
+     {
+      "id": "water_mill",
+      "key": 145,
+      "branch": "main",
+      "age": "A5",
+      "base": 11830.0,
+      "target_turn": 1412,
+      "completion_turn": 1428,
+      "turns": 16
+     },
+     {
+      "id": "cereal_cultivation",
+      "key": 29,
+      "branch": "main",
+      "age": "A2",
+      "base": 3520.0,
+      "target_turn": 504,
+      "completion_turn": 519,
+      "turns": 15
+     },
+     {
+      "id": "concrete_pozzolan",
+      "key": 148,
+      "branch": "main",
+      "age": "A5",
+      "base": 11830.0,
+      "target_turn": 1507,
+      "completion_turn": 1522,
+      "turns": 15
+     },
+     {
+      "id": "road_paved",
+      "key": 150,
+      "branch": "main",
+      "age": "A5",
+      "base": 9950.0,
+      "target_turn": 1320,
+      "completion_turn": 1334,
+      "turns": 14
+     },
+     {
+      "id": "pottery_open_fired",
+      "key": 47,
+      "branch": "main",
+      "age": "A2",
+      "base": 2490.0,
+      "target_turn": 439,
+      "completion_turn": 452,
+      "turns": 13
+     },
+     {
+      "id": "hacksilver",
+      "key": 120,
+      "branch": "main",
+      "age": "A3",
+      "base": 2960.0,
+      "target_turn": 491,
+      "completion_turn": 504,
+      "turns": 13
+     },
+     {
+      "id": "cereal_domesticated",
+      "key": 30,
+      "branch": "main",
+      "age": "A2",
+      "base": 3520.0,
+      "target_turn": 555,
+      "completion_turn": 568,
+      "turns": 13
+     }
+    ],
+    "idle_steps_without_target": 0
+   },
+   "CHECKS": {
+    "views": {
+     "Main Technology": [
+      174,
+      174
+     ],
+     "1.1 Military": [
+      11,
+      11
+     ],
+     "1.2 Medicine": [
+      2,
+      2
+     ],
+     "1.3 Engineering": [
+      29,
+      29
+     ],
+     "1.4 Natural Science": [
+      10,
+      10
+     ],
+     "1.5 Agriculture": [
+      6,
+      6
+     ],
+     "Civics": [
+      6,
+      6
+     ]
+    },
+    "views_ok": true,
+    "milestones": [
+     {
+      "count": 50,
+      "cli_turn": 328,
+      "recon_turn": 328,
+      "at_most_one_per_turn": true
+     },
+     {
+      "count": 100,
+      "cli_turn": 643,
+      "recon_turn": 643,
+      "at_most_one_per_turn": true
+     },
+     {
+      "count": 150,
+      "cli_turn": 969,
+      "recon_turn": 969,
+      "at_most_one_per_turn": true
+     },
+     {
+      "count": 200,
+      "cli_turn": 1284,
+      "recon_turn": 1284,
+      "at_most_one_per_turn": true
+     }
+    ],
+    "milestones_ok": true,
+    "stage_cli": 998,
+    "stage_recon": 998,
+    "stage_ok": true,
+    "rp_bound_failures": [],
+    "final_target": {
+     "id": "coke",
+     "reported_progress": 8205.673,
+     "rp_offered": 8205.673,
+     "eureka_possible": false
+    }
+   },
+   "SPOT_CHECKS_MEASURED": [
+    {
+     "turn": 1333,
+     "node": "patent",
+     "node_state": "LOCKED",
+     "node_progress": 0.0,
+     "technology_complete_cli": 199,
+     "civics_complete_cli": 4,
+     "active_target_cli": "road_paved",
+     "stage_reached_cli": true,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": true,
+     "state_ok": true,
+     "orders": 204,
+     "world_hash": "5417b8b2f8490b47b3b2470ebf08eef99c8dcba0e4a4cffc14d9ffa2799e4ee4"
+    },
+    {
+     "turn": 1334,
+     "node": "patent",
+     "node_state": "LOCKED",
+     "node_progress": 0.0,
+     "technology_complete_cli": 200,
+     "civics_complete_cli": 4,
+     "active_target_cli": null,
+     "stage_reached_cli": true,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": null,
+     "state_ok": true,
+     "orders": 204,
+     "world_hash": "c960d937ade86600ecb2901fb73d1dbffcac1ad6a954f732d28e7f253c33f98c"
+    },
+    {
+     "turn": 1402,
+     "node": "coined_wage",
+     "node_state": "AVAILABLE",
+     "node_progress": 773.608,
+     "technology_complete_cli": 207,
+     "civics_complete_cli": 4,
+     "active_target_cli": "coined_wage",
+     "stage_reached_cli": true,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": true,
+     "state_ok": true,
+     "orders": 212,
+     "world_hash": "cf6f977655f3a0baaf2a3f7f3336a6bbba7acee8e56fc57c0c4aad0c84edfd41"
+    },
+    {
+     "turn": 1403,
+     "node": "coined_wage",
+     "node_state": "COMPLETED",
+     "node_progress": 0.0,
+     "technology_complete_cli": 207,
+     "civics_complete_cli": 5,
+     "active_target_cli": null,
+     "stage_reached_cli": true,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": null,
+     "state_ok": true,
+     "orders": 212,
+     "world_hash": "3580cc13d1f42d6a97a0275634f717f20033079eeadffa3cd9fac4e5264b2bac"
+    },
+    {
+     "turn": 1411,
+     "node": "joint_stock",
+     "node_state": "AVAILABLE",
+     "node_progress": 2325.771,
+     "technology_complete_cli": 208,
+     "civics_complete_cli": 5,
+     "active_target_cli": "joint_stock",
+     "stage_reached_cli": true,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": true,
+     "state_ok": true,
+     "orders": 214,
+     "world_hash": "e030f6e761c6573efb40c215658bd8c8b90c179c2f7bc06a69d849e790dc9953"
+    },
+    {
+     "turn": 1412,
+     "node": "joint_stock",
+     "node_state": "COMPLETED",
+     "node_progress": 0.0,
+     "technology_complete_cli": 208,
+     "civics_complete_cli": 6,
+     "active_target_cli": null,
+     "stage_reached_cli": true,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": null,
+     "state_ok": true,
+     "orders": 214,
+     "world_hash": "4a2c0b34d40e33327b8502580e143abf667b0954de91f9d2a2d87a501e41920e"
+    },
+    {
+     "turn": 479,
+     "node": "taxation",
+     "node_state": "AVAILABLE",
+     "node_progress": 887.835,
+     "technology_complete_cli": 70,
+     "civics_complete_cli": 0,
+     "active_target_cli": "taxation",
+     "stage_reached_cli": false,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": true,
+     "state_ok": true,
+     "orders": 71,
+     "world_hash": "e5d73e463822b20a30e5e09b1391349350b57b4e6a593d5c85fda0da67261c88"
+    },
+    {
+     "turn": 480,
+     "node": "taxation",
+     "node_state": "COMPLETED",
+     "node_progress": 0.0,
+     "technology_complete_cli": 70,
+     "civics_complete_cli": 1,
+     "active_target_cli": null,
+     "stage_reached_cli": false,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": null,
+     "state_ok": true,
+     "orders": 71,
+     "world_hash": "3dd4fc51894c632e2c49dda1c46185b6a6793b4e9025c4c9f0e2634c25619e31"
+    },
+    {
+     "turn": 620,
+     "node": "law_code",
+     "node_state": "AVAILABLE",
+     "node_progress": 970.021,
+     "technology_complete_cli": 93,
+     "civics_complete_cli": 1,
+     "active_target_cli": "law_code",
+     "stage_reached_cli": false,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": true,
+     "state_ok": true,
+     "orders": 95,
+     "world_hash": "95f5d880d66338553354b15600daf2eb8fc05a925b0ed47a6d56c6b477bd0fb6"
+    },
+    {
+     "turn": 621,
+     "node": "law_code",
+     "node_state": "COMPLETED",
+     "node_progress": 0.0,
+     "technology_complete_cli": 93,
+     "civics_complete_cli": 2,
+     "active_target_cli": null,
+     "stage_reached_cli": false,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": null,
+     "state_ok": true,
+     "orders": 95,
+     "world_hash": "117f7bbb0287890edf86d50b2172735afc3da535960efed3a31afc90eb3e86eb"
+    },
+    {
+     "turn": 672,
+     "node": "legal_code_roman",
+     "node_state": "AVAILABLE",
+     "node_progress": 2175.21,
+     "technology_complete_cli": 102,
+     "civics_complete_cli": 2,
+     "active_target_cli": "legal_code_roman",
+     "stage_reached_cli": false,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": true,
+     "state_ok": true,
+     "orders": 105,
+     "world_hash": "4f6249bff5fbef7cd7385992c0acb083a17fbad04b2aaea0fd9d919169ecc88b"
+    },
+    {
+     "turn": 673,
+     "node": "legal_code_roman",
+     "node_state": "COMPLETED",
+     "node_progress": 0.0,
+     "technology_complete_cli": 102,
+     "civics_complete_cli": 3,
+     "active_target_cli": null,
+     "stage_reached_cli": false,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": null,
+     "state_ok": true,
+     "orders": 105,
+     "world_hash": "d36e648c2608595b8dacd3990bb54a61b3e1a3ba97c124ad63ccdbc17a58f388"
+    },
+    {
+     "turn": 887,
+     "node": "census",
+     "node_state": "AVAILABLE",
+     "node_progress": 4585.372,
+     "technology_complete_cli": 133,
+     "civics_complete_cli": 3,
+     "active_target_cli": "census",
+     "stage_reached_cli": false,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": true,
+     "state_ok": true,
+     "orders": 137,
+     "world_hash": "394604493bb4630b5a711a861709d8cef30d31e4c0ce664e6a16f02798934ef2"
+    },
+    {
+     "turn": 888,
+     "node": "census",
+     "node_state": "COMPLETED",
+     "node_progress": 0.0,
+     "technology_complete_cli": 133,
+     "civics_complete_cli": 4,
+     "active_target_cli": null,
+     "stage_reached_cli": false,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": null,
+     "state_ok": true,
+     "orders": 137,
+     "world_hash": "6ae9efd8c3dac025b6efd90544607d14eec1e99bb7e646706500db5cfe9b086c"
+    }
+   ]
+  },
+  "42": {
+   "MEASURED": {
+    "orders": 235,
+    "final_turn": 1630,
+    "final_simYear": 6100,
+    "final_population": 520530,
+    "final_rp_per_turn": 792.293,
+    "final_active_target": "woodblock_print",
+    "final_target_progress": 7911.769,
+    "final_target_cost": 14070.0,
+    "completed_by_view": {
+     "Main Technology": 174,
+     "1.1 Military": 11,
+     "1.2 Medicine": 2,
+     "1.3 Engineering": 25,
+     "1.4 Natural Science": 10,
+     "1.5 Agriculture": 6,
+     "Civics": 6
+    },
+    "available_at_end": 12,
+    "stage_turn": 1016,
+    "stage_simYear": 5532,
+    "milestones_50": [
+     {
+      "count": 50,
+      "turn": 334,
+      "simYear": 2920
+     },
+     {
+      "count": 100,
+      "turn": 653,
+      "simYear": 4509
+     },
+     {
+      "count": 150,
+      "turn": 986,
+      "simYear": 5472
+     },
+     {
+      "count": 200,
+      "turn": 1309,
+      "simYear": 5939
+     }
+    ],
+    "eurekas_fired": 8,
+    "eureka_credit_rp": 54116.0,
+    "foreign_exposure_credit_rp": 0.0,
+    "partial_progress": [
+     {
+      "id": "woodblock_print",
+      "progress": 7911.769,
+      "cost": 14070.0
+     },
+     {
+      "id": "printing_press",
+      "progress": 15912.0,
+      "cost": 39780.0
+     },
+     {
+      "id": "germ_theory",
+      "progress": 18924.0,
+      "cost": 47310.0
+     }
+    ],
+    "cost_modifiers": "none (no institutions system writes them yet; EffectiveCost = BaseCost)",
+    "world_hash": "5241e99ec21d9312e2c4a0190e7e73bc1c57c64135de86abd7911cc41ec4658a",
+    "population_turn0": 5108,
+    "population": {
+     "min": 5118,
+     "median": 225909.5,
+     "max": 520530,
+     "argmin": 1,
+     "argmax": 1630
+    },
+    "rp_per_turn": {
+     "min": 31.315,
+     "median": 442.0695,
+     "max": 792.293
+    },
+    "selected_turns": {
+     "1": {
+      "simYear": 10,
+      "dt": 10.0,
+      "population": 5118,
+      "rp": 31.315,
+      "completed": 0
+     },
+     "100": {
+      "simYear": 1000,
+      "dt": 10.0,
+      "population": 10818,
+      "rp": 52.84,
+      "completed": 11
+     },
+     "200": {
+      "simYear": 2000,
+      "dt": 10.0,
+      "population": 23163,
+      "rp": 89.967,
+      "completed": 22
+     },
+     "250": {
+      "simYear": 2500,
+      "dt": 10.0,
+      "population": 33898,
+      "rp": 117.404,
+      "completed": 30
+     },
+     "300": {
+      "simYear": 2750,
+      "dt": 5.0,
+      "population": 40995,
+      "rp": 134.088,
+      "completed": 43
+     },
+     "500": {
+      "simYear": 3750,
+      "dt": 5.0,
+      "population": 87592,
+      "rp": 227.967,
+      "completed": 71
+     },
+     "650": {
+      "simYear": 4500,
+      "dt": 5.0,
+      "population": 154969,
+      "rp": 339.681,
+      "completed": 99
+     },
+     "800": {
+      "simYear": 4950,
+      "dt": 3.0,
+      "population": 218052,
+      "rp": 431.264,
+      "completed": 121
+     },
+     "950": {
+      "simYear": 5400,
+      "dt": 3.0,
+      "population": 307019,
+      "rp": 547.796,
+      "completed": 143
+     },
+     "1000": {
+      "simYear": 5500,
+      "dt": 2.0,
+      "population": 331169,
+      "rp": 577.57,
+      "completed": 151
+     },
+     "1150": {
+      "simYear": 5800,
+      "dt": 2.0,
+      "population": 415721,
+      "rp": 677.068,
+      "completed": 175
+     },
+     "1200": {
+      "simYear": 5850,
+      "dt": 1.0,
+      "population": 431835,
+      "rp": 695.308,
+      "completed": 182
+     },
+     "1270": {
+      "simYear": 5920,
+      "dt": 1.0,
+      "population": 455199,
+      "rp": 721.394,
+      "completed": 192
+     },
+     "1400": {
+      "simYear": 5985,
+      "dt": 0.5,
+      "population": 478063,
+      "rp": 746.535,
+      "completed": 209
+     },
+     "1430": {
+      "simYear": 6000,
+      "dt": 0.5,
+      "population": 483144,
+      "rp": 752.072,
+      "completed": 211
+     },
+     "1630": {
+      "simYear": 6100,
+      "dt": 0.5,
+      "population": 520530,
+      "rp": 792.293,
+      "completed": 234
+     }
+    },
+    "dt_bands": [
+     {
+      "first_turn": 1,
+      "last_turn": 250,
+      "dtYears": 10.0,
+      "turns": 250,
+      "simYear_end": 2500
+     },
+     {
+      "first_turn": 251,
+      "last_turn": 650,
+      "dtYears": 5.0,
+      "turns": 400,
+      "simYear_end": 4500
+     },
+     {
+      "first_turn": 651,
+      "last_turn": 950,
+      "dtYears": 3.0,
+      "turns": 300,
+      "simYear_end": 5400
+     },
+     {
+      "first_turn": 951,
+      "last_turn": 1150,
+      "dtYears": 2.0,
+      "turns": 200,
+      "simYear_end": 5800
+     },
+     {
+      "first_turn": 1151,
+      "last_turn": 1270,
+      "dtYears": 1.0,
+      "turns": 120,
+      "simYear_end": 5920
+     },
+     {
+      "first_turn": 1271,
+      "last_turn": 1630,
+      "dtYears": 0.5,
+      "turns": 360,
+      "simYear_end": 6100
+     }
+    ],
+    "cumulative_rp_prior_report_convention": 709153.166
+   },
+   "INFERENCE": {
+    "completed_nodes": 234,
+    "completed_by_view": {
+     "Main Technology": 174,
+     "1.1 Military": 11,
+     "1.2 Medicine": 2,
+     "1.3 Engineering": 25,
+     "1.4 Natural Science": 10,
+     "1.5 Agriculture": 6,
+     "Civics": 6
+    },
+    "completed_by_age": {
+     "A1": 28,
+     "A2": 51,
+     "A3": 38,
+     "A4": 32,
+     "A5": 29,
+     "A6": 36,
+     "A7": 11,
+     "A8": 9
+    },
+    "completed_by_tree_branch_age": {
+     "civics/civics/A3": 2,
+     "civics/civics/A4": 3,
+     "civics/civics/A6": 1,
+     "technology/agriculture/A6": 3,
+     "technology/agriculture/A7": 3,
+     "technology/engineering/A5": 1,
+     "technology/engineering/A6": 14,
+     "technology/engineering/A7": 2,
+     "technology/engineering/A8": 8,
+     "technology/main/A1": 28,
+     "technology/main/A2": 51,
+     "technology/main/A3": 36,
+     "technology/main/A4": 29,
+     "technology/main/A5": 28,
+     "technology/main/A6": 2,
+     "technology/medicine/A7": 1,
+     "technology/medicine/A8": 1,
+     "technology/military/A6": 10,
+     "technology/military/A7": 1,
+     "technology/natural_science/A6": 6,
+     "technology/natural_science/A7": 4
+    },
+    "rp_generated_in_run": 708392.139,
+    "rp_applied_to_research": 661401.769,
+    "rp_overflow_lost": 46990.37,
+    "civics": [
+     {
+      "key": 1001,
+      "id": "law_code",
+      "age": "A3",
+      "base": 1240.0,
+      "target_turn": 627,
+      "completion": {
+       "turn": 631,
+       "simYear": 4405
+      }
+     },
+     {
+      "key": 1002,
+      "id": "legal_code_roman",
+      "age": "A4",
+      "base": 2490.0,
+      "target_turn": 678,
+      "completion": {
+       "turn": 685,
+       "simYear": 4605
+      }
+     },
+     {
+      "key": 1003,
+      "id": "census",
+      "age": "A4",
+      "base": 4970.0,
+      "target_turn": 895,
+      "completion": {
+       "turn": 905,
+       "simYear": 5265
+      }
+     },
+     {
+      "key": 1004,
+      "id": "coined_wage",
+      "age": "A4",
+      "base": 1240.0,
+      "target_turn": 1430,
+      "completion": {
+       "turn": 1432,
+       "simYear": 6001
+      }
+     },
+     {
+      "key": 1005,
+      "id": "patent",
+      "age": "A7",
+      "base": 4180.0,
+      "target_turn": null,
+      "completion": null
+     },
+     {
+      "key": 1006,
+      "id": "joint_stock",
+      "age": "A6",
+      "base": 2960.0,
+      "target_turn": 1437,
+      "completion": {
+       "turn": 1441,
+       "simYear": 6005
+      }
+     },
+     {
+      "key": 1007,
+      "id": "taxation",
+      "age": "A3",
+      "base": 1050.0,
+      "target_turn": 484,
+      "completion": {
+       "turn": 489,
+       "simYear": 3695
+      }
+     }
+    ],
+    "age_research_facts": [
+     {
+      "age": 2,
+      "age_id": "neolithic",
+      "role": "CORE",
+      "id": "a2_cultivation",
+      "kind": "research",
+      "nodes": [
+       "cereal_cultivation"
+      ],
+      "satisfied": {
+       "turn": 529,
+       "simYear": 3895
+      },
+      "via": "cereal_cultivation"
+     },
+     {
+      "age": 2,
+      "age_id": "neolithic",
+      "role": "SUPPORTING",
+      "id": "a2_pottery",
+      "kind": "research",
+      "nodes": [
+       "pottery_open_fired"
+      ],
+      "satisfied": {
+       "turn": 461,
+       "simYear": 3555
+      },
+      "via": "pottery_open_fired"
+     },
+     {
+      "age": 2,
+      "age_id": "neolithic",
+      "role": "SUPPORTING",
+      "id": "a2_herding",
+      "kind": "research",
+      "nodes": [
+       "sheep_goat"
+      ],
+      "satisfied": {
+       "turn": 136,
+       "simYear": 1360
+      },
+      "via": "sheep_goat"
+     },
+     {
+      "age": 3,
+      "age_id": "bronze",
+      "role": "CORE",
+      "id": "a3_bronze",
+      "kind": "research",
+      "nodes": [
+       "arsenical_bronze",
+       "tin_bronze"
+      ],
+      "satisfied": {
+       "turn": 802,
+       "simYear": 4956
+      },
+      "via": "arsenical_bronze"
+     },
+     {
+      "age": 3,
+      "age_id": "bronze",
+      "role": "SUPPORTING",
+      "id": "a3_writing",
+      "kind": "research",
+      "nodes": [
+       "proto_writing",
+       "token_counting"
+      ],
+      "satisfied": {
+       "turn": 230,
+       "simYear": 2300
+      },
+      "via": "token_counting"
+     },
+     {
+      "age": 3,
+      "age_id": "bronze",
+      "role": "SUPPORTING",
+      "id": "a3_law",
+      "kind": "research",
+      "nodes": [
+       "law_code"
+      ],
+      "satisfied": {
+       "turn": 631,
+       "simYear": 4405
+      },
+      "via": "law_code"
+     },
+     {
+      "age": 3,
+      "age_id": "bronze",
+      "role": "SUPPORTING",
+      "id": "a3_wheel",
+      "kind": "research",
+      "nodes": [
+       "wheel_solid"
+      ],
+      "satisfied": {
+       "turn": 594,
+       "simYear": 4220
+      },
+      "via": "wheel_solid"
+     },
+     {
+      "age": 4,
+      "age_id": "iron",
+      "role": "CORE",
+      "id": "a4_iron",
+      "kind": "research",
+      "nodes": [
+       "iron_bloomery"
+      ],
+      "satisfied": {
+       "turn": 1198,
+       "simYear": 5848
+      },
+      "via": "iron_bloomery"
+     },
+     {
+      "age": 4,
+      "age_id": "iron",
+      "role": "SUPPORTING",
+      "id": "a4_alphabet",
+      "kind": "research",
+      "nodes": [
+       "abjad"
+      ],
+      "satisfied": {
+       "turn": 735,
+       "simYear": 4755
+      },
+      "via": "abjad"
+     },
+     {
+      "age": 4,
+      "age_id": "iron",
+      "role": "SUPPORTING",
+      "id": "a4_census",
+      "kind": "research",
+      "nodes": [
+       "census"
+      ],
+      "satisfied": {
+       "turn": 905,
+       "simYear": 5265
+      },
+      "via": "census"
+     },
+     {
+      "age": 5,
+      "age_id": "classical",
+      "role": "CORE",
+      "id": "a5_systematic_law",
+      "kind": "research",
+      "nodes": [
+       "legal_code_roman"
+      ],
+      "satisfied": {
+       "turn": 685,
+       "simYear": 4605
+      },
+      "via": "legal_code_roman"
+     },
+     {
+      "age": 5,
+      "age_id": "classical",
+      "role": "CORE",
+      "id": "a5_coinage",
+      "kind": "research",
+      "nodes": [
+       "coinage_electrum"
+      ],
+      "satisfied": {
+       "turn": 1430,
+       "simYear": 6000
+      },
+      "via": "coinage_electrum"
+     },
+     {
+      "age": 5,
+      "age_id": "classical",
+      "role": "SUPPORTING",
+      "id": "a5_geometry",
+      "kind": "research",
+      "nodes": [
+       "geometry_axiomatic"
+      ],
+      "satisfied": {
+       "turn": 1016,
+       "simYear": 5532
+      },
+      "via": "geometry_axiomatic"
+     },
+     {
+      "age": 5,
+      "age_id": "classical",
+      "role": "SUPPORTING",
+      "id": "a5_roads",
+      "kind": "research",
+      "nodes": [
+       "road_paved"
+      ],
+      "satisfied": {
+       "turn": 1359,
+       "simYear": 5964
+      },
+      "via": "road_paved"
+     },
+     {
+      "age": 5,
+      "age_id": "classical",
+      "role": "SUPPORTING",
+      "id": "a5_concrete",
+      "kind": "research",
+      "nodes": [
+       "concrete_pozzolan"
+      ],
+      "satisfied": {
+       "turn": 1554,
+       "simYear": 6062
+      },
+      "via": "concrete_pozzolan"
+     },
+     {
+      "age": 5,
+      "age_id": "classical",
+      "role": "SUPPORTING",
+      "id": "a5_wages",
+      "kind": "research",
+      "nodes": [
+       "coined_wage"
+      ],
+      "satisfied": {
+       "turn": 1432,
+       "simYear": 6001
+      },
+      "via": "coined_wage"
+     },
+     {
+      "age": 6,
+      "age_id": "medieval",
+      "role": "CORE",
+      "id": "a6_heavy_plough",
+      "kind": "research",
+      "nodes": [
+       "heavy_plough"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 6,
+      "age_id": "medieval",
+      "role": "SUPPORTING",
+      "id": "a6_paper",
+      "kind": "research",
+      "nodes": [
+       "paper"
+      ],
+      "satisfied": {
+       "turn": 1573,
+       "simYear": 6071
+      },
+      "via": "paper"
+     },
+     {
+      "age": 6,
+      "age_id": "medieval",
+      "role": "SUPPORTING",
+      "id": "a6_mills",
+      "kind": "research",
+      "nodes": [
+       "water_mill",
+       "windmill_post"
+      ],
+      "satisfied": {
+       "turn": 1457,
+       "simYear": 6013
+      },
+      "via": "water_mill"
+     },
+     {
+      "age": 6,
+      "age_id": "medieval",
+      "role": "SUPPORTING",
+      "id": "a6_finance",
+      "kind": "research",
+      "nodes": [
+       "double_entry",
+       "bill_of_exchange"
+      ],
+      "satisfied": {
+       "turn": 1437,
+       "simYear": 6003
+      },
+      "via": "bill_of_exchange"
+     },
+     {
+      "age": 6,
+      "age_id": "medieval",
+      "role": "SUPPORTING",
+      "id": "a6_numerals",
+      "kind": "research",
+      "nodes": [
+       "hindu_arabic"
+      ],
+      "satisfied": {
+       "turn": 932,
+       "simYear": 5346
+      },
+      "via": "hindu_arabic"
+     },
+     {
+      "age": 7,
+      "age_id": "early_modern",
+      "role": "CORE",
+      "id": "a7_printing",
+      "kind": "research",
+      "nodes": [
+       "printing_press"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 7,
+      "age_id": "early_modern",
+      "role": "SUPPORTING",
+      "id": "a7_ocean",
+      "kind": "research",
+      "nodes": [
+       "caravel"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 7,
+      "age_id": "early_modern",
+      "role": "SUPPORTING",
+      "id": "a7_powder",
+      "kind": "research",
+      "nodes": [
+       "corned_powder"
+      ],
+      "satisfied": {
+       "turn": 1190,
+       "simYear": 5840
+      },
+      "via": "corned_powder"
+     },
+     {
+      "age": 7,
+      "age_id": "early_modern",
+      "role": "SUPPORTING",
+      "id": "a7_science",
+      "kind": "research",
+      "nodes": [
+       "mechanics_newtonian"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 7,
+      "age_id": "early_modern",
+      "role": "SUPPORTING",
+      "id": "a7_patent",
+      "kind": "research",
+      "nodes": [
+       "patent"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 7,
+      "age_id": "early_modern",
+      "role": "SUPPORTING",
+      "id": "a7_company",
+      "kind": "research",
+      "nodes": [
+       "joint_stock"
+      ],
+      "satisfied": {
+       "turn": 1441,
+       "simYear": 6005
+      },
+      "via": "joint_stock"
+     },
+     {
+      "age": 8,
+      "age_id": "industrial",
+      "role": "CORE",
+      "id": "a8_steam",
+      "kind": "research",
+      "nodes": [
+       "steam_rotary"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 8,
+      "age_id": "industrial",
+      "role": "SUPPORTING",
+      "id": "a8_iron",
+      "kind": "research",
+      "nodes": [
+       "puddling"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 8,
+      "age_id": "industrial",
+      "role": "SUPPORTING",
+      "id": "a8_rail",
+      "kind": "research",
+      "nodes": [
+       "railway"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 8,
+      "age_id": "industrial",
+      "role": "SUPPORTING",
+      "id": "a8_telegraph",
+      "kind": "research",
+      "nodes": [
+       "telegraph"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 8,
+      "age_id": "industrial",
+      "role": "SUPPORTING",
+      "id": "a8_germ",
+      "kind": "research",
+      "nodes": [
+       "germ_theory"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 8,
+      "age_id": "industrial",
+      "role": "SUPPORTING",
+      "id": "a8_knowledge",
+      "kind": "research_count",
+      "tree": "technology",
+      "min": 200,
+      "satisfied": {
+       "turn": 1359,
+       "simYear": 5964
+      },
+      "via": null,
+      "final_count": 228
+     },
+     {
+      "age": 9,
+      "age_id": "modern",
+      "role": "CORE",
+      "id": "a9_electricity",
+      "kind": "research",
+      "nodes": [
+       "electricity_generation"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 9,
+      "age_id": "modern",
+      "role": "CORE",
+      "id": "a9_combustion",
+      "kind": "research",
+      "nodes": [
+       "internal_combustion"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 9,
+      "age_id": "modern",
+      "role": "SUPPORTING",
+      "id": "a9_radio",
+      "kind": "research",
+      "nodes": [
+       "radio"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 9,
+      "age_id": "modern",
+      "role": "SUPPORTING",
+      "id": "a9_antibiotics",
+      "kind": "research",
+      "nodes": [
+       "antibiotic_penicillin"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 9,
+      "age_id": "modern",
+      "role": "SUPPORTING",
+      "id": "a9_computing",
+      "kind": "research",
+      "nodes": [
+       "computer"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 9,
+      "age_id": "modern",
+      "role": "SUPPORTING",
+      "id": "a9_knowledge",
+      "kind": "research_count",
+      "tree": "technology",
+      "min": 280,
+      "satisfied": null,
+      "via": null,
+      "final_count": 228
+     }
+    ],
+    "technology_completed_final": 228,
+    "longest_single_target_waits": [
+     {
+      "id": "astrolabe",
+      "key": 190,
+      "branch": "natural_science",
+      "age": "A6",
+      "base": 14070.0,
+      "target_turn": 1602,
+      "completion_turn": 1620,
+      "turns": 18
+     },
+     {
+      "id": "coinage_electrum",
+      "key": 121,
+      "branch": "main",
+      "age": "A4",
+      "base": 11830.0,
+      "target_turn": 1414,
+      "completion_turn": 1430,
+      "turns": 16
+     },
+     {
+      "id": "water_mill",
+      "key": 145,
+      "branch": "main",
+      "age": "A5",
+      "base": 11830.0,
+      "target_turn": 1441,
+      "completion_turn": 1457,
+      "turns": 16
+     },
+     {
+      "id": "concrete_pozzolan",
+      "key": 148,
+      "branch": "main",
+      "age": "A5",
+      "base": 11830.0,
+      "target_turn": 1538,
+      "completion_turn": 1554,
+      "turns": 16
+     },
+     {
+      "id": "cereal_cultivation",
+      "key": 29,
+      "branch": "main",
+      "age": "A2",
+      "base": 3520.0,
+      "target_turn": 514,
+      "completion_turn": 529,
+      "turns": 15
+     },
+     {
+      "id": "road_paved",
+      "key": 150,
+      "branch": "main",
+      "age": "A5",
+      "base": 9950.0,
+      "target_turn": 1345,
+      "completion_turn": 1359,
+      "turns": 14
+     },
+     {
+      "id": "telescope",
+      "key": 232,
+      "branch": "natural_science",
+      "age": "A7",
+      "base": 9950.0,
+      "target_turn": 1386,
+      "completion_turn": 1400,
+      "turns": 14
+     },
+     {
+      "id": "microscope",
+      "key": 233,
+      "branch": "natural_science",
+      "age": "A7",
+      "base": 9950.0,
+      "target_turn": 1400,
+      "completion_turn": 1414,
+      "turns": 14
+     },
+     {
+      "id": "knapping_oldowan",
+      "key": 2,
+      "branch": "main",
+      "age": "A1",
+      "base": 520.0,
+      "target_turn": 54,
+      "completion_turn": 67,
+      "turns": 13
+     },
+     {
+      "id": "pottery_open_fired",
+      "key": 47,
+      "branch": "main",
+      "age": "A2",
+      "base": 2490.0,
+      "target_turn": 448,
+      "completion_turn": 461,
+      "turns": 13
+     }
+    ],
+    "idle_steps_without_target": 0
+   },
+   "CHECKS": {
+    "views": {
+     "Main Technology": [
+      174,
+      174
+     ],
+     "1.1 Military": [
+      11,
+      11
+     ],
+     "1.2 Medicine": [
+      2,
+      2
+     ],
+     "1.3 Engineering": [
+      25,
+      25
+     ],
+     "1.4 Natural Science": [
+      10,
+      10
+     ],
+     "1.5 Agriculture": [
+      6,
+      6
+     ],
+     "Civics": [
+      6,
+      6
+     ]
+    },
+    "views_ok": true,
+    "milestones": [
+     {
+      "count": 50,
+      "cli_turn": 334,
+      "recon_turn": 334,
+      "at_most_one_per_turn": true
+     },
+     {
+      "count": 100,
+      "cli_turn": 653,
+      "recon_turn": 653,
+      "at_most_one_per_turn": true
+     },
+     {
+      "count": 150,
+      "cli_turn": 986,
+      "recon_turn": 986,
+      "at_most_one_per_turn": true
+     },
+     {
+      "count": 200,
+      "cli_turn": 1309,
+      "recon_turn": 1309,
+      "at_most_one_per_turn": true
+     }
+    ],
+    "milestones_ok": true,
+    "stage_cli": 1016,
+    "stage_recon": 1016,
+    "stage_ok": true,
+    "rp_bound_failures": [],
+    "final_target": {
+     "id": "woodblock_print",
+     "reported_progress": 7911.769,
+     "rp_offered": 7911.769,
+     "eureka_possible": false
+    }
+   },
+   "SPOT_CHECKS_MEASURED": [
+    {
+     "turn": 1358,
+     "node": "patent",
+     "node_state": "LOCKED",
+     "node_progress": 0.0,
+     "technology_complete_cli": 199,
+     "civics_complete_cli": 4,
+     "active_target_cli": "road_paved",
+     "stage_reached_cli": true,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": true,
+     "state_ok": true,
+     "orders": 204,
+     "world_hash": "611acd324431b36ac6392249d195e2553497f4799d745ef189b16ccce3f51f14"
+    },
+    {
+     "turn": 1359,
+     "node": "patent",
+     "node_state": "LOCKED",
+     "node_progress": 0.0,
+     "technology_complete_cli": 200,
+     "civics_complete_cli": 4,
+     "active_target_cli": null,
+     "stage_reached_cli": true,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": null,
+     "state_ok": true,
+     "orders": 204,
+     "world_hash": "e155faed161fe7727fbe064f4ac7d4e6e0bc27d243a5a58f72606b7b745f08b9"
+    },
+    {
+     "turn": 1431,
+     "node": "coined_wage",
+     "node_state": "AVAILABLE",
+     "node_progress": 752.072,
+     "technology_complete_cli": 207,
+     "civics_complete_cli": 4,
+     "active_target_cli": "coined_wage",
+     "stage_reached_cli": true,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": true,
+     "state_ok": true,
+     "orders": 212,
+     "world_hash": "15be240274c27ce908d9a1da3454b8a70a187bf52fc7f7e2ef9dbb8f57a4d083"
+    },
+    {
+     "turn": 1432,
+     "node": "coined_wage",
+     "node_state": "COMPLETED",
+     "node_progress": 0.0,
+     "technology_complete_cli": 207,
+     "civics_complete_cli": 5,
+     "active_target_cli": null,
+     "stage_reached_cli": true,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": null,
+     "state_ok": true,
+     "orders": 212,
+     "world_hash": "4e08cc2634d26375149854cb3a39d0731e02a8d3ef6b7900abb57cd80055cd4d"
+    },
+    {
+     "turn": 1440,
+     "node": "joint_stock",
+     "node_state": "AVAILABLE",
+     "node_progress": 2261.004,
+     "technology_complete_cli": 208,
+     "civics_complete_cli": 5,
+     "active_target_cli": "joint_stock",
+     "stage_reached_cli": true,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": true,
+     "state_ok": true,
+     "orders": 214,
+     "world_hash": "9ebfca46443e108ae2dd12f897089b8ad5f49133858d9c5bebaff6557f8a0c42"
+    },
+    {
+     "turn": 1441,
+     "node": "joint_stock",
+     "node_state": "COMPLETED",
+     "node_progress": 0.0,
+     "technology_complete_cli": 208,
+     "civics_complete_cli": 6,
+     "active_target_cli": null,
+     "stage_reached_cli": true,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": null,
+     "state_ok": true,
+     "orders": 214,
+     "world_hash": "309207dc04b27efa2a688c9ae9e4182028b3fa8c5dc94acc68af2484bf4bdc0d"
+    },
+    {
+     "turn": 488,
+     "node": "taxation",
+     "node_state": "AVAILABLE",
+     "node_progress": 877.311,
+     "technology_complete_cli": 70,
+     "civics_complete_cli": 0,
+     "active_target_cli": "taxation",
+     "stage_reached_cli": false,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": true,
+     "state_ok": true,
+     "orders": 71,
+     "world_hash": "d1571c74995253ccceccd4b07aa3a83963e984b072c8463b4b372acd6518eda9"
+    },
+    {
+     "turn": 489,
+     "node": "taxation",
+     "node_state": "COMPLETED",
+     "node_progress": 0.0,
+     "technology_complete_cli": 70,
+     "civics_complete_cli": 1,
+     "active_target_cli": null,
+     "stage_reached_cli": false,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": null,
+     "state_ok": true,
+     "orders": 71,
+     "world_hash": "e79a3ba8b06fde1ba3c6fd0ea606194a7131547f6c0eb4eb0d373e9529c70e87"
+    },
+    {
+     "turn": 630,
+     "node": "law_code",
+     "node_state": "AVAILABLE",
+     "node_progress": 961.183,
+     "technology_complete_cli": 93,
+     "civics_complete_cli": 1,
+     "active_target_cli": "law_code",
+     "stage_reached_cli": false,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": true,
+     "state_ok": true,
+     "orders": 95,
+     "world_hash": "8742606ef1dde983f524f84273c3caa9853a6d89d6f7d277c3e785ce5d4ff10e"
+    },
+    {
+     "turn": 631,
+     "node": "law_code",
+     "node_state": "COMPLETED",
+     "node_progress": 0.0,
+     "technology_complete_cli": 93,
+     "civics_complete_cli": 2,
+     "active_target_cli": null,
+     "stage_reached_cli": false,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": null,
+     "state_ok": true,
+     "orders": 95,
+     "world_hash": "6a0bdfde2dc20812d982ac7acf4ff0d601739f8b27570ab63b12cddc3496296e"
+    },
+    {
+     "turn": 684,
+     "node": "legal_code_roman",
+     "node_state": "AVAILABLE",
+     "node_progress": 2139.795,
+     "technology_complete_cli": 102,
+     "civics_complete_cli": 2,
+     "active_target_cli": "legal_code_roman",
+     "stage_reached_cli": false,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": true,
+     "state_ok": true,
+     "orders": 105,
+     "world_hash": "b3ede528f1ebb6d6a326efbd08efd50f4d27d0debdceb3ac4f2b752e5c66e975"
+    },
+    {
+     "turn": 685,
+     "node": "legal_code_roman",
+     "node_state": "COMPLETED",
+     "node_progress": 0.0,
+     "technology_complete_cli": 102,
+     "civics_complete_cli": 3,
+     "active_target_cli": null,
+     "stage_reached_cli": false,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": null,
+     "state_ok": true,
+     "orders": 105,
+     "world_hash": "98ad7885ad6ad42cc8ae4c90b1df7c254e215d83c19f32e7f5f895a384ecea5e"
+    },
+    {
+     "turn": 904,
+     "node": "census",
+     "node_state": "AVAILABLE",
+     "node_progress": 4544.894,
+     "technology_complete_cli": 133,
+     "civics_complete_cli": 3,
+     "active_target_cli": "census",
+     "stage_reached_cli": false,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": true,
+     "state_ok": true,
+     "orders": 137,
+     "world_hash": "076635588e2c881b5da2e137e48b04698dabf52a59b46a664e3794d68e05cbf6"
+    },
+    {
+     "turn": 905,
+     "node": "census",
+     "node_state": "COMPLETED",
+     "node_progress": 0.0,
+     "technology_complete_cli": 133,
+     "civics_complete_cli": 4,
+     "active_target_cli": null,
+     "stage_reached_cli": false,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": null,
+     "state_ok": true,
+     "orders": 137,
+     "world_hash": "5627defc6ae7f3d3b5f33144e0ea1473dfb545e839db4671aa35eeba1c5de576"
+    }
+   ]
+  },
+  "7": {
+   "MEASURED": {
+    "orders": 236,
+    "final_turn": 1630,
+    "final_simYear": 6100,
+    "final_population": 527651,
+    "final_rp_per_turn": 799.853,
+    "final_active_target": "movable_type_ceramic",
+    "final_target_progress": 1599.216,
+    "final_target_cost": 3520.0,
+    "completed_by_view": {
+     "Main Technology": 174,
+     "1.1 Military": 11,
+     "1.2 Medicine": 2,
+     "1.3 Engineering": 26,
+     "1.4 Natural Science": 10,
+     "1.5 Agriculture": 6,
+     "Civics": 6
+    },
+    "available_at_end": 13,
+    "stage_turn": 1010,
+    "stage_simYear": 5520,
+    "milestones_50": [
+     {
+      "count": 50,
+      "turn": 333,
+      "simYear": 2915
+     },
+     {
+      "count": 100,
+      "turn": 651,
+      "simYear": 4503
+     },
+     {
+      "count": 150,
+      "turn": 981,
+      "simYear": 5462
+     },
+     {
+      "count": 200,
+      "turn": 1301,
+      "simYear": 5935
+     }
+    ],
+    "eurekas_fired": 8,
+    "eureka_credit_rp": 54116.0,
+    "foreign_exposure_credit_rp": 0.0,
+    "partial_progress": [
+     {
+      "id": "movable_type_ceramic",
+      "progress": 1599.216,
+      "cost": 3520.0
+     },
+     {
+      "id": "printing_press",
+      "progress": 15912.0,
+      "cost": 39780.0
+     },
+     {
+      "id": "germ_theory",
+      "progress": 18924.0,
+      "cost": 47310.0
+     }
+    ],
+    "cost_modifiers": "none (no institutions system writes them yet; EffectiveCost = BaseCost)",
+    "world_hash": "4e670239eec6e3dd7a738644b5c6e2ace6aa7de4ba94461ad5c958c8bebc109e",
+    "population_turn0": 5095,
+    "population": {
+     "min": 5137,
+     "median": 229332.5,
+     "max": 527651,
+     "argmin": 1,
+     "argmax": 1630
+    },
+    "rp_per_turn": {
+     "min": 31.396,
+     "median": 446.741,
+     "max": 799.853
+    },
+    "selected_turns": {
+     "1": {
+      "simYear": 10,
+      "dt": 10.0,
+      "population": 5137,
+      "rp": 31.396,
+      "completed": 0
+     },
+     "100": {
+      "simYear": 1000,
+      "dt": 10.0,
+      "population": 11024,
+      "rp": 53.541,
+      "completed": 11
+     },
+     "200": {
+      "simYear": 2000,
+      "dt": 10.0,
+      "population": 23550,
+      "rp": 91.015,
+      "completed": 22
+     },
+     "250": {
+      "simYear": 2500,
+      "dt": 10.0,
+      "population": 34461,
+      "rp": 118.763,
+      "completed": 31
+     },
+     "300": {
+      "simYear": 2750,
+      "dt": 5.0,
+      "population": 41678,
+      "rp": 135.645,
+      "completed": 44
+     },
+     "500": {
+      "simYear": 3750,
+      "dt": 5.0,
+      "population": 89095,
+      "rp": 230.695,
+      "completed": 72
+     },
+     "650": {
+      "simYear": 4500,
+      "dt": 5.0,
+      "population": 157540,
+      "rp": 343.61,
+      "completed": 99
+     },
+     "800": {
+      "simYear": 4950,
+      "dt": 3.0,
+      "population": 221421,
+      "rp": 435.911,
+      "completed": 122
+     },
+     "950": {
+      "simYear": 5400,
+      "dt": 3.0,
+      "population": 311600,
+      "rp": 553.496,
+      "completed": 143
+     },
+     "1000": {
+      "simYear": 5500,
+      "dt": 2.0,
+      "population": 336236,
+      "rp": 583.733,
+      "completed": 152
+     },
+     "1150": {
+      "simYear": 5800,
+      "dt": 2.0,
+      "population": 421979,
+      "rp": 684.177,
+      "completed": 176
+     },
+     "1200": {
+      "simYear": 5850,
+      "dt": 1.0,
+      "population": 437949,
+      "rp": 702.174,
+      "completed": 183
+     },
+     "1270": {
+      "simYear": 5920,
+      "dt": 1.0,
+      "population": 461447,
+      "rp": 728.301,
+      "completed": 194
+     },
+     "1400": {
+      "simYear": 5985,
+      "dt": 0.5,
+      "population": 484558,
+      "rp": 753.61,
+      "completed": 209
+     },
+     "1430": {
+      "simYear": 6000,
+      "dt": 0.5,
+      "population": 490034,
+      "rp": 759.553,
+      "completed": 213
+     },
+     "1630": {
+      "simYear": 6100,
+      "dt": 0.5,
+      "population": 527651,
+      "rp": 799.853,
+      "completed": 235
+     }
+    },
+    "dt_bands": [
+     {
+      "first_turn": 1,
+      "last_turn": 250,
+      "dtYears": 10.0,
+      "turns": 250,
+      "simYear_end": 2500
+     },
+     {
+      "first_turn": 251,
+      "last_turn": 650,
+      "dtYears": 5.0,
+      "turns": 400,
+      "simYear_end": 4500
+     },
+     {
+      "first_turn": 651,
+      "last_turn": 950,
+      "dtYears": 3.0,
+      "turns": 300,
+      "simYear_end": 5400
+     },
+     {
+      "first_turn": 951,
+      "last_turn": 1150,
+      "dtYears": 2.0,
+      "turns": 200,
+      "simYear_end": 5800
+     },
+     {
+      "first_turn": 1151,
+      "last_turn": 1270,
+      "dtYears": 1.0,
+      "turns": 120,
+      "simYear_end": 5920
+     },
+     {
+      "first_turn": 1271,
+      "last_turn": 1630,
+      "dtYears": 0.5,
+      "turns": 360,
+      "simYear_end": 6100
+     }
+    ],
+    "cumulative_rp_prior_report_convention": 716510.642
+   },
+   "INFERENCE": {
+    "completed_nodes": 235,
+    "completed_by_view": {
+     "Main Technology": 174,
+     "1.1 Military": 11,
+     "1.2 Medicine": 2,
+     "1.3 Engineering": 26,
+     "1.4 Natural Science": 10,
+     "1.5 Agriculture": 6,
+     "Civics": 6
+    },
+    "completed_by_age": {
+     "A1": 28,
+     "A2": 51,
+     "A3": 38,
+     "A4": 32,
+     "A5": 29,
+     "A6": 37,
+     "A7": 11,
+     "A8": 9
+    },
+    "completed_by_tree_branch_age": {
+     "civics/civics/A3": 2,
+     "civics/civics/A4": 3,
+     "civics/civics/A6": 1,
+     "technology/agriculture/A6": 3,
+     "technology/agriculture/A7": 3,
+     "technology/engineering/A5": 1,
+     "technology/engineering/A6": 15,
+     "technology/engineering/A7": 2,
+     "technology/engineering/A8": 8,
+     "technology/main/A1": 28,
+     "technology/main/A2": 51,
+     "technology/main/A3": 36,
+     "technology/main/A4": 29,
+     "technology/main/A5": 28,
+     "technology/main/A6": 2,
+     "technology/medicine/A7": 1,
+     "technology/medicine/A8": 1,
+     "technology/military/A6": 10,
+     "technology/military/A7": 1,
+     "technology/natural_science/A6": 6,
+     "technology/natural_science/A7": 4
+    },
+    "rp_generated_in_run": 715742.003,
+    "rp_applied_to_research": 669159.216,
+    "rp_overflow_lost": 46582.787,
+    "civics": [
+     {
+      "key": 1001,
+      "id": "law_code",
+      "age": "A3",
+      "base": 1240.0,
+      "target_turn": 625,
+      "completion": {
+       "turn": 629,
+       "simYear": 4395
+      }
+     },
+     {
+      "key": 1002,
+      "id": "legal_code_roman",
+      "age": "A4",
+      "base": 2490.0,
+      "target_turn": 676,
+      "completion": {
+       "turn": 683,
+       "simYear": 4599
+      }
+     },
+     {
+      "key": 1003,
+      "id": "census",
+      "age": "A4",
+      "base": 4970.0,
+      "target_turn": 890,
+      "completion": {
+       "turn": 900,
+       "simYear": 5250
+      }
+     },
+     {
+      "key": 1004,
+      "id": "coined_wage",
+      "age": "A4",
+      "base": 1240.0,
+      "target_turn": 1421,
+      "completion": {
+       "turn": 1423,
+       "simYear": 5996
+      }
+     },
+     {
+      "key": 1005,
+      "id": "patent",
+      "age": "A7",
+      "base": 4180.0,
+      "target_turn": null,
+      "completion": null
+     },
+     {
+      "key": 1006,
+      "id": "joint_stock",
+      "age": "A6",
+      "base": 2960.0,
+      "target_turn": 1428,
+      "completion": {
+       "turn": 1432,
+       "simYear": 6001
+      }
+     },
+     {
+      "key": 1007,
+      "id": "taxation",
+      "age": "A3",
+      "base": 1050.0,
+      "target_turn": 482,
+      "completion": {
+       "turn": 487,
+       "simYear": 3685
+      }
+     }
+    ],
+    "age_research_facts": [
+     {
+      "age": 2,
+      "age_id": "neolithic",
+      "role": "CORE",
+      "id": "a2_cultivation",
+      "kind": "research",
+      "nodes": [
+       "cereal_cultivation"
+      ],
+      "satisfied": {
+       "turn": 527,
+       "simYear": 3885
+      },
+      "via": "cereal_cultivation"
+     },
+     {
+      "age": 2,
+      "age_id": "neolithic",
+      "role": "SUPPORTING",
+      "id": "a2_pottery",
+      "kind": "research",
+      "nodes": [
+       "pottery_open_fired"
+      ],
+      "satisfied": {
+       "turn": 459,
+       "simYear": 3545
+      },
+      "via": "pottery_open_fired"
+     },
+     {
+      "age": 2,
+      "age_id": "neolithic",
+      "role": "SUPPORTING",
+      "id": "a2_herding",
+      "kind": "research",
+      "nodes": [
+       "sheep_goat"
+      ],
+      "satisfied": {
+       "turn": 135,
+       "simYear": 1350
+      },
+      "via": "sheep_goat"
+     },
+     {
+      "age": 3,
+      "age_id": "bronze",
+      "role": "CORE",
+      "id": "a3_bronze",
+      "kind": "research",
+      "nodes": [
+       "arsenical_bronze",
+       "tin_bronze"
+      ],
+      "satisfied": {
+       "turn": 798,
+       "simYear": 4944
+      },
+      "via": "arsenical_bronze"
+     },
+     {
+      "age": 3,
+      "age_id": "bronze",
+      "role": "SUPPORTING",
+      "id": "a3_writing",
+      "kind": "research",
+      "nodes": [
+       "proto_writing",
+       "token_counting"
+      ],
+      "satisfied": {
+       "turn": 229,
+       "simYear": 2290
+      },
+      "via": "token_counting"
+     },
+     {
+      "age": 3,
+      "age_id": "bronze",
+      "role": "SUPPORTING",
+      "id": "a3_law",
+      "kind": "research",
+      "nodes": [
+       "law_code"
+      ],
+      "satisfied": {
+       "turn": 629,
+       "simYear": 4395
+      },
+      "via": "law_code"
+     },
+     {
+      "age": 3,
+      "age_id": "bronze",
+      "role": "SUPPORTING",
+      "id": "a3_wheel",
+      "kind": "research",
+      "nodes": [
+       "wheel_solid"
+      ],
+      "satisfied": {
+       "turn": 592,
+       "simYear": 4210
+      },
+      "via": "wheel_solid"
+     },
+     {
+      "age": 4,
+      "age_id": "iron",
+      "role": "CORE",
+      "id": "a4_iron",
+      "kind": "research",
+      "nodes": [
+       "iron_bloomery"
+      ],
+      "satisfied": {
+       "turn": 1191,
+       "simYear": 5841
+      },
+      "via": "iron_bloomery"
+     },
+     {
+      "age": 4,
+      "age_id": "iron",
+      "role": "SUPPORTING",
+      "id": "a4_alphabet",
+      "kind": "research",
+      "nodes": [
+       "abjad"
+      ],
+      "satisfied": {
+       "turn": 733,
+       "simYear": 4749
+      },
+      "via": "abjad"
+     },
+     {
+      "age": 4,
+      "age_id": "iron",
+      "role": "SUPPORTING",
+      "id": "a4_census",
+      "kind": "research",
+      "nodes": [
+       "census"
+      ],
+      "satisfied": {
+       "turn": 900,
+       "simYear": 5250
+      },
+      "via": "census"
+     },
+     {
+      "age": 5,
+      "age_id": "classical",
+      "role": "CORE",
+      "id": "a5_systematic_law",
+      "kind": "research",
+      "nodes": [
+       "legal_code_roman"
+      ],
+      "satisfied": {
+       "turn": 683,
+       "simYear": 4599
+      },
+      "via": "legal_code_roman"
+     },
+     {
+      "age": 5,
+      "age_id": "classical",
+      "role": "CORE",
+      "id": "a5_coinage",
+      "kind": "research",
+      "nodes": [
+       "coinage_electrum"
+      ],
+      "satisfied": {
+       "turn": 1421,
+       "simYear": 5995
+      },
+      "via": "coinage_electrum"
+     },
+     {
+      "age": 5,
+      "age_id": "classical",
+      "role": "SUPPORTING",
+      "id": "a5_geometry",
+      "kind": "research",
+      "nodes": [
+       "geometry_axiomatic"
+      ],
+      "satisfied": {
+       "turn": 1010,
+       "simYear": 5520
+      },
+      "via": "geometry_axiomatic"
+     },
+     {
+      "age": 5,
+      "age_id": "classical",
+      "role": "SUPPORTING",
+      "id": "a5_roads",
+      "kind": "research",
+      "nodes": [
+       "road_paved"
+      ],
+      "satisfied": {
+       "turn": 1351,
+       "simYear": 5960
+      },
+      "via": "road_paved"
+     },
+     {
+      "age": 5,
+      "age_id": "classical",
+      "role": "SUPPORTING",
+      "id": "a5_concrete",
+      "kind": "research",
+      "nodes": [
+       "concrete_pozzolan"
+      ],
+      "satisfied": {
+       "turn": 1545,
+       "simYear": 6057
+      },
+      "via": "concrete_pozzolan"
+     },
+     {
+      "age": 5,
+      "age_id": "classical",
+      "role": "SUPPORTING",
+      "id": "a5_wages",
+      "kind": "research",
+      "nodes": [
+       "coined_wage"
+      ],
+      "satisfied": {
+       "turn": 1423,
+       "simYear": 5996
+      },
+      "via": "coined_wage"
+     },
+     {
+      "age": 6,
+      "age_id": "medieval",
+      "role": "CORE",
+      "id": "a6_heavy_plough",
+      "kind": "research",
+      "nodes": [
+       "heavy_plough"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 6,
+      "age_id": "medieval",
+      "role": "SUPPORTING",
+      "id": "a6_paper",
+      "kind": "research",
+      "nodes": [
+       "paper"
+      ],
+      "satisfied": {
+       "turn": 1564,
+       "simYear": 6067
+      },
+      "via": "paper"
+     },
+     {
+      "age": 6,
+      "age_id": "medieval",
+      "role": "SUPPORTING",
+      "id": "a6_mills",
+      "kind": "research",
+      "nodes": [
+       "water_mill",
+       "windmill_post"
+      ],
+      "satisfied": {
+       "turn": 1448,
+       "simYear": 6009
+      },
+      "via": "water_mill"
+     },
+     {
+      "age": 6,
+      "age_id": "medieval",
+      "role": "SUPPORTING",
+      "id": "a6_finance",
+      "kind": "research",
+      "nodes": [
+       "double_entry",
+       "bill_of_exchange"
+      ],
+      "satisfied": {
+       "turn": 1428,
+       "simYear": 5999
+      },
+      "via": "bill_of_exchange"
+     },
+     {
+      "age": 6,
+      "age_id": "medieval",
+      "role": "SUPPORTING",
+      "id": "a6_numerals",
+      "kind": "research",
+      "nodes": [
+       "hindu_arabic"
+      ],
+      "satisfied": {
+       "turn": 927,
+       "simYear": 5331
+      },
+      "via": "hindu_arabic"
+     },
+     {
+      "age": 7,
+      "age_id": "early_modern",
+      "role": "CORE",
+      "id": "a7_printing",
+      "kind": "research",
+      "nodes": [
+       "printing_press"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 7,
+      "age_id": "early_modern",
+      "role": "SUPPORTING",
+      "id": "a7_ocean",
+      "kind": "research",
+      "nodes": [
+       "caravel"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 7,
+      "age_id": "early_modern",
+      "role": "SUPPORTING",
+      "id": "a7_powder",
+      "kind": "research",
+      "nodes": [
+       "corned_powder"
+      ],
+      "satisfied": {
+       "turn": 1183,
+       "simYear": 5833
+      },
+      "via": "corned_powder"
+     },
+     {
+      "age": 7,
+      "age_id": "early_modern",
+      "role": "SUPPORTING",
+      "id": "a7_science",
+      "kind": "research",
+      "nodes": [
+       "mechanics_newtonian"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 7,
+      "age_id": "early_modern",
+      "role": "SUPPORTING",
+      "id": "a7_patent",
+      "kind": "research",
+      "nodes": [
+       "patent"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 7,
+      "age_id": "early_modern",
+      "role": "SUPPORTING",
+      "id": "a7_company",
+      "kind": "research",
+      "nodes": [
+       "joint_stock"
+      ],
+      "satisfied": {
+       "turn": 1432,
+       "simYear": 6001
+      },
+      "via": "joint_stock"
+     },
+     {
+      "age": 8,
+      "age_id": "industrial",
+      "role": "CORE",
+      "id": "a8_steam",
+      "kind": "research",
+      "nodes": [
+       "steam_rotary"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 8,
+      "age_id": "industrial",
+      "role": "SUPPORTING",
+      "id": "a8_iron",
+      "kind": "research",
+      "nodes": [
+       "puddling"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 8,
+      "age_id": "industrial",
+      "role": "SUPPORTING",
+      "id": "a8_rail",
+      "kind": "research",
+      "nodes": [
+       "railway"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 8,
+      "age_id": "industrial",
+      "role": "SUPPORTING",
+      "id": "a8_telegraph",
+      "kind": "research",
+      "nodes": [
+       "telegraph"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 8,
+      "age_id": "industrial",
+      "role": "SUPPORTING",
+      "id": "a8_germ",
+      "kind": "research",
+      "nodes": [
+       "germ_theory"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 8,
+      "age_id": "industrial",
+      "role": "SUPPORTING",
+      "id": "a8_knowledge",
+      "kind": "research_count",
+      "tree": "technology",
+      "min": 200,
+      "satisfied": {
+       "turn": 1351,
+       "simYear": 5960
+      },
+      "via": null,
+      "final_count": 229
+     },
+     {
+      "age": 9,
+      "age_id": "modern",
+      "role": "CORE",
+      "id": "a9_electricity",
+      "kind": "research",
+      "nodes": [
+       "electricity_generation"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 9,
+      "age_id": "modern",
+      "role": "CORE",
+      "id": "a9_combustion",
+      "kind": "research",
+      "nodes": [
+       "internal_combustion"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 9,
+      "age_id": "modern",
+      "role": "SUPPORTING",
+      "id": "a9_radio",
+      "kind": "research",
+      "nodes": [
+       "radio"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 9,
+      "age_id": "modern",
+      "role": "SUPPORTING",
+      "id": "a9_antibiotics",
+      "kind": "research",
+      "nodes": [
+       "antibiotic_penicillin"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 9,
+      "age_id": "modern",
+      "role": "SUPPORTING",
+      "id": "a9_computing",
+      "kind": "research",
+      "nodes": [
+       "computer"
+      ],
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 9,
+      "age_id": "modern",
+      "role": "SUPPORTING",
+      "id": "a9_knowledge",
+      "kind": "research_count",
+      "tree": "technology",
+      "min": 280,
+      "satisfied": null,
+      "via": null,
+      "final_count": 229
+     }
+    ],
+    "technology_completed_final": 229,
+    "longest_single_target_waits": [
+     {
+      "id": "astrolabe",
+      "key": 190,
+      "branch": "natural_science",
+      "age": "A6",
+      "base": 14070.0,
+      "target_turn": 1592,
+      "completion_turn": 1610,
+      "turns": 18
+     },
+     {
+      "id": "woodblock_print",
+      "key": 199,
+      "branch": "engineering",
+      "age": "A6",
+      "base": 14070.0,
+      "target_turn": 1610,
+      "completion_turn": 1628,
+      "turns": 18
+     },
+     {
+      "id": "coinage_electrum",
+      "key": 121,
+      "branch": "main",
+      "age": "A4",
+      "base": 11830.0,
+      "target_turn": 1405,
+      "completion_turn": 1421,
+      "turns": 16
+     },
+     {
+      "id": "water_mill",
+      "key": 145,
+      "branch": "main",
+      "age": "A5",
+      "base": 11830.0,
+      "target_turn": 1432,
+      "completion_turn": 1448,
+      "turns": 16
+     },
+     {
+      "id": "concrete_pozzolan",
+      "key": 148,
+      "branch": "main",
+      "age": "A5",
+      "base": 11830.0,
+      "target_turn": 1529,
+      "completion_turn": 1545,
+      "turns": 16
+     },
+     {
+      "id": "cereal_cultivation",
+      "key": 29,
+      "branch": "main",
+      "age": "A2",
+      "base": 3520.0,
+      "target_turn": 512,
+      "completion_turn": 527,
+      "turns": 15
+     },
+     {
+      "id": "road_paved",
+      "key": 150,
+      "branch": "main",
+      "age": "A5",
+      "base": 9950.0,
+      "target_turn": 1337,
+      "completion_turn": 1351,
+      "turns": 14
+     },
+     {
+      "id": "telescope",
+      "key": 232,
+      "branch": "natural_science",
+      "age": "A7",
+      "base": 9950.0,
+      "target_turn": 1377,
+      "completion_turn": 1391,
+      "turns": 14
+     },
+     {
+      "id": "microscope",
+      "key": 233,
+      "branch": "natural_science",
+      "age": "A7",
+      "base": 9950.0,
+      "target_turn": 1391,
+      "completion_turn": 1405,
+      "turns": 14
+     },
+     {
+      "id": "knapping_oldowan",
+      "key": 2,
+      "branch": "main",
+      "age": "A1",
+      "base": 520.0,
+      "target_turn": 54,
+      "completion_turn": 67,
+      "turns": 13
+     }
+    ],
+    "idle_steps_without_target": 0
+   },
+   "CHECKS": {
+    "views": {
+     "Main Technology": [
+      174,
+      174
+     ],
+     "1.1 Military": [
+      11,
+      11
+     ],
+     "1.2 Medicine": [
+      2,
+      2
+     ],
+     "1.3 Engineering": [
+      26,
+      26
+     ],
+     "1.4 Natural Science": [
+      10,
+      10
+     ],
+     "1.5 Agriculture": [
+      6,
+      6
+     ],
+     "Civics": [
+      6,
+      6
+     ]
+    },
+    "views_ok": true,
+    "milestones": [
+     {
+      "count": 50,
+      "cli_turn": 333,
+      "recon_turn": 333,
+      "at_most_one_per_turn": true
+     },
+     {
+      "count": 100,
+      "cli_turn": 651,
+      "recon_turn": 651,
+      "at_most_one_per_turn": true
+     },
+     {
+      "count": 150,
+      "cli_turn": 981,
+      "recon_turn": 981,
+      "at_most_one_per_turn": true
+     },
+     {
+      "count": 200,
+      "cli_turn": 1301,
+      "recon_turn": 1301,
+      "at_most_one_per_turn": true
+     }
+    ],
+    "milestones_ok": true,
+    "stage_cli": 1010,
+    "stage_recon": 1010,
+    "stage_ok": true,
+    "rp_bound_failures": [],
+    "final_target": {
+     "id": "movable_type_ceramic",
+     "reported_progress": 1599.216,
+     "rp_offered": 1599.216,
+     "eureka_possible": false
+    }
+   },
+   "SPOT_CHECKS_MEASURED": [
+    {
+     "turn": 1350,
+     "node": "patent",
+     "node_state": "LOCKED",
+     "node_progress": 0.0,
+     "technology_complete_cli": 199,
+     "civics_complete_cli": 4,
+     "active_target_cli": "road_paved",
+     "stage_reached_cli": true,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": true,
+     "state_ok": true,
+     "orders": 204,
+     "world_hash": "ff56047dc90bf317cee9af9f6cfbe3d4d2d1977c790811e36b7e812f9b078472"
+    },
+    {
+     "turn": 1351,
+     "node": "patent",
+     "node_state": "LOCKED",
+     "node_progress": 0.0,
+     "technology_complete_cli": 200,
+     "civics_complete_cli": 4,
+     "active_target_cli": null,
+     "stage_reached_cli": true,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": null,
+     "state_ok": true,
+     "orders": 204,
+     "world_hash": "3bf9a767cd1429db7da15e49eccef6545716af30eb3718cdadcf7e7d07eb4bd5"
+    },
+    {
+     "turn": 1422,
+     "node": "coined_wage",
+     "node_state": "AVAILABLE",
+     "node_progress": 757.751,
+     "technology_complete_cli": 207,
+     "civics_complete_cli": 4,
+     "active_target_cli": "coined_wage",
+     "stage_reached_cli": true,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": true,
+     "state_ok": true,
+     "orders": 212,
+     "world_hash": "3519634481bc16b2e1480529a8390a8ba9dd6166bbd2d435a7cb75ec07d94a69"
+    },
+    {
+     "turn": 1423,
+     "node": "coined_wage",
+     "node_state": "COMPLETED",
+     "node_progress": 0.0,
+     "technology_complete_cli": 207,
+     "civics_complete_cli": 5,
+     "active_target_cli": null,
+     "stage_reached_cli": true,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": null,
+     "state_ok": true,
+     "orders": 212,
+     "world_hash": "40a9c5ccd3026144a8de8a92f56501b00cf7e1de18437ca9055f3ab7fa4be785"
+    },
+    {
+     "turn": 1431,
+     "node": "joint_stock",
+     "node_state": "AVAILABLE",
+     "node_progress": 2278.101,
+     "technology_complete_cli": 208,
+     "civics_complete_cli": 5,
+     "active_target_cli": "joint_stock",
+     "stage_reached_cli": true,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": true,
+     "state_ok": true,
+     "orders": 214,
+     "world_hash": "a27736ac5cfc01a862c42d05d685818ea896a62f76601c2609a83caec8abe298"
+    },
+    {
+     "turn": 1432,
+     "node": "joint_stock",
+     "node_state": "COMPLETED",
+     "node_progress": 0.0,
+     "technology_complete_cli": 208,
+     "civics_complete_cli": 6,
+     "active_target_cli": null,
+     "stage_reached_cli": true,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": null,
+     "state_ok": true,
+     "orders": 214,
+     "world_hash": "9010fe4168f4890b3b5f9629e7a04929949a25fdc010eff45133314b25e43fab"
+    },
+    {
+     "turn": 486,
+     "node": "taxation",
+     "node_state": "AVAILABLE",
+     "node_progress": 883.159,
+     "technology_complete_cli": 70,
+     "civics_complete_cli": 0,
+     "active_target_cli": "taxation",
+     "stage_reached_cli": false,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": true,
+     "state_ok": true,
+     "orders": 71,
+     "world_hash": "6902abb89e3838bf9a88bfff86e4adc29dfd453f128d2bfbee03d55eb4a25bf8"
+    },
+    {
+     "turn": 487,
+     "node": "taxation",
+     "node_state": "COMPLETED",
+     "node_progress": 0.0,
+     "technology_complete_cli": 70,
+     "civics_complete_cli": 1,
+     "active_target_cli": null,
+     "stage_reached_cli": false,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": null,
+     "state_ok": true,
+     "orders": 71,
+     "world_hash": "a426bf06a079845a454ed1d31764acdc0d2340bdf4b72124dc75cabdebc8fa80"
+    },
+    {
+     "turn": 628,
+     "node": "law_code",
+     "node_state": "AVAILABLE",
+     "node_progress": 967.086,
+     "technology_complete_cli": 93,
+     "civics_complete_cli": 1,
+     "active_target_cli": "law_code",
+     "stage_reached_cli": false,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": true,
+     "state_ok": true,
+     "orders": 95,
+     "world_hash": "11168dd75bc02ac4a4a03a400272de9e9a7c0feea99726e18e37de039a6f6b65"
+    },
+    {
+     "turn": 629,
+     "node": "law_code",
+     "node_state": "COMPLETED",
+     "node_progress": 0.0,
+     "technology_complete_cli": 93,
+     "civics_complete_cli": 2,
+     "active_target_cli": null,
+     "stage_reached_cli": false,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": null,
+     "state_ok": true,
+     "orders": 95,
+     "world_hash": "66dcce81445b8c06d6c1cafe8e3e60aea333d5e726ad4f6f7fffeb698b42e970"
+    },
+    {
+     "turn": 682,
+     "node": "legal_code_roman",
+     "node_state": "AVAILABLE",
+     "node_progress": 2157.045,
+     "technology_complete_cli": 102,
+     "civics_complete_cli": 2,
+     "active_target_cli": "legal_code_roman",
+     "stage_reached_cli": false,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": true,
+     "state_ok": true,
+     "orders": 105,
+     "world_hash": "c611c781b11fc59da558f2b6d1e9d264e145b2462ed6b0f4af5abe6024293f7e"
+    },
+    {
+     "turn": 683,
+     "node": "legal_code_roman",
+     "node_state": "COMPLETED",
+     "node_progress": 0.0,
+     "technology_complete_cli": 102,
+     "civics_complete_cli": 3,
+     "active_target_cli": null,
+     "stage_reached_cli": false,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": null,
+     "state_ok": true,
+     "orders": 105,
+     "world_hash": "c047a58fb484943afa47b5944866d383977e42e33f6123a8fd92c6d5c7a3c1d8"
+    },
+    {
+     "turn": 899,
+     "node": "census",
+     "node_state": "AVAILABLE",
+     "node_progress": 4556.744,
+     "technology_complete_cli": 133,
+     "civics_complete_cli": 3,
+     "active_target_cli": "census",
+     "stage_reached_cli": false,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": true,
+     "state_ok": true,
+     "orders": 137,
+     "world_hash": "7e9d9948bd4855ff855d86fc0f8f100ba707766a4a2d323dfe4fe0da4392d573"
+    },
+    {
+     "turn": 900,
+     "node": "census",
+     "node_state": "COMPLETED",
+     "node_progress": 0.0,
+     "technology_complete_cli": 133,
+     "civics_complete_cli": 4,
+     "active_target_cli": null,
+     "stage_reached_cli": false,
+     "views_ok": true,
+     "target_ok": true,
+     "target_progress_ok": null,
+     "state_ok": true,
+     "orders": 137,
+     "world_hash": "69e58da43aa2e1cd7d9b3fb3b66df97c1afac849940cb320a68d9402336be056"
+    }
+   ]
+  }
+ },
+ "ai_polity": {
+  "_doc": "sim run --founded --seed S --ai-empires 1 --turns 1630 --emit-session DIR. The AI polity is PolityId 2. Research completions are an INFERENCE (order-log reconstruction); AdvanceAge stamps are MEASURED (decoded from the run's own order log); population is MEASURED (telemetry); RP is an INFERENCE (the RP formula applied to that population).",
+  "seeds": {
+   "1": {
+    "seed": 1,
+    "actors_in_log": [
+     2
+    ],
+    "orders_total": 573,
+    "research_orders": 341,
+    "completed_total": 340,
+    "last_order": {
+     "id": "xray",
+     "target_turn": 1629,
+     "status": "unknown (last order; no end-of-run research report exists for this polity)"
+    },
+    "checks": {
+     "rp_bound_failures": [],
+     "exact_checked": 180,
+     "weak_checked": 160
+    },
+    "stage": {
+     "turn": 702,
+     "simYear": 4656
+    },
+    "civics": [
+     {
+      "key": 1001,
+      "id": "law_code",
+      "completion": {
+       "turn": 608,
+       "simYear": 4290
+      },
+      "target_turn": 602
+     },
+     {
+      "key": 1002,
+      "id": "legal_code_roman",
+      "completion": {
+       "turn": 635,
+       "simYear": 4425
+      },
+      "target_turn": 624
+     },
+     {
+      "key": 1003,
+      "id": "census",
+      "completion": {
+       "turn": 1374,
+       "simYear": 5972
+      },
+      "target_turn": 1372
+     },
+     {
+      "key": 1004,
+      "id": "coined_wage",
+      "completion": {
+       "turn": 1233,
+       "simYear": 5883
+      },
+      "target_turn": 1232
+     },
+     {
+      "key": 1005,
+      "id": "patent",
+      "completion": {
+       "turn": 1350,
+       "simYear": 5960
+      },
+      "target_turn": 1349
+     },
+     {
+      "key": 1006,
+      "id": "joint_stock",
+      "completion": {
+       "turn": 1287,
+       "simYear": 5928
+      },
+      "target_turn": 1286
+     },
+     {
+      "key": 1007,
+      "id": "taxation",
+      "completion": {
+       "turn": 328,
+       "simYear": 2890
+      },
+      "target_turn": 318
+     }
+    ],
+    "facts": [
+     {
+      "age": 2,
+      "role": "CORE",
+      "id": "a2_cultivation",
+      "satisfied": {
+       "turn": 218,
+       "simYear": 2180
+      },
+      "via": "cereal_cultivation"
+     },
+     {
+      "age": 2,
+      "role": "SUPPORTING",
+      "id": "a2_pottery",
+      "satisfied": {
+       "turn": 309,
+       "simYear": 2795
+      },
+      "via": "pottery_open_fired"
+     },
+     {
+      "age": 2,
+      "role": "SUPPORTING",
+      "id": "a2_herding",
+      "satisfied": {
+       "turn": 730,
+       "simYear": 4740
+      },
+      "via": "sheep_goat"
+     },
+     {
+      "age": 3,
+      "role": "CORE",
+      "id": "a3_bronze",
+      "satisfied": {
+       "turn": 412,
+       "simYear": 3310
+      },
+      "via": "arsenical_bronze"
+     },
+     {
+      "age": 3,
+      "role": "SUPPORTING",
+      "id": "a3_writing",
+      "satisfied": {
+       "turn": 265,
+       "simYear": 2575
+      },
+      "via": "token_counting"
+     },
+     {
+      "age": 3,
+      "role": "SUPPORTING",
+      "id": "a3_law",
+      "satisfied": {
+       "turn": 608,
+       "simYear": 4290
+      },
+      "via": "law_code"
+     },
+     {
+      "age": 3,
+      "role": "SUPPORTING",
+      "id": "a3_wheel",
+      "satisfied": {
+       "turn": 791,
+       "simYear": 4923
+      },
+      "via": "wheel_solid"
+     },
+     {
+      "age": 4,
+      "role": "CORE",
+      "id": "a4_iron",
+      "satisfied": {
+       "turn": 481,
+       "simYear": 3655
+      },
+      "via": "iron_bloomery"
+     },
+     {
+      "age": 4,
+      "role": "SUPPORTING",
+      "id": "a4_alphabet",
+      "satisfied": {
+       "turn": 649,
+       "simYear": 4495
+      },
+      "via": "abjad"
+     },
+     {
+      "age": 4,
+      "role": "SUPPORTING",
+      "id": "a4_census",
+      "satisfied": {
+       "turn": 1374,
+       "simYear": 5972
+      },
+      "via": "census"
+     },
+     {
+      "age": 5,
+      "role": "CORE",
+      "id": "a5_systematic_law",
+      "satisfied": {
+       "turn": 635,
+       "simYear": 4425
+      },
+      "via": "legal_code_roman"
+     },
+     {
+      "age": 5,
+      "role": "CORE",
+      "id": "a5_coinage",
+      "satisfied": {
+       "turn": 860,
+       "simYear": 5130
+      },
+      "via": "coinage_electrum"
+     },
+     {
+      "age": 5,
+      "role": "SUPPORTING",
+      "id": "a5_geometry",
+      "satisfied": {
+       "turn": 702,
+       "simYear": 4656
+      },
+      "via": "geometry_axiomatic"
+     },
+     {
+      "age": 5,
+      "role": "SUPPORTING",
+      "id": "a5_roads",
+      "satisfied": {
+       "turn": 598,
+       "simYear": 4240
+      },
+      "via": "road_paved"
+     },
+     {
+      "age": 5,
+      "role": "SUPPORTING",
+      "id": "a5_concrete",
+      "satisfied": {
+       "turn": 953,
+       "simYear": 5406
+      },
+      "via": "concrete_pozzolan"
+     },
+     {
+      "age": 5,
+      "role": "SUPPORTING",
+      "id": "a5_wages",
+      "satisfied": {
+       "turn": 1233,
+       "simYear": 5883
+      },
+      "via": "coined_wage"
+     },
+     {
+      "age": 6,
+      "role": "CORE",
+      "id": "a6_heavy_plough",
+      "satisfied": {
+       "turn": 1237,
+       "simYear": 5887
+      },
+      "via": "heavy_plough"
+     },
+     {
+      "age": 6,
+      "role": "SUPPORTING",
+      "id": "a6_paper",
+      "satisfied": {
+       "turn": 959,
+       "simYear": 5418
+      },
+      "via": "paper"
+     },
+     {
+      "age": 6,
+      "role": "SUPPORTING",
+      "id": "a6_mills",
+      "satisfied": {
+       "turn": 922,
+       "simYear": 5316
+      },
+      "via": "water_mill"
+     },
+     {
+      "age": 6,
+      "role": "SUPPORTING",
+      "id": "a6_finance",
+      "satisfied": {
+       "turn": 1262,
+       "simYear": 5912
+      },
+      "via": "bill_of_exchange"
+     },
+     {
+      "age": 6,
+      "role": "SUPPORTING",
+      "id": "a6_numerals",
+      "satisfied": {
+       "turn": 676,
+       "simYear": 4578
+      },
+      "via": "hindu_arabic"
+     },
+     {
+      "age": 7,
+      "role": "CORE",
+      "id": "a7_printing",
+      "satisfied": {
+       "turn": 1051,
+       "simYear": 5602
+      },
+      "via": "printing_press"
+     },
+     {
+      "age": 7,
+      "role": "SUPPORTING",
+      "id": "a7_ocean",
+      "satisfied": {
+       "turn": 1417,
+       "simYear": 5993
+      },
+      "via": "caravel"
+     },
+     {
+      "age": 7,
+      "role": "SUPPORTING",
+      "id": "a7_powder",
+      "satisfied": {
+       "turn": 1274,
+       "simYear": 5922
+      },
+      "via": "corned_powder"
+     },
+     {
+      "age": 7,
+      "role": "SUPPORTING",
+      "id": "a7_science",
+      "satisfied": {
+       "turn": 1426,
+       "simYear": 5998
+      },
+      "via": "mechanics_newtonian"
+     },
+     {
+      "age": 7,
+      "role": "SUPPORTING",
+      "id": "a7_patent",
+      "satisfied": {
+       "turn": 1350,
+       "simYear": 5960
+      },
+      "via": "patent"
+     },
+     {
+      "age": 7,
+      "role": "SUPPORTING",
+      "id": "a7_company",
+      "satisfied": {
+       "turn": 1287,
+       "simYear": 5928
+      },
+      "via": "joint_stock"
+     },
+     {
+      "age": 8,
+      "role": "CORE",
+      "id": "a8_steam",
+      "satisfied": {
+       "turn": 1124,
+       "simYear": 5748
+      },
+      "via": "steam_rotary"
+     },
+     {
+      "age": 8,
+      "role": "SUPPORTING",
+      "id": "a8_iron",
+      "satisfied": {
+       "turn": 1128,
+       "simYear": 5756
+      },
+      "via": "puddling"
+     },
+     {
+      "age": 8,
+      "role": "SUPPORTING",
+      "id": "a8_rail",
+      "satisfied": {
+       "turn": 1507,
+       "simYear": 6038
+      },
+      "via": "railway"
+     },
+     {
+      "age": 8,
+      "role": "SUPPORTING",
+      "id": "a8_telegraph",
+      "satisfied": {
+       "turn": 1593,
+       "simYear": 6081
+      },
+      "via": "telegraph"
+     },
+     {
+      "age": 8,
+      "role": "SUPPORTING",
+      "id": "a8_germ",
+      "satisfied": {
+       "turn": 1565,
+       "simYear": 6067
+      },
+      "via": "germ_theory"
+     },
+     {
+      "age": 8,
+      "role": "SUPPORTING",
+      "id": "a8_knowledge",
+      "satisfied": {
+       "turn": 1285,
+       "simYear": 5927
+      },
+      "via": null
+     },
+     {
+      "age": 9,
+      "role": "CORE",
+      "id": "a9_electricity",
+      "satisfied": {
+       "turn": 1319,
+       "simYear": 5944
+      },
+      "via": "electricity_generation"
+     },
+     {
+      "age": 9,
+      "role": "CORE",
+      "id": "a9_combustion",
+      "satisfied": {
+       "turn": 1177,
+       "simYear": 5827
+      },
+      "via": "internal_combustion"
+     },
+     {
+      "age": 9,
+      "role": "SUPPORTING",
+      "id": "a9_radio",
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 9,
+      "role": "SUPPORTING",
+      "id": "a9_antibiotics",
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 9,
+      "role": "SUPPORTING",
+      "id": "a9_computing",
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 9,
+      "role": "SUPPORTING",
+      "id": "a9_knowledge",
+      "satisfied": {
+       "turn": 1420,
+       "simYear": 5995
+      },
+      "via": null
+     }
+    ],
+    "advances": [
+     {
+      "order_turn": 218,
+      "age_entered": 2,
+      "first_turn_in_age": 219,
+      "simYear_of_order_turn": 2180,
+      "core_research_met_by_order_turn": true,
+      "research_supporting_met_by_order_turn": 0,
+      "binding_research": [
+       "a2_cultivation"
+      ]
+     },
+     {
+      "order_turn": 412,
+      "age_entered": 3,
+      "first_turn_in_age": 413,
+      "simYear_of_order_turn": 3310,
+      "core_research_met_by_order_turn": true,
+      "research_supporting_met_by_order_turn": 1,
+      "binding_research": [
+       "a3_bronze"
+      ]
+     },
+     {
+      "order_turn": 827,
+      "age_entered": 4,
+      "first_turn_in_age": 828,
+      "simYear_of_order_turn": 5031,
+      "core_research_met_by_order_turn": true,
+      "research_supporting_met_by_order_turn": 1,
+      "binding_research": []
+     },
+     {
+      "order_turn": 1233,
+      "age_entered": 5,
+      "first_turn_in_age": 1234,
+      "simYear_of_order_turn": 5883,
+      "core_research_met_by_order_turn": true,
+      "research_supporting_met_by_order_turn": 4,
+      "binding_research": [
+       "a5_wages"
+      ]
+     },
+     {
+      "order_turn": 1237,
+      "age_entered": 6,
+      "first_turn_in_age": 1238,
+      "simYear_of_order_turn": 5887,
+      "core_research_met_by_order_turn": true,
+      "research_supporting_met_by_order_turn": 3,
+      "binding_research": [
+       "a6_heavy_plough"
+      ]
+     },
+     {
+      "order_turn": 1287,
+      "age_entered": 7,
+      "first_turn_in_age": 1288,
+      "simYear_of_order_turn": 5928,
+      "core_research_met_by_order_turn": true,
+      "research_supporting_met_by_order_turn": 2,
+      "binding_research": [
+       "a7_company"
+      ]
+     },
+     {
+      "order_turn": 1288,
+      "age_entered": 8,
+      "first_turn_in_age": 1289,
+      "simYear_of_order_turn": 5929,
+      "core_research_met_by_order_turn": true,
+      "research_supporting_met_by_order_turn": 2,
+      "binding_research": []
+     }
+    ],
+    "by_view": {
+     "Main Technology": 177,
+     "Civics": 7,
+     "1.3 Engineering": 77,
+     "1.4 Natural Science": 28,
+     "1.1 Military": 26,
+     "1.5 Agriculture": 12,
+     "1.2 Medicine": 13
+    },
+    "by_age": {
+     "A1": 28,
+     "A2": 51,
+     "A3": 38,
+     "A4": 32,
+     "A5": 32,
+     "A6": 42,
+     "A7": 32,
+     "A8": 53,
+     "A9": 32
+    },
+    "technology_completed": 333,
+    "population": {
+     "min": 2637,
+     "median": 311160.5,
+     "max": 8141111,
+     "final": 8141111,
+     "final_settlements": 21,
+     "max_settlements": 21
+    },
+    "rp_inferred": {
+     "min": 19.699081079644863,
+     "median": 552.9491407467757,
+     "max": 5415.7408749208,
+     "generated_in_run": 2803367.253858196
+    },
+    "selected": {
+     "1": {
+      "simYear": 10,
+      "population": 2664,
+      "settlements": 6,
+      "rp": 19.84,
+      "completed": 0
+     },
+     "100": {
+      "simYear": 1000,
+      "population": 6314,
+      "settlements": 8,
+      "rp": 36.266,
+      "completed": 4
+     },
+     "200": {
+      "simYear": 2000,
+      "population": 15224,
+      "settlements": 11,
+      "rp": 67.093,
+      "completed": 8
+     },
+     "250": {
+      "simYear": 2500,
+      "population": 22913,
+      "settlements": 12,
+      "rp": 89.287,
+      "completed": 14
+     },
+     "300": {
+      "simYear": 2750,
+      "population": 27550,
+      "settlements": 13,
+      "rp": 101.563,
+      "completed": 17
+     },
+     "500": {
+      "simYear": 3750,
+      "population": 59580,
+      "settlements": 16,
+      "rp": 174.135,
+      "completed": 33
+     },
+     "650": {
+      "simYear": 4500,
+      "population": 106531,
+      "settlements": 18,
+      "rp": 261.394,
+      "completed": 43
+     },
+     "800": {
+      "simYear": 4950,
+      "population": 270681,
+      "settlements": 19,
+      "rp": 501.624,
+      "completed": 63
+     },
+     "950": {
+      "simYear": 5400,
+      "population": 1068520,
+      "settlements": 20,
+      "rp": 1309.812,
+      "completed": 84
+     },
+     "1000": {
+      "simYear": 5500,
+      "population": 1505132,
+      "settlements": 20,
+      "rp": 1664.235,
+      "completed": 92
+     },
+     "1150": {
+      "simYear": 5800,
+      "population": 3721708,
+      "settlements": 21,
+      "rp": 3133.566,
+      "completed": 105
+     },
+     "1200": {
+      "simYear": 5850,
+      "population": 4317679,
+      "settlements": 21,
+      "rp": 3476.402,
+      "completed": 120
+     },
+     "1270": {
+      "simYear": 5920,
+      "population": 5269386,
+      "settlements": 21,
+      "rp": 3995.768,
+      "completed": 189
+     },
+     "1400": {
+      "simYear": 5985,
+      "population": 6302223,
+      "settlements": 21,
+      "rp": 4528.31,
+      "completed": 275
+     },
+     "1430": {
+      "simYear": 6000,
+      "population": 6589046,
+      "settlements": 21,
+      "rp": 4671.399,
+      "completed": 291
+     },
+     "1630": {
+      "simYear": 6100,
+      "population": 8141111,
+      "settlements": 21,
+      "rp": 5415.741,
+      "completed": 340
+     }
+    },
+    "waits": [
+     {
+      "id": "cereal_cultivation",
+      "branch": "main",
+      "age": "A2",
+      "base": 3520.0,
+      "target_turn": 161,
+      "completion_turn": 218,
+      "turns": 57
+     },
+     {
+      "id": "road_paved",
+      "branch": "main",
+      "age": "A5",
+      "base": 9950.0,
+      "target_turn": 551,
+      "completion_turn": 598,
+      "turns": 47
+     },
+     {
+      "id": "cordage",
+      "branch": "main",
+      "age": "A1",
+      "base": 1050.0,
+      "target_turn": 49,
+      "completion_turn": 86,
+      "turns": 37
+     },
+     {
+      "id": "steam_rotary",
+      "branch": "engineering",
+      "age": "A8",
+      "base": 133810.0,
+      "target_turn": 1088,
+      "completion_turn": 1124,
+      "turns": 36
+     },
+     {
+      "id": "kiln_updraft",
+      "branch": "main",
+      "age": "A2",
+      "base": 4180.0,
+      "target_turn": 349,
+      "completion_turn": 384,
+      "turns": 35
+     },
+     {
+      "id": "iron_bloomery",
+      "branch": "main",
+      "age": "A4",
+      "base": 8360.0,
+      "target_turn": 449,
+      "completion_turn": 481,
+      "turns": 32
+     },
+     {
+      "id": "internal_combustion",
+      "branch": "engineering",
+      "age": "A8",
+      "base": 133810.0,
+      "target_turn": 1148,
+      "completion_turn": 1177,
+      "turns": 29
+     },
+     {
+      "id": "knapping_oldowan",
+      "branch": "main",
+      "age": "A1",
+      "base": 520.0,
+      "target_turn": 0,
+      "completion_turn": 26,
+      "turns": 26
+     },
+     {
+      "id": "geometry_axiomatic",
+      "branch": "main",
+      "age": "A5",
+      "base": 7030.0,
+      "target_turn": 676,
+      "completion_turn": 702,
+      "turns": 26
+     },
+     {
+      "id": "pottery_open_fired",
+      "branch": "main",
+      "age": "A2",
+      "base": 2490.0,
+      "target_turn": 284,
+      "completion_turn": 309,
+      "turns": 25
+     }
+    ]
+   },
+   "2": {
+    "seed": 2,
+    "actors_in_log": [
+     2
+    ],
+    "orders_total": 688,
+    "research_orders": 339,
+    "completed_total": 338,
+    "last_order": {
+     "id": "superalloy",
+     "target_turn": 1624,
+     "status": "unknown (last order; no end-of-run research report exists for this polity)"
+    },
+    "checks": {
+     "rp_bound_failures": [],
+     "exact_checked": 180,
+     "weak_checked": 158
+    },
+    "stage": {
+     "turn": 716,
+     "simYear": 4698
+    },
+    "civics": [
+     {
+      "key": 1001,
+      "id": "law_code",
+      "completion": {
+       "turn": 622,
+       "simYear": 4360
+      },
+      "target_turn": 616
+     },
+     {
+      "key": 1002,
+      "id": "legal_code_roman",
+      "completion": {
+       "turn": 649,
+       "simYear": 4495
+      },
+      "target_turn": 638
+     },
+     {
+      "key": 1003,
+      "id": "census",
+      "completion": {
+       "turn": 1386,
+       "simYear": 5978
+      },
+      "target_turn": 1384
+     },
+     {
+      "key": 1004,
+      "id": "coined_wage",
+      "completion": {
+       "turn": 1245,
+       "simYear": 5895
+      },
+      "target_turn": 1244
+     },
+     {
+      "key": 1005,
+      "id": "patent",
+      "completion": {
+       "turn": 1362,
+       "simYear": 5966
+      },
+      "target_turn": 1361
+     },
+     {
+      "key": 1006,
+      "id": "joint_stock",
+      "completion": {
+       "turn": 1299,
+       "simYear": 5934
+      },
+      "target_turn": 1298
+     },
+     {
+      "key": 1007,
+      "id": "taxation",
+      "completion": {
+       "turn": 339,
+       "simYear": 2945
+      },
+      "target_turn": 328
+     }
+    ],
+    "facts": [
+     {
+      "age": 2,
+      "role": "CORE",
+      "id": "a2_cultivation",
+      "satisfied": {
+       "turn": 223,
+       "simYear": 2230
+      },
+      "via": "cereal_cultivation"
+     },
+     {
+      "age": 2,
+      "role": "SUPPORTING",
+      "id": "a2_pottery",
+      "satisfied": {
+       "turn": 319,
+       "simYear": 2845
+      },
+      "via": "pottery_open_fired"
+     },
+     {
+      "age": 2,
+      "role": "SUPPORTING",
+      "id": "a2_herding",
+      "satisfied": {
+       "turn": 744,
+       "simYear": 4782
+      },
+      "via": "sheep_goat"
+     },
+     {
+      "age": 3,
+      "role": "CORE",
+      "id": "a3_bronze",
+      "satisfied": {
+       "turn": 425,
+       "simYear": 3375
+      },
+      "via": "arsenical_bronze"
+     },
+     {
+      "age": 3,
+      "role": "SUPPORTING",
+      "id": "a3_writing",
+      "satisfied": {
+       "turn": 273,
+       "simYear": 2615
+      },
+      "via": "token_counting"
+     },
+     {
+      "age": 3,
+      "role": "SUPPORTING",
+      "id": "a3_law",
+      "satisfied": {
+       "turn": 622,
+       "simYear": 4360
+      },
+      "via": "law_code"
+     },
+     {
+      "age": 3,
+      "role": "SUPPORTING",
+      "id": "a3_wheel",
+      "satisfied": {
+       "turn": 806,
+       "simYear": 4968
+      },
+      "via": "wheel_solid"
+     },
+     {
+      "age": 4,
+      "role": "CORE",
+      "id": "a4_iron",
+      "satisfied": {
+       "turn": 494,
+       "simYear": 3720
+      },
+      "via": "iron_bloomery"
+     },
+     {
+      "age": 4,
+      "role": "SUPPORTING",
+      "id": "a4_alphabet",
+      "satisfied": {
+       "turn": 663,
+       "simYear": 4539
+      },
+      "via": "abjad"
+     },
+     {
+      "age": 4,
+      "role": "SUPPORTING",
+      "id": "a4_census",
+      "satisfied": {
+       "turn": 1386,
+       "simYear": 5978
+      },
+      "via": "census"
+     },
+     {
+      "age": 5,
+      "role": "CORE",
+      "id": "a5_systematic_law",
+      "satisfied": {
+       "turn": 649,
+       "simYear": 4495
+      },
+      "via": "legal_code_roman"
+     },
+     {
+      "age": 5,
+      "role": "CORE",
+      "id": "a5_coinage",
+      "satisfied": {
+       "turn": 875,
+       "simYear": 5175
+      },
+      "via": "coinage_electrum"
+     },
+     {
+      "age": 5,
+      "role": "SUPPORTING",
+      "id": "a5_geometry",
+      "satisfied": {
+       "turn": 716,
+       "simYear": 4698
+      },
+      "via": "geometry_axiomatic"
+     },
+     {
+      "age": 5,
+      "role": "SUPPORTING",
+      "id": "a5_roads",
+      "satisfied": {
+       "turn": 612,
+       "simYear": 4310
+      },
+      "via": "road_paved"
+     },
+     {
+      "age": 5,
+      "role": "SUPPORTING",
+      "id": "a5_concrete",
+      "satisfied": {
+       "turn": 967,
+       "simYear": 5434
+      },
+      "via": "concrete_pozzolan"
+     },
+     {
+      "age": 5,
+      "role": "SUPPORTING",
+      "id": "a5_wages",
+      "satisfied": {
+       "turn": 1245,
+       "simYear": 5895
+      },
+      "via": "coined_wage"
+     },
+     {
+      "age": 6,
+      "role": "CORE",
+      "id": "a6_heavy_plough",
+      "satisfied": {
+       "turn": 1249,
+       "simYear": 5899
+      },
+      "via": "heavy_plough"
+     },
+     {
+      "age": 6,
+      "role": "SUPPORTING",
+      "id": "a6_paper",
+      "satisfied": {
+       "turn": 973,
+       "simYear": 5446
+      },
+      "via": "paper"
+     },
+     {
+      "age": 6,
+      "role": "SUPPORTING",
+      "id": "a6_mills",
+      "satisfied": {
+       "turn": 936,
+       "simYear": 5358
+      },
+      "via": "water_mill"
+     },
+     {
+      "age": 6,
+      "role": "SUPPORTING",
+      "id": "a6_finance",
+      "satisfied": {
+       "turn": 1274,
+       "simYear": 5922
+      },
+      "via": "bill_of_exchange"
+     },
+     {
+      "age": 6,
+      "role": "SUPPORTING",
+      "id": "a6_numerals",
+      "satisfied": {
+       "turn": 690,
+       "simYear": 4620
+      },
+      "via": "hindu_arabic"
+     },
+     {
+      "age": 7,
+      "role": "CORE",
+      "id": "a7_printing",
+      "satisfied": {
+       "turn": 1065,
+       "simYear": 5630
+      },
+      "via": "printing_press"
+     },
+     {
+      "age": 7,
+      "role": "SUPPORTING",
+      "id": "a7_ocean",
+      "satisfied": {
+       "turn": 1438,
+       "simYear": 6004
+      },
+      "via": "caravel"
+     },
+     {
+      "age": 7,
+      "role": "SUPPORTING",
+      "id": "a7_powder",
+      "satisfied": {
+       "turn": 1286,
+       "simYear": 5928
+      },
+      "via": "corned_powder"
+     },
+     {
+      "age": 7,
+      "role": "SUPPORTING",
+      "id": "a7_science",
+      "satisfied": {
+       "turn": 1435,
+       "simYear": 6002
+      },
+      "via": "mechanics_newtonian"
+     },
+     {
+      "age": 7,
+      "role": "SUPPORTING",
+      "id": "a7_patent",
+      "satisfied": {
+       "turn": 1362,
+       "simYear": 5966
+      },
+      "via": "patent"
+     },
+     {
+      "age": 7,
+      "role": "SUPPORTING",
+      "id": "a7_company",
+      "satisfied": {
+       "turn": 1299,
+       "simYear": 5934
+      },
+      "via": "joint_stock"
+     },
+     {
+      "age": 8,
+      "role": "CORE",
+      "id": "a8_steam",
+      "satisfied": {
+       "turn": 1137,
+       "simYear": 5774
+      },
+      "via": "steam_rotary"
+     },
+     {
+      "age": 8,
+      "role": "SUPPORTING",
+      "id": "a8_iron",
+      "satisfied": {
+       "turn": 1141,
+       "simYear": 5782
+      },
+      "via": "puddling"
+     },
+     {
+      "age": 8,
+      "role": "SUPPORTING",
+      "id": "a8_rail",
+      "satisfied": {
+       "turn": 1520,
+       "simYear": 6045
+      },
+      "via": "railway"
+     },
+     {
+      "age": 8,
+      "role": "SUPPORTING",
+      "id": "a8_telegraph",
+      "satisfied": {
+       "turn": 1606,
+       "simYear": 6088
+      },
+      "via": "telegraph"
+     },
+     {
+      "age": 8,
+      "role": "SUPPORTING",
+      "id": "a8_germ",
+      "satisfied": {
+       "turn": 1578,
+       "simYear": 6074
+      },
+      "via": "germ_theory"
+     },
+     {
+      "age": 8,
+      "role": "SUPPORTING",
+      "id": "a8_knowledge",
+      "satisfied": {
+       "turn": 1297,
+       "simYear": 5933
+      },
+      "via": null
+     },
+     {
+      "age": 9,
+      "role": "CORE",
+      "id": "a9_electricity",
+      "satisfied": {
+       "turn": 1331,
+       "simYear": 5950
+      },
+      "via": "electricity_generation"
+     },
+     {
+      "age": 9,
+      "role": "CORE",
+      "id": "a9_combustion",
+      "satisfied": {
+       "turn": 1189,
+       "simYear": 5839
+      },
+      "via": "internal_combustion"
+     },
+     {
+      "age": 9,
+      "role": "SUPPORTING",
+      "id": "a9_radio",
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 9,
+      "role": "SUPPORTING",
+      "id": "a9_antibiotics",
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 9,
+      "role": "SUPPORTING",
+      "id": "a9_computing",
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 9,
+      "role": "SUPPORTING",
+      "id": "a9_knowledge",
+      "satisfied": {
+       "turn": 1438,
+       "simYear": 6004
+      },
+      "via": null
+     }
+    ],
+    "advances": [
+     {
+      "order_turn": 223,
+      "age_entered": 2,
+      "first_turn_in_age": 224,
+      "simYear_of_order_turn": 2230,
+      "core_research_met_by_order_turn": true,
+      "research_supporting_met_by_order_turn": 0,
+      "binding_research": [
+       "a2_cultivation"
+      ]
+     },
+     {
+      "order_turn": 425,
+      "age_entered": 3,
+      "first_turn_in_age": 426,
+      "simYear_of_order_turn": 3375,
+      "core_research_met_by_order_turn": true,
+      "research_supporting_met_by_order_turn": 1,
+      "binding_research": [
+       "a3_bronze"
+      ]
+     },
+     {
+      "order_turn": 842,
+      "age_entered": 4,
+      "first_turn_in_age": 843,
+      "simYear_of_order_turn": 5076,
+      "core_research_met_by_order_turn": true,
+      "research_supporting_met_by_order_turn": 1,
+      "binding_research": []
+     },
+     {
+      "order_turn": 1245,
+      "age_entered": 5,
+      "first_turn_in_age": 1246,
+      "simYear_of_order_turn": 5895,
+      "core_research_met_by_order_turn": true,
+      "research_supporting_met_by_order_turn": 4,
+      "binding_research": [
+       "a5_wages"
+      ]
+     },
+     {
+      "order_turn": 1249,
+      "age_entered": 6,
+      "first_turn_in_age": 1250,
+      "simYear_of_order_turn": 5899,
+      "core_research_met_by_order_turn": true,
+      "research_supporting_met_by_order_turn": 3,
+      "binding_research": [
+       "a6_heavy_plough"
+      ]
+     },
+     {
+      "order_turn": 1299,
+      "age_entered": 7,
+      "first_turn_in_age": 1300,
+      "simYear_of_order_turn": 5934,
+      "core_research_met_by_order_turn": true,
+      "research_supporting_met_by_order_turn": 2,
+      "binding_research": [
+       "a7_company"
+      ]
+     },
+     {
+      "order_turn": 1300,
+      "age_entered": 8,
+      "first_turn_in_age": 1301,
+      "simYear_of_order_turn": 5935,
+      "core_research_met_by_order_turn": true,
+      "research_supporting_met_by_order_turn": 2,
+      "binding_research": []
+     }
+    ],
+    "by_view": {
+     "Main Technology": 177,
+     "Civics": 7,
+     "1.3 Engineering": 75,
+     "1.4 Natural Science": 28,
+     "1.1 Military": 26,
+     "1.5 Agriculture": 12,
+     "1.2 Medicine": 13
+    },
+    "by_age": {
+     "A1": 28,
+     "A2": 51,
+     "A3": 38,
+     "A4": 32,
+     "A5": 32,
+     "A6": 42,
+     "A7": 32,
+     "A8": 53,
+     "A9": 30
+    },
+    "technology_completed": 331,
+    "population": {
+     "min": 2631,
+     "median": 271618.5,
+     "max": 7720582,
+     "final": 7720582,
+     "final_settlements": 21,
+     "max_settlements": 21
+    },
+    "rp_inferred": {
+     "min": 19.66774006135043,
+     "median": 502.83629262359835,
+     "max": 5218.6403145982185,
+     "generated_in_run": 2692308.720622581
+    },
+    "selected": {
+     "1": {
+      "simYear": 10,
+      "population": 2633,
+      "settlements": 6,
+      "rp": 19.678,
+      "completed": 0
+     },
+     "100": {
+      "simYear": 1000,
+      "population": 5838,
+      "settlements": 8,
+      "rp": 34.333,
+      "completed": 4
+     },
+     "200": {
+      "simYear": 2000,
+      "population": 13630,
+      "settlements": 11,
+      "rp": 62.102,
+      "completed": 8
+     },
+     "250": {
+      "simYear": 2500,
+      "population": 20322,
+      "settlements": 12,
+      "rp": 82.103,
+      "completed": 13
+     },
+     "300": {
+      "simYear": 2750,
+      "population": 25153,
+      "settlements": 13,
+      "rp": 95.302,
+      "completed": 17
+     },
+     "500": {
+      "simYear": 3750,
+      "population": 56550,
+      "settlements": 16,
+      "rp": 167.896,
+      "completed": 31
+     },
+     "650": {
+      "simYear": 4500,
+      "population": 101260,
+      "settlements": 18,
+      "rp": 252.285,
+      "completed": 42
+     },
+     "800": {
+      "simYear": 4950,
+      "population": 235810,
+      "settlements": 19,
+      "rp": 455.524,
+      "completed": 61
+     },
+     "950": {
+      "simYear": 5400,
+      "population": 1010637,
+      "settlements": 20,
+      "rp": 1259.801,
+      "completed": 83
+     },
+     "1000": {
+      "simYear": 5500,
+      "population": 1365574,
+      "settlements": 20,
+      "rp": 1554.803,
+      "completed": 90
+     },
+     "1150": {
+      "simYear": 5800,
+      "population": 3591712,
+      "settlements": 21,
+      "rp": 3056.65,
+      "completed": 103
+     },
+     "1200": {
+      "simYear": 5850,
+      "population": 4150682,
+      "settlements": 21,
+      "rp": 3381.859,
+      "completed": 108
+     },
+     "1270": {
+      "simYear": 5920,
+      "population": 5190690,
+      "settlements": 21,
+      "rp": 3953.961,
+      "completed": 177
+     },
+     "1400": {
+      "simYear": 5985,
+      "population": 5935628,
+      "settlements": 21,
+      "rp": 4342.534,
+      "completed": 269
+     },
+     "1430": {
+      "simYear": 6000,
+      "population": 6133941,
+      "settlements": 21,
+      "rp": 4443.447,
+      "completed": 284
+     },
+     "1630": {
+      "simYear": 6100,
+      "population": 7720582,
+      "settlements": 21,
+      "rp": 5218.64,
+      "completed": 338
+     }
+    },
+    "waits": [
+     {
+      "id": "cereal_cultivation",
+      "branch": "main",
+      "age": "A2",
+      "base": 3520.0,
+      "target_turn": 164,
+      "completion_turn": 223,
+      "turns": 59
+     },
+     {
+      "id": "road_paved",
+      "branch": "main",
+      "age": "A5",
+      "base": 9950.0,
+      "target_turn": 565,
+      "completion_turn": 612,
+      "turns": 47
+     },
+     {
+      "id": "cordage",
+      "branch": "main",
+      "age": "A1",
+      "base": 1050.0,
+      "target_turn": 49,
+      "completion_turn": 87,
+      "turns": 38
+     },
+     {
+      "id": "kiln_updraft",
+      "branch": "main",
+      "age": "A2",
+      "base": 4180.0,
+      "target_turn": 361,
+      "completion_turn": 397,
+      "turns": 36
+     },
+     {
+      "id": "steam_rotary",
+      "branch": "engineering",
+      "age": "A8",
+      "base": 133810.0,
+      "target_turn": 1102,
+      "completion_turn": 1137,
+      "turns": 35
+     },
+     {
+      "id": "iron_bloomery",
+      "branch": "main",
+      "age": "A4",
+      "base": 8360.0,
+      "target_turn": 462,
+      "completion_turn": 494,
+      "turns": 32
+     },
+     {
+      "id": "internal_combustion",
+      "branch": "engineering",
+      "age": "A8",
+      "base": 133810.0,
+      "target_turn": 1160,
+      "completion_turn": 1189,
+      "turns": 29
+     },
+     {
+      "id": "knapping_oldowan",
+      "branch": "main",
+      "age": "A1",
+      "base": 520.0,
+      "target_turn": 0,
+      "completion_turn": 26,
+      "turns": 26
+     },
+     {
+      "id": "pottery_open_fired",
+      "branch": "main",
+      "age": "A2",
+      "base": 2490.0,
+      "target_turn": 293,
+      "completion_turn": 319,
+      "turns": 26
+     },
+     {
+      "id": "geometry_axiomatic",
+      "branch": "main",
+      "age": "A5",
+      "base": 7030.0,
+      "target_turn": 690,
+      "completion_turn": 716,
+      "turns": 26
+     }
+    ]
+   },
+   "42": {
+    "seed": 42,
+    "actors_in_log": [
+     2
+    ],
+    "orders_total": 643,
+    "research_orders": 345,
+    "completed_total": 344,
+    "last_order": {
+     "id": "plastics",
+     "target_turn": 1619,
+     "status": "unknown (last order; no end-of-run research report exists for this polity)"
+    },
+    "checks": {
+     "rp_bound_failures": [],
+     "exact_checked": 180,
+     "weak_checked": 164
+    },
+    "stage": {
+     "turn": 710,
+     "simYear": 4680
+    },
+    "civics": [
+     {
+      "key": 1001,
+      "id": "law_code",
+      "completion": {
+       "turn": 618,
+       "simYear": 4340
+      },
+      "target_turn": 612
+     },
+     {
+      "key": 1002,
+      "id": "legal_code_roman",
+      "completion": {
+       "turn": 644,
+       "simYear": 4470
+      },
+      "target_turn": 634
+     },
+     {
+      "key": 1003,
+      "id": "census",
+      "completion": {
+       "turn": 1358,
+       "simYear": 5964
+      },
+      "target_turn": 1357
+     },
+     {
+      "key": 1004,
+      "id": "coined_wage",
+      "completion": {
+       "turn": 1225,
+       "simYear": 5875
+      },
+      "target_turn": 1224
+     },
+     {
+      "key": 1005,
+      "id": "patent",
+      "completion": {
+       "turn": 1339,
+       "simYear": 5954
+      },
+      "target_turn": 1338
+     },
+     {
+      "key": 1006,
+      "id": "joint_stock",
+      "completion": {
+       "turn": 1279,
+       "simYear": 5924
+      },
+      "target_turn": 1278
+     },
+     {
+      "key": 1007,
+      "id": "taxation",
+      "completion": {
+       "turn": 336,
+       "simYear": 2930
+      },
+      "target_turn": 326
+     }
+    ],
+    "facts": [
+     {
+      "age": 2,
+      "role": "CORE",
+      "id": "a2_cultivation",
+      "satisfied": {
+       "turn": 221,
+       "simYear": 2210
+      },
+      "via": "cereal_cultivation"
+     },
+     {
+      "age": 2,
+      "role": "SUPPORTING",
+      "id": "a2_pottery",
+      "satisfied": {
+       "turn": 317,
+       "simYear": 2835
+      },
+      "via": "pottery_open_fired"
+     },
+     {
+      "age": 2,
+      "role": "SUPPORTING",
+      "id": "a2_herding",
+      "satisfied": {
+       "turn": 737,
+       "simYear": 4761
+      },
+      "via": "sheep_goat"
+     },
+     {
+      "age": 3,
+      "role": "CORE",
+      "id": "a3_bronze",
+      "satisfied": {
+       "turn": 421,
+       "simYear": 3355
+      },
+      "via": "arsenical_bronze"
+     },
+     {
+      "age": 3,
+      "role": "SUPPORTING",
+      "id": "a3_writing",
+      "satisfied": {
+       "turn": 271,
+       "simYear": 2605
+      },
+      "via": "token_counting"
+     },
+     {
+      "age": 3,
+      "role": "SUPPORTING",
+      "id": "a3_law",
+      "satisfied": {
+       "turn": 618,
+       "simYear": 4340
+      },
+      "via": "law_code"
+     },
+     {
+      "age": 3,
+      "role": "SUPPORTING",
+      "id": "a3_wheel",
+      "satisfied": {
+       "turn": 798,
+       "simYear": 4944
+      },
+      "via": "wheel_solid"
+     },
+     {
+      "age": 4,
+      "role": "CORE",
+      "id": "a4_iron",
+      "satisfied": {
+       "turn": 490,
+       "simYear": 3700
+      },
+      "via": "iron_bloomery"
+     },
+     {
+      "age": 4,
+      "role": "SUPPORTING",
+      "id": "a4_alphabet",
+      "satisfied": {
+       "turn": 658,
+       "simYear": 4524
+      },
+      "via": "abjad"
+     },
+     {
+      "age": 4,
+      "role": "SUPPORTING",
+      "id": "a4_census",
+      "satisfied": {
+       "turn": 1358,
+       "simYear": 5964
+      },
+      "via": "census"
+     },
+     {
+      "age": 5,
+      "role": "CORE",
+      "id": "a5_systematic_law",
+      "satisfied": {
+       "turn": 644,
+       "simYear": 4470
+      },
+      "via": "legal_code_roman"
+     },
+     {
+      "age": 5,
+      "role": "CORE",
+      "id": "a5_coinage",
+      "satisfied": {
+       "turn": 865,
+       "simYear": 5145
+      },
+      "via": "coinage_electrum"
+     },
+     {
+      "age": 5,
+      "role": "SUPPORTING",
+      "id": "a5_geometry",
+      "satisfied": {
+       "turn": 710,
+       "simYear": 4680
+      },
+      "via": "geometry_axiomatic"
+     },
+     {
+      "age": 5,
+      "role": "SUPPORTING",
+      "id": "a5_roads",
+      "satisfied": {
+       "turn": 608,
+       "simYear": 4290
+      },
+      "via": "road_paved"
+     },
+     {
+      "age": 5,
+      "role": "SUPPORTING",
+      "id": "a5_concrete",
+      "satisfied": {
+       "turn": 954,
+       "simYear": 5408
+      },
+      "via": "concrete_pozzolan"
+     },
+     {
+      "age": 5,
+      "role": "SUPPORTING",
+      "id": "a5_wages",
+      "satisfied": {
+       "turn": 1225,
+       "simYear": 5875
+      },
+      "via": "coined_wage"
+     },
+     {
+      "age": 6,
+      "role": "CORE",
+      "id": "a6_heavy_plough",
+      "satisfied": {
+       "turn": 1229,
+       "simYear": 5879
+      },
+      "via": "heavy_plough"
+     },
+     {
+      "age": 6,
+      "role": "SUPPORTING",
+      "id": "a6_paper",
+      "satisfied": {
+       "turn": 960,
+       "simYear": 5420
+      },
+      "via": "paper"
+     },
+     {
+      "age": 6,
+      "role": "SUPPORTING",
+      "id": "a6_mills",
+      "satisfied": {
+       "turn": 925,
+       "simYear": 5325
+      },
+      "via": "water_mill"
+     },
+     {
+      "age": 6,
+      "role": "SUPPORTING",
+      "id": "a6_finance",
+      "satisfied": {
+       "turn": 1254,
+       "simYear": 5904
+      },
+      "via": "bill_of_exchange"
+     },
+     {
+      "age": 6,
+      "role": "SUPPORTING",
+      "id": "a6_numerals",
+      "satisfied": {
+       "turn": 684,
+       "simYear": 4602
+      },
+      "via": "hindu_arabic"
+     },
+     {
+      "age": 7,
+      "role": "CORE",
+      "id": "a7_printing",
+      "satisfied": {
+       "turn": 1049,
+       "simYear": 5598
+      },
+      "via": "printing_press"
+     },
+     {
+      "age": 7,
+      "role": "SUPPORTING",
+      "id": "a7_ocean",
+      "satisfied": {
+       "turn": 1410,
+       "simYear": 5990
+      },
+      "via": "caravel"
+     },
+     {
+      "age": 7,
+      "role": "SUPPORTING",
+      "id": "a7_powder",
+      "satisfied": {
+       "turn": 1266,
+       "simYear": 5916
+      },
+      "via": "corned_powder"
+     },
+     {
+      "age": 7,
+      "role": "SUPPORTING",
+      "id": "a7_science",
+      "satisfied": {
+       "turn": 1401,
+       "simYear": 5985
+      },
+      "via": "mechanics_newtonian"
+     },
+     {
+      "age": 7,
+      "role": "SUPPORTING",
+      "id": "a7_patent",
+      "satisfied": {
+       "turn": 1339,
+       "simYear": 5954
+      },
+      "via": "patent"
+     },
+     {
+      "age": 7,
+      "role": "SUPPORTING",
+      "id": "a7_company",
+      "satisfied": {
+       "turn": 1279,
+       "simYear": 5924
+      },
+      "via": "joint_stock"
+     },
+     {
+      "age": 8,
+      "role": "CORE",
+      "id": "a8_steam",
+      "satisfied": {
+       "turn": 1119,
+       "simYear": 5738
+      },
+      "via": "steam_rotary"
+     },
+     {
+      "age": 8,
+      "role": "SUPPORTING",
+      "id": "a8_iron",
+      "satisfied": {
+       "turn": 1123,
+       "simYear": 5746
+      },
+      "via": "puddling"
+     },
+     {
+      "age": 8,
+      "role": "SUPPORTING",
+      "id": "a8_rail",
+      "satisfied": {
+       "turn": 1485,
+       "simYear": 6027
+      },
+      "via": "railway"
+     },
+     {
+      "age": 8,
+      "role": "SUPPORTING",
+      "id": "a8_telegraph",
+      "satisfied": {
+       "turn": 1567,
+       "simYear": 6068
+      },
+      "via": "telegraph"
+     },
+     {
+      "age": 8,
+      "role": "SUPPORTING",
+      "id": "a8_germ",
+      "satisfied": {
+       "turn": 1535,
+       "simYear": 6052
+      },
+      "via": "germ_theory"
+     },
+     {
+      "age": 8,
+      "role": "SUPPORTING",
+      "id": "a8_knowledge",
+      "satisfied": {
+       "turn": 1277,
+       "simYear": 5923
+      },
+      "via": null
+     },
+     {
+      "age": 9,
+      "role": "CORE",
+      "id": "a9_electricity",
+      "satisfied": {
+       "turn": 1308,
+       "simYear": 5939
+      },
+      "via": "electricity_generation"
+     },
+     {
+      "age": 9,
+      "role": "CORE",
+      "id": "a9_combustion",
+      "satisfied": {
+       "turn": 1169,
+       "simYear": 5819
+      },
+      "via": "internal_combustion"
+     },
+     {
+      "age": 9,
+      "role": "SUPPORTING",
+      "id": "a9_radio",
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 9,
+      "role": "SUPPORTING",
+      "id": "a9_antibiotics",
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 9,
+      "role": "SUPPORTING",
+      "id": "a9_computing",
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 9,
+      "role": "SUPPORTING",
+      "id": "a9_knowledge",
+      "satisfied": {
+       "turn": 1407,
+       "simYear": 5988
+      },
+      "via": null
+     }
+    ],
+    "advances": [
+     {
+      "order_turn": 221,
+      "age_entered": 2,
+      "first_turn_in_age": 222,
+      "simYear_of_order_turn": 2210,
+      "core_research_met_by_order_turn": true,
+      "research_supporting_met_by_order_turn": 0,
+      "binding_research": [
+       "a2_cultivation"
+      ]
+     },
+     {
+      "order_turn": 421,
+      "age_entered": 3,
+      "first_turn_in_age": 422,
+      "simYear_of_order_turn": 3355,
+      "core_research_met_by_order_turn": true,
+      "research_supporting_met_by_order_turn": 1,
+      "binding_research": [
+       "a3_bronze"
+      ]
+     },
+     {
+      "order_turn": 833,
+      "age_entered": 4,
+      "first_turn_in_age": 834,
+      "simYear_of_order_turn": 5049,
+      "core_research_met_by_order_turn": true,
+      "research_supporting_met_by_order_turn": 1,
+      "binding_research": []
+     },
+     {
+      "order_turn": 1225,
+      "age_entered": 5,
+      "first_turn_in_age": 1226,
+      "simYear_of_order_turn": 5875,
+      "core_research_met_by_order_turn": true,
+      "research_supporting_met_by_order_turn": 4,
+      "binding_research": [
+       "a5_wages"
+      ]
+     },
+     {
+      "order_turn": 1229,
+      "age_entered": 6,
+      "first_turn_in_age": 1230,
+      "simYear_of_order_turn": 5879,
+      "core_research_met_by_order_turn": true,
+      "research_supporting_met_by_order_turn": 3,
+      "binding_research": [
+       "a6_heavy_plough"
+      ]
+     },
+     {
+      "order_turn": 1279,
+      "age_entered": 7,
+      "first_turn_in_age": 1280,
+      "simYear_of_order_turn": 5924,
+      "core_research_met_by_order_turn": true,
+      "research_supporting_met_by_order_turn": 2,
+      "binding_research": [
+       "a7_company"
+      ]
+     },
+     {
+      "order_turn": 1280,
+      "age_entered": 8,
+      "first_turn_in_age": 1281,
+      "simYear_of_order_turn": 5925,
+      "core_research_met_by_order_turn": true,
+      "research_supporting_met_by_order_turn": 2,
+      "binding_research": []
+     }
+    ],
+    "by_view": {
+     "Main Technology": 177,
+     "Civics": 7,
+     "1.3 Engineering": 77,
+     "1.4 Natural Science": 31,
+     "1.1 Military": 26,
+     "1.5 Agriculture": 12,
+     "1.2 Medicine": 14
+    },
+    "by_age": {
+     "A1": 28,
+     "A2": 51,
+     "A3": 38,
+     "A4": 32,
+     "A5": 32,
+     "A6": 42,
+     "A7": 32,
+     "A8": 53,
+     "A9": 36
+    },
+    "technology_completed": 337,
+    "population": {
+     "min": 2741,
+     "median": 305351.5,
+     "max": 10293255,
+     "final": 10293255,
+     "final_settlements": 21,
+     "max_settlements": 21
+    },
+    "rp_inferred": {
+     "min": 20.238969822121632,
+     "median": 545.7128306352179,
+     "max": 6380.641534825708,
+     "generated_in_run": 3141273.822979016
+    },
+    "selected": {
+     "1": {
+      "simYear": 10,
+      "population": 2917,
+      "settlements": 6,
+      "rp": 21.139,
+      "completed": 0
+     },
+     "100": {
+      "simYear": 1000,
+      "population": 6153,
+      "settlements": 8,
+      "rp": 35.617,
+      "completed": 4
+     },
+     "200": {
+      "simYear": 2000,
+      "population": 14031,
+      "settlements": 11,
+      "rp": 63.373,
+      "completed": 8
+     },
+     "250": {
+      "simYear": 2500,
+      "population": 20946,
+      "settlements": 12,
+      "rp": 83.857,
+      "completed": 14
+     },
+     "300": {
+      "simYear": 2750,
+      "population": 25995,
+      "settlements": 13,
+      "rp": 97.521,
+      "completed": 17
+     },
+     "500": {
+      "simYear": 3750,
+      "population": 57584,
+      "settlements": 16,
+      "rp": 170.036,
+      "completed": 31
+     },
+     "650": {
+      "simYear": 4500,
+      "population": 105985,
+      "settlements": 18,
+      "rp": 260.457,
+      "completed": 42
+     },
+     "800": {
+      "simYear": 4950,
+      "population": 263043,
+      "settlements": 19,
+      "rp": 491.687,
+      "completed": 62
+     },
+     "950": {
+      "simYear": 5400,
+      "population": 1096961,
+      "settlements": 20,
+      "rp": 1334.085,
+      "completed": 84
+     },
+     "1000": {
+      "simYear": 5500,
+      "population": 1573551,
+      "settlements": 20,
+      "rp": 1716.76,
+      "completed": 92
+     },
+     "1150": {
+      "simYear": 5800,
+      "population": 4243279,
+      "settlements": 21,
+      "rp": 3434.42,
+      "completed": 105
+     },
+     "1200": {
+      "simYear": 5850,
+      "population": 5022386,
+      "settlements": 21,
+      "rp": 3863.902,
+      "completed": 128
+     },
+     "1270": {
+      "simYear": 5920,
+      "population": 6347325,
+      "settlements": 21,
+      "rp": 4550.938,
+      "completed": 197
+     },
+     "1400": {
+      "simYear": 5985,
+      "population": 7740291,
+      "settlements": 21,
+      "rp": 5227.949,
+      "completed": 284
+     },
+     "1430": {
+      "simYear": 6000,
+      "population": 8031083,
+      "settlements": 21,
+      "rp": 5364.473,
+      "completed": 297
+     },
+     "1630": {
+      "simYear": 6100,
+      "population": 10293255,
+      "settlements": 21,
+      "rp": 6380.642,
+      "completed": 344
+     }
+    },
+    "waits": [
+     {
+      "id": "cereal_cultivation",
+      "branch": "main",
+      "age": "A2",
+      "base": 3520.0,
+      "target_turn": 162,
+      "completion_turn": 221,
+      "turns": 59
+     },
+     {
+      "id": "road_paved",
+      "branch": "main",
+      "age": "A5",
+      "base": 9950.0,
+      "target_turn": 561,
+      "completion_turn": 608,
+      "turns": 47
+     },
+     {
+      "id": "cordage",
+      "branch": "main",
+      "age": "A1",
+      "base": 1050.0,
+      "target_turn": 48,
+      "completion_turn": 85,
+      "turns": 37
+     },
+     {
+      "id": "kiln_updraft",
+      "branch": "main",
+      "age": "A2",
+      "base": 4180.0,
+      "target_turn": 358,
+      "completion_turn": 393,
+      "turns": 35
+     },
+     {
+      "id": "steam_rotary",
+      "branch": "engineering",
+      "age": "A8",
+      "base": 133810.0,
+      "target_turn": 1085,
+      "completion_turn": 1119,
+      "turns": 34
+     },
+     {
+      "id": "iron_bloomery",
+      "branch": "main",
+      "age": "A4",
+      "base": 8360.0,
+      "target_turn": 458,
+      "completion_turn": 490,
+      "turns": 32
+     },
+     {
+      "id": "internal_combustion",
+      "branch": "engineering",
+      "age": "A8",
+      "base": 133810.0,
+      "target_turn": 1142,
+      "completion_turn": 1169,
+      "turns": 27
+     },
+     {
+      "id": "pottery_open_fired",
+      "branch": "main",
+      "age": "A2",
+      "base": 2490.0,
+      "target_turn": 291,
+      "completion_turn": 317,
+      "turns": 26
+     },
+     {
+      "id": "geometry_axiomatic",
+      "branch": "main",
+      "age": "A5",
+      "base": 7030.0,
+      "target_turn": 684,
+      "completion_turn": 710,
+      "turns": 26
+     },
+     {
+      "id": "knapping_oldowan",
+      "branch": "main",
+      "age": "A1",
+      "base": 520.0,
+      "target_turn": 0,
+      "completion_turn": 25,
+      "turns": 25
+     }
+    ]
+   },
+   "7": {
+    "seed": 7,
+    "actors_in_log": [
+     2
+    ],
+    "orders_total": 759,
+    "research_orders": 264,
+    "completed_total": 263,
+    "last_order": {
+     "id": "spinning_jenny",
+     "target_turn": 1628,
+     "status": "unknown (last order; no end-of-run research report exists for this polity)"
+    },
+    "checks": {
+     "rp_bound_failures": [],
+     "exact_checked": 178,
+     "weak_checked": 85
+    },
+    "stage": {
+     "turn": 705,
+     "simYear": 4665
+    },
+    "civics": [
+     {
+      "key": 1001,
+      "id": "law_code",
+      "completion": {
+       "turn": 613,
+       "simYear": 4315
+      },
+      "target_turn": 607
+     },
+     {
+      "key": 1002,
+      "id": "legal_code_roman",
+      "completion": {
+       "turn": 639,
+       "simYear": 4445
+      },
+      "target_turn": 629
+     },
+     {
+      "key": 1003,
+      "id": "census",
+      "completion": {
+       "turn": 1624,
+       "simYear": 6097
+      },
+      "target_turn": 1622
+     },
+     {
+      "key": 1004,
+      "id": "coined_wage",
+      "completion": {
+       "turn": 1422,
+       "simYear": 5996
+      },
+      "target_turn": 1421
+     },
+     {
+      "key": 1005,
+      "id": "patent",
+      "completion": {
+       "turn": 1598,
+       "simYear": 6084
+      },
+      "target_turn": 1596
+     },
+     {
+      "key": 1006,
+      "id": "joint_stock",
+      "completion": {
+       "turn": 1495,
+       "simYear": 6032
+      },
+      "target_turn": 1493
+     },
+     {
+      "key": 1007,
+      "id": "taxation",
+      "completion": {
+       "turn": 335,
+       "simYear": 2925
+      },
+      "target_turn": 325
+     }
+    ],
+    "facts": [
+     {
+      "age": 2,
+      "role": "CORE",
+      "id": "a2_cultivation",
+      "satisfied": {
+       "turn": 220,
+       "simYear": 2200
+      },
+      "via": "cereal_cultivation"
+     },
+     {
+      "age": 2,
+      "role": "SUPPORTING",
+      "id": "a2_pottery",
+      "satisfied": {
+       "turn": 316,
+       "simYear": 2830
+      },
+      "via": "pottery_open_fired"
+     },
+     {
+      "age": 2,
+      "role": "SUPPORTING",
+      "id": "a2_herding",
+      "satisfied": {
+       "turn": 743,
+       "simYear": 4779
+      },
+      "via": "sheep_goat"
+     },
+     {
+      "age": 3,
+      "role": "CORE",
+      "id": "a3_bronze",
+      "satisfied": {
+       "turn": 420,
+       "simYear": 3350
+      },
+      "via": "arsenical_bronze"
+     },
+     {
+      "age": 3,
+      "role": "SUPPORTING",
+      "id": "a3_writing",
+      "satisfied": {
+       "turn": 270,
+       "simYear": 2600
+      },
+      "via": "token_counting"
+     },
+     {
+      "age": 3,
+      "role": "SUPPORTING",
+      "id": "a3_law",
+      "satisfied": {
+       "turn": 613,
+       "simYear": 4315
+      },
+      "via": "law_code"
+     },
+     {
+      "age": 3,
+      "role": "SUPPORTING",
+      "id": "a3_wheel",
+      "satisfied": {
+       "turn": 818,
+       "simYear": 5004
+      },
+      "via": "wheel_solid"
+     },
+     {
+      "age": 4,
+      "role": "CORE",
+      "id": "a4_iron",
+      "satisfied": {
+       "turn": 489,
+       "simYear": 3695
+      },
+      "via": "iron_bloomery"
+     },
+     {
+      "age": 4,
+      "role": "SUPPORTING",
+      "id": "a4_alphabet",
+      "satisfied": {
+       "turn": 653,
+       "simYear": 4509
+      },
+      "via": "abjad"
+     },
+     {
+      "age": 4,
+      "role": "SUPPORTING",
+      "id": "a4_census",
+      "satisfied": {
+       "turn": 1624,
+       "simYear": 6097
+      },
+      "via": "census"
+     },
+     {
+      "age": 5,
+      "role": "CORE",
+      "id": "a5_systematic_law",
+      "satisfied": {
+       "turn": 639,
+       "simYear": 4445
+      },
+      "via": "legal_code_roman"
+     },
+     {
+      "age": 5,
+      "role": "CORE",
+      "id": "a5_coinage",
+      "satisfied": {
+       "turn": 922,
+       "simYear": 5316
+      },
+      "via": "coinage_electrum"
+     },
+     {
+      "age": 5,
+      "role": "SUPPORTING",
+      "id": "a5_geometry",
+      "satisfied": {
+       "turn": 705,
+       "simYear": 4665
+      },
+      "via": "geometry_axiomatic"
+     },
+     {
+      "age": 5,
+      "role": "SUPPORTING",
+      "id": "a5_roads",
+      "satisfied": {
+       "turn": 603,
+       "simYear": 4265
+      },
+      "via": "road_paved"
+     },
+     {
+      "age": 5,
+      "role": "SUPPORTING",
+      "id": "a5_concrete",
+      "satisfied": {
+       "turn": 1054,
+       "simYear": 5608
+      },
+      "via": "concrete_pozzolan"
+     },
+     {
+      "age": 5,
+      "role": "SUPPORTING",
+      "id": "a5_wages",
+      "satisfied": {
+       "turn": 1422,
+       "simYear": 5996
+      },
+      "via": "coined_wage"
+     },
+     {
+      "age": 6,
+      "role": "CORE",
+      "id": "a6_heavy_plough",
+      "satisfied": {
+       "turn": 1427,
+       "simYear": 5998
+      },
+      "via": "heavy_plough"
+     },
+     {
+      "age": 6,
+      "role": "SUPPORTING",
+      "id": "a6_paper",
+      "satisfied": {
+       "turn": 1062,
+       "simYear": 5624
+      },
+      "via": "paper"
+     },
+     {
+      "age": 6,
+      "role": "SUPPORTING",
+      "id": "a6_mills",
+      "satisfied": {
+       "turn": 1011,
+       "simYear": 5522
+      },
+      "via": "water_mill"
+     },
+     {
+      "age": 6,
+      "role": "SUPPORTING",
+      "id": "a6_finance",
+      "satisfied": {
+       "turn": 1453,
+       "simYear": 6011
+      },
+      "via": "bill_of_exchange"
+     },
+     {
+      "age": 6,
+      "role": "SUPPORTING",
+      "id": "a6_numerals",
+      "satisfied": {
+       "turn": 679,
+       "simYear": 4587
+      },
+      "via": "hindu_arabic"
+     },
+     {
+      "age": 7,
+      "role": "CORE",
+      "id": "a7_printing",
+      "satisfied": {
+       "turn": 1181,
+       "simYear": 5831
+      },
+      "via": "printing_press"
+     },
+     {
+      "age": 7,
+      "role": "SUPPORTING",
+      "id": "a7_ocean",
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 7,
+      "role": "SUPPORTING",
+      "id": "a7_powder",
+      "satisfied": {
+       "turn": 1475,
+       "simYear": 6022
+      },
+      "via": "corned_powder"
+     },
+     {
+      "age": 7,
+      "role": "SUPPORTING",
+      "id": "a7_science",
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 7,
+      "role": "SUPPORTING",
+      "id": "a7_patent",
+      "satisfied": {
+       "turn": 1598,
+       "simYear": 6084
+      },
+      "via": "patent"
+     },
+     {
+      "age": 7,
+      "role": "SUPPORTING",
+      "id": "a7_company",
+      "satisfied": {
+       "turn": 1495,
+       "simYear": 6032
+      },
+      "via": "joint_stock"
+     },
+     {
+      "age": 8,
+      "role": "CORE",
+      "id": "a8_steam",
+      "satisfied": {
+       "turn": 1281,
+       "simYear": 5925
+      },
+      "via": "steam_rotary"
+     },
+     {
+      "age": 8,
+      "role": "SUPPORTING",
+      "id": "a8_iron",
+      "satisfied": {
+       "turn": 1286,
+       "simYear": 5928
+      },
+      "via": "puddling"
+     },
+     {
+      "age": 8,
+      "role": "SUPPORTING",
+      "id": "a8_rail",
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 8,
+      "role": "SUPPORTING",
+      "id": "a8_telegraph",
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 8,
+      "role": "SUPPORTING",
+      "id": "a8_germ",
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 8,
+      "role": "SUPPORTING",
+      "id": "a8_knowledge",
+      "satisfied": {
+       "turn": 1491,
+       "simYear": 6030
+      },
+      "via": null
+     },
+     {
+      "age": 9,
+      "role": "CORE",
+      "id": "a9_electricity",
+      "satisfied": {
+       "turn": 1546,
+       "simYear": 6058
+      },
+      "via": "electricity_generation"
+     },
+     {
+      "age": 9,
+      "role": "CORE",
+      "id": "a9_combustion",
+      "satisfied": {
+       "turn": 1360,
+       "simYear": 5965
+      },
+      "via": "internal_combustion"
+     },
+     {
+      "age": 9,
+      "role": "SUPPORTING",
+      "id": "a9_radio",
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 9,
+      "role": "SUPPORTING",
+      "id": "a9_antibiotics",
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 9,
+      "role": "SUPPORTING",
+      "id": "a9_computing",
+      "satisfied": null,
+      "via": null
+     },
+     {
+      "age": 9,
+      "role": "SUPPORTING",
+      "id": "a9_knowledge",
+      "satisfied": null,
+      "via": null
+     }
+    ],
+    "advances": [
+     {
+      "order_turn": 220,
+      "age_entered": 2,
+      "first_turn_in_age": 221,
+      "simYear_of_order_turn": 2200,
+      "core_research_met_by_order_turn": true,
+      "research_supporting_met_by_order_turn": 0,
+      "binding_research": [
+       "a2_cultivation"
+      ]
+     },
+     {
+      "order_turn": 420,
+      "age_entered": 3,
+      "first_turn_in_age": 421,
+      "simYear_of_order_turn": 3350,
+      "core_research_met_by_order_turn": true,
+      "research_supporting_met_by_order_turn": 1,
+      "binding_research": [
+       "a3_bronze"
+      ]
+     },
+     {
+      "order_turn": 868,
+      "age_entered": 4,
+      "first_turn_in_age": 869,
+      "simYear_of_order_turn": 5154,
+      "core_research_met_by_order_turn": true,
+      "research_supporting_met_by_order_turn": 1,
+      "binding_research": []
+     },
+     {
+      "order_turn": 1422,
+      "age_entered": 5,
+      "first_turn_in_age": 1423,
+      "simYear_of_order_turn": 5996,
+      "core_research_met_by_order_turn": true,
+      "research_supporting_met_by_order_turn": 4,
+      "binding_research": [
+       "a5_wages"
+      ]
+     },
+     {
+      "order_turn": 1427,
+      "age_entered": 6,
+      "first_turn_in_age": 1428,
+      "simYear_of_order_turn": 5998,
+      "core_research_met_by_order_turn": true,
+      "research_supporting_met_by_order_turn": 3,
+      "binding_research": [
+       "a6_heavy_plough"
+      ]
+     },
+     {
+      "order_turn": 1496,
+      "age_entered": 7,
+      "first_turn_in_age": 1497,
+      "simYear_of_order_turn": 6033,
+      "core_research_met_by_order_turn": true,
+      "research_supporting_met_by_order_turn": 2,
+      "binding_research": []
+     },
+     {
+      "order_turn": 1497,
+      "age_entered": 8,
+      "first_turn_in_age": 1498,
+      "simYear_of_order_turn": 6033,
+      "core_research_met_by_order_turn": true,
+      "research_supporting_met_by_order_turn": 2,
+      "binding_research": []
+     }
+    ],
+    "by_view": {
+     "Main Technology": 175,
+     "Civics": 7,
+     "1.3 Engineering": 42,
+     "1.4 Natural Science": 11,
+     "1.1 Military": 18,
+     "1.5 Agriculture": 7,
+     "1.2 Medicine": 3
+    },
+    "by_age": {
+     "A1": 28,
+     "A2": 51,
+     "A3": 36,
+     "A4": 32,
+     "A5": 32,
+     "A6": 37,
+     "A7": 22,
+     "A8": 23,
+     "A9": 2
+    },
+    "technology_completed": 256,
+    "population": {
+     "min": 2326,
+     "median": 158479.0,
+     "max": 3476632,
+     "final": 3476632,
+     "final_settlements": 21,
+     "max_settlements": 21
+    },
+    "rp_inferred": {
+     "min": 18.04472112423974,
+     "median": 345.04056623079634,
+     "max": 2987.857869561924,
+     "generated_in_run": 1428122.7186842433
+    },
+    "selected": {
+     "1": {
+      "simYear": 10,
+      "population": 2326,
+      "settlements": 6,
+      "rp": 18.045,
+      "completed": 0
+     },
+     "100": {
+      "simYear": 1000,
+      "population": 6163,
+      "settlements": 8,
+      "rp": 35.658,
+      "completed": 4
+     },
+     "200": {
+      "simYear": 2000,
+      "population": 14080,
+      "settlements": 11,
+      "rp": 63.528,
+      "completed": 8
+     },
+     "250": {
+      "simYear": 2500,
+      "population": 21049,
+      "settlements": 12,
+      "rp": 84.145,
+      "completed": 14
+     },
+     "300": {
+      "simYear": 2750,
+      "population": 25939,
+      "settlements": 13,
+      "rp": 97.374,
+      "completed": 17
+     },
+     "500": {
+      "simYear": 3750,
+      "population": 58756,
+      "settlements": 16,
+      "rp": 172.448,
+      "completed": 32
+     },
+     "650": {
+      "simYear": 4500,
+      "population": 106800,
+      "settlements": 18,
+      "rp": 261.855,
+      "completed": 42
+     },
+     "800": {
+      "simYear": 4950,
+      "population": 153054,
+      "settlements": 19,
+      "rp": 336.741,
+      "completed": 60
+     },
+     "950": {
+      "simYear": 5400,
+      "population": 327205,
+      "settlements": 20,
+      "rp": 572.729,
+      "completed": 74
+     },
+     "1000": {
+      "simYear": 5500,
+      "population": 452583,
+      "settlements": 20,
+      "rp": 718.494,
+      "completed": 79
+     },
+     "1150": {
+      "simYear": 5800,
+      "population": 1237799,
+      "settlements": 21,
+      "rp": 1451.618,
+      "completed": 94
+     },
+     "1200": {
+      "simYear": 5850,
+      "population": 1434054,
+      "settlements": 21,
+      "rp": 1608.901,
+      "completed": 99
+     },
+     "1270": {
+      "simYear": 5920,
+      "population": 1820851,
+      "settlements": 21,
+      "rp": 1901.174,
+      "completed": 101
+     },
+     "1400": {
+      "simYear": 5985,
+      "population": 2271257,
+      "settlements": 21,
+      "rp": 2218.81,
+      "completed": 131
+     },
+     "1430": {
+      "simYear": 6000,
+      "population": 2393116,
+      "settlements": 21,
+      "rp": 2301.366,
+      "completed": 159
+     },
+     "1630": {
+      "simYear": 6100,
+      "population": 3476632,
+      "settlements": 21,
+      "rp": 2987.858,
+      "completed": 263
+     }
+    },
+    "waits": [
+     {
+      "id": "cereal_cultivation",
+      "branch": "main",
+      "age": "A2",
+      "base": 3520.0,
+      "target_turn": 161,
+      "completion_turn": 220,
+      "turns": 59
+     },
+     {
+      "id": "steam_rotary",
+      "branch": "engineering",
+      "age": "A8",
+      "base": 133810.0,
+      "target_turn": 1231,
+      "completion_turn": 1281,
+      "turns": 50
+     },
+     {
+      "id": "road_paved",
+      "branch": "main",
+      "age": "A5",
+      "base": 9950.0,
+      "target_turn": 557,
+      "completion_turn": 603,
+      "turns": 46
+     },
+     {
+      "id": "internal_combustion",
+      "branch": "engineering",
+      "age": "A8",
+      "base": 133810.0,
+      "target_turn": 1315,
+      "completion_turn": 1360,
+      "turns": 45
+     },
+     {
+      "id": "cordage",
+      "branch": "main",
+      "age": "A1",
+      "base": 1050.0,
+      "target_turn": 49,
+      "completion_turn": 86,
+      "turns": 37
+     },
+     {
+      "id": "kiln_updraft",
+      "branch": "main",
+      "age": "A2",
+      "base": 4180.0,
+      "target_turn": 357,
+      "completion_turn": 392,
+      "turns": 35
+     },
+     {
+      "id": "iron_bloomery",
+      "branch": "main",
+      "age": "A4",
+      "base": 8360.0,
+      "target_turn": 457,
+      "completion_turn": 489,
+      "turns": 32
+     },
+     {
+      "id": "macadam",
+      "branch": "engineering",
+      "age": "A8",
+      "base": 8360.0,
+      "target_turn": 705,
+      "completion_turn": 734,
+      "turns": 29
+     },
+     {
+      "id": "coinage_electrum",
+      "branch": "main",
+      "age": "A4",
+      "base": 11830.0,
+      "target_turn": 894,
+      "completion_turn": 922,
+      "turns": 28
+     },
+     {
+      "id": "knapping_oldowan",
+      "branch": "main",
+      "age": "A1",
+      "base": 520.0,
+      "target_turn": 0,
+      "completion_turn": 26,
+      "turns": 26
+     }
+    ]
+   }
+  }
+ }
+}

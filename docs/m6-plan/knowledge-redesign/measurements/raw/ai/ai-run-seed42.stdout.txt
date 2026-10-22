@@ -1,0 +1,3 @@
+session record: /tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/ai/s42/session-6139ceb052460b08.json  (run 6139ceb052460b08)
+  inspect it with: sim inspect --manifest /tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/ai/s42/session-6139ceb052460b08.json
+run complete: seed 42, 1630 turns, hash 4d5a59f69b5c1dc75101a6dadbd7d56228ddf34866f82920a0fcfa30ef1fabf8

@@ -1,0 +1,1394 @@
+{
+ "lane": "D10-medicine",
+ "summary": "D10 reviewed the 27 medicine nodes (5 trunk, 22 subtree). Kept 18 (one with a corrected emerged date), split 1 (anatomy_dissection -> physiology) and rebalanced 8: four prerequisite repairs with unchanged cost (blood_transfusion, hormonal_contraception, monoclonal_antibodies, ivf), and four re-scores (antibiotic_resistance and chemotherapy by the prerequisite convention; chemotherapy, medical_imaging and antiviral_drugs by material). Five new nodes: physiology (A7), epidemiology (A8), immunology, endocrinology and sulfonamides (A9). They add the missing public-health pillar, separate three sciences (physiology, immunology, endocrinology) from the applications that used them as proxies, repair three non-causal edges (genetics -> contraception, anaesthesia -> transfusion, germ theory -> chemotherapy), and add a genuine alternative route to antibacterial therapy. The research-stage atom medicine_hippocratic, both Age facts (germ_theory, antibiotic_penicillin), the D-047-ruled edges and the pinned oral_rehydration cost are unchanged. Every dead end now has an owner: most enter the M9 disease model (SIR on the trade network) through named channels (transmission, susceptibility, case fatality, cohort mortality, fertility, Health need); surgery_instruments' military hospital is M7; trepanation stays knowledge-only by explicit justification. Workload: new nodes +135,410 RP; re-scores +48,750 RP.",
+ "existing": [
+  {
+   "id": "trepanation",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "medical",
+   "rationale": "Earliest archaeologically attested surgery, practised independently in Neolithic Europe and the pre-Columbian Andes. Kept as an optional, cheap knowledge node of educational value. Its emerged text read '7,000 years ago' as '7,000 BCE' and is corrected (RESEARCHED: the Ensisheim burial is dated c. 5100-4900 BCE; an earlier Mesolithic case at Vasilyevka II, Ukraine, 7300-6220 cal BCE, is argued by Lillie 1998).",
+   "changes": "emerged '~7,000 BCE Ensisheim; widespread Neolithic' -> '~5,000 BCE Ensisheim (Alsace); argued earlier ~7,300-6,200 BCE Vasilyevka II (Ukraine); widespread Neolithic'. No prerequisite, factor, cost or unlock change.",
+   "emerged": "~5,000 BCE Ensisheim (Alsace); argued earlier ~7,300–6,200 BCE Vasilyevka II (Ukraine); widespread Neolithic",
+   "compatibility": {
+    "saves": "none: text only",
+    "ids": "unchanged (no rename)",
+    "ui": "emerged text only",
+    "ai": "none",
+    "consumers": "none",
+    "tests": "Chronology test: still era-marked (earliest -7300) and has no dependants; the '83 undated texts' pin is unchanged."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:cranial surgery"
+    ],
+    "realizationOwner": "none",
+    "status": "knowledge-only",
+    "milestone": "M9",
+    "currentEffect": "MEASURED: unlock-audit class C - capability string only.",
+    "deferredEffect": "Knowledge-only by explicit justification: the earliest surgery, kept for its educational value. If the M9 health model carries an injury mortality term, cranial surgery is at most a negligible head-injury survival term; M9 may give it none. Optional, off every gate.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide; eligible with no effect until its M9 owner exists.",
+    "unknownResource": "n/a: no deposit good is involved.",
+    "aiValuation": "MEASURED: no AiResearchPolicy goal (core Age facts, roads, tax, universities) reaches it; the AI takes it only through the cheapest-available fallback. PROPOSED (M9): value it from the polity's OWN observed burden in the node's channel (own deaths, own epidemics), never from unknown cells.",
+    "playerCommunication": "Knowledge only: the earliest evidence of surgery; no simulated effect is planned beyond M9's choice."
+   }
+  },
+  {
+   "id": "medicine_recorded",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "medical",
+   "rationale": "Written prescriptions and case records (Sumerian pharmacopoeia, Edwin Smith papyrus). The OR over cuneiform, hieroglyphic and Chinese script already encodes independent centres. On the cheapest closure of the research stage and of building.university; unchanged.",
+   "changes": "none",
+   "capability": {
+    "grants": [
+     "knowledge:transmissible treatment",
+     "knowledge:surgical procedure record"
+    ],
+    "realizationOwner": "ResearchSystem (ancestor of the research-stage atom medicine_hippocratic)",
+    "status": "knowledge-only",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: class C; prerequisite of medicine_hippocratic, so on the research-stage closure.",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide; eligible with no effect until its M9 owner exists.",
+    "unknownResource": "n/a: no deposit good is involved.",
+    "aiValuation": "MEASURED: valued today through the AI university goal (building.university needs medicine_hippocratic).",
+    "playerCommunication": "Shown as a step toward clinical medicine, universities and the research stage."
+   }
+  },
+  {
+   "id": "medicine_hippocratic",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "medical",
+   "rationale": "Research-stage atom and the requirement of building.university, building.hospital and inst.hospital: kept causal (medicine_recorded) with every consumer. Already names three systematic traditions (Hippocratic, Ayurvedic, Chinese). Gains one dependant (epidemiology).",
+   "changes": "none (new dependant: epidemiology)",
+   "capability": {
+    "grants": [
+     "stage:research_stage",
+     "building:building.university",
+     "building:building.hospital",
+     "institution:inst.hospital",
+     "knowledge:trained physicians",
+     "knowledge:surgery (Sushruta)",
+     "knowledge:pharmacopoeia"
+    ],
+    "realizationOwner": "ResearchSystem (research stage) + ConstructionSystem/InstitutionsSystem (universities)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: research-stage atom; building.university makes the five university projects eligible, and the medical university's maturity lowers base mortality through InstitutionEffects.MortalityMultiplier (ceiling 0.10, sim.json healthType); building.hospital and inst.hospital have no realizing system.",
+    "deferredEffect": "M9: hospitals (with pharmacology) gain a consumer once the Health need is bound and the disease model exists (coverage-weighted CFR and Health-need term).",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": [
+      "inst.university (medical university host)"
+     ]
+    },
+    "missingInputs": "A university needs a viable host (adultsPerUniversity 2,000; founding food-surplus ratio 1.3, MEASURED sim.json); knowledge alone builds nothing.",
+    "unknownResource": "n/a: no deposit good is involved.",
+    "aiValuation": "MEASURED: in the AI university goal and in the research-stage closure.",
+    "playerCommunication": "Shows the research stage and the university and hospital projects it makes eligible."
+   }
+  },
+  {
+   "id": "pharmacology",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "medical",
+   "rationale": "Systematic drug catalogues (Dioscorides; Shennong bencao; the Indian samhitas). The knowledge half of the hospital (building.hospital and inst.hospital require it): no node dependant, but two entity consumers. Hospital requirement checked and consistent (bimaristans and xenones joined clinical medicine and pharmacy).",
+   "changes": "none",
+   "capability": {
+    "grants": [
+     "building:building.hospital",
+     "institution:inst.hospital",
+     "knowledge:transmissible drug knowledge",
+     "knowledge:herbal trade"
+    ],
+    "realizationOwner": "InstitutionsSystem (inst.hospital, deferred-entity tier F) + the M9 Health binding",
+    "status": "deferred",
+    "milestone": "M9",
+    "currentEffect": "MEASURED: class J - building.hospital and inst.hospital have no realizing system.",
+    "deferredEffect": "M9: a founded hospital supplies the Health need and lowers CFR and base mortality in its coverage area (coverage-weighted like the medical-university seam). T6.11 (M6) may found the institution row only once it has a consumer (D-M).",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [
+      "building.hospital"
+     ],
+     "institutions": [
+      "inst.hospital"
+     ]
+    },
+    "missingInputs": "Physicians (no such class) and upkeep; without the M9 Health binding a hospital has no consumer.",
+    "unknownResource": "n/a: no deposit good is involved.",
+    "aiValuation": "PROPOSED (M9): value from the polity's own unmet Health need; before M9 the fallback only.",
+    "playerCommunication": "Hospital eligible; the card states that hospitals take effect when health is simulated (M9)."
+   }
+  },
+  {
+   "id": "surgery_instruments",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "medical",
+   "rationale": "Roman instrument sets (Pompeii, Bingen; parallel Indian instrument lists in the Sushruta tradition). Knowledge half of inst.military_medicine (with the census civic). Institutional factor above the A5 prior is justified by an organised military medical service; not re-scored.",
+   "changes": "none",
+   "capability": {
+    "grants": [
+     "institution:inst.military_medicine",
+     "knowledge:cataract surgery",
+     "knowledge:trauma surgery",
+     "knowledge:military medicine"
+    ],
+    "realizationOwner": "Battle layer (M7) - inst.military_medicine (deferred-entity tier E, RATIFIED placement)",
+    "status": "deferred",
+    "milestone": "M7",
+    "currentEffect": "MEASURED: class J - inst.military_medicine has no realizing system.",
+    "deferredEffect": "M7: a military hospital lowers the killed share of battle casualties (BattleOutcome debits casualties from cohorts through the Ledger) and returns wounded to strength. M9: trauma and cataract surgery as a small injury-mortality and Health-need term.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": [
+      "inst.military_medicine",
+      "census (civic) today; standing_army if D12's OD-05 re-point is ruled"
+     ]
+    },
+    "missingInputs": "A standing army and the census civic; without the M7 battle layer there are no casualties to treat.",
+    "unknownResource": "n/a: no deposit good is involved.",
+    "aiValuation": "PROPOSED (M7): value from own army size and casualty history; before M7 the fallback only.",
+    "playerCommunication": "Military hospital eligible; realized with the battle layer (M7)."
+   }
+  },
+  {
+   "id": "inoculation",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "medical",
+   "rationale": "Variolation arose in several centres (China, India, the Ottoman world, West Africa) before reaching Europe in 1721; generic clinical medicine is the right parent. The future-system Eureka (endemic smallpox) is kept.",
+   "changes": "none",
+   "capability": {
+    "grants": [
+     "knowledge:immunisation"
+    ],
+    "realizationOwner": "M9 health & disease (PROPOSED owner: architecture outline Tier 1 row 'Health & disease - SIR on trade network; sub-step rule' (Spine S3), rebased to M9 Society; acts through DemographicsSystem mortality/fertility and the D-018 Health need)",
+    "status": "knowledge-only",
+    "milestone": "M9",
+    "currentEffect": "MEASURED: class C - capability string only.",
+    "deferredEffect": "M9 susceptibility channel: moves a share of smallpox-class susceptibles to immune at the cost of induced cases (RESEARCHED: case fatality about 0.5-2 % after variolation against 20-30 % for natural smallpox, WHO 1988) and of onward transmission; coverage is an adoption matter.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide; eligible with no effect until its M9 owner exists.",
+    "unknownResource": "n/a: no deposit good is involved.",
+    "aiValuation": "MEASURED: no AiResearchPolicy goal (core Age facts, roads, tax, universities) reaches it; the AI takes it only through the cheapest-available fallback. PROPOSED (M9): value it from the polity's OWN observed burden in the node's channel (own deaths, own epidemics), never from unknown cells.",
+    "playerCommunication": "Knowledge only until M9 (disease and public health arrive with the Society milestone); the card names the channel it will enter, so no effect is implied before then."
+   }
+  },
+  {
+   "id": "anatomy_dissection",
+   "disposition": [
+    "split"
+   ],
+   "nodeKind": "science",
+   "splitInto": [
+    "physiology"
+   ],
+   "rationale": "Bundles two independently useful pieces of knowledge: Vesalian structural anatomy (1543), which the surgery line needs (anaesthesia -> antisepsis -> transplant), and Harvey's circulation (1628), which transfusion and endocrinology need. The key stays with anatomy (current consumer anaesthesia; prerequisites, Age and cost unchanged); the circulation moves to the new node physiology. Printing edge kept: reproducible woodcut illustration is part of what made the Fabrica systematic (INFERENCE).",
+   "changes": "capability string 'circulation (Harvey 1628)' moves to physiology; prereq, factors (cost 2,960), family surgery and generation 3 unchanged. Split sum 2,960 + 8,360 = 11,320 (x3.8): the circulation was an unpriced string on a node scored as an incremental refinement (novelty 0.5), so the new part is new priced knowledge, not a re-division.",
+   "compatibility": {
+    "saves": "Holders of anatomy_dissection do NOT hold physiology (no alias/remap seam - the package's OPEN DECISION); blood_transfusion and endocrinology then wait for physiology. Completed rows stay completed.",
+    "ids": "unchanged (no rename)",
+    "ui": "One capability line moves to the new node; physiology appears beside it in the Medicine lane.",
+    "ai": "AI-empire goldens move (AiResearchPolicy runs every turn; fallback choices shift). CI --check docs regenerate.",
+    "consumers": "anaesthesia unchanged; new dependant physiology.",
+    "tests": "Chronology test passes (physiology 1628 >= 1543); generations test unaffected (physiology has no family); surgery-family count stays 6."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:accurate surgery"
+    ],
+    "realizationOwner": "none (science; realized through its dependants)",
+    "status": "knowledge-only",
+    "milestone": "M9",
+    "currentEffect": "MEASURED: class C; prerequisite of anaesthesia (and now physiology).",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide; eligible with no effect until its M9 owner exists.",
+    "unknownResource": "n/a: no deposit good is involved.",
+    "aiValuation": "MEASURED: no AiResearchPolicy goal (core Age facts, roads, tax, universities) reaches it; the AI takes it only through the cheapest-available fallback. PROPOSED (M9): value it from the polity's OWN observed burden in the node's channel (own deaths, own epidemics), never from unknown cells.",
+    "playerCommunication": "Shown as the anatomical basis of surgery and of physiology."
+   }
+  },
+  {
+   "id": "vaccination",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "medical",
+   "rationale": "Jenner's cowpox vaccine (1796); the machine-evaluable Eureka (dairy cattle) stays. Its capability string 'eradication (1980)' is an adoption outcome (a coordinated campaign), not a knowledge effect: flagged for the corpus stage, not edited here.",
+   "changes": "none",
+   "capability": {
+    "grants": [
+     "knowledge:smallpox control",
+     "knowledge:eradication (1980)"
+    ],
+    "realizationOwner": "M9 health & disease (PROPOSED owner: architecture outline Tier 1 row 'Health & disease - SIR on trade network; sub-step rule' (Spine S3), rebased to M9 Society; acts through DemographicsSystem mortality/fertility and the D-018 Health need)",
+    "status": "knowledge-only",
+    "milestone": "M9",
+    "currentEffect": "MEASURED: class C - capability strings only.",
+    "deferredEffect": "M9 susceptibility channel without variolation's induced deaths; eradication needs a coordinated vaccination programme (an M8/M9 policy or institution), not knowledge alone.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide; eligible with no effect until its M9 owner exists.",
+    "unknownResource": "n/a: no deposit good is involved.",
+    "aiValuation": "MEASURED: no AiResearchPolicy goal (core Age facts, roads, tax, universities) reaches it; the AI takes it only through the cheapest-available fallback. PROPOSED (M9): value it from the polity's OWN observed burden in the node's channel (own deaths, own epidemics), never from unknown cells.",
+    "playerCommunication": "Knowledge only until M9 (disease and public health arrive with the Society milestone); the card names the channel it will enter, so no effect is implied before then."
+   }
+  },
+  {
+   "id": "anaesthesia",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "medical",
+   "rationale": "D-047 Part C row 17 ruled the edge KEEP. Hanaoka Seishu's herbal general anaesthesia (Japan, 1804) is recorded as an independent parallel tradition but not encoded as an OR: the ruling covers the edge and the herbal route did not diffuse. Loses the blood_transfusion dependant (edge repaired there).",
+   "changes": "none (dependant blood_transfusion removed by that node's prerequisite repair)",
+   "capability": {
+    "grants": [
+     "knowledge:long, deliberate surgery"
+    ],
+    "realizationOwner": "M9 health & disease (PROPOSED owner: architecture outline Tier 1 row 'Health & disease - SIR on trade network; sub-step rule' (Spine S3), rebased to M9 Society; acts through DemographicsSystem mortality/fertility and the D-018 Health need)",
+    "status": "knowledge-only",
+    "milestone": "M9",
+    "currentEffect": "MEASURED: class C; prerequisite of antisepsis.",
+    "deferredEffect": "M9: operative mortality term (shock, pain-limited surgery) with hospitals; makes the longer operations of the antisepsis line possible.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": [
+      "inst.hospital"
+     ]
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide; eligible with no effect until its M9 owner exists.",
+    "unknownResource": "n/a: no deposit good is involved.",
+    "aiValuation": "MEASURED: no AiResearchPolicy goal (core Age facts, roads, tax, universities) reaches it; the AI takes it only through the cheapest-available fallback. PROPOSED (M9): value it from the polity's OWN observed burden in the node's channel (own deaths, own epidemics), never from unknown cells.",
+    "playerCommunication": "Knowledge only until M9 (disease and public health arrive with the Society milestone); the card names the channel it will enter, so no effect is implied before then."
+   }
+  },
+  {
+   "id": "germ_theory",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "science",
+   "rationale": "A8 supporting Age fact (a8_germ) and the science hub of the antiseptic, vaccine and antibacterial lines. Prerequisite kept (microscope): culture, sterilisation and staining rest on microscopy and glass; quantitative chemistry was considered and rejected. Dependants change: loses blood_transfusion and chemotherapy (repaired), gains sulfonamides.",
+   "changes": "none",
+   "capability": {
+    "grants": [
+     "age:a8_germ",
+     "infrastructure:infra.sewerage_system",
+     "knowledge:antisepsis",
+     "knowledge:targeted vaccines",
+     "knowledge:public health engineering"
+    ],
+    "realizationOwner": "AgeTransitionSystem (milestone fact a8_germ, supporting)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: Age 8 supporting milestone a8_germ; infra.sewerage_system (with reinforced_concrete) has no realizing system.",
+    "deferredEffect": "M9 transmission channel: hygiene and sanitation lower transmission where realized (infra.sewerage_system is lane D07's entity; cross-lane request to admit epidemiology as the historical alternative route).",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide; eligible with no effect until its M9 owner exists.",
+    "unknownResource": "n/a: no deposit good is involved.",
+    "aiValuation": "MEASURED: reached through the A8 supporting fact only when the AI pursues it; fallback otherwise.",
+    "playerCommunication": "Age 8 milestone fact; sanitation eligibility; health effects arrive with M9."
+   }
+  },
+  {
+   "id": "antisepsis",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "medical",
+   "rationale": "D-047 Part C row 18 ruled the edge KEEP (Lister applied germ theory to anaesthetised surgery).",
+   "changes": "none",
+   "capability": {
+    "grants": [
+     "knowledge:abdominal surgery",
+     "knowledge:survival of wounds"
+    ],
+    "realizationOwner": "M9 health & disease (PROPOSED owner: architecture outline Tier 1 row 'Health & disease - SIR on trade network; sub-step rule' (Spine S3), rebased to M9 Society; acts through DemographicsSystem mortality/fertility and the D-018 Health need)",
+    "status": "knowledge-only",
+    "milestone": "M9",
+    "currentEffect": "MEASURED: class C; prerequisite of organ_transplant.",
+    "deferredEffect": "M9: surgical and wound-infection case fatality with hospitals; part of the Health-need supply.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": [
+      "inst.hospital"
+     ]
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide; eligible with no effect until its M9 owner exists.",
+    "unknownResource": "n/a: no deposit good is involved.",
+    "aiValuation": "MEASURED: no AiResearchPolicy goal (core Age facts, roads, tax, universities) reaches it; the AI takes it only through the cheapest-available fallback. PROPOSED (M9): value it from the polity's OWN observed burden in the node's channel (own deaths, own epidemics), never from unknown cells.",
+    "playerCommunication": "Knowledge only until M9 (disease and public health arrive with the Society milestone); the card names the channel it will enter, so no effect is implied before then."
+   }
+  },
+  {
+   "id": "antibiotic_penicillin",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "medical",
+   "rationale": "A9 supporting Age fact (a9_antibiotics); its closure is pinned (contains germ_theory, no surgery family). Bundles discovery (1928) with industrial production (1943); a split was considered and rejected. Its 'maternal mortality collapse' was begun by sulfonamides (new node).",
+   "changes": "none",
+   "capability": {
+    "grants": [
+     "age:a9_antibiotics",
+     "knowledge:wound survival",
+     "knowledge:maternal mortality collapse"
+    ],
+    "realizationOwner": "AgeTransitionSystem (milestone fact a9_antibiotics, supporting)",
+    "status": "realized-today",
+    "milestone": "existing",
+    "currentEffect": "MEASURED: Age 9 supporting milestone a9_antibiotics.",
+    "deferredEffect": "M9 case-fatality channel for bacterial infection (wounds, pneumonia, puerperal sepsis), with hospitals.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Mass production needs industrial fermentation capacity; no pharmaceutical good exists (M9/M11+ decides whether drug supply is a production input or folded into coverage).",
+    "unknownResource": "n/a: no deposit good is involved.",
+    "aiValuation": "MEASURED: reached through the A9 supporting fact only when pursued; fallback otherwise.",
+    "playerCommunication": "Age 9 milestone fact; treatment effects arrive with M9."
+   }
+  },
+  {
+   "id": "antibiotic_broad",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "medical",
+   "rationale": "Streptomycin, chloramphenicol, tetracyclines built on penicillin's antibiosis concept and deep-tank fermentation. Prerequisite of genetic_engineering (antibiotic-resistance selection markers in plasmids) and of antibiotic_resistance.",
+   "changes": "none",
+   "capability": {
+    "grants": [
+     "knowledge:tuberculosis curable",
+     "knowledge:routine surgery"
+    ],
+    "realizationOwner": "M9 health & disease (PROPOSED owner: architecture outline Tier 1 row 'Health & disease - SIR on trade network; sub-step rule' (Spine S3), rebased to M9 Society; acts through DemographicsSystem mortality/fertility and the D-018 Health need)",
+    "status": "knowledge-only",
+    "milestone": "M9",
+    "currentEffect": "MEASURED: class C; prerequisite of antibiotic_resistance and genetic_engineering.",
+    "deferredEffect": "M9: endemic bacterial burden (tuberculosis) in adult base mortality, and case fatality.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide; eligible with no effect until its M9 owner exists.",
+    "unknownResource": "n/a: no deposit good is involved.",
+    "aiValuation": "MEASURED: no AiResearchPolicy goal (core Age facts, roads, tax, universities) reaches it; the AI takes it only through the cheapest-available fallback. PROPOSED (M9): value it from the polity's OWN observed burden in the node's channel (own deaths, own epidemics), never from unknown cells.",
+    "playerCommunication": "Knowledge only until M9 (disease and public health arrive with the Society milestone); the card names the channel it will enter, so no effect is implied before then."
+   }
+  },
+  {
+   "id": "antibiotic_resistance",
+   "disposition": [
+    "rebalance"
+   ],
+   "nodeKind": "medical",
+   "rationale": "Resistance management needs two kinds of knowledge beyond the antibiotics themselves: selection theory (evolution) and population surveillance with controlled trials (epidemiology - the 1948 MRC streptomycin trial exposed resistance under monotherapy and led to combination therapy). Dead end resolved by an M9 owner.",
+   "changes": "prereq + epidemiology; prereq_complexity 0.5 -> 1.0; magnitude 8.0 -> 8.5; cost 23,650 -> 33,450.",
+   "prereq": "antibiotic_broad AND evolution AND epidemiology",
+   "prereqRationale": "antibiotic_broad: the drugs whose efficacy is managed; evolution: resistance is selection; epidemiology: surveillance and controlled trials are how resistance is detected and managed.",
+   "factors": {
+    "novelty": 0.5,
+    "difficulty": 3.0,
+    "material": 1.5,
+    "institutional": 2.5,
+    "breadth": 0.0,
+    "prereq_complexity": 1.0
+   },
+   "costRationale": "Re-scored only by the prerequisite convention (three top-level requirements -> 1.0): novelty 0.5 unchanged (refinement of the antibiotic line); difficulty 3.0 unchanged (A9 prior); material 1.5 unchanged; institutional 2.5 unchanged (A9 prior); breadth 0.0 unchanged (no dependant); prereq_complexity 0.5 -> 1.0. Cost 23,650 -> 33,450.",
+   "compatibility": {
+    "saves": "Keys unchanged. Completed rows stay completed even where the new prerequisites are unmet (no re-validation, MEASURED engine-audit Q14). Partial progress held while the new prerequisites are unmet is dormant (no RP, no completion) and shows as UI 'Partial'; a saved target on it is cleared. Raised cost: progress continues toward 33,450.",
+    "ids": "unchanged (no rename)",
+    "ui": "Lock reason adds epidemiology; tier moves with depth.",
+    "ai": "AI-empire goldens move (AiResearchPolicy runs every turn; fallback choices shift). CI --check docs regenerate.",
+    "consumers": "none (no dependant).",
+    "tests": "Chronology passes (epidemiology 1662, antibiotic_broad 1943 <= 1960)."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:sustaining antibiotic efficacy"
+    ],
+    "realizationOwner": "M9 health & disease (PROPOSED owner: architecture outline Tier 1 row 'Health & disease - SIR on trade network; sub-step rule' (Spine S3), rebased to M9 Society; acts through DemographicsSystem mortality/fertility and the D-018 Health need)",
+    "status": "knowledge-only",
+    "milestone": "M9",
+    "currentEffect": "MEASURED: class C - capability string only; a dead end today.",
+    "deferredEffect": "M9: if the disease model lets antibiotic efficacy decay as resistance accumulates with use (the natural negative feedback, a D-021-style brake on the antibiotic case-fatality term), this knowledge slows that decay (stewardship, combination therapy).",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide; eligible with no effect until its M9 owner exists.",
+    "unknownResource": "n/a: no deposit good is involved.",
+    "aiValuation": "MEASURED: no AiResearchPolicy goal (core Age facts, roads, tax, universities) reaches it; the AI takes it only through the cheapest-available fallback. PROPOSED (M9): value it from the polity's OWN observed burden in the node's channel (own deaths, own epidemics), never from unknown cells.",
+    "playerCommunication": "Knowledge only until M9 (disease and public health arrive with the Society milestone); the card names the channel it will enter, so no effect is implied before then."
+   }
+  },
+  {
+   "id": "vaccine_lab",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "medical",
+   "rationale": "Pasteurian laboratory vaccines (1879-1885) through the cell-culture viral vaccines (polio 1955): a recognised bundle, kept unsplit (a virology node and a vaccine split were considered and rejected). Dependants change: gains immunology, loses monoclonal_antibodies (repaired).",
+   "changes": "none",
+   "capability": {
+    "grants": [
+     "knowledge:childhood mortality collapse"
+    ],
+    "realizationOwner": "M9 health & disease (PROPOSED owner: architecture outline Tier 1 row 'Health & disease - SIR on trade network; sub-step rule' (Spine S3), rebased to M9 Society; acts through DemographicsSystem mortality/fertility and the D-018 Health need)",
+    "status": "knowledge-only",
+    "milestone": "M9",
+    "currentEffect": "MEASURED: class C; prerequisite of mrna_vaccines (and now immunology).",
+    "deferredEffect": "M9 susceptibility channel for childhood diseases; the 'collapse' needs vaccination programmes (adoption), not knowledge alone.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide; eligible with no effect until its M9 owner exists.",
+    "unknownResource": "n/a: no deposit good is involved.",
+    "aiValuation": "MEASURED: no AiResearchPolicy goal (core Age facts, roads, tax, universities) reaches it; the AI takes it only through the cheapest-available fallback. PROPOSED (M9): value it from the polity's OWN observed burden in the node's channel (own deaths, own epidemics), never from unknown cells.",
+    "playerCommunication": "Knowledge only until M9 (disease and public health arrive with the Society milestone); the card names the channel it will enter, so no effect is implied before then."
+   }
+  },
+  {
+   "id": "blood_transfusion",
+   "disposition": [
+    "rebalance"
+   ],
+   "nodeKind": "medical",
+   "rationale": "Prerequisite repair: Landsteiner's blood groups (1901) came from serological agglutination (immunology), and transfusion rests on the circulation (physiology; Lower's 1665 transfusions followed Harvey). Anaesthesia is not needed for transfusion; germ theory stays in the closure through immunology. Factors unchanged (still two requirements).",
+   "changes": "prereq 'germ_theory AND anaesthesia' -> 'immunology AND physiology'; factors and cost (16,730) unchanged.",
+   "prereq": "immunology AND physiology",
+   "prereqRationale": "immunology: blood-group serology and cross-matching; physiology: circulation and blood volume. Anticoagulation (citrate, 1914) is a chemical detail carried by the node; blood banking's cold storage is an infrastructure input, not a knowledge prerequisite.",
+   "compatibility": {
+    "saves": "Keys unchanged. Completed rows stay completed even where the new prerequisites are unmet (no re-validation, MEASURED engine-audit Q14). Partial progress held while the new prerequisites are unmet is dormant (no RP, no completion) and shows as UI 'Partial'; a saved target on it is cleared.",
+    "ids": "unchanged (no rename)",
+    "ui": "Lock reasons change; the node leaves the surgery-line column.",
+    "ai": "AI-empire goldens move (AiResearchPolicy runs every turn; fallback choices shift). CI --check docs regenerate.",
+    "consumers": "organ_transplant unchanged (still antisepsis AND blood_transfusion).",
+    "tests": "Chronology passes (immunology 1890, physiology 1628 <= 1901); penicillin's closure untouched."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:surgical and trauma survival"
+    ],
+    "realizationOwner": "M9 health & disease (PROPOSED owner: architecture outline Tier 1 row 'Health & disease - SIR on trade network; sub-step rule' (Spine S3), rebased to M9 Society; acts through DemographicsSystem mortality/fertility and the D-018 Health need)",
+    "status": "knowledge-only",
+    "milestone": "M9",
+    "currentEffect": "MEASURED: class C; prerequisite of organ_transplant.",
+    "deferredEffect": "M9: haemorrhage case fatality (surgery, childbirth, trauma) with hospitals and blood banks.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [
+      "cold storage (refrigeration)"
+     ],
+     "institutions": [
+      "inst.hospital"
+     ]
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide; eligible with no effect until its M9 owner exists.",
+    "unknownResource": "n/a: no deposit good is involved.",
+    "aiValuation": "MEASURED: no AiResearchPolicy goal (core Age facts, roads, tax, universities) reaches it; the AI takes it only through the cheapest-available fallback. PROPOSED (M9): value it from the polity's OWN observed burden in the node's channel (own deaths, own epidemics), never from unknown cells.",
+    "playerCommunication": "Knowledge only until M9 (disease and public health arrive with the Society milestone); the card names the channel it will enter, so no effect is implied before then."
+   }
+  },
+  {
+   "id": "hormonal_contraception",
+   "disposition": [
+    "rebalance"
+   ],
+   "nodeKind": "medical",
+   "rationale": "Prerequisite repair: the pill needs reproductive endocrinology (progesterone suppresses ovulation) and synthetic steroid chemistry (Marker's diosgenin route; norethindrone, 1951). Mendelian genetics was an adjacency edge, not knowledge actually needed. It becomes a dead end (ivf re-pointed) with a strong M9 owner: fertility.",
+   "changes": "prereq 'chemistry_quantitative AND genetics_mendel' -> 'endocrinology AND synthetic_dye'; factors and cost (47,310) unchanged; dependant ivf removed.",
+   "prereq": "endocrinology AND synthetic_dye",
+   "prereqRationale": "endocrinology: the hormonal control of ovulation; synthetic_dye: synthetic organic chemistry and the corporate research laboratory (its own capability string) that made steroid synthesis possible. Quantitative chemistry stays in the closure.",
+   "compatibility": {
+    "saves": "Keys unchanged. Completed rows stay completed even where the new prerequisites are unmet (no re-validation, MEASURED engine-audit Q14). Partial progress held while the new prerequisites are unmet is dormant (no RP, no completion) and shows as UI 'Partial'; a saved target on it is cleared.",
+    "ids": "unchanged (no rename)",
+    "ui": "Lock reasons change.",
+    "ai": "AI-empire goldens move (AiResearchPolicy runs every turn; fallback choices shift). CI --check docs regenerate.",
+    "consumers": "ivf no longer depends on it (re-pointed to endocrinology).",
+    "tests": "Chronology passes (endocrinology 1902, synthetic_dye 1856 <= 1960)."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:fertility as a chosen variable"
+    ],
+    "realizationOwner": "M9 society (DemographicsSystem fertility channel; adoption by culture and religion)",
+    "status": "knowledge-only",
+    "milestone": "M9",
+    "currentEffect": "MEASURED: class C - capability string only.",
+    "deferredEffect": "M9 fertility channel: eligible contraception lets the M9 society model lower fertility where adoption (culture, religion, policy) allows; knowledge alone changes no birth.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide; eligible with no effect until its M9 owner exists.",
+    "unknownResource": "n/a: no deposit good is involved.",
+    "aiValuation": "MEASURED: no AiResearchPolicy goal (core Age facts, roads, tax, universities) reaches it; the AI takes it only through the cheapest-available fallback. PROPOSED (M9): value it from the polity's OWN observed burden in the node's channel (own deaths, own epidemics), never from unknown cells.",
+    "playerCommunication": "Knowledge only until M9 (disease and public health arrive with the Society milestone); the card names the channel it will enter, so no effect is implied before then."
+   }
+  },
+  {
+   "id": "xray",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "science",
+   "rationale": "D-047 Part C row 10 fixed this edge (Crookes tube, not the thermionic valve). Discovery (1895) and medical radiography (1896) were weeks apart, so a split was rejected. X-rays prompted Becquerel's 1896 question (radioactivity, lane D11) and X-ray diffraction later read DNA (lane D04 request).",
+   "changes": "none",
+   "capability": {
+    "grants": [
+     "knowledge:diagnosis",
+     "knowledge:crystallography (DNA)"
+    ],
+    "realizationOwner": "M9 health & disease (PROPOSED owner: architecture outline Tier 1 row 'Health & disease - SIR on trade network; sub-step rule' (Spine S3), rebased to M9 Society; acts through DemographicsSystem mortality/fertility and the D-018 Health need)",
+    "status": "knowledge-only",
+    "milestone": "M9",
+    "currentEffect": "MEASURED: class C; prerequisite of medical_imaging.",
+    "deferredEffect": "M9: a diagnostic coefficient inside treatment terms (fractures, tuberculosis detection); scientific consumers in lanes D04 (diffraction) and D11 (radioactivity).",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide; eligible with no effect until its M9 owner exists.",
+    "unknownResource": "n/a: no deposit good is involved.",
+    "aiValuation": "MEASURED: no AiResearchPolicy goal (core Age facts, roads, tax, universities) reaches it; the AI takes it only through the cheapest-available fallback. PROPOSED (M9): value it from the polity's OWN observed burden in the node's channel (own deaths, own epidemics), never from unknown cells.",
+    "playerCommunication": "Knowledge only until M9 (disease and public health arrive with the Society milestone); the card names the channel it will enter, so no effect is implied before then."
+   }
+  },
+  {
+   "id": "organ_transplant",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "medical",
+   "rationale": "Prerequisites unchanged (antisepsis AND blood_transfusion); rejection immunology now arrives through blood_transfusion -> immunology. Material 0.0 kept: the 1954 kidney transplant was surgical technique; immunosuppressant drugs are an input. Dead end resolved by an M9 owner.",
+   "changes": "none",
+   "capability": {
+    "grants": [
+     "knowledge:organ failure survivable"
+    ],
+    "realizationOwner": "M9 health & disease (PROPOSED owner: architecture outline Tier 1 row 'Health & disease - SIR on trade network; sub-step rule' (Spine S3), rebased to M9 Society; acts through DemographicsSystem mortality/fertility and the D-018 Health need)",
+    "status": "knowledge-only",
+    "milestone": "M9",
+    "currentEffect": "MEASURED: class C - a dead end today.",
+    "deferredEffect": "M9: organ-failure deaths (renal failure) in older cohorts - a small base-mortality term with hospitals.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": [
+      "inst.hospital"
+     ]
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide; eligible with no effect until its M9 owner exists.",
+    "unknownResource": "n/a: no deposit good is involved.",
+    "aiValuation": "MEASURED: no AiResearchPolicy goal (core Age facts, roads, tax, universities) reaches it; the AI takes it only through the cheapest-available fallback. PROPOSED (M9): value it from the polity's OWN observed burden in the node's channel (own deaths, own epidemics), never from unknown cells.",
+    "playerCommunication": "Knowledge only until M9 (disease and public health arrive with the Society milestone); the card names the channel it will enter, so no effect is implied before then."
+   }
+  },
+  {
+   "id": "chemotherapy",
+   "disposition": [
+    "rebalance"
+   ],
+   "nodeKind": "medical",
+   "generation": 3,
+   "rationale": "Prerequisite repair plus a material re-score. Cancer chemotherapy grew from Ehrlich's chemotherapy programme and the antimetabolite concept that sulfonamide research produced (Woods 1940; Farber's antifolate remissions 1948 - lineage partly INFERENCE); germ theory is not a cancer-treatment prerequisite and stays in the closure through sulfonamides. Material 0.0 was below every peer drug node (industrially synthesised cytotoxic drugs; peers hormonal_contraception and sulfonamides 1.5). Dead end resolved by an M9 owner.",
+   "changes": "prereq 'chemistry_quantitative AND germ_theory' -> 'sulfonamides'; material 0.0 -> 1.5; prereq_complexity 0.5 -> 0.0; magnitude 6.5 -> 7.5; cost 8,360 -> 16,730; generation 2 -> 3 (family pharmacology: pharmacology 1, sulfonamides 2, chemotherapy 3).",
+   "prereq": "sulfonamides",
+   "prereqRationale": "sulfonamides carries the chemotherapeutic principle (selective toxicity, drug screening, the antimetabolite concept) and, through synthetic_dye, the organic chemistry of the alkylating agents; quantitative chemistry and germ theory remain in the closure.",
+   "factors": {
+    "novelty": 0.5,
+    "difficulty": 3.0,
+    "material": 1.5,
+    "institutional": 2.5,
+    "breadth": 0.0,
+    "prereq_complexity": 0.0
+   },
+   "costRationale": "novelty 0.5 unchanged (extension of the chemotherapeutic principle); difficulty 3.0 unchanged (A9 prior); material 0.0 -> 1.5 (industrial synthesis of cytotoxic drugs, as for hormonal_contraception and sulfonamides); institutional 2.5 unchanged (A9 prior); breadth 0.0 unchanged (no dependant); prereq_complexity 0.5 -> 0.0 (one requirement). Cost 8,360 -> 16,730.",
+   "compatibility": {
+    "saves": "Keys unchanged. Completed rows stay completed even where the new prerequisites are unmet (no re-validation, MEASURED engine-audit Q14). Partial progress held while the new prerequisites are unmet is dormant (no RP, no completion) and shows as UI 'Partial'; a saved target on it is cleared. Raised cost: progress continues toward 16,730.",
+    "ids": "unchanged (no rename)",
+    "ui": "Lock reason becomes sulfonamides.",
+    "ai": "AI-empire goldens move (AiResearchPolicy runs every turn; fallback choices shift). CI --check docs regenerate.",
+    "consumers": "none (no dependant).",
+    "tests": "Generations test: chemotherapy must be generation 3 because sulfonamides (pharmacology, 2) is now in its closure; emerged '1940s' is unmarked, so the chronology test does not read it."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:cancer treatment"
+    ],
+    "realizationOwner": "M9 health & disease (PROPOSED owner: architecture outline Tier 1 row 'Health & disease - SIR on trade network; sub-step rule' (Spine S3), rebased to M9 Society; acts through DemographicsSystem mortality/fertility and the D-018 Health need)",
+    "status": "knowledge-only",
+    "milestone": "M9",
+    "currentEffect": "MEASURED: class C - a dead end today.",
+    "deferredEffect": "M9: cancer deaths in older cohorts - a base-mortality term with hospitals.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": [
+      "inst.hospital"
+     ]
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide; eligible with no effect until its M9 owner exists.",
+    "unknownResource": "n/a: no deposit good is involved.",
+    "aiValuation": "MEASURED: no AiResearchPolicy goal (core Age facts, roads, tax, universities) reaches it; the AI takes it only through the cheapest-available fallback. PROPOSED (M9): value it from the polity's OWN observed burden in the node's channel (own deaths, own epidemics), never from unknown cells.",
+    "playerCommunication": "Knowledge only until M9 (disease and public health arrive with the Society milestone); the card names the channel it will enter, so no effect is implied before then."
+   }
+  },
+  {
+   "id": "medical_imaging",
+   "disposition": [
+    "rebalance"
+   ],
+   "nodeKind": "medical",
+   "rationale": "Material re-score with a content reason: CT (1971) and MRI (1977) are defined by their apparatus (rotating X-ray gantry and detector arrays; superconducting magnets), yet the node scored material 0.0 - below its own parent xray (1.5). The CT+MRI bundle is noted, not split (one diagnostic channel at M9). Dead end resolved by an M9 owner.",
+   "changes": "material 0.0 -> 1.5; magnitude 6.5 -> 8.0; cost 8,360 -> 23,650. Prerequisites unchanged.",
+   "factors": {
+    "novelty": 0.5,
+    "difficulty": 3.0,
+    "material": 1.5,
+    "institutional": 2.5,
+    "breadth": 0.0,
+    "prereq_complexity": 0.5
+   },
+   "costRationale": "novelty 0.5 unchanged (refinement of X-ray diagnosis by computation); difficulty 3.0 unchanged (A9 prior); material 0.0 -> 1.5 (scanner apparatus; parent xray is 1.5); institutional 2.5 unchanged (A9 prior); breadth 0.0 unchanged (no dependant); prereq_complexity 0.5 unchanged (two requirements). Cost 8,360 -> 23,650.",
+   "compatibility": {
+    "saves": "Keys unchanged; raised cost: progress continues toward 23,650.",
+    "ids": "unchanged (no rename)",
+    "ui": "Cost only.",
+    "ai": "AI-empire goldens move (AiResearchPolicy runs every turn; fallback choices shift). CI --check docs regenerate.",
+    "consumers": "none (no dependant).",
+    "tests": "Cost pins: none on this node."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:non-invasive diagnosis"
+    ],
+    "realizationOwner": "M9 health & disease (PROPOSED owner: architecture outline Tier 1 row 'Health & disease - SIR on trade network; sub-step rule' (Spine S3), rebased to M9 Society; acts through DemographicsSystem mortality/fertility and the D-018 Health need)",
+    "status": "knowledge-only",
+    "milestone": "M9",
+    "currentEffect": "MEASURED: class C - a dead end today.",
+    "deferredEffect": "M9: a diagnostic coefficient inside treatment terms (cancer and trauma) where hospitals cover the settlement.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": [
+      "inst.hospital"
+     ]
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide; eligible with no effect until its M9 owner exists.",
+    "unknownResource": "n/a: no deposit good is involved.",
+    "aiValuation": "MEASURED: no AiResearchPolicy goal (core Age facts, roads, tax, universities) reaches it; the AI takes it only through the cheapest-available fallback. PROPOSED (M9): value it from the polity's OWN observed burden in the node's channel (own deaths, own epidemics), never from unknown cells.",
+    "playerCommunication": "Knowledge only until M9 (disease and public health arrive with the Society milestone); the card names the channel it will enter, so no effect is implied before then."
+   }
+  },
+  {
+   "id": "antiviral_drugs",
+   "disposition": [
+    "rebalance"
+   ],
+   "nodeKind": "medical",
+   "rationale": "Material re-score with a content reason: nucleoside-analogue synthesis (acyclovir) and HIV combination therapy are industrial pharmaceutical chemistry (peer hormonal_contraception 1.5), not material 0.0. Prerequisites kept (nucleic-acid biology and synthesis); virology knowledge is carried by the node (a separate virology node was rejected). Dead end resolved by an M9 owner.",
+   "changes": "material 0.0 -> 1.5; magnitude 6.5 -> 8.0; cost 8,360 -> 23,650. Prerequisites unchanged.",
+   "factors": {
+    "novelty": 0.5,
+    "difficulty": 3.0,
+    "material": 1.5,
+    "institutional": 2.5,
+    "breadth": 0.0,
+    "prereq_complexity": 0.5
+   },
+   "costRationale": "novelty 0.5 unchanged; difficulty 3.0 unchanged (A9 prior); material 0.0 -> 1.5 (industrial drug synthesis); institutional 2.5 unchanged (A9 prior); breadth 0.0 unchanged (no dependant); prereq_complexity 0.5 unchanged. Cost 8,360 -> 23,650.",
+   "compatibility": {
+    "saves": "Keys unchanged; raised cost: progress continues toward 23,650.",
+    "ids": "unchanged (no rename)",
+    "ui": "Cost only.",
+    "ai": "AI-empire goldens move (AiResearchPolicy runs every turn; fallback choices shift). CI --check docs regenerate.",
+    "consumers": "none (no dependant).",
+    "tests": "Cost pins: none on this node; the Eureka list is unchanged."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:viral disease treatable"
+    ],
+    "realizationOwner": "M9 health & disease (PROPOSED owner: architecture outline Tier 1 row 'Health & disease - SIR on trade network; sub-step rule' (Spine S3), rebased to M9 Society; acts through DemographicsSystem mortality/fertility and the D-018 Health need)",
+    "status": "knowledge-only",
+    "milestone": "M9",
+    "currentEffect": "MEASURED: class C - a dead end today.",
+    "deferredEffect": "M9: case fatality and chronic burden of viral infection (herpes, HIV, influenza) with hospitals.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide; eligible with no effect until its M9 owner exists.",
+    "unknownResource": "n/a: no deposit good is involved.",
+    "aiValuation": "MEASURED: no AiResearchPolicy goal (core Age facts, roads, tax, universities) reaches it; the AI takes it only through the cheapest-available fallback. PROPOSED (M9): value it from the polity's OWN observed burden in the node's channel (own deaths, own epidemics), never from unknown cells.",
+    "playerCommunication": "Knowledge only until M9 (disease and public health arrive with the Society milestone); the card names the channel it will enter, so no effect is implied before then."
+   }
+  },
+  {
+   "id": "monoclonal_antibodies",
+   "disposition": [
+    "rebalance"
+   ],
+   "nodeKind": "medical",
+   "rationale": "Prerequisite repair: hybridoma antibodies (Köhler and Milstein, 1975) are applied immunology; 'laboratory vaccines' was a proxy for it. Molecular biology (dna_structure) stays: therapeutic antibodies were engineered. Factors unchanged. Dead end resolved by an M9 owner.",
+   "changes": "prereq 'dna_structure AND vaccine_lab' -> 'dna_structure AND immunology'; factors and cost (47,310) unchanged.",
+   "prereq": "dna_structure AND immunology",
+   "prereqRationale": "immunology: antibody specificity and production; dna_structure: the molecular biology used to engineer therapeutic antibodies.",
+   "compatibility": {
+    "saves": "Keys unchanged. Completed rows stay completed even where the new prerequisites are unmet (no re-validation, MEASURED engine-audit Q14). Partial progress held while the new prerequisites are unmet is dormant (no RP, no completion) and shows as UI 'Partial'; a saved target on it is cleared.",
+    "ids": "unchanged (no rename)",
+    "ui": "Lock reasons change.",
+    "ai": "AI-empire goldens move (AiResearchPolicy runs every turn; fallback choices shift). CI --check docs regenerate.",
+    "consumers": "none (no dependant).",
+    "tests": "emerged '1975' is unmarked; chronology test does not read it."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:targeted therapy",
+     "knowledge:precise diagnostics"
+    ],
+    "realizationOwner": "M9 health & disease (PROPOSED owner: architecture outline Tier 1 row 'Health & disease - SIR on trade network; sub-step rule' (Spine S3), rebased to M9 Society; acts through DemographicsSystem mortality/fertility and the D-018 Health need)",
+    "status": "knowledge-only",
+    "milestone": "M9",
+    "currentEffect": "MEASURED: class C - a dead end today.",
+    "deferredEffect": "M9: targeted therapy (cancer, autoimmune disease) as a base-mortality term with hospitals; diagnostic coefficient.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide; eligible with no effect until its M9 owner exists.",
+    "unknownResource": "n/a: no deposit good is involved.",
+    "aiValuation": "MEASURED: no AiResearchPolicy goal (core Age facts, roads, tax, universities) reaches it; the AI takes it only through the cheapest-available fallback. PROPOSED (M9): value it from the polity's OWN observed burden in the node's channel (own deaths, own epidemics), never from unknown cells.",
+    "playerCommunication": "Knowledge only until M9 (disease and public health arrive with the Society milestone); the card names the channel it will enter, so no effect is implied before then."
+   }
+  },
+  {
+   "id": "ivf",
+   "disposition": [
+    "rebalance"
+   ],
+   "nodeKind": "medical",
+   "rationale": "Prerequisite repair: IVF rests on reproductive endocrinology (cycle timing, ovarian stimulation) and embryo culture; the pill is a sibling application of the same science, not a prerequisite (the 1978 birth came from a natural cycle). Factors unchanged. Dead end resolved by an M9 owner.",
+   "changes": "prereq 'hormonal_contraception' -> 'endocrinology'; factors and cost (16,730) unchanged; family reproductive_medicine generation 2 unchanged.",
+   "prereq": "endocrinology",
+   "prereqRationale": "endocrinology: hormonal control and timing of ovulation. Embryo culture and laparoscopic egg retrieval are the node's own content (material 1.5).",
+   "compatibility": {
+    "saves": "Keys unchanged. Completed rows stay completed even where the new prerequisites are unmet (no re-validation, MEASURED engine-audit Q14). Partial progress held while the new prerequisites are unmet is dormant (no RP, no completion) and shows as UI 'Partial'; a saved target on it is cleared.",
+    "ids": "unchanged (no rename)",
+    "ui": "Lock reasons change.",
+    "ai": "AI-empire goldens move (AiResearchPolicy runs every turn; fallback choices shift). CI --check docs regenerate.",
+    "consumers": "none (no dependant).",
+    "tests": "Generations test passes (no same-family node in its closure); emerged '1978' unmarked."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:assisted reproduction"
+    ],
+    "realizationOwner": "M9 society (DemographicsSystem fertility channel)",
+    "status": "knowledge-only",
+    "milestone": "M9",
+    "currentEffect": "MEASURED: class C - a dead end today.",
+    "deferredEffect": "M9 fertility channel: a small term (infertility treatment) where adoption allows.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": [
+      "inst.hospital"
+     ]
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide; eligible with no effect until its M9 owner exists.",
+    "unknownResource": "n/a: no deposit good is involved.",
+    "aiValuation": "MEASURED: no AiResearchPolicy goal (core Age facts, roads, tax, universities) reaches it; the AI takes it only through the cheapest-available fallback. PROPOSED (M9): value it from the polity's OWN observed burden in the node's channel (own deaths, own epidemics), never from unknown cells.",
+    "playerCommunication": "Knowledge only until M9 (disease and public health arrive with the Society milestone); the card names the channel it will enter, so no effect is implied before then."
+   }
+  },
+  {
+   "id": "mrna_vaccines",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "medical",
+   "rationale": "Prerequisites causal (recombinant DNA, laboratory vaccines, sequencing for rapid antigen design). Dead end resolved by an M9 owner.",
+   "changes": "none",
+   "capability": {
+    "grants": [
+     "knowledge:rapid vaccine design"
+    ],
+    "realizationOwner": "M9 health & disease (PROPOSED owner: architecture outline Tier 1 row 'Health & disease - SIR on trade network; sub-step rule' (Spine S3), rebased to M9 Society; acts through DemographicsSystem mortality/fertility and the D-018 Health need)",
+    "status": "knowledge-only",
+    "milestone": "M9",
+    "currentEffect": "MEASURED: class C - a dead end today.",
+    "deferredEffect": "M9 epidemic response: shortens the delay between a novel epidemic (the plague crisis archetype) and vaccine availability, i.e. when the susceptibility channel can start acting.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide; eligible with no effect until its M9 owner exists.",
+    "unknownResource": "n/a: no deposit good is involved.",
+    "aiValuation": "MEASURED: no AiResearchPolicy goal (core Age facts, roads, tax, universities) reaches it; the AI takes it only through the cheapest-available fallback. PROPOSED (M9): value it from the polity's OWN observed burden in the node's channel (own deaths, own epidemics), never from unknown cells.",
+    "playerCommunication": "Knowledge only until M9 (disease and public health arrive with the Society milestone); the card names the channel it will enter, so no effect is implied before then."
+   }
+  },
+  {
+   "id": "oral_rehydration",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "medical",
+   "rationale": "D-045 reference node 'a later-Age node that should be cheap'; BaseCost 740 is test-pinned. A causal repair (germ_theory -> physiology: rehydration rests on fluid physiology and the sodium-glucose co-transport, not on the germ) would keep two requirements and the 740 cost, but it would move a large M9 effect onto an even earlier closure; deferred to M9 calibration on this Director-cited node. Dead end resolved by an M9 owner.",
+   "changes": "none",
+   "capability": {
+    "grants": [
+     "knowledge:child mortality from diarrhoea collapses"
+    ],
+    "realizationOwner": "M9 health & disease (PROPOSED owner: architecture outline Tier 1 row 'Health & disease - SIR on trade network; sub-step rule' (Spine S3), rebased to M9 Society; acts through DemographicsSystem mortality/fertility and the D-018 Health need)",
+    "status": "knowledge-only",
+    "milestone": "M9",
+    "currentEffect": "MEASURED: class C - a dead end today.",
+    "deferredEffect": "M9: case fatality of diarrhoeal disease in the child cohorts (0-9); needs only salts, sugar and clean water, so its reach is set by adoption through health workers.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide; eligible with no effect until its M9 owner exists.",
+    "unknownResource": "n/a: no deposit good is involved.",
+    "aiValuation": "MEASURED: no AiResearchPolicy goal (core Age facts, roads, tax, universities) reaches it; the AI takes it only through the cheapest-available fallback. PROPOSED (M9): value it from the polity's OWN observed burden in the node's channel (own deaths, own epidemics), never from unknown cells.",
+    "playerCommunication": "Knowledge only until M9 (disease and public health arrive with the Society milestone); the card names the channel it will enter, so no effect is implied before then."
+   }
+  },
+  {
+   "id": "frontier_medicine",
+   "disposition": [
+    "keep"
+   ],
+   "nodeKind": "medical",
+   "rationale": "Recursive node; repeat mechanics are deferred and not redesigned (D-046). Its finite_nodes_to_exhaust moves 21 -> 26 with the five new finite medicine nodes (loader-checked).",
+   "changes": "none to the node; researchSets descriptor finite_nodes_to_exhaust (medicine) 21 -> 26.",
+   "compatibility": {
+    "saves": "Becomes available later (five more finite medicine nodes to exhaust).",
+    "ids": "unchanged (no rename)",
+    "ui": "Exhaustion count shown 26.",
+    "ai": "Unchanged policy.",
+    "consumers": "none",
+    "tests": "ResearchContentTests finite per subtree [36, 21, 125, 43, 14] -> medicine 26."
+   },
+   "capability": {
+    "grants": [
+     "knowledge:longer lives per level"
+    ],
+    "realizationOwner": "ResearchSystem (repeatable)",
+    "status": "knowledge-only",
+    "milestone": "M10+",
+    "currentEffect": "MEASURED: class H - repeatable; capability string only.",
+    "deferredEffect": "Repeat effects are deferred by D-046; once ruled, each level would enter the M9 base-mortality channel ('longer lives per level').",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide; eligible with no effect until its M9 owner exists.",
+    "unknownResource": "n/a: no deposit good is involved.",
+    "aiValuation": "MEASURED: no AiResearchPolicy goal (core Age facts, roads, tax, universities) reaches it; the AI takes it only through the cheapest-available fallback. PROPOSED (M9): value it from the polity's OWN observed burden in the node's channel (own deaths, own epidemics), never from unknown cells.",
+    "playerCommunication": "Repeatable research; no simulated effect until repeat mechanics are ruled."
+   }
+  }
+ ],
+ "new": [
+  {
+   "id": "physiology",
+   "name": "Physiology",
+   "branch": "medicine",
+   "age": "A7",
+   "domain": "medicine",
+   "secondaryDomains": [
+    "science"
+   ],
+   "emerged": "1628 CE (Harvey, De motu cordis); pulmonary transit described earlier by Ibn al-Nafis in thirteenth-century Cairo",
+   "prereq": "anatomy_dissection",
+   "prereqRationale": "Harvey's demonstration of the circulation built on Vesalian anatomy and Fabricius's venous valves (Padua): structural anatomy is knowledge actually needed.",
+   "factors": {
+    "novelty": 2.0,
+    "difficulty": 2.0,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.0
+   },
+   "costAnalog": "heliocentrism",
+   "costRationale": "novelty 2.0: paradigm-founding (the circulation overturned Galenic physiology; peers heliocentrism, microscope); difficulty 2.0: A7 prior; material 0.0: vivisection and ligatures, no apparatus; institutional 1.5: A7 prior (university medical faculties); breadth 1.0: transfusion and endocrinology, and through them contraception, IVF and transplant; prereq_complexity 0.0: one requirement. Magnitude 6.5 -> 8,360.",
+   "nodeKind": "science",
+   "family": null,
+   "generation": null,
+   "splitFrom": "anatomy_dissection",
+   "universityRelevance": [
+    {
+     "type": 2,
+     "name": "Medical",
+     "role": "primary"
+    },
+    {
+     "type": 4,
+     "name": "Natural Science",
+     "role": "secondary"
+    }
+   ],
+   "capability": {
+    "grants": [
+     "knowledge:circulation of the blood (Harvey 1628)",
+     "knowledge:experimental physiology"
+    ],
+    "realizationOwner": "none (science; realized through its dependants)",
+    "status": "knowledge-only",
+    "milestone": "M9",
+    "currentEffect": "None (new node): knowledge only; prerequisite of blood_transfusion and endocrinology.",
+    "deferredEffect": null,
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide; eligible with no effect until its M9 owner exists.",
+    "unknownResource": "n/a: no deposit good is involved.",
+    "aiValuation": "MEASURED: no AiResearchPolicy goal (core Age facts, roads, tax, universities) reaches it; the AI takes it only through the cheapest-available fallback. PROPOSED (M9): value it from the polity's OWN observed burden in the node's channel (own deaths, own epidemics), never from unknown cells.",
+    "playerCommunication": "Shown as the science of bodily function behind transfusion and hormones."
+   },
+   "whyDistinct": "Function is not structure: anatomy feeds the surgery line, physiology feeds transfusion and endocrinology. Carved out of anatomy_dissection, which carried Harvey's circulation as an unpriced string. Parallel tradition: Ibn al-Nafis described pulmonary transit nearly four centuries before Harvey, without the full circulation.",
+   "acceptanceTest": "Loader and validator accept it (medicine, A7, prerequisite anatomy_dissection, cost 8,360); blood_transfusion and endocrinology list it; the chronology test passes (1543 <= 1628); a polity holding anatomy_dissection but not physiology sees both dependants locked with 'physiology' as the lock reason.",
+   "rationale": "Split from anatomy_dissection (see its record).",
+   "compatibility": {
+    "saves": "New key (assigned from 427 by integrate.py); old saves start it uncompleted, including saves holding anatomy_dissection.",
+    "ids": "new id",
+    "ui": "New node in the Medicine lane.",
+    "ai": "AI-empire goldens move (AiResearchPolicy runs every turn; fallback choices shift). CI --check docs regenerate.",
+    "consumers": "blood_transfusion, endocrinology",
+    "tests": "Branch count medicine 22 -> 27 and finite per subtree 21 -> 26 (five new nodes)."
+   },
+   "eurekas": [],
+   "primaryUniversity": "medicine"
+  },
+  {
+   "id": "epidemiology",
+   "name": "Epidemiology",
+   "branch": "medicine",
+   "age": "A8",
+   "domain": "medicine",
+   "secondaryDomains": [
+    "science"
+   ],
+   "emerged": "1662 CE London (Graunt, bills of mortality); 1854 CE London (Snow, cholera)",
+   "prereq": "medicine_hippocratic AND hindu_arabic",
+   "prereqRationale": "medicine_hippocratic: disease categories and the Hippocratic observation of environment and illness; hindu_arabic: written commercial arithmetic - Graunt's method is described as 'shop arithmetic' applied to the printed weekly bills. Death registration is a civic input (census), not a technology prerequisite (no technology may require a civic).",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "costAnalog": "vaccination",
+   "costRationale": "novelty 1.0: a new method, typical rather than paradigm-founding; difficulty 2.5: A8 prior (inference from observational data); material 0.0: records and arithmetic; institutional 2.0: A8 prior (systematic death registration, medical officers); breadth 1.0: resistance management, surveillance, clinical trials, vital statistics and the sanitation route; prereq_complexity 0.5: two requirements. Magnitude 7.0 -> 11,830.",
+   "nodeKind": "science",
+   "family": null,
+   "generation": null,
+   "splitFrom": null,
+   "universityRelevance": [
+    {
+     "type": 2,
+     "name": "Medical",
+     "role": "primary"
+    }
+   ],
+   "eurekas": [
+    {
+     "text": "A cholera-type epidemic has struck the polity's towns",
+     "when": null,
+     "kind": "world event",
+     "justification": "Snow's investigations and the London Epidemiological Society (1850) followed the cholera epidemics of 1832-1854.",
+     "system": "world events",
+     "evaluable_now": false,
+     "weight": 0.4,
+     "source": "authored",
+     "class": "future-system:world events"
+    }
+   ],
+   "capability": {
+    "grants": [
+     "knowledge:disease measured by rates in populations (surveillance)",
+     "knowledge:transmission routes identified by comparison",
+     "knowledge:controlled clinical trials (method)"
+    ],
+    "realizationOwner": "M9 health & disease (PROPOSED owner: architecture outline Tier 1 row 'Health & disease - SIR on trade network; sub-step rule' (Spine S3), rebased to M9 Society; acts through DemographicsSystem mortality/fertility and the D-018 Health need)",
+    "status": "knowledge-only",
+    "milestone": "M9",
+    "currentEffect": "None (new node): knowledge only; prerequisite of antibiotic_resistance.",
+    "deferredEffect": "M9 transmission channel: surveillance shortens the delay before quarantine or water-source interventions act and improves their targeting (a coefficient inside the intervention terms, never a flat modifier). Also the knowledge basis requested for inst.statistics_vital (D12) and the pre-germ-theory route to sanitation (D07).",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": [
+      "vital registration (census civic; inst.statistics_vital)"
+     ]
+    },
+    "missingInputs": "Without death registration the method has no data: eligible but inert.",
+    "unknownResource": "n/a: no deposit good is involved.",
+    "aiValuation": "PROPOSED (M9): value from the polity's own recorded epidemic deaths; before M9 the fallback only (MEASURED policy).",
+    "playerCommunication": "Knowledge only until M9: explains outbreaks; the interventions it improves arrive with the disease model."
+   },
+   "whyDistinct": "Public-health knowledge is missing from the tree: the statistical route by which disease distribution, transmission and treatment effects were established. Historically it preceded and partly bypassed germ theory (sanitary reform, Snow's pump). Parallel precursors: fourteenth-century observations of plague contagion by Ibn Khatima and Ibn al-Khatib in al-Andalus.",
+   "acceptanceTest": "Loader and validator accept it (medicine, A8, cost 11,830, one future-system Eureka); antibiotic_resistance lists it; chronology passes. M9: twin runs on one seed, identical intervention orders, with and without the node, show a lower epidemic attack rate with it.",
+   "rationale": "New science node for the missing public-health pillar.",
+   "compatibility": {
+    "saves": "New key; old saves start it uncompleted.",
+    "ids": "new id",
+    "ui": "New node in the Medicine lane.",
+    "ai": "AI-empire goldens move (AiResearchPolicy runs every turn; fallback choices shift). CI --check docs regenerate.",
+    "consumers": "antibiotic_resistance",
+    "tests": "Eureka count pin 81 -> 82 (on 81 nodes; evaluable count 17 unchanged); branch and finite counts as for physiology."
+   },
+   "primaryUniversity": "medicine"
+  },
+  {
+   "id": "immunology",
+   "name": "Immunology",
+   "branch": "medicine",
+   "age": "A9",
+   "domain": "medicine",
+   "secondaryDomains": [
+    "science"
+   ],
+   "emerged": "1890 CE Berlin (Behring and Kitasato, antitoxin serum); 1901 CE Vienna (Landsteiner, blood groups)",
+   "prereq": "vaccine_lab",
+   "prereqRationale": "Serum therapy grew directly from Pasteur's and Koch's laboratory immunisation and bacteriology (vaccine_lab, which carries germ_theory).",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.75,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.0
+   },
+   "costAnalog": "vaccine_lab",
+   "costRationale": "novelty 1.0: a new science grown from bacteriology and vaccination; difficulty 3.0: A9 prior; material 0.75: immunised animals and standardised sera; institutional 2.5: A9 prior (research and serum institutes); breadth 1.0: transfusion typing, monoclonal antibodies, transplant (through transfusion), serum therapy; prereq_complexity 0.0: one requirement. Magnitude 8.25 -> 28,130.",
+   "nodeKind": "science",
+   "family": "immunisation",
+   "generation": 4,
+   "splitFrom": null,
+   "universityRelevance": [
+    {
+     "type": 2,
+     "name": "Medical",
+     "role": "primary"
+    },
+    {
+     "type": 4,
+     "name": "Natural Science",
+     "role": "secondary"
+    }
+   ],
+   "capability": {
+    "grants": [
+     "knowledge:serum therapy (diphtheria and tetanus antitoxins)",
+     "knowledge:blood-group serology",
+     "knowledge:antibody-based diagnosis"
+    ],
+    "realizationOwner": "M9 health & disease (PROPOSED owner: architecture outline Tier 1 row 'Health & disease - SIR on trade network; sub-step rule' (Spine S3), rebased to M9 Society; acts through DemographicsSystem mortality/fertility and the D-018 Health need)",
+    "status": "knowledge-only",
+    "milestone": "M9",
+    "currentEffect": "None (new node): knowledge only; prerequisite of blood_transfusion and monoclonal_antibodies.",
+    "deferredEffect": "M9 case-fatality channel for toxin diseases (diphtheria antitoxin) with hospitals; through its dependants, transfusion and targeted therapy.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide; eligible with no effect until its M9 owner exists.",
+    "unknownResource": "n/a: no deposit good is involved.",
+    "aiValuation": "MEASURED: no AiResearchPolicy goal (core Age facts, roads, tax, universities) reaches it; the AI takes it only through the cheapest-available fallback. PROPOSED (M9): value it from the polity's OWN observed burden in the node's channel (own deaths, own epidemics), never from unknown cells.",
+    "playerCommunication": "Knowledge only until M9 (disease and public health arrive with the Society milestone); the card names the channel it will enter, so no effect is implied before then."
+   },
+   "whyDistinct": "Separates the science of immunity from its applications: it is the common knowledge behind blood typing, serum therapy, transplant rejection and monoclonal antibodies, which the tree reached only through proxies (anaesthesia, laboratory vaccines). Rival schools (Metchnikoff's cellular, Ehrlich's humoral) are corpus material.",
+   "acceptanceTest": "Loader and validator accept it (A9, cost 28,130, family immunisation generation 4); blood_transfusion and monoclonal_antibodies list it; the generations test passes (vaccine_lab is generation 3).",
+   "rationale": "New science hub that replaces two proxy edges.",
+   "compatibility": {
+    "saves": "New key; old saves start it uncompleted.",
+    "ids": "new id",
+    "ui": "New node in the Medicine lane.",
+    "ai": "AI-empire goldens move (AiResearchPolicy runs every turn; fallback choices shift). CI --check docs regenerate.",
+    "consumers": "blood_transfusion, monoclonal_antibodies",
+    "tests": "Branch and finite counts; generations test (immunisation: vaccine_lab 3 < immunology 4)."
+   },
+   "eurekas": [],
+   "primaryUniversity": "medicine"
+  },
+  {
+   "id": "endocrinology",
+   "name": "Endocrinology",
+   "branch": "medicine",
+   "age": "A9",
+   "domain": "medicine",
+   "secondaryDomains": [
+    "science"
+   ],
+   "emerged": "1902 CE London (Bayliss and Starling, secretin); 1922 CE Toronto (insulin)",
+   "prereq": "physiology AND chemistry_quantitative",
+   "prereqRationale": "physiology: hormones were found by physiological experiment (secretin); chemistry_quantitative: their extraction and purification (adrenaline 1901, insulin 1922).",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.75,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "costAnalog": "genetics_mendel",
+   "costRationale": "novelty 1.0: the hormone concept, typical; difficulty 3.0: A9 prior; material 0.75: gland extraction and purification; institutional 2.5: A9 prior; breadth 1.0: insulin and hormone therapy, contraception, IVF; prereq_complexity 0.5: two requirements. Magnitude 8.75 -> 39,780.",
+   "nodeKind": "science",
+   "family": null,
+   "generation": null,
+   "splitFrom": null,
+   "universityRelevance": [
+    {
+     "type": 2,
+     "name": "Medical",
+     "role": "primary"
+    },
+    {
+     "type": 4,
+     "name": "Natural Science",
+     "role": "secondary"
+    }
+   ],
+   "capability": {
+    "grants": [
+     "knowledge:insulin therapy (diabetes survivable)",
+     "knowledge:hormone replacement (thyroid, cortisone)"
+    ],
+    "realizationOwner": "M9 health & disease (PROPOSED owner: architecture outline Tier 1 row 'Health & disease - SIR on trade network; sub-step rule' (Spine S3), rebased to M9 Society; acts through DemographicsSystem mortality/fertility and the D-018 Health need)",
+    "status": "knowledge-only",
+    "milestone": "M9",
+    "currentEffect": "None (new node): knowledge only; prerequisite of hormonal_contraception and ivf.",
+    "deferredEffect": "M9: deaths from diabetes and endocrine disease in adult cohorts - a base-mortality term with hospitals.",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "No physical input: the knowledge is held polity-wide; eligible with no effect until its M9 owner exists.",
+    "unknownResource": "n/a: no deposit good is involved.",
+    "aiValuation": "MEASURED: no AiResearchPolicy goal (core Age facts, roads, tax, universities) reaches it; the AI takes it only through the cheapest-available fallback. PROPOSED (M9): value it from the polity's OWN observed burden in the node's channel (own deaths, own epidemics), never from unknown cells.",
+    "playerCommunication": "Knowledge only until M9 (disease and public health arrive with the Society milestone); the card names the channel it will enter, so no effect is implied before then."
+   },
+   "whyDistinct": "The real parent of the reproductive line: it replaces the non-causal genetics_mendel -> contraception edge and the sibling contraception -> IVF edge, and adds insulin, a capability absent from the tree until recombinant insulin (1982).",
+   "acceptanceTest": "Loader and validator accept it (A9, cost 39,780); hormonal_contraception and ivf list it; chronology passes (physiology 1628, chemistry_quantitative 1789 <= 1902).",
+   "rationale": "New science node that repairs two edges and adds a capability.",
+   "compatibility": {
+    "saves": "New key; old saves start it uncompleted.",
+    "ids": "new id",
+    "ui": "New node in the Medicine lane.",
+    "ai": "AI-empire goldens move (AiResearchPolicy runs every turn; fallback choices shift). CI --check docs regenerate.",
+    "consumers": "hormonal_contraception, ivf",
+    "tests": "Branch and finite counts."
+   },
+   "eurekas": [],
+   "primaryUniversity": "medicine"
+  },
+  {
+   "id": "sulfonamides",
+   "name": "Sulfonamides",
+   "branch": "medicine",
+   "age": "A9",
+   "domain": "medicine",
+   "secondaryDomains": [
+    "science"
+   ],
+   "emerged": "1932–1935 CE Elberfeld, Germany (Prontosil; Domagk)",
+   "prereq": "germ_theory AND synthetic_dye",
+   "prereqRationale": "germ_theory: the bacterial target; synthetic_dye: Prontosil was an azo dye from a dye company's research laboratory, and Ehrlich's chemotherapy programme (Salvarsan 1910) grew from dye staining.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 1.5,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "costAnalog": "hormonal_contraception",
+   "costRationale": "novelty 1.0: the first synthetic systemic antibacterials, scored typical so the antibacterial paradigm is not counted twice (penicillin keeps 2.0); difficulty 3.0: A9 prior; material 1.5: industrial organic synthesis (peers synthetic_dye, penicillin); institutional 2.5: A9 prior (corporate laboratory and animal screening); breadth 0.5: bacterial infection and cancer chemotherapy (peer penicillin 0.5); prereq_complexity 0.5: two requirements. Magnitude 9.0 -> 47,310.",
+   "nodeKind": "medical",
+   "family": "pharmacology",
+   "generation": 2,
+   "splitFrom": null,
+   "universityRelevance": [
+    {
+     "type": 2,
+     "name": "Medical",
+     "role": "primary"
+    },
+    {
+     "type": 4,
+     "name": "Natural Science",
+     "role": "secondary"
+    }
+   ],
+   "capability": {
+    "grants": [
+     "knowledge:systemic antibacterial therapy (streptococcal and pneumococcal infection)",
+     "knowledge:puerperal sepsis treatable"
+    ],
+    "realizationOwner": "M9 health & disease (PROPOSED owner: architecture outline Tier 1 row 'Health & disease - SIR on trade network; sub-step rule' (Spine S3), rebased to M9 Society; acts through DemographicsSystem mortality/fertility and the D-018 Health need)",
+    "status": "knowledge-only",
+    "milestone": "M9",
+    "currentEffect": "None (new node): knowledge only; prerequisite of chemotherapy.",
+    "deferredEffect": "M9 case-fatality channel for bacterial infection, including childbirth-linked deaths in the fertile cohorts (RESEARCHED: maternal mortality from puerperal sepsis fell from the mid-1930s with sulfonamides, before penicillin; Loudon 1987).",
+    "inputs": {
+     "resources": [],
+     "geography": [],
+     "infrastructure": [],
+     "institutions": []
+    },
+    "missingInputs": "Drug supply needs industrial chemistry capacity; no pharmaceutical good exists (M9/M11+ decision).",
+    "unknownResource": "n/a: no deposit good is involved.",
+    "aiValuation": "MEASURED: no AiResearchPolicy goal (core Age facts, roads, tax, universities) reaches it; the AI takes it only through the cheapest-available fallback. PROPOSED (M9): value it from the polity's OWN observed burden in the node's channel (own deaths, own epidemics), never from unknown cells.",
+    "playerCommunication": "Knowledge only until M9 (disease and public health arrive with the Society milestone); the card names the channel it will enter, so no effect is implied before then."
+   },
+   "whyDistinct": "A genuinely different route to antibacterial therapy: synthetic dye chemistry (Germany, 1935) as against natural antibiotics by fermentation (Britain and the USA, 1940-1943). It began the fall in maternal mortality that the tree credited to penicillin alone, and it is the causal parent of cancer chemotherapy (the antimetabolite concept).",
+   "acceptanceTest": "Loader and validator accept it (A9, cost 47,310, family pharmacology generation 2); chemotherapy lists it; penicillin's pinned closure (germ_theory in, no surgery family) is unchanged; generations test passes with chemotherapy at generation 3.",
+   "rationale": "New application node: first antibacterial drugs; alternative route.",
+   "compatibility": {
+    "saves": "New key; old saves start it uncompleted.",
+    "ids": "new id",
+    "ui": "New node in the Medicine lane.",
+    "ai": "AI-empire goldens move (AiResearchPolicy runs every turn; fallback choices shift). CI --check docs regenerate.",
+    "consumers": "chemotherapy",
+    "tests": "Branch and finite counts; generations test (chemotherapy 2 -> 3)."
+   },
+   "eurekas": [],
+   "primaryUniversity": "medicine"
+  }
+ ],
+ "crossLaneRequests": [
+  {
+   "targetLane": "D07-industry-construction",
+   "request": "infra.sewerage_system requires 'germ_theory AND reinforced_concrete'. Consider '(germ_theory OR epidemiology) AND ...' (epidemiology is a new D10 node), and whether reinforced_concrete is needed at all (the London main drainage of 1859-1875 used brick and Portland cement). If you split sewerage from water treatment, keep germ_theory on treatment (bacteriological testing, chlorination 1908).",
+   "reason": "The sanitary movement (Chadwick 1842, Snow 1854, Bazalgette) was driven by epidemiology and miasma theory before germ theory was accepted; a single germ-theory route misstates the history."
+  },
+  {
+   "targetLane": "D12-civics",
+   "request": "Agree with your public_health_board (census AND medicine_hippocratic) and with the OD-05 re-points inst.quarantine -> 'hospital AND public_health_board' and inst.military_medicine -> 'surgery_instruments AND standing_army'; D10 keeps medicine_hippocratic and surgery_instruments unchanged for them. One change requested: for inst.statistics_vital (your G-14: 'official_statistics AND calculus') take epidemiology (new D10 node, A8) as the technology half instead of calculus.",
+   "reason": "Vital statistics grew from Graunt's bills-of-mortality analysis and Farr's registration work, not from calculus. public_health_board should NOT require epidemiology: its 1377 quarantine anchor predates epidemiology (1662), which the chronology test would refuse."
+  },
+  {
+   "targetLane": "D04-natural-science",
+   "request": "(1) Consider adding xray to dna_structure's prerequisites (X-ray diffraction; xray already lists 'crystallography (DNA)'): dna_structure has three requirements, so prereq_complexity and cost do not change. (2) If you add a probability or statistics node, tell D10: epidemiology should require it. (3) Informational: synthetic_dye gains dependants sulfonamides and hormonal_contraception; genetics_mendel loses hormonal_contraception (non-causal edge); chemistry_quantitative loses chemotherapy and hormonal_contraception and gains endocrinology. (4) If you add cell theory or cellular pathology, chemotherapy and endocrinology could hook to it.",
+   "reason": "Franklin's diffraction images were knowledge actually needed for the 1953 structure; the rest keeps the shared edges consistent."
+  },
+  {
+   "targetLane": "D11-nuclear-geology",
+   "request": "xray (1895, key 336) is available as the causal parent of radioactivity research (Becquerel 1896 tested uranium salts for X-ray-like rays); reference it if you add such a node. Radiotherapy, tracers, nuclear medicine and radiation protection stay yours; D10 adds no radiation-medicine node. If a nuclear-medicine node needs a diagnostic consumer, xray and medical_imaging keep their ids.",
+   "reason": "Boundary set by the lane brief; avoids duplicate radiation-medicine nodes."
+  },
+  {
+   "targetLane": "D03-science-early",
+   "request": "Informational: the new epidemiology node requires hindu_arabic (written commercial arithmetic). If your counting_rods is accepted, the integrator may widen this to '(hindu_arabic OR counting_rods)'; D10 cannot name a proposed id. medicine_hippocratic's display name is already tradition-neutral ('Clinical medicine'); its emerged names Greece, India and China.",
+   "reason": "Graunt's analysis of the bills of mortality is described as 'shop arithmetic'; any positional calculating system serves."
+  }
+ ],
+ "openQuestions": [
+  "OPEN DECISION (M9): the medical-university mortality seam realized today (ceiling 0.10, justified by smallpox and variolation) reads no medical knowledge. Should M9 let medical knowledge enter that equation as coefficients (for example the ceiling as a function of immunisation knowledge), or act only through the new disease model?",
+  "The disposition vocabulary has no word for a prerequisite repair that leaves the factors unchanged; this part uses 'rebalance' (prereq_complexity re-evaluated) for blood_transfusion, hormonal_contraception, monoclonal_antibodies and ivf. Integrator to confirm.",
+  "Entity requirements cannot be expressed in a part file; the infra.sewerage_system and inst.statistics_vital changes are raised as cross-lane requests and join D12's OD-05 institution re-points for the T6.4 content step. Who rules entity-requirement edits for non-civic entities (infra.sewerage_system)?",
+  "Several capability strings name adoption outcomes ('eradication (1980)', 'fertility as a chosen variable', '... mortality collapse'); their realization needs coverage or adoption owners (M8 policy, M9 culture and religion). The corpus stage should word them as eligibility.",
+  "vaccine_lab bundles Pasteurian vaccines (1885) and cell-culture viral vaccines (1955). If the M9 disease model distinguishes pathogen classes, revisit a virology node and a vaccine split.",
+  "oral_rehydration's closure is A8-era while its M9 effect is large, and its cost is pinned at 740 (D-045 example). The causal repair germ_theory -> physiology keeps the count and the cost but makes the closure earlier still; M9 calibration should decide it together with the size of the effect.",
+  "Drug and vaccine supply: knowledge is not production. Whether M9 needs a pharmaceutical production input (M11+ industries) or folds supply into institutional coverage is undecided.",
+  "The alias/remap seam (package-wide OPEN DECISION) would grant physiology to holders of anatomy_dissection after the split."
+ ]
+}
