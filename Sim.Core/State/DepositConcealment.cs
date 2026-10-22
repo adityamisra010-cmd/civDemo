@@ -25,7 +25,7 @@ namespace Sim.Core.State;
 /// prospects it. Developer surfaces (Explain, snapshot diff) read the raw table.</para>
 ///
 /// <para>Switch: <c>discovery.enabled</c> false (or the section absent, or no goods content) conceals nothing — every read
-/// returns <see cref="DepositRow.Abundance"/> unchanged. Pure, read-only, no dictionary, no LINQ, no float (law 5).</para>
+/// returns <see cref="DepositRow.Abundance"/> unchanged. Pure, read-only, no dictionary, no LINQ, doubles only for ratios (law 5).</para>
 /// </summary>
 public static class DepositConcealment
 {

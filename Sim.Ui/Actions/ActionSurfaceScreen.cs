@@ -41,10 +41,12 @@ public enum ActionCommandKind
     /// <summary>WS2 (D-054): set the Empire's building/roads material split to <see cref="ActionCommand.Percent"/> shares
     /// in 100 for building work (order kind 12, through UiSession.EmitAllocationOrder).</summary>
     SetAllocation = 11,
+    /// <summary>ADR-043: clear the Civics lane's target (order kind 6 with −2, through UiSession.ClearResearchTarget(Civics)).</summary>
+    ClearCivicsResearch = 12,
     /// <summary>M6 EX (ADR-044): Explore from <see cref="ActionCommand.Settlement"/> (order kind 14, UiSession.EmitExplore).</summary>
-    Explore = 12,
+    Explore = 13,
     /// <summary>M6 EX (ADR-044): Prospect at <see cref="ActionCommand.Settlement"/> (order kind 15, UiSession.EmitProspect).</summary>
-    Prospect = 13,
+    Prospect = 14,
 }
 
 public sealed record ActionCommand(
@@ -55,7 +57,7 @@ public sealed record ActionCommand(
     /// <summary>Whether the command would append an order (the rest only move the UI).</summary>
     public bool IsOrder => Kind is ActionCommandKind.ApplyLabour or ActionCommandKind.ClearResearch or ActionCommandKind.Enqueue
         or ActionCommandKind.DevelopRoads or ActionCommandKind.SetTax or ActionCommandKind.CancelConstruction
-        or ActionCommandKind.SetAllocation or ActionCommandKind.Explore or ActionCommandKind.Prospect;
+        or ActionCommandKind.SetAllocation or ActionCommandKind.ClearCivicsResearch or ActionCommandKind.Explore or ActionCommandKind.Prospect;
 }
 
 /// <summary>THE ONE DISPATCH of an order-bearing command, through the session's guarded emitters (each
@@ -75,6 +77,7 @@ public static class ActionDispatch
             ActionCommandKind.SetTax => session.EmitTaxOrder((int)Math.Round(command.Percent, MidpointRounding.AwayFromZero)),
             ActionCommandKind.CancelConstruction => session.EmitCancelConstruction(command.Settlement, command.Project),
             ActionCommandKind.SetAllocation => session.EmitAllocationOrder((int)Math.Round(command.Percent, MidpointRounding.AwayFromZero)),
+            ActionCommandKind.ClearCivicsResearch => session.ClearResearchTarget(Sim.Core.Systems.Research.ResearchTree.Civics),
             ActionCommandKind.Explore => session.EmitExplore(command.Settlement),
             ActionCommandKind.Prospect => session.EmitProspect(command.Settlement),
             _ => false,
@@ -104,6 +107,8 @@ public enum ActionHitKind
     AllocTrack,
     /// <summary>WS2: "Set" — shown only while the draft differs from the split in force; emits kind 12.</summary>
     AllocApply,
+    /// <summary>ADR-043: the Civics line's "Stop" — clears the Civics lane (order kind 6 with −2).</summary>
+    ResearchClearCivics,
     /// <summary>M6 EX (ADR-044): the Actions menu's "Explore" (A = the settlement) — emits kind 14 through the guarded emitter.</summary>
     Explore,
     /// <summary>M6 EX (ADR-044): the Actions menu's "Prospect" (A = the settlement) — emits kind 15 through the guarded emitter.</summary>
@@ -269,6 +274,7 @@ public sealed partial class ActionSurfaceScreen
                     return new ActionCommand(ActionCommandKind.ApplyLabour, la.Settlement.Value, Weights(spec));
                 case ActionHitKind.ResearchOpen: return new ActionCommand(ActionCommandKind.OpenResearch);
                 case ActionHitKind.ResearchClear: return new ActionCommand(ActionCommandKind.ClearResearch);
+                case ActionHitKind.ResearchClearCivics: return new ActionCommand(ActionCommandKind.ClearCivicsResearch);
                 case ActionHitKind.AgeAdvance: return new ActionCommand(ActionCommandKind.AdvanceAge);
                 case ActionHitKind.Build: return new ActionCommand(ActionCommandKind.Enqueue, h.A, Project: h.B);
                 case ActionHitKind.RoadSlot:
@@ -814,11 +820,46 @@ public sealed partial class ActionSurfaceScreen
                 y = stop.Bottom + Sp(4);
             }
         }
+        if (r.Civics is { } c) y = PaintCivics(d, m, model, c, x, y + Sp(6), w);
         if (!flat && !r.Retained.IsDefaultOrEmpty)
         {
             var parts = new List<string>();
             foreach (ResearchItem ri in r.Retained) parts.Add(ri.Name + " " + N0(ri.Progress) + "/" + N0(ri.Cost));
             y = Wrapped(d, m, "retained progress: " + string.Join(" · ", parts), x, y + Sp(2), w, Caption, t.Ink.TextSoft);
+        }
+        return y;
+    }
+
+    /// <summary>ADR-043: the Civics line under the Technology target — the Civics target (funded by Civics Points, shown
+    /// separately), its progress, the CP a turn accrues and the bank, and a per-lane Stop.</summary>
+    private double PaintCivics(DrawList d, ITextMeasure m, ActionSurfaceModel model, CivicsLine c, double x, double y, double w)
+    {
+        EraTheme t = T;
+        string bank = model.Control.Numerals
+            ? N1(c.Balance) + " civics points banked, +" + N1(c.PointsPerTurn) + " a turn"
+            : "civics points are banked, never lost";
+        if (c.Idle)
+        {
+            string idle = c.ClearQueued ? "Civics: stopping at End Turn - points stay banked" : "Civics: nothing chosen - choose a civic in the trees";
+            y = Wrapped(d, m, idle, x, y, w, Second, t.TextInk.Progress);
+            return Wrapped(d, m, bank + ".", x, y, w, Caption, t.Ink.TextSoft);
+        }
+        ResearchItem item = c.Effective!;
+        bool chosenNow = c.Chosen is not null;
+        Info(new RectD(x, y, Math.Min(w, m.Width(t, "Civics: " + item.Name, Second)), L(Second)), InfoSubject.Node(new ResearchNodeId((int)item.Key)), item.Name);
+        y = Wrapped(d, m, "Civics: " + item.Name, x, y, w, Second, t.TextInk.Active);
+        double frac = item.Cost > 0 ? item.Progress / item.Cost : 0;
+        EraMarks.Progress(d, t, new RectD(x, y, Math.Min(Sp(240), w * 0.6), Sp(10)), frac, t.Semantic.Active, 834);
+        y += Sp(16);
+        string line = N0(item.Progress) + " of " + N0(item.Cost) + " civics points; " + bank;
+        if (chosenNow) line = "chosen this turn - civics starts at End Turn (" + line + ")";
+        y = Wrapped(d, m, line, x, y, w, Caption, chosenNow ? t.TextInk.Active : t.Ink.TextSoft);
+        if (c.CanClear)
+        {
+            RectD stop = Button(d, m, "Stop civics", x + w, y + Sp(4), 835, ControlStyle.Secondary);
+            _hits.Add(new ActionHit(stop, ActionHitKind.ResearchClearCivics, 0, 0));
+            Info(stop, InfoSubject.Research, "Learning");
+            y = stop.Bottom + Sp(4);
         }
         return y;
     }

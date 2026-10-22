@@ -178,13 +178,20 @@ public static class CanonicalSchema
     /// first step after a v33 load read an empty table where a v34 save of the same state carried rows, is refused; the
     /// shipped order is pinned by ConstructionHoldsSchemaV34Tests.TheShippedPipeline_RunsConstructionBeforeRoadDevelopment),
     /// and, for v32, because no partial construction state and no split existed. The snapshot's topology trailer is unchanged (v33 and v34 carry it).
+    /// v35 (D-062 — the Director's M6 slice ruling of 2026-10-22; ADR-043 Civics Points): CivicsPoints (section 62: Polity,
+    /// BalanceMilli, GeneratedMilli, SpentMilli; 28 bytes — each knowledge holder's banked Civics Points account in integer
+    /// milli-CP, at most one row per holder, ascending Polity) appended after ConstructionHolds. No existing row changed
+    /// width. A world with no CP row carries one empty count prefix and nothing else. THE READABLE VERSIONS ARE THE SET
+    /// {32, 33, 34, 35}: a v34 stream stops after section 61 and its CivicsPoints table is left EMPTY — the migration rule
+    /// "empty tables": a migrated holder starts with a zero bank and accrues from its first step under v35 (under v34 no CP
+    /// existed, so nothing is lost).
     /// v35 (M6, D-062 — the Director's final M6 decisions of 2026-10-22; one bump for the whole slice): Track EX (ADR-044)
     /// appends, after section 61, KnownExtents (section 63: Polity, Word, Bits; 16 bytes — sparse 64-node words of each
     /// polity's monotone known extent, ascending (Polity, Word)), Explorations (section 64: Polity, Settlement, RadiusNodes;
     /// 12 bytes), SettlementSightings (section 65: Polity, Settlement, LastSeenTurn; 16 bytes) and SettlementSurveys (section
-    /// 66: Polity, Settlement, Turn; 16 bytes), all owned by DiscoverySystem. Section 62 (CivicsPoints, Track CP) is written
-    /// by the CP track and merges in between 61 and 63; this branch carries 63–66 directly after 61. No existing row changed
-    /// width. The readable set becomes {32, 33, 34, 35}: a v34 stream stops after section 61 and the four tables are left
+    /// 66: Polity, Settlement, Turn; 16 bytes), all owned by DiscoverySystem. They follow section 62 (CivicsPoints, Track CP, ADR-043);
+    /// the stream order is 61, 62, 63, 64, 65, 66. No existing row changed
+    /// width. The readable set becomes {32, 33, 34, 35}: a v34 stream stops after section 61 and these four tables (with 62) are left
     /// EMPTY — the migration rule; DiscoverySystem's first step after the load re-derives the seed extent (rule E2), so a
     /// migrated save becomes fogged with the founding seed only (ADR-044 §7).
     public const int Version = 35;
@@ -194,9 +201,10 @@ public static class CanonicalSchema
     public const int OldestReadableVersion = 32;
 
     /// <summary>
-    /// D-055 (v34) — THE READABLE STREAM VERSIONS, as ONE predicate: the set {32, 33, 34, 35} (v35, M6 EX) — this build's
-    /// <see cref="Version"/> and the two older streams it migrates exactly (v33: ConstructionHolds left empty; v32: the
-    /// three tables appended since left empty). Every reader that decides whether it can take a stream asks this, so the
+    /// D-055 (v34) — THE READABLE STREAM VERSIONS, as ONE predicate: the set {32, 33, 34, 35} (v35: ADR-043 + ADR-044) — this
+    /// build's <see cref="Version"/> and the older streams it migrates (v34: CivicsPoints and the four M6 EX discovery tables
+    /// left empty; v33: ConstructionHolds left empty too; v32: the v33 tables left empty too). Every reader that decides
+    /// whether it can take a stream asks this, so the
     /// set changes in one place: <see cref="Read(BinaryReader, int, out byte[])"/>, Snapshot.Load, Sim.Cli's
     /// SaveFiles.MigrationNote and SnapshotDiff.LayoutFor. Any other version is refused (Snapshot.Load with the D-008
     /// message: seed + order-log replay is the recovery path).
@@ -205,8 +213,8 @@ public static class CanonicalSchema
 
     /// <summary>
     /// D-056 — THE BYTES A READABLE OLDER SCHEMA DID NOT WRITE: the length of the sections this build's stream appends
-    /// after the last section of schema <paramref name="version"/> — 0 for <see cref="Version"/>; section 61
-    /// (ConstructionHolds) for v33; sections 59–61 for v32. Exact because every table a readable version lacks was
+    /// after the last section of schema <paramref name="version"/> — 0 for <see cref="Version"/>; section 62
+    /// (CivicsPoints, v35) for v34; sections 61–62 for v33; sections 59–62 for v32. Exact because every table a readable version lacks was
     /// APPENDED after every table it has (v33 and v34 changed no existing row), so the canonical stream a v
     /// <paramref name="version"/> build wrote for the same tables is this build's stream less this many trailing bytes.
     /// <see cref="WorldHash.ComputeHexAsSchema"/> hashes that prefix. Throws for a version outside the readable set.
@@ -216,7 +224,8 @@ public static class CanonicalSchema
         if (!IsReadable(version))
             throw new ArgumentOutOfRangeException(nameof(version), version,
                 $"this build reads canonical streams of version 32, 33, 34 and {Version} only.");
-        int v35Tables = CountPrefixWidth + world.KnownExtents.Count * KnownExtentRowWidth
+        int v35Tables = CountPrefixWidth + world.CivicsPoints.Count * CivicsPointsRowWidth
+            + CountPrefixWidth + world.KnownExtents.Count * KnownExtentRowWidth
             + CountPrefixWidth + world.Explorations.Count * ExplorationRowWidth
             + CountPrefixWidth + world.SettlementSightings.Count * SettlementSightingRowWidth
             + CountPrefixWidth + world.SettlementSurveys.Count * SettlementSurveyRowWidth;
@@ -290,6 +299,7 @@ public static class CanonicalSchema
     private const int ConstructionProgressRowWidth = 4 + 4 + 4 + 8 + 8; // Settlement, Slot, ProjectId, EnqueuedTurn, Progress (v33)
     private const int ResourceAllocationRowWidth = 4 + 4;           // Polity, BuildingsPercent (v33)
     private const int ConstructionHoldRowWidth = 4 + 4 + 8;         // Purse, Good, Units (v34)
+    private const int CivicsPointsRowWidth = 4 + 8 + 8 + 8;         // Polity, BalanceMilli, GeneratedMilli, SpentMilli (v35)
     private const int KnownExtentRowWidth = 4 + 4 + 8;              // Polity, Word, Bits (v35 §63)
     private const int ExplorationRowWidth = 4 + 4 + 4;              // Polity, Settlement, RadiusNodes (v35 §64)
     private const int SettlementSightingRowWidth = 4 + 4 + 8;       // Polity, Settlement, LastSeenTurn (v35 §65)
@@ -995,7 +1005,16 @@ public static class CanonicalSchema
             writer.Write(row.Units);
         }
 
-        // (62. CivicsPoints — Track CP's section; merged in here by the coordinator.)
+        // 62. CivicsPoints (v35, ADR-043: each knowledge holder's banked Civics Points account, milli-CP; ascending Polity)
+        writer.Write(world.CivicsPoints.Count);
+        for (int i = 0; i < world.CivicsPoints.Count; i++)
+        {
+            CivicsPointsRow row = world.CivicsPoints[i];
+            writer.Write(row.Polity.Value);
+            writer.Write(row.BalanceMilli);
+            writer.Write(row.GeneratedMilli);
+            writer.Write(row.SpentMilli);
+        }
 
         // 63. KnownExtents (v35, M6 EX: sparse 64-node words of each polity's monotone known extent)
         writer.Write(world.KnownExtents.Count);
@@ -1043,7 +1062,8 @@ public static class CanonicalSchema
 
     /// <summary>
     /// THE MIGRATING READER (v33, ADR-039; v34, D-055): reads a stream of schema <paramref name="version"/>, any member of
-    /// the readable set (<see cref="IsReadable"/>: 32, 33, 34, 35; a v34 stream ends after section 61 and the four M6 EX tables are left empty). A v33 stream ends after section 60: ConstructionHolds is
+    /// the readable set (<see cref="IsReadable"/>: 32, 33, 34, 35). A v34 stream ends after section 61: CivicsPoints is left
+    /// EMPTY (ADR-043: the bank starts at zero; v34 had no CP) and so are the four M6 EX discovery tables (ADR-044 §7). A v33 stream ends after section 60: ConstructionHolds is
     /// left EMPTY, which is exact in every pipeline the executor composes — construction clears and rebuilds it before road
     /// development reads it (D-056: the read is a declared same-step edge, and TurnExecutor refuses the road-first order). A v32 stream ends after
     /// section 58: the two v33 tables are left empty too, which is exact (under v32 no entry had partial progress and no
@@ -1646,9 +1666,15 @@ public static class CanonicalSchema
         for (int i = 0; i < holdCount; i++)
             world.ConstructionHolds.Add(new ConstructionHoldRow(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt64()));
 
-        // v34 streams end here (the v34 → v35 migration: the four M6 EX tables stay empty; DiscoverySystem re-derives the
-        // seed extent on the first step — ADR-044 §7).
+        // v34 streams end here (the v34 → v35 migration: CivicsPoints stays empty — ADR-043 — and so do the four M6 EX
+        // tables; DiscoverySystem re-derives the seed extent on the first step — ADR-044 §7).
         if (version < 35) return world;
+
+        int civicsCount = ReadCount(reader);
+        for (int i = 0; i < civicsCount; i++)
+            world.CivicsPoints.Add(new CivicsPointsRow(
+                new PolityId(reader.ReadInt32()), reader.ReadInt64(), reader.ReadInt64(), reader.ReadInt64()));
+
 
         int knownCount = ReadCount(reader);
         for (int i = 0; i < knownCount; i++)
@@ -1738,6 +1764,7 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.ConstructionProgress.Count * ConstructionProgressRowWidth
         + CountPrefixWidth + (long)world.ResourceAllocations.Count * ResourceAllocationRowWidth
         + CountPrefixWidth + (long)world.ConstructionHolds.Count * ConstructionHoldRowWidth
+        + CountPrefixWidth + (long)world.CivicsPoints.Count * CivicsPointsRowWidth
         + CountPrefixWidth + (long)world.KnownExtents.Count * KnownExtentRowWidth
         + CountPrefixWidth + (long)world.Explorations.Count * ExplorationRowWidth
         + CountPrefixWidth + (long)world.SettlementSightings.Count * SettlementSightingRowWidth

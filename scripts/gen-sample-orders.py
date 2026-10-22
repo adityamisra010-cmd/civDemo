@@ -43,7 +43,11 @@ cylinder, then cell id) by FoundingQuery.Check at their turns on the seed-42 fou
 world; Sim.Tests FoundSettlementCiLegTests re-derives them and fails if these literals
 drift from what the simulation accepts. Batch 3 WS3 (D-054): re-derived on the
 cylindrical world (worldgen.json topology.wrapX) -- the pre-cylinder literals 330985
-and 322801 are PoorSite there.
+and 322801 are PoorSite there. M6 EX (ADR-044, 2026-10-22): a site must be KNOWN to the
+issuer (FoundingVerdict.UnknownSite), so turn 0 adds an Explore (kind 14) from
+settlement 0 (radius 3 -> 6 nodes, 60 grain) and both sites are re-derived on the merged
+M6 world: turn 2 from settlement 0 to cell 335063, turn 5 from settlement 12 to cell
+326873 (the nearest legal KNOWN sites, FoundingRigs.NearestLegalSite on the shipped config).
 --allocation (batch 4, D-055 / ADR-040: the scenario S42-ALLOC-H; founded runs with no
 AI Empire: sim run --founded --seed 42, the player rules all 12 settlements). The
 building/roads split (kind 12) made to BIND, across processes and a save/load:
@@ -105,7 +109,9 @@ if allocation:
     records.sort(key=lambda r: r[0])  # stable: same-turn rows keep their order
 elif found:
     # FOUND_SETTLEMENT_ORDERS -- keep in step with Sim.Tests/Kernel/FoundSettlementCiLegTests.cs
-    records = [(2, 1, 9, 0, 349391.0), (5, 1, 9, 12, 335063.0)]
+    # M6 EX (ADR-044): the founding site must be KNOWN to the issuer — an Explore (kind 14) from settlement 0 at turn 0
+    # widens its known disc first; the colony's own seed disc and that disc hold the second site.
+    records = [(0, 1, 14, 0, 0.0), (2, 1, 9, 0, 335063.0), (5, 1, 9, 12, 326873.0)]
 elif mix:
     records = [(0, 1, 6, 2, 0.0)]
     for turn in range(0, max_turn, 20):

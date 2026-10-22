@@ -818,6 +818,19 @@ public record struct ResourceAllocationRow(PolityId Polity, int BuildingsPercent
 public record struct ConstructionHoldRow(int Purse, int Good, long Units);
 
 /// <summary>
+/// ADR-043 (v35, D-062 — the Director's 2026-10-22 ruling): one knowledge holder's CIVICS POINTS (CP) account, in
+/// integer thousandths ("milli-CP"). CP is the Civics lane's own currency: generated per sim-year (law 3,
+/// cpMilli = floor(1000 × c × P^β × dtYears)), BANKED without cap or loss, and spent only on the holder's Civics
+/// target. <c>BalanceMilli</c> is the bank; <c>GeneratedMilli</c> and <c>SpentMilli</c> are the cumulative totals that
+/// make the bank auditable. INVARIANT (ADR-043 §5, asserted every step in tests):
+/// <c>BalanceMilli == GeneratedMilli − SpentMilli</c>, every field ≥ 0. Owned by ResearchSystem. At most one row per
+/// holder (a roster polity, or a city-state's reserved local key), in ascending <c>Polity</c> order; a holder that
+/// never generated CP has no row. NOT a conserved stock (law 1 covers people, money and goods; CP is none of them) —
+/// so no Ledger flow; the identity above is its audit. Stored as <c>long</c> so the bank is exact (no double drift).
+/// </summary>
+public record struct CivicsPointsRow(PolityId Polity, long BalanceMilli, long GeneratedMilli, long SpentMilli);
+
+/// <summary>
 /// M6 Track EX (schema v35 section 63; D-062, ADR-044) — ONE 64-NODE WORD OF A POLITY'S KNOWN EXTENT: the traversal-lattice
 /// nodes the polity has discovered, node index n (row-major over PolityKnowledge.Grid, 256 × 256 on the canonical map) in
 /// word n &gt;&gt; 6 at bit n &amp; 63. Owned by DiscoverySystem. MONOTONE (rule E1): a bit, once set, is never cleared. Sparse:
@@ -1297,6 +1310,8 @@ public interface IReadOnlyWorldState
     /// construction step; never a simulation input.</summary>
     IReadOnlyTable<ConstructionHoldRow> ConstructionHolds { get; }
 
+    /// <summary>ADR-043 (v35): each knowledge holder's banked Civics Points account (milli-CP) — owned by ResearchSystem.</summary>
+    IReadOnlyTable<CivicsPointsRow> CivicsPoints { get; }
     /// <summary>M6 EX (v35 §63): each polity's known extent, sparse 64-node words — owned by DiscoverySystem.</summary>
     IReadOnlyTable<KnownExtentRow> KnownExtents { get; }
 
@@ -1514,6 +1529,8 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>D-055 (v34): each purse's set-aside units per good this step — owned by ConstructionSystem.</summary>
     public Table<ConstructionHoldRow> ConstructionHolds { get; }
 
+    /// <summary>ADR-043 (v35): each knowledge holder's banked Civics Points account — owned by ResearchSystem.</summary>
+    public Table<CivicsPointsRow> CivicsPoints { get; }
     /// <summary>M6 EX (v35 §63): each polity's known extent — owned by DiscoverySystem.</summary>
     public Table<KnownExtentRow> KnownExtents { get; }
 
@@ -1587,6 +1604,7 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<ConstructionProgressRow> IReadOnlyWorldState.ConstructionProgress => ConstructionProgress;
     IReadOnlyTable<ResourceAllocationRow> IReadOnlyWorldState.ResourceAllocations => ResourceAllocations;
     IReadOnlyTable<ConstructionHoldRow> IReadOnlyWorldState.ConstructionHolds => ConstructionHolds;
+    IReadOnlyTable<CivicsPointsRow> IReadOnlyWorldState.CivicsPoints => CivicsPoints;
     IReadOnlyTable<KnownExtentRow> IReadOnlyWorldState.KnownExtents => KnownExtents;
     IReadOnlyTable<ExplorationRow> IReadOnlyWorldState.Explorations => Explorations;
     IReadOnlyTable<SettlementSightingRow> IReadOnlyWorldState.SettlementSightings => SettlementSightings;
@@ -1656,6 +1674,7 @@ public sealed class WorldState : IReadOnlyWorldState
         ConstructionProgress = new Table<ConstructionProgressRow>();
         ResourceAllocations = new Table<ResourceAllocationRow>();
         ConstructionHolds = new Table<ConstructionHoldRow>();
+        CivicsPoints = new Table<CivicsPointsRow>();
         KnownExtents = new Table<KnownExtentRow>();
         Explorations = new Table<ExplorationRow>();
         SettlementSightings = new Table<SettlementSightingRow>();
@@ -1695,7 +1714,7 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<InstitutionRow> institutions, Table<ConstructionLaborRow> constructionLabor,
         Table<TaxGrievanceRow> taxGrievances,
         Table<ConstructionProgressRow> constructionProgress, Table<ResourceAllocationRow> resourceAllocations,
-        Table<ConstructionHoldRow> constructionHolds,
+        Table<ConstructionHoldRow> constructionHolds, Table<CivicsPointsRow> civicsPoints,
         Table<KnownExtentRow> knownExtents, Table<ExplorationRow> explorations,
         Table<SettlementSightingRow> settlementSightings, Table<SettlementSurveyRow> settlementSurveys)
     {
@@ -1762,6 +1781,7 @@ public sealed class WorldState : IReadOnlyWorldState
         ConstructionProgress = constructionProgress;
         ResourceAllocations = resourceAllocations;
         ConstructionHolds = constructionHolds;
+        CivicsPoints = civicsPoints;
         KnownExtents = knownExtents;
         Explorations = explorations;
         SettlementSightings = settlementSightings;
@@ -1792,6 +1812,7 @@ public sealed class WorldState : IReadOnlyWorldState
             UnitConversions.Clone(), TransportEdges.Clone(), RoadDevelopments.Clone(),
             TaxPolicies.Clone(), Institutions.Clone(), ConstructionLabor.Clone(), TaxGrievances.Clone(),
             ConstructionProgress.Clone(), ResourceAllocations.Clone(), ConstructionHolds.Clone(),
+            CivicsPoints.Clone(),
             KnownExtents.Clone(), Explorations.Clone(), SettlementSightings.Clone(), SettlementSurveys.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied

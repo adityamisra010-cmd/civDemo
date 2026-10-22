@@ -44,11 +44,12 @@ public class IncrementalConstructionAttributionTests
     private const string Batch2ToySeed42Turn200 = "5994e97838d275d3dd2a82cc6d0df1e23c70d2a9bbe412f4ba44538e043db180";
     private const string Batch2FirstReignTurn40 = "467f2cb6f5e8ff8171840de57dc44999d2f0347b3b8af8c9ef8451e199d22abb";
 
-    // M6 Track EX (2026-10-22): the shipped config with the NEWER discovery layer off (TestConfigs.PreDiscovery — the R4
-    // rule: an older layer's attribution strips the newer layers). Under the shipped concealment the dev capital's empire
-    // gathers no stone for the per-layer rig's granary in 60 turns (MEASURED: "the granary was not finished in both worlds"),
-    // and the v32 projections below assert every newer table empty.
-    private static SimConfig Shipped => TestConfigs.PreDiscovery(TestConfigs.Sim());
+    // ADR-043 (2026-10-22) CAUSE BLOCK: was TestConfigs.Sim(). Track CP (the two research lanes and Civics Points) is NEWER
+    // than every layer this class attributes, so by the R4 rule its controls run on the pre-CP world. M6 Track EX (same day):
+    // so is the discovery layer (under the shipped concealment the dev capital's empire gathers no stone for the per-layer
+    // rig's granary in 60 turns — MEASURED: "the granary was not finished in both worlds"). Both off: TestConfigs.PreM6, whose
+    // v32 projection is the batch-2 world exactly as before.
+    private static SimConfig Shipped => TestConfigs.PreM6(TestConfigs.Sim());
 
     [Fact]
     public void TheShippedContent_SwitchesIncrementalConstructionOn_AndEveryOlderTwinStripsIt()
@@ -80,6 +81,8 @@ public class IncrementalConstructionAttributionTests
             Assert.False(ConstructionQuery.Incremental(twin));
             Assert.False(twin.Construction!.Reservations);
             Assert.False(Reservations.Enabled(twin));
+            Assert.False(TestConfigs.PreIncrementalConstruction(TestConfigs.Sim()).Research!.Tuning.TwoLanes);   // ADR-043: R4
+            Assert.False(twin.Research!.Tuning.TwoLanes);   // ADR-043 (2026-10-22): every older twin strips Track CP too
         }
     }
 

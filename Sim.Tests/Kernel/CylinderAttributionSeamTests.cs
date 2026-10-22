@@ -202,7 +202,7 @@ public class CylinderAttributionSeamTests
     [Fact]
     public void Relief_DrawsFromTheSiblingAcrossTheSeamFirst_TurnExactAgainstTheReliefOffTwin()
     {
-        SimConfig on = TestConfigs.PreDiscovery(TestConfigs.Sim()), off = TestConfigs.PreEmpireFoodAllocation(on);
+        SimConfig on = TestConfigs.PreM6(TestConfigs.Sim()), off = TestConfigs.PreEmpireFoodAllocation(on);
         int y = SeamWorld.DefaultSize / 2;
         int[] sites = [SeamWorld.Cell(20, y), SeamWorld.Cell(20, y + 50), SeamWorld.Cell(236, y)];
         var r = new SettlementId(0);
@@ -237,7 +237,7 @@ public class CylinderAttributionSeamTests
         string[] written = R.WriteSet(p.A[ReliefFirst], p.B[ReliefFirst]);
         Assert.Equal(ReliefWrites, written);
         R.AssertNoTopologyTable(written);
-        AssertOnArmRepeats(p.A, SeamWorld.Found(true, sites, sim: TestConfigs.PreDiscovery(TestConfigs.Sim())), TestConfigs.PreDiscovery(TestConfigs.Sim()), SeamWorld.Worldgen(), starve);
+        AssertOnArmRepeats(p.A, SeamWorld.Found(true, sites, sim: TestConfigs.PreM6(TestConfigs.Sim())), TestConfigs.PreM6(TestConfigs.Sim()), SeamWorld.Worldgen(), starve);
     }
 
     /// <summary>The grain the Ledger has sunk as Eaten on <paramref name="w"/> (the cumulative LedgerFlows row).</summary>
@@ -257,7 +257,7 @@ public class CylinderAttributionSeamTests
     [Fact]
     public void ConstructionPurse_DrawsStoneInTheCylindersDonorOrder_Seed16()
     {
-        SimConfig on = TestConfigs.PreDiscovery(TestConfigs.Sim()), off = TestConfigs.PreEmpireConstructionStockpile(on);
+        SimConfig on = TestConfigs.PreM6(TestConfigs.Sim()), off = TestConfigs.PreEmpireConstructionStockpile(on);
         var rig = new R.RigWorld("seed16-purse", TestConfigs.Worldgen(), TestConfigs.Worldgen(), 16, Ai: false,
             Script: _ =>
             {
@@ -292,7 +292,7 @@ public class CylinderAttributionSeamTests
         Assert.Equal(new List<(int, long)> { (2, 2), (5, 9), (8, 5), (10, 4) }, drawn);
         Assert.Equal(40L, Stock(b, s6, timber) - Stock(a, s6, timber));
         Assert.Equal(1L, BuiltGranaries(a, s6));
-        R.AssertSameSeries(live, R.Run(rig, "on-again", TestConfigs.PreDiscovery(TestConfigs.Sim()), PurseFirst + 2));   // determinism: a second ON run
+        R.AssertSameSeries(live, R.Run(rig, "on-again", TestConfigs.PreM6(TestConfigs.Sim()), PurseFirst + 2));   // determinism: a second ON run
     }
 
     private static long BuiltGranaries(IReadOnlyWorldState w, SettlementId s)
@@ -311,7 +311,7 @@ public class CylinderAttributionSeamTests
     [Fact]
     public void WeatherGeography_TheWeatherIsInvariantUnderRotationsThatMoveTheSeam_Seed16()
     {
-        SimConfig cfg = TestConfigs.PreDiscovery(TestConfigs.Sim());
+        SimConfig cfg = TestConfigs.PreM6(TestConfigs.Sim());
         Assert.False(cfg.HarvestVariance.LegacyTravelCostKernel);
         WorldState w0 = WorldFounding.Found(TestConfigs.Worldgen(), cfg, 16);
         Assert.True(w0.Terrain!.WrapX);
@@ -356,9 +356,9 @@ public class CylinderAttributionSeamTests
         Assert.True(crossings.Count > 1, "the rotations never moved the seam through a different set of pairs (vacuous)");
 
         // Determinism: a second founding, stepped by a fresh weather executor, is the same world and the same weather.
-        WorldState again = WorldFounding.Found(TestConfigs.Worldgen(), TestConfigs.PreDiscovery(TestConfigs.Sim()), 16);
+        WorldState again = WorldFounding.Found(TestConfigs.Worldgen(), TestConfigs.PreM6(TestConfigs.Sim()), 16);
         Assert.Equal(WorldHash.ComputeHex(w0), WorldHash.ComputeHex(again));
-        WorldState againStep = new TurnExecutor(R.Eras(), [SystemCatalog.HarvestWeather(TestConfigs.PreDiscovery(TestConfigs.Sim()))]).Step(again);
+        WorldState againStep = new TurnExecutor(R.Eras(), [SystemCatalog.HarvestWeather(TestConfigs.PreM6(TestConfigs.Sim()))]).Step(again);
         Assert.Equal(WorldHash.ComputeHex(reference), WorldHash.ComputeHex(againStep));
     }
 
@@ -369,7 +369,7 @@ public class CylinderAttributionSeamTests
     [Fact]
     public void AiFounding_FoundsAcrossTheSeam_TurnExactAgainstTheFoundingOffTwin()
     {
-        SimConfig on = TestConfigs.PreDiscovery(TestConfigs.Sim()), off = SingleSwitchTwins.PreAiFoundingOnly(on);
+        SimConfig on = TestConfigs.PreM6(TestConfigs.Sim()), off = SingleSwitchTwins.PreAiFoundingOnly(on);
         int size = SeamWorld.DefaultSize;
         int[] sites = [SeamWorld.Cell(215, 180), SeamWorld.Cell(236, 128)];
         WorldState a = SeamWorld.Found(true, sites, aiEmpires: 1, sim: on, westFertility: 0.9, eastFertility: 0.3);
@@ -392,8 +392,8 @@ public class CylinderAttributionSeamTests
         Assert.True(site < size / 2, $"the AI's colony (x {site}) is not on the west piece");
         Assert.NotEqual(site - source, MapTopology.Dx(source, site, size, wrap: true));   // its reach crosses the seam
         Assert.Equal(p.A[(int)AiFoundingStamp].Settlements.Count + 1, p.A[AiFoundingDiverges].Settlements.Count);
-        AssertOnArmRepeats(p.A, SeamWorld.Found(true, sites, aiEmpires: 1, sim: TestConfigs.PreDiscovery(TestConfigs.Sim()), westFertility: 0.9, eastFertility: 0.3),
-            TestConfigs.PreDiscovery(TestConfigs.Sim()), SeamWorld.Worldgen(aiEmpires: 1), ai: true);
+        AssertOnArmRepeats(p.A, SeamWorld.Found(true, sites, aiEmpires: 1, sim: TestConfigs.PreM6(TestConfigs.Sim()), westFertility: 0.9, eastFertility: 0.3),
+            TestConfigs.PreM6(TestConfigs.Sim()), SeamWorld.Worldgen(aiEmpires: 1), ai: true);
     }
 
     // ------------------------------------------------------------------ trade
@@ -403,7 +403,7 @@ public class CylinderAttributionSeamTests
     [Fact]
     public void TradeKnowledge_TheUngatedArmTradesAcrossTheSeam_TurnExactAgainstTheGatedArm()
     {
-        SimConfig on = TestConfigs.PreDiscovery(TestConfigs.Sim()), off = SingleSwitchTwins.PreTradeKnowledgeOnly(on);
+        SimConfig on = TestConfigs.PreM6(TestConfigs.Sim()), off = SingleSwitchTwins.PreTradeKnowledgeOnly(on);
         WorldState a = TestConfigs.KnowRecipes(SeamWorld.Found(true, SeamWorld.TwoSides(), sim: on, westFertility: 0.9, eastFertility: 0.3), on);
         WorldState b = TestConfigs.KnowRecipes(SeamWorld.Found(true, SeamWorld.TwoSides(), sim: off, westFertility: 0.9, eastFertility: 0.3), off);
         Assert.Equal(1, R.SeamCrossingPairs(a));
@@ -428,7 +428,7 @@ public class CylinderAttributionSeamTests
             int xa = SiteOf(a, f.From) % size, xb = SiteOf(a, f.To) % size;
             Assert.NotEqual(xb - xa, MapTopology.Dx(xa, xb, size, wrap: true));     // every flow crosses the seam
         }
-        SimConfig again = TestConfigs.PreDiscovery(TestConfigs.Sim());
+        SimConfig again = TestConfigs.PreM6(TestConfigs.Sim());
         AssertOnArmRepeats(p.A, TestConfigs.KnowRecipes(SeamWorld.Found(true, SeamWorld.TwoSides(), sim: again, westFertility: 0.9, eastFertility: 0.3), again),
             again, SeamWorld.Worldgen());
     }

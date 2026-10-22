@@ -186,7 +186,7 @@ public class ConstructionHoldsV33FixtureTests
     [Fact]
     public void MigrationCD_TheLoadedAndTheResavedWorlds_ContinueAsThePreReservationsWorldAtK_UnderTheShippedExecutor()
     {
-        SimConfig shipped = TestConfigs.Sim(), off = TestConfigs.PreReservations(shipped);
+        SimConfig shipped = TestConfigs.PreDiscovery(TestConfigs.Sim()), off = TestConfigs.PreReservations(shipped);
         OrderLog orders = SessionOrders();
         WorldState atK = Executor(off, orders).Run(Found(off), (int)K);
 
@@ -200,8 +200,11 @@ public class ConstructionHoldsV33FixtureTests
         }
         // (d) the re-save's layout: header 34, the v33 stream, ONE empty section-61 prefix, the same trailer.
         Assert.Equal(CanonicalSchema.Version, BitConverter.ToInt32(v34, 8));
-        Assert.Equal(v33.Length + 4, v34.Length);
-        byte[] expected = [.. v33[..8], .. BitConverter.GetBytes(CanonicalSchema.Version), .. v33[12..^4], 0, 0, 0, 0, .. v33[^4..]];
+        // ADR-043 (v35, 2026-10-22) CAUSE BLOCK: this build saves v35 — TWO empty prefixes (sections 61 and 62) inserted
+        // before the trailer (was one). The layout alone.
+        // M6 merge (2026-10-22): and the four EMPTY M6 EX discovery tables (sections 63–66) — SIX empty prefixes in all.
+        Assert.Equal(v33.Length + 24, v34.Length);
+        byte[] expected = [.. v33[..8], .. BitConverter.GetBytes(CanonicalSchema.Version), .. v33[12..^4], .. new byte[24], .. v33[^4..]];
         Assert.Equal(expected, v34);
         WorldState reloaded = Snapshot.Load(new MemoryStream(v34), Terrain());
 
@@ -258,7 +261,7 @@ public class ConstructionHoldsV33FixtureTests
     [Fact]
     public void PremiseII_TheShippedReplay_FirstDiffersFromTheTraceAtW_WhereS2DrawsLessStoneByExactlySzerosSetAside()
     {
-        SimConfig shipped = TestConfigs.Sim();
+        SimConfig shipped = TestConfigs.PreDiscovery(TestConfigs.Sim());   // M6 EX: the D-055 shipped world (discovery off, R4)
         string[] trace = TraceHashes();
         TurnExecutor exec = Executor(shipped, SessionOrders());
         WorldState w = Found(shipped), before = w;
@@ -300,7 +303,7 @@ public class ConstructionHoldsV33FixtureTests
     [Fact]
     public void MigrationE_TheShippedContinuation_DiffersFromTheAllPreReservationsContinuationAtW_BecauseAHoldBinds()
     {
-        SimConfig shipped = TestConfigs.Sim(), off = TestConfigs.PreReservations(shipped);
+        SimConfig shipped = TestConfigs.PreDiscovery(TestConfigs.Sim()), off = TestConfigs.PreReservations(shipped);
         OrderLog orders = SessionOrders();
         string[] trace = TraceHashes();
         WorldState loaded = LoadFixture();
@@ -364,7 +367,8 @@ public class ConstructionHoldsV33FixtureTests
     {
         string fixture = FixturePath();
         WorldState loaded = SaveFiles.Load(fixture, 256, out string? note);
-        Assert.Equal("note: " + fixture + ": migrated from save schema v33: ConstructionHolds and the four M6 discovery tables (KnownExtents, Explorations, SettlementSightings, SettlementSurveys) were added empty; "
+        // ADR-043 + ADR-044 (2026-10-22) RE-PIN of the note: v35 adds CivicsPoints and the four discovery tables empty.
+        Assert.Equal("note: " + fixture + ": migrated from save schema v33: ConstructionHolds, CivicsPoints and the four M6 discovery tables (KnownExtents, Explorations, SettlementSightings, SettlementSurveys) were added empty; "
             + "the hash printed is the v35 hash (SchemaProjection.V33 gives the v33 build's).", note);
         Assert.Equal(V33SaveHash, SchemaProjection.V33(loaded));       // what the note claims
 

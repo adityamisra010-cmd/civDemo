@@ -303,6 +303,7 @@ public class IntegratedPinAttributionTests
     private static string HashWithoutM4(WorldState world, int dropTrailingTables)
     {
         WorldState stripped = world.Clone();
+        StripV35AssertingEmpty(stripped);
         StripV34AssertingEmpty(stripped);
         StripV33AssertingEmpty(stripped);
         StripLevy(stripped);
@@ -400,6 +401,7 @@ public class IntegratedPinAttributionTests
     internal static string HashAtSchemaV26(WorldState world, out int ageRowsRemoved)
     {
         WorldState stripped = world.Clone();
+        StripV35AssertingEmpty(stripped);
         StripV34AssertingEmpty(stripped);
         StripV33AssertingEmpty(stripped);
         StripLevy(stripped);
@@ -433,6 +435,7 @@ public class IntegratedPinAttributionTests
     internal static string HashAtSchemaV28(WorldState world, out int roadRowsRemoved)
     {
         WorldState stripped = world.Clone();
+        StripV35AssertingEmpty(stripped);
         StripV34AssertingEmpty(stripped);
         StripV33AssertingEmpty(stripped);
         StripLevy(stripped);
@@ -482,6 +485,7 @@ public class IntegratedPinAttributionTests
     internal static string HashAtSchemaV29(WorldState world, out int strengthsRestored)
     {
         WorldState stripped = world.Clone();
+        StripV35AssertingEmpty(stripped);
         StripV34AssertingEmpty(stripped);
         StripV33AssertingEmpty(stripped);
         StripLevy(stripped);
@@ -524,6 +528,7 @@ public class IntegratedPinAttributionTests
     internal static string HashAtSchemaV30(WorldState world, out int institutionRowsRemoved)
     {
         WorldState stripped = world.Clone();
+        StripV35AssertingEmpty(stripped);
         StripV34AssertingEmpty(stripped);
         StripV33AssertingEmpty(stripped);
         StripLevy(stripped);
@@ -555,6 +560,7 @@ public class IntegratedPinAttributionTests
     internal static string HashAtSchemaV31(WorldState world, out int levyRowsRemoved)
     {
         WorldState stripped = world.Clone();
+        StripV35AssertingEmpty(stripped);
         StripV34AssertingEmpty(stripped);
         StripV33AssertingEmpty(stripped);
         levyRowsRemoved = StripLevy(stripped);
@@ -592,6 +598,15 @@ public class IntegratedPinAttributionTests
     /// layout, so a pre-v34 pin must never be compared through a strip that hid one. Each helper then drops one more empty
     /// count prefix (<see cref="TestUtil.SchemaProjection.V34TableCount"/>). Pinned by
     /// <see cref="EveryOlderSchemaProjection_RefusesAWorldWithAV33Row_AsTheV32ProjectionDoes"/> (its hold-row arm).</summary>
+    private static void StripV35AssertingEmpty(WorldState stripped)
+    {
+        // ADR-043 (2026-10-22): a Civics Points account is BEHAVIOUR (the two-lane model on), never layout — a pre-v35 pin
+        // is reached only from a world run with Track CP off (TestConfigs.PreTrackCp, or an older twin that strips it).
+        int removed = TestUtil.SchemaProjection.StripV35(stripped);
+        Assert.True(removed == 0,
+            $"the v35 strip removed {removed} row(s): a Civics Points account is behaviour, not layout — a pre-v35 pin cannot be compared through it");
+    }
+
     private static void StripV34AssertingEmpty(WorldState stripped)
     {
         // M6 EX (v35, 2026-10-22): the four discovery tables follow section 61 — every older projection drops them too, and
@@ -686,6 +701,7 @@ public class IntegratedPinAttributionTests
     private static string HashAtSchemaV25(WorldState world, out int researchRowsRemoved)
     {
         WorldState stripped = world.Clone();
+        StripV35AssertingEmpty(stripped);
         StripV34AssertingEmpty(stripped);
         StripV33AssertingEmpty(stripped);
         StripLevy(stripped);
@@ -711,6 +727,7 @@ public class IntegratedPinAttributionTests
     private static string HashAtSchemaV24(WorldState world, out int disasterStreamsRemoved)
     {
         WorldState stripped = world.Clone();
+        StripV35AssertingEmpty(stripped);
         StripV34AssertingEmpty(stripped);
         StripV33AssertingEmpty(stripped);
         StripLevy(stripped);
@@ -947,7 +964,7 @@ public class IntegratedPinAttributionTests
         Assert.Equal(beforeT421, HashAtSchemaV24(world, out int removed));
         Assert.Equal(0, removed);
         Assert.Equal(0, world.Disasters.Count);
-        Assert.Equal(35, CanonicalSchema.Version);   // (v35: M6 EX discovery tables 63–66) v31: ADR-033 D6/D10 Institutions + ConstructionLabor (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins)
+        Assert.Equal(35, CanonicalSchema.Version);   // v31: ADR-033 D6/D10 Institutions + ConstructionLabor (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins) (v35: ADR-043 CivicsPoints + ADR-044 discovery tables 63–66 — 2026-10-22 cause: the schema bump alone)
     }
 
     [Fact]
@@ -1506,7 +1523,7 @@ public class IntegratedPinAttributionTests
         WorldState world = SnapshotTests.CanonicalExecutor().Run(SnapshotTests.Genesis(42), 200);
         Assert.Equal(V31ToyGolden, V31(world));
         Assert.Equal(0, world.TaxPolicies.Count);
-        Assert.Equal(35, CanonicalSchema.Version);   // (v35: M6 EX discovery tables 63–66) v33: D-054 ConstructionProgress + ResourceAllocations (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins)
+        Assert.Equal(35, CanonicalSchema.Version);   // v33: D-054 ConstructionProgress + ResourceAllocations (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins) (v35: ADR-043 CivicsPoints + ADR-044 discovery tables 63–66 — 2026-10-22 cause: the schema bump alone)
     }
 
     [Fact]

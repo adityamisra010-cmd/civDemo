@@ -140,7 +140,7 @@ internal static class ObservedWorlds
     /// M6 Track EX (2026-10-22): by the same R4 rule it strips the newer discovery layer too (TestConfigs.PreDiscovery):
     /// concealed stone and clay change the de86ace run's economy (MEASURED: "no dwelling decay on turn 201").</summary>
     internal static readonly Lazy<Run> DrivenPerSettlementStores300 =
-        new(() => DrivenRun(300, TestConfigs.PreEmpireFoodAllocation(TestConfigs.PreDiscovery(TestConfigs.Sim())), TestConfigs.PreD054Worldgen()),
+        new(() => DrivenRun(300, TestConfigs.PreEmpireFoodAllocation(TestConfigs.PreM6(TestConfigs.Sim())), TestConfigs.PreD054Worldgen()),
             LazyThreadSafetyMode.ExecutionAndPublication);
 
     internal static Run DrivenRun(int turns, SimConfig? cfg = null, WorldgenConfig? worldgen = null)

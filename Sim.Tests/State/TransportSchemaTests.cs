@@ -35,7 +35,7 @@ public class TransportSchemaTests
     [Fact]
     public void SchemaV29_PopulatedTransportTables_LengthAndRoundTripExact()
     {
-        Assert.Equal(35, CanonicalSchema.Version);   // (v35: M6 EX discovery tables 63–66) v31: ADR-033 D6/D10 Institutions + ConstructionLabor (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins)
+        Assert.Equal(35, CanonicalSchema.Version);   // v31: ADR-033 D6/D10 Institutions + ConstructionLabor (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins) (v35: ADR-043 CivicsPoints + ADR-044 discovery tables 63–66 — 2026-10-22 cause: the schema bump alone)
         WorldState world = Populated();
 
         using var ms = new MemoryStream();

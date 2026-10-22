@@ -6,7 +6,7 @@ built**, the choices the contract left open, the measurements behind the costs, 
 and the golden moves with their attribution.
 
 - **Touches the kernel contract** (the constitution requires an ADR): `CanonicalSchema.Version` 34 → **35** with four
-  appended sections (63–66; section 62 is Track CP's and merges in between); the readable set becomes {32, 33, 34, 35};
+  appended sections (63–66, after Track CP's section 62 — merged: the stream order is 61, 62, 63 … 66); the readable set becomes {32, 33, 34, 35};
   `Snapshot.Load` gains the v35 load refusals; two new order kinds (14, 15) on the UNCHANGED wire format (IoVersion 1);
   one new system (SystemId 29) in `pipeline.json`; two new ledger reasons (17, 18). Kernel files changed:
   `CanonicalSchema.cs`, `Snapshot.cs`, `OrderLog.cs`, `OrderValidation.cs`, `ReplayProof.cs`, `ReplayGuard.cs` (the
@@ -194,4 +194,48 @@ deposit change; depletion.
 
 ## 12. Golden moves and attribution
 
-GOLDEN_MOVES_PLACEHOLDER
+Schema v35 (merged with Track CP, ADR-043: section 62 CivicsPoints, then this track's 63–66) and the shipped discovery
+layer move every golden world: the discovery tables are POPULATED wherever DiscoverySystem runs (seed extents and sightings
+every step), concealed deposits are unread until surveyed, and the AI founds only on known sites (exploring first). Re-pinned
+once, on the merged tree (MEASURED), each with a RE-PIN comment naming both causes:
+
+| golden | v34 | Track CP (5af05ad) | merged v35 | Track EX's part |
+|---|---|---|---|---|
+| founded seed 42 t300 (`SnapshotTests.FoundedGoldenHash`, ci.yml `FOUNDED_GOLDEN`) | `0f29efc7…` | `5c56a1f9…` | `0a0759ef…` | tables + concealment |
+| toy seed 42 t200 (`ToyGoldenHash`) | `2e6d4461…` | `1d3f5be2…` | `f97432f0…` | layout alone (four empty prefixes) |
+| driven seed 42 t300 (`DrivenGoldenTests.Golden`) | `eb88663a…` | `1fb16d8b…` | `62c3345d…` | tables + concealment |
+| first reign t40 (`FirstReignTests.PostR1Golden`) | `f7ca60a5…` | `3fee0f31…` | `91584395…` | tables + concealment |
+| AI world seed 42 t300 (`AiFoundingAttributionTests.S1cTurn300`) | `25f4799d…` | `5623de7a…` | `8378f993…` | + known-site founding, Explore lane |
+
+**Attribution.** `TestConfigs.PreM6` = `PreTrackCp(PreDiscovery(cfg))` switches the whole slice off; a world stepped under
+it writes nothing in sections 62–66, and `SchemaProjection.V34` (which strips 62–66 and asserts them empty) returns the v34
+pin byte for byte. `DiscoveryLayoutAttributionTests` proves it per golden and that the EX-alone world (`PreTrackCp`)
+writes discovery rows and differs from the twin; it also pins the PreM6 raw hashes the older rigs' ON arms reach
+(founded `555238a9…`, AI `d67da0a7…`). `CivicsPointsAttributionTests` now attributes the CP half on the EX-off world
+(`PreDiscovery`). Per R4 every older twin chains `PreM6` (`PreIncrementalConstruction`, `PreReservations` and through them
+`PreD054Sim`, `PreD053` …), and every pre-M6 attribution rig (the cylinder rigs, reservations/incremental/wrap/granary
+layouts, the de86ace per-settlement rigs, the seam world, the founding rigs, the allocation scenario) runs on it.
+**AI pins** (`AiEmpireIntegrationTests`): first build 2 → 4, advance 221/222 → 230/231, road 134/135 → 138/139, levy
+440/441 → 467/468 (A3 440 → 467), foundings 35, 71, … 428 → 38, 78, 114, 151, 189, 225, 296, 367, 438 (nine, 15
+settlements); control `OneAiEmpire_WithTheDiscoveryLayerOff_EveryPinReturnsItsTrackCpValue`.
+
+**CI.** `FOUNDED_GOLDEN` re-pinned; the AI kind set is `{3..9, 12, 13, 14}` (MEASURED: 13 Explore orders in the 600-turn
+leg, none Prospect); the `--found` leg now explores from settlement 0 at turn 0 and founds at the re-derived known sites
+335063 (turn 2) and 326873 (turn 5, from colony 12), its delivery twin is the same log without the turn-2 order.
+**OPEN (Director):** the D-055 allocation leg S42-ALLOC-H no longer exhibits two of its premises under the shipped
+concealment — the player's empire quarries ≈ 40 stone a step instead of ≈ 64, so building work claims more than its share on
+every step and road works never less (MEASURED: no Y step, `split-check` "P5: no step where building work's claim above its
+share used road works' unused share"). So the scenario runs on the discovery twin: in process on `PreDiscovery` (R4) with
+every D-055/D-058 literal intact, and through the CLI with a new switch, `sim run|replay --without-discovery` (sim.json
+discovery and fog off; `Cli.SimCfg` and the session pipeline honour it), which the ci.yml allocation leg and the
+`--from-save` rigs (`RunFromSaveCliTests`: under the fog the dev AI holds no stone for a granary until turn 68, MEASURED)
+now pass. Re-deriving S42-ALLOC-H under the fog (re-timing the road phase so the route completes) is the open item.
+
+**Other findings.** (1) Tools held are worn by farmers (ProductionSystem `ToolWear`, ≈ 136 a step at a dev settlement with
+ample tools) before DiscoverySystem draws, so a prospect needs tools above the step's wear; the UI/AI predicate reads PREV
+stocks and can admit an order the step then refuses (charging nothing). (2) Pre-v35 sessions are replayed WITHOUT the
+discovery layer (`DiscoveryQuery.RecordedWithoutDiscovery`, mirroring `RecordedFlat`; `UiSession.Resume`, `sim inspect`), as
+they were played; Track CP replays them with Civics Points on (no order is refused by CP). (3) The Actions block is compact
+(one line per settlement, then its costs and blockers) and painted last on POLICY; the playability gate gained a post-End-Turn
+Confirm row (a legal site is known only after an Explore), accepts an overlay channel that draws nothing because every known
+hinterland touches undiscovered ground when its key says so, and clicks only known settlements' WHERE rows.

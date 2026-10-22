@@ -1414,6 +1414,15 @@ public static partial class PlayabilityGate
                 if (!ClickAction(ActionHitKind.ResearchClear)) return (GateResult.Fail, "not reachable");
                 return Expect(S.QueuedResearchChoice() == -1, "no clear order");
             });
+            // ADR-043: the Civics line's own Stop clears the Civics lane only (order kind 6 with −2).
+            Check("policy: learning", "Stop civics (clear the civics target)", () =>
+            {
+                OpenPolicy();
+                if (Find(ActionHitKind.ResearchClearCivics) is null)
+                    return (GateResult.NotOffered, "no civics target in force (the Civics line reads \"nothing chosen\")");
+                if (!ClickAction(ActionHitKind.ResearchClearCivics)) return (GateResult.Fail, "not reachable");
+                return Expect(S.QueuedResearchChoice(ResearchTree.Civics) == ResearchQuery.ClearCivicsTargetId, "no civics clear order");
+            });
 
             // The Age.
             Check("policy: age", "Advance...", () =>
@@ -1606,7 +1615,14 @@ public static partial class PlayabilityGate
                     h.Wheel(Ui.ContextRect.X + 100, Ui.ContextRect.Y + 300, -2);
                 if (Ui.Controls.Find("labour-record") is null) return (GateResult.NotOffered, "no settlement selected");
                 if (!Ui.PolicyRecordOpen) h.ClickControl("labour-record");
-                for (int k = 0; k < 80 && Ui.Controls.Find("per-turn-table") is { } c && c.Y1 > Ui.ContextRect.Y + Ui.ContextRect.Height - 10; k++)
+                // ADR-043 (2026-10-22): scroll until the WHOLE toggle clears the panel's clipped bottom band (the window padding,
+                // ClickAction's band). MEASURED: after the Civics line's Stop changed the POLICY surface's height, the scroll
+                // came to rest with the toggle's bottom edge exactly 10 px above the panel's edge (Y1 718, panel bottom 728),
+                // where the old "Y1 > bottom − 10" margin stopped scrolling and the click on its centre did not reach it.
+                // M6 EX: 40 -> 80 notches (the Actions block lengthens POLICY).
+                double clipped = Ui.ContextRect.Y + Ui.ContextRect.Height - Sim.Ui.Art.UiTheme.WindowPaddingPx.Y * Ui.Scale - 6;
+                for (int k = 0; k < 80 && Ui.Controls.Find("per-turn-table") is { } c
+                     && (c.Y1 > Ui.ContextRect.Y + Ui.ContextRect.Height - 10 || c.Y1 > clipped); k++)
                     h.Wheel(Ui.ContextRect.X + 100, Ui.ContextRect.Y + 300, -2);
                 if (Ui.Controls.Find("per-turn-table") is null) return (GateResult.Fail, "not drawn with the record open in developer mode");
                 bool before = Ui.PolicyShowStates;

@@ -73,7 +73,12 @@ public class SingleSwitchTwinsTests
         Assert.Equal(On.Trade, twin.Trade with { Entity = On.Trade.Entity });
         Assert.True(On.Research!.EntityIndexOf("activity.trade") >= 0);
         Assert.True(twin.Research!.EntityIndexOf("activity.trade") < 0);    // the R2a entity is gone with its node
-        Assert.Equal(TestConfigs.PreTradeKnowledge(On).Research, twin.Research);
+        // ADR-043 (2026-10-22) CAUSE BLOCK: the chained PreTradeKnowledge now strips Track CP as well (the R4 rule), so the
+        // single switch carries the pre-R2a content WITH Track CP as shipped (TestConfigs.PreR2aResearchKeepingTrackCp) —
+        // only the R2a layer differs from On's research.
+        Assert.Equal(TestConfigs.PreR2aResearchKeepingTrackCp(), twin.Research);
+        Assert.True(twin.Research.Tuning.TwoLanes);
+        Assert.False(TestConfigs.PreTradeKnowledge(On).Research!.Tuning.TwoLanes);
         Assert.Equal(On, twin with { Research = On.Research, Trade = On.Trade });
         Assert.Throws<ArgumentException>(() => SingleSwitchTwins.PreTradeKnowledgeOnly(twin));
     }

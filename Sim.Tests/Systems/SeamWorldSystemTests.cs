@@ -23,7 +23,7 @@ public class SeamWorldSystemTests
     // M6 Track EX (2026-10-22): the seam's settlement-level flows are an older layer premised on the all-known world (a
     // rival's land and settlements across the seam are known); the discovery layer is off here (TestConfigs.PreDiscovery,
     // the R4 rule). Under the fog the AI first explores (DiscoveryTests pins Explore's disc wrapping at the seam).
-    private static SimConfig Cfg => TestConfigs.PreDiscovery(TestConfigs.Sim());
+    private static SimConfig Cfg => TestConfigs.PreM6(TestConfigs.Sim());
     private const int Size = SeamWorld.DefaultSize;
 
     private static WorldState WithDistances(WorldState w) =>

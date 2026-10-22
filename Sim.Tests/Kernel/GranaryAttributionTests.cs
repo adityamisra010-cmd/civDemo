@@ -87,7 +87,10 @@ public class GranaryAttributionTests
     [Fact]
     public void TheFoundedGolden_IsUnmovedByTheGranaryEffects_OnOrOff()
     {
-        SimConfig on = TestConfigs.PreDiscovery(TestConfigs.Sim());   // M6 EX: the newer discovery layer off (R4)
+        // ADR-043 (2026-10-22) CAUSE BLOCK: was TestConfigs.Sim(). The literals here are de86ace / batch-2 values, older than
+        // Track CP, so by the R4 rule every arm runs on the pre-CP world (TestConfigs.PreTrackCp); the granary switch is the
+        // shipped one either way.
+        SimConfig on = TestConfigs.PreM6(TestConfigs.Sim());
         Assert.True(on.Granaries!.Enabled);                                   // the shipped content is the ON arm
         // D-054 (batch 3) — the PreD054 PAIR: every leg founds FLAT (TestConfigs.PreD054Worldgen, the worldgen half) and
         // every de86ace / batch-2 literal compares through the v32 projection (SchemaProjection.V32 — the two appended v33

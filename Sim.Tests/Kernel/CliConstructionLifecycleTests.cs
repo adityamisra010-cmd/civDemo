@@ -50,7 +50,12 @@ public class CliConstructionLifecycleTests
         return path;
     }
 
-    private static (int Exit, string Out, string Err) Sim(params string[] args) => CliProcess.Run(Limit, args);
+    // M6 Track EX (2026-10-22): run, replay and inspect take `--without-discovery` — these rigs' construction premises (the
+    // purse's stone, the holds, the colony at 12) were measured before the discovery layer; under the shipped concealment
+    // the dev purse quarries less stone (MEASURED: the head's progress "Expected (700000, 150000, 0, 0), Actual (300000, 0,
+    // 0, 0)") and the colony is not founded (its site is unknown). The discovery twin (R4); `hash` and `diff` read files only.
+    private static (int Exit, string Out, string Err) Sim(params string[] args) =>
+        CliProcess.Run(Limit, args.Length > 0 && args[0] is "run" or "replay" or "inspect" ? [args[0], "--without-discovery", .. args[1..]] : args);
 
     private static string[] Run(string orders, int turns, string? hashLog, int saveAt, string save, params string[] more)
     {
@@ -240,14 +245,20 @@ public class CliConstructionLifecycleTests
             Run(Q17Orders(dir), 2, null, 2, v34);
             (int exit, string stdout, string stderr) = Sim("diff", v33, v34, "--size", "256");
             Assert.Equal(1, exit);
-            Assert.Equal(new[] { "note: " + v33 + ": migrated from save schema v33: ConstructionHolds and the four M6 discovery tables (KnownExtents, Explorations, SettlementSightings, SettlementSurveys) were added empty; "
+            // ADR-043 + ADR-044 (2026-10-22) RE-PIN of the note: v35 adds CivicsPoints and the four discovery tables empty, and
+            // the hash printed is v35's.
+            Assert.Equal(new[] { "note: " + v33 + ": migrated from save schema v33: ConstructionHolds, CivicsPoints and the four M6 discovery tables (KnownExtents, Explorations, SettlementSightings, SettlementSurveys) were added empty; "
                 + "the hash printed is the v35 hash (SchemaProjection.V33 gives the v33 build's)." }, CliProcess.Lines(stderr));
             string[] lines = CliProcess.Lines(stdout);
             int first = Array.IndexOf(lines, "FIRST DIVERGENT FIELD");
             Assert.True(first >= 0, stdout);
             Assert.Equal(["  table  ConstructionHolds", "  row    (block-level)", "  field  RowCount (Int32)", "  A      0", "  B      1"], lines[(first + 1)..(first + 6)]);
-            Assert.Equal(["ConstructionHolds"], Flagged(stdout));
+            // ADR-043 (2026-10-22) CAUSE BLOCK: this build's save is v35 and its world carries the player's Civics Points account
+            // (Track CP accrues every step), so the v35 block is flagged too — 0 rows on the v33 side, 2 on this build's (the
+            // player's and the AI Empire's accounts). The first divergent field is unchanged (ConstructionHolds comes first).
+            Assert.Equal(["ConstructionHolds", "CivicsPoints"], Flagged(stdout));
             Assert.Matches(@"^\s*ConstructionHolds\s+0\s+1\s+0\s+0\s+-\s+<--$", SummaryRow(stdout, "ConstructionHolds"));
+            Assert.Matches(@"^\s*CivicsPoints\s+0\s+2\s+0\s+0\s+-\s+<--$", SummaryRow(stdout, "CivicsPoints"));
 
             string resave = Path.Combine(dir, "v33-resaved-as-v34.civsnap");
             WorldState loaded = SaveFiles.Load(v33, 256);

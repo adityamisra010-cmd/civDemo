@@ -47,17 +47,48 @@ public sealed class ResearchSnapshot
     public required bool StageReached { get; init; }
     public required string StageExpression { get; init; }
     public required double PointsPerTurn { get; init; }
+    /// <summary>The Technology lane's target (ADR-043); in the one-pool model, the one target, whichever tree.</summary>
     public required int? TargetIndex { get; init; }
     public required int CompletedTechnology { get; init; }
     public required int CompletedCivics { get; init; }
+
+    /// <summary>ADR-043: whether the two-lane model is on (RP → Technology, CP → Civics).</summary>
+    public bool TwoLanes { get; init; }
+    /// <summary>ADR-043: the Civics lane's target (two-lane model only).</summary>
+    public int? CivicsTargetIndex { get; init; }
+    /// <summary>ADR-043: the banked Civics Points (whole CP).</summary>
+    public double CivicsBalance { get; init; }
+    /// <summary>ADR-043: the Civics Points a step of the current length accrues (ResearchQuery.CivicsPointsMilli / 1000).</summary>
+    public double CivicsPerTurn { get; init; }
+
+    /// <summary>The target on <paramref name="tree"/>'s lane: in the two-lane model each tree's own; in the one-pool model
+    /// the one target when it lies in that tree.</summary>
+    public int? TargetOn(ResearchTree tree, IReadOnlyList<ResearchNodeView> nodes) =>
+        TwoLanes ? (tree == ResearchTree.Civics ? CivicsTargetIndex : TargetIndex)
+        : TargetIndex is int t && nodes[t].Tree == tree ? t : null;
+
+    /// <summary>The points a turn that fund <paramref name="tree"/>: CP for Civics in the two-lane model, else RP.</summary>
+    public double PointsPerTurnOn(ResearchTree tree) => TwoLanes && tree == ResearchTree.Civics ? CivicsPerTurn : PointsPerTurn;
+
+    /// <summary>The unit of <see cref="PointsPerTurnOn"/>: "CP" or "RP".</summary>
+    public string UnitOn(ResearchTree tree) => TwoLanes && tree == ResearchTree.Civics ? "CP" : "RP";
 
     public static ResearchSnapshot Build(IReadOnlyWorldState world, ResearchContent content, PolityId polity)
     {
         int n = content.Nodes.Count;
         bool[] completed = ResearchQuery.CompletedMask(world, content, polity);
         bool stage = ResearchQuery.StageReached(content, completed);
-        int? target = null;
-        if (ResearchQuery.TryGetTarget(world, polity, out ResearchNodeId t)) { int ti = content.IndexOf(t); if (ti >= 0) target = ti; }
+        bool twoLanes = content.Tuning.TwoLanes;
+        int? target = null, civicTarget = null;
+        if (!twoLanes)
+        {
+            if (ResearchQuery.TryGetTarget(world, polity, out ResearchNodeId t)) { int ti = content.IndexOf(t); if (ti >= 0) target = ti; }
+        }
+        else
+        {
+            if (ResearchQuery.TryGetTarget(world, content, polity, ResearchTree.Technology, out ResearchNodeId t)) target = content.IndexOf(t);
+            if (ResearchQuery.TryGetTarget(world, content, polity, ResearchTree.Civics, out ResearchNodeId c)) civicTarget = content.IndexOf(c);
+        }
 
         var views = new ResearchNodeView[n];
         int doneTech = 0, doneCiv = 0;
@@ -68,7 +99,7 @@ public sealed class ResearchSnapshot
             if (done) { if (node.Tree == ResearchTree.Technology) doneTech++; else doneCiv++; }
             bool available = ResearchQuery.IsAvailable(content, i, completed, stage);
             double progress = done ? 0.0 : ResearchQuery.Progress(world, polity, node.Key);
-            bool isTarget = target == i;
+            bool isTarget = target == i || civicTarget == i;
 
             LockReason lockReason = LockReason.None;
             if (!done && !available)
@@ -131,6 +162,10 @@ public sealed class ResearchSnapshot
             TargetIndex = target,
             CompletedTechnology = doneTech,
             CompletedCivics = doneCiv,
+            TwoLanes = twoLanes,
+            CivicsTargetIndex = civicTarget,
+            CivicsBalance = ResearchQuery.CivicsPointsBalance(world, polity),
+            CivicsPerTurn = ResearchQuery.CivicsPointsMilli(world, content, polity, world.Clock.DtYears) / 1000.0,
         };
     }
 }

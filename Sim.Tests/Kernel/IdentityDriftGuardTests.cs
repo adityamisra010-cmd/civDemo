@@ -241,7 +241,7 @@ public class IdentityDriftGuardTests
     /// M6 Track EX (2026-10-22): <paramref name="rules"/> — default the shipped config with the discovery layer OFF
     /// (TestConfigs.PreDiscovery): the sessions here are labelled v33, and a pre-v35 session is replayed without the discovery
     /// layer (DiscoveryQuery.RecordedWithoutDiscovery), as it was played. Under the shipped fog (rules with fog on) the
-    /// player first explores around both sources at turn 0 (OrderKind 14), so the sites it founds on are KNOWN.</summary>
+    /// player first explores around both sources at turns 0 and 1 (OrderKind 14), so the sites it founds on are KNOWN.</summary>
     private static (OrderLog Log, List<WorldState> Worlds, Plan Plan) Record(WorldgenConfig colonization, Plan? plan,
         SettlementId first = default, SettlementId second = default, SimConfig? rules = null)
     {
@@ -256,9 +256,9 @@ public class IdentityDriftGuardTests
         for (int t = 0; t < Turns; t++)
         {
             SettlementSiting.FrontierSiting f = FoundingQuery.Frontier(w, cfg, wg)!;
-            if (t == 0 && DiscoveryQuery.FogOn(cfg))
+            if (t <= 1 && DiscoveryQuery.FogOn(cfg))   // two expeditions each (radius 3 -> 9 nodes) before the foundings
                 foreach (SettlementId s in a == b ? new[] { a } : new[] { a, b })
-                    log.Append(new OrderRecord(0, Me.Value, OrderKind.Explore, s.Value, 0.0));
+                    log.Append(new OrderRecord(t, Me.Value, OrderKind.Explore, s.Value, 0.0));
             if (t == 2 || t == 3)
             {
                 SettlementId source = t == 2 ? a : b;

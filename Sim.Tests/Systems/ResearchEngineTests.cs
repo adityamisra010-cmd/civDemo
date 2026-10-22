@@ -53,6 +53,9 @@ public class ResearchEngineTests
         }
     }
 
+    // SUPERSEDED FOR THE SHIPPED MODEL 2026-10-22 (D-062 / ADR-043): this rig content carries no tuning.civicsPoints, so
+    // the test now pins the ONE-POOL model — the switch-off twin, still a supported configuration. The two-lane model's
+    // pins are CivicsPointsTests (RP funds only the Technology target; CP, banked, only the Civics target).
     [Fact]
     public void ResearchPointPool_IsTotalPopulationOfControlledSettlements_OnePoolPerPolity()
     {
@@ -189,6 +192,9 @@ public class ResearchEngineTests
 
     // ------------------------------------------------------------------ no bank / partial progress / switching
 
+    // SUPERSEDED FOR THE SHIPPED MODEL 2026-10-22 (D-062 / ADR-043): this rig content carries no tuning.civicsPoints, so
+    // the test now pins the ONE-POOL model — the switch-off twin, still a supported configuration. The two-lane model's
+    // pins are CivicsPointsTests (RP funds only the Technology target; CP, banked, only the Civics target).
     [Fact]
     public void NoTarget_RpReachesNoNode_AndNothingIsBanked()
     {
@@ -226,6 +232,9 @@ public class ResearchEngineTests
 
     // ------------------------------------------------------------------ completion
 
+    // SUPERSEDED FOR THE SHIPPED MODEL 2026-10-22 (D-062 / ADR-043): this rig content carries no tuning.civicsPoints, so
+    // the test now pins the ONE-POOL model — the switch-off twin, still a supported configuration. The two-lane model's
+    // pins are CivicsPointsTests (RP funds only the Technology target; CP, banked, only the Civics target).
     [Fact]
     public void Completion_AtEffectiveCost_IsImmediate_ClearsTheTarget_AndLosesTheOverflow()
     {
@@ -528,6 +537,9 @@ public class ResearchEngineTests
 
     // ------------------------------------------------------------------ Civics on the same pool
 
+    // SUPERSEDED FOR THE SHIPPED MODEL 2026-10-22 (D-062 / ADR-043): this rig content carries no tuning.civicsPoints, so
+    // the test now pins the ONE-POOL model — the switch-off twin, still a supported configuration. The two-lane model's
+    // pins are CivicsPointsTests (RP funds only the Technology target; CP, banked, only the Civics target).
     [Fact]
     public void Civics_ResearchesWithProgressCompletionAndBranching()
     {
@@ -544,6 +556,9 @@ public class ResearchEngineTests
         Assert.Equal([Key(1002)], ResearchQuery.AvailableNodes(w, Rig, P1, ResearchTree.Civics));
     }
 
+    // SUPERSEDED FOR THE SHIPPED MODEL 2026-10-22 (D-062 / ADR-043): this rig content carries no tuning.civicsPoints, so
+    // the test now pins the ONE-POOL model — the switch-off twin, still a supported configuration. The two-lane model's
+    // pins are CivicsPointsTests (RP funds only the Technology target; CP, banked, only the Civics target).
     [Fact]
     public void SharedPool_OneTargetAcrossBothTrees_TotalInvestedEqualsTotalRp()
     {

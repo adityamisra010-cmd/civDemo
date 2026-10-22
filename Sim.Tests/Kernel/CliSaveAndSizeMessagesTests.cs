@@ -41,17 +41,19 @@ public class CliSaveAndSizeMessagesTests
         string? note = SaveFiles.MigrationNote("x.civsnap", 32);
         Assert.NotNull(note);
         Assert.DoesNotContain('\n', note);
-        // M6 EX (v35, 2026-10-22): each older note also names the four discovery tables the migration adds empty.
-        Assert.Equal("note: x.civsnap: migrated from save schema v32: the three tables added since v32 (ConstructionProgress, "
-            + "ResourceAllocations, ConstructionHolds) and the four M6 discovery tables (KnownExtents, Explorations, SettlementSightings, SettlementSurveys) were added empty; the hash printed is the v35 hash (SchemaProjection.V32 "
-            + "gives the v32 build's). Its terrain was regenerated flat (no v32 world was a cylinder) and its queued entries are "
-            + "at progress 0, ordered as enqueued on turn -1.", note);
+        // ADR-043 + ADR-044 (2026-10-22) RE-PIN of the texts: schema v35 appends CivicsPoints (Track CP) and the four M6
+        // discovery tables (Track EX), so each older note names them and the hash printed is the v35 hash.
+        const string ex = " the four M6 discovery tables (KnownExtents, Explorations, SettlementSightings, SettlementSurveys)";
+        Assert.Equal("note: x.civsnap: migrated from save schema v32: the four tables added since v32 (ConstructionProgress, "
+            + "ResourceAllocations, ConstructionHolds, CivicsPoints) and" + ex + " were added empty; the hash printed is the v35 hash"
+            + " (SchemaProjection.V32 gives the v32 build's). Its terrain was regenerated flat (no v32 world was a cylinder) and its"
+            + " queued entries are at progress 0, ordered as enqueued on turn -1.", note);
         string? v33 = SaveFiles.MigrationNote("x.civsnap", 33);
-        Assert.Equal("note: x.civsnap: migrated from save schema v33: ConstructionHolds and the four M6 discovery tables (KnownExtents, Explorations, SettlementSightings, SettlementSurveys) were added empty; "
-            + "the hash printed is the v35 hash (SchemaProjection.V33 gives the v33 build's).", v33);
-        string? v34 = SaveFiles.MigrationNote("x.civsnap", 34);
-        Assert.Equal("note: x.civsnap: migrated from save schema v34: the four M6 discovery tables (KnownExtents, Explorations, SettlementSightings, SettlementSurveys) were added empty; the first step "
-            + "re-derives each polity's seed extent; the hash printed is the v35 hash (SchemaProjection.V34 gives the v34 build's).", v34);
+        Assert.Equal("note: x.civsnap: migrated from save schema v33: ConstructionHolds, CivicsPoints and" + ex + " were added"
+            + " empty; the hash printed is the v35 hash (SchemaProjection.V33 gives the v33 build's).", v33);
+        Assert.Equal("note: x.civsnap: migrated from save schema v34: CivicsPoints (every Civics Points bank starts at zero) and"
+            + ex + " were added empty; the first step re-derives each polity's seed extent; the hash printed is the v35 hash"
+            + " (SchemaProjection.V34 gives the v34 build's).", SaveFiles.MigrationNote("x.civsnap", 34));
         Assert.Null(SaveFiles.MigrationNote("x.civsnap", CanonicalSchema.Version));
         foreach (int refused in new[] { 31, 36, 0, 27 })
             Assert.Null(SaveFiles.MigrationNote("x.civsnap", refused));                     // refused, not migrated
@@ -100,10 +102,11 @@ public class CliSaveAndSizeMessagesTests
         (int exit, string stdout, string stderr) = CliProcess.Run(Limit);
         Assert.Equal((1, ""), (exit, stdout));
         string usage = string.Join(" ", CliProcess.Lines(stderr).Select(l => l.Trim()));
-        Assert.Contains("A schema-v32 or schema-v33 save is migrated on load and says so in one line on stderr; stdout is"
-            + " unchanged in shape. v32: its terrain is regenerated flat and the three tables added since v32"
-            + " (ConstructionProgress, ResourceAllocations, ConstructionHolds) are added empty. v33: ConstructionHolds is added"
-            + " empty.", usage);
+        // ADR-043 (2026-10-22) RE-PIN of the usage text: v34 saves migrate too, and CivicsPoints is added empty to each.
+        Assert.Contains("A schema-v32, -v33 or -v34 save is migrated on load and says so in one line on stderr; stdout is"
+            + " unchanged in shape. v32: its terrain is regenerated flat and the four tables added since v32"
+            + " (ConstructionProgress, ResourceAllocations, ConstructionHolds, CivicsPoints) are added empty. v33:"
+            + " ConstructionHolds and CivicsPoints are added empty. v34: CivicsPoints is added empty.", usage);
         Assert.DoesNotContain("the two v33 tables", usage);
     }
 
@@ -466,6 +469,7 @@ public class CliSaveAndSizeMessagesTests
             Assert.Contains("  reproduce with: sim inspect --manifest session-7166834e1157f6bc.json (it rebuilds a v32 session on the flat map v32 used)", lines);
             // D-055 (2026-10-16) CAUSE BLOCK: "(schema v33)" -> "(schema v34)" — the line names this build's schema; v34 is it now.
             // M6 EX (2026-10-22) CAUSE BLOCK: "(schema v34)" -> "(schema v35)", the same rule.
+            // ADR-043 (2026-10-22) CAUSE BLOCK: "(schema v34)" -> "(schema v35)" — the line names this build's schema.
             Assert.Contains("          not with this build's sim replay: it founds the cylinder this build ships (schema v35), not that flat map.", lines);
             Assert.Contains("          The build that recorded the session (dev, local) replays it with: "
                 + "sim replay --founded --seed 42 --orders orders-7166834e1157f6bc.bin --turns 8", lines);
@@ -538,6 +542,8 @@ public class CliSaveAndSizeMessagesTests
     [Fact]
     public void TheReproduceLine_IsThisBuildsReplay_FromV35_AndNamesSimInspect_ForAFlatSchema()
     {
+        // ADR-043 (2026-10-22) RE-PIN: this build is schema v35, so "this build's" manifest is v35 (was the literal v34) and
+        // the older-schema lines name v35. The local keeps its historical name.
         var v34 = new SessionManifest(
             Seed: 7, SizePx: 252, Settlements: null, SchemaVersion: 35,
             BuildSha: "abc1234", BuildDate: "2026-10-15", StartedAt: "x",

@@ -150,18 +150,23 @@ public class ConstructionLifecycleResumeTests
 
     /// <summary>The world's hash at schema v33 (Sim.Tests' SchemaProjection.HashAtSchemaV33, restated): a clone with the v34
     /// table (section 61, ConstructionHolds) cleared, serialized, its empty count prefix (4 zero bytes) dropped, SHA-256.</summary>
+    /// ADR-043 (2026-10-22) CAUSE BLOCK: v35 appends CivicsPoints (section 62) after it. Every Empire accrues Civics Points
+    /// from turn 1 under this build's rules; on these ≤ 6-turn worlds no civic is yet available, so the accounts are Track
+    /// CP's whole footprint (Sim.Tests' CivicsPointsAttributionTests) — the projection clears them too and drops 8 bytes.
     private static string HashAtSchemaV33(WorldState world, out int holdRows)
     {
         WorldState c = world.Clone();
         holdRows = c.ConstructionHolds.Count;
         c.ConstructionHolds.Clear();
-        // M6 EX (v35): the four discovery tables follow section 61 — asserted empty (the rig runs without discovery) and dropped.
+        Assert.True(c.CivicsPoints.Count <= c.Polities.Count, "one CP account per Empire at most");
+        c.CivicsPoints.Clear();
+        // M6 EX (v35): the four discovery tables follow section 62 — asserted empty (the rig runs without discovery) and dropped.
         Assert.Equal(0, c.KnownExtents.Count + c.Explorations.Count + c.SettlementSightings.Count + c.SettlementSurveys.Count);
         using var buffer = new MemoryStream();
         using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true)) CanonicalSchema.Write(c, writer);
         byte[] full = buffer.ToArray();
-        for (int i = full.Length - 20; i < full.Length; i++) Assert.Equal(0, full[i]);
-        return Convert.ToHexStringLower(SHA256.HashData(full.AsSpan(0, full.Length - 20)));
+        for (int i = full.Length - 24; i < full.Length; i++) Assert.Equal(0, full[i]);
+        return Convert.ToHexStringLower(SHA256.HashData(full.AsSpan(0, full.Length - 24)));
     }
 
     // ================================================================== kinds 11 and 12 pending across the save (M-C)

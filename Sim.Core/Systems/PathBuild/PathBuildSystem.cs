@@ -478,6 +478,8 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
         public IReadOnlyTable<ResourceAllocationRow> ResourceAllocations => prev.ResourceAllocations;
         // Interface completeness only (forwarded, never read here; D-055 schema v34).
         public IReadOnlyTable<ConstructionHoldRow> ConstructionHolds => prev.ConstructionHolds;
+        // Interface completeness only (forwarded, never read here; ADR-043 schema v35).
+        public IReadOnlyTable<CivicsPointsRow> CivicsPoints => prev.CivicsPoints;
         public IReadOnlyTable<KnownExtentRow> KnownExtents => prev.KnownExtents;
         public IReadOnlyTable<ExplorationRow> Explorations => prev.Explorations;
         public IReadOnlyTable<SettlementSightingRow> SettlementSightings => prev.SettlementSightings;

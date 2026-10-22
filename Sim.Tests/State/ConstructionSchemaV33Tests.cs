@@ -45,7 +45,7 @@ public class ConstructionSchemaV33Tests
         // D-055 (2026-10-16) CAUSE BLOCK: Version 33 -> 34, and every tail offset below moves by the 4-byte count prefix of
         // the EMPTY section 61 (ConstructionHolds) that v34 appends after ResourceAllocations — the layout alone; no v33
         // row changed width (ExpectedLength's row arithmetic is unchanged). `end` is where the v33 stream ended.
-        Assert.Equal(35, CanonicalSchema.Version);   // v35: M6 EX discovery tables 63–66
+        Assert.Equal(35, CanonicalSchema.Version);   // v35 (ADR-043 CivicsPoints, 2026-10-22): the schema bump alone
         Assert.Equal(32, CanonicalSchema.OldestReadableVersion);
         WorldState world = Populated();
         byte[] bytes = Stream(world);
@@ -54,9 +54,11 @@ public class ConstructionSchemaV33Tests
         Assert.Equal(3 * 12 + 3 * 28 + 3 * 8, CanonicalSchema.ExpectedLength(world) - CanonicalSchema.ExpectedLength(new WorldState(33)));
 
         // The empty v34 block is the LAST 4 bytes; before it, ResourceAllocations, and ConstructionProgress before that.
-        // M6 EX (2026-10-22) CAUSE BLOCK: v35 appends four more EMPTY tables (sections 63–66, 4 × 4 bytes) after section 61.
-        for (int i = bytes.Length - 20; i < bytes.Length; i++) Assert.Equal(0, bytes[i]);  // the v34 + v35 count prefixes: 0
-        int end = bytes.Length - 20;
+        // ADR-043 + ADR-044 (v35, 2026-10-22) CAUSE BLOCK: the five empty v35 blocks (CivicsPoints and the four discovery
+        // tables) now follow it — the last 24 bytes are the v34 and v35 zero count prefixes, and every tail offset moves by
+        // 20 more. The layout alone.
+        for (int i = bytes.Length - 24; i < bytes.Length; i++) Assert.Equal(0, bytes[i]);
+        int end = bytes.Length - 24;
         Assert.Equal(100, BitConverter.ToInt32(bytes, end - 4));
         Assert.Equal(1, BitConverter.ToInt32(bytes, end - 8));
         Assert.Equal(3, BitConverter.ToInt32(bytes, end - 4 - 3 * 8));                     // allocation count prefix
@@ -297,7 +299,9 @@ public class ConstructionSchemaV33Tests
     {
         using var ms = new MemoryStream();
         Snapshot.Save(new WorldState(5), ms);
-        foreach (int v in new[] { 31, 36, 0, 27 })   // M6 EX (v35): the version above the readable set is 36 now
+        // ADR-043 (2026-10-22) CAUSE BLOCK: v35 is this build's schema and v34 joined the readable set, so the version above
+        // the set is 36 (was 35). Re-rigged, not re-pinned.
+        foreach (int v in new[] { 31, 36, 0, 27 })
         {
             byte[] bytes = ms.ToArray();
             BitConverter.GetBytes(v).CopyTo(bytes, 8);
@@ -391,7 +395,7 @@ public class ConstructionSchemaV33Tests
         Snapshot.Save(w, ms);
         WorldState again = Snapshot.Load(new MemoryStream(ms.ToArray()), FixtureTerrain());
         Assert.Equal(CanonicalSchema.Version, BitConverter.ToInt32(ms.ToArray(), 8));
-        Assert.Equal(35, CanonicalSchema.Version);   // v35: M6 EX discovery tables 63–66
+        Assert.Equal(35, CanonicalSchema.Version);   // v35 (ADR-043 CivicsPoints, 2026-10-22): the schema bump alone
         Assert.Equal(V32FixtureHash, SchemaProjection.V32(again));
     }
 
@@ -432,11 +436,12 @@ public class ConstructionSchemaV33Tests
         SnapshotDiff.Result self = SnapshotDiff.CompareStreams(v32Stream, version, v32Stream, version);
         Assert.True(self.Identical);
         Assert.Equal(v32Stream.Length, self.BytesWalkedA);
-        Assert.Equal(SnapshotDiff.Layout.Length - 7 + 1, self.Tables.Count);   // M6 EX: less the v33, v34 and four v35 blocks
+        // ADR-043 + ADR-044 (2026-10-22) CAUSE BLOCK: the layout gained the five v35 blocks — a v32 stream lacks eight now.
+        Assert.Equal(SnapshotDiff.Layout.Length - 8 + 1, self.Tables.Count);
 
         WorldState migrated = Snapshot.Load(new MemoryStream(file), FixtureTerrain());
         byte[] v34Stream = SchemaProjection.Serialize(migrated);
-        SnapshotDiff.Result cross = SnapshotDiff.CompareStreams(v32Stream, 32, v34Stream, 35);   // M6 EX: this build's stream is v35
+        SnapshotDiff.Result cross = SnapshotDiff.CompareStreams(v32Stream, 32, v34Stream, CanonicalSchema.Version);   // this build's stream is v35
         Assert.True(cross.First is null, "a v32 stream and its migrated v34 stream differ only by the three empty appended blocks");
         Assert.Equal(v34Stream.Length, cross.BytesWalkedB);
         Assert.Equal(v32Stream.Length, cross.BytesWalkedA);
@@ -448,9 +453,9 @@ public class ConstructionSchemaV33Tests
         SnapshotDiff.Result v32v33 = SnapshotDiff.CompareStreams(v32Stream, 32, v33Stream, 33);
         Assert.Equal(v32Stream.Length, v32v33.BytesWalkedA);
         Assert.Equal(v33Stream.Length, v32v33.BytesWalkedB);
-        Assert.Equal(SnapshotDiff.Layout.Length - 5 + 1, v32v33.Tables.Count);   // the v33 walk, the longer of the two (M6 EX: less v34 + v35)
+        Assert.Equal(SnapshotDiff.Layout.Length - 6 + 1, v32v33.Tables.Count);   // the v33 walk, the longer of the two (six blocks short of v35)
         Assert.False(v32v33.Identical);                                          // two different worlds (flat turn 40, cylinder turn 2)
         Assert.Throws<ArgumentOutOfRangeException>(() => SnapshotDiff.LayoutFor(31));
-        Assert.Throws<ArgumentOutOfRangeException>(() => SnapshotDiff.LayoutFor(36));
+        Assert.Throws<ArgumentOutOfRangeException>(() => SnapshotDiff.LayoutFor(36));   // 35 is this build's
     }
 }

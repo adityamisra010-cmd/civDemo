@@ -1590,15 +1590,22 @@ public class ConstructionReservationTests
     /// topology trailer — removed.</summary>
     private static WorldState LoadAsV33(WorldState w)
     {
+        // ADR-043 (2026-10-22) CAUSE BLOCK: this build saves v35 — sections 61 AND 62 (CivicsPoints, empty: the
+        // construction-only pipeline runs no research) precede the trailer, so both count prefixes are removed (8 bytes).
+        // M6 Track EX (same day) CAUSE BLOCK: sections 63–66 (the discovery tables, empty: no DiscoverySystem here) follow
+        // section 62 — six count prefixes (24 bytes) are removed in all.
         WorldState empty = w.Clone();
         empty.ConstructionHolds.Clear();
+        Assert.Equal(0, empty.CivicsPoints.Count);
+        Assert.Equal(0, empty.KnownExtents.Count + empty.Explorations.Count + empty.SettlementSightings.Count + empty.SettlementSurveys.Count);
         byte[] v34;
         using (var ms = new MemoryStream()) { Snapshot.Save(empty, ms); v34 = ms.ToArray(); }
-        Assert.Equal(34, BinaryPrimitives.ReadInt32LittleEndian(v34.AsSpan(8)));                  // the header's version
-        Assert.Equal(0, BinaryPrimitives.ReadInt32LittleEndian(v34.AsSpan(v34.Length - 8)));     // section 61: 0 rows
-        var v33 = new byte[v34.Length - 4];
-        v34.AsSpan(0, v34.Length - 8).CopyTo(v33);
-        v34.AsSpan(v34.Length - 4).CopyTo(v33.AsSpan(v34.Length - 8));                           // the topology trailer
+        Assert.Equal(CanonicalSchema.Version, BinaryPrimitives.ReadInt32LittleEndian(v34.AsSpan(8)));   // the header's version (35)
+        for (int k = 1; k <= 6; k++)                                                                // sections 66 … 61: 0 rows
+            Assert.Equal(0, BinaryPrimitives.ReadInt32LittleEndian(v34.AsSpan(v34.Length - 4 - 4 * k)));
+        var v33 = new byte[v34.Length - 24];
+        v34.AsSpan(0, v34.Length - 28).CopyTo(v33);
+        v34.AsSpan(v34.Length - 4).CopyTo(v33.AsSpan(v34.Length - 28));                          // the topology trailer
         BinaryPrimitives.WriteInt32LittleEndian(v33.AsSpan(8), 33);
         return Snapshot.Load(new MemoryStream(v33), w.Terrain);
     }

@@ -339,7 +339,8 @@ public class AllocationScenarioTests(AllocationScenarioRun run)
             string save = Path.Combine(dir, "k.civsnap"), orders = Path.Combine(dir, "alloc.bin");
             using (FileStream f = File.Create(save)) Snapshot.Save(run.World(K), f);
             using (FileStream f = File.Create(orders)) run.Log.Save(f);
-            (int exit, string stdout, string stderr) = CliProcess.Run(Limit, "run", "--from-save", save, "--turns", $"{H - K}",
+            // M6 EX: the scenario runs with the discovery layer off (AllocationScenarioRun, R4) — so does the CLI (ADR-044 §12).
+            (int exit, string stdout, string stderr) = CliProcess.Run(Limit, "run", "--without-discovery", "--from-save", save, "--turns", $"{H - K}",
                 "--orders", orders, "--hash-log", Path.Combine(dir, "b.log"), "--split-report", Path.Combine(dir, "b.rep"));
             Assert.True(exit == 0, stdout + stderr);
             Assert.Equal(run.Hashes[(int)(K + 1)..], File.ReadAllLines(Path.Combine(dir, "b.log")));

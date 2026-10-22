@@ -10,8 +10,7 @@ namespace Sim.Tests.State;
 
 /// <summary>
 /// M6 Track EX (D-062; ADR-044) — SCHEMA v35, the four discovery sections (63 KnownExtents 16 bytes, 64 Explorations 12,
-/// 65 SettlementSightings 16, 66 SettlementSurveys 16) appended after section 61 (section 62 is Track CP's and merges in
-/// between); the readable set {32, 33, 34, 35}; the v34 → v35 migration (the four tables left EMPTY, the seed extent
+/// 65 SettlementSightings 16, 66 SettlementSurveys 16) appended after section 62 (Track CP's CivicsPoints); the readable set {32, 33, 34, 35}; the v34 → v35 migration (the four tables left EMPTY, the seed extent
 /// re-derived by the first step); save / load / replay hash equality on a populated world. Constitution rule: every new
 /// serialized row type ships a POPULATED-table test — exact ExpectedLength, bit-exact round trip, hash equality — with
 /// extreme field values.
@@ -128,7 +127,8 @@ public class DiscoverySchemaV35Tests
         foreach (int v in new[] { 31, 36, 0 }) Assert.False(CanonicalSchema.IsReadable(v));
         Assert.Equal(SnapshotDiff.Layout.Length, SnapshotDiff.LayoutFor(35).Length);
         Assert.Equal("SettlementSurveys", SnapshotDiff.Layout[^1].Name);
-        Assert.Equal(SnapshotDiff.Layout.Length - 4, SnapshotDiff.LayoutFor(34).Length);
+        Assert.Equal(SnapshotDiff.Layout.Length - 5, SnapshotDiff.LayoutFor(34).Length);   // M6 merge: v35 = section 62 + 63–66
+        Assert.Equal("CivicsPoints", SnapshotDiff.Layout[^5].Name);
         Assert.Equal("ConstructionHolds", SnapshotDiff.LayoutFor(34)[^1].Name);
         Assert.Equal("ResourceAllocations", SnapshotDiff.LayoutFor(33)[^1].Name);
         Assert.Equal("TaxGrievance", SnapshotDiff.LayoutFor(32)[^1].Name);

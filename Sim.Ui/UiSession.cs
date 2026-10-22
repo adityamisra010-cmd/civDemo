@@ -4,6 +4,7 @@ using Sim.Core.Kernel;
 using Sim.Core.Observability;
 using Sim.Core.State;
 using Sim.Core.Systems;
+using Sim.Core.Systems.Research;
 using Sim.Ui.ViewModel;
 
 namespace Sim.Ui;
@@ -712,13 +713,39 @@ public sealed class UiSession
     /// </summary>
     public bool ClearResearchTarget()
     {
-        if (Config.Research is null) return false;
+        if (Config.Research is not { } content) return false;
+        if (content.Tuning.TwoLanes) return ClearResearchTarget(ResearchTree.Technology);
         int? queued = QueuedResearchChoice();
         if (queued == -1) return false;
         if (queued is null && !ResearchQuery.TryGetTarget(World, UiPlayer.Empire, out _)) return false;
         Orders.Append(ResearchOrderFactory.ClearTarget(World, UiPlayer.Empire));
         return true;
     }
+
+    /// <summary>
+    /// ADR-043 (two-lane model): clears ONE lane's target — ONE SetResearchTarget order with −1 (Technology) or −2
+    /// (Civics), stamped with the CURRENT turn; the other lane is untouched and progress is kept. Appends NOTHING (false)
+    /// in the one-pool model (use <see cref="ClearResearchTarget()"/>), when that lane's clear is already the last queued
+    /// directive on it, or when that lane holds no target and none was chosen on it this turn — the condition under
+    /// which the action surface lists the lane's clear.
+    /// </summary>
+    public bool ClearResearchTarget(ResearchTree lane)
+    {
+        if (Config.Research is not { } content || !content.Tuning.TwoLanes) return false;
+        int? queued = QueuedResearchChoice(lane);
+        int clearId = lane == ResearchTree.Civics ? ResearchQuery.ClearCivicsTargetId : ResearchQuery.ClearTechnologyTargetId;
+        if (queued == clearId) return false;
+        if (queued is null && !ResearchQuery.TryGetTarget(World, content, UiPlayer.Empire, lane, out _)) return false;
+        Orders.Append(ResearchOrderFactory.ClearTarget(World, UiPlayer.Empire, lane));
+        return true;
+    }
+
+    /// <summary>ADR-043: the directive the player queued this turn on ONE lane (a key of that tree, or the lane's clear
+    /// id), as ResearchSystem will apply it, or null — <see cref="Actions.ActionSurface.QueuedResearchChoice(IReadOnlyList{OrderRecord}, PolityId, Sim.Core.Systems.Research.ResearchContent, ResearchTree)"/>.</summary>
+    public int? QueuedResearchChoice(ResearchTree lane) =>
+        Config.Research is { } content
+            ? Actions.ActionSurface.QueuedResearchChoice(QueuedOrders(), UiPlayer.Empire, content, lane)
+            : null;
 
     /// <summary>The research directive the player queued this turn, as ResearchSystem will apply it — the
     /// LAST of the player's SetResearchTarget orders in log order: a node key, −1 for a clear, or null when

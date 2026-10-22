@@ -53,7 +53,7 @@ public class CylinderAttributionRevoltTests : IClassFixture<CylinderAttributionR
     /// <summary>The ON arm (observed every step) and its twin.</summary>
     public sealed class Arms
     {
-        public SimConfig Cfg { get; } = TestConfigs.PreDiscovery(TestConfigs.Sim());
+        public SimConfig Cfg { get; } = TestConfigs.PreM6(TestConfigs.Sim());
         public R.Arm Live { get; }
         public R.Arm Twin { get; }
         public ObservationLog Observed { get; } = new();
@@ -63,7 +63,7 @@ public class CylinderAttributionRevoltTests : IClassFixture<CylinderAttributionR
             int[] keep = [0, RevoltTurn - 1, RevoltTurn, 3, 33, 63, 93, 123, 153, .. Landings];
             Live = R.Run(R.Revolt1024(), "on", Cfg, Horizon, keep: keep,
                 observe: (prev, next, log) => Observed.Observe(prev, next, Cfg, OrderApplied.For(log, prev.Clock.Turn)));
-            Twin = R.Run(R.Revolt1024(), "twin", TestConfigs.PreDiscovery(TestConfigs.Sim()), Horizon);
+            Twin = R.Run(R.Revolt1024(), "twin", TestConfigs.PreM6(TestConfigs.Sim()), Horizon);
         }
     }
 

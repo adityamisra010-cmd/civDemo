@@ -41,7 +41,7 @@ public enum ProspectVerdict
 /// and its NEXT stocks), by <see cref="PolityKnowledge.Of(IReadOnlyWorldState, PolityId, SimConfig?)"/>, by the action
 /// surface and by the AI. Pure and read-only; integer geometry on the traversal lattice (<see cref="PolityKnowledge.Grid"/>:
 /// node n = y × L + x, 16 km per node on the canonical map), east-west wrap on a cylinder world, hard edges north and south;
-/// no dictionary, no LINQ, no float (law 5).
+/// no dictionary, no LINQ, doubles only for ratios (law 5).
 ///
 /// <list type="bullet">
 /// <item>KNOWN (rule E1/E2/E3) = the polity's stored extent (<see cref="KnownExtentRow"/>, monotone) ∪ the seed disc of

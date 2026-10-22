@@ -147,7 +147,9 @@ public static class SnapshotDiff
         new("ResourceAllocations", [I("Polity"), I("BuildingsPercent")]),
         // v34 (D-055): each purse's set-aside units per good this step.
         new("ConstructionHolds", [I("Purse"), I("Good"), L("Units")]),
-        // v35 (M6 EX, ADR-044): the discovery tables (section 62 is Track CP's).
+        // v35 (ADR-043): each knowledge holder's banked Civics Points account, milli-CP.
+        new("CivicsPoints", [I("Polity"), L("BalanceMilli"), L("GeneratedMilli"), L("SpentMilli")]),
+        // v35 (M6 EX, ADR-044): the discovery tables, sections 63–66.
         new("KnownExtents", [I("Polity"), I("Word"), L("Bits")]),
         new("Explorations", [I("Polity"), I("Settlement"), I("RadiusNodes")]),
         new("SettlementSightings", [I("Polity"), I("Settlement"), L("LastSeenTurn")]),
@@ -160,8 +162,9 @@ public static class SnapshotDiff
     /// <summary>The number of trailing <see cref="Layout"/> blocks schema v34 appended (absent from v32 and v33 streams).</summary>
     private const int V34Blocks = 1;
 
-    /// <summary>The number of trailing <see cref="Layout"/> blocks schema v35 appended (M6 EX; absent from v32–v34 streams).</summary>
-    private const int V35Blocks = 4;
+    /// <summary>The number of trailing <see cref="Layout"/> blocks schema v35 appended (absent from v32, v33 and v34 streams):
+    /// CivicsPoints (ADR-043) and the four M6 EX discovery tables (ADR-044).</summary>
+    private const int V35Blocks = 5;
 
     /// <summary>
     /// THE LAYOUT OF A STREAM OF <paramref name="version"/> (ADR-039: the walk dispatches on the save's header version;

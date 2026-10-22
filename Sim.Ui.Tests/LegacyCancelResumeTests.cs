@@ -42,10 +42,13 @@ public class LegacyCancelResumeTests
     /// in the same batch, so both wait) and one at s2 ordered at turn 0, and at turn <paramref name="cancelAt"/> a cancel of
     /// s0's slot 1 — the legacy kind 11 (appended as an older build wrote it) or, <paramref name="legacy"/> false, the
     /// emitter's kind 13; a cancel stamped with the last turn stays pending. Saved: the log, the trace, the manifest
-    /// (written at launch, as the game does). <paramref name="worlds"/>: the world at every turn, as played.</summary>
-    private static UiSession Played(string log, bool legacy, out List<WorldState> worlds, long cancelAt = 2, int turns = 4)
+    /// (written at launch, as the game does). <paramref name="worlds"/>: the world at every turn, as played.
+    /// M6 Track EX (2026-10-22): <paramref name="older"/> — a session to be relabelled under an OLDER schema is played with the
+    /// discovery layer off, as every pre-v35 build played it (a pre-v35 session is replayed without it,
+    /// DiscoveryQuery.RecordedWithoutDiscovery).</summary>
+    private static UiSession Played(string log, bool legacy, out List<WorldState> worlds, long cancelAt = 2, int turns = 4, bool older = false)
     {
-        UiSession live = Start();
+        UiSession live = older ? UiSession.StartWith(TestFog.PreDiscovery, 42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1) : Start();
         live.ExportManifest(StartedAt, log);
         Assert.True(live.EmitConstructionOrder(S0.Value, Granary));
         Assert.True(live.EmitConstructionOrder(S0.Value, Granary));
@@ -69,8 +72,8 @@ public class LegacyCancelResumeTests
         return live;
     }
 
-    private static UiSession Played(string log, bool legacy, long cancelAt = 2, int turns = 4) =>
-        Played(log, legacy, out _, cancelAt, turns);
+    private static UiSession Played(string log, bool legacy, long cancelAt = 2, int turns = 4, bool older = false) =>
+        Played(log, legacy, out _, cancelAt, turns, older);
 
     /// <summary>Relabels the session <paramref name="log"/> names as another schema's, its trace hashes rewritten into
     /// that schema's form by <paramref name="form"/> (null: left as they are).</summary>
@@ -151,7 +154,7 @@ public class LegacyCancelResumeTests
         string dir = TempDir(out string log);
         try
         {
-            UiSession live = Played(log, legacy: true, out List<WorldState> worlds);
+            UiSession live = Played(log, legacy: true, out List<WorldState> worlds, older: true);
             // The trace as a v33 build hashed the same tables: the played worlds, in the v33 form.
             Relabel(log, 33, (_, turn) => WorldHash.ComputeHexAsSchema(worlds[turn], 33));
             UiSession resumed = UiSession.Resume(UiSession.ManifestPath(log), out _);
@@ -231,7 +234,7 @@ public class LegacyCancelResumeTests
             // The cancel is stamped with the last played turn (4): it is re-queued, not replayed. The session is labelled
             // v33 (no every-turn check); in the diverged arm its last trace row is another world's, so only the re-queued
             // batch's check can refuse it.
-            Played(log, legacy: true, cancelAt: 4, turns: 4);
+            Played(log, legacy: true, cancelAt: 4, turns: 4, older: true);
             OrderLog saved;
             using (FileStream f = File.OpenRead(log)) saved = OrderLog.Load(f);
             Assert.Equal((4L, OrderKind.CancelConstruction), (saved[saved.Count - 1].Turn, saved[saved.Count - 1].Kind));
@@ -264,7 +267,7 @@ public class LegacyCancelResumeTests
         string dir = TempDir(out string log);
         try
         {
-            Played(log, legacy: false);
+            Played(log, legacy: false, older: true);
             Relabel(log, 33);                                                  // another schema: its trace is not checked
             byte[] orders = File.ReadAllBytes(log), trace = File.ReadAllBytes(UiSession.TracePath(log));
             UiSession resumed = UiSession.Resume(UiSession.ManifestPath(log), out string sessionLog);

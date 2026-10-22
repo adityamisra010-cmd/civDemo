@@ -30,6 +30,9 @@ namespace Sim.Tests.Kernel;
 /// the v32 projection's assertion that no newer table holds a row also covers the four v35 discovery tables.
 /// </summary>
 [Trait("suite", "determinism")]
+// ADR-043 (2026-10-22) CAUSE BLOCK: every arm below was TestConfigs.Sim(); it is now TestConfigs.PreM6(TestConfigs.Sim())
+// — the cylinder is older than Track CP, so by the R4 rule its control runs on the pre-CP world and returns its batch-2
+// literals unchanged.
 public class WrapAttributionTests
 {
     /// <summary>`sim worldgen --seed S` on the batch-2 base build (1024 px).</summary>
@@ -82,17 +85,17 @@ public class WrapAttributionTests
     [Fact]
     public void WithTheCylinderOff_TheFoundedGoldenIsTheBatch2Golden_AndOnItDiffersFromTurnZero()
     {
-        WorldState flat = SnapshotTests.RunFoundedGolden(TestConfigs.PreDiscovery(TestConfigs.Sim()), TestConfigs.PreD054Worldgen());
+        WorldState flat = SnapshotTests.RunFoundedGolden(TestConfigs.PreM6(TestConfigs.Sim()), TestConfigs.PreD054Worldgen());
         Assert.Equal(Batch2Founded, SchemaProjection.V32(flat));
-        WorldState flat0 = TestConfigs.FoundPreD054(42, TestConfigs.PreDiscovery(TestConfigs.Sim()));
-        WorldState wrap0 = WorldFounding.Found(TestConfigs.Worldgen(), TestConfigs.PreDiscovery(TestConfigs.Sim()), 42);
+        WorldState flat0 = TestConfigs.FoundPreD054(42, TestConfigs.PreM6(TestConfigs.Sim()));
+        WorldState wrap0 = WorldFounding.Found(TestConfigs.Worldgen(), TestConfigs.PreM6(TestConfigs.Sim()), 42);
         Assert.NotEqual(WorldHash.ComputeHex(flat0), WorldHash.ComputeHex(wrap0));   // first divergent turn: 0 (terrain)
     }
 
     [Fact]
     public void WithTheCylinderOff_TheAiWorldIsTheBatch2AiWorld()
     {
-        SimConfig cfg = TestConfigs.PreDiscovery(TestConfigs.Sim());
+        SimConfig cfg = TestConfigs.PreM6(TestConfigs.Sim());
         WorldgenConfig flatWg = TestConfigs.PreD054Worldgen() with { AiEmpires = 1 };
         var log = new OrderLog();
         using var era = Sim.Data.DataFiles.OpenEraPacing();
@@ -112,7 +115,7 @@ public class WrapAttributionTests
     [Fact]
     public void WithTheCylinderOff_TheDrivenGoldenIsTheBatch2DrivenGolden()
     {
-        (WorldState w, _) = DrivenGoldenTests.RunDriven(300, TestConfigs.PreDiscovery(TestConfigs.Sim()), TestConfigs.PreD054Worldgen());
+        (WorldState w, _) = DrivenGoldenTests.RunDriven(300, TestConfigs.PreM6(TestConfigs.Sim()), TestConfigs.PreD054Worldgen());
         Assert.Equal(Batch2Driven, SchemaProjection.V32(w));
     }
 
@@ -122,7 +125,7 @@ public class WrapAttributionTests
         // A wrapped terrain stepped by a pipeline built from a FLAT worldgen config is the same world as one stepped by
         // a pipeline built from the shipped (wrapped) config — the systems read TerrainSet.WrapX, never the config's
         // topology (the D-052 --size precedent: the pipeline may hold a config that does not describe the terrain).
-        SimConfig cfg = TestConfigs.PreDiscovery(TestConfigs.Sim());
+        SimConfig cfg = TestConfigs.PreM6(TestConfigs.Sim());
         WorldState a = WorldFounding.Found(TestConfigs.DevWorldgen(), cfg, 42);
         WorldState b = WorldFounding.Found(TestConfigs.DevWorldgen(), cfg, 42);
         using var era1 = Sim.Data.DataFiles.OpenEraPacing();

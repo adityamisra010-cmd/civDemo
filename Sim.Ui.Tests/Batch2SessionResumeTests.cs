@@ -43,18 +43,23 @@ public class Batch2SessionResumeTests
     /// count prefixes (8 zero bytes); its v32 hash is the SHA-256 of the stream without them.
     /// D-055 (2026-10-16) CAUSE BLOCK (X1 (d)): v34 appends a third table, ConstructionHolds (section 61), so the
     /// projection asserts it empty too and drops 12 bytes (8 + 4) — the layout alone; nothing else changed.
-    /// M6 Track EX (2026-10-22; ADR-044) CAUSE BLOCK: v35 appends four more (sections 63–66, the discovery tables), which a
-    /// pre-v35 session's replay leaves empty (it replays without the discovery layer), so the projection asserts them empty
-    /// and drops 28 bytes (12 + 4 × 4) — the layout alone.</summary>
+    /// ADR-043 (2026-10-22) CAUSE BLOCK: v35 appends CivicsPoints (section 62). The resume replays under this build's rules,
+    /// in which every Empire accrues Civics Points from turn 1 (an account row each) — on this 8-turn world no civic is yet
+    /// available, so the accounts are Track CP's whole footprint (Sim.Tests' CivicsPointsAttributionTests). The projection
+    /// clears them. M6 Track EX (ADR-044): v35 also appends the four discovery tables (sections 63–66), which a pre-v35
+    /// session's replay leaves empty (it replays without the discovery layer) — asserted empty; 32 bytes dropped in all.</summary>
     private static string HashAtSchemaV32(WorldState world)
     {
         Assert.Equal((0, 0, 0), (world.ConstructionProgress.Count, world.ResourceAllocations.Count, world.ConstructionHolds.Count));
         Assert.Equal((0, 0, 0, 0), (world.KnownExtents.Count, world.Explorations.Count, world.SettlementSightings.Count, world.SettlementSurveys.Count));
+        WorldState c = world.Clone();
+        Assert.True(c.CivicsPoints.Count <= c.Polities.Count, "one CP account per Empire at most");
+        c.CivicsPoints.Clear();
         using var buffer = new MemoryStream();
-        using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true)) CanonicalSchema.Write(world, writer);
+        using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true)) CanonicalSchema.Write(c, writer);
         byte[] full = buffer.ToArray();
-        for (int i = full.Length - 28; i < full.Length; i++) Assert.Equal(0, full[i]);
-        return Convert.ToHexStringLower(SHA256.HashData(full.AsSpan(0, full.Length - 28)));
+        for (int i = full.Length - 32; i < full.Length; i++) Assert.Equal(0, full[i]);
+        return Convert.ToHexStringLower(SHA256.HashData(full.AsSpan(0, full.Length - 32)));
     }
 
     [Fact]

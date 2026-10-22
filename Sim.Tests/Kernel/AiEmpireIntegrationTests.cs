@@ -277,7 +277,14 @@ public class AiEmpireIntegrationTests
         // sim half off alone on the cylinder (TestConfigs.PreD054Sim, MEASURED) returns the NEW values — incremental
         // construction and allocation ratios move nothing here (the AI's purse prudence finishes every head in its delivery
         // step; IncrementalConstructionAttributionTests' AI-world control).
-        Assert.Equal((25L, 2L, 221L, 222L), (p.Target1, p.FirstBuild, p.Advance, p.AdvancedAt));
+        // M6 MERGE RE-PIN (2026-10-22, D-062 Track EX on top of Track CP; MEASURED on the merged tree by the agent writing this
+        // line, in-test harness): first build 2 -> 4, advance 221/222 -> 230/231; target 25 unchanged. CAUSE: the discovery
+        // layer (ADR-044) — concealed stone and clay at some of the AI's settlements change what its purse holds when it
+        // orders its first granary, and its foundings (on KNOWN sites only, after Explore orders) move from 35, 71, … to 38,
+        // 78, …, which moves the Age closure. ATTRIBUTION: OneAiEmpire_WithTheDiscoveryLayerOff_EveryPinReturnsItsTrackCpValue
+        // (TestConfigs.PreDiscovery) returns every Track-CP value below (2, 221/222, 134/135, 440/441, A3 440, the nine
+        // foundings 35 … 428, 15 settlements); DiscoveryLayoutAttributionTests is the turn-300 hash attribution.
+        Assert.Equal((25L, 4L, 230L, 231L), (p.Target1, p.FirstBuild, p.Advance, p.AdvancedAt));
         // R1 RE-PIN (2026-10-03; research-gated recipes — no pottery or bronze before their nodes — move the
         // population and research-point trajectory): levy 547/548 -> 537/538; targets, granary, road, Age unchanged.
         // R4 RE-PIN (2026-10-04, the forager layer; MEASURED): road 141/142 -> 143/144, levy 537/538 -> 546/547.
@@ -301,14 +308,42 @@ public class AiEmpireIntegrationTests
         // BATCH 3 / D-054 RE-PIN (integration R1, 2026-10-14; MEASURED on this tree by the agent writing this line, in-test
         // harness): levy 423/424 -> 422/423 (still on the AI's first A3 turn: A3 423 -> 422); road 134/135 unchanged.
         // CAUSE: the cylinder alone; ATTRIBUTION as above (the twin returns 134/135, 423/424, A3 423).
-        Assert.Equal((134L, 135L, 422L, 423L), (p.Road, p.FirstRoad, p.Tax, p.FirstTax));
-        Assert.Equal(422L, p.A3At);                          // the AI entered A3 (decided 421; ADR-035: 463 -> 458 -> 462 -> 461; D-051 1(b): 461 -> 451; S1c: 451 -> 423; batch 3: 423 -> 422)
+        // ADR-043 RE-PIN (2026-10-22, D-062 Track CP; MEASURED on this tree by the agent writing this line, in-test harness):
+        // levy 422/423 -> 440/441 (still on the AI's first A3 turn: A3 422 -> 440); road 134/135, targets, first build and
+        // the advance unchanged. CAUSE: the two research lanes — the Taxation civic (and every civic in the Age closure) is
+        // now funded by Civics Points on its own lane instead of by the one RP pool, so the civic side of the A3 closure
+        // completes on CP pace. ATTRIBUTION: OneAiEmpire_WithTheCylinderOff_EveryPinReturnsItsBatch2Value now runs on the
+        // pre-CP world (TestConfigs.PreTrackCp, the R4 rule) and returns 423/424; CivicsPointsAttributionTests proves Track
+        // CP is the whole of the AI world's turn-300 move.
+        // M6 MERGE RE-PIN (2026-10-22, Track EX; MEASURED): road 134/135 -> 138/139, levy 440/441 -> 467/468 (still on the
+        // AI's first A3 turn: A3 440 -> 467). CAUSE and ATTRIBUTION as above.
+        Assert.Equal((138L, 139L, 467L, 468L), (p.Road, p.FirstRoad, p.Tax, p.FirstTax));
+        Assert.Equal(467L, p.A3At);                          // the AI entered A3 (decided 421; ADR-035: 463 -> 458 -> 462 -> 461; D-051 1(b): 461 -> 451; S1c: 451 -> 423; batch 3: 423 -> 422)
 
         // S1c (ADR-036 §8): the AI EXPANDS through the player's Found Settlement order — one per 350 years at most, each
         // a colony it controls. MEASURED on this tree: eight orders by the first levy, the polity holding 6 + 8 = 14
         // settlements (ages.json a4_expansion's 14 met from turn 358). Batch 3 (D-054): unchanged on the cylinder.
-        Assert.Equal([35L, 71L, 107L, 143L, 179L, 215L, 286L, 357L], p.Founds);
-        Assert.Equal(14, p.Controlled);
+        // ADR-043 RE-PIN (2026-10-22, D-062 Track CP; MEASURED): the later first levy (440) lets a ninth founding (stamped
+        // 428, the founding cadence unchanged) stand before it: 8 -> 9 orders, 14 -> 15 settlements.
+        // M6 MERGE RE-PIN (2026-10-22, Track EX; MEASURED): the foundings 35, 71, 107, 143, 179, 215, 286, 357, 428 -> 38, 78,
+        // 114, 151, 189, 225, 296, 367, 438 — under the fog the AI founds only on a site it KNOWS: when its policy is due and
+        // finds none it explores (OrderKind 14) and founds a few turns later; nine orders and 15 settlements unchanged.
+        Assert.Equal([38L, 78L, 114L, 151L, 189L, 225L, 296L, 367L, 438L], p.Founds);
+        Assert.Equal(15, p.Controlled);
+    }
+
+    /// <summary>M6 Track EX (D-062, ADR-044; 2026-10-22) — THE ATTRIBUTION CONTROL of the merged re-pins above: the same run
+    /// with ONLY the discovery layer off (TestConfigs.PreDiscovery; Track CP on) returns every Track-CP value — so the
+    /// discovery layer is the whole of the M6-merge move of these pins.</summary>
+    [Fact]
+    public void OneAiEmpire_WithTheDiscoveryLayerOff_EveryPinReturnsItsTrackCpValue()
+    {
+        CanonicalAiPins p = RunCanonicalAi(TestConfigs.Worldgen(), TestConfigs.PreDiscovery(Cfg));
+        Assert.Equal((25L, 2L, 221L, 222L), (p.Target1, p.FirstBuild, p.Advance, p.AdvancedAt));
+        Assert.Equal((134L, 135L, 440L, 441L), (p.Road, p.FirstRoad, p.Tax, p.FirstTax));
+        Assert.Equal(440L, p.A3At);
+        Assert.Equal([35L, 71L, 107L, 143L, 179L, 215L, 286L, 357L, 428L], p.Founds);
+        Assert.Equal(15, p.Controlled);
     }
 
     /// <summary>
@@ -321,7 +356,9 @@ public class AiEmpireIntegrationTests
     [Fact]
     public void OneAiEmpire_WithTheCylinderOff_EveryPinReturnsItsBatch2Value()
     {
-        CanonicalAiPins p = RunCanonicalAi(TestConfigs.PreCylinderWorldgen(TestConfigs.Worldgen()));
+        // ADR-043 (2026-10-22) CAUSE BLOCK: the control runs on the pre-CP world (TestConfigs.PreTrackCp) — Track CP is newer
+        // than the cylinder, so by the R4 rule the older layer's twin strips it; the batch-2 values return unchanged.
+        CanonicalAiPins p = RunCanonicalAi(TestConfigs.PreCylinderWorldgen(TestConfigs.Worldgen()), TestConfigs.PreM6(Cfg));
         Assert.Equal((26L, 4L, 221L, 222L), (p.Target1, p.FirstBuild, p.Advance, p.AdvancedAt));
         Assert.Equal((134L, 135L, 423L, 424L), (p.Road, p.FirstRoad, p.Tax, p.FirstTax));
         Assert.Equal(423L, p.A3At);

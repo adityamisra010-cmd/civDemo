@@ -211,11 +211,25 @@ public static class ResearchQuery
         return Kernel.OrderRecord.From(world.Clock.Turn, issuer, Kernel.OrderKind.SetResearchTarget, node.Value, 0.0);
     }
 
-    /// <summary>The order that clears the issuer's target (progress everywhere is kept, D-044 R9).</summary>
-    public static Kernel.OrderRecord ClearTargetOrder(IReadOnlyWorldState world, PolityId issuer) =>
-        Kernel.OrderRecord.From(world.Clock.Turn, issuer, Kernel.OrderKind.SetResearchTarget, -1, 0.0);
+    /// <summary>ADR-043: the SetResearchTarget TargetId that clears the TECHNOLOGY lane (in the one-pool model, the one
+    /// target — the v34 meaning of −1).</summary>
+    public const int ClearTechnologyTargetId = -1;
 
-    /// <summary>The polity's one active research target (D-044 R9), if any.</summary>
+    /// <summary>ADR-043: the SetResearchTarget TargetId that clears the CIVICS lane (new in v35).</summary>
+    public const int ClearCivicsTargetId = -2;
+
+    /// <summary>The order that clears the issuer's Technology target — in the one-pool model its one target (progress
+    /// everywhere is kept, D-044 R9).</summary>
+    public static Kernel.OrderRecord ClearTargetOrder(IReadOnlyWorldState world, PolityId issuer) =>
+        Kernel.OrderRecord.From(world.Clock.Turn, issuer, Kernel.OrderKind.SetResearchTarget, ClearTechnologyTargetId, 0.0);
+
+    /// <summary>ADR-043: the order that clears the issuer's target on one LANE — −1 for Technology, −2 for Civics.</summary>
+    public static Kernel.OrderRecord ClearTargetOrder(IReadOnlyWorldState world, PolityId issuer, ResearchTree lane) =>
+        Kernel.OrderRecord.From(world.Clock.Turn, issuer, Kernel.OrderKind.SetResearchTarget,
+            lane == ResearchTree.Civics ? ClearCivicsTargetId : ClearTechnologyTargetId, 0.0);
+
+    /// <summary>The polity's FIRST target row, whichever lane (in the one-pool model, its one active target — D-044
+    /// R9). Lane-aware readers use <see cref="TryGetTarget(IReadOnlyWorldState, ResearchContent, PolityId, ResearchTree, out ResearchNodeId)"/>.</summary>
     public static bool TryGetTarget(IReadOnlyWorldState world, PolityId polity, out ResearchNodeId node)
     {
         for (int i = 0; i < world.ResearchTargets.Count; i++)
@@ -226,6 +240,30 @@ public static class ResearchQuery
         node = default;
         return false;
     }
+
+    /// <summary>
+    /// ADR-043 — the polity's target on one LANE (the node's tree): Technology targets are funded by Research Points,
+    /// Civics targets by Civics Points. A row whose key this content does not know is skipped. In the one-pool model
+    /// (<see cref="ResearchTuning.TwoLanes"/> off) a polity holds at most one row, reported on its node's lane.
+    /// </summary>
+    public static bool TryGetTarget(IReadOnlyWorldState world, ResearchContent content, PolityId polity, ResearchTree lane, out ResearchNodeId node)
+    {
+        for (int i = 0; i < world.ResearchTargets.Count; i++)
+        {
+            ResearchTargetRow row = world.ResearchTargets[i];
+            if (row.Polity.Value != polity.Value) continue;
+            int index = content.IndexOf(row.Node);
+            if (index >= 0 && content.Nodes[index].Tree == lane) { node = row.Node; return true; }
+        }
+        node = default;
+        return false;
+    }
+
+    /// <summary>ADR-043: whether the polity holds no target that a new order on <paramref name="lane"/> would leave
+    /// untouched — in the two-lane model, no target on that lane; in the one-pool model, no target at all (a civic order
+    /// displaced the tech target there).</summary>
+    public static bool LaneIsFree(IReadOnlyWorldState world, ResearchContent content, PolityId polity, ResearchTree lane) =>
+        content.Tuning.TwoLanes ? !TryGetTarget(world, content, polity, lane, out _) : !TryGetTarget(world, polity, out _);
 
     /// <summary>READ: RP invested in a node the polity has not completed (0 if none).
     /// A completed node has no progress row — completion is the fact.</summary>
@@ -398,6 +436,64 @@ public static class ResearchQuery
     /// never × dtYears (ADR-030 §2, as <see cref="ResearchPointPool"/>).</summary>
     public static double CityStateResearchPoints(IReadOnlyWorldState world, ResearchContent content, SettlementId settlement) =>
         content.Tuning.CityStatePaceFraction * ResearchPoints(content.Tuning, Population(world, SettlementKnowledge.LocalHolder(settlement)));
+
+    // ------------------------------------------------------------------ Civics Points (ADR-043)
+
+    /// <summary>
+    /// ADR-043 — Civics Points per SIM-YEAR for a population: civicsPoints.coefficientPerYear × population^exponent
+    /// (0.008 × P^0.699, PROPOSED). 0 when the two-lane model is off or the population is empty. Unlike RP this is a
+    /// rate per sim-year (law 3 as written): the step integrates it over dtYears (<see cref="CivicsPointsMilli"/>).
+    /// </summary>
+    public static double CivicsPointsPerYear(ResearchTuning tuning, double population) =>
+        tuning.CivicsPoints is not { Enabled: true } cp || population <= 0.0
+            ? 0.0 : cp.CoefficientPerYear * Math.Pow(population, cp.Exponent);
+
+    /// <summary>
+    /// ADR-043 — THE CP ACCRUAL OF ONE STEP, in integer milli-CP: floor(1000 × pace × CivicsPointsPerYear(P) × dtYears),
+    /// where pace is 1 for an Empire and tuning.cityStatePaceFraction for a city-state's reserved local key (the same
+    /// factor its RP carries). P is <see cref="Population"/> — the input RP reads. The one function ResearchSystem
+    /// accrues with and the Glass Box / UI show.
+    /// </summary>
+    public static long CivicsPointsMilli(IReadOnlyWorldState world, ResearchContent content, PolityId holder, double dtYears)
+    {
+        if (!content.Tuning.TwoLanes || !(dtYears > 0.0)) return 0L;
+        double pace = SettlementKnowledge.IsLocalHolder(holder) ? content.Tuning.CityStatePaceFraction : 1.0;
+        double milli = Math.Floor(1000.0 * pace * CivicsPointsPerYear(content.Tuning, Population(world, holder)) * dtYears);
+        return milli > 0.0 ? (long)milli : 0L;
+    }
+
+    /// <summary>ADR-043: the holder's Civics Points account (all zero when it has no row).</summary>
+    public static CivicsPointsRow CivicsPointsAccount(IReadOnlyWorldState world, PolityId holder)
+    {
+        for (int i = 0; i < world.CivicsPoints.Count; i++)
+            if (world.CivicsPoints[i].Polity.Value == holder.Value) return world.CivicsPoints[i];
+        return new CivicsPointsRow(holder, 0L, 0L, 0L);
+    }
+
+    /// <summary>ADR-043: the holder's banked Civics Points (whole CP, for display).</summary>
+    public static double CivicsPointsBalance(IReadOnlyWorldState world, PolityId holder) =>
+        CivicsPointsAccount(world, holder).BalanceMilli / 1000.0;
+
+    /// <summary>
+    /// ADR-043 — the CP table as only ResearchSystem writes it, or null: rows in strictly ascending Polity (so no holder
+    /// twice), every field ≥ 0, and the audit identity BalanceMilli == GeneratedMilli − SpentMilli. Snapshot.Load refuses
+    /// a save that breaks it; the tests assert it every step.
+    /// </summary>
+    public static string? CivicsPointsInvariantViolation(IReadOnlyTable<CivicsPointsRow> rows)
+    {
+        for (int i = 0; i < rows.Count; i++)
+        {
+            CivicsPointsRow row = rows[i];
+            string at = "CivicsPoints[" + i.ToString(System.Globalization.CultureInfo.InvariantCulture) + "]";
+            if (i > 0 && rows[i - 1].Polity.Value >= row.Polity.Value)
+                return at + ": rows are not in strictly ascending Polity order";
+            if (row.BalanceMilli < 0 || row.GeneratedMilli < 0 || row.SpentMilli < 0)
+                return at + ": a Civics Points field is negative";
+            if (row.BalanceMilli != row.GeneratedMilli - row.SpentMilli)
+                return at + ": BalanceMilli is not GeneratedMilli − SpentMilli";
+        }
+        return null;
+    }
 
     // ------------------------------------------------------------------ acceleration credit (Eureka + foreign exposure)
 

@@ -12,7 +12,7 @@ namespace Sim.Tests.Kernel;
 /// so the world with relief switched off (<see cref="TestConfigs.PreEmpireFoodAllocation"/>, every other layer on) is the
 /// shipped world on every one of the 300 turns. DETERMINISM is the existing pinned run of the same world: the ON arm's world
 /// 300 is SnapshotTests.FoundedGoldenHash. M6 Track EX (2026-10-22): both arms run with the NEWER discovery layer off
-/// (TestConfigs.PreDiscovery, the R4 rule), so world 300 is DiscoveryLayoutAttributionTests.PreDiscoveryFoundedGolden — the
+/// (TestConfigs.PreDiscovery, the R4 rule), so world 300 is DiscoveryLayoutAttributionTests.PreM6FoundedGolden — the
 /// v34 founded golden plus the four empty v35 count prefixes (that test proves its v34 projection is 0f29efc7…). The flat control (EmpireFoodAllocationTests.Switch_Off_FoundedGolden_…, the
 /// de86ace literal on the flat world) is unchanged.
 /// SEAM EXPOSURE (MEASURED): 0 seam-crossing pairs and 0 wrapped donor orders at world 0 and at world 300 — and relief,
@@ -41,7 +41,7 @@ public class CylinderAttributionReliefAbsenceTests : IClassFixture<CylinderAttri
     /// <summary>The shared ON arm: the shipped config on the founded cylinder, 300 turns, every absence probe evaluated.</summary>
     public sealed class Shipped
     {
-        public SimConfig On { get; } = TestConfigs.PreDiscovery(TestConfigs.Sim());
+        public SimConfig On { get; } = TestConfigs.PreM6(TestConfigs.Sim());
         public R.Arm Live { get; }
 
         public Shipped() =>
@@ -76,7 +76,7 @@ public class CylinderAttributionReliefAbsenceTests : IClassFixture<CylinderAttri
 
         Assert.Equal(-1L, live.FirstHeld(R.ReliefMovedGrain.Name));          // relief has nothing to relieve, on every turn
         AssertNeverDiffers(live, twin);                                      // and switching it off changes nothing
-        Assert.Equal(DiscoveryLayoutAttributionTests.PreDiscoveryFoundedGolden, live.Hashes[Horizon]); // determinism: the pinned founded golden
+        Assert.Equal(DiscoveryLayoutAttributionTests.PreM6FoundedGolden, live.Hashes[Horizon]); // determinism: the pinned founded golden
         foreach (int t in new[] { 0, Horizon })
             Assert.Equal((0, 0), (R.SeamCrossingPairs(live.At(t)), R.WrappedDonorOrders(live.At(t))));
     }
@@ -97,8 +97,8 @@ public class CylinderAttributionReliefAbsenceTests : IClassFixture<CylinderAttri
         R.Arm twin = R.Run(R.Founded1024(), "granary-off", off, Horizon);
 
         AssertNeverDiffers(live, twin);                                      // switching the effects off changes nothing
-        Assert.Equal(DiscoveryLayoutAttributionTests.PreDiscoveryFoundedGolden, twin.Hashes[Horizon]); // determinism: the pinned founded golden
-        Assert.Equal(DiscoveryLayoutAttributionTests.PreDiscoveryFoundedGolden, live.Hashes[Horizon]);
+        Assert.Equal(DiscoveryLayoutAttributionTests.PreM6FoundedGolden, twin.Hashes[Horizon]); // determinism: the pinned founded golden
+        Assert.Equal(DiscoveryLayoutAttributionTests.PreM6FoundedGolden, live.Hashes[Horizon]);
     }
 
     /// <summary>The construction purse's founded absence control on the cylinder: the order-less world (no player order, no
@@ -117,7 +117,7 @@ public class CylinderAttributionReliefAbsenceTests : IClassFixture<CylinderAttri
         R.Arm twin = R.Run(R.Founded1024(), "purse-off", off, Horizon);
 
         AssertNeverDiffers(live, twin);                                      // switching the purse off changes nothing
-        Assert.Equal(DiscoveryLayoutAttributionTests.PreDiscoveryFoundedGolden, twin.Hashes[Horizon]); // determinism: the pinned founded golden
-        Assert.Equal(DiscoveryLayoutAttributionTests.PreDiscoveryFoundedGolden, live.Hashes[Horizon]);
+        Assert.Equal(DiscoveryLayoutAttributionTests.PreM6FoundedGolden, twin.Hashes[Horizon]); // determinism: the pinned founded golden
+        Assert.Equal(DiscoveryLayoutAttributionTests.PreM6FoundedGolden, live.Hashes[Horizon]);
     }
 }

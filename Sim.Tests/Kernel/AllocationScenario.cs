@@ -227,7 +227,15 @@ public sealed class AllocationScenarioRun
     internal int[] ControlPolityCounts { get; }
     internal int[] ControlSettlementCounts { get; }
 
-    public AllocationScenarioRun() : this(AllocationScenario.CliConfig()) { }
+    /// <summary>M6 Track EX (D-062, ADR-044; 2026-10-22) CAUSE BLOCK: was the CLI's configuration as shipped. Under the shipped
+    /// concealment (stone is one of the concealable goods) the player's empire quarries about 40 stone a step in the split
+    /// window instead of about 64, building work claims more than its 30 % share on EVERY step and road works never claim less
+    /// than theirs — MEASURED on the merged tree: no step has D_b &lt; E_b (Y) and none has D_r &lt; E_r (Z; `split-check`: "P5: no
+    /// step where building work's claim above its share used road works' unused share"). The scenario's premises are D-055's,
+    /// an older layer, so by the R4 rule the scenario runs with the newer discovery layer OFF (TestConfigs.PreDiscovery; Track
+    /// CP moves nothing here) and every D-055/D-058 literal stands; the ci.yml leg runs the CLI with `--without-discovery`, the
+    /// same rules. Re-deriving S42-ALLOC-H under the fog is an open item for the Director (ADR-044 §12).</summary>
+    public AllocationScenarioRun() : this(Sim.Tests.TestUtil.TestConfigs.PreDiscovery(AllocationScenario.CliConfig())) { }
 
     /// <summary>D-058 (2026-10-19): the same run under another configuration — the attribution twin
     /// (TestConfigs.PreContinueWithinTurn of the CLI's configuration, <see cref="AllocationScenarioPreD058Run"/>).</summary>
@@ -335,7 +343,7 @@ public sealed class AllocationScenarioCollection : ICollectionFixture<Allocation
 /// Director's "build one at a time" ruling moved is reproduced on it (AllocationScenarioD058AttributionTests).
 /// </summary>
 public sealed class AllocationScenarioPreD058Run() : AllocationScenarioRunHolder(new AllocationScenarioRun(
-    Sim.Tests.TestUtil.TestConfigs.PreContinueWithinTurn(AllocationScenario.CliConfig())));
+    Sim.Tests.TestUtil.TestConfigs.PreContinueWithinTurn(Sim.Tests.TestUtil.TestConfigs.PreDiscovery(AllocationScenario.CliConfig()))));   // M6 EX: discovery off, as the live run (R4)
 
 /// <summary>Holds one <see cref="AllocationScenarioRun"/> built with a non-default configuration (an xUnit fixture needs a
 /// public parameterless constructor).</summary>

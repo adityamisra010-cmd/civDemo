@@ -116,9 +116,17 @@ def build():
     w("## 1. The two models")
     w("")
     w(f"- **Research Points (ADR-030):** RP per turn = {rp['coefficient']} × population^{rp['exponent']} — per strategic")
-    w("  turn, never multiplied by dtYears; one shared pool for Technology and Civics. Anchors: "
+    w("  turn, never multiplied by dtYears; it funds the Technology target only (ADR-043). Anchors: "
       + ", ".join(f"{int(p):,} → {rl.rp_per_turn(tuning, float(p)):.3f} (stated {v})"
                   for p, v in rp["anchors"].items()) + ".")
+    cp = tuning.get("civicsPoints")
+    if cp and cp.get("enabled"):
+        civic_cost = sum(n["cost"] for n in content["civics"])
+        w(f"- **Civics Points (ADR-043, PROPOSED):** CP per sim-year = {cp['coefficientPerYear']} × "
+          f"population^{cp['exponent']}, integrated over dtYears (law 3) and banked in integer milli-CP without cap or")
+        w(f"  loss; CP fund the Civics target only. The {len(content['civics'])} civics ({rl.fmt_int(civic_cost)} in all) "
+          "are paid in CP, not RP: the RP workloads below still list them by Age, so they overstate the RP")
+        w("  workload by exactly that amount.")
     w(f"- **Cost:** BaseCost = U × K^magnitude, U = {U}, K = {K}; EffectiveCost = max({floor} × BaseCost, BaseCost ×")
     w(f"  modifiers); acceleration credit (Eureka + foreign exposure) ≤ {ceiling} × BaseCost per node, capped at the")
     w("  remaining EffectiveCost.")

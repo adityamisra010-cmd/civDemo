@@ -352,21 +352,24 @@ public static class InfoQuery
         b.TreeNode = i;
 
         bool done = c.Done[i], available = c.Available(i);
-        bool target = ResearchQuery.TryGetTarget(c.W, c.P, out ResearchNodeId t) && t.Value == n.Key.Value;
+        bool target = IsTarget(c, n);
         double cost = ResearchQuery.EffectiveCost(c.W, r, c.P, i);
-        double rp = ResearchQuery.ResearchPointPool(c.W, r, c.P);
+        // ADR-043: a civic is paid in Civics Points in the two-lane model (CP a turn = the accrual of a step of this length).
+        bool cp = r.Tuning.TwoLanes && n.Tree == ResearchTree.Civics;
+        double rp = cp ? ResearchQuery.CivicsPointsMilli(c.W, r, c.P, c.W.Clock.DtYears) / 1000.0 : ResearchQuery.ResearchPointPool(c.W, r, c.P);
+        string points = cp ? " civics points" : " research points";
         if (done) { b.Status = InfoStatus.Known; b.StatusLine = "Known: your scholars have completed it."; }
         else if (target && available)
         {
             b.Status = InfoStatus.Researching;
-            b.StatusLine = "Being researched: " + N0(ResearchQuery.Progress(c.W, c.P, n.Key)) + " of " + N0(cost) + " research points, +" + N1(rp) + " a turn.";
+            b.StatusLine = "Being researched: " + N0(ResearchQuery.Progress(c.W, c.P, n.Key)) + " of " + N0(cost) + points + ", +" + N1(rp) + " a turn.";
         }
         else if (available)
         {
             b.Status = InfoStatus.Researchable;
-            b.StatusLine = "Open to research now: " + N0(cost) + " research points" + (rp > 0 ? " (about " + Inv((long)Math.Ceiling(Math.Max(0.0, cost - ResearchQuery.Progress(c.W, c.P, n.Key)) / rp)) + " turns at the current rate)." : ".");
+            b.StatusLine = "Open to research now: " + N0(cost) + points + (rp > 0 ? " (about " + Inv((long)Math.Ceiling(Math.Max(0.0, cost - ResearchQuery.Progress(c.W, c.P, n.Key)) / rp)) + " turns at the current rate)." : ".");
         }
-        else { b.Status = InfoStatus.Locked; b.StatusLine = "Locked: " + N0(cost) + " research points once it opens."; }
+        else { b.Status = InfoStatus.Locked; b.StatusLine = "Locked: " + N0(cost) + points + " once it opens."; }
 
         // ENABLED BY: its prerequisites (each with its completion), the expression verbatim.
         IReadOnlyList<int> must = n.Prerequisite?.MustHoldAtoms() ?? [];
@@ -1861,7 +1864,11 @@ public static class InfoQuery
         double rp = ResearchQuery.ResearchPointPool(c.W, r, c.P);
         int open = 0;
         for (int i = 0; i < r.Nodes.Count; i++) if (c.Available(i)) open++;
-        if (ResearchQuery.TryGetTarget(c.W, c.P, out ResearchNodeId t) && r.IndexOf(t) is int ti and >= 0)
+        ResearchNodeId t = default;
+        bool held = r.Tuning.TwoLanes
+            ? ResearchQuery.TryGetTarget(c.W, r, c.P, ResearchTree.Technology, out t)   // ADR-043: the Technology lane
+            : ResearchQuery.TryGetTarget(c.W, c.P, out t);
+        if (held && r.IndexOf(t) is int ti and >= 0)
         {
             b.Status = InfoStatus.Researching;
             b.StatusLine = "Researching " + r.Nodes[ti].Name + ": " + N0(ResearchQuery.Progress(c.W, c.P, t)) + " of "
@@ -1877,14 +1884,31 @@ public static class InfoQuery
             b.Action = Find(c, ActionDomain.Research, 1);
             b.Summary = "idle - choose a research target";
         }
+        if (r.Tuning.TwoLanes)
+        {
+            // ADR-043: the two lanes, stated — RP fund the technology target; banked Civics Points fund the civics target.
+            b.Kind = "Knowledge - research points a turn fund the technology target; civics points, banked, fund the civics target";
+            CivicsPointsRow account = ResearchQuery.CivicsPointsAccount(c.W, c.P);
+            double cp = ResearchQuery.CivicsPointsMilli(c.W, r, c.P, c.W.Clock.DtYears) / 1000.0;
+            string civic = ResearchQuery.TryGetTarget(c.W, r, c.P, ResearchTree.Civics, out ResearchNodeId ct) && r.IndexOf(ct) is int ci and >= 0
+                ? "civics target " + r.Nodes[ci].Name + ": " + N0(ResearchQuery.Progress(c.W, c.P, ct)) + " of " + N0(ResearchQuery.EffectiveCost(c.W, r, c.P, ci)) + " civics points"
+                : "no civics target";
+            b.StatusLine += " Civics: " + civic + "; " + N1(account.BalanceMilli / 1000.0) + " civics points banked, +" + N1(cp) + " a turn.";
+        }
     }
+
+    /// <summary>Whether the node is the polity's target on its own lane (ADR-043; in the one-pool model, the one target).</summary>
+    private static bool IsTarget(Ctx c, ResearchNode n) =>
+        c.R is { } r && (r.Tuning.TwoLanes
+            ? ResearchQuery.TryGetTarget(c.W, r, c.P, n.Tree, out ResearchNodeId lt) && lt.Value == n.Key.Value
+            : ResearchQuery.TryGetTarget(c.W, c.P, out ResearchNodeId t) && t.Value == n.Key.Value);
 
     // ================================================================== shared: knowledge links and the tree target
 
     private static InfoLink NodeLink(Ctx c, int i, string? extra = null)
     {
         ResearchNode n = c.R!.Nodes[i];
-        bool target = ResearchQuery.TryGetTarget(c.W, c.P, out ResearchNodeId t) && t.Value == n.Key.Value;
+        bool target = IsTarget(c, n);
         string state = c.Done[i] ? "known" : target ? "being researched" : c.Available(i) ? "open to research now" : "locked";
         return new InfoLink(n.Name, InfoSubject.Node(n.Key), c.Done[i], TreeWord(n) + ", " + AgeText(c, n.Age) + " - " + state + (extra is null ? "" : "; " + extra));
     }
