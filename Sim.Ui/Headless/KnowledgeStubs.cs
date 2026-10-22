@@ -29,7 +29,7 @@ public static class KnowledgeStubs
         ArgumentNullException.ThrowIfNull(world);
         if (world.Terrain is not { } terrain) throw new ArgumentException("the stub needs a world with terrain", nameof(world));
         if (hidden.Value == player.Value) throw new ArgumentException("the player cannot be hidden from itself", nameof(hidden));
-        PolityKnowledge all = PolityKnowledge.Of(world, player);   // the grid geometry only (NodeOfCell / NodeAt)
+        PolityKnowledge all = PolityKnowledge.Of(world, player, null);   // the grid geometry only (NodeOfCell / NodeAt)
         (int lsize, _) = PolityKnowledge.Grid(terrain.Size);
         var hide = new bool[lsize * lsize];
         var keep = new bool[lsize * lsize];

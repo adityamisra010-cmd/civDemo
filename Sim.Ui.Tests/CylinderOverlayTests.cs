@@ -11,14 +11,14 @@ namespace Sim.Ui.Tests;
 /// SeamCrossingShippedWorldTests: 123 rows with land on both edge columns), founded by the real session, turn 0.</summary>
 public sealed class SeamCrossingOverlayFixture
 {
-    public UiSession Session { get; } = UiSession.Start(16);
+    public UiSession Session { get; } = UiSession.StartWith(TestFog.PreDiscovery, 16);
 }
 
 /// <summary>A 256-px cylinder (seed 42, 4 settlements), founded by the real session, turn 0: at its floor (one circumference,
 /// 1024 km, across a 1280-px window) the lens is on its Regional plateau, so the realized-roll markers are drawn there.</summary>
 public sealed class SmallCylinderOverlayFixture
 {
-    public UiSession Session { get; } = UiSession.Start(42, 256, 4);
+    public UiSession Session { get; } = UiSession.StartWith(TestFog.PreDiscovery, 42, 256, 4);
 }
 
 /// <summary>

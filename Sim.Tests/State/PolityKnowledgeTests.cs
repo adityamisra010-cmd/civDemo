@@ -66,7 +66,7 @@ public class PolityKnowledgeTests
     public void Of_IsAllKnown_EveryAnswerIsYes_AndTheBooksAreTheControllers()
     {
         WorldState w = Duo1();
-        PolityKnowledge k = PolityKnowledge.Of(w, Player);
+        PolityKnowledge k = PolityKnowledge.Of(w, Player, null);
         Assert.True(k.AllKnown);
         Assert.Equal(Player, k.Polity);
         for (int n = 0; n < NodeCount(w); n += 97) { Assert.True(k.Known(n)); Assert.True(k.Visible(n)); }
@@ -84,7 +84,7 @@ public class PolityKnowledgeTests
         // ConstructionQuery's availability applies.
         WorldState toy = Duo1();
         toy.Controls.Clear();
-        Assert.True(PolityKnowledge.Of(toy, Rival).ReadsInternals(toy.Settlements[0].Id));
+        Assert.True(PolityKnowledge.Of(toy, Rival, null).ReadsInternals(toy.Settlements[0].Id));
     }
 
     [Fact]
@@ -98,7 +98,7 @@ public class PolityKnowledgeTests
         Assert.Equal(TraversalLattice.DefaultStride, lattice.Stride);
         foreach (int size in new[] { 250, 256, 1024 })
             Assert.Equal((size / 4, size / (size / 4)), PolityKnowledge.Grid(size));
-        PolityKnowledge k = PolityKnowledge.Of(w, Player);
+        PolityKnowledge k = PolityKnowledge.Of(w, Player, null);
         int s = w.Terrain.Size;
         for (int cell = 0; cell < s * s; cell += 517)
         {
@@ -116,7 +116,7 @@ public class PolityKnowledgeTests
     {
         WorldState w = Duo1();
         int n = NodeCount(w);
-        PolityKnowledge any = PolityKnowledge.Of(w, Player);
+        PolityKnowledge any = PolityKnowledge.Of(w, Player, null);
         // Hide every node holding a site of the rival; see nothing else but keep it known.
         bool[] known = AllTrue(n), visible = AllTrue(n);
         var rivalSites = new List<SettlementId>();
@@ -177,7 +177,7 @@ public class PolityKnowledgeTests
         int freeCell = FoundingQuery.SiteCellOf(free);
 
         // The rival does not know the node of its unrestricted pick.
-        PolityKnowledge any = PolityKnowledge.Of(w, Rival);
+        PolityKnowledge any = PolityKnowledge.Of(w, Rival, null);
         bool[] known = AllTrue(NodeCount(w));
         known[any.NodeOfCell(freeCell)] = false;
         PolityKnowledge k = PolityKnowledge.Restricted(w, Rival, known, known);
@@ -190,9 +190,9 @@ public class PolityKnowledgeTests
         Assert.Equal(FoundingQuery.FoundOrder(w, Rival, source, oracle), restricted);
         Assert.True(k.KnowsCell(FoundingQuery.SiteCellOf(restricted)));
         // The production entry is the all-known seam: the same order as before the seam existed.
-        Assert.Equal(free, AiFoundingPolicy.Decide(w, cfg, Rival, new AiFoundingPolicy.Sites(w, cfg, Wg), FoundingQuery.Check, PolityKnowledge.Of(w, Rival)));
+        Assert.Equal(free, AiFoundingPolicy.Decide(w, cfg, Rival, new AiFoundingPolicy.Sites(w, cfg, Wg), FoundingQuery.Check, PolityKnowledge.Of(w, Rival, null)));
         // The knowledge must be the issuer's.
-        Assert.Throws<ArgumentException>(() => AiFoundingPolicy.Decide(w, cfg, Rival, new AiFoundingPolicy.Sites(w, cfg, Wg), FoundingQuery.Check, PolityKnowledge.Of(w, Player)));
+        Assert.Throws<ArgumentException>(() => AiFoundingPolicy.Decide(w, cfg, Rival, new AiFoundingPolicy.Sites(w, cfg, Wg), FoundingQuery.Check, PolityKnowledge.Of(w, Player, null)));
     }
 
     [Fact]
@@ -226,7 +226,7 @@ public class PolityKnowledgeTests
         int after = AiFoundingPolicy.BestSiteFor(w, cfg, g, w.Terrain!, new AiFoundingPolicy.Sites(w, g), Rival, source, FoundingQuery.Check, k);
         Assert.True(before >= 0, "no known legal cell - the rig is void");
         Assert.Equal(before, after);
-        PolityKnowledge all = PolityKnowledge.Of(w, Rival);
+        PolityKnowledge all = PolityKnowledge.Of(w, Rival, null);
         int controlBefore = AiFoundingPolicy.BestSiteFor(w, cfg, f, w.Terrain!, new AiFoundingPolicy.Sites(w, f), Rival, source, FoundingQuery.Check, all);
         int controlAfter = AiFoundingPolicy.BestSiteFor(w, cfg, g, w.Terrain!, new AiFoundingPolicy.Sites(w, g), Rival, source, FoundingQuery.Check, all);
         Assert.NotEqual(controlBefore, controlAfter);
@@ -264,7 +264,7 @@ public class PolityKnowledgeTests
     /// the mask <see cref="AnUnknownCellsOwnScore_CannotMoveThePick_HoweverHighItIs"/> uses.</summary>
     private static bool[] HalfMapKnown(IReadOnlyWorldState w, int sourceCell)
     {
-        PolityKnowledge any = PolityKnowledge.Of(w, Rival);
+        PolityKnowledge any = PolityKnowledge.Of(w, Rival, null);
         (int l, _) = PolityKnowledge.Grid(w.Terrain!.Size);
         int half = any.NodeOfCell(sourceCell) % l <= l / 2 ? 1 : 0;
         bool[] known = new bool[l * l];
@@ -301,7 +301,7 @@ public class PolityKnowledgeTests
                 ?? throw new Xunit.Sdk.XunitException("no AI order");
             Assert.True(k.KnowsCell(FoundingQuery.SiteCellOf(order)));
 
-            int control = AiFoundingPolicy.BestSiteFor(w, cfg, f, w.Terrain!, new AiFoundingPolicy.Sites(w, f), Rival, source, FoundingQuery.Check, PolityKnowledge.Of(w, Rival));
+            int control = AiFoundingPolicy.BestSiteFor(w, cfg, f, w.Terrain!, new AiFoundingPolicy.Sites(w, f), Rival, source, FoundingQuery.Check, PolityKnowledge.Of(w, Rival, null));
             if (control >= 0 && !k.KnowsCell(control)) controlMovedToUnknown = true;
         }
         Assert.True(controlMovedToUnknown, "all-known, no terrain perturbation put the pick on an unknown cell - the restricted scan was never tested against one");
@@ -328,7 +328,7 @@ public class PolityKnowledgeTests
         int freeCell = FoundingQuery.SiteCellOf(free);
 
         // Hide ONLY the eight lattice nodes around the free pick's node; the pick's own node stays known.
-        PolityKnowledge any = PolityKnowledge.Of(w0, Rival);
+        PolityKnowledge any = PolityKnowledge.Of(w0, Rival, null);
         (int l, _) = PolityKnowledge.Grid(w0.Terrain!.Size);
         int pickNode = any.NodeOfCell(freeCell);
         bool[] known = AllTrue(l * l);
@@ -495,7 +495,7 @@ public class PolityKnowledgeTests
         SimConfig cfg = Cfg;
         int n = NodeCount(w);
         bool[] known = AllTrue(n);
-        PolityKnowledge any = PolityKnowledge.Of(w, Player);
+        PolityKnowledge any = PolityKnowledge.Of(w, Player, null);
         MilitaryUnitRow rival = default;
         bool found = false;
         for (int i = 0; i < w.MilitaryUnits.Count && !found; i++)
@@ -515,7 +515,7 @@ public class PolityKnowledgeTests
         InfoCard seen = InfoQuery.Card(w, cfg, Player, InfoSubject.OfFormation(rival.Id));
         Assert.Equal(InfoStatus.Known, seen.Status);
         Assert.Contains("rival", seen.Kind, StringComparison.Ordinal);
-        Assert.Throws<ArgumentException>(() => InfoQuery.Card(w, cfg, Player, InfoSubject.OfFormation(rival.Id), knowledge: PolityKnowledge.Of(w, Rival)));
+        Assert.Throws<ArgumentException>(() => InfoQuery.Card(w, cfg, Player, InfoSubject.OfFormation(rival.Id), knowledge: PolityKnowledge.Of(w, Rival, null)));
     }
 
     [Fact]

@@ -158,8 +158,11 @@ public static partial class PlayabilityGate
     /// and every hash are the one-AI world's; only what the UI shows differs.</summary>
     public static UiSession HiddenRival()
     {
-        UiSession first = UiSession.Start(42, aiEmpiresOverride: 1);
-        UiSession s = UiSession.StartFrom(first.World.Clone(), 42, null, null,
+        // M6 Track EX (ADR-044): the stub IS the player's whole knowledge (all known but the hidden polity), so the rig runs
+        // with the discovery layer off — under the fog InfoQuery's own (fogged) knowledge would contradict the stub's.
+        SimConfig rules = DiscoveryQuery.WithoutDiscovery(UiFounding.ProductionConfig());
+        UiSession first = UiSession.StartWith(rules, 42, aiEmpiresOverride: 1);
+        UiSession s = UiSession.StartFromWith(rules, first.World.Clone(), 42, null, null,
             knowledgeOf: w => KnowledgeStubs.HidePolity(w, Me, HiddenPolity));
         s.EndTurn();
         if (KnowledgeStubs.SettlementsOf(s.World, HiddenPolity).Count == 0) throw new InvalidOperationException("hidden-rival rig: the AI holds no settlement");
@@ -632,6 +635,8 @@ public static partial class PlayabilityGate
             AgeResearchNextRow();
             CloseEverything();
             NowUsableRows();   // P10: a shortcut the End Turns fired (or the one still offered) is pressed again
+            CloseEverything();
+            PlacementAfterTurns();   // M6 EX: the Confirm row on what the End Turns' expeditions discovered (fog only)
             CloseEverything();
             Strip();           // M5 resources view: a strip group the End Turns filled (stores grow with the turns)
             CloseEverything();
@@ -1278,6 +1283,30 @@ public static partial class PlayabilityGate
 
         // -------------------------------------------------------------- Policy: the action surface
 
+        /// <summary>M6 EX: one Actions-menu button's row — the first settlement listing it; admitted ⇒ exactly one order of
+        /// <paramref name="order"/> for it is appended; refused (blocker drawn) ⇒ nothing is appended.</summary>
+        private void DiscoveryRow(ActionHitKind kind, OrderKind order, string control)
+        {
+            Check("policy: actions", control, () =>
+            {
+                OpenPolicy();
+                if (Ui.Actions.Model?.Discovery is not { } block) return (GateResult.Fail, "the Actions block vanished");
+                DiscoveryEntry? entry = null;
+                foreach (DiscoveryEntry e in block.Entries)
+                    if ((kind == ActionHitKind.Explore ? e.Explore : e.Prospect) is not null) { entry = e; break; }
+                if (entry is null) return (GateResult.NotOffered, "no settlement lists it (the switch is off)");
+                ActionDescriptor a = (kind == ActionHitKind.Explore ? entry.Explore : entry.Prospect)!;
+                int q = Queued;
+                if (!ClickAction(kind, entry.Settlement.Value)) return (GateResult.Fail, "not drawn");
+                if (a.Blocker is { } blocker)
+                    return Expect(Queued == q, "a refused " + control + " (\"" + blocker + "\") appended an order");
+                if (Queued != q + 1) return (GateResult.Fail, "SILENT: no " + order + " order appended");
+                OrderRecord last = S.QueuedOrders()[^1];
+                return Expect(last.Kind == order && last.TargetId == entry.Settlement.Value && last.Amount == 0.0,
+                    "the order appended is not " + order + " for settlement " + entry.Settlement.Value.ToString(CultureInfo.InvariantCulture));
+            });
+        }
+
         private ActionHit? Find(ActionHitKind kind, int a = int.MinValue, int b = int.MinValue)
         {
             foreach (ActionHit x in Ui.Actions.Hits)
@@ -1501,6 +1530,18 @@ public static partial class PlayabilityGate
             else Row("policy: materials", "Materials for building and roads", GateResult.NotOffered,
                 "no road class known yet (the block appears with the Roads block)");
 
+            // M6 Track EX (D-062 D9; ADR-044): the ACTIONS menu, separate from Building. Each button goes through its guarded
+            // emitter (UiSession.EmitExplore / EmitProspect): an admitted action appends exactly ONE order of its kind for the
+            // row's settlement; a refused one (its blocker drawn) appends nothing.
+            OpenPolicy();
+            if (Ui.Actions.Model?.Discovery is not null)
+            {
+                DiscoveryRow(ActionHitKind.Explore, OrderKind.Explore, "Explore");
+                DiscoveryRow(ActionHitKind.Prospect, OrderKind.Prospect, "Prospect");
+            }
+            else Row("policy: actions", "Actions (Explore, Prospect)", GateResult.NotOffered,
+                "the fog and concealment are off (sim.json fog / discovery), so the Actions menu is absent");
+
             // The tax edict.
             OpenPolicy();
             if (Ui.Actions.Model?.Governance is not null)
@@ -1561,11 +1602,11 @@ public static partial class PlayabilityGate
             Check("developer", "per-turn-table (POLICY labour record)", () =>
             {
                 h.ClickControl("nav:Policy");
-                for (int k = 0; k < 40 && Ui.Controls.Find("labour-record") is { } c && c.Y1 > Ui.ContextRect.Y + Ui.ContextRect.Height - 10; k++)
+                for (int k = 0; k < 80 && Ui.Controls.Find("labour-record") is { } c && c.Y1 > Ui.ContextRect.Y + Ui.ContextRect.Height - 10; k++)
                     h.Wheel(Ui.ContextRect.X + 100, Ui.ContextRect.Y + 300, -2);
                 if (Ui.Controls.Find("labour-record") is null) return (GateResult.NotOffered, "no settlement selected");
                 if (!Ui.PolicyRecordOpen) h.ClickControl("labour-record");
-                for (int k = 0; k < 40 && Ui.Controls.Find("per-turn-table") is { } c && c.Y1 > Ui.ContextRect.Y + Ui.ContextRect.Height - 10; k++)
+                for (int k = 0; k < 80 && Ui.Controls.Find("per-turn-table") is { } c && c.Y1 > Ui.ContextRect.Y + Ui.ContextRect.Height - 10; k++)
                     h.Wheel(Ui.ContextRect.X + 100, Ui.ContextRect.Y + 300, -2);
                 if (Ui.Controls.Find("per-turn-table") is null) return (GateResult.Fail, "not drawn with the record open in developer mode");
                 bool before = Ui.PolicyShowStates;
@@ -1702,7 +1743,9 @@ public static partial class PlayabilityGate
             // row was then silently skipped); with none drawn the row says why.
             LookCheck("developer: turn", "where row (selects and centres)", () =>
             {
-                if (ScrollToControl("where-") is not { } ctl)
+                // M6 EX (ADR-044): the developer audit lists every settlement, but the map selects only one the player knows
+                // (a rival's settlement under the fog is not selectable), so the row clicked is the first KNOWN one.
+                if (ScrollToControl(KnownWhere("where-")) is not { } ctl)
                     return (GateResult.NotOffered, audit == 0 ? "no turn played yet (the tab says so)" : "the tab lists no WHERE row");
                 int id = int.Parse(ctl.Name[(ctl.Name.LastIndexOf('-') + 1)..], CultureInfo.InvariantCulture);
                 (double ax, double ay) = h.Aim(ctl);
@@ -1713,7 +1756,7 @@ public static partial class PlayabilityGate
             // P6 (coverage): the deficit WHERE rows — the row above clicks the first 'where-' row, a population one.
             LookCheck("developer: turn", "where row: largest deficit (selects and centres)", () =>
             {
-                if (ScrollToControl("where-def-") is not { } ctl)
+                if (ScrollToControl(KnownWhere("where-def-")) is not { } ctl)
                     return (GateResult.NotOffered, audit == 0 ? "no turn played yet (the tab says so)" : "no settlement ran a deficit last turn (the tab lists none)");
                 int id = int.Parse(ctl.Name[(ctl.Name.LastIndexOf('-') + 1)..], CultureInfo.InvariantCulture);
                 (double ax, double ay) = h.Aim(ctl);
@@ -1727,6 +1770,19 @@ public static partial class PlayabilityGate
         /// until the first control whose name starts with <paramref name="prefix"/> lies wholly inside the visible body;
         /// null when the panel draws no such control (or it cannot be brought into view).</summary>
         private UiControl? ScrollToControl(string prefix) => h.ScrollContextTo(prefix);
+
+        /// <summary>M6 EX: the name of the first drawn WHERE control under <paramref name="prefix"/> whose settlement the player
+        /// knows (its full name, for <see cref="ScrollToControl"/>); the prefix itself when none is drawn or none is known.</summary>
+        private string KnownWhere(string prefix)
+        {
+            foreach (UiControl c in Ui.Controls.Last)
+            {
+                if (!c.Name.StartsWith(prefix, StringComparison.Ordinal)) continue;
+                if (int.TryParse(c.Name[(c.Name.LastIndexOf('-') + 1)..], NumberStyles.Integer, CultureInfo.InvariantCulture, out int id)
+                    && S.Knowledge.KnowsSettlement(id)) return c.Name;
+            }
+            return prefix;
+        }
 
         /// <summary>P6: scrolls the context panel's body back to its top-left corner.</summary>
         private void ScrollContextHome()

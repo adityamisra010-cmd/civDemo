@@ -89,6 +89,10 @@ public sealed record RoadSegment(double X0, double Y0, double X1, double Y1, int
 /// <summary>A territory block: one lattice node a settlement's catchment claims.</summary>
 public readonly record struct TerritoryBlock(double X, double Y, double Size, int Polity);
 
+/// <summary>M6 EX (ADR-044): one run of fogged lattice nodes in world px — <c>Unknown</c> (blank parchment) or remembered
+/// (a darker wash).</summary>
+public readonly record struct FogRun(double X, double Y, double W, double H, bool Unknown);
+
 /// <summary>
 /// THE WORLD LENS PROJECTION — a read-only, aggregated view of real simulation state for the map
 /// (D-047 Part 4 G, Part 5). Settlements, structures (counted per settlement × project; never
@@ -117,6 +121,10 @@ public sealed class WorldProjection
     /// <summary>The built inter-settlement routes: travelled <c>TransportEdges</c> rows, in table order.</summary>
     public IReadOnlyList<RouteLensView> Routes { get; init; } = [];
     public required IReadOnlyList<TerritoryBlock> Territory { get; init; }
+    /// <summary>M6 Track EX (D-062 D9; ADR-044): THE FOG — row runs of lattice nodes the observer does not see, in world px:
+    /// UNKNOWN nodes (drawn as blank parchment over the terrain) and REMEMBERED ones (known, out of sight: drawn under a
+    /// darker overlay). VISIBLE nodes have no run. Empty while the observer knows and sees everything (the fog off).</summary>
+    public IReadOnlyList<FogRun> Fog { get; init; } = [];
     public required int PlayerPolity { get; init; }
     public required int PlayerAge { get; init; }
     public required string PlayerAgeName { get; init; }
@@ -335,6 +343,7 @@ public sealed class WorldProjection
 
         return new WorldProjection
         {
+            Fog = FogRuns(known, world.Terrain is null ? 0 : lsize, stride, size),
             WorldSize = size, WrapX = wrapX, KmPerPx = world.Terrain?.KmPerPx ?? double.NaN, Settlements = settlements, Units = units, Roads = roads, Routes = routes, Territory = territory,
             PlayerPolity = player.Value, PlayerAge = playerAge,
             PlayerAgeName = ages is null || playerAge == 0 ? "" : ages.Age(playerAge).Name,
@@ -346,6 +355,35 @@ public sealed class WorldProjection
     /// labels/counts" has no composition to show: <c>MilitaryUnitRow</c> holds no headcount, manpower or strength).</summary>
     public const string FormationCountAbsent =
         "Formation counts: not simulated - a formation holds no people, so no token shows a count";
+
+    /// <summary>M6 EX (ADR-044): the fog's row runs (see <see cref="WorldProjection.Fog"/>) — per lattice row, maximal runs
+    /// of nodes in one state, UNKNOWN or REMEMBERED; the last node of a row or column reaches the map's edge. Empty when the
+    /// observer knows everything.</summary>
+    public static IReadOnlyList<FogRun> FogRuns(PlayerKnowledge known, int lsize, int stride, int size)
+    {
+        if (known.AllKnown || lsize <= 0) return [];
+        var runs = new List<FogRun>();
+        for (int y = 0; y < lsize; y++)
+        {
+            double top = y * stride, bottom = y == lsize - 1 ? size : (y + 1) * stride;
+            int start = 0, state = FogState(known, y * lsize);
+            for (int c = 1; c <= lsize; c++)   // c = lsize closes the row's last run
+            {
+                int next = c == lsize ? -1 : FogState(known, y * lsize + c);
+                if (next == state) continue;
+                if (state != 0)
+                {
+                    double left = start * stride, right = c == lsize ? size : c * stride;
+                    runs.Add(new FogRun(left, top, right - left, bottom - top, state == 2));
+                }
+                start = c;
+                state = next;
+            }
+        }
+        return runs;
+    }
+
+    private static int FogState(PlayerKnowledge known, int node) => !known.Known(node) ? 2 : known.Visible(node) ? 0 : 1;
 
     private static bool SiteOf(IReadOnlyWorldState world, SettlementId id, int size, out double x, out double y)
     {
@@ -737,6 +775,20 @@ public static class WorldLens
                 outlined.Add(li);
             }
         Charge(MapLayer.ResourceOverlay, null);
+
+        // M6 EX (ADR-044): THE FOG over the terrain (and under everything else the lens draws) — unknown land as blank
+        // parchment, remembered land under a darker wash; visible land untouched. Charged to the Territory layer: it is the
+        // territory of the player's knowledge.
+        foreach (FogRun f in p.Fog)
+            foreach (int c in ks)
+            {
+                (double x0, double y0) = At(c, f.X, f.Y);
+                (double x1, double y1) = At(c, f.X + f.W, f.Y + f.H);
+                if (x0 > viewport.Right || y0 > viewport.Bottom || x1 < viewport.X || y1 < viewport.Y) continue;
+                d.Rect(new RectD(x0, y0, x1 - x0 + 0.6, y1 - y0 + 0.6), f.Unknown ? k.FogUnknown : A(k.FogRemembered, 0.38));
+                if (c != 0) copies++;
+            }
+        Charge(MapLayer.Territory, null);
 
         if (On(WorldLayer.Territories) && showTerritory)
         {

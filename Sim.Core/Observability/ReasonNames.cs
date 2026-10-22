@@ -29,6 +29,8 @@ public static class ReasonNames
         14 => "spoilage",
         15 => "granaryOverflow",
         16 => "constructionMaterials",
+        17 => "prospecting",
+        18 => "expedition",
         _ => "reason-" + reason.ToString(System.Globalization.CultureInfo.InvariantCulture),
     };
 }

@@ -44,6 +44,11 @@ public enum ActionDomain
     /// (ConstructionQuery.AllocationOrderValid: the switch on, a roster Empire). Its own domain, not Roads: every Roads
     /// descriptor is a road-class development (Id = the edge type; the road-class card and the Roads block read it so).</summary>
     ResourceAllocation = 14,
+    /// <summary>M6 Track EX (D-062 D9; ADR-044): the ACTIONS menu — per settlement the issuer controls, Explore surroundings
+    /// (OrderKind 14; Id = settlement × 2) with fog on, and Prospect (OrderKind 15; Id = settlement × 2 + 1) with concealment
+    /// on, each with its cost and, when the predicate DiscoverySystem applies refuses it now, the reason as the blocker
+    /// (radius cap, already surveyed, not enough grain or tools, already ordered this turn).</summary>
+    Discovery = 15,
 }
 
 /// <summary>Whether an available action is something the issuer can ORDER now, or a STANDING baseline
@@ -220,6 +225,7 @@ public static class AvailableActionsQuery
         Trade(world, cfg, polity, actions);
         Colonization(world, cfg, polity, context, actions);
         ConstructionQueue(world, cfg, polity, context, actions);
+        Discovery(world, cfg, polity, context, actions);
         return Order(actions);
     }
 
@@ -782,6 +788,62 @@ public static class AvailableActionsQuery
                 OrderKind.FoundSettlement, [SettlementTarget(source)], null, ActionProvenance.None,
                 $"{Inv(party)} people and {Inv(provisions)} {grainName} would set out"));
         }
+    }
+
+    /// <summary>
+    /// M6 Track EX (D-062 D9; ADR-044) — THE ACTIONS MENU's descriptors: per settlement the issuer controls (settlement-table
+    /// order), Explore (fog on) and Prospect (concealment on), judged by THE predicates DiscoverySystem applies
+    /// (<see cref="DiscoveryQuery.CheckExplore(IReadOnlyWorldState, SimConfig, PolityId, SettlementId)"/>,
+    /// <see cref="DiscoveryQuery.CheckProspect(IReadOnlyWorldState, SimConfig, PolityId, SettlementId)"/>) on the world's
+    /// published stocks less its set-asides; a refusal is the descriptor's blocker, and an order of the same kind for the
+    /// same settlement already queued this turn blocks it ("already ordered this turn": DiscoverySystem applies one).
+    /// </summary>
+    public static void Discovery(
+        IReadOnlyWorldState world, SimConfig cfg, PolityId polity, ActionQueryContext context, List<ActionDescriptor> into)
+    {
+        bool fog = cfg.Fog is { Enabled: true } && world.Terrain is not null && cfg.Goods is not null;
+        bool prospect = DepositConcealment.Enabled(cfg);
+        if (!fog && !prospect) return;
+        string grainName = cfg.Goods!.ById(cfg.Goods.GrainId).Name;
+        long cost = prospect ? DiscoveryQuery.ProspectCost(world, cfg, polity) : 0;   // once (the requirement is parsed once)
+        for (int s = 0; s < world.Settlements.Count; s++)
+        {
+            SettlementId id = world.Settlements[s].Id;
+            if (!EmpireQuery.ControlsSettlement(world, polity, id)) continue;
+            if (fog)
+            {
+                FogConfig f = cfg.Fog!;
+                int radius = DiscoveryQuery.ExploredRadius(world, f, polity, id);
+                ExploreVerdict v = DiscoveryQuery.CheckExplore(world, cfg, polity, id);
+                string? blocker = context.Queued is { } q && Queued(q, polity, OrderKind.Explore, id)
+                    ? "already ordered this turn" : DiscoveryQuery.ExploreBlocker(v, cfg);
+                string detail = v == ExploreVerdict.AtCap
+                    ? $"explored to {Inv(radius)} nodes (the limit)"
+                    : $"radius {Inv(radius)} → {Inv(DiscoveryQuery.NextRadius(world, f, polity, id))} nodes, cost {Inv(DiscoveryQuery.ExploreCost(cfg))} {grainName}";
+                into.Add(new ActionDescriptor(
+                    ActionDomain.Discovery, (long)id.Value * 2, ActionKind.Order, $"discovery.explore.{Inv(id.Value)}",
+                    "Explore surroundings", OrderKind.Explore, [SettlementTarget(id)], blocker, ActionProvenance.None, detail));
+            }
+            if (prospect)
+            {
+                ProspectVerdict v = DiscoveryQuery.CheckProspect(world, cfg, polity, id, cost);
+                string? blocker = context.Queued is { } q && Queued(q, polity, OrderKind.Prospect, id)
+                    ? "already ordered this turn" : DiscoveryQuery.ProspectBlocker(v, cost);
+                into.Add(new ActionDescriptor(
+                    ActionDomain.Discovery, (long)id.Value * 2 + 1, ActionKind.Order, $"discovery.prospect.{Inv(id.Value)}",
+                    "Prospect", OrderKind.Prospect, [SettlementTarget(id)], blocker, ActionProvenance.None,
+                    $"cost {Inv(cost)} {DepositConcealment.ProspectGood}"));
+            }
+        }
+    }
+
+    /// <summary>Whether <paramref name="queued"/> holds a <paramref name="kind"/> order of <paramref name="polity"/>'s for
+    /// <paramref name="settlement"/>.</summary>
+    public static bool Queued(IReadOnlyList<OrderRecord> queued, PolityId polity, OrderKind kind, SettlementId settlement)
+    {
+        for (int i = 0; i < queued.Count; i++)
+            if (queued[i].Kind == kind && queued[i].ActorId == polity.Value && queued[i].TargetId == settlement.Value) return true;
+        return false;
     }
 
     /// <summary>Whether <paramref name="queued"/> holds a FoundSettlement order of <paramref name="polity"/>'s from

@@ -101,7 +101,7 @@ public static class OrderValidation
 
             if (record.Kind is not (OrderKind.LaborAllocation or OrderKind.SectorAllocation
                 or OrderKind.EnqueueConstruction or OrderKind.FoundSettlement or OrderKind.CancelConstruction
-                or OrderKind.CancelConstructionEntry)) continue;
+                or OrderKind.CancelConstructionEntry or OrderKind.Explore or OrderKind.Prospect)) continue;
 
             // ADR-036: a Found Settlement site must be ON THE MAP. The load-time pass sees no terrain, so it
             // could only insist on a whole, non-negative cell (OrderLog.ValidateRecord); the map size is
@@ -138,7 +138,10 @@ public static class OrderValidation
             // test worlds are legitimately in that state.
             // WS1 (D-054): CancelConstruction by the same rule — an Empire cancels only where it rules. The consumer
             // re-applies it on PREV at delivery (ConstructionQuery.CancelOrderValid): control can change after turn 0.
-            if (record.Kind is (OrderKind.EnqueueConstruction or OrderKind.CancelConstruction or OrderKind.CancelConstructionEntry)
+            // M6 EX (ADR-044): Explore and Prospect act from / on a settlement the issuer rules — the same rule, re-applied on
+            // PREV at delivery by DiscoveryQuery.CheckExplore / CheckProspect.
+            if (record.Kind is (OrderKind.EnqueueConstruction or OrderKind.CancelConstruction or OrderKind.CancelConstructionEntry
+                    or OrderKind.Explore or OrderKind.Prospect)
                 && world.Controls.Count > 0
                 && !EmpireQuery.ControlsSettlement(world, record.Actor, new SettlementId(record.TargetId)))
             {
@@ -227,7 +230,7 @@ public static class OrderValidation
 
             if (record.Kind is not (OrderKind.LaborAllocation or OrderKind.SectorAllocation
                 or OrderKind.EnqueueConstruction or OrderKind.FoundSettlement or OrderKind.CancelConstruction
-                or OrderKind.CancelConstructionEntry)) continue;
+                or OrderKind.CancelConstructionEntry or OrderKind.Explore or OrderKind.Prospect)) continue;
             // D-056: an identity cancel whose identity names TWO OR MORE of the settlement's entries, none at its recorded
             // slot, cannot name one entry (ConstructionQuery.CancelTargetIndex). Live play never issues one (an entry keeps
             // its slot for its life, so the recorded slot holds the entry), so it means the replayed world is not the

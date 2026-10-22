@@ -55,13 +55,15 @@ public class V33SessionResumeTests
             // The four-line notice, its second line the cylinder one.
             Assert.Equal(UiSession.SchemaMismatchNotice(33, CanonicalSchema.Version), s.ResumeNotice);
             Assert.Equal(4, s.ResumeNotice.Count);
-            Assert.Equal("Recorded under save schema v33; this build is v34.", s.ResumeNotice[0]);
+            Assert.Equal("Recorded under save schema v33; this build is v35.", s.ResumeNotice[0]);
             Assert.Equal("Resumed by replaying its seed and orders (D-008).", s.ResumeNotice[1]);
 
             // The fresh shipped replay of the same seed and log, with no trace at all: the same world.
             OrderLog saved;
             using (FileStream f = File.OpenRead(log)) saved = OrderLog.Load(f);
-            UiSession fresh = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1);
+            // M6 Track EX (2026-10-22): a pre-v35 session replays without the discovery layer (it was played without it;
+            // DiscoveryQuery.RecordedWithoutDiscovery), so the fresh replay it equals is the shipped one with discovery off.
+            UiSession fresh = UiSession.StartWith(TestFog.PreDiscovery, 42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1);
             fresh.ReplayTo(saved, 6);
             Assert.True(fresh.World.Terrain!.WrapX);
             Assert.Equal(WorldHash.ComputeHex(fresh.World), WorldHash.ComputeHex(s.World));

@@ -237,11 +237,15 @@ public class IdentityDriftGuardTests
     /// <summary>The game of IdentityDriftResumeTests, headless: turn 2 a colony from <c>First</c>, turn 3 one from
     /// <c>Second</c>, turn 5 the player sets settlement 12's sectors (no builders) — recorded with
     /// <paramref name="colonization"/> as ColonizationSystem's siting rule. Sites not given are this build's best for the
-    /// source when the order is issued; each is Legal on this build's rule.</summary>
+    /// source when the order is issued; each is Legal on this build's rule.
+    /// M6 Track EX (2026-10-22): <paramref name="rules"/> — default the shipped config with the discovery layer OFF
+    /// (TestConfigs.PreDiscovery): the sessions here are labelled v33, and a pre-v35 session is replayed without the discovery
+    /// layer (DiscoveryQuery.RecordedWithoutDiscovery), as it was played. Under the shipped fog (rules with fog on) the
+    /// player first explores around both sources at turn 0 (OrderKind 14), so the sites it founds on are KNOWN.</summary>
     private static (OrderLog Log, List<WorldState> Worlds, Plan Plan) Record(WorldgenConfig colonization, Plan? plan,
-        SettlementId first = default, SettlementId second = default)
+        SettlementId first = default, SettlementId second = default, SimConfig? rules = null)
     {
-        SimConfig cfg = TestConfigs.Sim();
+        SimConfig cfg = rules ?? TestConfigs.PreDiscovery(TestConfigs.Sim());
         WorldgenConfig wg = TestConfigs.Worldgen();
         WorldState w = Sim.Cli.HeadlessFounding.Found(42);
         var log = new OrderLog();
@@ -252,6 +256,9 @@ public class IdentityDriftGuardTests
         for (int t = 0; t < Turns; t++)
         {
             SettlementSiting.FrontierSiting f = FoundingQuery.Frontier(w, cfg, wg)!;
+            if (t == 0 && DiscoveryQuery.FogOn(cfg))
+                foreach (SettlementId s in a == b ? new[] { a } : new[] { a, b })
+                    log.Append(new OrderRecord(0, Me.Value, OrderKind.Explore, s.Value, 0.0));
             if (t == 2 || t == 3)
             {
                 SettlementId source = t == 2 ? a : b;
@@ -270,7 +277,7 @@ public class IdentityDriftGuardTests
         return (log, worlds, new Plan(a, siteA, b, siteB));
     }
 
-    private static (OrderLog Log, List<WorldState> Worlds, Plan Plan) ThisBuildsGame()
+    private static (OrderLog Log, List<WorldState> Worlds, Plan Plan) ThisBuildsGame(SimConfig? rules = null)
     {
         WorldState w = Sim.Cli.HeadlessFounding.Found(42);
         SettlementId small = w.Settlements[0].Id, big = w.Settlements[0].Id;
@@ -280,8 +287,8 @@ public class IdentityDriftGuardTests
             if (Population(w, s) < Population(w, small)) small = s;
             if (Population(w, s) > Population(w, big)) big = s;
         }
-        Plan natural = Record(TestConfigs.Worldgen(), null, small, big).Plan;
-        return Record(TestConfigs.Worldgen(), new Plan(small, natural.SecondSite, big, natural.FirstSite));
+        Plan natural = Record(TestConfigs.Worldgen(), null, small, big, rules).Plan;
+        return Record(TestConfigs.Worldgen(), new Plan(small, natural.SecondSite, big, natural.FirstSite), rules: rules);
     }
 
     private static WorldgenConfig OtherBuild(Plan plan)
@@ -416,12 +423,14 @@ public class IdentityDriftGuardTests
                 AssertUnchanged(dir, before);
             }
 
-            // The same session labelled this build's schema: its log is replayed as this build's run (the ci.yml pattern).
+            // The same game, recorded by THIS build (the shipped rules — M6 EX: with the discovery layer on, so it explores
+            // first) and labelled this build's schema: its log is replayed as this build's run (the ci.yml pattern).
+            (OrderLog own, List<WorldState> ownWorlds, _) = ThisBuildsGame(TestConfigs.Sim());
             File.Delete(manifest);
-            Session(dir, log, worlds, CanonicalSchema.Version);
+            Session(dir, own, ownWorlds, CanonicalSchema.Version);
             (int ok, string stdout, string okErr) = CliProcess.Run(Limit, "replay", "--founded", "--seed", "42", "--turns", "7", "--orders", orders);
             Assert.True(ok == 0, okErr);
-            Assert.Contains("replay complete: seed 42, 7 turns, hash " + WorldHash.ComputeHex(worlds[Turns]), stdout);
+            Assert.Contains("replay complete: seed 42, 7 turns, hash " + WorldHash.ComputeHex(ownWorlds[Turns]), stdout);
         }
         finally
         {

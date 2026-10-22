@@ -147,6 +147,11 @@ public static class SnapshotDiff
         new("ResourceAllocations", [I("Polity"), I("BuildingsPercent")]),
         // v34 (D-055): each purse's set-aside units per good this step.
         new("ConstructionHolds", [I("Purse"), I("Good"), L("Units")]),
+        // v35 (M6 EX, ADR-044): the discovery tables (section 62 is Track CP's).
+        new("KnownExtents", [I("Polity"), I("Word"), L("Bits")]),
+        new("Explorations", [I("Polity"), I("Settlement"), I("RadiusNodes")]),
+        new("SettlementSightings", [I("Polity"), I("Settlement"), L("LastSeenTurn")]),
+        new("SettlementSurveys", [I("Polity"), I("Settlement"), L("Turn")]),
     ];
 
     /// <summary>The number of trailing <see cref="Layout"/> blocks schema v33 appended (absent from a v32 stream).</summary>
@@ -154,6 +159,9 @@ public static class SnapshotDiff
 
     /// <summary>The number of trailing <see cref="Layout"/> blocks schema v34 appended (absent from v32 and v33 streams).</summary>
     private const int V34Blocks = 1;
+
+    /// <summary>The number of trailing <see cref="Layout"/> blocks schema v35 appended (M6 EX; absent from v32–v34 streams).</summary>
+    private const int V35Blocks = 4;
 
     /// <summary>
     /// THE LAYOUT OF A STREAM OF <paramref name="version"/> (ADR-039: the walk dispatches on the save's header version;
@@ -166,11 +174,12 @@ public static class SnapshotDiff
     {
         if (!CanonicalSchema.IsReadable(version))
             throw new ArgumentOutOfRangeException(nameof(version), version,
-                $"sim diff walks canonical streams of version 32, 33 and {CanonicalSchema.Version} only.");
+                $"sim diff walks canonical streams of version 32, 33, 34 and {CanonicalSchema.Version} only.");
         return version switch
         {
-            32 => Layout[..^(V33Blocks + V34Blocks)],
-            33 => Layout[..^V34Blocks],
+            32 => Layout[..^(V33Blocks + V34Blocks + V35Blocks)],
+            33 => Layout[..^(V34Blocks + V35Blocks)],
+            34 => Layout[..^V35Blocks],
             _ => Layout,   // CanonicalSchema.Version, the one other member of the readable set
         };
     }

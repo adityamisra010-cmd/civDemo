@@ -40,7 +40,7 @@ public class IdentityDriftResumeTests
     {
         using var pipe = Sim.Data.DataFiles.OpenPipeline();
         return new TurnExecutor(UiSession.ProductionEra(),
-            PipelineLoader.Load(pipe, SystemCatalog.All(UiFounding.ProductionConfig(), colonization)), orders);
+            PipelineLoader.Load(pipe, SystemCatalog.All(TestFog.PreDiscovery, colonization)), orders);
     }
 
     private static long Population(IReadOnlyWorldState w, SettlementId s)
@@ -87,7 +87,7 @@ public class IdentityDriftResumeTests
     /// </summary>
     private static Recording Record(WorldgenConfig colonization, Plan? plan, SettlementId first = default, SettlementId second = default)
     {
-        SimConfig production = UiFounding.ProductionConfig();
+        SimConfig production = TestFog.PreDiscovery;
         WorldgenConfig wg = UiSession.ProductionWorldgen();
         WorldState w = UiFounding.Found(42);
         var log = new OrderLog();
@@ -126,7 +126,7 @@ public class IdentityDriftResumeTests
             if (Population(w, s) < Population(w, small)) small = s;
             if (Population(w, s) > Population(w, big)) big = s;
         }
-        double[] scores = FoundingQuery.Frontier(w, UiFounding.ProductionConfig(), UiSession.ProductionWorldgen())!.Scores;
+        double[] scores = FoundingQuery.Frontier(w, TestFog.PreDiscovery, UiSession.ProductionWorldgen())!.Scores;
         // The best site goes to the first order, so the natural game founds the higher-scored site first: the two sites
         // trade places (each was legal beside the other, so each is legal with the other taken).
         Plan natural = Record(UiSession.ProductionWorldgen(), null, small, big).Plan;
@@ -141,13 +141,13 @@ public class IdentityDriftResumeTests
     {
         WorldgenConfig wg = UiSession.ProductionWorldgen();
         WorldState w = UiFounding.Found(42);
-        double[] scores = FoundingQuery.Frontier(w, UiFounding.ProductionConfig(), wg)!.Scores;
+        double[] scores = FoundingQuery.Frontier(w, TestFog.PreDiscovery, wg)!.Scores;
         var positive = new List<double>();
         foreach (double v in scores) if (v > 0.0) positive.Add(v);
         positive.Sort();
         int at = positive.IndexOf(scores[plan.SecondSite]);
         WorldgenConfig other = wg with { Siting = wg.Siting with { ScoreFloorPercentile = (at + 0.5) / positive.Count } };
-        SettlementSiting.FrontierSiting f = FoundingQuery.Frontier(w, UiFounding.ProductionConfig(), other)!;
+        SettlementSiting.FrontierSiting f = FoundingQuery.Frontier(w, TestFog.PreDiscovery, other)!;
         Assert.False(SettlementSiting.IsFrontierCandidate(f, w.Terrain!, plan.FirstSite));
         Assert.True(SettlementSiting.IsFrontierCandidate(f, w.Terrain!, plan.SecondSite));
         return other;
@@ -157,7 +157,7 @@ public class IdentityDriftResumeTests
     {
         string log = Path.Combine(dir, "orders-20261018-120000.bin");
         using (FileStream o = File.Create(log)) r.Log.Save(o);
-        int grain = UiFounding.ProductionConfig().Goods!.GrainId;
+        int grain = TestFog.PreDiscovery.Goods!.GrainId;
         var lines = new List<string> { SessionTrace.Header };
         foreach (WorldState w in r.Worlds)
         {
@@ -167,7 +167,7 @@ public class IdentityDriftResumeTests
         }
         File.WriteAllText(UiSession.TracePath(log), string.Join("\n", lines) + "\n");
         File.WriteAllText(UiSession.ChroniclePath(log), "the chronicle as the older build wrote it\n");
-        SessionManifest m = UiSession.Start(42).Manifest(StartedAt, log);
+        SessionManifest m = UiSession.StartWith(TestFog.PreDiscovery, 42).Manifest(StartedAt, log);
         using (FileStream o = File.Create(UiSession.ManifestPath(log))) (m with { SchemaVersion = schema, BuildSha = "older-build" }).Write(o);
         return log;
     }
@@ -195,7 +195,7 @@ public class IdentityDriftResumeTests
 
         // THE HAZARD (what the resume did before D-057 — a replay that checks no identity): this build founds the first
         // colony as 12 and the second as 13, and the order lands on the first, another colony the player controls.
-        UiSession bare = UiSession.Start(42);
+        UiSession bare = UiSession.StartWith(TestFog.PreDiscovery, 42);
         bare.ReplayTo(rec.Log, Turns);
         Assert.Equal(12, SettlementAt(bare.World, plan.FirstSite));
         Assert.Equal(13, SettlementAt(bare.World, plan.SecondSite));
@@ -211,7 +211,7 @@ public class IdentityDriftResumeTests
             Assert.Equal(4, files.Length);   // the manifest, the log, the trace and the chronicle
             byte[][] before = files.Select(File.ReadAllBytes).ToArray();
 
-            var e = Assert.Throws<OrderValidationException>(() => UiSession.Resume(UiSession.ManifestPath(log), out _));
+            var e = Assert.Throws<OrderValidationException>(() => UiSession.Resume(UiSession.ManifestPath(log), out _, TestFog.PreDiscovery));
             Assert.Contains("the orders delivered on turn 5 include SectorAllocation (issued by polity 1) for settlement 12, "
                 + "founded at turn 3 in this replay", e.Message);
             Assert.Contains("This replay matches the recorded game (its saved trace) through turn 2 and differs from turn 3 on", e.Message);
@@ -248,7 +248,7 @@ public class IdentityDriftResumeTests
         try
         {
             string log = WriteSession(dir, rec, schema, w => WorldHash.ComputeHexAsSchema(w, schema));
-            UiSession resumed = UiSession.Resume(UiSession.ManifestPath(log), out _);
+            UiSession resumed = UiSession.Resume(UiSession.ManifestPath(log), out _, TestFog.PreDiscovery);
             Assert.Equal((long)Turns, resumed.World.Clock.Turn);
             Assert.Equal(WorldHash.ComputeHex(rec.Worlds[Turns]), WorldHash.ComputeHex(resumed.World));
             Assert.Equal(rec.Plan.FirstSite, CellOf(resumed.World, NoBuilderSettlements(resumed.World).Single()));
@@ -272,7 +272,7 @@ public class IdentityDriftResumeTests
             File.Delete(UiSession.TracePath(log));
             string[] files = Directory.GetFiles(dir).Order(StringComparer.Ordinal).ToArray();
             byte[][] before = files.Select(File.ReadAllBytes).ToArray();
-            var e = Assert.Throws<OrderValidationException>(() => UiSession.Resume(UiSession.ManifestPath(log), out _));
+            var e = Assert.Throws<OrderValidationException>(() => UiSession.Resume(UiSession.ManifestPath(log), out _, TestFog.PreDiscovery));
             Assert.Contains("the orders delivered on turn 2 include FoundSettlement (issued by polity 1) for settlement", e.Message);
             Assert.Contains("The session has no trace to show that with", e.Message);
             Assert.Contains("put its trace file (" + Path.GetFileName(UiSession.TracePath(log)) + ") back beside the manifest", e.Message);

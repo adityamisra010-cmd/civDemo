@@ -105,7 +105,7 @@ public static class AiConstructionPolicy
 
         var orders = new List<OrderRecord>();
         var ordered = new List<int>();   // settlements given an order this turn
-        PolityKnowledge knows = PolityKnowledge.Of(world, polity);
+        PolityKnowledge knows = PolityKnowledge.Of(world, polity, cfg);
         bool incremental = ConstructionQuery.Incremental(cfg);
 
         // WS1 (a): cancel this polity's own STRUCTURALLY STALLED heads first (the header). Settlement-table order.
@@ -247,7 +247,7 @@ public static class AiConstructionPolicy
     {
         SettlementId? best = null;
         long bestSpare = 0;
-        PolityKnowledge knows = PolityKnowledge.Of(world, polity);
+        PolityKnowledge knows = PolityKnowledge.Of(world, polity, cfg);
         for (int s = 0; s < world.Settlements.Count; s++)
         {
             SettlementId settlement = world.Settlements[s].Id;

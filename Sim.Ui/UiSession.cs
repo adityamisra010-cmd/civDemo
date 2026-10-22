@@ -209,7 +209,7 @@ public sealed class UiSession
         if (_preview is not null && ReferenceEquals(_previewFrom, World) && _previewOrders == Orders.Count) return _preview;
         long turn = World.Clock.Turn;
         _previewEra ??= ProductionEra();
-        _previewPipeline ??= ProductionPipeline();
+        _previewPipeline ??= PipelineFor(_simCfg);
         var log = new OrderLog();
         for (int i = 0; i < Orders.Count; i++) if (Orders[i].Turn == turn) log.Append(Orders[i]);
         _preview = new TurnExecutor(_previewEra, _previewPipeline, log).Step(ExpectedWeatherCopy(World, UiPlayer.Empire));
@@ -246,8 +246,8 @@ public sealed class UiSession
 
     /// <summary>
     /// M5 map workstream P7 — WHAT THE PLAYER KNOWS of <see cref="World"/>, rebuilt after every step (and at the start) from
-    /// the Sim.Core knowledge seam: <see cref="PlayerKnowledge.Of(IReadOnlyWorldState)"/>, all-known until S2a stores an
-    /// extent. Every player-facing reader asks it; the annals are filtered by it HERE, before a line is appended (an event
+    /// the Sim.Core knowledge seam: <see cref="PlayerKnowledge.Of(IReadOnlyWorldState, PolityId, SimConfig?)"/> under the
+    /// session's fog (M6 EX, ADR-044). Every player-facing reader asks it; the annals are filtered by it HERE, before a line is appended (an event
     /// is kept only when the player knows every settlement and polity it names), and the history buffer's world series
     /// sum only what it knows. Never a second source of truth: a pure function of the world (and, for a test or the
     /// headless gate's hidden-rival rig only, of the stub <see cref="StartFrom(WorldState, ulong, int?, int?, Func{IReadOnlyWorldState, PlayerKnowledge}?)"/>
@@ -272,7 +272,7 @@ public sealed class UiSession
         Func<IReadOnlyWorldState, PlayerKnowledge>? knowledgeOf = null)
     {
         World = world;
-        _knowledgeOf = knowledgeOf ?? (w => PlayerKnowledge.Of(w));
+        _knowledgeOf = knowledgeOf ?? (w => PlayerKnowledge.Of(w, UiPlayer.Empire, simCfg));
         Knowledge = _knowledgeOf(world);
         _executor = executor;
         Orders = orders;
@@ -356,6 +356,36 @@ public sealed class UiSession
             seed, sizeOverridePx, settlementsOverride, simCfg, aiEmpiresOverride);
     }
 
+    /// <summary>
+    /// M6 Track EX (ADR-044) — TEST SEAM: a session founded as <see cref="Start"/> founds it, but run, previewed and read
+    /// under an explicit <paramref name="config"/> — an attribution twin such as TestConfigs.PreDiscovery, for a test whose
+    /// subject is an older layer and whose premise the fog or concealment would change. The founding does not depend on
+    /// the discovery sections, so the turn-0 world is Start's. Never a playable session: a save of it resumes under the
+    /// production config (the manifest names no config), so a test that resumes uses <see cref="Start"/>.
+    /// </summary>
+    public static UiSession StartWith(
+        SimConfig config, ulong seed, int? sizeOverridePx = null, int? settlementsOverride = null, int? aiEmpiresOverride = null,
+        bool? wrapXOverride = null)
+    {
+        ArgumentNullException.ThrowIfNull(config);
+        var orders = new OrderLog();
+        return new UiSession(
+            UiFounding.Found(seed, sizeOverridePx, settlementsOverride, aiEmpiresOverride, wrapXOverride),
+            new TurnExecutor(ProductionEra(), PipelineFor(config), orders), orders,
+            seed, sizeOverridePx, settlementsOverride, config, aiEmpiresOverride);
+    }
+
+    /// <summary>As <see cref="StartWith(SimConfig, ulong, int?, int?, int?, bool?)"/> over an already-founded world (the
+    /// <see cref="StartFrom(WorldState, ulong, int?, int?)"/> seam under an explicit config).</summary>
+    public static UiSession StartFromWith(SimConfig config, WorldState founded, ulong seed, int? sizeOverridePx = null, int? settlementsOverride = null,
+        Func<IReadOnlyWorldState, PlayerKnowledge>? knowledgeOf = null)
+    {
+        ArgumentNullException.ThrowIfNull(config);
+        var orders = new OrderLog();
+        return new UiSession(founded, new TurnExecutor(ProductionEra(), PipelineFor(config), orders), orders,
+            seed, sizeOverridePx, settlementsOverride, config, knowledgeOf: knowledgeOf);
+    }
+
     /// <summary>The AI-empire override this session was founded with, or null for worldgen.json's count.</summary>
     public int? AiEmpiresOverride => _aiEmpires;
 
@@ -406,9 +436,13 @@ public sealed class UiSession
     /// every value in every other artifact depends on it — so the forensic run
     /// record reads it from here, the same array the executor is constructed
     /// with.</summary>
-    public static SystemRegistration[] ProductionPipeline()
+    public static SystemRegistration[] ProductionPipeline() => PipelineFor(UiFounding.ProductionConfig());
+
+    /// <summary>The production pipeline (pipeline.json order, the full catalog, worldgen.json's siting config) over
+    /// <paramref name="simCfg"/> — <see cref="ProductionPipeline"/> for the production config; a twin config's for
+    /// <see cref="StartWith"/>.</summary>
+    public static SystemRegistration[] PipelineFor(SimConfig simCfg)
     {
-        SimConfig simCfg = UiFounding.ProductionConfig();
         using var pipe = Sim.Data.DataFiles.OpenPipeline();
         using var wgStream = Sim.Data.DataFiles.OpenWorldgen();
         return PipelineLoader.Load(pipe, SystemCatalog.All(
@@ -571,6 +605,39 @@ public sealed class UiSession
         int inForce = ResourceAllocation.EffectivePercent(ConstructionQuery.AllocationsWith(World, Config, World.ResourceAllocations, queued), me);
         if (inForce == percent) return false;
         Orders.Append(order);
+        return true;
+    }
+
+    /// <summary>
+    /// M6 Track EX (D-062 D9; ADR-044): ONE Explore order (kind 14) for the player's Empire from settlement
+    /// <paramref name="settlementId"/>, stamped with the CURRENT turn, appended only when THE predicate DiscoverySystem
+    /// applies (<see cref="DiscoveryQuery.CheckExplore(IReadOnlyWorldState, SimConfig, PolityId, SettlementId)"/>) admits it
+    /// on this world and no Explore from that settlement is already queued this turn (DiscoverySystem applies one). Appends
+    /// nothing (false) otherwise.
+    /// </summary>
+    public bool EmitExplore(int settlementId)
+    {
+        PolityId me = UiPlayer.Empire;
+        var settlement = new SettlementId(settlementId);
+        if (DiscoveryQuery.CheckExplore(World, Config, me, settlement) != ExploreVerdict.Ok) return false;
+        if (AvailableActionsQuery.Queued(QueuedOrders(), me, OrderKind.Explore, settlement)) return false;
+        Orders.Append(OrderRecord.From(World.Clock.Turn, me, OrderKind.Explore, settlementId, 0.0));
+        return true;
+    }
+
+    /// <summary>
+    /// M6 Track EX (D-062 D9; ADR-044): ONE Prospect order (kind 15) for the player's Empire at settlement
+    /// <paramref name="settlementId"/>, stamped with the CURRENT turn, appended only when THE predicate DiscoverySystem
+    /// applies (<see cref="DiscoveryQuery.CheckProspect(IReadOnlyWorldState, SimConfig, PolityId, SettlementId)"/>) admits it
+    /// and none is already queued for that settlement this turn. Appends nothing (false) otherwise.
+    /// </summary>
+    public bool EmitProspect(int settlementId)
+    {
+        PolityId me = UiPlayer.Empire;
+        var settlement = new SettlementId(settlementId);
+        if (DiscoveryQuery.CheckProspect(World, Config, me, settlement) != ProspectVerdict.Ok) return false;
+        if (AvailableActionsQuery.Queued(QueuedOrders(), me, OrderKind.Prospect, settlement)) return false;
+        Orders.Append(OrderRecord.From(World.Clock.Turn, me, OrderKind.Prospect, settlementId, 0.0));
         return true;
     }
 
@@ -1019,7 +1086,15 @@ public sealed class UiSession
     /// player. The check itself, the schema-mismatch path above and every hash are unchanged, and nothing is written:
     /// a refused resume has only read the session's files.
     /// </summary>
-    public static UiSession Resume(string manifestPath, out string sessionLogPath)
+    public static UiSession Resume(string manifestPath, out string sessionLogPath) => Resume(manifestPath, out sessionLogPath, null);
+
+    /// <summary>
+    /// As <see cref="Resume(string, out string)"/>; M6 Track EX TEST SEAM: <paramref name="configOverride"/> replays the
+    /// session under an explicit config — the one a <see cref="StartWith"/> session was played under (an attribution twin),
+    /// since the manifest names no config. Null: the production rules (the discovery layer off for a session recorded
+    /// before v35, <see cref="DiscoveryQuery.RecordedWithoutDiscovery"/>). The launcher never passes one.
+    /// </summary>
+    public static UiSession Resume(string manifestPath, out string sessionLogPath, SimConfig? configOverride)
     {
         string dir = Path.GetDirectoryName(Path.GetFullPath(manifestPath)) ?? "";
         // D-057: a session file that is missing or cannot be read (a truncated log, a malformed trace line, a manifest that
@@ -1052,8 +1127,14 @@ public sealed class UiSession
         // wrapped before the cylinder), so it is re-founded flat — TopologyFlags.RecordedFlat, the rule the CLI's save
         // loader and `sim inspect` apply too. Before, it was re-founded on the shipped cylinder: a different map, and a
         // log whose FoundSettlement sites are legal only on the flat one was rejected (exit 2).
-        UiSession session = Start(manifest.Seed, manifest.SizePx, manifest.Settlements, manifest.AiEmpires,
-            wrapXOverride: TopologyFlags.RecordedFlat(manifest.SchemaVersion) ? false : null);
+        // M6 Track EX (ADR-044 §7): a session recorded before v35 was played without the discovery layer, so it is replayed
+        // without it — DiscoveryQuery.RecordedWithoutDiscovery, the RecordedFlat rule one schema later (`sim inspect` too).
+        bool? wrap = TopologyFlags.RecordedFlat(manifest.SchemaVersion) ? false : null;
+        SimConfig? rules = configOverride
+            ?? (DiscoveryQuery.RecordedWithoutDiscovery(manifest.SchemaVersion) ? DiscoveryQuery.WithoutDiscovery(UiFounding.ProductionConfig()) : null);
+        UiSession session = rules is not null
+            ? StartWith(rules, manifest.Seed, manifest.SizePx, manifest.Settlements, manifest.AiEmpires, wrapXOverride: wrap)
+            : Start(manifest.Seed, manifest.SizePx, manifest.Settlements, manifest.AiEmpires, wrapXOverride: wrap);
         try
         {
             // D-056: the trace goes in whatever the schema — ReplayGuard checks every batch carrying a legacy kind-11

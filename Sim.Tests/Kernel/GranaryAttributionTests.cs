@@ -87,7 +87,7 @@ public class GranaryAttributionTests
     [Fact]
     public void TheFoundedGolden_IsUnmovedByTheGranaryEffects_OnOrOff()
     {
-        SimConfig on = TestConfigs.Sim();
+        SimConfig on = TestConfigs.PreDiscovery(TestConfigs.Sim());   // M6 EX: the newer discovery layer off (R4)
         Assert.True(on.Granaries!.Enabled);                                   // the shipped content is the ON arm
         // D-054 (batch 3) — the PreD054 PAIR: every leg founds FLAT (TestConfigs.PreD054Worldgen, the worldgen half) and
         // every de86ace / batch-2 literal compares through the v32 projection (SchemaProjection.V32 — the two appended v33

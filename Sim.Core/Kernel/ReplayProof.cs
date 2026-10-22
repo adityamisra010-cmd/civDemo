@@ -107,14 +107,15 @@ public sealed class ReplayProof
     public int ProvenSettlementMax => _settlementMax;
 
     /// <summary>
-    /// The settlement <paramref name="order"/> names — its target for the settlement-addressed kinds (2, 4, 9, 11, 13;
+    /// The settlement <paramref name="order"/> names — its target for the settlement-addressed kinds (2, 4, 9, 11, 13, 14, 15;
     /// kind 3's settlement × 8 + sector decoded) — or −1 for an order that names none (its target is the issuer, a
     /// research node, an Age, or a region).
     /// </summary>
     public static int AddressedSettlement(OrderRecord order) => order.Kind switch
     {
         OrderKind.LaborAllocation or OrderKind.EnqueueConstruction or OrderKind.FoundSettlement
-            or OrderKind.CancelConstruction or OrderKind.CancelConstructionEntry => order.TargetId,
+            or OrderKind.CancelConstruction or OrderKind.CancelConstructionEntry
+            or OrderKind.Explore or OrderKind.Prospect => order.TargetId,
         OrderKind.SectorAllocation => order.TargetId >> 3,
         _ => -1,
     };

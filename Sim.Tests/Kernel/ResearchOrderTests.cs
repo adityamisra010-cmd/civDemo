@@ -64,7 +64,11 @@ public class ResearchOrderTests
         // (cause: the new kind; kind 13 round-trips in LegacyCancelGuardTests).
         Assert.Contains("13 (CancelConstructionEntry)", e.Message);
         Assert.Contains("kind 11 is legacy (read, no longer written: D-056)", e.Message);
-        var fourteen = Assert.Throws<SnapshotFormatException>(() => RoundTrip(new OrderRecord(3, 1, (OrderKind)14, 0, 0.0)));
-        Assert.Contains("unknown order kind 14", fourteen.Message);
+        // M6 Track EX (D-062, ADR-044): kinds 14 (Explore) and 15 (Prospect) are new, so the first kind past the end moved
+        // 14 -> 16 (cause: the two new kinds; both round-trip in DiscoveryOrderLogTests).
+        Assert.Contains("14 (Explore)", e.Message);
+        Assert.Contains("15 (Prospect)", e.Message);
+        var sixteen = Assert.Throws<SnapshotFormatException>(() => RoundTrip(new OrderRecord(3, 1, (OrderKind)16, 0, 0.0)));
+        Assert.Contains("unknown order kind 16", sixteen.Message);
     }
 }

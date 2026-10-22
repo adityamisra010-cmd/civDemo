@@ -36,7 +36,7 @@ public class NonCanonicalSizeFoundingUiTests
     [InlineData(1UL, BottomRow)]
     public void OnA256PxSession_ThePlayersPlacementFoundsAColony_WithoutAThrow_WritingTheMapsOwnDeposits(ulong seed, int fromRow)
     {
-        UiSession s = UiSession.Start(seed, sizeOverridePx: Size);
+        UiSession s = UiSession.StartWith(TestFog.PreDiscovery, seed, sizeOverridePx: Size);
         TerrainSet t = s.World.Terrain!;
         Assert.Equal(Size, t.Size);
         Assert.Equal(1024, UiSession.ProductionWorldgen().SizePx);   // the pipeline's config describes another map size

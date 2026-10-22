@@ -373,6 +373,10 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
     {
         if (pool <= 0.0) return;
 
+        // M6 EX (D-062, ADR-044): a concealed deposit its controller has not prospected reads as abundance 0 — the ONE
+        // predicate (State.DepositConcealment) every consumer reads through; null (nothing hidden) with concealment off.
+        int[]? hidden = DepositConcealment.HiddenGoods(prev, _cfg, settlement);
+
         // Deposit rows are settlement-major, goods-registry order (T3.2) —
         // one pass collects this settlement's split weights deterministically.
         double abundanceSum = 0.0;
@@ -380,7 +384,7 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
         {
             DepositRow d = prev.Deposits[i];
             if (d.Settlement != settlement || !InSector(d.Good, foodSector)) continue;
-            abundanceSum += d.Abundance;
+            abundanceSum += DepositConcealment.Contains(hidden, d.Good.Value) ? 0.0 : d.Abundance;
         }
         if (abundanceSum <= 0.0) return; // no endowment → no production (never from nothing)
 
@@ -388,7 +392,7 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
         {
             DepositRow d = prev.Deposits[i];
             if (d.Settlement != settlement || !InSector(d.Good, foodSector)) continue;
-            if (d.Abundance <= 0.0) continue;
+            if (d.Abundance <= 0.0 || DepositConcealment.Contains(hidden, d.Good.Value)) continue;
 
             int row = GoodStockIndex.IndexOf(stocks, settlement, d.Good);
             if (row < 0) continue;

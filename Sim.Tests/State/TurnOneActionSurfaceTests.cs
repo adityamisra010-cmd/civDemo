@@ -148,7 +148,12 @@ public class TurnOneActionSurfaceTests
         Assert.All(founding, a => Assert.Equal((ActionKind.Order, (OrderKind?)OrderKind.FoundSettlement, (string?)null), (a.Kind, a.Order, a.Blocker)));
         // Construction contributes 12 (one granary per settlement), not 24: the workshop is not listed at founding
         // (Director 2026-10-10, D-051 §4 — see CONSTRUCTION above). M5 S1d: + 12 Found Settlement (84 -> 96).
-        Assert.Equal(12 * 5 + 1 + 12 + 1 + 8 + 2 + 12, actions.Length);
+        // M6 EX (D-062 D9, ADR-044): + 24 — the Actions menu, an Explore and a Prospect per settlement (96 -> 120). At
+        // founding every Explore is affordable (60 grain) and every Prospect is blocked (no tools anywhere — ADR-044 §5).
+        ActionDescriptor[] discovery = Of(actions, ActionDomain.Discovery);
+        Assert.Equal(24, discovery.Length);
+        Assert.All(discovery, a => Assert.Equal(a.Id % 2 == 0 ? null : "not enough tools (needs 4)", a.Blocker));
+        Assert.Equal(12 * 5 + 1 + 12 + 1 + 8 + 2 + 12 + 24, actions.Length);
     }
 
     // ------------------------------------------------------------------ Farming replaces Gathering (step 7)

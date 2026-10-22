@@ -78,7 +78,7 @@ public partial class KnowledgeLeakTests : IDisposable
 
     private static readonly Lazy<Rig> Played = new(() =>
     {
-        UiSession s = UiSession.Start(42, aiEmpiresOverride: 1);
+        UiSession s = UiSession.StartWith(TestFog.PreDiscovery, 42, aiEmpiresOverride: 1);
         for (int t = 0; t < 6; t++) s.EndTurn();
         WorldState next = s.World.Clone();
         bool[] mask = KnowledgeStubs.HiddenMask(next, Player, Hidden);
@@ -625,8 +625,8 @@ public partial class KnowledgeLeakTests : IDisposable
     {
         Rig r = Played.Value;
         WorldState a = r.Next.Clone(), b = PerturbedNext();
-        List<string> fa = Frames(UiSession.StartFrom(a, 42, null, null, Stub), Path.Combine(_root, "a"));
-        List<string> fb = Frames(UiSession.StartFrom(b, 42, null, null, Stub), Path.Combine(_root, "b"));
+        List<string> fa = Frames(UiSession.StartFromWith(TestFog.PreDiscovery, a, 42, null, null, Stub), Path.Combine(_root, "a"));
+        List<string> fb = Frames(UiSession.StartFromWith(TestFog.PreDiscovery, b, 42, null, null, Stub), Path.Combine(_root, "b"));
         Assert.Equal(fa, fb);
         // No name of a hidden settlement is drawn anywhere.
         foreach (int id in KnowledgeStubs.SettlementsOf(a, Hidden))
@@ -635,7 +635,7 @@ public partial class KnowledgeLeakTests : IDisposable
         // D-060 the control was "the all-known UI over the two worlds draws a difference": that difference was the rival's
         // books (its founding figures in the annals), which D-060 closes to the production view — D060_TheRealUi_* is the
         // metamorphic test of that, with its own positive control on the player's own books.
-        List<string> ca = Frames(UiSession.StartFrom(r.Next.Clone(), 42), Path.Combine(_root, "ca"));
+        List<string> ca = Frames(UiSession.StartFromWith(TestFog.PreDiscovery, r.Next.Clone(), 42), Path.Combine(_root, "ca"));
         Assert.NotEqual(fa, ca);
         Assert.Contains(KnowledgeStubs.SettlementsOf(a, Hidden), id => ca.Any(text => HasWord(text, r.Name(id))));
     }
@@ -648,7 +648,7 @@ public partial class KnowledgeLeakTests : IDisposable
         Assert.Equal(HudModel.UnnamedTitle, HudModel.From(r.Next, r.Next.Settlements[1].Id.Value).TitleLine);
         Assert.Equal(r.Name(r.Next.Settlements[1].Id.Value), HudModel.From(r.Next, r.Next.Settlements[1].Id.Value, settlementName: r.Name(r.Next.Settlements[1].Id.Value)).TitleLine);
         // No player surface of the real UI prints "settlement N" (the dense id would count the world's settlements).
-        foreach (string text in Frames(UiSession.StartFrom(r.Next.Clone(), 42), Path.Combine(_root, "ids")))
+        foreach (string text in Frames(UiSession.StartFromWith(TestFog.PreDiscovery, r.Next.Clone(), 42), Path.Combine(_root, "ids")))
             Assert.False(Regex.IsMatch(text, @"(?i)\bsettlement\s+\d+"), "a raw settlement id in player text: " + text);
     }
 
@@ -933,7 +933,7 @@ public partial class KnowledgeLeakTests : IDisposable
         (int l, int block) = PolityKnowledge.Grid(size);
         bool[] mask = r.Mask;
         IReadOnlyList<int> hidden = KnowledgeStubs.SettlementsOf(w, Hidden);
-        PolityKnowledge grid = PolityKnowledge.Of(w, Player);
+        PolityKnowledge grid = PolityKnowledge.Of(w, Player, null);
         for (int i = 0; i < w.Settlements.Count; i++)
         {
             if (!hidden.Contains(w.Settlements[i].Id.Value)) continue;
@@ -1077,7 +1077,7 @@ public partial class KnowledgeLeakTests : IDisposable
         // exactly as no selection (id -1). The control: the all-known twin session (the same world and orders, one step)
         // reads each of them for the same id.
         UiSession s = PlayabilityGate.HiddenRival();
-        UiSession all = UiSession.StartFrom(UiSession.Start(42, aiEmpiresOverride: 1).World.Clone(), 42);
+        UiSession all = UiSession.StartFromWith(TestFog.PreDiscovery, UiSession.StartWith(TestFog.PreDiscovery, 42, aiEmpiresOverride: 1).World.Clone(), 42);
         all.EndTurn();
         Assert.Equal(s.World.Clock.Turn, all.World.Clock.Turn);
         PlayerKnowledge k = s.Knowledge;
@@ -1130,7 +1130,7 @@ public partial class KnowledgeLeakTests : IDisposable
     private (int Target, int After, List<string> Texts, HashSet<string> ToldWhileKnown) SelectRivalThenStep(bool hideOnStep, int rivalsOn, string dir)
     {
         bool hide = false;
-        UiSession s = UiSession.StartFrom(UiSession.Start(42, aiEmpiresOverride: 1).World.Clone(), 42, null, null,
+        UiSession s = UiSession.StartFromWith(TestFog.PreDiscovery, UiSession.StartWith(TestFog.PreDiscovery, 42, aiEmpiresOverride: 1).World.Clone(), 42, null, null,
             knowledgeOf: w => hide ? KnowledgeStubs.HidePolity(w, Player, Hidden) : PlayerKnowledge.Of(w));
         using UiFrameHarness h = UiFrameHarness.Start(s, dir, Assets());
         h.Idle(3);
@@ -1278,7 +1278,7 @@ public partial class KnowledgeLeakTests : IDisposable
             foreach (GateRow row in rows) Assert.True(row.Result == GateResult.Pass, row.Control + ": " + row.Detail);
             Assert.Empty(h.Problems);
         }
-        using (UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42, aiEmpiresOverride: 1), Path.Combine(_root, "gate-all"), Assets()))
+        using (UiFrameHarness h = UiFrameHarness.Start(UiSession.StartWith(TestFog.PreDiscovery, 42, aiEmpiresOverride: 1), Path.Combine(_root, "gate-all"), Assets()))
             Assert.Empty(PlayabilityGate.KnowledgeRows(h, "one AI"));
     }
 
@@ -1306,7 +1306,7 @@ public partial class KnowledgeLeakTests : IDisposable
     // ================================================================== the source guard
 
     /// <summary>A raw read of a foreign-sensitive world table through a world receiver (the advisory script's pattern).</summary>
-    public static readonly Regex RawRead = new(@"\b(world|w|_world|World|prev|next|W)\.(Settlements|MilitaryUnits|Buckets|Deposits)\b",
+    public static readonly Regex RawRead = new(@"\b(world|w|_world|World|prev|next|W)\.(Settlements|MilitaryUnits|Buckets|Deposits|KnownExtents|Explorations|SettlementSightings|SettlementSurveys)\b",
         RegexOptions.CultureInvariant);
 
     /// <summary>The allowlist (scripts/ui-raw-read-allowlist.txt): path → class.</summary>
@@ -1447,7 +1447,7 @@ public partial class KnowledgeLeakTests : IDisposable
         (double X, double Y)? clickHiddenAt, int hiddenUnit, int hiddenSite)
     {
         Rig r = Played.Value;
-        UiSession s = UiSession.StartFrom(w, 42, null, null, knowledgeOf);
+        UiSession s = UiSession.StartFromWith(TestFog.PreDiscovery, w, 42, null, null, knowledgeOf);
         var cat = new SortedDictionary<string, string>(StringComparer.Ordinal);
         void Add(string key, string text) => cat[key] = cat.TryGetValue(key, out string? had) ? had + text : text;
 

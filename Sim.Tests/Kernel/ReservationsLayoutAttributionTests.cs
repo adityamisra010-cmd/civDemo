@@ -22,6 +22,12 @@ namespace Sim.Tests.Kernel;
 /// The batch-3 literals are those the batch-3 build pinned (base-b3: de86ace + b3-final-v9). Batch-2 references stay
 /// reachable through the PreD054 pair and <see cref="SchemaProjection.V32"/> (D054PairAttributionTests; V32 now drops
 /// sections 59, 60 and 61 and asserts all three empty).
+///
+/// M6 Track EX (2026-10-22; ADR-044 §12): the v34 values these tests re-pinned are HISTORICAL now — schema v35 and the
+/// shipped discovery layer moved every live golden again (DiscoveryLayoutAttributionTests). So each world here is run with
+/// the discovery layer OFF (TestConfigs.PreDiscovery — the R4 rule: an older layer's attribution strips the newer layers)
+/// and compared through SchemaProjection.V34 (the v34 hash, asserting no discovery row) to the v34 literal; the v33
+/// projection of the same world still returns batch 3.
 /// </summary>
 public class ReservationsLayoutAttributionTests
 {
@@ -37,40 +43,42 @@ public class ReservationsLayoutAttributionTests
     {
         Assert.Equal(0, world.ConstructionHolds.Count);
         Assert.Equal(batch3, SchemaProjection.V33(world));            // (1) the batch-3 hash, byte for byte (asserts 0 holds)
-        string raw = WorldHash.ComputeHex(world);
-        Assert.True(v34 == raw, "(2) the raw v34 hash is " + raw + "; pinned " + v34);   // the re-pinned v34 value, in full
+        string atV34 = SchemaProjection.V34(world);                    // M6 EX: the v34 hash (asserts no discovery row)
+        Assert.True(v34 == atV34, "(2) the v34 hash is " + atV34 + "; pinned " + v34);   // the re-pinned v34 value, in full
         Assert.NotEqual(batch3, v34);                                  // (3) the prefix moved the pin
         byte[] stream = SchemaProjection.Serialize(world);
-        Assert.Equal(new byte[4], stream[^4..]);                       // the movement IS one empty count prefix
+        Assert.Equal(new byte[4 + 4 * SchemaProjection.V35TableCount], stream[^(4 + 4 * SchemaProjection.V35TableCount)..]);   // + v35's four
     }
+
+    private static SimConfig Pre() => TestConfigs.PreDiscovery(TestConfigs.Sim());
 
     [Fact]
     public void FoundedGoldenSeed42Turn300_MovedForTheV34LayoutAlone()
     {
-        WorldState world = SnapshotTests.RunFoundedGolden();
+        WorldState world = SnapshotTests.RunFoundedGolden(Pre());
         Assert.True(world.Terrain!.WrapX);                             // the shipped cylinder, as the golden runs it
-        AssertLayoutAlone(world, Batch3FoundedGolden, SnapshotTests.FoundedGoldenHash);
+        AssertLayoutAlone(world, Batch3FoundedGolden, DiscoveryLayoutAttributionTests.V34FoundedGolden);
     }
 
     [Fact]
     public void ToyGoldenSeed42Turn200_MovedForTheV34LayoutAlone()
     {
         WorldState world = SnapshotTests.CanonicalExecutor().Run(SnapshotTests.Genesis(42), 200);
-        AssertLayoutAlone(world, Batch3ToyGolden, SnapshotTests.ToyGoldenHash);
+        AssertLayoutAlone(world, Batch3ToyGolden, DiscoveryLayoutAttributionTests.V34ToyGolden);
     }
 
     [Fact]
     public void DrivenGoldenSeed42Turn300_MovedForTheV34LayoutAlone()
     {
-        (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
-        AssertLayoutAlone(world, Batch3DrivenGolden, DrivenGoldenTests.Golden);
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, Pre());
+        AssertLayoutAlone(world, Batch3DrivenGolden, DiscoveryLayoutAttributionTests.V34DrivenGolden);
     }
 
     [Fact]
     public void FirstReignTurn40_MovedForTheV34LayoutAlone()
     {
-        WorldState world = FirstReignTests.Replay(40, out _);
-        AssertLayoutAlone(world, Batch3FirstReignGolden, FirstReignTests.PostR1Golden);
+        WorldState world = FirstReignTests.Replay(40, out _, Pre());
+        AssertLayoutAlone(world, Batch3FirstReignGolden, DiscoveryLayoutAttributionTests.V34FirstReignGolden);
     }
 
     /// <summary>The AI world (`sim run --founded --seed 42 --turns 300 --ai-empires 1`, AiFoundingAttributionTests' live
@@ -80,15 +88,15 @@ public class ReservationsLayoutAttributionTests
     [Fact]
     public void AiWorldSeed42Turn300_MovedForTheV34LayoutAlone()
     {
-        WorldState live = RunAiWorld(TestConfigs.Sim(), out int constructionOrders);
+        WorldState live = RunAiWorld(Pre(), out int constructionOrders);
         Assert.True(constructionOrders > 0, "the AI ordered no construction - the absence of holds is vacuous");
-        AssertLayoutAlone(live, Batch3AiTurn300, AiFoundingAttributionTests.S1cTurn300);
+        AssertLayoutAlone(live, Batch3AiTurn300, DiscoveryLayoutAttributionTests.V34AiTurn300);
         WorldState control = RunAiWorld(TestConfigs.PreReservations(TestConfigs.Sim()), out _);
         Assert.Equal(Batch3AiTurn300, SchemaProjection.V33(control));
         Assert.Equal(WorldHash.ComputeHex(live), WorldHash.ComputeHex(control));
     }
 
-    private static WorldState RunAiWorld(SimConfig cfg, out int constructionOrders)
+    internal static WorldState RunAiWorld(SimConfig cfg, out int constructionOrders, bool holdFree = true)
     {
         var log = new OrderLog();
         TurnExecutor exec;
@@ -100,7 +108,7 @@ public class ReservationsLayoutAttributionTests
         {
             AiOrders.Append(log, w, cfg, TestConfigs.Worldgen());
             w = exec.Step(w);
-            Assert.Equal(0, w.ConstructionHolds.Count);
+            if (holdFree) Assert.Equal(0, w.ConstructionHolds.Count);
         }
         constructionOrders = 0;
         for (int i = 0; i < log.Count; i++)
@@ -116,7 +124,7 @@ public class ReservationsLayoutAttributionTests
     {
         WorldState control = SnapshotTests.RunFoundedGolden(TestConfigs.PreReservations(TestConfigs.Sim()));
         Assert.Equal(Batch3FoundedGolden, SchemaProjection.V33(control));
-        Assert.Equal(SnapshotTests.FoundedGoldenHash, WorldHash.ComputeHex(control));
+        Assert.Equal(DiscoveryLayoutAttributionTests.V34FoundedGolden, SchemaProjection.V34(control));   // M6 EX: v34 = shipped then
     }
 
     /// <summary>§1.8 #25 (D-055, X2): the driven golden world under TestConfigs.PreReservations projects to its batch-3
@@ -126,6 +134,6 @@ public class ReservationsLayoutAttributionTests
     {
         (WorldState control, _) = DrivenGoldenTests.RunDriven(300, TestConfigs.PreReservations(TestConfigs.Sim()));
         Assert.Equal(Batch3DrivenGolden, SchemaProjection.V33(control));
-        Assert.Equal(DrivenGoldenTests.Golden, WorldHash.ComputeHex(control));
+        Assert.Equal(DiscoveryLayoutAttributionTests.V34DrivenGolden, SchemaProjection.V34(control));   // M6 EX: v34 = shipped then
     }
 }

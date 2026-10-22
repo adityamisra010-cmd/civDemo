@@ -220,6 +220,15 @@ public sealed record ProductionBlock(ImmutableArray<ProductionEntry> Entries);
 /// map in the placement mode; nothing here is an order until the placement's Confirm.</summary>
 public sealed record FoundingBlock(SettlementId Source, string Name, string Detail, ImmutableArray<SettlementId> Sources, ActionDescriptor Action);
 
+/// <summary>M6 Track EX (D-062 D9; ADR-044): one row of the ACTIONS menu — a settlement the player controls, with its
+/// Explore descriptor (fog on) and Prospect descriptor (concealment on), each carrying its cost (Detail) and, when the
+/// predicate refuses it now, its blocker.</summary>
+public sealed record DiscoveryEntry(SettlementId Settlement, string Name, ActionDescriptor? Explore, ActionDescriptor? Prospect);
+
+/// <summary>M6 Track EX (D-062 D9): THE ACTIONS MENU — separate from the Construction block — exactly the
+/// ActionDomain.Discovery descriptors the query returns, grouped by settlement in its order.</summary>
+public sealed record DiscoveryBlock(ImmutableArray<DiscoveryEntry> Entries);
+
 /// <summary>What the people do on their own — standing capabilities, one compact list, no controls. M5 polish:
 /// <c>Subjects</c> is each item's info subject (parallel to <c>Items</c>) for Shift+click.</summary>
 public sealed record StandingBlock(ImmutableArray<string> Items, ImmutableArray<InfoSubject> Subjects = default);
@@ -242,7 +251,7 @@ public sealed record ActionSurfaceModel(
     LabourBlock? Labour, ResearchBlock? Research, AgeBlock? Age, ConstructionBlock? Construction, RoadsBlock? Roads,
     MilitaryBlock? Military, GovernanceBlock? Governance, StandingBlock? Standing, ImmutableArray<string> Notices,
     ProductionBlock? Production = null, ImmutableArray<LockedDomain> Locked = default, FoundingBlock? Founding = null,
-    AllocationBlock? Allocation = null)
+    AllocationBlock? Allocation = null, DiscoveryBlock? Discovery = null)
 {
     /// <summary>The domains the surface shows, in the query's domain order.</summary>
     public ImmutableArray<ActionDomain> Domains
@@ -261,6 +270,7 @@ public sealed record ActionSurfaceModel(
             if (Production is not null) b.Add(ActionDomain.Production);
             if (Founding is not null) b.Add(ActionDomain.Colonization);
             if (Allocation is not null) b.Add(ActionDomain.ResourceAllocation);
+            if (Discovery is not null) b.Add(ActionDomain.Discovery);
             return b.ToImmutable();
         }
     }
@@ -314,7 +324,31 @@ public static class ActionSurface
             Production(input, actions),
             Locked(input, actions, target),
             Founding(input, actions),
-            allocation);
+            allocation,
+            Discovery(input, actions));
+    }
+
+    // ------------------------------------------------------------------ the Actions menu (M6 Track EX, ADR-044)
+
+    /// <summary>The Actions block: present iff the query lists a Discovery descriptor; one entry per settlement, in the
+    /// query's order (descriptor id = settlement × 2 + 0 explore / 1 prospect).</summary>
+    private static DiscoveryBlock? Discovery(ActionSurfaceInput input, ImmutableArray<ActionDescriptor> actions)
+    {
+        var entries = new List<DiscoveryEntry>();
+        foreach (ActionDescriptor a in actions)
+        {
+            if (a.Domain != ActionDomain.Discovery) continue;
+            int settlement = (int)(a.Id >> 1);
+            bool prospect = (a.Id & 1) == 1;
+            int at = entries.Count - 1;
+            if (at < 0 || entries[at].Settlement.Value != settlement)
+            {
+                entries.Add(new DiscoveryEntry(new SettlementId(settlement), input.Name(settlement), null, null));
+                at = entries.Count - 1;
+            }
+            entries[at] = prospect ? entries[at] with { Prospect = a } : entries[at] with { Explore = a };
+        }
+        return entries.Count == 0 ? null : new DiscoveryBlock([.. entries]);
     }
 
     // ------------------------------------------------------------------ the materials split (WS2, D-054)

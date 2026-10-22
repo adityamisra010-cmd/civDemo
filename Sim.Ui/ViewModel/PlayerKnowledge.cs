@@ -1,4 +1,5 @@
 using Sim.Core.State;
+using Sim.Core.Systems;
 
 namespace Sim.Ui.ViewModel;
 
@@ -76,11 +77,16 @@ public sealed class PlayerKnowledge
     /// <summary>What the player's Empire knows of <paramref name="world"/> — THE production view.</summary>
     public static PlayerKnowledge Of(IReadOnlyWorldState world) => Of(world, UiPlayer.Empire);
 
-    /// <summary>What <paramref name="player"/> knows of <paramref name="world"/> (the seam's production entry).</summary>
-    public static PlayerKnowledge Of(IReadOnlyWorldState world, PolityId player)
+    /// <summary>What <paramref name="player"/> knows of <paramref name="world"/> with NO fog (all-known — the view-model
+    /// fallback a caller without a session gets; the session itself builds <see cref="Of(IReadOnlyWorldState, PolityId, SimConfig?)"/>).</summary>
+    public static PlayerKnowledge Of(IReadOnlyWorldState world, PolityId player) => Of(world, player, null);
+
+    /// <summary>What <paramref name="player"/> knows of <paramref name="world"/> under <paramref name="cfg"/>'s fog (the
+    /// seam's production entry, PolityKnowledge.Of — M6 EX, ADR-044).</summary>
+    public static PlayerKnowledge Of(IReadOnlyWorldState world, PolityId player, SimConfig? cfg)
     {
         ArgumentNullException.ThrowIfNull(world);
-        return new PlayerKnowledge(world, PolityKnowledge.Of(world, player));
+        return new PlayerKnowledge(world, PolityKnowledge.Of(world, player, cfg));
     }
 
     /// <summary>The view of an explicit seam instance over <paramref name="world"/> — the entry a knowledge STUB
@@ -97,6 +103,10 @@ public sealed class PlayerKnowledge
 
     /// <summary>Whether lattice node <paramref name="node"/> is in the player's sight now.</summary>
     public bool Visible(int node) => Core.Visible(node);
+
+    /// <summary>M6 EX (ADR-044): whether lattice node <paramref name="node"/> is REMEMBERED — known, not in sight now (the
+    /// map draws it under a darker overlay).</summary>
+    public bool Remembered(int node) => Core.Remembered(node);
 
     /// <summary>Whether the player knows settlement <paramref name="id"/> (false for an id no settlement has).</summary>
     public bool KnowsSettlement(int id) => (uint)id < (uint)_settlement.Length && _settlement[id];

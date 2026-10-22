@@ -41,6 +41,10 @@ public enum ActionCommandKind
     /// <summary>WS2 (D-054): set the Empire's building/roads material split to <see cref="ActionCommand.Percent"/> shares
     /// in 100 for building work (order kind 12, through UiSession.EmitAllocationOrder).</summary>
     SetAllocation = 11,
+    /// <summary>M6 EX (ADR-044): Explore from <see cref="ActionCommand.Settlement"/> (order kind 14, UiSession.EmitExplore).</summary>
+    Explore = 12,
+    /// <summary>M6 EX (ADR-044): Prospect at <see cref="ActionCommand.Settlement"/> (order kind 15, UiSession.EmitProspect).</summary>
+    Prospect = 13,
 }
 
 public sealed record ActionCommand(
@@ -51,7 +55,7 @@ public sealed record ActionCommand(
     /// <summary>Whether the command would append an order (the rest only move the UI).</summary>
     public bool IsOrder => Kind is ActionCommandKind.ApplyLabour or ActionCommandKind.ClearResearch or ActionCommandKind.Enqueue
         or ActionCommandKind.DevelopRoads or ActionCommandKind.SetTax or ActionCommandKind.CancelConstruction
-        or ActionCommandKind.SetAllocation;
+        or ActionCommandKind.SetAllocation or ActionCommandKind.Explore or ActionCommandKind.Prospect;
 }
 
 /// <summary>THE ONE DISPATCH of an order-bearing command, through the session's guarded emitters (each
@@ -71,6 +75,8 @@ public static class ActionDispatch
             ActionCommandKind.SetTax => session.EmitTaxOrder((int)Math.Round(command.Percent, MidpointRounding.AwayFromZero)),
             ActionCommandKind.CancelConstruction => session.EmitCancelConstruction(command.Settlement, command.Project),
             ActionCommandKind.SetAllocation => session.EmitAllocationOrder((int)Math.Round(command.Percent, MidpointRounding.AwayFromZero)),
+            ActionCommandKind.Explore => session.EmitExplore(command.Settlement),
+            ActionCommandKind.Prospect => session.EmitProspect(command.Settlement),
             _ => false,
         };
     }
@@ -98,6 +104,10 @@ public enum ActionHitKind
     AllocTrack,
     /// <summary>WS2: "Set" — shown only while the draft differs from the split in force; emits kind 12.</summary>
     AllocApply,
+    /// <summary>M6 EX (ADR-044): the Actions menu's "Explore" (A = the settlement) — emits kind 14 through the guarded emitter.</summary>
+    Explore,
+    /// <summary>M6 EX (ADR-044): the Actions menu's "Prospect" (A = the settlement) — emits kind 15 through the guarded emitter.</summary>
+    Prospect,
 }
 
 public readonly record struct ActionHit(RectD Rect, ActionHitKind Kind, int A, int B);
@@ -304,6 +314,8 @@ public sealed partial class ActionSurfaceScreen
                     _allocDraft = TrackValue(h.Rect, x, 100);
                     _roadPreview = null;
                     return ActionCommand.None;
+                case ActionHitKind.Explore: return new ActionCommand(ActionCommandKind.Explore, h.A);
+                case ActionHitKind.Prospect: return new ActionCommand(ActionCommandKind.Prospect, h.A);
                 case ActionHitKind.AllocApply:
                     if (model.Allocation is not { } al || _allocDraft < 0 || _allocDraft == al.BuildingsPercent) return ActionCommand.None;
                     return new ActionCommand(ActionCommandKind.SetAllocation, Percent: _allocDraft);
@@ -432,6 +444,8 @@ public sealed partial class ActionSurfaceScreen
         if (model.Military is { } military) y = PaintMilitary(d, m, model, military, x, y, width, flat) + gap;
         if (!model.Locked.IsDefaultOrEmpty) y = PaintLocked(d, m, model, x, y, width, flat) + gap;   // M5 polish: visibly locked
         if (model.Standing is { } standing) y = PaintStanding(d, m, model, standing, x, y, width, flat);
+        // M6 EX: the Actions menu, LAST — one compact entry per controlled settlement, so the blocks above keep their place.
+        if (model.Discovery is { } discovery) y = PaintDiscovery(d, m, discovery, x, y + gap, width, flat);
         return y - y0;
     }
 
@@ -1104,6 +1118,47 @@ public sealed partial class ActionSurfaceScreen
         if (fb.Sources.Length > 1)
             y = Wrapped(d, m, "Select another of your settlements to send settlers from it ("
                 + fb.Sources.Length.ToString(CultureInfo.InvariantCulture) + " can).", x, y, w, Caption, t.Ink.TextSoft);
+        return y;
+    }
+
+    /// <summary>
+    /// M6 Track EX (D-062 D9; ADR-044) — THE ACTIONS MENU, a separate headed block (not part of Building): per settlement the
+    /// player controls, "Explore surroundings" and "Prospect", each with its cost and, when the predicate refuses it now,
+    /// the reason (radius cap, already surveyed, not enough grain or tools, already ordered this turn). A refused action's
+    /// button is drawn disabled; its click goes to the guarded emitter, which appends nothing.
+    /// </summary>
+    private double PaintDiscovery(DrawList d, ITextMeasure m, DiscoveryBlock db, double x, double y, double w, bool flat)
+    {
+        EraTheme t = T;
+        y = Heading(d, m, "Actions", x, y, w, flat, 960);
+        int k = 0;
+        foreach (DiscoveryEntry e in db.Entries)
+        {
+            // One compact entry: the settlement and its two buttons on one line, then what each costs and, when the
+            // predicate refuses it now, why — so twelve settlements do not push the surface's other blocks out of reach.
+            double right = x + w;
+            RectD? prospect = null, explore = null;
+            if (e.Prospect is { } pr)
+            {
+                prospect = Button(d, m, "Prospect", right, y, 962 + 2 * k, pr.Blocker is null ? ControlStyle.Primary : ControlStyle.Disabled);
+                _hits.Add(new ActionHit(prospect.Value, ActionHitKind.Prospect, e.Settlement.Value, 0));
+                right = prospect.Value.X - Sp(6);
+            }
+            if (e.Explore is { } ex)
+            {
+                explore = Button(d, m, "Explore", right, y, 961 + 2 * k, ex.Blocker is null ? ControlStyle.Primary : ControlStyle.Disabled);
+                _hits.Add(new ActionHit(explore.Value, ActionHitKind.Explore, e.Settlement.Value, 0));
+                right = explore.Value.X - Sp(6);
+            }
+            double bh = Math.Max(prospect?.H ?? 0, explore?.H ?? 0);
+            double ny = Wrapped(d, m, e.Name, x, y + Math.Max(0, (bh - L(Body)) / 2), Math.Max(Sp(40), right - x), BodyBold, t.Ink.Text, FontRole.Heading);
+            y = Math.Max(ny, y + bh) + Sp(2);
+            var parts = new List<string>();
+            if (e.Explore is { } ex2) parts.Add("Explore surroundings (" + ex2.Detail + ")" + (ex2.Blocker is { } b1 ? " — not now: " + b1 : ""));
+            if (e.Prospect is { } pr2) parts.Add("Prospect for hidden deposits (" + pr2.Detail + ")" + (pr2.Blocker is { } b2 ? " — not now: " + b2 : ""));
+            y = Wrapped(d, m, string.Join(" · ", parts), x + Sp(8), y, w - Sp(8), Second, t.Ink.TextSoft) + Math.Max(Sp(4), t.Density.Gap * Scale * 0.4);
+            k++;
+        }
         return y;
     }
 

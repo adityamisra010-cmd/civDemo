@@ -28,7 +28,7 @@ public sealed class CanonicalOverlayFixture
 
     public CanonicalOverlayFixture()
     {
-        UiSession s = UiSession.Start(42);
+        UiSession s = UiSession.StartWith(TestFog.PreDiscovery, 42);
         for (int t = 0; t < 3; t++)
         {
             if (t == 2)
@@ -202,7 +202,7 @@ public class ResourceOverlayTests(CanonicalOverlayFixture fx) : IClassFixture<Ca
                 Assert.Equal(Math.Min(15, (int)(b.Value(score.Index, n) / scoreMax * 16)), b.Level(score.Index, n));
 
         // THE PLACE CARD (P8) agrees at the centre cells: the same score, factors and expected channel values.
-        PolityKnowledge k = PolityKnowledge.Of(s.World, Me);
+        PolityKnowledge k = PolityKnowledge.Of(s.World, Me, null);
         int checkedNodes = 0;
         for (int n = 7; n < b.NodeCount && checkedNodes < 40; n += 1637)
         {
@@ -345,7 +345,7 @@ public class ResourceOverlayTests(CanonicalOverlayFixture fx) : IClassFixture<Ca
         // What the stub hides: the rival polity whole (its sites, catchments, formations) AND a 17 x 17-node block round
         // its first settlement, so the unknown ground is wide and the known nodes at its edge have reaches into it.
         bool[] mask = KnowledgeStubs.HiddenMask(w0, Me, PlayabilityGate.HiddenPolity);
-        PolityKnowledge grid = PolityKnowledge.Of(w0, Me);
+        PolityKnowledge grid = PolityKnowledge.Of(w0, Me, null);
         int hiddenSite = -1;
         foreach (int id in KnowledgeStubs.SettlementsOf(w0, PlayabilityGate.HiddenPolity))
             for (int i = 0; i < w0.Settlements.Count && hiddenSite < 0; i++) if (w0.Settlements[i].Id.Value == id) hiddenSite = w0.Settlements[i].SiteCell;
@@ -445,9 +445,9 @@ public class ResourceOverlayTests(CanonicalOverlayFixture fx) : IClassFixture<Ca
     {
         static ResourceOverlay DevBake(ulong seed)
         {
-            UiSession s = UiSession.Start(seed, sizeOverridePx: 256, settlementsOverride: 4);
+            UiSession s = UiSession.StartWith(TestFog.PreDiscovery, seed, sizeOverridePx: 256, settlementsOverride: 4);
             SiteAssessment.Prepared site = SiteAssessment.Prepare(s.World, s.Config, Wg256)!;
-            return ResourceOverlay.Bake(s.Config, site, PolityKnowledge.Of(s.World, Me));
+            return ResourceOverlay.Bake(s.Config, site, PolityKnowledge.Of(s.World, Me, null));
         }
         ResourceOverlay a = DevBake(42), b = DevBake(42), c = DevBake(43);
         Assert.Null(a.ChannelsUnavailable);
@@ -455,7 +455,7 @@ public class ResourceOverlayTests(CanonicalOverlayFixture fx) : IClassFixture<Ca
         Assert.NotEqual(Sha(a.CanonicalBytes()), Sha(c.CanonicalBytes()));
         // The canonical world: a second, independent preparation of its terrain bakes the same bytes as the session's.
         UiSession s = fx.Session;
-        ResourceOverlay again = ResourceOverlay.Bake(s.Config, SiteAssessment.Prepare(s.World, s.Config, Wg)!, PolityKnowledge.Of(s.World, Me));
+        ResourceOverlay again = ResourceOverlay.Bake(s.Config, SiteAssessment.Prepare(s.World, s.Config, Wg)!, PolityKnowledge.Of(s.World, Me, null));
         Assert.Equal(Sha(s.Overlay!.CanonicalBytes()), Sha(again.CanonicalBytes()));
         // The session keeps its bake while the terrain and the knowledge masks are the same.
         Assert.Same(s.Overlay, s.Overlay);
@@ -466,7 +466,7 @@ public class ResourceOverlayTests(CanonicalOverlayFixture fx) : IClassFixture<Ca
     {
         UiSession s = fx.Session;
         ResourceOverlay all = s.Overlay!;
-        Assert.True(all.IsFor(s.Sites!, PolityKnowledge.Of(s.World, Me)));
+        Assert.True(all.IsFor(s.Sites!, PolityKnowledge.Of(s.World, Me, null)));
         (int l, _) = PolityKnowledge.Grid(s.World.Terrain!.Size);
         var mask = new bool[l * l];
         Array.Fill(mask, true);
@@ -478,9 +478,9 @@ public class ResourceOverlayTests(CanonicalOverlayFixture fx) : IClassFixture<Ca
         var other = (bool[])mask.Clone();
         other[l * l / 2 + 1] = false;
         Assert.False(restricted.IsFor(s.Sites!, PolityKnowledge.Restricted(s.World, Me, other, other)));
-        Assert.False(restricted.IsFor(s.Sites!, PolityKnowledge.Of(s.World, Me)));
+        Assert.False(restricted.IsFor(s.Sites!, PolityKnowledge.Of(s.World, Me, null)));
         // Another preparation of the same terrain is another site half: the bake is not claimed for it.
-        Assert.False(all.IsFor(SiteAssessment.Prepare(s.World, s.Config, Wg)!, PolityKnowledge.Of(s.World, Me)));
+        Assert.False(all.IsFor(SiteAssessment.Prepare(s.World, s.Config, Wg)!, PolityKnowledge.Of(s.World, Me, null)));
         Assert.Equal(all.NodeCount - 1, restricted.KnownNodes);
     }
 
@@ -488,14 +488,14 @@ public class ResourceOverlayTests(CanonicalOverlayFixture fx) : IClassFixture<Ca
 
     private sealed class DevWorld
     {
-        public readonly UiSession S = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4);
+        public readonly UiSession S = UiSession.StartWith(TestFog.PreDiscovery, 42, sizeOverridePx: 256, settlementsOverride: 4);
         public readonly ResourceOverlay B;
         public readonly OverlayStatus St;
         public readonly WorldProjection P;
 
         public DevWorld()
         {
-            B = ResourceOverlay.Bake(S.Config, SiteAssessment.Prepare(S.World, S.Config, Wg256)!, PolityKnowledge.Of(S.World, Me));
+            B = ResourceOverlay.Bake(S.Config, SiteAssessment.Prepare(S.World, S.Config, Wg256)!, PolityKnowledge.Of(S.World, Me, null));
             St = B.Status(S.World, S.Config, S.Knowledge);
             P = WorldProjection.Build(S.World, S.Config, S.Names.Name, Me);
         }
@@ -614,7 +614,7 @@ public class ResourceOverlayTests(CanonicalOverlayFixture fx) : IClassFixture<Ca
         OverlayStatus st = s.OverlayStatus!;
         Assert.NotNull(st.Reachable);
         SiteAssessment.Prepared site = s.Sites!;
-        PolityKnowledge k = PolityKnowledge.Of(s.World, Me);
+        PolityKnowledge k = PolityKnowledge.Of(s.World, Me, null);
         // ACCESSIBLE: the union of unbounded isochrones is the card's "reachable" (FindPath found) at every node sampled.
         var reach = new bool[site.Frontier.Lattice.NodeCount];
         foreach (SettlementId mine in LabourActivities.ControlledSettlements(s.World, Me))
@@ -671,7 +671,7 @@ public class ResourceOverlayTests(CanonicalOverlayFixture fx) : IClassFixture<Ca
     [Fact]
     public void BakingStatusAndPainting_ChangeNoHash()
     {
-        UiSession s = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4);
+        UiSession s = UiSession.StartWith(TestFog.PreDiscovery, 42, sizeOverridePx: 256, settlementsOverride: 4);
         string before = WorldHash.ComputeHex(s.World);
         ResourceOverlay b = s.Overlay!;
         OverlayStatus st = s.OverlayStatus!;
@@ -778,7 +778,7 @@ public class ResourceOverlayUiTests : IDisposable
     [Fact]
     public void TheGatesOverlayRows_PassOnTheCanonicalWorld_AndPressEveryOverlayControl()
     {
-        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("rows"), Assets());
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.StartWith(TestFog.PreDiscovery, 42), WorkDir("rows"), Assets());
         IReadOnlyList<GateRow> rows = PlayabilityGate.OverlayRows(h, "test");
         foreach (GateRow r in rows) Assert.True(r.Result == GateResult.Pass, r.Control + ": " + r.Detail);
         var pressed = new SortedSet<string>(rows.SelectMany(r => r.Covers), StringComparer.Ordinal);
@@ -803,8 +803,8 @@ public class ResourceOverlayUiTests : IDisposable
     [Fact]
     public void ShowingEveryLayerAndPlaying_IsHashIdenticalToNotShowingThem()
     {
-        UiSession plain = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4);
-        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4), WorkDir("hash"), Assets());
+        UiSession plain = UiSession.StartWith(TestFog.PreDiscovery, 42, sizeOverridePx: 256, settlementsOverride: 4);
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.StartWith(TestFog.PreDiscovery, 42, sizeOverridePx: 256, settlementsOverride: 4), WorkDir("hash"), Assets());
         Assert.True(h.ClickControl(GameUi.OverlaysControl));
         foreach (OverlayLayer l in h.Ui.OverlayLayers) Assert.True(h.ClickControl(l.Control));
         Assert.True(h.ClickControl(GameUi.OverlayOpacityUp));
@@ -824,7 +824,7 @@ public class ResourceOverlayUiTests : IDisposable
     [Fact]
     public void WithALayerShown_ShiftClickOnKnownGround_OpensP8sPlaceCard_AndTheKeyOffersNoPlaceBeneathIt()
     {
-        UiSession s = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4);
+        UiSession s = UiSession.StartWith(TestFog.PreDiscovery, 42, sizeOverridePx: 256, settlementsOverride: 4);
         using UiFrameHarness h = UiFrameHarness.Start(s, WorkDir("place"), Assets());
         Assert.True(h.ClickControl(GameUi.OverlaysControl));
         OverlayLayer score = h.Ui.OverlayLayers.Single(l => l.Kind == OverlayKind.Suitability);
@@ -872,7 +872,7 @@ public class ResourceOverlayUiTests : IDisposable
     [Fact]
     public void TheOpacity_StepsInTenths_From10To80Percent_NeverOpaque_SoTheTerrainAlwaysShowsThrough()
     {
-        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4), WorkDir("opacity"), Assets());
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.StartWith(TestFog.PreDiscovery, 42, sizeOverridePx: 256, settlementsOverride: 4), WorkDir("opacity"), Assets());
         Assert.Equal(0.5, h.Ui.OverlayOpacity);
         Assert.True(h.ClickControl(GameUi.OverlaysControl));
         OverlayLayer score = h.Ui.OverlayLayers.Single(l => l.Kind == OverlayKind.Suitability);

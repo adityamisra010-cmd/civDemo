@@ -81,7 +81,7 @@ public static class Snapshot
         if (!CanonicalSchema.IsReadable(version))
             throw new SnapshotFormatException(
                 $"save is schema version {version}, this build reads only versions " +
-                $"32 and 33 (migrated) and {CanonicalSchema.Version}; saves break " +
+                $"32, 33 and 34 (migrated) and {CanonicalSchema.Version}; saves break " +
                 "between milestones by design (D-008) — no migration exists for this version. Re-derive the world " +
                 "via seed + order-log replay.");
 
@@ -183,5 +183,9 @@ public static class Snapshot
         // tables are.
         if (Reservations.InvariantViolation(world.ConstructionHolds) is { } holds)
             throw new SnapshotFormatException("save is corrupt: " + holds + " (schema v34 invariant).");
+        // M6 EX (v35, ADR-044): the four discovery tables as only DiscoverySystem writes them — strictly ascending keys,
+        // no zero extent word, radii and turns in range. A save no rule wrote is refused.
+        if (DiscoveryQuery.InvariantViolation(world) is { } discovery)
+            throw new SnapshotFormatException("save is corrupt: " + discovery + " (schema v35 invariant).");
     }
 }

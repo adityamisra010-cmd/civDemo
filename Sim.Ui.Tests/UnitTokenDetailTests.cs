@@ -520,7 +520,7 @@ public class UnitTokenDetailTests : IDisposable
         MilitaryUnitRow template = MilitaryQuery.Units(w, rival)[0];
         MilitaryUnitRow scout = template with { Id = next, Location = new SettlementId(-1), X = 300.5, Y = 400.5 };
         w.MilitaryUnits.Add(scout);
-        PolityKnowledge grid = PolityKnowledge.Of(w, Me);
+        PolityKnowledge grid = PolityKnowledge.Of(w, Me, null);
         (int lsize, _) = PolityKnowledge.Grid(w.Terrain!.Size);
         int node = grid.NodeAt(scout.X, scout.Y);
         Assert.True(node >= 0);

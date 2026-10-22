@@ -42,15 +42,19 @@ public class Batch2SessionResumeTests
     /// v33 appended two tables after section 58, so a world with both empty serializes to the v32 stream plus two empty
     /// count prefixes (8 zero bytes); its v32 hash is the SHA-256 of the stream without them.
     /// D-055 (2026-10-16) CAUSE BLOCK (X1 (d)): v34 appends a third table, ConstructionHolds (section 61), so the
-    /// projection asserts it empty too and drops 12 bytes (8 + 4) — the layout alone; nothing else changed.</summary>
+    /// projection asserts it empty too and drops 12 bytes (8 + 4) — the layout alone; nothing else changed.
+    /// M6 Track EX (2026-10-22; ADR-044) CAUSE BLOCK: v35 appends four more (sections 63–66, the discovery tables), which a
+    /// pre-v35 session's replay leaves empty (it replays without the discovery layer), so the projection asserts them empty
+    /// and drops 28 bytes (12 + 4 × 4) — the layout alone.</summary>
     private static string HashAtSchemaV32(WorldState world)
     {
         Assert.Equal((0, 0, 0), (world.ConstructionProgress.Count, world.ResourceAllocations.Count, world.ConstructionHolds.Count));
+        Assert.Equal((0, 0, 0, 0), (world.KnownExtents.Count, world.Explorations.Count, world.SettlementSightings.Count, world.SettlementSurveys.Count));
         using var buffer = new MemoryStream();
         using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true)) CanonicalSchema.Write(world, writer);
         byte[] full = buffer.ToArray();
-        for (int i = full.Length - 12; i < full.Length; i++) Assert.Equal(0, full[i]);
-        return Convert.ToHexStringLower(SHA256.HashData(full.AsSpan(0, full.Length - 12)));
+        for (int i = full.Length - 28; i < full.Length; i++) Assert.Equal(0, full[i]);
+        return Convert.ToHexStringLower(SHA256.HashData(full.AsSpan(0, full.Length - 28)));
     }
 
     [Fact]
@@ -103,7 +107,8 @@ public class Batch2SessionResumeTests
         try
         {
             string path = Path.Combine(dir, "orders-20261010-120000-s250-n4.bin");
-            UiSession live = UiSession.Start(42, sizeOverridePx: 250, settlementsOverride: 4, wrapXOverride: false);
+            // M6 Track EX: recorded as the batch-2 build played it — without the discovery layer (a pre-v35 session replays without it).
+            UiSession live = UiSession.StartWith(TestFog.PreDiscovery, 42, sizeOverridePx: 250, settlementsOverride: 4, wrapXOverride: false);
             live.ExportManifest("2026-10-10 12:00:00", path);
             for (int t = 0; t < 3; t++) live.EndTurn();
             live.Save(path);
@@ -138,13 +143,14 @@ public class Batch2SessionResumeTests
         {
             OrderLog saved;
             using (FileStream o = File.OpenRead(Path.Combine(dir, "orders-" + Stamp + ".bin"))) saved = OrderLog.Load(o);
-            UiSession cylinder = UiSession.Start(42);
+            // M6 Track EX: both replays under the rules the batch-2 build played (discovery off), so topology is the only difference.
+            UiSession cylinder = UiSession.StartWith(TestFog.PreDiscovery, 42);
             Assert.True(cylinder.World.Terrain!.WrapX);
             OrderValidationException refused = Assert.Throws<OrderValidationException>(() => cylinder.ReplayTo(saved, 8));
             Assert.StartsWith("order (turn 5): FoundSettlement targets settlement 12, which does not exist when the order is delivered",
                 refused.Message, StringComparison.Ordinal);
 
-            UiSession flat = UiSession.Start(42, wrapXOverride: false);
+            UiSession flat = UiSession.StartWith(TestFog.PreDiscovery, 42, wrapXOverride: false);
             flat.ReplayTo(saved, 8);
             Assert.Equal(Turn8V32Hash, HashAtSchemaV32(flat.World));
         }

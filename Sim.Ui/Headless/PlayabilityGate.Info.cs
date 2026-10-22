@@ -53,7 +53,7 @@ public static partial class PlayabilityGate
         }
 
         /// <summary>P8: the pointer moved onto KNOWN LAND in the clear map around the player's capital (the camera centred on
-        /// it; points tried on rings 40 to 200 px out, every 45 degrees, so the capital's own token is not under it), and the
+        /// it; points tried on rings 12 to 200 px out, every 45 degrees, so the capital's own token is not under it), and the
         /// passive place region the UI registered there — the top-most region at the pointer — or null.</summary>
         private InfoHit? KnownLandUnderPointer()
         {
@@ -61,7 +61,8 @@ public static partial class PlayabilityGate
             if (EmpireQuery.TryGetCapital(Ui.World, Me, out SettlementId cap)) CameraFocus.CenterOn(Ui.Camera, Ui.World, cap.Value, Ui.MapRect);
             h.Idle(2);
             Sim.Ui.Render.RectD map = Ui.MapRect;
-            for (int ring = 40; ring <= 200; ring += 40)
+            // M6 EX (ADR-044): under the fog the known land around the capital is its seed disc, so nearer rings are tried first.
+            foreach (int ring in new[] { 12, 20, 28, 40, 80, 120, 160, 200 })
                 for (int k = 0; k < 8; k++)
                 {
                     double x = Math.Round(map.CenterX + ring * Math.Cos(k * Math.PI / 4)), y = Math.Round(map.CenterY + ring * Math.Sin(k * Math.PI / 4));
@@ -110,7 +111,7 @@ public static partial class PlayabilityGate
                     CloseEverything();
                     OpenPolicy();
                     PanelRect p = Ui.ContextRect;
-                    for (int step = 0; step < 50; step++)
+                    for (int step = 0; step < 80; step++)   // M6 EX: 50 -> 80, the Actions block lengthens POLICY
                     {
                         if (FirstHit(k, x => !x.Passive && x.Rect.Y > p.Y + 40 && x.Rect.Bottom < p.Y + p.Height - 32) is { } hit)
                             return ShiftCheck(hit);

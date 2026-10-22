@@ -414,6 +414,9 @@ public class InfoQueryTests
             case ActionDomain.Trade: return [InfoSubject.OfEntity(Cfg.Trade.Entity!)];
             case ActionDomain.Colonization: return [InfoSubject.OfFounding((int)a.Id)];   // M5 S1d
             case ActionDomain.ResourceAllocation: return [InfoSubject.MaterialsSplit];   // D-054 WS2
+            // M6 EX (ADR-044 §11): the Actions menu's Explore and Prospect have no inspectable subject in this slice (their
+            // cost and blocker are on the menu row itself); a card is deferred with the M7 mobile unit.
+            case ActionDomain.Discovery: return [];
             default: throw new InvalidOperationException("unmapped domain " + a.Domain);
         }
     }

@@ -240,8 +240,8 @@ public class CliConstructionLifecycleTests
             Run(Q17Orders(dir), 2, null, 2, v34);
             (int exit, string stdout, string stderr) = Sim("diff", v33, v34, "--size", "256");
             Assert.Equal(1, exit);
-            Assert.Equal(new[] { "note: " + v33 + ": migrated from save schema v33: ConstructionHolds was added empty; the hash "
-                + "printed is the v34 hash (SchemaProjection.V33 gives the v33 build's)." }, CliProcess.Lines(stderr));
+            Assert.Equal(new[] { "note: " + v33 + ": migrated from save schema v33: ConstructionHolds and the four M6 discovery tables (KnownExtents, Explorations, SettlementSightings, SettlementSurveys) were added empty; "
+                + "the hash printed is the v35 hash (SchemaProjection.V33 gives the v33 build's)." }, CliProcess.Lines(stderr));
             string[] lines = CliProcess.Lines(stdout);
             int first = Array.IndexOf(lines, "FIRST DIVERGENT FIELD");
             Assert.True(first >= 0, stdout);

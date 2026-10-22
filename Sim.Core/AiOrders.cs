@@ -4,6 +4,7 @@ using Sim.Core.Systems;
 using Sim.Core.Systems.Ages;
 using Sim.Core.Systems.Colonization;
 using Sim.Core.Systems.Construction;
+using Sim.Core.Systems.Discovery;
 using Sim.Core.Systems.Governance;
 using Sim.Core.Systems.Research;
 using Sim.Core.Systems.Roads;
@@ -39,6 +40,9 @@ namespace Sim.Core;
 /// one's order exactly as ColonizationSystem will. It reads the WORLDGEN siting config (<paramref name="worldgen"/> on
 /// <see cref="For"/>) — the same config the pipeline's ColonizationSystem judges the order with. sim.json
 /// <c>colonization.aiFounding.enabled = false</c> makes it issue nothing (the pre-S1c producer, byte for byte).</item>
+/// <item><see cref="AiDiscoveryPolicy"/> — M6 EX (ADR-044 §9): an Explore (OrderKind 14) when the founding policy is due
+/// and finds no known candidate site, and at most one Prospect (OrderKind 15) per polity per turn — each only when the
+/// predicate DiscoverySystem applies admits it.</item>
 /// </list>
 /// then <see cref="Governance"/>, the reconciliation slot for the tax policy (OrderKind 5, stream S1).
 ///
@@ -71,6 +75,11 @@ public static class AiOrders
             result.AddRange(AiConstructionPolicy.Decide(world, cfg, polity,
                 world.Clock.DtYears > 0.0 ? world.Clock.DtYears : null));
             if (AiFoundingPolicy.Decide(world, cfg, polity, sites) is { } found) result.Add(found);
+            // M6 EX (D-062 D8, ADR-044 §9): explore when the founding policy wants a site and knows none; prospect one
+            // own settlement per turn. Both through the player's verbs and predicates (AiDiscoveryPolicy).
+            else if (AiDiscoveryPolicy.WantsSites(world, cfg, polity) && AiDiscoveryPolicy.Explore(world, cfg, polity) is { } explore)
+                result.Add(explore);
+            if (AiDiscoveryPolicy.Prospect(world, cfg, polity) is { } prospect) result.Add(prospect);
         }
         Governance(world, cfg, result);
         return [.. result];

@@ -230,6 +230,13 @@ public static class ReasonIds
     // good, for the same argument HousingMaterials makes: the audit question
     // ("where did the timber go?") has one answer — into the structure.
     public static readonly ReasonId ConstructionMaterials = new(16);
+
+    // M6 Track EX (D-062, ADR-044) — the two discovery sinks. Prospecting: the tools a survey of a settlement's hinterland
+    // uses up (paid whether or not anything is found). Expedition: the grain an exploring party eats on the road (travel
+    // provisions; no person is removed). Separate reasons: "where did the tools go?" and "where did the grain go?" have
+    // different answers, and neither is construction.
+    public static readonly ReasonId Prospecting = new(17);
+    public static readonly ReasonId Expedition = new(18);
 }
 
 /// <summary>Identifies a culture registry entry (T2.1, D-026/D-027 — one placeholder at M2).</summary>

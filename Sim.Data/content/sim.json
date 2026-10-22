@@ -320,5 +320,22 @@
     "farmYieldScale": 1.0,
     "famineReductionMax": 0.25,
     "famineReductionScale": 2.0
+  },
+  "discovery": {
+    "_doc": "M6 Track EX (D-062, ADR-044): concealed geological deposits and the Prospect order (OrderKind 15). enabled true: THE SWITCH - false (or the section absent) conceals nothing and refuses Prospect, which reproduces the pre-M6 world byte for byte after the v35 sections are stripped (the attribution control TestConfigs.PreDiscovery). concealableGoods: IDENTITY - the goods.json deposit goods whose deposit can be hidden (geological: stone, clay, copper-ore, tin-ore); livestock, fish, timber, fiber and hides are surface-evident and never concealed. concealedShare 0.25: DIRECTOR (D-062) - of a settlement's n eligible deposit rows (abundance > 0, a concealable good), k = floor(n x 0.25 + u) are concealed, u in [0,1) a stateless SplitMix64 hash of (seed, settlement) - so the expected share is exactly 0.25 and the rows chosen are the k lowest by (hash(seed, settlement, good), goodId); no RNG stream is drawn and the deposit table is unchanged. A concealed row reads as abundance 0 for the settlement's controller until that polity prospects the settlement. prospectTools 4: TUNE, MEASURED (ADR-044 section 5) - turn-0 tools across seeds 1, 2, 42, 7 make it affordable to a typical settlement in the first few dozen turns. prospectDiscountRequires copper_smelting: the ore-recognition technology (recognising malachite and azurite as ore is the knowledge copper smelting embodies) - with it completed the cost halves (integer division).",
+    "enabled": true,
+    "concealableGoods": ["stone", "clay", "copper-ore", "tin-ore"],
+    "concealedShare": 0.25,
+    "prospectTools": 4,
+    "prospectDiscountRequires": "copper_smelting"
+  },
+  "fog": {
+    "_doc": "M6 Track EX (D-062, ADR-044): the minimal fog of war and the Explore order (OrderKind 14). enabled true: THE SWITCH - false (or absent) makes PolityKnowledge.Of answer all-known exactly as before and DiscoverySystem write nothing (the attribution control TestConfigs.PreDiscovery). Distances are traversal-lattice nodes of 16 km. seedRadiusNodes 3 (about 50 km): the model's own hinterland constant (catchment.hinterlandRadiusKm 50) - every step each polity knows the disc of this radius around every settlement it controls. formationSightNodes 1: a formation sees its own node and its 8-neighbourhood disc of radius 1. exploreStepNodes 3: one Explore widens a settlement's explored radius by one hinterland; exploreMaxRadiusNodes 15 (about 240 km) caps it - beyond that is M7's mobile scouting. exploreGrain 60: TUNE, MEASURED (ADR-044 section 5) - the expedition's travel provisions, sunk under reason Expedition (people are not removed; the M7 mobile unit replaces this).",
+    "enabled": true,
+    "seedRadiusNodes": 3,
+    "formationSightNodes": 1,
+    "exploreStepNodes": 3,
+    "exploreMaxRadiusNodes": 15,
+    "exploreGrain": 60
   }
 }

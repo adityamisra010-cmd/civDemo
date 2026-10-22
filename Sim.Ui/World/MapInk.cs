@@ -72,6 +72,10 @@ public sealed record MapInk
     // ---------------------------------------------------------------- line work and labels
     /// <summary>Primary map ink: names, outlines, banner poles, structure-glyph frames (bible InkPrimary).</summary>
     public Rgba Ink { get; init; } = Rgba.Hex(0x3A2E1F);
+    /// <summary>M6 EX (ADR-044): undiscovered land — blank parchment (bible PaperShade), drawn opaque over the terrain.</summary>
+    public Rgba FogUnknown { get; init; } = Rgba.Hex(0xE2D3AE);
+    /// <summary>M6 EX (ADR-044): remembered land (known, out of sight) — a dark wash the lens draws translucent.</summary>
+    public Rgba FogRemembered { get; init; } = Rgba.Hex(0x1E1810);
     /// <summary>The darkest ink: university-hall outlines and formation-token frames.</summary>
     public Rgba GlyphInk { get; init; } = Rgba.Hex(0x1E1810);
     /// <summary>Pale marks drawn on a glyph or token face (emblems).</summary>

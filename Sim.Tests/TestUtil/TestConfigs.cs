@@ -193,10 +193,28 @@ public static class TestConfigs
     /// (SchemaProjection.HashAtSchemaV32) returns the batch-2 references byte for byte. D-055 (2026-10-16): it switches
     /// off reservations too (the newer layer, the R4 rule; the loader refuses reservations without incremental), so it
     /// still returns them exactly as before.</summary>
-    public static SimConfig PreIncrementalConstruction(SimConfig cfg) =>
-        cfg.Construction is { } c
+    public static SimConfig PreIncrementalConstruction(SimConfig cfg)
+    {
+        cfg = PreDiscovery(cfg);   // M6 EX (2026-10-22): the newer discovery layer off too (the R4 rule)
+        return cfg.Construction is { } c
             ? cfg with { Construction = c with { Incremental = false, AllocationRatios = false, Reservations = false, ContinueWithinTurn = false } }
             : cfg;
+    }
+
+    /// <summary>M6 Track EX (D-062, ADR-044; 2026-10-22) — DISCOVERY AND FOG SWITCHED OFF: sim.json discovery.enabled and
+    /// fog.enabled false, so no deposit is concealed (every consumer reads DepositRow.Abundance), PolityKnowledge.Of answers
+    /// all-known, the founding known-extent arm never fires, Explore and Prospect are refused, the AI issues neither, and
+    /// DiscoverySystem writes nothing — sections 63–66 stay EMPTY. A world stepped under it is the pre-M6 (v34) world plus
+    /// four empty count prefixes, so its v34 projection (<see cref="SchemaProjection.V34"/>) is the v34 hash byte for byte:
+    /// every pin the slice moves is attributed through it. A single-layer twin; by the R4 rule every OLDER twin strips it
+    /// too (<see cref="PreIncrementalConstruction"/>, <see cref="PreReservations"/>, and through them PreD054Sim, PreD053
+    /// and every twin built on it).</summary>
+    public static SimConfig PreDiscovery(SimConfig cfg)
+    {
+        if (cfg.Discovery is { } d) cfg = cfg with { Discovery = d with { Enabled = false } };
+        if (cfg.Fog is { } f) cfg = cfg with { Fog = f with { Enabled = false } };
+        return cfg;
+    }
 
     /// <summary>D-054 WS2 (2026-10-14) — THE BUILDING/ROADS SPLIT SWITCHED OFF: sim.json construction.allocationRatios
     /// false, so kind-12 orders are ignored at delivery, no ResourceAllocationRow is written, and building work goes first
@@ -214,8 +232,11 @@ public static class TestConfigs
     /// single-layer twin (only the reservations switch changes). D-058 (2026-10-19): by the R4 rule (an older layer twin
     /// strips every newer layer) it also switches off the newer continueWithinTurn layer, so a PreReservations world is
     /// still batch 3's byte for byte.</summary>
-    public static SimConfig PreReservations(SimConfig cfg) =>
-        cfg.Construction is { } c ? cfg with { Construction = c with { Reservations = false, ContinueWithinTurn = false } } : cfg;
+    public static SimConfig PreReservations(SimConfig cfg)
+    {
+        cfg = PreDiscovery(cfg);   // M6 EX (2026-10-22): the newer discovery layer off too (the R4 rule)
+        return cfg.Construction is { } c ? cfg with { Construction = c with { Reservations = false, ContinueWithinTurn = false } } : cfg;
+    }
 
     /// <summary>D-058 (2026-10-19; the Director's ruling "build one at a time … 7 built, 1 under construction, 1 not
     /// started") — CONTINUATION WITHIN THE TURN SWITCHED OFF: sim.json construction.continueWithinTurn false, so a completing

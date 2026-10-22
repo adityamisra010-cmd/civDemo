@@ -193,8 +193,8 @@ public partial class KnowledgeLeakTests
         WorldState a = r.Next.Clone(), b = PerturbedNext();
         PlantForeignHolds(b, r.Config);
         // The production (all-known) view on both: the rival is known, and still nothing of it is drawn here.
-        List<string> fa = ResourcesFrames(UiSession.StartFrom(a, 42), Path.Combine(_root, "res-a"));
-        List<string> fb = ResourcesFrames(UiSession.StartFrom(b, 42), Path.Combine(_root, "res-b"));
+        List<string> fa = ResourcesFrames(UiSession.StartFromWith(TestFog.PreDiscovery, a, 42), Path.Combine(_root, "res-a"));
+        List<string> fb = ResourcesFrames(UiSession.StartFromWith(TestFog.PreDiscovery, b, 42), Path.Combine(_root, "res-b"));
         Assert.Equal(fa, fb);
         Assert.Contains(fa, t => t.Contains("Stores of your empire", StringComparison.Ordinal));
         foreach (int id in KnowledgeStubs.SettlementsOf(a, Hidden))
@@ -202,7 +202,7 @@ public partial class KnowledgeLeakTests
         // CONTROL: the player's own stores change what is drawn.
         WorldState c = r.Next.Clone();
         PerturbOwn(c, 50);
-        Assert.NotEqual(fa, ResourcesFrames(UiSession.StartFrom(c, 42), Path.Combine(_root, "res-c")));
+        Assert.NotEqual(fa, ResourcesFrames(UiSession.StartFromWith(TestFog.PreDiscovery, c, 42), Path.Combine(_root, "res-c")));
     }
 
     // ================================================================== the status band's POPULATION / FOOD / settlements
@@ -254,7 +254,7 @@ public partial class KnowledgeLeakTests
         // The real UI's status band (every text it draws), all-known, over the two worlds.
         List<string> Band(WorldState w, string dir)
         {
-            using UiFrameHarness h = UiFrameHarness.Start(UiSession.StartFrom(w, 42), Path.Combine(_root, dir), Assets());
+            using UiFrameHarness h = UiFrameHarness.Start(UiSession.StartFromWith(TestFog.PreDiscovery, w, 42), Path.Combine(_root, dir), Assets());
             h.Idle(3);
             Assert.Empty(h.Problems);
             return [.. h.Ui.FrameText.Texts(FrameSurface.Status)];

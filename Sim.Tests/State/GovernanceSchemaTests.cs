@@ -27,7 +27,7 @@ public class GovernanceSchemaTests
     [Fact]
     public void SchemaV30_PopulatedTaxPolicyTable_LengthRoundTripAndHashExact()
     {
-        Assert.Equal(34, CanonicalSchema.Version);   // v31: ADR-033 D6/D10 Institutions + ConstructionLabor (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins)
+        Assert.Equal(35, CanonicalSchema.Version);   // (v35: M6 EX discovery tables 63–66) v31: ADR-033 D6/D10 Institutions + ConstructionLabor (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins)
         WorldState world = Populated();
 
         using var ms = new MemoryStream();
@@ -80,7 +80,8 @@ public class GovernanceSchemaTests
         using (var writer = new BinaryWriter(ms, System.Text.Encoding.UTF8, leaveOpen: true))
             CanonicalSchema.Write(a, writer);
         byte[] bytes = ms.ToArray();
-        const int V31Trailer = 6 * 4;
+        // M6 EX (v35, 2026-10-22) CAUSE BLOCK: the four discovery tables follow, EMPTY here — 10 × 4 in all (was 6 × 4).
+        const int V31Trailer = 10 * 4;
         Assert.All(bytes[^V31Trailer..], b => Assert.Equal(0, b));
         Assert.Equal(BitConverter.DoubleToInt64Bits(a.TaxPolicies[3].Rate), BitConverter.ToInt64(bytes, bytes.Length - V31Trailer - 8));
         Assert.Equal(int.MaxValue, BitConverter.ToInt32(bytes, bytes.Length - V31Trailer - 12));

@@ -47,7 +47,7 @@ public class InfoPanelTests : IDisposable
 
     // ------------------------------------------------------------------ rigs
 
-    private static UiSession Small() => UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4);
+    private static UiSession Small() => UiSession.StartWith(TestFog.PreDiscovery, 42, sizeOverridePx: 256, settlementsOverride: 4);
 
     /// <summary>A session over a copy of a fresh small world with <paramref name="rig"/> applied.</summary>
     private static UiSession Rigged(Action<WorldState, SimConfig> rig)
@@ -55,7 +55,7 @@ public class InfoPanelTests : IDisposable
         UiSession s0 = Small();
         WorldState w = s0.World.Clone();
         rig(w, s0.Config);
-        return UiSession.StartFrom(w, 42, 256, 4);
+        return UiSession.StartFromWith(TestFog.PreDiscovery, w, 42, 256, 4);
     }
 
     private static void Know(WorldState w, SimConfig cfg, params string[] ids)
@@ -710,7 +710,7 @@ public class InfoPanelTests : IDisposable
     [Fact]
     public void UndiscoveredGround_IsNeverOffered_NoRegion_NoHint_NoCard_WhileTheAllKnownControlOffersIt()
     {
-        UiSession first = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1);
+        UiSession first = UiSession.StartWith(TestFog.PreDiscovery, 42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1);
         var rival = new PolityId(2);
         IReadOnlyList<int> theirs = KnowledgeStubs.SettlementsOf(first.World, rival);
         Assert.NotEmpty(theirs);
@@ -720,8 +720,8 @@ public class InfoPanelTests : IDisposable
         foreach (bool hide in new[] { false, true })
         {
             UiSession s = hide
-                ? UiSession.StartFrom(first.World.Clone(), 42, 256, 4, knowledgeOf: w => KnowledgeStubs.HidePolity(w, Me, rival))
-                : UiSession.StartFrom(first.World.Clone(), 42, 256, 4);
+                ? UiSession.StartFromWith(TestFog.PreDiscovery, first.World.Clone(), 42, 256, 4, knowledgeOf: w => KnowledgeStubs.HidePolity(w, Me, rival))
+                : UiSession.StartFromWith(TestFog.PreDiscovery, first.World.Clone(), 42, 256, 4);
             using UiFrameHarness h = UiFrameHarness.Start(s, WorkDir(hide ? "undiscovered" : "undiscovered-control"), Assets());
             int target = theirs[0];
             h.Ui.Camera.ZoomAt(h.Ui.MapRect.CenterX, h.Ui.MapRect.CenterY, 8.0, h.Ui.MapRect);

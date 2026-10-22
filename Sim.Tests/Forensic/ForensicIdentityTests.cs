@@ -135,7 +135,7 @@ public class ForensicIdentityTests
         Assert.Equal("sha256/canonical-stream", run.HashAlgorithm);
         Assert.False(run.HashCoversSchemaVersion);
         Assert.Equal(34, run.CanonicalSchemaVersion);   // v30: ADR-033 D4's TaxPolicies (v31: ADR-033 D6/D10 Institutions + ConstructionLabor) (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins)
-        Assert.Equal(34, CanonicalSchema.Version);   // v26: ADR-029's research tables (the forensic record carries it, never covers it) (v31: ADR-033 D6/D10 Institutions + ConstructionLabor) (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins)
+        Assert.Equal(35, CanonicalSchema.Version);   // (v35: M6 EX discovery tables 63–66) v26: ADR-029's research tables (the forensic record carries it, never covers it) (v31: ADR-033 D6/D10 Institutions + ConstructionLabor) (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins)
         Assert.Equal(34, run.Schemas.CanonicalSchemaVersion);   // v31: ADR-033 D6/D10 Institutions + ConstructionLabor (v32: H2 TaxGrievances) (v33: D-054) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins)
         // T4.21-5: the run record CARRIES the telemetry vintage as a value; it
         // moved to v3 with the foodState/migrationPlan sections, and to v4 with

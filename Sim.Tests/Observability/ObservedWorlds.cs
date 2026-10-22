@@ -136,9 +136,11 @@ internal static class ObservedWorlds
     /// dwelling decay on turn 201, 44 dwellings across 14 of the 300 turns (WorldReconciliationTests' samples hold); the
     /// CYLINDER (the same config) — starvation on turn 8 = 64 and NO dwelling decay in 300 turns. Kept flat: a batch-2 layer
     /// twin strips the newer worldgen layer too (the R4 rule), and reconciliation of the decay flow is topology-independent
-    /// — the shipped Driven300 (cylinder) is reconciled every turn beside it.</summary>
+    /// — the shipped Driven300 (cylinder) is reconciled every turn beside it.
+    /// M6 Track EX (2026-10-22): by the same R4 rule it strips the newer discovery layer too (TestConfigs.PreDiscovery):
+    /// concealed stone and clay change the de86ace run's economy (MEASURED: "no dwelling decay on turn 201").</summary>
     internal static readonly Lazy<Run> DrivenPerSettlementStores300 =
-        new(() => DrivenRun(300, TestConfigs.PreEmpireFoodAllocation(TestConfigs.Sim()), TestConfigs.PreD054Worldgen()),
+        new(() => DrivenRun(300, TestConfigs.PreEmpireFoodAllocation(TestConfigs.PreDiscovery(TestConfigs.Sim())), TestConfigs.PreD054Worldgen()),
             LazyThreadSafetyMode.ExecutionAndPublication);
 
     internal static Run DrivenRun(int turns, SimConfig? cfg = null, WorldgenConfig? worldgen = null)

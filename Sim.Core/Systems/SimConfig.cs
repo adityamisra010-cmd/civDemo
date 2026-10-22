@@ -80,7 +80,48 @@ public sealed record SimConfig(
     // factor (State.GranaryEffects). OPTIONAL and in the defaulted tail: absent (or enabled false) both factors are the
     // literal 1.0 and neither ProductionSystem nor DemographicsSystem multiplies by them, so toy and hand-written configs
     // (and the attribution control TestConfigs.PreGranaryEffects) run exactly as before. The canonical sim.json carries it.
-    [property: JsonPropertyName("granaries")] GranariesConfig? Granaries = null);
+    [property: JsonPropertyName("granaries")] GranariesConfig? Granaries = null,
+    // M6 Track EX (D-062, ADR-044): concealed geological deposits and the Prospect order. OPTIONAL and in the defaulted
+    // tail: absent (or enabled false) no deposit is concealed, every consumer reads DepositRow.Abundance as before and
+    // the Prospect order is refused — the attribution control (TestConfigs.PreDiscovery). The canonical sim.json carries it.
+    [property: JsonPropertyName("discovery")] DiscoveryConfig? Discovery = null,
+    // M6 Track EX (D-062, ADR-044): the minimal fog of war (known extent, sight, settlement memory) and the Explore order.
+    // OPTIONAL and in the defaulted tail: absent (or enabled false) PolityKnowledge.Of answers all-known exactly as before,
+    // DiscoverySystem writes nothing and the Explore order is refused. The canonical sim.json carries it, ON.
+    [property: JsonPropertyName("fog")] FogConfig? Fog = null);
+
+/// <summary>
+/// M6 Track EX (D-062; ADR-044) — CONCEALED DEPOSITS AND PROSPECTING. <c>Enabled</c>: THE SWITCH (false or absent: nothing
+/// is concealed, Prospect is refused — the attribution control). <c>ConcealableGoods</c>: the goods.json deposit goods a
+/// deposit of which may be concealed (geological deposits; biological and food goods are surface-evident).
+/// <c>ConcealedShare</c> s in [0, 1]: per settlement, k = floor(n × s + u) of its n eligible rows are concealed
+/// (State.DepositConcealment). <c>ProspectTools</c> (whole tools ≥ 0): what one Prospect order sinks (reason Prospecting).
+/// <c>ProspectDiscountRequires</c>: a research.json requirement whose completion HALVES that cost (integer division) —
+/// the ore-recognition technology (copper_smelting; ADR-044 §4). Null: no discount.
+/// </summary>
+public sealed record DiscoveryConfig(
+    [property: JsonPropertyName("enabled"), JsonRequired] bool Enabled,
+    [property: JsonPropertyName("concealableGoods"), JsonRequired] string[] ConcealableGoods,
+    [property: JsonPropertyName("concealedShare"), JsonRequired] double ConcealedShare,
+    [property: JsonPropertyName("prospectTools"), JsonRequired] long ProspectTools,
+    [property: JsonPropertyName("prospectDiscountRequires")] string? ProspectDiscountRequires = null);
+
+/// <summary>
+/// M6 Track EX (D-062; ADR-044) — THE MINIMAL FOG. Distances are in traversal-lattice NODES (16 km each; PolityKnowledge.Grid).
+/// <c>Enabled</c>: THE SWITCH (false or absent: all-known, nothing written — the attribution control).
+/// <c>SeedRadiusNodes</c> (3 ≈ 50 km, the hinterland constant): every step each polity knows the disc of this radius
+/// around every settlement it controls (rule E2), and an Explore starts from it. <c>FormationSightNodes</c> (1): a
+/// formation sees the disc of this radius around itself (rule E4). <c>ExploreStepNodes</c> (3): what one Explore adds to a
+/// settlement's explored radius; <c>ExploreMaxRadiusNodes</c> (15): the cap. <c>ExploreGrain</c> (whole grain ≥ 0): the
+/// provisions one Explore sinks (reason Expedition).
+/// </summary>
+public sealed record FogConfig(
+    [property: JsonPropertyName("enabled"), JsonRequired] bool Enabled,
+    [property: JsonPropertyName("seedRadiusNodes"), JsonRequired] int SeedRadiusNodes,
+    [property: JsonPropertyName("formationSightNodes"), JsonRequired] int FormationSightNodes,
+    [property: JsonPropertyName("exploreStepNodes"), JsonRequired] int ExploreStepNodes,
+    [property: JsonPropertyName("exploreMaxRadiusNodes"), JsonRequired] int ExploreMaxRadiusNodes,
+    [property: JsonPropertyName("exploreGrain"), JsonRequired] long ExploreGrain);
 
 /// <summary>
 /// D-051 §6 applied to construction (authority: D-051 §6 and D-053 §1 — the Director's 2026-10-13 instruction, item 1:
@@ -978,6 +1019,7 @@ public static class SimConfigLoader
             Goods = GoodsConfigLoader.Load(goodsJson),
         });
         ValidateGranariesAgainstContent(cfg);
+        ValidateDiscoveryAgainstContent(cfg);
         return cfg;
     }
 
@@ -994,6 +1036,7 @@ public static class SimConfigLoader
         ValidateTradeAgainstContent(cfg);
         ValidateProjectsAgainstContent(cfg.Goods, cfg.Research);
         ValidateInstitutionsAgainstContent(cfg);
+        ValidateDiscoveryAgainstResearch(cfg);
         return cfg;
     }
 
@@ -1188,6 +1231,8 @@ public static class SimConfigLoader
                 "construction.continueWithinTurn requires construction.incremental to be true (D-058): it carries the " +
                 "capacity a completing queue head leaves to the next entry in the same turn, and the whole-or-wait rule " +
                 "(incremental false) has no partial capacity to carry, got incremental false.");
+        if (cfg.Discovery is { } discovery) ValidateDiscovery(discovery);
+        if (cfg.Fog is { } fog) ValidateFog(fog);
         if (cfg.Colonization is { } colonization
             && !(colonization.OrderPartyFraction > 0.0 && colonization.OrderPartyFraction < 1.0))
             throw new SimConfigException(
@@ -1521,6 +1566,57 @@ public static class SimConfigLoader
                                          $"the effective deficit is never inverted, got {Inv(g.FamineReductionMax)}.");
         if (!(g.FamineReductionScale > 0.0) || !double.IsFinite(g.FamineReductionScale))
             throw new SimConfigException($"{p}famineReductionScale must be a finite value > 0, got {Inv(g.FamineReductionScale)}.");
+    }
+
+    /// <summary>M6 Track EX (ADR-044): the discovery section's ranges (the goods names are checked against goods.json by
+    /// <see cref="ValidateDiscoveryAgainstContent"/>).</summary>
+    private static void ValidateDiscovery(DiscoveryConfig d)
+    {
+        if (d.ConcealableGoods is null)
+            throw new SimConfigException("discovery.concealableGoods is missing — name the goods.json deposit goods that may be concealed.");
+        if (!(d.ConcealedShare >= 0.0 && d.ConcealedShare <= 1.0))
+            throw new SimConfigException($"discovery.concealedShare must be in [0,1] (a share of a settlement's eligible deposits), got {Inv(d.ConcealedShare)}.");
+        if (d.ProspectTools < 0)
+            throw new SimConfigException("discovery.prospectTools must be a whole number of tools >= 0, got " +
+                d.ProspectTools.ToString(System.Globalization.CultureInfo.InvariantCulture) + ".");
+        if (d.ProspectDiscountRequires is { } req && string.IsNullOrWhiteSpace(req))
+            throw new SimConfigException("discovery.prospectDiscountRequires is empty — name a research.json requirement or omit it.");
+    }
+
+    /// <summary>M6 Track EX (ADR-044): the fog section's ranges.</summary>
+    private static void ValidateFog(FogConfig f)
+    {
+        if (f.SeedRadiusNodes < 0 || f.FormationSightNodes < 0)
+            throw new SimConfigException("fog.seedRadiusNodes and fog.formationSightNodes must be >= 0 lattice nodes.");
+        if (f.ExploreStepNodes < 1)
+            throw new SimConfigException("fog.exploreStepNodes must be >= 1 lattice node (an Explore that reveals nothing is not an action).");
+        if (f.ExploreMaxRadiusNodes < f.SeedRadiusNodes || f.ExploreMaxRadiusNodes > 128)
+            throw new SimConfigException("fog.exploreMaxRadiusNodes must be in [fog.seedRadiusNodes, 128] lattice nodes.");
+        if (f.ExploreGrain < 0)
+            throw new SimConfigException("fog.exploreGrain must be a whole number of grain >= 0.");
+    }
+
+    /// <summary>M6 Track EX (ADR-044): every discovery.concealableGoods name is a goods.json DEPOSIT good (it has a
+    /// depositChannel), the prospect cost good (tools) exists, and the explore provisions are the numeraire grain — checked
+    /// where sim.json and goods.json meet. Public so a config assembled without the canonical load can be checked.</summary>
+    public static void ValidateDiscoveryAgainstContent(SimConfig cfg)
+    {
+        if (cfg.Discovery is not { } d || cfg.Goods is not { } goods) return;
+        foreach (string name in d.ConcealableGoods)
+        {
+            int id = goods.IdOf(name);
+            if (id < 0 || goods.ById(id).DepositChannel is null)
+                throw new SimConfigException($"discovery.concealableGoods names '{name}', which is not a goods.json deposit good (one with a depositChannel).");
+        }
+        if (goods.IdOf(State.DepositConcealment.ProspectGood) < 0)
+            throw new SimConfigException($"discovery: the Prospect order sinks '{State.DepositConcealment.ProspectGood}', which goods.json does not define.");
+    }
+
+    /// <summary>M6 Track EX (ADR-044): discovery.prospectDiscountRequires parses against research.json.</summary>
+    private static void ValidateDiscoveryAgainstResearch(SimConfig cfg)
+    {
+        if (cfg.Discovery?.ProspectDiscountRequires is not { } req || cfg.Research is not { } research) return;
+        Research.ResearchContentLoader.ParseRequirement(research, req, "sim.json discovery.prospectDiscountRequires");
     }
 
     /// <summary>M5 item 5: the granaries section names a goods.json construction project — checked where sim.json and

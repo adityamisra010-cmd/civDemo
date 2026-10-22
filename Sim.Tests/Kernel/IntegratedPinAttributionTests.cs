@@ -324,7 +324,7 @@ public class IntegratedPinAttributionTests
             CanonicalSchema.Write(stripped, writer);
         }
 
-        return HashDroppingTrailer(buffer.ToArray(), dropTrailingTables + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount);
+        return HashDroppingTrailer(buffer.ToArray(), dropTrailingTables + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount);
     }
 
     private static string HashDroppingTrailer(byte[] full, int dropTrailingTables)
@@ -412,7 +412,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount);
+        return HashDroppingTrailer(buffer.ToArray(), AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount);
     }
 
     /// <summary>ADR-032: the two v29 transport tables, appended after UnitConversions. Every pin in
@@ -444,7 +444,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount);
+        return HashDroppingTrailer(buffer.ToArray(), RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount);
     }
 
     /// <summary>ADR-033 D4: the one v30 governance table (TaxPolicies), appended after
@@ -492,7 +492,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount);
+        return HashDroppingTrailer(buffer.ToArray(), GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount);
     }
 
     /// <summary>ADR-033 D6 + D10: the two v31 tables (Institutions, ConstructionLabor), appended after
@@ -533,7 +533,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount);
+        return HashDroppingTrailer(buffer.ToArray(), InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount);
     }
 
     /// <summary>H2 (2026-10-05): the one v32 table (TaxGrievances — the levy's grievance per population segment),
@@ -563,7 +563,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount);
+        return HashDroppingTrailer(buffer.ToArray(), LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount);
     }
 
     /// <summary>A pre-v32 pin's comparison form: the v31 stream of an UNTAXED run (no levy-grievance row to strip —
@@ -594,6 +594,11 @@ public class IntegratedPinAttributionTests
     /// <see cref="EveryOlderSchemaProjection_RefusesAWorldWithAV33Row_AsTheV32ProjectionDoes"/> (its hold-row arm).</summary>
     private static void StripV34AssertingEmpty(WorldState stripped)
     {
+        // M6 EX (v35, 2026-10-22): the four discovery tables follow section 61 — every older projection drops them too, and
+        // a discovery row is behaviour (the fog or concealment on), never layout.
+        int discovery = TestUtil.SchemaProjection.StripV35(stripped);
+        Assert.True(discovery == 0,
+            $"the v35 strip removed {discovery} row(s): a discovery row is behaviour, not layout — a pre-v35 pin cannot be compared through it");
         int removed = TestUtil.SchemaProjection.StripV34(stripped);
         Assert.True(removed == 0,
             $"the v34 strip removed {removed} row(s): a set-aside (hold) is behaviour, not layout — a pre-v34 pin cannot be compared through it");
@@ -694,7 +699,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), ResearchTableCount + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount);
+        return HashDroppingTrailer(buffer.ToArray(), ResearchTableCount + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount);
     }
 
     /// <summary>
@@ -720,7 +725,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), 1 + ResearchTableCount + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount);
+        return HashDroppingTrailer(buffer.ToArray(), 1 + ResearchTableCount + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount);
     }
 
     /// <summary>
@@ -942,7 +947,7 @@ public class IntegratedPinAttributionTests
         Assert.Equal(beforeT421, HashAtSchemaV24(world, out int removed));
         Assert.Equal(0, removed);
         Assert.Equal(0, world.Disasters.Count);
-        Assert.Equal(34, CanonicalSchema.Version);   // v31: ADR-033 D6/D10 Institutions + ConstructionLabor (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins)
+        Assert.Equal(35, CanonicalSchema.Version);   // (v35: M6 EX discovery tables 63–66) v31: ADR-033 D6/D10 Institutions + ConstructionLabor (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins)
     }
 
     [Fact]
@@ -1501,7 +1506,7 @@ public class IntegratedPinAttributionTests
         WorldState world = SnapshotTests.CanonicalExecutor().Run(SnapshotTests.Genesis(42), 200);
         Assert.Equal(V31ToyGolden, V31(world));
         Assert.Equal(0, world.TaxPolicies.Count);
-        Assert.Equal(34, CanonicalSchema.Version);   // v33: D-054 ConstructionProgress + ResourceAllocations (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins)
+        Assert.Equal(35, CanonicalSchema.Version);   // (v35: M6 EX discovery tables 63–66) v33: D-054 ConstructionProgress + ResourceAllocations (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins)
     }
 
     [Fact]

@@ -33,6 +33,14 @@ public static partial class PlayabilityGate
         UiSession s = UiSession.Start(42, aiEmpiresOverride: ai);
         if (!EmpireQuery.TryGetCapital(s.World, Me, out SettlementId capital)) throw new InvalidOperationException("placement rig: no capital");
         int site = LegalPlace(s, capital.Value);
+        // M6 EX (ADR-044): under the fog the capital's seed disc lies inside its own catchment, so a place must be
+        // discovered first — the player's Explore (the guarded emitter), one per turn, until a legal place is known.
+        for (int k = 0; k < 4 && site < 0; k++)
+        {
+            if (!s.EmitExplore(capital.Value)) break;
+            s.EndTurn();
+            site = LegalPlace(s, capital.Value);
+        }
         if (site < 0) throw new InvalidOperationException("placement rig: no legal place from the capital");
         if (!s.EmitFoundSettlement(capital.Value, site)) throw new InvalidOperationException("placement rig: the emitter refused a legal place");
         s.EndTurn();
@@ -192,6 +200,19 @@ public static partial class PlayabilityGate
                 h.Key(Keys.F);
                 return Expect(entered && !Ui.Placement.Active, "entered " + entered + ", still " + Ui.Placement.Active);
             });
+            ConfirmRow(source, legal);
+            Unzoom();
+            CloseEverything();
+        }
+
+        /// <summary>Set when this state's placement sweep found no legal place the player knows (under the fog, before any
+        /// Explore has widened what it knows): the Confirm row is then revisited after End Turn.</summary>
+        private bool _confirmDeferred;
+
+        /// <summary>The Confirm row: a legal place clicked, then Confirm appends ONE FoundSettlement order.</summary>
+        private void ConfirmRow(int source, int legal)
+        {
+            _confirmDeferred = legal < 0 && _phase.Length == 0;
             Check("placement", "click a legal place, then Confirm (ONE FoundSettlement order, through EmitFoundSettlement)", () =>
             {
                 if (legal < 0) return (GateResult.NotOffered, "no place you know is legal from " + S.Names.Name(source));
@@ -206,6 +227,26 @@ public static partial class PlayabilityGate
                 if (after.Count != q + 1) return (GateResult.Fail, "SILENT: " + (after.Count - q).ToString(CultureInfo.InvariantCulture) + " orders appended");
                 return Expect(after[^1] == expected && !Ui.Placement.Active, "appended " + after[^1].Kind + ", mode " + Ui.Placement.Active);
             });
+        }
+
+        /// <summary>
+        /// M6 Track EX (D-062 E8; ADR-044): under the fog a state can start with NO legal place the player knows — the seed
+        /// disc lies inside its own settlements' spacing — so the Confirm row is not offered before End Turn. The sweep's
+        /// POLICY pass has pressed Explore (an admitted expedition widens the known extent at the next turn), so the row is
+        /// revisited here, after the End Turns, on what the player now knows.
+        /// </summary>
+        private void PlacementAfterTurns()
+        {
+            if (!_confirmDeferred) return;
+            CloseEverything();
+            if (!EnterPlacement())
+            {
+                Row("placement", "click a legal place, then Confirm (ONE FoundSettlement order, through EmitFoundSettlement)", GateResult.NotOffered,
+                    "no settlement of yours can spare settlers and provisions now (the block is absent)");
+                return;
+            }
+            int source = Ui.Placement.Source;
+            ConfirmRow(source, LegalPlace(S, source));
             Unzoom();
             CloseEverything();
         }

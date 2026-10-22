@@ -181,7 +181,7 @@ namespace Sim.Cli
                 agesStream, familiesStream);
         }
 
-        internal static TurnExecutor Executor(OrderLog? orders, bool founded = false)
+        internal static TurnExecutor Executor(OrderLog? orders, bool founded = false, Sim.Core.Systems.SimConfig? cfg = null)
         {
             using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
             // Default = toy preset + toy world: keeps the cross-process
@@ -202,7 +202,7 @@ namespace Sim.Cli
             }
             return new TurnExecutor(
                 EraTableLoader.Load(eraStream),
-                PipelineLoader.Load(pipeStream, SystemCatalog.All(SimCfg(), wg)),
+                PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg ?? SimCfg(), wg)),
                 orders);
         }
 
@@ -647,8 +647,11 @@ namespace Sim.Cli
             OrderValidation.ValidateAgainstWorld(orders, world);
             WorldState turnZero = world;
 
-            var executor = Executor(orders, founded: true);
-            Sim.Core.Systems.SimConfig cfg = SimCfg();
+            // M6 Track EX (ADR-044 §7): a session recorded before v35 is replayed without the discovery layer
+            // (DiscoveryQuery.RecordedWithoutDiscovery — UiSession.Resume's rule).
+            Sim.Core.Systems.SimConfig cfg = Sim.Core.State.DiscoveryQuery.RecordedWithoutDiscovery(manifest.SchemaVersion)
+                ? Sim.Core.State.DiscoveryQuery.WithoutDiscovery(SimCfg()) : SimCfg();
+            var executor = Executor(orders, founded: true, cfg);
             int grain = cfg.Goods?.GrainId ?? 0;
 
             // D-056: the per-turn report is built in memory and written after the replay, so a refusal by the legacy-cancel

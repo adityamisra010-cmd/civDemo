@@ -818,6 +818,38 @@ public record struct ResourceAllocationRow(PolityId Polity, int BuildingsPercent
 public record struct ConstructionHoldRow(int Purse, int Good, long Units);
 
 /// <summary>
+/// M6 Track EX (schema v35 section 63; D-062, ADR-044) — ONE 64-NODE WORD OF A POLITY'S KNOWN EXTENT: the traversal-lattice
+/// nodes the polity has discovered, node index n (row-major over PolityKnowledge.Grid, 256 × 256 on the canonical map) in
+/// word n &gt;&gt; 6 at bit n &amp; 63. Owned by DiscoverySystem. MONOTONE (rule E1): a bit, once set, is never cleared. Sparse:
+/// only non-zero words are stored, rows in strictly ascending (Polity, Word). Not a conserved stock — knowledge.
+/// </summary>
+public record struct KnownExtentRow(PolityId Polity, int Word, ulong Bits);
+
+/// <summary>
+/// M6 Track EX (schema v35 section 64; ADR-044) — THE EXPLORED RADIUS around one origin settlement: the disc (in lattice
+/// nodes) the polity has explored around it with Explore orders (OrderKind 14). Absence = fog.seedRadiusNodes (the seed disc
+/// every controlled settlement carries). Owned by DiscoverySystem; rows in strictly ascending (Polity, Settlement); radius in
+/// (seed, fog.exploreMaxRadiusNodes].
+/// </summary>
+public record struct ExplorationRow(PolityId Polity, SettlementId Settlement, int RadiusNodes);
+
+/// <summary>
+/// M6 Track EX (schema v35 section 65; ADR-044) — A POLITY'S LAST SIGHT OF A SETTLEMENT'S EXISTENCE (rule E5): written or
+/// updated when the settlement's node is VISIBLE to the polity, or an Explore reveals it. <c>LastSeenTurn</c> is the turn of
+/// the state it was seen in. Presence only — a rival's internals stay its own. Owned by DiscoverySystem; rows in strictly
+/// ascending (Polity, Settlement).
+/// </summary>
+public record struct SettlementSightingRow(PolityId Polity, SettlementId Settlement, long LastSeenTurn);
+
+/// <summary>
+/// M6 Track EX (schema v35 section 66; ADR-044) — THE POLITY HAS PROSPECTED (SURVEYED) THIS SETTLEMENT'S HINTERLAND
+/// (OrderKind 15, stamped <c>Turn</c>): every concealed deposit row there is DISCOVERED for it
+/// (State.DepositConcealment). Once per (polity, settlement). Owned by DiscoverySystem; rows in strictly ascending
+/// (Polity, Settlement).
+/// </summary>
+public record struct SettlementSurveyRow(PolityId Polity, SettlementId Settlement, long Turn);
+
+/// <summary>
 /// M4-D — a completed structure, counted per (settlement, project).
 ///
 /// NOT a Conserved stock, and that is a considered choice rather than an
@@ -1264,6 +1296,18 @@ public interface IReadOnlyWorldState
     /// <summary>D-055 (v34): each purse's set-aside units per good this step — owned by ConstructionSystem, cleared every
     /// construction step; never a simulation input.</summary>
     IReadOnlyTable<ConstructionHoldRow> ConstructionHolds { get; }
+
+    /// <summary>M6 EX (v35 §63): each polity's known extent, sparse 64-node words — owned by DiscoverySystem.</summary>
+    IReadOnlyTable<KnownExtentRow> KnownExtents { get; }
+
+    /// <summary>M6 EX (v35 §64): explored radius per (polity, origin settlement) — owned by DiscoverySystem.</summary>
+    IReadOnlyTable<ExplorationRow> Explorations { get; }
+
+    /// <summary>M6 EX (v35 §65): last sight of a settlement per polity — owned by DiscoverySystem.</summary>
+    IReadOnlyTable<SettlementSightingRow> SettlementSightings { get; }
+
+    /// <summary>M6 EX (v35 §66): settlements a polity has prospected — owned by DiscoverySystem.</summary>
+    IReadOnlyTable<SettlementSurveyRow> SettlementSurveys { get; }
 }
 
 /// <summary>
@@ -1470,6 +1514,18 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>D-055 (v34): each purse's set-aside units per good this step — owned by ConstructionSystem.</summary>
     public Table<ConstructionHoldRow> ConstructionHolds { get; }
 
+    /// <summary>M6 EX (v35 §63): each polity's known extent — owned by DiscoverySystem.</summary>
+    public Table<KnownExtentRow> KnownExtents { get; }
+
+    /// <summary>M6 EX (v35 §64): explored radius per (polity, origin settlement) — owned by DiscoverySystem.</summary>
+    public Table<ExplorationRow> Explorations { get; }
+
+    /// <summary>M6 EX (v35 §65): last sight of a settlement per polity — owned by DiscoverySystem.</summary>
+    public Table<SettlementSightingRow> SettlementSightings { get; }
+
+    /// <summary>M6 EX (v35 §66): settlements a polity has prospected — owned by DiscoverySystem.</summary>
+    public Table<SettlementSurveyRow> SettlementSurveys { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
@@ -1531,6 +1587,10 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<ConstructionProgressRow> IReadOnlyWorldState.ConstructionProgress => ConstructionProgress;
     IReadOnlyTable<ResourceAllocationRow> IReadOnlyWorldState.ResourceAllocations => ResourceAllocations;
     IReadOnlyTable<ConstructionHoldRow> IReadOnlyWorldState.ConstructionHolds => ConstructionHolds;
+    IReadOnlyTable<KnownExtentRow> IReadOnlyWorldState.KnownExtents => KnownExtents;
+    IReadOnlyTable<ExplorationRow> IReadOnlyWorldState.Explorations => Explorations;
+    IReadOnlyTable<SettlementSightingRow> IReadOnlyWorldState.SettlementSightings => SettlementSightings;
+    IReadOnlyTable<SettlementSurveyRow> IReadOnlyWorldState.SettlementSurveys => SettlementSurveys;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -1596,6 +1656,10 @@ public sealed class WorldState : IReadOnlyWorldState
         ConstructionProgress = new Table<ConstructionProgressRow>();
         ResourceAllocations = new Table<ResourceAllocationRow>();
         ConstructionHolds = new Table<ConstructionHoldRow>();
+        KnownExtents = new Table<KnownExtentRow>();
+        Explorations = new Table<ExplorationRow>();
+        SettlementSightings = new Table<SettlementSightingRow>();
+        SettlementSurveys = new Table<SettlementSurveyRow>();
     }
 
     private WorldState(
@@ -1631,7 +1695,9 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<InstitutionRow> institutions, Table<ConstructionLaborRow> constructionLabor,
         Table<TaxGrievanceRow> taxGrievances,
         Table<ConstructionProgressRow> constructionProgress, Table<ResourceAllocationRow> resourceAllocations,
-        Table<ConstructionHoldRow> constructionHolds)
+        Table<ConstructionHoldRow> constructionHolds,
+        Table<KnownExtentRow> knownExtents, Table<ExplorationRow> explorations,
+        Table<SettlementSightingRow> settlementSightings, Table<SettlementSurveyRow> settlementSurveys)
     {
         Seed = seed;
         Clock = clock;
@@ -1696,6 +1762,10 @@ public sealed class WorldState : IReadOnlyWorldState
         ConstructionProgress = constructionProgress;
         ResourceAllocations = resourceAllocations;
         ConstructionHolds = constructionHolds;
+        KnownExtents = knownExtents;
+        Explorations = explorations;
+        SettlementSightings = settlementSightings;
+        SettlementSurveys = settlementSurveys;
     }
 
     /// <summary>
@@ -1721,7 +1791,8 @@ public sealed class WorldState : IReadOnlyWorldState
             AgeStates.Clone(), AgeEligibility.Clone(), AgeTransitions.Clone(), MilitaryUnits.Clone(),
             UnitConversions.Clone(), TransportEdges.Clone(), RoadDevelopments.Clone(),
             TaxPolicies.Clone(), Institutions.Clone(), ConstructionLabor.Clone(), TaxGrievances.Clone(),
-            ConstructionProgress.Clone(), ResourceAllocations.Clone(), ConstructionHolds.Clone())
+            ConstructionProgress.Clone(), ResourceAllocations.Clone(), ConstructionHolds.Clone(),
+            KnownExtents.Clone(), Explorations.Clone(), SettlementSightings.Clone(), SettlementSurveys.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };

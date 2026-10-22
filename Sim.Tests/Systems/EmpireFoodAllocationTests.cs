@@ -944,7 +944,7 @@ public class EmpireFoodAllocationTests
         // PreD054Sim), compared through the v32 projection.
         (WorldState off, _) = Sim.Tests.Kernel.DrivenGoldenTests.RunDriven(300, TestConfigs.PreD053(TestConfigs.Sim()), TestConfigs.PreD054Worldgen());
         Assert.Equal(De86aceDrivenGolden, SchemaProjection.V32(off));
-        (WorldState on, _) = Sim.Tests.Kernel.DrivenGoldenTests.RunDriven(300, TestConfigs.Sim(), TestConfigs.PreD054Worldgen());
+        (WorldState on, _) = Sim.Tests.Kernel.DrivenGoldenTests.RunDriven(300, TestConfigs.PreDiscovery(TestConfigs.Sim()), TestConfigs.PreD054Worldgen());   // M6 EX: discovery off (R4)
         Assert.NotEqual(De86aceDrivenGolden, SchemaProjection.V32(on));
     }
 

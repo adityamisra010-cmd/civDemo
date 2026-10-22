@@ -1,7 +1,8 @@
 # P7 (M5 map workstream) - THE Sim.Ui RAW-READ ALLOWLIST, read by BOTH scripts/check-read-isolation.sh (the advisory
 # grep, CI) and Sim.Ui.Tests KnowledgeLeakTests (the source guard). One list, two readers - never edit a copy.
 #
-# What is matched: a read of a foreign-sensitive world table - Settlements, MilitaryUnits, Buckets or Deposits - through
+# What is matched: a read of a foreign-sensitive world table - Settlements, MilitaryUnits, Buckets, Deposits or (M6 EX)
+# the discovery tables KnownExtents, Explorations, SettlementSightings, SettlementSurveys - through
 # a world receiver (world, w, _world, World, prev, next, W) in Sim.Ui/**/*.cs. Any file that does so must be listed here
 # with its CLASS and a reason; a new raw read anywhere else fails both readers.
 #

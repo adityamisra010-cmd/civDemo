@@ -49,7 +49,7 @@ public class SiteAssessmentTests
         SiteAssessment.Prepare(w, Cfg, wg ?? DevWg) ?? throw new InvalidOperationException("no terrain");
 
     private static SiteAssessment.Report Assess(IReadOnlyWorldState w, SiteAssessment.Prepared site, int cell, int source = -1, PolityKnowledge? k = null) =>
-        SiteAssessment.Assess(w, Cfg, site, k ?? PolityKnowledge.Of(w, Player), Player, cell, source);
+        SiteAssessment.Assess(w, Cfg, site, k ?? PolityKnowledge.Of(w, Player, null), Player, cell, source);
 
     private static OrderLog Log(params OrderRecord[] orders)
     {
@@ -310,7 +310,7 @@ public class SiteAssessmentTests
         var seen = new HashSet<(FoundingVerdict, bool)>();
         foreach (int cell in cells)
         {
-            SiteAssessment.Report r = SiteAssessment.Assess(w, Cfg, site, PolityKnowledge.Of(w, Player), Player, cell, src.Value, batch: batch);
+            SiteAssessment.Report r = SiteAssessment.Assess(w, Cfg, site, PolityKnowledge.Of(w, Player, null), Player, cell, src.Value, batch: batch);
             FoundingVerdict check = FoundingQuery.Check(w, Cfg, f, batch.Spacing, batch.Occupied, Player, src, cell);
             FoundingVerdict bare = FoundingQuery.Check(w, Cfg, f, Player, src, cell);
             Assert.Equal(check, r.Verdict);
@@ -350,7 +350,7 @@ public class SiteAssessmentTests
                 if (FoundingQuery.Check(w, Cfg, f, Player, src, c) == FoundingVerdict.Legal
                     && FoundingQuery.Check(w, Cfg, f, batch.Spacing, batch.Occupied, Player, src, c) == FoundingVerdict.TooClose) { cell = c; break; }
         Assert.True(cell >= 0, "no place inside the ordered colony's exclusion only - the rig is void");
-        PolityKnowledge k = PolityKnowledge.Of(w, Player);
+        PolityKnowledge k = PolityKnowledge.Of(w, Player, null);
         InfoCard Card(SiteAssessment.Batch? b, int at) =>
             InfoQuery.Card(w, Cfg, Player, InfoSubject.OfCell(at, src.Value), settlementName: Named, knowledge: k, site: site, batch: b);
 
@@ -402,7 +402,7 @@ public class SiteAssessmentTests
         int ordered = FoundingRigs.NearestLegalSite(w, Cfg, f, Player, src);
         SiteAssessment.Batch batch = BatchWith(w, f, ordered);
         (int l, _) = PolityKnowledge.Grid(w.Terrain!.Size);
-        PolityKnowledge any = PolityKnowledge.Of(w, Player);
+        PolityKnowledge any = PolityKnowledge.Of(w, Player, null);
         int node = any.NodeOfCell(ordered);
         int far = (node % l < l / 2 ? l - 1 : 0) + (node / l < l / 2 ? l - 1 : 0) * l;
         var known = new bool[l * l];
@@ -551,7 +551,7 @@ public class SiteAssessmentTests
     /// <summary>Known everywhere except a 5 × 5-node block around <paramref name="cell"/>'s node.</summary>
     private static bool[] HideAround(IReadOnlyWorldState w, int cell)
     {
-        PolityKnowledge any = PolityKnowledge.Of(w, Player);
+        PolityKnowledge any = PolityKnowledge.Of(w, Player, null);
         (int l, _) = PolityKnowledge.Grid(w.Terrain!.Size);
         int c = any.NodeOfCell(cell), cx = c % l, cy = c / l;
         var known = new bool[l * l];
@@ -651,7 +651,7 @@ public class SiteAssessmentTests
         // the rival's site and catchment nodes hidden).
         WorldState w = Duo1();
         (int l, _) = PolityKnowledge.Grid(w.Terrain!.Size);
-        PolityKnowledge all = PolityKnowledge.Of(w, Player);
+        PolityKnowledge all = PolityKnowledge.Of(w, Player, null);
         var known = new bool[l * l];
         Array.Fill(known, true);
         var rival = new List<int>();
@@ -718,7 +718,7 @@ public class SiteAssessmentTests
     /// unknown, every other node known; a node holding a player site is never hidden.</summary>
     private static bool[] RivalHiddenMask(IReadOnlyWorldState w)
     {
-        PolityKnowledge any = PolityKnowledge.Of(w, Player);
+        PolityKnowledge any = PolityKnowledge.Of(w, Player, null);
         (int l, _) = PolityKnowledge.Grid(w.Terrain!.Size);
         var known = new bool[l * l];
         Array.Fill(known, true);
@@ -776,7 +776,7 @@ public class SiteAssessmentTests
         WorldState w = Duo1(), moved = Duo1();
         int size = w.Terrain!.Size;
         bool[] mask = RivalHiddenMask(w);
-        PolityKnowledge any = PolityKnowledge.Of(w, Player);
+        PolityKnowledge any = PolityKnowledge.Of(w, Player, null);
         List<SettlementRow> rivals = RivalSettlements(w);
         Assert.NotEmpty(rivals);
         (int l, _) = PolityKnowledge.Grid(size);
@@ -825,7 +825,7 @@ public class SiteAssessmentTests
             // CONTROL: all-known, the rival's spacing is read and the move changes it.
             SiteAssessment.Report ca = Assess(w, site, cell), cb = Assess(moved, site, cell);
             if (!ca.SpacingCost.Equals(cb.SpacingCost)) spacingMoved++;
-            if (CardOf(w, site, any, cell) != CardOf(moved, site, PolityKnowledge.Of(moved, Player), cell)) cardsMoved++;
+            if (CardOf(w, site, any, cell) != CardOf(moved, site, PolityKnowledge.Of(moved, Player, null), cell)) cardsMoved++;
         }
         Assert.True(spacingMoved > 0, "moving the rival moves no all-known spacing - the comparison proves nothing");
         Assert.True(cardsMoved > 0, "moving the rival moves no all-known card - the comparison proves nothing");
@@ -851,7 +851,7 @@ public class SiteAssessmentTests
         WorldState w = Duo1(), moved = Duo1();
         int size = w.Terrain!.Size;
         (int l, _) = PolityKnowledge.Grid(size);
-        PolityKnowledge any = PolityKnowledge.Of(w, Player);
+        PolityKnowledge any = PolityKnowledge.Of(w, Player, null);
         SettlementRow rival = RivalSettlements(w)[0];
         int cell = rival.SiteCell, n0 = any.NodeOfCell(cell);
         var known = new bool[l * l];
@@ -897,7 +897,7 @@ public class SiteAssessmentTests
             Assert.DoesNotContain(told, text, StringComparison.Ordinal);
 
         // CONTROL: all-known, the card names the settlement standing there, and the move changes the card.
-        InfoCard ca = CardOf(w, site, any, cell), cb = CardOf(moved, site, PolityKnowledge.Of(moved, Player), cell);
+        InfoCard ca = CardOf(w, site, any, cell), cb = CardOf(moved, site, PolityKnowledge.Of(moved, Player, null), cell);
         Assert.NotEqual(ca, cb);
         Assert.Contains("The site of " + Named(rival.Id.Value) + ".", Text(ca), StringComparison.Ordinal);
         Assert.False(ArmOf(Assess(w, site, cell), FoundingVerdict.Occupied).Holds);   // all-known, the occupancy arm is judged and fails
@@ -914,7 +914,7 @@ public class SiteAssessmentTests
         WorldState w0 = W1();
         int size = w0.Terrain!.Size;
         SiteAssessment.Prepared site0 = Site(w0);
-        PolityKnowledge any = PolityKnowledge.Of(w0, Player);
+        PolityKnowledge any = PolityKnowledge.Of(w0, Player, null);
         (int l, _) = PolityKnowledge.Grid(size);
         int target = -1;
         for (int cell = 0; cell < size * size && target < 0; cell += 13)
@@ -960,7 +960,7 @@ public class SiteAssessmentTests
 
             SiteAssessment.Report all = Assess(w, site, target);
             controlScores.Add(all.Score);
-            controlCards.Add(CardOf(w, site, PolityKnowledge.Of(w, Player), target));
+            controlCards.Add(CardOf(w, site, PolityKnowledge.Of(w, Player, null), target));
         }
         Assert.True(cards[0] == cards[1] && cards[0] == cards[2], "what lies under the unknown nodes reaches the card:\n" + Text(cards[0]) + "\n---\n" + Text(cards[1]));
         Assert.Equal("Siting score: not judged", cards[0].More[0].Lines[0].Label);
@@ -982,7 +982,7 @@ public class SiteAssessmentTests
         (int l, _) = PolityKnowledge.Grid(size);
         var every = new bool[l * l];
         Array.Fill(every, true);
-        PolityKnowledge all = PolityKnowledge.Of(w, Player), none = PolityKnowledge.Restricted(w, Player, every, every);
+        PolityKnowledge all = PolityKnowledge.Of(w, Player, null), none = PolityKnowledge.Restricted(w, Player, every, every);
         Assert.False(none.AllKnown);
         Assert.True(SiteAssessment.SeesAll(none));
         // Every line is the all-known card's except the "Discovered" note, which says which knowledge state this is.

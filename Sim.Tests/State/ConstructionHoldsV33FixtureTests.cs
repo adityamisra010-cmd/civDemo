@@ -364,8 +364,8 @@ public class ConstructionHoldsV33FixtureTests
     {
         string fixture = FixturePath();
         WorldState loaded = SaveFiles.Load(fixture, 256, out string? note);
-        Assert.Equal("note: " + fixture + ": migrated from save schema v33: ConstructionHolds was added empty; the hash "
-            + "printed is the v34 hash (SchemaProjection.V33 gives the v33 build's).", note);
+        Assert.Equal("note: " + fixture + ": migrated from save schema v33: ConstructionHolds and the four M6 discovery tables (KnownExtents, Explorations, SettlementSightings, SettlementSurveys) were added empty; "
+            + "the hash printed is the v35 hash (SchemaProjection.V33 gives the v33 build's).", note);
         Assert.Equal(V33SaveHash, SchemaProjection.V33(loaded));       // what the note claims
 
         (int exit, string stdout, string stderr) = CliProcess.Run(Limit, "hash", fixture, "--size", "256");

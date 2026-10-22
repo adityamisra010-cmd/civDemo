@@ -210,7 +210,7 @@ public static class InfoQuery
         if (knowledge is not null && knowledge.Polity.Value != player.Value)
             throw new ArgumentException("the knowledge must be the player's", nameof(knowledge));
         var c = new Ctx(world, cfg, player, context ?? ActionQueryContext.None, settlementName, actions,
-            knowledge ?? PolityKnowledge.Of(world, player), site, batch);
+            knowledge ?? PolityKnowledge.Of(world, player, cfg), site, batch);
         var b = new B(subject);
         switch (subject.Kind)
         {
@@ -324,7 +324,7 @@ public static class InfoQuery
     /// </summary>
     public static string? SourceChain(IReadOnlyWorldState world, SimConfig cfg, PolityId polity, string good)
     {
-        var c = new Ctx(world, cfg, polity, ActionQueryContext.None, null, null, PolityKnowledge.Of(world, polity));
+        var c = new Ctx(world, cfg, polity, ActionQueryContext.None, null, null, PolityKnowledge.Of(world, polity, cfg));
         int target = -1;
         return Chain(c, good, 0, ref target);
     }
@@ -332,7 +332,7 @@ public static class InfoQuery
     /// <summary>The research node the <see cref="SourceChain"/> of <paramref name="good"/> ends at (content index), or -1.</summary>
     public static int SourceChainNode(IReadOnlyWorldState world, SimConfig cfg, PolityId polity, string good)
     {
-        var c = new Ctx(world, cfg, polity, ActionQueryContext.None, null, null, PolityKnowledge.Of(world, polity));
+        var c = new Ctx(world, cfg, polity, ActionQueryContext.None, null, null, PolityKnowledge.Of(world, polity, cfg));
         int target = -1;
         Chain(c, good, 0, ref target);
         return target;
@@ -740,7 +740,7 @@ public static class InfoQuery
         foreach (SettlementId s in mine)
         {
             held += Held(c.W, s, g.Id);
-            if (Deposit(c.W, s, g.Id) > 0.0) deposits++;
+            if (Deposit(c, s, g.Id) > 0.0) deposits++;
         }
         b.Title = Cap(g.Name);
         b.Kind = "Good - " + g.Category;
@@ -1624,6 +1624,7 @@ public static class InfoQuery
         FoundingVerdict.NoParty => from + " cannot spare a party",
         FoundingVerdict.NoProvisions => from + " cannot provision a party",
         FoundingVerdict.Unreachable => "no land route from " + from,
+        FoundingVerdict.UnknownSite => "ground you have not discovered - explore it first",
         _ => "not judged",
     };
 
@@ -1651,6 +1652,7 @@ public static class InfoQuery
         FoundingVerdict.NoParty => "A party: " + N0(r.Party) + " people would leave",
         FoundingVerdict.NoProvisions => "Provisions: " + N0(r.Provisions) + " " + GoodName(c.Cfg.Goods, c.Cfg.Goods?.GrainId ?? -1) + " would go with them",
         FoundingVerdict.Unreachable => "A land route" + (from.Length > 0 ? " from " + from : ""),
+        FoundingVerdict.UnknownSite => "Ground you have discovered",
         _ => arm.ToString(),
     };
 
@@ -2080,7 +2082,7 @@ public static class InfoQuery
         if (c.Cfg.Goods is not { } goods) return false;
         int id = goods.IdOf(good);
         if (id < 0) return false;
-        foreach (SettlementId s in c.Controlled) if (Held(c.W, s, id) > 0 || Deposit(c.W, s, id) > 0.0) return true;
+        foreach (SettlementId s in c.Controlled) if (Held(c.W, s, id) > 0 || Deposit(c, s, id) > 0.0) return true;
         if (id == goods.GrainId) return true;
         return depth < 4 && ObtainableByKnownCraft(c, good, depth);
     }
@@ -2239,13 +2241,9 @@ public static class InfoQuery
         return 0;
     }
 
-    private static double Deposit(IReadOnlyWorldState w, SettlementId s, int good)
-    {
-        double sum = 0.0;
-        for (int i = 0; i < w.Deposits.Count; i++)
-            if (w.Deposits[i].Settlement.Value == s.Value && w.Deposits[i].Good.Value == good) sum += w.Deposits[i].Abundance;
-        return sum;
-    }
+    /// <summary>M6 EX (ADR-044): a deposit as the settlement's controller knows it — an undiscovered concealed row reads 0
+    /// (State.DepositConcealment, the one predicate).</summary>
+    private static double Deposit(Ctx c, SettlementId s, int good) => DepositConcealment.KnownAbundance(c.W, c.Cfg, s, good);
 
     /// <summary>The sector that works a deposit good: production's own classification (<see cref="LabourActivities.IsHerded"/>,
     /// the rule LabourActivities.GoodsOf files a deposit under) — Herding/fishing for livestock and fish, Extraction for

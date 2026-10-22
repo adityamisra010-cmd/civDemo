@@ -62,7 +62,7 @@ public class CylinderAttributionSeparabilityTests : IClassFixture<CylinderAttrib
     /// layer stripped) with the disaster hazard inert.</summary>
     internal static SimConfig Unarmed()
     {
-        SimConfig s = TestConfigs.PreRecipeKnowledge(TestConfigs.PreTradeKnowledge(TestConfigs.PreR2b(TestConfigs.Sim())));
+        SimConfig s = TestConfigs.PreRecipeKnowledge(TestConfigs.PreTradeKnowledge(TestConfigs.PreR2b(TestConfigs.PreDiscovery(TestConfigs.Sim()))));
         Assert.Equal(0.0, s.Disaster.HazardPerYear);
         return s with { Disaster = s.Disaster with { HazardPerYear = 0.0 } };
     }

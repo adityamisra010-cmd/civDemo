@@ -38,7 +38,7 @@ public class CylinderAttributionDevStarvedTests
     [Fact]
     public void Relief_OnTheDevStarvedCylinder_DivergesExactlyAtTheFirstReliefTransfer()
     {
-        SimConfig on = TestConfigs.Sim(), off = TestConfigs.PreEmpireFoodAllocation(on);
+        SimConfig on = TestConfigs.PreDiscovery(TestConfigs.Sim()), off = TestConfigs.PreEmpireFoodAllocation(on);
         Assert.True(on.Consumption.EmpireFoodAllocation);
         Assert.False(off.Consumption.EmpireFoodAllocation);
         R.Arm live = R.Run(R.DevStarved(), "on", on, Horizon, keep: [0, FirstRelief - 1, FirstRelief], probes: [R.ReliefMovedGrain]);
@@ -60,7 +60,7 @@ public class CylinderAttributionDevStarvedTests
             if (after.Settlements[i].Id.Value != Sim.Tests.Observability.ExplainRigs.Target)
                 Assert.True(R.GrainResidual(before, after, after.Settlements[i].Id, on) >= 0);
 
-        R.AssertSameSeries(live, R.Run(R.DevStarved(), "on-again", TestConfigs.Sim(), Horizon));
+        R.AssertSameSeries(live, R.Run(R.DevStarved(), "on-again", TestConfigs.PreDiscovery(TestConfigs.Sim()), Horizon));
         WorldState w0 = live.At(0);
         Assert.Equal((0, 0), (R.SeamCrossingPairs(w0), R.WrappedDonorOrders(w0)));
     }
@@ -97,7 +97,7 @@ public class CylinderAttributionDevStarvedTests
     [Fact]
     public void Relief_NeverSourcesFromAnotherPolity_EvenWhenItsSettlementIsTheStarvingOnesNearest_DevAiCylinder()
     {
-        SimConfig on = TestConfigs.Sim(), off = TestConfigs.PreEmpireFoodAllocation(on);
+        SimConfig on = TestConfigs.PreDiscovery(TestConfigs.Sim()), off = TestConfigs.PreEmpireFoodAllocation(on);
         int[] keep = [0, PolityRigFirstRelief - 1, PolityRigFirstRelief];
         R.Arm live = R.Run(DevAiStarved(), "on", on, PolityRigHorizon, keep: keep, probes: [R.ReliefMovedGrain]);
         R.Arm twin = R.Run(DevAiStarved(), "relief-off", off, PolityRigHorizon, keep: keep, probes: [R.ReliefMovedGrain]);
@@ -142,7 +142,7 @@ public class CylinderAttributionDevStarvedTests
         Assert.Equal(Writes, written);
         R.AssertNoTopologyTable(written);
         R.AssertLogsEqualBefore(live.Log, twin.Log, PolityRigFirstRelief);
-        R.AssertSameSeries(live, R.Run(DevAiStarved(), "on-again", TestConfigs.Sim(), PolityRigHorizon));
+        R.AssertSameSeries(live, R.Run(DevAiStarved(), "on-again", TestConfigs.PreDiscovery(TestConfigs.Sim()), PolityRigHorizon));
     }
 
     /// <summary>Every settlement of <paramref name="w"/> nearest-first to <paramref name="at"/> on the cylinder (squared pixels
