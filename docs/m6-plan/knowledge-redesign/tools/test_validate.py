@@ -235,6 +235,27 @@ def fx_corroborated_on_low_confidence_only(pkg, env):
     return victim
 
 
+def fx_one_page_read_certifies_all(pkg, env):
+    """Opening ONE page must not certify claims that rest on other, search-only sources."""
+    reg = {s["id"]: s for s in kr.load_json(pkg / "sources/register.json")}
+    first = []
+
+    def pred(e):
+        claims = e["factCheck"].get("claims") or []
+        cited = [tuple(c.get("sources") or []) for c in claims if c.get("result") == "supported"]
+        return (status(e) == "search-corroborated" and len(cited) >= 2 and all(cited)
+                and len({s for c in cited for s in c}) >= 2 and not set(cited[0]) & {s for c in cited[1:] for s in c})
+
+    def fn(e):
+        e["factCheck"]["status"] = "source-checked"
+        first.extend(next(c["sources"] for c in e["factCheck"]["claims"] if c.get("result") == "supported"))
+    victim = edit_first_entry(pkg, pred, fn)
+    for i in first:
+        reg[i]["retrieval"] = "page-read"
+    kr.dump_json(list(reg.values()), pkg / "sources/register.json")
+    return victim
+
+
 def fx_unsourced_but_partially_checked(pkg, env):
     return edit_first_entry(pkg, lambda e: status(e) == "unverified" and not e.get("sources"),
                             lambda e: e["factCheck"].__setitem__("status", "partially-checked"))
@@ -336,6 +357,8 @@ FIXTURES = [
      ("C11", r"{id}: 'search-corroborated' but a listed claim is", {"C11"})),
     ("search-corroborated on low-confidence sources only", False, True, fx_corroborated_on_low_confidence_only,
      ("C11", r"{id}: 'search-corroborated' rests only on low-confidence", {"C11"})),
+    ("source-checked where one opened page covers only some claims", False, True, fx_one_page_read_certifies_all,
+     ("C11", r"{id}: 'source-checked' but the claim .* rests on no page", {"C11"})),
     ("no sources but partially-checked", False, True, fx_unsourced_but_partially_checked,
      ("C03", r"{id}: no sources but status is not 'unverified'", {"C03"})),
     ("partially-checked with no supported claim", False, True, fx_partially_checked_with_nothing_supported,
@@ -414,6 +437,8 @@ MUTANTS = [
     ("search-corroborated relabelled source-checked", "if st == \"source-checked\" and not (retrievals & PAGE_READ):", "if False:"),
     ("search-corroborated with an unsupported claim", "if st == \"search-corroborated\" and results and any(", "if False and any("),
     ("search-corroborated on low-confidence sources only", "if st == \"search-corroborated\" and srcs and confs <= {\"low\", None}:", "if False:"),
+    ("source-checked where one opened page covers only some claims", 'c.get("result") in ("supported", "disputed") and not any(',
+     'False and not any('),
     ("no sources but partially-checked", 'rep.add("ERROR", "C03", f"{e[\'id\']}: no sources', 'rep.add("WARN", "C03", f"{e[\'id\']}: no sources'),
     ("partially-checked with no supported claim", "if st == \"partially-checked\" and results and not any(", "if False and not any("),
 ]

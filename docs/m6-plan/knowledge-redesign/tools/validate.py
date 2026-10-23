@@ -675,6 +675,18 @@ def check_corpus(rep, tech, civ):
         results = [c.get("result") for c in ((e.get("factCheck") or {}).get("claims") or [])]
         if st == "source-checked" and not (retrievals & PAGE_READ):
             rep.add("ERROR", "C11", f"{e['id']}: 'source-checked' but no cited source was read as a page or document")
+        # 2026-10-23 (Director review item 3): a claim is source-checked only against a page someone opened — EACH
+        # supported or disputed claim must cite a page-read / document-read source; one opened page cannot certify
+        # claims that rest on search results
+        if st == "source-checked":
+            claims = (e.get("factCheck") or {}).get("claims") or []
+            if not claims:
+                rep.add("ERROR", "C11", f"{e['id']}: 'source-checked' but lists no checked claim")
+            for c in claims:
+                if c.get("result") in ("supported", "disputed") and not any(
+                        (reg.get(s) or {}).get("retrieval") in PAGE_READ for s in c.get("sources") or []):
+                    rep.add("ERROR", "C11", f"{e['id']}: 'source-checked' but the claim {c.get('claim', '')[:60]!r} "
+                                            "rests on no page or document that was read")
         # 'disputed' = the disagreement itself is sourced and the text presents the point as disputed
         if st == "search-corroborated" and results and any(r not in ("supported", "corrected", "disputed") for r in results):
             rep.add("ERROR", "C11", f"{e['id']}: 'search-corroborated' but a listed claim is {sorted(set(results))}")
@@ -682,6 +694,8 @@ def check_corpus(rep, tech, civ):
             rep.add("ERROR", "C11", f"{e['id']}: 'partially-checked' but no listed claim is supported")
         if st == "unverified" and any(r in ("supported", "corrected") for r in results):
             rep.add("WARN", "C11", f"{e['id']}: 'unverified' but a listed claim is supported (status may be understated)")
+        if st in ("partially-checked", "search-corroborated") and not results:
+            ship["notItemised"] += 1
         confs = {(reg.get(s.get("sourceId")) or {}).get("confidence") for s in srcs}
         if st == "search-corroborated" and srcs and confs <= {"low", None}:
             rep.add("ERROR", "C11", f"{e['id']}: 'search-corroborated' rests only on low-confidence sources")
@@ -727,6 +741,10 @@ def check_corpus(rep, tech, civ):
             f"SHIPPING GATE: {ship['ready']} of {len(entries)} entries may ship as fact; {ship['blocked']} are BLOCKED "
             f"(not source-checked: {', '.join(f'{k} {len(v)}' for k, v in sorted(queue.items()))}). Zero structural errors "
             "is not a fact-check; the mechanic may ship without its educational text, unsourced text may not.")
+    if ship["notItemised"]:
+        rep.add("WARN", "C11", f"{ship['notItemised']} entries above 'unverified' list no per-claim results: their status "
+                               "rests on the claims recorded per source, so C11 cannot check them claim by claim "
+                               "(per node: corpus/unresolved-claims.md)")
     used = defaultdict(set)
     for e in entries:
         for s in e.get("sources") or []:
@@ -736,7 +754,7 @@ def check_corpus(rep, tech, civ):
                   "wordMean": round(sum(wc) / len(wc), 1) if wc else None, "factCheck": dict(status),
                   "registerSources": len(reg), "sourcesUsed": len(used), "nearDuplicatePairs": near,
                   "sourceTypes": dict(Counter(s.get("type") for s in reg.values())),
-                  "shipGate": {"ready": ship["ready"], "blocked": ship["blocked"]},
+                  "shipGate": {"ready": ship["ready"], "blocked": ship["blocked"]}, "notItemised": ship["notItemised"],
                   "retrieval": dict(Counter(s.get("retrieval", "web-search-result") for s in reg.values()))})
     if index_path.exists():
         idx = kr.load_json(index_path)

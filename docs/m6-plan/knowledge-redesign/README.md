@@ -76,6 +76,9 @@ python3 -I tools/integrate.py           # lane parts + overrides -> proposal JSO
 python3 -I tools/merge_sources.py       # source register
 python3 -I tools/validate.py            # graph + gate + corpus checks -> validation-report.md (exit 1 on ERROR)
 python3 -I tools/sourcing_queue.py      # evidence progress -> corpus/plan.json, corpus/sourcing-queue.md
+python3 -I tools/unresolved_claims.py   # per-node evidence + unresolved claims -> corpus/unresolved-claims.md, data/unresolved-claims.json
+python3 -I tools/test_validate.py --mutants        # adversarial validator fixtures (temp copies; tracked files untouched)
+python3 -I tools/test_sourcing_queue.py --mutants  # idempotence, evidence preservation, plan agreement, no status upgrade
 python3 -I tools/render.py              # Markdown views
 python3 -I tools/balance.py --graph proposed --json <out>   # static model (ESTIMATE)
 python3 -I tools/cp_gate.py             # CP gate static model -> data/balance-cp-gate.json (ESTIMATE)
