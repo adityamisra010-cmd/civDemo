@@ -116,10 +116,11 @@ public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<Cano
         Assert.Equal(12, labour.Controlled.Length);   // the Empire-wide summary covers every settlement it commands
         Assert.Equal(12, labour.Summary.Settlements);
 
-        // RESEARCH: idle — choose; the ten roots are open; nothing to clear.
+        // RESEARCH: idle — choose; the roots are open; nothing to clear. ADR-045 (D-062, 2026-10-22): eleven — the
+        // research-content tranche added one root, the kin_council civic (no prerequisite; knowledge-only).
         Assert.True(m.Research!.Idle);
         Assert.False(m.Research.CanClear);
-        Assert.Equal(10, m.Research.Available);
+        Assert.Equal(11, m.Research.Available);
 
         // CONSTRUCTION: the capital's legal zero-node project, blocked by materials. The workshop is a zero-node project
         // too, but since the Director's 2026-10-10 ruling (D-051 §4) it is not a legal order while its tools have no

@@ -61,9 +61,10 @@ public class CylinderAttributionAi1024Tests : IClassFixture<CylinderAttributionA
     /// horizon; its world 300 is the existing pinned run.</summary>
     public sealed class Arms
     {
-        // ADR-043 (2026-10-22) CAUSE BLOCK: was TestConfigs.Sim(). Track CP is NEWER than every layer these rigs attribute
-        // (the H2 gate, WS1, relief), so by the R4 rule the shared ON arm is the pre-CP world (TestConfigs.PreTrackCp) and
-        // every measured value below stands; its turn-300 world is the v34 pinned run through SchemaProjection.V34.
+        // ADR-043 / ADR-044 / ADR-045 (2026-10-22) CAUSE BLOCK: was TestConfigs.Sim(). The whole M6 slice (Track CP, the
+        // discovery layer, the research-content tranche) is NEWER than every layer these rigs attribute (the H2 gate, WS1,
+        // relief), so by the R4 rule the shared ON arm is the pre-M6 world (TestConfigs.PreM6) and every measured value below
+        // stands; its turn-300 world is the v34 pinned run through SchemaProjection.V34.
         public SimConfig On { get; } = TestConfigs.PreM6(TestConfigs.Sim());
         public R.Arm Live { get; }
 

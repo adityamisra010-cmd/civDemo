@@ -195,7 +195,12 @@ public class MerchantTests
         // 148 -> 159. CAUSE: the discovery layer — concealed deposits (stone, clay, ore) are unread until surveyed, which moves
         // the production and trade-volume series this predicate reads. ATTRIBUTION:
         // MerchantsEmerge_WithTheDiscoveryLayerOff_AtTheTrackCpTurn (TestConfigs.PreDiscovery) returns 148.
-        Assert.Equal(159, firstActive);   // moves with the trajectory; re-measured per packet
+        // M6 RE-PIN (2026-10-23, D-062; MEASURED on the final M6 tree by the agent writing this line): first active 159 -> 138.
+        // CAUSES named: Track EX with the coordinator's ruling — only the ORES are concealed now (stone and clay are visible
+        // again), which moves the production and trade-volume series this predicate reads (MEASURED 138 at e7a1ae7, the
+        // rulings commit, before the TREE merge); Track TREE moved nothing here (MEASURED: 138 again after the merge); Track
+        // CP's part is in the 148 the discovery-off control returns.
+        Assert.Equal(138, firstActive);   // moves with the trajectory; re-measured per packet
     }
 
     /// <summary>M6 Track EX (D-062, ADR-044) ATTRIBUTION CONTROL: the live run with ONLY the discovery layer off returns 148.</summary>

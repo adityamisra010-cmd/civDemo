@@ -212,11 +212,12 @@ jobs:
           # (section 62) and the player Empire accrues Civics Points every step (one account row; this order-less
           # world sets no research target). CONTROL: CivicsPointsAttributionTests.FoundedGoldenSeed42Turn300_MovedForCivicsPointsAlone
           # (TestConfigs.PreTrackCp returns 0f29efc7… through SchemaProjection.V34).
-          # M6 MERGE RE-PIN (2026-10-22, D-062 Tracks EX + CP): 5c56a1f9… -> 0a0759ef… — Track EX's discovery tables (sections
-          # 63–66, populated: seed extents and sightings) and concealed deposits beside Track CP's accounts. CONTROLS:
+          # M6 RE-PIN (2026-10-23, D-062, the whole slice once): 0f29efc7… (v34) -> 8ccbe80f… — Track CP's account (above),
+          # Track EX's populated discovery tables (sections 63–66) and concealed copper and tin ores (ADR-044 with the
+          # coordinator's rulings), Track TREE's research-content tranche (ADR-045; measured to move nothing here). CONTROLS:
           # DiscoveryLayoutAttributionTests (TestConfigs.PreM6 returns 0f29efc7… through SchemaProjection.V34) and
-          # CivicsPointsAttributionTests (the CP half on the EX-off world).
-          FOUNDED_GOLDEN=0a0759efa6aeea0ced58dbc40f7788e2a6ab36f4df05d35b74c3284a26eda2ad
+          # CivicsPointsAttributionTests (the CP part on the EX-off, tranche-off world).
+          FOUNDED_GOLDEN=8ccbe80fe2be1130c4da27a0576c158d85ece64555a37709ef2dce61b5e5b63c
           if [ "$(tail -n 1 f-run-a.log)" != "$FOUNDED_GOLDEN" ]; then
             echo "FOUNDED RUN DIVERGED FROM PINNED GOLDEN:"
             echo "  expected $FOUNDED_GOLDEN"
@@ -330,10 +331,11 @@ jobs:
           b = open(sys.argv[1], "rb").read()
           n = struct.unpack_from("<i", b, 12)[0]
           kinds = {struct.unpack_from("<qiiid", b, 16 + 28 * i)[2] for i in range(n)}
-          # M6 EX (ADR-044, 2026-10-22; MEASURED: this step run locally from the merged tree): the AI explores (kind 14) when its
-          # founding policy finds no KNOWN site — 13 Explore orders in 600 turns (first at 35); it never prospects (kind 15):
-          # no settlement holds tools above the farm-tool wear in this horizon (ADR-044 §5).
-          expected = set(range(3, 10)) | {12, 13, 14}   # 10 is reserved (MoveFormation, M7); 11 is legacy (D-056)
+          # M6 (ADR-044 §12, 2026-10-23; MEASURED: this run from the final M6 tree — Tracks CP, EX with the coordinator's
+          # rulings, TREE): the AI explores (kind 14) when its founding policy finds no KNOWN site — 13 Explore orders in 600
+          # turns (first at 35) — and prospects (kind 15, paid in grain) once per settlement it holds — 17 Prospect orders
+          # (first at turn 0). The run log holds 400 orders.
+          expected = set(range(3, 10)) | {12, 13, 14, 15}   # 10 is reserved (MoveFormation, M7); 11 is legacy (D-056)
           print(f"run log: {n} orders, kinds {sorted(kinds)}")
           if kinds != expected:
               sys.exit(f"order kinds never issued: {sorted(expected - kinds)}; unexpected kinds: {sorted(kinds - expected)}")

@@ -1124,8 +1124,8 @@ public class SnapshotTests
         // ADR-043 RE-PIN (2026-10-22, D-062 Track CP; MEASURED on this tree by the agent writing this line).
         //   OLD  0f29efc733024c451b7ebc2e8435fdd8a6032d158922430cb290778a98056d3c
         //   NEW  5c56a1f958ce66da0de11d43f023a4bb13610a815d87283b74040696b19d6ad9
-        //   M6 MERGE (EX + CP) NEW  0a0759efa6aeea0ced58dbc40f7788e2a6ab36f4df05d35b74c3284a26eda2ad (cause and controls on
-        //         FoundedGoldenHash: Track EX's populated discovery tables and concealed deposits beside Track CP's accounts)
+        //   M6 RE-PIN NEW  8ccbe80fe2be1130c4da27a0576c158d85ece64555a37709ef2dce61b5e5b63c (causes CP, EX and TREE, and the controls,
+        //         on FoundedGoldenHash; supersedes the merge-time 0a0759ef…)
         //   CAUSE schema v35 appends CivicsPoints (section 62), and the player Empire accrues Civics Points every step (one
         //         account row; this order-less world sets no target on either lane, and no city-state researches here).
         //   CONTROL CivicsPointsAttributionTests.FoundedGoldenSeed42Turn300_MovedForCivicsPointsAlone: Track CP off
@@ -1151,8 +1151,17 @@ public class SnapshotTests
     // BATCH 3 / D-054 (integration R1, 2026-10-14) RE-PIN (VALUE + LAYOUT): 937577ffb0e73c2b… -> 40115e28af11273b…. CAUSE: the v33 layout (two EMPTY appended tables) and the cylinder (worldgen.json topology.wrapX; the world differs from turn 0); WS1/WS2 do not act. CONTROLS: D054PairAttributionTests (both halves off + v32 = OLD), WrapAttributionTests (the cylinder off alone + v32 = OLD), IncrementalConstructionAttributionTests (the layout alone), and FoundedGoldenHashAtV32 (the cylinder alone). Full record on FoundedGolden_Seed42Turn300_MatchesPinnedConstant.
     // D-055 (2026-10-16) RE-PIN (LAYOUT ALONE): 40115e28af11273b… -> 0f29efc733024c45…. CAUSE: schema v34 appends ConstructionHolds, EMPTY here — one four-byte zero count prefix. CONTROL: ReservationsLayoutAttributionTests.FoundedGoldenSeed42Turn300_MovedForTheV34LayoutAlone (SchemaProjection.V33 = OLD). ci.yml FOUNDED_GOLDEN moves with it.
     // ADR-043 (2026-10-22, D-062 Track CP) RE-PIN (VALUE + LAYOUT): 0f29efc733024c45… -> 5c56a1f958ce66da…. CAUSE: schema v35 appends CivicsPoints (section 62) and the player Empire accrues Civics Points every step (its account row, Balance = Generated − Spent; no order, so no target on either lane). CONTROL: CivicsPointsAttributionTests.FoundedGoldenSeed42Turn300_MovedForCivicsPointsAlone — Track CP off (TestConfigs.PreTrackCp) and CP off alone both return OLD through SchemaProjection.V34; the stage gate off alone returns NEW. ci.yml FOUNDED_GOLDEN moves with it.
-    // M6 MERGE (2026-10-22, D-062 Tracks EX + CP; MEASURED on the merged tree by the agent writing this line) RE-PIN (VALUE + LAYOUT): 5c56a1f958ce66da… -> 0a0759efa6aeea0c…. CAUSE (two, the M6 slice): Track CP's (above) and Track EX's — schema v35's four discovery tables (sections 63–66) are POPULATED here (DiscoverySystem stores each polity's seed extent and sightings every step) and concealed stone, clay and ore are read as absent by every consumer of the player's settlements (ADR-044). CONTROLS: CivicsPointsAttributionTests.FoundedGoldenSeed42Turn300_MovedForCivicsPointsAlone (the CP half, on the EX-off world) and DiscoveryLayoutAttributionTests.FoundedGoldenSeed42Turn300_TheDiscoveryLayerMovesIt_ThePreM6TwinIsV34ByteForByte (TestConfigs.PreM6, sections 62–66 stripped by SchemaProjection.V34, returns 0f29efc7…; the EX-alone world differs). ci.yml FOUNDED_GOLDEN moves with it.
-    internal const string FoundedGoldenHash = "0a0759efa6aeea0ced58dbc40f7788e2a6ab36f4df05d35b74c3284a26eda2ad";
+    // M6 RE-PIN (2026-10-23, ONE re-pin of the whole slice, D-062; VALUE + LAYOUT, MEASURED on the merged tree by the agent
+    // writing this line): 0f29efc733024c45… (v34) -> 8ccbe80fe2be1130… (the intermediate pins 5c56a1f9… CP and 0a0759ef…
+    // CP + EX are superseded). CAUSES, all three M6 tracks named: Track CP (above; ADR-043) — section 62 and the player's
+    // Civics Points account; Track EX (ADR-044 with the coordinator's rulings) — schema v35's four discovery tables (sections
+    // 63–66) are POPULATED here (DiscoverySystem stores each polity's seed extent and sightings every step) and the concealed
+    // copper and tin ores are read as absent by every consumer of the player's settlements until surveyed; Track TREE
+    // (ADR-045, the research-content tranche) — MEASURED to move nothing here (this order-less world sets no research target:
+    // TestConfigs.PreTreeTranche returns the same hash). CONTROLS: DiscoveryLayoutAttributionTests (TestConfigs.PreM6,
+    // sections 62–66 stripped by SchemaProjection.V34, returns 0f29efc7…; the EX-alone world differs) and
+    // CivicsPointsAttributionTests (the CP part, on the EX-off, tranche-off world). ci.yml FOUNDED_GOLDEN moves with it.
+    internal const string FoundedGoldenHash = "8ccbe80fe2be1130c4da27a0576c158d85ece64555a37709ef2dce61b5e5b63c";
 
     /// <summary>THE toy golden (seed 42, turn 200; history on GoldenHash_Seed42Turn200_MatchesPinnedConstant). A named
     /// constant since D-055 (2026-10-16) so its v34 layout companion (ReservationsLayoutAttributionTests) compares with it.</summary>

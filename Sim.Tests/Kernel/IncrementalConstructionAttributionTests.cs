@@ -168,6 +168,8 @@ public class IncrementalConstructionAttributionTests
     [Fact]
     public void AiWorldSeed42Turn300_MovedForTheV33LayoutAlone_TheIncrementalRuleNeverActsThere()
     {
+        // ADR-045 (D-062): the R4 rule — this control attributes an OLDER layer, so it runs on the pre-M6 world (Shipped =
+        // TestConfigs.PreM6: CP, discovery and the research-content tranche off).
         SimConfig on = Shipped, off = TestConfigs.PreIncrementalConstruction(on);
         WorldgenConfig wg = TestConfigs.PreD054Worldgen() with { AiEmpires = 1 };   // the cylinder off (the pair rule)
         var onLog = new OrderLog();

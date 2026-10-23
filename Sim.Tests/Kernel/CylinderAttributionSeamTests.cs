@@ -403,6 +403,8 @@ public class CylinderAttributionSeamTests
     [Fact]
     public void TradeKnowledge_TheUngatedArmTradesAcrossTheSeam_TurnExactAgainstTheGatedArm()
     {
+        // ADR-045 (D-062): the R2a content twin is derived from the PRE-tranche file (the R4 rule), and the ON arm is the
+        // pre-M6 world (TestConfigs.PreM6: its research content is that file) — the two arms differ by the R2a layer alone.
         SimConfig on = TestConfigs.PreM6(TestConfigs.Sim()), off = SingleSwitchTwins.PreTradeKnowledgeOnly(on);
         WorldState a = TestConfigs.KnowRecipes(SeamWorld.Found(true, SeamWorld.TwoSides(), sim: on, westFertility: 0.9, eastFertility: 0.3), on);
         WorldState b = TestConfigs.KnowRecipes(SeamWorld.Found(true, SeamWorld.TwoSides(), sim: off, westFertility: 0.9, eastFertility: 0.3), off);

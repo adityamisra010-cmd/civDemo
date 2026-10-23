@@ -32,8 +32,14 @@ public class FirstReignTests
     // BATCH 3 / D-054 RE-PIN (integration R1, 2026-10-14; VALUE + LAYOUT): 467f2cb6f5e8ff81… -> bccc8aed902d2587…. CAUSE: the v33 layout (two EMPTY appended tables) AND the cylinder (worldgen.json topology.wrapX — the terrain is folded into the hash, so the worlds differ from turn 0); WS1 and WS2 do not act (no construction order in the log). ATTRIBUTION (history on FirstReign_PostFix_HarvestDiesWithThePeople_NoFoodMountain): D054PairAttributionTests ("first-reign"), IncrementalConstructionAttributionTests.ToyGoldenSeed42Turn200_AndFirstReignTurn40_MovedForTheV33LayoutAlone, and the cylinder-alone link <see cref="PostR1GoldenAtV32"/>.
     // D-055 (2026-10-16) RE-PIN (LAYOUT ALONE): bccc8aed902d2587… -> f7ca60a52362a7da…. CAUSE: schema v34 appends ConstructionHolds, EMPTY here (the first-reign log carries no construction order) — one four-byte zero count prefix. CONTROL: ReservationsLayoutAttributionTests.FirstReignTurn40_MovedForTheV34LayoutAlone (SchemaProjection.V33 = OLD).
     // ADR-043 (2026-10-22, D-062 Track CP) RE-PIN (VALUE + LAYOUT): f7ca60a52362a7da… -> 3fee0f31c0c270e5…. CAUSE: schema v35 appends CivicsPoints and the player Empire accrues Civics Points every step (its account row). CONTROL: CivicsPointsAttributionTests.FirstReignTurn40_MovedForCivicsPointsAlone (TestConfigs.PreTrackCp and CP off alone return OLD through SchemaProjection.V34; the stage gate off alone returns NEW).
-    // M6 MERGE (2026-10-22, D-062 Tracks EX + CP; MEASURED on the merged tree by the agent writing this line) RE-PIN (VALUE + LAYOUT): 3fee0f31c0c270e5… -> 91584395687200b1…. CAUSE (two, the M6 slice): Track CP's (above) and Track EX's — the discovery tables are populated and concealed deposits are unread until surveyed (ADR-044). CONTROLS: CivicsPointsAttributionTests.FirstReignTurn40_MovedForCivicsPointsAlone and DiscoveryLayoutAttributionTests.FirstReignTurn40_TheDiscoveryLayerMovesIt_ThePreM6TwinIsV34ByteForByte (TestConfigs.PreM6 returns f7ca60a5… through SchemaProjection.V34).
-    internal const string PostR1Golden = "91584395687200b1cf889be8c7ac6f9cc64aa90bdb1d98b6633cf59d8583c478";
+    // M6 RE-PIN (2026-10-23, ONE re-pin of the whole slice, D-062; VALUE + LAYOUT, MEASURED on the merged tree by the agent
+    // writing this line): f7ca60a52362a7da… (v34) -> e3a86ce6d3ed5371… (the intermediate pins 3fee0f31… CP and 91584395… CP +
+    // EX are superseded). CAUSES, all three M6 tracks named: Track CP (above); Track EX (ADR-044 with the coordinator's
+    // rulings) — the discovery tables are populated and the concealed copper and tin ores are unread until surveyed; Track
+    // TREE (ADR-045) — MEASURED to move nothing here (TestConfigs.PreTreeTranche returns the same hash). CONTROLS:
+    // CivicsPointsAttributionTests.FirstReignTurn40_… and DiscoveryLayoutAttributionTests.FirstReignTurn40_…
+    // (TestConfigs.PreM6 returns f7ca60a5… through SchemaProjection.V34).
+    internal const string PostR1Golden = "e3a86ce6d3ed537161cdf842574ea49e99529be2bf6561229163c018c72ac273";
 
     /// <summary>Batch 3 (D-054, integration R1, 2026-10-14): THE CYLINDER-ALONE LINK — <see cref="PostR1Golden"/>'s world
     /// through the v32 projection (SchemaProjection.V32: the two v33 tables dropped, asserted EMPTY). It equals the turn-40
@@ -575,7 +581,7 @@ public class FirstReignTests
         // ADR-043 RE-PIN (2026-10-22, D-062 Track CP; MEASURED on this tree by the agent writing this line).
         //   OLD  f7ca60a52362a7da30c73be82ad8ecd56aeeb68f932b2ad98d8d3e76e3219057
         //   NEW  3fee0f31c0c270e50917b6c4e2e252d1cef678a7d20113ac628d2c2057e2a6bc
-        //   M6 MERGE (EX + CP) NEW  91584395687200b1cf889be8c7ac6f9cc64aa90bdb1d98b6633cf59d8583c478
+        //   M6 RE-PIN NEW  e3a86ce6d3ed537161cdf842574ea49e99529be2bf6561229163c018c72ac273 (causes CP, EX and TREE on PostR1Golden)
         //   CAUSE schema v35 appends CivicsPoints and the player Empire accrues Civics Points every step (one account row).
         //   CONTROL CivicsPointsAttributionTests.FirstReignTurn40_MovedForCivicsPointsAlone (Track CP off and CP off alone
         //         return OLD through SchemaProjection.V34). The SHAPE asserts below are unchanged.

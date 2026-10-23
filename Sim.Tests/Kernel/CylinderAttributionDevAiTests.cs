@@ -93,6 +93,8 @@ public class CylinderAttributionDevAiTests : IClassFixture<CylinderAttributionDe
     /// every turn-exact literal below is the one measured before M6 (under the fog the AI explores and founds elsewhere).</summary>
     public sealed class Arms
     {
+        // M6 (ADR-043/044/045): the readings above were measured before the M6 slice; by the R4 rule these older-layer controls
+        // run on the pre-M6 world (TestConfigs.PreM6: CP, discovery and the research-content tranche off).
         public SimConfig On { get; } = TestConfigs.PreM6(TestConfigs.Sim());
         public R.Arm Live { get; }
         public R.Arm Again { get; }

@@ -227,34 +227,51 @@ deposit change; depletion.
 
 ## 12. Golden moves and attribution
 
-Schema v35 (merged with Track CP, ADR-043: section 62 CivicsPoints, then this track's 63–66) and the shipped discovery
-layer move every golden world: the discovery tables are POPULATED wherever DiscoverySystem runs (seed extents and sightings
-every step), concealed deposits are unread until surveyed, and the AI founds only on known sites (exploring first). Re-pinned
-once, on the merged tree (MEASURED), each with a RE-PIN comment naming both causes:
+Schema v35 (Track CP's section 62, then this track's 63–66), the shipped discovery layer (with the coordinator's rulings of
+2026-10-23: grain-paid Prospect, ores-only concealment) and Track TREE's research-content tranche (ADR-045, merged after)
+move the golden worlds: the discovery tables are POPULATED wherever DiscoverySystem runs (seed extents and sightings every
+step), the concealed ores are unread until surveyed, the AI founds only on known sites (exploring first) and prospects, and
+the tranche changes what the AI researches. Re-pinned ONCE, on the final M6 tree (MEASURED 2026-10-23), each with a RE-PIN
+comment naming all three causes (CP, EX, TREE); the intermediate merge-time pins are superseded:
 
-| golden | v34 | Track CP (5af05ad) | merged v35 | Track EX's part |
-|---|---|---|---|---|
-| founded seed 42 t300 (`SnapshotTests.FoundedGoldenHash`, ci.yml `FOUNDED_GOLDEN`) | `0f29efc7…` | `5c56a1f9…` | `0a0759ef…` | tables + concealment |
-| toy seed 42 t200 (`ToyGoldenHash`) | `2e6d4461…` | `1d3f5be2…` | `f97432f0…` | layout alone (four empty prefixes) |
-| driven seed 42 t300 (`DrivenGoldenTests.Golden`) | `eb88663a…` | `1fb16d8b…` | `62c3345d…` | tables + concealment |
-| first reign t40 (`FirstReignTests.PostR1Golden`) | `f7ca60a5…` | `3fee0f31…` | `91584395…` | tables + concealment |
-| AI world seed 42 t300 (`AiFoundingAttributionTests.S1cTurn300`) | `25f4799d…` | `5623de7a…` | `8378f993…` | + known-site founding, Explore lane |
+| golden | v34 (pre-M6) | Track CP (5af05ad) | CP + EX merge (b67e578) | final M6 (CP + EX rulings + TREE) | TREE's part (measured) |
+|---|---|---|---|---|---|
+| founded seed 42 t300 (`SnapshotTests.FoundedGoldenHash`, ci.yml `FOUNDED_GOLDEN`) | `0f29efc7…` | `5c56a1f9…` | `0a0759ef…` | `8ccbe80f…` | none (tranche off: same hash) |
+| toy seed 42 t200 (`ToyGoldenHash`) | `2e6d4461…` | `1d3f5be2…` | `f97432f0…` | `f97432f0…` (unchanged) | none (no research) |
+| driven seed 42 t300 (`DrivenGoldenTests.Golden`) | `eb88663a…` | `1fb16d8b…` | `62c3345d…` | `392e2806…` | none |
+| first reign t40 (`FirstReignTests.PostR1Golden`) | `f7ca60a5…` | `3fee0f31…` | `91584395…` | `e3a86ce6…` | none |
+| AI world seed 42 t300 (`AiFoundingAttributionTests.S1cTurn300`) | `25f4799d…` | `5623de7a…` | `8378f993…` | `776d5d0c…` | moves it (tranche off: `53649caf…`) |
 
-**Attribution.** `TestConfigs.PreM6` = `PreTrackCp(PreDiscovery(cfg))` switches the whole slice off; a world stepped under
-it writes nothing in sections 62–66, and `SchemaProjection.V34` (which strips 62–66 and asserts them empty) returns the v34
-pin byte for byte. `DiscoveryLayoutAttributionTests` proves it per golden and that the EX-alone world (`PreTrackCp`)
-writes discovery rows and differs from the twin; it also pins the PreM6 raw hashes the older rigs' ON arms reach
-(founded `555238a9…`, AI `d67da0a7…`). `CivicsPointsAttributionTests` now attributes the CP half on the EX-off world
-(`PreDiscovery`). Per R4 every older twin chains `PreM6` (`PreIncrementalConstruction`, `PreReservations` and through them
-`PreD054Sim`, `PreD053` …), and every pre-M6 attribution rig (the cylinder rigs, reservations/incremental/wrap/granary
-layouts, the de86ace per-settlement rigs, the seam world, the founding rigs, the allocation scenario) runs on it.
-**AI pins** (`AiEmpireIntegrationTests`): first build 2 → 4, advance 221/222 → 230/231, road 134/135 → 138/139, levy
-440/441 → 467/468 (A3 440 → 467), foundings 35, 71, … 428 → 38, 78, 114, 151, 189, 225, 296, 367, 438 (nine, 15
-settlements); control `OneAiEmpire_WithTheDiscoveryLayerOff_EveryPinReturnsItsTrackCpValue`.
+**Attribution.** `TestConfigs.PreM6` switches the whole slice off: the discovery layer (`PreDiscovery`) and the research
+content replaced by the PRE-M6 research.json (Track TREE's fixture `Sim.Tests/Fixtures/research-pre-adr045.json`,
+byte-identical to the file at 06e0153 — before both Track CP's edits and the tranche; behaviourally the v34 content). A world
+stepped under it writes nothing in sections 62–66, and `SchemaProjection.V34` (which strips 62–66 and asserts them empty)
+returns the v34 pin byte for byte; the raw PreM6 hashes are unchanged by the TREE merge (founded `555238a9…`, AI
+`d67da0a7…`, MEASURED). `DiscoveryLayoutAttributionTests` proves it per golden and that the EX-alone world
+(`PreTrackCp ∘ PreTreeTranche`) writes discovery rows and differs from the twin. The research twins compose: `PreTreeTranche`
+is a single-layer twin (the fixture with CP's two edits re-applied — the converter asserts the tranche never touches
+`tuning` or `researchStage`), `PreTrackCp` maps the pre-tranche family to the fixture, so
+`PreTrackCp ∘ PreTreeTranche` on the discovery-off world is `PreM6`. `CivicsPointsAttributionTests` attributes the CP part
+on the EX-off, tranche-off world. Per R4 every older twin chains `PreM6` (`PreIncrementalConstruction`, `PreReservations`
+and through them `PreD054Sim`, `PreD053` …), and every pre-M6 attribution rig (the cylinder rigs, reservations/incremental/
+wrap/granary layouts, the de86ace per-settlement rigs, the seam world, the allocation scenario) runs on it; Track TREE's own
+older-layer controls that ran on `PreTreeTranche` and compare with pre-M6 values run on `PreM6`
+(`OneAiEmpire_WithTheWholeM6SliceOff_EveryPinReturnsItsBatch4Value`,
+`AiFoundingAttributionTests.TheM6Slice_IsTheWholeMove_…`, `CliConstructionLifecycleTests`' in-process twin for the v33
+trace), while its v33/v35 diff save is written on `PreTreeTranche ∘ PreDiscovery` (the world the `--without-discovery` CLI
+wrote before the tranche, Track CP on). `MerchantTests` first active 148 (pre-M6) → 159 (CP + EX merge) → 138 (final: the
+ores-only ruling; TREE moved nothing, MEASURED).
+**AI pins** (`AiEmpireIntegrationTests`, pre-M6 → final): first two targets knapping_oldowan, ground_stone_early →
+grinding_stone, kin_council (the civic lane's first pick on turn 0); research target 2 at 25 → 0; first build 2 (unchanged —
+the CP + EX merge's 4 was the concealed-stone stall, gone with ores-only concealment); advance 221/222 → 111/112; road
+134/135 → 166/167; levy 422/423 → 579/580 (A3 422 → 579); foundings 35, 71, … 357 (eight, 14 settlements) → 38, 78, 114,
+151, 189, 225, 296, 367, 438, 509 (ten, 16 settlements). Controls: the whole slice off returns every batch-4 value; the
+discovery layer and the tranche off return Track CP's (`OneAiEmpire_WithTheDiscoveryLayerAndTheTrancheOff_…`).
 
-**CI.** `FOUNDED_GOLDEN` re-pinned; the AI kind set is `{3..9, 12, 13, 14}` (MEASURED: 13 Explore orders in the 600-turn
-leg, none Prospect); the `--found` leg now explores from settlement 0 at turn 0 and founds at the re-derived known sites
-335063 (turn 2) and 326873 (turn 5, from colony 12), its delivery twin is the same log without the turn-2 order.
+**CI.** `FOUNDED_GOLDEN` re-pinned to `8ccbe80f…`; the AI kind set is `{3..9, 12, 13, 14, 15}` (MEASURED on the final
+tree: the 600-turn leg's run log holds 400 orders — 13 Explore, first at 35, and 17 Prospect, first at turn 0); the
+`--found` leg (explores from settlement 0 at turn 0, founds at the known sites 335063 at turn 2 and 326873 at turn 5 from
+colony 12) passes unchanged. Both legs and the allocation leg were run locally from the final tree.
 **Where `--without-discovery` remains, and why (re-checked 2026-10-23 with stone no longer concealed).** The CLI switch
 `sim run|replay|inspect --without-discovery` (sim.json discovery and fog off; `Cli.SimCfg` and the session pipeline honour
 it — the `TestConfigs.PreDiscovery` twin, R4) is kept ONLY where a test genuinely compares against a measurement or a

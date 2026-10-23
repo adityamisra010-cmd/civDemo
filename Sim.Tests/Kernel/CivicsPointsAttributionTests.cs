@@ -45,11 +45,12 @@ public class CivicsPointsAttributionTests
         WorldState live = run(TestConfigs.Sim());
         Assert.True(live.CivicsPoints.Count > 0, "the live world accrues Civics Points (an account row)");
         Assert.Null(ResearchQuery.CivicsPointsInvariantViolation(live.CivicsPoints));
-        Assert.Equal(v35, WorldHash.ComputeHex(live));                         // (1) the re-pinned value (both M6 tracks on)
+        Assert.Equal(v35, WorldHash.ComputeHex(live));                         // (1) the re-pinned value (the whole M6 slice on)
 
-        // M6 merge (2026-10-22): Track EX (the discovery layer, sections 63–66) is the slice's other half, so the CP layers are
-        // attributed on the EX-OFF world (TestConfigs.PreDiscovery); the EX half is DiscoveryLayoutAttributionTests.
-        SimConfig shipped = TestConfigs.PreDiscovery(TestConfigs.Sim());
+        // M6 merge (2026-10-22/23): Track EX (the discovery layer, sections 63–66) and Track TREE (the research-content tranche,
+        // ADR-045) are the slice's other parts, so the CP layers are attributed on the EX-OFF, TRANCHE-OFF world
+        // (TestConfigs.PreDiscovery, TestConfigs.PreTreeTranche); the EX part is DiscoveryLayoutAttributionTests.
+        SimConfig shipped = TestConfigs.PreTreeTranche(TestConfigs.PreDiscovery(TestConfigs.Sim()));
         WorldState cpOn = run(shipped);
         Assert.True(cpOn.CivicsPoints.Count > 0);
 
@@ -120,7 +121,7 @@ public class CivicsPointsAttributionTests
     [Fact]
     public void TheCpLayer_ActsFromTheFirstStep_TheTwinIsTheV34WorldAtTurnZero()
     {
-        SimConfig live = TestConfigs.PreDiscovery(TestConfigs.Sim()), off = TestConfigs.PreTrackCp(live);   // M6 merge: on the EX-off world
+        SimConfig live = TestConfigs.PreTreeTranche(TestConfigs.PreDiscovery(TestConfigs.Sim())), off = TestConfigs.PreTrackCp(live);   // M6 merge: on the EX-off, tranche-off world
         WorldgenConfig wg = TestConfigs.DevWorldgen();
         WorldState a = WorldFounding.Found(wg, live, 42), b = WorldFounding.Found(wg, off, 42);
         Assert.Equal(SchemaProjection.V34(b), SchemaProjection.V34(a));   // turn 0: no account yet, the same world

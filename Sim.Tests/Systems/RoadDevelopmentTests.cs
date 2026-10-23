@@ -1106,7 +1106,10 @@ public class RoadDevelopmentTests
         double U = Research.Tuning.CostModel.U, K = Research.Tuning.CostModel.K;
         Assert.Equal(Math.Round(U * Math.Pow(K, 8.5) / 10.0) * 10.0, n.BaseCost);
         Assert.Equal(33450.0, n.BaseCost);
-        Assert.Equal(1 + Research.Nodes[Research.IndexOfId("reinforced_concrete")].Depth, n.Depth);
+        // ADR-045 (D-062, 2026-10-22): the tranche's rewires deepened automobile_mass's chain, so the longest path no longer
+        // runs through reinforced_concrete; the depth is still 1 + the deepest prerequisite (the loader's rule).
+        Assert.Equal(1 + n.PrerequisiteNodes.Max(p => Research.Nodes[p].Depth), n.Depth);
+        Assert.Equal(1 + Research.Nodes[Research.IndexOfId("automobile_mass")].Depth, n.Depth);
         // Chronology: emerged 1924 CE, after every prerequisite's marked date.
         double self = ResearchContentTests.EarliestMarkedYear(n.Emerged)!.Value;
         foreach (int p in n.PrerequisiteNodes)
