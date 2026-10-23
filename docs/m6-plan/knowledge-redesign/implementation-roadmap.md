@@ -202,3 +202,25 @@ KR-0; civics (KR-5, KR-6) waits on D-061.
 | KR-5 | bump (CP rows) | move only if civics change zero-knowledge behaviour | move | migration of 7 civics |
 | KR-8 | bump (extent, memory) | move (founding seed) — PreFog twin | move | v34→v-next migration |
 | KR-11 | none (worldgen-derived truth) | move if regional richness changes deposits (D-051 §2(b)) | move | — |
+
+## Status and next priorities — 2026-10-23 (appended; packet text above unchanged)
+
+**Delivered on `claude/new-session-yavghm` under D-062** (ADRs 043/044/045; evidence `m6-validation-report.md`):
+
+| Packet | Delivered | Not delivered (stays in its packet) |
+|---|---|---|
+| KR-5 (T6.3) + stage gate | Civics Points lane, per-sim-year generation, bankable balance, spending, identity pins, AI two lanes, UI (CP balance, Stop civics), section 62; stage without `legal_code_roman` | other CP sources (institutions, specialists, embassies, spies, artists, scholars); RP↔CP exchange (M8) |
+| KR-3 (+ part of KR-6) | 70 new technologies (427–496), 60 knowledge-only civics (1008–1067), 133 rewires, 61 re-scores, 22 relocations, 14 splits as new keys, 8 entity widenings | merges/retirements and consumer-removing moves (need KR-2); regime/policy entity kinds; adoption (M8) |
+| KR-8/9/10-lite + KR-11-lite | concealment (ores, ≈25 %), Prospect (kind 15), Explore (kind 14), DiscoverySystem, UNKNOWN/VISIBLE/REMEMBERED, sighting memory, founding on known land, Actions menu, sections 63–66 | trade/road/claim gating by known area; GHOST rows and scouts (M7); richness classes |
+
+**Next, in priority order (each with its acceptance criterion):**
+
+1. **CP pacing check (C-2).** MEASURED effect: the AI's first tax levy and Age III entry moved from turn 422 to 579 because `taxation` is now paid in CP. Accept: measure seeds 1, 2, 42, 7 (player driver and AI empire); either the Director accepts the new pacing or `tuning.civicsPoints` is retuned with a recorded reason (D-062 R13) and the goldens re-pinned with attribution.
+2. **Re-derive the D-055 allocation scenario under the shipped rules** and drop `--without-discovery` from the ci.yml allocation leg. Accept: the four split-checks pass without the switch.
+3. **KR-2 remap seam, then KR-4** (merges, retirements, consumer-removing splits). Accept: a v34 save that completed a split/merged node loads with the successor keys granted (populated fixture).
+4. **KR-1 engine fixes** (AI goal closure by cheapest route; research content identity on resume; overflow ruling D-R). Accept: as in KR-1 above.
+5. **Fog gating of trade, roads and claims** by the known area (DW-006, D-T scoped to plans). Accept: metamorphic leak tests extended; corridor deltas recorded.
+6. **KR-7 educational corpus** — blocked until source hosts are reachable (`educational-content-corpus.md` §0). Accept: only `source-checked` entries ship.
+7. **Calibration refresh**: re-measure `scripts/research-calibration/population-trace-seed42.csv` and the calibration report (stale before M6).
+8. **M7**: mobile scouts replace the Explore order; formation GHOST rows with movement.
+

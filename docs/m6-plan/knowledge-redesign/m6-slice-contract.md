@@ -165,3 +165,17 @@ knowledge nodes only (no mechanic). Do not touch `researchStage` or `tuning` (Tr
 a loader-valid record (primary university, Eureka rules, no orphan, chronology test D-047), a short in-game description
 (not the educational corpus), and its prerequisites causal per the proposal. Update content tests, regenerate the three
 `--check` docs, and record accepted / revised / deferred / rejected per proposal change in the ADR.
+
+## As built (2026-10-23; the coordinator's delegated rulings during implementation)
+
+| Contract item | As built | Why |
+|---|---|---|
+| D1 eligible goods | **copper-ore and tin-ore only** (stone and clay are never concealed) | concealing stone stalled early construction (no granary until turn 68 on the dev world) and broke the D-055 allocation scenario; ores are the classic concealed deposits |
+| D2 quota offset | u_s = frac(h(seed) + 0.6180339887498949 × settlementId) (low-discrepancy), k = floor(n × 0.25 + u_s) | keeps the realized share near 25 % with n ≤ 2: seeds 1, 2, 42, 7 give 0.250 / 0.292 / 0.292 / 0.250 at turn 0 and 0.237 / 0.263 / 0.263 / 0.263 at turn 300 (pinned) |
+| D4 Prospect cost | **40 grain** (`discovery.prospectGrain`), halved to 20 by `copper_smelting`; sunk under reason 17 | tools were 0 everywhere for hundreds of turns; 40 grain ≈ 8 % of the median settlement store in turns 5–40 (measured) |
+| D4 refusal | a step-side refusal (stocks fell after the preview) charges nothing and is explained on the Actions block ("last turn: …") | preview and step share one predicate; post-harvest stocks can still differ |
+| D6 Explore cost | 60 grain, reason 18 | ≈ 1 % of a founding store |
+| D5 seed | disc of 3 nodes around controlled settlements | the model's 50 km hinterland constant |
+| Switches | `TestConfigs.PreCivicsPoints`, `PreStageGate`, `PreTrackCp`, `PreTreeTranche`, `PreM6` (all M6 off); CLI `--without-discovery` | attribution: every pre-M6 golden is reproduced through `PreM6` after stripping sections 62–66 |
+| `--without-discovery` kept | D-055 allocation scenario (ci.yml allocation leg and its tests) and `CliConstructionLifecycleTests` (a v33-recorded session) | both compare against pre-M6 measurements; re-deriving the allocation scenario under the shipped rules is an open item |
+

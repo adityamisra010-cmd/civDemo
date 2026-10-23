@@ -1358,3 +1358,16 @@ so the proposal reads as one design (each item stays PROPOSED; items needing a D
 | R20 difficulty and information | **ACCEPTED** — no difficulty reveal; test M8. |
 | R21 unknown impassable vs movement | **ACCEPTED** — D-T scoped to plans (§10.4). |
 | R22 precedent for city sight | **RECORDED** — the departure is deliberate and matches D-040 B2; X4 remains available. |
+
+## Dated note — 2026-10-23 (as built under D-062; appended, the text above is unchanged)
+
+The Director's final M6 rulings (D-062) put a minimal exploration/prospecting mechanic into M6. What was built
+(ADR-044) differs from this proposal's recommendation as follows: a seed disc of 3 nodes around every **controlled
+settlement** is written each step (founding knowledge; this proposal's X2 seed made continuous for colonies, revolt and
+conquest); **Explore** (order kind 14) widens a settlement's explored radius by 3 nodes up to 15 at a grain cost — an
+abstract expedition, which this proposal listed as X5 and did not recommend, ruled in by D-062 R1 as the M6 stand-in
+that M7's mobile units replace; VISIBLE comes from own settlement nodes and formations; settlement sighting memory is
+stored; rival formations show only while visible (no GHOST rows before M7 movement); founding requires known land; the
+AI reads only the polity seam. Trade, roads and claims are not yet gated by the known area (DEFERRED). Everything else
+in this proposal remains design input for M7.
+

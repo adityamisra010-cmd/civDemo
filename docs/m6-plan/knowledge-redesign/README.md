@@ -1,5 +1,12 @@
 # M6 knowledge redesign — design package (PROPOSED, for Director review)
 
+> **Update 2026-10-23.** The Director's final M6 rulings are recorded in `docs/d062-m6-director-final-rulings.md`, and
+> a first slice is **implemented** on this branch: Civics Points and the stage gate (ADR-043), deposit concealment,
+> Prospect/Explore, minimal fog and the Actions menu (ADR-044), and the non-breaking content tranche of this package's
+> tree (ADR-045). What was built and what is deferred: `m6-slice-contract.md` (as built), `implementation-status.md`,
+> `implementation-roadmap.md` (status section). Evidence: `m6-validation-report.md`. The rest of this package remains
+> design input; the educational corpus is still blocked from shipping (no source page could be opened).
+
 **Status: research and design only. Nothing here is implemented, ratified or runtime content.** No file under `Sim.*`,
 no production content, schema, save format, golden or test changed. Labels: MEASURED · RESEARCHED · INFERENCE ·
 PROPOSED · OPEN DECISION · IMPLEMENTATION DEFERRED · ESTIMATE (static model).
