@@ -10,12 +10,15 @@ entity `requires` strings use (ADR-029 section 11; D-020). Comparison atoms
 (used only by Eureka `when` conditions) are tokenized but treated as opaque.
 """
 import json
+import os
 import re
 from pathlib import Path
 
-PKG = Path(__file__).resolve().parent.parent          # docs/m6-plan/knowledge-redesign
-ROOT = PKG.parent.parent.parent                         # repository root
-CONTENT = ROOT / "Sim.Data" / "content"
+# KR_PKG / KR_CONTENT (2026-10-23) point the tools at a COPY of the package or of the production content, so the
+# adversarial fixtures (tools/test_validate.py, tools/test_sourcing_queue.py) never touch the tracked files.
+ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent   # repository root
+PKG = Path(os.environ["KR_PKG"]) if os.environ.get("KR_PKG") else ROOT / "docs" / "m6-plan" / "knowledge-redesign"
+CONTENT = Path(os.environ["KR_CONTENT"]) if os.environ.get("KR_CONTENT") else ROOT / "Sim.Data" / "content"
 DATA = PKG / "data"
 
 AGES = ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9"]
@@ -289,3 +292,35 @@ class Graph:
             seen.add(d)
             todo.extend(self.deps.get(d, []))
         return seen
+
+
+def live_gates(tech=None):
+    """The live capability gates that sit OUTSIDE the research stage and the Age facts, read from content
+    (2026-10-23; replaces the literals {"taxation", "library", "legal_code_roman"}):
+    the tax edict -> sim.json governance.taxationRequires (its Age half, taxationMinAge, is not researchable);
+    the realized university -> research.json inst.university requires, with an institution named inside a
+    requirement expanded to that institution's own requirement (the engine's and the AI policy's reading).
+    A proposal's entityChanges (newRequires) override the production requirement. Returns [(label, expr)]."""
+    sim = load_json(CONTENT / "sim.json")
+    research = load_json(CONTENT / "research.json")
+    req = {e["id"]: e.get("requires") for e in research.get("entities", [])}
+    for ch in (tech or {}).get("entityChanges") or []:
+        if ch.get("newRequires") is not None:
+            req[ch["entity"]] = ch["newRequires"]
+
+    def expand(expr, seen):
+        out = expr
+        for a in sorted(set(atoms(parse(expr)))):
+            inst = "inst." + a
+            if inst in req and inst not in seen and req[inst]:
+                out = re.sub(r"(?<![A-Za-z0-9_.])" + re.escape(a) + r"(?![A-Za-z0-9_.])",
+                             "(" + expand(req[inst], seen | {inst}) + ")", out)
+        return out
+    gates = []
+    tax = (sim.get("governance") or {}).get("taxationRequires")
+    if tax:
+        gates.append(("tax edict (sim.json governance.taxationRequires)", expand(tax, frozenset())))
+    uni = req.get("inst.university")
+    if uni:
+        gates.append(("university (research.json inst.university)", expand(uni, frozenset({"inst.university"}))))
+    return gates

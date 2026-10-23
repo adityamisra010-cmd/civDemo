@@ -520,20 +520,40 @@ def check_gates(rep, tech, civ, inv):
         return out
     stage_atoms = must_hold_atoms(kr.parse(tech["researchStage"]["requires"]))
     mandatory = closure_of(stage_atoms)
-    core_nodes = set()
+    # An Age research fact holds when ANY listed node is complete (Sim.Core/Systems/Ages/AgeContent.cs, 'research'
+    # case), so only what every alternative must hold is mandatory: the intersection of the alternatives' closures.
+    # (Before 2026-10-23 this took the union, which marked one branch's private ancestors, e.g. ore_prospecting under
+    # tin_bronze, as mandatory although arsenical_bronze satisfies a3_bronze without it.)
     for f in tech.get("ageFacts") or []:
         if f["role"] == "core" and f["fact"]["kind"] == "research":
-            core_nodes |= set(f["fact"].get("nodes") or [])
-    mandatory |= closure_of(core_nodes)
-    # live gates outside research.json: the tax edict (sim.json) and the realized university (inst.university)
-    mandatory |= closure_of({"taxation", "library", "legal_code_roman"})
+            alts = [closure_of({x}) for x in f["fact"].get("nodes") or [] if x in by_id]
+            if alts:
+                mandatory |= set.intersection(*alts)
+    # live gates outside the stage and the Age facts, READ FROM CONTENT (kr.live_gates: sim.json
+    # governance.taxationRequires, research.json inst.university with institutions expanded) — never literals
+    live = kr.live_gates(tech)
+    for _, expr in live:
+        mandatory |= closure_of(must_hold_atoms(kr.parse(expr)))
+    stats["liveGates"] = [f"{label}: {expr}" for label, expr in live]
     macro = {n["id"] for n in civ["nodes"] if n["status"] != "retired" and (n.get("civic") or {}).get("category") == "macro"}
-    nuclear_new = {n["id"] for n in tech["nodes"] if n["status"] == "new" and n.get("lane", "").startswith("D11")}
+    # the D11 case study is optional except its declared trunk geology path (technology-tree-proposal.md §4:
+    # "ore_prospecting (A3, trunk)"): the branch field is the declaration, so no id is listed here
+    nuclear_new = {n["id"] for n in tech["nodes"] if n["status"] == "new" and n.get("lane", "").startswith("D11")
+                   and n.get("branch") != "trunk"}
+    # declared optional: a civic whose civic.required is false (every micro / regime-form civic but the gate civics)
+    optional_civ = {n["id"] for n in civ["nodes"] if n["status"] != "retired" and (n.get("civic") or {}).get("required") is False}
     # V24 optional content must not become mandatory through prerequisite closure
     for i in sorted(mandatory & macro):
-        rep.add("ERROR", "V24", f"regime form {i} is in the mandatory closure of the research stage or an Age CORE fact")
+        rep.add("ERROR", "V24", f"regime form {i} is in the mandatory closure of the research stage, an Age CORE fact or a live gate")
+    for i in sorted((mandatory & optional_civ) - macro):
+        rep.add("ERROR", "V24", f"civic {i} is declared optional (civic.required false) but is in the mandatory closure of "
+                                "the research stage, an Age CORE fact or a live gate")
     for i in sorted(mandatory & nuclear_new):
-        rep.add("WARN", "V24", f"case-study node {i} (lane D11) is in a mandatory closure — confirm it is meant to be required")
+        rep.add("ERROR", "V24", f"case-study node {i} (lane D11, knowledge only — D-062 R10) is in the mandatory closure of "
+                                "the research stage, an Age CORE fact or a live gate")
+    for n in civ["nodes"]:
+        if n["status"] != "retired" and (n.get("civic") or {}).get("required") is True and n["id"] not in mandatory:
+            rep.add("WARN", "V24", f"civic {n['id']} is declared required but no stage, Age CORE fact or live gate needs it")
     # V25 no Age fact (core or supporting) requires a regime form: Age transitions never grant or demand a government
     for f in tech.get("ageFacts") or []:
         for i in f["fact"].get("nodes") or []:
@@ -574,7 +594,7 @@ def check_gates(rep, tech, civ, inv):
             rep.add("ERROR", "V27", f"{n['id']}: {rc} but its milestone says 'existing'")
     stats["realizationClass"] = dict(classes)
     civ_mand = sorted(mandatory & {n["id"] for n in civ["nodes"]})
-    rep.add("INFO", "V24", f"mandatory closure (research stage, Age CORE research facts, tax edict, university): {len(mandatory)} nodes, of which "
+    rep.add("INFO", "V24", f"mandatory closure (research stage, Age CORE research facts, live gates {[l for l, _ in live]}): {len(mandatory)} nodes, of which "
                            f"civics {civ_mand}, regime forms {len(mandatory & macro)}, case-study nodes {len(mandatory & nuclear_new)}")
     stats.update({"mandatoryClosure": len(mandatory), "civicsInMandatory": civ_mand,
                   "regimeFormsInMandatory": len(mandatory & macro), "caseStudyInMandatory": len(mandatory & nuclear_new),

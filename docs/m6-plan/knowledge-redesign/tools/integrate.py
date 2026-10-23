@@ -301,9 +301,9 @@ def main(argv):
                     f2["changed"] = ch.get("rationale")
     gate_exprs = [stage_expr] + ["(" + " OR ".join(f["fact"]["nodes"]) + ")" for f in age_facts
                                   if f["role"] == "core" and f["fact"].get("kind") == "research"]
-    # Live gates outside research.json (2026-10-22): the tax edict (sim.json governance.taxationRequires) and the
-    # realized university (inst.university requires 'library AND legal_code_roman'). Their closures are not optional.
-    gate_exprs += ["taxation", "library AND legal_code_roman"]
+    # Live gates outside the stage and the Age facts (2026-10-23: read from content by kr.live_gates — sim.json
+    # governance.taxationRequires and research.json inst.university, institutions expanded — never literals).
+    gate_exprs += [expr for _, expr in kr.live_gates()]
     gate_ancestors = set()
     if not missing and not cyc:
         for e in gate_exprs:
