@@ -72,12 +72,18 @@ value after `SchemaProjection` strips sections 62–66; single-layer switches (`
 | First research targets | knapping_oldowan, ground_stone_early | grinding_stone (tech lane), kin_council (civics lane) |
 | Advance to A2 | turn 221 | 111 |
 | First road | 134 | 166 |
-| First tax levy / A3 entry | 422 | **579** |
+| A3 entry (first tax levy the turn after) | 422 | **579** |
 | Foundings by turn 300 (settlements) | 8 (14) | 10, first at 38 (16) |
 | First build | 2 | 2 |
 
-The levy/A3 delay is the CP economy pacing `taxation` (CP ≈ RP at 10-year turns, slower as turns shorten) — flagged
-for tuning (roadmap priority 1). These are single-seed measurements of the canonical AI run, not a balance study.
+*Corrected 2026-10-23 (Director review item 2).* An earlier version of this paragraph attributed the A3/levy delay to
+the CP economy pacing `taxation`. That was wrong: the Taxation civic completes **earlier** under M6 (turn 321 vs 336),
+and the levy follows Age III entry, which follows the AI's bronze node (421 → 578). Removing one layer from the shipped
+world: CP lanes off → bronze 424, tree tranche off → 466, discovery off → 542. The CP layer's share comes from AI goal
+ordering — in the two-lane model the Technology lane works the paved-road goal (turns 334–483) before bronze, because
+goal closures union every OR branch. Trace, measurements and mechanism: `audit/taxation-gate-trace.md`. Flagged for
+the Director (roadmap priority 1) and `docs/queue.md`. These are single-seed measurements of the canonical AI run, not
+a balance study.
 
 ## 5. Not covered or still open
 

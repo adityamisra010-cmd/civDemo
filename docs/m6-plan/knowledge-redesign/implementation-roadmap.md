@@ -215,7 +215,7 @@ KR-0; civics (KR-5, KR-6) waits on D-061.
 
 **Next, in priority order (each with its acceptance criterion):**
 
-1. **CP pacing check (C-2).** MEASURED effect: the AI's first tax levy and Age III entry moved from turn 422 to 579 because `taxation` is now paid in CP. Accept: measure seeds 1, 2, 42, 7 (player driver and AI empire); either the Director accepts the new pacing or `tuning.civicsPoints` is retuned with a recorded reason (D-062 R13) and the goldens re-pinned with attribution.
+1. **Age III pacing check (C-2).** MEASURED effect: the AI's Age III entry moved from turn 422 to 579 (first levy 423 → 580). *Corrected 2026-10-23:* the cause is not `taxation` (the civic completes earlier under M6, 321 vs 336) but the bronze core: the AI's Technology lane, in the two-lane model, works the paved-road goal before bronze (union-over-OR goal closures; `audit/taxation-gate-trace.md`); the tree tranche and discovery add to it. Accept: measure seeds 1, 2, 42, 7 (player driver and AI empire); either the Director accepts the new pacing or `tuning.civicsPoints` is retuned with a recorded reason (D-062 R13) and the goldens re-pinned with attribution.
 2. **Re-derive the D-055 allocation scenario under the shipped rules** and drop `--without-discovery` from the ci.yml allocation leg. Accept: the four split-checks pass without the switch.
 3. **KR-2 remap seam, then KR-4** (merges, retirements, consumer-removing splits). Accept: a v34 save that completed a split/merged node loads with the successor keys granted (populated fixture).
 4. **KR-1 engine fixes** (AI goal closure by cheapest route; research content identity on resume; overflow ruling D-R). Accept: as in KR-1 above.
