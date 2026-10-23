@@ -44,7 +44,7 @@ claims; 60 of them do not record which statements are unchecked); 0 claims suppo
 |---|---|---|---|
 | source-checked | 0 | 0 | page or document opened; every claim confirmed (impossible here) |
 | search-corroborated | 51 | **113** | every material claim matched credible search-result text; page not opened |
-| partially-checked | 191 | **250** | some claims matched; the unsupported ones are listed in the entry |
+| partially-checked | 191 | **250** | some claims matched; the unsupported ones are listed in the entry (*2026-10-23:* in its itemised claims for 96 entries, only in its notes for 144, and not identified for 10 — `corpus/unresolved-claims.md`) |
 | unverified | 319 | **198** | no adequate evidence found yet; no source is cited |
 
 The pass ran in five batches of at most 35 searches each, prioritising new nodes, civics and regime forms, entries with

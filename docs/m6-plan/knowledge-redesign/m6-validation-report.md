@@ -90,6 +90,60 @@ a balance study.
 - **CI on the pushed head**: recorded in the final report once the runs finish (workflow IDs).
 - `--without-discovery` remains on the D-055 allocation leg and `CliConstructionLifecycleTests` (pre-M6 measurements).
 - The calibration population trace is stale (predates M6); not re-measured here.
-- `docs/m5-playability-gate.md` §6 not regenerated for the new gate rows.
+- ~~`docs/m5-playability-gate.md` §6 not regenerated for the new gate rows.~~ Regenerated 2026-10-23 (§6 below).
 - The educational corpus remains blocked from shipping (0 of 561 source-checked; source hosts unreachable).
 - No Windows smoke or 20-seed soak run locally; they run in CI (`ui-artifact`, nightly) only.
+
+## 6. Director review of the batch (2026-10-23)
+
+The five conditions the Director set before accepting the batch, and what answers each. Branch head after this review:
+the commit carrying this section (SHA in the commit log; not self-referenced). `main` = `m5-exit` = `6e51a3e`, untouched.
+
+| # | Condition | Answer | Evidence |
+|---|---|---|---|
+| 1 | Test the validator adversarially | `tools/test_validate.py`: 25 fixtures run the real `validate.py` on temp copies, one planted defect each; every failing fixture fails for the intended check and no other; every valid control passes. `--mutants`: 15/15 killed | legacy civic/technology renumbered (V14, V23); new civic keyed 1000 (V23); optional civic, regime form and case-study node made mandatory through the stage, an Age CORE fact, `sim.json`'s tax gate and `research.json`'s university gate (V24); regime form in a supporting/core Age fact (V25, V07); six evidence mislabels (C03, C11); valid: unchanged copy, honest downgrade, disputed claim, page-read upgrade (1 entry ships), required node added to a gate, source added to an unverified entry (stays blocked), optional node as one OR branch |
+| 2 | Resolve the taxation discrepancy | the brief was right; the code matches the proposal; the validator was reading the wrong relationships (and hard-coded the gates). The levy delay is caused by Age III bronze, not taxation | `audit/taxation-gate-trace.md`; §4 above corrected |
+| 3 | Keep search-corroborated distinct from source-checked | C11 now requires **each** supported/disputed claim of a `source-checked` entry to cite a page-read or document-read source; no tool derives a status from a citation | fixtures in row 1; `corpus/unresolved-claims.md` |
+| 4 | Validate the sourcing-queue tool | `tools/test_sourcing_queue.py`: idempotent, tracked outputs current, evidence byte-identical, unknown plan fields kept, per-batch queue = corpus ids, a URL or page-read flag upgrades nothing, a real source-checked entry leaves the queue; 8/8; `--mutants` 5/5 killed | |
+| 5 | Integrate only after review; full validation | see 6.2 and 6.3 | |
+
+### 6.1 Validator corrections found by the review (no content rule changed)
+
+- The live gates outside the stage and the Age facts are read from content (`kr_lib.live_gates`: `sim.json`
+  `governance.taxationRequires`; `research.json` `inst.university`, institutions expanded) instead of literals.
+- An Age research fact holds when ANY listed node is complete (`Sim.Core/Systems/Ages/AgeContent.cs`): only the
+  intersection of its alternatives' closures is mandatory. The earlier union marked tin-branch-only ancestors
+  mandatory; the closure is 93 nodes, not 94.
+- `civic.required: false` is enforced (ERROR when such a civic is mandatory); the D11 case study is optional except its
+  declared trunk geology path (`ore_prospecting`, proposal §4) — the branch field is the declaration, no id allowlist.
+- 205 entries above `unverified` list no per-claim results (their status rests on per-source claims); one WARN counts
+  them and the inventory names them.
+
+### 6.2 Integration audit (MEASURED on the review tree)
+
+| Check | Result |
+|---|---|
+| Civic keys, runtime `research.json` vs proposal | 67 = 67, keys 1001–1067, 0 mismatches, 0 duplicates |
+| Technology keys | runtime 496 = proposal 494 active + `siege_tower`, `crossbow_repeating` (merges deferred to the KR-2 remap seam, ADR-045, `implementation-status.md`); new keys 427–496; 0 mismatches |
+| System ids / order kinds / ledger reason ids / ADR numbers | 27 distinct system ids (Discovery 29); order kinds unique (Explore 14, Prospect 15); 18 distinct reason ids (Prospecting 17, Expedition 18); ADR-043/044/045 unique |
+| Evidence counts in prose vs corpus | 113 / 250 / 198 / 0 and 0 of 561 agree in README, docket, reconciliation, corpus doc, inventory |
+| Generated documents | `integrate`, `merge_sources`, `validate`, `sourcing_queue`, `unresolved_claims`, `render`: re-run, no diff beyond this review's own changes; `research-*.py --check` ×3 current; `implement_tranche.py --check` up to date; `m5-playability-gate.md` §6 regenerated (`Sim.Ui --smoke --report`: 13 states, 3,929 checks, 0 FAIL; new rows `Explore`, `Prospect`) |
+| Shared-file conflicts | the review's edits touch the package tools, generated views, this report, the roadmap, `docs/queue.md`, the gate document and one skipped measurement test; no runtime code, content, schema or golden changed |
+
+
+### 6.3 Local validation of the review tree (run 2026-10-23)
+
+| Command | Exit | Result |
+|---|---|---|
+| `dotnet build Sim.slnx -c Release` | 0 | 0 errors, 0 warnings |
+| `./scripts/check-banned-constructs.sh` / `check-read-isolation.sh` | 0 / 0 | OK / OK |
+| `research-content-audit.py`, `research-calibration-report.py`, `research-gameplay-unlock-audit.py` `--check` | 0 ×3 | current |
+| `implement_tranche.py --check` | 0 | up to date |
+| `tools/validate.py` | 0 | ERROR 0 · WARN 272 · INFO 18; shipping gate 0 of 561 |
+| `tools/test_validate.py --mutants` / `tools/test_sourcing_queue.py --mutants` | 0 / 0 | 25/25 fixtures, 15/15 mutants killed / 8/8 tests, 5/5 mutants killed |
+| `dotnet test Sim.slnx -c Release --no-build` — Sim.Tests | 0 | 2,707 passed, 15 skipped (13 + the two new measurement facts), 0 failed |
+| `dotnet test Sim.slnx -c Release --no-build` — Sim.Ui.Tests | 0 | 1,099 passed, 0 failed |
+| `Sim.Ui --smoke --report` | 0 | SMOKE PASSED — 13 states, 3,929 checks, 0 FAIL |
+
+No runtime code changed in this review, so the goldens and the cross-process determinism legs are unchanged; CI on the
+pushed head re-runs them (run IDs in the hand-back report).
