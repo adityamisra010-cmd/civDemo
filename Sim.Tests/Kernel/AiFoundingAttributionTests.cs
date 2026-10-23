@@ -89,7 +89,14 @@ public class AiFoundingAttributionTests
     // 20 timber and 10 stone instead of 40 grain, so its stone, and the granaries waiting on it, move). The cheapest-route
     // closure (ADR-046 §1) moves NOTHING by turn 300: TestConfigs.PreAiRoutes gives this same hash (measured,
     // Adr046PinMeasurement.AiWorldTurn300_ShippedAndRoutesOff; asserted in AiWorldTurn300_TheCheapestRouteMovesNothingByTurn300).
-    internal const string S1cTurn300 = "2e4759ac494d946126624fec584e26fdce323a8018877987b26b2ecc08b98be8";
+    // ADR-046 §6–§7 RE-PIN (2026-10-23, M6 review batch 3; VALUE, MEASURED on this tree by the agent writing this line):
+    // 2e4759ac494d9461… -> b2201d255f74f477…. CAUSES (two, each alone moves it): the supporting-milestone goal (§6; with
+    // build-first alone the hash is 3b29c636…) and the build-first priority (§7; with the supporting goal alone 3c6c35ff…).
+    // CONTROL: AiWorldTurn300_BothBatch3SwitchesOff_IsTheE91d10bWorld — both twins off return 2e4759ac… byte for byte.
+    internal const string S1cTurn300 = "b2201d255f74f4778af17bafe413345d186fca43f4360ba9fc43fea5c74d56e7";
+
+    /// <summary>The batch-2 (e91d10b) AI world at turn 300: the value both batch-3 twins off must return.</summary>
+    internal const string E91d10bTurn300 = "2e4759ac494d946126624fec584e26fdce323a8018877987b26b2ecc08b98be8";
 
     /// <summary>Batch 3 (D-054, integration R1): THE CYLINDER-ALONE LINK — the live AI world through the v32 projection
     /// (the two v33 tables dropped, asserted EMPTY): the AI hash the W1 stage measured with the cylinder and no v33 layout.</summary>
@@ -186,9 +193,25 @@ public class AiFoundingAttributionTests
     [Fact]
     public void AiWorldTurn300_TheCheapestRouteMovesNothingByTurn300()
     {
+        // ADR-046 §6: the routes-off twin strips the supporting goal too (it is costed by the routes), so it is compared
+        // with the supporting-off twin — the same world but for the route closure.
         SimConfig routesOff = TestConfigs.PreAiRoutes(TestConfigs.Sim());
         Assert.False(routesOff.Research!.Tuning.AiCheapestOrRoute);
-        Assert.Equal(S1cTurn300, WorldHash.ComputeHex(CivicsPointsAttributionTests.RunAiWorld(routesOff)));
+        Assert.False(routesOff.Research!.Tuning.AiSupportingMilestones);
+        Assert.Equal(WorldHash.ComputeHex(CivicsPointsAttributionTests.RunAiWorld(TestConfigs.PreAiSupporting(TestConfigs.Sim()))),
+            WorldHash.ComputeHex(CivicsPointsAttributionTests.RunAiWorld(routesOff)));
+    }
+
+    /// <summary>ADR-046 §6–§7 (batch 3) — THE ATTRIBUTION CONTROL of <see cref="S1cTurn300"/>'s batch-3 move: the AI world with
+    /// the supporting-milestone goal AND the build-first priority off is the e91d10b world byte for byte; each alone moves
+    /// it (both are causes).</summary>
+    [Fact]
+    public void AiWorldTurn300_BothBatch3SwitchesOff_IsTheE91d10bWorld()
+    {
+        SimConfig full = TestConfigs.Sim();
+        Assert.Equal(E91d10bTurn300, WorldHash.ComputeHex(CivicsPointsAttributionTests.RunAiWorld(
+            TestConfigs.PreAiSupporting(TestConfigs.PreAiBuildFirst(full)))));
+        Assert.NotEqual(E91d10bTurn300, S1cTurn300);
     }
 
     [Fact]

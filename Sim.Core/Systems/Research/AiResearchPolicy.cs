@@ -39,6 +39,9 @@ namespace Sim.Core.Systems.Research;
 ///   <c>founds.entity</c> — AiConstructionPolicy, ADR-033 D6). An institution named inside a requirement is
 ///   expanded to its own knowledge requirement, the evaluator's own reading.</item>
 /// </list>
+/// <item>ADR-046 §6 (research.json tuning.aiSupportingMilestones, with aiCheapestOrRoute): the cheapest unmet RESEARCH
+///   SUPPORTING milestones its NEXT Age still needs to meet supportingRequired and minCategories
+///   (<see cref="SupportingGoalClosure"/>; goal ordinal 4).</item>
 /// No node id appears in code: every goal comes from content. Strategic research planning is later AI work.
 /// Player-commanded polities are never touched.
 ///
@@ -116,7 +119,7 @@ public static class AiResearchPolicy
     }
 
     /// <summary>The goal ordinals (the first component of the goal composite key).</summary>
-    public const int CoreGoal = 0, RoadGoal = 1, TaxGoal = 2, UniversityGoal = 3, GoalCount = 4;
+    public const int CoreGoal = 0, RoadGoal = 1, TaxGoal = 2, UniversityGoal = 3, SupportingGoal = 4, GoalCount = 5;
 
     /// <summary>The node the rule picks (dense index), or -1 when nothing is available.</summary>
     public static int Choose(IReadOnlyWorldState world, SimConfig cfg, PolityId polity, bool[] completed, bool[] available)
@@ -156,22 +159,24 @@ public static class AiResearchPolicy
         return best;
     }
 
-    /// <summary>The goal closures in ordinal order (<see cref="CoreGoal"/> … <see cref="UniversityGoal"/>); a met
+    /// <summary>The goal closures in ordinal order (<see cref="CoreGoal"/> … <see cref="SupportingGoal"/>); a met
     /// or unconfigured goal is all false.</summary>
     public static bool[][] Goals(IReadOnlyWorldState world, SimConfig cfg, PolityId polity)
     {
         ResearchContent content = cfg.Research ?? throw new ArgumentException("the AI research policy needs research content", nameof(cfg));
         bool[][] capability = CapabilityGoals(world, cfg, polity);
-        return [CoreGoalClosure(world, content, cfg.Ages, polity), capability[0], capability[1], capability[2]];
+        return [CoreGoalClosure(world, content, cfg.Ages, polity), capability[0], capability[1], capability[2],
+            SupportingGoalClosure(world, content, cfg.Ages, polity)];
     }
 
-    /// <summary>THE UNION of every goal (a reader; the choice works one goal at a time, see the header): <see cref="CoreGoalClosure"/> ∪ <see cref="CapabilityGoalClosure"/>.</summary>
+    /// <summary>THE UNION of every goal (a reader; the choice works one goal at a time, see the header): <see cref="CoreGoalClosure"/> ∪ <see cref="CapabilityGoalClosure"/> ∪ <see cref="SupportingGoalClosure"/>.</summary>
     public static bool[] GoalClosure(IReadOnlyWorldState world, SimConfig cfg, PolityId polity)
     {
         ResearchContent content = cfg.Research ?? throw new ArgumentException("the AI research policy needs research content", nameof(cfg));
         bool[] goal = CoreGoalClosure(world, content, cfg.Ages, polity);
         bool[] capability = CapabilityGoalClosure(world, cfg, polity);
-        for (int i = 0; i < goal.Length; i++) goal[i] |= capability[i];
+        bool[] supporting = SupportingGoalClosure(world, content, cfg.Ages, polity);
+        for (int i = 0; i < goal.Length; i++) goal[i] |= capability[i] | supporting[i];
         return goal;
     }
 
@@ -428,18 +433,7 @@ public static class AiResearchPolicy
             foreach (AgeMilestone core in entry.Core)
             {
                 if (core.Fact.Kind != MilestoneFactKind.Research || AgeQuery.Milestone(world, polity, core).Met) continue;
-                int[]? cheapest = null;
-                double cheapestCost = 0.0;
-                foreach (int key in core.Fact.NodeKeys)   // listed order: bit-equal costs keep the node listed first
-                {
-                    int index = content.IndexOf(new ResearchNodeId(key));
-                    if (index < 0) continue;
-                    int[] route = routes.Node(index);
-                    if (ReferenceEquals(route, Routes.None)) continue;
-                    double cost = routes.Cost(route);
-                    if (cheapest is null || cost < cheapestCost) { cheapest = route; cheapestCost = cost; }
-                }
-                if (cheapest is not null) all = Routes.And(all, cheapest);
+                if (MilestoneRoute(content, routes, core, out _) is { } cheapest) all = Routes.And(all, cheapest);
             }
             routes.Mark(all, goal);
             return goal;
@@ -462,6 +456,122 @@ public static class AiResearchPolicy
             foreach (int p in content.Nodes[i].PrerequisiteNodes) stack.Push(p);
         }
         return goal;
+    }
+
+    /// <summary>
+    /// ADR-046 §6 (M6 review batch 3, 2026-10-23) — THE SUPPORTING-MILESTONE GOAL (research.json
+    /// tuning.aiSupportingMilestones, acting only with aiCheapestOrRoute). An Age is entered on its core milestones AND
+    /// <c>supportingRequired</c> supporting milestones from <c>minCategories</c> categories (AgeQuery.Evaluate — the
+    /// player's rule, read, never changed). The other goals never aimed at the supporting half; the union-over-OR closure
+    /// met some of it by accident (Age IV's Alphabetic script, through the redundant scripts it researched), and the
+    /// cheapest route no longer does. So, from the polity's NEXT Age's evaluation:
+    /// <list type="number">
+    /// <item>the deficits: count = supportingRequired − supportingMet, categories = minCategories − covered; none ⇒ empty;</item>
+    /// <item>the candidates: the UNMET supporting milestones whose fact is research (ANY listed node, so each is the
+    ///   cheapest route through its nodes, ties to the node listed first — as for the core goal); a milestone of another
+    ///   kind (goods, structures, people, classes, formations) is not research work and is never a goal here;</item>
+    /// <item>while categories are short: the cheapest candidate in a category not yet covered — composite key
+    ///   (route cost, listed position) — counted toward both deficits; then, while the count is short, the cheapest
+    ///   remaining candidate by the same key;</item>
+    /// <item>the goal is the AND (union) of the chosen routes: every prerequisite of each chosen route is kept.</item>
+    /// </list>
+    /// Each candidate is costed alone (a node shared by two routes is counted in both when they are compared); only the
+    /// deficit the CURRENT state leaves is pursued, re-read every decision, so a milestone met by other means (a
+    /// workshop, a tool stock) shrinks it at once and nothing beyond the requirement is researched. No milestone or node id
+    /// appears in code. All false without Age content, at the final Age, or with either switch off.
+    /// </summary>
+    public static bool[] SupportingGoalClosure(IReadOnlyWorldState world, ResearchContent content, AgeContent? ages, PolityId polity)
+    {
+        var goal = new bool[content.Nodes.Count];
+        if (!content.Tuning.AiCheapestOrRoute || !content.Tuning.AiSupportingMilestones || ages is null) return goal;
+        if (AgeQuery.Evaluate(world, ages, polity) is not { } report) return goal;
+        int needCount = report.SupportingRequired - report.SupportingMet;
+        int needCategories = report.CategoriesRequired - report.CategoriesCovered.Count;
+        if (needCount <= 0 && needCategories <= 0) return goal;
+
+        var routes = new Routes(world, content, polity);
+        int n = report.Supporting.Count;
+        var route = new int[]?[n];
+        var cost = new double[n];
+        for (int k = 0; k < n; k++)
+        {
+            MilestoneStatus s = report.Supporting[k];
+            if (s.Met || s.Milestone.Fact.Kind != MilestoneFactKind.Research) continue;
+            if (MilestoneRoute(content, routes, s.Milestone, out double c) is { } r) { route[k] = r; cost[k] = c; }
+        }
+
+        var categories = new AgeMilestoneCategory[n];
+        for (int k = 0; k < n; k++) categories[k] = report.Supporting[k].Milestone.Category;
+        int[] all = Routes.Empty;
+        foreach (int k in SelectSupporting(categories, route, cost, report.CategoryMask, needCount, needCategories))
+            all = Routes.And(all, route[k]!);
+        routes.Mark(all, goal);
+        return goal;
+    }
+
+    /// <summary>
+    /// The supporting milestones chosen (listed positions, in choice order) — <see cref="SupportingGoalClosure"/>'s rule as a
+    /// pure function: candidates are the positions with a route (<paramref name="route"/>[k] non-null, costed
+    /// <paramref name="cost"/>[k]); while <paramref name="needCategories"/> &gt; 0, the cheapest candidate whose category is
+    /// outside <paramref name="mask"/> (its bit then added; it counts toward both deficits); then, while
+    /// <paramref name="needCount"/> &gt; 0, the cheapest remaining candidate. Each pick is the composite key (cost, listed
+    /// position): an ascending scan replacing only on a strictly lower cost.
+    /// </summary>
+    public static List<int> SelectSupporting(IReadOnlyList<AgeMilestoneCategory> categories, int[]?[] route, double[] cost,
+        int mask, int needCount, int needCategories)
+    {
+        var taken = new bool[route.Length];
+        var chosen = new List<int>();
+        while (needCategories > 0 && Pick(route, cost, categories, taken, mask, uncoveredOnly: true) is int k and >= 0)
+        {
+            taken[k] = true;
+            chosen.Add(k);
+            mask |= CategoryBit(categories[k]);
+            needCategories--;
+            needCount--;
+        }
+        while (needCount > 0 && Pick(route, cost, categories, taken, mask, uncoveredOnly: false) is int k and >= 0)
+        {
+            taken[k] = true;
+            chosen.Add(k);
+            needCount--;
+        }
+        return chosen;
+    }
+
+    /// <summary>The untaken candidate with the lowest composite key (route cost, listed position); with
+    /// <paramref name="uncoveredOnly"/>, only candidates whose category is outside <paramref name="mask"/>. -1 when none.</summary>
+    private static int Pick(int[]?[] route, double[] cost, IReadOnlyList<AgeMilestoneCategory> categories, bool[] taken, int mask,
+        bool uncoveredOnly)
+    {
+        int best = -1;
+        for (int k = 0; k < route.Length; k++)
+        {
+            if (route[k] is null || taken[k]) continue;
+            if (uncoveredOnly && (mask & CategoryBit(categories[k])) != 0) continue;
+            if (best < 0 || cost[k] < cost[best]) best = k;
+        }
+        return best;
+    }
+
+    private static int CategoryBit(AgeMilestoneCategory category) => 1 << ((int)category - 1);
+
+    /// <summary>A research milestone's cheapest remaining route — ANY listed node satisfies it, so the cheapest node route,
+    /// ties to the node listed first; null when no listed node has a route (unknown ids, or no route).</summary>
+    private static int[]? MilestoneRoute(ResearchContent content, Routes routes, AgeMilestone milestone, out double cost)
+    {
+        int[]? cheapest = null;
+        cost = 0.0;
+        foreach (int key in milestone.Fact.NodeKeys)   // listed order: bit-equal costs keep the node listed first
+        {
+            int index = content.IndexOf(new ResearchNodeId(key));
+            if (index < 0) continue;
+            int[] route = routes.Node(index);
+            if (ReferenceEquals(route, Routes.None)) continue;
+            double c = routes.Cost(route);
+            if (cheapest is null || c < cost) { cheapest = route; cost = c; }
+        }
+        return cheapest;
     }
 
     /// <summary>The available node (within <paramref name="within"/>, when given) with the lowest

@@ -103,6 +103,9 @@ public sealed record SimConfig(
 /// <c>AssayCost</c> + <c>AssayRequires</c> — the improved ASSAY (Prospect order Amount 1): offered only once the polity's
 /// completed knowledge meets <c>AssayRequires</c> (ore_prospecting); its bill may name a metal (bronze), the real metal sink.
 /// Both absent: no assay. Every good of a bill must be held (beyond construction's set-asides) or nothing is paid.
+/// <c>AiBuildFirst</c> (ADR-046 §7) — the AI's priority of essential construction over optional prospecting
+/// (AiDiscoveryPolicy.DefersToBuilding); false (absent) is the e91d10b AI exactly, the attribution switch. It changes no
+/// bill, no affordability check and nothing the player can do.
 /// </summary>
 public sealed record DiscoveryConfig(
     [property: JsonPropertyName("enabled"), JsonRequired] bool Enabled,
@@ -110,7 +113,8 @@ public sealed record DiscoveryConfig(
     [property: JsonPropertyName("concealedShare"), JsonRequired] double ConcealedShare,
     [property: JsonPropertyName("prospectCost"), JsonRequired] DiscoveryCostItem[] ProspectCost,
     [property: JsonPropertyName("assayCost")] DiscoveryCostItem[]? AssayCost = null,
-    [property: JsonPropertyName("assayRequires")] string? AssayRequires = null);
+    [property: JsonPropertyName("assayRequires")] string? AssayRequires = null,
+    [property: JsonPropertyName("aiBuildFirst")] bool AiBuildFirst = false);
 
 /// <summary>ADR-046: one line of a Prospect bill — a goods.json good and a whole quantity ≥ 0.</summary>
 public sealed record DiscoveryCostItem(

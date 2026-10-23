@@ -47,7 +47,8 @@ public sealed record ResearchCostModel(double U, double K);
 public sealed record ResearchTuning(
     double RpCoefficient, double RpExponent, IReadOnlyList<(double Population, double ResearchPoints)> RpAnchors,
     double EffectiveCostFloorFraction, double AccelerationCreditCeilingFraction, ResearchCostModel CostModel,
-    double CityStatePaceFraction = 0.0, CivicsPointsTuning? CivicsPoints = null, bool AiCheapestOrRoute = false)
+    double CityStatePaceFraction = 0.0, CivicsPointsTuning? CivicsPoints = null, bool AiCheapestOrRoute = false,
+    bool AiSupportingMilestones = false)
 {
     /// <summary>ADR-043: whether the two-lane model is on — Research Points fund only the Technology target and Civics
     /// Points fund only the Civics target. Off (tuning.civicsPoints absent or enabled false) is the v34 one-pool model
@@ -57,6 +58,9 @@ public sealed record ResearchTuning(
     // AiCheapestOrRoute (ADR-046, 2026-10-23): the AI research policy's goal closures follow the CHEAPEST remaining route
     // through every OR (AiResearchPolicy); false (tuning.aiCheapestOrRoute absent) is the union-over-OR closure of
     // ADR-033 B exactly — the attribution switch.
+    // AiSupportingMilestones (ADR-046 §6, 2026-10-23): the AI also pursues the cheapest RESEARCH supporting milestones its
+    // next Age still needs (AiResearchPolicy.SupportingGoalClosure); it acts only with AiCheapestOrRoute (it is costed by
+    // those routes). false (tuning.aiSupportingMilestones absent) is the core-and-capability goals exactly.
 }
 
 /// <summary>
@@ -831,7 +835,7 @@ public static class ResearchContentLoader
         }
         return new ResearchTuning(rp.Coefficient, rp.Exponent, anchors, t.EffectiveCostFloorFraction,
             t.AccelerationCreditCeilingFraction, new ResearchCostModel(cm.U, cm.K), t.CityStatePaceFraction ?? 0.0, civics,
-            t.AiCheapestOrRoute ?? false);
+            t.AiCheapestOrRoute ?? false, t.AiSupportingMilestones ?? false);
     }
 
     private static readonly (string Name, double Min, double Max)[] CostFactorRanges =
@@ -1429,7 +1433,8 @@ public static class ResearchContentLoader
         [property: JsonPropertyName("costModel"), JsonRequired] CostModelJson CostModel,
         [property: JsonPropertyName("cityStatePaceFraction")] double? CityStatePaceFraction = null,
         [property: JsonPropertyName("civicsPoints")] CivicsPointsJson? CivicsPoints = null,
-        [property: JsonPropertyName("aiCheapestOrRoute")] bool? AiCheapestOrRoute = null);
+        [property: JsonPropertyName("aiCheapestOrRoute")] bool? AiCheapestOrRoute = null,
+        [property: JsonPropertyName("aiSupportingMilestones")] bool? AiSupportingMilestones = null);
 
     private sealed record CivicsPointsJson(
         [property: JsonPropertyName("enabled"), JsonRequired] bool Enabled,

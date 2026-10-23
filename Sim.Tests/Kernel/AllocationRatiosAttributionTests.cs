@@ -36,7 +36,9 @@ public class AllocationRatiosAttributionTests
         var offLog = new OrderLog();
         TurnExecutor exOn = Production(on, onLog, wg), exOff = Production(off, offLog, wg);
         WorldState a = WorldFounding.Found(wg, on, 42), b = WorldFounding.Found(wg, off, 42);
-        for (int t = 1; t <= 300; t++)
+        // ADR-046 §6 (2026-10-23, MEASURED): the supporting-milestone goal moves the dev world's first road order 284 -> 308,
+        // past the old 300-turn horizon of this premise; 330 turns keep "the AI orders road works" true.
+        for (int t = 1; t <= 330; t++)
         {
             AiOrders.Append(onLog, a, on, wg);
             AiOrders.Append(offLog, b, off, wg);

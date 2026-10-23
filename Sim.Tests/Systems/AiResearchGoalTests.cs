@@ -173,7 +173,7 @@ public class AiResearchGoalTests
         for (int i = 0; i < union.Length; i++)
         {
             Assert.Equal(capability[i], goals[1][i] || goals[2][i] || goals[3][i]);
-            Assert.Equal(union[i], goals[0][i] || capability[i]);
+            Assert.Equal(union[i], goals[0][i] || capability[i] || goals[AiResearchPolicy.SupportingGoal][i]);   // ADR-046 §6: + supporting
         }
 
         // The goal: an independent recomputation of the (remainingCost, ordinal) argmin over goals with an available node.

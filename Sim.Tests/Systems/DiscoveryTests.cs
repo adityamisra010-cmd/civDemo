@@ -570,7 +570,7 @@ public class DiscoveryTests
     [Fact]
     public void Ai_Prospect_PicksTheMostVisibleEligibleGoods_TiesToTheLowerId_OnlyWhenAffordable()
     {
-        SimConfig cfg = TestConfigs.Sim();
+        SimConfig cfg = TestConfigs.PreAiBuildFirst(TestConfigs.Sim());   // ADR-046 §7: the selection, not the build-first priority (AiBuildFirstTests)
         WorldState w = Dev(cfg, aiEmpires: 1);
         var ai = new PolityId(2);
         var own = new List<SettlementId>();
@@ -601,7 +601,7 @@ public class DiscoveryTests
     {
         // Two AI settlements with identical keys must resolve to the lower id: build a world where every settlement of the
         // AI has the same visible eligible count (all concealable goods removed) and the same explored radius.
-        SimConfig cfg = TestConfigs.Sim();
+        SimConfig cfg = TestConfigs.PreAiBuildFirst(TestConfigs.Sim());   // ADR-046 §7: the selection, not the build-first priority (AiBuildFirstTests)
         WorldState w = Dev(cfg, aiEmpires: 1);
         var ai = new PolityId(2);
         WorldState flat = w.Clone();
@@ -619,7 +619,7 @@ public class DiscoveryTests
     [Fact]
     public void Ai_Prospect_TakesTheAssayWhenOpenAndAffordable_ElseTheSurvey()
     {
-        SimConfig cfg = TestConfigs.Sim();
+        SimConfig cfg = TestConfigs.PreAiBuildFirst(TestConfigs.Sim());   // ADR-046 §7: the selection, not the build-first priority (AiBuildFirstTests)
         WorldState w = Dev(cfg, aiEmpires: 1);
         var ai = new PolityId(2);
         var own = new List<SettlementId>();

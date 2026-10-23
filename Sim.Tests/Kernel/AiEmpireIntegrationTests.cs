@@ -293,8 +293,13 @@ public class AiEmpireIntegrationTests
         // AI's first survey now spends 10 stone, the material its first granary waited on). ATTRIBUTION:
         // OneAiEmpire_WithTheCheapestRouteOff_TheLevyAndA3ReturnToTheirPreFixTurns (TestConfigs.PreAiRoutes, the bill kept)
         // returns 3 here as well.
+        // ADR-046 §6–§7 RE-PIN (2026-10-23, M6 review batch 3; MEASURED on this tree by the agent writing this line, in-test
+        // harness): first build 3 -> 2 (the build-first priority alone — the first survey waits for the granary's stone;
+        // the supporting-off twin keeps 2, the build-first-off twin returns 3); advance 111/112 -> 88/89 (the
+        // supporting-milestone goal alone — it pursues Age II's research supporting milestones; the build-first-off twin
+        // keeps 88/89). CONTROL: OneAiEmpire_WithBothBatch3SwitchesOff_EveryPinReturnsItsE91d10bValue.
         Assert.Equal(["grinding_stone", "kin_council"], p.FirstTargets!);
-        Assert.Equal((0L, 3L, 111L, 112L), (p.Target1, p.FirstBuild, p.Advance, p.AdvancedAt));
+        Assert.Equal((0L, 2L, 88L, 89L), (p.Target1, p.FirstBuild, p.Advance, p.AdvancedAt));
         // R1 RE-PIN (2026-10-03; research-gated recipes — no pottery or bronze before their nodes — move the
         // population and research-point trajectory): levy 547/548 -> 537/538; targets, granary, road, Age unchanged.
         // R4 RE-PIN (2026-10-04, the forager layer; MEASURED): road 141/142 -> 143/144, levy 537/538 -> 546/547.
@@ -332,8 +337,11 @@ public class AiEmpireIntegrationTests
         // closures alone (ADR-046 §1 — the AI no longer researches every alternative of an OR its goal needs, so bronze and
         // the A3 closure come ~170 turns sooner). ATTRIBUTION: the routes-off twin returns 579/580 and A3 579 with the bill
         // kept (OneAiEmpire_WithTheCheapestRouteOff_TheLevyAndA3ReturnToTheirPreFixTurns).
-        Assert.Equal((166L, 167L, 407L, 408L), (p.Road, p.FirstRoad, p.Tax, p.FirstTax));
-        Assert.Equal(407L, p.A3At);                          // the AI entered A3 (ADR-035: 463 -> 458 -> 462 -> 461; D-051 1(b): 461 -> 451; S1c: 451 -> 423; batch 3: 423 -> 422; CP: 422 -> 440; M6 merged: 440 -> 579; ADR-046: 579 -> 407)
+        // ADR-046 §6 RE-PIN (batch 3; MEASURED): road 166/167 -> 185/186, levy 407/408 -> 416/417, A3 407 -> 416 — the
+        // supporting-milestone goal alone (research time on Age II's and Age IV's supporting milestones); build-first moves
+        // none of them.
+        Assert.Equal((185L, 186L, 416L, 417L), (p.Road, p.FirstRoad, p.Tax, p.FirstTax));
+        Assert.Equal(416L, p.A3At);                          // the AI entered A3 (ADR-035: 463 -> 458 -> 462 -> 461; D-051 1(b): 461 -> 451; S1c: 451 -> 423; batch 3: 423 -> 422; CP: 422 -> 440; M6 merged: 440 -> 579; ADR-046: 579 -> 407)
 
         // S1c (ADR-036 §8): the AI EXPANDS through the player's Found Settlement order — one per 350 years at most, each
         // a colony it controls. MEASURED on this tree: eight orders by the first levy, the polity holding 6 + 8 = 14
@@ -357,13 +365,30 @@ public class AiEmpireIntegrationTests
     [Fact]
     public void OneAiEmpire_WithTheCheapestRouteOff_TheLevyAndA3ReturnToTheirPreFixTurns()
     {
+        // ADR-046 §6–§7 (batch 3): the routes-off twin strips the supporting goal with the routes (it is costed by them) and
+        // keeps build-first, so its first build is build-first's 2 and its advance the supporting-off 111/112.
         CanonicalAiPins p = RunCanonicalAi(TestConfigs.Worldgen(), TestConfigs.PreAiRoutes(Cfg));
         Assert.Equal(["grinding_stone", "kin_council"], p.FirstTargets!);
-        Assert.Equal((0L, 3L, 111L, 112L), (p.Target1, p.FirstBuild, p.Advance, p.AdvancedAt));
+        Assert.Equal((0L, 2L, 111L, 112L), (p.Target1, p.FirstBuild, p.Advance, p.AdvancedAt));
         Assert.Equal((166L, 167L, 579L, 580L), (p.Road, p.FirstRoad, p.Tax, p.FirstTax));
         Assert.Equal(579L, p.A3At);
         Assert.Equal([38L, 78L, 114L, 151L, 189L, 225L, 296L, 367L, 438L, 509L], p.Founds);
         Assert.Equal(16, p.Controlled);
+    }
+
+    /// <summary>ADR-046 §6–§7 (M6 review batch 3, 2026-10-23) — THE ATTRIBUTION CONTROL of the batch-3 moves above: the same
+    /// run with the supporting-milestone goal AND the build-first priority off (TestConfigs.PreAiSupporting ∘
+    /// TestConfigs.PreAiBuildFirst) returns every e91d10b (batch-2) value.</summary>
+    [Fact]
+    public void OneAiEmpire_WithBothBatch3SwitchesOff_EveryPinReturnsItsE91d10bValue()
+    {
+        CanonicalAiPins p = RunCanonicalAi(TestConfigs.Worldgen(), TestConfigs.PreAiSupporting(TestConfigs.PreAiBuildFirst(Cfg)));
+        Assert.Equal(["grinding_stone", "kin_council"], p.FirstTargets!);
+        Assert.Equal((0L, 3L, 111L, 112L), (p.Target1, p.FirstBuild, p.Advance, p.AdvancedAt));
+        Assert.Equal((166L, 167L, 407L, 408L), (p.Road, p.FirstRoad, p.Tax, p.FirstTax));
+        Assert.Equal(407L, p.A3At);
+        Assert.Equal([38L, 78L, 114L, 151L, 189L, 225L, 296L, 367L], p.Founds);
+        Assert.Equal(14, p.Controlled);
     }
 
     /// <summary>M6 (D-062; ADR-044, ADR-045) — THE ATTRIBUTION CONTROL of the Track-CP part of the re-pins above: the same

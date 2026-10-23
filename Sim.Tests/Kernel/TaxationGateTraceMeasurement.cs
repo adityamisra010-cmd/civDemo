@@ -202,6 +202,58 @@ public class TaxationGateTraceMeasurement(ITestOutputHelper output)
             }
     }
 
+    /// <summary>ADR-046 §6 (M6 review batch 3): the supporting-milestone goal, with and without, seeds 1, 2, 42, 7, 900 turns —
+    /// Alphabetic script (abjad), Census, Ironworking (iron_bloomery), Age II/III/IV and the first levy.</summary>
+    [Fact(Skip = "measurement — run explicitly; results in docs/m6-plan/knowledge-redesign/audit/taxation-gate-trace.md §8")]
+    public void SupportingMilestones_FourSeeds()
+    {
+        SimConfig full = TestConfigs.Sim();
+        var runs = new List<(ulong Seed, string Name, SimConfig Cfg)>();
+        foreach (ulong seed in new ulong[] { 1, 2, 42, 7 })
+        {
+            runs.Add((seed, "baseline (e91d10b: supporting goal off)", TestConfigs.PreAiSupporting(full)));
+            runs.Add((seed, "supporting goal on", full));
+        }
+        string[] lines = new string[runs.Count];
+        System.Threading.Tasks.Parallel.For(0, runs.Count, i => lines[i] = runs[i].Seed + " | " + runs[i].Name + " | " + Milestones(runs[i].Cfg, runs[i].Seed));
+        output.WriteLine("seed | config | abjad | census | iron_bloomery | A2 | A3 | A4 | first levy | nodes@900");
+        foreach (string line in lines) output.WriteLine(line);
+    }
+
+    private static string Milestones(SimConfig cfg, ulong seed)
+    {
+        WorldgenConfig worldgen = TestConfigs.Worldgen();
+        ResearchContent research = cfg.Research!;
+        AgeContent ages = TestConfigs.Ages();
+        var log = new OrderLog();
+        using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
+        using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
+        var executor = new TurnExecutor(EraTableLoader.Load(eraStream), PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg, worldgen)), log);
+        WorldState w = WorldFounding.Found(worldgen with { AiEmpires = 1 }, cfg, seed);
+        ResearchNodeId Key(string id) => research.Nodes[research.IndexOfId(id)].Key;
+        ResearchNodeId abjad = Key("abjad"), census = Key("census"), iron = Key("iron_bloomery");
+        long tA = -1, tC = -1, tI = -1, a2 = -1, a3 = -1, a4 = -1, levy = -1;
+        for (int t = 0; t < 900; t++)
+        {
+            AiOrders.Append(log, w, cfg, worldgen);
+            w = executor.Step(w);
+            long turn = w.Clock.Turn;
+            if (tA < 0 && ResearchQuery.IsCompleted(w, Rival, abjad)) tA = turn;
+            if (tC < 0 && ResearchQuery.IsCompleted(w, Rival, census)) tC = turn;
+            if (tI < 0 && ResearchQuery.IsCompleted(w, Rival, iron)) tI = turn;
+            int age = AgeQuery.CurrentAge(w, ages, Rival);
+            if (a2 < 0 && age >= 2) a2 = turn;
+            if (a3 < 0 && age >= 3) a3 = turn;
+            if (a4 < 0 && age >= 4) a4 = turn;
+            if (levy < 0)
+                for (int i = 0; i < w.TaxPolicies.Count; i++)
+                    if (w.TaxPolicies[i].Polity == Rival && w.TaxPolicies[i].Rate > 0.0) { levy = turn; break; }
+        }
+        long known = 0;
+        foreach (bool d in ResearchQuery.CompletedMask(w, research, Rival)) if (d) known++;
+        return $"{tA} | {tC} | {tI} | {a2} | {a3} | {a4} | {levy} | {known}";
+    }
+
     private static string Timeline(SimConfig cfg, ulong seed)
     {
         WorldgenConfig worldgen = TestConfigs.Worldgen();

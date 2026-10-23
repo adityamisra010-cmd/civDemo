@@ -136,3 +136,24 @@ prerequisite is dropped (the route property test holds along the run); the gap i
 **Not changed here (a policy extension beyond the packet; `docs/queue.md`).** Option: add to the AI's Age goal the
 cheapest RESEARCH supporting milestones needed to reach `supportingRequired` and `minCategories` (here `abjad` or
 `census`), costed by the same routes. Every AI pin would move again and need a fresh measurement.
+
+## 8. The supporting-milestone goal (batch 3, 2026-10-23; ADR-046 §6)
+
+`TaxationGateTraceMeasurement.SupportingMilestones_FourSeeds`, 900 turns, e91d10b → with the goal:
+
+| Seed | Alphabetic script | Census | Ironworking | Age II | Age III | Age IV | First levy |
+|---|---|---|---|---|---|---|---|
+| 1 | — → 465 | — → 481 | 653 → 673 | 109 → 90 | 402 → 410 | — → **674** | 403 → 411 |
+| 2 | — → 487 | — → 512 | 683 → 703 | 122 → 92 | 424 → 429 | — → **704** | 425 → 430 |
+| 42 | — → 473 | — → 490 | 664 → 683 | 112 → 89 | 407 → 416 | — → **684** | 408 → 417 |
+| 7 | — → 471 | — → 488 | 659 → 679 | 112 → 90 | 407 → 416 | — → **680** | 408 → 417 |
+
+Pre-M6 baseline: Age IV 828 / 843 / 834 / 869; first levy 414 / 427 / 423 / 422. The §7 open item is closed: Age IV is
+reached on every seed, one turn after Ironworking (the core), its supporting milestones pursued on purpose.
+
+## 9. Build first (batch 3; ADR-046 §7)
+
+`BuildFirstMeasurement.FirstGranary_Purse_Surveys_TwoWorlds` — see ADR-046 §7 for the full table. First granary order /
+built: canonical 3/4 → 2/3, 256 px 14/15 → 7/8; first survey 1 → 9 and 3 → 17; surveys completed by turns 100/300/600
+unchanged (8/13/17 and 3/8/12); every concealed copper and tin deposit at the AI's founding settlements found by 600;
+no Age or levy moved by §7.

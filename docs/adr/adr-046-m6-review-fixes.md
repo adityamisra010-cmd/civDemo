@@ -163,3 +163,118 @@ AI surveys as soon as a survey is affordable, so on small worlds its surveys can
 turn. No AI policy was changed to hide it: a survey-versus-build priority is an AI-policy question for the Director
 (`docs/queue.md`). The AI never assays in the 600-turn CI run (it has surveyed every settlement before it holds bronze and
 `ore_prospecting`); the assay path is exercised by the tests, the UI and the player.
+
+## 6. The supporting-milestone goal (M6 review batch 3, 2026-10-23)
+
+**Finding (§1 Open; `audit/taxation-gate-trace.md` §7).** Age IV binds on its SUPPORTING milestones (`ages.json`
+a4: core Ironworking; supporting 3 of 7 — Alphabetic script [technological], Census [institutional/social], Tool
+stock and Workshops [material/economic], Merchant class [institutional/social], Expansion [systemic], Standing army
+[military] — from 3 of 5 categories). The AI's goals never aimed at supporting milestones; the union-over-OR closure had
+met Alphabetic script by accident.
+
+**Decision (switch `research.json tuning.aiSupportingMilestones`, acts only with `aiCheapestOrRoute`; twin
+`TestConfigs.PreAiSupporting`).** `AiResearchPolicy.SupportingGoalClosure`, goal ordinal 4:
+- read the NEXT Age's evaluation (`AgeQuery.Evaluate` — the player's rule, read, never changed): count deficit =
+  supportingRequired − supportingMet, category deficit = minCategories − covered; none ⇒ empty goal;
+- candidates: the UNMET supporting milestones whose fact is research (ANY listed node ⇒ the cheapest route through its
+  nodes, ties to the node listed first). Goods, structures, people, classes and formations are not research work and
+  are never a goal here;
+- `SelectSupporting` (pure, unit-tested): while categories are short, the cheapest candidate in an uncovered category
+  (composite key (route cost, listed position)), counted toward both deficits; then, while the count is short, the
+  cheapest remaining candidate;
+- the goal is the AND of the chosen routes — every prerequisite kept, the §1 cheapest route inside each.
+Re-read every decision, so a milestone met by other means shrinks the deficit at once. No milestone or node id appears in
+code; the goal works for every Age (Age II/III supporting milestones too — see the measurement). The goal choice
+(cheapest remaining goal, then its cheapest available node) is unchanged.
+
+**Measured (seeds 1, 2, 42, 7; canonical AI world; 900 turns; `TaxationGateTraceMeasurement.SupportingMilestones_FourSeeds`).**
+
+| Seed | Alphabetic script | Census | Ironworking | Age II | Age III | Age IV | First levy |
+|---|---|---|---|---|---|---|---|
+| 1 | — → 465 | — → 481 | 653 → 673 | 109 → 90 | 402 → 410 | — → **674** | 403 → 411 |
+| 2 | — → 487 | — → 512 | 683 → 703 | 122 → 92 | 424 → 429 | — → **704** | 425 → 430 |
+| 42 | — → 473 | — → 490 | 664 → 683 | 112 → 89 | 407 → 416 | — → **684** | 408 → 417 |
+| 7 | — → 471 | — → 488 | 659 → 679 | 112 → 90 | 407 → 416 | — → **680** | 408 → 417 |
+
+(e91d10b → with the goal; — = not within 900 turns; pre-M6 Age IV: 828 / 843 / 834 / 869.) Age IV is now reached on all
+four seeds, 150–190 turns earlier than pre-M6, one turn after Ironworking. Cost: Ironworking 19–20 turns later, Age III and
+the levy 5–9 turns later (research time spent on the two supporting milestones). Age II comes 19–30 turns EARLIER (the
+same goal pursues Age II's research supporting milestones). The route property (no prerequisite dropped) holds along the
+run (`AiResearchRouteTests.Property_…` now covers five goals).
+
+**Tests.** `AiSupportingMilestoneTests`: selection as a pure function (an uncovered category beats a cheaper covered
+one; categories then count; no deficit or no candidate ⇒ nothing; tie-dense to the listed order); on the shipped content
+with the AI in Age III: the goal is exactly the routes of Alphabetic script and Census, every prerequisite met inside
+completed ∪ goal; only the deficit is pursued (a met milestone drops out; both met ⇒ empty); the choice works the
+supporting goal when it is the cheapest and not with the switch off; inert with the route closure off; empty at the final
+Age. `AiResearchGoalTests` / `AiPolicyTests` updated for the fifth goal.
+
+## 7. Build first: the AI's construction priority over optional prospecting (batch 3)
+
+**Finding (§5).** The survey's 10 stone competed with the first granary's 20 (canonical first granary order 2 → 3;
+256 px CLI world 7 → 14). The AI decides construction and prospecting on the same published world; the pipeline runs
+construction first, so the competition was across turns: earlier surveys drained the stone the granary waited on.
+
+**Decision (switch `sim.json discovery.aiBuildFirst`; twin `TestConfigs.PreAiBuildFirst`).**
+`AiDiscoveryPolicy.DefersToBuilding`: a method (survey or assay) is skipped at a settlement when, for any good of its
+bill, the purse construction reads (`ConstructionQuery.Unclaimed` over `Holders`) less the ESSENTIAL RESERVE is below
+the bill. The reserve: for each settlement the polity rules on that purse whose queue is idle (and has labour adults,
+with incremental construction) — the settlements the construction policy may order into — the first ordinary project in
+goods.json order not built there and available there, counted only when none of its inputs is a crafted good (the
+granary counts; the workshop, which needs tools, never holds a survey back). **Strategic exception**
+(`StrategicNeed`): nothing defers while the polity knows a recipe consuming a concealable good it sees no deposit of
+anywhere it rules (e.g. bronze casting with no visible copper or tin) — finding that ore is what a survey is for.
+Unchanged: both bills, `DiscoveryQuery.CheckProspect`, delivery and charging, and everything the player can do — the
+switch is read only by the AI.
+
+**Measured (`BuildFirstMeasurement.FirstGranary_Purse_Surveys_TwoWorlds`; seed 42; canonical 900 turns, 256 px
+600 turns with the `RunFromSaveCliTests` player log).**
+
+| World | Config | First granary order / built | First survey | AI stone, timber, grain @t10 / @t20 | Surveyed @100/@300/@600 | Assays | Concealed Cu/Sn found @600 | A2 / A3 / levy / A4 |
+|---|---|---|---|---|---|---|---|---|
+| canonical | e91d10b | 3 / 4 | 1 | 29, 9,799, 3,075 / 126, 19,813, 3,255 | 8 / 13 / 17 | 0 | 4 of 4 | 112 / 407 / 408 / — |
+| canonical | build-first | **2 / 3** | 9 | 21, 9,911, 3,035 / 129, 20,063, 3,255 | 8 / 13 / 17 | 0 | 4 of 4 | 112 / 407 / 408 / — |
+| canonical | both (shipped) | **2 / 3** | 9 | as build-first | 8 / 13 / 17 | 0 | 4 of 4 | 89 / 416 / 417 / 684 |
+| 256 px | e91d10b | 14 / 15 | 3 | 10, 2,105, 627 / 19, 4,059, 665 | 3 / 8 / 12 | 0 | 2 of 2 | 287 / — / — / — |
+| 256 px | build-first | **7 / 8** | 17 | 10, 2,138, 627 / 10, 4,151, 665 | 3 / 8 / 12 | 0 | 2 of 2 | 287 / — / — / — |
+| 256 px | both (shipped) | **7 / 8** | 17 | as build-first | 3 / 8 / 12 | 0 | 2 of 2 | 177 / — / — / — |
+
+The first granary returns to its pre-bill turn on both worlds (2 and 7, as before the Prospect bill). The first survey
+waits until the granaries are covered (canonical 1 → 9, 256 px 3 → 17), but the surveys completed by turn 100, 300 and
+600 are identical and every concealed copper and tin deposit at the AI's founding settlements is still found by turn 600.
+Build-first moves no Age or levy turn (those are §6's). The AI assays on neither world in these horizons (bronze arrives
+after its settlements are surveyed); the assay remains player-facing and test-covered.
+
+**Tests.** `AiBuildFirstTests`: the reserve is one granary per idle settlement and nothing for the workshop; the exact
+boundary (one stone short of reserve + bill waits, exactly reserve + bill surveys; the bill affordable in both; the
+switch off surveys); a queued granary turns its reserve into a claim (same total need); the strategic exception (bronze
+casting known, no copper or tin seen ⇒ surveys despite the reserve) never bypasses affordability; the bills and the
+player's check are unchanged; the canonical AI still surveys and finds concealed copper and tin within 300 turns.
+
+
+## 8. Batch-3 goldens and moved pins (MEASURED 2026-10-23; `Adr046PinMeasurement`, five configs)
+
+Twins: `PreAiSupporting` (§6 off), `PreAiBuildFirst` (§7 off); both off = the e91d10b AI exactly. `PreAiRoutes` (§1 off)
+also strips §6 (the R4 rule; §6 is costed by the routes) and keeps §7.
+
+| Pin | e91d10b (both off) | §6 alone | §7 alone | Both (shipped) | Cause |
+|---|---|---|---|---|---|
+| AI world t300 hash (`S1cTurn300`) | `2e4759ac…` | `3c6c35ff…` | `3b29c636…` | **`b2201d25…`** | both, each alone moves it |
+| Canonical AI first granary | 3 | 3 | 2 | **2** | §7 |
+| Canonical AI Age II decided / in force | 111 / 112 | 88 / 89 | 111 / 112 | **88 / 89** | §6 (Age II's supporting milestones) |
+| Canonical AI first road | 166 / 167 | 185 / 186 | 166 / 167 | **185 / 186** | §6 |
+| Canonical AI first levy / A3 | 407 / 408, 407 | 416 / 417, 416 | 407 / 408, 407 | **416 / 417, 416** | §6 |
+| Canonical AI foundings before the levy | 8, 14 settlements | same | same | **same** | — |
+| Dev world (`AllocationRatiosAttributionTests`) first road order | 284 | 308 | 284 | **308** | §6 — the test's horizon 300 → 330 to keep its premise |
+| 256 px CLI world AI orders at 7 / 14 | survey / granary | survey / granary | granary / granary | **granary / granary** | §7 (the pre-bill premise returns) |
+
+Controls: `AiFoundingAttributionTests.AiWorldTurn300_BothBatch3SwitchesOff_IsTheE91d10bWorld` (both off = `2e4759ac…`);
+`AiWorldTurn300_TheCheapestRouteMovesNothingByTurn300` now compares the routes-off twin with the supporting-off twin;
+`AiEmpireIntegrationTests.OneAiEmpire_WithBothBatch3SwitchesOff_EveryPinReturnsItsE91d10bValue`. The founded, toy,
+driven and first-reign goldens and `ci.yml FOUNDED_GOLDEN` are unchanged (no AI; neither switch is read by the player's
+predicates).
+
+**Expected vs unintended.** Expected: Age IV reached (§6), the first granary restored (§7), the hash and pin moves above.
+A side effect worth weighing (not a defect): §6 also spends research on Age II/III supporting milestones, so Age II comes
+~20 turns earlier and the first road and the levy/A3 ~10–20 turns later. No prerequisite is dropped and no unrelated
+system moved; the soak (no AI) is unaffected.

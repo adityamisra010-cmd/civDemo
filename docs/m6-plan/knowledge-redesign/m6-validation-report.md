@@ -218,3 +218,59 @@ copied the route switch and kept an assay naming a tranche node — both now str
 - **Survey vs granary** (ADR-046 §5): the AI surveys as soon as it can and competes with its first granaries for stone
   (canonical: first granary turn 2 → 3; 256 px world: turn 7 → 14). Proposed priority rule in `docs/queue.md`.
 - The AI never assays in the 600-turn CI run; bronze is 0 in every polity through turn 400.
+
+## 8. Review batch 3 — ADR-046 §6–§8 (2026-10-23)
+
+The Director's two queued gameplay findings, each a narrowly scoped, separately switched change on head `e91d10b`
+(CI on `e91d10b`: CI and ui-artifact success). Records: ADR-046 §6 (supporting-milestone goal), §7 (build first), §8
+(goldens and attribution); `audit/taxation-gate-trace.md` §8–§9. The §1 route fix, the Prospect costs, Explore ranges and
+the plain-prose educational UI are unchanged.
+
+### 8.1 A — supporting milestones for Age IV (seeds 1, 2, 42, 7; 900 turns; e91d10b → batch 3)
+
+| Seed | Alphabetic script | Ironworking | Age IV | First levy |
+|---|---|---|---|---|
+| 1 | — → 465 | 653 → 673 | — → **674** | 403 → 411 |
+| 2 | — → 487 | 683 → 703 | — → **704** | 425 → 430 |
+| 42 | — → 473 | 664 → 683 | — → **684** | 408 → 417 |
+| 7 | — → 471 | 659 → 679 | — → **680** | 408 → 417 |
+
+Pre-M6 Age IV 828 / 843 / 834 / 869, first levy 414 / 427 / 423 / 422. Age II comes 19–30 turns earlier; Age III and the
+levy 5–9 later; the first road ~19 later (canonical 166 → 185).
+
+### 8.2 B — build first (seed 42; canonical 900 turns, 256 px 600 turns)
+
+| World | First granary order (e91d10b → batch 3) | First survey | Surveyed @100/300/600 | Cu/Sn found @600 | Assays |
+|---|---|---|---|---|---|
+| canonical | 3 → **2** | 1 → 9 | 8/13/17 (unchanged) | 4 of 4 (unchanged) | 0 |
+| 256 px | 14 → **7** | 3 → 17 | 3/8/12 (unchanged) | 2 of 2 (unchanged) | 0 |
+
+### 8.3 Validation (run 2026-10-23 on the batch-3 tree)
+
+| Command | Result |
+|---|---|
+| `dotnet build Sim.slnx -c Release` | 0 errors, 0 warnings |
+| `dotnet test Sim.slnx -c Release --no-build` | Sim.Tests 2,744 passed, 24 skipped (measurement facts), 0 failed; Sim.Ui.Tests 1,101 passed, 0 failed |
+| banned-constructs / read-isolation | OK / OK |
+| `research-*.py --check` ×3 (regenerated: research.json SHA line only); `implement_tranche.py --check`; `export_runtime_texts.py --check` | current |
+| `tools/validate.py`; `test_validate.py --mutants`; `test_sourcing_queue.py --mutants` | ERROR 0 · WARN 272; 15/15 killed; 5/5 killed |
+| `Sim.Ui --smoke --report` | SMOKE PASSED — 13 states, 3,941 checks, 0 FAIL; the coverage report identical to §7's (no UI change) |
+| `ci.yml` AI-empire leg, run locally (600 turns) | two processes byte-identical, replay identical, inspect VERIFIED; 391 orders, first survey at 9, kinds unchanged |
+| 20-seed soak (`sim autoplay --seeds 20 --turns 650`) + `sim corridors` | exit 0 / 0; all 20 final hashes and the metrics file byte-identical to the e91d10b-tree soak (the soak runs no AI, so neither batch-3 change can reach it); the migration corridor's quarantine drift is the pre-existing one |
+
+The first full run on this tree found 8 failures, every one an expected AI-pin move or a lost premise, each re-pinned
+with its cause (ADR-046 §8): the AI world t300 hash, the canonical AI pins and their routes-off control, the CLI
+continuation fixtures (back to their pre-bill premise), the CP attribution test reading the t300 constant, and the
+allocation-ratios test's horizon (300 → 330: the AI's first road on the dev world moved 284 → 308). New controls:
+both batch-3 switches off return every e91d10b value and hash.
+
+### 8.4 Open items and risks
+
+- **Generic supporting goal (§6):** it also pursues Age II/III supporting research — Age II earlier, the first road and
+  the levy/A3 later (5–19 turns). A narrower variant (supporting milestones only once the core is met) is queued as a
+  Director's call (`docs/queue.md`).
+- **Assay unused by the AI** in every measured horizon (bronze arrives after its settlements are surveyed).
+- **Strategic exception (§7)** is test-covered but did not trigger in the measured canonical and 256 px runs (no
+  recipe consuming ore is known before the AI's surveys are done).
+- Standing army (Age IV supporting, military) stays impossible until M7 recruitment (ages.json `pending`); Age IV is met
+  without it.

@@ -216,6 +216,12 @@ public static class TestConfigs
         return cfg;
     }
 
+    /// <summary>ADR-046 §7 (M6 review batch 3, 2026-10-23) — THE AI'S BUILD-FIRST PRIORITY OFF (sim.json
+    /// discovery.aiBuildFirst false): the AI prospects whenever a bill is affordable, as at e91d10b. A single-layer twin;
+    /// every older discovery twin (PreDiscovery switches the whole layer off) leaves it inert.</summary>
+    public static SimConfig PreAiBuildFirst(SimConfig cfg) =>
+        cfg.Discovery is { AiBuildFirst: true } d ? cfg with { Discovery = d with { AiBuildFirst = false } } : cfg;
+
     /// <summary>M6 (D-062; 2026-10-22) — THE WHOLE M6 SLICE OFF: Track EX (<see cref="PreDiscovery"/>: sections 63–66 stay
     /// empty), Track CP (section 62 stays empty) and Track TREE (the research-content tranche, ADR-045): the research content
     /// is the PRE-M6 research.json (Fixtures/research-pre-adr045.json, byte-identical to the file at 06e0153 — before both
@@ -355,7 +361,35 @@ public static class TestConfigs
     {
         doc["tuning"]!.AsObject().Remove("aiCheapestOrRoute");
         doc["tuning"]!.AsObject().Remove("_aiCheapestOrRoute");
+        UndoAiSupporting(doc);   // ADR-046 §6 is newer and costed by the routes: the R4 rule strips it with them
     }
+
+    /// <summary>ADR-046 §6: removes tuning.aiSupportingMilestones (no supporting-milestone goal).</summary>
+    public static void UndoAiSupporting(System.Text.Json.Nodes.JsonObject doc)
+    {
+        doc["tuning"]!.AsObject().Remove("aiSupportingMilestones");
+        doc["tuning"]!.AsObject().Remove("_aiSupportingMilestones");
+    }
+
+    /// <summary>ADR-046 §6 (M6 review batch 3, 2026-10-23) — THE SUPPORTING-MILESTONE GOAL OFF, a single-layer twin of the
+    /// shipped research content (the cheapest-route closure stays on): the AI's goals are core and capability only, as at
+    /// e91d10b. Defined on the shipped research content only.</summary>
+    public static SimConfig PreAiSupporting(SimConfig cfg)
+    {
+        if (cfg.Research is not { Tuning.AiSupportingMilestones: true } r) return cfg;
+        if (!ReferenceEquals(r, CanonicalResearch.Value))
+            throw new NotSupportedException("PreAiSupporting is defined on the shipped research content only");
+        return cfg with { Research = NoAiSupporting.Value };
+    }
+
+    private static readonly Lazy<global::Sim.Core.Systems.Research.ResearchContent> NoAiSupporting = new(() =>
+    {
+        using var stream = global::Sim.Data.DataFiles.OpenResearch();
+        var doc = System.Text.Json.Nodes.JsonNode.Parse(stream)!.AsObject();
+        UndoAiSupporting(doc);
+        using var goods = global::Sim.Data.DataFiles.OpenGoods();
+        return global::Sim.Core.Systems.Research.ResearchContentLoader.Load(doc.ToJsonString(), GoodsConfigLoader.Load(goods));
+    });
 
     /// <summary>ADR-046 (M6 review, 2026-10-23) — THE AI CHEAPEST-ROUTE CLOSURE OFF, a single-layer twin of the shipped
     /// content: research.json without tuning.aiCheapestOrRoute, so AiResearchPolicy's goal closures are the union over OR

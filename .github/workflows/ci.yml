@@ -339,6 +339,8 @@ jobs:
           # Prospect orders, the first at turn 1 (the survey now also spends timber and stone); every Prospect is a SURVEY
           # (Amount 0) — the AI never assays here (its settlements are surveyed before it holds bronze and ore_prospecting);
           # the run log holds 394 orders; the kind set is unchanged.
+          # ADR-046 §6–§7 RE-MEASUREMENT (batch 3, 2026-10-23, run locally from this tree): 391 orders; 13 Explore (first at 35),
+          # 17 Prospect, all surveys, the first at turn 9 (the AI builds its first granaries before it surveys); kinds unchanged.
           expected = set(range(3, 10)) | {12, 13, 14, 15}   # 10 is reserved (MoveFormation, M7); 11 is legacy (D-056)
           print(f"run log: {n} orders, kinds {sorted(kinds)}")
           if kinds != expected:

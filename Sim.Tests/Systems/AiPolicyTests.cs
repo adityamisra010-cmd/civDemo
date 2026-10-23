@@ -152,9 +152,12 @@ public class AiPolicyTests
         Assert.Null(AiResearchPolicy.Decide(w, Cfg, Rival));
         w.ResearchTargets.Clear();
 
-        // With no goal left — core met, and no capability gate configured — the cheapest available node anywhere.
+        // With no goal left — core met, no capability gate configured and (ADR-046 §6) the supporting-milestone goal off —
+        // the cheapest available node anywhere. On the shipped config the Age II supporting milestones still short are a
+        // goal of their own (AiSupportingMilestoneTests).
         Complete(w, Rival, "cereal_cultivation");
-        SimConfig noGates = Cfg with { Roads = null, Governance = null, Institutions = null };
+        Assert.Contains(true, AiResearchPolicy.SupportingGoalClosure(w, Research, TestConfigs.Ages(), Rival));
+        SimConfig noGates = TestConfigs.PreAiSupporting(Cfg) with { Roads = null, Governance = null, Institutions = null };
         Assert.DoesNotContain(true, AiResearchPolicy.CoreGoalClosure(w, Research, TestConfigs.Ages(), Rival));
         Assert.DoesNotContain(true, AiResearchPolicy.GoalClosure(w, noGates, Rival));
         ResearchNodeId? cheapest = ResearchQuery.CheapestAvailable(w, Research, Rival);
