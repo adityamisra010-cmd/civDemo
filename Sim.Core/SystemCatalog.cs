@@ -67,6 +67,13 @@ namespace Sim.Core;
 ///     sink, and NO remainder field (whole units only; sub-unit intent is
 ///     dropped, not banked — a banked trade remainder would be new serialized
 ///     state the mandate does not ask for). Trade touches no other field.
+///   DISCOVERY (M6 Track EX, D-062 / ADR-044, the SEVENTH holder) owns: Amount via Ledger SINK only, on the GRAIN row
+///     (reason Expedition — an Explore's provisions) and the TOOLS row (reason Prospecting — a Prospect's survey), at the
+///     ordering Empire's settlements, the order's settlement first then nearest-first (EmpireStockpile.Holders / Draw, the
+///     purse draw construction and road works share) and never below what construction set aside this step (the D-055
+///     floors road development honours: RoadDevelopmentQuery.SetAsideWithin over construction's NEXT ConstructionHolds,
+///     handed READ-ONLY — a declared same-step edge when the hold rule applies). Never a source, no remainder field. It
+///     runs only on a turn carrying an Explore or Prospect order that its predicate admits.
 ///   COLONIZATION (T4.4 — handed next.GoodStocks since T4.4 but first recorded
 ///     here at M5 S1b / ADR-036, when the Found Settlement order made it a
 ///     second founding path; T4.5 Appropriation, a grain-transfer holder, is
@@ -408,7 +415,7 @@ public static class SystemCatalog
         return new SystemRegistration(ResearchSystem.WellKnownId, ResearchSystem.Name,
             (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<ResearchTables>(
                 prev, new ResearchTables(next.ResearchTargets, next.ResearchProgress,
-                    next.ResearchCompleted, next.ResearchEurekas, next.ResearchCredits),
+                    next.ResearchCompleted, next.ResearchEurekas, next.ResearchCredits, next.CivicsPoints),
                 rng, ResearchSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 
@@ -477,6 +484,23 @@ public static class SystemCatalog
                 rng, Systems.Institutions.InstitutionsSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 
+    /// <summary>M6 Track EX (D-062; ADR-044; SystemId 29): Explore and Prospect, the known extent, explored radii,
+    /// sightings and surveys. SOLE OWNER of KnownExtents, Explorations, SettlementSightings and SettlementSurveys (schema v35
+    /// sections 63–66); the seventh holder of the GoodStocks share (sinks only — the ownership record above). Like road
+    /// development it is handed construction's NEXT ConstructionHolds READ-ONLY, and the read is a DECLARED SAME-STEP EDGE
+    /// whenever the hold rule applies (<see cref="Reservations.Enabled"/>): the executor refuses a pipeline that runs it
+    /// before construction. Inert with sim.json fog and discovery both off.</summary>
+    public static SystemRegistration Discovery(SimConfig cfg)
+    {
+        var system = new Systems.Discovery.DiscoverySystem(cfg);
+        return new SystemRegistration(Systems.Discovery.DiscoverySystem.WellKnownId, Systems.Discovery.DiscoverySystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<Systems.Discovery.DiscoveryTables>(
+                prev, new Systems.Discovery.DiscoveryTables(next.KnownExtents, next.Explorations, next.SettlementSightings,
+                    next.SettlementSurveys, next.GoodStocks, next.ConstructionHolds),
+                rng, Systems.Discovery.DiscoverySystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))),
+            Reservations.Enabled(cfg) ? [Systems.Construction.ConstructionSystem.Name] : null);
+    }
+
     /// <summary>
     /// All systems that exist at the current milestone — M1 production systems
     /// first, retired T0.x toys last (still registered: the toy preset and the
@@ -484,7 +508,7 @@ public static class SystemCatalog
     /// </summary>
     public static SystemRegistration[] All(SimConfig cfg, Worldgen.WorldgenConfig? worldgen = null) =>
         [Catchment(cfg), HarvestWeather(cfg), Disaster(cfg), Production(cfg), Appropriation(cfg), Consumption(cfg), Price(cfg), TradeArbitrage(cfg),
-         Housing(cfg), Construction(cfg), ClassMobility(cfg), Migration(cfg), Colonization(cfg, worldgen), Revolt(cfg), Governance(cfg), Demographics(cfg), NeedsGrievance(cfg), PathBuild(cfg),
+         Housing(cfg), Construction(cfg), ClassMobility(cfg), Migration(cfg), Colonization(cfg, worldgen), Discovery(cfg), Revolt(cfg), Governance(cfg), Demographics(cfg), NeedsGrievance(cfg), PathBuild(cfg),
          Research(cfg), AgeEligibility(cfg), AgeTransition(cfg), RoadDevelopment(cfg), Institutions(cfg),
          Weather(), Growth(), Trade()];
 }

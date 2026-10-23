@@ -100,6 +100,11 @@ public static class WorldStates
         if (!TableEquals(a.ConstructionProgress, b.ConstructionProgress)) return false;   // v33 (D-054 WS1)
         if (!TableEquals(a.ResourceAllocations, b.ResourceAllocations)) return false;     // v33 (D-054 WS2)
         if (!TableEquals(a.ConstructionHolds, b.ConstructionHolds)) return false;         // v34 (D-055)
+        if (!TableEquals(a.CivicsPoints, b.CivicsPoints)) return false;                   // v35 (ADR-043)
+        if (!TableEquals(a.KnownExtents, b.KnownExtents)) return false;                   // v35 (M6 EX)
+        if (!TableEquals(a.Explorations, b.Explorations)) return false;                   // v35 (M6 EX)
+        if (!TableEquals(a.SettlementSightings, b.SettlementSightings)) return false;     // v35 (M6 EX)
+        if (!TableEquals(a.SettlementSurveys, b.SettlementSurveys)) return false;         // v35 (M6 EX)
         return true;
     }
 

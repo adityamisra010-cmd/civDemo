@@ -24,7 +24,11 @@ internal static class UniversityRigs
     /// (and, optionally, other tuning changed by <paramref name="tune"/>).</summary>
     public static SimConfig Cfg(long adultsPerUniversity = 100, Func<UniversitiesConfig, UniversitiesConfig>? tune = null)
     {
-        SimConfig cfg = TestConfigs.Sim();
+        // M6 Track EX (2026-10-22): the discovery layer OFF (TestConfigs.PreDiscovery — the R4 rule: an older layer's rig
+        // strips the newer layer). The university and save/load scenarios are pre-M6 economies (a hidden stone or clay
+        // deposit would change every material figure they pin, and the fog would refuse their scripted foundings); the
+        // discovery tables' save/load and replay are DiscoverySchemaV35Tests'.
+        SimConfig cfg = TestConfigs.PreDiscovery(TestConfigs.Sim());
         UniversitiesConfig u = cfg.Institutions!.Universities with { AdultsPerUniversity = adultsPerUniversity };
         if (tune is not null) u = tune(u);
         return cfg with { Institutions = cfg.Institutions with { Universities = u } };

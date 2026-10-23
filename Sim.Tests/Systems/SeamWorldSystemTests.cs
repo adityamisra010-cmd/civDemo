@@ -20,7 +20,10 @@ namespace Sim.Tests.Systems;
 /// </summary>
 public class SeamWorldSystemTests
 {
-    private static SimConfig Cfg => TestConfigs.Sim();
+    // M6 Track EX (2026-10-22): the seam's settlement-level flows are an older layer premised on the all-known world (a
+    // rival's land and settlements across the seam are known); the discovery layer is off here (TestConfigs.PreDiscovery,
+    // the R4 rule). Under the fog the AI first explores (DiscoveryTests pins Explore's disc wrapping at the seam).
+    private static SimConfig Cfg => TestConfigs.PreM6(TestConfigs.Sim());
     private const int Size = SeamWorld.DefaultSize;
 
     private static WorldState WithDistances(WorldState w) =>
@@ -262,7 +265,7 @@ public class SeamWorldSystemTests
         SimConfig cfg = Cfg;
         WorldState w = SeamWorld.Found(true, [SeamWorld.Cell(40, y), SeamWorld.Cell(240, y)], sim: cfg);
         SiteAssessment.Prepared site = SiteAssessment.Prepare(w, cfg, SeamWorld.Worldgen())!;
-        SiteAssessment.Report r = SiteAssessment.Assess(w, cfg, site, PolityKnowledge.Of(w, new PolityId(1)), new PolityId(1),
+        SiteAssessment.Report r = SiteAssessment.Assess(w, cfg, site, PolityKnowledge.Of(w, new PolityId(1), null), new PolityId(1),
             SeamWorld.Cell(4, y));
         Assert.Equal(1, r.Nearest[0].Id.Value);
         Assert.Equal(400, r.Nearest[0].DistanceSquaredPx);
@@ -294,8 +297,8 @@ public class SeamWorldSystemTests
     public void PolityKnowledge_NodeAt_NormalisesAPositionAcrossTheSeam()
     {
         int y = Size / 2, l = Size / 4;
-        PolityKnowledge wrapped = PolityKnowledge.Of(SeamWorld.Found(true, SeamWorld.TwoSides()), new PolityId(1));
-        PolityKnowledge flat = PolityKnowledge.Of(SeamWorld.Found(false, SeamWorld.TwoSides()), new PolityId(1));
+        PolityKnowledge wrapped = PolityKnowledge.Of(SeamWorld.Found(true, SeamWorld.TwoSides()), new PolityId(1), null);
+        PolityKnowledge flat = PolityKnowledge.Of(SeamWorld.Found(false, SeamWorld.TwoSides()), new PolityId(1), null);
         int row = (y / 4) * l;
         Assert.Equal(row + l - 1, wrapped.NodeAt(-0.5, y));          // half a pixel west of x = 0: the east edge column
         Assert.Equal(row + 0, wrapped.NodeAt(Size + 0.5, y));        // one circumference on: column 0

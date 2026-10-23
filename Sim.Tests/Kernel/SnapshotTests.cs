@@ -328,6 +328,12 @@ public class SnapshotTests
         //   CONTROL ReservationsLayoutAttributionTests.ToyGoldenSeed42Turn200_MovedForTheV34LayoutAlone: the v33 projection
         //         (SchemaProjection.V33, asserting 0 hold rows) returns OLD byte for byte, and the stream ends in 4 zero bytes.
         //   DERIVED TWICE: this in-test harness and the built CLI (`sim run --seed 42 --turns 200`) agree.
+        // ADR-043 RE-PIN (2026-10-22; LAYOUT ALONE, MEASURED): 2e6d446161e16547… -> 1d3f5be2dea41bba…. CAUSE: schema v35
+        // appends CivicsPoints, EMPTY here (no research content, no polity) — one four-byte zero count prefix. CONTROL:
+        // CivicsPointsAttributionTests.ToyGoldenSeed42Turn200_MovedForTheV35LayoutAlone (SchemaProjection.V34 = OLD).
+        // M6 MERGE RE-PIN (2026-10-22; LAYOUT ALONE, MEASURED): 1d3f5be2dea41bba… -> f97432f0e1a7eb5e…. CAUSE: v35 also appends the
+        // four EMPTY discovery tables (sections 63–66) — four more zero count prefixes. CONTROL: DiscoveryLayoutAttributionTests.
+        // ToyGoldenSeed42Turn200_MovedForTheV35LayoutAlone (SchemaProjection.V34 strips 62–66 = 2e6d4461…).
         const string golden = ToyGoldenHash;
 
         WorldState world = CanonicalExecutor().Run(Genesis(42), 200);
@@ -1115,9 +1121,21 @@ public class SnapshotTests
         //         the whole of the movement.
         //   NOT A SCHEMA CHANGE: no table joined or left the stream.
         //   ci.yml's FOUNDED_GOLDEN is updated in the same commit.
+        // ADR-043 RE-PIN (2026-10-22, D-062 Track CP; MEASURED on this tree by the agent writing this line).
+        //   OLD  0f29efc733024c451b7ebc2e8435fdd8a6032d158922430cb290778a98056d3c
+        //   NEW  5c56a1f958ce66da0de11d43f023a4bb13610a815d87283b74040696b19d6ad9
+        //   M6 RE-PIN NEW  8ccbe80fe2be1130c4da27a0576c158d85ece64555a37709ef2dce61b5e5b63c (causes CP, EX and TREE, and the controls,
+        //         on FoundedGoldenHash; supersedes the merge-time 0a0759ef…)
+        //   CAUSE schema v35 appends CivicsPoints (section 62), and the player Empire accrues Civics Points every step (one
+        //         account row; this order-less world sets no target on either lane, and no city-state researches here).
+        //   CONTROL CivicsPointsAttributionTests.FoundedGoldenSeed42Turn300_MovedForCivicsPointsAlone: Track CP off
+        //         (TestConfigs.PreTrackCp) and Civics Points off alone return OLD through SchemaProjection.V34; the stage gate
+        //         off alone returns NEW. ci.yml FOUNDED_GOLDEN moves with it (CiPinAgreementTests).
         WorldState world = RunFoundedGolden();
         Assert.Equal(golden, WorldHash.ComputeHex(world));
-        Assert.Equal(FoundedGoldenHashAtV32, SchemaProjection.V32(world));   // batch 3: the cylinder-alone link (no v33 row)
+        // M6 merge (2026-10-22): Track EX moves this world by BEHAVIOUR (concealed deposits), not by rows a strip could undo,
+        // so the batch-3 cylinder-alone link (FoundedGoldenHashAtV32) is asserted on the PreM6 twin instead
+        // (DiscoveryLayoutAttributionTests.FoundedGoldenSeed42Turn300_…: SchemaProjection.V32 of the twin).
     }
 
     /// <summary>
@@ -1132,12 +1150,25 @@ public class SnapshotTests
     // D-051 1(b) (2026-10-10, time-averaged decade weather) RE-PIN (VALUE): e9e089bbce9f2049… -> 937577ffb0e73c2b…. CAUSE: a turn's harvest multiplier is the time-average of the yearly weather process over the turn's yearly sub-steps (mean unchanged, per-decade log-spread ~0.29 -> ~0.19) and a new settlement joins the weather at a stationary draw. CONTROL: TestConfigs.PreTimeAveragedHarvest returns the old value byte for byte (IntegratedPinAttributionTests.*_MovedForTheTimeAveragedHarvestAlone).
     // BATCH 3 / D-054 (integration R1, 2026-10-14) RE-PIN (VALUE + LAYOUT): 937577ffb0e73c2b… -> 40115e28af11273b…. CAUSE: the v33 layout (two EMPTY appended tables) and the cylinder (worldgen.json topology.wrapX; the world differs from turn 0); WS1/WS2 do not act. CONTROLS: D054PairAttributionTests (both halves off + v32 = OLD), WrapAttributionTests (the cylinder off alone + v32 = OLD), IncrementalConstructionAttributionTests (the layout alone), and FoundedGoldenHashAtV32 (the cylinder alone). Full record on FoundedGolden_Seed42Turn300_MatchesPinnedConstant.
     // D-055 (2026-10-16) RE-PIN (LAYOUT ALONE): 40115e28af11273b… -> 0f29efc733024c45…. CAUSE: schema v34 appends ConstructionHolds, EMPTY here — one four-byte zero count prefix. CONTROL: ReservationsLayoutAttributionTests.FoundedGoldenSeed42Turn300_MovedForTheV34LayoutAlone (SchemaProjection.V33 = OLD). ci.yml FOUNDED_GOLDEN moves with it.
-    internal const string FoundedGoldenHash = "0f29efc733024c451b7ebc2e8435fdd8a6032d158922430cb290778a98056d3c";
+    // ADR-043 (2026-10-22, D-062 Track CP) RE-PIN (VALUE + LAYOUT): 0f29efc733024c45… -> 5c56a1f958ce66da…. CAUSE: schema v35 appends CivicsPoints (section 62) and the player Empire accrues Civics Points every step (its account row, Balance = Generated − Spent; no order, so no target on either lane). CONTROL: CivicsPointsAttributionTests.FoundedGoldenSeed42Turn300_MovedForCivicsPointsAlone — Track CP off (TestConfigs.PreTrackCp) and CP off alone both return OLD through SchemaProjection.V34; the stage gate off alone returns NEW. ci.yml FOUNDED_GOLDEN moves with it.
+    // M6 RE-PIN (2026-10-23, ONE re-pin of the whole slice, D-062; VALUE + LAYOUT, MEASURED on the merged tree by the agent
+    // writing this line): 0f29efc733024c45… (v34) -> 8ccbe80fe2be1130… (the intermediate pins 5c56a1f9… CP and 0a0759ef…
+    // CP + EX are superseded). CAUSES, all three M6 tracks named: Track CP (above; ADR-043) — section 62 and the player's
+    // Civics Points account; Track EX (ADR-044 with the coordinator's rulings) — schema v35's four discovery tables (sections
+    // 63–66) are POPULATED here (DiscoverySystem stores each polity's seed extent and sightings every step) and the concealed
+    // copper and tin ores are read as absent by every consumer of the player's settlements until surveyed; Track TREE
+    // (ADR-045, the research-content tranche) — MEASURED to move nothing here (this order-less world sets no research target:
+    // TestConfigs.PreTreeTranche returns the same hash). CONTROLS: DiscoveryLayoutAttributionTests (TestConfigs.PreM6,
+    // sections 62–66 stripped by SchemaProjection.V34, returns 0f29efc7…; the EX-alone world differs) and
+    // CivicsPointsAttributionTests (the CP part, on the EX-off, tranche-off world). ci.yml FOUNDED_GOLDEN moves with it.
+    internal const string FoundedGoldenHash = "8ccbe80fe2be1130c4da27a0576c158d85ece64555a37709ef2dce61b5e5b63c";
 
     /// <summary>THE toy golden (seed 42, turn 200; history on GoldenHash_Seed42Turn200_MatchesPinnedConstant). A named
     /// constant since D-055 (2026-10-16) so its v34 layout companion (ReservationsLayoutAttributionTests) compares with it.</summary>
     // D-055 (2026-10-16) RE-PIN (LAYOUT ALONE): 222280e50f567557… -> 2e6d446161e16547…. CAUSE: schema v34 appends ConstructionHolds, EMPTY here — one four-byte zero count prefix. CONTROL: ReservationsLayoutAttributionTests.ToyGoldenSeed42Turn200_MovedForTheV34LayoutAlone (SchemaProjection.V33 = OLD).
-    internal const string ToyGoldenHash = "2e6d446161e165475c753a8962f5b8f9e0845807c911f41be5ba5d982bed5ef7";
+    // ADR-043 (2026-10-22) RE-PIN (LAYOUT ALONE): 2e6d446161e16547… -> 1d3f5be2dea41bba…. CAUSE: schema v35 appends CivicsPoints, EMPTY here (the toy world has no research content and no polity) — one four-byte zero count prefix. CONTROL: CivicsPointsAttributionTests.ToyGoldenSeed42Turn200_MovedForTheV35LayoutAlone (SchemaProjection.V34 = OLD).
+    // M6 MERGE (2026-10-22, D-062 Tracks EX + CP; MEASURED on the merged tree by the agent writing this line) RE-PIN (VALUE + LAYOUT): 1d3f5be2dea41bba… -> f97432f0e1a7eb5e…. CAUSE: the LAYOUT ALONE — v35 also appends the four EMPTY discovery tables (sections 63–66; the toy pipeline has no DiscoverySystem): four more zero count prefixes. CONTROL: DiscoveryLayoutAttributionTests.ToyGoldenSeed42Turn200_MovedForTheV35LayoutAlone (SchemaProjection.V34 strips sections 62–66 and returns 2e6d4461…).
+    internal const string ToyGoldenHash = "f97432f0e1a7eb5e78c917ee5ab85b7de5e448d3e6f5ee3a6f3d4f3c08f12be6";
 
     /// <summary>Batch 3 (D-054, integration R1, 2026-10-14): THE CYLINDER-ALONE LINK — the founded golden's world through
     /// the v32 projection (SchemaProjection.V32: the two v33 tables dropped, asserted EMPTY). It equals the founded golden

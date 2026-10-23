@@ -19,7 +19,9 @@ namespace Sim.Tests.Systems;
 /// </summary>
 public class ConstructionAvailabilityTests
 {
-    private static readonly SimConfig Cfg = TestConfigs.Sim();
+    // M6 Track EX (2026-10-22): the discovery layer off (R4) — the rigs add copper/tin deposit rows, which the shipped
+    // concealment may classify as hidden (MEASURED: "Expected: Available, Actual: InputUnobtainable").
+    private static readonly SimConfig Cfg = TestConfigs.PreDiscovery(TestConfigs.Sim());
     private static readonly ResearchContent Research = TestConfigs.Research();
     private static readonly PolityId Player = new(1);
     private static readonly PolityId Rival = new(2);

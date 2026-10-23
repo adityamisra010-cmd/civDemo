@@ -19,7 +19,7 @@ namespace Sim.Ui.Tests;
 ///  (2) EXACTLY ONCE: a construction completed after a resume, and one completed before the save, is counted once
 ///      (Structures 1) in the resumed session and stays 1 — ICU:347 only ever asserted the live and resumed counts EQUAL.
 /// The colony literals are the determinism-xproc Found Settlement leg's (FoundSettlementResumeTests): turn 2, from
-/// settlement 0 to cell 349391 on UiSession.Start(42) — it founds settlement 12, above the turn-0 maximum (11), in state 3.
+/// settlement 0 to cell 349391 on UiSession.StartWith(TestFog.PreDiscovery, 42) — it founds settlement 12, above the turn-0 maximum (11), in state 3.
 /// MEASURED (2026-10-16, by the agent writing this line; the same orders through `sim run`, t4-out/probe-colony.txt): the
 /// colony's first granary is built in the step that enqueues it (the Empire purse is rich), so its SECOND granary — slot 1
 /// — is the entry that waits at p = 0 in world 4.
@@ -47,7 +47,7 @@ public class ConstructionResumeColonyAndBuiltTests
     {
         live.Save(log);
         live.ExportTrace(UiSession.TracePath(log));
-        return UiSession.Resume(UiSession.ManifestPath(log), out _);
+        return UiSession.Resume(UiSession.ManifestPath(log), out _, TestFog.PreDiscovery);
     }
 
     private static OrderLog LoadLog(string path)
@@ -69,7 +69,7 @@ public class ConstructionResumeColonyAndBuiltTests
     /// names slot 6; after it the colony has six granaries and no entry (the method's cause block).</summary>
     private static UiSession ColonySession(string log)
     {
-        UiSession live = UiSession.Start(42);
+        UiSession live = UiSession.StartWith(TestFog.PreDiscovery, 42);
         live.ExportManifest(StartedAt, log);
         Assert.Equal(Colony - 1, MaxSettlementId(live.World));
         for (int t = 0; t < FoundTurn; t++) live.EndTurn();
@@ -117,7 +117,7 @@ public class ConstructionResumeColonyAndBuiltTests
             Assert.Contains(cancel, resumed.QueuedOrders());
             Assert.Equal(WorldHash.ComputeHex(live.World), WorldHash.ComputeHex(resumed.World));
 
-            UiSession fresh4 = UiSession.Start(42);
+            UiSession fresh4 = UiSession.StartWith(TestFog.PreDiscovery, 42);
             fresh4.ReplayTo(LoadLog(log), 4);
             Assert.Contains(cancel, fresh4.QueuedOrders());
 
@@ -132,7 +132,7 @@ public class ConstructionResumeColonyAndBuiltTests
                 Assert.Equal(WorldHash.ComputeHex(live.World), WorldHash.ComputeHex(s.World));
             }
             live.Save(log);
-            UiSession fresh5 = UiSession.Start(42);
+            UiSession fresh5 = UiSession.StartWith(TestFog.PreDiscovery, 42);
             fresh5.ReplayTo(LoadLog(log), 5);
             Assert.Equal(WorldHash.ComputeHex(live.World), WorldHash.ComputeHex(fresh5.World));
         }
@@ -163,7 +163,7 @@ public class ConstructionResumeColonyAndBuiltTests
             string manifest = UiSession.ManifestPath(log);
             ChronicleAndResumeTests.RecordSchema(manifest, 33);
 
-            UiSession intact = UiSession.Resume(manifest, out _);
+            UiSession intact = UiSession.Resume(manifest, out _, TestFog.PreDiscovery);
             Assert.Equal(UiSession.SchemaMismatchNotice(33, CanonicalSchema.Version), intact.ResumeNotice);
             Assert.Equal(WorldHash.ComputeHex(live.World), WorldHash.ComputeHex(intact.World));
             intact.EndTurn();
@@ -173,7 +173,7 @@ public class ConstructionResumeColonyAndBuiltTests
             for (int i = 0; i < saved.Count; i++) if (saved[i].Kind != OrderKind.FoundSettlement || saved[i].ActorId != UiPlayer.Empire.Value) forged.Append(saved[i]);
             Assert.Equal(saved.Count - 1, forged.Count);
             using (FileStream f = File.Create(log)) forged.Save(f);
-            OrderValidationException refused = Assert.Throws<OrderValidationException>(() => UiSession.Resume(manifest, out _));
+            OrderValidationException refused = Assert.Throws<OrderValidationException>(() => UiSession.Resume(manifest, out _, TestFog.PreDiscovery));
             Assert.Equal("order (turn 3): EnqueueConstruction targets settlement 12, which does not exist when the order is delivered "
                 + "(turn 3, 12 settlement(s)). Its check was deferred because a colony could have been founded with that id by then; "
                 + "none was (ADR-034).", refused.Message);
@@ -188,7 +188,7 @@ public class ConstructionResumeColonyAndBuiltTests
     /// part-built without builders and sets aside its stone; s2's, younger, is built in step 4 → 5.</summary>
     private static UiSession Q17(string log)
     {
-        UiSession live = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1);
+        UiSession live = UiSession.StartWith(TestFog.PreDiscovery, 42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1);
         live.ExportManifest(StartedAt, log);
         Assert.True(live.EmitAllocationOrder(30));
         Assert.True(live.EmitConstructionOrder(S0.Value, Granary));

@@ -109,14 +109,14 @@ public class CylinderAttributionFoundedTests : IClassFixture<CylinderAttribution
     /// <summary>The shared ON arm (the shipped config, 2 turns) and a second, independent ON run for determinism.</summary>
     public sealed class Arms
     {
-        public SimConfig On { get; } = TestConfigs.Sim();
+        public SimConfig On { get; } = TestConfigs.PreM6(TestConfigs.Sim());
         public R.Arm Live { get; }
         public R.Arm Again { get; }
 
         public Arms()
         {
             Live = R.Run(R.Founded1024(), "on", On, Horizon, keep: [0, 1, 2]);
-            Again = R.Run(R.Founded1024(), "on-again", TestConfigs.Sim(), Horizon);
+            Again = R.Run(R.Founded1024(), "on-again", TestConfigs.PreM6(TestConfigs.Sim()), Horizon);
         }
     }
 

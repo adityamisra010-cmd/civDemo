@@ -79,7 +79,13 @@ public enum OrderKind
     /// persistent directive (D-042 §6.2): the target stays until it completes or
     /// another order changes it.
     ///
-    /// Range-validated at LOAD (TargetId is a key ≥ 1 or exactly -1; Amount == 0). Whether the node exists
+    /// ADR-043 (v35, D-062): TWO LANES. With research.json tuning.civicsPoints enabled, the Empire holds one target
+    /// PER TREE — the node key selects the lane (a Technology node sets the Technology target, funded by RP; a Civics
+    /// node sets the Civics target, funded by Civics Points), so a civic order no longer displaces the technology
+    /// target. -1 clears the TECHNOLOGY lane; -2 (new) clears the CIVICS lane. With civicsPoints off, -1 clears the
+    /// one target as before and -2 clears it only when it is a civic.
+    ///
+    /// Range-validated at LOAD (TargetId is a key ≥ 1, -1 or -2; Amount == 0). Whether the node exists
     /// and is AVAILABLE to this Empire is content- and state-dependent, so it is
     /// checked where the order is consumed (ResearchSystem, the ConstructionSystem
     /// precedent); an order naming an unavailable node changes nothing. DELIVERY: an
@@ -201,6 +207,35 @@ public enum OrderKind
     /// (OrderValidation.ValidateAtDelivery) rather than guessed at. Load, control and delivery rules are kind 11's.
     /// </summary>
     CancelConstructionEntry = 13,
+
+    /// <summary>
+    /// M6 Track EX (D-062; ADR-044 §6) — EXPLORE: the issuing Empire sends an expedition out from a settlement it controls
+    /// and widens the EXPLORED RADIUS around it: new radius = current (ExplorationRow; absent = sim.json
+    /// fog.seedRadiusNodes) + fog.exploreStepNodes, capped at fog.exploreMaxRadiusNodes. TargetId = the ORIGIN settlement's
+    /// id; Amount is reserved and must be exactly 0. Cost: fog.exploreGrain grain drawn through EmpireStockpile.Draw (the
+    /// origin first) beyond what construction set aside, SUNK under ReasonIds.Expedition (travel provisions; no person is
+    /// removed — the M7 mobile unit replaces this). Refused (nothing charged, nothing changes) when the fog is off, the issuer
+    /// does not control the origin, the radius is at the cap, or the purse cannot cover it (DiscoveryQuery.CheckExplore on
+    /// PREV and the step's stocks); one Explore per (polity, origin) per turn — a later duplicate is refused.
+    /// DELIVERY: an order stamped turn t is applied by the step t → t+1 (DiscoverySystem): the ExplorationRow, the known
+    /// extent (the disc of the new radius around the origin's node, wrap-aware) and the sightings of every settlement whose
+    /// node lies in that disc first appear in the state of turn t+1.
+    /// </summary>
+    Explore = 14,
+
+    /// <summary>
+    /// M6 Track EX (D-062; ADR-044 §4) — PROSPECT: the issuing Empire surveys the hinterland of a settlement it controls and
+    /// has not surveyed. TargetId = the settlement's id; Amount is reserved and must be exactly 0. Cost: sim.json
+    /// discovery.prospectGrain grain (halved, integer, once the issuer completed discovery.prospectDiscountRequires) drawn
+    /// through EmpireStockpile.Draw (the settlement first) beyond what construction set aside, SUNK under
+    /// ReasonIds.Prospecting — paid whether or not anything is found, so no information is free. Refused (nothing charged)
+    /// when concealment is off, the issuer does not control it, it is already surveyed by the issuer (once per polity — no
+    /// repeat exploit), or the purse cannot cover it (DiscoveryQuery.CheckProspect). Prospecting never creates, moves or
+    /// resizes a deposit. DELIVERY: stamped turn t → SettlementSurveyRow(issuer, settlement, t) first appears in the state
+    /// of turn t+1, and with it every concealed deposit there is discovered for the issuer (production reads it from PREV,
+    /// so the first output from a discovered deposit lands in the step t+1 → t+2).
+    /// </summary>
+    Prospect = 15,
 }
 
 /// <summary>
@@ -432,10 +467,10 @@ public sealed class OrderLog
                         $">= 0, got {record.TargetId}.");
                 break;
             case OrderKind.SetResearchTarget:
-                if (record.TargetId != -1 && record.TargetId < 1)
+                if (record.TargetId != -1 && record.TargetId != -2 && record.TargetId < 1)
                     throw new SnapshotFormatException(
                         $"order[{index}] (turn {record.Turn}): SetResearchTarget node key must be a " +
-                        $"research.json key (>= 1) or -1 to clear the target, got {record.TargetId}.");
+                        $"research.json key (>= 1), -1 to clear the Technology target or -2 to clear the Civics target, got {record.TargetId}.");
                 if (record.Amount != 0.0) // NaN fails this too
                     throw new SnapshotFormatException(
                         $"order[{index}] (turn {record.Turn}): SetResearchTarget Amount is reserved and must be 0, got " +
@@ -500,6 +535,17 @@ public sealed class OrderLog
                         "number in [0, 2^53) carried exactly by Amount, got " +
                         $"{record.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
                 break;
+            case OrderKind.Explore:
+            case OrderKind.Prospect:
+                // M6 EX (ADR-044): the target is a settlement id; the Amount carries nothing and must be exactly 0 (NaN fails).
+                if (record.TargetId < 0)
+                    throw new SnapshotFormatException(
+                        $"order[{index}] (turn {record.Turn}): {record.Kind} settlement id must be >= 0, got {record.TargetId}.");
+                if (record.Amount != 0.0)
+                    throw new SnapshotFormatException(
+                        $"order[{index}] (turn {record.Turn}): {record.Kind} Amount is reserved and must be 0, got " +
+                        $"{record.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
+                break;
             case OrderKind.SetResourceAllocation:
                 if (record.TargetId < 0)
                     throw new SnapshotFormatException(
@@ -516,9 +562,9 @@ public sealed class OrderLog
                     $"order[{index}] (turn {record.Turn}): unknown order kind {(int)record.Kind}; " +
                     "this build understands kinds 1 (SetRainBias), 2 (LaborAllocation), 3 (SectorAllocation), " +
                     "4 (EnqueueConstruction), 5 (SetTaxRate), 6 (SetResearchTarget), 7 (AdvanceAge), 8 (DevelopRoads), " +
-                    "9 (FoundSettlement), 11 (CancelConstruction), 12 (SetResourceAllocation) and " +
-                    "13 (CancelConstructionEntry); kind 10 is reserved for MoveFormation (M7), and kind 11 is legacy " +
-                    "(read, no longer written: D-056).");
+                    "9 (FoundSettlement), 11 (CancelConstruction), 12 (SetResourceAllocation), " +
+                    "13 (CancelConstructionEntry), 14 (Explore) and 15 (Prospect); kind 10 is reserved for MoveFormation " +
+                    "(M7), and kind 11 is legacy (read, no longer written: D-056).");
         }
     }
 }

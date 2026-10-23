@@ -84,8 +84,9 @@ public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<Cano
         Assert.Equal(UiEra.Prehistoric, m.Era);
         Assert.Equal(SurfaceLayout.Flat, m.Layout);   // A1: a short flat list
         // M5 S1d: + Colonization — every settlement can spare a party and provision it at founding (D-051 §5).
+        // M6 EX (D-062 D9, ADR-044): + Discovery — the Actions menu (Explore, Prospect) for every settlement the player holds.
         Assert.Equal(new[] { ActionDomain.Labour, ActionDomain.Research, ActionDomain.Construction, ActionDomain.Military, ActionDomain.Standing, ActionDomain.Production,
-                ActionDomain.Colonization },
+                ActionDomain.Colonization, ActionDomain.Discovery },
             m.Domains.ToArray());
         // R1: the crafts known at founding are exactly the content's BASELINE recipes (null requirement) — no
         // pottery firing (pottery_open_fired) and no bronze casting (tin_bronze) before their research.
@@ -115,10 +116,11 @@ public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<Cano
         Assert.Equal(12, labour.Controlled.Length);   // the Empire-wide summary covers every settlement it commands
         Assert.Equal(12, labour.Summary.Settlements);
 
-        // RESEARCH: idle — choose; the ten roots are open; nothing to clear.
+        // RESEARCH: idle — choose; the roots are open; nothing to clear. ADR-045 (D-062, 2026-10-22): eleven — the
+        // research-content tranche added one root, the kin_council civic (no prerequisite; knowledge-only).
         Assert.True(m.Research!.Idle);
         Assert.False(m.Research.CanClear);
-        Assert.Equal(10, m.Research.Available);
+        Assert.Equal(11, m.Research.Available);
 
         // CONSTRUCTION: the capital's legal zero-node project, blocked by materials. The workshop is a zero-node project
         // too, but since the Director's 2026-10-10 ruling (D-051 §4) it is not a legal order while its tools have no
@@ -176,9 +178,10 @@ public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<Cano
         // The ONLY interactive regions: the pebbles, the settlement cycle, the trees link and the baseline
         // projects' build buttons — no slider track, no tax, road, Age or apply control (nothing changed yet). M5 S1d: and
         // the founding block's "Choose a site..." (it opens the placement mode; the order is the placement's Confirm).
+        // M6 EX (ADR-044): and the Actions menu's Explore and Prospect (one each per settlement the player holds).
         var kinds = screen.Hits.Select(h => h.Kind).Distinct().OrderBy(k => k).ToArray();
         Assert.Equal(new[] { ActionHitKind.LabourSlot, ActionHitKind.ResearchOpen, ActionHitKind.Build, ActionHitKind.PrevSettlement, ActionHitKind.NextSettlement,
-                ActionHitKind.FoundSettlement }
+                ActionHitKind.FoundSettlement, ActionHitKind.Explore, ActionHitKind.Prospect }
             .OrderBy(k => k).ToArray(), kinds);
         Assert.Equal(1, screen.Hits.Count(h => h.Kind == ActionHitKind.FoundSettlement));
         Assert.Equal(Sectors.Count * 10, screen.Hits.Count(h => h.Kind == ActionHitKind.LabourSlot));
@@ -193,7 +196,7 @@ public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<Cano
         ImmutableArray<ActionDescriptor> query = AvailableActionsQuery.For(s.World, s.Config, Me,
             ActionQueryContext.ForNextStep(s.World, Era, s.QueuedOrders()));
         Assert.True(AvailableActionsQuery.Same(query, m.Actions));
-        Assert.Equal(12 * 5 + 1 + 12 + 1 + 8 + 2 + 12, query.Length);   // R1: + the two baseline recipes; construction 12 (granaries) — no workshop at founding (Director 2026-10-10, D-051 §4); M5 S1d: + 12 Found Settlement (84 -> 96)
+        Assert.Equal(12 * 5 + 1 + 12 + 1 + 8 + 2 + 12 + 24, query.Length);   // R1: + the two baseline recipes; construction 12 (granaries) — no workshop at founding (Director 2026-10-10, D-051 §4); M5 S1d: + 12 Found Settlement (84 -> 96); M6 EX (ADR-044): + 24 Discovery (Explore and Prospect per settlement, 96 -> 120)
         foreach (ActionHit build in screen.Hits.Where(h => h.Kind == ActionHitKind.Build))
             Assert.Contains(query, a => a.Domain == ActionDomain.Construction && a.Targets[0].Id == build.A && a.Targets[1].Id == build.B);
     }
@@ -544,7 +547,9 @@ public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<Cano
     [Fact]
     public void ASettlementThePlayerDoesNotCommand_IsNeverListed_TheControlShowsTheCapital()
     {
-        UiSession s = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1);
+        // M6 EX (2026-10-22): the discovery layer off — under the shipped fog the rival's settlement is unknown to the
+        // player and a selection of it reads as none (P7), so the "not ours to command" note this test pins never shows.
+        UiSession s = UiSession.StartWith(TestFog.PreDiscovery, 42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1);
         int capital = Capital(s.World);
         int foreign = -1;
         for (int i = 0; i < s.World.Settlements.Count; i++)

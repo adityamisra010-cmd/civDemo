@@ -88,10 +88,14 @@ public class CylinderAttributionDevAiTests : IClassFixture<CylinderAttributionDe
     ];
 
     /// <summary>The shared ON arm (the shipped config, to the granary rig's horizon, with the granary probes) and a second,
-    /// independent ON run of the same length (determinism).</summary>
+    /// independent ON run of the same length (determinism). M6 Track EX (2026-10-22): the shipped config with the NEWER
+    /// discovery layer off (TestConfigs.PreDiscovery — the R4 rule: an older layer's attribution strips the newer layers), so
+    /// every turn-exact literal below is the one measured before M6 (under the fog the AI explores and founds elsewhere).</summary>
     public sealed class Arms
     {
-        public SimConfig On { get; } = TestConfigs.Sim();
+        // M6 (ADR-043/044/045): the readings above were measured before the M6 slice; by the R4 rule these older-layer controls
+        // run on the pre-M6 world (TestConfigs.PreM6: CP, discovery and the research-content tranche off).
+        public SimConfig On { get; } = TestConfigs.PreM6(TestConfigs.Sim());
         public R.Arm Live { get; }
         public R.Arm Again { get; }
 
@@ -100,7 +104,7 @@ public class CylinderAttributionDevAiTests : IClassFixture<CylinderAttributionDe
             Live = R.Run(R.DevAi(), "on", On, GranaryHorizon,
                 keep: [0, (int)FirstEnqueueOn, GranaryStands, GranaryStands + 1, (int)FirstFounding, FoundingDiverges, GranaryActs, GranaryActs + 1],
                 probes: [R.GranaryStands, R.GranaryActs]);
-            Again = R.Run(R.DevAi(), "on-again", TestConfigs.Sim(), GranaryHorizon);
+            Again = R.Run(R.DevAi(), "on-again", TestConfigs.PreM6(TestConfigs.Sim()), GranaryHorizon);
         }
     }
 
@@ -192,7 +196,7 @@ public class CylinderAttributionDevAiTests : IClassFixture<CylinderAttributionDe
     [Fact]
     public void GranaryFamineFactor_OnTheDevAiCylinder_ActsTheStepAfterTheGranaryCompletes_NeverInTheStepThatBuildsIt()
     {
-        SimConfig on = TestConfigs.Sim(), off = TestConfigs.PreGranaryEffects(on);
+        SimConfig on = TestConfigs.PreM6(TestConfigs.Sim()), off = TestConfigs.PreGranaryEffects(on);
         int[] keep = [0, FamineGranaryOrdered, FamineGranaryStands, FamineDiverges];
         R.Arm live = R.Run(DevAiFamine(), "on", on, FamineHorizon, keep: keep, probes: [R.GranaryActs]);
         R.Arm twin = R.Run(DevAiFamine(), "granary-off", off, FamineHorizon, keep: keep);
@@ -224,7 +228,7 @@ public class CylinderAttributionDevAiTests : IClassFixture<CylinderAttributionDe
         Assert.Equal(FamineWrites, written);
         R.AssertNoTopologyTable(written);
         R.AssertLogsEqualBefore(live.Log, twin.Log, FamineHorizon + 1);
-        R.AssertSameSeries(live, R.Run(DevAiFamine(), "on-again", TestConfigs.Sim(), FamineHorizon));
+        R.AssertSameSeries(live, R.Run(DevAiFamine(), "on-again", TestConfigs.PreM6(TestConfigs.Sim()), FamineHorizon));
         Assert.Equal((0, 0), (R.SeamCrossingPairs(live.At(0)), R.WrappedDonorOrders(live.At(0))));
     }
 

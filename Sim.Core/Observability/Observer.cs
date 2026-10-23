@@ -207,9 +207,11 @@ public static class Observer
         long eaten = Leg(grainStock.Sinks, ReasonIds.Eaten);
         long spoilage = Leg(grainStock.Sinks, ReasonIds.Spoilage);
         long overflow = Leg(grainStock.Sinks, ReasonIds.GranaryOverflow);
+        // M6 EX (ADR-044): the discovery provisions — Explore's (Expedition) and Prospect's survey party (Prospecting).
+        long expedition = Leg(grainStock.Sinks, ReasonIds.Expedition) + Leg(grainStock.Sinks, ReasonIds.Prospecting);
         var grainAccount = Account(grainStock.Opening, grainStock.Closing,
-            endowment + harvest - eaten - spoilage - overflow,
-            (o, c, r, d) => new GrainAccount(o, endowment, harvest, eaten, spoilage, overflow, c, r, d));
+            endowment + harvest - eaten - spoilage - overflow - expedition,
+            (o, c, r, d) => new GrainAccount(o, endowment, harvest, eaten, spoilage, overflow, c, r, d, expedition));
 
         long built = Leg(dwell.Sources, ReasonIds.HousingBuilt);
         long decayed = Leg(dwell.Sinks, ReasonIds.HousingDecayed);
@@ -228,10 +230,11 @@ public static class Observer
             long ate = Leg(st.Sinks, ReasonIds.Eaten);
             long housingMat = Leg(st.Sinks, ReasonIds.HousingMaterials);
             long constructionMat = Leg(st.Sinks, ReasonIds.ConstructionMaterials);
+            long discovery = Leg(st.Sinks, ReasonIds.Prospecting) + Leg(st.Sinks, ReasonIds.Expedition);   // M6 EX (ADR-044)
             goodAccounts.Add(Account(st.Opening, st.Closing,
-                produced - inputs - wear - ate - housingMat - constructionMat,
+                produced - inputs - wear - ate - housingMat - constructionMat - discovery,
                 (o, c, r, d) => new GoodAccount(good.Id, good.Name, o, produced, inputs, wear, ate,
-                    housingMat, constructionMat, c, r, d)));
+                    housingMat, constructionMat, c, r, d, discovery)));
         }
 
         long migrants = 0;
@@ -260,7 +263,7 @@ public static class Observer
 
         var causes = new CausesRecord(
             pop.Closing - pop.Opening, births - deaths - starvation,
-            grainStock.Closing - grainStock.Opening, endowment + harvest - eaten - spoilage - overflow);
+            grainStock.Closing - grainStock.Opening, endowment + harvest - eaten - spoilage - overflow - expedition);
 
         return new TurnRecord(
             next.Clock.Turn, next.Clock.WorldDateYears, next.Clock.DtYears,

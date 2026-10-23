@@ -494,13 +494,19 @@ public static class SiteAssessment
                 WorldFounding.AddDepositsForSite(roll, t, site.Worldgen, cfg, goods, new SettlementId(nextId), cell, world.Seed, nextId);
             }
             else rollWithheld = "the next settlement id counts every settlement in the world, including ones you do not know";
+            // M6 EX (D-062, ADR-044): a not-yet-founded site's CONCEALED rows are unknown — the classification of the roll a
+            // settlement founded next would get (State.DepositConcealment over the scratch table, under the id it would get);
+            // nobody has surveyed a settlement that does not exist, so its exact abundance is not shown (the range still is:
+            // it is read from the terrain, which the viewer knows).
+            int[] concealed = roll is not null
+                ? DepositConcealment.ConcealedGoods(roll, world.Seed, cfg, new SettlementId(nextId)) : [];
             var list = ImmutableArray.CreateBuilder<DepositPreview>();
             foreach (GoodEntry g in goods.Goods)
             {
                 if (g.DepositChannel is null) continue;
                 double v = WorldFounding.DepositChannelValue(g.DepositChannel, meanM, meanE);
                 double? exact = null;
-                if (roll is not null)
+                if (roll is not null && !DepositConcealment.Contains(concealed, g.Id))
                     for (int i = 0; i < roll.Count; i++)
                         if (roll[i].Good.Value == g.Id) { exact = roll[i].Abundance; break; }
                 list.Add(new DepositPreview(new GoodId(g.Id), g.DepositChannel, v, g.DepositSpread,

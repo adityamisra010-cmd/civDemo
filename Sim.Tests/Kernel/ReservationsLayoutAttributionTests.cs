@@ -22,6 +22,11 @@ namespace Sim.Tests.Kernel;
 /// The batch-3 literals are those the batch-3 build pinned (base-b3: de86ace + b3-final-v9). Batch-2 references stay
 /// reachable through the PreD054 pair and <see cref="SchemaProjection.V32"/> (D054PairAttributionTests; V32 now drops
 /// sections 59, 60 and 61 and asserts all three empty).
+///
+/// ADR-043 (2026-10-22): schema v35 and Track CP moved every golden again (CivicsPointsAttributionTests). The v34 layout
+/// attribution here keeps running on the PRE-M6 world (TestConfigs.PreM6: Track CP and Track EX off — the R4 rule), whose
+/// raw hash is its v34 hash plus the five empty v35 count prefixes (sections 62–66): so (2) compares the v34 projection with
+/// the v34 value (CivicsPointsAttributionTests.V34*), and the stream ends with SIX empty prefixes.
 /// </summary>
 public class ReservationsLayoutAttributionTests
 {
@@ -36,41 +41,44 @@ public class ReservationsLayoutAttributionTests
     private static void AssertLayoutAlone(WorldState world, string batch3, string v34)
     {
         Assert.Equal(0, world.ConstructionHolds.Count);
+        Assert.Equal(0, world.CivicsPoints.Count);                      // ADR-043: the pre-CP world (PreTrackCp)
         Assert.Equal(batch3, SchemaProjection.V33(world));            // (1) the batch-3 hash, byte for byte (asserts 0 holds)
-        string raw = WorldHash.ComputeHex(world);
-        Assert.True(v34 == raw, "(2) the raw v34 hash is " + raw + "; pinned " + v34);   // the re-pinned v34 value, in full
+        string raw = SchemaProjection.V34(world);                     // ADR-043: the v34 form (the empty section 62 dropped)
+        Assert.True(v34 == raw, "(2) the v34 hash is " + raw + "; pinned " + v34);   // the re-pinned v34 value, in full
         Assert.NotEqual(batch3, v34);                                  // (3) the prefix moved the pin
         byte[] stream = SchemaProjection.Serialize(world);
-        Assert.Equal(new byte[4], stream[^4..]);                       // the movement IS one empty count prefix
+        Assert.Equal(new byte[4 + 4 * SchemaProjection.V35TableCount], stream[^(4 + 4 * SchemaProjection.V35TableCount)..]);   // sections 61–66: six empty count prefixes
     }
+
+    private static SimConfig PreM6World => TestConfigs.PreM6(TestConfigs.Sim());
 
     [Fact]
     public void FoundedGoldenSeed42Turn300_MovedForTheV34LayoutAlone()
     {
-        WorldState world = SnapshotTests.RunFoundedGolden();
+        WorldState world = SnapshotTests.RunFoundedGolden(PreM6World);
         Assert.True(world.Terrain!.WrapX);                             // the shipped cylinder, as the golden runs it
-        AssertLayoutAlone(world, Batch3FoundedGolden, SnapshotTests.FoundedGoldenHash);
+        AssertLayoutAlone(world, Batch3FoundedGolden, CivicsPointsAttributionTests.V34FoundedGolden);
     }
 
     [Fact]
     public void ToyGoldenSeed42Turn200_MovedForTheV34LayoutAlone()
     {
         WorldState world = SnapshotTests.CanonicalExecutor().Run(SnapshotTests.Genesis(42), 200);
-        AssertLayoutAlone(world, Batch3ToyGolden, SnapshotTests.ToyGoldenHash);
+        AssertLayoutAlone(world, Batch3ToyGolden, CivicsPointsAttributionTests.V34ToyGolden);
     }
 
     [Fact]
     public void DrivenGoldenSeed42Turn300_MovedForTheV34LayoutAlone()
     {
-        (WorldState world, _) = DrivenGoldenTests.RunDriven(300);
-        AssertLayoutAlone(world, Batch3DrivenGolden, DrivenGoldenTests.Golden);
+        (WorldState world, _) = DrivenGoldenTests.RunDriven(300, PreM6World);
+        AssertLayoutAlone(world, Batch3DrivenGolden, CivicsPointsAttributionTests.V34DrivenGolden);
     }
 
     [Fact]
     public void FirstReignTurn40_MovedForTheV34LayoutAlone()
     {
-        WorldState world = FirstReignTests.Replay(40, out _);
-        AssertLayoutAlone(world, Batch3FirstReignGolden, FirstReignTests.PostR1Golden);
+        WorldState world = FirstReignTests.Replay(40, out _, PreM6World);
+        AssertLayoutAlone(world, Batch3FirstReignGolden, CivicsPointsAttributionTests.V34FirstReignGolden);
     }
 
     /// <summary>The AI world (`sim run --founded --seed 42 --turns 300 --ai-empires 1`, AiFoundingAttributionTests' live
@@ -80,15 +88,16 @@ public class ReservationsLayoutAttributionTests
     [Fact]
     public void AiWorldSeed42Turn300_MovedForTheV34LayoutAlone()
     {
-        WorldState live = RunAiWorld(TestConfigs.Sim(), out int constructionOrders);
+        WorldState live = RunAiWorld(PreM6World, out int constructionOrders);
         Assert.True(constructionOrders > 0, "the AI ordered no construction - the absence of holds is vacuous");
-        AssertLayoutAlone(live, Batch3AiTurn300, AiFoundingAttributionTests.S1cTurn300);
+        AssertLayoutAlone(live, Batch3AiTurn300, CivicsPointsAttributionTests.V34AiTurn300);
+        Assert.Equal(AiFoundingAttributionTests.S1cTurn300AtV32, SchemaProjection.V32(live));   // the cylinder-alone link (moved here, ADR-043)
         WorldState control = RunAiWorld(TestConfigs.PreReservations(TestConfigs.Sim()), out _);
         Assert.Equal(Batch3AiTurn300, SchemaProjection.V33(control));
         Assert.Equal(WorldHash.ComputeHex(live), WorldHash.ComputeHex(control));
     }
 
-    private static WorldState RunAiWorld(SimConfig cfg, out int constructionOrders)
+    internal static WorldState RunAiWorld(SimConfig cfg, out int constructionOrders, bool holdFree = true)
     {
         var log = new OrderLog();
         TurnExecutor exec;
@@ -100,7 +109,7 @@ public class ReservationsLayoutAttributionTests
         {
             AiOrders.Append(log, w, cfg, TestConfigs.Worldgen());
             w = exec.Step(w);
-            Assert.Equal(0, w.ConstructionHolds.Count);
+            if (holdFree) Assert.Equal(0, w.ConstructionHolds.Count);
         }
         constructionOrders = 0;
         for (int i = 0; i < log.Count; i++)
@@ -116,7 +125,7 @@ public class ReservationsLayoutAttributionTests
     {
         WorldState control = SnapshotTests.RunFoundedGolden(TestConfigs.PreReservations(TestConfigs.Sim()));
         Assert.Equal(Batch3FoundedGolden, SchemaProjection.V33(control));
-        Assert.Equal(SnapshotTests.FoundedGoldenHash, WorldHash.ComputeHex(control));
+        Assert.Equal(CivicsPointsAttributionTests.V34FoundedGolden, SchemaProjection.V34(control));   // ADR-043: the v34 form
     }
 
     /// <summary>§1.8 #25 (D-055, X2): the driven golden world under TestConfigs.PreReservations projects to its batch-3
@@ -126,6 +135,6 @@ public class ReservationsLayoutAttributionTests
     {
         (WorldState control, _) = DrivenGoldenTests.RunDriven(300, TestConfigs.PreReservations(TestConfigs.Sim()));
         Assert.Equal(Batch3DrivenGolden, SchemaProjection.V33(control));
-        Assert.Equal(DrivenGoldenTests.Golden, WorldHash.ComputeHex(control));
+        Assert.Equal(CivicsPointsAttributionTests.V34DrivenGolden, SchemaProjection.V34(control));   // ADR-043: the v34 form
     }
 }

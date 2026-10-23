@@ -24,16 +24,22 @@ public class FoundSettlementCiLegTests
     /// be refused and its two processes would agree on a run that founds nothing.</remarks>
     private static readonly OrderRecord[] Scripted =
     [
-        new(2, 1, OrderKind.FoundSettlement, 0, 349391.0),
-        new(5, 1, OrderKind.FoundSettlement, 12, 335063.0),
+        new(2, 1, OrderKind.FoundSettlement, 0, 335063.0),
+        new(5, 1, OrderKind.FoundSettlement, 12, 326873.0),
     ];
+
+    // M6 Track EX (ADR-044, 2026-10-22; re-derived on the merged M6 tree): under the fog a site must be KNOWN to the issuer
+    // (MEASURED: the old turn-2 site is UnknownSite), so the log explores from settlement 0 at turn 0 (OrderKind 14; radius
+    // 3 -> 6 nodes) and the sites are the nearest legal KNOWN sites at their turns: 335063 from settlement 0 at turn 2, 326873
+    // from colony 12 at turn 5 (its seed disc and the explored disc hold it).
+    private static readonly OrderRecord[] Explore = [new(0, 1, OrderKind.Explore, 0, 0.0)];
 
     [Fact]
     public void TheScriptLiterals_AreTheOrdersPinnedHere()
     {
         string root = RepoRoot();
         string script = File.ReadAllText(Path.Combine(root, "scripts", "gen-sample-orders.py"));
-        Assert.Contains("records = [(2, 1, 9, 0, 349391.0), (5, 1, 9, 12, 335063.0)]", script);
+        Assert.Contains("records = [(0, 1, 14, 0, 0.0), (2, 1, 9, 0, 335063.0), (5, 1, 9, 12, 326873.0)]", script);
         string ci = File.ReadAllText(Path.Combine(root, ".github", "workflows", "ci.yml"));
         Assert.Contains("gen-sample-orders.py found-orders.bin 300 --found", ci);
     }
@@ -41,13 +47,14 @@ public class FoundSettlementCiLegTests
     [Fact]
     public void EachScriptedOrder_IsLegalWhenDelivered_AndFoundsInTheNextState()
     {
-        SimConfig cfg = FoundingRigs.Cfg();
+        SimConfig cfg = TestConfigs.Sim();   // M6 EX: the CLI's shipped rules, the fog on (not the founding rigs' PreDiscovery)
         var log = new OrderLog();
+        foreach (OrderRecord r in Explore) log.Append(r);
         foreach (OrderRecord r in Scripted) log.Append(r);
         WorldState w = WorldFounding.Found(TestConfigs.Worldgen(), cfg, 42UL);
         OrderValidation.ValidateAgainstWorld(log, w);                    // what `sim run --orders` does first
         WorldState turnZero = w.Clone();
-        SettlementSiting.FrontierSiting f = FoundingRigs.Frontier(w);
+        SettlementSiting.FrontierSiting f = FoundingRigs.Frontier(w, cfg);
         TurnExecutor exec = FoundingRigs.Pipeline(cfg, log);
         int colonies = 0;
         for (long t = 0; t <= Scripted[^1].Turn; t++)

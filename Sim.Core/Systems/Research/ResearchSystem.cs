@@ -11,10 +11,22 @@ public sealed record ResearchTables(
     Table<ResearchProgressRow> Progress,
     Table<ResearchCompletedRow> Completed,
     Table<ResearchEurekaRow> Eurekas,
-    Table<ResearchCreditRow> Credits);
+    Table<ResearchCreditRow> Credits,
+    Table<CivicsPointsRow> CivicsPoints);
 
 /// <summary>
-/// ADR-029 — THE RESEARCH ENGINE (D-044; addendum A; ADR-030). One shared Research Point
+/// ADR-029 — THE RESEARCH ENGINE (D-044; addendum A; ADR-030; ADR-043).
+///
+/// ADR-043 (D-062, 2026-10-22) — TWO LANES. With research.json tuning.civicsPoints.enabled (the shipped content), a
+/// polity holds up to TWO targets, one per tree (the lane is the node's tree): Research Points (RP, per turn, ADR-030)
+/// fund only the Technology target, and Civics Points (CP, per sim-year × dtYears, banked in the CivicsPoints table)
+/// fund only the Civics target. A civic order no longer displaces the technology target. Order kind 6 keeps its shape:
+/// the node key selects the lane, −1 clears the Technology lane and −2 the Civics lane. The fixed order inside a step
+/// is: directives → credits → RP throughput → CP accrual → CP spend → completions → persist. With civicsPoints off
+/// (or absent) the engine is the v34 ONE-POOL model below exactly — one target in either tree, funded by RP, and no
+/// CivicsPoints row — the attribution twin.
+///
+/// THE ONE-POOL MODEL (v34): one shared Research Point
 /// (RP) pool per polity drives both trees: Technology (the Main tree plus five subtrees)
 /// and Civics. Each step, for every polity in <c>Prev.Polities</c> table order:
 ///
@@ -56,7 +68,7 @@ public sealed record ResearchTables(
 /// systems realize them. Age is never read (D-044 R13, law 4).
 ///
 /// STATELESS; no RNG, so it adds no RngStreams rows; no Ledger (research is none of
-/// people, money or goods). Every rule it applies is a <see cref="ResearchQuery"/>
+/// people, money or goods — nor is CP: its audit is the identity Balance == Generated − Spent, ADR-043 §5). Every rule it applies is a <see cref="ResearchQuery"/>
 /// static, which is the same function the Glass Box calls. With no research content
 /// attached (a toy world, or a config loaded without research.json) it is inert:
 /// the Colonization / Construction precedent.
@@ -78,6 +90,7 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
         IReadOnlyWorldState prev = ctx.Prev;
         ResearchTables owned = ctx.Owned;
         int n = content.Nodes.Count;
+        bool twoLanes = content.Tuning.TwoLanes;
         var progressRemovals = new List<int>();
         var targetRemovals = new List<int>();
         var processed = new List<int>();
@@ -100,23 +113,58 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
             bool[] completed = ResearchQuery.CompletedMask(prev, content, polity);
             bool[] available = ResearchQuery.AvailableMask(content, completed);
 
-            // 1. The directive.
-            int target = -1;
-            if (ResearchQuery.TryGetTarget(prev, polity, out ResearchNodeId current))
+            // 1. The directive — one target slot per LANE (ADR-043): slot 0 is the Technology lane, funded by RP;
+            //    slot 1 the Civics lane, funded by CP. In the one-pool model (TwoLanes off — the v34 behaviour exactly)
+            //    slot 0 holds the one target, whichever tree, and slot 1 is never used.
+            var target = new[] { -1, -1 };
+            if (!twoLanes)
             {
-                int index = content.IndexOf(current);
-                if (index >= 0 && available[index]) target = index;
+                if (ResearchQuery.TryGetTarget(prev, polity, out ResearchNodeId current))
+                {
+                    int index = content.IndexOf(current);
+                    if (index >= 0 && available[index]) target[0] = index;
+                }
+            }
+            else
+            {
+                for (int r = 0; r < prev.ResearchTargets.Count; r++)
+                {
+                    ResearchTargetRow row = prev.ResearchTargets[r];
+                    if (row.Polity.Value != polity.Value) continue;
+                    int index = content.IndexOf(row.Node);
+                    if (index >= 0 && available[index] && target[LaneOf(content, index, twoLanes)] < 0)
+                        target[LaneOf(content, index, twoLanes)] = index;
+                }
             }
             // A city-state issues no orders: it chooses autonomously — keep a live target, else the cheapest
-            // available node (AiResearchPolicy.Cheapest: composite key (EffectiveCost, key), tie-dense tested).
-            if (local && target < 0) target = AiResearchPolicy.Cheapest(prev, content, polity, available, null);
+            // available node (AiResearchPolicy.Cheapest: composite key (EffectiveCost, key), tie-dense tested) — per
+            // lane in the two-lane model, the lane's tree only.
+            if (local)
+            {
+                if (!twoLanes)
+                {
+                    if (target[0] < 0) target[0] = AiResearchPolicy.Cheapest(prev, content, polity, available, null);
+                }
+                else
+                {
+                    if (target[0] < 0) target[0] = AiResearchPolicy.Cheapest(prev, content, polity, available, TreeMask(content, ResearchTree.Technology));
+                    if (target[1] < 0) target[1] = AiResearchPolicy.Cheapest(prev, content, polity, available, TreeMask(content, ResearchTree.Civics));
+                }
+            }
             for (int o = 0; o < ctx.Orders.Count && !local; o++)
             {
                 OrderRecord order = ctx.Orders[o];
                 if (order.Kind != OrderKind.SetResearchTarget || order.ActorId != polity.Value) continue;
-                if (order.TargetId == -1) { target = -1; continue; }
+                if (order.TargetId == ResearchQuery.ClearTechnologyTargetId) { target[0] = -1; continue; }
+                if (order.TargetId == ResearchQuery.ClearCivicsTargetId)
+                {
+                    // −2 clears the Civics lane; in the one-pool model it clears the one target only if that is a civic.
+                    if (twoLanes) target[1] = -1;
+                    else if (target[0] >= 0 && content.Nodes[target[0]].Tree == ResearchTree.Civics) target[0] = -1;
+                    continue;
+                }
                 int index = content.IndexOf(new ResearchNodeId(order.TargetId));
-                if (index >= 0 && available[index]) target = index;
+                if (index >= 0 && available[index]) target[LaneOf(content, index, twoLanes)] = index;
             }
 
             // Working view of this polity's progress rows (Next starts as a copy of Prev).
@@ -173,17 +221,42 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
                 }
             }
 
-            // 3. Throughput to the one active target. ADR-030 §2: Research Points are
-            //    generated and spent PER TURN — deliberately NOT multiplied by dtYears (the
-            //    scoped exception to law 3; this is its one code site).
-            if (target >= 0)
+            // 3. RP throughput to the Technology target (in the one-pool model, the one target). ADR-030 §2: Research
+            //    Points are generated and spent PER TURN — deliberately NOT multiplied by dtYears (the scoped exception
+            //    to law 3; this is its one code site). RP that reaches no node is lost (no general bank, D-044 R20-D).
+            if (target[0] >= 0)
             {
                 double amount = local
                     ? ResearchQuery.CityStateResearchPoints(prev, content, SettlementKnowledge.SettlementOf(polity))
                     : ResearchQuery.ResearchPointPool(prev, content, polity);
                 if (amount > 0.0)
-                    Credit(owned, rowOf, polity, content.Nodes[target], amount,
-                        ResearchQuery.EffectiveCost(prev, content, polity, target));
+                    Credit(owned, rowOf, polity, content.Nodes[target[0]], amount,
+                        ResearchQuery.EffectiveCost(prev, content, polity, target[0]));
+            }
+
+            // 3b. ADR-043 — CP accrual, then CP spend (two-lane model only). Accrual is a per-SIM-YEAR rate integrated
+            //    over dtYears (law 3; NOT the ADR-030 exception) in integer milli-CP; it is BANKED without cap or loss.
+            //    The Civics target then draws min(Balance, remaining cost) from the bank. Audit identity, every step:
+            //    Balance == Generated − Spent.
+            if (twoLanes)
+            {
+                long generated = ResearchQuery.CivicsPointsMilli(prev, content, polity, ctx.DtYears);
+                int accountRow = -1;
+                for (int r = 0; r < owned.CivicsPoints.Count; r++)
+                    if (owned.CivicsPoints[r].Polity.Value == polity.Value) { accountRow = r; break; }
+                if (accountRow >= 0 || generated > 0)
+                {
+                    CivicsPointsRow account = accountRow >= 0 ? owned.CivicsPoints[accountRow] : new CivicsPointsRow(polity, 0L, 0L, 0L);
+                    long balance = checked(account.BalanceMilli + generated);
+                    long spent = target[1] >= 0
+                        ? SpendCivics(owned, rowOf, polity, content.Nodes[target[1]], balance,
+                            ResearchQuery.EffectiveCost(prev, content, polity, target[1]))
+                        : 0L;
+                    var updated = new CivicsPointsRow(polity, balance - spent,
+                        checked(account.GeneratedMilli + generated), checked(account.SpentMilli + spent));
+                    if (accountRow >= 0) owned.CivicsPoints[accountRow] = updated;
+                    else InsertAscending(owned.CivicsPoints, updated);
+                }
             }
 
             // 4. Completion — immediate, idempotent, in index order.
@@ -193,22 +266,33 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
                 if (owned.Progress[rowOf[i]].Progress < ResearchQuery.EffectiveCost(prev, content, polity, i)) continue;
                 owned.Completed.Add(new ResearchCompletedRow(polity, content.Nodes[i].Key));
                 progressRemovals.Add(rowOf[i]);
-                if (i == target) target = -1;
+                if (i == target[0]) target[0] = -1;
+                if (i == target[1]) target[1] = -1;
             }
 
-            // 5. Persist the directive: one row, or none.
-            int targetRow = -1;
+            // 5. Persist the directive: per lane one row, or none (in the one-pool model: one row, or none). A row is
+            //    replaced in place, so the table's order depends only on when each lane was first set.
+            var laneRow = new[] { -1, -1 };
             for (int r = 0; r < owned.Targets.Count; r++)
-                if (owned.Targets[r].Polity.Value == polity.Value) { targetRow = r; break; }
-            if (target >= 0)
             {
-                var row = new ResearchTargetRow(polity, content.Nodes[target].Key);
-                if (targetRow >= 0) owned.Targets[targetRow] = row;
-                else owned.Targets.Add(row);
+                if (owned.Targets[r].Polity.Value != polity.Value) continue;
+                int index = content.IndexOf(owned.Targets[r].Node);
+                int lane = index >= 0 ? LaneOf(content, index, twoLanes) : 0;
+                if (laneRow[lane] < 0) laneRow[lane] = r;
+                else targetRemovals.Add(r);   // a second row on one lane: no rule writes it — dropped
             }
-            else if (targetRow >= 0)
+            for (int lane = 0; lane < 2; lane++)
             {
-                targetRemovals.Add(targetRow);
+                if (target[lane] >= 0)
+                {
+                    var row = new ResearchTargetRow(polity, content.Nodes[target[lane]].Key);
+                    if (laneRow[lane] >= 0) owned.Targets[laneRow[lane]] = row;
+                    else owned.Targets.Add(row);
+                }
+                else if (laneRow[lane] >= 0)
+                {
+                    targetRemovals.Add(laneRow[lane]);
+                }
             }
         }
 
@@ -231,6 +315,51 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
         if (r >= 0) owned.Progress[r] = row;
         else rowOf[node.Index] = owned.Progress.Add(row);
         return next - have;
+    }
+
+    /// <summary>ADR-043: the lane slot of a node — 1 (Civics, CP-funded) for a civic in the two-lane model, else 0.</summary>
+    private static int LaneOf(ResearchContent content, int index, bool twoLanes) =>
+        twoLanes && content.Nodes[index].Tree == ResearchTree.Civics ? 1 : 0;
+
+    /// <summary>A mask over node indices: the nodes of one tree.</summary>
+    private static bool[] TreeMask(ResearchContent content, ResearchTree tree)
+    {
+        var mask = new bool[content.Nodes.Count];
+        for (int i = 0; i < mask.Length; i++) mask[i] = content.Nodes[i].Tree == tree;
+        return mask;
+    }
+
+    /// <summary>
+    /// ADR-043: spends banked Civics Points on a civic's progress — min(<paramref name="balanceMilli"/>, the remaining
+    /// EffectiveCost in milli-CP, rounded UP) — and returns the milli-CP spent. Spending the full remainder sets progress
+    /// to EXACTLY the cost (the <see cref="Credit"/> rule), so completion can never miss by an ulp; a partial spend adds
+    /// spent / 1000 CP. Nothing is lost: what is not spent stays in the bank.
+    /// </summary>
+    private static long SpendCivics(ResearchTables owned, int[] rowOf, PolityId polity, ResearchNode node, long balanceMilli, double cost)
+    {
+        int r = rowOf[node.Index];
+        double have = r >= 0 ? owned.Progress[r].Progress : 0.0;
+        double remaining = cost - have;
+        if (!(remaining > 0.0) || balanceMilli <= 0L) return 0L;
+        long needMilli = (long)Math.Ceiling(remaining * 1000.0);
+        long spent = Math.Min(balanceMilli, needMilli);
+        double next = spent >= needMilli ? cost : Math.Min(cost, have + spent / 1000.0);
+        var row = new ResearchProgressRow(polity, node.Key, next);
+        if (r >= 0) owned.Progress[r] = row;
+        else rowOf[node.Index] = owned.Progress.Add(row);
+        return spent;
+    }
+
+    /// <summary>Inserts a CP account keeping the table in strictly ascending Polity order (ADR-043's invariant), shifting
+    /// the later rows — never a swap, so the canonical stream depends only on the set of holders.</summary>
+    private static void InsertAscending(Table<CivicsPointsRow> table, CivicsPointsRow row)
+    {
+        int at = table.Count;
+        for (int i = 0; i < table.Count; i++)
+            if (table[i].Polity.Value > row.Polity.Value) { at = i; break; }
+        table.Add(row);
+        for (int i = table.Count - 1; i > at; i--) table[i] = table[i - 1];
+        table[at] = row;
     }
 
     /// <summary>Adds a credited amount to the node's provenance row for that source (created on

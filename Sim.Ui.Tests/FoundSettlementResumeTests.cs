@@ -63,7 +63,7 @@ public class FoundSettlementResumeTests
         string log = Path.Combine(dir, "orders-20261011-120000.bin");
         try
         {
-            UiSession live = UiSession.Start(42);
+            UiSession live = UiSession.StartWith(TestFog.PreDiscovery, 42);
             live.ExportManifest("2026-10-11 12:00:00", log);
             int turnZeroCount = live.World.Settlements.Count;
             for (int t = 0; t < SavedTurns; t++)
@@ -97,7 +97,7 @@ public class FoundSettlementResumeTests
             live.Save(log);
             live.ExportTrace(UiSession.TracePath(log));
 
-            UiSession resumed = UiSession.Resume(UiSession.ManifestPath(log), out string resumedLog);
+            UiSession resumed = UiSession.Resume(UiSession.ManifestPath(log), out string resumedLog, TestFog.PreDiscovery);
             Assert.Equal(Path.GetFullPath(log), Path.GetFullPath(resumedLog));
             Assert.Empty(resumed.ResumeNotice);   // same schema: the trace was checked turn by turn
             Assert.Equal((long)SavedTurns, resumed.World.Clock.Turn);

@@ -41,13 +41,36 @@ namespace Sim.Core.Systems.Research;
 /// </list>
 /// No node id appears in code: every goal comes from content. Strategic research planning is later AI work.
 /// Player-commanded polities are never touched.
+///
+/// ADR-043 (D-062) — TWO LANES. When research.json tuning.civicsPoints is enabled, <see cref="DecideAll"/> returns up to
+/// TWO orders, one per lane (Technology, then Civics), each built by the rule above with every goal closure and the
+/// fallback RESTRICTED TO THE LANE'S TREE (<see cref="Choose(IReadOnlyWorldState, SimConfig, PolityId, bool[], bool[], ResearchTree)"/>):
+/// a lane orders only when IT has no live target. So the taxation goal's civic (taxation) is worked on the Civics lane,
+/// funded by Civics Points, while its technology prerequisites stay goal work on the Technology lane — the civic never
+/// waits on a lane that cannot fund its prerequisites. With civicsPoints off the policy is the one-pool rule above.
 /// </summary>
 public static class AiResearchPolicy
 {
-    /// <summary>The order the AI issues for <paramref name="polity"/> this turn, or null.</summary>
+    /// <summary>
+    /// The orders the AI issues for <paramref name="polity"/> this turn — ADR-043: in the two-lane model up to two, the
+    /// Technology lane's first, then the Civics lane's; in the one-pool model at most one (<see cref="Decide"/>).
+    /// </summary>
+    public static OrderRecord[] DecideAll(IReadOnlyWorldState world, SimConfig cfg, PolityId polity)
+    {
+        if (cfg.Research is not { } content) return [];
+        if (!content.Tuning.TwoLanes) return Decide(world, cfg, polity) is { } one ? [one] : [];
+        var orders = new List<OrderRecord>(2);
+        if (DecideLane(world, cfg, polity, ResearchTree.Technology) is { } tech) orders.Add(tech);
+        if (DecideLane(world, cfg, polity, ResearchTree.Civics) is { } civic) orders.Add(civic);
+        return [.. orders];
+    }
+
+    /// <summary>The order the AI issues for <paramref name="polity"/> this turn, or null — in the one-pool model its one
+    /// order; in the two-lane model (ADR-043) the TECHNOLOGY lane's (<see cref="DecideLane"/>).</summary>
     public static OrderRecord? Decide(IReadOnlyWorldState world, SimConfig cfg, PolityId polity)
     {
         if (cfg.Research is not { } content) return null;
+        if (content.Tuning.TwoLanes) return DecideLane(world, cfg, polity, ResearchTree.Technology);
         if (!EmpireQuery.TryGetCommandSource(world, polity, out CommandSource source) || source != CommandSource.Ai) return null;
         bool[] completed = ResearchQuery.CompletedMask(world, content, polity);
         bool[] available = ResearchQuery.AvailableMask(content, completed);
@@ -57,6 +80,39 @@ public static class AiResearchPolicy
 
         int choice = Choose(world, cfg, polity, completed, available);
         return choice < 0 ? null : ResearchQuery.TargetOrder(world, content, polity, content.Nodes[choice].Key);
+    }
+
+    /// <summary>ADR-043: the order the AI issues on ONE lane (the lane's tree), or null — only when that lane holds no
+    /// live target; the choice is <see cref="Choose(IReadOnlyWorldState, SimConfig, PolityId, bool[], bool[], ResearchTree)"/>.</summary>
+    public static OrderRecord? DecideLane(IReadOnlyWorldState world, SimConfig cfg, PolityId polity, ResearchTree lane)
+    {
+        if (cfg.Research is not { } content) return null;
+        if (!EmpireQuery.TryGetCommandSource(world, polity, out CommandSource source) || source != CommandSource.Ai) return null;
+        bool[] completed = ResearchQuery.CompletedMask(world, content, polity);
+        bool[] available = ResearchQuery.AvailableMask(content, completed);
+        if (ResearchQuery.TryGetTarget(world, content, polity, lane, out ResearchNodeId current)
+            && content.IndexOf(current) is int held and >= 0 && available[held]) return null;
+
+        int choice = Choose(world, cfg, polity, completed, available, lane);
+        return choice < 0 ? null : ResearchQuery.TargetOrder(world, content, polity, content.Nodes[choice].Key);
+    }
+
+    /// <summary>
+    /// ADR-043: the node the rule picks on ONE lane (dense index), or -1 — <see cref="Choose(IReadOnlyWorldState, SimConfig, PolityId, bool[], bool[])"/>
+    /// with every goal closure intersected with the lane's tree and the fallback restricted to it. The two argmins keep
+    /// their composite keys (remaining closure cost, goal ordinal) and (EffectiveCost, node key).
+    /// </summary>
+    public static int Choose(IReadOnlyWorldState world, SimConfig cfg, PolityId polity, bool[] completed, bool[] available, ResearchTree lane)
+    {
+        ResearchContent content = cfg.Research ?? throw new ArgumentException("the AI research policy needs research content", nameof(cfg));
+        var tree = new bool[content.Nodes.Count];
+        for (int i = 0; i < tree.Length; i++) tree[i] = content.Nodes[i].Tree == lane;
+        bool[][] goals = Goals(world, cfg, polity);
+        for (int g = 0; g < goals.Length; g++)
+            for (int i = 0; i < tree.Length; i++) goals[g][i] &= tree[i];
+        int goal = ChooseGoal(world, content, polity, goals, completed, available);
+        int best = goal >= 0 ? Cheapest(world, content, polity, available, goals[goal]) : -1;
+        return best >= 0 ? best : Cheapest(world, content, polity, available, tree);
     }
 
     /// <summary>The goal ordinals (the first component of the goal composite key).</summary>

@@ -28,6 +28,12 @@ public sealed class SnapshotFormatException(string message) : Exception(message)
 /// which a v33 load and a v34 save of the same state continued differently is refused by TurnExecutor) — and it carries
 /// the topology trailer as a v34 file does. A loaded ConstructionHolds table that no rule could have written (unsorted or duplicate (Purse, Good) keys,
 /// Units ≤ 0, Good &lt; 0) is refused (State.Reservations.InvariantViolation).
+///
+/// ADR-043 (schema v35): THE v35 FILE LAYOUT is the v34 one with the canonical stream running to section 62
+/// (CivicsPoints). <see cref="Load"/> accepts the readable SET {32, 33, 34, 35}: a v34 file's stream ends after section 61
+/// and its CivicsPoints table is left empty (every bank starts at zero — v34 had no CP). A loaded CivicsPoints table that
+/// no rule could have written (unsorted or duplicate Polity keys, a negative field, Balance ≠ Generated − Spent) is
+/// refused (ResearchQuery.CivicsPointsInvariantViolation).
 /// </summary>
 public static class Snapshot
 {
@@ -81,7 +87,7 @@ public static class Snapshot
         if (!CanonicalSchema.IsReadable(version))
             throw new SnapshotFormatException(
                 $"save is schema version {version}, this build reads only versions " +
-                $"32 and 33 (migrated) and {CanonicalSchema.Version}; saves break " +
+                $"32, 33 and 34 (migrated) and {CanonicalSchema.Version}; saves break " +
                 "between milestones by design (D-008) — no migration exists for this version. Re-derive the world " +
                 "via seed + order-log replay.");
 
@@ -183,5 +189,12 @@ public static class Snapshot
         // tables are.
         if (Reservations.InvariantViolation(world.ConstructionHolds) is { } holds)
             throw new SnapshotFormatException("save is corrupt: " + holds + " (schema v34 invariant).");
+        // ADR-043 (v35): the Civics Points accounts as only ResearchSystem writes them.
+        if (ResearchQuery.CivicsPointsInvariantViolation(world.CivicsPoints) is { } civics)
+            throw new SnapshotFormatException("save is corrupt: " + civics + " (schema v35 invariant).");
+        // M6 EX (v35, ADR-044): the four discovery tables as only DiscoverySystem writes them — strictly ascending keys,
+        // no zero extent word, radii and turns in range. A save no rule wrote is refused.
+        if (DiscoveryQuery.InvariantViolation(world) is { } discovery)
+            throw new SnapshotFormatException("save is corrupt: " + discovery + " (schema v35 invariant).");
     }
 }

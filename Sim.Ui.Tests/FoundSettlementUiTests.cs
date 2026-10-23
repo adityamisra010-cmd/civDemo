@@ -48,7 +48,7 @@ public class FoundSettlementUiTests : IDisposable
     /// --size map founds on its own cells too since D-052 — NonCanonicalSizeFoundingUiTests.)</summary>
     private static readonly Lazy<WorldState> Canonical = new(() => UiFounding.Found(42));
 
-    private static UiSession Fresh() => UiSession.StartFrom(Canonical.Value.Clone(), 42);
+    private static UiSession Fresh() => UiSession.StartFromWith(TestFog.PreDiscovery, Canonical.Value.Clone(), 42);
 
     private static string Hash(UiSession s) => WorldHash.ComputeHex(s.World);
 
@@ -463,7 +463,7 @@ public class FoundSettlementUiTests : IDisposable
         var known = new bool[core.LatticeSize * core.LatticeSize];
         for (int n = 0; n < known.Length; n++) known[n] = true;
         known[core.NodeOfCell(site)] = false;
-        UiSession s = UiSession.StartFrom(Canonical.Value.Clone(), 42, null, null, knowledgeOf: w => KnowledgeStubs.Over(w, Me, known));
+        UiSession s = UiSession.StartFromWith(TestFog.PreDiscovery, Canonical.Value.Clone(), 42, null, null, knowledgeOf: w => KnowledgeStubs.Over(w, Me, known));
         Assert.False(s.Knowledge.KnowsCell(site));
         Assert.Equal(FoundingVerdict.Legal, FoundingQuery.Check(s.World, s.Config, s.Sites!.Frontier, Me, new SettlementId(source), site));
 
@@ -612,7 +612,8 @@ public class FoundSettlementUiTests : IDisposable
         // The log the UI wrote passes replay validation and reproduces every turn's hash from the founded world.
         WorldState world = Canonical.Value.Clone();
         OrderValidation.ValidateAgainstWorld(s.Orders, world);
-        TurnExecutor exec = UiSession.BuildProductionExecutor(s.Orders);
+        // M6 Track EX: the session runs the production rules with the discovery layer off (Fresh), so the replay does too.
+        TurnExecutor exec = new(UiSession.ProductionEra(), UiSession.PipelineFor(TestFog.PreDiscovery), s.Orders);
         world = exec.Step(world);   // turn 0 -> 1 (the first End Turn, no orders)
         Assert.Equal(hashes[0], WorldHash.ComputeHex(world));
         Assert.True(SettlementAt(world, site) < 0);   // not before its delivery
@@ -639,18 +640,23 @@ public class FoundSettlementUiTests : IDisposable
     [Fact]
     public void UiPlacedFoundSettlementOrders_SavedByTheGame_ResumeHashIdentically_AndTheQueuedOneFoundsInBoth()
     {
-        UiSession live = UiSession.Start(42);
+        UiSession live = UiSession.Start(42);   // the production (fogged) session: a resume rebuilds under production
         using UiFrameHarness h = UiFrameHarness.Start(live, WorkDir("resume"), Assets());
         live.ExportManifest("2026-10-11 12:00:00", h.SessionLogPath);   // as Program.cs does, once, at launch
-        Assert.True(h.ClickControl("end-turn"));   // turn 1: the first order is stamped with a turn other than 0
+        // M6 EX (ADR-044): under the fog a site must be discovered before it is settled — two expeditions from every
+        // settlement (radius 3 → 9 nodes), each delivered by an End Turn, before the first order.
+        ExploreFromEverySettlement(live);
+        Assert.True(h.ClickControl("end-turn"));   // turn 1
+        ExploreFromEverySettlement(live);
+        Assert.True(h.ClickControl("end-turn"));   // turn 2: the first order is stamped with a turn other than 0
 
-        // ORDER 1, placed in the UI at turn 1 and played.
+        // ORDER 1, placed in the UI at turn 2 and played.
         int source = ChooseASite(h);
         int site = LegalSiteKnown(live, source);
         (double x, double y) = Aim(h, site);
         h.Click(x, y);
         Assert.True(h.ClickControl("found-confirm"));
-        Assert.Equal(1L, Assert.Single(live.QueuedOrders()).Turn);
+        Assert.Equal(2L, Assert.Single(live.QueuedOrders()).Turn);
         for (int t = 0; t < 3; t++) Assert.True(h.ClickControl("end-turn"));
         Assert.True(SettlementAt(live.World, site) >= 0, "the UI-placed order founded nothing");
 
@@ -702,6 +708,16 @@ public class FoundSettlementUiTests : IDisposable
         Assert.Equal(live.TraceLines.ToArray(), resumed.TraceLines.ToArray());
         Assert.Equal(live.NowUsableHistory.CanonicalLines().ToArray(), resumed.NowUsableHistory.CanonicalLines().ToArray());
         Assert.Empty(h.Problems);
+    }
+
+    /// <summary>M6 EX: one Explore from every settlement the player controls (each through the guarded emitter).</summary>
+    private static void ExploreFromEverySettlement(UiSession s)
+    {
+        for (int i = 0; i < s.World.Settlements.Count; i++)
+        {
+            SettlementId id = s.World.Settlements[i].Id;
+            if (EmpireQuery.ControlsSettlement(s.World, Me, id)) Assert.True(s.EmitExplore(id.Value));
+        }
     }
 }
 

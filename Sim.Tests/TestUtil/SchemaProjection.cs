@@ -20,6 +20,17 @@ namespace Sim.Tests.TestUtil;
 /// layout, so <see cref="V33"/> asserts the strip removed nothing — the batch-3 pins are reached through it, run under
 /// TestConfigs.PreReservations where the world could hold. <see cref="V32"/> keeps working: it now drops sections 59,
 /// 60 AND 61, and asserts all three empty.
+///
+/// ADR-043 (schema v35, 2026-10-22) — THE v34 PROJECTION, the same construction one schema later. v35 APPENDED one table
+/// after ConstructionHolds (section 62 CivicsPoints) and changed no existing row, so a world with no CP account serializes
+/// to the v34 stream plus one empty count prefix; <see cref="HashAtSchemaV34(WorldState, out int)"/> drops it and returns
+/// the hash the v34 build reported. A CP row is BEHAVIOUR (the two-lane model on), never layout, so <see cref="V34"/>
+/// asserts the strip removed nothing — the v34 pins are reached through it under TestConfigs.PreCivicsPoints, the
+/// one-pool twin. <see cref="V33"/> and <see cref="V32"/> now also drop section 62 and assert it empty.
+///
+/// M6 Track EX (schema v35, 2026-10-22; merged with Track CP): v35 also appends the four discovery tables (sections 63–66)
+/// after section 62; a discovery row is BEHAVIOUR (fog or concealment on), so every projection strips sections 62–66 and
+/// asserts them empty — the v34 pins are reached under TestConfigs.PreM6 (both M6 tracks off).
 /// </summary>
 public static class SchemaProjection
 {
@@ -28,6 +39,10 @@ public static class SchemaProjection
 
     /// <summary>The one table v34 appended (ConstructionHolds).</summary>
     public const int V34TableCount = 1;
+
+    /// <summary>The tables v35 appended: CivicsPoints (section 62, Track CP) and the four M6 EX discovery tables
+    /// (sections 63–66: KnownExtents, Explorations, SettlementSightings, SettlementSurveys).</summary>
+    public const int V35TableCount = 5;
 
     /// <summary>Bytes one empty table contributes to the stream: its count prefix.</summary>
     private const int EmptyTableBytes = 4;
@@ -49,13 +64,44 @@ public static class SchemaProjection
         return removed;
     }
 
-    /// <summary>The world's hash at schema v33: a Clone with the v34 table stripped, re-serialized, its empty count
+    /// <summary>Clears the v35 table IN PLACE (its entire footprint in the stream). Returns the rows removed.</summary>
+    public static int StripV35(WorldState stripped)
+    {
+        int removed = stripped.CivicsPoints.Count + stripped.KnownExtents.Count + stripped.Explorations.Count
+            + stripped.SettlementSightings.Count + stripped.SettlementSurveys.Count;
+        stripped.CivicsPoints.Clear();
+        stripped.KnownExtents.Clear();
+        stripped.Explorations.Clear();
+        stripped.SettlementSightings.Clear();
+        stripped.SettlementSurveys.Clear();
+        return removed;
+    }
+
+    /// <summary>The world's hash at schema v34: a Clone with the v35 table stripped, re-serialized, its empty count prefix
+    /// dropped (asserted zero), hashed. <paramref name="v35RowsRemoved"/> counts what the strip removed.</summary>
+    public static string HashAtSchemaV34(WorldState world, out int v35RowsRemoved)
+    {
+        WorldState stripped = world.Clone();
+        v35RowsRemoved = StripV35(stripped);
+        return HashDroppingTrailer(Serialize(stripped), V35TableCount);
+    }
+
+    /// <summary>A v34 pin's comparison form: the v34 hash of a world with NO Civics Points account (asserted — an account
+    /// is the two-lane model's behaviour, never layout).</summary>
+    public static string V34(WorldState world)
+    {
+        string hash = HashAtSchemaV34(world, out int removed);
+        Xunit.Assert.Equal(0, removed);
+        return hash;
+    }
+
+    /// <summary>The world's hash at schema v33: a Clone with the v35 and v34 tables stripped, re-serialized, its empty count
     /// prefix dropped (asserted zero), hashed. <paramref name="v34RowsRemoved"/> counts what the strip removed.</summary>
     public static string HashAtSchemaV33(WorldState world, out int v34RowsRemoved)
     {
         WorldState stripped = world.Clone();
-        v34RowsRemoved = StripV34(stripped);
-        return HashDroppingTrailer(Serialize(stripped), V34TableCount);
+        v34RowsRemoved = StripV35(stripped) + StripV34(stripped);
+        return HashDroppingTrailer(Serialize(stripped), V34TableCount + V35TableCount);
     }
 
     /// <summary>A batch-3 (v33) pin's comparison form: the v33 hash of a world with NO hold row (asserted — a published
@@ -73,8 +119,8 @@ public static class SchemaProjection
     public static string HashAtSchemaV32(WorldState world, out int v33RowsRemoved)
     {
         WorldState stripped = world.Clone();
-        v33RowsRemoved = StripV34(stripped) + StripV33(stripped);
-        return HashDroppingTrailer(Serialize(stripped), V33TableCount + V34TableCount);
+        v33RowsRemoved = StripV35(stripped) + StripV34(stripped) + StripV33(stripped);
+        return HashDroppingTrailer(Serialize(stripped), V33TableCount + V34TableCount + V35TableCount);
     }
 
     /// <summary>A pre-v33 pin's comparison form: the v32 hash of a world with NO v33 or v34 row (asserted — a world with

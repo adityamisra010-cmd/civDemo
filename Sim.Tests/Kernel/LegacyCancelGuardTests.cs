@@ -196,11 +196,18 @@ public class LegacyCancelGuardTests
     /// batch (nothing is built, both wait at p = 0), and at turn 3 a cancel of s0's slot 1 — <paramref name="legacy"/> the slot-only kind 11 an older build
     /// wrote, else the kind 13 this build's factory writes (ConstructionQuery.CancelOrder, read from the world it is issued
     /// in). <paramref name="noBuildersAt"/> moves the builders order (another log: another world).</summary>
-    private static (OrderLog Log, WorldState[] Worlds) Record(bool legacy, int turns = 6, long noBuildersAt = 0)
+    private static (OrderLog Log, WorldState[] Worlds) Record(bool legacy, int turns = 6, long noBuildersAt = 0, bool preDiscovery = false)
     {
         var log = new OrderLog();
         WorldState w = Sim.Cli.HeadlessFounding.Found(42, 256, 4);
-        var executor = new TurnExecutor(Sim.Cli.CliRecipes.Era(), Sim.Cli.CliRecipes.ProductionPipeline(), log);
+        // M6 Track EX (2026-10-22): <paramref name="preDiscovery"/> — a session labelled with a pre-v35 schema is replayed
+        // without the discovery layer (DiscoveryQuery.RecordedWithoutDiscovery), so it is recorded without it, as such a build
+        // played it.
+        Sim.Core.Kernel.SystemRegistration[] pipeline = Sim.Cli.CliRecipes.ProductionPipeline();
+        if (preDiscovery)
+            using (var pipe = Sim.Data.DataFiles.OpenPipeline())
+                pipeline = Sim.Core.Kernel.PipelineLoader.Load(pipe, Sim.Core.SystemCatalog.All(TestConfigs.PreDiscovery(TestConfigs.Sim()), Sim.Cli.CliRecipes.Worldgen()));
+        var executor = new TurnExecutor(Sim.Cli.CliRecipes.Era(), pipeline, log);
         var worlds = new List<WorldState> { w };
         for (int t = 0; t < turns; t++)
         {
@@ -414,12 +421,13 @@ public class LegacyCancelGuardTests
     [Fact]
     public void Inspect_ReplaysACompatibleHistoricalSession_InV34OrV33Form()
     {
-        (OrderLog legacy, WorldState[] worlds) = Record(legacy: true);
         foreach ((int schema, Func<WorldState, string> hash) in new (int, Func<WorldState, string>)[]
         {
             (CanonicalSchema.Version, WorldHash.ComputeHex), (33, w => WorldHash.ComputeHexAsSchema(w, 33)),
         })
         {
+            // M6 EX: the v33-labelled arm is recorded without the discovery layer (it replays without it).
+            (OrderLog legacy, WorldState[] worlds) = Record(legacy: true, preDiscovery: schema < 35);
             string dir = TempDir();
             try
             {

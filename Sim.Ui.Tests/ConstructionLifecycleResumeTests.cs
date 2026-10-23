@@ -57,7 +57,7 @@ public class ConstructionLifecycleResumeTests
     /// <summary>The Q17 rig at turn 2 (the fixture's recipe through the emitters): the manifest exported at the start.</summary>
     private static UiSession Q17(string log, bool? wrapX = null)
     {
-        UiSession live = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1, wrapXOverride: wrapX);
+        UiSession live = UiSession.StartWith(TestFog.PreDiscovery, 42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1, wrapXOverride: wrapX);
         live.ExportManifest(StartedAt, log);
         Assert.True(live.EmitAllocationOrder(30));
         Assert.True(live.EmitConstructionOrder(S0.Value, Granary));
@@ -72,7 +72,7 @@ public class ConstructionLifecycleResumeTests
     {
         live.Save(log);
         live.ExportTrace(UiSession.TracePath(log));
-        return UiSession.Resume(UiSession.ManifestPath(log), out _);
+        return UiSession.Resume(UiSession.ManifestPath(log), out _, TestFog.PreDiscovery);
     }
 
     private static TurnExecutor Production(SimConfig cfg, OrderLog orders)
@@ -85,7 +85,9 @@ public class ConstructionLifecycleResumeTests
     /// this project does not reference Sim.Tests), delivering <paramref name="orders"/>.</summary>
     private static TurnExecutor Twin(bool reservations, OrderLog orders)
     {
-        SimConfig c = UiFounding.ProductionConfig();
+        // M6 EX (2026-10-22): the rig runs the pre-M6 economy (TestFog.PreDiscovery — a hidden stone deposit would move every
+        // figure below), so its twins are built on the same config.
+        SimConfig c = TestFog.PreDiscovery;
         // D-058 (2026-10-19) CAUSE BLOCK: TestConfigs.PreReservations now also switches off the newer continueWithinTurn
         // layer (the R4 rule: the batch-3 rule had no in-step continuation), so the restatement does too.
         return Production(reservations ? c : c with { Construction = c.Construction! with { Reservations = false, ContinueWithinTurn = false } }, orders);
@@ -148,16 +150,23 @@ public class ConstructionLifecycleResumeTests
 
     /// <summary>The world's hash at schema v33 (Sim.Tests' SchemaProjection.HashAtSchemaV33, restated): a clone with the v34
     /// table (section 61, ConstructionHolds) cleared, serialized, its empty count prefix (4 zero bytes) dropped, SHA-256.</summary>
+    /// ADR-043 (2026-10-22) CAUSE BLOCK: v35 appends CivicsPoints (section 62) after it. Every Empire accrues Civics Points
+    /// from turn 1 under this build's rules; on these ≤ 6-turn worlds no civic is yet available, so the accounts are Track
+    /// CP's whole footprint (Sim.Tests' CivicsPointsAttributionTests) — the projection clears them too and drops 8 bytes.
     private static string HashAtSchemaV33(WorldState world, out int holdRows)
     {
         WorldState c = world.Clone();
         holdRows = c.ConstructionHolds.Count;
         c.ConstructionHolds.Clear();
+        Assert.True(c.CivicsPoints.Count <= c.Polities.Count, "one CP account per Empire at most");
+        c.CivicsPoints.Clear();
+        // M6 EX (v35): the four discovery tables follow section 62 — asserted empty (the rig runs without discovery) and dropped.
+        Assert.Equal(0, c.KnownExtents.Count + c.Explorations.Count + c.SettlementSightings.Count + c.SettlementSurveys.Count);
         using var buffer = new MemoryStream();
         using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true)) CanonicalSchema.Write(c, writer);
         byte[] full = buffer.ToArray();
-        for (int i = full.Length - 4; i < full.Length; i++) Assert.Equal(0, full[i]);
-        return Convert.ToHexStringLower(SHA256.HashData(full.AsSpan(0, full.Length - 4)));
+        for (int i = full.Length - 24; i < full.Length; i++) Assert.Equal(0, full[i]);
+        return Convert.ToHexStringLower(SHA256.HashData(full.AsSpan(0, full.Length - 24)));
     }
 
     // ================================================================== kinds 11 and 12 pending across the save (M-C)
@@ -293,7 +302,7 @@ public class ConstructionLifecycleResumeTests
         string dir = TempDir(out string log);
         try
         {
-            UiSession live = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1);
+            UiSession live = UiSession.StartWith(TestFog.PreDiscovery, 42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1);
             live.ExportManifest(StartedAt, log);
             Assert.True(live.EmitConstructionOrder(S0.Value, Granary));
             Assert.True(live.EmitConstructionOrder(S0.Value, Granary));
@@ -420,14 +429,14 @@ public class ConstructionLifecycleResumeTests
             Assert.Equal(WorldHash.ComputeHex(live.World), WorldHash.ComputeHex(resumed.World));
             OrderLog saved;
             using (FileStream f = File.OpenRead(log)) saved = OrderLog.Load(f);
-            UiSession fresh = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1, wrapXOverride: false);
+            UiSession fresh = UiSession.StartWith(TestFog.PreDiscovery, 42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1, wrapXOverride: false);
             fresh.ReplayTo(saved, 3);
             Assert.Equal(WorldHash.ComputeHex(fresh.World), WorldHash.ComputeHex(resumed.World));
 
             int stone = StoneId(resumed);
             Assert.Equal((600_000L, 0L, 7L), (P(resumed.World, S0), P(resumed.World, S2), Held(resumed.World, stone)));
             Assert.InRange(P(resumed.World, S0), 1, N - 1);                                    // a part-built row
-            UiSession at2 = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1, wrapXOverride: false);
+            UiSession at2 = UiSession.StartWith(TestFog.PreDiscovery, 42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1, wrapXOverride: false);
             at2.ReplayTo(saved, 2);                                                           // the turn-2 batch re-queued
             Assert.Equal(WorldHash.ComputeHex(resumed.World), WorldHash.ComputeHex(Twin(true, at2.Orders).Step(at2.World)));
             Assert.Equal(350_000, P(Twin(false, at2.Orders).Step(at2.World), S2));             // the binding premise
@@ -480,11 +489,11 @@ public class ConstructionLifecycleResumeTests
         }
 
         // (ii)
-        UiSession two = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1);
+        UiSession two = UiSession.StartWith(TestFog.PreDiscovery, 42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1);
         two.ReplayTo(saved, 2);
         Assert.Equal(Hash(2), HashAtSchemaV33(two.World, out int heldAt2));
         Assert.True(heldAt2 > 0, "anti-vacuity: set-asides are published at turn 2 (binding nothing yet)");
-        UiSession three = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1);
+        UiSession three = UiSession.StartWith(TestFog.PreDiscovery, 42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1);
         three.ReplayTo(saved, 3);
         Assert.NotEqual(Hash(3), HashAtSchemaV33(three.World, out _));
         Assert.Equal((700_000L, 150_000L, 6L), (P(three.World, S0), P(three.World, S2), Held(three.World, StoneId(three))));
@@ -500,7 +509,7 @@ public class ConstructionLifecycleResumeTests
             Assert.Equal(UiSession.SchemaMismatchNotice(33, CanonicalSchema.Version), resumed.ResumeNotice);
             Assert.Equal("Resumed by replaying its seed and orders (D-008).", resumed.ResumeNotice[1]);
             Assert.True(resumed.World.Terrain!.WrapX);
-            UiSession six = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1);
+            UiSession six = UiSession.StartWith(TestFog.PreDiscovery, 42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1);
             six.ReplayTo(saved, 6);
             Assert.Equal(WorldHash.ComputeHex(six.World), WorldHash.ComputeHex(resumed.World));
             Assert.NotEqual(Hash(6), HashAtSchemaV33(resumed.World, out _));                 // the world differs from the one played
@@ -543,7 +552,8 @@ public class ConstructionLifecycleResumeTests
             // The batch-3 recording (the PreReservations twin): the player's orders through the very factories the emitters
             // use (the legacy arm writes the slot-only order the batch-3 factory wrote), the AI's appended each turn, a trace
             // line per turn in the v33 form.
-            SimConfig c = UiFounding.ProductionConfig();
+            // M6 Track EX (2026-10-22): batch 3 played without the discovery layer (v35), as Resume replays it.
+            SimConfig c = TestFog.PreDiscovery;
             // D-058 (2026-10-19) CAUSE BLOCK: the batch-3 rule had no in-step continuation either (ContinueWithinTurn false).
             SimConfig batch3 = c with { Construction = c.Construction! with { Reservations = false, ContinueWithinTurn = false } };
             WorldState w = UiFounding.Found(42, 256, 4, 1);
@@ -589,13 +599,13 @@ public class ConstructionLifecycleResumeTests
             // The session files, as the batch-3 build wrote them (schema v33).
             using (FileStream o = File.Create(log)) recorded.Save(o);
             File.WriteAllText(UiSession.TracePath(log), string.Join("\n", traceLines) + "\n");
-            SessionManifest m = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1).Manifest(StartedAt, log);
+            SessionManifest m = UiSession.StartWith(TestFog.PreDiscovery, 42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1).Manifest(StartedAt, log);
             using (FileStream o = File.Create(UiSession.ManifestPath(log))) (m with { SchemaVersion = 33, BuildSha = "b3-final" }).Write(o);
 
             // This build's replay up to the cancel's batch: s2's FIRST granary still in slot 0, the turn-5 one in slot 1.
             var upToTheCancel = new OrderLog();
             for (int i = 0; i < recorded.Count; i++) if (recorded[i].Turn < 6) upToTheCancel.Append(recorded[i]);
-            UiSession at6 = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1);
+            UiSession at6 = UiSession.StartWith(TestFog.PreDiscovery, 42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1);
             at6.ReplayTo(upToTheCancel, 6);
             Assert.Equal(new[] { (0, 1L, 500_000L), (1, 5L, 0L) }, Entries(at6.World, S2));
             Assert.Equal(0, ConstructionQuery.Built(at6.World, S2, Granary));
@@ -621,10 +631,10 @@ public class ConstructionLifecycleResumeTests
                 return;
             }
 
-            UiSession resumed = UiSession.Resume(UiSession.ManifestPath(log), out _);
+            UiSession resumed = UiSession.Resume(UiSession.ManifestPath(log), out _, TestFog.PreDiscovery);
             Assert.Equal(UiSession.SchemaMismatchNotice(33, CanonicalSchema.Version), resumed.ResumeNotice);
             Assert.Equal(8, resumed.World.Clock.Turn);
-            UiSession at7 = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1);
+            UiSession at7 = UiSession.StartWith(TestFog.PreDiscovery, 42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1);
             at7.ReplayTo(recorded, 7);
             (int Slot, long Key, long P)[] after = Entries(at7.World, S2);
             Assert.DoesNotContain(after, e => e.Key == 5);                                          // the cancelled entry is gone

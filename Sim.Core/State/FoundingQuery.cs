@@ -37,6 +37,10 @@ public enum FoundingVerdict
     /// <summary>"Reachable": no land route exists from the source to the site on the road-aware lattice
     /// (Pathfinder.FindPath finds none).</summary>
     Unreachable = 11,
+    /// <summary>M6 EX (D-062 rule E8; ADR-044): the site's lattice node is not in the issuer's KNOWN extent
+    /// (PolityKnowledge.Of under sim.json fog — D-040 B1, "settlement operates only within known extent"). Never with the
+    /// fog off.</summary>
+    UnknownSite = 12,
 }
 
 /// <summary>
@@ -66,9 +70,11 @@ public enum FoundingVerdict
 ///   CatchmentSystem also builds) plus the judged world's network overlay finds a route from the source's origin
 ///   node to the site's — binary connectivity, no travel budget, so no new constant.</item>
 /// </list>
-/// THE KNOWN-EXTENT ARM (D-040 B1: "settlement operates only within known extent") has no state to read: no
-/// discovered-extent table exists until S2a. Every cell is known today; the arm belongs between 2 and 3 when the
-/// state lands.
+/// THE KNOWN-EXTENT ARM (D-040 B1: "settlement operates only within known extent"; M6 EX rule E8, ADR-044): between 2
+/// and 3 — the site's node must be KNOWN to the issuer (<see cref="PolityKnowledge.Of(IReadOnlyWorldState, PolityId, SimConfig?)"/>
+/// on the judged world, the very predicate the UI's placement mode and the AI's pre-filter read), else
+/// <see cref="FoundingVerdict.UnknownSite"/>. With the fog off every cell is known and the arm never fires. Emergent
+/// D-037 B1 colonization (people, not a state) never asks it — a recorded deviation.
 ///
 /// WHICH WORLD. Every arm is judged on the world passed as <c>world</c> — at delivery that is PREV, the state of
 /// the turn the order was stamped in, which is exactly the world the issuer (UI or AI) judged it on. That is the
@@ -116,7 +122,7 @@ public static class FoundingQuery
         IReadOnlyWorldState world, SimConfig cfg, SettlementSiting.FrontierSiting frontier,
         PolityId issuer, SettlementId source, int siteCell)
     {
-        FoundingVerdict head = SourceAndSite(world, frontier, issuer, source, siteCell, out int sourceCell);
+        FoundingVerdict head = SourceAndSite(world, cfg, frontier, issuer, source, siteCell, out int sourceCell);
         if (head != FoundingVerdict.Legal) return head;
         var occupied = new int[world.Settlements.Count];
         for (int i = 0; i < occupied.Length; i++) occupied[i] = world.Settlements[i].SiteCell;
@@ -133,7 +139,7 @@ public static class FoundingQuery
         ReadOnlySpan<double> spacing, ReadOnlySpan<int> occupied,
         PolityId issuer, SettlementId source, int siteCell)
     {
-        FoundingVerdict head = SourceAndSite(world, frontier, issuer, source, siteCell, out int sourceCell);
+        FoundingVerdict head = SourceAndSite(world, cfg, frontier, issuer, source, siteCell, out int sourceCell);
         if (head != FoundingVerdict.Legal) return head;
         return Rest(world, cfg, frontier, spacing, occupied, source, sourceCell, siteCell);
     }
@@ -159,7 +165,7 @@ public static class FoundingQuery
 
     /// <summary>Arms 1–2: the source and the static site rules.</summary>
     private static FoundingVerdict SourceAndSite(
-        IReadOnlyWorldState world, SettlementSiting.FrontierSiting frontier,
+        IReadOnlyWorldState world, SimConfig cfg, SettlementSiting.FrontierSiting frontier,
         PolityId issuer, SettlementId source, int siteCell, out int sourceCell)
     {
         sourceCell = -1;
@@ -172,7 +178,8 @@ public static class FoundingQuery
         if ((uint)siteCell >= (uint)frontier.Scores.Length) return FoundingVerdict.OffMap;
         if (!SettlementSiting.IsFrontierCandidate(frontier, terrain, siteCell))
             return terrain.Water[siteCell] >= 0.5 ? FoundingVerdict.Water : FoundingVerdict.PoorSite;
-        // D-040 B1 known-extent arm: inert until a discovered-extent state exists (S2a). Every cell is known.
+        // D-040 B1 / M6 EX rule E8: the site must lie in the issuer's KNOWN extent (all-known with the fog off).
+        if (DiscoveryQuery.FogOn(cfg) && !PolityKnowledge.Of(world, issuer, cfg).KnowsCell(siteCell)) return FoundingVerdict.UnknownSite;
         return FoundingVerdict.Legal;
     }
 

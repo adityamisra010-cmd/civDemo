@@ -112,7 +112,9 @@ public class SeamCrossingShippedWorldTests
     [Fact]
     public void Seed16_WithTradeAndRecipesKnown_AMigrantCrossesTheSeam_FromTheOnlySettlementsThatMaySendTo()
     {
-        SimConfig cfg = TestConfigs.Sim();
+        // M6 Track EX (2026-10-22): an older-layer (batch-3 seam) existence rig — the discovery layer off (R4; MEASURED under
+        // the shipped concealment: "no migration step within the horizon came only from across the seam").
+        SimConfig cfg = TestConfigs.PreM6(TestConfigs.Sim());
         WorldState w = TestConfigs.KnowRecipes(TestConfigs.KnowTrade(WorldFounding.Found(TestConfigs.Worldgen(), cfg, 16), cfg), cfg);
         Assert.True(w.Terrain!.WrapX);
         TurnExecutor ex = UniversityRigs.Production(cfg);

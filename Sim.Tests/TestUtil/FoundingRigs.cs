@@ -19,7 +19,11 @@ namespace Sim.Tests.TestUtil;
 /// </summary>
 internal static class FoundingRigs
 {
-    internal static SimConfig Cfg() => TestConfigs.Sim();
+    /// <summary>The founding rigs' config. M6 Track EX (2026-10-22): the discovery layer OFF (TestConfigs.PreDiscovery —
+    /// the R4 rule: an older layer's rig strips the newer layer). The rigs judge the founding predicate's pre-M6 arms on
+    /// sites anywhere on the map; under the shipped fog every site outside a settlement's seed disc is UnknownSite. The
+    /// known-extent arm has its own tests (DiscoveryTests.Founding_OnANodeTheIssuerDoesNotKnow_IsRefused…).</summary>
+    internal static SimConfig Cfg() => TestConfigs.PreDiscovery(TestConfigs.Sim());
 
     /// <summary>The production pipeline over <paramref name="cfg"/> (worldgen siting config attached, so
     /// colonization is live), reading <paramref name="orders"/>.</summary>

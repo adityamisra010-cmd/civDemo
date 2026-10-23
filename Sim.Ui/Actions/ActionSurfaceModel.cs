@@ -90,13 +90,28 @@ public sealed record ResearchItem(long Key, string Name, double Cost, double Pro
 /// </summary>
 public sealed record ResearchBlock(
     ResearchItem? Target, ResearchItem? Chosen, bool ClearQueued, double PointsPerTurn, int Available,
-    ImmutableArray<ResearchItem> Retained, bool CanClear)
+    ImmutableArray<ResearchItem> Retained, bool CanClear, CivicsLine? Civics = null)
 {
     /// <summary>The target the next End Turn will research: the one chosen this turn, else none if a clear is
     /// queued, else the current target.</summary>
     public ResearchItem? Effective => Chosen ?? (ClearQueued ? null : Target);
 
     /// <summary>Research points are idle: nothing will be researched at the next End Turn.</summary>
+    public bool Idle => Effective is null;
+}
+
+/// <summary>
+/// ADR-043 — THE CIVICS LINE of the two-lane model: the Civics target (funded by Civics Points, separate from the
+/// Technology target above it), a civic chosen this turn, a queued clear of the Civics lane, the CP a turn accrues, the
+/// banked balance, and whether the Civics target can be cleared (order −2). Null in the one-pool model.
+/// </summary>
+public sealed record CivicsLine(
+    ResearchItem? Target, ResearchItem? Chosen, bool ClearQueued, double PointsPerTurn, double Balance, bool CanClear)
+{
+    /// <summary>The civic the next End Turn will fund.</summary>
+    public ResearchItem? Effective => Chosen ?? (ClearQueued ? null : Target);
+
+    /// <summary>No civic is being funded: Civics Points are banked (never lost).</summary>
     public bool Idle => Effective is null;
 }
 
@@ -220,6 +235,15 @@ public sealed record ProductionBlock(ImmutableArray<ProductionEntry> Entries);
 /// map in the placement mode; nothing here is an order until the placement's Confirm.</summary>
 public sealed record FoundingBlock(SettlementId Source, string Name, string Detail, ImmutableArray<SettlementId> Sources, ActionDescriptor Action);
 
+/// <summary>M6 Track EX (D-062 D9; ADR-044): one row of the ACTIONS menu — a settlement the player controls, with its
+/// Explore descriptor (fog on) and Prospect descriptor (concealment on), each carrying its cost (Detail) and, when the
+/// predicate refuses it now, its blocker.</summary>
+public sealed record DiscoveryEntry(SettlementId Settlement, string Name, ActionDescriptor? Explore, ActionDescriptor? Prospect);
+
+/// <summary>M6 Track EX (D-062 D9): THE ACTIONS MENU — separate from the Construction block — exactly the
+/// ActionDomain.Discovery descriptors the query returns, grouped by settlement in its order.</summary>
+public sealed record DiscoveryBlock(ImmutableArray<DiscoveryEntry> Entries, ImmutableArray<string> Refused = default);
+
 /// <summary>What the people do on their own — standing capabilities, one compact list, no controls. M5 polish:
 /// <c>Subjects</c> is each item's info subject (parallel to <c>Items</c>) for Shift+click.</summary>
 public sealed record StandingBlock(ImmutableArray<string> Items, ImmutableArray<InfoSubject> Subjects = default);
@@ -242,7 +266,7 @@ public sealed record ActionSurfaceModel(
     LabourBlock? Labour, ResearchBlock? Research, AgeBlock? Age, ConstructionBlock? Construction, RoadsBlock? Roads,
     MilitaryBlock? Military, GovernanceBlock? Governance, StandingBlock? Standing, ImmutableArray<string> Notices,
     ProductionBlock? Production = null, ImmutableArray<LockedDomain> Locked = default, FoundingBlock? Founding = null,
-    AllocationBlock? Allocation = null)
+    AllocationBlock? Allocation = null, DiscoveryBlock? Discovery = null)
 {
     /// <summary>The domains the surface shows, in the query's domain order.</summary>
     public ImmutableArray<ActionDomain> Domains
@@ -261,6 +285,7 @@ public sealed record ActionSurfaceModel(
             if (Production is not null) b.Add(ActionDomain.Production);
             if (Founding is not null) b.Add(ActionDomain.Colonization);
             if (Allocation is not null) b.Add(ActionDomain.ResourceAllocation);
+            if (Discovery is not null) b.Add(ActionDomain.Discovery);
             return b.ToImmutable();
         }
     }
@@ -271,7 +296,8 @@ public sealed record ActionSurfaceModel(
 /// the selection, the not-yet-stepped orders, the name registry and the era theme.</summary>
 public sealed record ActionSurfaceInput(
     IReadOnlyWorldState World, IReadOnlyWorldState? Previous, SimConfig Config, EraTable Era, PolityId Player,
-    int Selected, IReadOnlyList<OrderRecord> Queued, Func<int, string> Name, EraTheme Theme);
+    int Selected, IReadOnlyList<OrderRecord> Queued, Func<int, string> Name, EraTheme Theme,
+    IReadOnlyList<OrderRecord>? Delivered = null);   // M6 EX: the batch the last step delivered (its refusals are explained)
 
 /// <summary>
 /// BUILDS the action surface (ADR-033 D1/D2). Pure and read-only: it calls
@@ -314,7 +340,38 @@ public static class ActionSurface
             Production(input, actions),
             Locked(input, actions, target),
             Founding(input, actions),
-            allocation);
+            allocation,
+            Discovery(input, actions));
+    }
+
+    // ------------------------------------------------------------------ the Actions menu (M6 Track EX, ADR-044)
+
+    /// <summary>The Actions block: present iff the query lists a Discovery descriptor; one entry per settlement, in the
+    /// query's order (descriptor id = settlement × 2 + 0 explore / 1 prospect).</summary>
+    private static DiscoveryBlock? Discovery(ActionSurfaceInput input, ImmutableArray<ActionDescriptor> actions)
+    {
+        var entries = new List<DiscoveryEntry>();
+        foreach (ActionDescriptor a in actions)
+        {
+            if (a.Domain != ActionDomain.Discovery) continue;
+            int settlement = (int)(a.Id >> 1);
+            bool prospect = (a.Id & 1) == 1;
+            int at = entries.Count - 1;
+            if (at < 0 || entries[at].Settlement.Value != settlement)
+            {
+                entries.Add(new DiscoveryEntry(new SettlementId(settlement), input.Name(settlement), null, null));
+                at = entries.Count - 1;
+            }
+            entries[at] = prospect ? entries[at] with { Prospect = a } : entries[at] with { Explore = a };
+        }
+        if (entries.Count == 0) return null;
+        // M6 EX (ADR-044 §5): an order the last step refused at delivery (the preview admitted it on the published stocks;
+        // the step's own draw found less) is explained here, after the step.
+        var refused = ImmutableArray.CreateBuilder<string>();
+        if (input.Previous is { } prev && input.Delivered is { } delivered)
+            foreach ((OrderKind kind, SettlementId s, long cost) in DiscoveryQuery.RefusedAtDelivery(prev, input.World, input.Config, delivered, input.Player))
+                refused.Add(DiscoveryQuery.RefusalText(kind, input.Name(s.Value), cost));
+        return new DiscoveryBlock([.. entries], refused.ToImmutable());
     }
 
     // ------------------------------------------------------------------ the materials split (WS2, D-054)
@@ -350,7 +407,8 @@ public static class ActionSurface
     /// <remarks>P7 review: a selection the session's knowledge hides is passed as no selection (−1), so no note names it.</remarks>
     public static ActionSurfaceModel ForSession(UiSession session, EraTable era, int selected, EraTheme theme) =>
         Build(new ActionSurfaceInput(session.World, session.PreviousWorld, session.Config, era, UiPlayer.Empire,
-            session.Knowledge.IsHiddenSettlement(selected) ? -1 : selected, session.QueuedOrders(), id => session.Names.Name(id), theme));
+            session.Knowledge.IsHiddenSettlement(selected) ? -1 : selected, session.QueuedOrders(), id => session.Names.Name(id), theme,
+            session.LastDelivered));
 
     // ------------------------------------------------------------------ labour
 
@@ -523,39 +581,67 @@ public static class ActionSurface
     private static ResearchBlock? Research(ActionSurfaceInput input, ImmutableArray<ActionDescriptor> actions)
     {
         if (input.Config.Research is not { } content) return null;
-        ActionDescriptor? set = null, clear = null;
+        bool twoLanes = content.Tuning.TwoLanes;
+        ActionDescriptor? set = null, clear = null, clearCivic = null;
         foreach (ActionDescriptor a in actions)
         {
             if (a.Domain != ActionDomain.Research) continue;
             if (string.Equals(a.Key, "research.set-target", StringComparison.Ordinal)) set = a;
             if (string.Equals(a.Key, "research.clear-target", StringComparison.Ordinal)) clear = a;
+            if (string.Equals(a.Key, "research.clear-civics-target", StringComparison.Ordinal)) clearCivic = a;
         }
-        if (set is null && clear is null) return null;
+        if (set is null && clear is null && clearCivic is null) return null;
 
-        ResearchItem? target = null;
+        ResearchItem? target = null, civicTarget = null;
         if (clear is not null) target = Item(clear.Targets[0]);
+        if (clearCivic is not null) civicTarget = Item(clearCivic.Targets[0]);
         var retained = ImmutableArray.CreateBuilder<ResearchItem>();
         if (set is not null)
             foreach (ActionTarget t in set.Targets)
             {
-                if (t.Current) target ??= Item(t);
+                if (t.Current)
+                {
+                    if (twoLanes && IsCivic(content, t.Id)) civicTarget ??= Item(t);
+                    else target ??= Item(t);
+                }
                 else if (t.Progress is > 0.0) retained.Add(Item(t));
             }
 
-        int? queued = QueuedResearchChoice(input.Queued, input.Player);
-        ResearchItem? chosen = null;
-        if (queued is > 0 && content.IndexOf(new ResearchNodeId(queued.Value)) is int idx and >= 0)
-        {
-            ResearchNode n = content.Nodes[idx];
-            chosen = new ResearchItem(n.Key.Value, n.Name, ResearchQuery.EffectiveCost(input.World, content, input.Player, idx),
-                ResearchQuery.Progress(input.World, input.Player, n.Key), "");
-            // A retained node chosen this turn is the choice, not a leftover.
-            for (int i = retained.Count - 1; i >= 0; i--) if (retained[i].Key == chosen.Key) retained.RemoveAt(i);
-        }
-        bool clearQueued = queued == -1;
+        int? queued = twoLanes
+            ? QueuedResearchChoice(input.Queued, input.Player, content, ResearchTree.Technology)
+            : QueuedResearchChoice(input.Queued, input.Player);
+        ResearchItem? chosen = Chosen(input, content, queued, retained);
+        bool clearQueued = queued == ResearchQuery.ClearTechnologyTargetId;
         bool canClear = !clearQueued && (clear is not null || chosen is not null);
+
+        CivicsLine? civics = null;
+        if (twoLanes)
+        {
+            int? civicQueued = QueuedResearchChoice(input.Queued, input.Player, content, ResearchTree.Civics);
+            ResearchItem? civicChosen = Chosen(input, content, civicQueued, retained);
+            bool civicClearQueued = civicQueued == ResearchQuery.ClearCivicsTargetId;
+            civics = new CivicsLine(civicTarget, civicChosen, civicClearQueued,
+                ResearchQuery.CivicsPointsMilli(input.World, content, input.Player, input.World.Clock.DtYears) / 1000.0,
+                ResearchQuery.CivicsPointsBalance(input.World, input.Player),
+                !civicClearQueued && (clearCivic is not null || civicChosen is not null));
+        }
         return new ResearchBlock(target, chosen, clearQueued, ResearchQuery.ResearchPointPool(input.World, content, input.Player),
-            set?.Targets.Length ?? 0, retained.ToImmutable(), canClear);
+            set?.Targets.Length ?? 0, retained.ToImmutable(), canClear, civics);
+    }
+
+    private static bool IsCivic(ResearchContent content, long key) =>
+        content.IndexOf(new ResearchNodeId((int)key)) is int i and >= 0 && content.Nodes[i].Tree == ResearchTree.Civics;
+
+    /// <summary>The node a queued directive names (a key &gt; 0), as an item — removed from the retained list (a retained
+    /// node chosen this turn is the choice, not a leftover); null for a clear or no directive.</summary>
+    private static ResearchItem? Chosen(ActionSurfaceInput input, ResearchContent content, int? queued, ImmutableArray<ResearchItem>.Builder retained)
+    {
+        if (queued is not > 0 || content.IndexOf(new ResearchNodeId(queued.Value)) is not (int idx and >= 0)) return null;
+        ResearchNode n = content.Nodes[idx];
+        var chosen = new ResearchItem(n.Key.Value, n.Name, ResearchQuery.EffectiveCost(input.World, content, input.Player, idx),
+            ResearchQuery.Progress(input.World, input.Player, n.Key), "");
+        for (int i = retained.Count - 1; i >= 0; i--) if (retained[i].Key == chosen.Key) retained.RemoveAt(i);
+        return chosen;
     }
 
     private static ResearchItem Item(ActionTarget t) => new(t.Id, t.Label, t.Cost ?? 0.0, t.Progress ?? 0.0, t.Detail ?? "");
@@ -567,6 +653,23 @@ public static class ActionSurface
         int? choice = null;
         for (int i = 0; i < queued.Count; i++)
             if (queued[i].Kind == OrderKind.SetResearchTarget && queued[i].ActorId == player.Value) choice = queued[i].TargetId;
+        return choice;
+    }
+
+    /// <summary>ADR-043: the player's directive queued this turn on ONE lane, as ResearchSystem will apply it — the LAST
+    /// of its SetResearchTarget orders that name a node of the lane's tree or the lane's clear (−1 Technology, −2
+    /// Civics), or null.</summary>
+    public static int? QueuedResearchChoice(IReadOnlyList<OrderRecord> queued, PolityId player, ResearchContent content, ResearchTree lane)
+    {
+        int clearId = lane == ResearchTree.Civics ? ResearchQuery.ClearCivicsTargetId : ResearchQuery.ClearTechnologyTargetId;
+        int? choice = null;
+        for (int i = 0; i < queued.Count; i++)
+        {
+            if (queued[i].Kind != OrderKind.SetResearchTarget || queued[i].ActorId != player.Value) continue;
+            int id = queued[i].TargetId;
+            if (id == clearId) { choice = id; continue; }
+            if (id > 0 && content.IndexOf(new ResearchNodeId(id)) is int x and >= 0 && content.Nodes[x].Tree == lane) choice = id;
+        }
         return choice;
     }
 

@@ -92,7 +92,7 @@ public sealed class OverlayKeyFitTests : IDisposable
     [MemberData(nameof(Windows))]
     public void TheKey_FitsTheClearMap_AndKeepsOffItsCentreLine_WithOneToSixLayers(int width, int height)
     {
-        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("fit-" + width), Assets(), width: width, height: height);
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.StartWith(TestFog.PreDiscovery, 42), WorkDir("fit-" + width), Assets(), width: width, height: height);
         List<OverlayKey> keys = ShowEveryLayer(h);
         Assert.Equal(6, keys.Count);
         for (int i = 0; i < keys.Count; i++) AssertFits(h, keys[i], (i + 1) + " layers at " + width + "x" + height);
@@ -163,7 +163,7 @@ public sealed class OverlayKeyFitTests : IDisposable
     [InlineData(1280, 800)]
     public void EveryRow_IsReachableByTheWheelOverTheKey_AndFrameTextHoldsEveryLineScrolledThrough(int width, int height)
     {
-        using UiFrameHarness h = UiFrameHarness.Start(UiSession.Start(42), WorkDir("scroll-" + width), Assets(), width: width, height: height);
+        using UiFrameHarness h = UiFrameHarness.Start(UiSession.StartWith(TestFog.PreDiscovery, 42), WorkDir("scroll-" + width), Assets(), width: width, height: height);
         ShowEveryLayer(h);
         Assert.True(h.ClickControl(GameUi.OverlaysControl));
         h.Idle(2);
@@ -228,7 +228,7 @@ public sealed class OverlayKeyFitTests : IDisposable
     [Fact]
     public void WithSixLayersAndTheCardOpen_AClickOnTheOwnFormationTokenAtTheMapCentre_SelectsIt()
     {
-        UiSession s = UiSession.Start(42, aiEmpiresOverride: 1);
+        UiSession s = UiSession.StartWith(TestFog.PreDiscovery, 42, aiEmpiresOverride: 1);
         for (int t = 0; t < 6; t++) s.EndTurn();
         using UiFrameHarness h = UiFrameHarness.Start(s, WorkDir("click"), Assets());
         MilitaryUnitRow mine = MilitaryQuery.Units(s.World, UiPlayer.Empire)[0];

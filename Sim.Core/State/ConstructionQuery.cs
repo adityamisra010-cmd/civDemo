@@ -226,7 +226,7 @@ public static partial class ConstructionQuery
         bool[]? knowledge, bool[] visiting)
     {
         if ((IsCrafted(goods, id) ? purse.Free(id) : purse.Pooled(id)) > 0) return true;
-        if (goods.ById(id).DepositChannel is not null) return DepositOf(world, settlement, id) > 0.0;
+        if (goods.ById(id).DepositChannel is not null) return DepositConcealment.KnownAbundance(world, cfg, settlement, id) > 0.0;
         return MadeByAvailableRecipe(world, cfg, goods, settlement, purse, id, knowledge, visiting);
     }
 
@@ -463,14 +463,6 @@ public static partial class ConstructionQuery
     {
         for (int i = 0; i < holders.Length; i++) if (holders[i].Value == settlement.Value) return true;
         return false;
-    }
-
-    private static double DepositOf(IReadOnlyWorldState world, SettlementId settlement, int id)
-    {
-        double sum = 0.0;
-        for (int i = 0; i < world.Deposits.Count; i++)
-            if (world.Deposits[i].Settlement == settlement && world.Deposits[i].Good.Value == id) sum += world.Deposits[i].Abundance;
-        return sum;
     }
 
     private static int MaxGoodId(GoodsConfig goods)

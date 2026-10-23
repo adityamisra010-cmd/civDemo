@@ -89,7 +89,16 @@ public class DrivenGoldenTests
     // D-053 (2026-10-13; integrated 2026-10-14) RE-PIN (VALUE): 7bcdc03ff5bf82ff… -> 4f4e0b81a5886201…. CAUSE: intra-polity grain relief (D-053 §2) — the driving orders starve settlements while their polity holds spare grain; from turn 5 the siblings' spare grain feeds them (the first step whose grain books show a negative residual), so fewer starve (turn-300 population 8,332 -> 16,451, MEASURED). ATTRIBUTION (MEASURED on this tree, RunDriven(300)): the batch off (TestConfigs.PreD053) returns OLD byte for byte; relief off alone (PreEmpireFoodAllocation) returns OLD too, while the purse off alone and the granary effects off alone both return NEW — relief is the whole of the move (no granary is built on this world and no construction order is issued). CONTROLS: EmpireFoodAllocationTests.Switch_Off_DrivenGolden_… (batch off = OLD) and PerLayer_Relief_TheDrivenWorldDivergesExactlyAtTheFirstRelief (turn-exact).
     // BATCH 3 / D-054 (integration R1, 2026-10-14) RE-PIN (VALUE + LAYOUT): 4f4e0b81a5886201… -> fa1ce900ea15a9ab…. CAUSE: the v33 layout (two EMPTY appended tables) and the cylinder (worldgen.json topology.wrapX; the world differs from turn 0); WS1/WS2 do not act. CONTROLS: D054PairAttributionTests, WrapAttributionTests, IncrementalConstructionAttributionTests and GoldenAtV32 (full record on DrivenGolden_Seed42Turn300_MatchesPinnedConstant).
     // D-055 (2026-10-16) RE-PIN (LAYOUT ALONE): fa1ce900ea15a9ab… -> eb88663ac944da5b…. CAUSE: schema v34 appends ConstructionHolds, EMPTY here (the driving batch carries only SectorAllocation orders: no queue head) — one four-byte zero count prefix. CONTROL: ReservationsLayoutAttributionTests.DrivenGoldenSeed42Turn300_MovedForTheV34LayoutAlone (SchemaProjection.V33 = OLD). Full record on DrivenGolden_Seed42Turn300_MatchesPinnedConstant.
-    internal const string Golden = "eb88663ac944da5b4bed584e60fa786ce90d1fc9cc6777906576ac608887e893";
+    // ADR-043 (2026-10-22, D-062 Track CP) RE-PIN (VALUE + LAYOUT): eb88663ac944da5b… -> 1fb16d8b2a253b87…. CAUSE: schema v35 appends CivicsPoints and the player Empire accrues Civics Points every step (its account row). CONTROL: CivicsPointsAttributionTests.DrivenGoldenSeed42Turn300_MovedForCivicsPointsAlone (TestConfigs.PreTrackCp and CP off alone return OLD through SchemaProjection.V34; the stage gate off alone returns NEW). Full record on DrivenGolden_Seed42Turn300_MatchesPinnedConstant.
+    // M6 RE-PIN (2026-10-23, ONE re-pin of the whole slice, D-062; VALUE + LAYOUT, MEASURED on the merged tree by the agent
+    // writing this line): eb88663ac944da5b… (v34) -> 392e280665e78eef… (the intermediate pins 1fb16d8b… CP and 62c3345d… CP +
+    // EX are superseded). CAUSES, all three M6 tracks named: Track CP (above); Track EX (ADR-044 with the coordinator's rulings)
+    // — the discovery tables are populated (seed extents, sightings) and the concealed copper and tin ores are unread until
+    // surveyed; Track TREE (ADR-045) — MEASURED to move nothing here (the driving batch sets no research target:
+    // TestConfigs.PreTreeTranche returns the same hash). CONTROLS: CivicsPointsAttributionTests.DrivenGoldenSeed42Turn300_…
+    // and DiscoveryLayoutAttributionTests.DrivenGoldenSeed42Turn300_… (TestConfigs.PreM6 returns eb88663a… through
+    // SchemaProjection.V34).
+    internal const string Golden = "392e280665e78eefc09540244d7a240bcdbf12445543e703ff91e5d4d6db3d0c";
 
     /// <summary>Batch 3 (D-054, integration R1, 2026-10-14): THE CYLINDER-ALONE LINK — the driven golden's world through the
     /// v32 projection (SchemaProjection.V32: the two v33 tables dropped, asserted EMPTY). It equals the driven golden the W1
@@ -629,9 +638,19 @@ public class DrivenGoldenTests
         //   CONTROL ReservationsLayoutAttributionTests.DrivenGoldenSeed42Turn300_MovedForTheV34LayoutAlone: the v33
         //         projection (SchemaProjection.V33, asserting 0 hold rows) returns OLD byte for byte.
         //   MEASURED by the in-test harness (DrivenGoldenTests.RunDriven(300)).
+        // ADR-043 RE-PIN (2026-10-22, D-062 Track CP; MEASURED on this tree by the agent writing this line).
+        //   OLD  eb88663ac944da5b4bed584e60fa786ce90d1fc9cc6777906576ac608887e893
+        //   NEW  1fb16d8b2a253b873d50f6a7fea55ef52f8e66205792829d8f9736c70e5b78b9
+        //   M6 RE-PIN NEW  392e280665e78eefc09540244d7a240bcdbf12445543e703ff91e5d4d6db3d0c (causes CP, EX and TREE on Golden)
+        //   CAUSE schema v35 appends CivicsPoints and the player Empire accrues Civics Points every step (one account row;
+        //         the driving batch sets no research target).
+        //   CONTROL CivicsPointsAttributionTests.DrivenGoldenSeed42Turn300_MovedForCivicsPointsAlone (Track CP off and CP
+        //         off alone return OLD through SchemaProjection.V34).
         (WorldState world, _) = RunDriven(300);
         Assert.Equal(golden, WorldHash.ComputeHex(world));
-        Assert.Equal(GoldenAtV32, SchemaProjection.V32(world));   // batch 3: the cylinder-alone link (no v33 row)
+        // M6 merge (2026-10-22): Track EX moves this world by behaviour (concealed deposits), so the batch-3 cylinder-alone link
+        // is read on the PreM6 twin (both M6 tracks off; DiscoveryLayoutAttributionTests is the attribution).
+        Assert.Equal(GoldenAtV32, SchemaProjection.V32(RunDriven(300, TestConfigs.PreM6(TestConfigs.Sim())).World));
     }
 
     [Fact]

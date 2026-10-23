@@ -532,8 +532,11 @@ public class DiscoveryShortcutTests(NowUsableFixture fx) : IClassFixture<NowUsab
     public void TheOutline_IsExactlyTheBoundaryOfTheKnownPlacesAboveZero_AllKnownAndRestricted_NeverAnUnknownPlace()
     {
         UiSession s = fx.Session;
-        ResourceOverlay all = s.Overlay!;
-        AssertOutlinesExact(all, s.Knowledge.Core);
+        AssertOutlinesExact(s.Overlay!, s.Knowledge.Core);   // the session's own (fogged, M6 EX) view
+        // M6 EX (2026-10-22): the session's view is fogged now, so the all-known comparison bakes the all-known view itself.
+        PolityKnowledge everything = PolityKnowledge.Of(s.World, Me, null);
+        ResourceOverlay all = ResourceOverlay.Bake(s.Config, s.Sites!, everything);
+        AssertOutlinesExact(all, everything);
         // A restricted view (the east half unknown): no unknown node is ever inside an outline, and the outlines shrink.
         int l = all.LatticeSize;
         var known = new bool[all.NodeCount];

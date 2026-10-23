@@ -17,7 +17,9 @@ namespace Sim.Tests.Kernel;
 /// gate-off run's order log (its first SetTaxRate), never a hash; the AI's logs agree before it, and at it except for the
 /// levy itself; and the gate binds there (the AI is below the gate's Age when it levies ungated). DETERMINISM is the
 /// existing pinned run of the same world: the ON arm's world 300 is AiFoundingAttributionTests.S1cTurn300 (the CLI's
-/// value). The flat leg (AiEmpireIntegrationTests.WithTheTaxAgeGateStripped_…, PreTaxAge on the flat world) is unchanged.
+/// value). M6 Track EX (2026-10-22): both arms run with the NEWER discovery layer off (TestConfigs.PreDiscovery, the R4
+/// rule), so the ON arm's world 300 is DiscoveryLayoutAttributionTests.PreDiscoveryAiTurn300 — the v34 S1cTurn300 plus the
+/// four empty v35 count prefixes (that test proves its v34 projection is 25f4799d…). The flat leg (AiEmpireIntegrationTests.WithTheTaxAgeGateStripped_…, PreTaxAge on the flat world) is unchanged.
 /// The tax gate reads no distance: its seam exposure is recorded as "no distance read".
 /// THE ABSENCE RIGS (#14, #17) reuse the same shared ON arm. On this world neither incremental construction (WS1) nor grain
 /// relief ever acts: every AI construction order completes in its delivery step, so no queue row survives a step and no
@@ -59,7 +61,11 @@ public class CylinderAttributionAi1024Tests : IClassFixture<CylinderAttributionA
     /// horizon; its world 300 is the existing pinned run.</summary>
     public sealed class Arms
     {
-        public SimConfig On { get; } = TestConfigs.Sim();
+        // ADR-043 / ADR-044 / ADR-045 (2026-10-22) CAUSE BLOCK: was TestConfigs.Sim(). The whole M6 slice (Track CP, the
+        // discovery layer, the research-content tranche) is NEWER than every layer these rigs attribute (the H2 gate, WS1,
+        // relief), so by the R4 rule the shared ON arm is the pre-M6 world (TestConfigs.PreM6) and every measured value below
+        // stands; its turn-300 world is the v34 pinned run through SchemaProjection.V34.
+        public SimConfig On { get; } = TestConfigs.PreM6(TestConfigs.Sim());
         public R.Arm Live { get; }
 
         public Arms() =>
@@ -77,7 +83,7 @@ public class CylinderAttributionAi1024Tests : IClassFixture<CylinderAttributionA
         R.Arm live = _arms.Live;
         Assert.True(live.At(0).Terrain!.WrapX);
         Assert.Equal(2, live.At(0).Polities.Count);
-        Assert.Equal(AiFoundingAttributionTests.S1cTurn300, live.Hashes[PinnedRunTurn]);
+        Assert.Equal(CivicsPointsAttributionTests.V34AiTurn300, SchemaProjection.V34(live.At(PinnedRunTurn)));   // ADR-043: the v34 run
     }
 
     /// <summary>#5 — the tax Age gate. With the gate stripped the AI levies at T while still below the gate's Age; the
@@ -123,7 +129,8 @@ public class CylinderAttributionAi1024Tests : IClassFixture<CylinderAttributionA
         R.Arm twin = R.Run(R.Ai1024(), "ws1-off", off, AbsenceHorizon, keep: [AbsenceHorizon]);
         Assert.Equal(-1, R.FirstDifferent(live, twin));
         R.AssertLogsEqualBefore(live.Log, twin.Log, AbsenceHorizon);
-        Assert.Equal(AiFoundingAttributionTests.S1cTurn300, twin.Hashes[AbsenceHorizon]);
+        Assert.Equal(live.Hashes[AbsenceHorizon], twin.Hashes[AbsenceHorizon]);
+        Assert.Equal(CivicsPointsAttributionTests.V34AiTurn300, SchemaProjection.V34(live.At(AbsenceHorizon)));   // ADR-043: the v34 run
         WorldState end = live.At(Horizon);
         Assert.Equal((0, 0), (R.SeamCrossingPairs(end), R.WrappedDonorOrders(end)));
     }
@@ -142,6 +149,7 @@ public class CylinderAttributionAi1024Tests : IClassFixture<CylinderAttributionA
         R.Arm twin = R.Run(R.Ai1024(), "relief-off", off, AbsenceHorizon);
         Assert.Equal(-1, R.FirstDifferent(live, twin));
         R.AssertLogsEqualBefore(live.Log, twin.Log, AbsenceHorizon);
-        Assert.Equal(AiFoundingAttributionTests.S1cTurn300, twin.Hashes[AbsenceHorizon]);
+        Assert.Equal(live.Hashes[AbsenceHorizon], twin.Hashes[AbsenceHorizon]);
+        Assert.Equal(CivicsPointsAttributionTests.V34AiTurn300, SchemaProjection.V34(live.At(AbsenceHorizon)));   // ADR-043: the v34 run
     }
 }

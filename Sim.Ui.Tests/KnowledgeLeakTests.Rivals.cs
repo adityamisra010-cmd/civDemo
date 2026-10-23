@@ -250,7 +250,7 @@ public partial class KnowledgeLeakTests
         Rig r = Played.Value;
         SettlementId rival = RivalOf(r.Next), own = OwnOf(r.Next);
         // A fresh session over each world fires every settlement's founding on first sight, its people the event's figure.
-        UiSession a = UiSession.StartFrom(Books(rival, 0), 42), b = UiSession.StartFrom(Books(rival, 1), 42);
+        UiSession a = UiSession.StartFromWith(TestFog.PreDiscovery, Books(rival, 0), 42), b = UiSession.StartFromWith(TestFog.PreDiscovery, Books(rival, 1), 42);
         Assert.Equal(a.AnnalLines, b.AnnalLines);
         string rivalName = r.Name(rival.Value);
         string told = Assert.Single(a.AnnalLines, l => l.Contains(rivalName, StringComparison.Ordinal));
@@ -258,7 +258,7 @@ public partial class KnowledgeLeakTests
         // The session record (chronicle-*.txt) stays world-wide (scope decision, D-060 §6): there the figure moves.
         Assert.NotEqual(a.RecordAnnalLines, b.RecordAnnalLines);
         // POSITIVE CONTROL: the player's own founding carries its figure, which the same perturbation moves.
-        UiSession c = UiSession.StartFrom(Books(own, 1), 42);
+        UiSession c = UiSession.StartFromWith(TestFog.PreDiscovery, Books(own, 1), 42);
         Assert.NotEqual(a.AnnalLines, c.AnnalLines);
         Assert.Contains(a.AnnalLines, l => l.Contains(r.Name(own.Value), StringComparison.Ordinal) && l.Contains("strong", StringComparison.Ordinal));
 
@@ -334,7 +334,7 @@ public partial class KnowledgeLeakTests
     /// selected settlement — every string drawn, in order.</summary>
     private List<string> SelectedUi(WorldState w, SettlementId select, string dir)
     {
-        UiSession s = UiSession.StartFrom(w, 42);
+        UiSession s = UiSession.StartFromWith(TestFog.PreDiscovery, w, 42);
         using UiFrameHarness h = UiFrameHarness.Start(s, Path.Combine(_root, dir), Assets());
         h.Idle(3);
         for (int i = 0; i <= s.World.Settlements.Count && h.Ui.SelectedSettlement != select.Value; i++) h.Key(Keys.Tab);

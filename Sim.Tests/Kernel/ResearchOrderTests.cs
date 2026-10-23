@@ -29,11 +29,19 @@ public class ResearchOrderTests
         Assert.Equal(set, RoundTrip(set)[0]);
         OrderRecord clear = OrderRecord.From(13, new PolityId(1), OrderKind.SetResearchTarget, -1, 0.0);
         Assert.Equal(clear, RoundTrip(clear)[0]);
+        // ADR-043 (2026-10-22): −2 clears the CIVICS lane — the same shape and wire format, now valid at load.
+        OrderRecord clearCivics = OrderRecord.From(14, new PolityId(1), OrderKind.SetResearchTarget, -2, 0.0);
+        Assert.Equal(clearCivics, RoundTrip(clearCivics)[0]);
+        Assert.Equal(-2, ResearchQuery.ClearCivicsTargetId);
+        Assert.Equal(-1, ResearchQuery.ClearTechnologyTargetId);
     }
 
+    // ADR-043 (2026-10-22) RE-PIN of the malformed set: −2 left it (it clears the Civics lane now); −3 is the first
+    // negative key that is malformed.
     [Theory]
     [InlineData(0, 0.0, "node key must be a research.json key")]
-    [InlineData(-2, 0.0, "node key must be a research.json key")]
+    [InlineData(-3, 0.0, "node key must be a research.json key")]
+    [InlineData(int.MinValue, 0.0, "-2 to clear the Civics target")]
     [InlineData(5, 1.0, "Amount is reserved and must be 0")]
     [InlineData(5, double.NaN, "Amount is reserved and must be 0")]
     public void SetResearchTarget_AMalformedPayload_IsRejectedAtLoad(int target, double amount, string fragment)
@@ -64,7 +72,11 @@ public class ResearchOrderTests
         // (cause: the new kind; kind 13 round-trips in LegacyCancelGuardTests).
         Assert.Contains("13 (CancelConstructionEntry)", e.Message);
         Assert.Contains("kind 11 is legacy (read, no longer written: D-056)", e.Message);
-        var fourteen = Assert.Throws<SnapshotFormatException>(() => RoundTrip(new OrderRecord(3, 1, (OrderKind)14, 0, 0.0)));
-        Assert.Contains("unknown order kind 14", fourteen.Message);
+        // M6 Track EX (D-062, ADR-044): kinds 14 (Explore) and 15 (Prospect) are new, so the first kind past the end moved
+        // 14 -> 16 (cause: the two new kinds; both round-trip in DiscoveryOrderLogTests).
+        Assert.Contains("14 (Explore)", e.Message);
+        Assert.Contains("15 (Prospect)", e.Message);
+        var sixteen = Assert.Throws<SnapshotFormatException>(() => RoundTrip(new OrderRecord(3, 1, (OrderKind)16, 0, 0.0)));
+        Assert.Contains("unknown order kind 16", sixteen.Message);
     }
 }

@@ -87,7 +87,7 @@ echo 'check-read-isolation: OK — needs/grievance tables read only by their own
 # the leak gate of record is the metamorphic non-interference tests and the source guard in Sim.Ui.Tests
 # (KnowledgeLeakTests), which reads the SAME allowlist file. It still fails on a raw read in a file not on the list.
 # READ_ISOLATION_ROOT overrides the tree scanned (the injection demonstration runs it on a scratch copy).
-UI_PATTERN='\b(world|w|_world|World|prev|next|W)\.(Settlements|MilitaryUnits|Buckets|Deposits)\b'
+UI_PATTERN='\b(world|w|_world|World|prev|next|W)\.(Settlements|MilitaryUnits|Buckets|Deposits|KnownExtents|Explorations|SettlementSightings|SettlementSurveys)\b'
 UI_ALLOW_FILE='scripts/ui-raw-read-allowlist.txt'
 UI_ROOT="${READ_ISOLATION_ROOT:-.}"
 if [[ ! -f "$UI_ALLOW_FILE" ]]; then

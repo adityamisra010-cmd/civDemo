@@ -192,7 +192,12 @@ public class NonCanonicalSizeFoundingTests
         Assert.False(world.Terrain!.WrapX);
         SimConfig cfg = Cfg;
         var orders = new OrderLog();
-        var exec = new TurnExecutor(Sim.Cli.CliRecipes.Era(), Sim.Cli.CliRecipes.ProductionPipeline(), orders);
+        // M6 Track EX (2026-10-22): the CLI's production pipeline with the discovery layer off (R4, as Cfg): under the fog the
+        // AI founds only on KNOWN sites and this rig's bottom-row founding never comes (MEASURED: "founded 0 settlements").
+        Sim.Core.Kernel.SystemRegistration[] pipeline;
+        using (var pipe = Sim.Data.DataFiles.OpenPipeline())
+            pipeline = Sim.Core.Kernel.PipelineLoader.Load(pipe, Sim.Core.SystemCatalog.All(Cfg, Sim.Cli.CliRecipes.Worldgen()));
+        var exec = new TurnExecutor(Sim.Cli.CliRecipes.Era(), pipeline, orders);
         WorldgenConfig aiWorldgen = Sim.Cli.CliRecipes.Worldgen();
         Assert.Equal(1024, aiWorldgen.SizePx);
         for (int t = 1; t <= turns; t++)

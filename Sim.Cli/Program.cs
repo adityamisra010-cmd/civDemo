@@ -56,6 +56,8 @@ namespace Sim.Cli
                   sim run --from-save SAVE --turns N [--size PX] [--ai-empires N] [--seed S] [--founded]
                           [--report] [--save-at K --save PATH] [--orders PATH]
                           [--hash-log PATH] [--split-report PATH]
+                  (run, replay and inspect take --without-discovery: sim.json discovery and fog off —
+                   the attribution twin of the M6 discovery layer, for legs measured before it; ADR-044)
                   sim split-check REPORT [--control CONTROL] [--expect-hold-at K]
                                   [--twin TWIN --order-at T:B]
                   sim hash SAVEFILE [--size PX]
@@ -120,12 +122,13 @@ namespace Sim.Cli
                 both canonical streams in schema order and reports the first
                 divergent table/row/field (doubles as R text + 64-bit pattern)
                 and a per-table summary; exit 0 identical, 1 different. A
-                schema-v32 or schema-v33 save is migrated on load and says so
+                schema-v32, -v33 or -v34 save is migrated on load and says so
                 in one line on stderr; stdout is unchanged in shape. v32: its
-                terrain is regenerated flat and the three tables added since
+                terrain is regenerated flat and the four tables added since
                 v32 (ConstructionProgress, ResourceAllocations,
-                ConstructionHolds) are added empty. v33: ConstructionHolds is
-                added empty.
+                ConstructionHolds, CivicsPoints) are added empty. v33:
+                ConstructionHolds and CivicsPoints are added empty. v34:
+                CivicsPoints is added empty.
 
                 --from-save continues a saved world in this process (D-055):
                 --turns N more steps; --save-at is an absolute turn after the
@@ -169,7 +172,24 @@ namespace Sim.Cli
             return world;
         }
 
-        internal static Sim.Core.Systems.SimConfig SimCfg()
+        /// <summary>M6 Track EX (ADR-044 §12): `--without-discovery` (run, replay) — the shipped rules with sim.json discovery and
+        /// fog switched off (DiscoveryQuery.WithoutDiscovery, the attribution twin TestConfigs.PreDiscovery's switch), so a
+        /// scripted leg whose premises predate the discovery layer (the D-055 allocation leg, the --from-save rigs) runs the
+        /// world those premises were measured on. A session emitted under it replays only under it.</summary>
+        internal static bool DiscoveryOff { get; private set; }
+
+        /// <summary>Removes `--without-discovery` from <paramref name="args"/> and records it.</summary>
+        internal static string[] TakeDiscoverySwitch(string[] args)
+        {
+            if (Array.IndexOf(args, "--without-discovery") < 0) return args;
+            DiscoveryOff = true;
+            return Array.FindAll(args, a => a != "--without-discovery");
+        }
+
+        internal static Sim.Core.Systems.SimConfig SimCfg() =>
+            DiscoveryOff ? Sim.Core.State.DiscoveryQuery.WithoutDiscovery(ShippedSimCfg()) : ShippedSimCfg();
+
+        private static Sim.Core.Systems.SimConfig ShippedSimCfg()
         {
             using var simStream = Sim.Data.DataFiles.OpenSim();
             using var needsStream = Sim.Data.DataFiles.OpenNeeds();
@@ -181,7 +201,7 @@ namespace Sim.Cli
                 agesStream, familiesStream);
         }
 
-        internal static TurnExecutor Executor(OrderLog? orders, bool founded = false)
+        internal static TurnExecutor Executor(OrderLog? orders, bool founded = false, Sim.Core.Systems.SimConfig? cfg = null)
         {
             using var eraStream = Sim.Data.DataFiles.OpenEraPacing();
             // Default = toy preset + toy world: keeps the cross-process
@@ -202,7 +222,7 @@ namespace Sim.Cli
             }
             return new TurnExecutor(
                 EraTableLoader.Load(eraStream),
-                PipelineLoader.Load(pipeStream, SystemCatalog.All(SimCfg(), wg)),
+                PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg ?? SimCfg(), wg)),
                 orders);
         }
 
@@ -297,6 +317,7 @@ namespace Sim.Cli
 
         internal static int Run(string[] args)
         {
+            args = TakeDiscoverySwitch(args);
             var opts = Options.Parse(args, flags: ["--report", "--founded"],
                 valued: ["--seed", "--turns", "--save-at", "--save", "--orders", "--hash-log", "--size",
                          "--settlements", "--emit-session", "--ai-empires", "--from-save", "--split-report"]);
@@ -493,6 +514,7 @@ namespace Sim.Cli
 
         internal static int Replay(string[] args)
         {
+            args = TakeDiscoverySwitch(args);
             var opts = Options.Parse(args, flags: ["--founded"],
                 valued: ["--seed", "--turns", "--orders", "--hash-log", "--size", "--settlements",
                          "--report-jsonl", "--report-every", "--emit-session", "--ai-empires"]);
@@ -569,6 +591,7 @@ namespace Sim.Cli
         /// </summary>
         internal static int Inspect(string[] args)
         {
+            args = TakeDiscoverySwitch(args);   // M6 EX: a session emitted under `--without-discovery` is inspected under it
             var opts = Options.Parse(args, flags: [],
                 valued: ["--manifest", "--turn", "--window", "--report-jsonl", "--telemetry", "--settlement",
                          "--answer", "--explain", "--class"]);
@@ -647,8 +670,11 @@ namespace Sim.Cli
             OrderValidation.ValidateAgainstWorld(orders, world);
             WorldState turnZero = world;
 
-            var executor = Executor(orders, founded: true);
-            Sim.Core.Systems.SimConfig cfg = SimCfg();
+            // M6 Track EX (ADR-044 §7): a session recorded before v35 is replayed without the discovery layer
+            // (DiscoveryQuery.RecordedWithoutDiscovery — UiSession.Resume's rule).
+            Sim.Core.Systems.SimConfig cfg = Sim.Core.State.DiscoveryQuery.RecordedWithoutDiscovery(manifest.SchemaVersion)
+                ? Sim.Core.State.DiscoveryQuery.WithoutDiscovery(SimCfg()) : SimCfg();
+            var executor = Executor(orders, founded: true, cfg);
             int grain = cfg.Goods?.GrainId ?? 0;
 
             // D-056: the per-turn report is built in memory and written after the replay, so a refusal by the legacy-cancel

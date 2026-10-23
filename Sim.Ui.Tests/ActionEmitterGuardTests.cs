@@ -257,7 +257,10 @@ public class ActionEmitterGuardTests
     public void FoundSettlement_IsQueuedOnlyWhereTheSystemFoundsIt_AndTheLogReplays()
     {
         WorldState founded = CanonicalDuo.Value;
-        UiSession s = UiSession.StartFrom(founded.Clone(), 42);
+        // M6 Track EX (2026-10-22): the S1d founding guard is an older layer premised on the all-known view (at turn 0 the
+        // fogged player knows no legal frontier site); it runs with the discovery layer off. The fogged founding refusal is
+        // DiscoveryTests.Founding_OnANodeTheIssuerDoesNotKnow_IsRefused…
+        UiSession s = UiSession.StartFromWith(TestFog.PreDiscovery, founded.Clone(), 42);
         SettlementSiting.FrontierSiting f = s.Sites!.Frontier;
         int size = s.World.Terrain!.Size;
         int mine = EmpireQuery.TryGetCapital(s.World, Me, out SettlementId cap) ? cap.Value : throw new InvalidOperationException();
@@ -324,6 +327,37 @@ public class ActionEmitterGuardTests
         for (int t = 0; t < 3; t++) { s.EndTurn(); hashes.Add(WorldHash.ComputeHex(s.World)); }
         Assert.True(FoundsAt(s.World, site));
         WorldState world = founded.Clone();
+        OrderValidation.ValidateAgainstWorld(s.Orders, world);
+        TurnExecutor exec = new(UiSession.ProductionEra(), UiSession.PipelineFor(TestFog.PreDiscovery), s.Orders);
+        for (int t = 0; t < hashes.Count; t++)
+        {
+            world = exec.Step(world);
+            Assert.Equal(hashes[t], WorldHash.ComputeHex(world));
+        }
+    }
+
+    /// <summary>M6 Track EX (D-062 D9; ADR-044): Explore and Prospect are appended ONLY where DiscoverySystem would apply them
+    /// (DiscoveryQuery.CheckExplore / CheckProspect: the issuer controls the settlement, the radius is below the cap / the
+    /// settlement is not yet surveyed, the purse covers the cost) and once per settlement per turn; the log replays.</summary>
+    [Fact]
+    public void ExploreAndProspect_AreQueuedOnlyWhereTheSystemAppliesThem_AndTheLogReplays()
+    {
+        UiSession s = Duo();
+        int foreign = ForeignSettlement(s.World);
+        int mine = EmpireQuery.TryGetCapital(s.World, Me, out SettlementId cap) ? cap.Value : throw new InvalidOperationException();
+        Assert.Equal(ExploreVerdict.NotControlled, DiscoveryQuery.CheckExplore(s.World, s.Config, Me, new SettlementId(foreign)));
+        Assert.False(s.EmitExplore(foreign));
+        Assert.False(s.EmitProspect(foreign));
+        Assert.Equal(ProspectVerdict.Ok, DiscoveryQuery.CheckProspect(s.World, s.Config, Me, new SettlementId(mine)));
+        Assert.True(s.EmitProspect(mine));    // the founding store covers a 40-grain survey (ADR-044 §5)
+        Assert.False(s.EmitProspect(mine));   // once per settlement per turn
+        Assert.Equal(1, s.Orders.Count);
+        Assert.True(s.EmitExplore(mine));
+        Assert.False(s.EmitExplore(mine));    // once per settlement per turn
+        Assert.Equal(2, s.Orders.Count);
+        var hashes = new List<string>();
+        for (int t = 0; t < 2; t++) { s.EndTurn(); hashes.Add(WorldHash.ComputeHex(s.World)); }
+        WorldState world = UiFounding.Found(42, 256, 4, aiEmpiresOverride: 1);
         OrderValidation.ValidateAgainstWorld(s.Orders, world);
         TurnExecutor exec = UiSession.BuildProductionExecutor(s.Orders);
         for (int t = 0; t < hashes.Count; t++)

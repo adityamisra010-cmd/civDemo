@@ -191,7 +191,7 @@ public static class AiFoundingPolicy
     /// the order will be judged on with the batch's standing sites — so the issued order is Legal by construction, and
     /// the next source is tried only when NO cell of the current one is Legal.</summary>
     public static OrderRecord? Decide(IReadOnlyWorldState world, SimConfig cfg, PolityId polity, Sites sites, SiteCheck check) =>
-        Decide(world, cfg, polity, sites, check, PolityKnowledge.Of(world, polity));
+        Decide(world, cfg, polity, sites, check, PolityKnowledge.Of(world, polity, cfg));
 
     /// <summary>As <see cref="Decide(IReadOnlyWorldState, SimConfig, PolityId, Sites, SiteCheck)"/>, with the issuer's
     /// knowledge given (P7: the seam's test entry — production passes <see cref="PolityKnowledge.Of"/>).</summary>
@@ -293,7 +293,7 @@ public static class AiFoundingPolicy
     public static int BestSiteFor(
         IReadOnlyWorldState world, SimConfig cfg, SettlementSiting.FrontierSiting f, TerrainSet terrain, Sites sites,
         PolityId issuer, SettlementId source, SiteCheck check) =>
-        BestSiteFor(world, cfg, f, terrain, sites, issuer, source, check, PolityKnowledge.Of(world, issuer));
+        BestSiteFor(world, cfg, f, terrain, sites, issuer, source, check, PolityKnowledge.Of(world, issuer, cfg));
 
     /// <summary>As <see cref="BestSiteFor(IReadOnlyWorldState, SimConfig, SettlementSiting.FrontierSiting, TerrainSet, Sites, PolityId, SettlementId, SiteCheck)"/>,
     /// with the issuer's knowledge given: the pre-filter's FIRST arm is <see cref="PolityKnowledge.KnowsCell"/> (P7), so

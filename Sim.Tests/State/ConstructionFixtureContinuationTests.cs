@@ -34,7 +34,9 @@ namespace Sim.Tests.State;
 /// </summary>
 public class ConstructionFixtureContinuationTests
 {
-    private static readonly SimConfig Shipped = TestConfigs.Sim();
+    // M6 Track EX (2026-10-22): the D-055 shipped rules — the newer discovery layer off (TestConfigs.PreDiscovery, R4): its
+    // concealment changes the dev purse's stone (MEASURED: "state 3 — expected (700000, 6, 150000), got (700000, 4, 0)").
+    private static readonly SimConfig Shipped = TestConfigs.PreDiscovery(TestConfigs.Sim());
     private static readonly PolityId Player = new(1);
     private static readonly SettlementId S0 = new(0), S2 = new(2);
     private static readonly int Timber = Shipped.Goods!.IdOf("timber"), Stone = Shipped.Goods!.IdOf("stone");

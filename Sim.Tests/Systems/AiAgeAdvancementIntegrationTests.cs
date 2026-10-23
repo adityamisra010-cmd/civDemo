@@ -23,7 +23,6 @@ public class AiAgeAdvancementIntegrationTests
 {
     private static readonly SimConfig Cfg = TestConfigs.Sim();
     private static readonly AgeContent Ages = TestConfigs.Ages();
-    private static readonly ResearchContent Research = TestConfigs.Research();
     private static readonly UnitFamilyContent Families = TestConfigs.UnitFamilies();
     private static readonly PolityId Player = new(1);
     private static readonly PolityId Rival = new(2);
@@ -38,30 +37,30 @@ public class AiAgeAdvancementIntegrationTests
     }
 
     /// <summary>The goal nodes and every node they transitively name as a prerequisite (index set).</summary>
-    private static bool[] Closure(params string[] goals)
+    private static bool[] Closure(ResearchContent research, params string[] goals)
     {
-        var inSet = new bool[Research.Nodes.Count];
+        var inSet = new bool[research.Nodes.Count];
         var stack = new Stack<int>();
-        foreach (string g in goals) stack.Push(Research.IndexOfId(g));
+        foreach (string g in goals) stack.Push(research.IndexOfId(g));
         while (stack.Count > 0)
         {
             int i = stack.Pop();
             if (inSet[i]) continue;
             inSet[i] = true;
-            foreach (int p in Research.Nodes[i].PrerequisiteNodes) stack.Push(p);
+            foreach (int p in research.Nodes[i].PrerequisiteNodes) stack.Push(p);
         }
         return inSet;
     }
 
     /// <summary>A research ORDER toward the goal set: the lowest-index available node of the closure,
     /// issued only when the polity has no target. Null when nothing is needed.</summary>
-    private static OrderRecord? ResearchOrder(WorldState w, PolityId polity, bool[] closure)
+    private static OrderRecord? ResearchOrder(ResearchContent research, WorldState w, PolityId polity, bool[] closure)
     {
         if (ResearchQuery.TryGetTarget(w, polity, out _)) return null;
-        bool[] available = ResearchQuery.AvailableMask(Research, ResearchQuery.CompletedMask(w, Research, polity));
+        bool[] available = ResearchQuery.AvailableMask(research, ResearchQuery.CompletedMask(w, research, polity));
         for (int i = 0; i < available.Length; i++)
             if (closure[i] && available[i])
-                return OrderRecord.From(w.Clock.Turn, polity, OrderKind.SetResearchTarget, Research.Nodes[i].Key.Value, 0.0);
+                return OrderRecord.From(w.Clock.Turn, polity, OrderKind.SetResearchTarget, research.Nodes[i].Key.Value, 0.0);
         return null;
     }
 
@@ -87,7 +86,21 @@ public class AiAgeAdvancementIntegrationTests
         // regenerates x-periodic, so both polities' land and research-point curves differ from turn 0). ATTRIBUTION:
         // AdvancesViaTheSameOrderPathway_WithTheCylinderOff_AtTheBatch2Turns (the cylinder off alone, WS1/WS2 on) returns
         // (379, 333); the sim half off alone on the cylinder (TestConfigs.PreD054Sim; MEASURED) returns (421, 312).
-        Assert.Equal((421L, 312L), (aiTurn, playerTurn));
+        // ADR-045 RE-PIN (2026-10-22, D-062; VALUE, MEASURED on this tree by the agent writing this line, in-test harness):
+        // AI 421 -> 413, player 312 -> 251. Both still reach A2 through the same order shape, applied the next turn. CAUSE:
+        // the research-content tranche — cereal_cultivation and cereal_domesticated re-scored 3,520 -> 880 RP (the cereal
+        // material re-score, KD-09) and the cultivation closure re-wired, so both polities know cultivation, and meet the
+        // Neolithic's milestones, sooner. ATTRIBUTION: the same run on the pre-tranche content (TestConfigs.PreTreeTranche)
+        // returns (421, 312) — FoundedAiEmpire_OnThePreTrancheContent_AdvancesAtTheBatch4Turns.
+        Assert.Equal((413L, 251L), (aiTurn, playerTurn));
+    }
+
+    /// <summary>ADR-045 ATTRIBUTION CONTROL (2026-10-22, D-062): the research-content tranche switched off (the pre-tranche
+    /// research.json, TestConfigs.PreTreeTranche) returns the pre-tranche decision turns, every shape assert holding.</summary>
+    [Fact]
+    public void FoundedAiEmpire_OnThePreTrancheContent_AdvancesAtTheBatch4Turns()
+    {
+        Assert.Equal((421L, 312L), AdvanceRun(TestConfigs.DevWorldgen(), TestConfigs.PreTreeTrancheSim()));
     }
 
     /// <summary>BATCH 3 / D-054 ATTRIBUTION CONTROL (integration R1, 2026-10-14) for the turn pin of
@@ -97,7 +110,9 @@ public class AiAgeAdvancementIntegrationTests
     [Fact]
     public void AdvancesViaTheSameOrderPathway_WithTheCylinderOff_AtTheBatch2Turns()
     {
-        Assert.Equal((379L, 333L), AdvanceRun(TestConfigs.PreCylinderWorldgen(TestConfigs.DevWorldgen())));
+        // ADR-045 (2026-10-22): the R4 rule — the cylinder is older than the research tranche, so its control runs on the
+        // pre-tranche content.
+        Assert.Equal((379L, 333L), AdvanceRun(TestConfigs.PreCylinderWorldgen(TestConfigs.DevWorldgen()), TestConfigs.PreTreeTrancheSim()));
     }
 
     /// <summary>The ADR-031 rig on <paramref name="dev"/> (dev world, seed 42, one AI Empire, the production pipeline,
@@ -113,7 +128,7 @@ public class AiAgeAdvancementIntegrationTests
         Assert.True(EmpireQuery.TryGetCommandSource(w, Player, out CommandSource playerSource));
         Assert.NotEqual(CommandSource.Ai, playerSource);
 
-        bool[] closure = Closure("cereal_cultivation", "pottery_open_fired");
+        bool[] closure = Closure(cfg.Research!, "cereal_cultivation", "pottery_open_fired");
         var orders = new OrderLog();
         TurnExecutor ex = Production(orders, cfg, dev);
         int surge = Ages.Surges[0].Key;
@@ -124,7 +139,7 @@ public class AiAgeAdvancementIntegrationTests
                                          || AgeQuery.CurrentAge(w, Ages, Rival) < 2); t++)
         {
             foreach (PolityId p in new[] { Player, Rival })
-                if (ResearchOrder(w, p, closure) is { } r) orders.Append(r);
+                if (ResearchOrder(cfg.Research!, w, p, closure) is { } r) orders.Append(r);
 
             // The AI: whatever the policy returns goes into the SAME log, unaltered.
             OrderRecord[] ai = AgeAdvancePolicy.OrdersForAi(w, Ages);

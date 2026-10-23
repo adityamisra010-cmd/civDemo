@@ -208,7 +208,16 @@ jobs:
           # two CLI processes, byte-identical logs, last line the value below). CONTROL:
           # ReservationsLayoutAttributionTests.FoundedGoldenSeed42Turn300_MovedForTheV34LayoutAlone (the v33
           # projection, SchemaProjection.V33, returns 40115e28… byte for byte).
-          FOUNDED_GOLDEN=0f29efc733024c451b7ebc2e8435fdd8a6032d158922430cb290778a98056d3c
+          # ADR-043 RE-PIN (2026-10-22, D-062 Track CP): 0f29efc7… -> 5c56a1f9… — schema v35 appends CivicsPoints
+          # (section 62) and the player Empire accrues Civics Points every step (one account row; this order-less
+          # world sets no research target). CONTROL: CivicsPointsAttributionTests.FoundedGoldenSeed42Turn300_MovedForCivicsPointsAlone
+          # (TestConfigs.PreTrackCp returns 0f29efc7… through SchemaProjection.V34).
+          # M6 RE-PIN (2026-10-23, D-062, the whole slice once): 0f29efc7… (v34) -> 8ccbe80f… — Track CP's account (above),
+          # Track EX's populated discovery tables (sections 63–66) and concealed copper and tin ores (ADR-044 with the
+          # coordinator's rulings), Track TREE's research-content tranche (ADR-045; measured to move nothing here). CONTROLS:
+          # DiscoveryLayoutAttributionTests (TestConfigs.PreM6 returns 0f29efc7… through SchemaProjection.V34) and
+          # CivicsPointsAttributionTests (the CP part on the EX-off, tranche-off world).
+          FOUNDED_GOLDEN=8ccbe80fe2be1130c4da27a0576c158d85ece64555a37709ef2dce61b5e5b63c
           if [ "$(tail -n 1 f-run-a.log)" != "$FOUNDED_GOLDEN" ]; then
             echo "FOUNDED RUN DIVERGED FROM PINNED GOLDEN:"
             echo "  expected $FOUNDED_GOLDEN"
@@ -243,10 +252,11 @@ jobs:
           echo "founded replay: byte-identical to the ordered run over 300 turns"
 
           # M5 S1b (ADR-036): the FOUND SETTLEMENT leg. Two OrderKind 9 orders on the founded seed-42 world
-          # (gen-sample-orders.py --found): turn 2 from settlement 0, turn 5 FROM the colony that order founds
+          # (gen-sample-orders.py --found; M6 EX: after an Explore from settlement 0 at turn 0, so the sites are KNOWN):
+          # turn 2 from settlement 0, turn 5 FROM the colony that order founds
           # (settlement 12, above the turn-0 maximum: the ADR-034 deferral). Two processes must agree byte for
           # byte (hash logs and run logs), the orders must have FOUNDED turn-exactly (the hash log equals the
-          # orderless founded run through turn 2 — the first order is delivered on the step from 2 — and differs
+          # twin without the turn-2 order through turn 2 — the first order is delivered on the step from 2 — and differs
           # at turn 3), `sim replay` of the run log must reproduce every hash and `sim inspect` must verify the
           # record. FoundSettlementCiLegTests pins the script's literals as legal-and-founding in the suite.
           python3 scripts/gen-sample-orders.py found-orders.bin 300 --found
@@ -257,8 +267,12 @@ jobs:
             head -n 5 found-xproc.diff
             exit 1
           fi
-          if [ "$(head -n 2 found-a.log)" != "$(head -n 2 f-run-a.log)" ] || [ "$(sed -n 3p found-a.log)" = "$(sed -n 3p f-run-a.log)" ]; then
-            echo "FOUND-SETTLEMENT DELIVERY: expected the orderless hashes through turn 2 and a founding in turn 3"
+          # M6 EX (ADR-044): the log also explores from settlement 0 at turn 0 (a KNOWN site is required), so the delivery
+          # twin is the same log WITHOUT the turn-2 kind 9 (--drop 2:9), not the orderless run.
+          python3 scripts/gen-sample-orders.py found-no9.bin 300 --found --drop 2:9
+          $CLI run --founded --seed 42 --turns 3 --orders found-no9.bin --hash-log found-no9.log
+          if [ "$(head -n 2 found-a.log)" != "$(head -n 2 found-no9.log)" ] || [ "$(sed -n 3p found-a.log)" = "$(sed -n 3p found-no9.log)" ]; then
+            echo "FOUND-SETTLEMENT DELIVERY: expected the twin's hashes through turn 2 and a founding in turn 3"
             exit 1
           fi
           $CLI replay --founded --seed 42 --turns 300 --orders found-a/orders-*.bin --hash-log found-replayed.log
@@ -317,7 +331,11 @@ jobs:
           b = open(sys.argv[1], "rb").read()
           n = struct.unpack_from("<i", b, 12)[0]
           kinds = {struct.unpack_from("<qiiid", b, 16 + 28 * i)[2] for i in range(n)}
-          expected = set(range(3, 10)) | {12, 13}   # 10 is reserved (MoveFormation, M7); 11 is legacy (D-056)
+          # M6 (ADR-044 §12, 2026-10-23; MEASURED: this run from the final M6 tree — Tracks CP, EX with the coordinator's
+          # rulings, TREE): the AI explores (kind 14) when its founding policy finds no KNOWN site — 13 Explore orders in 600
+          # turns (first at 35) — and prospects (kind 15, paid in grain) once per settlement it holds — 17 Prospect orders
+          # (first at turn 0). The run log holds 400 orders.
+          expected = set(range(3, 10)) | {12, 13, 14, 15}   # 10 is reserved (MoveFormation, M7); 11 is legacy (D-056)
           print(f"run log: {n} orders, kinds {sorted(kinds)}")
           if kinds != expected:
               sys.exit(f"order kinds never issued: {sorted(expected - kinds)}; unexpected kinds: {sorted(kinds - expected)}")
@@ -350,6 +368,11 @@ jobs:
           #            step building work draws 70 % of the stone (51 of 73), the twin without the order 30 % (21);   H = 140
           # The split-report observer and `sim split-check` are Sim.Core/Observability (SplitProbe, SplitReportCheck).
           CLI="dotnet Sim.Cli/bin/Release/net10.0/Sim.Cli.dll"
+          # M6 Track EX (ADR-044 §12): every run and replay of this leg takes --without-discovery (sim.json discovery and fog
+          # off — the TestConfigs.PreDiscovery twin): the premises below are D-055's, measured before the discovery layer.
+          # Re-checked 2026-10-23 with stone no longer concealed: under the shipped rules `split-check alloc-b.rep
+          # --expect-hold-at 131` FAILS P5 and P7 (road works lend building work their share only at 128; competing heads only
+          # at 117-119), so the switch stays; AllocationScenarioTests runs the same rules in process. OPEN: re-derive.
           python3 scripts/gen-sample-orders.py alloc.bin 140 --allocation
           python3 scripts/gen-sample-orders.py alloc-ctl.bin 140 --allocation --no-split
           python3 scripts/gen-sample-orders.py alloc-no13.bin 140 --allocation --drop 132:13
@@ -363,11 +386,11 @@ jobs:
           SHA
 
           # A0: founding -> the pre-split world P (one process).
-          $CLI run --founded --seed 42 --turns 116 --orders alloc.bin --hash-log alloc-a0.log --save-at 116 --save alloc-116.civsnap
+          $CLI run --without-discovery --founded --seed 42 --turns 116 --orders alloc.bin --hash-log alloc-a0.log --save-at 116 --save alloc-116.civsnap
           # A: P -> H in a NEW process from that save, with the split report; it writes save_K.
-          $CLI run --from-save alloc-116.civsnap --turns 24 --orders alloc.bin --hash-log alloc-a.log --split-report alloc-a.rep --save-at 130 --save alloc-130.civsnap
+          $CLI run --without-discovery --from-save alloc-116.civsnap --turns 24 --orders alloc.bin --hash-log alloc-a.log --split-report alloc-a.rep --save-at 130 --save alloc-130.civsnap
           # A': the same WITHOUT --split-report: the observer changes no hash and no save.
-          $CLI run --from-save alloc-116.civsnap --turns 24 --orders alloc.bin --hash-log alloc-a1.log --save-at 130 --save alloc-130-a1.civsnap
+          $CLI run --without-discovery --from-save alloc-116.civsnap --turns 24 --orders alloc.bin --hash-log alloc-a1.log --save-at 130 --save alloc-130-a1.civsnap
           if ! cmp alloc-a.log alloc-a1.log || ! cmp alloc-130.civsnap alloc-130-a1.civsnap; then
             echo "ALLOCATION: --split-report CHANGED A HASH OR THE SAVE"
             exit 1
@@ -375,16 +398,16 @@ jobs:
           cat alloc-a0.log alloc-a.log > alloc-full.log          # line n = world n, 1..140
           # B: K -> H from save_K in another process; it writes the save at kind 12's issue turn (136). Its hash log and
           # its split report must be A's tail (rows from step 130 -> 131: what B's own walk published from the loaded world).
-          $CLI run --from-save alloc-130.civsnap --turns 10 --orders alloc.bin --hash-log alloc-b.log --split-report alloc-b.rep --save-at 136 --save alloc-136.civsnap
+          $CLI run --without-discovery --from-save alloc-130.civsnap --turns 10 --orders alloc.bin --hash-log alloc-b.log --split-report alloc-b.rep --save-at 136 --save alloc-136.civsnap
           if ! diff alloc-b.log <(sed -n 131,140p alloc-full.log) > alloc-b.diff || ! diff alloc-b.rep <(tail -n 10 alloc-a.rep) >> alloc-b.diff; then
             echo "ALLOCATION: THE CONTINUATION FROM save_K IS NOT A's TAIL:"
             head -n 5 alloc-b.diff
             exit 1
           fi
           # The control: the b = 100 twin (no kind 12) branched from the SAME pre-split world.
-          $CLI run --from-save alloc-116.civsnap --turns 24 --orders alloc-ctl.bin --hash-log alloc-c.log --split-report alloc-c.rep
+          $CLI run --without-discovery --from-save alloc-116.civsnap --turns 24 --orders alloc-ctl.bin --hash-log alloc-c.log --split-report alloc-c.rep
           # sim replay of the generated log equals A0 + A (no AI polity by H, so no AI order is missing from the log).
-          $CLI replay --founded --seed 42 --turns 140 --orders alloc.bin --hash-log alloc-replayed.log
+          $CLI replay --without-discovery --founded --seed 42 --turns 140 --orders alloc.bin --hash-log alloc-replayed.log
           if ! diff alloc-full.log alloc-replayed.log > alloc-replay.diff; then
             echo "ALLOCATION REPLAY DIVERGENCE -- first divergent turn:"
             head -n 5 alloc-replay.diff
@@ -404,9 +427,9 @@ jobs:
           fi
           # Kinds 13 and 12, turn-exact: the save at each issue turn hashes to its line, and a twin run without the order
           # equals the run through that turn and differs at the next.
-          $CLI run --from-save alloc-130.civsnap --turns 2 --orders alloc.bin --hash-log alloc-v.log --save-at 132 --save alloc-132.civsnap
-          $CLI run --from-save alloc-130.civsnap --turns 3 --orders alloc-no13.bin --hash-log alloc-t13.log
-          $CLI run --from-save alloc-130.civsnap --turns 7 --orders alloc-no12.bin --hash-log alloc-t12.log --split-report alloc-t12.rep
+          $CLI run --without-discovery --from-save alloc-130.civsnap --turns 2 --orders alloc.bin --hash-log alloc-v.log --save-at 132 --save alloc-132.civsnap
+          $CLI run --without-discovery --from-save alloc-130.civsnap --turns 3 --orders alloc-no13.bin --hash-log alloc-t13.log
+          $CLI run --without-discovery --from-save alloc-130.civsnap --turns 7 --orders alloc-no12.bin --hash-log alloc-t12.log --split-report alloc-t12.rep
           if [ "$(cat alloc-v.log)" != "$(sed -n 131,132p alloc-full.log)" ] \
              || [ "$($CLI hash alloc-132.civsnap)" != "$(sed -n 132p alloc-full.log)" ] \
              || [ "$($CLI hash alloc-136.civsnap)" != "$(sed -n 136p alloc-full.log)" ]; then

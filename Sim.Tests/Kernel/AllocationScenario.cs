@@ -227,7 +227,17 @@ public sealed class AllocationScenarioRun
     internal int[] ControlPolityCounts { get; }
     internal int[] ControlSettlementCounts { get; }
 
-    public AllocationScenarioRun() : this(AllocationScenario.CliConfig()) { }
+    /// <summary>M6 Track EX (D-062, ADR-044 §12) CAUSE BLOCK: was the CLI's configuration as shipped. The scenario's premises
+    /// (the W/K/V/136 turns, the competing and held heads, every D-055/D-058 literal) are D-055's, MEASURED before the discovery
+    /// layer, and it is one of the tests that genuinely compares against that pre-M6 measurement. Re-checked 2026-10-23 with
+    /// stone no longer concealed (ores only): the purse is close but not the same — MEASURED under the shipped rules, settlement
+    /// the purse's stone at 116 is 5,048 against D-055's 4,913, road works lend building work their unused share only at 128 (not 131),
+    /// competing heads occur only at 117–119, and the ci.yml leg's `split-check alloc-b.rep --expect-hold-at 131` FAILS P5 and
+    /// P7 (the concealed copper and tin are unworked until surveyed, so extraction labour moves to the visible goods and the
+    /// stone the split sees changes). So, by the R4 rule, the scenario keeps the newer discovery layer OFF (TestConfigs.PreDiscovery;
+    /// Track CP and the research tranche move nothing it reads) and the ci.yml leg runs the CLI with `--without-discovery`, the
+    /// same rules. Re-deriving S42-ALLOC-H under the shipped rules is an open item for the Director (ADR-044 §12).</summary>
+    public AllocationScenarioRun() : this(Sim.Tests.TestUtil.TestConfigs.PreDiscovery(AllocationScenario.CliConfig())) { }
 
     /// <summary>D-058 (2026-10-19): the same run under another configuration — the attribution twin
     /// (TestConfigs.PreContinueWithinTurn of the CLI's configuration, <see cref="AllocationScenarioPreD058Run"/>).</summary>
@@ -335,7 +345,7 @@ public sealed class AllocationScenarioCollection : ICollectionFixture<Allocation
 /// Director's "build one at a time" ruling moved is reproduced on it (AllocationScenarioD058AttributionTests).
 /// </summary>
 public sealed class AllocationScenarioPreD058Run() : AllocationScenarioRunHolder(new AllocationScenarioRun(
-    Sim.Tests.TestUtil.TestConfigs.PreContinueWithinTurn(AllocationScenario.CliConfig())));
+    Sim.Tests.TestUtil.TestConfigs.PreContinueWithinTurn(Sim.Tests.TestUtil.TestConfigs.PreDiscovery(AllocationScenario.CliConfig()))));   // M6 EX: discovery off, as the live run (R4)
 
 /// <summary>Holds one <see cref="AllocationScenarioRun"/> built with a non-default configuration (an xUnit fixture needs a
 /// public parameterless constructor).</summary>

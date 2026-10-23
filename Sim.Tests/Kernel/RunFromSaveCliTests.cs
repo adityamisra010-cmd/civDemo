@@ -156,7 +156,8 @@ public class RunFromSaveCliTests(FromSaveRuns runs) : IClassFixture<FromSaveRuns
     [Fact]
     public void TurnZeroIsTheRegeneratedFoundingWorld_AnOrderNamingAColonyFoundedBeforeTheSave_IsDeferredAsInTheUninterruptedRun()
     {
-        // The AI founds settlement 4 from settlement 3 (its order stamped 71; the colony exists from turn 72). The player's
+        // The AI founds settlement 4 from settlement 3 (its order stamped 72; the colony exists from turn 73 — RE-PIN M6 Track EX:
+        // was 72 before discovery, whose expeditions and surveys draw grain the colony waits on). The player's
         // order at turn 80 names it: above the FOUNDING world's highest id (3), so ADR-034 defers it to delivery, where it
         // exists — accepted, and it changes nothing (the player does not rule there). Validated against the world AT the save
         // (highest id ≥ 4), the same order would be checked up front and refused for control.
@@ -169,7 +170,7 @@ public class RunFromSaveCliTests(FromSaveRuns runs) : IClassFixture<FromSaveRuns
 
         WorldState at80 = SaveFiles.Load(s80, 256);
         SettlementRow colony = at80.Settlements.Rows().Single(s => s.Id.Value == 4);
-        Assert.Equal(72L, colony.FoundedTurn);
+        Assert.Equal(73L, colony.FoundedTurn);
         Assert.True(EmpireQuery.TryGetController(at80, colony.Id, out PolityId ruler) && ruler.Value == 2, "the colony is the AI's");
 
         (exit, _, stderr) = FromSaveRuns.Run("--from-save", s80, "--size", "256", "--turns", "4", "--orders", log,

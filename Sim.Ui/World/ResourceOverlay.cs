@@ -540,10 +540,12 @@ public sealed class ResourceOverlay
                 SettlementRow row = world.Settlements[s];
                 if (!knowledge.KnowsSettlement(row.Id.Value) || !knowledge.Core.ReadsInternals(row.Id)
                     || !EmpireQuery.ControlsSettlement(world, player, row.Id)) continue;
+                // M6 EX (ADR-044): an undiscovered concealed deposit is not the player's to mark (State.DepositConcealment).
+                int[]? hidden = DepositConcealment.HiddenGoods(world, cfg, row.Id);
                 for (int i = 0; i < world.Deposits.Count; i++)
                 {
                     DepositRow d = world.Deposits[i];
-                    if (d.Settlement != row.Id) continue;
+                    if (d.Settlement != row.Id || DepositConcealment.Contains(hidden, d.Good.Value)) continue;
                     GoodEntry? g = null;
                     foreach (GoodEntry e in goods.Goods) if (e.Id == d.Good.Value) { g = e; break; }
                     if (g is not { DepositChannel: { } ch } || !(g.DepositSpread > 0.0)) continue;

@@ -135,13 +135,22 @@ public static class SaveFiles
     {
         if (!CanonicalSchema.IsReadable(version) || version == CanonicalSchema.Version) return null;
         string current = CanonicalSchema.Version.ToString(System.Globalization.CultureInfo.InvariantCulture);
-        return version == 32
-            ? "note: " + path + ": migrated from save schema v32: the three tables added since v32 (ConstructionProgress,"
-              + " ResourceAllocations, ConstructionHolds) were added empty; the hash printed is the v" + current
-              + " hash (SchemaProjection.V32 gives the v32 build's). Its terrain was regenerated flat (no v32 world was a"
-              + " cylinder) and its queued entries are at progress 0, ordered as enqueued on turn -1."
-            : "note: " + path + ": migrated from save schema v33: ConstructionHolds was added empty; the hash printed is"
-              + " the v" + current + " hash (SchemaProjection.V33 gives the v33 build's).";
+        // ADR-043 (v35): CivicsPoints joins every older version's list of tables added empty; ADR-044 (v35): so do the four
+        // M6 EX discovery tables.
+        const string v35Tables = " M6 discovery tables (KnownExtents, Explorations, SettlementSightings, SettlementSurveys)";
+        return version switch
+        {
+            32 => "note: " + path + ": migrated from save schema v32: the four tables added since v32 (ConstructionProgress,"
+                  + " ResourceAllocations, ConstructionHolds, CivicsPoints) and the four" + v35Tables + " were added empty; the"
+                  + " hash printed is the v" + current + " hash (SchemaProjection.V32 gives the v32 build's). Its terrain was"
+                  + " regenerated flat (no v32 world was a cylinder) and its queued entries are at progress 0, ordered as enqueued"
+                  + " on turn -1.",
+            33 => "note: " + path + ": migrated from save schema v33: ConstructionHolds, CivicsPoints and the four" + v35Tables
+                  + " were added empty; the hash printed is the v" + current + " hash (SchemaProjection.V33 gives the v33 build's).",
+            _ => "note: " + path + ": migrated from save schema v34: CivicsPoints (every Civics Points bank starts at zero) and"
+                  + " the four" + v35Tables + " were added empty; the first step re-derives each polity's seed extent; the hash"
+                  + " printed is the v" + current + " hash (SchemaProjection.V34 gives the v34 build's).",
+        };
     }
 
     /// <summary>The worldgen a save of header version <paramref name="version"/> is regenerated with: the shipped

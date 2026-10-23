@@ -10,24 +10,25 @@ namespace Sim.Core.State;
 /// "the AI cannot use information it has not legitimately discovered" (Director). A read that does not come through
 /// here is a read of something the polity may not know.
 ///
-/// <para><b>ALL-KNOWN TODAY.</b> No known-extent state exists (the fog-discovery audit: the tree has none; D-040 rules
-/// the map is DISCOVERED and assigns the extent's storage to the packet that builds it, S2a). Until it lands every
-/// node is known and visible, so every answer below is "yes" for every node, and every reader routed through the seam
-/// is byte-identical to the reader before it. <see cref="Of"/> is THE production entry, and its ONLY future input is
-/// S2a's STORED KNOWN EXTENT (the holder's rows → <c>_known</c>); the visible set S2a derives each turn from PREV with
-/// its sight query (never stored, so it adds no source of truth). Nothing else may ever feed it: no UI flag, no
-/// difficulty setting, no second table.</para>
+/// <para><b>THE FOG (M6 Track EX, D-062, ADR-044).</b> <see cref="Of"/> is THE production entry. Its inputs are the
+/// stored known extent (<see cref="KnownExtentRow"/>, section 63 — monotone), the polity's sightings
+/// (<see cref="SettlementSightingRow"/>, section 65) and the sight it derives each call from the world it is handed (the
+/// nodes of the settlements it controls, its formations' sight discs — <see cref="DiscoveryQuery"/>; never stored), under
+/// sim.json <c>fog</c>. Nothing else may ever feed it: no UI flag, no difficulty setting, no second table. With the fog
+/// off (sim.json fog absent or disabled, or no config) every node is known and visible — the pre-M6 answer, byte for
+/// byte, the attribution control.</para>
 ///
 /// <para><b>THE QUESTIONS</b> (granularity: the traversal lattice's 16 km node — D-040 B5 names it; a cell is known iff
 /// the stride block that contains it is):</para>
 /// <list type="bullet">
 /// <item><see cref="Known"/>(node): the node is in the polity's extent (permanent once gained, D-040 B2).</item>
 /// <item><see cref="Visible"/>(node): the node is in sight now. Visible ⊆ Known.</item>
-/// <item><see cref="KnowsSettlement"/>: a settlement the polity controls, or one whose site is VISIBLE — its live state
-///   can be shown only while it is seen; a last-seen ("ghost") picture needs persisted sighting memory, which D-039 C
-///   places in M7. Whether a known-but-unseen foreign settlement is drawn at all is the fog ruling's (S2c).</item>
+/// <item><see cref="KnowsSettlement"/>: a settlement the polity controls, one whose site is VISIBLE, or (fog on) one it
+///   has SIGHTED (rule E5: presence as last seen — a settlement founded in remembered land stays unknown until seen again).
+///   Its internals stay its controller's (<see cref="ReadsInternals"/>).</item>
 /// <item><see cref="KnowsUnit"/>: a formation the polity owns, or one whose position (its station's site when stationed)
-///   is visible (D-039 C1: a formation not observed is UNKNOWN).</item>
+///   is visible (D-039 C1: a formation not observed is UNKNOWN; rule E6: no ghost memory before M7 — formations cannot move
+///   before then, so a last-known marker would equal the live position).</item>
 /// <item><see cref="KnowsPolity"/>: the polity itself, or one with a settlement the polity knows (contact).</item>
 /// <item><see cref="ReadsInternals"/>: a settlement's BOOKS (its queue, stocks, people, deposits) are its controller's
 ///   information — the class every AI policy reads under. Not an extent question: it holds under all-known too.</item>
@@ -42,15 +43,16 @@ namespace Sim.Core.State;
 public sealed class PolityKnowledge
 {
     private readonly IReadOnlyWorldState _world;
-    private readonly bool[]? _known;     // null: every node (no extent is stored before S2a)
-    private readonly bool[]? _visible;   // null: every known node
+    private readonly ulong[]? _known;    // null: every node (the fog off)
+    private readonly ulong[]? _visible;  // null: every known node
+    private readonly bool _sightings;    // the fog's settlement memory (rule E5) is read
     private readonly int _terrainSize, _latticeSize, _block;
     private readonly bool _wrapX;
 
     /// <summary>The polity whose knowledge this is.</summary>
     public PolityId Polity { get; }
 
-    /// <summary>True while the seam restricts nothing (every production instance until S2a lands).</summary>
+    /// <summary>True while the seam restricts nothing (the fog off).</summary>
     public bool AllKnown => _known is null && _visible is null;
 
     /// <summary>Lattice nodes per side of the knowledge grid (0 for a world without terrain).</summary>
@@ -60,12 +62,13 @@ public sealed class PolityKnowledge
     /// read by the reach helpers that mirror the wrapped siting windows (SiteAssessment.KnowsSquare/Diamond/Disc).</summary>
     public bool WrapX => _wrapX;
 
-    private PolityKnowledge(IReadOnlyWorldState world, PolityId polity, bool[]? known, bool[]? visible)
+    private PolityKnowledge(IReadOnlyWorldState world, PolityId polity, ulong[]? known, ulong[]? visible, bool sightings = false)
     {
         _world = world;
         Polity = polity;
         _known = known;
         _visible = visible;
+        _sightings = sightings;
         if (world.Terrain is { } terrain)
         {
             _terrainSize = terrain.Size;
@@ -75,13 +78,18 @@ public sealed class PolityKnowledge
     }
 
     /// <summary>
-    /// THE PRODUCTION ENTRY: what <paramref name="polity"/> knows of <paramref name="world"/>. All-known until S2a: the
-    /// stored known extent is its only future input (see the type's remarks).
+    /// THE PRODUCTION ENTRY: what <paramref name="polity"/> knows of <paramref name="world"/> under <paramref name="cfg"/>'s
+    /// fog (see the type's remarks): all-known with the fog off or no config; else the stored extent ∪ the seed discs of
+    /// its controlled settlements ∪ its formations' sight (known), the settlement nodes and formation discs (visible), and
+    /// its sightings.
     /// </summary>
-    public static PolityKnowledge Of(IReadOnlyWorldState world, PolityId polity)
+    public static PolityKnowledge Of(IReadOnlyWorldState world, PolityId polity, Systems.SimConfig? cfg)
     {
         ArgumentNullException.ThrowIfNull(world);
-        return new PolityKnowledge(world, polity, null, null);
+        if (cfg?.Fog is not { Enabled: true } fog || world.Terrain is null)
+            return new PolityKnowledge(world, polity, null, null);
+        return new PolityKnowledge(world, polity,
+            DiscoveryQuery.KnownBits(world, fog, polity), DiscoveryQuery.VisibleBits(world, fog, polity), sightings: true);
     }
 
     /// <summary>
@@ -97,9 +105,15 @@ public sealed class PolityKnowledge
         int nodes = Grid(terrain.Size).LatticeSize * Grid(terrain.Size).LatticeSize;
         if (known.Length != nodes || visible.Length != nodes)
             throw new ArgumentException("a knowledge mask has one entry per lattice node (" + nodes.ToString(System.Globalization.CultureInfo.InvariantCulture) + ")");
+        var k = new ulong[DiscoveryQuery.WordCount(Grid(terrain.Size).LatticeSize)];
+        var v = new ulong[k.Length];
         for (int n = 0; n < nodes; n++)
+        {
             if (visible[n] && !known[n]) throw new ArgumentException("a visible node must be known (node " + n.ToString(System.Globalization.CultureInfo.InvariantCulture) + ")");
-        return new PolityKnowledge(world, polity, known.ToArray(), visible.ToArray());
+            if (known[n]) DiscoveryQuery.Set(k, n);
+            if (visible[n]) DiscoveryQuery.Set(v, n);
+        }
+        return new PolityKnowledge(world, polity, k, v);
     }
 
     /// <summary>The knowledge grid of a terrain of <paramref name="terrainSize"/> px — the traversal lattice's geometry
@@ -135,10 +149,17 @@ public sealed class PolityKnowledge
     }
 
     /// <summary>Whether lattice node <paramref name="node"/> is in the polity's known extent.</summary>
-    public bool Known(int node) => _known is null || ((uint)node < (uint)_known.Length && _known[node]);
+    public bool Known(int node) =>
+        _known is null || ((uint)node < (uint)(_latticeSize * _latticeSize) && DiscoveryQuery.Has(_known, node));
 
     /// <summary>Whether lattice node <paramref name="node"/> is in the polity's sight now (Visible ⊆ Known).</summary>
-    public bool Visible(int node) => _visible is null ? Known(node) : (uint)node < (uint)_visible.Length && _visible[node];
+    public bool Visible(int node) => _visible is null
+        ? Known(node)
+        : (uint)node < (uint)(_latticeSize * _latticeSize) && DiscoveryQuery.Has(_visible, node);
+
+    /// <summary>Whether lattice node <paramref name="node"/> is REMEMBERED: known but not in sight now (the map's darker
+    /// overlay). Always false with the fog off.</summary>
+    public bool Remembered(int node) => !AllKnown && Known(node) && !Visible(node);
 
     /// <summary>Whether terrain cell <paramref name="cell"/> lies in a known node.</summary>
     public bool KnowsCell(int cell) => _known is null || Known(NodeOfCell(cell));
@@ -148,15 +169,16 @@ public sealed class PolityKnowledge
 
     // ------------------------------------------------------------------ objects
 
-    /// <summary>Whether the polity knows settlement <paramref name="settlement"/>: it controls it, or its site is visible.
-    /// False for an id no settlement has.</summary>
+    /// <summary>Whether the polity knows settlement <paramref name="settlement"/>: it controls it, its site is visible, or
+    /// (fog on) it has sighted it. False for an id no settlement has.</summary>
     public bool KnowsSettlement(SettlementId settlement)
     {
         for (int i = 0; i < _world.Settlements.Count; i++)
         {
             SettlementRow row = _world.Settlements[i];
             if (row.Id.Value != settlement.Value) continue;
-            return AllKnown || EmpireQuery.ControlsSettlement(_world, Polity, settlement) || SeesCell(row.SiteCell);
+            return AllKnown || EmpireQuery.ControlsSettlement(_world, Polity, settlement) || SeesCell(row.SiteCell)
+                || (_sightings && DiscoveryQuery.HasSighting(_world, Polity, settlement));
         }
         return false;
     }

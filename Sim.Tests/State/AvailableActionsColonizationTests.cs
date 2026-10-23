@@ -17,7 +17,9 @@ namespace Sim.Tests.State;
 /// </summary>
 public class AvailableActionsColonizationTests
 {
-    private static readonly SimConfig Cfg = TestConfigs.Sim();
+    // M6 EX (2026-10-22): the founding rigs' config (FoundingRigs.Cfg — the discovery layer off, the R4 rule): the S1d
+    // founding surface is an older layer premised on the all-known view (a rival's settlement is known, so "not yours").
+    private static readonly SimConfig Cfg = FoundingRigs.Cfg();
     private static readonly PolityId Player = new(1);
     private static readonly PolityId Rival = new(2);
 
@@ -151,7 +153,7 @@ public class AvailableActionsColonizationTests
     /// <summary>A known-node mask with every node known except the one holding <paramref name="s"/>'s site.</summary>
     private static bool[] Mask(IReadOnlyWorldState w, SettlementId s, bool hidden)
     {
-        PolityKnowledge all = PolityKnowledge.Of(w, Player);
+        PolityKnowledge all = PolityKnowledge.Of(w, Player, null);
         var known = new bool[all.LatticeSize * all.LatticeSize];
         for (int n = 0; n < known.Length; n++) known[n] = true;
         known[all.NodeOfCell(FoundingRigs.SiteCellOf(w, s))] = hidden;

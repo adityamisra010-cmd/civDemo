@@ -210,7 +210,7 @@ public static class InfoQuery
         if (knowledge is not null && knowledge.Polity.Value != player.Value)
             throw new ArgumentException("the knowledge must be the player's", nameof(knowledge));
         var c = new Ctx(world, cfg, player, context ?? ActionQueryContext.None, settlementName, actions,
-            knowledge ?? PolityKnowledge.Of(world, player), site, batch);
+            knowledge ?? PolityKnowledge.Of(world, player, cfg), site, batch);
         var b = new B(subject);
         switch (subject.Kind)
         {
@@ -324,7 +324,7 @@ public static class InfoQuery
     /// </summary>
     public static string? SourceChain(IReadOnlyWorldState world, SimConfig cfg, PolityId polity, string good)
     {
-        var c = new Ctx(world, cfg, polity, ActionQueryContext.None, null, null, PolityKnowledge.Of(world, polity));
+        var c = new Ctx(world, cfg, polity, ActionQueryContext.None, null, null, PolityKnowledge.Of(world, polity, cfg));
         int target = -1;
         return Chain(c, good, 0, ref target);
     }
@@ -332,7 +332,7 @@ public static class InfoQuery
     /// <summary>The research node the <see cref="SourceChain"/> of <paramref name="good"/> ends at (content index), or -1.</summary>
     public static int SourceChainNode(IReadOnlyWorldState world, SimConfig cfg, PolityId polity, string good)
     {
-        var c = new Ctx(world, cfg, polity, ActionQueryContext.None, null, null, PolityKnowledge.Of(world, polity));
+        var c = new Ctx(world, cfg, polity, ActionQueryContext.None, null, null, PolityKnowledge.Of(world, polity, cfg));
         int target = -1;
         Chain(c, good, 0, ref target);
         return target;
@@ -352,21 +352,24 @@ public static class InfoQuery
         b.TreeNode = i;
 
         bool done = c.Done[i], available = c.Available(i);
-        bool target = ResearchQuery.TryGetTarget(c.W, c.P, out ResearchNodeId t) && t.Value == n.Key.Value;
+        bool target = IsTarget(c, n);
         double cost = ResearchQuery.EffectiveCost(c.W, r, c.P, i);
-        double rp = ResearchQuery.ResearchPointPool(c.W, r, c.P);
+        // ADR-043: a civic is paid in Civics Points in the two-lane model (CP a turn = the accrual of a step of this length).
+        bool cp = r.Tuning.TwoLanes && n.Tree == ResearchTree.Civics;
+        double rp = cp ? ResearchQuery.CivicsPointsMilli(c.W, r, c.P, c.W.Clock.DtYears) / 1000.0 : ResearchQuery.ResearchPointPool(c.W, r, c.P);
+        string points = cp ? " civics points" : " research points";
         if (done) { b.Status = InfoStatus.Known; b.StatusLine = "Known: your scholars have completed it."; }
         else if (target && available)
         {
             b.Status = InfoStatus.Researching;
-            b.StatusLine = "Being researched: " + N0(ResearchQuery.Progress(c.W, c.P, n.Key)) + " of " + N0(cost) + " research points, +" + N1(rp) + " a turn.";
+            b.StatusLine = "Being researched: " + N0(ResearchQuery.Progress(c.W, c.P, n.Key)) + " of " + N0(cost) + points + ", +" + N1(rp) + " a turn.";
         }
         else if (available)
         {
             b.Status = InfoStatus.Researchable;
-            b.StatusLine = "Open to research now: " + N0(cost) + " research points" + (rp > 0 ? " (about " + Inv((long)Math.Ceiling(Math.Max(0.0, cost - ResearchQuery.Progress(c.W, c.P, n.Key)) / rp)) + " turns at the current rate)." : ".");
+            b.StatusLine = "Open to research now: " + N0(cost) + points + (rp > 0 ? " (about " + Inv((long)Math.Ceiling(Math.Max(0.0, cost - ResearchQuery.Progress(c.W, c.P, n.Key)) / rp)) + " turns at the current rate)." : ".");
         }
-        else { b.Status = InfoStatus.Locked; b.StatusLine = "Locked: " + N0(cost) + " research points once it opens."; }
+        else { b.Status = InfoStatus.Locked; b.StatusLine = "Locked: " + N0(cost) + points + " once it opens."; }
 
         // ENABLED BY: its prerequisites (each with its completion), the expression verbatim.
         IReadOnlyList<int> must = n.Prerequisite?.MustHoldAtoms() ?? [];
@@ -740,7 +743,7 @@ public static class InfoQuery
         foreach (SettlementId s in mine)
         {
             held += Held(c.W, s, g.Id);
-            if (Deposit(c.W, s, g.Id) > 0.0) deposits++;
+            if (Deposit(c, s, g.Id) > 0.0) deposits++;
         }
         b.Title = Cap(g.Name);
         b.Kind = "Good - " + g.Category;
@@ -1624,6 +1627,7 @@ public static class InfoQuery
         FoundingVerdict.NoParty => from + " cannot spare a party",
         FoundingVerdict.NoProvisions => from + " cannot provision a party",
         FoundingVerdict.Unreachable => "no land route from " + from,
+        FoundingVerdict.UnknownSite => "ground you have not discovered - explore it first",
         _ => "not judged",
     };
 
@@ -1651,6 +1655,7 @@ public static class InfoQuery
         FoundingVerdict.NoParty => "A party: " + N0(r.Party) + " people would leave",
         FoundingVerdict.NoProvisions => "Provisions: " + N0(r.Provisions) + " " + GoodName(c.Cfg.Goods, c.Cfg.Goods?.GrainId ?? -1) + " would go with them",
         FoundingVerdict.Unreachable => "A land route" + (from.Length > 0 ? " from " + from : ""),
+        FoundingVerdict.UnknownSite => "Ground you have discovered",
         _ => arm.ToString(),
     };
 
@@ -1859,7 +1864,11 @@ public static class InfoQuery
         double rp = ResearchQuery.ResearchPointPool(c.W, r, c.P);
         int open = 0;
         for (int i = 0; i < r.Nodes.Count; i++) if (c.Available(i)) open++;
-        if (ResearchQuery.TryGetTarget(c.W, c.P, out ResearchNodeId t) && r.IndexOf(t) is int ti and >= 0)
+        ResearchNodeId t = default;
+        bool held = r.Tuning.TwoLanes
+            ? ResearchQuery.TryGetTarget(c.W, r, c.P, ResearchTree.Technology, out t)   // ADR-043: the Technology lane
+            : ResearchQuery.TryGetTarget(c.W, c.P, out t);
+        if (held && r.IndexOf(t) is int ti and >= 0)
         {
             b.Status = InfoStatus.Researching;
             b.StatusLine = "Researching " + r.Nodes[ti].Name + ": " + N0(ResearchQuery.Progress(c.W, c.P, t)) + " of "
@@ -1875,14 +1884,31 @@ public static class InfoQuery
             b.Action = Find(c, ActionDomain.Research, 1);
             b.Summary = "idle - choose a research target";
         }
+        if (r.Tuning.TwoLanes)
+        {
+            // ADR-043: the two lanes, stated — RP fund the technology target; banked Civics Points fund the civics target.
+            b.Kind = "Knowledge - research points a turn fund the technology target; civics points, banked, fund the civics target";
+            CivicsPointsRow account = ResearchQuery.CivicsPointsAccount(c.W, c.P);
+            double cp = ResearchQuery.CivicsPointsMilli(c.W, r, c.P, c.W.Clock.DtYears) / 1000.0;
+            string civic = ResearchQuery.TryGetTarget(c.W, r, c.P, ResearchTree.Civics, out ResearchNodeId ct) && r.IndexOf(ct) is int ci and >= 0
+                ? "civics target " + r.Nodes[ci].Name + ": " + N0(ResearchQuery.Progress(c.W, c.P, ct)) + " of " + N0(ResearchQuery.EffectiveCost(c.W, r, c.P, ci)) + " civics points"
+                : "no civics target";
+            b.StatusLine += " Civics: " + civic + "; " + N1(account.BalanceMilli / 1000.0) + " civics points banked, +" + N1(cp) + " a turn.";
+        }
     }
+
+    /// <summary>Whether the node is the polity's target on its own lane (ADR-043; in the one-pool model, the one target).</summary>
+    private static bool IsTarget(Ctx c, ResearchNode n) =>
+        c.R is { } r && (r.Tuning.TwoLanes
+            ? ResearchQuery.TryGetTarget(c.W, r, c.P, n.Tree, out ResearchNodeId lt) && lt.Value == n.Key.Value
+            : ResearchQuery.TryGetTarget(c.W, c.P, out ResearchNodeId t) && t.Value == n.Key.Value);
 
     // ================================================================== shared: knowledge links and the tree target
 
     private static InfoLink NodeLink(Ctx c, int i, string? extra = null)
     {
         ResearchNode n = c.R!.Nodes[i];
-        bool target = ResearchQuery.TryGetTarget(c.W, c.P, out ResearchNodeId t) && t.Value == n.Key.Value;
+        bool target = IsTarget(c, n);
         string state = c.Done[i] ? "known" : target ? "being researched" : c.Available(i) ? "open to research now" : "locked";
         return new InfoLink(n.Name, InfoSubject.Node(n.Key), c.Done[i], TreeWord(n) + ", " + AgeText(c, n.Age) + " - " + state + (extra is null ? "" : "; " + extra));
     }
@@ -2080,7 +2106,7 @@ public static class InfoQuery
         if (c.Cfg.Goods is not { } goods) return false;
         int id = goods.IdOf(good);
         if (id < 0) return false;
-        foreach (SettlementId s in c.Controlled) if (Held(c.W, s, id) > 0 || Deposit(c.W, s, id) > 0.0) return true;
+        foreach (SettlementId s in c.Controlled) if (Held(c.W, s, id) > 0 || Deposit(c, s, id) > 0.0) return true;
         if (id == goods.GrainId) return true;
         return depth < 4 && ObtainableByKnownCraft(c, good, depth);
     }
@@ -2239,13 +2265,9 @@ public static class InfoQuery
         return 0;
     }
 
-    private static double Deposit(IReadOnlyWorldState w, SettlementId s, int good)
-    {
-        double sum = 0.0;
-        for (int i = 0; i < w.Deposits.Count; i++)
-            if (w.Deposits[i].Settlement.Value == s.Value && w.Deposits[i].Good.Value == good) sum += w.Deposits[i].Abundance;
-        return sum;
-    }
+    /// <summary>M6 EX (ADR-044): a deposit as the settlement's controller knows it — an undiscovered concealed row reads 0
+    /// (State.DepositConcealment, the one predicate).</summary>
+    private static double Deposit(Ctx c, SettlementId s, int good) => DepositConcealment.KnownAbundance(c.W, c.Cfg, s, good);
 
     /// <summary>The sector that works a deposit good: production's own classification (<see cref="LabourActivities.IsHerded"/>,
     /// the rule LabourActivities.GoodsOf files a deposit under) — Herding/fishing for livestock and fish, Extraction for

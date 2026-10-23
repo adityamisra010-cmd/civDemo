@@ -178,7 +178,7 @@ public static class LabourActivities
             SectorAllocationRow shares = AllocationOf(world, settlement);
             for (int sector = 0; sector < Sectors.Count; sector++)
             {
-                (ImmutableArray<GoodId> goods, ImmutableArray<string> names) = GoodsOf(world, cfg.Goods, settlement, sector, cfg.Research);
+                (ImmutableArray<GoodId> goods, ImmutableArray<string> names) = GoodsOf(world, cfg.Goods, settlement, sector, cfg.Research, cfg);
                 result.Add(new LabourActivity(
                     settlement, sector, ResearchContentLoader.SectorIds[sector], Sectors.Share(shares, sector),
                     labels[sector], identities[sector], goods, names));
@@ -269,7 +269,8 @@ public static class LabourActivities
     /// (it builds dwellings, paths and projects).
     /// </summary>
     public static (ImmutableArray<GoodId> Goods, ImmutableArray<string> Names) GoodsOf(
-        IReadOnlyWorldState world, GoodsConfig? goods, SettlementId settlement, int sector, ResearchContent? research = null)
+        IReadOnlyWorldState world, GoodsConfig? goods, SettlementId settlement, int sector, ResearchContent? research = null,
+        SimConfig? cfg = null)
     {
         if (goods is null) return ([], []);
         var ids = new List<int>();
@@ -287,7 +288,7 @@ public static class LabourActivities
                 {
                     bool isFood = g.Id == livestock || g.Id == fish;   // IsHerded's rule, the ids hoisted out of the loop
                     if (isFood != food) continue;
-                    if (DepositAbundance(world, settlement, new GoodId(g.Id)) > 0.0) ids.Add(g.Id);
+                    if (DepositConcealment.KnownAbundance(world, cfg, settlement, g.Id) > 0.0) ids.Add(g.Id);
                 }
                 break;
             }
@@ -310,14 +311,4 @@ public static class LabourActivities
         return (result.MoveToImmutable(), names.MoveToImmutable());
     }
 
-    private static double DepositAbundance(IReadOnlyWorldState world, SettlementId settlement, GoodId good)
-    {
-        double sum = 0.0;
-        for (int i = 0; i < world.Deposits.Count; i++)
-        {
-            DepositRow d = world.Deposits[i];
-            if (d.Settlement == settlement && d.Good == good) sum += d.Abundance;
-        }
-        return sum;
-    }
 }

@@ -82,22 +82,25 @@ public class AllocationCiLegTests(AllocationScenarioRun run)
             .Where(l => l.StartsWith("$CLI ", StringComparison.Ordinal) || l.StartsWith("python3 scripts/gen-sample-orders.py", StringComparison.Ordinal))
             .Select(l => l.Split(" | ")[0].Split("   #")[0].Trim())
             .ToArray();
+        // M6 Track EX (ADR-044 §12; re-checked 2026-10-23): every run and replay takes --without-discovery — the scenario's
+        // D-055 premises are a pre-M6 measurement (under the shipped rules split-check FAILS P5/P7 on alloc-b.rep);
+        // AllocationScenarioRun runs the same rules in process.
         string[] expected =
         [
             $"python3 scripts/gen-sample-orders.py alloc.bin {H} --allocation",
             $"python3 scripts/gen-sample-orders.py alloc-ctl.bin {H} --allocation --no-split",
             $"python3 scripts/gen-sample-orders.py alloc-no13.bin {H} --allocation --drop {V}:13",
             $"python3 scripts/gen-sample-orders.py alloc-no12.bin {H} --allocation --drop {Seventy}:12",
-            $"$CLI run --founded --seed 42 --turns {P} --orders alloc.bin --hash-log alloc-a0.log --save-at {P} --save alloc-{P}.civsnap",
-            $"$CLI run --from-save alloc-{P}.civsnap --turns {H - P} --orders alloc.bin --hash-log alloc-a.log --split-report alloc-a.rep --save-at {K} --save alloc-{K}.civsnap",
-            $"$CLI run --from-save alloc-{P}.civsnap --turns {H - P} --orders alloc.bin --hash-log alloc-a1.log --save-at {K} --save alloc-{K}-a1.civsnap",
-            $"$CLI run --from-save alloc-{K}.civsnap --turns {H - K} --orders alloc.bin --hash-log alloc-b.log --split-report alloc-b.rep --save-at {Seventy} --save alloc-{Seventy}.civsnap",
-            $"$CLI run --from-save alloc-{P}.civsnap --turns {H - P} --orders alloc-ctl.bin --hash-log alloc-c.log --split-report alloc-c.rep",
-            $"$CLI replay --founded --seed 42 --turns {H} --orders alloc.bin --hash-log alloc-replayed.log",
+            $"$CLI run --without-discovery --founded --seed 42 --turns {P} --orders alloc.bin --hash-log alloc-a0.log --save-at {P} --save alloc-{P}.civsnap",
+            $"$CLI run --without-discovery --from-save alloc-{P}.civsnap --turns {H - P} --orders alloc.bin --hash-log alloc-a.log --split-report alloc-a.rep --save-at {K} --save alloc-{K}.civsnap",
+            $"$CLI run --without-discovery --from-save alloc-{P}.civsnap --turns {H - P} --orders alloc.bin --hash-log alloc-a1.log --save-at {K} --save alloc-{K}-a1.civsnap",
+            $"$CLI run --without-discovery --from-save alloc-{K}.civsnap --turns {H - K} --orders alloc.bin --hash-log alloc-b.log --split-report alloc-b.rep --save-at {Seventy} --save alloc-{Seventy}.civsnap",
+            $"$CLI run --without-discovery --from-save alloc-{P}.civsnap --turns {H - P} --orders alloc-ctl.bin --hash-log alloc-c.log --split-report alloc-c.rep",
+            $"$CLI replay --without-discovery --founded --seed 42 --turns {H} --orders alloc.bin --hash-log alloc-replayed.log",
             $"$CLI diff alloc-{K}.civsnap alloc-{K}-a1.civsnap",
-            $"$CLI run --from-save alloc-{K}.civsnap --turns {V - K} --orders alloc.bin --hash-log alloc-v.log --save-at {V} --save alloc-{V}.civsnap",
-            $"$CLI run --from-save alloc-{K}.civsnap --turns {V + 1 - K} --orders alloc-no13.bin --hash-log alloc-t13.log",
-            $"$CLI run --from-save alloc-{K}.civsnap --turns {Seventy + 1 - K} --orders alloc-no12.bin --hash-log alloc-t12.log --split-report alloc-t12.rep",
+            $"$CLI run --without-discovery --from-save alloc-{K}.civsnap --turns {V - K} --orders alloc.bin --hash-log alloc-v.log --save-at {V} --save alloc-{V}.civsnap",
+            $"$CLI run --without-discovery --from-save alloc-{K}.civsnap --turns {V + 1 - K} --orders alloc-no13.bin --hash-log alloc-t13.log",
+            $"$CLI run --without-discovery --from-save alloc-{K}.civsnap --turns {Seventy + 1 - K} --orders alloc-no12.bin --hash-log alloc-t12.log --split-report alloc-t12.rep",
             $"$CLI split-check alloc-a.rep --expect-hold-at {K}",
             "$CLI split-check alloc-a.rep --control alloc-c.rep",
             $"$CLI split-check alloc-b.rep --expect-hold-at {K + 1}",

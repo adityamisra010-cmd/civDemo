@@ -46,7 +46,7 @@ public class CylinderAttributionDrivenTests : IClassFixture<CylinderAttributionD
     /// <summary>The shared ON arm (the shipped config, to the longer horizon) and a second, independent ON run.</summary>
     public sealed class Arms
     {
-        public SimConfig On { get; } = TestConfigs.Sim();
+        public SimConfig On { get; } = TestConfigs.PreM6(TestConfigs.Sim());
         public R.Arm Live { get; }
         public R.Arm Again { get; }
 
@@ -54,7 +54,7 @@ public class CylinderAttributionDrivenTests : IClassFixture<CylinderAttributionD
         {
             Live = R.Run(R.Driven1024(), "on", On, TradeHorizon, keep: [0, FirstRelief, FirstTradeFlow],
                 probes: [R.ReliefMovedGrain, R.Trades]);
-            Again = R.Run(R.Driven1024(), "on-again", TestConfigs.Sim(), TradeHorizon);
+            Again = R.Run(R.Driven1024(), "on-again", TestConfigs.PreM6(TestConfigs.Sim()), TradeHorizon);
         }
     }
 

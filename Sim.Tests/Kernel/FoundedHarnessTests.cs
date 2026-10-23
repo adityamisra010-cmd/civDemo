@@ -63,7 +63,9 @@ public class FoundedHarnessTests
     /// TestConfigs.PreEmpireFoodAllocation, which reproduces the de86ace run exactly (RevoltTurn unchanged). The other
     /// ordered legs (replay, conservation, save/load) stay on the SHIPPED config: there the same SessionLog drives
     /// relief instead of revolt, so the determinism harness covers both.</summary>
-    private static SimConfig OrderedTwinConfig() => TestConfigs.PreEmpireFoodAllocation(TestConfigs.Sim());
+    // M6 Track EX (2026-10-22): by the R4 rule the de86ace twin strips the newer discovery layer too (TestConfigs.PreDiscovery;
+    // MEASURED on the shipped fog: "Expected: Not 1, Actual: 1" — concealed stone and clay change the starvation path).
+    private static SimConfig OrderedTwinConfig() => TestConfigs.PreEmpireFoodAllocation(TestConfigs.PreM6(TestConfigs.Sim()));
 
     /// <summary>Batch 3 (D-054, W1 fix F5): "the de86ace run" the ordered twin reproduces is also the FLAT world — the
     /// batch-2 twin strips every newer layer (the R4 rule), the cylinder (worldgen.json topology.wrapX) included. On the

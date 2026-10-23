@@ -171,7 +171,10 @@ public static partial class PlayabilityGate
             if (S.Overlay is not { } bake) return (GateResult.Fail, "no overlay bake");
             if (Ui.LensFrame?.Overlay is not { Key: { } key } f) return (GateResult.Fail, "the overlay or its key was not painted");
             bool evaluated = layer.Kind != OverlayKind.Channel || bake.ChannelsUnavailable is null;
-            if (evaluated && !(f.Layers.Contains(layer.Index) && f.Rects[layer.Index] > 0 && bake.Drawn(layer.Index) > 0))
+            // M6 Track EX (ADR-044): under the fog a layer can have NOTHING to draw — every known node's reach (a channel's
+            // hinterland disc, the score's box) touches undiscovered ground — and then its key must say so; else it draws.
+            bool fogWithheld = evaluated && bake.Drawn(layer.Index) == 0 && bake.Withheld(layer.Index) > 0;
+            if (evaluated && !fogWithheld && !(f.Layers.Contains(layer.Index) && f.Rects[layer.Index] > 0 && bake.Drawn(layer.Index) > 0))
                 return (GateResult.Fail, "the lens drew no rect of the layer");
             for (int n = 0; n < bake.NodeCount; n++)
                 if (bake.Level(layer.Index, n) != ResourceOverlay.NotDrawn && !S.Knowledge.Known(n))
@@ -180,6 +183,8 @@ public static partial class PlayabilityGate
             if (layer.Kind == OverlayKind.Channel)
                 foreach (OverlayGood g in layer.Goods) want.Add(g.Name);
             string all = string.Join("\n", key.Rows);
+            if (fogWithheld && !all.Contains("not judged (undiscovered ground in reach)", StringComparison.Ordinal))
+                return (GateResult.Fail, "the layer draws nothing (all withheld under the fog) and its key does not say so");
             foreach (string w in want) if (!all.Contains(w, StringComparison.Ordinal)) return (GateResult.Fail, "the key does not say '" + w + "'");
             if (layer.Kind == OverlayKind.Channel && !all.Contains(ResourceOverlay.AbundanceStatement, StringComparison.Ordinal))
                 return (GateResult.Fail, "the key does not state '" + ResourceOverlay.AbundanceStatement + "'");

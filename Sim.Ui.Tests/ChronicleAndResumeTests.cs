@@ -270,7 +270,8 @@ public class ChronicleAndResumeTests
             // the cylinder rig after that fix: the resumed (flat) world no longer equalled the fresh cylinder replay
             // ("Expected: 0d5c72e1…, Actual: 71883a5e…" at the fresh-replay comparison) — the rig, a cylinder session
             // relabelled v32, is a session no v32 build could have written. Re-rigged, not re-pinned: every assertion stands.
-            UiSession live = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1, wrapXOverride: false);
+            // M6 Track EX (2026-10-22): and without the discovery layer (a pre-v35 session replays without it).
+            UiSession live = UiSession.StartWith(TestFog.PreDiscovery, 42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1, wrapXOverride: false);
             live.ExportManifest("2026-10-10 12:00:00", log);
             int capital = live.World.Settlements[0].Id.Value;
             var worlds = new List<WorldState> { live.World };
@@ -325,7 +326,7 @@ public class ChronicleAndResumeTests
             // A fresh replay of the same seed and log, with no trace at all.
             OrderLog saved;
             using (FileStream f = File.OpenRead(log)) saved = OrderLog.Load(f);
-            UiSession fresh = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1, wrapXOverride: false);
+            UiSession fresh = UiSession.StartWith(TestFog.PreDiscovery, 42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1, wrapXOverride: false);
             fresh.ReplayTo(saved, 8);
             Assert.False(resumed.World.Terrain!.WrapX);                                // rebuilt on the flat map it was played on
             Assert.Equal(WorldHash.ComputeHex(fresh.World), WorldHash.ComputeHex(resumed.World));
@@ -514,10 +515,15 @@ public class ResumeNoticeUiTests
     /// <summary>A session recorded 2 turns into <paramref name="dir"/> (256 px, 4 settlements): flat when
     /// <paramref name="flat"/>, as every session recorded under a schema before v33 was, else the shipped cylinder.
     /// Returns the live session and its manifest path.</summary>
-    private static (UiSession Live, string Manifest) Record(string dir, bool flat)
+    // M6 Track EX (2026-10-22): a session relabelled to an OLDER schema (<paramref name="preDiscovery"/>) is recorded with
+    // the discovery layer off, as every build before v35 played it — Resume replays a pre-v35 session without discovery
+    // (DiscoveryQuery.RecordedWithoutDiscovery), so a relabelled fogged session is one no older build could have written.
+    private static (UiSession Live, string Manifest) Record(string dir, bool flat, bool preDiscovery = false)
     {
         string log = Path.Combine(dir, "orders-20261010-120000-s256-n4.bin");
-        UiSession live = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, wrapXOverride: flat ? false : null);
+        UiSession live = preDiscovery
+            ? UiSession.StartWith(TestFog.PreDiscovery, 42, sizeOverridePx: 256, settlementsOverride: 4, wrapXOverride: flat ? false : null)
+            : UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4, wrapXOverride: flat ? false : null);
         live.ExportManifest("2026-10-10 12:00:00", log);
         for (int t = 0; t < 2; t++) live.EndTurn();
         live.Save(log);
@@ -541,7 +547,7 @@ public class ResumeNoticeUiTests
             + Environment.ProcessId.ToString(System.Globalization.CultureInfo.InvariantCulture) + "-" + Guid.NewGuid().ToString("N"));
         try
         {
-            (UiSession live, string manifestPath) = Record(Path.Combine(dir, "older"), flat: true);
+            (UiSession live, string manifestPath) = Record(Path.Combine(dir, "older"), flat: true, preDiscovery: true);
 
             // D-055 (2026-10-16) CAUSE BLOCK (X1 (h)): was `older = CanonicalSchema.Version - 1` (v32 while this build was
             // v33); the flat arm is the explicit 32 now, and the v33 (cylinder) arm is its own test below.
@@ -598,7 +604,7 @@ public class ResumeNoticeUiTests
             + Environment.ProcessId.ToString(System.Globalization.CultureInfo.InvariantCulture) + "-" + Guid.NewGuid().ToString("N"));
         try
         {
-            (UiSession live, string manifestPath) = Record(Path.Combine(dir, "v33"), flat: false);
+            (UiSession live, string manifestPath) = Record(Path.Combine(dir, "v33"), flat: false, preDiscovery: true);
             Assert.True(live.World.Terrain!.WrapX);
             ChronicleAndResumeTests.RecordSchema(manifestPath, 33);
             ChronicleAndResumeTests.RecordTraceUnderAnotherSchema(UiSession.TracePath(Path.Combine(dir, "v33", "orders-20261010-120000-s256-n4.bin")));
@@ -607,7 +613,7 @@ public class ResumeNoticeUiTests
             Assert.Equal(WorldHash.ComputeHex(live.World), WorldHash.ComputeHex(resumed.World));
             Assert.Equal(UiSession.SchemaMismatchNotice(33, CanonicalSchema.Version), resumed.ResumeNotice);
             Assert.Equal(4, resumed.ResumeNotice.Count);
-            Assert.Equal("Recorded under save schema v33; this build is v34.", resumed.ResumeNotice[0]);
+            Assert.Equal("Recorded under save schema v33; this build is v35.", resumed.ResumeNotice[0]);   // ADR-043 (2026-10-22): v35 (was v34)
             Assert.Equal("Resumed by replaying its seed and orders (D-008).", resumed.ResumeNotice[1]);
             Assert.Equal("The saved trace was not checked against this replay.", resumed.ResumeNotice[2]);
             using (var h = Sim.Ui.Headless.UiFrameHarness.Start(resumed, Path.Combine(dir, "ui-v33"), Assets()))

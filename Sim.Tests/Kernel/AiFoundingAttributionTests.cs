@@ -69,11 +69,26 @@ public class AiFoundingAttributionTests
     /// CONTROL: ReservationsLayoutAttributionTests.AiWorldSeed42Turn300_MovedForTheV34LayoutAlone — the v33 projection
     /// (SchemaProjection.V33, asserting 0 hold rows) returns OLD byte for byte, and the PreReservations twin gives the same
     /// world. `sim run --founded --seed 42 --turns 300 --ai-empires 1` on this tree prints the NEW value.</summary>
-    internal const string S1cTurn300 = "25f4799d581d8de72dc15d487bcba54cb9db399208aba065963eb1f257e9fd10";
+    // ADR-043 RE-PIN (2026-10-22, D-062 Track CP; VALUE + LAYOUT, MEASURED on this tree by the agent writing this line):
+    // 25f4799d581d8de7… -> 5623de7a2e550414…. CAUSE: schema v35 appends CivicsPoints (two Empire accounts) and the two
+    // research lanes — the AI orders civics on their own lane, funded by Civics Points. CONTROL:
+    // CivicsPointsAttributionTests.AiWorldSeed42Turn300_MovedForCivicsPointsAlone (TestConfigs.PreTrackCp and CP off
+    // alone return OLD through SchemaProjection.V34; the stage gate off alone returns NEW).
+    // M6 RE-PIN (2026-10-23, ONE re-pin of the whole slice; VALUE + LAYOUT, MEASURED on the merged tree by the agent writing
+    // this line): 25f4799d581d8de7… (v34) -> 776d5d0c6418f6bc… (the intermediate pins 5623de7a… CP and 8378f993… CP+EX are
+    // superseded). CAUSES (three, the M6 slice): Track CP (above; ADR-043); Track EX (ADR-044 with the coordinator's rulings)
+    // — the discovery tables are populated, the concealed ores are unread until surveyed, the AI founds only on KNOWN sites,
+    // explores (OrderKind 14) when its founding policy finds none and prospects its settlements for 40 grain (OrderKind
+    // 15); Track TREE (ADR-045) — the research-content tranche: the AI's goal closures and costs changed, so from turn 0 it
+    // targets other research (grinding_stone, then cereal_cultivation) and reaches the Neolithic far sooner. CONTROLS:
+    // TheM6Slice_IsTheWholeMove_TheAiWorldWithTheSliceOffIsTheBatch4World (TestConfigs.PreM6 returns 25f4799d… through
+    // SchemaProjection.V34), CivicsPointsAttributionTests.AiWorldSeed42Turn300_MovedForCivicsPointsAlone (CP on the
+    // EX-off, tranche-off world) and DiscoveryLayoutAttributionTests.AiWorldSeed42Turn300_….
+    internal const string S1cTurn300 = "776d5d0c6418f6bc609095b026ba14ae74978847000b2ca64877586b2e2114bc";
 
     /// <summary>Batch 3 (D-054, integration R1): THE CYLINDER-ALONE LINK — the live AI world through the v32 projection
     /// (the two v33 tables dropped, asserted EMPTY): the AI hash the W1 stage measured with the cylinder and no v33 layout.</summary>
-    private const string S1cTurn300AtV32 = "0ce1d4d9af1590351636b0aacd18c3400b110d59d04c7aa07bce9a9bbcf3a19d";
+    internal const string S1cTurn300AtV32 = "0ce1d4d9af1590351636b0aacd18c3400b110d59d04c7aa07bce9a9bbcf3a19d";
 
     /// <summary>The turn the first AI Found Settlement order is stamped (state 36 is the first that differs).</summary>
     private const long FirstFoundingStamp = 35;
@@ -146,7 +161,37 @@ public class AiFoundingAttributionTests
         }
         Assert.True(live.Terrain!.WrapX);
         Assert.Equal(S1cTurn300, WorldHash.ComputeHex(live));
-        Assert.Equal(S1cTurn300AtV32, SchemaProjection.V32(live));   // batch 3: the cylinder-alone link (no v33 row)
+        // ADR-043 (2026-10-22) CAUSE BLOCK: the live world now carries Civics Points accounts and the AI's civics lane
+        // (behaviour, not layout), so the batch-3 cylinder-alone link is asserted on the pre-CP live world instead:
+        // ReservationsLayoutAttributionTests.AiWorldSeed42Turn300_MovedForTheV34LayoutAlone (SchemaProjection.V32 of the
+        // TestConfigs.PreTrackCp run = S1cTurn300AtV32).
         Assert.NotEqual(S1cPreD053Turn300, S1cTurn300);
+    }
+
+    /// <summary>M6 ATTRIBUTION CONTROL (D-062; ADR-043, ADR-044, ADR-045) — THE WHOLE-SLICE SWITCH-OFF TWIN: the live AI world
+    /// (the shipped cylinder, `sim run --founded --seed 42 --turns 300 --ai-empires 1`) stepped with the whole M6 slice off
+    /// (TestConfigs.PreM6: the pre-M6 research.json — Fixtures/research-pre-adr045.json, byte-identical to the file at
+    /// 06e0153, before Track CP and the tranche — and the discovery layer off) writes nothing in sections 62–66 and returns
+    /// the batch-4 (v34) pin byte for byte through SchemaProjection.V34, and the cylinder-alone link through the v32
+    /// projection; with every layer on it is the re-pinned value. So the slice is the whole move.</summary>
+    [Fact]
+    public void TheM6Slice_IsTheWholeMove_TheAiWorldWithTheSliceOffIsTheBatch4World()
+    {
+        SimConfig pre = TestConfigs.PreM6Sim();
+        Assert.NotSame(TestConfigs.Research(), pre.Research);
+        Assert.Equal(426, pre.Research!.TechnologyCount);
+        Assert.Equal(7, pre.Research.CivicsCount);
+        var log = new OrderLog();
+        TurnExecutor exec = Production(pre, log, TestConfigs.Worldgen());
+        WorldState w = WorldFounding.Found(TestConfigs.Worldgen() with { AiEmpires = 1 }, pre, 42);
+        for (int t = 1; t <= Turns; t++)
+        {
+            AiOrders.Append(log, w, pre, TestConfigs.Worldgen());
+            w = exec.Step(w);
+        }
+        Assert.Equal(DiscoveryLayoutAttributionTests.PreM6AiTurn300, WorldHash.ComputeHex(w));
+        Assert.Equal(CivicsPointsAttributionTests.V34AiTurn300, SchemaProjection.V34(w));
+        Assert.Equal(S1cTurn300AtV32, SchemaProjection.V32(w));
+        Assert.NotEqual(CivicsPointsAttributionTests.V34AiTurn300, S1cTurn300);
     }
 }
