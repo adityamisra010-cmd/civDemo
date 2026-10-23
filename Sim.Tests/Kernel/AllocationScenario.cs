@@ -227,14 +227,16 @@ public sealed class AllocationScenarioRun
     internal int[] ControlPolityCounts { get; }
     internal int[] ControlSettlementCounts { get; }
 
-    /// <summary>M6 Track EX (D-062, ADR-044; 2026-10-22) CAUSE BLOCK: was the CLI's configuration as shipped. Under the shipped
-    /// concealment (stone is one of the concealable goods) the player's empire quarries about 40 stone a step in the split
-    /// window instead of about 64, building work claims more than its 30 % share on EVERY step and road works never claim less
-    /// than theirs — MEASURED on the merged tree: no step has D_b &lt; E_b (Y) and none has D_r &lt; E_r (Z; `split-check`: "P5: no
-    /// step where building work's claim above its share used road works' unused share"). The scenario's premises are D-055's,
-    /// an older layer, so by the R4 rule the scenario runs with the newer discovery layer OFF (TestConfigs.PreDiscovery; Track
-    /// CP moves nothing here) and every D-055/D-058 literal stands; the ci.yml leg runs the CLI with `--without-discovery`, the
-    /// same rules. Re-deriving S42-ALLOC-H under the fog is an open item for the Director (ADR-044 §12).</summary>
+    /// <summary>M6 Track EX (D-062, ADR-044 §12) CAUSE BLOCK: was the CLI's configuration as shipped. The scenario's premises
+    /// (the W/K/V/136 turns, the competing and held heads, every D-055/D-058 literal) are D-055's, MEASURED before the discovery
+    /// layer, and it is one of the tests that genuinely compares against that pre-M6 measurement. Re-checked 2026-10-23 with
+    /// stone no longer concealed (ores only): the purse is close but not the same — MEASURED under the shipped rules, settlement
+    /// the purse's stone at 116 is 5,048 against D-055's 4,913, road works lend building work their unused share only at 128 (not 131),
+    /// competing heads occur only at 117–119, and the ci.yml leg's `split-check alloc-b.rep --expect-hold-at 131` FAILS P5 and
+    /// P7 (the concealed copper and tin are unworked until surveyed, so extraction labour moves to the visible goods and the
+    /// stone the split sees changes). So, by the R4 rule, the scenario keeps the newer discovery layer OFF (TestConfigs.PreDiscovery;
+    /// Track CP and the research tranche move nothing it reads) and the ci.yml leg runs the CLI with `--without-discovery`, the
+    /// same rules. Re-deriving S42-ALLOC-H under the shipped rules is an open item for the Director (ADR-044 §12).</summary>
     public AllocationScenarioRun() : this(Sim.Tests.TestUtil.TestConfigs.PreDiscovery(AllocationScenario.CliConfig())) { }
 
     /// <summary>D-058 (2026-10-19): the same run under another configuration — the attribution twin

@@ -14,8 +14,9 @@ namespace Sim.Ui.Tests;
 /// <summary>
 /// M6 Track EX (D-062 D9; ADR-044) — THE ACTIONS MENU AND THE FOG ON THE SCREEN. The POLICY surface keeps its Construction
 /// block (Build Granary) and gains a SEPARATE headed "Actions" block: per controlled settlement, Explore surroundings
-/// (radius r → r + 3 nodes, cost 60 grain) and Prospect (cost 4 tools), with the blocker the predicate gives (radius cap,
-/// already surveyed, not enough tools or grain, already ordered this turn). Its two buttons go through the session's
+/// (radius r → r + 3 nodes, cost 60 grain) and Prospect (cost 40 grain), with the blocker the predicate gives (radius cap,
+/// already surveyed, not enough grain, already ordered this turn); an order the step refused at delivery is explained after
+/// the step. Its two buttons go through the session's
 /// guarded emitters, which append exactly the order DiscoverySystem would apply and nothing else. The map draws UNKNOWN
 /// land as blank parchment and REMEMBERED land under a darker wash; a prospect makes a hidden deposit appear in the
 /// overlay's ore markers.
@@ -31,15 +32,18 @@ public class DiscoveryActionsUiTests
     private static ActionSurfaceModel Surface(UiSession s) =>
         ActionSurface.ForSession(s, UiSession.ProductionEra(), Capital(s.World), EraThemes.For(UiEras.Of(s.World, s.Config.Ages, Me)));
 
-    private static UiSession WithTools(UiSession s, long tools)
+    /// <summary>The session's world with the player's grain set to <paramref name="keep"/> in every settlement it holds.</summary>
+    private static UiSession WithGrain(UiSession s, long keep)
     {
         WorldState w = s.World.Clone();
-        GoodId t = new(s.Config.Goods!.IdOf("tools"));
+        GoodId g = new(s.Config.Goods!.GrainId);
         for (int i = 0; i < w.GoodStocks.Count; i++)
         {
-            if (w.GoodStocks[i].Good != t || !EmpireQuery.ControlsSettlement(w, Me, w.GoodStocks[i].Settlement)) continue;
-            new Ledger(w.LedgerFlows).Flow(ref w.GoodStocks.Ref(i).Amount, ConservedQuantityIds.OfGood(t),
-                ReasonIds.InitialEndowment, tools, FlowDirection.Source, OverdrawPolicy.Throw);
+            if (w.GoodStocks[i].Good != g || !EmpireQuery.ControlsSettlement(w, Me, w.GoodStocks[i].Settlement)) continue;
+            long delta = w.GoodStocks[i].Amount.Value - keep;
+            if (delta == 0) continue;
+            new Ledger(w.LedgerFlows).Flow(ref w.GoodStocks.Ref(i).Amount, ConservedQuantityIds.OfGood(g),
+                ReasonIds.InitialEndowment, Math.Abs(delta), delta > 0 ? FlowDirection.Sink : FlowDirection.Source, OverdrawPolicy.Throw);
         }
         return UiSession.StartFrom(w, 42, 256, 4);
     }
@@ -60,8 +64,8 @@ public class DiscoveryActionsUiTests
             Assert.Equal("radius 3 → 6 nodes, cost 60 grain", e.Explore.Detail);
             Assert.Null(e.Explore.Blocker);                            // the founding store covers an expedition
             Assert.Equal(OrderKind.Prospect, e.Prospect!.Order);
-            Assert.Equal("cost 4 tools", e.Prospect.Detail);
-            Assert.Equal("not enough tools (needs 4)", e.Prospect.Blocker);   // no tools at the founding (ADR-044 §5)
+            Assert.Equal("cost 40 grain", e.Prospect.Detail);
+            Assert.Null(e.Prospect.Blocker);                           // the founding store covers a survey (ADR-044 §5)
         }
         // Construction is its own block, unchanged: the granary is still listed there, not in Actions.
         Assert.NotNull(m.Construction);
@@ -86,9 +90,12 @@ public class DiscoveryActionsUiTests
     {
         UiSession s = Dev();
         int capital = Capital(s.World);
-        // Prospect without tools: refused, nothing appended.
-        Assert.False(s.EmitProspect(capital));
-        Assert.Equal(0, s.Orders.Count);
+        // An empty purse: Prospect and Explore refused, nothing appended.
+        UiSession poor = WithGrain(Dev(), 0);
+        Assert.False(poor.EmitProspect(capital));
+        Assert.False(poor.EmitExplore(capital));
+        Assert.Equal(0, poor.Orders.Count);
+        Assert.Equal("not enough grain (needs 40)", Surface(poor).Discovery!.Entries.First(x => x.Settlement.Value == capital).Prospect!.Blocker);
         // Explore: admitted once; a second the same turn is refused (DiscoverySystem applies one) and the menu says why.
         Assert.True(s.EmitExplore(capital));
         Assert.Equal(OrderRecord.From(s.World.Clock.Turn, Me, OrderKind.Explore, capital, 0.0), s.Orders[^1]);
@@ -102,8 +109,8 @@ public class DiscoveryActionsUiTests
         s.EndTurn();
         Assert.Equal(6, DiscoveryQuery.ExploredRadius(s.World, s.Config.Fog!, Me, new SettlementId(capital)));
 
-        // With tools: a prospect is admitted once, then the settlement is surveyed and the menu says so.
-        UiSession t = WithTools(Dev(), 1_000);
+        // A prospect is admitted once, then the settlement is surveyed and the menu says so.
+        UiSession t = Dev();
         Assert.True(t.EmitProspect(capital));
         Assert.False(t.EmitProspect(capital));
         t.EndTurn();
@@ -135,8 +142,10 @@ public class DiscoveryActionsUiTests
         ActionHit prospect = screen.Hits.First(h => h.Kind == ActionHitKind.Prospect && h.A == capital);
         ActionCommand p = screen.Click(prospect.Rect.CenterX, prospect.Rect.CenterY);
         Assert.Equal(ActionCommandKind.Prospect, p.Kind);
-        Assert.False(ActionDispatch.Apply(s, p));   // no tools: the emitter refuses, nothing appended
-        Assert.Equal(1, s.Orders.Count);
+        Assert.True(ActionDispatch.Apply(s, p));    // the founding store covers a survey
+        Assert.Equal(OrderKind.Prospect, s.Orders[^1].Kind);
+        Assert.False(ActionDispatch.Apply(s, p));   // once per settlement per turn: the emitter refuses, nothing appended
+        Assert.Equal(2, s.Orders.Count);
     }
 
     [Fact]
@@ -163,7 +172,7 @@ public class DiscoveryActionsUiTests
     [Fact]
     public void AfterAProspect_TheDiscoveredDepositAppearsInTheOverlaysOreMarkers()
     {
-        UiSession t = WithTools(Dev(), 1_000);
+        UiSession t = Dev();
         // A player settlement with a concealed deposit whose good the overlay marks (a seeded spread).
         int at = -1, good = -1;
         for (int i = 0; i < t.World.Settlements.Count && at < 0; i++)
@@ -186,6 +195,53 @@ public class DiscoveryActionsUiTests
     }
 
     private static bool OreGood(UiSession s, int good) => s.Config.Goods!.ById(good).DepositSpread > 0.0;
+
+    /// <summary>ADR-044 §5: the preview judges affordability on the published stocks; the step draws from what its own
+    /// production, meals and building left. An order the preview admitted but the step refused is EXPLAINED in the Actions
+    /// block after the step — never a silent no-cost refusal. Rig: 45 grain in every player settlement (the preview admits a
+    /// 40-grain survey); the stepped world is the one the step produced when its draw found the store empty (DiscoverySystem
+    /// alone over the store emptied after the preview — the step-side refusal itself is pinned in Sim.Tests' DiscoveryTests),
+    /// and the surface built on (previous, stepped, delivered) says so, painted.</summary>
+    [Fact]
+    public void AnOrderTheStepRefusesAtDelivery_IsExplainedInTheActionsBlockAfterTheStep()
+    {
+        UiSession s = WithGrain(Dev(), 45);
+        int capital = Capital(s.World);
+        var cap = new SettlementId(capital);
+        Assert.Null(Surface(s).Discovery!.Entries.Single(e => e.Settlement == cap).Prospect!.Blocker);   // the preview admits it
+        Assert.True(s.EmitProspect(capital));
+        OrderRecord order = Assert.Single(s.QueuedOrders());
+
+        WorldState prev = s.World.Clone();
+        WorldState drawn = WithGrain(s, 0).World.Clone();   // what the step's draw found: nothing
+        var log = new OrderLog();
+        log.Append(order);
+        WorldState next = new TurnExecutor(UiSession.ProductionEra(), [SystemCatalog.Discovery(s.Config)], log).Step(drawn);
+        Assert.False(DepositConcealment.HasSurveyed(next, Me, cap));   // refused at delivery, nothing paid
+
+        ActionSurfaceModel m = ActionSurface.Build(new ActionSurfaceInput(next, prev, s.Config, UiSession.ProductionEra(), Me,
+            capital, [], id => s.Names.Name(id), EraThemes.For(UiEras.Of(next, s.Config.Ages, Me)), [order]));
+        string line = Assert.Single(m.Discovery!.Refused);
+        Assert.Equal(DiscoveryQuery.RefusalText(OrderKind.Prospect, s.Names.Name(capital), 40), line);
+        var screen = new ActionSurfaceScreen { Theme = EraThemes.For(UiEras.Of(next, s.Config.Ages, Me)) };
+        screen.Refresh(m, next, s.Config, Me, id => s.Names.Name(id));
+        var d = new DrawList();
+        screen.Paint(d, ApproxTextMeasure.Instance, 0, 0, 360);
+        var painted = new List<string>();   // the blocker line paints word by word (its rich-word layout)
+        foreach (DrawCmd c in d.Commands) if (c is TextCmd t) painted.Add(t.Text);
+        string text = string.Join(" ", painted);
+        Assert.Contains("last turn: " + line, text, StringComparison.Ordinal);
+
+        // The live session: the step delivered the order (UiSession.LastDelivered) and, its draw covering the survey, applied
+        // it — so nothing is explained; the step after, with nothing delivered, explains nothing either.
+        s.EndTurn();
+        Assert.Equal([order], s.LastDelivered);
+        Assert.True(DepositConcealment.HasSurveyed(s.World, Me, cap));
+        Assert.True(Surface(s).Discovery!.Refused.IsDefaultOrEmpty);
+        s.EndTurn();
+        Assert.Empty(s.LastDelivered);
+        Assert.True(Surface(s).Discovery!.Refused.IsDefaultOrEmpty);
+    }
 }
 
 /// <summary>M6 Track EX (2026-10-22): the discovery layer OFF for a UI test whose subject is an OLDER layer premised on the

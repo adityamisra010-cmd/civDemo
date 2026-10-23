@@ -1,3 +1,4 @@
+using Sim.Core.Kernel;
 using Sim.Core.Pathing;
 using Sim.Core.Systems;
 using Sim.Core.Systems.Research;
@@ -32,7 +33,7 @@ public enum ProspectVerdict
     NotControlled = 3,
     /// <summary>The issuer has already prospected this settlement (once per polity — no repeat exploit).</summary>
     AlreadySurveyed = 4,
-    /// <summary>The empire purse cannot cover the prospect's tools beyond what construction set aside.</summary>
+    /// <summary>The empire purse cannot cover the prospect's grain beyond what construction set aside.</summary>
     Unaffordable = 5,
 }
 
@@ -265,12 +266,13 @@ public static class DiscoveryQuery
     /// <summary>The grain one Explore sinks (fog.exploreGrain; 0 with the fog off).</summary>
     public static long ExploreCost(SimConfig cfg) => cfg.Fog?.ExploreGrain ?? 0;
 
-    /// <summary>The tools one Prospect by <paramref name="polity"/> sinks: discovery.prospectTools, HALVED (integer) once the
+    /// <summary>The grain one Prospect by <paramref name="polity"/> sinks (the survey party's provisions): discovery.prospectGrain,
+    /// HALVED (integer) once the
     /// polity's completed knowledge meets discovery.prospectDiscountRequires (the ore-recognition technology).</summary>
     public static long ProspectCost(IReadOnlyWorldState world, SimConfig cfg, PolityId polity)
     {
         if (cfg.Discovery is not { } d) return 0;
-        return HasProspectDiscount(world, cfg, polity) ? d.ProspectTools / 2 : d.ProspectTools;
+        return HasProspectDiscount(world, cfg, polity) ? d.ProspectGrain / 2 : d.ProspectGrain;
     }
 
     /// <summary>Whether <paramref name="polity"/> holds the prospecting discount technology.</summary>
@@ -329,12 +331,48 @@ public static class DiscoveryQuery
         for (int i = 0; i < world.Settlements.Count; i++) if (world.Settlements[i].Id.Value == settlement.Value) { exists = true; break; }
         if (!exists || !EmpireQuery.ControlsSettlement(world, polity, settlement)) return ProspectVerdict.NotControlled;
         if (DepositConcealment.HasSurveyed(world, polity, settlement)) return ProspectVerdict.AlreadySurveyed;
-        int tools = cfg.Goods!.IdOf(DepositConcealment.ProspectGood);
         SettlementId[] holders = EmpireStockpile.Holders(world, settlement);
-        if (tools < 0 || FreeHolding(world, cfg, stocks, holds, holders, new GoodId(tools), out _) < (cost ?? ProspectCost(world, cfg, polity)))
+        if (FreeHolding(world, cfg, stocks, holds, holders, new GoodId(cfg.Goods!.GrainId), out _) < (cost ?? ProspectCost(world, cfg, polity)))
             return ProspectVerdict.Unaffordable;
         return ProspectVerdict.Ok;
     }
+
+    /// <summary>
+    /// The Explore and Prospect orders of <paramref name="polity"/> among <paramref name="delivered"/> (the batch the step
+    /// <paramref name="prev"/> → <paramref name="next"/> delivered) that the step REFUSED: an Explore whose origin's explored
+    /// radius did not grow, a Prospect whose settlement is still unsurveyed. The UI and the AI judge affordability on the
+    /// published world (PREV), while DiscoverySystem draws from the stocks the step itself left after production, meals, trade,
+    /// housing, construction and colonization — so an order the preview admitted can be refused at delivery (nothing is paid).
+    /// This is how the UI explains such a refusal after the step (ADR-044 §5). Duplicates count once.
+    /// </summary>
+    public static List<(OrderKind Kind, SettlementId Settlement, long Cost)> RefusedAtDelivery(
+        IReadOnlyWorldState prev, IReadOnlyWorldState next, SimConfig cfg, IReadOnlyList<OrderRecord> delivered, PolityId polity)
+    {
+        var refused = new List<(OrderKind, SettlementId, long)>();
+        for (int i = 0; i < delivered.Count; i++)
+        {
+            OrderRecord o = delivered[i];
+            if (o.ActorId != polity.Value || (o.Kind != OrderKind.Explore && o.Kind != OrderKind.Prospect)) continue;
+            var s = new SettlementId(o.TargetId);
+            bool seen = false;
+            foreach ((OrderKind k, SettlementId t, long _) in refused) seen |= k == o.Kind && t.Value == s.Value;
+            if (seen) continue;
+            if (o.Kind == OrderKind.Explore)
+            {
+                if (cfg.Fog is not { Enabled: true } fog) continue;
+                if (ExploredRadius(next, fog, polity, s) <= ExploredRadius(prev, fog, polity, s)) refused.Add((o.Kind, s, ExploreCost(cfg)));
+            }
+            else if (DepositConcealment.Enabled(cfg) && !DepositConcealment.HasSurveyed(next, polity, s))
+                refused.Add((o.Kind, s, ProspectCost(prev, cfg, polity)));
+        }
+        return refused;
+    }
+
+    /// <summary>The player-facing explanation of a refusal <see cref="RefusedAtDelivery"/> found.</summary>
+    public static string RefusalText(OrderKind kind, string settlementName, long cost) =>
+        (kind == OrderKind.Explore ? "The expedition from " : "The survey of ") + settlementName
+        + " was refused when the turn ran: after the turn's harvest, meals and building the store held less than "
+        + Inv(cost) + " grain beyond what construction set aside. Nothing was paid; order it again.";
 
     /// <summary>THE PROSPECT PREDICATE against the world's own published stocks and set-asides (the UI and the AI).</summary>
     public static ProspectVerdict CheckProspect(IReadOnlyWorldState world, SimConfig cfg, PolityId polity, SettlementId settlement,
@@ -357,7 +395,7 @@ public static class DiscoveryQuery
     {
         ProspectVerdict.Ok => null,
         ProspectVerdict.AlreadySurveyed => "already surveyed",
-        ProspectVerdict.Unaffordable => "not enough tools (needs " + Inv(cost) + ")",
+        ProspectVerdict.Unaffordable => "not enough grain (needs " + Inv(cost) + ")",
         ProspectVerdict.NotControlled => "not your settlement",
         ProspectVerdict.NotEmpire => "not an Empire",
         _ => "prospecting is off",

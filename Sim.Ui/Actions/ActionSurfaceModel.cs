@@ -242,7 +242,7 @@ public sealed record DiscoveryEntry(SettlementId Settlement, string Name, Action
 
 /// <summary>M6 Track EX (D-062 D9): THE ACTIONS MENU — separate from the Construction block — exactly the
 /// ActionDomain.Discovery descriptors the query returns, grouped by settlement in its order.</summary>
-public sealed record DiscoveryBlock(ImmutableArray<DiscoveryEntry> Entries);
+public sealed record DiscoveryBlock(ImmutableArray<DiscoveryEntry> Entries, ImmutableArray<string> Refused = default);
 
 /// <summary>What the people do on their own — standing capabilities, one compact list, no controls. M5 polish:
 /// <c>Subjects</c> is each item's info subject (parallel to <c>Items</c>) for Shift+click.</summary>
@@ -296,7 +296,8 @@ public sealed record ActionSurfaceModel(
 /// the selection, the not-yet-stepped orders, the name registry and the era theme.</summary>
 public sealed record ActionSurfaceInput(
     IReadOnlyWorldState World, IReadOnlyWorldState? Previous, SimConfig Config, EraTable Era, PolityId Player,
-    int Selected, IReadOnlyList<OrderRecord> Queued, Func<int, string> Name, EraTheme Theme);
+    int Selected, IReadOnlyList<OrderRecord> Queued, Func<int, string> Name, EraTheme Theme,
+    IReadOnlyList<OrderRecord>? Delivered = null);   // M6 EX: the batch the last step delivered (its refusals are explained)
 
 /// <summary>
 /// BUILDS the action surface (ADR-033 D1/D2). Pure and read-only: it calls
@@ -363,7 +364,14 @@ public static class ActionSurface
             }
             entries[at] = prospect ? entries[at] with { Prospect = a } : entries[at] with { Explore = a };
         }
-        return entries.Count == 0 ? null : new DiscoveryBlock([.. entries]);
+        if (entries.Count == 0) return null;
+        // M6 EX (ADR-044 §5): an order the last step refused at delivery (the preview admitted it on the published stocks;
+        // the step's own draw found less) is explained here, after the step.
+        var refused = ImmutableArray.CreateBuilder<string>();
+        if (input.Previous is { } prev && input.Delivered is { } delivered)
+            foreach ((OrderKind kind, SettlementId s, long cost) in DiscoveryQuery.RefusedAtDelivery(prev, input.World, input.Config, delivered, input.Player))
+                refused.Add(DiscoveryQuery.RefusalText(kind, input.Name(s.Value), cost));
+        return new DiscoveryBlock([.. entries], refused.ToImmutable());
     }
 
     // ------------------------------------------------------------------ the materials split (WS2, D-054)
@@ -399,7 +407,8 @@ public static class ActionSurface
     /// <remarks>P7 review: a selection the session's knowledge hides is passed as no selection (−1), so no note names it.</remarks>
     public static ActionSurfaceModel ForSession(UiSession session, EraTable era, int selected, EraTheme theme) =>
         Build(new ActionSurfaceInput(session.World, session.PreviousWorld, session.Config, era, UiPlayer.Empire,
-            session.Knowledge.IsHiddenSettlement(selected) ? -1 : selected, session.QueuedOrders(), id => session.Names.Name(id), theme));
+            session.Knowledge.IsHiddenSettlement(selected) ? -1 : selected, session.QueuedOrders(), id => session.Names.Name(id), theme,
+            session.LastDelivered));
 
     // ------------------------------------------------------------------ labour
 

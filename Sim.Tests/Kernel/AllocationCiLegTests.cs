@@ -82,8 +82,9 @@ public class AllocationCiLegTests(AllocationScenarioRun run)
             .Where(l => l.StartsWith("$CLI ", StringComparison.Ordinal) || l.StartsWith("python3 scripts/gen-sample-orders.py", StringComparison.Ordinal))
             .Select(l => l.Split(" | ")[0].Split("   #")[0].Trim())
             .ToArray();
-        // M6 Track EX (2026-10-22): every run and replay takes --without-discovery (the scenario's D-055 premises are measured
-        // without the discovery layer; AllocationScenarioRun runs the same rules in process; ADR-044 §12).
+        // M6 Track EX (ADR-044 §12; re-checked 2026-10-23): every run and replay takes --without-discovery — the scenario's
+        // D-055 premises are a pre-M6 measurement (under the shipped rules split-check FAILS P5/P7 on alloc-b.rep);
+        // AllocationScenarioRun runs the same rules in process.
         string[] expected =
         [
             $"python3 scripts/gen-sample-orders.py alloc.bin {H} --allocation",

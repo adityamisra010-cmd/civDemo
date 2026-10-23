@@ -54,11 +54,7 @@ public sealed class FromSaveRuns : IDisposable
 
     internal static (int Exit, string Out, string Err) Run(params string[] args)
     {
-        // M6 Track EX (2026-10-22): `--without-discovery` — these rigs' premises (the AI enqueues granaries at 7 and 14, the
-        // colony and refusal turns) were measured before the discovery layer; under the shipped concealment the dev AI holds
-        // no stone for a granary until turn 68 (MEASURED: its run log's only orders before 68 are its turn-0 research
-        // target), so the CLI runs the discovery twin (R4) and the in-process loops below use TestConfigs.PreDiscovery.
-        (int exit, string stdout, string stderr) = CliProcess.Run(Limit, ["run", "--without-discovery", .. args]);
+        (int exit, string stdout, string stderr) = CliProcess.Run(Limit, ["run", .. args]);
         return (exit, stdout, stderr);
     }
 
@@ -89,13 +85,6 @@ public sealed class FromSaveRuns : IDisposable
 public class RunFromSaveCliTests(FromSaveRuns runs) : IClassFixture<FromSaveRuns>
 {
     private static string Fixture(string name) => Path.Combine(AppContext.BaseDirectory, "Fixtures", name);
-
-    /// <summary>M6 EX: the CLI's production pipeline under `--without-discovery` (TestConfigs.PreDiscovery).</summary>
-    private static Sim.Core.Kernel.SystemRegistration[] PreDiscoveryPipeline()
-    {
-        using var pipe = Sim.Data.DataFiles.OpenPipeline();
-        return Sim.Core.Kernel.PipelineLoader.Load(pipe, Sim.Core.SystemCatalog.All(TestConfigs.PreDiscovery(TestConfigs.Sim()), CliRecipes.Worldgen()));
-    }
 
     // ================================================================== the continuation is the uninterrupted run
 
@@ -167,7 +156,8 @@ public class RunFromSaveCliTests(FromSaveRuns runs) : IClassFixture<FromSaveRuns
     [Fact]
     public void TurnZeroIsTheRegeneratedFoundingWorld_AnOrderNamingAColonyFoundedBeforeTheSave_IsDeferredAsInTheUninterruptedRun()
     {
-        // The AI founds settlement 4 from settlement 3 (its order stamped 71; the colony exists from turn 72). The player's
+        // The AI founds settlement 4 from settlement 3 (its order stamped 72; the colony exists from turn 73 — RE-PIN M6 Track EX:
+        // was 72 before discovery, whose expeditions and surveys draw grain the colony waits on). The player's
         // order at turn 80 names it: above the FOUNDING world's highest id (3), so ADR-034 defers it to delivery, where it
         // exists — accepted, and it changes nothing (the player does not rule there). Validated against the world AT the save
         // (highest id ≥ 4), the same order would be checked up front and refused for control.
@@ -180,7 +170,7 @@ public class RunFromSaveCliTests(FromSaveRuns runs) : IClassFixture<FromSaveRuns
 
         WorldState at80 = SaveFiles.Load(s80, 256);
         SettlementRow colony = at80.Settlements.Rows().Single(s => s.Id.Value == 4);
-        Assert.Equal(72L, colony.FoundedTurn);
+        Assert.Equal(73L, colony.FoundedTurn);
         Assert.True(EmpireQuery.TryGetController(at80, colony.Id, out PolityId ruler) && ruler.Value == 2, "the colony is the AI's");
 
         (exit, _, stderr) = FromSaveRuns.Run("--from-save", s80, "--size", "256", "--turns", "4", "--orders", log,
@@ -210,9 +200,9 @@ public class RunFromSaveCliTests(FromSaveRuns runs) : IClassFixture<FromSaveRuns
         byte[] bytes = File.ReadAllBytes(path);
         int? trailer = TopologyFlags.RecordedFlat(version) ? null : BitConverter.ToInt32(bytes, bytes.Length - 4);
         Sim.Core.Worldgen.WorldgenConfig aiWorldgen = SaveFiles.WorldgenFor(version, CliRecipes.Worldgen(), size, trailer);
-        SimConfig cfg = TestConfigs.PreDiscovery(TestConfigs.Sim());   // M6 EX: the CLI's --without-discovery
+        SimConfig cfg = TestConfigs.Sim();
         var log = new OrderLog();
-        var exec = new TurnExecutor(CliRecipes.Era(), PreDiscoveryPipeline(), log);
+        var exec = new TurnExecutor(CliRecipes.Era(), CliRecipes.ProductionPipeline(), log);
         var inProcess = new List<string>();
         for (int t = 0; t < 3; t++)
         {
@@ -386,7 +376,7 @@ public class RunFromSaveCliTests(FromSaveRuns runs) : IClassFixture<FromSaveRuns
         int version = BitConverter.ToInt32(bytes, 8);
         int? trailer = TopologyFlags.RecordedFlat(version) ? null : BitConverter.ToInt32(bytes, bytes.Length - 4);
         Sim.Core.Worldgen.WorldgenConfig aiWorldgen = SaveFiles.WorldgenFor(version, CliRecipes.Worldgen(), 256, trailer);
-        SimConfig cfg = TestConfigs.PreDiscovery(TestConfigs.Sim());   // M6 EX: the CLI's --without-discovery
+        SimConfig cfg = TestConfigs.Sim();
         OrderLog player;
         using (FileStream f = File.OpenRead(runs.Orders)) player = OrderLog.Load(f);
 
@@ -396,7 +386,7 @@ public class RunFromSaveCliTests(FromSaveRuns runs) : IClassFixture<FromSaveRuns
         OrderBatch batch6 = player.BatchFor(FromSaveRuns.K);
         for (int i = 0; i < batch6.Count; i++) log6.Append(batch6[i]);
         AiOrders.Append(log6, w6, cfg, aiWorldgen);
-        WorldState w7 = new TurnExecutor(CliRecipes.Era(), PreDiscoveryPipeline(), log6).Step(w6);
+        WorldState w7 = new TurnExecutor(CliRecipes.Era(), CliRecipes.ProductionPipeline(), log6).Step(w6);
         Assert.Equal((k, runs.Full[6]), (w7.Clock.Turn, WorldHash.ComputeHex(w7)));
 
         // Fed only the AI producer (what --from-save does, given the player's log, which has nothing at 7): the producer
@@ -404,7 +394,7 @@ public class RunFromSaveCliTests(FromSaveRuns runs) : IClassFixture<FromSaveRuns
         var aiOnly = new OrderLog();
         AiOrders.Append(aiOnly, w7, cfg, aiWorldgen);
         Assert.Equal(1, Count(aiOnly.BatchFor(k), emitted));
-        WorldState once = new TurnExecutor(CliRecipes.Era(), PreDiscoveryPipeline(), aiOnly).Step(w7.Clone());
+        WorldState once = new TurnExecutor(CliRecipes.Era(), CliRecipes.ProductionPipeline(), aiOnly).Step(w7.Clone());
         Assert.Equal(runs.Full[7], WorldHash.ComputeHex(once));
 
         // Fed the emitted record as well (what accepting it would do): the record twice in the batch, and the very first
@@ -413,7 +403,7 @@ public class RunFromSaveCliTests(FromSaveRuns runs) : IClassFixture<FromSaveRuns
         twice.Append(emitted);
         AiOrders.Append(twice, w7, cfg, aiWorldgen);
         Assert.Equal(2, Count(twice.BatchFor(k), emitted));
-        WorldState doubled = new TurnExecutor(CliRecipes.Era(), PreDiscoveryPipeline(), twice).Step(w7.Clone());
+        WorldState doubled = new TurnExecutor(CliRecipes.Era(), CliRecipes.ProductionPipeline(), twice).Step(w7.Clone());
         Assert.NotEqual(runs.Full[7], WorldHash.ComputeHex(doubled));
         Assert.Equal(once.ConstructionQueue.Count + 1, doubled.ConstructionQueue.Count);
     }

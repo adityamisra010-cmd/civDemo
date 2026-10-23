@@ -47,7 +47,7 @@ public enum ActionDomain
     /// <summary>M6 Track EX (D-062 D9; ADR-044): the ACTIONS menu — per settlement the issuer controls, Explore surroundings
     /// (OrderKind 14; Id = settlement × 2) with fog on, and Prospect (OrderKind 15; Id = settlement × 2 + 1) with concealment
     /// on, each with its cost and, when the predicate DiscoverySystem applies refuses it now, the reason as the blocker
-    /// (radius cap, already surveyed, not enough grain or tools, already ordered this turn).</summary>
+    /// (radius cap, already surveyed, not enough grain, already ordered this turn).</summary>
     Discovery = 15,
 }
 
@@ -844,7 +844,7 @@ public static class AvailableActionsQuery
                 into.Add(new ActionDescriptor(
                     ActionDomain.Discovery, (long)id.Value * 2 + 1, ActionKind.Order, $"discovery.prospect.{Inv(id.Value)}",
                     "Prospect", OrderKind.Prospect, [SettlementTarget(id)], blocker, ActionProvenance.None,
-                    $"cost {Inv(cost)} {DepositConcealment.ProspectGood}"));
+                    $"cost {Inv(cost)} grain"));
             }
         }
     }

@@ -23,7 +23,7 @@ public sealed record DiscoveryTables(
 ///       never below what construction set aside) and SUNK under ReasonIds.Expedition; the origin's explored radius grows by
 ///       fog.exploreStepNodes (capped), and the disc of the new radius around its node is revealed.
 ///     • Prospect — <see cref="DiscoveryQuery.CheckProspect(IReadOnlyWorldState, SimConfig, PolityId, SettlementId, IReadOnlyTable{GoodStockRow}, IReadOnlyTable{ConstructionHoldRow})"/>:
-///       Ok ⇒ the prospect's tools are drawn and SUNK under ReasonIds.Prospecting and SettlementSurveyRow(polity,
+///       Ok ⇒ the prospect's grain (the survey party's provisions) is drawn and SUNK under ReasonIds.Prospecting and SettlementSurveyRow(polity,
 ///       settlement, PREV's turn) is written. Anything else changes nothing and charges nothing.
 ///  2. THE KNOWN EXTENT (fog on): for every polity of the roster, of a control row or of a stored extent, ascending, the
 ///     stored extent ∪ the seed discs of the settlements it controls ∪ its formations' sight (DiscoveryQuery.KnownBits on
@@ -78,7 +78,7 @@ public sealed class DiscoverySystem(SimConfig cfg) : ISimSystem<DiscoveryTables>
             {
                 if (!discovery) continue;
                 if (DiscoveryQuery.CheckProspect(prev, _cfg, order.Actor, settlement, owned.GoodStocks, owned.Holds) != ProspectVerdict.Ok) continue;
-                Charge(ctx, prev, settlement, new GoodId(_cfg.Goods!.IdOf(DepositConcealment.ProspectGood)),
+                Charge(ctx, prev, settlement, new GoodId(_cfg.Goods!.GrainId),
                     DiscoveryQuery.ProspectCost(prev, _cfg, order.Actor), ReasonIds.Prospecting);
                 InsertSurvey(owned.Surveys, new SettlementSurveyRow(order.Actor, settlement, turn));
             }

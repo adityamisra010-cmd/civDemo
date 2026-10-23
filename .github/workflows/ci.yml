@@ -366,11 +366,11 @@ jobs:
           #            step building work draws 70 % of the stone (51 of 73), the twin without the order 30 % (21);   H = 140
           # The split-report observer and `sim split-check` are Sim.Core/Observability (SplitProbe, SplitReportCheck).
           CLI="dotnet Sim.Cli/bin/Release/net10.0/Sim.Cli.dll"
-          # M6 Track EX (ADR-044 §12, 2026-10-22): every run and replay of this leg takes --without-discovery (sim.json discovery
-          # and fog off — the TestConfigs.PreDiscovery twin). Under the shipped concealment the player's empire quarries ~40 stone
-          # a step instead of ~64 and the split never leaves road works' share unused (MEASURED: split-check "P5: no step where
-          # building work's claim above its share used road works' unused share"); the premises below are D-055's, measured
-          # without the discovery layer, and AllocationScenarioTests runs the same rules in process. OPEN: re-derive under the fog.
+          # M6 Track EX (ADR-044 §12): every run and replay of this leg takes --without-discovery (sim.json discovery and fog
+          # off — the TestConfigs.PreDiscovery twin): the premises below are D-055's, measured before the discovery layer.
+          # Re-checked 2026-10-23 with stone no longer concealed: under the shipped rules `split-check alloc-b.rep
+          # --expect-hold-at 131` FAILS P5 and P7 (road works lend building work their share only at 128; competing heads only
+          # at 117-119), so the switch stays; AllocationScenarioTests runs the same rules in process. OPEN: re-derive.
           python3 scripts/gen-sample-orders.py alloc.bin 140 --allocation
           python3 scripts/gen-sample-orders.py alloc-ctl.bin 140 --allocation --no-split
           python3 scripts/gen-sample-orders.py alloc-no13.bin 140 --allocation --drop 132:13

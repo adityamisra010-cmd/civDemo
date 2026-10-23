@@ -50,10 +50,12 @@ public class CliConstructionLifecycleTests
         return path;
     }
 
-    // M6 Track EX (2026-10-22): run, replay and inspect take `--without-discovery` — these rigs' construction premises (the
-    // purse's stone, the holds, the colony at 12) were measured before the discovery layer; under the shipped concealment
-    // the dev purse quarries less stone (MEASURED: the head's progress "Expected (700000, 150000, 0, 0), Actual (300000, 0,
-    // 0, 0)") and the colony is not founded (its site is unknown). The discovery twin (R4); `hash` and `diff` read files only.
+    // M6 Track EX (2026-10-22; re-checked 2026-10-23 with stone no longer concealed, ADR-044 §12): run, replay and inspect
+    // take `--without-discovery` — these rigs compare against sessions and saves RECORDED BEFORE M6 (the v33 fixture's order
+    // log, trace and save) and premise the colony at 12, which the AI founds only on a known site under the fog. MEASURED
+    // without the switch: the replay of the v33 session diverges from its trace at the first hash; `run` refuses the
+    // turn-3 order naming settlement 12 ("none was" founded); the v33/v34 diff gains LedgerFlows rows (the expedition
+    // sinks). The discovery twin (R4); `hash` and `diff` read files only.
     private static (int Exit, string Out, string Err) Sim(params string[] args) =>
         CliProcess.Run(Limit, args.Length > 0 && args[0] is "run" or "replay" or "inspect" ? [args[0], "--without-discovery", .. args[1..]] : args);
 

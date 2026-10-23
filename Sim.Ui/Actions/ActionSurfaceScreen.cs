@@ -1165,13 +1165,15 @@ public sealed partial class ActionSurfaceScreen
     /// <summary>
     /// M6 Track EX (D-062 D9; ADR-044) — THE ACTIONS MENU, a separate headed block (not part of Building): per settlement the
     /// player controls, "Explore surroundings" and "Prospect", each with its cost and, when the predicate refuses it now,
-    /// the reason (radius cap, already surveyed, not enough grain or tools, already ordered this turn). A refused action's
+    /// the reason (radius cap, already surveyed, not enough grain, already ordered this turn). A refused action's
     /// button is drawn disabled; its click goes to the guarded emitter, which appends nothing.
     /// </summary>
     private double PaintDiscovery(DrawList d, ITextMeasure m, DiscoveryBlock db, double x, double y, double w, bool flat)
     {
         EraTheme t = T;
         y = Heading(d, m, "Actions", x, y, w, flat, 960);
+        if (!db.Refused.IsDefaultOrEmpty)
+            foreach (string line in db.Refused) y = Blocker(d, m, "last turn:", line, x, y, w, Second) + Sp(2);
         int k = 0;
         foreach (DiscoveryEntry e in db.Entries)
         {

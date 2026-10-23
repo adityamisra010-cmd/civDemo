@@ -95,7 +95,8 @@ public sealed record SimConfig(
 /// is concealed, Prospect is refused — the attribution control). <c>ConcealableGoods</c>: the goods.json deposit goods a
 /// deposit of which may be concealed (geological deposits; biological and food goods are surface-evident).
 /// <c>ConcealedShare</c> s in [0, 1]: per settlement, k = floor(n × s + u) of its n eligible rows are concealed
-/// (State.DepositConcealment). <c>ProspectTools</c> (whole tools ≥ 0): what one Prospect order sinks (reason Prospecting).
+/// (State.DepositConcealment). <c>ProspectGrain</c> (whole grain ≥ 0): the survey party's provisions one Prospect order
+/// sinks (reason Prospecting), drawn like Explore's through EmpireStockpile.Draw.
 /// <c>ProspectDiscountRequires</c>: a research.json requirement whose completion HALVES that cost (integer division) —
 /// the ore-recognition technology (copper_smelting; ADR-044 §4). Null: no discount.
 /// </summary>
@@ -103,7 +104,7 @@ public sealed record DiscoveryConfig(
     [property: JsonPropertyName("enabled"), JsonRequired] bool Enabled,
     [property: JsonPropertyName("concealableGoods"), JsonRequired] string[] ConcealableGoods,
     [property: JsonPropertyName("concealedShare"), JsonRequired] double ConcealedShare,
-    [property: JsonPropertyName("prospectTools"), JsonRequired] long ProspectTools,
+    [property: JsonPropertyName("prospectGrain"), JsonRequired] long ProspectGrain,
     [property: JsonPropertyName("prospectDiscountRequires")] string? ProspectDiscountRequires = null);
 
 /// <summary>
@@ -1576,9 +1577,9 @@ public static class SimConfigLoader
             throw new SimConfigException("discovery.concealableGoods is missing — name the goods.json deposit goods that may be concealed.");
         if (!(d.ConcealedShare >= 0.0 && d.ConcealedShare <= 1.0))
             throw new SimConfigException($"discovery.concealedShare must be in [0,1] (a share of a settlement's eligible deposits), got {Inv(d.ConcealedShare)}.");
-        if (d.ProspectTools < 0)
-            throw new SimConfigException("discovery.prospectTools must be a whole number of tools >= 0, got " +
-                d.ProspectTools.ToString(System.Globalization.CultureInfo.InvariantCulture) + ".");
+        if (d.ProspectGrain < 0)
+            throw new SimConfigException("discovery.prospectGrain must be a whole number of grain >= 0, got " +
+                d.ProspectGrain.ToString(System.Globalization.CultureInfo.InvariantCulture) + ".");
         if (d.ProspectDiscountRequires is { } req && string.IsNullOrWhiteSpace(req))
             throw new SimConfigException("discovery.prospectDiscountRequires is empty — name a research.json requirement or omit it.");
     }
@@ -1597,7 +1598,7 @@ public static class SimConfigLoader
     }
 
     /// <summary>M6 Track EX (ADR-044): every discovery.concealableGoods name is a goods.json DEPOSIT good (it has a
-    /// depositChannel), the prospect cost good (tools) exists, and the explore provisions are the numeraire grain — checked
+    /// depositChannel); the prospect and explore provisions are the numeraire grain — checked
     /// where sim.json and goods.json meet. Public so a config assembled without the canonical load can be checked.</summary>
     public static void ValidateDiscoveryAgainstContent(SimConfig cfg)
     {
@@ -1608,8 +1609,6 @@ public static class SimConfigLoader
             if (id < 0 || goods.ById(id).DepositChannel is null)
                 throw new SimConfigException($"discovery.concealableGoods names '{name}', which is not a goods.json deposit good (one with a depositChannel).");
         }
-        if (goods.IdOf(State.DepositConcealment.ProspectGood) < 0)
-            throw new SimConfigException($"discovery: the Prospect order sinks '{State.DepositConcealment.ProspectGood}', which goods.json does not define.");
     }
 
     /// <summary>M6 Track EX (ADR-044): discovery.prospectDiscountRequires parses against research.json.</summary>

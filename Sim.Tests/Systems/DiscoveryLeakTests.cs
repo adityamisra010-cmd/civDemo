@@ -47,19 +47,26 @@ public class DiscoveryLeakTests
     public void AnUndiscoveredConcealedDeposit_Perturbed_ChangesNoReaderOfItsController_PositiveControlsDo()
     {
         SimConfig cfg = TestConfigs.Sim();
-        WorldState w = Duo(cfg);
         foreach (PolityId viewer in new[] { Player, Ai })
         {
+            // Only the ores are concealable (ADR-044 §3), about a quarter of the eligible rows: the first of the pinned
+            // seeds whose founding world gives this viewer a concealed ore at a settlement it controls.
+            WorldState w = null!;
             SettlementId s = default;
             int good = -1;
-            for (int i = 0; i < w.Settlements.Count && good < 0; i++)
+            foreach (ulong seed in new ulong[] { 42, 1, 2, 7 })
             {
-                SettlementId id = w.Settlements[i].Id;
-                if (!EmpireQuery.ControlsSettlement(w, viewer, id)) continue;
-                int[] hidden = DepositConcealment.ConcealedGoods(w.Deposits, w.Seed, cfg, id);
-                if (hidden.Length > 0) { s = id; good = hidden[0]; }
+                w = WorldFounding.Found(Wg, cfg, seed);
+                for (int i = 0; i < w.Settlements.Count && good < 0; i++)
+                {
+                    SettlementId id = w.Settlements[i].Id;
+                    if (!EmpireQuery.ControlsSettlement(w, viewer, id)) continue;
+                    int[] hidden = DepositConcealment.ConcealedGoods(w.Deposits, w.Seed, cfg, id);
+                    if (hidden.Length > 0) { s = id; good = hidden[0]; }
+                }
+                if (good >= 0) break;
             }
-            Assert.True(good >= 0);
+            Assert.True(good >= 0, "no pinned seed conceals an ore at a settlement of polity " + viewer.Value);
             int row = DepositRow(w, s, good);
             WorldState doubled = Scaled(w, row, 2.0);
             Assert.NotEqual(WorldHash.ComputeHex(w), WorldHash.ComputeHex(doubled));   // the perturbation is real

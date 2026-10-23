@@ -35,20 +35,41 @@ and the golden moves with their attribution.
 The denominator is the existing `DepositRow` per (settlement, good), written at founding (`WorldFounding.AddDepositsForSite`)
 and at colonization. **Nothing about deposit generation changed** — quantities, placement and the founding roll are
 byte-identical (pinned: the deposit table and the whole founded world hash are equal with concealment on and off).
-A row is **eligible** when its abundance is > 0 and its good is in `discovery.concealableGoods` = stone, clay, copper-ore,
-tin-ore (geological). Livestock, fish, timber, fiber and hides are surface-evident and never concealed. The share is
-measured over eligible rows.
+A row is **eligible** when its abundance is > 0 and its good is in `discovery.concealableGoods` = **copper-ore, tin-ore**
+(the ores only — the coordinator's ruling under D-062, 2026-10-23). Stone and clay are surface quarry goods and, like
+livestock, fish, timber, fiber and hides, are never concealed. The share is measured over eligible rows.
+
+**Denominator change (recorded).** The first build counted four geological goods (stone, clay, copper-ore, tin-ore): 48
+eligible rows on each canonical founding world (12 settlements × 4), every settlement n = 4. With the ores only, the
+denominator is **24 at turn 0** (12 × 2: every founded site holds both ores) and **38 at turn 300 of the AI world** (19
+settlements, colonies included). With n = 2 per settlement, the first build's per-settlement u (an independent hash per
+settlement) would give k = floor(0.5 + u) — a coin flip per settlement and a realized share anywhere from 0 to 0.5 on a
+small world; the low-discrepancy u of §3 keeps it near s.
 
 ## 3. Classification (D2) — derived, never stored
 
-For a settlement with n eligible rows: k = floor(n × s + u), s = `discovery.concealedShare` = 0.25, u ∈ [0, 1) =
-SplitMix64(seed ⊕ `ConcealSalt` ⊕ settlement ≪ 32) — a salt distinct from every founding salt. The concealed rows are the
-k lowest by the composite key (SplitMix64-keyed row hash, goodId) — an integer key with a stable integer tie-break
-(`DepositConcealment.LowestByKey`, tie-dense test). Stateless: no RngRegistry stream is drawn, nothing is written.
+For a settlement with n eligible rows: k = floor(n × s + u_s), s = `discovery.concealedShare` = 0.25, and
+**u_s = frac(h(seed) + 0.6180339887498949 × settlementId)** (`DepositConcealment.Fraction`): h(seed) ∈ [0, 1) is the top
+53 bits of SplitMix64(seed ⊕ `ConcealSalt`) — a salt distinct from every founding salt — and the golden-ratio step spreads
+successive settlements' offsets evenly over [0, 1) (a low-discrepancy sequence), so Σ k stays within about one row of
+s × Σ n however small each n is. The concealed rows are the k lowest by the composite key
+(hash(seed, salt, settlement, good), goodId) — an integer key with a stable integer tie-break
+(`DepositConcealment.LowestByKey`, tie-dense test `Classification_TieDense_EqualKeysOrderByGoodId_IndependentOfInputOrder`;
+the offset itself is pinned by `Fraction_IsTheSeedOffsetPlusTheGoldenStepPerSettlementId_ModuloOne`). Stateless: no
+RngRegistry stream is drawn, nothing is written.
 
-**Measured realized share (turn 0, canonical 1024 px worlds):** seeds 1, 2, 42 and 7 each have 12 settlements × 4
-eligible rows = 48, of which 12 are concealed: **0.250 on every seed** (n = 4 everywhere, so k = floor(1 + u) = 1).
-Pinned in `[0.20, 0.30]` by `DiscoveryTests.RealizedConcealedShare_AtTurnZero_IsWithin20And30Percent`.
+**Measured realized share over ALL eligible rows (AI world: canonical 1024 px, aiEmpires 1, the AI's own orders; colonies
+included), MEASURED 2026-10-23 and pinned exactly by
+`DiscoveryTests.RealizedConcealedShare_AtTurnZeroAndTurn300_OfTheAiWorld_IsPinnedWithin20And30Percent`:**
+
+| seed | turn 0 | turn 300 |
+|---|---|---|
+| 1 | 6 / 24 = 0.250 | 9 / 38 = 0.237 |
+| 2 | 7 / 24 = 0.292 | 10 / 38 = 0.263 |
+| 42 | 7 / 24 = 0.292 | 10 / 38 = 0.263 |
+| 7 | 6 / 24 = 0.250 | 10 / 38 = 0.263 |
+
+Each is in [0.20, 0.30], asserted beside the exact pin.
 
 ## 4. Effect and Prospect (D3, D4)
 
@@ -61,9 +82,11 @@ overlay's ore markers. Developer / Explain surfaces and `sim diff` read the raw 
 no surveyor (its concealed rows read 0); a settlement that changes hands is undiscovered for its new controller.
 
 **Prospect = OrderKind 15.** TargetId = a settlement the issuer controls and has not surveyed; Amount = 0 (load-checked).
-Cost `discovery.prospectTools` = 4 tools, drawn through `EmpireStockpile.Draw` (the settlement first, then nearest-first),
-never below construction's set-asides, SUNK under **reason 17 `Prospecting`**; refused at delivery (nothing charged,
-the state is the orderless step's — pinned) when unaffordable. Stamped t → `SettlementSurveyRow(P, S, t)` in t+1; the
+Cost `discovery.prospectGrain` = **40 grain** (the survey party's provisions; §5), drawn through `EmpireStockpile.Draw`
+(the settlement first, then nearest-first), never below construction's set-asides, SUNK under **reason 17 `Prospecting`**
+(the Observer's grain identity counts it with Expedition); refused at delivery (nothing charged, the state is the
+orderless step's — pinned, with the one-short / exactly-the-cost edges, on DiscoverySystem alone so no harvest moves the
+purse) when unaffordable. The tools parameter (`prospectTools`, `DepositConcealment.ProspectGood`) is removed. Stamped t → `SettlementSurveyRow(P, S, t)` in t+1; the
 deposit first produces in the step t+1 → t+2 (production reads PREV) — both pinned turn-exact. Once per polity per
 settlement (a second prospect, same turn or later, is refused and charges nothing — pinned). Prospecting never creates,
 moves or resizes a deposit.
@@ -71,34 +94,42 @@ moves or resizes a deposit.
 **The technology discount.** `discovery.prospectDiscountRequires = "copper_smelting"` (key 64, "Copper smelting"):
 recognising malachite and azurite *as ore* is the knowledge copper smelting embodies, and it is the earliest node in the
 current content whose capability is the use of ore (copper_native works native metal found on the surface; mining_shaft
-is depth, not recognition). With it completed the cost halves, integer division (4 → 2). Parsed against research.json at
+is depth, not recognition). With it completed the cost halves, integer division (40 → 20; pinned). Parsed against research.json at
 load (`ValidateDiscoveryAgainstResearch`), evaluated by the existing knowledge evaluator.
 
 ## 5. Costs — the measurement
 
-Measured on this tree, orderless canonical worlds (no player orders), seeds 1, 2, 42, 7, per settlement:
+Measured on this tree (2026-10-23), per settlement, seeds 1, 2, 42, 7. Orderless canonical worlds (first build):
 
-| seed | turn 0 grain (median, min–max) | turns 5–40 grain (median) | tools, turns 0–40 |
-|---|---|---|---|
-| 1 | 7 227 (2 833–8 335) | 521–606 | 0 everywhere |
-| 2 | 7 282 (4 133–11 623) | 507–619 | 0 everywhere |
-| 42 | 6 854 (3 705–11 759) | 515–668 | 0 everywhere |
-| 7 | 5 549 (3 221–10 434) | 502–665 | 0 everywhere |
+| seed | turn 0 grain (median, min–max) | turns 5–40 grain (median) |
+|---|---|---|
+| 1 | 7 227 (2 833–8 335) | 521–606 |
+| 2 | 7 282 (4 133–11 623) | 507–619 |
+| 42 | 6 854 (3 705–11 759) | 515–668 |
+| 7 | 5 549 (3 221–10 434) | 502–665 |
 
-And a 12-AI world (every polity AI-commanded, `AiOrders` each turn) to turn 400 (year ≈ 3 200) on seeds 42 and 1:
-**tools 0 and bronze 0 in every settlement at every 50th turn** — the tool chain (copper-ore + tin-ore → bronze →
-toolmaking, research-gated, artisan share > 0.05) is not reached in that horizon.
+The AI world (aiEmpires 1, the AI's own orders, Explore and Prospect live) at turns 5, 10, 20 and 40, over every
+settlement: **minimum 131–423, 10th percentile 253–470, median 502–646**. The founding store (thousands) is eaten down to
+a steady store of about 500 by turn 5 and stays there.
 
-- **`fog.exploreGrain` = 60** (unchanged from the contract's start value): about 1 % of a settlement's founding store
-  and about a tenth of its steady store from turn 5 on, so every settlement can afford an expedition from turn 0. In the
-  12-AI runs the AI explored 134 (seed 42) and 81 (seed 1) times in 400 turns.
-- **`discovery.prospectTools` = 4** (the contract's start value, kept). **No positive tools cost can meet the
-  "affordable within the first few dozen turns" target**: tools are 0 at founding on all four seeds and stay 0 for
-  hundreds of turns, so Prospect opens only with toolmaking. Setting the cost to 0 would make information free, which the
-  contract forbids. **Recorded for the Director (OPEN):** (a) accept Prospect as a toolmaking-era action (as built); (b)
-  pay it in a good every settlement holds early (grain or stone — a content change of `DepositConcealment.ProspectGood`);
-  (c) endow founding settlements with a few tools. The AI's Prospect lane is correct but idle until then
-  (0 prospects in the 12-AI runs).
+- **`fog.exploreGrain` = 60** (unchanged): about 1 % of a founding store and about a tenth of the steady store, so every
+  settlement can afford an expedition from turn 0.
+- **`discovery.prospectGrain` = 40** (the coordinator's ruling: the cost in GRAIN, about 40): **under a tenth of the median
+  steady store (≈ 8 %), about a sixth of the 10th percentile and under a third of the poorest settlement's store in the
+  window** — affordable at every settlement from turn 0 and within the first few dozen turns without risking its food; a
+  survey party is cheaper than an expedition (no 50 km travel). The AI prospects from turn 1: 13 Prospect orders in 300 turns
+  on each of the four seeds (one per settlement it holds then; once per settlement).
+- **The technology discount** stays on `copper_smelting` (§4): 40 → 20.
+
+**Preview and step agree, or the refusal is explained.** The UI and the AI judge affordability on the PUBLISHED stocks
+(`DiscoveryQuery.CheckProspect/CheckExplore` on PREV, the same predicate DiscoverySystem applies); the step draws from the
+stocks its own harvest, meals and building left (DiscoverySystem runs after them). The two use one predicate and one cost
+(`ProspectCost`, `ExploreCost`), so a preview "cost 40 grain" is what the step draws. Where the step's purse is smaller than
+the preview's (a store eaten below the cost within the turn), the step refuses and charges nothing, and the UI EXPLAINS it
+after the step: `UiSession.LastDelivered` keeps the delivered batch, `DiscoveryQuery.RefusedAtDelivery(prev, next, …)`
+finds every delivered Explore whose radius did not grow and every Prospect that left no survey, and the Actions block
+paints `DiscoveryQuery.RefusalText` ("The survey of X was refused when the turn ran: … Nothing was paid; order it again.")
+under its heading — never a silent no-cost refusal (pinned: `DiscoveryActionsUiTests.AnOrderTheStepRefusesAtDelivery_…`).
 
 ## 6. The fog (D5)
 
@@ -150,8 +181,9 @@ each polity's seed extent (pinned: after one step the stored extent is exactly t
 
 The POLICY surface keeps its **Building** block (Build Granary etc., unchanged) and gains a separate headed **Actions**
 block: per controlled settlement "Explore surroundings (radius r → r+3 nodes, cost 60 grain)" and "Prospect for hidden
-deposits (cost 4 tools)", each with the predicate's blocker ("explored to the limit (15 nodes)", "already surveyed",
-"not enough grain/tools (needs N)", "already ordered this turn"). New `ActionDomain.Discovery` (15; id = settlement × 2 +
+deposits (cost 40 grain)", each with the predicate's blocker ("explored to the limit (15 nodes)", "already surveyed",
+"not enough grain (needs N)", "already ordered this turn"), and — after a step that refused a delivered Explore or Prospect
+— a "last turn:" line explaining the refusal (§5). New `ActionDomain.Discovery` (15; id = settlement × 2 +
 0/1), `ActionHitKind.Explore/Prospect`, `ActionCommandKind.Explore/Prospect`, `UiSession.EmitExplore/EmitProspect` guarded
 by `DiscoveryQuery.CheckExplore/CheckProspect` and the once-per-turn rule; two PlayabilityGate rows. The map draws UNKNOWN
 nodes as blank parchment (`MapInk.FogUnknown`, opaque, over the terrain) and REMEMBERED nodes under a darker wash
@@ -169,7 +201,7 @@ source guard regex and `check-read-isolation.sh`) now also match the four discov
   concealable goods it can SEE there (known abundance > 0). The raw eligible count includes the concealed rows it cannot
   see, which would leak them (the metamorphic test pins non-interference).
 Both read only `PolityKnowledge`, own books and own stocks; both keys are integer composite keys (tie-dense test).
-ci.yml's AI kind set gains 14 (the AI explores in the 600-turn run); 15 is not issued there (no tools — §5).
+ci.yml's AI kind set gains 14 and 15 (the AI explores and prospects in the 600-turn run; §12).
 
 ## 10. Recorded deviations
 
@@ -180,7 +212,8 @@ ci.yml's AI kind set gains 14 (the AI explores in the 600-turn run); 15 is not i
    no trade-route knowledge); remembered land is drawn with no stale picture of what is there; the terrain under known
    land is the live terrain (static by ADR-008).
 4. **The AI's prospect key reads visible eligible goods** (§9).
-5. **Prospect is unaffordable until toolmaking** (§5) — recorded as an open Director choice.
+5. **Prospect is paid in grain** (the coordinator's ruling, §5) — the first build's tools cost was unaffordable until
+   toolmaking.
 6. **`PolityKnowledge.Of` takes the config.** Its fog parameters (seed and sight radii) are content; the stored extent
    and sightings remain its only stored inputs.
 
@@ -222,18 +255,30 @@ settlements); control `OneAiEmpire_WithTheDiscoveryLayerOff_EveryPinReturnsItsTr
 **CI.** `FOUNDED_GOLDEN` re-pinned; the AI kind set is `{3..9, 12, 13, 14}` (MEASURED: 13 Explore orders in the 600-turn
 leg, none Prospect); the `--found` leg now explores from settlement 0 at turn 0 and founds at the re-derived known sites
 335063 (turn 2) and 326873 (turn 5, from colony 12), its delivery twin is the same log without the turn-2 order.
-**OPEN (Director):** the D-055 allocation leg S42-ALLOC-H no longer exhibits two of its premises under the shipped
-concealment — the player's empire quarries ≈ 40 stone a step instead of ≈ 64, so building work claims more than its share on
-every step and road works never less (MEASURED: no Y step, `split-check` "P5: no step where building work's claim above its
-share used road works' unused share"). So the scenario runs on the discovery twin: in process on `PreDiscovery` (R4) with
-every D-055/D-058 literal intact, and through the CLI with a new switch, `sim run|replay --without-discovery` (sim.json
-discovery and fog off; `Cli.SimCfg` and the session pipeline honour it), which the ci.yml allocation leg and the
-`--from-save` rigs (`RunFromSaveCliTests`: under the fog the dev AI holds no stone for a granary until turn 68, MEASURED)
-now pass. Re-deriving S42-ALLOC-H under the fog (re-timing the road phase so the route completes) is the open item.
+**Where `--without-discovery` remains, and why (re-checked 2026-10-23 with stone no longer concealed).** The CLI switch
+`sim run|replay|inspect --without-discovery` (sim.json discovery and fog off; `Cli.SimCfg` and the session pipeline honour
+it — the `TestConfigs.PreDiscovery` twin, R4) is kept ONLY where a test genuinely compares against a measurement or a
+recording made before M6:
 
-**Other findings.** (1) Tools held are worn by farmers (ProductionSystem `ToolWear`, ≈ 136 a step at a dev settlement with
-ample tools) before DiscoverySystem draws, so a prospect needs tools above the step's wear; the UI/AI predicate reads PREV
-stocks and can admit an order the step then refuses (charging nothing). (2) Pre-v35 sessions are replayed WITHOUT the
+1. **The D-055 allocation scenario S42-ALLOC-H** — the ci.yml allocation leg (every run and replay),
+   `AllocationCiLegTests` (its expected command list), `AllocationScenarioRun` and its D-058 twin (in process on
+   `PreDiscovery`) and `AllocationScenarioTests`' cross-process continuation. Its turns and literals are D-055's pre-M6
+   measurement. MEASURED under the shipped rules (ores only): the purse's stone at 116 is 5 048 against D-055's 4 913, road
+   works lend building work their unused share only at 128 (not 131), competing heads occur only at 117–119, and the leg's
+   `split-check alloc-b.rep --expect-hold-at 131` FAILS P5 and P7 (the concealed copper and tin are unworked until surveyed,
+   so extraction labour moves to the visible goods). Re-deriving S42-ALLOC-H under the shipped rules is the OPEN item.
+2. **`CliConstructionLifecycleTests`** — its rigs replay and diff a session, trace and save RECORDED by the v33 build and
+   premise the colony at 12. MEASURED without the switch: the replay diverges from the v33 trace at the first hash, `run`
+   refuses the turn-3 order naming settlement 12 (the AI founds only on a known site, so no colony 12 by then), and the v33/v34
+   diff gains LedgerFlows rows.
+
+**Removed** where the pre-M6 measurement holds again or the test is not a pre-M6 comparison: the `--from-save` rigs
+(`RunFromSaveCliTests` — with stone visible the dev AI enqueues its granaries at 7 and 14 again; the one literal that moved,
+the AI colony's founding turn 72 → 73, is re-pinned with its cause), and the AI construction stall is gone
+(`AiEmpireIntegrationTests`' first build returns to its pre-M6 turn 2).
+
+**Other findings.** (1) The step draws after its own harvest, meals and building, the preview on PREV: an order the
+preview admitted can be refused at delivery (charging nothing); the UI explains it after the step (§5). (2) Pre-v35 sessions are replayed WITHOUT the
 discovery layer (`DiscoveryQuery.RecordedWithoutDiscovery`, mirroring `RecordedFlat`; `UiSession.Resume`, `sim inspect`), as
 they were played; Track CP replays them with Civics Points on (no order is refused by CP). (3) The Actions block is compact
 (one line per settlement, then its costs and blockers) and painted last on POLICY; the playability gate gained a post-End-Turn

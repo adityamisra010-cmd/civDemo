@@ -153,6 +153,10 @@ public sealed class UiSession
     /// system can reach it.</summary>
     public WorldState? PreviousWorld { get; private set; }
 
+    /// <summary>M6 Track EX (ADR-044 §5): the orders the last step delivered (empty before the first step) — the Actions block
+    /// explains an Explore or Prospect among them that the step refused at delivery.</summary>
+    public IReadOnlyList<OrderRecord> LastDelivered { get; private set; } = [];
+
     /// <summary>The loaded SimConfig — the same object the observer and the
     /// executor recipe load from the data files, exposed so the explain
     /// queries the UI runs read the registry the simulation ran with.</summary>
@@ -781,6 +785,9 @@ public sealed class UiSession
         WorldState prev = World;
         World = _executor.Step(prev);
         PreviousWorld = prev;
+        var delivered = new List<OrderRecord>();   // M6 EX: the batch this step delivered (the Actions block explains refusals)
+        for (int i = 0; i < Orders.Count; i++) if (Orders[i].Turn == prev.Clock.Turn) delivered.Add(Orders[i]);
+        LastDelivered = delivered;
         // Audit E23: a colony founded this step gets its name now. The registry assigns names in ascending
         // id order with collision re-draws against names already taken, so rebuilding over a world that
         // only GAINED settlements leaves every existing name unchanged (pinned by a test).

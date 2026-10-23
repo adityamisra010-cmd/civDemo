@@ -73,7 +73,7 @@ public sealed record PopulationAccount(
 /// carried so a founding-time source can never make a step "not reconcile".</summary>
 public sealed record GrainAccount(
     long Opening, long Endowment, long Harvest, long Eaten, long Spoilage, long Overflow, long Closing,
-    bool Reconciles, long Discrepancy, long Expedition = 0);   // M6 EX: − Expedition (Explore's provisions, reason 18)
+    bool Reconciles, long Discrepancy, long Expedition = 0);   // M6 EX: − Expedition (the discovery provisions: Explore, reason 18, and Prospect, reason 17)
 
 /// <summary>Dwellings (ConservedQuantityIds.Dwellings, carried by HousingRow):
 /// Opening + Built − Decayed == Closing.</summary>

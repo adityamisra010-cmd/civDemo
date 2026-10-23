@@ -231,10 +231,10 @@ public static class ReasonIds
     // ("where did the timber go?") has one answer — into the structure.
     public static readonly ReasonId ConstructionMaterials = new(16);
 
-    // M6 Track EX (D-062, ADR-044) — the two discovery sinks. Prospecting: the tools a survey of a settlement's hinterland
-    // uses up (paid whether or not anything is found). Expedition: the grain an exploring party eats on the road (travel
-    // provisions; no person is removed). Separate reasons: "where did the tools go?" and "where did the grain go?" have
-    // different answers, and neither is construction.
+    // M6 Track EX (D-062, ADR-044) — the two discovery sinks, both GRAIN (provisions; no person is removed). Prospecting: what
+    // a survey party eats surveying a settlement's hinterland (paid whether or not anything is found). Expedition: what an
+    // exploring party eats on the road. Separate reasons: "why did it survey?" and "why did it travel?" have different
+    // answers, and neither is construction.
     public static readonly ReasonId Prospecting = new(17);
     public static readonly ReasonId Expedition = new(18);
 }

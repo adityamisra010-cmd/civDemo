@@ -207,7 +207,8 @@ public static class Observer
         long eaten = Leg(grainStock.Sinks, ReasonIds.Eaten);
         long spoilage = Leg(grainStock.Sinks, ReasonIds.Spoilage);
         long overflow = Leg(grainStock.Sinks, ReasonIds.GranaryOverflow);
-        long expedition = Leg(grainStock.Sinks, ReasonIds.Expedition);   // M6 EX (ADR-044): Explore's provisions
+        // M6 EX (ADR-044): the discovery provisions — Explore's (Expedition) and Prospect's survey party (Prospecting).
+        long expedition = Leg(grainStock.Sinks, ReasonIds.Expedition) + Leg(grainStock.Sinks, ReasonIds.Prospecting);
         var grainAccount = Account(grainStock.Opening, grainStock.Closing,
             endowment + harvest - eaten - spoilage - overflow - expedition,
             (o, c, r, d) => new GrainAccount(o, endowment, harvest, eaten, spoilage, overflow, c, r, d, expedition));

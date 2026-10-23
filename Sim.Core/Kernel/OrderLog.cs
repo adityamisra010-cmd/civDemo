@@ -226,7 +226,7 @@ public enum OrderKind
     /// <summary>
     /// M6 Track EX (D-062; ADR-044 §4) — PROSPECT: the issuing Empire surveys the hinterland of a settlement it controls and
     /// has not surveyed. TargetId = the settlement's id; Amount is reserved and must be exactly 0. Cost: sim.json
-    /// discovery.prospectTools tools (halved, integer, once the issuer completed discovery.prospectDiscountRequires) drawn
+    /// discovery.prospectGrain grain (halved, integer, once the issuer completed discovery.prospectDiscountRequires) drawn
     /// through EmpireStockpile.Draw (the settlement first) beyond what construction set aside, SUNK under
     /// ReasonIds.Prospecting — paid whether or not anything is found, so no information is free. Refused (nothing charged)
     /// when concealment is off, the issuer does not control it, it is already surveyed by the issuer (once per polity — no

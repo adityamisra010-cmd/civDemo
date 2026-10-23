@@ -12,8 +12,10 @@ namespace Sim.Core.State;
 /// goods are surface-evident and never concealed).</para>
 ///
 /// <para><b>Classification (D2) — derived, never stored.</b> For a settlement with n eligible rows, k = floor(n × s + u) are
-/// CONCEALED, s = <c>discovery.concealedShare</c> and u ∈ [0, 1) a stateless SplitMix64 hash of (world seed,
-/// <see cref="ConcealSalt"/>, settlement) — so the expected share is exactly s. The concealed rows are the k LOWEST by the
+/// CONCEALED, s = <c>discovery.concealedShare</c> and u ∈ [0, 1) the settlement's LOW-DISCREPANCY offset
+/// u = frac(h(seed) + φ⁻¹ × settlementId), h(seed) a SplitMix64 hash of (world seed, <see cref="ConcealSalt"/>) in [0, 1) and
+/// φ⁻¹ = 0.6180339887498949 (the golden-ratio step: successive ids spread u evenly over [0, 1), so the realized share stays
+/// near s even where every settlement has only one or two eligible rows — the coordinator's ruling under D-062). The concealed rows are the k LOWEST by the
 /// composite key (hash(seed, salt, settlement, good), goodId): an integer key with a stable integer tie-break, no double is
 /// ordered. Nothing here draws from RngRegistry, so concealment cannot move any stream.</para>
 ///
@@ -32,9 +34,6 @@ public static class DepositConcealment
     /// <summary>The salt of the concealment hash — distinct from every founding salt, so concealment is independent of the
     /// deposit roll it classifies.</summary>
     public const ulong ConcealSalt = 0xC0CEA1ED_5EC2E7A5UL;
-
-    /// <summary>The good a Prospect order sinks (goods.json "tools").</summary>
-    public const string ProspectGood = "tools";
 
     /// <summary>Whether concealment is in force for <paramref name="cfg"/>.</summary>
     public static bool Enabled(SimConfig? cfg) => cfg?.Discovery is { Enabled: true } && cfg.Goods is not null;
@@ -63,11 +62,17 @@ public static class DepositConcealment
 
     private static bool In(bool[] mask, int good) => (uint)good < (uint)mask.Length && mask[good];
 
-    /// <summary>The u ∈ [0, 1) of settlement <paramref name="settlement"/>'s concealment count.</summary>
+    /// <summary>The golden-ratio step of the low-discrepancy offset (φ⁻¹).</summary>
+    public const double GoldenStep = 0.6180339887498949;
+
+    /// <summary>The u ∈ [0, 1) of settlement <paramref name="settlement"/>'s concealment count: frac(h(seed) + φ⁻¹ × id),
+    /// h(seed) ∈ [0, 1) a SplitMix64 hash of (seed, <see cref="ConcealSalt"/>) — deterministic, no RNG stream.</summary>
     public static double Fraction(ulong seed, int settlement)
     {
-        ulong h = SplitMix64.Mix(seed ^ ConcealSalt ^ ((ulong)(uint)settlement << 32));
-        return (h >> 11) * (1.0 / (1UL << 53));
+        double h = (SplitMix64.Mix(seed ^ ConcealSalt) >> 11) * (1.0 / (1UL << 53));
+        double x = h + GoldenStep * settlement;
+        double u = x - Math.Floor(x);
+        return u >= 1.0 ? 0.0 : u;
     }
 
     /// <summary>The row key of good <paramref name="good"/> at <paramref name="settlement"/>.</summary>
