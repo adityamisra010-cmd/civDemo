@@ -33,8 +33,19 @@ public enum ProspectVerdict
     NotControlled = 3,
     /// <summary>The issuer has already prospected this settlement (once per polity — no repeat exploit).</summary>
     AlreadySurveyed = 4,
-    /// <summary>The empire purse cannot cover the prospect's grain beyond what construction set aside.</summary>
+    /// <summary>The empire purse cannot cover every good of the bill beyond what construction set aside.</summary>
     Unaffordable = 5,
+    /// <summary>ADR-046: an assay ordered before the polity knows discovery.assayRequires (or with no assay configured).</summary>
+    NotUnlocked = 6,
+}
+
+/// <summary>ADR-046 (M6 review, 2026-10-23): how a Prospect order surveys — carried by the order's Amount (0 or 1).</summary>
+public enum ProspectMethod
+{
+    /// <summary>The basic survey: discovery.prospectCost (grain, timber, stone) — open from the founding.</summary>
+    Survey = 0,
+    /// <summary>The improved assay: discovery.assayCost (less of the bulk goods, plus bronze) — behind discovery.assayRequires.</summary>
+    Assay = 1,
 }
 
 /// <summary>
@@ -263,24 +274,69 @@ public static class DiscoveryQuery
     public static int NextRadius(IReadOnlyWorldState world, FogConfig fog, PolityId polity, SettlementId settlement) =>
         Math.Min(fog.ExploreMaxRadiusNodes, ExploredRadius(world, fog, polity, settlement) + fog.ExploreStepNodes);
 
+    /// <summary>ADR-046 (M6 review item 3): <paramref name="nodeSteps"/> fog radius steps as kilometres on
+    /// <paramref name="world"/>'s map (LatticeGeometry.NodeStepsKm: 16 km a step on the canonical map), 0 without terrain.</summary>
+    public static double RadiusKm(IReadOnlyWorldState world, int nodeSteps)
+    {
+        (int l, int b, _, _) = Lattice(world);
+        return l == 0 || world.Terrain is not { } t ? 0.0 : Pathing.LatticeGeometry.NodeStepsKm(nodeSteps, b, t.KmPerPx);
+    }
+
+    /// <summary>A fog radius as player text, "48 km" (whole km).</summary>
+    public static string RangeText(IReadOnlyWorldState world, int nodeSteps) =>
+        Inv((long)Math.Round(RadiusKm(world, nodeSteps), MidpointRounding.AwayFromZero)) + " km";
+
     /// <summary>The grain one Explore sinks (fog.exploreGrain; 0 with the fog off).</summary>
     public static long ExploreCost(SimConfig cfg) => cfg.Fog?.ExploreGrain ?? 0;
 
-    /// <summary>The grain one Prospect by <paramref name="polity"/> sinks (the survey party's provisions): discovery.prospectGrain,
-    /// HALVED (integer) once the
-    /// polity's completed knowledge meets discovery.prospectDiscountRequires (the ore-recognition technology).</summary>
-    public static long ProspectCost(IReadOnlyWorldState world, SimConfig cfg, PolityId polity)
+    /// <summary>ADR-046: the method an order's Amount names (0 survey, 1 assay), or null for anything else.</summary>
+    public static ProspectMethod? MethodOf(double amount) =>
+        amount == 0.0 ? ProspectMethod.Survey : amount == 1.0 ? ProspectMethod.Assay : null;
+
+    /// <summary>ADR-046 — THE PROSPECT BILL: the goods (id, whole quantity) one Prospect by <paramref name="method"/> sinks,
+    /// in the order sim.json lists them (the draw order); goods with quantity 0 are left out. Empty with discovery off or
+    /// for an assay without an assay bill. Not gated by knowledge — <see cref="AssayUnlocked"/> is the gate.</summary>
+    public static (GoodId Good, long Qty)[] ProspectBill(SimConfig cfg, ProspectMethod method)
     {
-        if (cfg.Discovery is not { } d) return 0;
-        return HasProspectDiscount(world, cfg, polity) ? d.ProspectGrain / 2 : d.ProspectGrain;
+        if (cfg.Discovery is not { } d || cfg.Goods is not { } goods) return [];
+        DiscoveryCostItem[] items = method == ProspectMethod.Assay ? d.AssayCost ?? [] : d.ProspectCost;
+        var bill = new List<(GoodId, long)>(items.Length);
+        foreach (DiscoveryCostItem item in items)
+            if (item.Qty > 0) bill.Add((new GoodId(goods.IdOf(item.Good)), item.Qty));
+        return [.. bill];
     }
 
-    /// <summary>Whether <paramref name="polity"/> holds the prospecting discount technology.</summary>
-    public static bool HasProspectDiscount(IReadOnlyWorldState world, SimConfig cfg, PolityId polity)
+    /// <summary>Whether <paramref name="polity"/> may order an assay: an assay bill exists and its completed knowledge meets
+    /// discovery.assayRequires (the ore-recognition technology, ore_prospecting).</summary>
+    public static bool AssayUnlocked(IReadOnlyWorldState world, SimConfig cfg, PolityId polity)
     {
-        if (cfg.Discovery?.ProspectDiscountRequires is not { } req || cfg.Research is not { } research) return false;
-        Systems.ClassMobility.Predicate requirement = ResearchContentLoader.ParseRequirement(research, req, "sim.json discovery.prospectDiscountRequires");
+        if (cfg.Discovery is not { AssayCost: not null, AssayRequires: { } req } || cfg.Research is not { } research) return false;
+        Systems.ClassMobility.Predicate requirement = ResearchContentLoader.ParseRequirement(research, req, "sim.json discovery.assayRequires");
         return ResearchQuery.RequirementMet(research, requirement, ResearchQuery.CompletedMask(world, research, polity));
+    }
+
+    /// <summary>The bill as player text, "40 grain, 20 timber, 10 stone".</summary>
+    public static string BillText(SimConfig cfg, (GoodId Good, long Qty)[] bill)
+    {
+        var parts = new List<string>(bill.Length);
+        foreach ((GoodId good, long qty) in bill) parts.Add(Inv(qty) + " " + cfg.Goods!.ById(good.Value).Name);
+        return parts.Count == 0 ? "nothing" : string.Join(", ", parts);
+    }
+
+    /// <summary>The goods of <paramref name="bill"/> the purse of <paramref name="settlement"/> cannot cover beyond
+    /// construction's set-asides, as player text ("8 stone short"), or null when it covers all of them.</summary>
+    public static string? Shortfall(
+        IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement, (GoodId Good, long Qty)[] bill,
+        IReadOnlyTable<GoodStockRow> stocks, IReadOnlyTable<ConstructionHoldRow> holds)
+    {
+        SettlementId[] holders = EmpireStockpile.Holders(world, settlement);
+        List<string>? short_ = null;
+        foreach ((GoodId good, long qty) in bill)
+        {
+            long free = FreeHolding(world, cfg, stocks, holds, holders, good, out _);
+            if (free < qty) (short_ ??= []).Add(Inv(qty - free) + " " + cfg.Goods!.ById(good.Value).Name);
+        }
+        return short_ is null ? null : string.Join(", ", short_) + " short";
     }
 
     /// <summary>
@@ -323,7 +379,8 @@ public static class DiscoveryQuery
     /// <paramref name="holds"/>.</summary>
     public static ProspectVerdict CheckProspect(
         IReadOnlyWorldState world, SimConfig cfg, PolityId polity, SettlementId settlement,
-        IReadOnlyTable<GoodStockRow> stocks, IReadOnlyTable<ConstructionHoldRow> holds, long? cost = null)
+        IReadOnlyTable<GoodStockRow> stocks, IReadOnlyTable<ConstructionHoldRow> holds,
+        ProspectMethod method = ProspectMethod.Survey, bool? assayUnlocked = null)
     {
         if (!DepositConcealment.Enabled(cfg)) return ProspectVerdict.Disabled;
         if (world.Polities.Count > 0 && !EmpireQuery.TryGetCommandSource(world, polity, out _)) return ProspectVerdict.NotEmpire;
@@ -331,9 +388,9 @@ public static class DiscoveryQuery
         for (int i = 0; i < world.Settlements.Count; i++) if (world.Settlements[i].Id.Value == settlement.Value) { exists = true; break; }
         if (!exists || !EmpireQuery.ControlsSettlement(world, polity, settlement)) return ProspectVerdict.NotControlled;
         if (DepositConcealment.HasSurveyed(world, polity, settlement)) return ProspectVerdict.AlreadySurveyed;
-        SettlementId[] holders = EmpireStockpile.Holders(world, settlement);
-        if (FreeHolding(world, cfg, stocks, holds, holders, new GoodId(cfg.Goods!.GrainId), out _) < (cost ?? ProspectCost(world, cfg, polity)))
-            return ProspectVerdict.Unaffordable;
+        if (method == ProspectMethod.Assay && !(assayUnlocked ?? AssayUnlocked(world, cfg, polity))) return ProspectVerdict.NotUnlocked;
+        // ADR-046: EVERY good of the bill must be covered, or nothing is paid.
+        if (Shortfall(world, cfg, settlement, ProspectBill(cfg, method), stocks, holds) is not null) return ProspectVerdict.Unaffordable;
         return ProspectVerdict.Ok;
     }
 
@@ -345,45 +402,46 @@ public static class DiscoveryQuery
     /// housing, construction and colonization — so an order the preview admitted can be refused at delivery (nothing is paid).
     /// This is how the UI explains such a refusal after the step (ADR-044 §5). Duplicates count once.
     /// </summary>
-    public static List<(OrderKind Kind, SettlementId Settlement, long Cost)> RefusedAtDelivery(
+    public static List<(OrderKind Kind, SettlementId Settlement, string Cost)> RefusedAtDelivery(
         IReadOnlyWorldState prev, IReadOnlyWorldState next, SimConfig cfg, IReadOnlyList<OrderRecord> delivered, PolityId polity)
     {
-        var refused = new List<(OrderKind, SettlementId, long)>();
+        var refused = new List<(OrderKind, SettlementId, string)>();
         for (int i = 0; i < delivered.Count; i++)
         {
             OrderRecord o = delivered[i];
             if (o.ActorId != polity.Value || (o.Kind != OrderKind.Explore && o.Kind != OrderKind.Prospect)) continue;
             var s = new SettlementId(o.TargetId);
             bool seen = false;
-            foreach ((OrderKind k, SettlementId t, long _) in refused) seen |= k == o.Kind && t.Value == s.Value;
+            foreach ((OrderKind k, SettlementId t, string _) in refused) seen |= k == o.Kind && t.Value == s.Value;
             if (seen) continue;
             if (o.Kind == OrderKind.Explore)
             {
                 if (cfg.Fog is not { Enabled: true } fog) continue;
-                if (ExploredRadius(next, fog, polity, s) <= ExploredRadius(prev, fog, polity, s)) refused.Add((o.Kind, s, ExploreCost(cfg)));
+                if (ExploredRadius(next, fog, polity, s) <= ExploredRadius(prev, fog, polity, s))
+                    refused.Add((o.Kind, s, Inv(ExploreCost(cfg)) + " " + cfg.Goods!.ById(cfg.Goods.GrainId).Name));
             }
             else if (DepositConcealment.Enabled(cfg) && !DepositConcealment.HasSurveyed(next, polity, s))
-                refused.Add((o.Kind, s, ProspectCost(prev, cfg, polity)));
+                refused.Add((o.Kind, s, BillText(cfg, ProspectBill(cfg, MethodOf(o.Amount) ?? ProspectMethod.Survey))));
         }
         return refused;
     }
 
     /// <summary>The player-facing explanation of a refusal <see cref="RefusedAtDelivery"/> found.</summary>
-    public static string RefusalText(OrderKind kind, string settlementName, long cost) =>
+    public static string RefusalText(OrderKind kind, string settlementName, string cost) =>
         (kind == OrderKind.Explore ? "The expedition from " : "The survey of ") + settlementName
-        + " was refused when the turn ran: after the turn's harvest, meals and building the store held less than "
-        + Inv(cost) + " grain beyond what construction set aside. Nothing was paid; order it again.";
+        + " was refused when the turn ran: after the turn's harvest, meals and building the stores could not cover "
+        + cost + " beyond what construction set aside. Nothing was paid; order it again.";
 
     /// <summary>THE PROSPECT PREDICATE against the world's own published stocks and set-asides (the UI and the AI).</summary>
     public static ProspectVerdict CheckProspect(IReadOnlyWorldState world, SimConfig cfg, PolityId polity, SettlementId settlement,
-        long? cost = null) =>
-        CheckProspect(world, cfg, polity, settlement, world.GoodStocks, world.ConstructionHolds, cost);
+        ProspectMethod method = ProspectMethod.Survey, bool? assayUnlocked = null) =>
+        CheckProspect(world, cfg, polity, settlement, world.GoodStocks, world.ConstructionHolds, method, assayUnlocked);
 
     /// <summary>The player-facing reason an Explore verdict blocks, or null for <see cref="ExploreVerdict.Ok"/>.</summary>
-    public static string? ExploreBlocker(ExploreVerdict v, SimConfig cfg) => v switch
+    public static string? ExploreBlocker(ExploreVerdict v, SimConfig cfg, IReadOnlyWorldState world) => v switch
     {
         ExploreVerdict.Ok => null,
-        ExploreVerdict.AtCap => "explored to the limit (" + Inv(cfg.Fog?.ExploreMaxRadiusNodes ?? 0) + " nodes)",
+        ExploreVerdict.AtCap => "explored to the limit (" + RangeText(world, cfg.Fog?.ExploreMaxRadiusNodes ?? 0) + " around it)",
         ExploreVerdict.Unaffordable => "not enough grain (needs " + Inv(ExploreCost(cfg)) + ")",
         ExploreVerdict.NotControlled => "not your settlement",
         ExploreVerdict.NotEmpire => "not an Empire",
@@ -391,15 +449,24 @@ public static class DiscoveryQuery
     };
 
     /// <summary>The player-facing reason a Prospect verdict blocks, or null for <see cref="ProspectVerdict.Ok"/>.</summary>
-    public static string? ProspectBlocker(ProspectVerdict v, long cost) => v switch
+    public static string? ProspectBlocker(ProspectVerdict v, string? shortfall, SimConfig cfg) => v switch
     {
         ProspectVerdict.Ok => null,
         ProspectVerdict.AlreadySurveyed => "already surveyed",
-        ProspectVerdict.Unaffordable => "not enough grain (needs " + Inv(cost) + ")",
+        ProspectVerdict.Unaffordable => "not enough in store (" + (shortfall ?? "a good short") + ")",
+        ProspectVerdict.NotUnlocked => "needs " + RequirementName(cfg),
         ProspectVerdict.NotControlled => "not your settlement",
         ProspectVerdict.NotEmpire => "not an Empire",
         _ => "prospecting is off",
     };
+
+    /// <summary>The assay's technology as the player reads it: the node's name when discovery.assayRequires is a single node id.</summary>
+    private static string RequirementName(SimConfig cfg)
+    {
+        string req = cfg.Discovery?.AssayRequires ?? "a technology";
+        if (cfg.Research is { } r && r.IndexOfId(req) is int i and >= 0) return r.Nodes[i].Name;
+        return req;
+    }
 
     /// <summary>
     /// The structural invariant of the four v35 tables, as only DiscoverySystem writes them (Snapshot.Load refuses a save

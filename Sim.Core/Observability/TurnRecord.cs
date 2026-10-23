@@ -81,7 +81,7 @@ public sealed record DwellingsAccount(
     long Opening, long Built, long Decayed, long Closing, bool Reconciles, long Discrepancy);
 
 /// <summary>One non-grain good: Opening + Produced − InputsConsumed − ToolWear −
-/// Eaten − HousingMaterials − ConstructionMaterials == Closing. Eaten is non-zero
+/// Eaten − HousingMaterials − ConstructionMaterials − Discovery == Closing. Eaten is non-zero
 /// only for the food goods (livestock, fish); the others sit at zero.</summary>
 public sealed record GoodAccount(
     int Good, string Name,

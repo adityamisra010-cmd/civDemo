@@ -740,7 +740,9 @@ def check_corpus(rep, tech, civ):
     rep.add("WARN" if ship["blocked"] else "INFO", "C10",
             f"SHIPPING GATE: {ship['ready']} of {len(entries)} entries may ship as fact; {ship['blocked']} are BLOCKED "
             f"(not source-checked: {', '.join(f'{k} {len(v)}' for k, v in sorted(queue.items()))}). Zero structural errors "
-            "is not a fact-check; the mechanic may ship without its educational text, unsourced text may not.")
+            "is not a fact-check. Since 2026-10-23 (the Director's M6 review, item 4) every text is SHOWN in the game as "
+            "plain prose without verification labels; this gate measures internal QC (how many are source-checked), and no "
+            "text is marked fact-checked by being shown.")
     if ship["notItemised"]:
         rep.add("WARN", "C11", f"{ship['notItemised']} entries above 'unverified' list no per-claim results: their status "
                                "rests on the claims recorded per source, so C11 cannot check them claim by claim "

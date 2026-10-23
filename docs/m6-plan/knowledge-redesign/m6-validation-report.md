@@ -147,3 +147,74 @@ the commit carrying this section (SHA in the commit log; not self-referenced). `
 
 No runtime code changed in this review, so the goldens and the cross-process determinism legs are unchanged; CI on the
 pushed head re-runs them (run IDs in the hand-back report).
+
+## 7. Review batch 2 — ADR-046 (2026-10-23)
+
+The Director's five follow-up items on head `2cd9680`. Records: `docs/adr/adr-046-m6-review-fixes.md` (decisions, tests,
+goldens), `audit/taxation-gate-trace.md` §6–§7 (timing, Age IV). Branch head: the commit carrying this section (SHA in
+the hand-back report, not self-referenced). `main` = `m5-exit` = `6e51a3e`, untouched.
+
+### 7.1 Research timing (MEASURED, canonical AI world, 900 turns; re-run on the final tree, identical)
+
+| Seed | Bronze: pre-M6 / M6 before / **with fix** | Age III | First levy | Age IV |
+|---|---|---|---|---|
+| 1 | 412 / 569 / **401** | 413 / 570 / **402** | 414 / 571 / **403** | 828 / 873 / — |
+| 2 | 425 / 597 / **423** | 426 / 598 / **424** | 427 / 599 / **425** | 843 / — / — |
+| 42 | 421 / 578 / **406** | 422 / 579 / **407** | 423 / 580 / **408** | 834 / — / — |
+| 7 | 420 / 574 / **406** | 421 / 575 / **407** | 422 / 576 / **408** | 869 / — / — |
+
+Research sequence: the AI's first targets are unchanged (`grinding_stone`, `kin_council`); the Taxation civic completes
+on the same turn (314 / 340 / 321 / 321); the paved road comes 13–15 turns earlier; 2–7 fewer nodes are known at turn
+900 (the redundant OR branches are gone). Open: Age IV (§7.6).
+
+### 7.2 Prospecting costs
+
+| Method | Bill | Requires | Offered |
+|---|---|---|---|
+| Survey (order Amount 0) | 40 grain, 20 timber, 10 stone | — | from founding; stone binds for the first turns |
+| Assay (order Amount 1) | 20 grain, 10 timber, 5 stone, 2 bronze | `ore_prospecting` | listed with its blocker until then |
+
+Validated at the preview (UI, AI) and again at delivery; a short purse pays nothing; one Prospect per settlement per turn
+whatever the method; every good sunk under reason 17 and reconciled by the Observer. The loader refuses a survey bill that
+names a concealable good or anything made from one (copper-ore, tin-ore, bronze, tools) — no deadlock.
+
+### 7.3 Spatial range
+
+Lattice node = 4 × 4 px × 4 km/px = **16 km**; Euclidean disc over node centres, wrapped east–west, clipped at the poles.
+Seed disc 48 km; each Explore +48 km; cap **240 km** (709 nodes ≈ 181,000 km²) — intended, kept. The UI states km. One
+documentation defect fixed (formation sight is the 4-neighbourhood, not 8).
+
+### 7.4 Goldens and moved pins
+
+See ADR-046 §5 for the table and controls. In short: the founded, toy, driven and first-reign goldens and `ci.yml`
+`FOUNDED_GOLDEN` are **unchanged**; the AI world t300 hash moves `776d5d0c…` → `2e4759ac…` for the Prospect bill alone
+(the routes-off twin gives the same hash); the canonical AI's levy and A3 move 579 → 407 for the route fix alone (the
+twin returns 579), its first granary 2 → 3 for the bill alone.
+
+### 7.5 Validation (run 2026-10-23 on the review tree)
+
+| Command | Result |
+|---|---|
+| `dotnet build Sim.slnx -c Release` | 0 errors, 0 warnings |
+| `dotnet test Sim.slnx -c Release --no-build` | Sim.Tests 2,728 passed, 20 skipped (measurement facts), 0 failed; Sim.Ui.Tests 1,101 passed, 0 failed |
+| `check-banned-constructs.sh` / `check-read-isolation.sh` | OK / OK |
+| `research-*.py --check` ×3; `implement_tranche.py --check`; `export_runtime_texts.py --check` | current |
+| `tools/validate.py`; `test_validate.py --mutants`; `test_sourcing_queue.py --mutants` | ERROR 0 · WARN 272; 25/25 fixtures, 15/15 killed; 8/8, 5/5 killed |
+| `Sim.Ui --smoke --report` | SMOKE PASSED — 13 states, 3,941 checks, 0 FAIL (gate §6 regenerated; new row `Assay`) |
+| `ci.yml` AI-empire leg, run locally (600 turns) | two processes byte-identical, replay identical, inspect VERIFIED; 394 orders, kinds unchanged |
+| 20-seed soak (`sim autoplay --seeds 20 --turns 650`) + `sim corridors` | exit 0; all 20 final hashes and the metrics file **byte-identical to `2cd9680`**; the migration corridor's quarantine drift is pre-existing (same on the base). The soak runs no AI and no player orders, so it cannot see this batch's two behaviour changes — the AI tests above do. |
+
+The first full run found 14 failures, all from this batch's intended changes, each fixed or re-pinned with its cause:
+turn-one action counts (+12 Assay entries); the goods identity in one Observer test omitted the new `Discovery` sink;
+the legacy union assertions moved under the switch-off twin with a new route test beside them; the Prospect order's
+method contract; the forensic config list (+ `knowledge-texts.json`); two twins that broke the R4 rule (`PreTreeTranche`
+copied the route switch and kept an assay naming a tranche node — both now stripped); and the moved AI pins above.
+
+### 7.6 Open items
+
+- **Age IV** (`audit/taxation-gate-trace.md` §7): not reached within 900 turns under M6; the fix costs seed 1 its Age IV
+  (873 → —) because the old closure met the supporting milestone Alphabetic script by accident. The AI's goals never
+  target supporting milestones; a goal for them is proposed (`docs/queue.md`), not implemented.
+- **Survey vs granary** (ADR-046 §5): the AI surveys as soon as it can and competes with its first granaries for stone
+  (canonical: first granary turn 2 → 3; 256 px world: turn 7 → 14). Proposed priority rule in `docs/queue.md`.
+- The AI never assays in the 600-turn CI run; bronze is 0 in every polity through turn 400.

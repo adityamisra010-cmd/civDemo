@@ -62,6 +62,11 @@ public static class DataFiles
     /// identities — consumed by UnitFamilyContentLoader (the six-stream Load).</summary>
     public static Stream OpenUnitFamilies() => Open("Sim.Data.unit-families.json");
 
+    /// <summary>M6 review (2026-10-23): the educational text of each research node — DISPLAY TEXT ONLY, generated from the
+    /// knowledge-redesign corpus (docs/m6-plan/knowledge-redesign/tools/export_runtime_texts.py; provenance and evidence
+    /// status stay in the corpus). Read by the UI's research views; never by the simulation.</summary>
+    public static Stream OpenKnowledgeTexts() => Open("Sim.Data.knowledge-texts.json");
+
     private static Stream Open(string logicalName) =>
         Assembly.GetExecutingAssembly().GetManifestResourceStream(logicalName)
         ?? throw new InvalidOperationException(

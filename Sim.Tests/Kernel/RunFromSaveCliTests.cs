@@ -16,8 +16,11 @@ public sealed class FromSaveRuns : IDisposable
     internal static readonly TimeSpan Limit = TimeSpan.FromMinutes(4);
 
     /// <summary>The small founded world every test continues: seed 42 at 256 px, 4 settlements, one AI Empire (the player
-    /// rules settlements 0 and 2). Fast (well under a second for 16 steps), and its AI acts inside the continued window: it
-    /// enqueues granaries stamped 7 and 14 (measured; asserted below from the emitted run log).</summary>
+    /// rules settlements 0 and 2). Fast (well under a second for 16 steps), and its AI acts inside the continued window: its
+    /// orders there are stamped 7 and 14 (measured; asserted below from the emitted run log). ADR-046 RE-PIN (2026-10-23,
+    /// MEASURED by the agent writing this line): the AI's orders are a survey of settlement 1 at 3, a survey of settlement 3
+    /// at 7 and a granary at 14 (were granaries at 7 and 14) — the survey's bill now spends stone (10), the material the
+    /// turn-7 granary waited on; the cheapest-route switch moves nothing here (no research goal changes in 16 turns).</summary>
     internal static readonly string[] World = ["--founded", "--seed", "42", "--size", "256", "--settlements", "4", "--ai-empires", "1"];
 
     internal const long K = 6;
@@ -91,7 +94,7 @@ public class RunFromSaveCliTests(FromSaveRuns runs) : IClassFixture<FromSaveRuns
     [Fact]
     public void AContinuedRun_IsTheUninterruptedRunsTail_ItsSaveIsByteIdentical_AndTheAiKeepsPlaying()
     {
-        // Premise: the AI acts inside the continued window (turns 7..16) — its granary orders are stamped 7 and 14.
+        // Premise: the AI acts inside the continued window (turns 7..16) — its orders are stamped 7 (a survey) and 14 (a granary).
         long[] aiTurns = Enumerable.Range(0, runs.RunLog.Count).Select(i => runs.RunLog[i])
             .Where(r => r.ActorId == 2 && r.Turn > FromSaveRuns.K).Select(r => r.Turn).ToArray();
         Assert.Equal([7L, 14L], aiTurns);
@@ -227,7 +230,7 @@ public class RunFromSaveCliTests(FromSaveRuns runs) : IClassFixture<FromSaveRuns
     [InlineData("settlements", 1, "--from-save takes the settlements from the save: --settlements is refused")]
     [InlineData("save-at without save", 1, "--save-at requires --save PATH")]
     [InlineData("save without save-at", 1, "--save requires --save-at K")]
-    [InlineData("an AI's order", 2, "--from-save takes a PLAYER input log: record 0 (turn 7, EnqueueConstruction) is issued by polity 2, not the player (polity 1).")]
+    [InlineData("an AI's order", 2, "--from-save takes a PLAYER input log: record 0 (turn 7, Prospect) is issued by polity 2, not the player (polity 1).")]
     [InlineData("no size", 2, "terrain mismatch: ")]
     // Fixer round (finding T3-L2-T3-V2-F1): the boundary — another polity's record stamped AT the save's turn K is kept (it
     // would be delivered in the first resumed step) and so refused; see AnAiOrderStampedAtTheSavesTurn_… for why.
@@ -361,14 +364,15 @@ public class RunFromSaveCliTests(FromSaveRuns runs) : IClassFixture<FromSaveRuns
     /// WHY ANOTHER POLITY'S RECORD STAMPED AT THE SAVE'S TURN IS REFUSED (fixer round, finding T3-L2-T3-V2-F1) — turn-exact,
     /// in process, with the CLI's own loop (the loaded log's batch, then the AI's orders, then the step): the continuation's
     /// AI producer issues the AI's turn-K order ITSELF — the very record an emitted run log carries — so a log that carried it
-    /// too would deliver it twice. K = 7, where the AI enqueues a granary: fed only the AI producer, the step K → K + 1
-    /// gives the uninterrupted world K + 1; fed the emitted record as well, that same first step differs, with the granary
-    /// enqueued a second time.
+    /// too would deliver it twice. K = 14, where the AI enqueues a granary (ADR-046 RE-PIN: was 7, where the AI now surveys —
+    /// and a survey delivered twice is refused the second time, so the granary is the order whose duplicate shows): fed only
+    /// the AI producer, the step K → K + 1 gives the uninterrupted world K + 1; fed the emitted record as well, that same
+    /// first step differs, with the granary enqueued a second time.
     /// </summary>
     [Fact]
     public void AnAiOrderStampedAtTheSavesTurn_IsIssuedAgainByTheContinuation_SoALogCarryingIt_WouldDeliverItTwice()
     {
-        const long k = 7;
+        const long k = 14;
         OrderRecord emitted = Enumerable.Range(0, runs.RunLog.Count).Select(i => runs.RunLog[i]).Single(r => r.ActorId == 2 && r.Turn == k);
         Assert.Equal(OrderKind.EnqueueConstruction, emitted.Kind);
 
@@ -380,22 +384,27 @@ public class RunFromSaveCliTests(FromSaveRuns runs) : IClassFixture<FromSaveRuns
         OrderLog player;
         using (FileStream f = File.OpenRead(runs.Orders)) player = OrderLog.Load(f);
 
-        // The world at K: the save at 6, stepped once by the loop with the player's log L — the uninterrupted world 7.
-        WorldState w6 = SaveFiles.Load(runs.SaveK, 256);
-        var log6 = new OrderLog();
-        OrderBatch batch6 = player.BatchFor(FromSaveRuns.K);
-        for (int i = 0; i < batch6.Count; i++) log6.Append(batch6[i]);
-        AiOrders.Append(log6, w6, cfg, aiWorldgen);
-        WorldState w7 = new TurnExecutor(CliRecipes.Era(), CliRecipes.ProductionPipeline(), log6).Step(w6);
-        Assert.Equal((k, runs.Full[6]), (w7.Clock.Turn, WorldHash.ComputeHex(w7)));
+        // The world at K: the save at 6, stepped by the loop (the player's log L's batch, then the AI's orders) to K — the
+        // uninterrupted world K at every step.
+        WorldState w7 = SaveFiles.Load(runs.SaveK, 256);
+        for (long t = FromSaveRuns.K; t < k; t++)
+        {
+            var step = new OrderLog();
+            OrderBatch batch = player.BatchFor(t);
+            for (int i = 0; i < batch.Count; i++) step.Append(batch[i]);
+            AiOrders.Append(step, w7, cfg, aiWorldgen);
+            w7 = new TurnExecutor(CliRecipes.Era(), CliRecipes.ProductionPipeline(), step).Step(w7);
+            Assert.Equal((t + 1, runs.Full[t]), (w7.Clock.Turn, WorldHash.ComputeHex(w7)));
+        }
+        Assert.Equal(k, w7.Clock.Turn);
 
-        // Fed only the AI producer (what --from-save does, given the player's log, which has nothing at 7): the producer
+        // Fed only the AI producer (what --from-save does, given the player's log, which has nothing at K): the producer
         // issues the emitted record itself, and the first step is the uninterrupted one.
         var aiOnly = new OrderLog();
         AiOrders.Append(aiOnly, w7, cfg, aiWorldgen);
         Assert.Equal(1, Count(aiOnly.BatchFor(k), emitted));
         WorldState once = new TurnExecutor(CliRecipes.Era(), CliRecipes.ProductionPipeline(), aiOnly).Step(w7.Clone());
-        Assert.Equal(runs.Full[7], WorldHash.ComputeHex(once));
+        Assert.Equal(runs.Full[k], WorldHash.ComputeHex(once));
 
         // Fed the emitted record as well (what accepting it would do): the record twice in the batch, and the very first
         // step differs — the granary enqueued a second time.
@@ -404,7 +413,7 @@ public class RunFromSaveCliTests(FromSaveRuns runs) : IClassFixture<FromSaveRuns
         AiOrders.Append(twice, w7, cfg, aiWorldgen);
         Assert.Equal(2, Count(twice.BatchFor(k), emitted));
         WorldState doubled = new TurnExecutor(CliRecipes.Era(), CliRecipes.ProductionPipeline(), twice).Step(w7.Clone());
-        Assert.NotEqual(runs.Full[7], WorldHash.ComputeHex(doubled));
+        Assert.NotEqual(runs.Full[k], WorldHash.ComputeHex(doubled));
         Assert.Equal(once.ConstructionQueue.Count + 1, doubled.ConstructionQueue.Count);
     }
 
@@ -417,7 +426,7 @@ public class RunFromSaveCliTests(FromSaveRuns runs) : IClassFixture<FromSaveRuns
 
     private string AiOrderLog()
     {
-        // The AI's own order, as an emitted run log carries it (its granary, stamped 7).
+        // The AI's own order, as an emitted run log carries it (its survey of settlement 3, stamped 7 — ADR-046; was its granary).
         string path = runs.P("ai.bin");
         FromSaveRuns.WriteLog(path, Enumerable.Range(0, runs.RunLog.Count).Select(i => runs.RunLog[i]).First(r => r.ActorId == 2 && r.Turn == 7));
         return path;
@@ -621,7 +630,7 @@ public class RunFromSaveCliTests(FromSaveRuns runs) : IClassFixture<FromSaveRuns
 
         // The reports: one row per Empire per step (two Empires), the continued one the tail of the uninterrupted one, and the
         // per-row properties hold on what the CLI wrote — at turn 6 the player's two granaries build within b = 30 (the
-        // batch's own enqueues), at 7 and 14 the AI's (the AI's orders in the run log's batch).
+        // batch's own enqueues), at 14 the AI's (ADR-046 RE-PIN: its turn-7 order is now a survey, so no head builds at 7).
         SplitReportRow[] whole = SplitReport.Parse(File.ReadAllText(runs.P("rep.jsonl")));
         SplitReportRow[] tail = SplitReport.Parse(File.ReadAllText(runs.P("crep.jsonl")));
         Assert.Equal(32, whole.Length);
@@ -634,7 +643,7 @@ public class RunFromSaveCliTests(FromSaveRuns runs) : IClassFixture<FromSaveRuns
         // Each granary completes in the step (0 -> 1,000,000): its need is what it still needed when the step BEGAN.
         Assert.All(r6.Heads, h => Assert.Equal((0L, 1_000_000L, 40L, 40L), (h.Before, h.After,
             h.GoodOf(Sim.Tests.Systems.IncrementalConstructionTests.Timber)!.Need, h.GoodOf(Sim.Tests.Systems.IncrementalConstructionTests.Timber)!.Draw)));
-        Assert.Single(whole.Single(r => r.Turn == 7 && r.Polity == 2).Heads);
+        Assert.Empty(whole.Single(r => r.Turn == 7 && r.Polity == 2).Heads);
         Assert.Single(whole.Single(r => r.Turn == 14 && r.Polity == 2).Heads);
         SplitCheckResult check = SplitReportCheck.Check(whole);
         // T3 round 2: P11 (the split re-derived) and P12 (the walk re-derived; here b = 30 AND the AI's b = 100 rows) too.

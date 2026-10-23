@@ -88,7 +88,7 @@ public class IncrementalConstructionUiTests(CanonicalTurnOneFixture fx) : IClass
             ActionHitKind.LabourReset, ActionHitKind.ResearchOpen, ActionHitKind.ResearchClear, ActionHitKind.AgeAdvance,
             ActionHitKind.Build, ActionHitKind.RoadSlot, ActionHitKind.RoadApply, ActionHitKind.TaxSlot, ActionHitKind.TaxApply,
             ActionHitKind.PrevSettlement, ActionHitKind.NextSettlement, ActionHitKind.FoundSettlement, ActionHitKind.CancelConstruction,
-            ActionHitKind.Explore, ActionHitKind.Prospect,   // M6 EX (ADR-044): the Actions menu
+            ActionHitKind.Explore, ActionHitKind.Prospect, ActionHitKind.Assay,   // M6 EX (ADR-044) + ADR-046: the Actions menu
         ];
         foreach (ActionHit h in screen.Hits) Assert.Contains(h.Kind, allowed);
         ActionHit cancel = Assert.Single(screen.Hits, h => h.Kind == ActionHitKind.CancelConstruction);

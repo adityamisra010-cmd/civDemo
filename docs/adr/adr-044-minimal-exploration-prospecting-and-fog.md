@@ -301,3 +301,10 @@ they were played; Track CP replays them with Civics Points on (no order is refus
 (one line per settlement, then its costs and blockers) and painted last on POLICY; the playability gate gained a post-End-Turn
 Confirm row (a legal site is known only after an Explore), accepts an overlay channel that draws nothing because every known
 hinterland touches undiscovered ground when its key says so, and clicks only known settlements' WHERE rows.
+
+---
+**Dated note, 2026-10-23 (ADR-046; the Director's M6 review instruction).** The Prospect cost of §4/§5 (grain only, halved
+by `copper_smelting`) is superseded by ADR-046 §2: the survey bill (40 grain, 20 timber, 10 stone) and the assay
+(20 grain, 10 timber, 5 stone, 2 bronze, behind `ore_prospecting`), selected by the Prospect order's Amount (0/1). The fog's
+units are restated in km (ADR-046 §3); `formationSightNodes 1` is the node and its 4 orthogonal neighbours (the sim.json
+"8-neighbourhood" wording was wrong; behaviour unchanged). The text above is kept as written.

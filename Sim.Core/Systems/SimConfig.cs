@@ -95,17 +95,27 @@ public sealed record SimConfig(
 /// is concealed, Prospect is refused — the attribution control). <c>ConcealableGoods</c>: the goods.json deposit goods a
 /// deposit of which may be concealed (geological deposits; biological and food goods are surface-evident).
 /// <c>ConcealedShare</c> s in [0, 1]: per settlement, k = floor(n × s + u) of its n eligible rows are concealed
-/// (State.DepositConcealment). <c>ProspectGrain</c> (whole grain ≥ 0): the survey party's provisions one Prospect order
-/// sinks (reason Prospecting), drawn like Explore's through EmpireStockpile.Draw.
-/// <c>ProspectDiscountRequires</c>: a research.json requirement whose completion HALVES that cost (integer division) —
-/// the ore-recognition technology (copper_smelting; ADR-044 §4). Null: no discount.
+/// (State.DepositConcealment).
+/// THE PROSPECT BILL (ADR-046, M6 review 2026-10-23 — the Director: grain, stone, timber and metal, no deadlock):
+/// <c>ProspectCost</c> — the basic SURVEY a Prospect order (Amount 0) sinks, whole units per good, drawn like Explore's through
+/// EmpireStockpile.Draw (reason Prospecting); the loader refuses a basic bill naming a concealable good or any good made
+/// from one (bronze, tools — the goods the survey exists to find), so the first survey never waits on itself.
+/// <c>AssayCost</c> + <c>AssayRequires</c> — the improved ASSAY (Prospect order Amount 1): offered only once the polity's
+/// completed knowledge meets <c>AssayRequires</c> (ore_prospecting); its bill may name a metal (bronze), the real metal sink.
+/// Both absent: no assay. Every good of a bill must be held (beyond construction's set-asides) or nothing is paid.
 /// </summary>
 public sealed record DiscoveryConfig(
     [property: JsonPropertyName("enabled"), JsonRequired] bool Enabled,
     [property: JsonPropertyName("concealableGoods"), JsonRequired] string[] ConcealableGoods,
     [property: JsonPropertyName("concealedShare"), JsonRequired] double ConcealedShare,
-    [property: JsonPropertyName("prospectGrain"), JsonRequired] long ProspectGrain,
-    [property: JsonPropertyName("prospectDiscountRequires")] string? ProspectDiscountRequires = null);
+    [property: JsonPropertyName("prospectCost"), JsonRequired] DiscoveryCostItem[] ProspectCost,
+    [property: JsonPropertyName("assayCost")] DiscoveryCostItem[]? AssayCost = null,
+    [property: JsonPropertyName("assayRequires")] string? AssayRequires = null);
+
+/// <summary>ADR-046: one line of a Prospect bill — a goods.json good and a whole quantity ≥ 0.</summary>
+public sealed record DiscoveryCostItem(
+    [property: JsonPropertyName("good"), JsonRequired] string Good,
+    [property: JsonPropertyName("qty"), JsonRequired] long Qty);
 
 /// <summary>
 /// M6 Track EX (D-062; ADR-044) — THE MINIMAL FOG. Distances are in traversal-lattice NODES (16 km each; PolityKnowledge.Grid).
@@ -1577,11 +1587,31 @@ public static class SimConfigLoader
             throw new SimConfigException("discovery.concealableGoods is missing — name the goods.json deposit goods that may be concealed.");
         if (!(d.ConcealedShare >= 0.0 && d.ConcealedShare <= 1.0))
             throw new SimConfigException($"discovery.concealedShare must be in [0,1] (a share of a settlement's eligible deposits), got {Inv(d.ConcealedShare)}.");
-        if (d.ProspectGrain < 0)
-            throw new SimConfigException("discovery.prospectGrain must be a whole number of grain >= 0, got " +
-                d.ProspectGrain.ToString(System.Globalization.CultureInfo.InvariantCulture) + ".");
-        if (d.ProspectDiscountRequires is { } req && string.IsNullOrWhiteSpace(req))
-            throw new SimConfigException("discovery.prospectDiscountRequires is empty — name a research.json requirement or omit it.");
+        ValidateBill(d.ProspectCost, "discovery.prospectCost");
+        if (d.ProspectCost.Length == 0)
+            throw new SimConfigException("discovery.prospectCost is empty — a survey party carries provisions and materials.");
+        if ((d.AssayCost is null) != (d.AssayRequires is null))
+            throw new SimConfigException("discovery.assayCost and discovery.assayRequires come together: an assay is offered " +
+                                         "only behind its technology, and a technology gate needs a bill.");
+        if (d.AssayCost is { } assay) ValidateBill(assay, "discovery.assayCost");
+        if (d.AssayRequires is { } req && string.IsNullOrWhiteSpace(req))
+            throw new SimConfigException("discovery.assayRequires is empty — name a research.json requirement or omit the assay.");
+    }
+
+    private static void ValidateBill(DiscoveryCostItem[]? bill, string where)
+    {
+        if (bill is null) throw new SimConfigException($"{where} is missing.");
+        for (int i = 0; i < bill.Length; i++)
+        {
+            if (bill[i] is null || string.IsNullOrWhiteSpace(bill[i].Good))
+                throw new SimConfigException($"{where}[{i}] names no good.");
+            if (bill[i].Qty < 0)
+                throw new SimConfigException($"{where}[{i}] ({bill[i].Good}) must be a whole quantity >= 0, got " +
+                    bill[i].Qty.ToString(System.Globalization.CultureInfo.InvariantCulture) + ".");
+            for (int j = 0; j < i; j++)
+                if (string.Equals(bill[j].Good, bill[i].Good, StringComparison.Ordinal))
+                    throw new SimConfigException($"{where} names '{bill[i].Good}' twice.");
+        }
     }
 
     /// <summary>M6 Track EX (ADR-044): the fog section's ranges.</summary>
@@ -1609,13 +1639,51 @@ public static class SimConfigLoader
             if (id < 0 || goods.ById(id).DepositChannel is null)
                 throw new SimConfigException($"discovery.concealableGoods names '{name}', which is not a goods.json deposit good (one with a depositChannel).");
         }
+        foreach (DiscoveryCostItem item in d.ProspectCost)
+            if (goods.IdOf(item.Good) < 0)
+                throw new SimConfigException($"discovery.prospectCost names '{item.Good}', which is not a goods.json good.");
+        foreach (DiscoveryCostItem item in d.AssayCost ?? [])
+            if (goods.IdOf(item.Good) < 0)
+                throw new SimConfigException($"discovery.assayCost names '{item.Good}', which is not a goods.json good.");
+        // ADR-046 — NO DEADLOCK: the basic survey may not cost what only a survey can find — a concealable good, or a
+        // good a recipe makes (directly or through other recipes) from one.
+        bool[] concealedLine = ConcealedLine(goods, d.ConcealableGoods);
+        foreach (DiscoveryCostItem item in d.ProspectCost)
+            if (item.Qty > 0 && concealedLine[goods.IdOf(item.Good)])
+                throw new SimConfigException($"discovery.prospectCost names '{item.Good}', which is (or is made from) a concealable " +
+                    "good — the basic survey would wait on the deposits it exists to find. Put it in discovery.assayCost.");
     }
 
-    /// <summary>M6 Track EX (ADR-044): discovery.prospectDiscountRequires parses against research.json.</summary>
+    /// <summary>ADR-046: the goods that are concealable or made, through any chain of goods.json recipes, from one —
+    /// indexed by good id (fixed-point over the recipes in file order).</summary>
+    public static bool[] ConcealedLine(GoodsConfig goods, string[] concealable)
+    {
+        int max = 0;
+        foreach (GoodEntry g in goods.Goods) max = Math.Max(max, g.Id);
+        var line = new bool[max + 1];
+        foreach (string name in concealable) { int id = goods.IdOf(name); if (id >= 0) line[id] = true; }
+        for (bool changed = true; changed;)
+        {
+            changed = false;
+            foreach (RecipeEntry r in goods.Recipes)
+            {
+                int output = goods.IdOf(r.Output.Good);
+                if (output < 0 || line[output]) continue;
+                foreach (RecipeInput input in r.Inputs)
+                {
+                    int i = goods.IdOf(input.Good);
+                    if (i >= 0 && line[i]) { line[output] = true; changed = true; break; }
+                }
+            }
+        }
+        return line;
+    }
+
+    /// <summary>ADR-046: discovery.assayRequires parses against research.json.</summary>
     private static void ValidateDiscoveryAgainstResearch(SimConfig cfg)
     {
-        if (cfg.Discovery?.ProspectDiscountRequires is not { } req || cfg.Research is not { } research) return;
-        Research.ResearchContentLoader.ParseRequirement(research, req, "sim.json discovery.prospectDiscountRequires");
+        if (cfg.Discovery?.AssayRequires is not { } req || cfg.Research is not { } research) return;
+        Research.ResearchContentLoader.ParseRequirement(research, req, "sim.json discovery.assayRequires");
     }
 
     /// <summary>M5 item 5: the granaries section names a goods.json construction project — checked where sim.json and

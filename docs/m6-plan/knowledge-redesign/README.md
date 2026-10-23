@@ -80,6 +80,7 @@ python3 -I tools/unresolved_claims.py   # per-node evidence + unresolved claims 
 python3 -I tools/test_validate.py --mutants        # adversarial validator fixtures (temp copies; tracked files untouched)
 python3 -I tools/test_sourcing_queue.py --mutants  # idempotence, evidence preservation, plan agreement, no status upgrade
 python3 -I tools/render.py              # Markdown views
+python3 -I tools/export_runtime_texts.py  # display texts -> Sim.Data/content/knowledge-texts.json (--check: exit 1 if stale)
 python3 -I tools/balance.py --graph proposed --json <out>   # static model (ESTIMATE)
 python3 -I tools/cp_gate.py             # CP gate static model -> data/balance-cp-gate.json (ESTIMATE)
 ```

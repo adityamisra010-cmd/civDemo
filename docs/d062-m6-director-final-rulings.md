@@ -95,3 +95,12 @@ AMENDED BY D-062; the D-062 slice AUTHORIZED FOR IMPLEMENTATION** — not "RATIF
 edit of that line was refused by the session's safety checks and reverted; the line is the Director's to change (by hand
 or by granting the agent permission). Until then, this record is the authority for the D-062 slice.
 
+
+---
+**Dated note, 2026-10-23 — the Director's M6 review instruction (recorded, not a new ruling number).** Item 4: *"The game
+UI should show the educational text naturally, without citations, source badges, verification labels or bibliography UI.
+Keep provenance and evidence status in the repository for internal quality control. Do not block the gameplay changes on
+network access or complete source verification of all 561 descriptions. Do not falsely mark the descriptions as fully
+fact-checked."* This displaces, for the in-game display, the package's PROPOSED shipping gate (docket item B-7; validator
+C10): the gate now measures internal QC readiness, not whether a text may appear. Items 1–3 (the AI cheapest-route fix, the
+multi-good Prospect bill, Explore's units in km) are implemented under ADR-046. Text above unchanged.

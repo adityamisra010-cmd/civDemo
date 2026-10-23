@@ -633,16 +633,18 @@ public sealed class UiSession
     /// <summary>
     /// M6 Track EX (D-062 D9; ADR-044): ONE Prospect order (kind 15) for the player's Empire at settlement
     /// <paramref name="settlementId"/>, stamped with the CURRENT turn, appended only when THE predicate DiscoverySystem
-    /// applies (<see cref="DiscoveryQuery.CheckProspect(IReadOnlyWorldState, SimConfig, PolityId, SettlementId)"/>) admits it
-    /// and none is already queued for that settlement this turn. Appends nothing (false) otherwise.
+    /// applies (<see cref="DiscoveryQuery.CheckProspect(IReadOnlyWorldState, SimConfig, PolityId, SettlementId, ProspectMethod, bool?)"/>)
+    /// admits it for <paramref name="method"/> (ADR-046: the survey, or the assay once its technology is known; every good of
+    /// the bill covered) and none is already queued for that settlement this turn. Appends nothing (false) otherwise.
     /// </summary>
-    public bool EmitProspect(int settlementId)
+    public bool EmitProspect(int settlementId, ProspectMethod method = ProspectMethod.Survey)
     {
         PolityId me = UiPlayer.Empire;
         var settlement = new SettlementId(settlementId);
-        if (DiscoveryQuery.CheckProspect(World, Config, me, settlement) != ProspectVerdict.Ok) return false;
+        if (DiscoveryQuery.CheckProspect(World, Config, me, settlement, method) != ProspectVerdict.Ok) return false;
+        // One Prospect per settlement per turn, whatever its method (DiscoverySystem applies the first; ADR-046).
         if (AvailableActionsQuery.Queued(QueuedOrders(), me, OrderKind.Prospect, settlement)) return false;
-        Orders.Append(OrderRecord.From(World.Clock.Turn, me, OrderKind.Prospect, settlementId, 0.0));
+        Orders.Append(OrderRecord.From(World.Clock.Turn, me, OrderKind.Prospect, settlementId, (double)(int)method));
         return true;
     }
 

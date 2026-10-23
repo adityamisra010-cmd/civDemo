@@ -226,9 +226,15 @@ public static class TestConfigs
     /// attribution rig runs on it. Any rig research content is replaced (as <see cref="PreTrackCp"/> did).</summary>
     public static SimConfig PreM6(SimConfig cfg)
     {
-        cfg = PreDiscovery(cfg);
+        cfg = NoAssay(PreDiscovery(cfg));
         return cfg.Research is null ? cfg : cfg with { Research = PreAdr045.Value };
     }
+
+    /// <summary>ADR-046: the assay (discovery.assayCost / assayRequires) removed — the survey stays. Its requirement names
+    /// ore_prospecting, a node of the research-content tranche (ADR-045), so every twin that installs pre-tranche content
+    /// strips it (the R4 rule: an older twin strips the newer layer).</summary>
+    public static SimConfig NoAssay(SimConfig cfg) =>
+        cfg.Discovery is { } d ? cfg with { Discovery = d with { AssayCost = null, AssayRequires = null } } : cfg;
 
     /// <summary>The shipped config with the whole M6 slice off (<see cref="PreM6"/>).</summary>
     public static SimConfig PreM6Sim() => PreM6(Sim());
@@ -341,7 +347,35 @@ public static class TestConfigs
             doc["tuning"]!.AsObject().Remove("_civicsPoints");
         }
         if (stage) doc["researchStage"]!["requires"] = V34StageRequires;
+        if (civics || stage) UndoAiRoutes(doc);   // ADR-046 is newer than Track CP: the R4 rule strips it from the older twins
     }
+
+    /// <summary>ADR-046: removes tuning.aiCheapestOrRoute (the union-over-OR AI goal closures of ADR-033 B).</summary>
+    public static void UndoAiRoutes(System.Text.Json.Nodes.JsonObject doc)
+    {
+        doc["tuning"]!.AsObject().Remove("aiCheapestOrRoute");
+        doc["tuning"]!.AsObject().Remove("_aiCheapestOrRoute");
+    }
+
+    /// <summary>ADR-046 (M6 review, 2026-10-23) — THE AI CHEAPEST-ROUTE CLOSURE OFF, a single-layer twin of the shipped
+    /// content: research.json without tuning.aiCheapestOrRoute, so AiResearchPolicy's goal closures are the union over OR
+    /// of ADR-033 B. Every older research twin already strips it (UndoTrackCp; the pre-tranche fixture never had it).</summary>
+    public static SimConfig PreAiRoutes(SimConfig cfg)
+    {
+        if (cfg.Research is not { Tuning.AiCheapestOrRoute: true } r) return cfg;
+        if (!ReferenceEquals(r, CanonicalResearch.Value))
+            throw new NotSupportedException("PreAiRoutes is defined on the shipped research content only");
+        return cfg with { Research = NoAiRoutes.Value };
+    }
+
+    private static readonly Lazy<global::Sim.Core.Systems.Research.ResearchContent> NoAiRoutes = new(() =>
+    {
+        using var stream = global::Sim.Data.DataFiles.OpenResearch();
+        var doc = System.Text.Json.Nodes.JsonNode.Parse(stream)!.AsObject();
+        UndoAiRoutes(doc);
+        using var goods = global::Sim.Data.DataFiles.OpenGoods();
+        return global::Sim.Core.Systems.Research.ResearchContentLoader.Load(doc.ToJsonString(), GoodsConfigLoader.Load(goods));
+    });
 
     private static global::Sim.Core.Systems.Research.ResearchContent LoadResearchVariant(bool civics, bool stage)
     {
@@ -401,6 +435,7 @@ public static class TestConfigs
     public static SimConfig PreTreeTranche(SimConfig cfg)
     {
         if (cfg.Research is not { } r) return cfg;
+        cfg = NoAssay(cfg);   // ADR-046's assay names ore_prospecting, a tranche node: the R4 rule strips it with the tranche
         if (ReferenceEquals(r, CanonicalResearch.Value)) return cfg with { Research = PreTrancheWithCp.Value };
         if (ReferenceEquals(r, NoCivicsPoints.Value)) return cfg with { Research = NoCivicsPointsPreTranche.Value };
         if (ReferenceEquals(r, OldStage.Value)) return cfg with { Research = OldStagePreTranche.Value };
@@ -423,6 +458,7 @@ public static class TestConfigs
         using (var stream = global::Sim.Data.DataFiles.OpenResearch()) shipped = System.Text.Json.Nodes.JsonNode.Parse(stream)!.AsObject();
         doc["tuning"] = shipped["tuning"]!.DeepClone();
         doc["researchStage"] = shipped["researchStage"]!.DeepClone();
+        UndoAiRoutes(doc);   // ADR-046 is newer than the tranche (ADR-045): the R4 rule strips it from the older twin
         return doc.ToJsonString();
     }
 

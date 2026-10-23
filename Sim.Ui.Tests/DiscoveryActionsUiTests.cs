@@ -14,8 +14,9 @@ namespace Sim.Ui.Tests;
 /// <summary>
 /// M6 Track EX (D-062 D9; ADR-044) — THE ACTIONS MENU AND THE FOG ON THE SCREEN. The POLICY surface keeps its Construction
 /// block (Build Granary) and gains a SEPARATE headed "Actions" block: per controlled settlement, Explore surroundings
-/// (radius r → r + 3 nodes, cost 60 grain) and Prospect (cost 40 grain), with the blocker the predicate gives (radius cap,
-/// already surveyed, not enough grain, already ordered this turn); an order the step refused at delivery is explained after
+/// (range r → r + 48 km, cost 60 grain) and Prospect (survey: 40 grain, 20 timber, 10 stone; the assay beside it, locked
+/// until Ore prospecting — ADR-046), with the blocker the predicate gives (radius cap, already surveyed, which goods are
+/// short, already ordered this turn); an order the step refused at delivery is explained after
 /// the step. Its two buttons go through the session's
 /// guarded emitters, which append exactly the order DiscoverySystem would apply and nothing else. The map draws UNKNOWN
 /// land as blank parchment and REMEMBERED land under a darker wash; a prospect makes a hidden deposit appear in the
@@ -48,10 +49,31 @@ public class DiscoveryActionsUiTests
         return UiSession.StartFrom(w, 42, 256, 4);
     }
 
+    /// <summary>ADR-046: the session's world with <paramref name="keep"/> of every NON-grain good of the survey bill (timber,
+    /// stone) in every settlement the player holds — the founding store holds grain only, and stone arrives with the first
+    /// extraction.</summary>
+    private static UiSession WithSurveyMaterials(UiSession s, long keep = 100)
+    {
+        WorldState w = s.World.Clone();
+        foreach ((GoodId g, long _) in DiscoveryQuery.ProspectBill(s.Config, ProspectMethod.Survey))
+        {
+            if (g.Value == s.Config.Goods!.GrainId) continue;
+            for (int i = 0; i < w.GoodStocks.Count; i++)
+            {
+                if (w.GoodStocks[i].Good != g || !EmpireQuery.ControlsSettlement(w, Me, w.GoodStocks[i].Settlement)) continue;
+                long delta = w.GoodStocks[i].Amount.Value - keep;
+                if (delta == 0) continue;
+                new Ledger(w.LedgerFlows).Flow(ref w.GoodStocks.Ref(i).Amount, ConservedQuantityIds.OfGood(g),
+                    ReasonIds.InitialEndowment, Math.Abs(delta), delta > 0 ? FlowDirection.Sink : FlowDirection.Source, OverdrawPolicy.Throw);
+            }
+        }
+        return UiSession.StartFrom(w, 42, 256, 4);
+    }
+
     [Fact]
     public void TheActionsMenu_ListsExploreAndProspect_PerControlledSettlement_WithCostsAndBlockers_AndBuildingStillListsTheGranary()
     {
-        UiSession s = Dev();
+        UiSession s = WithSurveyMaterials(Dev());
         ActionSurfaceModel m = Surface(s);
         Assert.NotNull(m.Discovery);
         Assert.Contains(ActionDomain.Discovery, m.Domains);
@@ -61,11 +83,14 @@ public class DiscoveryActionsUiTests
         foreach (DiscoveryEntry e in m.Discovery.Entries)
         {
             Assert.Equal(OrderKind.Explore, e.Explore!.Order);
-            Assert.Equal("radius 3 → 6 nodes, cost 60 grain", e.Explore.Detail);
+            Assert.Equal("range 48 km → 96 km, cost 60 grain", e.Explore.Detail);   // ADR-046: km, not lattice nodes
             Assert.Null(e.Explore.Blocker);                            // the founding store covers an expedition
             Assert.Equal(OrderKind.Prospect, e.Prospect!.Order);
-            Assert.Equal("cost 40 grain", e.Prospect.Detail);
-            Assert.Null(e.Prospect.Blocker);                           // the founding store covers a survey (ADR-044 §5)
+            Assert.Equal("survey, cost 40 grain, 20 timber, 10 stone", e.Prospect.Detail);
+            Assert.Null(e.Prospect.Blocker);                           // the bill is covered
+            Assert.Equal(OrderKind.Prospect, e.Assay!.Order);          // ADR-046: the assay, listed and locked
+            Assert.Equal("assay, cost 20 grain, 10 timber, 5 stone, 2 bronze", e.Assay.Detail);
+            Assert.Equal("needs Ore prospecting", e.Assay.Blocker);
         }
         // Construction is its own block, unchanged: the granary is still listed there, not in Actions.
         Assert.NotNull(m.Construction);
@@ -79,23 +104,34 @@ public class DiscoveryActionsUiTests
         bool heading = false;
         foreach (DrawCmd c in d.Commands) if (c is TextCmd t && t.Text.Contains("Actions", StringComparison.Ordinal)) heading = true;
         Assert.True(heading);
-        int explore = 0, prospect = 0;
-        foreach (ActionHit h in screen.Hits) { if (h.Kind == ActionHitKind.Explore) explore++; if (h.Kind == ActionHitKind.Prospect) prospect++; }
+        int explore = 0, prospect = 0, assay = 0;
+        foreach (ActionHit h in screen.Hits)
+        {
+            if (h.Kind == ActionHitKind.Explore) explore++;
+            if (h.Kind == ActionHitKind.Prospect) prospect++;
+            if (h.Kind == ActionHitKind.Assay) assay++;
+        }
         Assert.Equal(controlled, explore);
         Assert.Equal(controlled, prospect);
+        Assert.Equal(controlled, assay);
+        // No order is shown without its full bill, and the founding world (no stone yet) says which goods are short.
+        DiscoveryEntry founding = Surface(Dev()).Discovery!.Entries.First(x => x.Settlement.Value == Capital(s.World));
+        Assert.StartsWith("not enough in store (", founding.Prospect!.Blocker);
+        Assert.Contains("stone short", founding.Prospect.Blocker);
     }
 
     [Fact]
     public void TheEmitters_AppendOnlyWhatTheSystemApplies_OncePerSettlementPerTurn_AndTheLogReplays()
     {
-        UiSession s = Dev();
+        UiSession s = WithSurveyMaterials(Dev());
         int capital = Capital(s.World);
         // An empty purse: Prospect and Explore refused, nothing appended.
-        UiSession poor = WithGrain(Dev(), 0);
+        UiSession poor = WithGrain(WithSurveyMaterials(Dev()), 0);
         Assert.False(poor.EmitProspect(capital));
         Assert.False(poor.EmitExplore(capital));
+        Assert.False(poor.EmitProspect(capital, ProspectMethod.Assay));   // locked as well
         Assert.Equal(0, poor.Orders.Count);
-        Assert.Equal("not enough grain (needs 40)", Surface(poor).Discovery!.Entries.First(x => x.Settlement.Value == capital).Prospect!.Blocker);
+        Assert.Equal("not enough in store (40 grain short)", Surface(poor).Discovery!.Entries.First(x => x.Settlement.Value == capital).Prospect!.Blocker);
         // Explore: admitted once; a second the same turn is refused (DiscoverySystem applies one) and the menu says why.
         Assert.True(s.EmitExplore(capital));
         Assert.Equal(OrderRecord.From(s.World.Clock.Turn, Me, OrderKind.Explore, capital, 0.0), s.Orders[^1]);
@@ -110,16 +146,18 @@ public class DiscoveryActionsUiTests
         Assert.Equal(6, DiscoveryQuery.ExploredRadius(s.World, s.Config.Fog!, Me, new SettlementId(capital)));
 
         // A prospect is admitted once, then the settlement is surveyed and the menu says so.
-        UiSession t = Dev();
+        UiSession t = WithSurveyMaterials(Dev());
         Assert.True(t.EmitProspect(capital));
+        Assert.Equal(0.0, t.Orders[^1].Amount);                    // the survey's method
         Assert.False(t.EmitProspect(capital));
+        Assert.False(t.EmitProspect(capital, ProspectMethod.Assay)); // one Prospect per settlement per turn, any method
         t.EndTurn();
         Assert.True(DepositConcealment.HasSurveyed(t.World, Me, new SettlementId(capital)));
         Assert.Equal("already surveyed", Surface(t).Discovery!.Entries.First(x => x.Settlement.Value == capital).Prospect!.Blocker);
         Assert.False(t.EmitProspect(capital));
 
         // The log the UI wrote replays hash for hash.
-        WorldState world = UiFounding.Found(42, 256, 4);
+        WorldState world = WithSurveyMaterials(UiSession.StartFrom(UiFounding.Found(42, 256, 4), 42, 256, 4)).World;
         OrderValidation.ValidateAgainstWorld(s.Orders, world);
         WorldState replay = UiSession.BuildProductionExecutor(s.Orders).Step(world);
         Assert.Equal(WorldHash.ComputeHex(s.World), WorldHash.ComputeHex(replay));
@@ -128,7 +166,7 @@ public class DiscoveryActionsUiTests
     [Fact]
     public void TheButtons_DispatchThroughTheGuardedEmitters()
     {
-        UiSession s = Dev();
+        UiSession s = WithSurveyMaterials(Dev());
         int capital = Capital(s.World);
         var screen = new ActionSurfaceScreen { Theme = EraThemes.For(UiEras.Of(s.World, s.Config.Ages, Me)) };
         screen.Refresh(Surface(s), s.World, s.Config, Me, id => s.Names.Name(id));
@@ -142,9 +180,16 @@ public class DiscoveryActionsUiTests
         ActionHit prospect = screen.Hits.First(h => h.Kind == ActionHitKind.Prospect && h.A == capital);
         ActionCommand p = screen.Click(prospect.Rect.CenterX, prospect.Rect.CenterY);
         Assert.Equal(ActionCommandKind.Prospect, p.Kind);
-        Assert.True(ActionDispatch.Apply(s, p));    // the founding store covers a survey
+        Assert.True(ActionDispatch.Apply(s, p));    // the survey bill is covered
         Assert.Equal(OrderKind.Prospect, s.Orders[^1].Kind);
         Assert.False(ActionDispatch.Apply(s, p));   // once per settlement per turn: the emitter refuses, nothing appended
+        Assert.Equal(2, s.Orders.Count);
+        // ADR-046: the Assay button dispatches the assay command, and its emitter refuses while the technology is unknown.
+        ActionHit assay = screen.Hits.First(h => h.Kind == ActionHitKind.Assay && h.A == capital);
+        ActionCommand a = screen.Click(assay.Rect.CenterX, assay.Rect.CenterY);
+        Assert.Equal(new ActionCommand(ActionCommandKind.Assay, capital), a);
+        Assert.True(a.IsOrder);
+        Assert.False(ActionDispatch.Apply(s, a));
         Assert.Equal(2, s.Orders.Count);
     }
 
@@ -172,7 +217,7 @@ public class DiscoveryActionsUiTests
     [Fact]
     public void AfterAProspect_TheDiscoveredDepositAppearsInTheOverlaysOreMarkers()
     {
-        UiSession t = Dev();
+        UiSession t = WithSurveyMaterials(Dev());
         // A player settlement with a concealed deposit whose good the overlay marks (a seeded spread).
         int at = -1, good = -1;
         for (int i = 0; i < t.World.Settlements.Count && at < 0; i++)
@@ -205,7 +250,7 @@ public class DiscoveryActionsUiTests
     [Fact]
     public void AnOrderTheStepRefusesAtDelivery_IsExplainedInTheActionsBlockAfterTheStep()
     {
-        UiSession s = WithGrain(Dev(), 45);
+        UiSession s = WithGrain(WithSurveyMaterials(Dev()), 45);
         int capital = Capital(s.World);
         var cap = new SettlementId(capital);
         Assert.Null(Surface(s).Discovery!.Entries.Single(e => e.Settlement == cap).Prospect!.Blocker);   // the preview admits it
@@ -222,7 +267,7 @@ public class DiscoveryActionsUiTests
         ActionSurfaceModel m = ActionSurface.Build(new ActionSurfaceInput(next, prev, s.Config, UiSession.ProductionEra(), Me,
             capital, [], id => s.Names.Name(id), EraThemes.For(UiEras.Of(next, s.Config.Ages, Me)), [order]));
         string line = Assert.Single(m.Discovery!.Refused);
-        Assert.Equal(DiscoveryQuery.RefusalText(OrderKind.Prospect, s.Names.Name(capital), 40), line);
+        Assert.Equal(DiscoveryQuery.RefusalText(OrderKind.Prospect, s.Names.Name(capital), "40 grain, 20 timber, 10 stone"), line);
         var screen = new ActionSurfaceScreen { Theme = EraThemes.For(UiEras.Of(next, s.Config.Ages, Me)) };
         screen.Refresh(m, next, s.Config, Me, id => s.Names.Name(id));
         var d = new DrawList();

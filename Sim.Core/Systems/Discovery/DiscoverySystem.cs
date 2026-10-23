@@ -23,8 +23,9 @@ public sealed record DiscoveryTables(
 ///       never below what construction set aside) and SUNK under ReasonIds.Expedition; the origin's explored radius grows by
 ///       fog.exploreStepNodes (capped), and the disc of the new radius around its node is revealed.
 ///     • Prospect — <see cref="DiscoveryQuery.CheckProspect(IReadOnlyWorldState, SimConfig, PolityId, SettlementId, IReadOnlyTable{GoodStockRow}, IReadOnlyTable{ConstructionHoldRow})"/>:
-///       Ok ⇒ the prospect's grain (the survey party's provisions) is drawn and SUNK under ReasonIds.Prospecting and SettlementSurveyRow(polity,
-///       settlement, PREV's turn) is written. Anything else changes nothing and charges nothing.
+///       Ok ⇒ the bill of the order's method (Amount 0 = survey, discovery.prospectCost; 1 = assay, discovery.assayCost,
+///       only with discovery.assayRequires known — ADR-046) is drawn good by good and SUNK under ReasonIds.Prospecting and
+///       SettlementSurveyRow(polity, settlement, PREV's turn) is written. Anything else changes nothing and charges nothing.
 ///  2. THE KNOWN EXTENT (fog on): for every polity of the roster, of a control row or of a stored extent, ascending, the
 ///     stored extent ∪ the seed discs of the settlements it controls ∪ its formations' sight (DiscoveryQuery.KnownBits on
 ///     PREV — rules E1/E2/E4) ∪ this step's revealed discs, rewritten as its non-zero words (monotone: never a bit cleared).
@@ -62,11 +63,12 @@ public sealed class DiscoverySystem(SimConfig cfg) : ISimSystem<DiscoveryTables>
             if (order.Kind is not (OrderKind.Explore or OrderKind.Prospect)) continue;
             if (Contains(seen, order.ActorId, order.Kind, order.TargetId)) continue;   // one per (polity, kind, target) per turn
             seen.Add((order.ActorId, order.Kind, order.TargetId));
-            if (order.Amount != 0.0 || order.TargetId < 0) continue;   // the load rule, re-applied (an in-memory log is unvalidated)
+            if (order.TargetId < 0) continue;   // the load rule, re-applied (an in-memory log is unvalidated)
             var settlement = new SettlementId(order.TargetId);
 
             if (order.Kind == OrderKind.Explore)
             {
+                if (order.Amount != 0.0) continue;
                 if (!fog) continue;
                 if (DiscoveryQuery.CheckExplore(prev, _cfg, order.Actor, settlement, owned.GoodStocks, owned.Holds) != ExploreVerdict.Ok) continue;
                 Charge(ctx, prev, settlement, new GoodId(_cfg.Goods!.GrainId), DiscoveryQuery.ExploreCost(_cfg), ReasonIds.Expedition);
@@ -76,10 +78,11 @@ public sealed class DiscoverySystem(SimConfig cfg) : ISimSystem<DiscoveryTables>
             }
             else
             {
-                if (!discovery) continue;
-                if (DiscoveryQuery.CheckProspect(prev, _cfg, order.Actor, settlement, owned.GoodStocks, owned.Holds) != ProspectVerdict.Ok) continue;
-                Charge(ctx, prev, settlement, new GoodId(_cfg.Goods!.GrainId),
-                    DiscoveryQuery.ProspectCost(prev, _cfg, order.Actor), ReasonIds.Prospecting);
+                if (!discovery || DiscoveryQuery.MethodOf(order.Amount) is not { } method) continue;   // Amount 0 survey, 1 assay
+                if (DiscoveryQuery.CheckProspect(prev, _cfg, order.Actor, settlement, owned.GoodStocks, owned.Holds, method) != ProspectVerdict.Ok) continue;
+                // ADR-046: the whole bill, good by good in sim.json order — every good was checked against this purse above.
+                foreach ((GoodId good, long qty) in DiscoveryQuery.ProspectBill(_cfg, method))
+                    Charge(ctx, prev, settlement, good, qty, ReasonIds.Prospecting);
                 InsertSurvey(owned.Surveys, new SettlementSurveyRow(order.Actor, settlement, turn));
             }
         }

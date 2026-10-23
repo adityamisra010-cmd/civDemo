@@ -96,3 +96,43 @@ not measured.
 Remove the `Skip` from the two facts in `Sim.Tests/Kernel/TaxationGateTraceMeasurement.cs`, then
 `dotnet test Sim.Tests -c Release --filter "FullyQualifiedName~TaxationGateTraceMeasurement" --logger "console;verbosity=detailed"`
 (≈ 5 min + 1.5 min on this container).
+
+## 6. The fix and its measurement (2026-10-23, ADR-046 §1)
+
+The queue line of §4 was implemented at the Director's instruction: `AiResearchPolicy` goal closures now follow the
+**cheapest remaining route** through every OR (switch `research.json tuning.aiCheapestOrRoute`; twin
+`TestConfigs.PreAiRoutes`). MEASURED, canonical AI world, 900 turns (`CheapestRouteFix_FourSeeds`):
+
+| Seed | Bronze / Age III / first levy — pre-M6 | M6 before the fix | M6 with the fix |
+|---|---|---|---|
+| 1 | 412 / 413 / 414 | 569 / 570 / 571 | **401 / 402 / 403** |
+| 2 | 425 / 426 / 427 | 597 / 598 / 599 | **423 / 424 / 425** |
+| 42 | 421 / 422 / 423 | 578 / 579 / 580 | **406 / 407 / 408** |
+| 7 | 420 / 421 / 422 | 574 / 575 / 576 | **406 / 407 / 408** |
+
+The Taxation civic's turn is unchanged by the fix (314 / 340 / 321 / 321); the paved road comes 13–15 turns earlier. Full
+table, node counts and the open Age IV observation: `docs/adr/adr-046-m6-review-fixes.md` §1.
+
+## 7. Age IV after the fix (2026-10-23; MEASURED, `TaxationGateTraceMeasurement.AgeIV_UnmetRequirementsAtTurn900`)
+
+The four-seed table of §6 was re-run on the final review tree (the Prospect bill included) and reproduces every value.
+Age IV is still not reached within 900 turns under M6, and the fix costs seed 1 its Age IV (873 → not reached). The
+next Age's entry report on the canonical AI world:
+
+| Seed | Config | A4 | t700 | t900 |
+|---|---|---|---|---|
+| 1 | before fix | **873** | core 1/1, supporting 2/3, categories 2/3 | (in A4) |
+| 1 | with fix | — | core 1/1, supporting 1/3, categories 1/3 | core 1/1, supporting 3/3 (tools, workshops, expansion), **categories 2/3** |
+| 42 | before fix | — | core 1/1, supporting 2/3, categories 2/3 | supporting 2/3 (**Alphabetic script**, expansion) |
+| 42 | with fix | — | core 1/1, supporting 1/3, categories 1/3 | supporting 2/3 (workshops, expansion) |
+
+**Cause.** The core milestone (Ironworking) is met in every case; Age IV binds on its SUPPORTING milestones (3 of 7, from
+3 of 5 categories). The AI's research goals have never targeted supporting milestones (ADR-033: core closure, road, tax,
+university). Before the fix, the union-over-OR closure researched every script alternative and so met **Alphabetic script
+(`abjad`)** — a supporting milestone in its own category (Technological) — as a side effect. With the cheapest route the
+AI no longer researches redundant scripts, so that accidental milestone is gone and the category count falls short. No
+prerequisite is dropped (the route property test holds along the run); the gap is the AI's Age goal, not the closure.
+
+**Not changed here (a policy extension beyond the packet; `docs/queue.md`).** Option: add to the AI's Age goal the
+cheapest RESEARCH supporting milestones needed to reach `supportingRequired` and `minCategories` (here `abjad` or
+`census`), costed by the same routes. Every AI pin would move again and need a fresh measurement.

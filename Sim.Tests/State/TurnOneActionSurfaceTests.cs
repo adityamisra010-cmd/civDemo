@@ -148,12 +148,22 @@ public class TurnOneActionSurfaceTests
         Assert.All(founding, a => Assert.Equal((ActionKind.Order, (OrderKind?)OrderKind.FoundSettlement, (string?)null), (a.Kind, a.Order, a.Blocker)));
         // Construction contributes 12 (one granary per settlement), not 24: the workshop is not listed at founding
         // (Director 2026-10-10, D-051 §4 — see CONSTRUCTION above). M5 S1d: + 12 Found Settlement (84 -> 96).
-        // M6 EX (D-062 D9, ADR-044): + 24 — the Actions menu, an Explore and a Prospect per settlement (96 -> 120). At
-        // founding every Explore (60 grain) and every Prospect (40 grain — ADR-044 §5) is affordable.
+        // M6 EX (D-062 D9, ADR-044): + 24 — the Actions menu, an Explore and a Prospect per settlement (96 -> 120).
+        // ADR-046 §2 (2026-10-23): + 12 — the Assay beside each Prospect, listed with its blocker (120 -> 132). At founding
+        // every Explore (60 grain) is affordable; every Assay is locked behind Ore prospecting; a survey (40 grain, 20
+        // timber, 10 stone) waits only on its settlement's stone, which the quarry fills within the first turns.
         ActionDescriptor[] discovery = Of(actions, ActionDomain.Discovery);
-        Assert.Equal(24, discovery.Length);
-        Assert.All(discovery, a => Assert.Null(a.Blocker));
-        Assert.Equal(12 * 5 + 1 + 12 + 1 + 8 + 2 + 12 + 24, actions.Length);
+        Assert.Equal(36, discovery.Length);
+        Assert.All(discovery.Where(a => a.Order == OrderKind.Explore), a => Assert.Null(a.Blocker));
+        Assert.Equal(12, discovery.Count(a => a.Order == OrderKind.Explore));
+        ActionDescriptor[] assays = discovery.Where(a => a.Label == "Assay").ToArray();
+        Assert.Equal(12, assays.Length);
+        Assert.All(assays, a => Assert.Equal("needs Ore prospecting", a.Blocker));
+        ActionDescriptor[] surveys = discovery.Where(a => a.Order == OrderKind.Prospect && a.Label != "Assay").ToArray();
+        Assert.Equal(12, surveys.Length);
+        Assert.All(surveys, a => Assert.True(a.Blocker is null || a.Blocker.StartsWith("not enough in store (", StringComparison.Ordinal)
+            && a.Blocker.Contains("stone", StringComparison.Ordinal) && !a.Blocker.Contains("grain", StringComparison.Ordinal), a.Blocker));
+        Assert.Equal(12 * 5 + 1 + 12 + 1 + 8 + 2 + 12 + 36, actions.Length);
     }
 
     // ------------------------------------------------------------------ Farming replaces Gathering (step 7)

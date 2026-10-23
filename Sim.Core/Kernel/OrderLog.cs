@@ -225,8 +225,9 @@ public enum OrderKind
 
     /// <summary>
     /// M6 Track EX (D-062; ADR-044 §4) — PROSPECT: the issuing Empire surveys the hinterland of a settlement it controls and
-    /// has not surveyed. TargetId = the settlement's id; Amount is reserved and must be exactly 0. Cost: sim.json
-    /// discovery.prospectGrain grain (halved, integer, once the issuer completed discovery.prospectDiscountRequires) drawn
+    /// has not surveyed. TargetId = the settlement's id; Amount = the METHOD (ADR-046): exactly 0 the survey, exactly 1 the
+    /// assay (offered once the issuer completed discovery.assayRequires). Cost: the method's bill — sim.json
+    /// discovery.prospectCost (grain, timber, stone) or discovery.assayCost (less of those, plus bronze) — every good drawn
     /// through EmpireStockpile.Draw (the settlement first) beyond what construction set aside, SUNK under
     /// ReasonIds.Prospecting — paid whether or not anything is found, so no information is free. Refused (nothing charged)
     /// when concealment is off, the issuer does not control it, it is already surveyed by the issuer (once per polity — no
@@ -537,14 +538,16 @@ public sealed class OrderLog
                 break;
             case OrderKind.Explore:
             case OrderKind.Prospect:
-                // M6 EX (ADR-044): the target is a settlement id; the Amount carries nothing and must be exactly 0 (NaN fails).
+                // M6 EX (ADR-044): the target is a settlement id. Explore's Amount carries nothing and must be exactly 0;
+                // ADR-046: Prospect's Amount is the method — 0 the survey, 1 the assay — and nothing else (NaN fails).
                 if (record.TargetId < 0)
                     throw new SnapshotFormatException(
                         $"order[{index}] (turn {record.Turn}): {record.Kind} settlement id must be >= 0, got {record.TargetId}.");
-                if (record.Amount != 0.0)
+                if (record.Kind == OrderKind.Explore ? record.Amount != 0.0 : !(record.Amount == 0.0 || record.Amount == 1.0))
                     throw new SnapshotFormatException(
-                        $"order[{index}] (turn {record.Turn}): {record.Kind} Amount is reserved and must be 0, got " +
-                        $"{record.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
+                        $"order[{index}] (turn {record.Turn}): {record.Kind} Amount " +
+                        (record.Kind == OrderKind.Explore ? "is reserved and must be 0" : "is the method and must be 0 (survey) or 1 (assay)") +
+                        $", got {record.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
                 break;
             case OrderKind.SetResourceAllocation:
                 if (record.TargetId < 0)

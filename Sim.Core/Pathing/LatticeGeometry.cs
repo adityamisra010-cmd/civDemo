@@ -48,6 +48,15 @@ namespace Sim.Core.Pathing;
 /// </summary>
 public static class LatticeGeometry
 {
+    /// <summary>
+    /// M6 review (2026-10-23; ADR-046) — THE FOG'S DISTANCE UNIT IN KILOMETRES: <paramref name="nodeSteps"/> steps of the
+    /// knowledge lattice (PolityKnowledge.Grid: one node = <paramref name="blockPx"/> terrain pixels of
+    /// <paramref name="kmPerPx"/> km — 4 px × 4 km = 16 km on the canonical map) as a straight-line distance in km. The
+    /// fog's discs are Euclidean in node steps (DiscoveryQuery.InDisc), so a radius of r steps is r × this many km across
+    /// ideal ground, measured node centre to node centre; it is NOT a travel cost (no terrain, roads or rivers enter).
+    /// </summary>
+    public static double NodeStepsKm(int nodeSteps, int blockPx, double kmPerPx) => nodeSteps * (blockPx * kmPerPx);
+
     /// <summary>Area of one lattice node's terrain block, km².</summary>
     public static double BlockAreaKm2(TraversalLattice lattice) =>
         lattice.KmPerNode * lattice.KmPerNode;

@@ -335,6 +335,10 @@ jobs:
           # rulings, TREE): the AI explores (kind 14) when its founding policy finds no KNOWN site — 13 Explore orders in 600
           # turns (first at 35) — and prospects (kind 15, paid in grain) once per settlement it holds — 17 Prospect orders
           # (first at turn 0). The run log holds 400 orders.
+          # ADR-046 RE-MEASUREMENT (2026-10-23, this step run locally from the review tree): 13 Explore (first at 35) and 17
+          # Prospect orders, the first at turn 1 (the survey now also spends timber and stone); every Prospect is a SURVEY
+          # (Amount 0) — the AI never assays here (its settlements are surveyed before it holds bronze and ore_prospecting);
+          # the run log holds 394 orders; the kind set is unchanged.
           expected = set(range(3, 10)) | {12, 13, 14, 15}   # 10 is reserved (MoveFormation, M7); 11 is legacy (D-056)
           print(f"run log: {n} orders, kinds {sorted(kinds)}")
           if kinds != expected:

@@ -47,12 +47,16 @@ public sealed record ResearchCostModel(double U, double K);
 public sealed record ResearchTuning(
     double RpCoefficient, double RpExponent, IReadOnlyList<(double Population, double ResearchPoints)> RpAnchors,
     double EffectiveCostFloorFraction, double AccelerationCreditCeilingFraction, ResearchCostModel CostModel,
-    double CityStatePaceFraction = 0.0, CivicsPointsTuning? CivicsPoints = null)
+    double CityStatePaceFraction = 0.0, CivicsPointsTuning? CivicsPoints = null, bool AiCheapestOrRoute = false)
 {
     /// <summary>ADR-043: whether the two-lane model is on — Research Points fund only the Technology target and Civics
     /// Points fund only the Civics target. Off (tuning.civicsPoints absent or enabled false) is the v34 one-pool model
     /// exactly: one target in either tree, funded by RP, and no CivicsPoints row is ever written (the attribution twin).</summary>
     public bool TwoLanes => CivicsPoints is { Enabled: true };
+
+    // AiCheapestOrRoute (ADR-046, 2026-10-23): the AI research policy's goal closures follow the CHEAPEST remaining route
+    // through every OR (AiResearchPolicy); false (tuning.aiCheapestOrRoute absent) is the union-over-OR closure of
+    // ADR-033 B exactly — the attribution switch.
 }
 
 /// <summary>
@@ -826,7 +830,8 @@ public static class ResearchContentLoader
             civics = new CivicsPointsTuning(cp.Enabled, cp.CoefficientPerYear, cp.Exponent);
         }
         return new ResearchTuning(rp.Coefficient, rp.Exponent, anchors, t.EffectiveCostFloorFraction,
-            t.AccelerationCreditCeilingFraction, new ResearchCostModel(cm.U, cm.K), t.CityStatePaceFraction ?? 0.0, civics);
+            t.AccelerationCreditCeilingFraction, new ResearchCostModel(cm.U, cm.K), t.CityStatePaceFraction ?? 0.0, civics,
+            t.AiCheapestOrRoute ?? false);
     }
 
     private static readonly (string Name, double Min, double Max)[] CostFactorRanges =
@@ -1423,7 +1428,8 @@ public static class ResearchContentLoader
         [property: JsonPropertyName("accelerationCreditSources"), JsonRequired] string[] AccelerationCreditSources,
         [property: JsonPropertyName("costModel"), JsonRequired] CostModelJson CostModel,
         [property: JsonPropertyName("cityStatePaceFraction")] double? CityStatePaceFraction = null,
-        [property: JsonPropertyName("civicsPoints")] CivicsPointsJson? CivicsPoints = null);
+        [property: JsonPropertyName("civicsPoints")] CivicsPointsJson? CivicsPoints = null,
+        [property: JsonPropertyName("aiCheapestOrRoute")] bool? AiCheapestOrRoute = null);
 
     private sealed record CivicsPointsJson(
         [property: JsonPropertyName("enabled"), JsonRequired] bool Enabled,

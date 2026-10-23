@@ -1292,17 +1292,20 @@ public static partial class PlayabilityGate
                 OpenPolicy();
                 if (Ui.Actions.Model?.Discovery is not { } block) return (GateResult.Fail, "the Actions block vanished");
                 DiscoveryEntry? entry = null;
+                static ActionDescriptor? Of(DiscoveryEntry e, ActionHitKind k) =>
+                    k == ActionHitKind.Explore ? e.Explore : k == ActionHitKind.Assay ? e.Assay : e.Prospect;
                 foreach (DiscoveryEntry e in block.Entries)
-                    if ((kind == ActionHitKind.Explore ? e.Explore : e.Prospect) is not null) { entry = e; break; }
-                if (entry is null) return (GateResult.NotOffered, "no settlement lists it (the switch is off)");
-                ActionDescriptor a = (kind == ActionHitKind.Explore ? entry.Explore : entry.Prospect)!;
+                    if (Of(e, kind) is not null) { entry = e; break; }
+                if (entry is null) return (GateResult.NotOffered, "no settlement lists it (the switch is off, or no assay is configured)");
+                ActionDescriptor a = Of(entry, kind)!;
                 int q = Queued;
                 if (!ClickAction(kind, entry.Settlement.Value)) return (GateResult.Fail, "not drawn");
                 if (a.Blocker is { } blocker)
                     return Expect(Queued == q, "a refused " + control + " (\"" + blocker + "\") appended an order");
                 if (Queued != q + 1) return (GateResult.Fail, "SILENT: no " + order + " order appended");
                 OrderRecord last = S.QueuedOrders()[^1];
-                return Expect(last.Kind == order && last.TargetId == entry.Settlement.Value && last.Amount == 0.0,
+                double method = kind == ActionHitKind.Assay ? 1.0 : 0.0;   // ADR-046: the Prospect order's Amount is its method
+                return Expect(last.Kind == order && last.TargetId == entry.Settlement.Value && last.Amount == method,
                     "the order appended is not " + order + " for settlement " + entry.Settlement.Value.ToString(CultureInfo.InvariantCulture));
             });
         }
@@ -1547,8 +1550,9 @@ public static partial class PlayabilityGate
             {
                 DiscoveryRow(ActionHitKind.Explore, OrderKind.Explore, "Explore");
                 DiscoveryRow(ActionHitKind.Prospect, OrderKind.Prospect, "Prospect");
+                DiscoveryRow(ActionHitKind.Assay, OrderKind.Prospect, "Assay");
             }
-            else Row("policy: actions", "Actions (Explore, Prospect)", GateResult.NotOffered,
+            else Row("policy: actions", "Actions (Explore, Prospect, Assay)", GateResult.NotOffered,
                 "the fog and concealment are off (sim.json fog / discovery), so the Actions menu is absent");
 
             // The tax edict.

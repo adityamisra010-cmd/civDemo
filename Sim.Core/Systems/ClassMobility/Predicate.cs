@@ -116,6 +116,23 @@ public sealed class Predicate
         return [.. set];
     }
 
+    /// <summary>
+    /// Research dialect: folds the expression bottom-up — an atom through <paramref name="atom"/>, an AND through
+    /// <paramref name="and"/> (left, right), an OR through <paramref name="or"/> (left, right; source order, so a
+    /// left-preferring fold resolves ties to the alternative written first), and a comparison or a negation (with
+    /// everything under it) to <paramref name="other"/>. A fixed walk of the parsed tree: no hashing, no reordering.
+    /// The AI research policy uses it for the cheapest route through a prerequisite (ADR-046).
+    /// </summary>
+    public T Fold<T>(Func<int, T> atom, Func<T, T, T> and, Func<T, T, T> or, T other) => Fold(_root, atom, and, or, other);
+
+    private static T Fold<T>(Node n, Func<int, T> atom, Func<T, T, T> and, Func<T, T, T> or, T other) => n switch
+    {
+        AtomNode at => atom(at.AtomId),
+        AndNode a => and(Fold(a.L, atom, and, or, other), Fold(a.R, atom, and, or, other)),
+        OrNode o => or(Fold(o.L, atom, and, or, other), Fold(o.R, atom, and, or, other)),
+        _ => other, // CompareNode, NotNode: nothing research can complete toward
+    };
+
     private static IEnumerable<int> Must(Node n)
     {
         switch (n)

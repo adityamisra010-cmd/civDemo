@@ -1633,6 +1633,13 @@ public sealed partial class ProgressionScreen
         // What it is.
         y = Heading(d, m, x, w, y, "ABOUT", 6);
         foreach (string line in FlowText.Wrap(m, n.Description, TypeRole.Body, _scale, w)) { d.Write(t, x, y, line, body, t.Ink.TextSoft); y += FlowText.Slot(TypeRole.Body, _scale); }
+        // M6 review item 4: the educational text, as plain prose (no citation, badge or verification label).
+        if (n.History is { Length: > 0 } history)
+        {
+            y += Sp(8);
+            y = Heading(d, m, x, w, y, "IN HISTORY", 6);
+            foreach (string line in FlowText.Wrap(m, history, TypeRole.Body, _scale, w)) { d.Write(t, x, y, line, body, t.Ink.TextSoft); y += FlowText.Slot(TypeRole.Body, _scale); }
+        }
         return y;
     }
 

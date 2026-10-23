@@ -159,15 +159,55 @@ public class DiscoveryTests
 
     // ================================================================== Prospect (D4)
 
+    // ADR-046 (M6 review, 2026-10-23): a Prospect sinks a BILL — the survey's grain, timber and stone; the assay's less of
+    // those plus bronze, behind ore_prospecting. Every test below reads the bill from sim.json, never a literal.
+    private static (GoodId Good, long Qty)[] Survey(SimConfig cfg) => DiscoveryQuery.ProspectBill(cfg, ProspectMethod.Survey);
+    private static (GoodId Good, long Qty)[] Assay(SimConfig cfg) => DiscoveryQuery.ProspectBill(cfg, ProspectMethod.Assay);
+
+    private static OrderRecord AssayOrder(long turn, SettlementId s) =>
+        OrderRecord.From(turn, Player, OrderKind.Prospect, s.Value, 1.0);
+
+    /// <summary>Empties every bill good out of the whole empire's purse, then puts exactly <paramref name="bill"/> at
+    /// <paramref name="s"/> (each quantity + <paramref name="extra"/>, which may be −1 for "one short" of one good).</summary>
+    private static WorldState Purse(WorldState w0, SimConfig cfg, SettlementId s, (GoodId Good, long Qty)[] bill,
+        GoodId? shortGood = null)
+    {
+        WorldState w = w0.Clone();
+        var goods = new List<GoodId>();
+        foreach ((GoodId g, _) in Survey(cfg)) goods.Add(g);
+        foreach ((GoodId g, _) in Assay(cfg)) if (!goods.Contains(g)) goods.Add(g);
+        for (int i = 0; i < w.Settlements.Count; i++)
+            foreach (GoodId g in goods)
+            {
+                long have = Stock(w, w.Settlements[i].Id, g);
+                if (have > 0) FoundingRigs.SinkGood(w, w.Settlements[i].Id, g, have);
+            }
+        foreach ((GoodId g, long q) in bill)
+        {
+            long amount = q - (shortGood is { } sg && sg == g ? 1 : 0);
+            if (amount > 0) Endow(w, s, g, amount);
+        }
+        return w;
+    }
+
     [Fact]
-    public void Prospect_TurnExact_CostSunkExactly_AndTheConcealedDepositProducesOnlyAfterTheSurvey()
+    public void Prospect_TheBills_AreGrainTimberStone_AndTheAssayAddsBronze_FromSimJson()
+    {
+        SimConfig cfg = TestConfigs.Sim();
+        Assert.Equal(new[] { (Good(cfg, "grain"), 40L), (Good(cfg, "timber"), 20L), (Good(cfg, "stone"), 10L) }, Survey(cfg));
+        Assert.Equal(new[] { (Good(cfg, "grain"), 20L), (Good(cfg, "timber"), 10L), (Good(cfg, "stone"), 5L), (Good(cfg, "bronze"), 2L) },
+            Assay(cfg));
+        Assert.Equal("ore_prospecting", cfg.Discovery!.AssayRequires);
+        Assert.Equal("40 grain, 20 timber, 10 stone", DiscoveryQuery.BillText(cfg, Survey(cfg)));
+    }
+
+    [Fact]
+    public void Prospect_TurnExact_EveryGoodSunkExactly_AndTheConcealedDepositProducesOnlyAfterTheSurvey()
     {
         SimConfig cfg = TestConfigs.Sim();
         WorldState w0 = Dev(cfg);
         (SettlementId s, GoodId hidden) = ConcealedAtPlayer(w0, cfg);
-        GoodId grain = new(cfg.Goods!.GrainId);   // the survey party's provisions (ADR-044 §5)
-        long cost = DiscoveryQuery.ProspectCost(w0, cfg, Player);
-        Assert.Equal(cfg.Discovery!.ProspectGrain, cost);   // no ore recognition at the founding
+        foreach ((GoodId g, long q) in Survey(cfg)) if (g.Value != cfg.Goods!.GrainId) Endow(w0, s, g, q);   // timber, stone at hand
         Assert.True(DepositConcealment.IsHiddenFrom(w0, cfg, Player, s, hidden));
         Assert.Equal(0.0, DepositConcealment.KnownAbundance(w0, cfg, s, hidden.Value));
 
@@ -182,22 +222,28 @@ public class DiscoveryTests
 
         TurnExecutor exec = Exec(cfg, log, TestConfigs.DevWorldgen()), late = Exec(cfg, lateLog, TestConfigs.DevWorldgen());
         WorldState w1 = exec.Step(w0), l1 = late.Step(w0);
-        // Stamped 0 → the survey row is in the state of turn 1, stamped with the order's turn; the late twin has none yet.
         Assert.Equal(1, w1.SettlementSurveys.Count);
         Assert.Equal(new SettlementSurveyRow(Player, s, 0), w1.SettlementSurveys[0]);
         Assert.Equal(0, l1.SettlementSurveys.Count);
-        Assert.Equal(cost, Sunk(w1, grain, ReasonIds.Prospecting));   // the cost, sunk exactly once
-        Assert.Equal(0, Sunk(l1, grain, ReasonIds.Prospecting));
-        // The grain account of the step reconciles with the sink named (Observer's identity: − Expedition, which carries the
-        // discovery provisions, Prospecting included).
+        foreach ((GoodId g, long q) in Survey(cfg))
+        {
+            Assert.Equal(q, Sunk(w1, g, ReasonIds.Prospecting));   // each good of the bill, sunk exactly once
+            Assert.Equal(0, Sunk(l1, g, ReasonIds.Prospecting));
+        }
+        // CONSERVATION: every account of the step reconciles, the discovery sinks named per good.
         TurnRecord rec = Observer.Observe(w0, w1, cfg, []).Turn;
         Assert.True(rec.Grain.Reconciles);
-        Assert.Equal(cost, rec.Grain.Expedition);
-        // The step 0 → 1 read PREV (no survey): the hidden deposit produced nothing.
+        Assert.Equal(40, rec.Grain.Expedition);
+        foreach (GoodAccount a in rec.Goods)
+        {
+            Assert.True(a.Reconciles, a.Name + " does not reconcile");
+            long expected = 0;
+            foreach ((GoodId g, long q) in Survey(cfg)) if (g.Value == a.Good) expected = q;
+            Assert.Equal(expected, a.Discovery);
+        }
         Assert.Equal(0L, w1.GoodStocks[GoodStockIndex.IndexOf(w1.GoodStocks, s, hidden)].LastProducedUnits);
         Assert.False(DepositConcealment.IsHiddenFrom(w1, cfg, Player, s, hidden));
 
-        // Step 1 → 2 reads the survey: the discovered deposit now produces. The late twin's survey lands in state 2.
         WorldState w2 = exec.Step(w1), l2 = late.Step(l1);
         Assert.True(w2.GoodStocks[GoodStockIndex.IndexOf(w2.GoodStocks, s, hidden)].LastProducedUnits > 0);
         Assert.Equal(0L, l2.GoodStocks[GoodStockIndex.IndexOf(l2.GoodStocks, s, hidden)].LastProducedUnits);
@@ -205,45 +251,38 @@ public class DiscoveryTests
     }
 
     [Fact]
-    public void Prospect_Unaffordable_IsRefusedAndChargesNothing_TheStateIsTheOrderlessStep()
+    public void Prospect_OneGoodShort_IsRefusedAndChargesNothing_ForEachGoodOfTheBill()
     {
-        // DiscoverySystem alone (the rig FoundingRigs.ColonizationOnly uses for founding): no harvest or meal moves a grain, so
-        // the purse the step draws from is the purse the preview read. An empty purse: the preview says Unaffordable, the
-        // step refuses the order, charges nothing, and the state is the orderless step's.
+        // DiscoverySystem alone: no harvest or meal moves a good, so the purse the step draws from is the purse the
+        // preview read. For EACH good of the bill, one unit short (the others in full) — refused, nothing of ANY good paid,
+        // the state the orderless step's; exactly the bill — paid, the purse emptied of every good to the unit.
         SimConfig cfg = TestConfigs.Sim();
         WorldState w0 = Dev(cfg);
         (SettlementId s, _) = ConcealedAtPlayer(w0, cfg);
-        GoodId grain = new(cfg.Goods!.GrainId);
-        for (int i = 0; i < w0.Settlements.Count; i++)   // an empty purse: no grain anywhere in the empire
-        {
-            SettlementId t = w0.Settlements[i].Id;
-            long have = Stock(w0, t, grain);
-            if (have > 0) FoundingRigs.SinkGood(w0, t, grain, have);
-        }
-        Assert.Equal(ProspectVerdict.Unaffordable, DiscoveryQuery.CheckProspect(w0, cfg, Player, s));
         var log = new OrderLog();
         log.Append(Order(0, OrderKind.Prospect, s));
-        WorldState with = DiscoveryOnly(cfg, log).Step(w0);
-        WorldState without = DiscoveryOnly(cfg, new OrderLog()).Step(w0);
-        Assert.False(DepositConcealment.HasSurveyed(with, Player, s));
-        Assert.Equal(0, Sunk(with, grain, ReasonIds.Prospecting));
-        Assert.Equal(WorldHash.ComputeHex(without), WorldHash.ComputeHex(with));
-        Assert.Equal(new[] { (OrderKind.Prospect, s, DiscoveryQuery.ProspectCost(w0, cfg, Player)) },
-            DiscoveryQuery.RefusedAtDelivery(w0, with, cfg, new List<OrderRecord> { Order(0, OrderKind.Prospect, s) }, Player));
-
-        // One grain short of the cost is still refused; exactly the cost is drawn to the grain.
-        long cost = DiscoveryQuery.ProspectCost(w0, cfg, Player);
-        WorldState shortBy1 = w0.Clone();
-        Endow(shortBy1, s, grain, cost - 1);
-        Assert.Equal(ProspectVerdict.Unaffordable, DiscoveryQuery.CheckProspect(shortBy1, cfg, Player, s));
-        Assert.False(DepositConcealment.HasSurveyed(DiscoveryOnly(cfg, log).Step(shortBy1), Player, s));
-        WorldState exact = w0.Clone();
-        Endow(exact, s, grain, cost);
+        foreach ((GoodId shortGood, _) in Survey(cfg))
+        {
+            WorldState w = Purse(w0, cfg, s, Survey(cfg), shortGood);
+            Assert.Equal(ProspectVerdict.Unaffordable, DiscoveryQuery.CheckProspect(w, cfg, Player, s));
+            Assert.Equal("1 " + cfg.Goods!.ById(shortGood.Value).Name + " short",
+                DiscoveryQuery.Shortfall(w, cfg, s, Survey(cfg), w.GoodStocks, w.ConstructionHolds));
+            WorldState with = DiscoveryOnly(cfg, log).Step(w), without = DiscoveryOnly(cfg, new OrderLog()).Step(w);
+            Assert.False(DepositConcealment.HasSurveyed(with, Player, s));
+            foreach ((GoodId g, _) in Survey(cfg)) Assert.Equal(0, Sunk(with, g, ReasonIds.Prospecting));
+            Assert.Equal(WorldHash.ComputeHex(without), WorldHash.ComputeHex(with));
+            Assert.Equal(new[] { (OrderKind.Prospect, s, DiscoveryQuery.BillText(cfg, Survey(cfg))) },
+                DiscoveryQuery.RefusedAtDelivery(w, with, cfg, new List<OrderRecord> { Order(0, OrderKind.Prospect, s) }, Player));
+        }
+        WorldState exact = Purse(w0, cfg, s, Survey(cfg));
         Assert.Equal(ProspectVerdict.Ok, DiscoveryQuery.CheckProspect(exact, cfg, Player, s));
         WorldState paid = DiscoveryOnly(cfg, log).Step(exact);
         Assert.True(DepositConcealment.HasSurveyed(paid, Player, s));
-        Assert.Equal(0, Stock(paid, s, grain));
-        Assert.Equal(cost, Sunk(paid, grain, ReasonIds.Prospecting));
+        foreach ((GoodId g, long q) in Survey(cfg))
+        {
+            Assert.Equal(0, Stock(paid, s, g));
+            Assert.Equal(q, Sunk(paid, g, ReasonIds.Prospecting));
+        }
         Assert.Empty(DiscoveryQuery.RefusedAtDelivery(exact, paid, cfg, new List<OrderRecord> { Order(0, OrderKind.Prospect, s) }, Player));
     }
 
@@ -262,37 +301,81 @@ public class DiscoveryTests
     }
 
     [Fact]
-    public void Prospect_ASecondProspect_SameTurnOrLater_IsRefused_NoRepeatCharge()
+    public void Prospect_ASecondProspect_SameTurnAnyMethodOrLater_IsRefused_NoRepeatCharge()
     {
         SimConfig cfg = TestConfigs.Sim();
         WorldState w0 = Dev(cfg);
         (SettlementId s, _) = ConcealedAtPlayer(w0, cfg);
-        GoodId tools = new(cfg.Goods!.GrainId);   // the cost good: grain
+        Sim.Core.Systems.Research.ResearchContent research = cfg.Research!;
+        w0.ResearchCompleted.Add(new ResearchCompletedRow(Player, research.Nodes[research.IndexOfId("ore_prospecting")].Key));
+        WorldState w = Purse(w0, cfg, s, Survey(cfg));
+        foreach ((GoodId g, long q) in Assay(cfg)) Endow(w, s, g, q);   // both bills affordable
         var log = new OrderLog();
         log.Append(Order(0, OrderKind.Prospect, s));
-        log.Append(Order(0, OrderKind.Prospect, s));   // a duplicate in the same batch
-        TurnExecutor exec = Exec(cfg, log, TestConfigs.DevWorldgen());
-        WorldState w1 = exec.Step(w0);
-        long cost = DiscoveryQuery.ProspectCost(w0, cfg, Player);
-        Assert.Equal(cost, Sunk(w1, tools, ReasonIds.Prospecting));
+        log.Append(Order(0, OrderKind.Prospect, s));   // a duplicate survey in the same batch
+        log.Append(AssayOrder(0, s));                  // and an assay of the same settlement
+        TurnExecutor exec = DiscoveryOnly(cfg, log);
+        WorldState w1 = exec.Step(w);
+        foreach ((GoodId g, long q) in Survey(cfg)) Assert.Equal(q, Sunk(w1, g, ReasonIds.Prospecting));   // the first order only
+        Assert.Equal(0, Sunk(w1, Good(cfg, "bronze"), ReasonIds.Prospecting));
         Assert.Equal(ProspectVerdict.AlreadySurveyed, DiscoveryQuery.CheckProspect(w1, cfg, Player, s));
         log.Append(Order(1, OrderKind.Prospect, s));   // a later turn
         WorldState w2 = exec.Step(w1);
-        WorldState control = Exec(cfg, new OrderLog(), TestConfigs.DevWorldgen()).Step(w1);
-        Assert.Equal(cost, Sunk(w2, tools, ReasonIds.Prospecting));
+        WorldState control = DiscoveryOnly(cfg, new OrderLog()).Step(w1);
         Assert.Equal(WorldHash.ComputeHex(control), WorldHash.ComputeHex(w2));
     }
 
     [Fact]
-    public void Prospect_TheOreRecognitionTechnology_HalvesTheCost()
+    public void Assay_IsLockedUntilOreProspecting_ThenSpendsBronze_AndTheSurveyNeverWaitsOnIt()
     {
         SimConfig cfg = TestConfigs.Sim();
-        WorldState w = Dev(cfg);
-        Assert.Equal(40, DiscoveryQuery.ProspectCost(w, cfg, Player));
+        WorldState w0 = Dev(cfg);
+        (SettlementId s, _) = ConcealedAtPlayer(w0, cfg);
+        GoodId bronze = Good(cfg, "bronze");
+        var assayLog = new OrderLog();
+        assayLog.Append(AssayOrder(0, s));
+
+        // 1. Locked: the assay is refused (nothing paid) even with its whole bill in store.
+        WorldState locked = Purse(w0, cfg, s, Assay(cfg));
+        Assert.False(DiscoveryQuery.AssayUnlocked(locked, cfg, Player));
+        Assert.Equal(ProspectVerdict.NotUnlocked, DiscoveryQuery.CheckProspect(locked, cfg, Player, s, ProspectMethod.Assay));
+        Assert.Equal(WorldHash.ComputeHex(DiscoveryOnly(cfg, new OrderLog()).Step(locked)),
+            WorldHash.ComputeHex(DiscoveryOnly(cfg, assayLog).Step(locked)));
+
+        // 2. Unlocked, no bronze: the assay is unaffordable, the SURVEY stays open — no deadlock on the metal.
         Sim.Core.Systems.Research.ResearchContent research = cfg.Research!;
-        w.ResearchCompleted.Add(new ResearchCompletedRow(Player, research.Nodes[research.IndexOfId("copper_smelting")].Key));
-        Assert.True(DiscoveryQuery.HasProspectDiscount(w, cfg, Player));
-        Assert.Equal(20, DiscoveryQuery.ProspectCost(w, cfg, Player));
+        WorldState known = Purse(w0, cfg, s, Survey(cfg));
+        known.ResearchCompleted.Add(new ResearchCompletedRow(Player, research.Nodes[research.IndexOfId("ore_prospecting")].Key));
+        Assert.True(DiscoveryQuery.AssayUnlocked(known, cfg, Player));
+        Assert.Equal(ProspectVerdict.Unaffordable, DiscoveryQuery.CheckProspect(known, cfg, Player, s, ProspectMethod.Assay));
+        Assert.Equal(ProspectVerdict.Ok, DiscoveryQuery.CheckProspect(known, cfg, Player, s, ProspectMethod.Survey));
+
+        // 3. Unlocked with the assay bill: paid good by good — bronze is a real sink.
+        WorldState ready = Purse(w0, cfg, s, Assay(cfg));
+        ready.ResearchCompleted.Add(new ResearchCompletedRow(Player, research.Nodes[research.IndexOfId("ore_prospecting")].Key));
+        Assert.Equal(ProspectVerdict.Ok, DiscoveryQuery.CheckProspect(ready, cfg, Player, s, ProspectMethod.Assay));
+        WorldState paid = DiscoveryOnly(cfg, assayLog).Step(ready);
+        Assert.True(DepositConcealment.HasSurveyed(paid, Player, s));
+        foreach ((GoodId g, long q) in Assay(cfg)) Assert.Equal(q, Sunk(paid, g, ReasonIds.Prospecting));
+        Assert.Equal(2, Sunk(paid, bronze, ReasonIds.Prospecting));
+        TurnRecord rec = Observer.Observe(ready, paid, cfg, []).Turn;
+        foreach (GoodAccount a in rec.Goods) Assert.True(a.Reconciles, a.Name + " does not reconcile");
+    }
+
+    [Fact]
+    public void TheLoader_RefusesABasicSurveyThatCostsWhatOnlyASurveyCanFind()
+    {
+        SimConfig cfg = TestConfigs.Sim();
+        foreach (string good in new[] { "copper-ore", "tin-ore", "bronze", "tools" })   // concealable, or made from one
+        {
+            DiscoveryConfig d = cfg.Discovery! with { ProspectCost = [.. cfg.Discovery!.ProspectCost, new DiscoveryCostItem(good, 1)] };
+            var ex = Assert.Throws<SimConfigException>(() => SimConfigLoader.ValidateDiscoveryAgainstContent(cfg with { Discovery = d }));
+            Assert.Contains(good, ex.Message);
+        }
+        // the same metal in the ASSAY bill is the intended design, and stone/timber/grain in the survey are fine
+        SimConfigLoader.ValidateDiscoveryAgainstContent(cfg);
+        Assert.True(SimConfigLoader.ConcealedLine(cfg.Goods!, cfg.Discovery!.ConcealableGoods)[Good(cfg, "tools").Value]);
+        Assert.False(SimConfigLoader.ConcealedLine(cfg.Goods!, cfg.Discovery!.ConcealableGoods)[Good(cfg, "timber").Value]);
     }
 
     // ================================================================== Explore (D6)
@@ -499,7 +582,9 @@ public class DiscoveryTests
         GoodId grain = new(cfg.Goods!.GrainId);
         foreach (SettlementId s in own) { long have = Stock(poor, s, grain); if (have > 0) FoundingRigs.SinkGood(poor, s, grain, have); }
         Assert.Null(AiDiscoveryPolicy.Prospect(poor, cfg, ai));
-        OrderRecord? order = AiDiscoveryPolicy.Prospect(w, cfg, ai);   // the founding store covers a survey
+        Assert.Null(AiDiscoveryPolicy.Prospect(w, cfg, ai));   // ADR-046: the founding store holds grain but no stone yet
+        foreach (SettlementId s in own) foreach ((GoodId g, long q) in Survey(cfg)) if (g != grain) Endow(w, s, g, q);
+        OrderRecord? order = AiDiscoveryPolicy.Prospect(w, cfg, ai);   // the survey bill covered
         Assert.NotNull(order);
         // The argmin of (−knownEligible, id) over the admitted settlements, recomputed here.
         SettlementId best = own[0];
@@ -525,7 +610,30 @@ public class DiscoveryTests
         for (int i = 0; i < flat.Settlements.Count; i++)
             if (EmpireQuery.ControlsSettlement(flat, ai, flat.Settlements[i].Id)) own.Add(flat.Settlements[i].Id.Value);
         own.Sort();
+        foreach (int s in own)   // the survey bill in every AI settlement (ADR-046), so every key ties
+            foreach ((GoodId g, long q) in Survey(cfg)) if (g.Value != cfg.Goods!.GrainId) Endow(flat, new SettlementId(s), g, q);
         Assert.Equal(own[0], AiDiscoveryPolicy.Prospect(flat, cfg, ai)!.Value.TargetId);
         Assert.Equal(own[0], AiDiscoveryPolicy.Explore(flat, cfg, ai)!.Value.TargetId);
+    }
+
+    [Fact]
+    public void Ai_Prospect_TakesTheAssayWhenOpenAndAffordable_ElseTheSurvey()
+    {
+        SimConfig cfg = TestConfigs.Sim();
+        WorldState w = Dev(cfg, aiEmpires: 1);
+        var ai = new PolityId(2);
+        var own = new List<SettlementId>();
+        for (int i = 0; i < w.Settlements.Count; i++)
+            if (EmpireQuery.ControlsSettlement(w, ai, w.Settlements[i].Id)) own.Add(w.Settlements[i].Id);
+        GoodId grain = new(cfg.Goods!.GrainId);
+        foreach (SettlementId s in own) foreach ((GoodId g, long q) in Survey(cfg)) if (g != grain) Endow(w, s, g, q);
+        Assert.Equal(0.0, AiDiscoveryPolicy.Prospect(w, cfg, ai)!.Value.Amount);            // locked: the survey
+        Sim.Core.Systems.Research.ResearchContent research = cfg.Research!;
+        w.ResearchCompleted.Add(new ResearchCompletedRow(ai, research.Nodes[research.IndexOfId("ore_prospecting")].Key));
+        Assert.Equal(0.0, AiDiscoveryPolicy.Prospect(w, cfg, ai)!.Value.Amount);            // open, no bronze: still the survey
+        foreach (SettlementId s in own) Endow(w, s, Good(cfg, "bronze"), 2);
+        OrderRecord assay = AiDiscoveryPolicy.Prospect(w, cfg, ai)!.Value;
+        Assert.Equal(1.0, assay.Amount);                                                      // open and affordable: the assay
+        Assert.Equal(ProspectVerdict.Ok, DiscoveryQuery.CheckProspect(w, cfg, ai, new SettlementId(assay.TargetId), ProspectMethod.Assay));
     }
 }

@@ -288,8 +288,13 @@ public class AiEmpireIntegrationTests
         // Explore orders), prospects its settlements (grain), and its concealed ores are unworked until surveyed.
         // ATTRIBUTION: OneAiEmpire_WithTheWholeM6SliceOff_EveryPinReturnsItsBatch4Value (TestConfigs.PreM6) returns every
         // pre-M6 pin; OneAiEmpire_WithTheDiscoveryLayerAndTheTrancheOff_EveryPinReturnsItsTrackCpValue returns CP's alone.
+        // ADR-046 RE-PIN (2026-10-23, the M6 review batch; MEASURED on this tree by the agent writing this line, in-test
+        // harness): first build 2 -> 3; targets and the advance unchanged. CAUSE: the Prospect bill alone (ADR-046 §2 — the
+        // AI's first survey now spends 10 stone, the material its first granary waited on). ATTRIBUTION:
+        // OneAiEmpire_WithTheCheapestRouteOff_TheLevyAndA3ReturnToTheirPreFixTurns (TestConfigs.PreAiRoutes, the bill kept)
+        // returns 3 here as well.
         Assert.Equal(["grinding_stone", "kin_council"], p.FirstTargets!);
-        Assert.Equal((0L, 2L, 111L, 112L), (p.Target1, p.FirstBuild, p.Advance, p.AdvancedAt));
+        Assert.Equal((0L, 3L, 111L, 112L), (p.Target1, p.FirstBuild, p.Advance, p.AdvancedAt));
         // R1 RE-PIN (2026-10-03; research-gated recipes — no pottery or bronze before their nodes — move the
         // population and research-point trajectory): levy 547/548 -> 537/538; targets, granary, road, Age unchanged.
         // R4 RE-PIN (2026-10-04, the forager layer; MEASURED): road 141/142 -> 143/144, levy 537/538 -> 546/547.
@@ -322,8 +327,13 @@ public class AiEmpireIntegrationTests
         // CP is the whole of the AI world's turn-300 move.
         // M6 RE-PIN (2026-10-23; MEASURED on the merged tree, the causes and controls as above): road 134/135 -> 166/167,
         // levy 422/423 (Track CP alone: 440/441) -> 579/580 (A3 422 -> 579).
-        Assert.Equal((166L, 167L, 579L, 580L), (p.Road, p.FirstRoad, p.Tax, p.FirstTax));
-        Assert.Equal(579L, p.A3At);                          // the AI entered A3 (ADR-035: 463 -> 458 -> 462 -> 461; D-051 1(b): 461 -> 451; S1c: 451 -> 423; batch 3: 423 -> 422; CP: 422 -> 440; M6 merged: 440 -> 579)
+        // ADR-046 RE-PIN (2026-10-23; MEASURED on this tree by the agent writing this line, in-test harness): levy 579/580 ->
+        // 407/408, A3 579 -> 407 (still the AI's first A3 turn); road 166/167 unchanged. CAUSE: the cheapest-route goal
+        // closures alone (ADR-046 §1 — the AI no longer researches every alternative of an OR its goal needs, so bronze and
+        // the A3 closure come ~170 turns sooner). ATTRIBUTION: the routes-off twin returns 579/580 and A3 579 with the bill
+        // kept (OneAiEmpire_WithTheCheapestRouteOff_TheLevyAndA3ReturnToTheirPreFixTurns).
+        Assert.Equal((166L, 167L, 407L, 408L), (p.Road, p.FirstRoad, p.Tax, p.FirstTax));
+        Assert.Equal(407L, p.A3At);                          // the AI entered A3 (ADR-035: 463 -> 458 -> 462 -> 461; D-051 1(b): 461 -> 451; S1c: 451 -> 423; batch 3: 423 -> 422; CP: 422 -> 440; M6 merged: 440 -> 579; ADR-046: 579 -> 407)
 
         // S1c (ADR-036 §8): the AI EXPANDS through the player's Found Settlement order — one per 350 years at most, each
         // a colony it controls. MEASURED on this tree: eight orders by the first levy, the polity holding 6 + 8 = 14
@@ -334,6 +344,24 @@ public class AiEmpireIntegrationTests
         // 179, 215, 286, 357, 428 -> 38, 78, 114, 151, 189, 225, 296, 367, 438, 509 (ten orders, 16 settlements: the later levy lets a tenth
         // founding stand) — under the fog the AI founds only on a site it KNOWS: when its policy is due and
         // finds none it explores (OrderKind 14) and founds a few turns later; the run ends at the first levy (579).
+        // ADR-046 RE-PIN (2026-10-23; MEASURED): the run ends at the first levy (407), so the foundings stamped 438 and 509 no
+        // longer stand before it: ten orders -> eight (the cadence unchanged), 16 settlements -> 14.
+        Assert.Equal([38L, 78L, 114L, 151L, 189L, 225L, 296L, 367L], p.Founds);
+        Assert.Equal(14, p.Controlled);
+    }
+
+    /// <summary>ADR-046 (2026-10-23) — THE ATTRIBUTION CONTROL of the review batch's moves of the pins above: the same run with
+    /// ONLY the cheapest-route goal closure off (TestConfigs.PreAiRoutes — the union-over-OR closures of ADR-033 B; the new
+    /// Prospect bill kept) returns the pre-fix levy, A3, foundings and holdings, so the route fix is the whole of their
+    /// move; its first build is 3, so the bill is the whole of that one.</summary>
+    [Fact]
+    public void OneAiEmpire_WithTheCheapestRouteOff_TheLevyAndA3ReturnToTheirPreFixTurns()
+    {
+        CanonicalAiPins p = RunCanonicalAi(TestConfigs.Worldgen(), TestConfigs.PreAiRoutes(Cfg));
+        Assert.Equal(["grinding_stone", "kin_council"], p.FirstTargets!);
+        Assert.Equal((0L, 3L, 111L, 112L), (p.Target1, p.FirstBuild, p.Advance, p.AdvancedAt));
+        Assert.Equal((166L, 167L, 579L, 580L), (p.Road, p.FirstRoad, p.Tax, p.FirstTax));
+        Assert.Equal(579L, p.A3At);
         Assert.Equal([38L, 78L, 114L, 151L, 189L, 225L, 296L, 367L, 438L, 509L], p.Founds);
         Assert.Equal(16, p.Controlled);
     }

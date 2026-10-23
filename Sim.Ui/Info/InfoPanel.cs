@@ -197,6 +197,9 @@ public sealed class InfoPanel
         if (c.Summary is { Length: > 0 } sum && c.Status is not (InfoStatus.Known or InfoStatus.Met or InfoStatus.Researching))
             y = Wrapped(d, m, t, "Why not yet: " + sum, x, y + 2, w, 13, t.Semantic.Progress, FontRole.Heading);
         if (c.What.Length > 0) y = Wrapped(d, m, t, c.What, x, y + 4, w, 12.5, t.Ink.TextSoft);
+        // M6 review item 4: a research node's educational text, as plain prose (no citation, badge or verification label).
+        if (c.Subject.Kind == InfoKind.ResearchNode && Progression.KnowledgeTexts.For(new ResearchNodeId((int)c.Subject.Id)) is { } history)
+            y = Wrapped(d, m, t, history, x, y + 6, w, 12.5, t.Ink.TextSoft);
 
         // Show in research tree.
         if (c.ResearchNode is { } node && c.ResearchNodeName is { } nodeName)

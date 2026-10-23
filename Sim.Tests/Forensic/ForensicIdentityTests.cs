@@ -91,7 +91,8 @@ public class ForensicIdentityTests
         // recorded their bytes, so a session played from a locally built binary
         // (buildSha "dev") recorded NO recoverable configuration at all.
         ConfigResource[] config = ForensicIdentity.ConfigResources(Content);
-        Assert.Equal(12, config.Length);   // ADR-031: ages.json and unit-families.json joined
+        Assert.Equal(13, config.Length);   // ADR-031: ages.json and unit-families.json joined; ADR-046: knowledge-texts.json (display text the UI reads)
+        Assert.Contains(config, c => c.File == "knowledge-texts.json");
         for (int i = 1; i < config.Length; i++)
             Assert.True(string.CompareOrdinal(config[i - 1].File, config[i].File) < 0,
                 "config resources must be in ordinal name order, or the digest is not stable");

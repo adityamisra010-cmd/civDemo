@@ -64,10 +64,13 @@ public class AiResearchGoalTests
     [Fact]
     public void CapabilityGoals_AreTheNextRoadClass_TheTaxGate_AndTheUniversity_EachOnlyWhileUnmet()
     {
+        // ADR-046 (2026-10-23): these are the LEGACY union closures (every ancestor of every OR branch), pinned through the
+        // switch-off twin TestConfigs.PreAiRoutes; the shipped cheapest-route goals are pinned in the next test.
+        SimConfig legacy = TestConfigs.PreAiRoutes(Cfg);
         WorldState w = Duo();
-        SimConfig roadsOnly = Cfg with { Governance = null, Institutions = null };
-        SimConfig taxOnly = Cfg with { Roads = null, Institutions = null };
-        SimConfig universityOnly = Cfg with { Roads = null, Governance = null };
+        SimConfig roadsOnly = legacy with { Governance = null, Institutions = null };
+        SimConfig taxOnly = legacy with { Roads = null, Institutions = null };
+        SimConfig universityOnly = legacy with { Roads = null, Governance = null };
 
         // ROADS: the next unknown class is the track (infra.road_track ← track_road): exactly its closure.
         Assert.Equal(Closure("track_road"), Goals(w, roadsOnly));
@@ -106,6 +109,55 @@ public class AiResearchGoalTests
         Assert.True(university[Research.IndexOfId("legal_code_roman")]);   // ...but inst.university still needs it
         UniversityRigs.Grant(w, Research, Rival);
         Assert.DoesNotContain(true, Goals(w, universityOnly));   // both entities eligible: the goal is met
+    }
+
+    /// <summary>ADR-046 — THE SHIPPED GOALS are cheapest remaining ROUTES: each goal holds its target, only unknown nodes,
+    /// only nodes of the legacy union closure, and every node's own prerequisite is met inside completed ∪ goal (no required
+    /// prerequisite dropped); an OR already satisfied, or an alternative a cheaper one beats, is not pursued.</summary>
+    [Fact]
+    public void CapabilityGoals_AreCheapestRoutes_EachOnlyWhileUnmet()
+    {
+        WorldState w = Duo();
+        SimConfig roadsOnly = Cfg with { Governance = null, Institutions = null };
+        SimConfig taxOnly = Cfg with { Roads = null, Institutions = null };
+        SimConfig universityOnly = Cfg with { Roads = null, Governance = null };
+        Assert.True(Cfg.Research!.Tuning.AiCheapestOrRoute);
+
+        void AssertRoute(bool[] goal, bool[] union, params string[] targets)
+        {
+            bool[] done = ResearchQuery.CompletedMask(w, Research, Rival);
+            bool[] have = (bool[])done.Clone();
+            for (int i = 0; i < goal.Length; i++) if (goal[i]) have[i] = true;
+            foreach (string id in targets) Assert.True(goal[Research.IndexOfId(id)], id + " is the goal's target");
+            for (int i = 0; i < goal.Length; i++)
+            {
+                if (!goal[i]) continue;
+                Assert.False(done[i], Research.Nodes[i].Id + " is completed but still in the goal");
+                Assert.True(union[i], Research.Nodes[i].Id + " is outside the legacy union closure");
+                Assert.True(Research.Nodes[i].Prerequisite is null || ResearchQuery.RequirementMet(Research, Research.Nodes[i].Prerequisite!, have),
+                    Research.Nodes[i].Id + "'s prerequisite is not met inside completed ∪ goal");
+            }
+        }
+
+        AssertRoute(Goals(w, roadsOnly), Closure("track_road"), "track_road");
+        Complete(w, "track_road");
+        bool[] built = Goals(w, roadsOnly);
+        AssertRoute(built, Closure("track_road", "stone_dry"), "stone_dry");
+
+        bool[] tax = Goals(w, taxOnly);
+        AssertRoute(tax, Closure("taxation"), "taxation", "token_counting", "stamp_seal");
+        // The script OR (proto_writing OR hieroglyphic OR chinese_script, measured in AiResearchRouteTests): ONE branch.
+        Assert.Equal(1, new[] { "proto_writing", "hieroglyphic", "chinese_script" }.Count(s => tax[Research.IndexOfId(s)]));
+        Complete(w, "taxation");
+        Assert.DoesNotContain(true, Goals(w, taxOnly));
+
+        bool[] university = Goals(w, universityOnly);
+        AssertRoute(university, Closure("medicine_hippocratic", "geometry_axiomatic", "algebra", "legal_code_roman",
+            "cuneiform", "hieroglyphic", "chinese_script", "stamp_seal"), "legal_code_roman");
+        Assert.True(university.Count(b => b) < Closure("medicine_hippocratic", "geometry_axiomatic", "algebra", "legal_code_roman",
+            "cuneiform", "hieroglyphic", "chinese_script", "stamp_seal").Count(b => b), "the route is strictly smaller than the union");
+        UniversityRigs.Grant(w, Research, Rival);
+        Assert.DoesNotContain(true, Goals(w, universityOnly));
     }
 
     [Fact]

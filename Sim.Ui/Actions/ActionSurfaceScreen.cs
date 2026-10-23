@@ -47,6 +47,8 @@ public enum ActionCommandKind
     Explore = 13,
     /// <summary>M6 EX (ADR-044): Prospect at <see cref="ActionCommand.Settlement"/> (order kind 15, UiSession.EmitProspect).</summary>
     Prospect = 14,
+    /// <summary>ADR-046: the assay at <see cref="ActionCommand.Settlement"/> (order kind 15, Amount 1; UiSession.EmitProspect).</summary>
+    Assay = 15,
 }
 
 public sealed record ActionCommand(
@@ -57,7 +59,7 @@ public sealed record ActionCommand(
     /// <summary>Whether the command would append an order (the rest only move the UI).</summary>
     public bool IsOrder => Kind is ActionCommandKind.ApplyLabour or ActionCommandKind.ClearResearch or ActionCommandKind.Enqueue
         or ActionCommandKind.DevelopRoads or ActionCommandKind.SetTax or ActionCommandKind.CancelConstruction
-        or ActionCommandKind.SetAllocation or ActionCommandKind.ClearCivicsResearch or ActionCommandKind.Explore or ActionCommandKind.Prospect;
+        or ActionCommandKind.SetAllocation or ActionCommandKind.ClearCivicsResearch or ActionCommandKind.Explore or ActionCommandKind.Prospect or ActionCommandKind.Assay;
 }
 
 /// <summary>THE ONE DISPATCH of an order-bearing command, through the session's guarded emitters (each
@@ -80,6 +82,7 @@ public static class ActionDispatch
             ActionCommandKind.ClearCivicsResearch => session.ClearResearchTarget(Sim.Core.Systems.Research.ResearchTree.Civics),
             ActionCommandKind.Explore => session.EmitExplore(command.Settlement),
             ActionCommandKind.Prospect => session.EmitProspect(command.Settlement),
+            ActionCommandKind.Assay => session.EmitProspect(command.Settlement, ProspectMethod.Assay),
             _ => false,
         };
     }
@@ -113,6 +116,8 @@ public enum ActionHitKind
     Explore,
     /// <summary>M6 EX (ADR-044): the Actions menu's "Prospect" (A = the settlement) — emits kind 15 through the guarded emitter.</summary>
     Prospect,
+    /// <summary>ADR-046: the Actions menu's "Assay" (A = the settlement) — emits kind 15 with the assay method (Amount 1).</summary>
+    Assay,
 }
 
 public readonly record struct ActionHit(RectD Rect, ActionHitKind Kind, int A, int B);
@@ -322,6 +327,7 @@ public sealed partial class ActionSurfaceScreen
                     return ActionCommand.None;
                 case ActionHitKind.Explore: return new ActionCommand(ActionCommandKind.Explore, h.A);
                 case ActionHitKind.Prospect: return new ActionCommand(ActionCommandKind.Prospect, h.A);
+                case ActionHitKind.Assay: return new ActionCommand(ActionCommandKind.Assay, h.A);
                 case ActionHitKind.AllocApply:
                     if (model.Allocation is not { } al || _allocDraft < 0 || _allocDraft == al.BuildingsPercent) return ActionCommand.None;
                     return new ActionCommand(ActionCommandKind.SetAllocation, Percent: _allocDraft);
@@ -1180,7 +1186,13 @@ public sealed partial class ActionSurfaceScreen
             // One compact entry: the settlement and its two buttons on one line, then what each costs and, when the
             // predicate refuses it now, why — so twelve settlements do not push the surface's other blocks out of reach.
             double right = x + w;
-            RectD? prospect = null, explore = null;
+            RectD? prospect = null, explore = null, assay = null;
+            if (e.Assay is { } asy)
+            {
+                assay = Button(d, m, "Assay", right, y, 990 + k, asy.Blocker is null ? ControlStyle.Primary : ControlStyle.Disabled);
+                _hits.Add(new ActionHit(assay.Value, ActionHitKind.Assay, e.Settlement.Value, 0));
+                right = assay.Value.X - Sp(6);
+            }
             if (e.Prospect is { } pr)
             {
                 prospect = Button(d, m, "Prospect", right, y, 962 + 2 * k, pr.Blocker is null ? ControlStyle.Primary : ControlStyle.Disabled);
@@ -1193,12 +1205,13 @@ public sealed partial class ActionSurfaceScreen
                 _hits.Add(new ActionHit(explore.Value, ActionHitKind.Explore, e.Settlement.Value, 0));
                 right = explore.Value.X - Sp(6);
             }
-            double bh = Math.Max(prospect?.H ?? 0, explore?.H ?? 0);
+            double bh = Math.Max(Math.Max(prospect?.H ?? 0, explore?.H ?? 0), assay?.H ?? 0);
             double ny = Wrapped(d, m, e.Name, x, y + Math.Max(0, (bh - L(Body)) / 2), Math.Max(Sp(40), right - x), BodyBold, t.Ink.Text, FontRole.Heading);
             y = Math.Max(ny, y + bh) + Sp(2);
             var parts = new List<string>();
             if (e.Explore is { } ex2) parts.Add("Explore surroundings (" + ex2.Detail + ")" + (ex2.Blocker is { } b1 ? " — not now: " + b1 : ""));
             if (e.Prospect is { } pr2) parts.Add("Prospect for hidden deposits (" + pr2.Detail + ")" + (pr2.Blocker is { } b2 ? " — not now: " + b2 : ""));
+            if (e.Assay is { } as2) parts.Add("or Assay (" + as2.Detail + ")" + (as2.Blocker is { } b3 ? " — not now: " + b3 : ""));
             y = Wrapped(d, m, string.Join(" · ", parts), x + Sp(8), y, w - Sp(8), Second, t.Ink.TextSoft) + Math.Max(Sp(4), t.Density.Gap * Scale * 0.4);
             k++;
         }

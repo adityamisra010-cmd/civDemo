@@ -63,6 +63,8 @@ internal static class ResearchRigs
         /// rig test pins. Rig calibration when on: CP per sim-year = 1.0 × P^0.5, so 10 000 people accrue EXACTLY
         /// 100 CP a sim-year — 1 000 CP (1 000 000 milli-CP) a dt-10 turn.</summary>
         public (bool Enabled, double Coefficient, double Exponent)? CivicsPoints { get; set; }
+        /// <summary>ADR-046: tuning.aiCheapestOrRoute — false (the default) = absent, the union-over-OR AI goal closures.</summary>
+        public bool AiCheapestOrRoute { get; set; }
 
         public string Json()
         {
@@ -210,6 +212,7 @@ internal static class ResearchRigs
                             ["unit"] = "CP per sim-year", ["status"] = "rig calibration",
                         }
                         : null,
+                    ["aiCheapestOrRoute"] = AiCheapestOrRoute ? true : null,
                 },
                 ["baseline"] = WithBaseline
                     ? new JsonArray(new JsonObject

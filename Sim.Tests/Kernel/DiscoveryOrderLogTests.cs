@@ -33,8 +33,18 @@ public class DiscoveryOrderLogTests
         Assert.Equal(1, OrderLog.IoVersion);
         var ok = new OrderRecord(4, 1, kind, 3, 0.0);
         Assert.Equal(ok, RoundTrip(ok)[0]);
-        foreach (double bad in new[] { 1.0, -1.0, double.NaN, double.PositiveInfinity, 0.5 })
-            Assert.Contains("Amount is reserved and must be 0",
+        // ADR-046 §2.4: Prospect's Amount is the method — exactly 0 (survey) or 1 (assay); Explore's stays exactly 0.
+        bool prospect = kind == OrderKind.Prospect;
+        if (prospect)
+        {
+            var assay = new OrderRecord(4, 1, kind, 3, 1.0);
+            Assert.Equal(assay, RoundTrip(assay)[0]);
+        }
+        string message = prospect ? "Amount is the method and must be 0 (survey) or 1 (assay)" : "Amount is reserved and must be 0";
+        double[] bads = prospect ? [2.0, -1.0, double.NaN, double.PositiveInfinity, 0.5, -0.0 + 1e-300]
+                                 : [1.0, -1.0, double.NaN, double.PositiveInfinity, 0.5];
+        foreach (double bad in bads)
+            Assert.Contains(message,
                 Assert.Throws<SnapshotFormatException>(() => RoundTrip(new OrderRecord(4, 1, kind, 3, bad))).Message);
         Assert.Contains("settlement id must be >= 0",
             Assert.Throws<SnapshotFormatException>(() => RoundTrip(new OrderRecord(4, 1, kind, -1, 0.0))).Message);

@@ -804,9 +804,11 @@ public static class AvailableActionsQuery
 
     /// <summary>
     /// M6 Track EX (D-062 D9; ADR-044) — THE ACTIONS MENU's descriptors: per settlement the issuer controls (settlement-table
-    /// order), Explore (fog on) and Prospect (concealment on), judged by THE predicates DiscoverySystem applies
+    /// order; descriptor Id = settlement × 4 + slot: 0 Explore, 1 Prospect's survey, 2 its assay — ADR-046), Explore (fog
+    /// on) and Prospect (concealment on; the assay listed whenever sim.json configures one, blocked until its technology),
+    /// each with its full bill and, when the purse is short, which goods and by how much, judged by THE predicates DiscoverySystem applies
     /// (<see cref="DiscoveryQuery.CheckExplore(IReadOnlyWorldState, SimConfig, PolityId, SettlementId)"/>,
-    /// <see cref="DiscoveryQuery.CheckProspect(IReadOnlyWorldState, SimConfig, PolityId, SettlementId)"/>) on the world's
+    /// <see cref="DiscoveryQuery.CheckProspect(IReadOnlyWorldState, SimConfig, PolityId, SettlementId, ProspectMethod, bool?)"/>) on the world's
     /// published stocks less its set-asides; a refusal is the descriptor's blocker, and an order of the same kind for the
     /// same settlement already queued this turn blocks it ("already ordered this turn": DiscoverySystem applies one).
     /// </summary>
@@ -817,7 +819,11 @@ public static class AvailableActionsQuery
         bool prospect = DepositConcealment.Enabled(cfg);
         if (!fog && !prospect) return;
         string grainName = cfg.Goods!.ById(cfg.Goods.GrainId).Name;
-        long cost = prospect ? DiscoveryQuery.ProspectCost(world, cfg, polity) : 0;   // once (the requirement is parsed once)
+        // ADR-046: the two Prospect bills, and whether the assay is open to this polity — once (the requirement is parsed once).
+        (GoodId Good, long Qty)[] survey = prospect ? DiscoveryQuery.ProspectBill(cfg, ProspectMethod.Survey) : [];
+        (GoodId Good, long Qty)[] assay = prospect ? DiscoveryQuery.ProspectBill(cfg, ProspectMethod.Assay) : [];
+        bool assayOffered = prospect && cfg.Discovery!.AssayCost is not null;
+        bool assayUnlocked = assayOffered && DiscoveryQuery.AssayUnlocked(world, cfg, polity);
         for (int s = 0; s < world.Settlements.Count; s++)
         {
             SettlementId id = world.Settlements[s].Id;
@@ -828,25 +834,41 @@ public static class AvailableActionsQuery
                 int radius = DiscoveryQuery.ExploredRadius(world, f, polity, id);
                 ExploreVerdict v = DiscoveryQuery.CheckExplore(world, cfg, polity, id);
                 string? blocker = context.Queued is { } q && Queued(q, polity, OrderKind.Explore, id)
-                    ? "already ordered this turn" : DiscoveryQuery.ExploreBlocker(v, cfg);
+                    ? "already ordered this turn" : DiscoveryQuery.ExploreBlocker(v, cfg, world);
                 string detail = v == ExploreVerdict.AtCap
-                    ? $"explored to {Inv(radius)} nodes (the limit)"
-                    : $"radius {Inv(radius)} → {Inv(DiscoveryQuery.NextRadius(world, f, polity, id))} nodes, cost {Inv(DiscoveryQuery.ExploreCost(cfg))} {grainName}";
+                    ? $"explored to {DiscoveryQuery.RangeText(world, radius)} around it (the limit)"
+                    : $"range {DiscoveryQuery.RangeText(world, radius)} → {DiscoveryQuery.RangeText(world, DiscoveryQuery.NextRadius(world, f, polity, id))}, cost {Inv(DiscoveryQuery.ExploreCost(cfg))} {grainName}";
                 into.Add(new ActionDescriptor(
-                    ActionDomain.Discovery, (long)id.Value * 2, ActionKind.Order, $"discovery.explore.{Inv(id.Value)}",
+                    ActionDomain.Discovery, (long)id.Value * 4, ActionKind.Order, $"discovery.explore.{Inv(id.Value)}",
                     "Explore surroundings", OrderKind.Explore, [SettlementTarget(id)], blocker, ActionProvenance.None, detail));
             }
             if (prospect)
             {
-                ProspectVerdict v = DiscoveryQuery.CheckProspect(world, cfg, polity, id, cost);
-                string? blocker = context.Queued is { } q && Queued(q, polity, OrderKind.Prospect, id)
-                    ? "already ordered this turn" : DiscoveryQuery.ProspectBlocker(v, cost);
+                // One Prospect per settlement per turn whatever its method (DiscoverySystem applies the first): a queued
+                // survey blocks the assay and the reverse.
+                bool queued = context.Queued is { } q && Queued(q, polity, OrderKind.Prospect, id);
+                ProspectVerdict v = DiscoveryQuery.CheckProspect(world, cfg, polity, id, ProspectMethod.Survey, assayUnlocked);
+                string? blocker = queued ? "already ordered this turn"
+                    : DiscoveryQuery.ProspectBlocker(v, Short(world, cfg, id, survey), cfg);
                 into.Add(new ActionDescriptor(
-                    ActionDomain.Discovery, (long)id.Value * 2 + 1, ActionKind.Order, $"discovery.prospect.{Inv(id.Value)}",
+                    ActionDomain.Discovery, (long)id.Value * 4 + 1, ActionKind.Order, $"discovery.prospect.{Inv(id.Value)}",
                     "Prospect", OrderKind.Prospect, [SettlementTarget(id)], blocker, ActionProvenance.None,
-                    $"cost {Inv(cost)} grain"));
+                    "survey, cost " + DiscoveryQuery.BillText(cfg, survey)));
+                if (assayOffered)
+                {
+                    ProspectVerdict va = DiscoveryQuery.CheckProspect(world, cfg, polity, id, ProspectMethod.Assay, assayUnlocked);
+                    string? blockerA = queued ? "already ordered this turn"
+                        : DiscoveryQuery.ProspectBlocker(va, Short(world, cfg, id, assay), cfg);
+                    into.Add(new ActionDescriptor(
+                        ActionDomain.Discovery, (long)id.Value * 4 + 2, ActionKind.Order, $"discovery.assay.{Inv(id.Value)}",
+                        "Assay", OrderKind.Prospect, [SettlementTarget(id)], blockerA, ActionProvenance.None,
+                        "assay, cost " + DiscoveryQuery.BillText(cfg, assay)));
+                }
             }
         }
+
+        static string? Short(IReadOnlyWorldState world, SimConfig cfg, SettlementId id, (GoodId Good, long Qty)[] bill) =>
+            DiscoveryQuery.Shortfall(world, cfg, id, bill, world.GoodStocks, world.ConstructionHolds);
     }
 
     /// <summary>Whether <paramref name="queued"/> holds a <paramref name="kind"/> order of <paramref name="polity"/>'s for

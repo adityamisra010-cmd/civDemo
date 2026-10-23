@@ -84,7 +84,12 @@ public class AiFoundingAttributionTests
     // TheM6Slice_IsTheWholeMove_TheAiWorldWithTheSliceOffIsTheBatch4World (TestConfigs.PreM6 returns 25f4799d… through
     // SchemaProjection.V34), CivicsPointsAttributionTests.AiWorldSeed42Turn300_MovedForCivicsPointsAlone (CP on the
     // EX-off, tranche-off world) and DiscoveryLayoutAttributionTests.AiWorldSeed42Turn300_….
-    internal const string S1cTurn300 = "776d5d0c6418f6bc609095b026ba14ae74978847000b2ca64877586b2e2114bc";
+    // ADR-046 RE-PIN (2026-10-23, the M6 review batch; VALUE, MEASURED on this tree by the agent writing this line):
+    // 776d5d0c6418f6bc… -> 2e4759ac494d9461…. CAUSE: the Prospect bill alone (ADR-046 §2 — the AI's surveys spend 40 grain,
+    // 20 timber and 10 stone instead of 40 grain, so its stone, and the granaries waiting on it, move). The cheapest-route
+    // closure (ADR-046 §1) moves NOTHING by turn 300: TestConfigs.PreAiRoutes gives this same hash (measured,
+    // Adr046PinMeasurement.AiWorldTurn300_ShippedAndRoutesOff; asserted in AiWorldTurn300_TheCheapestRouteMovesNothingByTurn300).
+    internal const string S1cTurn300 = "2e4759ac494d946126624fec584e26fdce323a8018877987b26b2ecc08b98be8";
 
     /// <summary>Batch 3 (D-054, integration R1): THE CYLINDER-ALONE LINK — the live AI world through the v32 projection
     /// (the two v33 tables dropped, asserted EMPTY): the AI hash the W1 stage measured with the cylinder and no v33 layout.</summary>
@@ -174,6 +179,18 @@ public class AiFoundingAttributionTests
     /// 06e0153, before Track CP and the tranche — and the discovery layer off) writes nothing in sections 62–66 and returns
     /// the batch-4 (v34) pin byte for byte through SchemaProjection.V34, and the cylinder-alone link through the v32
     /// projection; with every layer on it is the re-pinned value. So the slice is the whole move.</summary>
+    /// <summary>ADR-046 (2026-10-23) — the cheapest-route goal closure moves nothing in the AI world by turn 300: its
+    /// switch-off twin (TestConfigs.PreAiRoutes) gives the live hash byte for byte, so the Prospect bill is the whole of the
+    /// review batch's move of <see cref="S1cTurn300"/> (the route fix acts later: bronze, the levy, A3 —
+    /// AiEmpireIntegrationTests).</summary>
+    [Fact]
+    public void AiWorldTurn300_TheCheapestRouteMovesNothingByTurn300()
+    {
+        SimConfig routesOff = TestConfigs.PreAiRoutes(TestConfigs.Sim());
+        Assert.False(routesOff.Research!.Tuning.AiCheapestOrRoute);
+        Assert.Equal(S1cTurn300, WorldHash.ComputeHex(CivicsPointsAttributionTests.RunAiWorld(routesOff)));
+    }
+
     [Fact]
     public void TheM6Slice_IsTheWholeMove_TheAiWorldWithTheSliceOffIsTheBatch4World()
     {

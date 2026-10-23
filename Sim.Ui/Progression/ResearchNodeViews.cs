@@ -32,7 +32,7 @@ public sealed record ResearchNodeView(
     double BaseCost, double EffectiveCost, bool FloorBinds, IReadOnlyList<(string University, double Factor)> CostTerms,
     string? PrerequisiteExpression, IReadOnlyList<PrereqView> Prerequisites, IReadOnlyList<EurekaView> Eurekas,
     double EurekaCeiling, double EurekaCredited, double ForeignCredited, double ExposureOffered,
-    IReadOnlyList<UniversityView> Universities, IReadOnlyList<string> Unlocks, bool IsRecursive)
+    IReadOnlyList<UniversityView> Universities, IReadOnlyList<string> Unlocks, bool IsRecursive, string? History = null)
 {
     /// <summary>Progress toward EffectiveCost, 0..1.</summary>
     public double Fraction => EffectiveCost > 0 ? Math.Clamp(Progress / EffectiveCost, 0.0, 1.0) : 0.0;
@@ -149,7 +149,7 @@ public sealed class ResearchSnapshot
                 node.Branch >= 0 ? content.Branches[node.Branch].Name : node.Tree == ResearchTree.Technology ? "Main Trunk" : "Civics",
                 node.Domain, state, lockReason, available, isTarget, progress, cost.BaseCost, cost.EffectiveCost, cost.FloorBinds,
                 terms, node.Prerequisite?.Source, prereqs, eurekas, pool.Ceiling, pool.Eureka, pool.ForeignExposure,
-                pool.ExposureOffered, unis, unlocks, node.IsRecursive);
+                pool.ExposureOffered, unis, unlocks, node.IsRecursive, KnowledgeTexts.For(node.Key));
         }
 
         return new ResearchSnapshot

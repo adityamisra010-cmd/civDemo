@@ -348,13 +348,15 @@ public class ActionEmitterGuardTests
         Assert.Equal(ExploreVerdict.NotControlled, DiscoveryQuery.CheckExplore(s.World, s.Config, Me, new SettlementId(foreign)));
         Assert.False(s.EmitExplore(foreign));
         Assert.False(s.EmitProspect(foreign));
-        Assert.Equal(ProspectVerdict.Ok, DiscoveryQuery.CheckProspect(s.World, s.Config, Me, new SettlementId(mine)));
-        Assert.True(s.EmitProspect(mine));    // the founding store covers a 40-grain survey (ADR-044 §5)
-        Assert.False(s.EmitProspect(mine));   // once per settlement per turn
-        Assert.Equal(1, s.Orders.Count);
+        // ADR-046: the founding store holds grain but no stone yet — the survey's bill is not covered: refused, nothing
+        // appended (the admitted path and its once-per-turn rule are pinned in DiscoveryActionsUiTests with the bill endowed).
+        Assert.Equal(ProspectVerdict.Unaffordable, DiscoveryQuery.CheckProspect(s.World, s.Config, Me, new SettlementId(mine)));
+        Assert.False(s.EmitProspect(mine));
+        Assert.False(s.EmitProspect(mine, ProspectMethod.Assay));   // and the assay is locked
+        Assert.Equal(0, s.Orders.Count);
         Assert.True(s.EmitExplore(mine));
         Assert.False(s.EmitExplore(mine));    // once per settlement per turn
-        Assert.Equal(2, s.Orders.Count);
+        Assert.Equal(1, s.Orders.Count);
         var hashes = new List<string>();
         for (int t = 0; t < 2; t++) { s.EndTurn(); hashes.Add(WorldHash.ComputeHex(s.World)); }
         WorldState world = UiFounding.Found(42, 256, 4, aiEmpiresOverride: 1);

@@ -197,30 +197,37 @@ public static class AiResearchPolicy
 
         // 1. The NEXT unknown road class: the lowest class above the best the polity knows (RoadDevelopmentPolicy).
         var road = new Stack<int>();
+        int roadEntity = -1;
         if (cfg.Roads is { } roads)
         {
             int best = RoadDevelopmentQuery.BestKnownClass(world, content, roads, polity);
             RoadClassConfig? next = null;
             foreach (RoadClassConfig c in roads.Classes)
                 if (c.Entity is not null && c.EdgeType > best && (next is null || c.EdgeType < next.EdgeType)) next = c;
-            if (next?.Entity is { } entity) PushEntity(content, content.EntityIndexOf(entity), road, expanded);
+            if (next?.Entity is { } entity)
+            {
+                roadEntity = content.EntityIndexOf(entity);
+                PushEntity(content, roadEntity, road, expanded);
+            }
         }
 
         // 2. The tax edict's research gate while it is unmet (AiGovernance levies through it). H2: only the KNOWLEDGE
         // half — the Age half (governance.taxationMinAge) is not researchable, so a polity that knows Taxation and
         // waits for its Age has no tax research goal (else it would chase the requirement's other OR-branches).
         var tax = new Stack<int>();
+        Predicate? taxRequirement = null;
         if (cfg.Governance is { } governance && !global::Sim.Core.State.Governance.KnowsTaxation(world, cfg, polity))
         {
-            Predicate requirement = ResearchContentLoader.ParseRequirement(
+            taxRequirement = ResearchContentLoader.ParseRequirement(
                 content, governance.TaxationRequires, "sim.json governance.taxationRequires");
-            foreach (int atom in requirement.AtomIds)
+            foreach (int atom in taxRequirement.AtomIds)
                 if (atom >= 0 && atom < content.Nodes.Count) tax.Push(atom);
         }
 
         // 3. The university requirement while unmet (AiConstructionPolicy founds universities, ADR-033 D6):
         // each founding project's building entity and the institution it founds.
         var university = new Stack<int>();
+        var universityEntities = new List<int>();
         Array.Clear(expanded);
         if (cfg.Institutions is not null && cfg.Goods?.Projects is { } projects)
         {
@@ -228,12 +235,154 @@ public static class AiResearchPolicy
             {
                 if (project.Founds is not { } founds) continue;
                 if (ConstructionQuery.IsKnowledgeEligible(world, content, polity, project)) continue;
-                if (project.Entity is { } building) PushEntity(content, content.EntityIndexOf(building), university, expanded);
+                if (project.Entity is { } building)
+                {
+                    universityEntities.Add(content.EntityIndexOf(building));
+                    PushEntity(content, content.EntityIndexOf(building), university, expanded);
+                }
+                universityEntities.Add(content.EntityIndexOf(founds.Entity));
                 PushEntity(content, content.EntityIndexOf(founds.Entity), university, expanded);
             }
         }
 
-        return [Ancestors(content, road), Ancestors(content, tax), Ancestors(content, university)];
+        if (!content.Tuning.AiCheapestOrRoute)
+            return [Ancestors(content, road), Ancestors(content, tax), Ancestors(content, university)];
+
+        // ADR-046: the cheapest remaining route through each requirement instead of the union over OR. Every goal
+        // keeps its roots (an entity's whole requirement, the edict's requirement, every university entity: AND).
+        var routes = new Routes(world, content, polity);
+        bool[] roadGoal = new bool[content.Nodes.Count], taxGoal = new bool[content.Nodes.Count],
+            universityGoal = new bool[content.Nodes.Count];
+        if (roadEntity >= 0) routes.Mark(routes.Entity(roadEntity), roadGoal);
+        if (taxRequirement is not null) routes.Mark(routes.Expr(taxRequirement), taxGoal);
+        int[] all = Routes.Empty;
+        foreach (int e in universityEntities)
+            if (e >= 0) all = Routes.And(all, routes.Entity(e));
+        routes.Mark(all, universityGoal);
+        return [roadGoal, taxGoal, universityGoal];
+    }
+
+    /// <summary>
+    /// ADR-046 (M6 review, 2026-10-23) — THE CHEAPEST REMAINING ROUTE through a requirement, the replacement for the
+    /// union-over-OR closure (switch: research.json tuning.aiCheapestOrRoute). A route is the ascending, distinct set of
+    /// UNCOMPLETED nodes a polity must still research to satisfy an expression; its cost is Σ EffectiveCost over that set,
+    /// summed in ascending index order:
+    /// <list type="bullet">
+    /// <item>a completed node: the empty route (so an alternative already satisfied costs 0 and stops every other
+    ///   alternative of its OR from being pursued); an uncompleted node: itself plus the route of its prerequisite;</item>
+    /// <item>AND: the union of both sides (shared ancestors counted once) — every required side is kept;</item>
+    /// <item>OR: the side with the lower route cost; bit-equal costs go to the side WRITTEN FIRST (left), a fixed walk of
+    ///   the parsed expression — composite key (route cost, source position);</item>
+    /// <item>an institution atom: the route of that institution's own requirement (the evaluator's reading); a declared
+    ///   unresolved name, which reads false forever: NO route (an OR takes the other side; an AND has no route, and a
+    ///   goal without a route is empty — nothing research can do satisfies it);</item>
+    /// <item>a comparison or a negation: the empty route (nothing to research toward).</item>
+    /// </list>
+    /// Routes are memoized per node for one decision; nested AND/OR and partly completed trees fall out of the recursion.
+    /// </summary>
+    public sealed class Routes
+    {
+        /// <summary>The empty route.</summary>
+        public static readonly int[] Empty = [];
+        /// <summary>The "no route" sentinel (compared by reference).</summary>
+        public static readonly int[] None = [-1];
+
+        private readonly IReadOnlyWorldState _world;
+        private readonly ResearchContent _content;
+        private readonly PolityId _polity;
+        private readonly bool[] _completed;
+        private readonly int[]?[] _node;
+        private readonly int[]?[] _entity;
+        private readonly bool[] _entityOpen;
+
+        public Routes(IReadOnlyWorldState world, ResearchContent content, PolityId polity)
+        {
+            _world = world;
+            _content = content;
+            _polity = polity;
+            _completed = ResearchQuery.CompletedMask(world, content, polity);
+            _node = new int[]?[content.Nodes.Count];
+            _entity = new int[]?[content.Entities.Count];
+            _entityOpen = new bool[content.Entities.Count];
+        }
+
+        /// <summary>The route that completes node <paramref name="i"/> (empty when it is complete).</summary>
+        public int[] Node(int i)
+        {
+            if (_completed[i]) return Empty;
+            if (_node[i] is { } memo) return memo;
+            Predicate? pre = _content.Nodes[i].Prerequisite;
+            int[] before = pre is null ? Empty : Expr(pre);
+            int[] route = ReferenceEquals(before, None) ? None : Union(before, [i]);
+            _node[i] = route;
+            return route;
+        }
+
+        /// <summary>The route that satisfies entity <paramref name="e"/>'s knowledge requirement.</summary>
+        public int[] Entity(int e)
+        {
+            if (_entity[e] is { } memo) return memo;
+            if (_entityOpen[e]) return Empty;   // an institution cycle contributes nothing (the loader forbids self-reference)
+            _entityOpen[e] = true;
+            int[] route = _content.Entities[e].Requirement is { } req ? Expr(req) : Empty;
+            _entityOpen[e] = false;
+            _entity[e] = route;
+            return route;
+        }
+
+        /// <summary>The route that satisfies a research-dialect expression.</summary>
+        public int[] Expr(Predicate p) => p.Fold(Atom, And, Or, Empty);
+
+        private int[] Atom(int a)
+        {
+            int nodes = _content.Nodes.Count;
+            if (a >= 0 && a < nodes) return Node(a);
+            if (a >= nodes && a < nodes + _content.Entities.Count) return Entity(a - nodes);
+            return None;   // the declared-unresolved sentinel: reads false forever
+        }
+
+        /// <summary>AND: both sides, shared nodes once; no route when either side has none.</summary>
+        public static int[] And(int[] l, int[] r) =>
+            ReferenceEquals(l, None) || ReferenceEquals(r, None) ? None : Union(l, r);
+
+        private int[] Or(int[] l, int[] r)
+        {
+            if (ReferenceEquals(l, None)) return r;
+            if (ReferenceEquals(r, None)) return l;
+            return Cost(r) < Cost(l) ? r : l;   // strictly lower replaces: bit-equal costs keep the side written first
+        }
+
+        /// <summary>Σ EffectiveCost over the route, in ascending index order.</summary>
+        public double Cost(int[] route)
+        {
+            double sum = 0.0;
+            if (ReferenceEquals(route, None)) return double.PositiveInfinity;
+            for (int k = 0; k < route.Length; k++) sum += ResearchQuery.EffectiveCost(_world, _content, _polity, route[k]);
+            return sum;
+        }
+
+        /// <summary>Marks the route's nodes in <paramref name="goal"/> (nothing for no route).</summary>
+        public void Mark(int[] route, bool[] goal)
+        {
+            if (ReferenceEquals(route, None)) return;
+            foreach (int i in route) goal[i] = true;
+        }
+
+        private static int[] Union(int[] a, int[] b)
+        {
+            if (a.Length == 0) return b;
+            if (b.Length == 0) return a;
+            var merged = new int[a.Length + b.Length];
+            int i = 0, j = 0, n = 0;
+            while (i < a.Length || j < b.Length)
+            {
+                int next = j >= b.Length || (i < a.Length && a[i] <= b[j]) ? a[i] : b[j];
+                if (i < a.Length && a[i] == next) i++;
+                if (j < b.Length && b[j] == next) j++;
+                merged[n++] = next;
+            }
+            return n == merged.Length ? merged : merged[..n];
+        }
     }
 
     /// <summary>The prerequisite-ancestor closure (each node included) of the stacked nodes.</summary>
@@ -270,6 +419,31 @@ public static class AiResearchPolicy
     {
         var goal = new bool[content.Nodes.Count];
         if (ages is null || AgeQuery.NextAge(world, ages, polity) is not { Entry: { } entry }) return goal;
+        if (content.Tuning.AiCheapestOrRoute)
+        {
+            // ADR-046: a research fact holds when ANY listed node is complete (AgeContent), so each unmet core
+            // milestone is an OR over its nodes — the cheapest route; the milestones together are an AND.
+            var routes = new Routes(world, content, polity);
+            int[] all = Routes.Empty;
+            foreach (AgeMilestone core in entry.Core)
+            {
+                if (core.Fact.Kind != MilestoneFactKind.Research || AgeQuery.Milestone(world, polity, core).Met) continue;
+                int[]? cheapest = null;
+                double cheapestCost = 0.0;
+                foreach (int key in core.Fact.NodeKeys)   // listed order: bit-equal costs keep the node listed first
+                {
+                    int index = content.IndexOf(new ResearchNodeId(key));
+                    if (index < 0) continue;
+                    int[] route = routes.Node(index);
+                    if (ReferenceEquals(route, Routes.None)) continue;
+                    double cost = routes.Cost(route);
+                    if (cheapest is null || cost < cheapestCost) { cheapest = route; cheapestCost = cost; }
+                }
+                if (cheapest is not null) all = Routes.And(all, cheapest);
+            }
+            routes.Mark(all, goal);
+            return goal;
+        }
         var stack = new Stack<int>();
         foreach (AgeMilestone core in entry.Core)
         {

@@ -238,7 +238,8 @@ public sealed record FoundingBlock(SettlementId Source, string Name, string Deta
 /// <summary>M6 Track EX (D-062 D9; ADR-044): one row of the ACTIONS menu — a settlement the player controls, with its
 /// Explore descriptor (fog on) and Prospect descriptor (concealment on), each carrying its cost (Detail) and, when the
 /// predicate refuses it now, its blocker.</summary>
-public sealed record DiscoveryEntry(SettlementId Settlement, string Name, ActionDescriptor? Explore, ActionDescriptor? Prospect);
+public sealed record DiscoveryEntry(SettlementId Settlement, string Name, ActionDescriptor? Explore, ActionDescriptor? Prospect,
+    ActionDescriptor? Assay = null);
 
 /// <summary>M6 Track EX (D-062 D9): THE ACTIONS MENU — separate from the Construction block — exactly the
 /// ActionDomain.Discovery descriptors the query returns, grouped by settlement in its order.</summary>
@@ -354,22 +355,27 @@ public static class ActionSurface
         foreach (ActionDescriptor a in actions)
         {
             if (a.Domain != ActionDomain.Discovery) continue;
-            int settlement = (int)(a.Id >> 1);
-            bool prospect = (a.Id & 1) == 1;
+            int settlement = (int)(a.Id >> 2);   // Id = settlement × 4 + slot (0 Explore, 1 survey, 2 assay — ADR-046)
+            long slot = a.Id & 3;
             int at = entries.Count - 1;
             if (at < 0 || entries[at].Settlement.Value != settlement)
             {
                 entries.Add(new DiscoveryEntry(new SettlementId(settlement), input.Name(settlement), null, null));
                 at = entries.Count - 1;
             }
-            entries[at] = prospect ? entries[at] with { Prospect = a } : entries[at] with { Explore = a };
+            entries[at] = slot switch
+            {
+                1 => entries[at] with { Prospect = a },
+                2 => entries[at] with { Assay = a },
+                _ => entries[at] with { Explore = a },
+            };
         }
         if (entries.Count == 0) return null;
         // M6 EX (ADR-044 §5): an order the last step refused at delivery (the preview admitted it on the published stocks;
         // the step's own draw found less) is explained here, after the step.
         var refused = ImmutableArray.CreateBuilder<string>();
         if (input.Previous is { } prev && input.Delivered is { } delivered)
-            foreach ((OrderKind kind, SettlementId s, long cost) in DiscoveryQuery.RefusedAtDelivery(prev, input.World, input.Config, delivered, input.Player))
+            foreach ((OrderKind kind, SettlementId s, string cost) in DiscoveryQuery.RefusedAtDelivery(prev, input.World, input.Config, delivered, input.Player))
                 refused.Add(DiscoveryQuery.RefusalText(kind, input.Name(s.Value), cost));
         return new DiscoveryBlock([.. entries], refused.ToImmutable());
     }
