@@ -1,0 +1,1097 @@
+[
+ {
+  "id": "war_band",
+  "tree": "civics",
+  "description": "A war band is an armed party raised from kin and allies for a raid or feud, led by a man chosen for skill and followed only for that venture. The cemetery at Jebel Sahaba in Sudanese Nubia, at least 13,000 years old, holds many skeletons with embedded stone points, among the earliest evidence of repeated violence between groups.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Whether the Jebel Sahaba injuries reflect organized raiding or scattered episodes of conflict is debated, and recent redating suggests the cemetery may be older than 13,000 years.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Jebel Sahaba cemetery in Sudanese Nubia dated to at least 13,000 years ago; many burials with embedded stone points."
+  },
+  "mechanicLink": "Completing War bands lets each Explore order reach further."
+ },
+ {
+  "id": "age_sets",
+  "tree": "civics",
+  "description": "In an age-set system, boys initiated in the same years form a named set that stays together for life. The set serves first as warriors guarding herds and camps, then advances as a body to the grades of married men and ruling elders. Ethnographers recorded such systems among the Maasai and Nuer and in the Oromo gada system.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "The antiquity of age sets is inferred by analogy with recorded herding peoples; no archaeological trace dates them, and a date near 3000 BCE is a guess tied to the spread of pastoralism.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Age sets recorded among the Maasai and Nuer; the Oromo gada system as an age-grade institution."
+  },
+  "mechanicLink": "Completing Age sets lets formations see further."
+ },
+ {
+  "id": "chiefly_retinue",
+  "tree": "civics",
+  "description": "A warrior retinue is a band of armed followers fed in their chief's hall who fight at his call and gather his tribute. Archaeologists infer such followings from weapon-rich male graves, as at Varna in Bulgaria in the fifth millennium BCE and in Corded Ware battle-axe burials after about 2800 BCE. Roman writers later described the Germanic comitatus.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Reading weapon graves as evidence of sworn retinues, rather than of status display, is an archaeological inference; the institution is only described in writing much later.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Varna graves dated to the fifth millennium BCE; Corded Ware battle-axe burials from about 2800 BCE; Tacitus's description of the Germanic comitatus."
+  },
+  "mechanicLink": "Completing Warrior retinues lets taxes extract more output."
+ },
+ {
+  "id": "village_defences",
+  "tree": "civics",
+  "description": "Early farming villages protected their stored harvests with ditches, walls, palisades and watchmen. At Jericho a stone wall and a massive round tower were built about 8000 BCE, though their purpose is debated. In central Europe many villages were ringed by ditches and palisades around 5000 BCE, a period that also left mass graves of massacred villagers, as at Talheim.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "The Jericho wall and tower may have served against floods or as communal monuments rather than defence, and many European enclosures may have been symbolic or for livestock.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Jericho wall and tower about 8000 BCE; ditched and palisaded villages in central Europe about 5000 BCE; Talheim mass grave of the same period."
+  },
+  "mechanicLink": "Completing Village defences makes granaries relieve famine more."
+ },
+ {
+  "id": "campaign_provisioning",
+  "tree": "civics",
+  "description": "Campaign supply depots let an army march far from home without stripping the land it crosses. Before his campaigns in the Levant in the fifteenth century BCE, the Egyptian pharaoh Thutmose III had harbours on the Phoenician coast stocked with grain and provisions, as his annals record. The Assyrian empire later kept stores at stations along its royal roads.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "How systematic Thutmose III's depots were depends on short annalistic entries, and Assyrian road stations are known mainly as relay posts whose role in army supply is partly inferred.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Thutmose III's annals recording provisioned Phoenician harbours in the fifteenth century BCE; Assyrian road stations with stores in the eighth century BCE."
+  },
+  "mechanicLink": "Completing Campaign supply depots makes longer roads possible."
+ },
+ {
+  "id": "citizen_militia",
+  "tree": "civics",
+  "description": "In a citizen militia, men who own enough property arm themselves at their own expense and serve as heavy infantry for their city. The hoplite phalanx of the Greek city-states, which took shape around the seventh century BCE, is the classic example: ranks of citizens with large round shields and spears fought shoulder to shoulder.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "Historians debate how quickly the hoplite phalanx emerged, whether in a sudden reform or gradually, and how closely hoplite service was tied to political rights.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Emergence of the hoplite phalanx around the seventh century BCE; early Roman infantry service based on property."
+  },
+  "mechanicLink": "Completing Citizen militia lets settlements draw on a wider hinterland."
+ },
+ {
+  "id": "siege_engineers",
+  "tree": "civics",
+  "description": "Siege and road engineers are specialist troops who build ramps, bridges, tunnels and tracks for an army. Palace reliefs of the Assyrian king Ashurnasirpal II, from the ninth century BCE, show sappers undermining walls, siege engines pushed up to the defences and soldiers crossing rivers on inflated skins. These skills served road-building in peace.",
+  "wordCount": 54,
+  "sources": [],
+  "uncertainty": "How far Assyrian engineers formed a distinct corps rather than ordinary soldiers given tasks is unclear, and their peacetime road work is inferred more than documented.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Ashurnasirpal II's reliefs at Nimrud in the ninth century BCE showing sappers, siege engines and river crossings on inflated skins."
+  },
+  "mechanicLink": "Completing Siege and road engineers gives more path-building per worker."
+ },
+ {
+  "id": "state_navy",
+  "tree": "civics",
+  "description": "A state navy is a permanent war fleet that the state builds, crews and pays for. Phoenician cities supplied fleets to kings by about 700 BCE. In 483 BCE Athens used a rich silver strike at Laurion to build a fleet of triremes on Themistocles' proposal, and it fought at Salamis three years later.",
+  "wordCount": 54,
+  "sources": [],
+  "uncertainty": "The organization of Phoenician royal fleets is known mostly from Assyrian and Greek sources, and the exact size of the Athenian building programme is reported differently by ancient writers.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Athenian fleet built from Laurion silver on Themistocles' proposal in 483 BCE; battle of Salamis in 480 BCE; Phoenician fleets serving kings by about 700 BCE."
+  },
+  "mechanicLink": "Completing State navy makes trade haulage cheaper."
+ },
+ {
+  "id": "art_of_war",
+  "tree": "civics",
+  "description": "Military treatises set down doctrine on scouting, spies, supply and terrain so that officers could study war, not only learn it by experience. In China, the Art of War attributed to Sunzi reached its present form around the fifth or fourth century BCE. In Greece, Aeneas Tacticus wrote a surviving manual on defending besieged cities in the fourth century BCE.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Whether Sunzi was a single historical author is doubted, and the text's date is debated within a range of several centuries.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Art of War attributed to Sunzi dated to about the fifth or fourth century BCE; Aeneas Tacticus's siege-defence manual in the fourth century BCE."
+  },
+  "mechanicLink": "Completing Military treatises lets formations see further."
+ },
+ {
+  "id": "mercenary_contracts",
+  "tree": "civics",
+  "description": "Mercenary soldiers serve for pay under contract rather than as subjects or citizens. In 401 BCE about ten thousand Greek mercenaries marched inland for the Persian prince Cyrus the Younger, a campaign described by Xenophon. In late medieval Italy, city-states hired captains called condottieri, named after the condotta, the contract that fixed their troops, pay and term of service.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Mercenaries are far older than these examples, and how formal ancient hiring agreements were compared with Italian written contracts is uncertain.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: The Ten Thousand serving Cyrus the Younger in 401 BCE; condottieri named after the condotta contract in fourteenth-century Italy."
+  },
+  "mechanicLink": "Completing Mercenary contracts lets migrants travel further."
+ },
+ {
+  "id": "ghulam_corps",
+  "tree": "civics",
+  "description": "A slave-soldier corps is raised by buying or levying boys from outside the realm, training them as soldiers loyal only to the ruler, and promoting the able. The Abbasid caliph al-Mu'tasim, ruling from 833 CE, built a guard of Turkic ghulams. The Ottoman Janissaries, formed in the fourteenth century, came to be filled through the devshirme levy of Christian boys.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Historians debate how far ghulams were truly slaves rather than freed clients, and the exact founding date of the Janissaries is uncertain.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Al-Mu'tasim's Turkic guard from 833 CE; Janissaries formed in the fourteenth century; devshirme levy of Christian boys."
+  },
+  "mechanicLink": "Completing Slave-soldier corps speeds social promotion between classes."
+ },
+ {
+  "id": "military_orders",
+  "tree": "civics",
+  "description": "Military orders were religious brotherhoods whose members took monastic vows and also fought as knights. The Knights Templar, founded in Jerusalem around 1119 CE to protect pilgrims, were followed by the Hospitallers and the Teutonic Order. These orders held castles across the Holy Land, Iberia and the Baltic, and ran estates and money transfers across Europe to support them.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The Templars' founding date is given variously between about 1118 and 1120, and the Hospitallers began as a nursing order before taking on military duties.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Templars founded in Jerusalem about 1119 CE; Hospitallers and Teutonic Order as later military orders; castles in the Holy Land, Iberia and the Baltic."
+  },
+  "mechanicLink": "Completing Military orders makes longer roads possible."
+ },
+ {
+  "id": "army_magazines",
+  "tree": "civics",
+  "description": "Army magazines are state grain stores along a frontier that feed troops without foraging. Under Louis XIV, the war minister Louvois built up a system of magazines from about the 1670s that let French armies campaign early in the season. Frederick the Great opened Prussia's stores to relieve hunger in the famine of the early 1770s.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "How decisive magazines were for early-season campaigning is debated, and the scale of Prussian famine relief from military stores is not precisely known.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Louvois's magazine system from about the 1670s; Frederick the Great opening Prussian magazines during the famine of about 1771-1772."
+  },
+  "mechanicLink": "Completing Army magazines makes granaries relieve famine more."
+ },
+ {
+  "id": "military_academies",
+  "tree": "civics",
+  "description": "Military academies train officers in tactics, mathematics, fortification and gunnery instead of leaving them to learn in the ranks. The Royal Military Academy at Woolwich, founded in 1741, trained officers for the British artillery and engineers. Similar schools followed, including the French École militaire in 1750 and the United States Military Academy at West Point in 1802.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Earlier schools for officers and engineers existed in several states, so naming a first academy depends on how formal a school must be.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Royal Military Academy, Woolwich, founded 1741; École militaire established 1750; West Point founded 1802."
+  },
+  "mechanicLink": "Completing Military academies speeds social promotion between classes."
+ },
+ {
+  "id": "military_engineers",
+  "tree": "civics",
+  "description": "A corps of engineers is a permanent body of trained officers who design fortifications, bridges and roads. In France, Sébastien Le Prestre de Vauban shaped such a corps in the late seventeenth century while ringing the frontier with fortresses. In 1716 France created the Corps des ponts et chaussées, a state body of engineers for bridges and highways.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "The French engineer corps had earlier roots, and how much of its organization was Vauban's own work rather than that of his ministers is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Vauban's role in the French engineer corps in the late seventeenth century; Corps des ponts et chaussées created in 1716."
+  },
+  "mechanicLink": "Completing Corps of engineers makes paths cheaper to build."
+ },
+ {
+  "id": "colonial_regiments",
+  "tree": "civics",
+  "description": "Colonial regiments were raised from local recruits, usually under European officers, to garrison and police colonial territories. The British East India Company formed regular battalions of Indian sepoys in the 1750s, which soon formed most of its armies. France raised the Tirailleurs sénégalais in West Africa in 1857; they later fought in both world wars.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "How voluntary recruitment was varied widely, and some colonial units relied heavily on coercion or quasi-conscription, especially in French West Africa.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: East India Company sepoy battalions from the 1750s; Tirailleurs sénégalais raised in 1857."
+  },
+  "mechanicLink": "Completing Colonial regiments extends administrative reach further."
+ },
+ {
+  "id": "counterinsurgency",
+  "tree": "civics",
+  "description": "Counter-insurgency doctrine holds that an insurgency is defeated by protecting and winning over the population, not only by killing fighters. In British Malaya, the Briggs Plan of 1950 moved rural squatters into guarded new villages to cut guerrillas off from food and recruits. David Galula's book Counterinsurgency Warfare, published in 1964, drew on French experience in Algeria.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "The Malayan resettlement was coercive, and how much the campaign's success owed to winning support rather than to force and special local conditions is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Briggs Plan in Malaya in 1950 with resettlement into new villages; Galula's Counterinsurgency Warfare published in 1964."
+  },
+  "mechanicLink": "Completing Counter-insurgency doctrine makes unrest cost less output."
+ },
+ {
+  "id": "integrated_alliance_command",
+  "tree": "civics",
+  "description": "An integrated alliance command places forces of several states under one standing joint headquarters in peacetime, with shared plans and staff. The North Atlantic Treaty was signed in 1949, and in 1951 the alliance set up Supreme Headquarters Allied Powers Europe, known as SHAPE, with Dwight Eisenhower as its first commander. Earlier coalitions had unified commands mainly in wartime.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "National governments kept final control over their forces, so how integrated the command really was in practice is a matter of interpretation.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: North Atlantic Treaty signed 1949; SHAPE established 1951 with Eisenhower as first Supreme Allied Commander."
+  },
+  "mechanicLink": "Completing Integrated alliance command speeds overland travel."
+ },
+ {
+  "id": "military_intelligence",
+  "tree": "civics",
+  "description": "Intelligence agencies are permanent bodies that gather and analyse information from agents, signals and photographs. Britain set up its Secret Service Bureau in 1909, which later divided into the domestic and foreign services known as MI5 and MI6. The United States created the Central Intelligence Agency under the National Security Act of 1947, after its wartime Office of Strategic Services.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Many states ran spies and code-breaking offices long before 1909, so the novelty lies in permanence and bureaucratic form rather than in intelligence work itself.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Secret Service Bureau founded 1909 and later split into MI5 and MI6; CIA created under the National Security Act of 1947."
+  },
+  "mechanicLink": "Completing Intelligence agencies lets formations see further."
+ },
+ {
+  "id": "nuclear_deterrence",
+  "tree": "civics",
+  "description": "Nuclear deterrence doctrine holds that war can be prevented by a credible threat of nuclear retaliation against any attacker. In January 1954 the United States Secretary of State John Foster Dulles announced the policy known as massive retaliation. Later doctrines, such as mutual assured destruction, rested on each side keeping forces able to survive a first strike and still respond.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Whether nuclear deterrence actually prevented great-power war, or other factors did, cannot be tested and remains debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Dulles's massive retaliation speech in January 1954; later doctrine of mutual assured destruction."
+  },
+  "mechanicLink": "Completing Nuclear deterrence doctrine yields more Research Points per person."
+ },
+ {
+  "id": "strategic_stockpiles",
+  "tree": "civics",
+  "description": "Strategic stockpiles are reserves of fuel, metals and other essentials that a state holds to release when imports or supplies fail. The United States began stockpiling critical materials under a law of 1939, and after the Arab oil embargo of 1973 it created the Strategic Petroleum Reserve in 1975, storing crude oil in salt caverns along the Gulf Coast.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "How effectively stockpile releases have steadied prices in crises is disputed, and holdings have often been sold off for budget reasons.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: US strategic materials stockpiling law of 1939; Strategic Petroleum Reserve created in 1975 after the 1973 embargo; storage in Gulf Coast salt caverns."
+  },
+  "mechanicLink": "Completing Strategic stockpiles lets stored goods reach markets faster."
+ },
+ {
+  "id": "total_mobilization",
+  "tree": "civics",
+  "description": "Total mobilization directs the whole economy and manpower of a state to war. When general mobilization was ordered across Europe in 1914, millions of reservists were called up within days. As the war dragged on, governments conscripted labour, controlled raw materials, fixed prices and converted factories to munitions, a pattern repeated on a larger scale in the Second World War.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Historians debate whether any state truly achieved total mobilization, and the term was popularized by later writers such as Ernst Jünger rather than used in 1914.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: General mobilization across Europe in 1914; wartime controls on labour, materials and prices in the First and Second World Wars."
+  },
+  "mechanicLink": "Completing Total mobilization makes larger specialist classes possible and lets taxes extract more output."
+ },
+ {
+  "id": "veterans_benefits",
+  "tree": "civics",
+  "description": "Veterans' benefits help former soldiers return to civilian life through schooling, training and help buying homes. The United States Servicemen's Readjustment Act of 1944, known as the GI Bill, paid college tuition and guaranteed home loans for millions of returning soldiers. Britain's Further Education and Training Scheme of 1945 paid for ex-service men and women to study.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "The GI Bill's benefits reached Black veterans far less fully because of local administration and segregation, so its effect on mobility was uneven.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: GI Bill of 1944 with tuition and home-loan guarantees; British Further Education and Training Scheme of 1945."
+  },
+  "mechanicLink": "Completing Veterans' benefits speeds social promotion between classes."
+ },
+ {
+  "id": "wartime_rationing",
+  "tree": "civics",
+  "description": "Rationing shares scarce food by fixed allowances per person, so that shortages fall evenly rather than on the poorest. Germany and Britain both rationed food during the First World War. In January 1940 Britain began rationing bacon, butter and sugar through ration books issued to every household, and some foods stayed rationed until 1954.",
+  "wordCount": 54,
+  "sources": [],
+  "uncertainty": "How fair and effective rationing was varied with black markets and enforcement, and the exact start dates of First World War rationing differ by food and region.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: German and British food rationing during the First World War; British rationing of bacon, butter and sugar from January 1940; end of rationing in 1954."
+  },
+  "mechanicLink": "Completing Ration books helps households absorb food shortfalls."
+ },
+ {
+  "id": "public_physicians",
+  "tree": "civics",
+  "description": "Some Greek cities paid a public physician from city funds to practise among their citizens. Herodotus tells how Democedes of Croton, in the later sixth century BCE, was hired first by Aegina and then by Athens at a rising yearly salary, before serving the tyrant Polycrates of Samos. Inscriptions show such public doctors in many Hellenistic cities.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Whether public physicians treated citizens free of charge or simply received a retainer to stay in the city is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Herodotus's account of Democedes hired by Aegina, Athens and Polycrates in the later sixth century BCE; inscriptions recording Hellenistic public doctors."
+  },
+  "mechanicLink": "Completing Public physicians lowers baseline mortality for all age groups."
+ },
+ {
+  "id": "public_hospitals",
+  "tree": "civics",
+  "description": "Endowed hospitals with wards, physicians and pharmacies took in the sick without charge. In the Islamic world the bimaristan spread from Baghdad, where one is reported under Harun al-Rashid around 800 CE. In Constantinople, the Pantokrator monastery founded by Emperor John II Komnenos had a hospital whose charter of 1136 set out its wards, doctors and staff.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "The early Baghdad hospital is known from later accounts, and Byzantine and Persian hospitals that may have served as models are dated with uncertainty.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Bimaristan in Baghdad under Harun al-Rashid around 800 CE; Pantokrator hospital charter of 1136."
+  },
+  "mechanicLink": "Completing Hospitals lowers baseline mortality for all age groups."
+ },
+ {
+  "id": "compulsory_vaccination",
+  "tree": "civics",
+  "description": "Compulsory vaccination laws required infants to be vaccinated against smallpox, using the cowpox method Edward Jenner published in 1798. Bavaria made vaccination compulsory in 1807, among the first states to do so. In England the Vaccination Act of 1853 required infants to be vaccinated within months of birth, and later acts added fines for parents who refused.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Which state was first to mandate vaccination depends on how mandates are defined, and enforcement often lagged the law.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Jenner's publication of 1798; Bavarian mandate of 1807; English Vaccination Act of 1853."
+  },
+  "mechanicLink": "Completing Compulsory vaccination lowers baseline mortality for all age groups."
+ },
+ {
+  "id": "child_nutrition_programmes",
+  "tree": "civics",
+  "description": "Child nutrition programmes weigh young children regularly and give extra food to those falling behind, and to pregnant and nursing mothers. India launched its Integrated Child Development Services in 1975, running village courtyard centres called anganwadis. In 1982 UNICEF began promoting growth monitoring on weight charts, together with oral rehydration, breastfeeding and immunization.",
+  "wordCount": 53,
+  "sources": [],
+  "uncertainty": "Evaluations disagree on how much such programmes reduced child undernutrition, as results depend heavily on staffing and supply.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: ICDS launched in India in 1975 with anganwadi centres; UNICEF's child survival drive including growth monitoring from 1982."
+  },
+  "mechanicLink": "Completing Child nutrition programmes better protects children in famine."
+ },
+ {
+  "id": "drug_regulation",
+  "tree": "civics",
+  "description": "Drug regulation requires new medicines to be tested before sale. In the United States, the Federal Food, Drug, and Cosmetic Act of 1938, passed after a toxic sulfanilamide elixir killed over a hundred people, required proof of safety. The Kefauver-Harris amendments of 1962, prompted by the thalidomide disaster, added proof of effectiveness through controlled trials.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "How much tighter approval rules saved lives, as against delaying useful drugs, is still argued among economists and regulators.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: US Food, Drug, and Cosmetic Act of 1938 after the Elixir Sulfanilamide deaths; Kefauver-Harris amendments of 1962 after thalidomide."
+  },
+  "mechanicLink": "Completing Drug regulation lets university medicine save more lives."
+ },
+ {
+  "id": "expanded_immunization",
+  "tree": "civics",
+  "description": "Mass immunization programmes vaccinate every child against major diseases on a fixed schedule. After Jonas Salk's polio vaccine was declared safe in 1955, the United States vaccinated millions of schoolchildren. In 1974 the World Health Organization launched its Expanded Programme on Immunization to bring vaccines against measles, polio, diphtheria, whooping cough, tetanus and tuberculosis to children worldwide.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Coverage figures in many countries were uncertain for decades, so the speed with which the programme reached its targets is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Salk polio vaccine declared safe in 1955; WHO Expanded Programme on Immunization launched in 1974 with six target diseases."
+  },
+  "mechanicLink": "Completing Mass immunization programmes better protects children in famine."
+ },
+ {
+  "id": "international_health_regulations",
+  "tree": "civics",
+  "description": "International health regulations bind states to report outbreaks of dangerous disease to a common body and to limit quarantine to agreed measures at ports and borders. They grew out of nineteenth-century sanitary conferences on cholera. The World Health Organization was founded in 1948, and its members adopted the International Sanitary Regulations in 1951, renamed the International Health Regulations in 1969.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Compliance has always been uneven, since states often delayed reporting or imposed stricter measures than agreed.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: WHO founded 1948; International Sanitary Regulations adopted 1951; renamed International Health Regulations in 1969."
+  },
+  "mechanicLink": "Completing International health regulations makes trade haulage cheaper and lowers baseline mortality for all age groups."
+ },
+ {
+  "id": "national_health_service",
+  "tree": "civics",
+  "description": "Universal health care makes medical treatment free or nearly free at the point of use for every resident, paid for from taxes or compulsory insurance. The United Kingdom's National Health Service, launched in July 1948 under health minister Aneurin Bevan, became an influential model financed mainly from general taxation. Many other countries reached universal cover through national insurance schemes instead.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Which country first achieved universal coverage depends on definitions, and several states reached near-universal insurance by gradual extension rather than one reform.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: NHS launched in July 1948 under Aneurin Bevan; funding mainly from general taxation."
+  },
+  "mechanicLink": "Completing Universal health care lowers baseline mortality for all age groups."
+ },
+ {
+  "id": "primary_health_care",
+  "tree": "civics",
+  "description": "Primary health care brings basic treatment, maternal care, vaccination and advice on clean water to every community through local health workers. In China from the late 1960s, briefly trained barefoot doctors served rural communes. In 1978 the Alma-Ata Declaration, adopted at a World Health Organization and UNICEF conference in Soviet Kazakhstan, made primary care the basis of health for all.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "How much of China's mortality decline the barefoot doctors achieved, as against sanitation and nutrition, is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Barefoot doctors in rural China from the late 1960s; Alma-Ata Declaration of 1978."
+  },
+  "mechanicLink": "Completing Primary health care lowers baseline mortality for all age groups and reduces famine deaths."
+ },
+ {
+  "id": "hunt_season_leaders",
+  "tree": "civics",
+  "description": "For a great communal hunt, bands chose a leader whose orders bound everyone, and anyone who startled the herd early could be punished; his authority ended once the meat was dried. Observers recorded such hunt police in Plains buffalo drives. Mass kill sites such as Solutré in France suggest coordinated drives are far older.",
+  "wordCount": 54,
+  "sources": [],
+  "uncertainty": "Whether Ice Age mass-kill sites needed formal temporary leaders, rather than informal cooperation, is inferred only by analogy with recorded Plains peoples.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Plains hunt police in communal buffalo hunts; Solutré horse remains as evidence of Ice Age drives; Amvrosievka bison kill site about 20,000 years ago."
+  },
+  "mechanicLink": "Completing Hunt leaders lets granaries hold more."
+ },
+ {
+  "id": "seasonal_aggregation",
+  "tree": "civics",
+  "description": "Many foraging peoples spent most of the year in small bands but gathered at a rich place in one season to feast, trade, arrange marriages and settle quarrels before dispersing. Ethnographers recorded such gatherings on several continents. Archaeologist Margaret Conkey argued that Altamira and other Magdalenian sites in Cantabria served as aggregation places roughly 17,000 years ago.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Identifying aggregation sites from art styles and finds is an inference, and Conkey's reading of Altamira remains debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Conkey's aggregation interpretation of Altamira; Magdalenian occupation of Cantabria about 17,000 years ago."
+  },
+  "mechanicLink": "Completing Seasonal gatherings allows freer movement of people and lets migrants travel further."
+ },
+ {
+  "id": "sodalities",
+  "tree": "civics",
+  "description": "Sodalities are societies that recruit members across lineages and villages, such as warrior, dance or ritual societies. Members keep a lodge, hold rites and may police camps, and a member is welcomed by his society wherever it meets. Ethnographers recorded kiva societies among Pueblo peoples and soldier societies on the Plains. Some archaeologists read Göbekli Tepe as their meeting place.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Interpreting Göbekli Tepe and Nevalı Çori as meeting places of cult societies is the view of some excavators, not an established fact.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Kiva societies among Pueblo peoples; Plains soldier societies; Göbekli Tepe enclosures about 9500 BCE interpreted as society meeting places."
+  },
+  "mechanicLink": "Completing Sodalities lets migrants travel further."
+ },
+ {
+  "id": "village_headship",
+  "tree": "civics",
+  "description": "In many farming villages one household head is recognized as headman: he speaks for the village to outsiders, calls households to common work and helps settle disputes, but leads mainly by persuasion. Ethnographers recorded headmen on every inhabited continent. In Ubaid villages of Mesopotamia, about 5500 to 4000 BCE, larger central houses are often read as homes of leading families.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Reading larger Ubaid houses as the homes of village leaders rather than large families or communal buildings is an interpretation.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Ubaid period about 5500 to 4000 BCE; larger central houses interpreted as leaders' homes."
+  },
+  "mechanicLink": "Completing Village headship gives more path-building per worker."
+ },
+ {
+  "id": "village_mayors",
+  "tree": "civics",
+  "description": "In ancient Mesopotamian kingdoms, villages and city wards had heads who answered to the palace for taxes, labour and crimes, and spoke for their communities. Old Babylonian texts of about 1900 to 1600 BCE mention the rabianum, or mayor. The Code of Hammurabi makes the town and its mayor repay a robbery victim if the robber is not caught.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The rabianum's exact powers and how he was chosen, whether locally or by appointment, are not clear from the surviving texts.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Rabianum attested in Old Babylonian texts about 1900 to 1600 BCE; the Code of Hammurabi's clause on compensation for unsolved robbery."
+  },
+  "mechanicLink": "Completing Village and ward heads lets taxes extract more output."
+ },
+ {
+  "id": "property_class_franchise",
+  "tree": "civics",
+  "description": "Property classes rank citizens by assessed wealth rather than birth, so a family that prospers can rise into the classes eligible for office. At Athens, Solon's reforms of about 594 BCE divided citizens into four classes by the yield of their land. Roman tradition credits King Servius Tullius with a similar census of classes, though its early form is uncertain.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "The details of Solon's classes come from later writers, and the Servian classes as described may reflect much later Roman arrangements.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Solon's four property classes about 594 BCE; Roman tradition of the Servian census classes."
+  },
+  "mechanicLink": "Completing Property classes speeds social promotion between classes."
+ },
+ {
+  "id": "sortition",
+  "tree": "civics",
+  "description": "Selection by lot fills offices by drawing names among eligible citizens, so no faction can buy or monopolize them and any qualified citizen may serve. In democratic Athens the archons were chosen by lot from 487 BCE, and most magistrates and the large citizen juries were also allotted, by the fourth century with stone allotment machines.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "How far lot reflected democratic principle rather than religious tradition is debated, as is the exact procedure before the fourth century.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Archons chosen by lot from 487 BCE; allotted juries; stone allotment machines in fourth-century Athens."
+  },
+  "mechanicLink": "Completing Selection by lot makes unrest cost less output."
+ },
+ {
+  "id": "village_bylaws",
+  "tree": "civics",
+  "description": "In many medieval villages the assembly of tenants set the dates of ploughing, harvest and gleaning, limited how many beasts each household could graze on the common, and fined offenders. English manorial court rolls record such by-laws from the later thirteenth century. In the Swiss forest cantons, open-air assemblies of free men, the Landsgemeinde, governed shared pastures and common affairs.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "How far by-laws were made by villagers themselves rather than imposed through the lord's court is debated, and Landsgemeinde origins are poorly documented.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: English manorial by-laws recorded from the later thirteenth century; Landsgemeinde assemblies in the Swiss forest cantons about 1300."
+  },
+  "mechanicLink": "Completing Village by-laws makes land yield more grain and makes herds yield more."
+ },
+ {
+  "id": "municipal_corporations",
+  "tree": "civics",
+  "description": "Elected town councils give ratepayers a governing body with its own budget for paving, lighting, drainage and local roads. In Prussia, the Städteordnung of 1808, part of the Stein reforms, let property-owning citizens elect councils. In England the Municipal Corporations Act of 1835 replaced closed, self-selecting corporations with councils elected by ratepayers in many boroughs.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "Early electorates were small and propertied, so how representative these councils were is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Prussian Städteordnung of 1808 under Stein; English Municipal Corporations Act of 1835."
+  },
+  "mechanicLink": "Completing Elected town councils makes paths cheaper to build."
+ },
+ {
+  "id": "referendum",
+  "tree": "civics",
+  "description": "In a referendum, voters decide a law or constitutional change directly at the ballot box rather than leaving it to representatives. Switzerland's revised federal constitution of 1874 introduced the optional referendum, letting a set number of citizens demand a popular vote on laws passed by parliament. The popular initiative followed in 1891, and both remain central to Swiss politics.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Swiss cantons and some other states held popular votes earlier, so the 1874 federal referendum is a landmark rather than an absolute first.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Optional referendum in the Swiss constitution of 1874; federal popular initiative added in 1891."
+  },
+  "mechanicLink": "Completing Referendum lets taxes extract more output."
+ },
+ {
+  "id": "secret_ballot",
+  "tree": "civics",
+  "description": "The secret ballot lets voters mark official printed ballots in private, so landlords, employers and party agents cannot see or buy their votes. The colony of Victoria in Australia adopted it in 1856, and it spread abroad as the Australian ballot. Britain enacted it in the Ballot Act of 1872, and most American states adopted it around 1890.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "South Australia and Victoria both introduced the secret ballot in 1856, so priority is sometimes contested.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Victoria's secret ballot of 1856; British Ballot Act of 1872; American adoption around 1890."
+  },
+  "mechanicLink": "Completing Secret ballot makes unrest cost less output."
+ },
+ {
+  "id": "womens_suffrage",
+  "tree": "civics",
+  "description": "Women's suffrage gives women the vote on the same terms as men. New Zealand, then a self-governing British colony, became in 1893 the first country to grant women the vote in national elections, after petitions led by Kate Sheppard. Australia followed for federal elections in 1902, Finland in 1906, and many countries after the First World War.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "New Zealand women could vote but not stand for parliament until 1919, and Australia's 1902 law excluded most Aboriginal people.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: New Zealand women's suffrage in 1893 led by Kate Sheppard; Australia 1902; Finland 1906."
+  },
+  "mechanicLink": "Completing Women's suffrage better protects children in famine."
+ },
+ {
+  "id": "zemstvo_councils",
+  "tree": "civics",
+  "description": "Elected rural councils run local schools, clinics, roads and relief for a district. In Russia the zemstvo reform of 1864, which followed the emancipation of the serfs, created district and provincial assemblies elected by landowners, townspeople and peasant communities, weighted towards the gentry. They built schools and clinics and organized grain relief. England created elected county councils in 1888.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "How effective the zemstvos were in famine relief, especially in 1891-1892, is debated, and their powers were later curtailed.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Russian zemstvo reform of 1864; English Local Government Act creating county councils in 1888."
+  },
+  "mechanicLink": "Completing Elected rural councils makes granaries relieve famine more."
+ },
+ {
+  "id": "democratic_decentralization",
+  "tree": "civics",
+  "description": "Elected village councils give each village its own funds and duties for public works and relief. In India, panchayati raj was inaugurated in Rajasthan in 1959, following a committee's recommendation of elected local bodies. The 73rd Amendment to the Indian constitution, passed in 1992, made elected village, block and district councils mandatory throughout the country.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "How much real power and money village councils gained varies greatly between Indian states, so the reform's effect is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Panchayati raj inaugurated in Rajasthan in 1959; 73rd Amendment passed in 1992."
+  },
+  "mechanicLink": "Completing Elected village councils helps households absorb food shortfalls."
+ },
+ {
+  "id": "metropolitan_government",
+  "tree": "civics",
+  "description": "Metropolitan government gives one authority responsibility for transport, water and land-use planning across a city and its suburbs, so that the whole commuting region is managed together. Metropolitan Toronto, created in 1954, federated the city with its surrounding municipalities. The Greater London Council took over a much enlarged London area in 1965 and was abolished in 1986.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Whether metropolitan authorities improve services or simply add a layer of government is contested, as the abolition of the Greater London Council shows.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Metropolitan Toronto created 1954; Greater London Council from 1965, abolished 1986."
+  },
+  "mechanicLink": "Completing Metropolitan government lets settlements draw on a wider hinterland."
+ },
+ {
+  "id": "participatory_budgeting",
+  "tree": "civics",
+  "description": "Participatory budgeting lets residents decide part of a city's investment budget directly. Neighbourhood assemblies meet each year to rank priorities such as paving, drains and clinics, elect delegates, and then monitor the works. The practice began in Porto Alegre, Brazil, in 1989 under a Workers' Party city government, and has since been adopted by many cities around the world.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Studies disagree on how much participatory budgeting shifts spending towards the poor once it is copied in places without Porto Alegre's conditions.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Participatory budgeting begun in Porto Alegre in 1989 under the Workers' Party."
+  },
+  "mechanicLink": "Completing Participatory budgeting makes paths cheaper to build."
+ },
+ {
+  "id": "proportional_representation",
+  "tree": "civics",
+  "description": "Proportional representation shares seats in an assembly among parties in proportion to their votes, so minorities and new movements win seats. Belgium became the first country to adopt a list system for national elections in 1899. After the First World War, many continental European states, including Germany, the Netherlands and Italy, adopted proportional systems around 1918 to 1920.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Some earlier local and regional elections used proportional methods, and political scientists debate whether proportional systems reduce or entrench division.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Belgium's list system of 1899; adoption in Germany, the Netherlands and Italy around 1918 to 1920."
+  },
+  "mechanicLink": "Completing Proportional representation makes grievance build up more slowly."
+ },
+ {
+  "id": "regional_devolution",
+  "tree": "civics",
+  "description": "Regional self-government gives elected assemblies and governments control of services such as schools, health and roads within a region. Italy's constitution of 1947 provided for regions, although most ordinary regions gained elected councils only in 1970. Spain's 1978 constitution created autonomous communities, and in 1999 the United Kingdom opened a Scottish Parliament and a Welsh Assembly.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Whether devolution strengthens the state or encourages separatism is debated, and powers differ greatly from region to region.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Italian regions in the 1947 constitution, elected councils from 1970; Spanish autonomous communities 1978; Scottish Parliament and Welsh Assembly 1999."
+  },
+  "mechanicLink": "Completing Regional self-government extends administrative reach further."
+ },
+ {
+  "id": "reserved_seats",
+  "tree": "civics",
+  "description": "Reserved seats set aside a share of places in legislatures or councils for groups that have been excluded, so that their members gain office and influence. India's constitution of 1950 reserved seats in parliament and state assemblies for Scheduled Castes and Scheduled Tribes. Amendments in force from 1993 reserved one third of village council seats and headships for women.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "How far reserved seats bring real power, rather than office held on behalf of others, is debated in studies of Indian local government.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Reserved seats for Scheduled Castes and Tribes in India's 1950 constitution; one third of village council seats reserved for women from 1993."
+  },
+  "mechanicLink": "Completing Reserved seats speeds social promotion between classes."
+ },
+ {
+  "id": "food_sharing_norms",
+  "tree": "civics",
+  "description": "Among recorded foragers, a hunter who brings in large game is expected to share it across the camp, and others may ask for a portion as of right, which anthropologists call demand sharing. It evens out the luck of the hunt. Butchered bones around ancient hearths suggest food sharing is very old.",
+  "wordCount": 52,
+  "sources": [],
+  "uncertainty": "How far back food-sharing norms go is inferred from butchery and hearth evidence, which shows shared processing but not the rules behind it.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Demand sharing among recorded foragers; hearth-side butchery evidence for ancient food sharing, perhaps 100,000 years or more."
+  },
+  "mechanicLink": "Completing Food-sharing norms better protects children in famine."
+ },
+ {
+  "id": "marriage_exchange",
+  "tree": "civics",
+  "description": "Out-marriage requires young people to marry outside their own band, so every family has in-laws elsewhere who can take them in when their own country fails. It is near universal among recorded foragers. Ancient genomes from Sunghir in Russia, about 34,000 years old, show the buried individuals were not closely related, implying mates came from a wide network.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "The Sunghir result rests on a few individuals, and whether out-marriage was a strict rule or a common outcome in the Ice Age cannot be known.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Sunghir burials about 34,000 years old with genomes showing no close kinship; out-marriage near-universal among recorded foragers."
+  },
+  "mechanicLink": "Completing Out-marriage between bands reduces famine deaths."
+ },
+ {
+  "id": "bridewealth",
+  "tree": "civics",
+  "description": "Bridewealth is a payment from the groom's kin to the bride's kin, often in livestock, that seals a marriage and places the children in the father's lineage, which must then support them. Ethnographers recorded it widely in Africa, as in Nuer cattle payments and Zulu lobola. The Laws of Eshnunna, about 1800 BCE, already name a marriage payment called terhatum.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Its origin with early herding is inferred by analogy, and whether Mesopotamian terhatum worked like African bridewealth is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Nuer cattle bridewealth and Zulu lobola; terhatum in the Laws of Eshnunna about 1800 BCE."
+  },
+  "mechanicLink": "Completing Bridewealth better protects children in famine."
+ },
+ {
+  "id": "communal_storage",
+  "tree": "civics",
+  "description": "Communal storehouses keep a village's grain under agreed rules, so households with a poor crop can draw on the shared stock. At Dhra' near the Dead Sea in Jordan, archaeologists found free-standing granaries with raised floors built about 9300 BCE, before plants were fully domesticated. They are among the earliest known purpose-built food stores.",
+  "wordCount": 54,
+  "sources": [],
+  "uncertainty": "Whether the Dhra' granaries were held in common or by particular households is an interpretation from their placement.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Dhra' granaries in Jordan dated about 9300 BCE; raised floors; built before full plant domestication."
+  },
+  "mechanicLink": "Completing Communal storehouses helps households absorb food shortfalls."
+ },
+ {
+  "id": "extended_household",
+  "tree": "civics",
+  "description": "In an extended-family household, parents, married children and grandchildren live under one roof and share hearths, stores and labour under a senior couple. In central Europe, farmers of the Linear Pottery culture built timber longhouses up to about 40 metres long around 5500 to 5000 BCE. Among the Iroquois, related women and their families shared longhouses in later centuries.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Whether Linear Pottery longhouses held several related couples or a single family is debated among archaeologists.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Linear Pottery longhouses up to about 40 metres, about 5500 to 5000 BCE; Iroquois matrilineal longhouses."
+  },
+  "mechanicLink": "Completing Extended-family households allows denser housing."
+ },
+ {
+  "id": "debt_remission",
+  "tree": "civics",
+  "description": "Debt remission edicts cancelled debts and freed people held in bondage for debt, usually when a king took the throne or in a crisis. Urukagina of Lagash, about 2400 BCE, recorded reforms easing burdens on the poor. Old Babylonian kings, including Hammurabi and later Ammi-saduqa, proclaimed misharum edicts, and part of Ammi-saduqa's edict survives.",
+  "wordCount": 54,
+  "sources": [],
+  "uncertainty": "How often edicts were enforced, and whether they covered commercial as well as consumption debts, is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Urukagina's reforms about 2400 BCE; misharum edicts of Hammurabi and Ammi-saduqa; surviving text of Ammi-saduqa's edict."
+  },
+  "mechanicLink": "Completing Debt remission edicts makes grievance build up more slowly."
+ },
+ {
+  "id": "ration_distribution",
+  "tree": "civics",
+  "description": "In early Mesopotamian states, temples and palaces issued standard rations of barley, oil and wool to workers and dependants, including widows and orphans. Mass-produced bevelled-rim bowls, common in the Uruk period of the late fourth millennium BCE, are often read as ration measures. The Third Dynasty of Ur, about 2100 to 2000 BCE, left thousands of tablets listing rations.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The use of bevelled-rim bowls for rations is a widely held but debated interpretation; some argue they were for baking bread or offerings.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Bevelled-rim bowls of the Uruk period; Ur III ration lists about 2100 to 2000 BCE."
+  },
+  "mechanicLink": "Completing Ration distribution reduces famine deaths and better protects children in famine."
+ },
+ {
+  "id": "alimenta",
+  "tree": "civics",
+  "description": "The alimenta were Roman imperial foundations that paid monthly allowances to support poor freeborn children in Italian towns. Begun under Nerva around 97 CE and greatly expanded by Trajan, they were funded by interest on loans made to local landowners against their estates. Bronze tablets from Veleia and the territory of the Ligures Baebiani record the scheme in detail.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Historians debate whether the scheme aimed mainly at child welfare, at raising future soldiers, or at supporting Italian agriculture.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Alimenta begun under Nerva about 97 CE and expanded by Trajan; Veleia and Ligures Baebiani tablets."
+  },
+  "mechanicLink": "Completing Child-support foundations better protects children in famine."
+ },
+ {
+  "id": "public_granaries",
+  "tree": "civics",
+  "description": "Public granaries store grain in good years and sell or issue it when harvests fail. In Rome, Gaius Gracchus's grain law of 123 BCE offered citizens grain at a fixed low price from public stores. In Han China, ever-normal granaries were set up around 54 BCE to buy grain when it was cheap and sell it when dear, steadying prices.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "How well ever-normal granaries worked in practice, and how far Roman grain distribution reached the poorest, are both debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Gaius Gracchus's grain law of 123 BCE; Han ever-normal granaries about 54 BCE."
+  },
+  "mechanicLink": "Completing Public granaries makes granaries relieve famine more."
+ },
+ {
+  "id": "legal_estates",
+  "tree": "civics",
+  "description": "Legal estates divide society by law into orders, typically clergy, nobles and commoners, each with its own rights, courts and obligations. Around 1000 CE, writers such as Adalbero of Laon described society as those who pray, those who fight and those who work. In 1302 King Philip IV summoned what is usually counted as the first Estates General of France.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "The three-order scheme was an ideal of clerical writers, and how closely real legal status followed it varied by region and period.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Adalbero of Laon's three orders around 1000 CE; Philip IV's assembly of 1302 as the first Estates General."
+  },
+  "mechanicLink": "Completing Legal estates makes unrest cost less output."
+ },
+ {
+  "id": "manorialism",
+  "tree": "civics",
+  "description": "Under manorialism, peasants held land from a lord in return for labour on his demesne, dues in kind or money, and the obligation not to leave the manor. The system is well documented in Carolingian estate surveys called polyptychs from the early ninth century, such as that of the abbey of Saint-Germain-des-Prés near Paris, listing tenants and their services.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Manorial arrangements varied widely, and historians debate how typical the great ecclesiastical estates of the polyptychs were.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Carolingian polyptychs of the early ninth century; the polyptych of Saint-Germain-des-Prés."
+  },
+  "mechanicLink": "Completing Manorialism makes land yield more grain."
+ },
+ {
+  "id": "mutual_aid_fraternities",
+  "tree": "civics",
+  "description": "Mutual-aid fraternities collected regular dues from members into a common box that paid for help in sickness and for a decent funeral. In medieval Europe, from roughly the twelfth and thirteenth centuries, craft guilds and parish fraternities often did this, alongside religious duties such as masses for dead members and candles for their patron saint.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "How much material aid fraternities actually paid, compared with their religious and social roles, varied greatly and is hard to measure.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Guild and parish fraternities with sick and burial funds from about the twelfth and thirteenth centuries."
+  },
+  "mechanicLink": "Completing Mutual-aid fraternities helps households absorb food shortfalls."
+ },
+ {
+  "id": "poor_law",
+  "tree": "civics",
+  "description": "Under a poor law, parishes levy a local rate to relieve the destitute and set able-bodied paupers to work. The Elizabethan Poor Law of 1601 consolidated earlier statutes in England, making each parish responsible for its own poor through appointed overseers. It remained the basis of English relief until the New Poor Law of 1834 imposed a stricter workhouse system.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Historians debate how generous parish relief was in practice and how much it varied between parishes.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Elizabethan Poor Law of 1601 with parish overseers; New Poor Law of 1834."
+  },
+  "mechanicLink": "Completing Poor law reduces famine deaths."
+ },
+ {
+  "id": "factory_inspection",
+  "tree": "civics",
+  "description": "Factory inspection uses state officials to enforce limits on child labour and working hours. Britain's Factory Act of 1833 barred children under nine from textile mills, limited the hours of older children, and, unlike earlier acts, appointed paid inspectors with power to enter mills. Later acts extended inspection to other industries and to adult women.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "With only a handful of inspectors at first, how well the 1833 Act was enforced is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Factory Act of 1833 barring children under nine from textile mills and appointing paid inspectors."
+  },
+  "mechanicLink": "Completing Factory inspection lowers baseline mortality for all age groups."
+ },
+ {
+  "id": "friendly_societies",
+  "tree": "civics",
+  "description": "Friendly societies were clubs of wage-earners who paid small weekly sums into a common fund that paid benefits in sickness, old age and at death. They spread widely in eighteenth-century Britain, and Rose's Act of 1793 gave registered societies legal protection. By the nineteenth century millions belonged to societies such as the Oddfellows and Foresters.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "Membership figures are uncertain because many societies never registered, and the poorest workers often could not afford dues.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Rose's Act of 1793; nineteenth-century membership of the Oddfellows and Foresters in the millions."
+  },
+  "mechanicLink": "Completing Friendly societies reduces famine deaths."
+ },
+ {
+  "id": "labour_unions",
+  "tree": "civics",
+  "description": "Trade unions are associations of workers that bargain collectively with employers and may strike to press their demands. In Britain the Combination Acts of 1799 and 1800 banned such combinations; their repeal in 1824 allowed unions to organize legally, though a law of 1825 again restricted strikes. Unions spread through industrial countries during the nineteenth century.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Workers' combinations existed long before 1824, so the repeal marks legal recognition in Britain rather than the origin of unions.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Combination Acts of 1799 and 1800; repeal in 1824; restrictive act of 1825."
+  },
+  "mechanicLink": "Completing Trade unions makes grievance build up more slowly."
+ },
+ {
+  "id": "social_insurance",
+  "tree": "civics",
+  "description": "Social insurance requires workers and employers to pay into public funds that cover sickness, accident and old age. Germany under Chancellor Otto von Bismarck pioneered it with sickness insurance in 1883, accident insurance in 1884 and old-age and invalidity pensions in 1889. Other countries, including Britain with its National Insurance Act of 1911, soon followed.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "Historians debate how far Bismarck aimed at welfare rather than at undercutting the socialist movement.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: German sickness insurance 1883, accident insurance 1884, old-age and invalidity insurance 1889; British National Insurance Act 1911."
+  },
+  "mechanicLink": "Completing Social insurance lowers baseline mortality for all age groups and makes grievance build up more slowly."
+ },
+ {
+  "id": "civil_rights_law",
+  "tree": "civics",
+  "description": "Civil rights law forbids discrimination by race, religion, sex or national origin in public life and employment. In the United States, the Civil Rights Act of 1964, passed after years of protest by the civil rights movement, outlawed segregation in public accommodations and discrimination in employment. The Voting Rights Act followed in 1965.",
+  "wordCount": 53,
+  "sources": [],
+  "uncertainty": "How quickly the law changed actual practice, as against later enforcement and court rulings, is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: US Civil Rights Act of 1964 banning segregation in public accommodations and employment discrimination; Voting Rights Act of 1965."
+  },
+  "mechanicLink": "Completing Civil rights law speeds social promotion between classes and makes grievance build up more slowly."
+ },
+ {
+  "id": "conditional_cash_transfers",
+  "tree": "civics",
+  "description": "Conditional cash transfers pay poor families, usually through mothers, a regular sum on condition that children attend school and health checks. Mexico launched Progresa in 1997, later renamed Oportunidades, and evaluated it with randomized trials. Brazil combined earlier schemes into Bolsa Família in 2003, which grew to reach tens of millions of people.",
+  "wordCount": 53,
+  "sources": [],
+  "uncertainty": "Economists debate whether the conditions themselves matter, or whether unconditional cash would achieve similar results more cheaply.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Mexico's Progresa launched 1997 with randomized evaluation; Brazil's Bolsa Família created 2003."
+  },
+  "mechanicLink": "Completing Conditional cash transfers speeds social promotion between classes and better protects children in famine."
+ },
+ {
+  "id": "school_meals",
+  "tree": "civics",
+  "description": "School meals give pupils a free or cheap midday meal, partly to improve health and attendance. In Britain, the Education (Provision of Meals) Act of 1906 allowed local authorities to feed needy children, after many recruits for the Boer War had been found poorly nourished. The United States passed its National School Lunch Act in 1946.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "How much school meals improved child health, as against wider rises in living standards, is hard to separate.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: British Education (Provision of Meals) Act of 1906 and the Boer War recruitment concerns; US National School Lunch Act of 1946."
+  },
+  "mechanicLink": "Completing School meals better protects children in famine."
+ },
+ {
+  "id": "welfare_state",
+  "tree": "civics",
+  "description": "Universal social security covers every citizen from cradle to grave through insurance for all and a safety net beneath it. In Britain, William Beveridge's report of 1942 proposed attacking five giant evils: want, disease, ignorance, squalor and idleness. The National Insurance and National Assistance Acts, in force from 1948, put much of the plan into practice.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Historians debate how far the postwar system followed Beveridge's design and how universal its benefits were in practice.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Beveridge Report of 1942 and its five giant evils; National Insurance and National Assistance Acts in force from 1948."
+  },
+  "mechanicLink": "Completing Universal social security reduces famine deaths and helps households absorb food shortfalls."
+ }
+]

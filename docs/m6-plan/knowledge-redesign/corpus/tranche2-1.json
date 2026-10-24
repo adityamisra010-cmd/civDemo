@@ -1,0 +1,1112 @@
+[
+ {
+  "id": "reason_of_state",
+  "tree": "civics",
+  "description": "Reason of state is the doctrine that a ruler's first duty is the survival and power of the state itself, placed above religious loyalties and dynastic claims. Giovanni Botero gave it a name in his treatise of 1589. Cardinal Richelieu applied it in the 1630s, when Catholic France backed Protestant powers against the Habsburgs during the Thirty Years' War.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Historians debate how far Richelieu acted from a coherent doctrine rather than practical rivalry with the Habsburgs, and the idea of state interest is older than Botero's coinage.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Botero's Della ragion di stato published 1589; Richelieu's support for Protestant powers against the Habsburgs in the 1630s."
+  },
+  "mechanicLink": "Completing this node lets taxes extract more of the economy's output."
+ },
+ {
+  "id": "social_contract",
+  "tree": "civics",
+  "description": "Social contract theory holds that political authority is not natural or divinely given but rests on an agreement among people, or on their consent. Thomas Hobbes argued in Leviathan, published in 1651, that people surrender liberty to a sovereign for security. John Locke's Two Treatises of Government, about 1689, made consent the condition of legitimate rule and justified resisting tyranny.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Scholars debate how literally Hobbes and Locke meant the contract, and whether Locke's Treatises were written before the 1688 revolution rather than to justify it.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Leviathan published 1651; Two Treatises of Government published about 1689."
+  },
+  "mechanicLink": "Completing this node makes grievance build up more slowly in the population."
+ },
+ {
+  "id": "classical_liberalism",
+  "tree": "civics",
+  "description": "Liberalism joins individual rights, the rule of law, free markets and limited government into a single political programme. Adam Smith's Wealth of Nations, published in 1776, argued that open markets and the division of labour enrich nations. John Stuart Mill's On Liberty, in 1859, defended freedom of thought and conduct against both the state and the pressure of public opinion.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Whether Smith should be counted a founder of liberalism, a word not used politically until the early nineteenth century, is debated, and liberal programmes varied widely by country.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Wealth of Nations 1776; On Liberty 1859."
+  },
+  "mechanicLink": "Completing this node lets trade close price gaps between markets faster."
+ },
+ {
+  "id": "conservatism",
+  "tree": "civics",
+  "description": "Conservatism defends inherited institutions, customs and gradual reform against plans to rebuild society from abstract principles. Its classic statement is Edmund Burke's Reflections on the Revolution in France, published in 1790, which warned that tearing down established order would end in violence. Through the nineteenth century, parties of crown, church and landed property across Europe drew on such arguments.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Burke saw himself as a Whig, and how far later conservative parties actually followed his thought rather than simply defending privilege is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Burke's Reflections published 1790."
+  },
+  "mechanicLink": "Completing this node extends the polity's administrative reach further from its centre."
+ },
+ {
+  "id": "imperialism_doctrine",
+  "tree": "civics",
+  "description": "New imperialism names the late nineteenth-century scramble by European powers, later joined by the United States and Japan, for colonies in Africa, Asia and the Pacific. Advocates presented overseas empire as an economic and strategic necessity and as a civilizing mission. At the Berlin Conference of 1884-1885, European states agreed rules for claiming African territory among themselves.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Historians dispute whether economic motives, strategic rivalry or domestic politics drove the scramble, and how far the Berlin Conference itself partitioned Africa rather than setting procedural rules.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Berlin Conference 1884-1885; timing of the scramble in the late nineteenth century."
+  },
+  "mechanicLink": "Completing this node lets new settlements be founded by larger parties of settlers."
+ },
+ {
+  "id": "nationalism",
+  "tree": "civics",
+  "description": "Nationalism holds that a people sharing language, history and culture forms a nation, and that the nation should govern itself in its own state. Revolutionary France recast subjects as citizens of a nation and in 1793 called it to arms in a mass levy. Fichte's Addresses to the German Nation, delivered around 1807-1808, urged Germans to see themselves as one people.",
+  "wordCount": 61,
+  "sources": [],
+  "uncertainty": "Scholars disagree whether nations are ancient communities or largely modern constructions of the late eighteenth and nineteenth centuries.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Mass levy of 1793; Fichte's Addresses delivered in Berlin around 1807-1808."
+  },
+  "mechanicLink": "Completing this node lets taxes extract more of the economy's output."
+ },
+ {
+  "id": "popular_sovereignty",
+  "tree": "civics",
+  "description": "Popular sovereignty is the principle that supreme political authority belongs to the people or the nation, exercised through elected representatives. The American Declaration of Independence of 1776 grounded government in the consent of the governed, and France's Declaration of the Rights of Man and of the Citizen, in 1789, stated that sovereignty resides essentially in the nation.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "The idea has medieval and early modern antecedents, and who counted as the sovereign people in 1776 and 1789 was sharply restricted, which historians weigh differently.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Declaration of Independence 1776; Declaration of the Rights of Man 1789 and its article placing sovereignty in the nation."
+  },
+  "mechanicLink": "Completing this node makes grievance build up more slowly in the population."
+ },
+ {
+  "id": "progressivism",
+  "tree": "civics",
+  "description": "Progressivism was a reform movement in the United States from about the 1890s to the 1910s. Investigative journalists, nicknamed muckrakers, exposed corrupt city machines, unsafe factories and adulterated food, and reformers turned to experts and regulation for remedies. Upton Sinclair's novel The Jungle helped secure the Pure Food and Drug Act and the Meat Inspection Act in 1906.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Historians debate whether progressivism was one movement or many, and how far its reforms served middle-class reformers, business interests or workers.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Pure Food and Drug Act and Meat Inspection Act both 1906; role of The Jungle in their passage."
+  },
+  "mechanicLink": "Completing this node lowers baseline mortality for all age cohorts and helps households absorb food shortfalls."
+ },
+ {
+  "id": "social_democracy",
+  "tree": "civics",
+  "description": "Social democracy seeks socialist goals through elections and parliament rather than revolution, pressing for social insurance, labour law and public services. German socialists united on the Gotha Programme of 1875 and adopted the Erfurt Programme in 1891. Eduard Bernstein's revisionism, set out around 1899, argued that capitalism could be reformed step by step rather than overthrown.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "The Erfurt Programme still used Marxist revolutionary language, so when German social democracy became reformist in practice rather than in doctrine is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Gotha Programme 1875; Erfurt Programme 1891; Bernstein's main revisionist book about 1899."
+  },
+  "mechanicLink": "Completing this node reduces the output lost to unrest."
+ },
+ {
+  "id": "socialism",
+  "tree": "civics",
+  "description": "Socialism arose in early industrial Europe as a demand that productive property be held in common and that class exploitation end. Robert Owen founded cooperative communities such as New Harmony in Indiana in the 1820s. In 1848 Karl Marx and Friedrich Engels published the Communist Manifesto, calling on workers of all countries to unite and overthrow capitalist rule.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Socialism had many early strands, including Saint-Simonian, Fourierist and Owenite ones, and which deserves to be called its origin is a matter of definition.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: New Harmony founded in the 1820s; Communist Manifesto published 1848."
+  },
+  "mechanicLink": "Completing this node helps households absorb food shortfalls."
+ },
+ {
+  "id": "civil_disobedience",
+  "tree": "civics",
+  "description": "Nonviolent resistance means breaking unjust laws openly and accepting punishment, using boycotts, strikes and marches to win over public opinion. Mohandas Gandhi led satyagraha campaigns in India against the Rowlatt Acts in 1919 and against the salt tax with the Salt March of 1930. In 1955-1956 the Montgomery bus boycott in Alabama challenged racial segregation on city buses.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "How much nonviolent campaigns achieved on their own, as against wider political and economic pressures, is debated for both India and the American civil rights movement.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Rowlatt satyagraha 1919; Salt March 1930; Montgomery bus boycott 1955-1956."
+  },
+  "mechanicLink": "Completing this node reduces the output lost to unrest."
+ },
+ {
+  "id": "developmentalism",
+  "tree": "civics",
+  "description": "A developmental state steers private industry toward national catch-up, using cheap credit, output targets, import protection and export promotion. Japan's Ministry of International Trade and Industry, created in 1949, became the model case. Latin American economists at the UN Economic Commission for Latin America argued for import substitution, and South Korea set up an Economic Planning Board in 1961.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Economists still dispute how much East Asian growth owed to state guidance rather than to high saving, education and export markets.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: MITI created 1949; South Korean Economic Planning Board 1961; ECLA import-substitution doctrine around 1950."
+  },
+  "mechanicLink": "Completing this node allows larger specialist classes."
+ },
+ {
+  "id": "fascism",
+  "tree": "civics",
+  "description": "Fascism is an ultranationalist mass movement that rejects liberal democracy and socialism, glorifies violence and seeks national rebirth under a single party and leader. Benito Mussolini founded the Fasci di Combattimento in Milan in 1919, drawing many members from war veterans. Its squads attacked socialists and unions, and similar movements soon spread across interwar Europe.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "Scholars have long disagreed on a definition of fascism and on which interwar movements outside Italy should count as fascist.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Fasci di Combattimento founded in Milan in 1919."
+  },
+  "mechanicLink": "Completing this node lets taxes extract more of the economy's output."
+ },
+ {
+  "id": "liberal_internationalism",
+  "tree": "civics",
+  "description": "Liberal internationalism holds that peace is best kept by open trade, national self-determination, collective security and international institutions. Woodrow Wilson's Fourteen Points of 1918 set out such a programme and helped lead to the League of Nations. After the Second World War, the United Nations Charter of 1945 renewed the attempt with a Security Council of great powers.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Historians debate how consistently its proponents applied self-determination, especially to colonized peoples, and how far the League's failure discredited the approach.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Fourteen Points 1918; United Nations Charter 1945."
+  },
+  "mechanicLink": "Completing this node lets trade close price gaps between markets faster."
+ },
+ {
+  "id": "multiculturalism",
+  "tree": "civics",
+  "description": "Multiculturalism is a policy of recognizing and supporting the languages and cultures of immigrant and minority communities as part of the nation, instead of expecting assimilation. Canada announced an official multiculturalism policy under Pierre Trudeau in 1971. Sweden adopted an immigrant and minority policy in 1975 built on equality, freedom of cultural choice and partnership.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "The term covers very different policies in different countries, and its effects on integration and social cohesion remain politically contested.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Canadian policy announced 1971; Swedish immigrant and minority policy 1975 and its three stated goals."
+  },
+  "mechanicLink": "Completing this node allows freer movement of people."
+ },
+ {
+  "id": "neoliberalism",
+  "tree": "civics",
+  "description": "Neoliberalism promotes markets over state management through privatization, deregulation, independent central banks and free movement of capital. Its intellectual network took shape with the Mont Pèlerin Society, founded by Friedrich Hayek and others in Switzerland in 1947. It entered government around 1979-1980, under Margaret Thatcher in Britain and Ronald Reagan in the United States.",
+  "wordCount": 54,
+  "sources": [],
+  "uncertainty": "The label is used more by critics than by adherents, and scholars dispute whether it names a coherent doctrine or a loose family of policies.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Mont Pèlerin Society founded 1947; Thatcher and Reagan governments from 1979 and 1981."
+  },
+  "mechanicLink": "Completing this node makes hauling trade goods cheaper."
+ },
+ {
+  "id": "pan_movements",
+  "tree": "civics",
+  "description": "Pan-national movements seek to unite peoples spread across many states by shared language, history or continent. The Fifth Pan-African Congress met in Manchester in 1945, and the Arab League was founded in Cairo the same year. In 1963 newly independent states created the Organisation of African Unity in Addis Ababa to coordinate policy and support decolonization.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "How much these organizations achieved beyond symbolic unity is debated, since member states usually kept full sovereignty.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Fifth Pan-African Congress in Manchester 1945; Arab League founded 1945; OAU founded in Addis Ababa 1963."
+  },
+  "mechanicLink": "Completing this node lets migrants travel further."
+ },
+ {
+  "id": "populism_modern",
+  "tree": "civics",
+  "description": "Mass populism is a style of politics in which a leader claims to speak for the common people against a corrupt elite. Getúlio Vargas, who took power in Brazil in 1930, and Juan Perón, elected president of Argentina in 1946, built followings among urban workers, expanded labour rights and tied the trade unions closely to the state.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Populism is a contested concept, and scholars disagree whether it is an ideology, a political style or a strategy of mobilization.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Vargas takes power in 1930; Perón elected in 1946."
+  },
+  "mechanicLink": "Completing this node makes grievance build up more slowly in the population."
+ },
+ {
+  "id": "vanguard_party",
+  "tree": "civics",
+  "description": "A vanguard party is a disciplined organization of professional revolutionaries that claims to lead the working class rather than follow it. Vladimir Lenin set out the idea in What Is to Be Done?, written in 1902. In October 1917 his Bolshevik party seized power in Petrograd and went on to govern Russia as the single ruling party.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Historians debate how far later one-party rule followed from Lenin's 1902 doctrine as opposed to civil war and the circumstances after 1917.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: What Is to Be Done? published 1902; Bolshevik seizure of power in Petrograd, October 1917."
+  },
+  "mechanicLink": "Completing this node speeds the promotion of people into higher social classes."
+ },
+ {
+  "id": "band_territories",
+  "tree": "civics",
+  "description": "Forager bands usually occupy a known home range, but its boundaries are permeable. Among the Ju/'hoansi of the Kalahari, ethnographers recorded that each group holds rights around waterholes, and others may forage there by asking leave through kin. Distinct regional styles of personal ornaments in Aurignacian Europe, roughly 40,000 to 30,000 years ago, may mark such group areas.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Projecting recent forager land rules into the Palaeolithic is an analogy, and reading ornament styles as territorial markers is an archaeological inference.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Ju/'hoansi access to territories by kin permission; regional Aurignacian ornament styles about 40,000 to 30,000 years ago."
+  },
+  "mechanicLink": "Completing this node helps households absorb food shortfalls."
+ },
+ {
+  "id": "customary_sanctions",
+  "tree": "civics",
+  "description": "In small societies without police or courts, order is kept by shared norms and informal penalties. Ethnographers of foragers, including the Ju/'hoansi of the Kalahari, describe ridicule of boasters, gossip, shunning of shirkers and, in serious cases, expulsion or collective action against a persistent bully. Such sanctions are inferred to be very ancient, though they leave no direct archaeological trace.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "There is no direct date: the antiquity of these sanctions rests on analogy with recent foragers, whose ways of life may differ from prehistoric ones.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Ethnographic reports of ridicule, shunning and expulsion among Kalahari foragers."
+  },
+  "mechanicLink": "Completing this node reduces the output lost to unrest."
+ },
+ {
+  "id": "blood_compensation",
+  "tree": "civics",
+  "description": "Compensation for injury replaces revenge with payment: the offender's kin pay the victim's kin a set price for a killing or wound. Many societies recorded by ethnographers settled feuds with livestock or valuables. The laws of Ur-Nammu, from about 2100 BCE, already fixed silver payments for injuries, and early medieval Germanic law codes listed a wergild for each person.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The practice before writing is inferred from ethnography, and the date and authorship of the Ur-Nammu laws, sometimes attributed to his son Shulgi, are uncertain.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Ur-Nammu laws about 2100 BCE with silver payments for injuries; wergild in early medieval Germanic codes."
+  },
+  "mechanicLink": "Completing this node makes grievance build up more slowly in the population."
+ },
+ {
+  "id": "clearance_usufruct",
+  "tree": "civics",
+  "description": "Under rights of clearance, the person who clears a plot from forest or bush holds it while cropping it, but it returns to the lineage or community when left fallow. Ethnographers record such rules among shifting cultivators in Africa, Southeast Asia and Amazonia. Similar rules are inferred for early farmers opening the European forest from about 5500 BCE.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Land rules leave no direct trace, so their use by early European farmers is an inference from ethnography, and some early farmers may have kept fields permanently.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Clearance rights among swidden farmers in Africa, Southeast Asia and Amazonia; farming spreading into central European forest about 5500 BCE."
+  },
+  "mechanicLink": "Completing this node lets settlements draw on a wider hinterland."
+ },
+ {
+  "id": "household_land_tenure",
+  "tree": "civics",
+  "description": "Household fields are plots worked by one family within marked boundaries and passed to its heirs, with neighbours recognizing the holding. At the Céide Fields in County Mayo, Ireland, Neolithic farmers of about 3700 to 3500 BCE built long stone walls dividing the land into regular fields, now preserved under blanket bog. Who owned them is debated.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "The Ceide Fields walls show divided land, but whether plots were held by households, lineages or the community cannot be read directly from them.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Céide Fields dated about 3700 to 3500 BCE; regular stone-walled fields preserved under bog."
+  },
+  "mechanicLink": "Completing this node raises the grain each unit of land yields."
+ },
+ {
+  "id": "witnessed_agreements",
+  "tree": "civics",
+  "description": "A witnessed agreement is a sale, loan or pledge made before named witnesses who can later swear to its terms, letting strangers trust a deal. The practice almost certainly predates writing. Some of the earliest Sumerian land-sale documents, including tablets from Fara, ancient Shuruppak, of about 2600 BCE, list witnesses alongside the buyer, seller and price.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "The pre-literate practice is inferred, and the dating of Early Dynastic tablets from Fara rests on stylistic and stratigraphic estimates.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Fara (Shuruppak) land-sale tablets about 2600 BCE with witness lists."
+  },
+  "mechanicLink": "Completing this node lets trade close price gaps between markets faster."
+ },
+ {
+  "id": "family_law",
+  "tree": "civics",
+  "description": "Family law fixes rules for marriage, divorce, adoption and inheritance, deciding who belongs to a household and how its property passes on. Mesopotamian codes wrote such rules down early: the laws of Ur-Nammu, about 2100 BCE, set payments on divorce, and the Code of Hammurabi, about 1754 BCE, regulated dowries, adoption and the division of estates among sons.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Scholars debate whether the Mesopotamian codes were applied in courts or served mainly as royal statements of justice.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Ur-Nammu laws about 2100 BCE with divorce payments; Hammurabi's code about 1754 BCE on dowry, adoption and inheritance."
+  },
+  "mechanicLink": "Completing this node better protects children during famine."
+ },
+ {
+  "id": "karum_courts",
+  "tree": "civics",
+  "description": "A karum was a quarter of foreign merchants attached to a host town. At Kanesh, near modern Kayseri in Turkey, Assyrian traders from Assur ran such a colony around 1900 BCE, dealing in tin and textiles. Thousands of their clay tablets show the karum assembly settling disputes over debts and goods under the authority of their home city.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "The exact chronology of the Kanesh colony depends on Middle Chronology dates, and the division of judicial power between the karum and Assur is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Old Assyrian colony at Kanesh around 1900 BCE; karum assembly deciding merchants' disputes."
+  },
+  "mechanicLink": "Completing this node makes hauling trade goods cheaper."
+ },
+ {
+  "id": "royal_judges",
+  "tree": "civics",
+  "description": "Royal judges are officials appointed to hear disputes, take sworn testimony and pronounce verdicts in the king's name. Under the Third Dynasty of Ur, about 2100 to 2000 BCE, scribes recorded completed lawsuits on tablets called ditilla, a term meaning a finished case. The Code of Hammurabi, about 1754 BCE, punished a judge who altered a sealed judgment.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Mesopotamian absolute dates depend on the chronology used, and how widely the ditilla procedure operated beyond a few cities is uncertain.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Ur III ditilla records about 2100 to 2000 BCE; Hammurabi's law against a judge changing a sealed verdict."
+  },
+  "mechanicLink": "Completing this node reduces the output lost to unrest."
+ },
+ {
+  "id": "citizenship_grants",
+  "tree": "civics",
+  "description": "Rome extended citizenship to outsiders on a scale no ancient city had matched. After the Latin War ended in 338 BCE, several Latin towns received full or partial Roman rights, and freed slaves of citizens became citizens themselves. In 212 CE the emperor Caracalla's Constitutio Antoniniana granted citizenship to almost all free inhabitants of the empire.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "The exact terms of the 338 BCE settlement come from later historians, and the motives behind Caracalla's edict, fiscal or ideological, are debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Latin settlement of 338 BCE; Constitutio Antoniniana 212 CE."
+  },
+  "mechanicLink": "Completing this node allows freer movement of people."
+ },
+ {
+  "id": "jurists",
+  "tree": "civics",
+  "description": "A legal profession arose when trained specialists began to advise clients, plead cases and write commentaries that shaped the law itself. In the late Roman Republic, from about 100 BCE, jurists such as Quintus Mucius Scaevola gave opinions and systematized civil law. Around 160 CE Gaius wrote the Institutes, a teaching textbook later drawn on in Justinian's codification.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Roman jurists were long unpaid aristocratic advisers distinct from courtroom advocates, so whether they formed a profession in the modern sense is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Quintus Mucius Scaevola's systematic work about 100 BCE; Gaius' Institutes about 160 CE."
+  },
+  "mechanicLink": "Completing this node lets trade close price gaps between markets faster."
+ },
+ {
+  "id": "jury_courts",
+  "tree": "civics",
+  "description": "Jury courts give the decision of guilt or liability to panels of ordinary citizens rather than officials. In democratic Athens from about 462 BCE, large juries drawn from citizens over thirty decided most cases. In England, Henry II's Assize of Clarendon of 1166 used sworn local men to present suspects, a forerunner of the later trial jury.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "The connection between the Athenian courts and medieval English juries is one of analogy, not descent, and the jury's English origins are traced to several sources.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Ephialtes' reforms and Athenian popular courts about 462 BCE; Assize of Clarendon 1166."
+  },
+  "mechanicLink": "Completing this node makes grievance build up more slowly in the population."
+ },
+ {
+  "id": "appellate_courts",
+  "tree": "civics",
+  "description": "Courts of appeal let a higher authority review local judgments and hear complaints against officials. In the Abbasid caliphate, mazalim courts, held by the caliph or his deputies, heard grievances about abuses by governors and tax collectors. In thirteenth-century France the Parlement of Paris took shape as the royal court that heard appeals from lordly and provincial courts.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Mazalim jurisdiction may predate the Abbasids, and how regularly it worked in practice, rather than as an ideal of justice, is uncertain.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Abbasid mazalim hearings from about 800 CE; Parlement of Paris emerging around the mid-thirteenth century."
+  },
+  "mechanicLink": "Completing this node makes grievance build up more slowly in the population."
+ },
+ {
+  "id": "common_law",
+  "tree": "civics",
+  "description": "Common law is law shared across a whole realm, built by judges from decided cases rather than from a single code. It grew in England under Henry II, whose reforms of the 1160s and 1170s sent royal justices on circuit. The treatise known as Glanvill, written around 1188, described the writs and procedures of the king's courts.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "The authorship of Glanvill is uncertain, and the formal doctrine of binding precedent developed only centuries after Henry II.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Henry II's judicial reforms of the 1160s and 1170s; Glanvill treatise about 1188."
+  },
+  "mechanicLink": "Completing this node extends the polity's administrative reach further from its centre."
+ },
+ {
+  "id": "notaries",
+  "tree": "civics",
+  "description": "Public notaries were licensed writers who drafted contracts, wills and sales in standard forms and kept registers, so a notarial deed counted as proof in court. The oldest surviving notarial register, kept in Genoa by Giovanni Scriba, dates from the 1150s. In Bologna about 1255, Rolandino de' Passaggeri wrote a model handbook of the notarial art.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Notaries descend from Roman and early medieval scribes, so the 1150s register marks the earliest survival rather than the origin of the profession.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Giovanni Scriba's Genoese cartulary from the 1150s; Rolandino's Summa about 1255."
+  },
+  "mechanicLink": "Completing this node lets trade close price gaps between markets faster."
+ },
+ {
+  "id": "bankruptcy_law",
+  "tree": "civics",
+  "description": "Bankruptcy law gathers a failed trader's assets and divides them among creditors by fixed rules instead of a scramble. England's first bankruptcy statute, passed in 1542 under Henry VIII, treated bankrupts as offenders against creditors. An act of 1705 allowed honest bankrupts who cooperated to receive a discharge from remaining debts and start trading again.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "Italian city-states had earlier procedures for failed merchants, so calling the English statute the origin of bankruptcy law depends on definition.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: English bankruptcy statute 1542; discharge for cooperating bankrupts in the act of 1705."
+  },
+  "mechanicLink": "Completing this node lets trade close price gaps between markets faster."
+ },
+ {
+  "id": "copyright",
+  "tree": "civics",
+  "description": "Copyright gives authors a time-limited exclusive right to print and sell their works. Before it, printing privileges went to printers and guilds, such as the Stationers' Company in London. The Statute of Anne, passed in Britain in 1710, vested the right in authors for fourteen years, renewable once, after which works passed into free use.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "Historians debate whether the Statute of Anne mainly protected authors or was a measure to regulate the London book trade after the Stationers' monopoly lapsed.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Statute of Anne 1710; fourteen-year term renewable once."
+  },
+  "mechanicLink": "Completing this node raises the Civics Points generated per person."
+ },
+ {
+  "id": "administrative_courts",
+  "tree": "civics",
+  "description": "Administrative courts let citizens challenge the acts of government officials before specialist judges. France's Council of State, created under Napoleon in 1799, advised on disputes between citizens and the administration. A law of 1872 gave it independent judicial power, and its rulings came to annul acts by which officials exceeded their legal authority.",
+  "wordCount": 53,
+  "sources": [],
+  "uncertainty": "Royal councils had judged administrative disputes before 1799, and the Council of State's independence developed gradually rather than at a single date.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Council of State created 1799; law of 1872 granting delegated judicial power."
+  },
+  "mechanicLink": "Completing this node extends the polity's administrative reach further from its centre."
+ },
+ {
+  "id": "civil_code",
+  "tree": "civics",
+  "description": "A civil code replaces scattered local customs with one systematic statute governing persons, family, property and contracts. The French Civil Code of 1804, often called the Napoleonic Code, unified the law of a country that had been divided among hundreds of local customs. It spread with French conquest and inspired codes across Europe, Latin America and beyond.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Prussia and Austria produced codifications around the same period, so the French code was influential rather than wholly first of its kind.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: French Civil Code promulgated 1804; pre-code France divided among many regional customs."
+  },
+  "mechanicLink": "Completing this node lets trade close price gaps between markets faster."
+ },
+ {
+  "id": "judicial_review",
+  "tree": "civics",
+  "description": "Judicial review is the power of courts to strike down laws or official acts that conflict with a constitution. It was asserted most famously by the United States Supreme Court in Marbury v. Madison in 1803, where Chief Justice John Marshall held that a law repugnant to the constitution is void.",
+  "wordCount": 51,
+  "sources": [],
+  "uncertainty": "Courts had voided laws before 1803 in some American states, and how far the framers of the Constitution intended judicial review is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Marbury v. Madison decided 1803; Marshall's reasoning on void legislation."
+  },
+  "mechanicLink": "Completing this node makes grievance build up more slowly in the population."
+ },
+ {
+  "id": "married_womens_property",
+  "tree": "civics",
+  "description": "Under the common-law rule of coverture, a married woman's property and earnings passed to her husband's control. Married women's property acts ended this. Mississippi passed an early act in 1839. In England the Married Women's Property Act of 1882 let wives hold property and earnings in their own right, make contracts and sue in their own names.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "The early American acts were often narrow, aimed at shielding family property from a husband's creditors, so how much they changed women's lives is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Mississippi act 1839; English Married Women's Property Act 1882."
+  },
+  "mechanicLink": "Completing this node allows larger specialist classes."
+ },
+ {
+  "id": "penitentiary_reform",
+  "tree": "civics",
+  "description": "Penitentiaries replaced public whipping, branding and the gallows for most crimes with prison terms graded by offence, meant to reform through labour, discipline and reflection. Philadelphia's Walnut Street Jail introduced cellular confinement in 1790. London's Pentonville prison, opened in 1842, applied the separate system, isolating prisoners in individual cells, and became a model copied widely.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "Historians disagree whether the penitentiary was a humane reform or a new and more thorough system of control.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Walnut Street Jail penitentiary wing 1790; Pentonville opened 1842."
+  },
+  "mechanicLink": "Completing this node reduces the output lost to unrest."
+ },
+ {
+  "id": "trademark_law",
+  "tree": "civics",
+  "description": "Trademark law lets makers register a distinctive name or sign for their goods and makes copying it an offence, so distant buyers can trust a brand. France passed a general trademark law in 1857. Britain's Trade Marks Registration Act of 1875 opened a register, and the Bass brewery's red triangle is often cited as its first entry.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Makers' marks and guild marks are far older, so these laws mark the start of modern registration rather than of trademarks themselves.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: French trademark law 1857; UK Trade Marks Registration Act 1875; Bass red triangle as the first registered mark."
+  },
+  "mechanicLink": "Completing this node gets stocks to market faster."
+ },
+ {
+  "id": "commercial_arbitration",
+  "tree": "civics",
+  "description": "International commercial arbitration lets traders from different countries submit disputes to private arbitrators instead of foreign courts. The International Chamber of Commerce set up its Court of Arbitration in Paris in 1923. The New York Convention of 1958 obliged signatory states to recognize and enforce foreign arbitral awards, and most trading nations have since joined it.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Merchants used arbitration for centuries before 1923, and how uniformly national courts enforce awards under the convention still varies.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: ICC Court of Arbitration founded in Paris 1923; New York Convention 1958."
+  },
+  "mechanicLink": "Completing this node makes hauling trade goods cheaper."
+ },
+ {
+  "id": "consumer_protection",
+  "tree": "civics",
+  "description": "Consumer protection law requires that goods be honestly labelled, safe and of the stated quantity, and gives authorities power to act against dangerous products. In the United States the Federal Food, Drug, and Cosmetic Act of 1938 required new drugs to be shown safe before sale. Britain's Fair Trading Act of 1973 created a director general to oversee trading practices.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Weights-and-measures and food-adulteration rules are much older, so where modern consumer protection begins depends on definition.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: US Federal Food, Drug, and Cosmetic Act 1938; UK Fair Trading Act 1973 and its director general."
+  },
+  "mechanicLink": "Completing this node lets trade close price gaps between markets faster."
+ },
+ {
+  "id": "equal_pay_law",
+  "tree": "civics",
+  "description": "Equal pay laws require employers to pay women and men the same for the same work, or for work of equal value. The International Labour Organization adopted its Equal Remuneration Convention in 1951. The United States passed the Equal Pay Act in 1963, and Britain its Equal Pay Act in 1970, which came into force in 1975.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Economists debate how much of the remaining gender pay gap such laws can reach, since much of it reflects differences in occupation and hours.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: ILO Equal Remuneration Convention 1951; US Equal Pay Act 1963; UK Equal Pay Act 1970, in force 1975."
+  },
+  "mechanicLink": "Completing this node allows larger specialist classes."
+ },
+ {
+  "id": "human_rights",
+  "tree": "civics",
+  "description": "Human rights law holds that certain rights belong to every person by virtue of being human, not by grant of a particular state. The Universal Declaration of Human Rights, adopted by the United Nations General Assembly in Paris in 1948, set out civil, political, economic and social rights. Later treaties created committees and courts to monitor how states comply.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The Declaration itself is not a binding treaty, and how effective international monitoring has been at changing state behaviour is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Universal Declaration adopted by the UN General Assembly in Paris, 1948."
+  },
+  "mechanicLink": "Completing this node makes grievance build up more slowly in the population."
+ },
+ {
+  "id": "international_tribunals",
+  "tree": "civics",
+  "description": "International tribunals try individuals, including heads of state and commanders, for war crimes, genocide and crimes against humanity. The Nuremberg trials of 1945-1946 judged leading Nazi officials before judges from four Allied powers. After tribunals for the former Yugoslavia and Rwanda in the 1990s, a permanent International Criminal Court began work in The Hague in 2002.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Critics have long questioned whether such courts deliver impartial justice or victors' justice, and several major states do not accept the International Criminal Court.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Nuremberg trials 1945-1946; ICC in operation from 2002."
+  },
+  "mechanicLink": "Completing this node reduces the output lost to unrest."
+ },
+ {
+  "id": "land_reform",
+  "tree": "civics",
+  "description": "Land-to-the-tiller reform buys out or expropriates absentee landlords and transfers their land to the tenants who farm it. Mexico's constitution of 1917, in Article 27, provided for restoring land to villages as ejidos. Under American occupation, Japan's land reform of 1946 made most tenants owners, and Taiwan carried out a similar programme culminating in 1953.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "Economists dispute how much later growth in Japan and Taiwan owed to land reform, and Mexican redistribution was slow and uneven until the 1930s.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Mexican constitution Article 27, 1917; Japanese land reform 1946; Taiwan Land-to-the-Tiller programme 1953."
+  },
+  "mechanicLink": "Completing this node raises the output of each farmer."
+ },
+ {
+  "id": "land_titling",
+  "tree": "civics",
+  "description": "Land titling programmes survey plots held by custom or informal occupation and issue registered titles to the families who use them, so land can be sold, inherited or mortgaged with confidence. Thailand began a long national titling project in 1984. In Peru, an agency created in 1996 registered titles for residents of informal urban settlements around Lima and other cities.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Studies disagree on how much formal titles raise investment and access to credit, as argued by Hernando de Soto and others.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Thailand Land Titling Project from 1984; Peru's COFOPRI created 1996."
+  },
+  "mechanicLink": "Completing this node makes buildings last longer."
+ },
+ {
+  "id": "legal_aid",
+  "tree": "civics",
+  "description": "Legal aid pays for lawyers for people who cannot afford them, in criminal trials and in civil disputes. England's Legal Aid and Advice Act of 1949 created a national scheme. In the United States, the Supreme Court ruled in Gideon v. Wainwright in 1963 that states must provide counsel to poor defendants accused of serious crimes.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Charitable legal aid societies existed earlier, and the adequacy of state funding for legal aid has been disputed ever since these reforms.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Legal Aid and Advice Act 1949; Gideon v. Wainwright 1963."
+  },
+  "mechanicLink": "Completing this node speeds the promotion of people into higher social classes."
+ },
+ {
+  "id": "patent_cooperation",
+  "tree": "civics",
+  "description": "The Patent Cooperation Treaty, signed in Washington in 1970, lets an inventor file one international application that preserves rights in many member countries, with a single search report on earlier claims. It is administered by the World Intellectual Property Organization. The TRIPS agreement, concluded in 1994 with the founding of the World Trade Organization, set minimum patent standards for members.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Economists debate whether stronger and more uniform patent protection under TRIPS spurs innovation or mainly raises costs for poorer countries.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Patent Cooperation Treaty signed in Washington 1970; TRIPS concluded 1994."
+  },
+  "mechanicLink": "Completing this node lets universities cut research costs further."
+ },
+ {
+  "id": "refugee_law",
+  "tree": "civics",
+  "description": "Refugee law gives people fleeing persecution travel papers and protection from being sent back to danger. After the Russian Revolution, the League of Nations high commissioner Fridtjof Nansen introduced identity certificates in 1922, later called Nansen passports, for stateless refugees. The UN Refugee Convention of 1951 defined a refugee and established the principle of non-refoulement.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "The 1951 Convention was at first limited to events before 1951 in Europe, and states still interpret its protections in different ways.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Nansen certificates introduced 1922; Refugee Convention 1951."
+  },
+  "mechanicLink": "Completing this node lets migrants travel further."
+ },
+ {
+  "id": "tenancy_protection",
+  "tree": "civics",
+  "description": "Tenancy protection gives sharecroppers and tenants security against eviction and a fair, fixed rent or share. Ireland's Land Act of 1881 granted fair rent, fixity of tenure and free sale, an early example. In West Bengal, Operation Barga, launched in 1978, registered sharecroppers so they could not be evicted while they paid the legal share of the crop.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Studies of Operation Barga differ on how much of the later rise in West Bengal farm output it caused.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Irish Land Act 1881 and its three Fs; Operation Barga launched 1978."
+  },
+  "mechanicLink": "Completing this node raises the grain each unit of land yields."
+ },
+ {
+  "id": "big_man_polity",
+  "tree": "civics",
+  "description": "A big-man polity has leaders whose standing comes from personal achievement rather than inherited office. Ethnographers in Melanesia, especially in highland New Guinea, described big men who gathered followers by sponsoring feasts and pig exchanges, and lost them when generosity failed. Archaeologists infer similar competitive feasting from food debris at some early Neolithic villages, though the reading is debated.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Applying the Melanesian big-man model to prehistory is an analogy, and some anthropologists question how sharply big men differ from chiefs.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Big men in highland New Guinea ethnography; Neolithic feasting deposits around 6500 BCE."
+  },
+  "mechanicLink": "Completing this node raises the output of each farmer."
+ },
+ {
+  "id": "segmentary_lineage",
+  "tree": "civics",
+  "description": "In a segmentary lineage society, descent groups nest inside larger ones: close segments may feud, but unite against more distant ones and against outsiders. There is no permanent chief, and elders or mediators settle disputes. Classic descriptions include Evans-Pritchard's study of the Nuer of South Sudan, published in 1940, and the Bohannans' work on the Tiv of Nigeria.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Later anthropologists argued the segmentary model described ideals more than practice, and its use for Neolithic villages is entirely inferential.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Evans-Pritchard's The Nuer published 1940; Bohannans' Tiv ethnography of the 1950s."
+  },
+  "mechanicLink": "Completing this node allows freer movement of people."
+ },
+ {
+  "id": "overkingship",
+  "tree": "civics",
+  "description": "Overkingship is a hierarchy in which a great king commands lesser kings who keep their thrones in return for oaths, tribute and military service. A treaty from Ebla in Syria, about 2400 BCE, set terms for the town of Abarsal. Hittite kings of the fourteenth century BCE governed much of Anatolia and Syria through written vassal treaties.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "The location of Abarsal and whether the Ebla text is a treaty between equals or an imposed overlordship are debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Ebla-Abarsal treaty about 2400 BCE; Hittite vassal treaties of the fourteenth century BCE."
+  },
+  "mechanicLink": "Completing this node lets taxes extract more of the economy's output."
+ },
+ {
+  "id": "tyranny",
+  "tree": "civics",
+  "description": "In archaic Greece a tyrant was a ruler who seized power in a city outside the traditional aristocratic order, often with popular support or hired soldiers. Cypselus took Corinth around 657 BCE, and Peisistratus established lasting rule at Athens around 546 BCE. Tyrants often ruled through patronage, festivals and public works such as temples, fountains and harbours.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Dates for the early tyrants rest on later Greek writers, and the date of Cypselus in particular is disputed by several decades.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Cypselus at Corinth about 657 BCE; Peisistratus' lasting rule from about 546 BCE."
+  },
+  "mechanicLink": "Completing this node increases the path-building done per worker."
+ },
+ {
+  "id": "steppe_empire",
+  "tree": "civics",
+  "description": "A steppe empire is a confederation of nomadic clans united under a single ruler, with the army organized in decimal units of tens, hundreds and thousands and lands assigned to the ruler's kin. Modu Chanyu forged the Xiongnu empire around 209 BCE. Temüjin, proclaimed Chinggis Khan in 1206, built the Mongol Empire on similar lines.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "Much about the Xiongnu comes from Chinese sources written by their enemies, and how centralized steppe empires really were is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Modu becomes Xiongnu ruler about 209 BCE; Temüjin proclaimed Chinggis Khan 1206."
+  },
+  "mechanicLink": "Completing this node raises herd yields."
+ },
+ {
+  "id": "caliphate",
+  "tree": "civics",
+  "description": "The caliphate was the office of successor to the Prophet Muhammad as leader of the Muslim community in war, law and taxation. The first four caliphs, known as the Rashidun, ruled from Medina after 632 CE. The Abbasid dynasty, which took power in 750, governed from Baghdad through provincial governors and central revenue registers known as diwans.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "The early caliphs' authority over religious law was contested from the start, and Sunni and Shia traditions understand the office differently.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Rashidun caliphate from 632 CE; Abbasid takeover 750; Baghdad as capital."
+  },
+  "mechanicLink": "Completing this node lets taxes extract more of the economy's output."
+ },
+ {
+  "id": "elective_monarchy",
+  "tree": "civics",
+  "description": "In an elective monarchy the ruler is chosen by a body of electors rather than by birth alone, and often must accept conditions before crowning. The Golden Bull of 1356 fixed seven prince-electors for the Holy Roman Empire. From 1573 the Polish-Lithuanian Commonwealth elected its kings in assemblies of nobles, who bound each one with the Henrician Articles.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Elections in the Holy Roman Empire often went to the same dynasty, so how elective the monarchy was in practice is a matter of interpretation.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Golden Bull 1356; first Polish-Lithuanian free election 1573 and the Henrician Articles."
+  },
+  "mechanicLink": "Completing this node allows larger specialist classes."
+ },
+ {
+  "id": "bonapartist_regime",
+  "tree": "civics",
+  "description": "A plebiscitary empire combines authoritarian rule with periodic popular votes that confirm the ruler's power. Napoleon Bonaparte became Emperor of the French in 1804 after a plebiscite, governing through appointed prefects, a mass army and public works. His nephew Louis-Napoleon repeated the pattern, founding the Second Empire in 1852 after a coup and plebiscite.",
+  "wordCount": 54,
+  "sources": [],
+  "uncertainty": "The plebiscites were held under heavy official pressure, so how far they measured genuine consent is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Imperial plebiscite 1804; Second Empire proclaimed 1852 after the 1851 coup."
+  },
+  "mechanicLink": "Completing this node extends the polity's administrative reach further from its centre."
+ },
+ {
+  "id": "revolutionary_republic",
+  "tree": "civics",
+  "description": "A revolutionary republic is founded by overthrowing a monarchy in the name of the people, and often governs through emergency bodies while it fights for survival. The French First Republic, proclaimed in September 1792, raised mass citizen armies and ruled through the Committee of Public Safety during the Terror of 1793-1794. Later revolutions frequently borrowed its symbols and institutions.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Historians have long debated whether the Terror was forced by war and counter-revolution or grew from revolutionary ideology itself.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: First Republic proclaimed September 1792; Committee of Public Safety and the Terror 1793-1794."
+  },
+  "mechanicLink": "Completing this node speeds the promotion of people into higher social classes."
+ },
+ {
+  "id": "clerical_republic",
+  "tree": "civics",
+  "description": "A clerical republic combines elected institutions with supervision by senior clergy. The Islamic Republic of Iran, established in 1979 after the revolution against the Shah, has an elected president and parliament, but a Supreme Leader holds ultimate authority, and a Guardian Council of clerics and jurists can veto laws and disqualify candidates for office.",
+  "wordCount": 54,
+  "sources": [],
+  "uncertainty": "Iran is close to a unique case, so whether a clerical republic is a general regime type or a single historical instance is debatable.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Islamic Republic established 1979; Guardian Council veto over laws and candidates."
+  },
+  "mechanicLink": "Completing this node extends the polity's administrative reach further from its centre."
+ },
+ {
+  "id": "dominant_party_system",
+  "tree": "civics",
+  "description": "In a dominant-party system, one party wins every national election for decades while opposition parties remain legal and compete. Mexico's National Revolutionary Party, founded in 1929 and later renamed the Institutional Revolutionary Party, held the presidency until 2000. Japan's Liberal Democratic Party, formed in 1955, governed almost without interruption for decades, with real contests fought among its factions.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Scholars debate where a dominant-party democracy ends and a competitive authoritarian regime begins, and Mexico's elections were long considered unfair.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Mexican party founded 1929, presidency held until 2000; Japan's LDP formed 1955."
+  },
+  "mechanicLink": "Completing this node makes grievance build up more slowly in the population."
+ },
+ {
+  "id": "fascist_state",
+  "tree": "civics",
+  "description": "A fascist state is a single-party dictatorship of an ultranationalist movement under a leader, mobilizing society through propaganda, mass organizations and state-controlled corporations of employers and workers. Mussolini became Italian prime minister in 1922 and built a dictatorship over the following years. In Germany, Hitler took power in 1933 and quickly abolished rival parties and independent trade unions.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Whether Nazi Germany and Fascist Italy belong to one regime type, and how fully the Italian corporate state functioned in practice, are long-standing debates.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Mussolini prime minister 1922; Hitler in power 1933 and the abolition of parties and unions that year."
+  },
+  "mechanicLink": "Completing this node increases the path-building done per worker."
+ },
+ {
+  "id": "personalist_dictatorship",
+  "tree": "civics",
+  "description": "In a personalist dictatorship, power rests on one ruler's family, cronies and a personally loyal guard rather than on a party, army or other institution. Rafael Trujillo dominated the Dominican Republic from 1930 until his assassination in 1961. Mobutu Sese Seko seized power in Congo in 1965, renamed it Zaire, and ruled through patronage for over three decades.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Political scientists classify regimes differently, and many dictatorships mix personalist rule with party or military institutions.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Trujillo in power 1930 to 1961; Mobutu's coup 1965 and rule until 1997."
+  },
+  "mechanicLink": "Completing this node lets taxes extract more of the economy's output."
+ },
+ {
+  "id": "semi_presidential_republic",
+  "tree": "civics",
+  "description": "A semi-presidential republic divides executive power between a directly elected president and a prime minister answerable to parliament. Germany's Weimar constitution of 1919 created an early version, with a popularly elected president holding emergency powers. The French Fifth Republic, founded in 1958 under Charles de Gaulle, became the model, adding direct presidential election in 1962.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "Political scientists dispute the exact definition of semi-presidentialism, and whether the Weimar system's design contributed to its collapse is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Weimar constitution 1919; Fifth Republic 1958; direct presidential election from the 1962 referendum."
+  },
+  "mechanicLink": "Completing this node reduces the output lost to unrest."
+ },
+ {
+  "id": "supranational_union",
+  "tree": "civics",
+  "description": "A supranational union pools parts of its members' sovereignty in common institutions with their own law, court and market. Six western European states founded the European Coal and Steel Community in 1951 under a shared High Authority. The Maastricht Treaty created the European Union in 1993, building a single market with free movement of goods and people.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Scholars still debate whether the European Union is best understood as a federation in the making or as a cooperative arrangement among sovereign states.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: ECSC treaty 1951; Maastricht Treaty in force 1993."
+  },
+  "mechanicLink": "Completing this node lets trade close price gaps between markets faster and allows freer movement of people."
+ },
+ {
+  "id": "coal_fuel",
+  "tree": "technology",
+  "description": "Coal became a major fuel where forests had been cut back. In Northern Song China, from around 1000 CE, coal heated homes in the capital Kaifeng and fuelled iron furnaces in the north. In thirteenth-century England, sea-coal shipped from Newcastle to London was burned by lime-burners and smiths, and complaints about its smoke were already being made.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "The scale of Song coal use and of iron output is estimated from scattered records and is debated among historians.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Coal use in Kaifeng and Song iron smelting around 1000 CE; Newcastle sea-coal in London in the thirteenth century."
+  },
+  "mechanicLink": "Completing this node lets settlements draw on a wider hinterland and raises yields from mining, logging, quarrying and fishing."
+ },
+ {
+  "id": "town_gas",
+  "tree": "technology",
+  "description": "Coal gas is made by heating coal in closed retorts and piping the gas to burners. William Murdoch lit his house at Redruth in Cornwall with it in 1792. The Gas Light and Coke Company, chartered in London in 1812, laid mains under the streets, and within decades gaslight illuminated city streets, mills and homes across Europe and North America.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Several experimenters, including Philippe Lebon in France, worked on gas lighting at the same time, so priority is shared.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Murdoch's house at Redruth lit in 1792; Gas Light and Coke Company chartered 1812."
+  },
+  "mechanicLink": "Completing this node raises the Civics Points generated per person."
+ },
+ {
+  "id": "sustained_yield_forestry",
+  "tree": "technology",
+  "description": "Sustained-yield forestry divides woodland into measured plots, cuts them in rotation and replants, so that no more timber is taken each year than grows back. Colbert's French forest ordinance of 1669 regulated royal forests partly to secure naval timber. In Saxony in 1713, the mining official Hans Carl von Carlowitz wrote Sylvicultura oeconomica, often credited with the idea of sustainability.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Coppice rotations and local forest rules are much older, so the 1669 and 1713 texts formalized rather than invented the practice.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Colbert's forest ordinance 1669; Carlowitz's Sylvicultura oeconomica 1713."
+  },
+  "mechanicLink": "Completing this node raises yields from mining, logging, quarrying and fishing."
+ },
+ {
+  "id": "tinplate",
+  "tree": "technology",
+  "description": "Tinplate is thin iron sheet coated with tin so it resists rust, making light, cheap containers and kitchenware. It was produced in Bohemia and the Upper Palatinate by the late Middle Ages from hammered sheet dipped in molten tin. In about 1720 ironworks at Pontypool in Wales began making it from rolled sheet, and tinplate later supplied the tin can.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "The start of tinplating in central Europe is poorly documented, and the node record itself calls its date approximate.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Late medieval tinplate in Bohemia and the Upper Palatinate; rolled tinplate at Pontypool about 1720."
+  },
+  "mechanicLink": "Completing this node reduces the grain lost to rot in storage."
+ },
+ {
+  "id": "crucible_cast_steel",
+  "tree": "technology",
+  "description": "Crucible cast steel is made by melting blister steel in sealed clay crucibles and casting it into ingots, producing uniform steel free of slag. Benjamin Huntsman, a clockmaker near Sheffield, developed the process around 1740, firing his crucibles with coke. Sheffield became famous for its files, razors and cutlery. Older crucible steels had also been made in South Asia.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The exact year of Huntsman's success is uncertain, and earlier crucible steels in South and Central Asia were made by a different route.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Huntsman's process near Sheffield about 1740; South Asian crucible steel predating it."
+  },
+  "mechanicLink": "Completing this node increases what equipped farmers gain from their tools."
+ },
+ {
+  "id": "galvanized_iron",
+  "tree": "technology",
+  "description": "Galvanized corrugated iron is iron sheet coated with zinc against rust and pressed into ridges that make it stiff. Henry Palmer patented corrugated iron in London in 1829, and the French engineer Stanislas Sorel patented hot-dip galvanizing in 1837. Light, cheap and shipped flat, it roofed warehouses, settlers' houses and mining camps across the British Empire and beyond.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Zinc coating had been tried before Sorel's patent, so his priority applies to the commercial hot-dip process rather than the idea.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Palmer's corrugated iron patent 1829; Sorel's galvanizing patent 1837."
+  },
+  "mechanicLink": "Completing this node lowers upkeep costs and reduces the timber needed to build homes."
+ }
+]

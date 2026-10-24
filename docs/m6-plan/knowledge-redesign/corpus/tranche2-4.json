@@ -1,0 +1,1097 @@
+[
+ {
+  "id": "customs_tolls",
+  "tree": "civics",
+  "description": "Customs and tolls are duties charged on goods as they cross a frontier, ford a river or pass through a city gate. Some of the earliest detailed evidence comes from Old Assyrian trade of about 1900 BCE, when merchant letters found at Kanesh in Anatolia record tolls paid to local rulers along the donkey-caravan route from Assur.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Tolls were probably levied before writing recorded them, so the Old Assyrian evidence marks the earliest well-documented case rather than the origin.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Old Assyrian merchant letters from Kanesh dated about 1900 BCE; tolls paid to local rulers on the Assur-Anatolia caravan route."
+  },
+  "mechanicLink": "Completing Customs and tolls lets taxes extract a larger share of output."
+ },
+ {
+  "id": "state_treasury",
+  "tree": "civics",
+  "description": "Royal storehouses held a ruler's revenue in kind, such as grain, wine, livestock and silver, and released it only against sealed written orders. The Persepolis Fortification tablets, thousands of clay records from about 509 to 493 BCE under Darius I, document such stores and the rations issued to workers, travellers and officials around the Achaemenid heartland.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "How far the Persepolis system, known from one region, represents practice across the whole Achaemenid empire is uncertain.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Persepolis Fortification tablets dated about 509-493 BCE under Darius I; the tablets record stores and ration issues."
+  },
+  "mechanicLink": "Completing Royal storehouses lets granaries hold more years of reserves."
+ },
+ {
+  "id": "household_registers",
+  "tree": "civics",
+  "description": "Household registers list every household and its members so the state can levy taxes, labour and soldiers. In the Chinese state of Qin, households were registered and grouped in fives from about the 370s BCE, a system of mutual responsibility later tightened under Shang Yang. The Han census of 2 CE counted close to 58 million people.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "The exact date and scope of the earliest Qin registration rest on later historical texts, and how accurately Han registers counted people is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Qin household registration in groups of five from about 375 BCE; Han census of 2 CE recording close to 58 million people."
+  },
+  "mechanicLink": "Completing Household registers lets taxes extract a larger share of output."
+ },
+ {
+  "id": "state_monopolies",
+  "tree": "civics",
+  "description": "A state monopoly reserves the making or selling of a staple to the government, turning an everyday necessity into revenue. Under Emperor Wu of Han, salt and iron production was taken over by state agencies from about 117 BCE to pay for wars against the Xiongnu. A court debate of 81 BCE, the Discourses on Salt and Iron, contested it.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Sources give slightly different years for the start of the Han monopolies, and their economic effects were disputed even at the time.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Han salt and iron monopolies established about 117 BCE under Emperor Wu; the court debate of 81 BCE recorded as the Discourses on Salt and Iron."
+  },
+  "mechanicLink": "Completing State monopolies raises yields from mining, logging, quarrying and fishing."
+ },
+ {
+  "id": "chancery_rolls",
+  "tree": "civics",
+  "description": "Chancery enrolment means copying outgoing charters, letters and writs onto long parchment rolls before they leave the royal writing office. In England the practice began around 1199, early in King John's reign, under Chancellor Hubert Walter, and charter, patent and close rolls followed. Kept for centuries, the rolls let the crown check what it had already granted or ordered.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Earlier governments kept some copies of outgoing documents, and how much credit belongs to Hubert Walter personally is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: English chancery enrolment beginning about 1199 under Hubert Walter; the charter, patent and close roll series."
+  },
+  "mechanicLink": "Completing Chancery enrolment extends how far administrative authority reaches before it fades."
+ },
+ {
+  "id": "exchequer_audit",
+  "tree": "civics",
+  "description": "The Exchequer was the English royal accounting office, named after the chequered cloth on which counters were moved to reckon sums. It appears under Henry I around 1110. Twice a year sheriffs answered for the revenues of their shires, and the results were written on pipe rolls; the oldest surviving roll covers the year 1129 to 1130.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "The precise date and origins of the Exchequer are debated, including possible Anglo-Saxon or Norman antecedents.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Exchequer appearing under Henry I about 1110; oldest surviving pipe roll covering 1129-1130."
+  },
+  "mechanicLink": "Completing Exchequer audit lets taxes extract a larger share of output."
+ },
+ {
+  "id": "parish_tithe",
+  "tree": "civics",
+  "description": "The tithe was a tenth of farm produce owed to the church, an obligation modelled on biblical precedent. In 779 Charlemagne's Capitulary of Herstal made payment compulsory throughout the Frankish realm, and the duty spread across Latin Christendom. From roughly the twelfth century large tithe barns were built to store the sheaves, and many still stand in England and France.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "How regularly the tithe was actually collected in the early Middle Ages, and how much reached the parish rather than lay or monastic holders, varied widely.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Capitulary of Herstal of 779 making the tithe compulsory; tithe barns built from roughly the twelfth century."
+  },
+  "mechanicLink": "Completing Parish tithe lets granaries hold more years of reserves."
+ },
+ {
+  "id": "provincial_intendants",
+  "tree": "civics",
+  "description": "Intendants were royal commissioners sent to the provinces of France to supervise justice, policing and finance on the king's behalf. Unlike officeholders who had bought their posts, they could be recalled at will. Occasional missions became a permanent network around 1635 under Cardinal Richelieu, and after a brief suppression during the Fronde the intendants were restored under Louis XIV.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Historians debate how far intendants actually centralised power rather than negotiating with entrenched local elites.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Intendants made permanent about 1635 under Richelieu; suppression during the Fronde and restoration under Louis XIV."
+  },
+  "mechanicLink": "Completing Intendants extends how far administrative authority reaches before it fades."
+ },
+ {
+  "id": "civil_registration",
+  "tree": "civics",
+  "description": "Civil registration is the recording of births, marriages and deaths by public officials rather than by parish clergy. Revolutionary France transferred these registers from the church to municipal authorities in 1792, and England and Wales opened a General Register Office in 1837. Such records gave each person a legal identity and let officials measure infant and child mortality.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Parish registers had already recorded baptisms and burials for centuries, so the break lay in public control and completeness rather than in recording itself.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: French secular civil registration law of 1792; General Register Office for England and Wales opened in 1837."
+  },
+  "mechanicLink": "Completing Civil registration better protects children during famine."
+ },
+ {
+  "id": "income_tax",
+  "tree": "civics",
+  "description": "An income tax charges people on what they earn each year rather than on the land, goods or windows they own. Britain's first general income tax was introduced by William Pitt the Younger in 1799 to pay for war with Revolutionary France. Repealed in 1816, it was revived by Robert Peel in 1842 and has been levied ever since.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Earlier levies touched some forms of income, so whether 1799 marks the first true income tax depends on definition.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Pitt's income tax of 1799; repeal in 1816 and revival by Peel in 1842."
+  },
+  "mechanicLink": "Completing Income tax lets taxes extract a larger share of output."
+ },
+ {
+  "id": "internal_toll_abolition",
+  "tree": "civics",
+  "description": "Many early modern states were divided by internal customs lines, river tolls and town dues that taxed goods again and again on the way to market. Revolutionary France swept away its internal customs barriers in 1790 and moved duties to the national frontier. Prussia's customs law of 1818 did the same for its scattered territories, preparing the later German Zollverein.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Some local dues, such as town entry taxes on food, survived the reforms, so abolition was less complete than the laws suggest.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Abolition of French internal customs barriers in 1790; Prussian customs law of 1818."
+  },
+  "mechanicLink": "Completing Abolition of internal tolls makes hauling trade goods cheaper."
+ },
+ {
+  "id": "merit_civil_service",
+  "tree": "civics",
+  "description": "A merit civil service recruits officials through open competitive examinations and protects them from dismissal for political reasons. Britain's Northcote-Trevelyan Report of 1854 urged this in place of patronage, and open competition spread through the home civil service from 1870. In the United States the Pendleton Act of 1883 began replacing the spoils system after President Garfield's assassination.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Imperial China had long recruited officials by examination, and historians debate how far its example influenced British reformers.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Northcote-Trevelyan Report of 1854; open competition from 1870; Pendleton Act of 1883 following Garfield's assassination."
+  },
+  "mechanicLink": "Completing Merit civil service speeds promotion between social classes."
+ },
+ {
+  "id": "prefectoral_system",
+  "tree": "civics",
+  "description": "A prefect is a state official placed at the head of a territorial division to apply central policy there. Napoleon Bonaparte's law of February 1800, dated 28 Pluviose year VIII in the revolutionary calendar, gave each French department a prefect appointed from Paris and answerable to the interior ministry. Italy and other European states later copied the model.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Historians debate how much the prefects owed to the intendants of the old monarchy and how uniformly central orders were applied in practice.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Law of 28 Pluviose year VIII (February 1800) creating prefects; later adoption of the model in Italy."
+  },
+  "mechanicLink": "Completing Prefects extends how far administrative authority reaches before it fades."
+ },
+ {
+  "id": "customs_automation",
+  "tree": "civics",
+  "description": "Modern customs services replaced paper declarations and blanket inspections with electronic filing and checks targeted by risk. The ASYCUDA software, developed by UNCTAD from the early 1980s, was adopted by many developing countries. The Harmonized System, a shared six-digit product nomenclature, came into force in 1988, letting goods be classified the same way by most of the world's customs services.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Clearance times and the gains from automation vary greatly between countries, and published estimates of its effects differ.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: ASYCUDA developed by UNCTAD from the early 1980s; Harmonized System entering into force in 1988."
+  },
+  "mechanicLink": "Completing Customs modernization makes hauling trade goods cheaper."
+ },
+ {
+  "id": "executive_budget",
+  "tree": "civics",
+  "description": "An executive budget gathers every department's spending requests into a single plan prepared under the head of government and presented to the legislature. In the United States the Budget and Accounting Act of 1921 created the Bureau of the Budget to draft it and the General Accounting Office to audit spending afterwards. Before then, agencies largely bargained with Congress separately.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Britain and other parliamentary states had unified budgets much earlier, so the American act is one landmark among several rather than a first.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Budget and Accounting Act of 1921; creation of the Bureau of the Budget and the General Accounting Office."
+  },
+  "mechanicLink": "Completing Executive budget extends how far administrative authority reaches before it fades."
+ },
+ {
+  "id": "fiscal_equalization",
+  "tree": "civics",
+  "description": "Fiscal equalization moves revenue from a central treasury to poorer regions by formula, so every province can offer similar public services at similar tax rates. Australia set up its Commonwealth Grants Commission in 1933 to advise on payments to weaker states, and Canada introduced a formal equalization programme in 1957. Germany and other federations run comparable schemes.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Economists debate whether equalization payments mainly sustain services or also weaken incentives for poorer regions to grow.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Commonwealth Grants Commission established in 1933; Canadian equalization programme begun in 1957."
+  },
+  "mechanicLink": "Completing Fiscal equalization lets households absorb larger shortfalls."
+ },
+ {
+  "id": "public_procurement",
+  "tree": "civics",
+  "description": "Competitive procurement requires public authorities to advertise contracts, publish their rules and award work to the best compliant bid, limiting favouritism and graft. Sealed tenders for public works are much older, but international rules came late: the Tokyo Round of GATT produced a Government Procurement Code in 1979, and the WTO Agreement on Government Procurement followed in 1994.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Open tendering reduces some corruption but invites bid rigging and low-bid shortcuts, and its net effect on cost and quality is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: GATT Government Procurement Code of 1979; WTO Agreement on Government Procurement of 1994."
+  },
+  "mechanicLink": "Completing Competitive procurement makes paths cheaper to build."
+ },
+ {
+  "id": "sample_surveys",
+  "tree": "civics",
+  "description": "A sample survey estimates totals for a whole population by measuring a randomly chosen part of it. Prasanta Chandra Mahalanobis used large random samples to estimate Bengal's jute harvest from the late 1930s, and the United States began a monthly sample survey of employment in 1940, the ancestor of today's Current Population Survey.",
+  "wordCount": 53,
+  "sources": [],
+  "uncertainty": "Earlier statisticians such as Anders Kiaer had promoted representative sampling, so priority for the method is shared among several pioneers.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Mahalanobis jute crop surveys in Bengal from the late 1930s; US monthly employment sample survey begun in 1940."
+  },
+  "mechanicLink": "Completing Sample surveys gets stored goods to market faster."
+ },
+ {
+  "id": "value_added_tax",
+  "tree": "civics",
+  "description": "A value-added tax is collected in stages: each business charges tax on its sales and deducts the tax already paid on its purchases, so only the value it adds is taxed. The French official Maurice Lauré designed the first practical version, introduced in 1954. Denmark and Brazil adopted broad versions in 1967, and the tax has since spread worldwide.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The idea had earlier proposers, including the German Wilhelm von Siemens, and the 1954 French tax initially covered only part of the economy.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Maurice Lauré and the French VAT of 1954; Danish and Brazilian adoption in 1967."
+  },
+  "mechanicLink": "Completing Value-added tax lets taxes extract a larger share of output and lets trade close price gaps between markets faster (the resulting fraction is capped at 0.95)."
+ },
+ {
+  "id": "withholding_tax",
+  "tree": "civics",
+  "description": "Tax withholding makes employers deduct income tax from wages before paying them and pass it directly to the treasury. Wartime needs drove its spread: the United States adopted general withholding with the Current Tax Payment Act of 1943, and Britain introduced Pay As You Earn in 1944. Collection at the source made taxing mass incomes practical.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Some withholding existed earlier on particular incomes, so the wartime laws extended an old technique rather than inventing it.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: US Current Tax Payment Act of 1943; British Pay As You Earn introduced in 1944."
+  },
+  "mechanicLink": "Completing Tax withholding lets taxes extract a larger share of output."
+ },
+ {
+  "id": "gift_exchange",
+  "tree": "civics",
+  "description": "Gift exchange binds people through obligation: a gift creates a debt to be repaid later, often between partners in distant groups. Sea shells carried far inland in the Upper Palaeolithic, about 40,000 years ago, and obsidian traded hundreds of kilometres from Anatolian sources by about 10,000 years ago are often read as traces of such networks.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Archaeology shows that materials moved, not how: whether they passed as gifts, by barter or by people travelling to the source is inferred from ethnography.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Shell ornaments moved far inland about 40,000 years ago; Anatolian obsidian traded hundreds of kilometres by about 10,000 years ago."
+  },
+  "mechanicLink": "Completing Gift exchange networks lets trade close price gaps between markets faster (the resulting fraction is capped at 0.95)."
+ },
+ {
+  "id": "barter_exchange",
+  "tree": "civics",
+  "description": "Barter is the direct swap of goods at agreed equivalents, settled at once rather than through a later return gift. In the farming villages of Neolithic Anatolia and the Levant, obsidian, sea shells and other materials moved between settlements by about 7000 BCE. Anthropologists doubt that barter was ever the main form of exchange before money, as older economists assumed.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "How much Neolithic exchange was barter rather than gift or redistribution cannot be read from the objects themselves.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Obsidian and shell moving between Anatolian and Levantine villages by about 7000 BCE."
+  },
+  "mechanicLink": "Completing Barter of staples gets stored goods to market faster."
+ },
+ {
+  "id": "craft_specialists",
+  "tree": "civics",
+  "description": "Craft specialization arises when some people spend part of their working time making goods for others, such as pots, beads or metal ornaments, and receive food in return. Finely painted Halaf pottery of northern Mesopotamia, around 6000 BCE, suggests skilled potters, and the worked gold of the Varna cemetery in Bulgaria, about 4500 BCE, points to accomplished early goldsmiths.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Whether Halaf pottery and Varna gold were made by part-time or full-time specialists, and how they were supported, is inferred and debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Halaf painted pottery about 6000 BCE; Varna cemetery gold about 4500 BCE."
+  },
+  "mechanicLink": "Completing Craft specialization allows larger specialist classes."
+ },
+ {
+  "id": "stock_friendship",
+  "tree": "civics",
+  "description": "Stock friendship is a pastoral practice in which herders place animals with partners in other districts and keep the partners' animals in return. Spreading a herd this way insures against drought, disease and raiding, and builds lasting alliances. Ethnographers have described it among East African peoples such as the Turkana, Jie and Maasai; its prehistoric origins are inferred, not documented.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "No archaeological evidence dates the practice; its link to early African herding around 4500 BCE is an inference from modern ethnography.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Stock friendship recorded among the Turkana, Jie and Maasai."
+  },
+  "mechanicLink": "Completing Stock friendship raises herd yields."
+ },
+ {
+  "id": "interest_bearing_credit",
+  "tree": "civics",
+  "description": "Loans at interest appear in some of the earliest written records. Texts from Lagash in southern Mesopotamia, around 2400 BCE, refer to barley and silver lent at interest. The Laws of Hammurabi, about 1754 BCE, set maximum rates, commonly given as one-fifth a year for silver and one-third for barley. Such loans financed seed, trade and household emergencies.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Exact readings of early Lagash debt texts and of Hammurabi's rate clauses differ between translators, and actual rates often departed from the legal maximum.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Lagash barley and silver loans at interest about 2400 BCE; Hammurabi's maximum rates of about 20 percent for silver and 33 percent for barley."
+  },
+  "mechanicLink": "Completing Interest-bearing loans lets trade close price gaps between markets faster (the resulting fraction is capped at 0.95)."
+ },
+ {
+  "id": "naruqqum_partnership",
+  "tree": "civics",
+  "description": "A naruqqum, literally a money-bag, was an investment partnership of Old Assyrian merchants around 1900 BCE. Tablets from Kanesh, modern Kultepe in Anatolia, record several investors pooling gold for one travelling merchant, often for ten years or more. He traded with the capital between Assur and Anatolia, and profits were shared at the end of the term.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "The exact terms of profit sharing and how widespread such contracts were are reconstructed from a small number of tablets.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Naruqqum partnerships in Kanesh tablets about 1900 BCE; terms of ten years or more with capital in gold."
+  },
+  "mechanicLink": "Completing Investment partnerships gets stored goods to market faster."
+ },
+ {
+  "id": "banking_houses",
+  "tree": "civics",
+  "description": "Private banking houses were family firms that took deposits, paid on written orders, lent money and managed property. In Babylonia the Egibi family was active across much of the sixth century BCE, and the Murashu house of Nippur, later in the fifth century, leased land and lent to holders of Persian royal land grants. Both left large clay archives.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Whether these firms are best called banks, rather than entrepreneurial households with credit operations, is debated by historians.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Egibi family of Babylon active in the sixth century BCE; Murashu house of Nippur in the late fifth century BCE."
+  },
+  "mechanicLink": "Completing Private banking houses gets stored goods to market faster."
+ },
+ {
+  "id": "maritime_loans",
+  "tree": "civics",
+  "description": "A sea loan advanced money to a merchant against his ship or cargo, repayable with high interest only if the voyage ended safely; if the ship was lost, the lender bore the loss. Courtroom speeches preserved under the name of Demosthenes show such loans financing Athenian grain voyages in the fourth century BCE. The device combined credit with insurance.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "How common sea loans were, and the typical interest rates, are inferred from a handful of lawsuits that may show unusual cases.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Athenian maritime loans of the fourth century BCE known from speeches in the Demosthenic corpus."
+  },
+  "mechanicLink": "Completing Sea loans makes hauling trade goods cheaper."
+ },
+ {
+  "id": "commenda",
+  "tree": "civics",
+  "description": "In a commenda one partner supplied capital and another travelled with the goods; if the venture prospered they divided the profit in agreed shares, while losses fell on the capital. The Islamic world knew the arrangement as qirad or mudaraba by the early Middle Ages, and Venetian contracts of the same kind, called colleganza, survive from about 1072.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Whether the European commenda was borrowed from Islamic qirad or developed independently from Roman and Byzantine practice is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Islamic qirad contracts by the early Middle Ages; surviving Venetian colleganza contracts from about 1072."
+  },
+  "mechanicLink": "Completing Commenda partnership speeds promotion between social classes."
+ },
+ {
+  "id": "market_fairs",
+  "tree": "civics",
+  "description": "Fairs were large markets held at fixed seasons, where merchants from distant regions met under special protection and with their own courts. The fairs of Champagne, rotating among Troyes, Provins, Lagny and Bar-sur-Aube, flourished from about the mid-twelfth to the late thirteenth century under the counts of Champagne, linking Italian and Flemish traders and their credit.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Historians debate why the Champagne fairs declined, with war, new sea routes and changes in comital protection all proposed.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Champagne fairs at Troyes, Provins, Lagny and Bar-sur-Aube flourishing from about 1150 to the late thirteenth century."
+  },
+  "mechanicLink": "Completing Market fairs gets stored goods to market faster."
+ },
+ {
+  "id": "insurance_underwriting",
+  "tree": "civics",
+  "description": "Underwriters agree, for a premium, to bear part of a possible loss, writing their names under the terms of a policy. Marine insurance began in medieval Italian ports, and by the late 1680s shipowners in London met underwriters at Edward Lloyd's coffee house. In 1693 Edmond Halley published a life table from Breslau records, a basis for pricing annuities.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The Lloyd's coffee house is first attested in 1688, and how early it served mainly as an insurance market is uncertain.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Lloyd's coffee house about 1688; Halley's Breslau life table of 1693; medieval Italian marine insurance."
+  },
+  "mechanicLink": "Completing Insurance underwriting makes hauling trade goods cheaper."
+ },
+ {
+  "id": "mercantilism",
+  "tree": "civics",
+  "description": "Mercantilism is the label later given to policies that treated foreign trade as a contest for wealth, seeking a surplus of exports and an inflow of precious metals. The English merchant Thomas Mun argued for a favourable balance of trade in the 1620s, and Jean-Baptiste Colbert raised French tariffs from 1664 while promoting royal manufactures.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "Historians debate whether mercantilism was a coherent doctrine at all or a later label, popularised by Adam Smith, for varied practices.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Thomas Mun's balance-of-trade writings of the 1620s; Colbert's tariff of 1664."
+  },
+  "mechanicLink": "Completing Mercantilism lets taxes extract a larger share of output."
+ },
+ {
+  "id": "stock_exchange",
+  "tree": "civics",
+  "description": "A stock exchange is a regulated market where shares in companies, and often government debt, are bought and sold. Antwerp opened a purpose-built bourse in 1531, used mainly for commodities and bills of exchange. When the Dutch East India Company was founded in 1602, its shares began trading in Amsterdam, often regarded as the first continuous market in company stock.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Shares had changed hands earlier in Italian and other companies, so calling Amsterdam the first stock market depends on definition.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Antwerp bourse building of 1531; Dutch East India Company founded 1602 with shares traded in Amsterdam."
+  },
+  "mechanicLink": "Completing Stock exchange allows larger specialist classes."
+ },
+ {
+  "id": "antitrust",
+  "tree": "civics",
+  "description": "Antitrust or competition law forbids firms to fix prices or carve up markets, and lets courts break up monopolies. The United States passed the Sherman Act in 1890 in response to giant trusts in oil, railways and other industries; Canada had enacted a similar law a year earlier. Standard Oil was ordered broken up under the Sherman Act in 1911.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Economists and judges have long disagreed about what counts as harmful market power and how strictly such laws should be enforced.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Sherman Act of 1890; Canadian competition law of 1889; Standard Oil break-up order of 1911."
+  },
+  "mechanicLink": "Completing Antitrust law lets trade close price gaps between markets faster (the resulting fraction is capped at 0.95) and slows the build-up of grievance."
+ },
+ {
+  "id": "commodity_exchange",
+  "tree": "civics",
+  "description": "A commodity exchange is a market where graded staples such as grain and cotton are traded, either for immediate delivery or through futures contracts for later delivery. The Chicago Board of Trade was founded in 1848 as railways and grain elevators made the city a hub, and by 1865 it had adopted standardized futures contracts. Grading made lots interchangeable.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Futures-like trading existed earlier, notably in rice at Dojima in Osaka, so the Chicago market is a landmark rather than the first.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Chicago Board of Trade founded in 1848; standardized futures contracts adopted by 1865."
+  },
+  "mechanicLink": "Completing Commodity exchange gets stored goods to market faster."
+ },
+ {
+  "id": "cooperatives",
+  "tree": "civics",
+  "description": "A cooperative is a business owned and controlled by its members, who share its surplus according to how much they use it rather than how much capital they hold. The Rochdale Society of Equitable Pioneers, founded in 1844 by weavers and other workers in Lancashire, opened a shop whose rules became a model. Credit cooperatives soon followed in Germany.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Earlier cooperative ventures existed, so Rochdale is usually credited with the lasting model rather than the first cooperative.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Rochdale Society of Equitable Pioneers founded in 1844; early German credit cooperatives."
+  },
+  "mechanicLink": "Completing Cooperatives lets households absorb larger shortfalls."
+ },
+ {
+  "id": "customs_union",
+  "tree": "civics",
+  "description": "A customs union removes tariffs among its members and sets a single tariff toward outsiders. The German Zollverein, led by Prussia, came into force at the start of 1834 and gradually drew in most German states, binding their economies together decades before political unification in 1871. The European Economic Community completed a customs union among its six founders in 1968.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Historians debate how much the Zollverein actually contributed to German unification compared with war and diplomacy.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Zollverein in force from 1 January 1834; EEC customs union completed in 1968."
+  },
+  "mechanicLink": "Completing Customs union makes hauling trade goods cheaper."
+ },
+ {
+  "id": "free_trade",
+  "tree": "civics",
+  "description": "Free trade is a policy of low or no tariffs, letting goods cross borders on equal terms. Britain made the decisive turn in 1846, when Robert Peel's government repealed the Corn Laws that had protected domestic grain growers. The Cobden-Chevalier Treaty with France in 1860 cut duties further and set off a wave of tariff-reducing treaties across Europe.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Economists still debate how much free trade, as opposed to cheaper transport and industrial growth, drove nineteenth-century trade expansion.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Repeal of the Corn Laws in 1846; Cobden-Chevalier Treaty of 1860."
+  },
+  "mechanicLink": "Completing Free trade lets trade close price gaps between markets faster (the resulting fraction is capped at 0.95)."
+ },
+ {
+  "id": "limited_liability",
+  "tree": "civics",
+  "description": "Limited liability means that investors in a company can lose only the money they put in, not their houses or other property, if the business fails. Britain extended it to ordinary registered companies through the Limited Liability Act of 1855 and the Joint Stock Companies Act of 1856. Some American states had already offered it to incorporated businesses.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Historians debate how much general limited liability actually changed investment, since partnerships and chartered companies had long found other ways to limit risk.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Limited Liability Act of 1855; Joint Stock Companies Act of 1856; earlier American state incorporation laws."
+  },
+  "mechanicLink": "Completing Limited liability speeds promotion between social classes."
+ },
+ {
+  "id": "crop_insurance",
+  "tree": "civics",
+  "description": "Crop insurance compensates farmers when weather or pests cut yields below an insured level, in return for premiums paid each season. The United States created a federal crop insurance programme by an act of 1938, starting with wheat. India introduced a Comprehensive Crop Insurance Scheme in 1985, linked to farm credit, and many governments now subsidise similar cover.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Most crop insurance schemes depend heavily on public subsidy, and economists debate whether they encourage farming in high-risk areas.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: US Federal Crop Insurance Act of 1938 beginning with wheat; India's Comprehensive Crop Insurance Scheme of 1985."
+  },
+  "mechanicLink": "Completing Crop insurance lets households absorb larger shortfalls."
+ },
+ {
+  "id": "demand_management",
+  "tree": "civics",
+  "description": "Demand management is the use of government spending, taxation and interest rates to steady the economy, spending more in slumps and restraining demand in booms. John Maynard Keynes gave it a theoretical basis in his General Theory of 1936, written during the Great Depression. The United States Employment Act of 1946 committed federal policy to promoting maximum employment.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "How effective active demand management is, especially in curbing booms, has been debated since the inflation of the 1970s.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Keynes's General Theory of 1936; US Employment Act of 1946."
+  },
+  "mechanicLink": "Completing Countercyclical demand management reduces the output lost to unrest."
+ },
+ {
+  "id": "deposit_insurance",
+  "tree": "civics",
+  "description": "Deposit insurance guarantees bank deposits up to a set limit, so savers are repaid even if their bank collapses and have less reason to start a run. The Federal Deposit Insurance Corporation was created by the United States Banking Act of 1933, after thousands of banks had failed in the early Depression. Many other countries later adopted similar schemes.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Deposit insurance is credited with ending bank runs but also blamed for encouraging risky lending, a trade-off still debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: FDIC created by the Banking Act of 1933; thousands of US bank failures in the early 1930s."
+  },
+  "mechanicLink": "Completing Deposit insurance lets households absorb larger shortfalls."
+ },
+ {
+  "id": "managed_exchange_rates",
+  "tree": "civics",
+  "description": "Under managed exchange rates, governments fix their currencies at agreed values and central banks buy or sell to defend them. At Bretton Woods in 1944, the Allied nations pegged currencies to the US dollar, itself convertible into gold, and created the International Monetary Fund to lend reserves to members in difficulty. The system broke down in the early 1970s.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Economists disagree over whether the Bretton Woods system's collapse was inevitable and how much its fixed rates aided postwar growth.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Bretton Woods conference of 1944 and creation of the IMF; collapse of the system in the early 1970s."
+  },
+  "mechanicLink": "Completing Managed exchange rates makes hauling trade goods cheaper."
+ },
+ {
+  "id": "microfinance",
+  "tree": "civics",
+  "description": "Microfinance provides small loans, savings and other services to poor households that banks would turn away for lack of collateral. Muhammad Yunus began lending experiments in Bangladeshi villages in the 1970s, and the Grameen Bank became a formal bank in 1983, lending mainly to women in small groups whose members backed one another. Both won the 2006 Nobel Peace Prize.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Randomized studies since the 2000s suggest microcredit reduces poverty less than early advocates claimed, and its overall impact remains debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Grameen Bank formally established in 1983; Yunus experiments in the 1970s; 2006 Nobel Peace Prize."
+  },
+  "mechanicLink": "Completing Microfinance speeds promotion between social classes."
+ },
+ {
+  "id": "multilateral_trade_rules",
+  "tree": "civics",
+  "description": "Multilateral trade rules commit many countries at once to cap their tariffs, treat trading partners alike and settle disputes by agreed procedure. The General Agreement on Tariffs and Trade was signed by 23 countries in Geneva in 1947. Successive negotiating rounds cut tariffs on manufactures, and in 1995 the World Trade Organization took over with a stronger dispute-settlement system.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "How much postwar trade growth is due to GATT rules rather than falling transport costs and economic recovery is debated by economists.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: GATT signed by 23 countries at Geneva in 1947; WTO established in 1995."
+  },
+  "mechanicLink": "Completing Multilateral trade rules lets trade close price gaps between markets faster (the resulting fraction is capped at 0.95)."
+ },
+ {
+  "id": "price_support",
+  "tree": "civics",
+  "description": "Farm price support keeps crop prices from falling below a floor, usually by the state buying surpluses or lending against stored crops. The United States began such programmes in 1933 with the Agricultural Adjustment Act and the Commodity Credit Corporation. The European Economic Community's Common Agricultural Policy, launched in 1962, used intervention buying that later produced notorious butter mountains.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Price supports stabilised farm incomes but were criticised for costly surpluses and for depressing world prices, and their balance of effects is disputed.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: US Agricultural Adjustment Act and Commodity Credit Corporation of 1933; EEC Common Agricultural Policy launched in 1962."
+  },
+  "mechanicLink": "Completing Farm price support lets granaries hold more years of reserves."
+ },
+ {
+  "id": "special_economic_zones",
+  "tree": "civics",
+  "description": "A special economic zone is a designated area where tariffs, taxes and regulations are lighter than in the rest of the country, to attract investment and exporters. Ireland opened a duty-free zone at Shannon Airport in 1959. China designated Shenzhen and three other coastal zones in 1980, and Shenzhen grew from a modest border county into a major industrial city.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Many zones worldwide have failed to attract investment, and how much Shenzhen's success owes to zone status rather than its position beside Hong Kong is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Shannon Free Zone created in 1959; Shenzhen and three other Chinese zones designated in 1980."
+  },
+  "mechanicLink": "Completing Special economic zones allows freer movement of people."
+ },
+ {
+  "id": "prestige_leadership",
+  "tree": "civics",
+  "description": "In many small-scale societies leaders hold influence through skill, generosity and persuasion rather than inherited office, and followers can simply move away if dissatisfied. Ethnographers have described such headmen and big men among foragers and horticulturalists, from the Kalahari to Melanesia. Archaeologists infer similar leadership among late Ice Age hunter-gatherers, though it leaves almost no material trace.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Projecting modern ethnographic leadership onto prehistoric foragers is an analogy, and some late Ice Age burials hint at more formal ranks.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Ethnographic headmen and big men among Kalahari foragers and Melanesian horticulturalists."
+  },
+  "mechanicLink": "Completing Prestige leadership allows larger founding parties for new settlements (the resulting fraction is capped at 0.35)."
+ },
+ {
+  "id": "first_settler_rights",
+  "tree": "civics",
+  "description": "First-comer precedence gives descendants of a place's founders lasting authority over its land and spirits. In many West African societies an earth priest from the founding lineage performs the land's rituals and grants fields to later arrivals, even when political power lies elsewhere. Some archaeologists see similar claims at Neolithic Çatalhöyük, where houses were rebuilt on one spot for generations.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Reading Çatalhöyük's rebuilt houses as claims of first-settler precedence is an interpretation drawn by analogy with much later ethnography.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: West African earth-priest lineages; repeated rebuilding of houses on the same spot at Çatalhöyük about 7000 BCE."
+  },
+  "mechanicLink": "Completing First-comer precedence lets settlements draw on a wider hinterland."
+ },
+ {
+  "id": "regalia",
+  "tree": "civics",
+  "description": "Insignia of rank are objects that display authority to people who may never have met its holder. A burial at Varna in Bulgaria, about 4500 BCE, held a gold-sheathed sceptre or axe handle among many gold ornaments. The Nahal Mishmar hoard, hidden in a Judean Desert cave around 3500 BCE, contains hundreds of copper objects, many of them maceheads.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Whether the Varna and Nahal Mishmar objects signalled political rank, religious office or both is an archaeological interpretation.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Varna burial with gold-sheathed sceptre about 4500 BCE; Nahal Mishmar copper hoard about 3500 BCE."
+  },
+  "mechanicLink": "Completing Insignia of rank extends how far administrative authority reaches before it fades."
+ },
+ {
+  "id": "mandate_doctrine",
+  "tree": "civics",
+  "description": "The Mandate of Heaven held that Heaven entrusts rule to a virtuous dynasty and withdraws it when rulers become cruel or neglect the people. Zhou kings used the idea to justify overthrowing the Shang around 1046 BCE, and Mencius later argued that a tyrant could rightly be deposed. Floods, famines and revolts signalled that the mandate was lost.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "The date of the Zhou conquest is debated, with proposals spread over several decades, and the doctrine as known may owe much to later editing of Zhou texts.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Zhou conquest of the Shang about 1046 BCE; Mencius on deposing a tyrant."
+  },
+  "mechanicLink": "Completing Conditional mandate lets granaries relieve famine more."
+ },
+ {
+  "id": "succession_oaths",
+  "tree": "civics",
+  "description": "Succession oaths bind powerful subjects in advance to accept a chosen heir. In 672 BCE the Assyrian king Esarhaddon made officials and vassal rulers swear loyalty to his son Ashurbanipal, under long lists of divine curses. Copies of these treaties were found at Nimrud and at Tell Tayinat in Turkey, and Ashurbanipal took the throne as planned in 669 BCE.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "How far the oaths secured the succession is debated, since Ashurbanipal later fought a civil war with his brother, who had been given Babylon under the same arrangement.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Esarhaddon's succession treaties of 672 BCE; copies found at Nimrud and Tell Tayinat; Ashurbanipal's accession in 669 BCE."
+  },
+  "mechanicLink": "Completing Succession oaths extends how far administrative authority reaches before it fades."
+ },
+ {
+  "id": "adoptive_succession",
+  "tree": "civics",
+  "description": "Under adoptive succession a ruler adopts a capable adult as heir instead of relying on birth alone. Rome's emperors from Nerva to Marcus Aurelius, 96 to 180 CE, largely followed this pattern: Trajan, Hadrian, Antoninus Pius and Marcus each came to power by adoption. The period is often remembered as the era of the five good emperors.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Most of these emperors had no surviving sons, so historians debate whether adoption was a principle of merit or a dynastic necessity.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Nerva-Antonine adoptions of Trajan, Hadrian, Antoninus Pius and Marcus Aurelius between 96 and 180 CE."
+  },
+  "mechanicLink": "Completing Adoptive succession reduces the output lost to unrest."
+ },
+ {
+  "id": "imperial_cult",
+  "tree": "civics",
+  "description": "A ruler cult offers worship to a living or deified monarch. Greek cities granted divine honours to Alexander's successors from around 300 BCE, and in 29 BCE Octavian, soon to be called Augustus, allowed provincials in Asia and Bithynia to build temples to Rome and himself at Pergamum and Nicomedia. Local elites competed for the cult's priesthoods.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Scholars debate whether ruler cults expressed real religious belief or were mainly political gestures of loyalty.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Hellenistic ruler cults from about 300 BCE; temples to Rome and Augustus at Pergamum and Nicomedia from 29 BCE."
+  },
+  "mechanicLink": "Completing Ruler cult extends how far administrative authority reaches before it fades."
+ },
+ {
+  "id": "elective_succession",
+  "tree": "civics",
+  "description": "Under elective succession a ruler is chosen by a body of leading men rather than inheriting the throne automatically. After the East Frankish Carolingian line died out in 911, the great nobles elected Conrad of Franconia king. In the Holy Roman Empire, Emperor Charles IV's Golden Bull of 1356 fixed the choice in seven prince-electors and set majority voting rules.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Early medieval elections often confirmed a family candidate rather than offering a free choice, so the line between election and inheritance is blurred.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Election of Conrad I in East Francia in 911; Golden Bull of 1356 naming seven electors."
+  },
+  "mechanicLink": "Completing Elective succession slows the build-up of grievance."
+ },
+ {
+  "id": "primogeniture",
+  "tree": "civics",
+  "description": "Primogeniture passes a kingdom, title or estate whole to the eldest son instead of dividing it among all heirs. The Capetian kings of France, from 987, kept their realm intact by having the eldest son crowned in his father's lifetime, and in Normandy and England knightly fiefs were increasingly held undivided by about 1100. Younger sons sought careers elsewhere.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The spread of primogeniture among the nobility was gradual and uneven, and historians debate how early it became the norm in different regions.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Capetian crowning of eldest sons from 987; indivisible fiefs in Normandy and England by about 1100."
+  },
+  "mechanicLink": "Completing Primogeniture extends how far administrative authority reaches before it fades."
+ },
+ {
+  "id": "divine_right",
+  "tree": "civics",
+  "description": "The divine right of kings holds that a monarch receives authority directly from God, answers to God alone and may not lawfully be resisted by subjects. James VI of Scotland, later also James I of England, set out the doctrine in The Trew Law of Free Monarchies in 1598. Robert Filmer and Bishop Bossuet later elaborated it.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Historians debate how far rulers who invoked divine right actually claimed to be above law and custom in practice.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: James VI's The Trew Law of Free Monarchies of 1598; later works of Filmer and Bossuet."
+  },
+  "mechanicLink": "Completing Divine right of kings reduces the output lost to unrest."
+ },
+ {
+  "id": "civic_religion",
+  "tree": "civics",
+  "description": "Civic ritual gives a nation its own shared ceremonies, symbols and sacred days. Revolutionary France staged the Festival of the Federation in Paris on 14 July 1790, adopted La Marseillaise as its national anthem in 1795, and made 14 July a national holiday in 1880. Flags, anthems, war memorials and annual festivals spread to nearly every modern state.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "How far such rituals create genuine national loyalty, rather than expressing it, is a long-running debate among historians of nationalism.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Festival of the Federation on 14 July 1790; La Marseillaise adopted in 1795; 14 July made a national holiday in 1880."
+  },
+  "mechanicLink": "Completing Civic ritual extends how far administrative authority reaches before it fades."
+ },
+ {
+  "id": "plebiscite",
+  "tree": "civics",
+  "description": "A plebiscite asks voters to approve or reject a ruler, a regime or a constitution directly, usually with a single yes-or-no question. Napoleon Bonaparte used such votes to endorse his consulate, his consulship for life and his imperial title between 1799 and 1804, and his nephew Louis-Napoleon did the same after his 1851 coup. Official results showed huge majorities.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The Napoleonic results are widely thought to have been inflated or managed, so how much real consent they measured is uncertain.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Napoleonic plebiscites between 1799 and 1804; Louis-Napoleon's plebiscites of 1851 and 1852."
+  },
+  "mechanicLink": "Completing Plebiscitary legitimacy reduces the output lost to unrest."
+ },
+ {
+  "id": "constitutional_court",
+  "tree": "civics",
+  "description": "A constitutional court is a specialised tribunal that decides whether laws and government acts conform to the constitution and settles conflicts between institutions. The jurist Hans Kelsen shaped the first such court, in the Austrian constitution of 1920. After the Second World War the model spread widely, and West Germany's Federal Constitutional Court began work at Karlsruhe in 1951.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Czechoslovakia created a constitutional court in the same year, so whether Austria's was strictly the first depends on dating its operation.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Austrian Constitutional Court of 1920 shaped by Hans Kelsen; German Federal Constitutional Court at Karlsruhe from 1951."
+  },
+  "mechanicLink": "Completing Constitutional court reduces the output lost to unrest and extends how far administrative authority reaches before it fades."
+ },
+ {
+  "id": "electoral_commission",
+  "tree": "civics",
+  "description": "Independent electoral administration puts the running of elections in the hands of an impartial body rather than ministers seeking re-election. Canada created the office of Chief Electoral Officer in 1920, answerable to Parliament, and India established its Election Commission in 1950, which has since organised the world's largest elections. Trust in the count helps losing parties accept defeat.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Formal independence does not guarantee impartiality, and how much electoral bodies' design affects public trust varies between studies.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Canada's Chief Electoral Officer created in 1920; Election Commission of India established in 1950."
+  },
+  "mechanicLink": "Completing Independent electoral administration reduces the output lost to unrest."
+ },
+ {
+  "id": "personality_cult",
+  "tree": "civics",
+  "description": "A personality cult glorifies a single leader as wise, infallible and the embodiment of the nation through portraits, songs, slogans and staged devotion. Stalin's cult took shape around his fiftieth birthday in 1929, and Khrushchev denounced it in 1956. In China the cult of Mao peaked during the Cultural Revolution from 1966, when millions carried the Little Red Book.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Historians debate how far such cults reflected genuine popular devotion rather than enforced conformity.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Stalin's fiftieth-birthday celebrations of 1929; Khrushchev's denunciation of 1956; Mao cult and Little Red Book from 1966."
+  },
+  "mechanicLink": "Completing Cult of personality extends how far administrative authority reaches before it fades."
+ },
+ {
+  "id": "power_sharing",
+  "tree": "civics",
+  "description": "Power-sharing divides offices, seats and vetoes among a country's main communities so that none can govern alone. Lebanon's unwritten National Pact of 1943 reserved the presidency for a Maronite Christian and the premiership for a Sunni Muslim. Northern Ireland's Good Friday Agreement of 1998 required a joint executive of unionist and nationalist parties. Political scientists call such arrangements consociational.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Critics argue that power-sharing can freeze communal divisions, as Lebanon's later civil war suggests, and its long-term record is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Lebanese National Pact of 1943 allotting the presidency and premiership; Good Friday Agreement of 1998."
+  },
+  "mechanicLink": "Completing Power-sharing reduces the output lost to unrest and slows the build-up of grievance."
+ },
+ {
+  "id": "term_limits",
+  "tree": "civics",
+  "description": "Term limits restrict how many times, or for how long, a person may hold an office, forcing regular change at the top. Mexico's constitution of 1917 barred presidential re-election after the long rule of Porfirio Diaz. In the United States, George Washington's two-term precedent became law in 1951 with the Twenty-second Amendment, after Franklin Roosevelt won four elections.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Political scientists debate whether term limits strengthen democracy or merely remove experienced leaders, and many have been evaded or repealed.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Mexican no-reelection rule in the 1917 constitution; Twenty-second Amendment ratified in 1951."
+  },
+  "mechanicLink": "Completing Term limits speeds promotion between social classes."
+ },
+ {
+  "id": "transitional_justice",
+  "tree": "civics",
+  "description": "Transitional justice covers the trials, truth commissions, reparations and purges with which societies confront abuses after dictatorship or civil war. Argentina's National Commission on the Disappearance of Persons, created in 1983, documented thousands of disappearances under military rule. South Africa's Truth and Reconciliation Commission, set up in 1995, offered amnesty to those who fully disclosed politically motivated crimes.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Scholars disagree on whether truth commissions or prosecutions do more to secure peace and accountability.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Argentina's CONADEP created in 1983; South Africa's Truth and Reconciliation Commission established in 1995."
+  },
+  "mechanicLink": "Completing Transitional justice slows the build-up of grievance."
+ },
+ {
+  "id": "insula",
+  "tree": "technology",
+  "description": "An insula was a Roman apartment block, with shops at street level and rented flats above. Livy mentions a three-storey building in Rome around 218 BCE, and by the early empire such blocks housed much of the city's population. At Ostia, Rome's port, brick-faced concrete blocks of several storeys survive from the second century CE.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "How tall typical insulae were and what share of Rome's people lived in them are estimated from scattered texts and from Ostia, which may not represent Rome.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Livy's reference to a three-storey building in Rome about 218 BCE; surviving multi-storey blocks at Ostia from the second century CE."
+  },
+  "mechanicLink": "Completing Multi-storey apartment block allows denser housing."
+ },
+ {
+  "id": "balloon_frame",
+  "tree": "technology",
+  "description": "Balloon framing builds a house from light, machine-sawn studs and joists held together with mass-produced nails instead of heavy timbers joined by mortise and tenon. It is usually traced to Chicago in the early 1830s, credited to George W. Snow or to the carpenter Augustine Taylor, who built St Mary's Church there in 1833. It helped western towns grow fast.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Credit for the invention is disputed between Snow and Taylor, and similar light framing may have developed elsewhere at about the same time.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Balloon framing in Chicago in the early 1830s attributed to George W. Snow or Augustine Taylor; St Mary's Church of 1833."
+  },
+  "mechanicLink": "Completing Balloon framing cuts the labour needed to build homes and cuts the timber needed to build homes."
+ },
+ {
+  "id": "precast_housing",
+  "tree": "technology",
+  "description": "Industrialised panel building casts whole walls and floor slabs in factories, then assembles them on site with cranes. In France, Raymond Camus's large-panel system was in use by the early 1950s. The Soviet Union adopted similar methods from the late 1950s to build the five-storey blocks called khrushchyovki, rehousing millions of families within little more than a decade.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Panel estates met urgent housing needs but were later criticised for poor quality and monotony, and estimates of their true cost savings vary.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Camus large-panel system in France by about 1953; Soviet five-storey panel blocks from about 1959."
+  },
+  "mechanicLink": "Completing Industrialised panel building cuts the labour needed to build homes."
+ },
+ {
+  "id": "herbal_remedies",
+  "tree": "technology",
+  "description": "Herbal medicine uses plants and fungi to ease pain, expel worms and treat wounds. Chemical traces in the dental calculus of Neanderthals at El Sidrón in Spain, about 49,000 years ago, have been read as signs of eating chamomile and poplar, though this is debated. Ötzi the Iceman, about 3300 BCE, carried birch polypore, a medicinal fungus.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "The El Sidrón evidence is contested, and whether Ötzi's birch polypore served as medicine or as tinder is not certain.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: El Sidrón Neanderthal dental calculus about 49,000 years ago with chamomile and poplar traces; Ötzi's birch polypore about 3300 BCE."
+  },
+  "mechanicLink": "Completing Herbal remedies lowers baseline mortality for all age groups."
+ },
+ {
+  "id": "antiscorbutics",
+  "tree": "technology",
+  "description": "Antiscorbutics are foods that prevent or cure scurvy, a disease now known to be caused by lack of vitamin C. In 1747 the naval surgeon James Lind compared remedies aboard HMS Salisbury and found that oranges and lemons brought rapid recovery. Lemon juice became a regular Royal Navy issue in 1795, and scurvy sharply declined on its ships.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Lind himself did not fully grasp his result, and later confusion between lemon and less effective lime juice let scurvy return on some voyages.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Lind's comparative trial aboard HMS Salisbury in 1747; Royal Navy lemon-juice issue from 1795."
+  },
+  "mechanicLink": "Completing Antiscorbutics lets migrants travel further and widens the maximum exploration range."
+ },
+ {
+  "id": "quinine",
+  "tree": "technology",
+  "description": "Quinine is the main active alkaloid of cinchona bark, a South American remedy used against fevers in Europe from the seventeenth century. In 1820 the French chemists Pierre-Joseph Pelletier and Joseph Caventou isolated it in Paris. On William Baikie's Niger expedition of 1854, regular preventive doses kept the European crew alive, showing that malaria could be held in check.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "How cinchona bark entered European medicine, and the role of Indigenous Andean knowledge in it, is uncertain and surrounded by legend.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Isolation of quinine by Pelletier and Caventou in 1820; Baikie's Niger expedition of 1854 using preventive doses."
+  },
+  "mechanicLink": "Completing Quinine allows larger founding parties for new settlements (the resulting fraction is capped at 0.35) and lowers baseline mortality for all age groups."
+ },
+ {
+  "id": "signal_beacons",
+  "tree": "technology",
+  "description": "Signal beacons are chains of fires or smoke on hilltops and towers, passing a prearranged message from post to post faster than any runner. Letters from Mari on the Euphrates, written to King Zimri-Lim in the eighteenth century BCE, mention fire signals. In China, tradition places frontier beacon towers by about 800 BCE, and later ones lined the Great Wall.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "The early Chinese date rests largely on later historical tradition, and how much information fire signals could carry in each case is uncertain.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Mari letters to Zimri-Lim mentioning fire signals in the eighteenth century BCE; Chinese frontier beacon towers by about 800 BCE."
+  },
+  "mechanicLink": "Completing Signal beacons extends how far administrative authority reaches before it fades."
+ },
+ {
+  "id": "aerial_reconnaissance",
+  "tree": "technology",
+  "description": "Aerial reconnaissance observes and photographs territory from the air. Observers in tethered balloons watched battles from the 1790s, but the first reconnaissance flight by aeroplane is generally credited to an Italian pilot over Libya in 1911, during the Italo-Turkish War. In the First World War both sides photographed the Western Front daily, mapping enemy trenches in fine detail.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Claims to the first military aeroplane reconnaissance vary by source and definition, and earlier balloon and kite photography complicates priority.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Italian aeroplane reconnaissance over Libya in October 1911; daily photographic reconnaissance on the Western Front in 1914-1918."
+  },
+  "mechanicLink": "Completing Aerial reconnaissance widens the maximum exploration range and lets each Explore order reach further."
+ }
+]

@@ -1,0 +1,1112 @@
+[
+ {
+  "id": "initiation_rites",
+  "tree": "civics",
+  "description": "Initiation rites mark the passage from childhood to adulthood. Young people are secluded with elders, taught the group's lore about tracking, plants, animals and law, and return as adults. Such rites are recorded among many Australian and African foraging peoples. Adolescent footprints in French caves such as Tuc d'Audoubert, about 15,000 years old, are sometimes read as traces of initiation.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Reading the cave footprints as evidence of initiation is one interpretation among several, and prehistoric initiation is inferred by analogy with recorded societies.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: adolescent footprints in the deep chambers of Tuc d'Audoubert and Niaux about 15,000 years ago; initiation recorded among Australian and African foragers."
+  },
+  "mechanicLink": "Once researched, mining, logging, quarrying and fishing yield more."
+ },
+ {
+  "id": "court_upbringing",
+  "tree": "civics",
+  "description": "Powerful kings sometimes raised the sons of subject rulers at their own court. The princes were educated alongside royal children, absorbed the court's language and loyalties, and served as hostages for their fathers' good conduct. Egyptian records of Thutmose III, about 1450 BCE, describe sons of Levantine rulers brought to Egypt and later sent home to rule.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "How systematically the Egyptian practice worked, and how far the royal nursery (kap) educated foreign princes, is debated from limited sources.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Thutmose III's annals on sons of Levantine chiefs taken to Egypt about 1450 BCE; their education in the kap royal nursery."
+  },
+  "mechanicLink": "Once researched, the centre's administrative reach extends further before authority decays."
+ },
+ {
+  "id": "letter_schools",
+  "tree": "civics",
+  "description": "In Greek city-states, private teachers charged fees to teach citizens' sons to read, write, count and perform music and poetry. Herodotus mentions a school roof collapsing on Chios in the early fifth century BCE, killing many boys learning their letters, and Athenian vases from about 480 BCE show lessons with writing tablets and lyres. The alphabet made such schooling practical.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "How widespread literacy was in classical Greece beyond a minority of citizens is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Herodotus' account of the school collapse on Chios about 494 BCE; Athenian school scenes on vases about 480 BCE."
+  },
+  "mechanicLink": "Once researched, people rise faster into higher social classes."
+ },
+ {
+  "id": "rhetoric_schools",
+  "tree": "civics",
+  "description": "Rhetoric schools trained young men to speak persuasively in courts and assemblies, the main route to public life in Athens and Rome. Isocrates opened a paid school at Athens around 390 BCE. At Rome, Latin rhetoric teachers were active by 92 BCE, when the censors issued an edict against them. Under the empire, rhetoric became the core of higher education.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "The exact founding date of Isocrates' school is approximate, and the motives behind the Roman censors' edict of 92 BCE are debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Isocrates' school at Athens about 390 BCE; censors' edict against Latin rhetors at Rome in 92 BCE."
+  },
+  "mechanicLink": "Once researched, people rise faster into higher social classes."
+ },
+ {
+  "id": "cathedral_madrasa_schools",
+  "tree": "civics",
+  "description": "Between the eleventh and thirteenth centuries, endowed schools attached to cathedrals in Latin Europe and to mosques in the Islamic world taught grammar, law and theology to future clergy, judges and officials. The Seljuk vizier Nizam al-Mulk founded the Nizamiyya madrasa in Baghdad, opened about 1067, and papal rulings from 1079 onward required bishops to keep schools at their cathedrals.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Madrasas existed before the Nizamiyya, and the force of the 1079 papal ruling is debated; the Third Lateran Council of 1179 is often cited instead.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Nizamiyya of Baghdad opened about 1067; Gregory VII's ruling of 1079 on cathedral schools."
+  },
+  "mechanicLink": "Once researched, people rise faster into higher social classes."
+ },
+ {
+  "id": "humanist_colleges",
+  "tree": "civics",
+  "description": "Humanist colleges of the sixteenth century taught boys in graded classes, moving them year by year through Latin and Greek grammar, rhetoric, history and classical authors, often from printed textbooks. Johann Sturm's gymnasium at Strasbourg, founded in 1538, became a model for Protestant Europe, while the Jesuits opened their first college for lay pupils at Messina in 1548.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "How far printed textbooks rather than dictation shaped early classrooms is debated, and Messina's place as the first Jesuit school for lay pupils is sometimes contested in favour of Gandia.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Sturm's Strasbourg gymnasium founded 1538; Jesuit college at Messina opened 1548."
+  },
+  "mechanicLink": "Once researched, a larger share of the population can belong to specialist classes."
+ },
+ {
+  "id": "agricultural_colleges",
+  "tree": "civics",
+  "description": "Agricultural colleges applied chemistry, botany and field trials to farming and trained estate managers and farmers' sons. In Württemberg, an agricultural institute opened at Hohenheim in 1818, and many German states followed with their own academies. In the United States, the Morrill Act of 1862 granted federal land to fund state colleges teaching agriculture and the mechanic arts.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "How quickly college teaching changed ordinary peasant farming, as opposed to practice on large estates, is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Hohenheim institute opened 1818; Morrill Land-Grant Act 1862."
+  },
+  "mechanicLink": "Once researched, arable land yields more grain."
+ },
+ {
+  "id": "medical_education_reform",
+  "tree": "civics",
+  "description": "Around 1900, medical training in North America was tied to universities, laboratory science and teaching hospitals. The Johns Hopkins School of Medicine, opened in 1893, required a college degree for entry and combined laboratory study with clinical training. Abraham Flexner's 1910 report on medical schools in the United States and Canada pushed weaker commercial schools to close or merge.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Historians debate how much the Flexner Report caused changes already under way, and it is criticized for closures that hit schools training Black and women doctors.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Johns Hopkins School of Medicine opened 1893; Flexner Report 1910."
+  },
+  "mechanicLink": "Once researched, universities can cut death rates further."
+ },
+ {
+  "id": "normal_schools",
+  "tree": "civics",
+  "description": "Normal schools trained elementary teachers in both subject knowledge and teaching method, aiming at a common standard. Revolutionary France created an École normale in Paris in 1794, short-lived at first, and Prussia built a network of teacher seminaries. In the United States, the first state normal school opened at Lexington, Massachusetts, in 1839, promoted by Horace Mann.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Teacher-training seminaries in German states predate these foundations, so the origin of the institution is spread over several decades and countries.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Paris École normale of 1794; Lexington, Massachusetts normal school of 1839; Horace Mann's role."
+  },
+  "mechanicLink": "Once researched, people rise faster into higher social classes."
+ },
+ {
+  "id": "technical_academies",
+  "tree": "civics",
+  "description": "State technical academies trained engineers and mining officials in mathematics, chemistry, mechanics and geology. The mining academy at Freiberg in Saxony, founded in 1765, where Abraham Gottlob Werner taught mineralogy, drew students from across Europe. Revolutionary France founded the École polytechnique in 1794 to train engineers for state service, and similar schools followed in many countries.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Earlier mining schools existed, such as at Selmecbánya (Banská Štiavnica) in Hungary, so Freiberg's claim to be the first is disputed.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Freiberg founded 1765; Werner teaching there; École polytechnique 1794."
+  },
+  "mechanicLink": "Once researched, mining, logging, quarrying and fishing yield more."
+ },
+ {
+  "id": "womens_higher_education",
+  "tree": "civics",
+  "description": "In the later nineteenth century, colleges and secondary schools opened to women and girls, and women began to take degrees and enter professions such as medicine and teaching. Girton College, founded in 1869, was an early college for women associated with Cambridge, and France's Camille Sée law of 1880 created state secondary schools for girls.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "Dates of women's first access vary widely by country, and Cambridge did not award women full degrees until 1948.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Girton College founded 1869; Camille Sée law 1880; Cambridge full degrees for women only in 1948."
+  },
+  "mechanicLink": "Once researched, a larger share of the population can belong to specialist classes."
+ },
+ {
+  "id": "distance_education",
+  "tree": "civics",
+  "description": "Distance education lets adults study for qualifications at home rather than on a campus. Correspondence courses by post spread in the nineteenth century, and the University of London allowed external degrees from 1858. Britain's Open University, chartered in 1969, combined printed course units, lectures broadcast on BBC television and radio, and local tutors; online study later followed.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Which institution counts as the first distance-teaching university is debated, since correspondence and external-degree schemes long predate the Open University.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: University of London external degrees from 1858; Open University charter 1969; BBC broadcast lectures."
+  },
+  "mechanicLink": "Once researched, people rise faster into higher social classes and a larger share of the population can belong to specialist classes."
+ },
+ {
+  "id": "mass_higher_education",
+  "tree": "civics",
+  "description": "In the mid-twentieth century, universities expanded from serving a small elite to enrolling a large share of each generation. The United States' GI Bill of 1944 paid college costs for millions of returning veterans, and Britain's Robbins Report of 1963 recommended that places be available to all qualified applicants, leading to new universities and growing public grants.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "How far expansion came from deliberate policy rather than rising demand and economic growth is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: GI Bill 1944 and the number of veterans who used it for college; Robbins Report 1963."
+  },
+  "mechanicLink": "Once researched, universities reach maturity sooner and people rise faster into higher social classes."
+ },
+ {
+  "id": "mass_literacy_campaigns",
+  "tree": "civics",
+  "description": "Mass literacy campaigns try to teach a whole adult population to read within a few years, mobilizing teachers, students and volunteers. Soviet Russia's 1919 decree on the elimination of illiteracy, known as likbez, set up reading centres across the country. In 1961, Cuba sent a large army of young volunteer teachers into the countryside to live with and teach adults.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Official claims of success, such as Cuba's reported near-elimination of illiteracy in one year, are hard to verify independently.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Soviet likbez decree of 1919; Cuban literacy campaign of 1961."
+  },
+  "mechanicLink": "Once researched, people rise faster into higher social classes."
+ },
+ {
+  "id": "universal_secondary_education",
+  "tree": "civics",
+  "description": "Universal secondary education keeps children in school into their teens, in free state secondary schools. In England, the Fisher Act of 1918 raised the leaving age to fourteen, and the Butler Education Act of 1944 made state secondary schooling free for all, with the leaving age raised to fifteen in 1947. Many countries made similar reforms after 1945.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Leaving ages and how universal access really was differed widely by country, region and social class.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Fisher Act 1918 leaving age fourteen; Butler Act 1944; leaving age fifteen from 1947."
+  },
+  "mechanicLink": "Once researched, a larger share of the population can belong to specialist classes."
+ },
+ {
+  "id": "landscape_burning",
+  "tree": "civics",
+  "description": "Fire-stick farming is the deliberate burning of land in small patches at chosen seasons. The resulting mosaic of fresh grass and older growth attracts game, encourages useful food plants and reduces the risk of large wildfires. Aboriginal Australians practised it for many thousands of years; changes in Australian fire records around 45,000 years ago are debated.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Whether early shifts in Australian fire regimes reflect human burning or climate change remains contested.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Aboriginal mosaic burning recorded by early European observers; change in Sahul fire regimes about 45,000 years ago."
+  },
+  "mechanicLink": "Once researched, fewer people die when food runs short."
+ },
+ {
+  "id": "seasonal_round",
+  "tree": "civics",
+  "description": "A seasonal round is a yearly cycle of movement in which a foraging band returns to familiar camps when each resource is at its best: fish runs, nut harvests, migrating herds or ripening grasses. At Ohalo II, on the shore of the Sea of Galilee, brush huts about 23,000 years old show repeated occupation of the same place.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Whether Ohalo II was occupied seasonally or for most of the year is debated, and prehistoric seasonal rounds are largely reconstructed from ethnography.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Ohalo II brush huts about 23,000 years old; evidence of repeated reoccupation."
+  },
+  "mechanicLink": "Once researched, settlements draw on a wider surrounding hinterland."
+ },
+ {
+  "id": "fishing_station_rights",
+  "tree": "civics",
+  "description": "Among many fishing peoples, a kin group owned a particular weir or fishing place, kept it in repair and controlled who else could fish there. Peoples of the Pacific Northwest Coast held such inherited rights to fishing stations. In Ireland, wooden fish traps of Mesolithic age, about 6000 BCE, found in Dublin's docklands, suggest weirs rebuilt at one spot.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Whether repeated rebuilding at one prehistoric site reflects ownership by a particular group cannot be shown from the remains alone.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Mesolithic fish traps in Dublin's docklands about 6000 BCE and their rebuilding; kin-owned fishing stations on the Northwest Coast."
+  },
+  "mechanicLink": "Once researched, mining, logging, quarrying and fishing yield more."
+ },
+ {
+  "id": "seed_corn_reserve",
+  "tree": "civics",
+  "description": "Every farming people must hold back part of the harvest as seed, even when hungry, and peasant custom in many regions treated seed corn as untouchable. Keeping and replanting seed is what allowed cereals to be domesticated. Purpose-built grain stores at Levantine sites such as Dhra' and Jerf el-Ahmar, in the tenth millennium BCE, show deliberate storage.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Whether the earliest Levantine stores held seed for planting or wild grain for eating is uncertain.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: grain stores at Dhra' and Jerf el-Ahmar dated to the tenth millennium BCE."
+  },
+  "mechanicLink": "Once researched, stored seed and fodder give a bigger boost to farm yields."
+ },
+ {
+  "id": "transhumance",
+  "tree": "civics",
+  "description": "Transhumance is the seasonal movement of herds between summer pastures in the mountains and winter grazing in the lowlands, along customary routes. It lets each range recover while the animals are elsewhere. Isotope studies of animal teeth suggest such movement in the Zagros and Alpine regions by about 5000 BCE, and it continues today in the Alps, Pyrenees and Balkans.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Isotope evidence for early transhumance is patchy and its interpretation contested; the scale of prehistoric herd movement is uncertain.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: isotopic evidence for seasonal herd movement in the Zagros and the Alps by about 5000 BCE."
+  },
+  "mechanicLink": "Once researched, herds yield more."
+ },
+ {
+  "id": "planned_cities",
+  "tree": "civics",
+  "description": "In a planned town, streets, drains and building plots are laid out before construction begins. Mohenjo-daro in the Indus Valley, about 2600 BCE, had streets on a roughly grid-like plan, standard-sized baked bricks and covered drains along many streets. Later examples include Egyptian workers' villages and the grid towns associated with Hippodamus of Miletus in Greece.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "How rigid the Indus grid really was, and whether it implies a central planning authority, is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Mohenjo-daro about 2600 BCE with grid-like streets and covered drains; grid towns linked to Hippodamus."
+  },
+  "mechanicLink": "Once researched, each dwelling can house more people."
+ },
+ {
+  "id": "water_rights",
+  "tree": "civics",
+  "description": "Where farming depended on canals, law had to settle who could draw water and who must maintain the banks. The Code of Hammurabi of Babylon, about 1754 BCE, made a farmer who neglected his dike liable for the damage when it broke and flooded neighbours' fields. Comparable rules appear in many irrigation societies, from ancient Egypt to medieval Spain.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "How closely the code's provisions were applied in practice, rather than serving as statements of royal justice, is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Code of Hammurabi about 1754 BCE; its laws on liability for neglected dikes."
+  },
+  "mechanicLink": "Once researched, harvests vary less from year to year."
+ },
+ {
+  "id": "water_turn_shares",
+  "tree": "civics",
+  "description": "In arid lands, those who built an irrigation channel often owned its flow, divided into timed turns that could be inherited or sold. The Greek historian Polybius reports that Persian Achaemenid kings granted the use of new underground channels, or qanats, to their builders for five generations. Timed water shares of this kind survive in Iranian and Omani villages today.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Polybius wrote centuries after the Achaemenids, and the origin and spread of qanat technology are themselves debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Polybius on Achaemenid five-generation grants to qanat builders; surviving water-share systems in Iran and Oman."
+  },
+  "mechanicLink": "Once researched, arable land yields more grain."
+ },
+ {
+  "id": "building_regulation",
+  "tree": "civics",
+  "description": "Building regulation sets legal limits on how city buildings are made. In Rome, Augustus restricted the height of buildings, reportedly to about 70 Roman feet, and after the great fire of 64 CE Nero ordered wider streets, lower heights and fire-resistant stone in rebuilt districts, according to Tacitus. Later cities from London to Edo adopted comparable fire rules.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Ancient writers report the Augustan height limit differently, and how well Roman building rules were enforced is unclear.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Augustan height limit of about 70 feet (Strabo); Nero's rebuilding rules after the fire of 64 CE (Tacitus)."
+  },
+  "mechanicLink": "Once researched, buildings last longer."
+ },
+ {
+  "id": "water_commission",
+  "tree": "civics",
+  "description": "Rome created a permanent board of water commissioners, the cura aquarum, in 11 BCE to maintain the city's aqueducts, license private connections and punish illegal tapping. Frontinus, appointed curator in 97 CE, wrote a treatise on the aqueducts describing their sources, capacities and the frauds he uncovered. His work remains a key account of Roman water administration.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "The flow figures Frontinus gives are hard to convert into modern units, and their accuracy is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: cura aquarum established 11 BCE; Frontinus made curator in 97 CE; his De aquaeductu."
+  },
+  "mechanicLink": "Once researched, each dwelling can house more people."
+ },
+ {
+  "id": "bridge_trusts",
+  "tree": "civics",
+  "description": "In medieval Europe, religious brotherhoods and endowed trusts raised alms, rents and bequests to build stone bridges and repair them over centuries. A bridge brotherhood built the Pont Saint-Bénézet at Avignon from about 1177. London Bridge's estate was run by wardens from the thirteenth century, and the Rochester Bridge Trust, founded about 1399, still maintains bridges today.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "The story of Saint Bénézet and the Avignon bridge mixes history with legend, and the early dates of the brotherhood are approximate.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Pont Saint-Bénézet begun about 1177; London Bridge House estate wardens; Rochester Bridge Trust about 1399."
+  },
+  "mechanicLink": "Once researched, overland travel is faster."
+ },
+ {
+  "id": "forest_law",
+  "tree": "civics",
+  "description": "Medieval forest law reserved woods, and especially deer and other game, for the king, and licensed other people's use of timber, pasture and hunting. William the Conqueror created the New Forest in England around 1079. Resentment of harsh forest courts led to the Charter of the Forest of 1217, which restored some common rights to free men.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "The scale of the evictions when the New Forest was created was probably exaggerated by later chroniclers.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: New Forest created about 1079; Charter of the Forest of 1217."
+  },
+  "mechanicLink": "Once researched, mining, logging, quarrying and fishing yield more."
+ },
+ {
+  "id": "water_boards",
+  "tree": "civics",
+  "description": "In the low-lying Netherlands, landholders formed water boards to build and maintain dikes, sluices and drainage, each paying a levy according to the land protected. The Hoogheemraadschap van Rijnland, chartered by the Count of Holland in 1255, is among the oldest. Dutch water boards remain elected public authorities today, with their own taxes.",
+  "wordCount": 53,
+  "sources": [],
+  "uncertainty": "Local cooperation over drainage long predates the formal charters, so the start date depends on what counts as a water board.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Rijnland charter granted by the Count of Holland in 1255."
+  },
+  "mechanicLink": "Once researched, harvests vary less from year to year and arable land yields more grain."
+ },
+ {
+  "id": "fire_brigades",
+  "tree": "civics",
+  "description": "Organised fire-fighting gave towns trained crews and standing equipment instead of improvised bucket chains. In Amsterdam, Jan van der Heyden's improved fire engine with flexible hoses, introduced around 1672, was used by municipal fire companies. After the Great Fire of 1666, London's private fire insurance offices, from about 1680, kept their own fire brigades.",
+  "wordCount": 54,
+  "sources": [],
+  "uncertainty": "Earlier organised fire services existed, notably the Roman vigiles, so this stage is a revival and improvement rather than a first invention.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: van der Heyden's hose engine about 1672; London Fire Office about 1680."
+  },
+  "mechanicLink": "Once researched, buildings last longer."
+ },
+ {
+  "id": "turnpike_trusts",
+  "tree": "civics",
+  "description": "Turnpike trusts were bodies set up by Act of Parliament to collect tolls from road users and spend them on repairing and improving a stretch of highway. England's first turnpike act, in 1663, covered part of the Great North Road. From about 1706, trusts run by local trustees spread rapidly, and by the 1830s they managed most main roads.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Historians debate how much turnpikes improved road quality and travel times compared with better vehicles and road engineering.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: 1663 turnpike act for the Great North Road; trusts from about 1706; extent by the 1830s."
+  },
+  "mechanicLink": "Once researched, overland travel is faster."
+ },
+ {
+  "id": "housing_acts",
+  "tree": "civics",
+  "description": "Nineteenth-century housing laws in Britain gave local councils power to condemn unfit slums and set standards for new dwellings. The Artisans' and Labourers' Dwellings Improvement Act of 1875, passed under Disraeli, allowed slum clearance schemes, and the Housing of the Working Classes Act of 1890 extended councils' powers to clear and build. Other industrial countries followed.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Clearance often displaced poor tenants without rehousing them, so the acts' net effect on housing conditions is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Artisans' Dwellings Act 1875; Housing of the Working Classes Act 1890."
+  },
+  "mechanicLink": "Once researched, buildings last longer."
+ },
+ {
+  "id": "municipal_waterworks",
+  "tree": "civics",
+  "description": "In the nineteenth century, large cities began to build and run their own water supplies and sewer networks, treating clean water as a public service. New York's Croton Aqueduct brought water to the city from 1842, and in London Joseph Bazalgette's main drainage system, begun in 1859 after the Great Stink, carried sewage away from the Thames.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "How much of the fall in urban death rates came from water and sewers rather than diet, housing and income is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Croton Aqueduct in service 1842; Bazalgette's main drainage begun 1859."
+  },
+  "mechanicLink": "Once researched, baseline death rates fall for people of all ages."
+ },
+ {
+  "id": "nature_conservation",
+  "tree": "civics",
+  "description": "Nature conservation sets land aside to protect landscapes, wildlife and habitats from development. The United States created Yellowstone, often called the first national park, in 1872. Older traditions of protected land existed, such as royal hunting reserves and sacred groves, but the modern movement added scientific concern for species and ecosystems and spread worldwide in the twentieth century.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Yellowstone's status as the first national park is disputed, and creating parks often removed Indigenous peoples from their land.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Yellowstone National Park established 1872."
+  },
+  "mechanicLink": "Once researched, harvests vary less from year to year."
+ },
+ {
+  "id": "climate_accords",
+  "tree": "civics",
+  "description": "Climate accords are agreements among states to limit greenhouse gas emissions and cope with climate change. The United Nations Framework Convention on Climate Change was adopted in 1992 and opened for signature at the Rio Earth Summit. It was followed by the Kyoto Protocol in 1997, with binding targets for richer nations, and the Paris Agreement of 2015.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "How effective these agreements have been in reducing global emissions is widely disputed.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: UNFCCC adopted 1992 and opened at Rio; Kyoto Protocol 1997; Paris Agreement 2015."
+  },
+  "mechanicLink": "Once researched, harvests vary less from year to year."
+ },
+ {
+  "id": "community_forestry",
+  "tree": "civics",
+  "description": "Community forestry hands state-owned or degraded forests to local user groups, which set harvesting rules, guard the woods and share timber, fodder and firewood among members. Nepal began transferring forests to local councils in the late 1970s, and its 1993 Forest Act created community forest user groups. India's Joint Forest Management programme, from 1990, shared management with villages.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Studies disagree on how much community forestry has restored forests and how fairly its benefits are shared within villages.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Nepal transfers from about 1978; Nepal Forest Act 1993; India's Joint Forest Management from 1990."
+  },
+  "mechanicLink": "Once researched, mining, logging, quarrying and fishing yield more and dwellings need less timber for upkeep."
+ },
+ {
+  "id": "environmental_regulation",
+  "tree": "civics",
+  "description": "Environmental regulation uses permits, emission standards and inspections to limit pollution of air, water and soil. Many countries passed such laws in the 1960s and 1970s, after smog episodes and polluted rivers drew public attention. The United States created its Environmental Protection Agency in 1970, the same year as major amendments to its Clean Air Act.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Earlier pollution laws, such as Britain's Alkali Act of 1863, show that regulation began well before the 1970s, so its origin is gradual.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: US EPA created 1970; Clean Air Act amendments 1970; Alkali Act 1863."
+  },
+  "mechanicLink": "Once researched, baseline death rates fall for people of all ages."
+ },
+ {
+  "id": "fisheries_management",
+  "tree": "civics",
+  "description": "Fisheries management sets catch limits, seasons and gear rules so that fish stocks can recover and remain productive. In the 1970s, coastal states extended control over fishing in their offshore waters; the United States' Magnuson Fishery Act of 1976 set up regional management councils, and the 1982 UN Convention on the Law of the Sea recognized 200-nautical-mile exclusive economic zones.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Quota systems have had mixed results, and some managed stocks, such as the Newfoundland cod, still collapsed.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Magnuson Act 1976; UN Law of the Sea Convention 1982 and its 200-mile zones."
+  },
+  "mechanicLink": "Once researched, mining, logging, quarrying and fishing yield more."
+ },
+ {
+  "id": "highway_programmes",
+  "tree": "civics",
+  "description": "National highway programmes plan and finance networks of limited-access motor roads linking a country's regions. Germany began building its Reichsautobahn network in the 1930s, drawing on plans from the Weimar years, and the United States' Federal-Aid Highway Act of 1956 funded the Interstate system, paid for largely through federal fuel taxes.",
+  "wordCount": 51,
+  "sources": [],
+  "uncertainty": "Germany's motorway plans predate the Nazi regime, and propaganda inflated the autobahn's role in reducing unemployment.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Reichsautobahn construction from 1933-34; Federal-Aid Highway Act 1956 and its fuel-tax funding."
+  },
+  "mechanicLink": "Once researched, longer road routes can be built."
+ },
+ {
+  "id": "new_towns",
+  "tree": "civics",
+  "description": "Planned new towns are built from scratch, with homes, factories, shops and services, to relieve crowded cities. Ebenezer Howard's garden city ideas led to Letchworth, begun in 1903. Britain's New Towns Act of 1946 created development corporations that built towns such as Stevenage and Harlow, and many countries later copied the approach.",
+  "wordCount": 52,
+  "sources": [],
+  "uncertainty": "How far new towns drew people and jobs away from big cities, rather than becoming commuter suburbs, is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Letchworth begun 1903; New Towns Act 1946; Stevenage and Harlow as early new towns."
+  },
+  "mechanicLink": "Once researched, parties sent to found new settlements can be larger, up to a fixed cap."
+ },
+ {
+  "id": "public_housing",
+  "tree": "civics",
+  "description": "Public housing is homes built and owned by local or national government and let at controlled rents. In Britain, the Addison Act of 1919 gave councils subsidies to build homes for working families after the First World War. In 1923 Vienna's socialist city council began a large building programme, producing estates such as the Karl-Marx-Hof.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "Assessments of public housing's quality and social effects vary sharply between countries and periods.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Addison Act 1919; Vienna municipal housing programme from 1923; Karl-Marx-Hof."
+  },
+  "mechanicLink": "Once researched, building a home takes less labour."
+ },
+ {
+  "id": "public_works_relief",
+  "tree": "civics",
+  "description": "Public works relief puts unemployed people to work on government projects instead of simply paying them relief. During the Great Depression, the United States created the Civilian Conservation Corps and the Public Works Administration in 1933 and the Works Progress Administration in 1935, employing millions of people to build roads, bridges, dams, schools and parks.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "Economists still debate how much New Deal works programmes reduced unemployment and sped recovery.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Civilian Conservation Corps and Public Works Administration 1933; Works Progress Administration 1935."
+  },
+  "mechanicLink": "Once researched, each worker builds more road and path per year."
+ },
+ {
+  "id": "river_basin_authority",
+  "tree": "civics",
+  "description": "A river basin authority manages a whole watershed as one system, combining dams, navigation locks, flood control, power generation and land improvement. The Tennessee Valley Authority, created by the United States Congress in 1933, became the best-known model and was later copied in India's Damodar Valley Corporation and elsewhere around the world.",
+  "wordCount": 52,
+  "sources": [],
+  "uncertainty": "Large dam programmes displaced many residents, and their overall economic benefits are debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Tennessee Valley Authority created 1933; Damodar Valley Corporation 1948."
+  },
+  "mechanicLink": "Once researched, hauling goods by river is cheaper and arable land yields more grain."
+ },
+ {
+  "id": "rural_electrification",
+  "tree": "civics",
+  "description": "Rural electrification extended power lines to farms and villages that private utilities found unprofitable to serve. Soviet Russia's GOELRO plan of 1920 set out a national electrification programme. In the United States, the Rural Electrification Administration, created in 1935, lent money to farmers' cooperatives, which built lines across the countryside, and the share of farms with electricity rose sharply.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "How far the GOELRO plan's achievements matched official claims is debated, and farm electrification figures vary by source.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: GOELRO plan 1920; Rural Electrification Administration 1935 and its loans to cooperatives."
+  },
+  "mechanicLink": "Once researched, harvests vary less from year to year."
+ },
+ {
+  "id": "soil_conservation",
+  "tree": "civics",
+  "description": "Soil conservation protects farmland from erosion by wind and water through contour ploughing, terracing, cover crops and shelter belts of trees. After the Dust Bowl storms on the American Great Plains in the 1930s, the United States created the Soil Conservation Service in 1935, led by Hugh Hammond Bennett, which sent advisers to work with farmers.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "The relative roles of drought and farming practice in causing the Dust Bowl are still debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Soil Conservation Service created 1935; Hugh Hammond Bennett as its head."
+  },
+  "mechanicLink": "Once researched, arable land yields more grain."
+ },
+ {
+  "id": "zoning",
+  "tree": "civics",
+  "description": "Zoning divides a city into districts with permitted uses, such as housing, commerce or industry, and rules for the height and bulk of buildings. New York City's 1916 Zoning Resolution, prompted partly by the towering Equitable Building, required tall buildings to step back from the street and became a model for zoning across the United States.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "German cities used forms of zoning earlier, so New York's role as the origin of zoning is a matter of emphasis.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: New York Zoning Resolution of 1916; the Equitable Building as a trigger."
+  },
+  "mechanicLink": "Once researched, each dwelling can house more people."
+ },
+ {
+  "id": "civic_participation",
+  "tree": "civics",
+  "description": "Mass democracies came to depend on citizens active between elections. Trade unions, cooperatives, women's associations and parent bodies trained members to debate, keep minutes and run meetings. Public libraries, adult schools and civic education spread the habits of participation, and town meetings and consultations gave ordinary people a recognised voice in public affairs.",
+  "wordCount": 53,
+  "sources": [],
+  "uncertainty": "Whether civic engagement has declined in recent decades, as some social scientists argue, is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Tocqueville's Democracy in America (1835-1840) on American voluntary associations."
+  },
+  "mechanicLink": "Repeatable final-Age research: each level raises the Civics Points each person generates, closing a tenth of the remaining gap to its limit, and it opens only once every other civic of the final Age is researched."
+ },
+ {
+  "id": "institutional_reform",
+  "tree": "civics",
+  "description": "Modern states have repeatedly rebuilt their own administrations. Britain's Northcote-Trevelyan report of 1854 called for entry to the civil service by competitive examination, and the United States followed with the Pendleton Act of 1883. Later commissions merged departments, abolished obsolete offices and audited spending, treating government itself as something that could be studied and improved.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "Whether reform waves produce lasting gains in government performance, or mostly reorganize, is contested.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Northcote-Trevelyan Report 1854; New Public Management reforms of the 1980s."
+  },
+  "mechanicLink": "Repeatable final-Age research: each level extends how far the centre's authority reaches before it decays, closing a tenth of the remaining gap to its limit, and it opens only once every other civic of the final Age is researched."
+ },
+ {
+  "id": "social_policy_research",
+  "tree": "civics",
+  "description": "Social surveys turned distress into evidence. Charles Booth mapped poverty street by street in London from 1886, and Seebohm Rowntree measured it in York in 1899. Their findings shaped old-age pensions and national insurance in Britain, while later programmes were piloted, evaluated and revised, so that relief came to rest on measured results rather than charity alone.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "How strongly research evidence actually shapes policy, compared with politics and ideology, is widely debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Booth's London survey from 1886; Rowntree's York survey 1899; US negative income tax experiments from 1968."
+  },
+  "mechanicLink": "Repeatable final-Age research: each level slows how fast grievance builds, closing a tenth of the remaining gap to its limit, and it opens only once every other civic of the final Age is researched."
+ },
+ {
+  "id": "victory_stelae",
+  "tree": "civics",
+  "description": "Victory stelae are carved stone slabs set up by rulers to proclaim military triumphs and warn rebels. The stele of Naram-Sin of Akkad, about 2250 BCE, shows the king climbing a mountain over defeated enemies. Egypt's Senusret III placed boundary stelae at Semna, in Nubia, around 1850 BCE, forbidding Nubians to pass northward except to trade.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Dates for Akkadian and Middle Kingdom rulers vary by several decades between chronologies.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Naram-Sin victory stele about 2250 BCE; Senusret III boundary stelae at Semna about 1850 BCE."
+  },
+  "mechanicLink": "Once researched, unrest drags less on output."
+ },
+ {
+  "id": "royal_post",
+  "tree": "civics",
+  "description": "A royal post is a relay system of riders, stations and fresh horses carrying a ruler's orders and officials' reports across a large state. Assyria operated relay stations along royal roads by the eighth century BCE. The Persian Achaemenid empire developed the most famous version, praised by Herodotus, along the Royal Road from Sardis to Susa.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Details of the Assyrian system come from scattered letters, and Herodotus' account of Persian couriers may be idealized.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Assyrian relay stations by the eighth century BCE; Herodotus on Persian couriers; Royal Road from Sardis to Susa."
+  },
+  "mechanicLink": "Once researched, the centre's administrative reach extends further before authority decays."
+ },
+ {
+  "id": "state_gazette",
+  "tree": "civics",
+  "description": "A state gazette is an official bulletin through which a government publishes news, decrees and appointments. In 59 BCE, Julius Caesar as consul ordered the publication of the Roman Senate's proceedings, and the Acta Diurna, posted publicly in Rome, reported official business and notable events. Imperial China later circulated court gazettes, known as dibao, among officials.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "No copy of the Acta Diurna survives, so its contents and origins are known only from later writers.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Caesar's order of 59 BCE; the Acta Diurna; Chinese dibao court gazettes."
+  },
+  "mechanicLink": "Once researched, unrest drags less on output and the centre's administrative reach extends further before authority decays."
+ },
+ {
+  "id": "printed_classics",
+  "tree": "civics",
+  "description": "In tenth-century China, the minister Feng Dao sponsored the first state printing of the Confucian classics by woodblock, a project begun in 932 and completed in 953. Authorized printed editions gave schools and examination candidates standard texts at modest cost. Under the Song dynasty, the state academy continued to print and sell classics and their commentaries.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Feng Dao's personal role and the edition's price and circulation are known mainly from later accounts.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Feng Dao's printing project 932-953; Song state academy printing."
+  },
+  "mechanicLink": "Once researched, a larger share of the population can belong to specialist classes."
+ },
+ {
+  "id": "press_licensing",
+  "tree": "civics",
+  "description": "Soon after printing spread in Europe, rulers and churches required printers to obtain licences and submit books for approval before publication. A 1538 proclamation by Henry VIII required licensing of new books in England, and the Catholic Church issued its Index of Prohibited Books in 1559 under Pope Paul IV. Such controls aimed to suppress heresy and sedition.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "How effectively licensing could be enforced against smuggled and clandestine printing is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Henry VIII's licensing proclamation of 1538; the Pauline Index of 1559."
+  },
+  "mechanicLink": "Once researched, unrest drags less on output."
+ },
+ {
+  "id": "printed_newspapers",
+  "tree": "civics",
+  "description": "Printed newspapers were regular sheets of news, usually weekly, compiled from letters and reports arriving with the posts. Johann Carolus's Relation, printed in Strasbourg from 1605, is often called the first newspaper. In Amsterdam, a weekly Courante appeared in 1618, and Dutch papers soon carried news and commercial reports across Europe.",
+  "wordCount": 51,
+  "sources": [],
+  "uncertainty": "Whether the Strasbourg Relation counts as the first true newspaper depends on how a newspaper is defined.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Carolus's Relation in Strasbourg from 1605; Amsterdam Courante uyt Italien, Duytslandt of 1618."
+  },
+  "mechanicLink": "Once researched, stored goods are released to markets faster."
+ },
+ {
+  "id": "advertising_agencies",
+  "tree": "civics",
+  "description": "Advertising agencies buy space in newspapers and magazines for clients and write notices telling readers what is for sale. Volney B. Palmer, often called the first American advertising agent, opened an agency in Philadelphia around 1841, selling space in country newspapers. Later agencies, such as N. W. Ayer & Son, founded in 1869, also designed advertisements and planned campaigns.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Newspaper advertising agents already worked in London earlier, so Palmer's status as the first agent applies only to the United States.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Palmer's Philadelphia agency about 1841-1842; N. W. Ayer & Son founded 1869."
+  },
+  "mechanicLink": "Once researched, stored goods are released to markets faster."
+ },
+ {
+  "id": "mass_press",
+  "tree": "civics",
+  "description": "The mass press brought cheap daily newspapers to a wide readership. In New York, Benjamin Day's Sun, launched in 1833 at one cent, began the penny press, relying on street sales and advertising. Steam-driven rotary presses, cheaper paper and rising literacy let leading papers sell hundreds of thousands of copies a day by the late nineteenth century.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Circulation figures from the period were often publishers' claims and are hard to verify.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Benjamin Day's Sun launched 1833 at one cent."
+  },
+  "mechanicLink": "Once researched, people migrate more readily."
+ },
+ {
+  "id": "press_freedom",
+  "tree": "civics",
+  "description": "Freedom of the press means abolishing censorship before publication, so printers answer only to courts for what they have already published. Sweden's Freedom of the Press Act of 1766 abolished political censorship and opened government documents to the public. England had let press licensing lapse in 1695, and the United States protected the press in its First Amendment of 1791.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Sweden's 1766 act was partly rolled back after 1772, and press freedom in practice depended on libel and sedition laws.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Swedish Freedom of the Press Act 1766; lapse of English licensing 1695; First Amendment ratified 1791."
+  },
+  "mechanicLink": "Once researched, grievance builds more slowly."
+ },
+ {
+  "id": "public_postal_service",
+  "tree": "civics",
+  "description": "A public postal service carries anyone's letters for a fee, not only government mail. Britain's Penny Post, introduced in 1840 on Rowland Hill's proposals, charged a uniform prepaid rate of one penny for a light letter regardless of distance within the country, paid by an adhesive stamp, the Penny Black. Railways made fast national delivery possible.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Many earlier postal systems already accepted private letters, so the novelty of 1840 was mainly cheap, uniform, prepaid postage.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Uniform Penny Post introduced 1840; Rowland Hill's proposals; the Penny Black stamp."
+  },
+  "mechanicLink": "Once researched, migrants travel further."
+ },
+ {
+  "id": "telegraph_news_agencies",
+  "tree": "civics",
+  "description": "Telegraph news agencies gathered news and market prices by wire and sold them to many newspapers at once. Bernhard Wolff founded a telegraphic bureau in Berlin in 1849, and Paul Julius Reuter, who had used carrier pigeons to bridge a gap in the telegraph lines, opened his London office in 1851. Agence Havas in Paris was older still.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Founding dates and the role of the pigeon service in Reuter's business are told in varying versions.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Wolff's bureau 1849; Reuter's London office 1851; Havas founded 1835."
+  },
+  "mechanicLink": "Once researched, trade closes price gaps between markets faster."
+ },
+ {
+  "id": "data_protection",
+  "tree": "civics",
+  "description": "Data protection law limits how governments and companies collect, store and use records about individuals. The German state of Hesse passed what is often called the first data protection act in 1970, as computers made large personal databases possible. Sweden adopted a national data law in 1973, and the European Union's General Data Protection Regulation took effect in 2018.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "How effective data protection laws are against large technology firms and state surveillance is widely debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Hesse data protection act 1970; Swedish Data Act 1973; GDPR in force 2018."
+  },
+  "mechanicLink": "Once researched, grievance builds more slowly."
+ },
+ {
+  "id": "famine_early_warning",
+  "tree": "civics",
+  "description": "Famine early warning systems combine satellite monitoring of rainfall and crops with reports on market prices and household conditions to forecast food crises months in advance. The United States set up the Famine Early Warning Systems Network in 1985 after the Ethiopian and Sahelian famines, and the UN Food and Agriculture Organization runs its own global warning system.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Warnings have often been issued in time without prompting adequate action, so their effect on famine deaths is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Famine Early Warning Systems Network set up 1985; FAO global warning system (from 1975)."
+  },
+  "mechanicLink": "Once researched, households can absorb larger food shortfalls."
+ },
+ {
+  "id": "internet_governance",
+  "tree": "civics",
+  "description": "Internet governance covers the rules, standards and institutions that keep a global computer network working. The Internet Corporation for Assigned Names and Numbers, ICANN, was set up in 1998 to coordinate domain names and addresses. Technical standards come from bodies such as the Internet Engineering Task Force, while national regulators and courts handle content, competition and privacy.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "The balance between private multistakeholder bodies and national governments in running the internet remains contested.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: ICANN founded 1998; role of the Internet Engineering Task Force."
+  },
+  "mechanicLink": "Once researched, trade closes price gaps between markets faster."
+ },
+ {
+  "id": "public_broadcasting",
+  "tree": "civics",
+  "description": "Public broadcasting means radio and later television services run by a public body, funded by licence fees or taxes and expected to serve the whole nation rather than advertisers. The British Broadcasting Corporation received its royal charter in 1927, under John Reith, and many countries founded similar broadcasters in the following decades.",
+  "wordCount": 52,
+  "sources": [],
+  "uncertainty": "How independent public broadcasters are from the governments that fund them is a recurring debate.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: BBC royal charter 1927; John Reith as first director-general."
+  },
+  "mechanicLink": "Once researched, each person generates more Civics Points."
+ },
+ {
+  "id": "public_opinion_polling",
+  "tree": "civics",
+  "description": "Opinion polling measures public views by questioning a sample chosen to represent the whole population. In the 1936 United States presidential election, George Gallup's sample poll correctly predicted Franklin Roosevelt's victory, while the Literary Digest's huge mail survey wrongly forecast his defeat. Polling soon spread to other countries and to questions about leaders and policies.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "Poll accuracy depends on sampling and response rates, and some notable election forecasts have failed.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Gallup's correct 1936 forecast; the Literary Digest's failed 1936 poll."
+  },
+  "mechanicLink": "Once researched, grievance builds more slowly and the centre's administrative reach extends further before authority decays."
+ },
+ {
+  "id": "script_reform",
+  "tree": "civics",
+  "description": "Script and language reforms replace or simplify a national writing system to make reading easier to learn. In 1928, Turkey replaced the Arabic-based Ottoman script with a Latin alphabet under Mustafa Kemal Atatürk. The People's Republic of China introduced simplified Chinese characters from 1956. Both reforms aimed to speed mass literacy through state schools.",
+  "wordCount": 54,
+  "sources": [],
+  "uncertainty": "How much literacy gains followed from script reform itself, rather than from expanded schooling, is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Turkish alphabet reform 1928; simplified Chinese characters from 1956."
+  },
+  "mechanicLink": "Once researched, people rise faster into higher social classes and the centre's administrative reach extends further before authority decays."
+ },
+ {
+  "id": "social_media_platforms",
+  "tree": "civics",
+  "description": "Social media platforms let anyone publish text, photos and video to followers and join large online networks. Earlier sites such as Friendster and MySpace prepared the way. Facebook was launched in 2004 and Twitter in 2006, and both grew to hundreds of millions of users. Such platforms reshaped news, advertising and political campaigning worldwide.",
+  "wordCount": 54,
+  "sources": [],
+  "uncertainty": "The effects of social media on politics, mental health and public discourse are actively debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Facebook launched 2004; Twitter launched 2006."
+  },
+  "mechanicLink": "Once researched, people migrate more readily."
+ },
+ {
+  "id": "state_propaganda",
+  "tree": "civics",
+  "description": "State propaganda offices shape news, posters, films and broadcasts to mobilize public opinion behind a government. The United States created the Committee on Public Information in 1917 to promote its war effort, and Germany's Reich Ministry for Public Enlightenment and Propaganda under Joseph Goebbels, founded in 1933, controlled the press, radio and film.",
+  "wordCount": 53,
+  "sources": [],
+  "uncertainty": "How far propaganda actually changed beliefs, rather than reinforcing existing views, is debated by historians.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Committee on Public Information 1917; Goebbels' ministry founded 1933."
+  },
+  "mechanicLink": "Once researched, unrest drags less on output."
+ },
+ {
+  "id": "universal_telephone_service",
+  "tree": "civics",
+  "description": "Universal service policies require telephone carriers to connect households and remote areas at affordable, regulated rates, often using profits from busy urban lines to subsidize rural ones. In the United States, the Communications Act of 1934 set the goal of service for all the people, and the Federal Communications Commission it created oversaw rates.",
+  "wordCount": 54,
+  "sources": [],
+  "uncertainty": "The phrase universal service was first used by AT&T's Theodore Vail with a different meaning, and the 1934 Act's intent is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Communications Act 1934 and the FCC; Vail's earlier use of the slogan about 1907."
+  },
+  "mechanicLink": "Once researched, settlements draw on a wider surrounding hinterland."
+ },
+ {
+  "id": "grain_storage",
+  "tree": "technology",
+  "description": "Purpose-built granaries keep stored grain dry and safe from pests, so a harvest can last until the next one and beyond. At Dhra' in the Jordan Valley, raised-floor storehouses of about 9300 BCE predate the full domestication of cereals. By about 7000 BCE, sealed pits, silos and plastered bins were common across the Near East.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "Whether the Dhra' structures held wild or cultivated grain, and how they were used, is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Dhra' raised-floor granaries about 9300 BCE; widespread storage pits and silos by about 7000 BCE."
+  },
+  "mechanicLink": "Once researched, less grain rots in store and granaries can hold more years of demand."
+ },
+ {
+  "id": "iron_farm_tools",
+  "tree": "technology",
+  "description": "Iron sickles, hoe blades and ploughshares kept an edge longer than stone and became cheaper than bronze as smelting spread, letting farmers clear forest and work heavier soils. Iron farm tools became common in the Levant around 1000 BCE, in China by roughly the sixth century BCE, and on the Ganges plain by about 500 BCE.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Dates for iron tools becoming common, rather than merely present, vary by region and are debated, especially for the Ganges plain.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: iron farm tools in the Levant about 1000 BCE; China about 600 BCE; Ganges plain about 500 BCE."
+  },
+  "mechanicLink": "Once researched, tools wear out more slowly and farmers with tools gain more from them."
+ },
+ {
+  "id": "herring_buss",
+  "tree": "technology",
+  "description": "The herring buss was a decked fishing vessel from the Low Countries that stayed at sea for weeks using drift nets. Its crew gutted and salted the herring aboard and packed it in barrels, a method developed in the fourteenth century and often credited to the Fleming Willem Beukelszoon. Dutch busses dominated the North Sea herring fishery for centuries.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The credit given to Willem Beukelszoon for curing herring at sea is largely legendary.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: sea-curing in the Low Countries about 1380; first busses with drift nets about 1415; Beukelszoon attribution."
+  },
+  "mechanicLink": "Once researched, mining, logging, quarrying and fishing yield more and households can absorb larger food shortfalls."
+ },
+ {
+  "id": "three_field_rotation",
+  "tree": "technology",
+  "description": "In three-field rotation, a village's land was divided so that one field carried winter wheat or rye, a second spring crops such as oats, barley, peas or beans, and the third lay fallow. Only a third rested each year instead of half. Estate surveys from Carolingian Francia around 800 CE show the system, which spread across northern Europe.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "How quickly and widely the system spread, and how much it raised yields, is debated by agrarian historians.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Carolingian estate surveys showing three fields about 800 CE; spread across northern Europe by about 1200 CE."
+  },
+  "mechanicLink": "Once researched, arable land yields more grain and herds yield more."
+ },
+ {
+  "id": "camel_caravan",
+  "tree": "technology",
+  "description": "Desert caravans used strings of camels, with guides, wells and halting places, to carry goods across country no cart could cross. Domesticated dromedaries carried incense from southern Arabia to the Mediterranean world from around 1000 BCE. Camels became common in North Africa in the early centuries CE, opening regular caravan trade across the Sahara.",
+  "wordCount": 54,
+  "sources": [],
+  "uncertainty": "The dates of dromedary domestication and of the first regular trans-Saharan caravans are both debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: South Arabian incense caravans about 1000 BCE; trans-Saharan camel caravans by about 300 CE."
+  },
+  "mechanicLink": "Once researched, longer road routes can be built."
+ },
+ {
+  "id": "sprung_coach",
+  "tree": "technology",
+  "description": "The coach was a passenger carriage whose body hung from leather straps, and later from steel springs, to soften the ride. The word is often traced to Kocs, a Hungarian village known for light carriages in the fifteenth century. Scheduled stagecoach services, changing horses at regular stages, appeared in seventeenth-century England, carrying passengers, mail and light goods.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "The exact dates of the first scheduled stagecoach routes and of practical steel-spring suspension are uncertain.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Kocs coach about 1450; scheduled stagecoaches from about 1610; steel springs from about 1665."
+  },
+  "mechanicLink": "Once researched, overland travel is faster."
+ }
+]

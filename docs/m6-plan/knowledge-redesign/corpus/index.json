@@ -114,6 +114,42 @@
    "title": "Civics (micro and macro) (part 2 of 2)",
    "lane": "D12-civics",
    "count": 22
+  },
+  {
+   "file": "tranche2-1.json",
+   "title": "Tranche 2 additions (part 1 of 6): energy, environment, ideology, law-justice, materials, regime-forms",
+   "lane": "T2-tranche2",
+   "count": 74
+  },
+  {
+   "file": "tranche2-2.json",
+   "title": "Tranche 2 additions (part 2 of 6): agriculture, education, environment-urban, governance, information-media, transport",
+   "lane": "T2-tranche2",
+   "count": 74
+  },
+  {
+   "file": "tranche2-3.json",
+   "title": "Tranche 2 additions (part 3 of 6): belief-religion, communication, diplomacy, engineering, infrastructure, labour, science",
+   "lane": "T2-tranche2",
+   "count": 74
+  },
+  {
+   "file": "tranche2-4.json",
+   "title": "Tranche 2 additions (part 4 of 6): administration-fiscal, construction, economy-commerce, legitimacy-succession, medicine, military",
+   "lane": "T2-tranche2",
+   "count": 73
+  },
+  {
+   "file": "tranche2-5.json",
+   "title": "Tranche 2 additions (part 5 of 6): military-institutions, public-health, representation-local-government, society-welfare",
+   "lane": "T2-tranche2",
+   "count": 73
+  },
+  {
+   "file": "tranche2-6.json",
+   "title": "Tranche 2 additions (part 6 of 6): arts-culture, exploration-empire, public-administration, thought-learning",
+   "lane": "T2-tranche2",
+   "count": 74
   }
  ]
 }

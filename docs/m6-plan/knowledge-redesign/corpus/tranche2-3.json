@@ -1,0 +1,1112 @@
+[
+ {
+  "id": "mortuary_rites",
+  "tree": "civics",
+  "description": "Deliberate burial of the dead is among the oldest signs of shared ritual. At Qafzeh and Skhul in Israel, people were buried roughly 100,000 years ago, some with red ochre or shells. Later graves grew richer: at Sungir in Russia, about 34,000 years ago, the dead wore thousands of ivory beads. Mourning together bound kin to each other and to places.",
+  "wordCount": 61,
+  "sources": [],
+  "uncertainty": "Whether the oldest burials were deliberate and symbolic is debated case by case, and dates for Qafzeh, Skhul and Sungir carry wide ranges.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Qafzeh and Skhul burials about 100,000 years ago with ochre or shells; Sungir graves about 34,000 years ago with thousands of ivory beads."
+  },
+  "mechanicLink": "Completing this node makes grievance build up more slowly in the population."
+ },
+ {
+  "id": "shamanic_ritual",
+  "tree": "civics",
+  "description": "Many foraging peoples recognise a few individuals as mediators with the spirit world who heal, divine and lead rites, though such specialists are hard to see archaeologically. Figurines from Hohle Fels in Germany, at least 35,000 years old, hint at ritual life, and a woman buried at Hilazon Tachtit in Israel about 12,000 years ago is often interpreted as a shaman.",
+  "wordCount": 61,
+  "sources": [],
+  "uncertainty": "Identifying ritual specialists from figurines or unusual burials is interpretive; the shaman reading of the Hilazon Tachtit burial is widely cited but not certain.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Hohle Fels figurine age of about 35,000 years or more; Hilazon Tachtit burial about 12,000 years ago interpreted as a shaman."
+  },
+  "mechanicLink": "Completing this node lowers baseline mortality across all age groups."
+ },
+ {
+  "id": "ancestor_veneration",
+  "tree": "civics",
+  "description": "As people settled in villages, many kept their dead close. Between roughly 9000 and 7000 BCE, villagers at Jericho removed skulls and modelled faces on them in plaster, perhaps to honour ancestors. At Çatalhöyük in Anatolia, from about 7000 BCE, the dead were buried beneath house floors. Honouring lineage ancestors helped tie a household's claim on house and land to descent.",
+  "wordCount": 61,
+  "sources": [],
+  "uncertainty": "The purpose of plastered skulls and under-floor burial is inferred; ancestor cult, memorial practice and other readings are all proposed, and the Jericho dates are broad.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Jericho plastered skulls between about 9000 and 7000 BCE; Çatalhöyük under-floor burials from about 7000 BCE."
+  },
+  "mechanicLink": "Completing this node makes buildings last longer."
+ },
+ {
+  "id": "megalithic_monuments",
+  "tree": "civics",
+  "description": "Some communities built monuments far larger than any household could raise alone. At Göbekli Tepe in southeastern Turkey, carved stone pillars were set in circular enclosures from about 9500 BCE, by people who still largely hunted and gathered. Much later, between about 3000 and 2000 BCE, Stonehenge was raised in stages in England. Feasts probably fed the builders.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Whether Göbekli Tepe's enclosures were roofed buildings or open shrines, and how far feasting organised the labour, are debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Göbekli Tepe enclosures from about 9500 BCE; Stonehenge built in stages between about 3000 and 2000 BCE."
+  },
+  "mechanicLink": "Completing this node lets each worker build more path per year."
+ },
+ {
+  "id": "pantheon_hierarchy",
+  "tree": "civics",
+  "description": "In early Mesopotamia each city had its patron god, but scribes increasingly arranged the gods into one ranked family. God lists from Fara, ancient Shuruppak, of about 2600 BCE are among the earliest. By the late third millennium BCE, Enlil of Nippur was treated as the chief god whose favour conferred kingship over the land, and rulers sought his temple's recognition.",
+  "wordCount": 61,
+  "sources": [],
+  "uncertainty": "How far the scribal god lists reflect popular belief, and whether Nippur's role in conferring kingship was religious, political or both, is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Fara god lists of about 2600 BCE; Enlil of Nippur as conferrer of kingship by the late third millennium BCE."
+  },
+  "mechanicLink": "Completing this node extends how far administrative authority reaches."
+ },
+ {
+  "id": "temple_economy",
+  "tree": "civics",
+  "description": "In Sumerian cities, temples were great households that owned fields, herds and workshops, employed labourers and stored and redistributed grain. Clay tablets from the Eanna precinct at Uruk, from about 3200 BCE, are among the earliest writing anywhere, and most of them record such goods and rations. The temples' economic weight varied between cities and periods.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Older views of a fully temple-run Sumerian economy have been revised; scholars now stress palaces and private households alongside temples.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Uruk Eanna tablets of about 3200 BCE among the earliest writing; most early tablets are administrative records of goods and rations."
+  },
+  "mechanicLink": "Completing this node lets granaries hold more years of grain."
+ },
+ {
+  "id": "ethical_religion",
+  "tree": "civics",
+  "description": "In the first millennium BCE, several traditions taught that the divine demanded justice and right conduct, not offerings alone. The Hebrew prophet Amos, active around 750 BCE, condemned the rich for oppressing the poor and judged rulers by that standard. Zoroastrian teaching on the struggle between truth and falsehood is also often placed in this period, though its dating is debated.",
+  "wordCount": 61,
+  "sources": [],
+  "uncertainty": "Zarathustra's date is disputed by many centuries, and the extent of later editing of the prophetic books is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Amos active about 750 BCE; placement of Zoroastrian teaching in the first millennium BCE."
+  },
+  "mechanicLink": "Completing this node makes grievance build up more slowly in the population."
+ },
+ {
+  "id": "pilgrimage",
+  "tree": "civics",
+  "description": "Greek sanctuaries such as Olympia and Delphi drew worshippers from many rival city-states. By tradition the Olympic Games began in 776 BCE, and a sacred truce, the ekecheiria, protected athletes and visitors travelling to and from the festival. From about the eighth century BCE, the oracle of Apollo at Delphi attracted pilgrims and envoys seeking guidance before wars and colonial ventures.",
+  "wordCount": 61,
+  "sources": [],
+  "uncertainty": "The 776 BCE founding date is a later Greek tradition, and the early scope of the sacred truce is uncertain.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Traditional Olympic founding date of 776 BCE; the ekecheiria protecting travellers; Delphi drawing pilgrims from about the eighth century BCE."
+  },
+  "mechanicLink": "Completing this node speeds overland travel."
+ },
+ {
+  "id": "scriptural_canon",
+  "tree": "civics",
+  "description": "A scriptural canon is a fixed collection of sacred texts that defines belief and practice and is studied by trained specialists. The hymns of the Rigveda were composed in northern South Asia, probably by about 1200 BCE, and preserved orally with remarkable precision. The Torah reached its final form later, with editing often placed in the sixth or fifth century BCE.",
+  "wordCount": 61,
+  "sources": [],
+  "uncertainty": "Both the Rigveda's composition dates and the stages and timing of the Torah's redaction are long-standing scholarly debates.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Rigveda composed by about 1200 BCE and transmitted orally; Torah editing placed in the sixth or fifth century BCE."
+  },
+  "mechanicLink": "Completing this node raises the Civics Points each person generates."
+ },
+ {
+  "id": "congregational_worship",
+  "tree": "civics",
+  "description": "Congregations are groups of lay believers who meet regularly to hear scripture, pray and look after their own members. Jewish synagogues are attested in inscriptions from Ptolemaic Egypt in the third century BCE. Early Christian assemblies of the first century CE shared meals and collected funds for widows and the poor. Buddhist lay followers kept regular observance days at monasteries.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Early synagogue inscriptions name prayer houses whose activities are only partly known, and the frequency of early Christian meetings varied by community.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Synagogue inscriptions from third-century BCE Egypt; first-century Christian common meals and funds for widows."
+  },
+  "mechanicLink": "Completing this node reduces deaths from famine."
+ },
+ {
+  "id": "missionary_religion",
+  "tree": "civics",
+  "description": "A missionary religion seeks converts beyond the people among whom it began. In the third century BCE, the Indian emperor Ashoka's inscriptions record envoys sent to spread the Buddhist dharma, and later tradition credits his court with a mission to Sri Lanka. In the first century CE, Paul of Tarsus carried the Christian message to communities across the eastern Mediterranean.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "How far Ashoka's envoys were religious missionaries rather than diplomats is debated, and the Sri Lanka mission rests on later chronicles.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Ashokan inscriptions recording envoys spreading the dharma in the third century BCE; Paul's first-century missions."
+  },
+  "mechanicLink": "Completing this node enlarges the range within which the map can be explored."
+ },
+ {
+  "id": "monasticism",
+  "tree": "civics",
+  "description": "Monastic communities withdraw from ordinary life to live together under a shared rule. The Buddhist sangha of monks and nuns took shape in northern India from around the fifth century BCE. In Egypt, Pachomius organised communal monasteries from about 320 CE. Monasteries came to hold and farm land and to copy and teach texts, preserving learning across many centuries.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The Buddha's dates, and therefore the sangha's origins, are uncertain by up to a century.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Buddhist sangha from about the fifth century BCE; Pachomian monasteries from about 320 CE."
+  },
+  "mechanicLink": "Completing this node raises the grain yield of farmland."
+ },
+ {
+  "id": "state_religion",
+  "tree": "civics",
+  "description": "A state religion is a faith established by law, with its clergy supported and its rivals placed at a disadvantage. Armenia is traditionally held to have adopted Christianity as its official religion around 301 CE. In 380 the Edict of Thessalonica, issued by Theodosius I with his co-emperors, made Nicene Christianity the required faith of the Roman Empire.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "The Armenian date is traditional and some scholars place the conversion a few years later; the edict's immediate legal force is also debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Armenian adoption of Christianity about 301 CE; Edict of Thessalonica in 380 under Theodosius I."
+  },
+  "mechanicLink": "Completing this node reduces the output lost to unrest."
+ },
+ {
+  "id": "canon_law",
+  "tree": "civics",
+  "description": "Canon law is the body of rules by which the Christian church governed clergy, marriage, oaths and church property through its own courts. Around 1140 the teacher Gratian, working at Bologna, compiled the Decretum, which organised centuries of conflicting rulings into one work. It became the standard textbook for university study of church law across medieval Europe.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Little is known of Gratian himself, and the Decretum appears to have been compiled in more than one stage.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Gratian's Decretum compiled about 1140 at Bologna; its use as the standard teaching text."
+  },
+  "mechanicLink": "Completing this node makes universities mature faster."
+ },
+ {
+  "id": "holy_war_doctrine",
+  "tree": "civics",
+  "description": "Holy war doctrine declares fighting against unbelievers a religious duty that earns spiritual reward. Early Islamic jurists developed rules of jihad during the eighth century CE. In 1095 Pope Urban II preached the First Crusade at Clermont, offering remission of penance to those who went. In Iberia and the Baltic, conquered frontier land was settled by colonists of the victorious faith.",
+  "wordCount": 61,
+  "sources": [],
+  "uncertainty": "The meaning of jihad and how it was elaborated in early law are debated, and crusade indulgences were defined only gradually.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Eighth-century Islamic legal writing on jihad; Urban II preaching the First Crusade at Clermont in 1095."
+  },
+  "mechanicLink": "Completing this node lets migrants travel further."
+ },
+ {
+  "id": "investiture_settlement",
+  "tree": "civics",
+  "description": "The Investiture Controversy set popes against kings over who should appoint bishops, who were both spiritual leaders and great landholders. Compromises divided the office: the church invested bishops with ring and staff, while rulers granted their lands and received homage. England reached such terms in 1107 in the Concordat of London, and the empire did so in 1122 at Worms.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Historians debate how decisive the concordats were, since royal influence over episcopal elections often continued in practice.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Concordat of London in 1107; Concordat of Worms in 1122 dividing spiritual and temporal investiture."
+  },
+  "mechanicLink": "Completing this node reduces the output lost to unrest."
+ },
+ {
+  "id": "mendicant_orders",
+  "tree": "civics",
+  "description": "Mendicant friars renounced property and lived by begging, preaching in the growing towns of medieval Europe rather than withdrawing to rural monasteries. Francis of Assisi's followers received papal approval of their way of life around 1209, and Dominic's Order of Preachers was confirmed in 1216. Friars nursed the sick, served the urban poor and later taught in universities.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "The 1209 approval was oral and is known from later accounts; the formal Franciscan rule was confirmed only in 1223.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Papal approval of Francis's followers about 1209; confirmation of the Dominican order in 1216."
+  },
+  "mechanicLink": "Completing this node makes grievance build up more slowly in the population."
+ },
+ {
+  "id": "peace_of_god",
+  "tree": "civics",
+  "description": "The Peace of God was a church movement in tenth- and eleventh-century France against the violence of armed lords. At the Council of Charroux in 989, bishops threatened excommunication for attacking clergy, plundering churches or seizing peasants' livestock. The later Truce of God, proclaimed at Toulouges around 1027, banned fighting on certain days. Sworn peace associations helped enforce it.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Historians debate whether the movement reflected a real surge of violence or the church's own struggle with lay lords, and how effective it was.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Council of Charroux in 989; Truce of God at Toulouges about 1027."
+  },
+  "mechanicLink": "Completing this node raises each farmer's output."
+ },
+ {
+  "id": "systematic_theology",
+  "tree": "civics",
+  "description": "Systematic theology uses philosophical reasoning to organise religious doctrine into a coherent whole. Augustine of Hippo, writing around 400 CE, joined Christian belief with Platonist philosophy. In medieval universities, scholastic masters taught doctrine through questions and formal disputation, and Thomas Aquinas's Summa Theologiae, written between about 1265 and 1274, drew heavily on Aristotle.",
+  "wordCount": 53,
+  "sources": [],
+  "uncertainty": "Calling Augustine's work systematic is a retrospective label; the term usually describes later scholastic method.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Augustine writing about 400 CE; Aquinas's Summa Theologiae written about 1265 to 1274."
+  },
+  "mechanicLink": "Completing this node increases how far universities can cut research costs."
+ },
+ {
+  "id": "confessionalization",
+  "tree": "civics",
+  "description": "Confessionalization describes how early modern European states bound religion and government together. The Peace of Augsburg in 1555 let each prince of the Holy Roman Empire choose Lutheranism or Catholicism for his territory. After the Council of Trent, which closed in 1563, Catholic parishes were required to register baptisms and marriages, and churches of every confession disciplined their members.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Confessionalization is a historians' model whose reach and timing are debated, and parish registration began unevenly before and after Trent.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Peace of Augsburg in 1555; Tridentine requirement of baptism and marriage registers around 1563."
+  },
+  "mechanicLink": "Completing this node extends how far administrative authority reaches."
+ },
+ {
+  "id": "religious_reform",
+  "tree": "civics",
+  "description": "Religious reform movements challenge an established clergy in the name of scripture or purer practice. In 1517 Martin Luther circulated his Ninety-five Theses at Wittenberg against the sale of indulgences. Printing spread his writings rapidly, lay readers studied the Bible in their own languages, and new Protestant churches formed in Germany, Switzerland, Scandinavia and beyond.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "Whether Luther actually posted the theses on the church door is disputed; earlier reform movements such as the Hussites complicate any single starting point.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Luther's Ninety-five Theses at Wittenberg in 1517; the role of printing in their spread."
+  },
+  "mechanicLink": "Completing this node speeds promotion between social classes."
+ },
+ {
+  "id": "revivalism",
+  "tree": "civics",
+  "description": "Revival movements call believers to personal conversion and active good works. In late seventeenth-century Germany, Pietism promoted small devotional circles, and at Halle August Hermann Francke founded an orphanage and schools from the 1690s. In the British American colonies, the Great Awakening of the 1730s and 1740s brought mass open-air preaching, and evangelicals later founded charity schools and Bible societies.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Some historians question whether the Great Awakening was a single coordinated movement or a later label for scattered revivals.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Francke's Halle foundations from the 1690s; the Great Awakening in the 1730s and 1740s."
+  },
+  "mechanicLink": "Completing this node better protects children during famine."
+ },
+ {
+  "id": "missionary_societies",
+  "tree": "civics",
+  "description": "Missionary societies were voluntary associations that raised money to send missionaries overseas. The Baptist Missionary Society, founded in England in 1792 with William Carey among its first missionaries, and the London Missionary Society of 1795 were early examples. Their agents founded schools and clinics, translated scripture, and sent home reports and maps that shaped European knowledge of other lands.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The societies' role in education and geography is well documented, but their relationship to colonial expansion is strongly debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Baptist Missionary Society founded 1792 with William Carey; London Missionary Society founded 1795."
+  },
+  "mechanicLink": "Completing this node makes each Explore order reach further."
+ },
+ {
+  "id": "secular_state",
+  "tree": "civics",
+  "description": "A secular state recognises no official church and treats all faiths equally in law. The First Amendment to the United States Constitution, ratified in 1791, barred Congress from establishing a religion, although some states kept official churches for decades. In France, the 1905 law separating churches and state ended public payment of clergy. Many later constitutions adopted similar principles.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Models of secularism differ widely, from strict separation to cooperative arrangements, and their effects on religious life are debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: First Amendment ratified 1791; French separation law of 1905 ending public payment of clergy."
+  },
+  "mechanicLink": "Completing this node speeds promotion between social classes."
+ },
+ {
+  "id": "social_christianity",
+  "tree": "civics",
+  "description": "Social Christianity was the churches' response to industrial poverty. In London from 1848, Christian socialists such as F. D. Maurice and Charles Kingsley backed workers' cooperatives. American Protestants of the Social Gospel movement, from the 1880s, campaigned for labour reform and relief in the cities. Pope Leo XIII's encyclical Rerum Novarum, in 1891, defended just wages and workers' associations.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The movements were diverse, and historians debate how much they shaped labour legislation compared with secular unions and parties.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Christian socialists in London from 1848; Social Gospel from the 1880s; Rerum Novarum in 1891."
+  },
+  "mechanicLink": "Completing this node makes grievance build up more slowly in the population."
+ },
+ {
+  "id": "ecumenism",
+  "tree": "civics",
+  "description": "The ecumenical movement sought cooperation rather than rivalry among Christian churches, and later dialogue with other faiths. The World Missionary Conference at Edinburgh in 1910 is often treated as its starting point. The World Council of Churches was founded in Amsterdam in 1948, and in 1965 the Second Vatican Council's declaration Nostra aetate urged respect for non-Christian religions.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "How far ecumenism has produced lasting unity, rather than cooperation between still-separate churches, is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Edinburgh conference 1910; World Council of Churches founded in Amsterdam 1948; Nostra aetate 1965."
+  },
+  "mechanicLink": "Completing this node reduces the output lost to unrest."
+ },
+ {
+  "id": "liberation_theology",
+  "tree": "civics",
+  "description": "Liberation theology arose in Latin America, reading the Bible as a call to free the poor from oppression. The Latin American bishops' conference at Medellín, Colombia, in 1968 condemned institutionalised injustice. Gustavo Gutiérrez, a Peruvian priest, published A Theology of Liberation in 1971. Base communities of lay people studied scripture together and organised cooperatives and community kitchens.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Its use of Marxist social analysis was contested within the church, and its lasting influence on Latin American politics is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Medellín bishops' conference 1968; Gutiérrez's A Theology of Liberation in 1971."
+  },
+  "mechanicLink": "Completing this node lets households absorb larger food shortfalls."
+ },
+ {
+  "id": "religious_political_movements",
+  "tree": "civics",
+  "description": "In the twentieth century, mass movements sought to shape state and society by religious values, combining preaching, welfare work and politics. The Rashtriya Swayamsevak Sangh was founded in India in 1925 and the Muslim Brotherhood in Egypt in 1928. After the Second World War, Christian Democratic parties became leading forces in Italy and West Germany.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "Grouping very different movements under one label is contested, and their aims and relation to democracy vary greatly.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: RSS founded 1925; Muslim Brotherhood founded 1928; post-war Christian Democratic dominance in Italy and West Germany."
+  },
+  "mechanicLink": "Completing this node reduces deaths from famine."
+ },
+ {
+  "id": "guest_right",
+  "tree": "civics",
+  "description": "Guest right is the custom of feeding and protecting peaceful strangers for a time. Ethnographers have recorded it among many foraging and herding peoples, and it allowed travel across other groups' lands for trade, marriage and resettlement. Its prehistoric origin is only inferred: shell beads carried far from the coast suggest exchange networks linked distant bands more than 40,000 years ago.",
+  "wordCount": 61,
+  "sources": [],
+  "uncertainty": "Hospitality norms leave no direct trace; their antiquity is inferred from ethnography and long-distance exchange, which could have worked in other ways.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Ethnographic prevalence of hospitality to strangers; inland shell beads indicating exchange networks over 40,000 years ago."
+  },
+  "mechanicLink": "Completing this node lets migrants travel further."
+ },
+ {
+  "id": "dynastic_marriage",
+  "tree": "civics",
+  "description": "Dynastic marriage uses royal weddings to seal alliances and claims between ruling houses. The Amarna letters, diplomatic correspondence of the mid-fourteenth century BCE, show Egyptian pharaohs negotiating for daughters of the kings of Mitanni and Babylon, with large dowries and gifts exchanged. The practice remained central to European diplomacy into the early modern era, notably for the Habsburgs.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "The political effect of particular marriages is often hard to separate from other ties, and the Amarna letters show only one side of many negotiations.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Amarna letters of the mid-fourteenth century BCE recording marriage negotiations with Mitanni and Babylon."
+  },
+  "mechanicLink": "Completing this node reduces the output lost to unrest."
+ },
+ {
+  "id": "trade_treaties",
+  "tree": "civics",
+  "description": "Trade treaties are agreements between rulers that protect merchants, set tolls and decide where disputes are heard. A treaty between Ebla and Abarsal in Syria, from about the twenty-fourth century BCE, is among the oldest known. Around 1900 BCE, Assyrian merchants trading in Anatolia operated under sworn agreements with the local rulers of Kanesh and other towns.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "The Ebla text is difficult and Abarsal's location is unknown; the exact terms of the Assur-Kanesh agreements survive only in part.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Ebla-Abarsal treaty of about the twenty-fourth century BCE; Old Assyrian agreements with Kanesh about 1900 BCE."
+  },
+  "mechanicLink": "Completing this node gets stored goods to market faster."
+ },
+ {
+  "id": "hegemonic_leagues",
+  "tree": "civics",
+  "description": "In a hegemonic league, allied states swear loyalty to an alliance led by its strongest member. The Delian League, formed in 478 BCE against Persia, pooled contributions from Greek cities to pay for a fleet under Athenian command. In 338 to 337 BCE, Philip II of Macedon organised the League of Corinth to bind Greek states to him.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Historians debate when the Delian League became in effect an Athenian empire, and how voluntary membership of the League of Corinth was.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Delian League formed 478 BCE with a common treasury; League of Corinth organised by Philip II in 338 to 337 BCE."
+  },
+  "mechanicLink": "Completing this node lets taxation extract more output."
+ },
+ {
+  "id": "tributary_relations",
+  "tree": "civics",
+  "description": "In a tributary system, lesser rulers send envoys and gifts to a central court and receive titles, presents and trading access in return. After a defeat around 200 BCE, the Han dynasty of China made heqin agreements with the Xiongnu, sending princesses and goods. Later Han rulers received tribute missions from many neighbours, a pattern that long persisted in East Asia.",
+  "wordCount": 61,
+  "sources": [],
+  "uncertainty": "Scholars debate whether tribute relations expressed real subordination or were a ceremonial frame for trade and diplomacy between near equals.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Han-Xiongnu heqin agreements from about 198 BCE; later Han tribute missions."
+  },
+  "mechanicLink": "Completing this node extends how far administrative authority reaches."
+ },
+ {
+  "id": "safe_conduct",
+  "tree": "civics",
+  "description": "A safe-conduct is a ruler's guarantee of protection for named foreigners, their goods and servants while they travel in his lands. In early Islamic law, the aman offered such protection to non-Muslim envoys and merchants. In medieval Europe, rulers issued written letters of safe-conduct, and an English act of 1414 made breaking such a truce or safe-conduct a grave crime.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Practice often fell short of law, and the early development of the aman is reconstructed from later legal texts.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Aman protecting envoys and merchants in early Islamic law; English Safe Conducts Act of 1414."
+  },
+  "mechanicLink": "Completing this node lets migrants travel further."
+ },
+ {
+  "id": "westphalian_sovereignty",
+  "tree": "civics",
+  "description": "The state sovereignty system treats states as legally equal, each holding exclusive authority within its borders. It is often traced to the Peace of Westphalia of 1648, which ended the Thirty Years' War, though historians debate how far those treaties actually created it. The principle of non-interference in domestic affairs later became a foundation of modern international law.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Many scholars regard the Westphalian origin as a myth, arguing that sovereign equality emerged gradually over the following two centuries.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Peace of Westphalia in 1648 ending the Thirty Years' War."
+  },
+  "mechanicLink": "Completing this node extends how far administrative authority reaches."
+ },
+ {
+  "id": "consular_service",
+  "tree": "civics",
+  "description": "Consuls are officials posted to foreign ports to protect their nationals and report on commerce. Merchant consuls are old, but in the nineteenth century states turned consulates into salaried public services. Britain reorganised its consular service by an act of 1825, and the United States reformed its service in 1856. Consular reports on markets, prices and shipping informed governments and traders.",
+  "wordCount": 61,
+  "sources": [],
+  "uncertainty": "Reform was gradual, and many posts remained fee-paid or held by merchants well after the dated acts.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: British Consular Act of 1825; United States consular reform of 1856."
+  },
+  "mechanicLink": "Completing this node makes trade close price gaps between markets faster."
+ },
+ {
+  "id": "great_power_congress",
+  "tree": "civics",
+  "description": "A concert of powers is a system in which the strongest states meet to settle disputes and keep a balance among themselves. The Congress of Vienna in 1814 and 1815 redrew Europe after Napoleon's defeat. Afterwards the Concert of Europe used periodic congresses and conferences, which many historians credit with helping to avoid a general European war for decades.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "How long the Concert functioned, and how much credit it deserves for the relative peace, are debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Congress of Vienna 1814 to 1815; Concert of Europe congresses afterwards."
+  },
+  "mechanicLink": "Completing this node reduces the output lost to unrest."
+ },
+ {
+  "id": "international_organizations",
+  "tree": "civics",
+  "description": "International organizations are permanent bodies created by states, with their own secretariats, to manage shared concerns. Among the first were the International Telegraph Union, founded in Paris in 1865 to agree rules for cross-border telegraphy, and the General Postal Union of 1874, soon renamed the Universal Postal Union. Both still exist as agencies of the United Nations.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Which body counts as the first international organization depends on definition; river commissions predate both unions.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: International Telegraph Union founded in Paris in 1865; General Postal Union of 1874 renamed Universal Postal Union."
+  },
+  "mechanicLink": "Completing this node makes trade haulage cheaper."
+ },
+ {
+  "id": "river_commissions",
+  "tree": "civics",
+  "description": "River commissions let the states along a major river agree on common navigation rules, tolls and engineering works. The Central Commission for the Navigation of the Rhine was established after the Congress of Vienna in 1815 and is often called the oldest international organisation still working. The European Commission of the Danube, created in 1856, improved the river's mouth for shipping.",
+  "wordCount": 61,
+  "sources": [],
+  "uncertainty": "Freedom of navigation was applied unevenly in practice, and the commissions' powers changed greatly over time.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Rhine commission established at the Congress of Vienna in 1815; European Danube Commission created 1856."
+  },
+  "mechanicLink": "Completing this node makes river haulage cheaper."
+ },
+ {
+  "id": "academic_exchange",
+  "tree": "civics",
+  "description": "Academic exchange programmes fund students and scholars to study and teach in other countries. The Fulbright Program, established by the United States in 1946, used proceeds from sales of surplus war property to pay for exchanges. The European Union's Erasmus Programme, begun in 1987, has allowed millions of students to spend part of their studies at a university abroad.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The effects of exchanges on mutual understanding and diplomacy are hard to measure and are debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Fulbright Program established 1946 funded by surplus property sales; Erasmus Programme begun 1987."
+  },
+  "mechanicLink": "Completing this node makes universities mature faster and lets migrants travel further."
+ },
+ {
+  "id": "air_navigation_agreements",
+  "tree": "civics",
+  "description": "Civil aviation agreements set the rules by which aircraft cross and land in other states' territory. The Paris Convention of 1919 affirmed each state's sovereignty over the airspace above it. The Chicago Convention of 1944 created the International Civil Aviation Organization, which sets common safety and navigation standards, while separate bilateral agreements granted airlines their landing and traffic rights.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The balance between open skies and national control of air traffic rights has been disputed since 1944.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Paris Convention of 1919 on airspace sovereignty; Chicago Convention of 1944 creating ICAO."
+  },
+  "mechanicLink": "Completing this node lets migrants travel further."
+ },
+ {
+  "id": "arms_control",
+  "tree": "civics",
+  "description": "Arms control treaties cap or limit weapons and provide ways to verify that states comply. The Treaty on the Non-Proliferation of Nuclear Weapons, opened for signature in 1968, sought to stop the spread of nuclear arms beyond existing nuclear powers. In 1972 the United States and the Soviet Union signed the SALT I agreements, limiting strategic launchers and missile defences.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "How much arms control reduced the risk of war, rather than reflecting détente already under way, is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Non-Proliferation Treaty opened for signature 1968; SALT I signed 1972."
+  },
+  "mechanicLink": "Completing this node makes trade close price gaps between markets faster."
+ },
+ {
+  "id": "collective_security",
+  "tree": "civics",
+  "description": "Collective security is a pledge by member states to act together against any aggressor among them. The Covenant of the League of Nations, adopted in 1919, embodied the idea, but the League failed to stop aggression in the 1930s. The United Nations Charter of 1945 gave the Security Council power to authorise sanctions and military action to restore peace.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The Security Council veto has often blocked collective action, and whether collective security has ever worked as designed is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: League Covenant adopted 1919; UN Charter of 1945 giving the Security Council enforcement powers."
+  },
+  "mechanicLink": "Completing this node reduces the output lost to unrest."
+ },
+ {
+  "id": "development_lending",
+  "tree": "civics",
+  "description": "Development lending channels international capital to governments for roads, dams, power plants and other public works. At the Bretton Woods conference in 1944, Allied governments agreed to create the International Bank for Reconstruction and Development, the core of the World Bank. Its first loans, from 1947, financed European reconstruction, and lending soon shifted toward poorer countries.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "The benefits of large development projects, and the conditions attached to loans, remain widely debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Bretton Woods conference 1944; first World Bank loans in 1947 for European reconstruction."
+  },
+  "mechanicLink": "Completing this node makes paths cheaper to build."
+ },
+ {
+  "id": "international_food_aid",
+  "tree": "civics",
+  "description": "International food aid ships surplus food to countries facing famine or hardship. The United States began its Food for Peace programme under a 1954 law, sending farm surpluses abroad. In 1961 the United Nations and the Food and Agriculture Organization established the World Food Programme, which grew into a major agency delivering food in emergencies and conflicts.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Economists debate whether shipped food aid can depress local farm prices and serve donor interests more than recipients.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: US Food for Peace law of 1954; World Food Programme established 1961."
+  },
+  "mechanicLink": "Completing this node makes granaries relieve famine more effectively and better protects children during famine."
+ },
+ {
+  "id": "international_standards",
+  "tree": "civics",
+  "description": "International standards bodies let states and industries agree on common specifications for parts, measurements and procedures. The International Electrotechnical Commission was founded in 1906 for electrical standards, and the International Organization for Standardization began work in 1947. From the late 1960s, ISO standards for shipping container sizes helped make containers interchangeable across ships, ports and railways.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "How much container standardisation, rather than other factors, drove the growth of trade is debated by economic historians.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: IEC founded 1906; ISO began work 1947; ISO container standards from the late 1960s."
+  },
+  "mechanicLink": "Completing this node makes trade haulage cheaper."
+ },
+ {
+  "id": "peacekeeping_operations",
+  "tree": "civics",
+  "description": "Peacekeeping places international forces, with the consent of the parties, along ceasefire lines to monitor truces and protect civilians and relief work. The United Nations sent military observers to supervise the truce in Palestine in 1948. The first armed UN peacekeeping force, the UN Emergency Force, deployed in Egypt after the Suez Crisis of 1956.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "The effectiveness of peacekeeping varies sharply between missions, and some operations failed to prevent mass atrocities.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: UN truce observers in Palestine in 1948; UN Emergency Force deployed after the 1956 Suez Crisis."
+  },
+  "mechanicLink": "Completing this node reduces deaths from famine."
+ },
+ {
+  "id": "transboundary_water_treaties",
+  "tree": "civics",
+  "description": "Shared-river treaties divide the water of rivers that cross borders so that irrigation on each side has an assured supply. The 1929 Nile Waters Agreement between Egypt and Britain, acting for Sudan, allocated most of the river's flow to Egypt. The Indus Waters Treaty of 1960, brokered by the World Bank, divided the Indus rivers between India and Pakistan.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Upstream states have long contested the colonial-era Nile allocations, and the Indus treaty's durability has come under strain.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: 1929 Nile Waters Agreement allocating most flow to Egypt; 1960 Indus Waters Treaty brokered by the World Bank."
+  },
+  "mechanicLink": "Completing this node raises the grain yield of farmland."
+ },
+ {
+  "id": "division_of_labour",
+  "tree": "civics",
+  "description": "Among foragers recorded by ethnographers, work is commonly divided by sex and age: men more often hunt large game far from camp, while women, children and elders gather plants, trap small animals and process food. Archaeologists Steven Kuhn and Mary Stiner have argued that this pattern arose with modern humans in the Upper Palaeolithic, though the question remains open.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The timing and rigidity of a sexual division of labour are debated, and recent studies point to women's substantial role in hunting in some societies.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Kuhn and Stiner's argument linking the sexual division of foraging labour to Upper Palaeolithic modern humans."
+  },
+  "mechanicLink": "Completing this node lets households absorb larger food shortfalls."
+ },
+ {
+  "id": "work_parties",
+  "tree": "civics",
+  "description": "Reciprocal work parties are gatherings in which households call on neighbours to help raise a house or bring in a harvest, repaying them with food, drink and labour in turn. They are widely recorded among farming peoples. At Çatalhöyük in Anatolia, from about 7400 BCE, houses were repeatedly rebuilt on the same spot, which may have involved neighbourly cooperation.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Cooperative labour at Çatalhöyük is inferred, not documented; houses may equally have been rebuilt by their own households.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Çatalhöyük occupation from about 7400 BCE with houses rebuilt in place."
+  },
+  "mechanicLink": "Completing this node cuts the labour needed to build a home."
+ },
+ {
+  "id": "herding_contracts",
+  "tree": "civics",
+  "description": "Herding contracts entrusted the flocks of temples and palaces to herdsmen who owed a fixed return. Under the Third Dynasty of Ur, around 2050 BCE, accounts set quotas of lambs and wool for each flock and allowed for losses. The Laws of Hammurabi, about 1754 BCE, also regulate hired herdsmen, including their liability for animals lost through negligence.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "The exact quota rates and how strictly they were enforced varied between archives and are reconstructed from incomplete records.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Ur III herding quotas around 2050 BCE; Hammurabi's laws on hired herdsmen about 1754 BCE."
+  },
+  "mechanicLink": "Completing this node raises the yield of each herder's flocks."
+ },
+ {
+  "id": "hire_tariffs",
+  "tree": "civics",
+  "description": "Wage and hire tariffs set by law what labour and equipment earn for a period of work. The Laws of Eshnunna, from Mesopotamia around 1800 BCE, fix the wage of a harvester and the hire of a wagon with its oxen and of a boat. The Laws of Hammurabi contain similar schedules, sparing employers from bargaining over every price.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Whether such legal tariffs were actually applied, or were ideal statements of royal justice, is debated by Assyriologists.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Laws of Eshnunna about 1800 BCE fixing harvester wages and hire of wagons and boats."
+  },
+  "mechanicLink": "Completing this node allows freer movement of people between settlements."
+ },
+ {
+  "id": "weekly_rest",
+  "tree": "civics",
+  "description": "A weekly rest day releases workers from labour at regular intervals. In the Hebrew Bible, the commandment in Deuteronomy, a book whose core is often dated to the seventh century BCE, extends sabbath rest to servants, resident foreigners and working animals. The seven-day cycle of rest later spread with Judaism, Christianity and Islam, each keeping its own holy day.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The origin of the seven-day week and the dating of Deuteronomy are both debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Deuteronomy's sabbath commandment covering servants and animals; core of Deuteronomy dated to the seventh century BCE."
+  },
+  "mechanicLink": "Completing this node makes grievance build up more slowly in the population."
+ },
+ {
+  "id": "apprenticeship",
+  "tree": "civics",
+  "description": "Apprenticeship binds a young person to a master for years of training, usually in return for board and lodging. Around 1268 the provost of Paris, Étienne Boileau, compiled the Livre des métiers, recording the statutes of about a hundred city crafts, including the length and terms of apprenticeship. Completing training allowed the apprentice to work as a journeyman.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Apprenticeship existed long before written statutes, and the path from journeyman to master was often restricted in practice.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Boileau's Livre des métiers about 1268 recording statutes of about a hundred crafts."
+  },
+  "mechanicLink": "Completing this node allows larger specialist classes."
+ },
+ {
+  "id": "sharecropping",
+  "tree": "civics",
+  "description": "Sharecropping is a contract in which a landowner supplies land and often seed or oxen, while a tenant family supplies labour, and the harvest is divided in agreed shares. Islamic jurists from around the eighth and ninth centuries discussed such contracts, called muzara'a and musaqat. In medieval Tuscany, the similar mezzadria system spread widely from about the thirteenth century.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Sharecropping is far older and more widespread than these legal records, and economists debate whether it helped or hindered productivity.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Islamic legal discussion of muzara'a and musaqat in the eighth and ninth centuries; spread of Tuscan mezzadria from the thirteenth century."
+  },
+  "mechanicLink": "Completing this node increases what equipped farmers gain from tools."
+ },
+ {
+  "id": "industrial_arbitration",
+  "tree": "civics",
+  "description": "Industrial arbitration sends disputes between unions and employers to conciliation boards or arbitration courts instead of strikes and lockouts. New Zealand's Industrial Conciliation and Arbitration Act of 1894, introduced by William Pember Reeves, created one of the first compulsory systems. Britain's Conciliation Act of 1896 took a voluntary approach, letting the government offer mediation to willing parties.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Whether compulsory arbitration reduced strikes over the long run, or merely shifted conflict into the courts, is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: New Zealand's 1894 act under William Pember Reeves; UK Conciliation Act 1896."
+  },
+  "mechanicLink": "Completing this node reduces the output lost to unrest."
+ },
+ {
+  "id": "labour_exchanges",
+  "tree": "civics",
+  "description": "Labour exchanges are public offices that list vacancies and job-seekers and match them. German towns opened municipal labour exchanges in the 1890s. In Britain, the Labour Exchanges Act of 1909, promoted by Winston Churchill at the Board of Trade with advice from William Beveridge, created a national network so workers could learn of jobs in other districts.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "How much early exchanges reduced unemployment, rather than reorganising hiring, is uncertain.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: German municipal labour exchanges in the 1890s; UK Labour Exchanges Act 1909 under Churchill with Beveridge."
+  },
+  "mechanicLink": "Completing this node lets migrants travel further."
+ },
+ {
+  "id": "minimum_wage",
+  "tree": "civics",
+  "description": "A minimum wage sets a legal floor under pay. In 1896 the Australian colony of Victoria created wages boards to fix minimum rates in several poorly paid trades. Britain's Trade Boards Act of 1909 followed, setting minimum rates in sweated industries such as chain-making and tailoring. Many countries later adopted national minimum wages covering most workers.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "The employment effects of minimum wages are among the most debated questions in labour economics.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Victoria wages boards 1896; UK Trade Boards Act 1909 covering chain-making and tailoring."
+  },
+  "mechanicLink": "Completing this node lets households absorb larger food shortfalls."
+ },
+ {
+  "id": "workmens_compensation",
+  "tree": "civics",
+  "description": "Workmen's compensation requires employers to pay for injuries suffered at work, regardless of who was at fault. Germany introduced compulsory accident insurance in 1884 as part of Bismarck's social legislation, funded by employers' associations. Britain's Workmen's Compensation Act of 1897 made employers in many dangerous trades liable for workplace accidents. Similar laws spread widely afterwards.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "Benefits were often low and coverage narrow at first, and the effect on workplace safety is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: German accident insurance law 1884 funded by employers' associations; UK Workmen's Compensation Act 1897."
+  },
+  "mechanicLink": "Completing this node reduces deaths from famine."
+ },
+ {
+  "id": "collective_bargaining",
+  "tree": "civics",
+  "description": "Collective bargaining law requires employers to recognise a union chosen by their workers and to negotiate with it in good faith. In the United States, the National Labor Relations Act of 1935, often called the Wagner Act, protected the right to organise, created a board to hold union elections, and made refusal to bargain an unfair labour practice.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "The act's long-term effect on union strength and wages, and later amendments that limited it, remain debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: National Labor Relations Act (Wagner Act) 1935 creating the NLRB and the duty to bargain."
+  },
+  "mechanicLink": "Completing this node makes grievance build up more slowly in the population."
+ },
+ {
+  "id": "employment_guarantee",
+  "tree": "civics",
+  "description": "An employment guarantee obliges the state to provide paid work to anyone who asks. The Indian state of Maharashtra began an Employment Guarantee Scheme in the early 1970s, during a severe drought. India's National Rural Employment Guarantee Act of 2005 promised each rural household up to 100 days of unskilled work a year, with an allowance if none was offered.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Studies disagree on how well the guarantee is delivered in practice, including payment delays and unmet demand for work.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Maharashtra scheme begun in the early 1970s drought; NREGA 2005 promising 100 days per rural household."
+  },
+  "mechanicLink": "Completing this node reduces deaths from famine."
+ },
+ {
+  "id": "guest_worker_programmes",
+  "tree": "civics",
+  "description": "Guest-worker programmes recruit foreign workers on fixed contracts to fill labour shortages. The Bracero Program, begun in 1942, brought Mexican workers to American farms and railways until 1964. West Germany signed recruitment agreements with several countries, including Turkey in 1961. Many workers expected to return home instead stayed, and their families settled in the host country.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "The programmes' effects on wages, and on workers' rights and treatment, are debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Bracero Program 1942 to 1964; West German-Turkish recruitment agreement 1961."
+  },
+  "mechanicLink": "Completing this node allows freer movement of people between settlements."
+ },
+ {
+  "id": "occupational_safety",
+  "tree": "civics",
+  "description": "Occupational safety agencies set and enforce standards for all workplaces, not just factories or mines. The United States Occupational Safety and Health Act of 1970 created OSHA to set exposure limits and safety rules. Britain's Health and Safety at Work Act of 1974 placed general duties on employers and set up the Health and Safety Executive to enforce them.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "How much of the long decline in workplace deaths is due to these agencies rather than changes in industry is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: US Occupational Safety and Health Act 1970 creating OSHA; UK Health and Safety at Work Act 1974 and the HSE."
+  },
+  "mechanicLink": "Completing this node lowers baseline mortality across all age groups."
+ },
+ {
+  "id": "unemployment_insurance",
+  "tree": "civics",
+  "description": "Unemployment insurance pays a weekly benefit to insured workers who lose their jobs while they look for new work. Part II of Britain's National Insurance Act of 1911 created one of the first compulsory national schemes, at first covering trades such as building and shipbuilding. The United States Social Security Act of 1935 established federal and state unemployment insurance.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Economists debate how far benefits lengthen unemployment spells versus helping workers find better-matched jobs.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: UK National Insurance Act 1911 Part II covering building and shipbuilding; US Social Security Act 1935."
+  },
+  "mechanicLink": "Completing this node reduces the output lost to unrest."
+ },
+ {
+  "id": "vocational_training",
+  "tree": "civics",
+  "description": "Public vocational training prepares young people for skilled trades to national standards. The United States Smith-Hughes Act of 1917 provided federal funds for agricultural, trade and home economics education in high schools. West Germany's Vocational Training Act of 1969 put the long-standing dual system, which combines workplace apprenticeship with part-time schooling, on a national legal footing.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Whether the German dual system can be transplanted to other economies is a long-running debate.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Smith-Hughes Act 1917; West German Vocational Training Act 1969 codifying the dual system."
+  },
+  "mechanicLink": "Completing this node speeds promotion between social classes."
+ },
+ {
+  "id": "codex",
+  "tree": "technology",
+  "description": "The codex is a book of folded sheets bound along one edge, unlike a scroll. Parchment, prepared animal skin, is traditionally linked with Pergamon in the second century BCE. The Roman poet Martial, around 85 CE, mentions his poems in small parchment codices. By about 400 CE the codex had largely replaced the scroll, helped by early Christian preference for it.",
+  "wordCount": 61,
+  "sources": [],
+  "uncertainty": "The Pergamon origin of parchment is a tradition reported by Pliny and is doubted; why Christians favoured the codex is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Parchment traditionally linked to Pergamon in the second century BCE; Martial's codices about 85 CE; codex dominant by about 400 CE."
+  },
+  "mechanicLink": "Completing this node raises the Research Points each person generates."
+ },
+ {
+  "id": "steam_printing_press",
+  "tree": "technology",
+  "description": "Steam power transformed printing in the nineteenth century. Friedrich Koenig's steam-driven cylinder press printed The Times of London in 1814, far faster than hand presses. In the 1840s, Richard Hoe of New York developed a rotary press that printed thousands of sheets an hour. Cheap mass-circulation newspapers followed, carrying news, prices and political debate to wide readerships.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Cheap newspapers also depended on paper-making, taxation and literacy changes, so the press's share of credit is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Koenig's steam press printing The Times in 1814; Hoe's rotary press in the 1840s."
+  },
+  "mechanicLink": "Completing this node raises the Civics Points each person generates."
+ },
+ {
+  "id": "lifting_crane",
+  "tree": "technology",
+  "description": "Cranes use a timber jib, pulleys and a winch to lift heavy loads. In Greece from the late sixth century BCE, holes cut into temple blocks for lifting tongs and lewis irons show that hoists were replacing earth ramps. Romans later used treadwheel cranes and compound pulleys called polyspastos, letting small crews raise stone and timber for great buildings.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The crane's Greek invention is inferred from cuttings in stone blocks rather than surviving machines, and its exact date is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Greek lifting holes in temple blocks from the late sixth century BCE; Roman treadwheel cranes and polyspastos."
+  },
+  "mechanicLink": "Completing this node cuts the labour needed to build a home."
+ },
+ {
+  "id": "mine_pumping_engines",
+  "tree": "technology",
+  "description": "As mines went deeper, flooding became their main obstacle. Georgius Agricola's De re metallica, published in 1556, describes and illustrates the machines used in Central European mines: water wheels and horse-driven gins powering chains of pumps, rag-and-chain lifts and rods that worked suction pumps in stages. Such devices kept shafts dry long before steam engines arrived.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Agricola recorded machines already in use, so their origins are earlier and less well documented.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: De re metallica published 1556 describing water-wheel and horse-gin pumps in Central European mines."
+  },
+  "mechanicLink": "Completing this node raises output from mining, logging, quarrying and fishing."
+ },
+ {
+  "id": "reservoir_dam",
+  "tree": "technology",
+  "description": "Dams of earth and stone built across valleys stored seasonal runoff for the dry months. At Jawa in the Jordanian desert, dams and reservoirs date to around 3000 BCE or earlier. In Egypt, the Sadd el-Kafara dam was built about 2600 BCE and apparently failed before completion. At Dholavira in the Indus civilisation, large stone-cut reservoirs stored water.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Dates for the Jawa works are disputed, and Sadd el-Kafara's purpose, whether flood control or water supply, is uncertain.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Jawa dams around 3000 BCE; Sadd el-Kafara about 2600 BCE failing before completion; Dholavira reservoirs."
+  },
+  "mechanicLink": "Completing this node makes harvests steadier from year to year."
+ },
+ {
+  "id": "electrostatics",
+  "tree": "technology",
+  "description": "Eighteenth-century experimenters studied static electricity with friction machines. In 1745 and 1746, Ewald Georg von Kleist and Pieter van Musschenbroek independently found that a glass jar could store charge, the Leyden jar. Benjamin Franklin proposed that lightning was electrical, and from around 1752 his grounded lightning rods began protecting buildings, church steeples and gunpowder stores.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "Whether Franklin himself carried out the kite experiment as described is questioned, and adoption of lightning rods was slow and contested.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Leyden jar discovered 1745 to 1746 by von Kleist and Musschenbroek; Franklin's lightning rods from about 1752."
+  },
+  "mechanicLink": "Completing this node makes buildings last longer."
+ },
+ {
+  "id": "logarithms",
+  "tree": "technology",
+  "description": "Logarithms turn multiplication and division into addition and subtraction. John Napier published his tables in 1614, and Henry Briggs soon developed base-ten logarithms, publishing tables in 1617 and 1624. Around 1620, Edmund Gunter put logarithmic scales on a ruler, which navigators used with dividers. Astronomers, surveyors and navigators saved many hours of laborious computation.",
+  "wordCount": 54,
+  "sources": [],
+  "uncertainty": "Jost Bürgi devised similar tables independently, and priority and influence are debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Napier's tables 1614; Briggs's tables 1617 and 1624; Gunter's scale about 1620."
+  },
+  "mechanicLink": "Completing this node makes trade haulage cheaper."
+ },
+ {
+  "id": "metric_system",
+  "tree": "technology",
+  "description": "The metric system is a decimal system of measurement first adopted in revolutionary France. In the 1790s the metre was defined from a survey of the meridian, and the kilogram from the mass of a volume of water; platinum standards were deposited in 1799. In 1875 seventeen states signed the Metre Convention, which created an international bureau to keep shared standards.",
+  "wordCount": 61,
+  "sources": [],
+  "uncertainty": "Adoption was slow and uneven, even in France, and the meridian survey contained errors that fixed the metre slightly short.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Platinum metre and kilogram standards deposited 1799; Metre Convention signed by seventeen states in 1875."
+  },
+  "mechanicLink": "Completing this node makes trade close price gaps between markets faster."
+ },
+ {
+  "id": "synoptic_meteorology",
+  "tree": "technology",
+  "description": "Synoptic meteorology combines simultaneous weather observations from many places into a single map. After a storm wrecked French and British ships near Balaklava during the Crimean War in 1854, Urbain Le Verrier organised a telegraphed network of observing stations in France. In Britain, Robert FitzRoy began issuing public storm warnings in 1861, using telegraphed reports from coastal stations.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Early forecasts were often wrong, and FitzRoy's forecasting was criticised by scientists and halted for a time after his death.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Balaklava storm of 1854 prompting Le Verrier's network; FitzRoy's public storm warnings from 1861."
+  },
+  "mechanicLink": "Completing this node makes harvests steadier from year to year and makes trade haulage cheaper."
+ }
+]

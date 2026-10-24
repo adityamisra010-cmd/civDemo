@@ -1,0 +1,1112 @@
+[
+ {
+  "id": "oral_tradition",
+  "tree": "civics",
+  "description": "Oral tradition is the memorizing and retelling of myths, genealogies, laws and practical lore in fixed forms such as verse, song and formula, which help recall across generations. Figurative art and personal ornaments from about 40,000 years ago suggest that storytelling was already old, though no story survives from that time. Ethnographers have recorded long genealogies recited from memory.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The antiquity of narrative storytelling is inferred from symbolic artefacts and ethnographic analogy; no prehistoric oral text can be dated directly.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: figurative art and ornaments from about 40,000 years ago; ethnographic recording of long genealogies recited from memory."
+  },
+  "mechanicLink": "Completing it lets households absorb food shortfalls better before hardship sets in."
+ },
+ {
+  "id": "communal_feasts",
+  "tree": "civics",
+  "description": "Communal feasts gathered many households to eat and celebrate together, binding allies, displaying the hosts' standing and marking seasons. At Hilazon Tachtit cave in Israel, a Natufian burial of about 12,000 years ago held remains of many tortoises and wild cattle, read as a funeral feast. Göbekli Tepe in Turkey, built from about 9500 BCE, also shows feasting debris.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Interpreting animal bone deposits as feasts rather than ordinary meals or ritual offerings is an inference, and the function of Göbekli Tepe remains debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Hilazon Tachtit Natufian burial with tortoise and wild cattle remains, about 12,000 years ago; Göbekli Tepe construction from about 9500 BCE; feasting debris at Göbekli Tepe."
+  },
+  "mechanicLink": "Completing it slows the build-up of grievance and lets settlements draw on a wider hinterland."
+ },
+ {
+  "id": "court_patronage",
+  "tree": "civics",
+  "description": "Court patronage is the support of artists and craftsmen by rulers and temples, which fed and housed them in return for monuments, statues, jewellery and other works of prestige. In Old Kingdom Egypt, from about 2600 BCE, royal workshops supplied sculptors, painters and stoneworkers for pyramid complexes and tombs. The patron's taste and needs shaped what was made.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "How far Old Kingdom craftsmen worked in centralized royal workshops rather than temple or private settings is reconstructed from limited evidence.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Old Kingdom royal workshops from about 2600 BCE; craftsmen working on pyramid complexes and tombs."
+  },
+  "mechanicLink": "Completing it allows larger specialist classes to form."
+ },
+ {
+  "id": "epic_literature",
+  "tree": "civics",
+  "description": "Epic literature arose when long heroic tales, once sung or recited, were fixed in writing and copied by scribes. The earliest Gilgamesh material is a set of separate Sumerian poems, probably composed around 2100 BCE; an Old Babylonian version wove them into one epic by about 1800 BCE. Greek and Indian epics later followed similar paths from performance to text.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Composition dates of the Sumerian Gilgamesh poems are uncertain because most surviving copies are later school tablets, and the role of oral performance behind them is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Sumerian Gilgamesh poems composed around 2100 BCE; Old Babylonian unified epic by about 1800 BCE."
+  },
+  "mechanicLink": "Completing it slows the build-up of grievance."
+ },
+ {
+  "id": "public_games",
+  "tree": "civics",
+  "description": "Public games were regular festivals of athletic and chariot contests held before crowds drawn from many communities. The best known took place at Olympia in Greece in honour of Zeus; tradition dates the first Olympic Games to 776 BCE, and they recurred every four years for over a thousand years. A sacred truce let athletes and spectators travel safely.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The 776 BCE founding date comes from later Greek victor lists and may be partly legendary; archaeology suggests cult activity at Olympia began earlier.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: traditional first Olympic Games in 776 BCE; four-yearly games lasting over a thousand years; the sacred truce."
+  },
+  "mechanicLink": "Completing it reduces the output lost to unrest."
+ },
+ {
+  "id": "public_theatre",
+  "tree": "civics",
+  "description": "Public theatre presents drama before a large audience in a purpose-built space. In Athens, Thespis, traditionally the first actor, is said to have won a tragic contest about 534 BCE; plays were later staged at festivals of Dionysus in a hillside theatre. In India, the Natyashastra, a Sanskrit treatise on drama, dates roughly from 200 BCE to 200 CE.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The Thespis tradition rests on late ancient sources, and the Natyashastra's date of compilation is uncertain by several centuries.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Thespis's victory about 534 BCE; Athenian drama at festivals of Dionysus; Natyashastra dated roughly 200 BCE to 200 CE."
+  },
+  "mechanicLink": "Completing it slows the build-up of grievance."
+ },
+ {
+  "id": "vernacular_literature",
+  "tree": "civics",
+  "description": "Vernacular literature is writing in the spoken language of ordinary people rather than a learned language such as Latin or classical Chinese. In Japan, Murasaki Shikibu wrote The Tale of Genji in Japanese around 1008 CE, using the kana script. In Italy, Dante composed his Divine Comedy in Tuscan in the early fourteenth century, shaping literary Italian.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "The exact completion dates of both works are uncertain, and Heian court Japanese was itself a refined written idiom rather than everyday speech.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Tale of Genji written around 1008 CE in kana; Dante's Divine Comedy composed in Tuscan in the early fourteenth century."
+  },
+  "mechanicLink": "Completing it raises the Civics Points each person generates."
+ },
+ {
+  "id": "arts_academies",
+  "tree": "civics",
+  "description": "Arts academies are chartered bodies that train artists, set standards of taste and hold exhibitions. In Florence, the Accademia delle Arti del Disegno was founded in 1563 under Cosimo I de' Medici, with Giorgio Vasari among its promoters. In 1648 the Académie royale de peinture et de sculpture was founded in Paris, later holding exhibitions known as the Salon.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "How far academies raised standards rather than entrenching a narrow official taste was debated even at the time and remains so.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Florentine academy founded 1563 with Vasari's involvement; Paris Académie royale founded 1648; its exhibitions known as the Salon."
+  },
+  "mechanicLink": "Completing it speeds social promotion between classes."
+ },
+ {
+  "id": "public_museums",
+  "tree": "civics",
+  "description": "Public museums open collections to visitors for study and enjoyment, with objects catalogued and displayed in order. The Ashmolean in Oxford, opened in 1683 around a donated collection of curiosities, is often called Britain's first public museum. The British Museum, established by Act of Parliament in 1753 from Sir Hans Sloane's collection, opened free to visitors in 1759.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Which institution counts as the first public museum depends on definitions; several earlier collections, such as the Capitoline gifts in Rome, have rival claims.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Ashmolean opened 1683; British Museum established 1753 from Sloane's collection; opened 1759."
+  },
+  "mechanicLink": "Completing it raises the Civics Points each person generates."
+ },
+ {
+  "id": "public_opera",
+  "tree": "civics",
+  "description": "Opera began in late sixteenth-century Italian court circles as private entertainment for princes and their guests. In 1637 the Teatro San Cassiano in Venice opened as the first public opera house, admitting anyone who bought a ticket. Commercial opera spread through Venice and then Europe, and public concert series followed in London and other cities from the later seventeenth century.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "The origins of opera and of the paid public concert are each claimed for several places and dates, depending on how the forms are defined.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Teatro San Cassiano opened 1637 as first public opera house; public concert series in London from the later seventeenth century."
+  },
+  "mechanicLink": "Completing it slows the build-up of grievance."
+ },
+ {
+  "id": "heritage_preservation",
+  "tree": "civics",
+  "description": "Heritage preservation is the listing and legal protection of historic buildings and sites. France created the post of Inspector General of Historic Monuments in 1830, held from 1834 by Prosper Mérimée, who toured the country and listed buildings for repair. In 1972 UNESCO adopted the World Heritage Convention, under which states nominate sites of outstanding value to an international list.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Earlier protective measures existed in several states, so naming a first heritage law depends on how protection is defined.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: French Inspector General post created 1830; Mérimée in post from 1834; World Heritage Convention adopted 1972."
+  },
+  "mechanicLink": "Completing it makes buildings last longer."
+ },
+ {
+  "id": "industrial_exhibitions",
+  "tree": "civics",
+  "description": "Industrial exhibitions displayed machines, manufactures and farm products in great halls, with juries awarding medals. The Great Exhibition of 1851 in London, housed in Joseph Paxton's glass and iron Crystal Palace, drew about six million visitors. Its success inspired world's fairs in Paris, Philadelphia, Chicago and elsewhere, while national and regional shows spread news of improved ploughs and reapers.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Attendance figures count visits rather than individual people, and how much exhibitions actually spread new techniques is hard to measure.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Great Exhibition 1851 in Paxton's Crystal Palace; about six million visitors."
+  },
+  "mechanicLink": "Completing it increases how much farmers gain from being equipped with tools."
+ },
+ {
+  "id": "national_literature",
+  "tree": "civics",
+  "description": "In the early nineteenth century, Romantic scholars collected folk tales, songs and epics and printed them as the heritage of their nation. Jacob and Wilhelm Grimm published their Children's and Household Tales in 1812, and Elias Lönnrot compiled the Finnish Kalevala from oral poems, first published in 1835. Such collections were later taught in schools as national classics.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Collectors often edited, combined and rewrote their material, so how faithfully these books reflect oral tradition is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Grimms' first volume 1812; Lönnrot's Kalevala first published 1835."
+  },
+  "mechanicLink": "Completing it slows the build-up of grievance."
+ },
+ {
+  "id": "professional_sport",
+  "tree": "civics",
+  "description": "Professional sport arose when paid players formed teams competing in organized leagues followed by mass audiences. In the United States, baseball's National League was founded in 1876. In England, where professional players had been allowed in 1885, twelve clubs formed the Football League in 1888. Railways, cheap newspapers and shorter working weeks helped crowds follow fixtures.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Paid athletes existed long before these leagues, so dating the start of professional sport depends on definitions.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: National League founded 1876; professionalism legalized in English football 1885; Football League formed by twelve clubs in 1888."
+  },
+  "mechanicLink": "Completing it reduces the output lost to unrest."
+ },
+ {
+  "id": "arts_councils",
+  "tree": "civics",
+  "description": "Arts councils are public bodies that distribute government money to theatres, orchestras, galleries and individual artists, usually at arm's length from ministers so that experts choose recipients. The Arts Council of Great Britain was established in 1946, growing from a wartime council chaired by John Maynard Keynes. The United States created the National Endowment for the Arts in 1965.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "How independent arm's-length bodies really are from government priorities is a recurring debate.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Arts Council of Great Britain established 1946 from a wartime council chaired by Keynes; National Endowment for the Arts created 1965."
+  },
+  "mechanicLink": "Completing it raises the Civics Points each person generates and allows larger specialist classes to form."
+ },
+ {
+  "id": "cultural_institutes",
+  "tree": "civics",
+  "description": "Cultural institutes are state-funded bodies that teach a country's language abroad and present its arts, books and ideas to foreign publics. The British Council was founded in 1934, and West Germany's Goethe-Institut in 1951. France's older Alliance française began in 1883 as a private association, and China opened Confucius Institutes from 2004. Such work is often called cultural diplomacy.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The boundary between cultural exchange and state propaganda is contested, especially for institutes closely tied to governments.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: British Council founded 1934; Goethe-Institut 1951; Alliance française 1883; Confucius Institutes from 2004."
+  },
+  "mechanicLink": "Completing it allows freer movement of people."
+ },
+ {
+  "id": "film_industry",
+  "tree": "civics",
+  "description": "The film industry grew from short films into studios making feature films for thousands of cinemas. The first Hollywood studio opened in 1911, and southern California soon became the centre of American production, drawn by sunshine. The Jazz Singer of 1927 popularized synchronized sound, and by the 1930s tens of millions of Americans went to the cinema weekly.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Weekly attendance figures for the 1930s come from industry estimates and vary considerably between sources.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: first Hollywood studio in 1911; The Jazz Singer 1927; weekly US cinema attendance in the tens of millions in the 1930s."
+  },
+  "mechanicLink": "Completing it reduces the output lost to unrest."
+ },
+ {
+  "id": "modernist_design",
+  "tree": "civics",
+  "description": "Modernist designers sought simple, standardized forms suited to industrial production and mass housing. The Bauhaus school, founded by Walter Gropius at Weimar in 1919, joined art, craft and technology. In 1926 Margarete Schütte-Lihotzky designed the compact Frankfurt Kitchen, fitted in thousands of flats of the New Frankfurt housing programme led by Ernst May.",
+  "wordCount": 53,
+  "sources": [],
+  "uncertainty": "Modernism had many independent strands across Europe, and the comfort and social effects of standardized mass housing are still debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Bauhaus founded by Gropius at Weimar in 1919; Frankfurt Kitchen designed 1926 by Schütte-Lihotzky; thousands installed in New Frankfurt flats."
+  },
+  "mechanicLink": "Completing it allows denser housing."
+ },
+ {
+  "id": "wayfinding_lore",
+  "tree": "civics",
+  "description": "Wayfinding lore is knowledge of routes, landmarks, water sources and the rising points of stars, memorized in songs and stories so travellers can journey far and return. Raw materials carried hundreds of kilometres by about 40,000 years ago suggest such knowledge was old. Aboriginal Australian songlines, which encode tracks across country in sung sequences, are a well-documented living example.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Long-distance movement of materials may reflect exchange between neighbouring groups rather than long journeys, so the inference to route lore is indirect.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: raw materials moved hundreds of kilometres by about 40,000 years ago; Aboriginal songlines as sung route knowledge."
+  },
+  "mechanicLink": "Completing it widens exploration range and lets each Explore order reach further."
+ },
+ {
+  "id": "island_voyaging",
+  "tree": "civics",
+  "description": "Island colonization voyages carried settlers by boat to islands with seed and breeding animals to found new farming communities. By about 8500 BCE early farmers had reached Cyprus, bringing goats, pigs and cattle, none of them native to the island. Crete was settled by farmers around 7000 BCE, and the earliest layers at Knossos date from that time.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Earlier visits by foragers to Cyprus and Crete are argued from sparse finds, and precise colonization dates are revised as new sites are excavated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: farmers on Cyprus by about 8500 BCE with introduced goats, pigs and cattle; Crete and Knossos settled around 7000 BCE."
+  },
+  "mechanicLink": "Completing it lets each Explore order reach further."
+ },
+ {
+  "id": "village_budding",
+  "tree": "civics",
+  "description": "Early farming spread partly through village fission, in which a group of households left a crowded village with seed and livestock to found a new one nearby. Farming villages appeared in Greece by about 7000 BCE. Around 5500 BCE the Linearbandkeramik culture, named for its banded pottery, spread rapidly across central Europe, founding longhouse villages along fertile loess valleys.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "How much farming spread by migrating farmers versus local foragers adopting it is debated, though ancient DNA now favours substantial migration.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: farming villages in Greece by about 7000 BCE; Linearbandkeramik spread across central Europe around 5500 BCE."
+  },
+  "mechanicLink": "Completing it enlarges founding parties for new settlements, up to a fixed cap."
+ },
+ {
+  "id": "frontier_fortresses",
+  "tree": "civics",
+  "description": "Frontier fortresses were chains of garrisoned forts that held a border, controlled river crossings and reported movements to the capital. Middle Kingdom Egypt built massive mudbrick forts at the Second Cataract of the Nile in Nubia, many under Senusret III in the nineteenth century BCE. Papyrus copies called the Semna Despatches preserve fort reports on Nubians arriving to trade.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Middle Kingdom regnal dates vary by a few decades between chronologies, and the forts' exact building sequence is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Second Cataract forts expanded under Senusret III in the nineteenth century BCE; Semna Despatches reporting Nubian traders."
+  },
+  "mechanicLink": "Completing it extends administrative reach further."
+ },
+ {
+  "id": "royal_expeditions",
+  "tree": "civics",
+  "description": "Royal expeditions were state ventures sent to distant lands for luxury goods, with results recorded in official texts. Egyptian kings sent ships down the Red Sea to Punt for incense, ebony and gold; one is recorded under Sahure of the Fifth Dynasty, about 2450 BCE. Queen Hatshepsut's expedition around 1470 BCE is shown in reliefs at Deir el-Bahari.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "The location of Punt is debated, with proposals ranging from eastern Sudan and Eritrea to the Horn of Africa and southern Arabia.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Sahure's Punt expedition about 2450 BCE; Hatshepsut's expedition around 1470 BCE shown at Deir el-Bahari."
+  },
+  "mechanicLink": "Completing it widens exploration range."
+ },
+ {
+  "id": "daughter_colonies",
+  "tree": "civics",
+  "description": "A daughter colony was a new city founded overseas by settlers from a mother city, governing itself but tied to its founder by cult, kinship and custom. Phoenician Tyre is traditionally said to have founded Carthage in 814 BCE. From about 750 BCE Greek cities sent settlers to found apoikiai around the Mediterranean and Black Sea, such as Syracuse.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The 814 BCE date for Carthage is a later literary tradition; the earliest archaeological levels found so far are somewhat later.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: traditional founding of Carthage in 814 BCE; Greek colonization from about 750 BCE; Syracuse as a Greek colony."
+  },
+  "mechanicLink": "Completing it enlarges founding parties for new settlements, up to a fixed cap."
+ },
+ {
+  "id": "state_resettlement",
+  "tree": "civics",
+  "description": "State resettlement moved whole conquered communities to distant provinces, to farm empty land, supply labour and break old loyalties. The Assyrian king Tiglath-Pileser III, who reigned from 745 BCE, made mass deportation a regular policy. After capturing Jerusalem in 587 or 586 BCE, the Babylonians deported much of Judah's elite to Babylonia, an episode remembered as the Babylonian exile.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The numbers deported in Assyrian royal inscriptions may be exaggerated, and the year of Jerusalem's fall is given as either 587 or 586 BCE.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Tiglath-Pileser III's reign from 745 BCE and his deportation policy; fall of Jerusalem in 587 or 586 BCE and deportation of Judah's elite."
+  },
+  "mechanicLink": "Completing it lets migrants travel further."
+ },
+ {
+  "id": "veteran_colonies",
+  "tree": "civics",
+  "description": "Veteran colonies settled discharged soldiers on surveyed plots of land, creating loyal communities that could defend and farm new territory. In Ptolemaic Egypt, soldier-settlers called cleruchs received allotments, many in the newly reclaimed Fayum during the third century BCE. In the late Roman Republic, generals from Marius onward secured land for their veterans, founding many colonies of former legionaries.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "How far Marius himself, rather than later generals such as Sulla and Caesar, established the practice of veteran colonies is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Ptolemaic cleruchs in the Fayum in the third century BCE; Roman veteran land settlements from Marius onward."
+  },
+  "mechanicLink": "Completing it enlarges founding parties for new settlements, up to a fixed cap, and lets settlements draw on a wider hinterland."
+ },
+ {
+  "id": "marches",
+  "tree": "civics",
+  "description": "Marcher lordships were frontier districts granted to lords with wide powers to raise troops, build castles and push the border outward. The Carolingian rulers organized the Spanish March south of the Pyrenees from the 790s CE as a buffer against al-Andalus. After the Norman Conquest of England, Welsh marcher lords from about 1070 held near-sovereign rights.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "The Spanish March was never a single formal province, and historians debate how far its counties were planned rather than improvised.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Spanish March organized from the 790s CE; Welsh marcher lordships established from about 1070 with special rights."
+  },
+  "mechanicLink": "Completing it extends administrative reach further."
+ },
+ {
+  "id": "colonial_administration",
+  "tree": "civics",
+  "description": "Colonial administration governed distant territories through institutions in the home country and officials sent abroad. Spain created the Council of the Indies in 1524 to oversee its American possessions, issuing laws, hearing appeals and nominating officials. In the Americas, viceroys ruled New Spain from 1535 and Peru from the 1540s, assisted by high courts called audiencias.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "How effectively distant councils controlled colonial officials, who often delayed or ignored royal orders, is a long-standing debate.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Council of the Indies created 1524; viceroyalty of New Spain from 1535; viceroyalty of Peru from the 1540s."
+  },
+  "mechanicLink": "Completing it extends administrative reach further."
+ },
+ {
+  "id": "state_exploration",
+  "tree": "civics",
+  "description": "State-sponsored exploration meant rulers funding and directing long voyages, then claiming or recording what they found. Between 1405 and 1433 Ming China sent seven great fleets under Zheng He across the Indian Ocean as far as East Africa. Portugal's voyages along the African coast began after the capture of Ceuta in 1415 and were long associated with Prince Henry.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The size of Zheng He's largest ships and Prince Henry's personal role in the Portuguese voyages are both debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Zheng He's seven voyages 1405 to 1433 reaching East Africa; capture of Ceuta in 1415; Prince Henry's association with the voyages."
+  },
+  "mechanicLink": "Completing it lets each Explore order reach further and widens exploration range."
+ },
+ {
+  "id": "assisted_emigration",
+  "tree": "civics",
+  "description": "Assisted emigration used public money to pay the passage of chosen settlers to distant colonies. From 1831 Britain funded passages to New South Wales from the sale of colonial land, following ideas promoted by Edward Gibbon Wakefield. In 1840 a Colonial Land and Emigration Commission was set up in London to select emigrants, favouring young labourers and servants.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Wakefield's exact influence on the 1831 policy is debated, and how well the schemes selected suitable emigrants varied by colony.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: assisted passages to New South Wales from 1831 funded by land sales; Wakefield's influence; Colonial Land and Emigration Commission set up 1840."
+  },
+  "mechanicLink": "Completing it lets migrants travel further."
+ },
+ {
+  "id": "coaling_stations",
+  "tree": "civics",
+  "description": "Steamships burned coal quickly and needed frequent refuelling, so naval powers secured chains of ports stocked with coal. Britain seized Aden in 1839, and it became a key coaling stop on the route to India, especially after the Suez Canal opened in 1869. In 1898 the United States annexed Hawaii and acquired Guam, partly to gain Pacific coaling bases.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "How far coaling needs, rather than trade, prestige or strategic rivalry, drove particular annexations is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: British capture of Aden in 1839; Suez Canal opened 1869; US annexation of Hawaii and acquisition of Guam in 1898."
+  },
+  "mechanicLink": "Completing it lets each Explore order reach further."
+ },
+ {
+  "id": "geographical_societies",
+  "tree": "civics",
+  "description": "Geographical societies were learned associations that sponsored expeditions, published journals and maps, and trained travellers in survey methods. The Société de Géographie, founded in Paris in 1821, is often called the oldest. London's Royal Geographical Society followed in 1830 and supported travellers such as David Livingstone in Africa. Their medals and lectures made explorers public figures.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "The societies' scientific aims were bound up with imperial expansion, and how much they shaped colonial policy is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Société de Géographie founded 1821; Royal Geographical Society founded 1830; its support for Livingstone."
+  },
+  "mechanicLink": "Completing it widens exploration range."
+ },
+ {
+  "id": "indirect_rule",
+  "tree": "civics",
+  "description": "Indirect rule was colonial government through existing local rulers, who kept their courts and customs under treaty while a European resident or adviser supervised them. After 1858 British India left more than five hundred princely states under their own rulers. In Northern Nigeria from about 1900, Frederick Lugard governed through the emirs and later promoted the method widely.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Historians debate how much local rulers kept real power under residents, and whether indirect rule hardened or invented traditional authority.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: over five hundred princely states after 1858; Lugard's rule through the emirs of Northern Nigeria from about 1900."
+  },
+  "mechanicLink": "Completing it extends administrative reach further."
+ },
+ {
+  "id": "responsible_colonial_government",
+  "tree": "civics",
+  "description": "Responsible government meant that a colony's cabinet answered to its elected assembly rather than to an appointed governor, while the empire kept control of foreign affairs. Nova Scotia became the first British colony to gain it, in early 1848, followed by the Province of Canada later that year. In 1867 Confederation united several provinces into the self-governing Dominion of Canada.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Whether Nova Scotia or the Province of Canada should be counted first depends on which ministerial change is taken as the start.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: responsible government in Nova Scotia early 1848 and Province of Canada later in 1848; Confederation in 1867."
+  },
+  "mechanicLink": "Completing it slows the build-up of grievance."
+ },
+ {
+  "id": "settler_land_grants",
+  "tree": "civics",
+  "description": "Settler land grants transferred surveyed public land to families who would farm it. The United States Homestead Act of 1862 offered 160 acres to settlers who lived on and cultivated the land for five years, paying only small fees. Millions of acres passed to homesteaders, though railways and speculators gained much land, often taken from Native American nations.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Estimates of how much homestead land ended up with genuine settlers rather than speculators vary widely.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Homestead Act 1862; 160 acres for five years' residence and cultivation."
+  },
+  "mechanicLink": "Completing it enlarges founding parties for new settlements, up to a fixed cap, and allows freer movement of people."
+ },
+ {
+  "id": "commonwealth_association",
+  "tree": "civics",
+  "description": "The Commonwealth grew from the British Empire into a voluntary association of independent states. The Statute of Westminster of 1931 gave dominions such as Canada full legislative independence. The London Declaration of 1949 allowed India to remain a member as a republic, accepting the British monarch as Head of the Commonwealth. Members cooperate as equals.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "Some dominions, such as Australia and New Zealand, adopted the Statute of Westminster only years later, so independence came at different dates.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Statute of Westminster 1931; London Declaration 1949 allowing republican India to remain a member."
+  },
+  "mechanicLink": "Completing it lets migrants travel further."
+ },
+ {
+  "id": "decolonization",
+  "tree": "civics",
+  "description": "Decolonization was the passing of colonies to independent statehood, mostly between the 1940s and 1970s. India and Pakistan became independent in 1947 amid partition and mass migration. In 1960 the United Nations General Assembly adopted Resolution 1514, declaring that all peoples have the right to self-determination. That same year seventeen African states gained independence, and dozens more followed.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Historians debate the relative weight of nationalist movements, war-weakened empires and Cold War pressure in ending colonial rule.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: independence of India and Pakistan in 1947; UN Resolution 1514 in 1960; seventeen African states independent in 1960."
+  },
+  "mechanicLink": "Completing it slows the build-up of grievance and allows freer movement of people."
+ },
+ {
+  "id": "indigenous_land_rights",
+  "tree": "civics",
+  "description": "Indigenous land rights recognize indigenous peoples' title to land they held before colonization. In Australia, the Aboriginal Land Rights (Northern Territory) Act of 1976 allowed claims to unalienated Crown land. In 1992 the High Court's Mabo decision rejected the doctrine that the continent had belonged to no one, recognizing native title, which the Native Title Act of 1993 then regulated.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "How much land and control these laws actually returned, and how strict proof of continuing connection should be, remain contested.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Aboriginal Land Rights (Northern Territory) Act 1976; Mabo decision 1992; Native Title Act 1993."
+  },
+  "mechanicLink": "Completing it slows the build-up of grievance."
+ },
+ {
+  "id": "overseas_departments",
+  "tree": "civics",
+  "description": "Some colonies were integrated as full parts of the former colonial state instead of becoming independent. In 1946 France made Guadeloupe, Martinique, French Guiana and Réunion overseas departments, with the same laws and representation in the national parliament as departments in France. In 1959 Hawaii, annexed by the United States in 1898, became the fiftieth state after a popular vote.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Whether integration ended colonial inequality or preserved it in new form is debated, and full legal equality in practice came only gradually.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: French overseas departments created 1946; Hawaii annexed 1898 and admitted as fiftieth state in 1959."
+  },
+  "mechanicLink": "Completing it extends administrative reach further."
+ },
+ {
+  "id": "states_reorganisation",
+  "tree": "civics",
+  "description": "After independence, India faced demands to redraw provinces inherited from British rule along lines of language. Andhra State was formed for Telugu speakers in 1953, after the death of Potti Sriramulu during a hunger strike. A commission followed, and the States Reorganisation Act of 1956 redrew boundaries so that most states were organized around a major language.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Whether linguistic states strengthened national unity or encouraged regional division was argued at the time and is still discussed.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Andhra State formed 1953 after Potti Sriramulu's death on hunger strike; States Reorganisation Act 1956."
+  },
+  "mechanicLink": "Completing it reduces the output lost to unrest."
+ },
+ {
+  "id": "road_houses",
+  "tree": "civics",
+  "description": "Royal road-houses were staffed stations about a day's travel apart on main roads, supplying water, food and rest to official travellers. Shulgi, king of the Third Dynasty of Ur around 2090 BCE, claimed in a hymn to have built houses with gardens along the highways. Administrative tablets from Ur III way-stations record rations issued to messengers and other travellers.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Shulgi's claim comes from a royal praise hymn, so the scale of his road-house building may be exaggerated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Shulgi's reign around 2090 BCE; his hymn claiming road-houses with gardens; Ur III tablets recording rations for travellers."
+  },
+  "mechanicLink": "Completing it speeds overland travel."
+ },
+ {
+  "id": "administrative_procedure",
+  "tree": "civics",
+  "description": "Administrative procedure law sets rules for how government agencies make decisions. The United States Administrative Procedure Act of 1946 required agencies to publish proposed rules, invite public comment and allow courts to review their actions. West Germany adopted a federal Administrative Procedure Act in 1976, requiring authorities to hear affected parties and to give reasons for their decisions.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Whether such procedures improve decisions or mainly slow them, and how closely courts should review agencies, are continuing debates.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: US Administrative Procedure Act 1946; West German federal Administrative Procedure Act 1976."
+  },
+  "mechanicLink": "Completing it reduces the output lost to unrest."
+ },
+ {
+  "id": "agricultural_extension",
+  "tree": "civics",
+  "description": "Agricultural extension carries research from colleges and experiment stations to working farmers. In the United States, the Smith-Lever Act of 1914 created the Cooperative Extension Service, funding county agents linked to land-grant colleges. Agents ran demonstration plots, visited farms and organized clubs, teaching improved seed, fertilizer use and methods. Many countries later built similar services, notably during the Green Revolution.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Measuring how much yield growth came from extension advice rather than prices, credit or new varieties alone is difficult.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Smith-Lever Act 1914 creating the Cooperative Extension Service; county agents linked to land-grant colleges."
+  },
+  "mechanicLink": "Completing it raises how much each farmer produces."
+ },
+ {
+  "id": "anti_corruption_agency",
+  "tree": "civics",
+  "description": "An anti-corruption commission is an independent agency empowered to investigate, and often arrest, officials who take bribes. Singapore's Corrupt Practices Investigation Bureau was founded in 1952 under British colonial rule. Hong Kong created its Independent Commission Against Corruption in 1974, after scandals involving police officers, and it became a widely studied model combining investigation, prevention and public education.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "How far such agencies succeed on their own, rather than alongside wider political commitment and pay reform, is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Singapore CPIB founded 1952; Hong Kong ICAC created 1974 after police corruption scandals."
+  },
+  "mechanicLink": "Completing it lets taxes extract more output."
+ },
+ {
+  "id": "digital_identity",
+  "tree": "civics",
+  "description": "Digital identity systems give each resident a unique identity that can be checked electronically. Estonia began issuing a national electronic ID card with a chip for digital signatures in 2002. India's Aadhaar programme, launched in 2009, assigns a twelve-digit number linked to fingerprints and iris scans, covers over a billion people and is used for welfare payments and subsidized rations.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Privacy, exclusion of people whose identification fails, and the scale of savings claimed for such systems are all disputed.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Estonian electronic ID card from 2002; Aadhaar launched 2009 with twelve-digit biometric numbers; coverage over a billion people."
+  },
+  "mechanicLink": "Completing it allows freer movement of people."
+ },
+ {
+  "id": "disaster_management",
+  "tree": "civics",
+  "description": "Disaster management agencies plan for floods, droughts, earthquakes and other emergencies, stockpile relief, issue warnings and coordinate rescue. In the United States, the Federal Civil Defense Administration was created in 1950, and FEMA was formed in 1979 by merging several agencies. India established its National Disaster Management Authority in 2005, after the Indian Ocean tsunami of December 2004.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "How far deaths fall because of agencies rather than better forecasting, building and incomes is hard to separate.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Federal Civil Defense Administration 1950; FEMA formed 1979; India's National Disaster Management Authority 2005."
+  },
+  "mechanicLink": "Completing it reduces famine deaths and lets granaries hold more."
+ },
+ {
+  "id": "e_government",
+  "tree": "civics",
+  "description": "Digital government moves public services online, letting citizens file taxes, register businesses and claim benefits without visiting an office. Many tax authorities offered online filing by around 2000. Estonia introduced X-Road in 2001, a secure data-exchange layer letting separate public and private databases share information, and became a widely cited example of a state run largely through networks.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Claims of cost savings are hard to verify independently, and online services can exclude people without internet access.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: online tax filing by around 2000; Estonia's X-Road introduced 2001."
+  },
+  "mechanicLink": "Completing it extends administrative reach further."
+ },
+ {
+  "id": "freedom_of_information",
+  "tree": "civics",
+  "description": "Freedom of information laws give anyone the right to request government documents, which must be released unless a stated exemption applies. Sweden's Freedom of the Press Act of 1766 is often called the first. Finland passed its Act on the Publicity of Official Documents in 1951, and the United States adopted its Freedom of Information Act in 1966.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "How often such laws expose abuses, rather than being limited by broad exemptions and delays, varies greatly between countries.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Swedish Freedom of the Press Act 1766; Finnish publicity act 1951; US Freedom of Information Act 1966."
+  },
+  "mechanicLink": "Completing it slows the build-up of grievance."
+ },
+ {
+  "id": "land_consolidation",
+  "tree": "civics",
+  "description": "Land consolidation redraws a district's scattered farm strips into compact holdings of equal value, with new access roads and drainage. Officials survey and value every parcel before reallocating it. West Germany passed a federal Land Consolidation Act in 1953 and the Netherlands a new act in 1954. Programmes across Europe and Asia followed, enlarging fields to suit tractors and combines.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "Consolidation has older roots, as in eighteenth-century enclosure and Danish reforms, and its effects on small farmers and landscapes are debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: West German Land Consolidation Act 1953; Dutch land consolidation act 1954."
+  },
+  "mechanicLink": "Completing it increases how much farmers gain from being equipped with tools."
+ },
+ {
+  "id": "road_traffic_regulation",
+  "tree": "civics",
+  "description": "Road traffic law governs who may drive, how vehicles are registered and how they must behave on the road. As motor traffic grew, countries introduced licences, speed limits and standard signs. The International Convention relative to Motor Traffic, signed in Paris in 1926, set common rules for cross-border driving, and the Vienna Convention on Road Traffic of 1968 updated them.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "National rules varied widely before and after these conventions, and not every country ratified them.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Paris convention on motor traffic 1926; Vienna Convention on Road Traffic 1968."
+  },
+  "mechanicLink": "Completing it speeds overland travel."
+ },
+ {
+  "id": "veterinary_campaigns",
+  "tree": "civics",
+  "description": "Livestock disease campaigns use vaccination, surveillance and movement controls to suppress cattle plagues. The Office International des Épizooties was founded in Paris in 1924, after rinderpest reached Belgium, to share information between countries. The Global Rinderpest Eradication Programme, launched in 1994, coordinated vaccination and surveillance, and in 2011 rinderpest was declared the second disease ever eradicated, after smallpox.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Credit for rinderpest eradication is shared among many national, regional and international programmes, so the role of any one body is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Office International des Épizooties founded 1924 after a rinderpest outbreak in Belgium; Global Rinderpest Eradication Programme 1994; eradication declared 2011."
+  },
+  "mechanicLink": "Completing it raises the yield of herds."
+ },
+ {
+  "id": "royal_archives",
+  "tree": "civics",
+  "description": "Royal archives kept a palace's letters, treaties, inventories and accounts so they could be consulted later. At Ebla in northern Syria, excavators in the 1970s found thousands of clay tablets from about 2400 BCE in palace archive rooms. Some had evidently been stored on shelves, and many were administrative records of textiles, metals and food, written in cuneiform.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "The Ebla archive's exact date and the reconstruction of how tablets were shelved and indexed are debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Ebla tablets found in the 1970s; date about 2400 BCE; shelving and administrative content."
+  },
+  "mechanicLink": "Completing it extends administrative reach further."
+ },
+ {
+  "id": "scribal_schools",
+  "tree": "civics",
+  "description": "Scribal schools trained students to write cuneiform, keep accounts and copy standard texts. School exercise tablets survive from Shuruppak in Sumer from about 2500 BCE. Sumerian texts copied in the early second millennium BCE describe the edubba, or tablet house, where pupils copied word lists, proverbs and literature under a master. Graduates staffed temples, palaces and merchant houses.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "Much teaching probably took place in private houses, and how closely literary descriptions of the edubba match real schools is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Shuruppak school tablets about 2500 BCE; edubba described in early second-millennium Sumerian texts."
+  },
+  "mechanicLink": "Completing it speeds social promotion between classes and lets taxes extract more output."
+ },
+ {
+  "id": "palace_library",
+  "tree": "civics",
+  "description": "A palace library gathers and catalogues copies of scholarly texts. The best-known early example is the library of the Assyrian king Ashurbanipal at Nineveh, assembled in the seventh century BCE. His scribes collected and copied omen texts, medical treatises, hymns, word lists and literature such as the Epic of Gilgamesh. Tens of thousands of tablet fragments survive.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "The surviving tablets come from several buildings at Nineveh, so how far they formed one organized library is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Ashurbanipal's library at Nineveh in the seventh century BCE; tens of thousands of surviving fragments; inclusion of the Gilgamesh epic."
+  },
+  "mechanicLink": "Completing it raises the Research Points each person generates."
+ },
+ {
+  "id": "agronomic_treatises",
+  "tree": "civics",
+  "description": "Agronomic treatises are practical manuals on farming, covering crops, soils, manuring, livestock and estate management. In Rome, Cato the Elder wrote On Agriculture about 160 BCE, the oldest surviving complete work of Latin prose, advising owners of slave-worked estates. In Han China, Fan Shengzhi wrote a farming manual in the first century BCE, now known only from quotations.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "How closely such manuals reflected actual farming practice, rather than the ideals of literate landowners, is uncertain.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Cato's On Agriculture about 160 BCE as oldest surviving complete Latin prose work; Fan Shengzhi's manual of the first century BCE surviving in quotations."
+  },
+  "mechanicLink": "Completing it raises how much each farmer produces."
+ },
+ {
+  "id": "philosophical_schools",
+  "tree": "civics",
+  "description": "Philosophical schools were lasting communities of teachers and pupils who debated nature, ethics and how to live. In China, the disciples of Confucius, active around 500 BCE, preserved and developed his teachings. In Athens, Plato founded the Academy about 387 BCE, and it outlived him by centuries. Aristotle's Lyceum and the Stoic and Epicurean schools followed.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Whether ancient schools were formal institutions or looser circles around a teacher is debated, and Confucius's own teachings are known only through later compilations.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Confucius active around 500 BCE; Plato's Academy founded about 387 BCE."
+  },
+  "mechanicLink": "Completing it helps universities mature faster."
+ },
+ {
+  "id": "political_philosophy",
+  "tree": "civics",
+  "description": "Political philosophy asks what makes rule just and how constitutions compare. In Greece, Plato's Republic, written about 380 BCE, imagined an ideal city ruled by philosophers, and Aristotle's Politics compared many constitutions. In China, Mencius, active in the fourth century BCE, argued that rulers must govern for the people's welfare and that tyrants forfeit their right to rule.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "The dating of Plato's dialogues is approximate, and the Mencius text was compiled by his followers.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Plato's Republic about 380 BCE; Mencius active in the fourth century BCE and his view on tyrants."
+  },
+  "mechanicLink": "Completing it raises the Civics Points each person generates."
+ },
+ {
+  "id": "state_academy",
+  "tree": "civics",
+  "description": "A state academy is a ruler-funded institution where scholars study and future officials are trained. In Alexandria, the Ptolemies founded the Mouseion with its great library about 290 BCE, supporting scholars at royal expense. In China, Emperor Wu of Han established the Imperial Academy in 124 BCE to teach the Confucian classics to students who could then enter government service.",
+  "wordCount": 60,
+  "sources": [],
+  "uncertainty": "The founding date of the Mouseion and the size of the Alexandrian library are uncertain, and ancient figures for its holdings vary greatly.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Mouseion founded about 290 BCE; Han Imperial Academy established 124 BCE under Emperor Wu."
+  },
+  "mechanicLink": "Completing it speeds social promotion between classes and extends administrative reach further."
+ },
+ {
+  "id": "statecraft_doctrine",
+  "tree": "civics",
+  "description": "Statecraft doctrine is practical advice on running a state: managing officials, collecting revenue, gathering intelligence and waging war. In India, the Arthashastra, traditionally linked to Kautilya at the Maurya court, is thought to have been compiled over several centuries from about 300 BCE. In China, the Han Feizi, from the mid-third century BCE, set out Legalist doctrines of rule.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The Arthashastra's authorship and date are debated, with many scholars placing its final form centuries after the Maurya period.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Arthashastra compiled over several centuries from about 300 BCE and its link to Kautilya; Han Feizi from the mid-third century BCE."
+  },
+  "mechanicLink": "Completing it extends administrative reach further."
+ },
+ {
+  "id": "chartered_universities",
+  "tree": "civics",
+  "description": "Universities began as self-governing guilds of masters and students that won legal privileges and granted degrees recognized widely. Bologna, famous for law, traditionally dates its origin to 1088. In Paris, masters teaching around the cathedral school formed a guild by the later twelfth century and received royal and papal privileges from about 1200.",
+  "wordCount": 53,
+  "sources": [],
+  "uncertainty": "The 1088 date for Bologna is a later tradition, and neither university has a single founding moment.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Bologna's traditional date of 1088; Paris masters' guild in the later twelfth century; privileges from about 1200."
+  },
+  "mechanicLink": "Completing it helps universities mature faster and lets university medicine save more lives."
+ },
+ {
+  "id": "geographic_compendia",
+  "tree": "civics",
+  "description": "Geographic compendia gathered reports from travellers, merchants and envoys into descriptions of the known world. In Sicily, the geographer al-Idrisi completed a world map and accompanying book for King Roger II in 1154, known as the Tabula Rogeriana. In Song China, the trade official Zhao Rugua compiled Records of Foreign Peoples around 1225 from merchants' accounts of distant lands.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "How much these works relied on first-hand reports versus older written sources is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: al-Idrisi's work for Roger II completed 1154; Zhao Rugua's Records of Foreign Peoples around 1225."
+  },
+  "mechanicLink": "Completing it widens exploration range."
+ },
+ {
+  "id": "translation_patronage",
+  "tree": "civics",
+  "description": "Patrons paid scholars to translate works of science and philosophy from other languages and to copy the results widely. In Abbasid Baghdad during the ninth century, caliphs and wealthy families sponsored translations of Greek texts into Arabic, an effort associated with the House of Wisdom and with Hunayn ibn Ishaq. In twelfth-century Toledo, scholars rendered Arabic works into Latin.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The House of Wisdom's actual role, whether a research institution or mainly a palace library, is debated by historians.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Abbasid translation movement in ninth-century Baghdad; Hunayn ibn Ishaq; Toledo translations in the twelfth century."
+  },
+  "mechanicLink": "Completing it raises the Research Points each person generates."
+ },
+ {
+  "id": "enlightenment",
+  "tree": "civics",
+  "description": "The Enlightenment was an eighteenth-century European movement that applied reason and criticism to religion, law and government. It drew on the scientific achievements of the previous century, notably Isaac Newton's Principia of 1687. Writers corresponded and published in a public republic of letters; Diderot and d'Alembert's Encyclopédie, begun in 1751, aimed to gather and spread useful knowledge.",
+  "wordCount": 57,
+  "sources": [],
+  "uncertainty": "Historians debate whether there was one Enlightenment or several national and religious variants, and how far its ideas reached beyond elites.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Newton's Principia 1687; Encyclopédie begun 1751 by Diderot and d'Alembert."
+  },
+  "mechanicLink": "Completing it speeds social promotion between classes and slows the build-up of grievance."
+ },
+ {
+  "id": "humanism",
+  "tree": "civics",
+  "description": "Renaissance humanism was a scholarly movement that recovered and studied classical Latin and Greek texts and taught grammar, rhetoric, history, poetry and moral philosophy. Petrarch, active in the mid-fourteenth century, is often called its founder. In fifteenth-century Florence, humanists such as Leonardo Bruni served as chancellors, and humanist education became a mark of lay elites.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "Calling Petrarch the founder is a simplification, since earlier Italian scholars had already revived classical study.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Petrarch active in the mid-fourteenth century; Leonardo Bruni as chancellor of Florence."
+  },
+  "mechanicLink": "Completing it speeds social promotion between classes."
+ },
+ {
+  "id": "language_academies",
+  "tree": "civics",
+  "description": "Language academies are official bodies that set standards for a national language through dictionaries and grammars. In Florence, the Accademia della Crusca was founded in 1582 and published its Vocabolario in 1612, based on Tuscan usage. In France, Cardinal Richelieu founded the Académie française in 1635 to regulate French, and its first dictionary appeared in 1694.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "How much academies actually shaped everyday speech, as opposed to written and literary usage, is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Accademia della Crusca founded 1582 and Vocabolario of 1612; Académie française founded 1635; first dictionary 1694."
+  },
+  "mechanicLink": "Completing it extends administrative reach further."
+ },
+ {
+  "id": "scientific_societies",
+  "tree": "civics",
+  "description": "Scientific societies were associations where members met to report observations, test claims by experiment and publish findings. The Accademia dei Lincei, founded in Rome in 1603, later counted Galileo as a member. The Royal Society of London was founded in 1660 and began publishing the Philosophical Transactions in 1665, one of the earliest scientific journals.",
+  "wordCount": 55,
+  "sources": [],
+  "uncertainty": "How far early societies practised experiment rather than collecting curiosities and reports varied, and their influence on discovery is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Accademia dei Lincei founded 1603 with Galileo as a member; Royal Society founded 1660; Philosophical Transactions from 1665."
+  },
+  "mechanicLink": "Completing it raises the Research Points each person generates."
+ },
+ {
+  "id": "public_libraries",
+  "tree": "civics",
+  "description": "Public libraries are funded by local taxes and open free to every resident for reading and borrowing. In Britain, the Public Libraries Act of 1850 allowed town councils to levy a rate for free libraries, and Manchester opened one in 1852. In the United States, the Boston Public Library, which opened in 1854, was a pioneering large municipal library.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Earlier subscription and parish libraries existed, so the first public library depends on whether free access and tax funding are required.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Public Libraries Act 1850; Manchester free library opened 1852; Boston Public Library opened 1854."
+  },
+  "mechanicLink": "Completing it speeds social promotion between classes."
+ },
+ {
+  "id": "research_university",
+  "tree": "civics",
+  "description": "The research university combines teaching with original research, paying professors to advance knowledge and train new scholars. The University of Berlin, founded in 1810 under the influence of Wilhelm von Humboldt, became the model, joining lectures with seminars and laboratories. American universities such as Johns Hopkins, founded in 1876, adopted the model and its doctoral training.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Historians argue that the 'Humboldtian' model was partly a later idealization, and research seminars also developed at other German universities.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: University of Berlin founded 1810 under Humboldt's influence; Johns Hopkins founded 1876."
+  },
+  "mechanicLink": "Completing it raises the Research Points each person generates and helps universities mature faster."
+ },
+ {
+  "id": "national_accounts",
+  "tree": "civics",
+  "description": "National accounts measure an economy's total output, income and spending in one consistent set of figures. In the United States, Simon Kuznets presented estimates of national income to Congress in 1934. During and after the Second World War, economists such as Richard Stone refined the method, and the United Nations published a standard System of National Accounts in 1953.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Earlier national income estimates existed, and what such totals should include, such as household work, remains debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Kuznets's national income estimates presented in 1934; Richard Stone's role; UN System of National Accounts 1953."
+  },
+  "mechanicLink": "Completing it lets taxes extract more output."
+ },
+ {
+  "id": "national_laboratories",
+  "tree": "civics",
+  "description": "National laboratories are large state-funded research centres with permanent staff and instruments too costly for any single university. During the Second World War, the Manhattan Project built laboratories such as Los Alamos, founded in 1943, which designed the first atomic bombs. In 1954 European states founded CERN near Geneva to build particle accelerators for shared research.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Earlier state laboratories, such as national standards bureaus, have a claim to the category, so its starting point depends on definitions.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Los Alamos founded 1943 within the Manhattan Project; CERN founded 1954 near Geneva."
+  },
+  "mechanicLink": "Completing it raises the Research Points each person generates."
+ },
+ {
+  "id": "open_access_science",
+  "tree": "civics",
+  "description": "Open access science publishes research papers, and often data, free online for anyone to read and reuse. In 1991 the physicist Paul Ginsparg started the arXiv server, where researchers post preprints before formal publication. The Budapest Open Access Initiative of 2002 defined the term and urged free access through open repositories and journals. Many funders now require open publication.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "How open access should be paid for, and its effects on journal quality and publishing costs, are actively debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: arXiv started 1991 by Paul Ginsparg; Budapest Open Access Initiative 2002."
+  },
+  "mechanicLink": "Completing it further lowers the research cost of universities, down to a floor."
+ },
+ {
+  "id": "operations_research",
+  "tree": "civics",
+  "description": "Operations research applies mathematics and scientific method to practical problems of routing, scheduling and supply. It took shape in Britain around the start of the Second World War, when scientists studied how to use radar and aircraft most effectively; Patrick Blackett led well-known groups. After 1945, firms adopted the methods, aided by linear programming and computers.",
+  "wordCount": 56,
+  "sources": [],
+  "uncertainty": "Several British groups worked in parallel, so crediting the field's origin to any one team or person simplifies the history.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: British operational research around the start of the Second World War; Blackett's groups; postwar business use with linear programming."
+  },
+  "mechanicLink": "Completing it makes trade haulage cheaper."
+ },
+ {
+  "id": "science_policy",
+  "tree": "civics",
+  "description": "Science policy is the state's planning and funding of research according to national priorities. In 1945 Vannevar Bush's report Science, the Endless Frontier argued that the United States government should support basic research in peacetime. The National Science Foundation, created in 1950, followed, distributing grants through peer review. Many countries set up research councils.",
+  "wordCount": 54,
+  "sources": [],
+  "uncertainty": "How directly Bush's report shaped the National Science Foundation, which emerged after years of political dispute, is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Bush's Science, the Endless Frontier 1945; National Science Foundation created 1950."
+  },
+  "mechanicLink": "Completing it raises the Research Points each person generates, helps universities mature faster and further lowers their research cost, down to a floor."
+ },
+ {
+  "id": "think_tanks",
+  "tree": "civics",
+  "description": "Think tanks are independent institutes that employ researchers to analyse public policy and propose reforms. The Institute for Government Research, founded in Washington in 1916, later merged into the Brookings Institution. RAND began as an air force research project in 1946 and became an independent nonprofit corporation in 1948, applying systems analysis to defence and later social policy.",
+  "wordCount": 58,
+  "sources": [],
+  "uncertainty": "The independence of think tanks from funders and parties is often questioned, and which body counts as the first is debated.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "drafting lane (tranche 2)",
+   "method": "Written from general knowledge with cautious wording (ranges, 'about', well-established facts only) and checked for consistency with the node record; no source retrieved.",
+   "notes": "Claims to check first: Institute for Government Research founded 1916 and later merged into Brookings; RAND project 1946; independent corporation 1948."
+  },
+  "mechanicLink": "Completing it raises the Civics Points each person generates."
+ }
+]

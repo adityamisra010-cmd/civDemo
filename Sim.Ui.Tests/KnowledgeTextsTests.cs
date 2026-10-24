@@ -29,7 +29,8 @@ public class KnowledgeTextsTests
     {
         UiSession s = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4);
         ResearchContent r = s.Config.Research!;
-        Assert.Equal(564, KnowledgeTexts.Count);   // ADR-049: + the three civics repeatables
+        // ADR-049: + the three civics repeatables (564); D-063 tranche 2: + 439 corpus entries (corpus/tranche2-*.json)
+        Assert.Equal(1003, KnowledgeTexts.Count);
         int withText = 0;
         foreach (ResearchNode n in r.Nodes)
         {
@@ -43,7 +44,7 @@ public class KnowledgeTextsTests
             Assert.InRange(text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length, 40, 70);
             foreach (string bad in Forbidden) Assert.DoesNotContain(bad, text, StringComparison.OrdinalIgnoreCase);
         }
-        Assert.Equal(564, withText);
+        Assert.Equal(1003, withText);
     }
 
     [Fact]
