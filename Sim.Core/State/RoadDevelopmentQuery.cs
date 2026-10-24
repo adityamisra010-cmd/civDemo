@@ -157,6 +157,9 @@ public static class RoadDevelopmentQuery
     {
         double kmPerCost = TransportQuery.KmPerCostUnit(world);
         int target = BestKnownClass(world, research, roads, polity);
+        // ADR-047: roads.maxRouteKm, the polity's — its realized research makes longer routes buildable (the content
+        // limit exactly without an effect).
+        double maxRouteKm = KnowledgeEffects.Apply(world, research, polity, KnowledgeOperand.RoadsMaxRouteKm, roads.MaxRouteKm);
         int n = world.Settlements.Count;
         bool anyControl = world.Controls.Count > 0;
 
@@ -186,7 +189,7 @@ public static class RoadDevelopmentQuery
                            && !EmpireQuery.ControlsSettlement(world, polity, d.To)) continue;
             RouteStatus st = Status(roads, edges, d.From, d.To, GeographicKm(world, d.From, d.To, d.TravelCost * kmPerCost),
                 usage[Math.Min(a, b) * n + Math.Max(a, b)], target);
-            if (st.LengthKm > roads.MaxRouteKm) continue;
+            if (st.LengthKm > maxRouteKm) continue;
             result.Add(st);
         }
         result.Sort(static (x, y) => x.A.Value != y.A.Value ? x.A.Value.CompareTo(y.A.Value) : x.B.Value.CompareTo(y.B.Value));

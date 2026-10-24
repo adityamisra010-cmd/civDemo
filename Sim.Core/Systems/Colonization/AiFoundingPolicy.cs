@@ -256,7 +256,8 @@ public static class AiFoundingPolicy
             long pop = Population(world, s);
             if (pop < ai.MinSourcePopulation) continue;
             if (FoodState.Of(world, s, cfg, out _) > FoodStateKind.Stress) continue;
-            if (FoundingQuery.Departure(world.Buckets, world.GoodStocks, cfg, s, null, out _) != FoundingVerdict.Legal) continue;
+            if (FoundingQuery.Departure(world.Buckets, world.GoodStocks, cfg, s, null, out _, FoundingQuery.PartyFraction(world, cfg, s))
+                != FoundingVerdict.Legal) continue;
 
             // Insertion by the composite key (population DESC, id ASC): integers only, a total order.
             int at = ids.Count;

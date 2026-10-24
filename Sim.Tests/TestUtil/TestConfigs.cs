@@ -369,7 +369,36 @@ public static class TestConfigs
     {
         doc["tuning"]!.AsObject().Remove("aiSupportingMilestones");
         doc["tuning"]!.AsObject().Remove("_aiSupportingMilestones");
+        UndoKnowledgeEffects(doc);   // ADR-047 is newer: the R4 rule strips it with every older research twin
     }
+
+    /// <summary>ADR-047: removes tuning.knowledgeEffects (every operand reads its base).</summary>
+    public static void UndoKnowledgeEffects(System.Text.Json.Nodes.JsonObject doc)
+    {
+        doc["tuning"]!.AsObject().Remove("knowledgeEffects");
+        doc["tuning"]!.AsObject().Remove("_knowledgeEffects");
+    }
+
+    /// <summary>ADR-047 (tranche-2 contract §1) — REALIZED RESEARCH EFFECTS OFF, a single-layer twin of the shipped research
+    /// content: research.json without tuning.knowledgeEffects, so State.KnowledgeEffects returns every operand's base. The
+    /// shipped tranche-2 content declares no realized effect, so this twin's world is the live world byte for byte
+    /// (KnowledgeEffectsTests pins it). Defined on the shipped research content only.</summary>
+    public static SimConfig PreKnowledgeEffects(SimConfig cfg)
+    {
+        if (cfg.Research is not { Tuning.KnowledgeEffects: true } r) return cfg;
+        if (!ReferenceEquals(r, CanonicalResearch.Value))
+            throw new NotSupportedException("PreKnowledgeEffects is defined on the shipped research content only");
+        return cfg with { Research = NoKnowledgeEffects.Value };
+    }
+
+    private static readonly Lazy<global::Sim.Core.Systems.Research.ResearchContent> NoKnowledgeEffects = new(() =>
+    {
+        using var stream = global::Sim.Data.DataFiles.OpenResearch();
+        var doc = System.Text.Json.Nodes.JsonNode.Parse(stream)!.AsObject();
+        UndoKnowledgeEffects(doc);
+        using var goods = global::Sim.Data.DataFiles.OpenGoods();
+        return global::Sim.Core.Systems.Research.ResearchContentLoader.Load(doc.ToJsonString(), GoodsConfigLoader.Load(goods));
+    });
 
     /// <summary>ADR-046 §6 (M6 review batch 3, 2026-10-23) — THE SUPPORTING-MILESTONE GOAL OFF, a single-layer twin of the
     /// shipped research content (the cheapest-route closure stays on): the AI's goals are core and capability only, as at

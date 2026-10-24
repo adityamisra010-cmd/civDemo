@@ -231,6 +231,9 @@ public static class Unrest
         if (r <= 0.0) return 1.0;
         double withheld = Weighted(world, settlement, Reading.Withheld, u);
         if (withheld <= 0.0) return 1.0;
+        // ADR-047: society.unrestOutputDrag — the settlement holder's realized research lowers the share of the levied
+        // effort unrest withholds (withheld × (1 − Σ); exactly the base without an effect).
+        withheld = KnowledgeEffects.ApplyAt(world, cfg.Research, settlement, KnowledgeOperand.SocietyUnrestOutputDrag, withheld);
         return Math.Clamp(1.0 - r * withheld, 0.0, 1.0);
     }
 

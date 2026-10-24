@@ -185,6 +185,24 @@ public sealed class HarvestWeatherSystem(SimConfig cfg) : ISimSystem<HarvestWeat
         //     in table row order inside each — the same stream discipline as before, s times.
         //   - σ = 0: every x is 0 and every multiplier exactly 1, while consuming the SAME draws (the
         //     matched no-weather control the tests rely on).
+        // ADR-047 — harvestVariance.sigmaLogYield, per settlement HOLDER ("steadier harvests"). The weather process itself
+        // (x, its draws and its spatial blend) is shared and unchanged; what a holder's knowledge lowers is how strongly
+        // its HARVEST follows that weather: σᵢ = the holder's σ, sensitivity sᵢ = σᵢ/σ, and the sub-step multiplier reads
+        // exp(sᵢ·x − σᵢ²/2) — still mean-one at stationarity (sᵢ·x ~ N(0, σᵢ²)). A settlement whose σᵢ is the base σ takes the
+        // unchanged expression below, so with no effect the step is the pre-ADR-047 instruction sequence bit for bit.
+        KnowledgeEffectsSnapshot fx = KnowledgeEffects.Snapshot(prev, _cfg.Research);
+        Span<double> sensitivity = n <= 256 ? stackalloc double[n] : new double[n];
+        Span<double> sensitiveCorrection = n <= 256 ? stackalloc double[n] : new double[n];
+        bool anySensitivity = false;
+        for (int i = 0; i < n; i++)
+        {
+            double sigmaI = fx.ApplyAt(prev.Settlements[i].Id, KnowledgeOperand.HarvestVarianceSigmaLogYield, h.SigmaLogYield);
+            bool own = sigmaI != h.SigmaLogYield && h.SigmaLogYield > 0.0;
+            sensitivity[i] = own ? sigmaI / h.SigmaLogYield : 1.0;
+            sensitiveCorrection[i] = own ? 0.5 * sigmaI * sigmaI : meanCorrection;
+            anySensitivity |= own;
+        }
+
         int subSteps = timeAveraged ? Math.Max(1, (int)Math.Round(ctx.DtYears, MidpointRounding.AwayFromZero)) : 1;
         double subDt = ctx.DtYears / subSteps;
         double rho = Math.Exp(-subDt / h.CorrelationTimeYears);
@@ -196,7 +214,9 @@ public sealed class HarvestWeatherSystem(SimConfig cfg) : ISimSystem<HarvestWeat
             for (int i = 0; i < n; i++)
             {
                 x[i] = rho * x[i] + innovationScale * innovation[i];
-                sumMult[i] += Math.Exp(x[i] - meanCorrection);
+                sumMult[i] += anySensitivity && sensitivity[i] != 1.0
+                    ? Math.Exp(sensitivity[i] * x[i] - sensitiveCorrection[i])
+                    : Math.Exp(x[i] - meanCorrection);
             }
         }
 

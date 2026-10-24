@@ -134,6 +134,10 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
         // catchment, and pass 2 in settlement order.
         var builderRows = new int[prev.Settlements.Count];   // progress-row index per builder, settlement order
         var builderIds = new SettlementId[prev.Settlements.Count];
+        var builderHolders = new PolityId[prev.Settlements.Count];
+        // ADR-047: each builder's knowledge holder reads its realized pathBuild / transport operands (the base without an
+        // effect, so with none the step below is the pre-ADR-047 instruction sequence).
+        KnowledgeEffectsSnapshot fx = KnowledgeEffects.Snapshot(prev, _cfg.Research);
         int builderCount = 0;
         for (int s = 0; s < prev.Settlements.Count; s++)
         {
@@ -180,7 +184,9 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
                 break;
             }
 
-            double accrual = _cfg.PathBuild.LaborPerAdultPerYear * builderYears;
+            PolityId holder = fx.HolderOf(settlement.Id);
+            double accrual = fx.Apply(holder, KnowledgeOperand.PathBuildLaborPerAdultPerYear, _cfg.PathBuild.LaborPerAdultPerYear)
+                             * builderYears;
             int progressIdx = FindProgress(ctx.Owned.Progress, settlement.Id);
             if (progressIdx < 0)
             {
@@ -199,6 +205,7 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
 
             builderRows[builderCount] = progressIdx;
             builderIds[builderCount] = settlement.Id;
+            builderHolders[builderCount] = holder;
             builderCount++;
         }
         if (builderCount == 0) return; // no settlement builds this step (and no lattice was built)
@@ -220,16 +227,42 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
         }
         int[] targets = Targets(lattice!, prev.Terrain, frontiers, catchments);
 
+        // ADR-047 — transport.riverCostFactor, the builder holder's: a holder whose river factor differs from the base
+        // routes and prices its segments on a lattice built with its own factor (the node layout and passability do not
+        // depend on it, so frontiers and targets are unchanged). One lattice per distinct factor, built once per step and
+        // looked up by a linear scan in first-use order (no dictionary). The base factor always uses the shared lattice.
+        List<(double Factor, TraversalLattice Lattice)>? ownLattices = null;
         for (int k = 0; k < builderCount; k++)
         {
             ref PathProgressRow progress = ref ctx.Owned.Progress.Ref(builderRows[k]);
-            BuildSegments(ctx, prev, lattice!, targets[k], ref progress);
+            PolityId holder = builderHolders[k];
+            double river = fx.Apply(holder, KnowledgeOperand.TransportRiverCostFactor, _cfg.Transport.RiverCostFactor);
+            TraversalLattice segmentLattice = lattice!;
+            if (river != _cfg.Transport.RiverCostFactor)
+            {
+                ownLattices ??= [];
+                int at = -1;
+                for (int i = 0; i < ownLattices.Count; i++) if (ownLattices[i].Factor == river) { at = i; break; }
+                if (at < 0) { ownLattices.Add((river, TraversalLattice.Build(prev.Terrain, river))); at = ownLattices.Count - 1; }
+                segmentLattice = ownLattices[at].Lattice;
+            }
+            BuildSegments(ctx, prev, segmentLattice, targets[k], ref progress,
+                fx.Apply(holder, KnowledgeOperand.PathBuildBuildCostMultiplier, _cfg.PathBuild.BuildCostMultiplier),
+                DirtPathCostFactor(_cfg.PathBuild.DirtPathSpeedFactor, fx.Improvement(holder, KnowledgeOperand.PathBuildDirtPathSpeedFactor)));
         }
     }
 
+    /// <summary>
+    /// ADR-047 — a built dirt edge's cost factor under the holder's realized improvement Σ of pathBuild.dirtPathSpeedFactor.
+    /// The contract improves the SPEED (direction higher: speed × (1 + Σ)); the stored parameter is a COST factor
+    /// (edge cost = step cost × factor), so the faster path costs factor / (1 + Σ). Σ = 0 returns the base exactly.
+    /// </summary>
+    public static double DirtPathCostFactor(double baseFactor, double improvement) =>
+        improvement == 0.0 ? baseFactor : baseFactor / (1.0 + improvement);
+
     private void BuildSegments(
         SimContext<PathBuildTables> ctx, IReadOnlyWorldState prev, TraversalLattice lattice,
-        int target, ref PathProgressRow progress)
+        int target, ref PathProgressRow progress, double buildCostMultiplier, double dirtPathCostFactor)
     {
         // The target (Targets): the best catchment-unreached node of the frontier's passable component, or −1 when
         // every eligible node is already reached.
@@ -253,7 +286,7 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
             if (!EdgeExists(ctx.Owned.Edges, ctx.Owned.Nodes, progress.FrontierNode, next))
             {
                 double segmentCost = lattice.StepCost(progress.FrontierNode, next)
-                                     * _cfg.PathBuild.BuildCostMultiplier;
+                                     * buildCostMultiplier;
                 if (progress.Banked < segmentCost) return; // keep banking
 
                 int a = EnsureNode(ctx.Owned.Nodes, progress.FrontierNode);
@@ -262,7 +295,7 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
                     new NetworkEdgeId(ctx.Owned.Edges.Count),
                     new NetworkNodeId(a), new NetworkNodeId(b), EdgeTypes.DirtPath,
                     Cost: lattice.StepCost(progress.FrontierNode, next)
-                          * _cfg.PathBuild.DirtPathSpeedFactor));
+                          * dirtPathCostFactor));
                 progress.Banked -= segmentCost;
 
                 // The network changed: bump the revision (D-016 trigger).

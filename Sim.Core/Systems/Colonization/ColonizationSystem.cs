@@ -280,7 +280,8 @@ public sealed class ColonizationSystem(SimConfig cfg, WorldgenConfig worldgen) :
             // that actually leaves. Never empties a bucket; never leaves without provisions.
             Table<BucketRow> buckets = ctx.Owned.Buckets;
             if (_party.Length < buckets.Count) _party = new long[buckets.Count];
-            if (FoundingQuery.Departure(buckets, ctx.Owned.Stocks, _cfg, source, _party, out long partyTotal)
+            if (FoundingQuery.Departure(buckets, ctx.Owned.Stocks, _cfg, source, _party, out long partyTotal,
+                    FoundingQuery.PartyFraction(prev, _cfg, source))
                 != FoundingVerdict.Legal) continue;
             if (!Found(ctx, prev, source, partyTotal, site, terrain)) continue;
 

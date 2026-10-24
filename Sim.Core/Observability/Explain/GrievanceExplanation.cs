@@ -197,7 +197,9 @@ public sealed class GrievanceExplanation
         var adjusted = new double[n];
         double aggregate = NeedsGrievanceSystem.AggregateSatisfaction(
             sat.AsSpan(0, bound), isGate.AsSpan(0, bound), weight.AsSpan(0, bound), agg, adjusted.AsSpan(0, bound));
-        double accrualPerYear = NeedsGrievanceSystem.AccrualPerYear(rawWeightSum, aggregate);
+        // ADR-047: the holder's grievance relief, read on PREV as the system reads it (exactly the accrual without an effect).
+        double accrualPerYear = NeedsGrievanceSystem.Relieved(NeedsGrievanceSystem.AccrualPerYear(rawWeightSum, aggregate),
+            KnowledgeEffects.ImprovementAt(prev, cfg.Research, settlement, KnowledgeOperand.SocietyGrievanceRelief));
         double accrual = NeedsGrievanceSystem.TurnAccrual(accrualPerYear, dt);
         double decay = NeedsGrievanceSystem.TurnDecay(decayRate, gPrev, dt);
         double recomputed;

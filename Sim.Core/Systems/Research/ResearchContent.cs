@@ -48,7 +48,8 @@ public sealed record ResearchTuning(
     double RpCoefficient, double RpExponent, IReadOnlyList<(double Population, double ResearchPoints)> RpAnchors,
     double EffectiveCostFloorFraction, double AccelerationCreditCeilingFraction, ResearchCostModel CostModel,
     double CityStatePaceFraction = 0.0, CivicsPointsTuning? CivicsPoints = null, bool AiCheapestOrRoute = false,
-    bool AiSupportingMilestones = false, bool AgeSweep = false, bool DestinationRouting = false)
+    bool AiSupportingMilestones = false, bool AgeSweep = false, bool DestinationRouting = false,
+    bool KnowledgeEffects = false)
 {
     /// <summary>ADR-043: whether the two-lane model is on — Research Points fund only the Technology target and Civics
     /// Points fund only the Civics target. Off (tuning.civicsPoints absent or enabled false) is the v34 one-pool model
@@ -67,7 +68,17 @@ public sealed record ResearchTuning(
     // DestinationRouting (ADR-048; contract §3): SetResearchTarget may name any incomplete node; the target row is the
     // persistent DESTINATION and each step funds the planner's CURRENT node (ResearchRoutePlanner). false
     // (tuning.destinationRouting absent) is the available-only target exactly — the twin.
+    // KnowledgeEffects (ADR-047, tranche-2 contract §1): THE SWITCH of realized research effects — the owning systems
+    // read their operands through State.KnowledgeEffects. false (tuning.knowledgeEffects absent) returns every operand's
+    // base value exactly, byte for byte the pre-ADR-047 world (the attribution twin TestConfigs.PreKnowledgeEffects).
 }
+
+/// <summary>
+/// ADR-047 (tranche-2 contract §1) — ONE REALIZED EFFECT of a node: completing it improves <see cref="Operand"/> by the
+/// fraction <see cref="Delta"/> (0 &lt; delta ≤ 0.5) for the holder that completed it. Completion builds nothing; the
+/// operand's owning system reads the holder's summed improvement through State.KnowledgeEffects (D-044 R14 kept).
+/// </summary>
+public sealed record RealizedEffect(KnowledgeOperand Operand, double Delta);
 
 /// <summary>
 /// ADR-043 (D-062) — Civics Points tuning. CP per SIM-YEAR = <see cref="CoefficientPerYear"/> × population^
@@ -209,6 +220,9 @@ public sealed class ResearchNode
     public required bool IsRecursive { get; init; }
     /// <summary>In researchSets.speculative_finite: finite, but speculative content.</summary>
     public required bool IsSpeculative { get; init; }
+    /// <summary>ADR-047: the node's realized effects (research.json <c>effects.realized</c>), in content order; empty when
+    /// it declares none. Operand ids are registered, deltas in (0, 0.5], no operand twice (loader-validated).</summary>
+    public IReadOnlyList<RealizedEffect> RealizedEffects { get; init; } = [];
     public bool IsTrunk => Tree == ResearchTree.Technology && Branch < 0;
 }
 
@@ -263,6 +277,25 @@ public sealed class ResearchContent
     internal ResearchNodeId[] SortedKeys { get; init; } = [];
     internal string[] SortedIds { get; init; } = [];
     internal int[] SortedIdIndex { get; init; } = [];
+
+    // ADR-047: the operand → nodes index, set by the loader. OperandNodes[op] holds the dense indices of the nodes that
+    // declare a realized effect on operand op, ascending; OperandDeltas[op] the matching deltas. Arrays, never a
+    // dictionary (law 5); summing in this order makes Σ a function of the completed SET, never of row order.
+    internal int[][] OperandNodes { get; init; } = EmptyOperandIndex<int>();
+    internal double[][] OperandDeltas { get; init; } = EmptyOperandIndex<double>();
+
+    /// <summary>ADR-047: whether any node declares a realized effect (false for the shipped content of tranche 2).</summary>
+    public bool HasRealizedEffects { get; init; }
+
+    /// <summary>ADR-047: the dense indices of the nodes with a realized effect on <paramref name="operand"/>, ascending.</summary>
+    public IReadOnlyList<int> NodesWith(KnowledgeOperand operand) => OperandNodes[(int)operand];
+
+    private static T[][] EmptyOperandIndex<T>()
+    {
+        var index = new T[KnowledgeOperands.Count][];
+        for (int i = 0; i < index.Length; i++) index[i] = [];
+        return index;
+    }
 
     public int CivicsCount => Nodes.Count - TechnologyCount;
 
@@ -434,6 +467,8 @@ public static class ResearchContentLoader
                 throw Fail($"{path} ({j.Id}): effects.immediate is not empty. No immediate-effect kind is ratified, and a " +
                            "free-floating effect would be a permanent modifier (law 2); completion grants eligibility only.");
         }
+        var realized = new RealizedEffect[n][];
+        for (int i = 0; i < n; i++) realized[i] = ValidateRealized(raw[i].Json, raw[i].Path);
         string[] ids = new string[n];
         for (int i = 0; i < n; i++) ids[i] = raw[i].Json.Id;
         int[] idOrder = new int[n];
@@ -764,8 +799,10 @@ public static class ResearchContentLoader
                 HasRepeatableDescriptor = j.Repeatable.ValueKind == JsonValueKind.Object,
                 IsRecursive = recursive[i],
                 IsSpeculative = speculative[i],
+                RealizedEffects = realized[i],
             };
         }
+        (int[][] operandNodes, double[][] operandDeltas, bool anyRealized) = IndexRealized(realized);
         ResearchBaselineCapability[] baseline = ValidateBaseline(f.Baseline, ids);
         return new ResearchContent
         {
@@ -784,7 +821,63 @@ public static class ResearchContentLoader
             SortedKeys = keys,
             SortedIds = sortedIds,
             SortedIdIndex = idOrder,
+            OperandNodes = operandNodes,
+            OperandDeltas = operandDeltas,
+            HasRealizedEffects = anyRealized,
         };
+    }
+
+    /// <summary>
+    /// ADR-047 (tranche-2 contract §1, §1.1) — a node's <c>effects.realized</c>: each entry names a REGISTERED operand
+    /// (<see cref="KnowledgeOperands"/>) with an improvement fraction 0 &lt; delta ≤ 0.5, finite, and no operand appears
+    /// twice in one node (two entries would be one effect split in two). Absent is the empty list.
+    /// </summary>
+    private static RealizedEffect[] ValidateRealized(NodeJson j, string path)
+    {
+        RealizedJson[]? list = j.Effects.Realized;
+        if (list is null || list.Length == 0) return [];
+        var result = new RealizedEffect[list.Length];
+        for (int k = 0; k < list.Length; k++)
+        {
+            RealizedJson e = list[k];
+            string where = $"{path} ({j.Id}).effects.realized[{k}]";
+            if (KnowledgeOperands.FromId(e.Operand) is not { } operand)
+                throw Fail($"{where}: operand '{e.Operand}' is not a registered operand; the legal ids are the operand registry " +
+                           "(tranche-2 contract §1.1, State.KnowledgeOperands).");
+            if (!(double.IsFinite(e.Delta) && e.Delta > 0.0 && e.Delta <= MaxRealizedDelta))
+                throw Fail($"{where}: delta {Inv(e.Delta)} for '{e.Operand}' must be finite and in (0, {Inv(MaxRealizedDelta)}] — an " +
+                           "improvement fraction (tranche-2 contract §1).");
+            for (int m = 0; m < k; m++)
+                if (result[m].Operand == operand)
+                    throw Fail($"{where}: operand '{e.Operand}' appears twice in one node; declare one effect per operand.");
+            result[k] = new RealizedEffect(operand, e.Delta);
+        }
+        return result;
+    }
+
+    /// <summary>ADR-047: the largest delta one realized effect may carry (tranche-2 contract §1).</summary>
+    public const double MaxRealizedDelta = 0.5;
+
+    /// <summary>ADR-047: the operand → nodes index (ascending node index per operand) and whether any effect exists.</summary>
+    private static (int[][] Nodes, double[][] Deltas, bool Any) IndexRealized(RealizedEffect[][] realized)
+    {
+        int ops = KnowledgeOperands.Count;
+        var counts = new int[ops];
+        bool any = false;
+        for (int i = 0; i < realized.Length; i++)
+            foreach (RealizedEffect e in realized[i]) { counts[(int)e.Operand]++; any = true; }
+        var nodes = new int[ops][];
+        var deltas = new double[ops][];
+        for (int op = 0; op < ops; op++) { nodes[op] = new int[counts[op]]; deltas[op] = new double[counts[op]]; counts[op] = 0; }
+        for (int i = 0; i < realized.Length; i++)   // ascending node index: each operand's list is sorted by construction
+            foreach (RealizedEffect e in realized[i])
+            {
+                int op = (int)e.Operand;
+                nodes[op][counts[op]] = i;
+                deltas[op][counts[op]] = e.Delta;
+                counts[op]++;
+            }
+        return (nodes, deltas, any);
     }
 
     // ------------------------------------------------------------------ pieces
@@ -846,7 +939,8 @@ public static class ResearchContentLoader
         }
         return new ResearchTuning(rp.Coefficient, rp.Exponent, anchors, t.EffectiveCostFloorFraction,
             t.AccelerationCreditCeilingFraction, new ResearchCostModel(cm.U, cm.K), t.CityStatePaceFraction ?? 0.0, civics,
-            t.AiCheapestOrRoute ?? false, t.AiSupportingMilestones ?? false, t.AgeSweep ?? false, t.DestinationRouting ?? false);
+            t.AiCheapestOrRoute ?? false, t.AiSupportingMilestones ?? false, t.AgeSweep ?? false, t.DestinationRouting ?? false,
+            t.KnowledgeEffects ?? false);
     }
 
     private static readonly (string Name, double Min, double Max)[] CostFactorRanges =
@@ -1447,7 +1541,8 @@ public static class ResearchContentLoader
         [property: JsonPropertyName("aiCheapestOrRoute")] bool? AiCheapestOrRoute = null,
         [property: JsonPropertyName("aiSupportingMilestones")] bool? AiSupportingMilestones = null,
         [property: JsonPropertyName("ageSweep")] bool? AgeSweep = null,
-        [property: JsonPropertyName("destinationRouting")] bool? DestinationRouting = null);
+        [property: JsonPropertyName("destinationRouting")] bool? DestinationRouting = null,
+        [property: JsonPropertyName("knowledgeEffects")] bool? KnowledgeEffects = null);
 
     private sealed record CivicsPointsJson(
         [property: JsonPropertyName("enabled"), JsonRequired] bool Enabled,
@@ -1578,7 +1673,15 @@ public static class ResearchContentLoader
         [property: JsonPropertyName("recipes")] string[]? Recipes = null);
 
     private sealed record EffectsJson(
-        [property: JsonPropertyName("immediate"), JsonRequired] JsonElement[] Immediate);
+        [property: JsonPropertyName("immediate"), JsonRequired] JsonElement[] Immediate,
+        // ADR-047: optional — absent is the empty list.
+        [property: JsonPropertyName("realized")] RealizedJson[]? Realized = null);
+
+    private sealed record RealizedJson(
+        [property: JsonPropertyName("operand"), JsonRequired] string Operand,
+        // "NaN" / "Infinity" (as JSON strings) are read so the loader can refuse them with its own message.
+        [property: JsonPropertyName("delta"), JsonRequired, JsonNumberHandling(JsonNumberHandling.AllowNamedFloatingPointLiterals)]
+        double Delta);
 
     private sealed record EntityJson(
         [property: JsonPropertyName("id"), JsonRequired] string Id,

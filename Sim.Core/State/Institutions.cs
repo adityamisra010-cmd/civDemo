@@ -240,7 +240,23 @@ public static class InstitutionEffects
     /// <summary>The research-cost factor of a type with maturity-weighted count X:
     /// 1 − maxResearchCostReduction × S(X) ∈ (0, 1] (ADR-029 §9 input contract).</summary>
     public static double ResearchFactor(UniversitiesConfig u, double maturityWeighted) =>
-        1.0 - u.MaxResearchCostReduction * Saturation(maturityWeighted);
+        ResearchFactor(u.MaxResearchCostReduction, maturityWeighted);
+
+    /// <summary>The research-cost factor with an explicit maximum reduction (ADR-047: the owner's — see
+    /// <see cref="MaxResearchCostReduction"/>).</summary>
+    public static double ResearchFactor(double maxResearchCostReduction, double maturityWeighted) =>
+        1.0 - maxResearchCostReduction * Saturation(maturityWeighted);
+
+    /// <summary>ADR-047 — institutions.universities.maxResearchCostReduction for <paramref name="owner"/>: the base improved
+    /// by the owner's realized research (clamped by the registry at 0.75; the base exactly without an effect).</summary>
+    public static double MaxResearchCostReduction(IReadOnlyWorldState world, SimConfig cfg, PolityId owner) =>
+        KnowledgeEffects.Apply(world, cfg.Research, owner, KnowledgeOperand.InstitutionsUniversitiesMaxResearchCostReduction,
+            cfg.Institutions?.Universities.MaxResearchCostReduction ?? 0.0);
+
+    /// <summary>ADR-047 — institutions.universities.maturityTauYears for <paramref name="owner"/> (the base exactly without
+    /// an effect): a lower τ matures its universities faster.</summary>
+    public static double MaturityTauYears(IReadOnlyWorldState world, SimConfig cfg, PolityId owner, UniversitiesConfig u) =>
+        KnowledgeEffects.Apply(world, cfg.Research, owner, KnowledgeOperand.InstitutionsUniversitiesMaturityTauYears, u.MaturityTauYears);
 
     /// <summary>X: the sum of maturities of <paramref name="owner"/>'s universities of type
     /// <paramref name="typeKey"/>, table order.</summary>
@@ -294,7 +310,13 @@ public static class InstitutionEffects
     {
         double coverage = MedicalCoverage(world, cfg, settlement);
         if (!(coverage > 0.0)) return 1.0;
-        return 1.0 - cfg.Institutions!.Universities.MaxMortalityReduction * (1.0 - Math.Exp(-coverage));
+        // ADR-047: institutions.universities.maxMortalityReduction, the settlement holder's (the base without an effect);
+        // μ is floored at 0 — a reduction past 100 % is not a rate.
+        double maxReduction = KnowledgeEffects.ApplyAt(world, cfg.Research, settlement,
+            KnowledgeOperand.InstitutionsUniversitiesMaxMortalityReduction, cfg.Institutions!.Universities.MaxMortalityReduction);
+        if (maxReduction == cfg.Institutions.Universities.MaxMortalityReduction)
+            return 1.0 - maxReduction * (1.0 - Math.Exp(-coverage));
+        return Math.Max(0.0, 1.0 - maxReduction * (1.0 - Math.Exp(-coverage)));
     }
 
     private static double TravelCost(IReadOnlyWorldState world, SettlementId from, SettlementId to)

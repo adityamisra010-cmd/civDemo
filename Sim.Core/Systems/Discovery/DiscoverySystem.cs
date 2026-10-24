@@ -72,7 +72,7 @@ public sealed class DiscoverySystem(SimConfig cfg) : ISimSystem<DiscoveryTables>
                 if (!fog) continue;
                 if (DiscoveryQuery.CheckExplore(prev, _cfg, order.Actor, settlement, owned.GoodStocks, owned.Holds) != ExploreVerdict.Ok) continue;
                 Charge(ctx, prev, settlement, new GoodId(_cfg.Goods!.GrainId), DiscoveryQuery.ExploreCost(_cfg), ReasonIds.Expedition);
-                int radius = DiscoveryQuery.NextRadius(prev, _cfg.Fog!, order.Actor, settlement);
+                int radius = DiscoveryQuery.NextRadius(prev, _cfg.Fog!, order.Actor, settlement, _cfg.Research);
                 UpsertExploration(owned.Explorations, order.Actor, settlement, radius);
                 revealed.Add((order.ActorId, DiscoveryQuery.NodeOfSettlement(prev, settlement), radius));
             }
@@ -112,7 +112,7 @@ public sealed class DiscoverySystem(SimConfig cfg) : ISimSystem<DiscoveryTables>
             foreach (int p in polities)
             {
                 var polity = new PolityId(p);
-                ulong[]? visible = DiscoveryQuery.VisibleBits(prev, f, polity);
+                ulong[]? visible = DiscoveryQuery.VisibleBits(prev, f, polity, _cfg.Research);
                 for (int s = 0; s < prev.Settlements.Count; s++)
                 {
                     SettlementRow row = prev.Settlements[s];

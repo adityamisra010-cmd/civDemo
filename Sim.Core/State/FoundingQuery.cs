@@ -153,9 +153,9 @@ public static class FoundingQuery
     /// </summary>
     public static FoundingVerdict Departure(
         IReadOnlyTable<BucketRow> buckets, IReadOnlyTable<GoodStockRow> stocks, SimConfig cfg,
-        SettlementId source, long[]? perBucket, out long party)
+        SettlementId source, long[]? perBucket, out long party, double? partyFraction = null)
     {
-        party = AllocateParty(buckets, source, PartyFraction(cfg), perBucket);
+        party = AllocateParty(buckets, source, partyFraction ?? PartyFraction(cfg), perBucket);
         if (party < 1) return FoundingVerdict.NoParty;
         if (cfg.Goods is not { } goods
             || ProvisionsShare(stocks, buckets, source, new GoodId(goods.GrainId), party) < 1)
@@ -195,7 +195,7 @@ public static class FoundingQuery
         int siteNode = LatticeMap.OriginLatticeNode(frontier.Lattice, frontier.Size, siteCell);
         if (IsClaimed(world, siteNode)) return FoundingVerdict.Claimed;
 
-        FoundingVerdict departure = Departure(world.Buckets, world.GoodStocks, cfg, source, null, out _);
+        FoundingVerdict departure = Departure(world.Buckets, world.GoodStocks, cfg, source, null, out _, PartyFraction(world, cfg, source));
         if (departure != FoundingVerdict.Legal) return departure;
 
         int sourceNode = LatticeMap.OriginLatticeNode(frontier.Lattice, frontier.Size, sourceCell);
@@ -236,6 +236,13 @@ public static class FoundingQuery
     /// <summary>The content party fraction (sim.json colonization.orderPartyFraction); 0 when the section is
     /// absent, which forms no party — the order is inert.</summary>
     public static double PartyFraction(SimConfig cfg) => cfg.Colonization?.OrderPartyFraction ?? 0.0;
+
+    /// <summary>ADR-047 — the party fraction a Found Settlement order from <paramref name="source"/> takes on
+    /// <paramref name="world"/>: colonization.orderPartyFraction improved by the source's knowledge holder (its controller —
+    /// the issuer) and bounded at 0.35 by the registry; the content fraction exactly without an effect (0 without the
+    /// section).</summary>
+    public static double PartyFraction(IReadOnlyWorldState world, SimConfig cfg, SettlementId source) =>
+        KnowledgeEffects.ApplyAt(world, cfg.Research, source, KnowledgeOperand.ColonizationOrderPartyFraction, PartyFraction(cfg));
 
     /// <summary>
     /// THE PARTY (ADR-036 §3): how many people a Found Settlement order takes from <paramref name="source"/>, and —

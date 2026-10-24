@@ -58,7 +58,7 @@ public static class GranaryEffects
     /// <summary>The granary content resolved ONCE for <paramref name="cfg"/>: the active section (null when absent or
     /// switched off) and the project id (-1 when it does not resolve). ProductionSystem and DemographicsSystem hold one
     /// from construction, so the per-settlement seams never scan project names.</summary>
-    public static GranaryBinding Bind(SimConfig cfg) => new(Active(cfg), ProjectId(cfg));
+    public static GranaryBinding Bind(SimConfig cfg) => new(Active(cfg), ProjectId(cfg), cfg.Research);
 
     /// <summary>m: the granaries standing AT <paramref name="settlement"/> (its Structures count of the granary project;
     /// 0 when the project does not resolve). Queued granaries are not counted — only built Structures.</summary>
@@ -131,7 +131,10 @@ public static class GranaryEffects
     {
         if (harvestsWildFood || binding.Active is not { } g || binding.Project < 0) return 1.0;
         long m = CountAt(world, binding.Project, settlement);
-        return m > 0 ? FarmYieldFactor(g, m) : 1.0;
+        if (m <= 0) return 1.0;
+        // ADR-047: granaries.farmYieldBonusMax is the settlement holder's (the base exactly without an effect).
+        double bonusMax = KnowledgeEffects.ApplyAt(world, binding.Research, settlement, KnowledgeOperand.GranariesFarmYieldBonusMax, g.FarmYieldBonusMax);
+        return bonusMax == g.FarmYieldBonusMax ? FarmYieldFactor(g, m) : 1.0 + bonusMax * InstitutionEffects.Saturation(m / g.FarmYieldScale);
     }
 
     /// <summary>THE EMPIRE-WIDE SEAM, for readers outside the system: this settlement's famine-intensity factor on
@@ -146,7 +149,12 @@ public static class GranaryEffects
     {
         if (binding.Active is not { } g || binding.Project < 0) return 1.0;
         long n = EmpireGranaries(world, binding.Project, settlement);
-        return n > 0 ? FamineIntensityFactor(g, n) : 1.0;
+        if (n <= 0) return 1.0;
+        // ADR-047: granaries.famineReductionMax is the settlement holder's — its civilization's (the base exactly without
+        // an effect).
+        double reductionMax = KnowledgeEffects.ApplyAt(world, binding.Research, settlement, KnowledgeOperand.GranariesFamineReductionMax, g.FamineReductionMax);
+        if (reductionMax == g.FamineReductionMax) return FamineIntensityFactor(g, n);
+        return Math.Max(0.0, 1.0 - reductionMax * InstitutionEffects.Saturation(n / g.FamineReductionScale));
     }
 
     /// <summary>The upper search bound of the two horizons below (granaries in one place or one civilization).</summary>
@@ -213,4 +221,5 @@ public static class GranaryEffects
 
 /// <summary>M5 item 5: the granary content resolved once per config (<see cref="GranaryEffects.Bind"/>) — the active
 /// section (null when absent or switched off) and the goods.json project id (-1 when it does not resolve).</summary>
-public readonly record struct GranaryBinding(GranariesConfig? Active, int Project);
+/// ADR-047: <c>Research</c> is the research content whose realized effects the two seams read (null: none).
+public readonly record struct GranaryBinding(GranariesConfig? Active, int Project, Systems.Research.ResearchContent? Research = null);

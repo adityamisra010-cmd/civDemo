@@ -125,6 +125,22 @@ public sealed class TradeArbitrageSystem(SimConfig cfg) : ISimSystem<TradeArbitr
         for (int i = 0; i < settlementCount; i++)
             knows[i] = TradeQuery.SettlementKnowsTrade(prev, _cfg, prev.Settlements[i].Id);
 
+        // ADR-047: each settlement's holder's trade operands (the bases exactly without an effect), and its holder's
+        // price.stockReleaseRatePerYear for the market scale the price step uses. A pair reads the MEAN of its two ends'
+        // values when they differ (both ends' merchants carry the trade; symmetric, so the pair's order cannot matter),
+        // and the shared value exactly when they agree — always the case without an effect.
+        KnowledgeEffectsSnapshot fx = KnowledgeEffects.Snapshot(prev, _cfg.Research);
+        var gapClosing = new double[settlementCount];
+        var costPerBulk = new double[settlementCount];
+        var stockRelease = new double[settlementCount];
+        for (int i = 0; i < settlementCount; i++)
+        {
+            PolityId holder = fx.HolderOf(prev.Settlements[i].Id);
+            gapClosing[i] = fx.Apply(holder, KnowledgeOperand.TradeGapClosingFraction, t.GapClosingFraction);
+            costPerBulk[i] = fx.Apply(holder, KnowledgeOperand.TradeCostPerBulkCostUnit, t.CostPerBulkCostUnit);
+            stockRelease[i] = fx.Apply(holder, KnowledgeOperand.PriceStockReleaseRatePerYear, p.StockReleaseRatePerYear);
+        }
+
         // ---- SWEEP 1: COMPUTE — desired flows purely from Prev ----------
         var desired = new List<DesiredFlow>();
         for (int i = 0; i < settlementCount; i++)
@@ -149,18 +165,18 @@ public sealed class TradeArbitrageSystem(SimConfig cfg) : ISimSystem<TradeArbitr
                     double priceI = PrevPrice(prev, prev.Settlements[i].Id, good);
                     double priceJ = PrevPrice(prev, prev.Settlements[j].Id, good);
                     double gap = Math.Abs(priceI - priceJ);
-                    double threshold = entry.BulkPerUnit * pathCost * t.CostPerBulkCostUnit;
+                    double threshold = entry.BulkPerUnit * pathCost * PairValue(costPerBulk[i], costPerBulk[j]);
                     if (!(gap > threshold)) continue; // the deadband — a true dead zone
 
                     int lowRow = priceI <= priceJ ? i : j;
                     int highRow = priceI <= priceJ ? j : i;
 
                     double sensitivity = p.Lambda * dt * (
-                        (lowRow == i ? priceI : priceJ) / MarketScale(prev, p, prev.Settlements[lowRow].Id, good, dt)
-                        + (highRow == i ? priceI : priceJ) / MarketScale(prev, p, prev.Settlements[highRow].Id, good, dt));
+                        (lowRow == i ? priceI : priceJ) / MarketScale(prev, p, prev.Settlements[lowRow].Id, good, dt, stockRelease[lowRow])
+                        + (highRow == i ? priceI : priceJ) / MarketScale(prev, p, prev.Settlements[highRow].Id, good, dt, stockRelease[highRow]));
                     if (!(sensitivity > 0.0)) continue;
 
-                    long units = (long)(t.GapClosingFraction * (gap - threshold) / sensitivity);
+                    long units = (long)(PairValue(gapClosing[i], gapClosing[j]) * (gap - threshold) / sensitivity);
                     if (units <= 0) continue;
 
                     desired.Add(new DesiredFlow
@@ -267,8 +283,12 @@ public sealed class TradeArbitrageSystem(SimConfig cfg) : ISimSystem<TradeArbitr
 
     /// <summary>The price step's own market scale, recomputed from the same
     /// Prev fields it reads: max(production + stockRelease, floor·dt).</summary>
+    /// <summary>ADR-047: a pair's value of a per-settlement operand — the shared value exactly when both ends agree, else
+    /// their mean.</summary>
+    private static double PairValue(double a, double b) => a == b ? a : 0.5 * (a + b);
+
     private static double MarketScale(
-        IReadOnlyWorldState prev, PriceConfig p, SettlementId s, GoodId good, double dt)
+        IReadOnlyWorldState prev, PriceConfig p, SettlementId s, GoodId good, double dt, double stockReleaseRatePerYear)
     {
         double production = 0.0, stock = 0.0;
         for (int i = 0; i < prev.GoodStocks.Count; i++)
@@ -279,7 +299,7 @@ public sealed class TradeArbitrageSystem(SimConfig cfg) : ISimSystem<TradeArbitr
             stock = row.Amount.Value;
             break;
         }
-        double stockRelease = p.StockReleaseRatePerYear * stock * dt;
+        double stockRelease = stockReleaseRatePerYear * stock * dt;
         return Math.Max(production + stockRelease, p.MarketScaleFloorPerYear * dt);
     }
 

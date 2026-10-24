@@ -534,7 +534,9 @@ public static class Observer
     private static HousingSection Housing(
         IReadOnlyWorldState prev, IReadOnlyWorldState next, SimConfig cfg, SettlementId id, long populationClosing)
     {
-        double ppd = cfg.Housing.PersonsPerDwelling;
+        // ADR-047: the settlement holder's persons per dwelling on NEXT — the world the sufficiency below reads.
+        double ppd = Sim.Core.State.KnowledgeEffects.ApplyAt(next, cfg.Research, id,
+            Sim.Core.State.KnowledgeOperand.HousingPersonsPerDwelling, cfg.Housing.PersonsPerDwelling);
         long opening = 0;
         for (int i = 0; i < prev.Housing.Count; i++)
             if (prev.Housing[i].Settlement == id) { opening = prev.Housing[i].Dwellings.Value; break; }

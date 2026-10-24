@@ -531,10 +531,12 @@ public static class SiteAssessment
             for (int s = 0; s < n; s++)
             {
                 origins[s] = LatticeMap.OriginLatticeNode(f.Lattice, size, world.Settlements[s].SiteCell);
-                budgets[s] = CatchmentSystem.TierBudget(cfg, f.Lattice, CatchmentSystem.TierOf(world, cfg, world.Settlements[s].Id));
+                budgets[s] = CatchmentSystem.TierBudget(cfg, f.Lattice, CatchmentSystem.TierOf(world, cfg, world.Settlements[s].Id),
+                    CatchmentSystem.HinterlandRadiusKm(world, cfg, world.Settlements[s].Id));
             }
             origins[n] = node;
-            budgets[n] = CatchmentSystem.TierBudget(cfg, f.Lattice, CatchmentSystem.TierOf(world, cfg, new SettlementId(nextId)));
+            budgets[n] = CatchmentSystem.TierBudget(cfg, f.Lattice, CatchmentSystem.TierOf(world, cfg, new SettlementId(nextId)),
+                CatchmentSystem.HinterlandRadiusKm(world, cfg, new SettlementId(nextId)));
             Pathfinder.PartitionResult part = Pathfinder.Partition(f.Lattice, world, origins, budgets);
             double sum = 0.0;   // ascending node order: CatchmentSystem's summation order
             for (int k = 0; k < part.Owner.Length; k++)
@@ -573,7 +575,7 @@ public static class SiteAssessment
         int ruler = -1;
         if (stands)
         {
-            party = FoundingQuery.AllocateParty(world.Buckets, srcId, FoundingQuery.PartyFraction(cfg), null);
+            party = FoundingQuery.AllocateParty(world.Buckets, srcId, FoundingQuery.PartyFraction(world, cfg, srcId), null);
             if (cfg.Goods is { } gc)
                 provisions = FoundingQuery.ProvisionsShare(world.GoodStocks, world.Buckets, srcId, new GoodId(gc.GrainId), party);
             if (all) route = RouteQuery.Find(f.Lattice, world, LatticeMap.OriginLatticeNode(f.Lattice, size, srcCell), node);

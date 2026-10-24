@@ -149,10 +149,15 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
             stocks.Ref(i).LastInputDemandUnits = 0;
         }
 
+        // ADR-047: every holder's realized research effects on PREV, once per step (inert with the switch off: every
+        // operand below is then its sim.json base, bit for bit).
+        KnowledgeEffectsSnapshot fx = KnowledgeEffects.Snapshot(prev, _cfg.Research);
+
         // Ascending settlement-row order — the fixed iteration order (law 5).
         for (int s = 0; s < prev.Settlements.Count; s++)
         {
             SettlementId settlement = prev.Settlements[s].Id;
+            PolityId holder = fx.HolderOf(settlement);
 
             SectorAllocationRow shares = Sectors.Default(settlement);
             for (int i = 0; i < prev.SectorAllocations.Count; i++)
@@ -202,7 +207,8 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
             Farm(ctx, prev, stocks, settlement,
                 farmLabor: Sectors.Share(shares, Sectors.Farming) * adults,
                 foodMultiplier: foodMultiplier,
-                extraction: foodExtraction);
+                extraction: foodExtraction,
+                fx: fx, holder: holder);
             // T4.5 (D-037 B3): the HERDING food pathway now carries the SAME
             // harvest-weather multiplier farming already carried. D-037 B3 asks
             // for exactly this coupling and no other: "Steppe raiding
@@ -217,13 +223,13 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
             // absent-row-is-1.0 rule as Farm — no new driver, no new variable.
             FromDeposits(ctx, prev, stocks, settlement,
                 pool: Sectors.Share(shares, Sectors.Herding) * adults,
-                perWorkerPerYear: _cfg.Production.OutputPerHerderPerYear,
+                perWorkerPerYear: fx.Apply(holder, KnowledgeOperand.ProductionOutputPerHerderPerYear, _cfg.Production.OutputPerHerderPerYear),
                 foodSector: true,
                 weather: foodMultiplier,
                 extraction: foodExtraction);
             FromDeposits(ctx, prev, stocks, settlement,
                 pool: Sectors.Share(shares, Sectors.Extraction) * adults,
-                perWorkerPerYear: _cfg.Production.OutputPerExtractorPerYear,
+                perWorkerPerYear: fx.Apply(holder, KnowledgeOperand.ProductionOutputPerExtractorPerYear, _cfg.Production.OutputPerExtractorPerYear),
                 foodSector: false,
                 weather: 1.0,
                 extraction: extraction);
@@ -237,7 +243,7 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
     private void Farm(
         SimContext<ProductionTables> ctx, IReadOnlyWorldState prev,
         Table<GoodStockRow> stocks, SettlementId settlement, double farmLabor, double foodMultiplier,
-        double extraction)
+        double extraction, KnowledgeEffectsSnapshot fx, PolityId holder)
     {
         int grainRow = GoodStockIndex.IndexOf(stocks, settlement, _grain);
         if (grainRow < 0) return; // founding never endowed a store — nothing to credit
@@ -270,14 +276,17 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
         double toolsToEquip = farmLabor * _cfg.Production.ToolsPerFarmerToEquip;
         double equipRatio = toolsToEquip > 0.0
             ? Math.Min(1.0, prevToolStock / toolsToEquip) : 0.0;
-        double toolFactor = 1.0 + _cfg.Production.ToolYieldBonusMax * equipRatio;
+        // ADR-047: production.toolYieldBonusMax, the holder's (its base exactly without an effect).
+        double toolFactor = 1.0 + fx.Apply(holder, KnowledgeOperand.ProductionToolYieldBonusMax, _cfg.Production.ToolYieldBonusMax) * equipRatio;
 
         // R2a (Director decision 8; isolated content switch farming.preCultivation): before the farming
         // capability exists for the settlement (its knowledge — SettlementKnowledge.MaskOf — does not make the
         // Farming sector's researched identity eligible), the sector harvests WILD FOOD at the forager rates; the
         // CR-003 cultivated yield applies once it does. Disabled or absent: exactly the shipped computation.
-        double yieldPerKm2 = _cfg.Farming.YieldPerArableKm2PerYear;
-        double perWorker = _cfg.Farming.OutputPerFarmerPerYear;
+        // ADR-047: the CULTIVATED rates carry the holder's farming operands; the forager rates below do not (wild food is
+        // not the crop the farming knowledge improves).
+        double yieldPerKm2 = fx.Apply(holder, KnowledgeOperand.FarmingYieldPerArableKm2PerYear, _cfg.Farming.YieldPerArableKm2PerYear);
+        double perWorker = fx.Apply(holder, KnowledgeOperand.FarmingOutputPerFarmerPerYear, _cfg.Farming.OutputPerFarmerPerYear);
         bool wildFood = false;   // M5 item 5: the granary factor below reads the same predicate
         if (_cfg.Farming.PreCultivation is { } pre && LabourActivities.HarvestsWildFood(prev, _cfg, settlement))
         {
@@ -350,7 +359,8 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
         {
             ref GoodStockRow tools = ref stocks.Ref(toolRow);
             double wearExact = equipRatio * farmLabor
-                * _cfg.Production.ToolWearPerEquippedFarmerPerYear * ctx.DtYears
+                * fx.Apply(holder, KnowledgeOperand.ProductionToolWearPerEquippedFarmerPerYear, _cfg.Production.ToolWearPerEquippedFarmerPerYear)
+                * ctx.DtYears
                 + tools.ConsumeRemainder;
             long worn = ConservedMath.WholeUnits(wearExact, $"tool wear (settlement {settlement.Value})");
             long sunk = ctx.Ledger.Flow(ref tools.Amount, ConservedQuantityIds.OfGood(_tools),

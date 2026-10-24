@@ -98,6 +98,9 @@ public sealed class ClassMobilitySystem : ISimSystem<ClassMobilityTables>
     {
         IReadOnlyWorldState prev = ctx.Prev;
         MobilityConfig m = _cfg.Mobility;
+        // ADR-047: the settlement holder's mobility.promoteRatePerYear and mobility.targetShareCap (the bases exactly
+        // without an effect).
+        KnowledgeEffectsSnapshot fx = KnowledgeEffects.Snapshot(prev, _cfg.Research);
 
         // Ascending settlement-row order — the fixed iteration order (law 5).
         for (int s = 0; s < prev.Settlements.Count; s++)
@@ -190,7 +193,7 @@ public sealed class ClassMobilitySystem : ISimSystem<ClassMobilityTables>
                 // --- 3. mobility (M2: one managed class) --------------------
                 if (c == 1)
                 {
-                    MoveAdults(ctx, prev, settlement, m, active,
+                    MoveAdults(ctx, prev, settlement, m, fx, active,
                         baseClass: new ClassId(_cfg.Registries.Classes[0].Id),
                         managed: cls, totalAdults, artisanAdults, surplus);
                 }
@@ -200,10 +203,13 @@ public sealed class ClassMobilitySystem : ISimSystem<ClassMobilityTables>
 
     private void MoveAdults(
         SimContext<ClassMobilityTables> ctx, IReadOnlyWorldState prev, SettlementId settlement,
-        MobilityConfig m, int active, ClassId baseClass, ClassId managed,
+        MobilityConfig m, KnowledgeEffectsSnapshot fx, int active, ClassId baseClass, ClassId managed,
         long totalAdults, long managedAdults, double surplus)
     {
         if (totalAdults <= 0) return;
+        PolityId holder = fx.HolderOf(settlement);
+        double promoteRate = fx.Apply(holder, KnowledgeOperand.MobilityPromoteRatePerYear, m.PromoteRatePerYear);
+        double shareCap = fx.Apply(holder, KnowledgeOperand.MobilityTargetShareCap, m.TargetShareCap);
 
         // PREV deficit drives the famine valve (one-turn lag, §3.2).
         double deficit = 0.0;
@@ -217,7 +223,7 @@ public sealed class ClassMobilitySystem : ISimSystem<ClassMobilityTables>
         }
 
         double targetShare = active == 1
-            ? Math.Min(m.TargetShareCap, Math.Max(0.0, m.TargetShareSlope * (surplus - 1.0)))
+            ? Math.Min(shareCap, Math.Max(0.0, m.TargetShareSlope * (surplus - 1.0)))
             : 0.0;
         double gapPeople = targetShare * totalAdults - managedAdults;
 
@@ -231,12 +237,12 @@ public sealed class ClassMobilitySystem : ISimSystem<ClassMobilityTables>
         }
         else if (gapPeople > 0.0)
         {
-            movePerYear = m.PromoteRatePerYear * gapPeople;
+            movePerYear = promoteRate * gapPeople;
             from = baseClass; to = managed;
         }
         else
         {
-            movePerYear = m.PromoteRatePerYear * -gapPeople; // overshoot relaxes back
+            movePerYear = promoteRate * -gapPeople; // overshoot relaxes back
             from = managed; to = baseClass;
         }
         if (movePerYear <= 0.0) return;
