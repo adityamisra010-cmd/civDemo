@@ -601,6 +601,9 @@ public static partial class PlayabilityGate
             CloseEverything();
             Policy();            // before the Age flow: the POLICY "Advance..." is offered only while eligible
             CloseEverything();
+            // ADR-048: after POLICY, so its Stop rows press their own controls before a cancel queues the lane's clear.
+            foreach (TreeTab tab in new[] { TreeTab.Technology, TreeTab.Civics }) CancelDestination(tab);
+            CloseEverything();
             AgeSurfaces();
             CloseEverything();
             Developer();
@@ -892,6 +895,45 @@ public static partial class PlayabilityGate
         }
 
         /// <summary>
+        /// ADR-048 (destination routing, shipped with tranche 2, D-063): the ROUTE block's CANCEL DESTINATION for the tab's
+        /// lane, drawn while the lane holds its own destination. The panel is scrolled to it (the route's blocker lines can
+        /// push it below the fold); one click leaves the lane's existing clear order as its queued directive — at most one
+        /// order is appended (none when POLICY's Stop already queued that clear) — and the button gives way to "Cancel
+        /// ordered - applies at End Turn".
+        /// </summary>
+        private void CancelDestination(TreeTab tab)
+        {
+            ResearchTree lane = tab == TreeTab.Civics ? ResearchTree.Civics : ResearchTree.Technology;
+            Check("research", "CANCEL DESTINATION (" + tab + ")", () =>
+            {
+                CloseEverything();
+                OpenResearch();
+                ClickHit(HitKind.Tab, (int)tab);
+                h.Idle(5);
+                if (!Screen.Snapshot!.Routing) return (GateResult.NotOffered, "destination routing is off: the panel draws no ROUTE block");
+                if (Screen.Snapshot.RouteOn(lane).Destination is null)
+                    return (GateResult.NotOffered, "the " + lane + " lane holds no destination (the ROUTE block offers the cancel only then)");
+                if (Screen.CancelPending(lane)) return (GateResult.NotOffered, "the cancel is already ordered this turn");
+                if (Screen.Selected < 0 && !Screen.Docked) ClickHit(HitKind.Frontier);   // a narrow window: the drawer shows the block
+                h.Idle(5);
+                for (int k = 0; k < 60 && FindHit(HitKind.CancelDestination, (int)lane) is null; k++)
+                {
+                    h.Wheel((int)Screen.DetailRect.CenterX, (int)Screen.DetailRect.CenterY, -1);
+                    h.Idle(1);
+                }
+                if (FindHit(HitKind.CancelDestination, (int)lane) is null) return (GateResult.Fail, "the lane holds a destination but no CANCEL DESTINATION is reachable");
+                int q = Queued;
+                ClickHit(HitKind.CancelDestination, (int)lane);
+                h.Idle(2);
+                bool twoLanes = Screen.Content.Tuning.TwoLanes;
+                int clear = !twoLanes ? -1 : lane == ResearchTree.Civics ? ResearchQuery.ClearCivicsTargetId : ResearchQuery.ClearTechnologyTargetId;
+                int? choice = twoLanes ? S.QueuedResearchChoice(lane) : S.QueuedResearchChoice();
+                return Expect(Queued - q <= 1 && choice == clear && Screen.CancelPending(lane) && FindHit(HitKind.CancelDestination, (int)lane) is null,
+                    "queued +" + (Queued - q) + ", lane choice " + choice + ", pending " + Screen.CancelPending(lane));
+            });
+        }
+
+        /// <summary>
         /// P6 (coverage): the detail panel's own regions — SET AS RESEARCH TARGET for an available node selected WITHOUT
         /// ordering it (from its card's "Show in research tree": the only way a player selects an available node without
         /// targeting it once the frontier is the target), the drawer's close button (narrow windows), and the panel's
@@ -994,9 +1036,14 @@ public static partial class PlayabilityGate
                 h.Click(x, y);
                 int ci = Screen.Graph.Vertices[locked].ContentIndex;
                 bool selected = Screen.Selected == ci;
-                // A locked node is selected (the detail panel shows WHY it is locked) and never orders anything.
-                return Expect(selected && Queued == q && Screen.Snapshot!.Nodes[ci].Lock != LockReason.None,
-                    "selected " + Screen.Selected + ", queued " + (Queued - q) + ", lock " + Screen.Snapshot!.Nodes[ci].Lock);
+                string detail = "selected " + Screen.Selected + ", queued " + (Queued - q) + ", lock " + Screen.Snapshot!.Nodes[ci].Lock;
+                // A locked node is selected (the detail panel shows WHY it is locked). With destination routing off it never
+                // orders anything; on (ADR-048, shipped with tranche 2, D-063) the click orders it as the lane's DESTINATION —
+                // exactly one SetResearchTarget order naming it, built by the factory.
+                if (Screen.Snapshot!.Routing)
+                    return Expect(selected && Queued == q + 1 && S.QueuedResearchChoice() == Screen.Content.Nodes[ci].Key.Value
+                        && Screen.Snapshot!.Nodes[ci].Lock != LockReason.None, detail + ", queued choice " + S.QueuedResearchChoice());
+                return Expect(selected && Queued == q && Screen.Snapshot!.Nodes[ci].Lock != LockReason.None, detail);
             });
             Check("research", "jump to frontier, then the detail panel's SET AS RESEARCH TARGET (" + tab + ")", () =>
             {
