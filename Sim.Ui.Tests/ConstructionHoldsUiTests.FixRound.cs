@@ -92,25 +92,43 @@ public partial class ConstructionHoldsUiTests
 
     // ================================================================== F2 and F6: the road blocker and the basic preview
 
+    // D-063 (tranche 2, 2026-10-24): the two F2 tests below STEP the world, and the tranche-2 research content's realized
+    // effects move what one End Turn leaves (MEASURED on the shipped content: the published set-aside 34 timber, not 33; with
+    // nothing pending the enqueue rig's road paid 8 units, not 6). Their subject is the construction hold, not research, so they run on the pre-tranche-2 content
+    // (TestTranche2) — the same rig, founding and steps — where their measured literals hold.
+    private static readonly SimConfig T2Cfg = TestTranche2.PreTranche2;
+    private static readonly SimConfig T2PreHolds = T2Cfg with { Construction = T2Cfg.Construction! with { Reservations = false } };
+
+    private static readonly Lazy<WorldState> T2RoadWorld = new(() =>
+    {
+        WorldState w = UiFounding.Found(42, 256, 4);
+        ResearchContent research = T2Cfg.Research!;
+        foreach (string id in ActionSurfacePreview.WithAncestors(research, "track_road"))
+            w.ResearchCompleted.Add(new ResearchCompletedRow(Me, research.Nodes[research.IndexOfId(id)].Key));
+        UiSession s = UiSession.StartFromWith(T2Cfg, w, 42, 256, 4);
+        s.EndTurn();
+        return s.World.Clone();
+    });
+
     /// <summary>The F2 rig: the trackway world, every settlement farming only (no production of timber or stone), a granary at
     /// A ordered last turn with no builders, 60 timber at B and 15 stone at A; one End Turn — the step publishes A's set-aside
     /// (33 timber, all that is left after the dwellings' upkeep, and 15 stone).</summary>
     private static (UiSession S, SettlementId A) PublishedHold()
     {
-        WorldState w = RoadWorld.Value.Clone();
+        WorldState w = T2RoadWorld.Value.Clone();
         SettlementId[] mine = Mine(w, Me);
         foreach (SettlementId s in mine) { Set(w, s, Timber, 0); Set(w, s, Stone, 0); Share(w, s, 0.0); }
         Queue(w, mine[0], w.Clock.Turn - 1);
         Set(w, mine[1], Timber, 60);
         Set(w, mine[0], Stone, 15);
-        UiSession s0 = UiSession.StartFrom(w, 42, 256, 4);
+        UiSession s0 = UiSession.StartFromWith(T2Cfg, w, 42, 256, 4);
         s0.EndTurn();
         return (s0, mine[0]);
     }
 
     private static long StepRoadUnits(WorldState from, Action<UiSession> orders)
     {
-        UiSession s = UiSession.StartFrom(from.Clone(), 42, 256, 4);
+        UiSession s = UiSession.StartFromWith(T2Cfg, from.Clone(), 42, 256, 4);
         orders(s);
         long before = RoadUnits(s.World);
         Assert.True(s.EmitRoadOrder(100.0));
@@ -134,14 +152,14 @@ public partial class ConstructionHoldsUiTests
             Enumerable.Range(0, s.World.ConstructionHolds.Count).Select(i => s.World.ConstructionHolds[i]).ToArray());   // PREMISE
         WorldState published = s.World.Clone();
         Assert.Equal("needs 245 timber for the first route (set aside for building projects: 33 timber)", Surface(s, a).Roads!.Blocker);
-        Assert.Null(Surface(s, a, PreHolds).Roads!.Blocker);
+        Assert.Null(Surface(s, a, T2PreHolds).Roads!.Blocker);
         Assert.Equal(0L, StepRoadUnits(published, _ => { }));                                                     // the step agrees
 
         int slot = s.World.ConstructionQueue[0].Slot;
         Assert.True(s.EmitCancelConstruction(a.Value, slot));
         ActionSurfaceModel cancelled = Surface(s, a);
         Assert.Null(cancelled.Roads!.Blocker);
-        RoadPlanPreview p = ActionSurface.RoadPlan(s.World, Cfg, Me, 100.0, s.Names.Name, cancelled.Allocation, numerals: true);
+        RoadPlanPreview p = ActionSurface.RoadPlan(s.World, T2Cfg, Me, 100.0, s.Names.Name, cancelled.Allocation, numerals: true);
         Assert.Equal(33.0 / 1434.0, p.Affordable, 12);
         Assert.Equal(p.AfterBuilding!.Value, p.Affordable, 12);
         Assert.Equal(6L, StepRoadUnits(published, x => Assert.True(x.EmitCancelConstruction(a.Value, slot))));     // the step agrees
@@ -157,24 +175,24 @@ public partial class ConstructionHoldsUiTests
     [Fact]
     public void TheRoadBlocker_CountsAPendingEnqueuesSetAside_AndTheStepPaysNothing()
     {
-        WorldState w = RoadWorld.Value.Clone();
+        WorldState w = T2RoadWorld.Value.Clone();
         SettlementId[] mine = Mine(w, Me);
         foreach (SettlementId x in mine) { Set(w, x, Timber, 0); Set(w, x, Stone, 0); Share(w, x, 0.0); }
         Set(w, mine[1], Timber, 60);
         Set(w, mine[0], Stone, 15);
-        UiSession pre = UiSession.StartFrom(w, 42, 256, 4);
+        UiSession pre = UiSession.StartFromWith(T2Cfg, w, 42, 256, 4);
         pre.EndTurn();
         WorldState start = pre.World.Clone();
         Assert.Equal(0, start.ConstructionHolds.Count);                                                           // PREMISE
-        UiSession s = UiSession.StartFrom(start.Clone(), 42, 256, 4);
+        UiSession s = UiSession.StartFromWith(T2Cfg, start.Clone(), 42, 256, 4);
         Assert.Null(Surface(s, mine[0]).Roads!.Blocker);
         Assert.Equal(6L, StepRoadUnits(start, _ => { }));
 
         Assert.True(s.EmitConstructionOrder(mine[0].Value, Granary));
         ActionSurfaceModel ordered = Surface(s, mine[0]);
         Assert.Equal("needs 245 timber for the first route (set aside for building projects: 33 timber)", ordered.Roads!.Blocker);
-        Assert.Null(Surface(s, mine[0], PreHolds).Roads!.Blocker);
-        RoadPlanPreview p = ActionSurface.RoadPlan(s.World, Cfg, Me, 100.0, s.Names.Name, ordered.Allocation, numerals: true);
+        Assert.Null(Surface(s, mine[0], T2PreHolds).Roads!.Blocker);
+        RoadPlanPreview p = ActionSurface.RoadPlan(s.World, T2Cfg, Me, 100.0, s.Names.Name, ordered.Allocation, numerals: true);
         Assert.Equal((0.0, 0.0), (p.Affordable, p.AfterBuilding!.Value));
         Assert.Equal(0L, StepRoadUnits(start, x => Assert.True(x.EmitConstructionOrder(mine[0].Value, Granary))));
     }

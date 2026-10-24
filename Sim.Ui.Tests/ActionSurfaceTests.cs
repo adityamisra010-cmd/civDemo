@@ -118,9 +118,14 @@ public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<Cano
 
         // RESEARCH: idle — choose; the roots are open; nothing to clear. ADR-045 (D-062, 2026-10-22): eleven — the
         // research-content tranche added one root, the kin_council civic (no prerequisite; knowledge-only).
+        // D-063 TRANCHE-2 RE-PIN (2026-10-24; VALUE, MEASURED on this tree by the agent writing this line): open subjects
+        // 11 -> 10. CAUSE: the tranche-2 research content's roots — knapping_levallois and pressure_flaking gained
+        // prerequisites, oral_tradition is a new root civic. CONTROL: the same world read with the pre-tranche-2 content
+        // (TestTranche2) opens 11.
         Assert.True(m.Research!.Idle);
         Assert.False(m.Research.CanClear);
-        Assert.Equal(11, m.Research.Available);
+        Assert.Equal(10, m.Research.Available);
+        Assert.Equal(11, ResearchQuery.AvailableNodes(s.World, TestTranche2.PreTranche2.Research!, Me).Length);
 
         // CONSTRUCTION: the capital's legal zero-node project, blocked by materials. The workshop is a zero-node project
         // too, but since the Director's 2026-10-10 ruling (D-051 §4) it is not a legal order while its tools have no
@@ -197,7 +202,9 @@ public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<Cano
         ImmutableArray<ActionDescriptor> query = AvailableActionsQuery.For(s.World, s.Config, Me,
             ActionQueryContext.ForNextStep(s.World, Era, s.QueuedOrders()));
         Assert.True(AvailableActionsQuery.Same(query, m.Actions));
-        Assert.Equal(12 * 5 + 1 + 12 + 1 + 8 + 2 + 12 + 36, query.Length);   // R1: + the two baseline recipes; construction 12 (granaries) — no workshop at founding (Director 2026-10-10, D-051 §4); M5 S1d: + 12 Found Settlement (84 -> 96); M6 EX (ADR-044): + 24 Discovery (Explore and Prospect per settlement, 96 -> 120); ADR-046: + 12 Assay (120 -> 132)
+        // ADR-048 (tranche 2, D-063: routing on): + 1 — the research destination action beside the target action (132 -> 133),
+        // as Sim.Tests' TurnOneActionSurfaceTests.
+        Assert.Equal(12 * 5 + 1 + 12 + 1 + 8 + 2 + 12 + 36 + 1, query.Length);   // R1: + the two baseline recipes; construction 12 (granaries) — no workshop at founding (Director 2026-10-10, D-051 §4); M5 S1d: + 12 Found Settlement (84 -> 96); M6 EX (ADR-044): + 24 Discovery (Explore and Prospect per settlement, 96 -> 120); ADR-046: + 12 Assay (120 -> 132)
         foreach (ActionHit build in screen.Hits.Where(h => h.Kind == ActionHitKind.Build))
             Assert.Contains(query, a => a.Domain == ActionDomain.Construction && a.Targets[0].Id == build.A && a.Targets[1].Id == build.B);
     }

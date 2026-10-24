@@ -199,6 +199,9 @@ public class EraSurfaceTests(SteppedWorldFixture fx) : IClassFixture<SteppedWorl
     {
         string[] nav = ["KNOWLEDGE & TECHNOLOGY", "TECHNIQUES", "INSTITUTIONS", "INFRASTRUCTURE", "INDUSTRY", "MILITARY", "APPLICATIONS",
             "TECHNOLOGY", "CIVICS", "LAGGING BRANCH", "FIT", "HIDE MAP", "RESEARCHING", "PROGRESSION"];
+        // ADR-048: with destination routing on (shipped since tranche 2, D-063) the target capsule names the lane's
+        // DESTINATION instead of what it is RESEARCHING.
+        if (fx.Content.Tuning.DestinationRouting) nav[Array.IndexOf(nav, "RESEARCHING")] = "DESTINATION";
         foreach (UiEra era in UiEras.All)
         {
             (ProgressionScreen s, DrawList d) = Tree(era);

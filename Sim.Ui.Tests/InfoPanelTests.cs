@@ -591,25 +591,34 @@ public class InfoPanelTests : IDisposable
     public void TheNodeDetail_NamesItsAgeMilestone_WhatItOpens_AndSaysKnowledgeOnlyWhenNothingReadsIt()
     {
         UiSession s = Small();
-        ResearchContent c = s.Config.Research!;
-        string Detail(string id)
-        {
-            var screen = new ProgressionScreen(c, Me) { Config = s.Config };
-            screen.Refresh(s.World);
-            int i = c.IndexOfId(id);
-            screen.Tab = c.Nodes[i].Tree == ResearchTree.Civics ? TreeTab.Civics : TreeTab.Technology;
-            screen.Selected = i;
-            DrawList d = screen.Paint(1600, 1000, ApproxTextMeasure.Instance);
-            var texts = new List<string>();
-            foreach (DrawCmd cmd in d.Commands) if (cmd is TextCmd t) texts.Add(t.Text);
-            return string.Join("\n", texts);
-        }
+        string Detail(string id) => NodeDetail(s, id);
         string cereal = Detail("cereal_cultivation");
         Assert.Contains("OPENS THE WAY TO", cereal);
         Assert.Contains("Cultivated cereals", cereal);
-        string flaking = Detail("pressure_flaking");
+        // D-063 (tranche 2): pressure_flaking now carries a realized effect, so on the shipped content it is simulated —
+        // its capabilities are still described, not simulated, and the knowledge-only statement is gone ...
+        string shipped = Detail("pressure_flaking");
+        Assert.Contains("DESCRIBED, NOT SIMULATED", shipped);
+        Assert.DoesNotContain("Knowledge only - no simulated effect in this build.", shipped);
+        // ... and on the pre-tranche-2 content (TestTranche2), where nothing reads it, the panel says knowledge only.
+        string flaking = NodeDetail(UiSession.StartWith(TestTranche2.PreTranche2PreDiscovery, 42, sizeOverridePx: 256, settlementsOverride: 4),
+            "pressure_flaking");
         Assert.Contains("DESCRIBED, NOT SIMULATED", flaking);
         Assert.Contains("Knowledge only - no simulated effect in this build.", flaking);
+    }
+
+    private static string NodeDetail(UiSession s, string id)
+    {
+        ResearchContent c = s.Config.Research!;
+        var screen = new ProgressionScreen(c, Me) { Config = s.Config };
+        screen.Refresh(s.World);
+        int i = c.IndexOfId(id);
+        screen.Tab = c.Nodes[i].Tree == ResearchTree.Civics ? TreeTab.Civics : TreeTab.Technology;
+        screen.Selected = i;
+        DrawList d = screen.Paint(1600, 1000, ApproxTextMeasure.Instance);
+        var texts = new List<string>();
+        foreach (DrawCmd cmd in d.Commands) if (cmd is TextCmd t) texts.Add(t.Text);
+        return string.Join("\n", texts);
     }
 
     // ------------------------------------------------------------------ the M7 limitation is named
