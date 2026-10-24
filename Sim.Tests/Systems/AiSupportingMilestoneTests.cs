@@ -19,7 +19,9 @@ namespace Sim.Tests.Systems;
 /// </summary>
 public class AiSupportingMilestoneTests
 {
-    private static readonly SimConfig Cfg = TestConfigs.Sim();
+    // D-063 (tranche 2): the subject is the ADR-046 §6 supporting goal, authored and pinned on the pre-tranche-2 content, and
+    // its switch-off twin (TestConfigs.PreAiSupporting) is built on that content, so both arms run on it (R4).
+    private static readonly SimConfig Cfg = TestConfigs.PreTranche2(TestConfigs.Sim());
     private static readonly ResearchContent Research = Cfg.Research!;
     private static readonly AgeContent Ages = Cfg.Ages!;
     private static readonly PolityId Rival = new(2);
@@ -173,6 +175,27 @@ public class AiSupportingMilestoneTests
         SimConfig off = TestConfigs.PreAiSupporting(Cfg) with { Roads = null, Governance = null, Institutions = null };
         Assert.DoesNotContain(true, AiResearchPolicy.Goals(w, off, Rival)[AiResearchPolicy.SupportingGoal]);
         Assert.Equal(AiResearchPolicy.Cheapest(w, Research, Rival, available, null), AiResearchPolicy.Choose(w, off, Rival, completed, available));
+    }
+
+    /// <summary>D-063: the same choice on the SHIPPED tranche-2 content — at Age III with Ironworking met and no road, tax
+    /// or university goal, the AI works supporting-goal research.</summary>
+    [Fact]
+    public void AgeIII_OnTheShippedContent_TheChoice_WorksTheSupportingGoal()
+    {
+        SimConfig shipped = TestConfigs.Sim() with { Roads = null, Governance = null, Institutions = null };
+        ResearchContent r = shipped.Research!;
+        WorldState w = WorldFounding.Found(TestConfigs.DevWorldgen() with { AiEmpires = 1 }, TestConfigs.Sim(), 42);
+        w.AgeStates.Add(new AgeStateRow(Rival, 3, 0, 0, 0));
+        Assert.Equal(3, AgeQuery.CurrentAge(w, shipped.Ages!, Rival));
+        foreach (int i in new AiResearchPolicy.Routes(w, r, Rival).Node(r.IndexOfId("iron_bloomery")))
+            w.ResearchCompleted.Add(new ResearchCompletedRow(Rival, r.Nodes[i].Key));
+        bool[] completed = ResearchQuery.CompletedMask(w, r, Rival);
+        bool[] available = ResearchQuery.AvailableMask(r, completed);
+        bool[][] goals = AiResearchPolicy.Goals(w, shipped, Rival);
+        Assert.DoesNotContain(true, goals[AiResearchPolicy.CoreGoal]);
+        Assert.Contains(true, goals[AiResearchPolicy.SupportingGoal]);
+        int chosen = AiResearchPolicy.Choose(w, shipped, Rival, completed, available);
+        Assert.True(goals[AiResearchPolicy.SupportingGoal][chosen] && available[chosen], r.Nodes[chosen].Id + " is not supporting-goal work");
     }
 
     [Fact]
