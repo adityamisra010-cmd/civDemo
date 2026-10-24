@@ -3,7 +3,8 @@
 **Status:** measured on the final content and engine of this branch. Measurement:
 `Sim.Tests/Kernel/PacingReferenceMeasurement` (skipped by default; run explicitly). It uses the canonical world (1,024 px),
 one AI Empire, seeds 1, 2, 7 and 42, and 1,630 turns (−4000 to the present). The raw output is
-`data/tranche2/reference-trajectory-final.txt`; it reproduced byte for byte on a second run.
+`data/tranche2/reference-trajectory-final.txt`, re-measured 2026-10-24 on the re-imported content (12 sweep-implied Eurekas
+dropped, the interchangeable_parts ← milling_machine edge declined): Ages 4–9 moved by 0–15 turns, the shape is unchanged.
 
 ## 1. The pincer — turn at which ALL finite content of an Age is complete, per tree
 
@@ -15,15 +16,15 @@ complete before Age x+2 opens, so the trees must move together.
 | A1 | 240 | 263 / 265 (2) | 273 / 287 (14) | 266 / 271 (5) | 265 / 269 (4) |
 | A2 | 510 | 476 / 464 (12) | 501 / 494 (7) | 481 / 471 (10) | 480 / 470 (10) |
 | A3 | 690 | 651 / 639 (12) | 688 / 683 (5) | 658 / 646 (12) | 659 / 647 (12) |
-| A4 | 820 | 766 / 767 (1) | 825 / 833 (8) | 775 / 777 (2) | 777 / 779 (2) |
-| A5 | 970 | 892 / 908 (16) | 959 / 986 (27) | 890 / 902 (12) | 886 / 898 (12) |
-| A6 | 1155 | 1035 / 1029 (6) | 1107 / 1119 (12) | 1001 / 997 (4) | 997 / 993 (4) |
-| A7 | 1325 | 1169 / 1114 (55) | 1263 / 1204 (59) | 1128 / 1076 (52) | 1113 / 1067 (46) |
-| A8 | 1460 | 1323 / 1321 (2) | 1421 / 1416 (5) | 1279 / 1281 (2) | 1263 / 1266 (3) |
-| A9 | 1520 | 1468 / 1409 (59) | 1566 / 1509 (57) | 1424 / 1367 (57) | 1408 / 1349 (59) |
+| A4 | 820 | 770 / 769 (1) | 829 / 834 (5) | 780 / 777 (3) | 781 / 781 (0) |
+| A5 | 970 | 898 / 911 (13) | 963 / 988 (25) | 894 / 902 (8) | 890 / 901 (11) |
+| A6 | 1155 | 1039 / 1033 (6) | 1109 / 1121 (12) | 1008 / 1004 (4) | 1001 / 997 (4) |
+| A7 | 1325 | 1184 / 1129 (55) | 1270 / 1211 (59) | 1138 / 1090 (48) | 1123 / 1074 (49) |
+| A8 | 1460 | 1342 / 1336 (6) | 1429 / 1423 (6) | 1288 / 1291 (3) | 1273 / 1276 (3) |
+| A9 | 1520 | 1483 / 1430 (53) | 1574 / 1515 (59) | 1433 / 1375 (58) | 1414 / 1361 (53) |
 
-- **Within ±30 turns:** 28 of 36 (seed, Age) cells; seven of the nine Ages are within ±27 turns on every seed.
-- **Residual: Ages 7 and 9.** Technology finishes 46–59 turns after civics.
+- **Within ±30 turns:** 28 of 36 (seed, Age) cells; seven of the nine Ages are within ±25 turns on every seed.
+- **Residual: Ages 7 and 9.** Technology finishes 48–59 turns after civics.
   - The cause is structural, not a cost choice. The technology lane completes at most one node per turn: Research
     Points do not overflow to a second node (D-044 R5). Age 9 holds 141 finite technologies, so it takes about 141 turns
     however cheap it is.
@@ -34,7 +35,7 @@ complete before Age x+2 opens, so the trees must move together.
     listed in `docs/queue.md`.
 - **"No slower":** every seed now completes both trees. Pre-tranche, no seed reached Age 9 and three of four ended in
   Age 7.
-- **Repeatables:** they run in the remaining turns, 213–358 levels per seed by turn 1,630.
+- **Repeatables:** they run in the remaining turns, 205–353 levels per seed by turn 1,630.
 
 ## 2. Scale used — `tuning.pacingScale`
 
@@ -63,21 +64,21 @@ final one is in this package.
 
 | Seed | Pre-tranche: Age, tech, civics, population at 1,630 | Tranche 2: Age, tech, civics, population at 1,630 | Repeatable levels |
 |---|---|---|---:|
-| 1 | A8, 141, 51, 2,219,136 | A9, 525, 480, 47,491,235 | 314 |
-| 2 | A7, 104, 39, 251,684 | A9, 525, 480, 42,694,874 | 213 |
-| 7 | A7, 103, 41, 282,890 | A9, 525, 480, 56,478,370 | 343 |
-| 42 | A7, 104, 41, 302,146 | A9, 525, 480, 69,383,665 | 358 |
+| 1 | A8, 141, 51, 2,219,136 | A9, 525, 480, 47,018,057 | 301 |
+| 2 | A7, 104, 39, 251,684 | A9, 525, 480, 42,008,153 | 205 |
+| 7 | A7, 103, 41, 282,890 | A9, 525, 480, 56,179,099 | 338 |
+| 42 | A7, 104, 41, 302,146 | A9, 525, 480, 69,210,515 | 353 |
 
 | Turn | Pre-tranche population (seed 42) | Tranche 2 population (seed 42) | Pre RP/turn | Tranche 2 RP/turn |
 |---:|---:|---:|---:|---:|
 | 200 | 11,953 | 13,676 | 57 | 62 |
 | 400 | 31,219 | 74,245 | 111 | 203 |
 | 600 | 67,441 | 728,393 | 190 | 1,002 |
-| 800 | 115,069 | 14,181,504 | 276 | 8,244 |
-| 1000 | 176,857 | 23,727,450 | 372 | 12,773 |
-| 1200 | 232,512 | 35,434,910 | 451 | 18,063 |
-| 1400 | 258,133 | 54,046,312 | 485 | 25,816 |
-| 1630 | 302,146 | 69,383,665 | 542 | 31,483 |
+| 800 | 115,069 | 13,752,270 | 276 | 8,012 |
+| 1000 | 176,857 | 23,546,438 | 372 | 12,705 |
+| 1200 | 232,512 | 34,693,506 | 451 | 17,798 |
+| 1400 | 258,133 | 51,128,623 | 485 | 24,834 |
+| 1630 | 302,146 | 69,210,515 | 542 | 31,428 |
 
 - **What happened.** The realized knowledge effects compound (food yield, per-farmer output, famine absorption,
   mortality, catchment, colonization), and research is now much faster. An AI empire therefore ends near 40–70 million

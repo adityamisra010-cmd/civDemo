@@ -10,7 +10,7 @@
 >   `docs/m6-plan/knowledge-redesign/tranche2-{change-report,effect-coverage,civ-comparison,balance-report}.md`.
 > - **Switches on in `research.json`:** `knowledgeEffects`, `ageSweep`, `destinationRouting`, `repeatableLevels`,
 >   `pacingScale`. Attribution control for every re-pin: `TestConfigs.PreTranche2` (the d22f936 research.json fixture).
-> - **Open for the Director:** the pincer residual (technology lags civics 46–59 turns in Ages 7 and 9 — one
+> - **Open for the Director:** the pincer residual (technology lags civics 48–59 turns in Ages 7 and 9 — one
 >   technology per turn, D-044) and the population/economy rise (40–70 M vs ~300 k pre-tranche), both in `docs/queue.md`.
 > - Verify against the tree (gov-4) before relying on this entry.
 
