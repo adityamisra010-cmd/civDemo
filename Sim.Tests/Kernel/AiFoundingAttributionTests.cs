@@ -219,7 +219,11 @@ public class AiFoundingAttributionTests
     public void AiWorldTurn300_BothBatch3SwitchesOff_IsTheE91d10bWorld()
     {
         SimConfig full = TestConfigs.Sim();
-        Assert.Equal(E91d10bTurn300, WorldHash.ComputeHex(CivicsPointsAttributionTests.RunAiWorld(
+        // ADR-049 (ee6ea59, schema v36): E91d10bTurn300 is a v35 hash, so the twin world is compared through its v35
+        // projection (SchemaProjection.V35: section 67 ResearchLevels stripped, asserted EMPTY) — the layout move alone, as
+        // IntegratedPinAttributionTests' StripV36. MEASURED on this tree: both off -> 2e4759ac… through V35 (raw v36 810097…);
+        // the single twins likewise return their recorded v35 values (supporting off 3b29c636…, build-first off 3c6c35ff…).
+        Assert.Equal(E91d10bTurn300, SchemaProjection.V35(CivicsPointsAttributionTests.RunAiWorld(
             TestConfigs.PreAiSupporting(TestConfigs.PreAiBuildFirst(full)))));
         Assert.NotEqual(E91d10bTurn300, S1cTurn300);
     }
