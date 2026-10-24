@@ -11438,8 +11438,8 @@
    "age": "A8",
    "branch": "engineering",
    "cost": 11830.0,
-   "prereq": "slide_rest_lathe AND milling_machine",
-   "depth": 19,
+   "prereq": "slide_rest_lathe",
+   "depth": 18,
    "origin": "pre-tranche",
    "realized": [
     {
@@ -12106,7 +12106,7 @@
    "branch": "engineering",
    "cost": 9950.0,
    "prereq": "interchangeable_parts AND steel_carburized",
-   "depth": 20,
+   "depth": 19,
    "origin": "pre-tranche",
    "realized": [
     {
@@ -20016,7 +20016,7 @@
    "branch": "military",
    "cost": 16730.0,
    "prereq": "rifling AND flintlock AND chemistry_quantitative AND interchangeable_parts",
-   "depth": 20,
+   "depth": 19,
    "origin": "pre-tranche",
    "realized": [
     {
@@ -20071,7 +20071,7 @@
    "branch": "military",
    "cost": 5910.0,
    "prereq": "breech_loading_rifle",
-   "depth": 21,
+   "depth": 20,
    "origin": "pre-tranche",
    "realized": [
     {
@@ -38582,7 +38582,7 @@
    "branch": null,
    "cost": 19890.0,
    "prereq": "international_organizations AND interchangeable_parts",
-   "depth": 20,
+   "depth": 19,
    "origin": "tranche-2",
    "realized": [
     {
