@@ -440,10 +440,11 @@ public sealed partial class ProgressionScreen
             lines.Add("Destination: none - click any node to set one");
             return lines;
         }
-        lines.Add(r.Assisting ? "Destination: none - assisting " + Name(r.AssistedDestination) : "Destination: " + Name(r.Destination));
+        lines.Add(r.Assisting && r.Destination == r.AssistedDestination ? "Destination: none - assisting " + Name(r.AssistedDestination)
+            : "Destination: " + Name(r.Destination) + (r.Assisting ? " - meanwhile assisting " + Name(r.AssistedDestination) : ""));
         lines.Add("Current research: " + (r.Current is null ? "none - waiting on the other lane" : Name(r.Current)));
         lines.Add("Next on route: " + (r.Next is null ? "-" : Name(r.Next)));
-        if (!r.Assisting)
+        if (!r.Assisting || r.Destination != r.AssistedDestination)
             lines.Add("Remaining: " + Math.Ceiling(r.RemainingCost).ToString("#,0", CultureInfo.InvariantCulture) + " " + s.UnitOn(tree));
         if (!r.Feasible) lines.Add("Route blocked: the destination cannot be reached from here");
         List<RouteBlocker> prereq = r.BlockersOf(RouteReason.Prerequisite);
@@ -1838,7 +1839,7 @@ public sealed partial class ProgressionScreen
             foreach (string line in FlowText.Wrap(m, text, TypeRole.Body, _scale, w))
             { d.Write(t, x, y, line, body, t.Ink.Text); y += FlowText.Slot(TypeRole.Body, _scale); }
         ResearchRoute r = s.RouteOn(TabTree);
-        if (r.Destination is not null && !r.Assisting)
+        if (r.Destination is not null && (!r.Assisting || r.Destination != r.AssistedDestination))
         {
             var btn = new RectD(x, y + Sp(6), w, Sp(40));
             bool pending = CancelPending(TabTree);

@@ -25,8 +25,9 @@ REPO = PKG.parents[2]
 RESEARCH = REPO / "Sim.Data" / "content" / "research.json"
 
 # Target Age entry turns (no slower than the measured pre-tranche AI: A3 ~470, A4 ~700, A5 ~800, A6 ~880, A7 ~1150-1200,
-# A8 ~1400 on one seed of four, A9 never). A9 entered with ~230 turns of the 1,630 left for A9 and repeatables.
-ENTRY = {2: 80, 3: 400, 4: 620, 5: 760, 6: 880, 7: 1060, 8: 1250, 9: 1400, 10: 1630, 11: 1630}
+# A8 ~1400 on one seed of four, A9 never). A9 is entered at ~1400 and its finite content is researchable by ~1520, so the
+# last ~110 turns of the 1,630 go to the repeatables (E[10] = E[11] = 1520: "Age 10" is the repeatable era).
+ENTRY = {2: 80, 3: 400, 4: 620, 5: 760, 6: 880, 7: 1060, 8: 1250, 9: 1400, 10: 1520, 11: 1520}
 UTIL = 0.85
 
 
@@ -72,7 +73,9 @@ def main(argv):
         for x in range(1, 10):
             mid = (ENTRY[x + 1] + ENTRY[x + 2]) / 2.0
             target = UTIL * cumulative(rows, mid, col)
-            age_target = max(target - prev_target, 0.05 * rubric[tree][x])
+            # no floor that overrides the target: a floor above the accrual would make the Age unreachable at the
+            # reference rate (the loader bounds the scale to (0, 4]); 1e-6 only guards a non-positive difference
+            age_target = max(target - prev_target, 1e-6 * rubric[tree][x])
             s = age_target / rubric[tree][x] if rubric[tree][x] else 1.0
             scale[tree].append(round(s, 6))
             report.append({"tree": tree, "age": x, "rubricTotal": round(rubric[tree][x]), "targetTotal": round(age_target),

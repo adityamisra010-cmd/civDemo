@@ -173,9 +173,10 @@ public class ResearchAgeSweepTests
     }
 
     [Fact]
-    public void ShippedContent_ShipsBothSwitchesOff_AndItsAvailabilityIsTheOldRule()
+    public void ShippedContent_SwitchesOff_ItsAvailabilityIsTheOldRule()
     {
-        ResearchContent c = TestConfigs.Research();
+        // The twin: the shipped content with the sweep, routing and levels switched off (tranche 2 ships them on).
+        ResearchContent c = ContentWith(sweep: false, routing: false, levels: false);
         Assert.False(c.Tuning.AgeSweep);
         Assert.False(c.Tuning.DestinationRouting);
         int n = c.Nodes.Count;
@@ -198,13 +199,14 @@ public class ResearchAgeSweepTests
             if (c.Nodes[i].AgeNumber >= 3) Assert.False(mask[i], c.Nodes[i].Id + " is available from scratch under the sweep");
     }
 
-    /// <summary>The shipped research.json with the two ADR-048 switches set (a test-only variant).</summary>
-    public static ResearchContent ContentWith(bool sweep, bool routing)
+    /// <summary>The shipped research.json with the two ADR-048 switches (and optionally ADR-049's) set (a test-only variant).</summary>
+    public static ResearchContent ContentWith(bool sweep, bool routing, bool? levels = null)
     {
         using var stream = Sim.Data.DataFiles.OpenResearch();
         var doc = System.Text.Json.Nodes.JsonNode.Parse(stream)!.AsObject();
         doc["tuning"]!["ageSweep"] = sweep;
         doc["tuning"]!["destinationRouting"] = routing;
+        if (levels is bool l) doc["tuning"]!["repeatableLevels"] = l;
         using var goods = Sim.Data.DataFiles.OpenGoods();
         return ResearchContentLoader.Load(doc.ToJsonString(), GoodsConfigLoader.Load(goods));
     }

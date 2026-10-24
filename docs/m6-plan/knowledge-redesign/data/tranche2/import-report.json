@@ -915,9 +915,122 @@
    "scaledBy": 0.8182
   }
  },
+ "subtreePlacement": [
+  {
+   "id": "herring_buss",
+   "branch": "military",
+   "because": [
+    "military"
+   ]
+  },
+  {
+   "id": "crucible_cast_steel",
+   "branch": "engineering",
+   "because": [
+    "engineering"
+   ]
+  },
+  {
+   "id": "antiscorbutics",
+   "branch": "military",
+   "because": [
+    "military"
+   ]
+  },
+  {
+   "id": "electrostatics",
+   "branch": "natural_science",
+   "because": [
+    "natural_science"
+   ]
+  },
+  {
+   "id": "logarithms",
+   "branch": "natural_science",
+   "because": [
+    "natural_science"
+   ]
+  },
+  {
+   "id": "sprung_coach",
+   "branch": "engineering",
+   "because": [
+    "engineering"
+   ]
+  },
+  {
+   "id": "steam_printing_press",
+   "branch": "engineering",
+   "because": [
+    "engineering"
+   ]
+  },
+  {
+   "id": "town_gas",
+   "branch": "engineering",
+   "because": [
+    "engineering",
+    "natural_science"
+   ]
+  },
+  {
+   "id": "galvanized_iron",
+   "branch": "engineering",
+   "because": [
+    "engineering"
+   ]
+  },
+  {
+   "id": "quinine",
+   "branch": "natural_science",
+   "because": [
+    "natural_science"
+   ]
+  },
+  {
+   "id": "metric_system",
+   "branch": "natural_science",
+   "because": [
+    "natural_science"
+   ]
+  },
+  {
+   "id": "synoptic_meteorology",
+   "branch": "engineering",
+   "because": [
+    "engineering",
+    "natural_science"
+   ]
+  },
+  {
+   "id": "precast_housing",
+   "branch": "engineering",
+   "because": [
+    "engineering"
+   ]
+  },
+  {
+   "id": "aerial_reconnaissance",
+   "branch": "engineering",
+   "because": [
+    "engineering",
+    "natural_science"
+   ]
+  }
+ ],
+ "impliedEurekasDropped": [
+  {
+   "id": "windmill_post",
+   "when": "gearing"
+  },
+  {
+   "id": "railway",
+   "when": "mining_shaft"
+  }
+ ],
  "counts": {
   "technologies": 525,
-  "civics": 477,
+  "civics": 480,
   "technologiesFinite": 515,
   "civicsFinite": 477,
   "imported": 439,

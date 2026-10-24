@@ -31,7 +31,7 @@ RANGES = {"novelty": (0.5, 2.0), "difficulty": (0.0, 3.5), "material": (0.0, 2.0
 UNIV_BY_DOMAIN = {"military": 1, "naval": 1, "medicine": 2, "engineering": 3, "energy": 3, "industry": 3,
                   "construction": 3, "infrastructure": 3, "transport": 3, "communication": 3, "materials": 3,
                   "science": 4, "environment": 4, "agriculture": 5, "food": 5}
-UNIV_NAMES = {1: "Military", 2: "Medicine", 3: "Engineering", 4: "Natural Science", 5: "Agriculture"}
+UNIV_NAMES = {1: "Military", 2: "Medical", 3: "Engineering", 4: "Natural Science", 5: "Agricultural"}
 BRANCH_UNIV = {"military": 1, "medicine": 2, "engineering": 3, "natural_science": 4, "agriculture": 5}
 
 
@@ -152,6 +152,11 @@ def main(argv):
     for n in tech + civ:
         n["prereq"] = rewrite(n.get("prereq"))
 
+    # 3a. Engine-owned fields of pristine nodes are taken from the current file (ADR-049 levels descriptors)
+    cur_by_id = {n["id"]: n for n in current["technologies"] + current["civics"]}
+    for n in tech + civ:
+        if n["id"] in pristine_ids and n["id"] in cur_by_id and "repeatable" in cur_by_id[n["id"]]:
+            n["repeatable"] = cur_by_id[n["id"]]["repeatable"]
     # 3. Engine-added nodes present in the current file (e.g. civics repeatables 1990+) are kept as they are
     for arr_name, arr in (("technologies", tech), ("civics", civ)):
         for n in current[arr_name]:
@@ -242,6 +247,30 @@ def main(argv):
     # 6. Derived fields: depth (longest prerequisite path, union over OR), recursive set
     nodes = tech + civ
     ast = {n["id"]: kr.parse(n.get("prereq")) for n in nodes}
+
+    # 6a. Subtree placement (loader rule, architecture 8.4.5): a Main-tree technology may never require subtree knowledge.
+    # A NEW technology that does is placed in the subtree of its subtree prerequisites (the most common one; ties by
+    # subtree order), with that subtree's university as its primary; repeated to a fixpoint because a moved node's
+    # Main-tree dependents may then need moving too. A pristine node in that position is an error (an audit edge).
+    order = list(BRANCH_UNIV)
+    moved = True
+    while moved:
+        moved = False
+        for n in tech:
+            if n.get("branch") is not None:
+                continue
+            subs = [by_id[a]["branch"] for a in kr.atoms(ast[n["id"]]) if a in by_id and by_id[a].get("branch")] \
+                if ast[n["id"]] else []
+            if not subs:
+                continue
+            if n["id"] not in imported_ids:
+                raise SystemExit(f"pristine Main-tree technology {n['id']} now requires subtree knowledge ({subs})")
+            b = min(set(subs), key=lambda x: (-subs.count(x), order.index(x)))
+            n["branch"] = b
+            u = BRANCH_UNIV[b]
+            n["universityRelevance"] = [{"type": u, "name": UNIV_NAMES[u], "role": "primary"}]
+            report.setdefault("subtreePlacement", []).append({"id": n["id"], "branch": b, "because": sorted(set(subs))})
+            moved = True
     depth = {}
 
     def dep(i, stack=()):
@@ -258,6 +287,53 @@ def main(argv):
         raise SystemExit(f"unknown prerequisite atoms: {missing[:20]}")
     for n in nodes:
         n["depth"] = dep(n["id"])
+
+    # 6a'. A subtree repeatable states how many finite nodes of its subtree it waits for (loader rule) — recounted
+    for n in tech:
+        rep = n.get("repeatable")
+        av = rep.get("availability") if isinstance(rep, dict) else None
+        if isinstance(av, dict) and av.get("subtree"):
+            av["finite_nodes_to_exhaust"] = sum(1 for x in tech if x.get("branch") == av["subtree"]
+                                                and not isinstance(x.get("repeatable"), dict))
+
+    # 6b. Implied Eurekas (loader rule): a Eureka whose condition is guaranteed by the node's own prerequisites would fire
+    # the moment the node became available. An audit edge that made the precursor a hard prerequisite turns its Eureka
+    # into exactly that, so the Eureka is dropped (the knowledge is now required, not a circumstance).
+    guaranteed = {}
+
+    def guar(i):
+        if i in guaranteed:
+            return guaranteed[i]
+        def g(a):
+            if a is None:
+                return set()
+            if a[0] == "atom":
+                return {a[1]} | guar(a[1]) if a[1] in by_id else set()
+            if a[0] == "and":
+                out = set()
+                for x in a[1]:
+                    out |= g(x)
+                return out
+            if a[0] == "or":
+                sets = [g(x) for x in a[1]]
+                return set.intersection(*sets) if sets else set()
+            return set()
+        guaranteed[i] = g(ast[i])
+        return guaranteed[i]
+    for n in nodes:
+        kept = []
+        for e in n.get("eurekas") or []:
+            w = e.get("when")
+            try:
+                wa = kr.parse(w) if isinstance(w, str) else None
+            except ValueError:
+                wa = None
+            if wa is not None and kr.atoms(wa) and all(a in by_id for a in kr.atoms(wa)) and kr.holds(wa, guar(n["id"])):
+                report.setdefault("impliedEurekasDropped", []).append({"id": n["id"], "when": w})
+                continue
+            kept.append(e)
+        if len(kept) != len(n.get("eurekas") or []):
+            n["eurekas"] = kept
     out = dict(current)
     out["technologies"] = tech
     out["civics"] = civ

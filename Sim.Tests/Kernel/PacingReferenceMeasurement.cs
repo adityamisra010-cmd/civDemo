@@ -41,10 +41,24 @@ public class PacingReferenceMeasurement(ITestOutputHelper output)
         var research = cfg.Research!;
         var sb = new System.Text.StringBuilder();
         sb.AppendLine($"seed {seed}: turn | year | dt | population | RP/turn | CP/turn | Age | tech done | civics done");
+        // Tranche 2 (the pincer): the first turn at which ALL finite content of (tree, Age) is complete.
+        var doneTurn = new long[2, 10];
+        for (int a = 0; a < 10; a++) { doneTurn[0, a] = -1; doneTurn[1, a] = -1; }
+        var finite = new int[2, 10];
+        foreach (var n in research.Nodes)
+            if (!n.HasRepeatableDescriptor) finite[n.Tree == Sim.Core.Systems.Research.ResearchTree.Technology ? 0 : 1, n.AgeNumber]++;
         for (int t = 0; t < 1630; t++)
         {
             AiOrders.Append(log, w, cfg, shipped);
             w = exec.Step(w);
+            bool[] doneMask = ResearchQuery.CompletedMask(w, research, Ai);
+            var count = new int[2, 10];
+            for (int i = 0; i < doneMask.Length; i++)
+                if (doneMask[i] && !research.Nodes[i].HasRepeatableDescriptor)
+                    count[research.Nodes[i].Tree == Sim.Core.Systems.Research.ResearchTree.Technology ? 0 : 1, research.Nodes[i].AgeNumber]++;
+            for (int tr = 0; tr < 2; tr++)
+                for (int a = 1; a < 10; a++)
+                    if (doneTurn[tr, a] < 0 && finite[tr, a] > 0 && count[tr, a] == finite[tr, a]) doneTurn[tr, a] = w.Clock.Turn;
             if (w.Clock.Turn % 10 != 0) continue;
             double pop = ResearchQuery.Population(w, Ai);
             double rp = ResearchQuery.ResearchPointPool(w, research, Ai);
@@ -54,6 +68,15 @@ public class PacingReferenceMeasurement(ITestOutputHelper output)
             sb.AppendLine(string.Create(System.Globalization.CultureInfo.InvariantCulture,
                 $"{w.Clock.Turn} | {w.Clock.WorldDateYears:0} | {w.Clock.DtYears:0.##} | {pop:0} | {rp:0.0} | {cp:0.00} | {AgeQuery.CurrentAge(w, cfg.Ages!, Ai)} | {tech} | {civ}"));
         }
+        sb.Append("  Age complete (turn) technology:");
+        for (int a = 1; a < 10; a++) sb.Append(System.Globalization.CultureInfo.InvariantCulture, $" A{a}={doneTurn[0, a]}");
+        sb.AppendLine();
+        sb.Append("  Age complete (turn) civics:    ");
+        for (int a = 1; a < 10; a++) sb.Append(System.Globalization.CultureInfo.InvariantCulture, $" A{a}={doneTurn[1, a]}");
+        sb.AppendLine();
+        long levels = 0;
+        for (int r = 0; r < w.ResearchLevels.Count; r++) if (w.ResearchLevels[r].Polity.Value == Ai.Value) levels += w.ResearchLevels[r].Level;
+        sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"  repeatable levels held at the end: {levels}");
         return sb.ToString();
     }
 }

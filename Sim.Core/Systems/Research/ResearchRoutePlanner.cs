@@ -110,10 +110,14 @@ public static class ResearchRoutePlanner
             plans[lane] = Plan(content, completed, remaining, d);
             current[lane] = PickCurrent(content, plans[lane]!.Route, available, remaining, lane, twoLanes, -1);
         }
+        // Assist: a lane with nothing fundable — no destination, or a route whose eligible nodes are all of the other
+        // tree — funds its own tree's eligible nodes on the OTHER lane's route. Without the second case two destinations
+        // that wait on each other's trees (each route's Age-sweep cohort holds the other tree's nodes) deadlock: neither
+        // lane may fund the other's tree, and neither had a free hand to assist (the tranche-2 integration measurement).
         if (twoLanes)
             for (int lane = 0; lane < 2; lane++)
             {
-                if (destinations[lane] >= 0 || plans[1 - lane] is not { } other) continue;
+                if (current[lane] >= 0 || plans[1 - lane] is not { } other) continue;
                 current[lane] = PickCurrent(content, other.Route, available, remaining, lane, twoLanes, -1);
                 assisting[lane] = current[lane] >= 0;
             }
@@ -152,7 +156,7 @@ public static class ResearchRoutePlanner
         LaneFunding[] funding = Fund(content, completed, available, remaining, destinations, twoLanes);
         LaneFunding f = funding[slot];
         ResearchRoutePlan? plan = f.Plan ?? (f.Assisting ? funding[1 - slot].Plan : null);
-        int destination = f.Assisting ? funding[1 - slot].Destination : f.Destination;
+        int destination = f.Destination >= 0 ? f.Destination : f.Assisting ? funding[1 - slot].Destination : -1;
         if (destination < 0) return ResearchRoute.None(lane);
 
         ResearchNodeId? Key(int i) => i >= 0 ? content.Nodes[i].Key : null;
@@ -189,7 +193,7 @@ public static class ResearchRoutePlanner
         var orderedKeys = new ResearchNodeId[ordered.Length];
         for (int k = 0; k < ordered.Length; k++) orderedKeys[k] = content.Nodes[ordered[k]].Key;
         return new ResearchRoute(lane, Key(destination), Key(f.Current), Key(next), orderedKeys, blockers, plan.RemainingCost,
-            false, feasible, f.Assisting, f.Assisting ? Key(destination) : null, plan.Exact, plan.Combinations);
+            false, feasible, f.Assisting, f.Assisting ? Key(funding[1 - slot].Destination) : null, plan.Exact, plan.Combinations);
     }
 
     /// <summary>

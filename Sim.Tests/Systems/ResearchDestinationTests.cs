@@ -476,6 +476,37 @@ public class ResearchDestinationTests
         Assert.True(ResearchRigs.Done(next, 1002));
     }
 
+    //  tech: a · t1 (a) · dt (t1 AND civ1) · t2 (a)        civics: civ1 (a) · dx (t2)
+    private static readonly Lazy<ResearchContent> Crossed = new(() =>
+    {
+        var s = new Spec { Stage = "a", DestinationRouting = true, CivicsPoints = (true, 1.0, 0.5) };
+        s.Technologies.AddRange([
+            new Node(1, "a", Cost: 1000.0), new Node(2, "t1", "a", Cost: 800.0), new Node(3, "dt", "t1 AND civ1", Cost: 500.0),
+            new Node(4, "t2", "a", Cost: 700.0),
+        ]);
+        s.Civics.AddRange([new Node(1001, "civ1", "a", Cost: 600.0), new Node(1004, "dx", "t2", Cost: 400.0)]);
+        return s.Load();
+    });
+
+    /// <summary>Tranche-2 integration finding: two destinations that each wait on the OTHER tree (dt needs civ1, dx needs t2)
+    /// deadlocked — each lane's route held only the other lane's nodes, and a lane with a destination never assisted. Each
+    /// lane now funds its own tree's node on the other lane's route; both destinations complete.</summary>
+    [Fact]
+    public void CrossedDestinations_EachLaneAssistsTheOther_AndBothComplete()
+    {
+        ResearchContent c = Crossed.Value;
+        WorldState w = WithDestination(c, WithDestination(c, WorldWith(c, "a", "t1"), "dt"), "dx");
+        ResearchRoute tech = ResearchQuery.Route(w, c, P, ResearchTree.Technology);
+        ResearchRoute civ = ResearchQuery.Route(w, c, P, ResearchTree.Civics);
+        Assert.Equal((new ResearchNodeId(3), new ResearchNodeId(4), true), (tech.Destination!.Value, tech.Current!.Value, tech.Assisting));
+        Assert.Equal(new ResearchNodeId(1004), tech.AssistedDestination);
+        Assert.Equal((new ResearchNodeId(1004), new ResearchNodeId(1001), true), (civ.Destination!.Value, civ.Current!.Value, civ.Assisting));
+        WorldState next = Executor(c).Step(w);
+        Assert.True(ResearchRigs.Done(next, 4) && ResearchRigs.Done(next, 1001));
+        WorldState done = Executor(c).Step(next);
+        Assert.True(ResearchRigs.Done(done, 3) && ResearchRigs.Done(done, 1004));
+    }
+
     // ------------------------------------------------------------------ the AI uses the same planner
 
     [Fact]
