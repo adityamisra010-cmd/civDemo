@@ -24,6 +24,12 @@ namespace Sim.Core.Systems.Research;
 ///   (EffectiveCost, node key) — an ascending-key scan replacing only on a strictly lower cost;</item>
 /// <item>with no goal left, the cheapest available node anywhere (same key).</item>
 /// </list>
+/// ADR-049 (research.json tuning.repeatableLevels): a levelled repeatable stays AVAILABLE after each completion, priced at its
+/// NEXT level (BaseCost × g^level, <see cref="ResearchQuery.EffectiveCost"/>), so once the goal closures are exhausted the
+/// fallback above reaches the repeatable levels by the same composite key (EffectiveCost, node key) — the AI researches
+/// the cheapest next level instead of idling when nothing finite is left. No new rule: the levels enter the available set
+/// (and the city-state's <see cref="Cheapest"/> pick) the way any node does. Off, a completed repeatable is never
+/// available again — the complete-once behaviour exactly.
 /// Both argmins are the house rule for any argmin over doubles (tie-dense tests: AiPolicyTests,
 /// AiResearchGoalTests).
 ///
@@ -81,12 +87,12 @@ public static class AiResearchPolicy
         if (content.Tuning.TwoLanes) return DecideLane(world, cfg, polity, ResearchTree.Technology);
         if (!EmpireQuery.TryGetCommandSource(world, polity, out CommandSource source) || source != CommandSource.Ai) return null;
         bool[] completed = ResearchQuery.CompletedMask(world, content, polity);
-        bool[] available = ResearchQuery.AvailableMask(content, completed);
+        bool[] available = ResearchQuery.AvailableMask(content, completed, ResearchQuery.LevelMask(world, content, polity, completed));
         // A live target is kept: switching would only scatter progress (it is retained, never lost). ADR-048: with routing
         // the row is a DESTINATION, live while its node is incomplete (available or not).
         bool routing = content.Tuning.DestinationRouting;
         if (ResearchQuery.TryGetTarget(world, polity, out ResearchNodeId current)
-            && content.IndexOf(current) is int held and >= 0 && (routing ? !completed[held] : available[held])) return null;
+            && content.IndexOf(current) is int held and >= 0 && (routing ? ResearchQuery.IsOpenTarget(content, held, completed) : available[held])) return null;
 
         int choice = routing ? ChooseDestination(world, cfg, polity, completed, available, null)
             : Choose(world, cfg, polity, completed, available);
@@ -100,10 +106,10 @@ public static class AiResearchPolicy
         if (cfg.Research is not { } content) return null;
         if (!EmpireQuery.TryGetCommandSource(world, polity, out CommandSource source) || source != CommandSource.Ai) return null;
         bool[] completed = ResearchQuery.CompletedMask(world, content, polity);
-        bool[] available = ResearchQuery.AvailableMask(content, completed);
+        bool[] available = ResearchQuery.AvailableMask(content, completed, ResearchQuery.LevelMask(world, content, polity, completed));
         bool routing = content.Tuning.DestinationRouting;
         if (ResearchQuery.TryGetTarget(world, content, polity, lane, out ResearchNodeId current)
-            && content.IndexOf(current) is int held and >= 0 && (routing ? !completed[held] : available[held])) return null;
+            && content.IndexOf(current) is int held and >= 0 && (routing ? ResearchQuery.IsOpenTarget(content, held, completed) : available[held])) return null;
 
         int choice = routing ? ChooseDestination(world, cfg, polity, completed, available, lane)
             : Choose(world, cfg, polity, completed, available, lane);

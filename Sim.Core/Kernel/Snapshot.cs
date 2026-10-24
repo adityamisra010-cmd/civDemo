@@ -34,6 +34,12 @@ public sealed class SnapshotFormatException(string message) : Exception(message)
 /// and its CivicsPoints table is left empty (every bank starts at zero — v34 had no CP). A loaded CivicsPoints table that
 /// no rule could have written (unsorted or duplicate Polity keys, a negative field, Balance ≠ Generated − Spent) is
 /// refused (ResearchQuery.CivicsPointsInvariantViolation).
+///
+/// ADR-049 (schema v36): THE v36 FILE LAYOUT is the v35 one with the canonical stream running to section 67
+/// (ResearchLevels). <see cref="Load"/> accepts the readable SET {32, 33, 34, 35, 36}: a v35 file's stream ends after section
+/// 66 and its ResearchLevels table is left empty (no level existed under v35). A loaded ResearchLevels table that no rule
+/// could have written (a duplicate (Polity, Node), a level outside [1, ResearchQuery.MaxRepeatableLevel]) is refused
+/// (ResearchQuery.LevelsInvariantViolation).
 /// </summary>
 public static class Snapshot
 {
@@ -87,7 +93,7 @@ public static class Snapshot
         if (!CanonicalSchema.IsReadable(version))
             throw new SnapshotFormatException(
                 $"save is schema version {version}, this build reads only versions " +
-                $"32, 33 and 34 (migrated) and {CanonicalSchema.Version}; saves break " +
+                $"32, 33, 34 and 35 (migrated) and {CanonicalSchema.Version}; saves break " +
                 "between milestones by design (D-008) — no migration exists for this version. Re-derive the world " +
                 "via seed + order-log replay.");
 
@@ -196,5 +202,8 @@ public static class Snapshot
         // no zero extent word, radii and turns in range. A save no rule wrote is refused.
         if (DiscoveryQuery.InvariantViolation(world) is { } discovery)
             throw new SnapshotFormatException("save is corrupt: " + discovery + " (schema v35 invariant).");
+        // ADR-049 (v36): the repeatable research levels as only ResearchSystem writes them.
+        if (ResearchQuery.LevelsInvariantViolation(world.ResearchLevels) is { } levels)
+            throw new SnapshotFormatException("save is corrupt: " + levels + " (schema v36 invariant).");
     }
 }

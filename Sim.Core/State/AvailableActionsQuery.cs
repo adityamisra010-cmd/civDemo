@@ -285,7 +285,7 @@ public static class AvailableActionsQuery
     public static void Research(IReadOnlyWorldState world, SimConfig cfg, PolityId polity, List<ActionDescriptor> into)
     {
         if (cfg.Research is not { } content || !EmpireQuery.TryGetCommandSource(world, polity, out _)) return;
-        bool[] available = ResearchQuery.AvailableMask(content, ResearchQuery.CompletedMask(world, content, polity));
+        bool[] available = ResearchQuery.AvailableMask(world, content, polity);   // ADR-049: with the level cap
         bool twoLanes = content.Tuning.TwoLanes;
         ResearchNodeId current = default, civic = default;
         bool hasTarget = twoLanes

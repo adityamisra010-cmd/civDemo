@@ -12,7 +12,7 @@ public enum NodeState { Completed = 1, CurrentTarget = 2, Available = 3, Partial
 
 /// <summary>Why a locked node cannot be researched (several may hold).</summary>
 [Flags]
-public enum LockReason { None = 0, MissingPrerequisites = 1, ResearchStage = 2, SubtreeNotExhausted = 4, AgeSweep = 8 }
+public enum LockReason { None = 0, MissingPrerequisites = 1, ResearchStage = 2, SubtreeNotExhausted = 4, FinalAgeCivicsNotExhausted = 8, MaxLevel = 16, AgeSweep = 32 }
 
 public sealed record PrereqView(int ContentIndex, string Name, bool Completed, EdgeKind Kind);
 
@@ -20,6 +20,23 @@ public sealed record EurekaView(string Text, string Kind, double Weight, double 
     bool Fired, bool? HoldsNow, string System);
 
 public sealed record UniversityView(string Name, string Role);
+
+/// <summary>ADR-049: one operand effect of a levelled repeatable as the panel shows it — the operand's meaning, the benefit
+/// the NEXT level adds (cap × k × (1 − k)^level) and the cumulative benefit of the levels researched
+/// (ResearchQuery.RepeatableContribution: cap × (1 − (1 − k)^N)), both as improvement fractions of the operand's Σ, beside
+/// its cap.</summary>
+public sealed record RepeatEffectView(string Operand, string Meaning, bool Higher, double Cap, double GapFraction,
+    double NextLevelBenefit, double Cumulative);
+
+/// <summary>ADR-049: a levelled repeatable's levels — researched <see cref="Level"/> times, the next level's cost, and its
+/// operand effects. Such a node is never shown as complete.</summary>
+public sealed record RepeatView(int Level, int MaxLevel, double CostGrowth, double NextLevelCost,
+    IReadOnlyList<RepeatEffectView> Effects)
+{
+    /// <summary>"Researched N×" (or "Not yet researched" at level 0).</summary>
+    public string LevelText => Level == 0 ? "Not yet researched"
+        : "Researched " + Level.ToString(System.Globalization.CultureInfo.InvariantCulture) + "\u00d7";
+}
 
 /// <summary>
 /// Everything a node card and the detail panel show, computed ONCE per world through
@@ -32,7 +49,8 @@ public sealed record ResearchNodeView(
     double BaseCost, double EffectiveCost, bool FloorBinds, IReadOnlyList<(string University, double Factor)> CostTerms,
     string? PrerequisiteExpression, IReadOnlyList<PrereqView> Prerequisites, IReadOnlyList<EurekaView> Eurekas,
     double EurekaCeiling, double EurekaCredited, double ForeignCredited, double ExposureOffered,
-    IReadOnlyList<UniversityView> Universities, IReadOnlyList<string> Unlocks, bool IsRecursive, string? History = null)
+    IReadOnlyList<UniversityView> Universities, IReadOnlyList<string> Unlocks, bool IsRecursive, string? History = null,
+    RepeatView? Repeat = null)
 {
     /// <summary>Progress toward EffectiveCost, 0..1.</summary>
     public double Fraction => EffectiveCost > 0 ? Math.Clamp(Progress / EffectiveCost, 0.0, 1.0) : 0.0;
@@ -89,6 +107,7 @@ public sealed class ResearchSnapshot
     {
         int n = content.Nodes.Count;
         bool[] completed = ResearchQuery.CompletedMask(world, content, polity);
+        int[] levels = ResearchQuery.LevelMask(world, content, polity, completed);
         bool stage = ResearchQuery.StageReached(content, completed);
         bool twoLanes = content.Tuning.TwoLanes;
         int? target = null, civicTarget = null;
@@ -108,9 +127,12 @@ public sealed class ResearchSnapshot
         for (int i = 0; i < n; i++)
         {
             ResearchNode node = content.Nodes[i];
-            bool done = completed[i];
-            if (done) { if (node.Tree == ResearchTree.Technology) doneTech++; else doneCiv++; }
-            bool available = ResearchQuery.IsAvailable(content, i, completed, stage);
+            if (completed[i]) { if (node.Tree == ResearchTree.Technology) doneTech++; else doneCiv++; }
+            // ADR-049: a levelled repeatable is never shown complete — it stays available for its next level.
+            bool levelled = ResearchQuery.IsLevelled(content, i);
+            bool done = completed[i] && !levelled;
+            int level = levelled ? ResearchQuery.Level(world, polity, node.Key) : 0;
+            bool available = ResearchQuery.IsAvailable(content, i, completed, stage, levels[i]);
             double progress = done ? 0.0 : ResearchQuery.Progress(world, polity, node.Key);
             bool isTarget = target == i || civicTarget == i;
 
@@ -121,6 +143,9 @@ public sealed class ResearchSnapshot
                 if (node.Branch >= 0 && !stage) lockReason |= LockReason.ResearchStage;
                 if (node.IsRecursive && node.Branch >= 0 && !ResearchQuery.SubtreeExhausted(content, node.Branch, completed))
                     lockReason |= LockReason.SubtreeNotExhausted;
+                if (node.IsRecursive && node.Tree == ResearchTree.Civics && !ResearchQuery.FinalAgeCivicsExhausted(content, completed))
+                    lockReason |= LockReason.FinalAgeCivicsNotExhausted;
+                if (levelled && level >= ResearchQuery.MaxRepeatableLevel) lockReason |= LockReason.MaxLevel;
             }
             // ADR-048: the engine's sweep predicate, reported on its own (never as a missing prerequisite).
             sweeps[i] = ResearchQuery.SweepBlock(content, completed, i);
@@ -158,6 +183,19 @@ public sealed class ResearchSnapshot
                 int u = content.UniversityTypeIndexOf(r.UniversityTypeKey);
                 unis.Add(new UniversityView(u >= 0 ? content.UniversityTypes[u].Name : "#" + r.UniversityTypeKey.ToString(System.Globalization.CultureInfo.InvariantCulture), r.Role));
             }
+            RepeatView? repeat = null;
+            if (levelled && node.Levels is { } rule)
+            {
+                var effects = new List<RepeatEffectView>();
+                foreach (RepeatableLevelEffect e in rule.Effects)
+                {
+                    RepeatableOperand op = RepeatableOperands.Get(e.Operand);
+                    effects.Add(new RepeatEffectView(e.Operand, op.Meaning, op.Higher, op.Cap, e.GapFraction,
+                        ResearchQuery.RepeatableLevelBenefit(level + 1, e.GapFraction, op.Cap),
+                        ResearchQuery.RepeatableContribution(level, e.GapFraction, op.Cap)));
+                }
+                repeat = new RepeatView(level, ResearchQuery.MaxRepeatableLevel, rule.CostGrowth, cost.EffectiveCost, effects);
+            }
             var unlocks = new List<string>();
             foreach (int ent in node.UnlockedEntities) unlocks.Add(content.Entities[ent].Name ?? content.Entities[ent].Id);
 
@@ -165,7 +203,7 @@ public sealed class ResearchSnapshot
                 node.Branch >= 0 ? content.Branches[node.Branch].Name : node.Tree == ResearchTree.Technology ? "Main Trunk" : "Civics",
                 node.Domain, state, lockReason, available, isTarget, progress, cost.BaseCost, cost.EffectiveCost, cost.FloorBinds,
                 terms, node.Prerequisite?.Source, prereqs, eurekas, pool.Ceiling, pool.Eureka, pool.ForeignExposure,
-                pool.ExposureOffered, unis, unlocks, node.IsRecursive, KnowledgeTexts.For(node.Key));
+                pool.ExposureOffered, unis, unlocks, node.IsRecursive, KnowledgeTexts.For(node.Key), repeat);
         }
 
         return new ResearchSnapshot

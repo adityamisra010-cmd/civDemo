@@ -194,7 +194,14 @@ public static class CanonicalSchema
     /// width. The readable set becomes {32, 33, 34, 35}: a v34 stream stops after section 61 and these four tables (with 62) are left
     /// EMPTY — the migration rule; DiscoverySystem's first step after the load re-derives the seed extent (rule E2), so a
     /// migrated save becomes fogged with the founding seed only (ADR-044 §7).
-    public const int Version = 35;
+    /// v36 (D-063 R4, CR-024; ADR-049 repeatable research levels): ResearchLevels (section 67: Polity, Node, Level; 12 bytes —
+    /// how many times each knowledge holder has completed each LEVELLED repeatable node, written only by ResearchSystem with
+    /// research.json tuning.repeatableLevels on; a row appended at the first level and replaced in place after) appended after
+    /// section 66. No existing row changed width. A world with no level carries one empty count prefix and nothing else.
+    /// THE READABLE VERSIONS ARE THE SET {32, 33, 34, 35, 36}: a v35 stream stops after section 66 and its ResearchLevels
+    /// table is left EMPTY — the migration rule "empty tables", exact because no level existed under v35 (a repeatable
+    /// completed then reads level 1 through its completed row, ResearchQuery.Level).
+    public const int Version = 36;
 
     /// <summary>The oldest member of the readable set (<see cref="IsReadable"/>): v32, the last version without the v33
     /// tables. Gates never compare with it directly — they ask <see cref="IsReadable"/>.</summary>
@@ -209,12 +216,12 @@ public static class CanonicalSchema
     /// SaveFiles.MigrationNote and SnapshotDiff.LayoutFor. Any other version is refused (Snapshot.Load with the D-008
     /// message: seed + order-log replay is the recovery path).
     /// </summary>
-    public static bool IsReadable(int version) => version is 32 or 33 or 34 or Version;
+    public static bool IsReadable(int version) => version is 32 or 33 or 34 or 35 or Version;
 
     /// <summary>
     /// D-056 — THE BYTES A READABLE OLDER SCHEMA DID NOT WRITE: the length of the sections this build's stream appends
-    /// after the last section of schema <paramref name="version"/> — 0 for <see cref="Version"/>; section 62
-    /// (CivicsPoints, v35) for v34; sections 61–62 for v33; sections 59–62 for v32. Exact because every table a readable version lacks was
+    /// after the last section of schema <paramref name="version"/> — 0 for <see cref="Version"/>; section 67 (ResearchLevels,
+    /// v36) for v35; sections 62–67 for v34; sections 61–62 for v33; sections 59–62 for v32. Exact because every table a readable version lacks was
     /// APPENDED after every table it has (v33 and v34 changed no existing row), so the canonical stream a v
     /// <paramref name="version"/> build wrote for the same tables is this build's stream less this many trailing bytes.
     /// <see cref="WorldHash.ComputeHexAsSchema"/> hashes that prefix. Throws for a version outside the readable set.
@@ -223,7 +230,8 @@ public static class CanonicalSchema
     {
         if (!IsReadable(version))
             throw new ArgumentOutOfRangeException(nameof(version), version,
-                $"this build reads canonical streams of version 32, 33, 34 and {Version} only.");
+                $"this build reads canonical streams of version 32, 33, 34, 35 and {Version} only.");
+        int v36Tables = CountPrefixWidth + world.ResearchLevels.Count * ResearchLevelRowWidth;
         int v35Tables = CountPrefixWidth + world.CivicsPoints.Count * CivicsPointsRowWidth
             + CountPrefixWidth + world.KnownExtents.Count * KnownExtentRowWidth
             + CountPrefixWidth + world.Explorations.Count * ExplorationRowWidth
@@ -232,7 +240,14 @@ public static class CanonicalSchema
         int holds = CountPrefixWidth + world.ConstructionHolds.Count * ConstructionHoldRowWidth;
         int v33Tables = CountPrefixWidth + world.ConstructionProgress.Count * ConstructionProgressRowWidth
             + CountPrefixWidth + world.ResourceAllocations.Count * ResourceAllocationRowWidth;
-        return version switch { Version => 0, 34 => v35Tables, 33 => v35Tables + holds, _ => v35Tables + holds + v33Tables };
+        return version switch
+        {
+            Version => 0,
+            35 => v36Tables,
+            34 => v36Tables + v35Tables,
+            33 => v36Tables + v35Tables + holds,
+            _ => v36Tables + v35Tables + holds + v33Tables,
+        };
     }
 
     // Fixed field widths per row, in bytes — the anti-padding proof sums these.
@@ -304,6 +319,7 @@ public static class CanonicalSchema
     private const int ExplorationRowWidth = 4 + 4 + 4;              // Polity, Settlement, RadiusNodes (v35 §64)
     private const int SettlementSightingRowWidth = 4 + 4 + 8;       // Polity, Settlement, LastSeenTurn (v35 §65)
     private const int SettlementSurveyRowWidth = 4 + 4 + 8;         // Polity, Settlement, Turn (v35 §66)
+    private const int ResearchLevelRowWidth = 4 + 4 + 4;            // Polity, Node, Level (v36 §67)
     private const int SeedWidth = 8;
     private const int ClockWidth = 8 + 8 + 8;            // Turn, SimDays, DtDays
 
@@ -1055,6 +1071,16 @@ public static class CanonicalSchema
             writer.Write(row.Settlement.Value);
             writer.Write(row.Turn);
         }
+
+        // 67. ResearchLevels (v36, ADR-049: each knowledge holder's level of each levelled repeatable research node)
+        writer.Write(world.ResearchLevels.Count);
+        for (int i = 0; i < world.ResearchLevels.Count; i++)
+        {
+            ResearchLevelRow row = world.ResearchLevels[i];
+            writer.Write(row.Polity.Value);
+            writer.Write(row.Node.Value);
+            writer.Write(row.Level);
+        }
     }
 
     /// <summary>Reads a state stream written by <see cref="Write"/> (same order, field by field).</summary>
@@ -1062,7 +1088,8 @@ public static class CanonicalSchema
 
     /// <summary>
     /// THE MIGRATING READER (v33, ADR-039; v34, D-055): reads a stream of schema <paramref name="version"/>, any member of
-    /// the readable set (<see cref="IsReadable"/>: 32, 33, 34, 35). A v34 stream ends after section 61: CivicsPoints is left
+    /// the readable set (<see cref="IsReadable"/>: 32, 33, 34, 35, 36). A v35 stream ends after section 66: ResearchLevels is
+    /// left EMPTY (ADR-049: no level existed under v35). A v34 stream ends after section 61: CivicsPoints is left
     /// EMPTY (ADR-043: the bank starts at zero; v34 had no CP) and so are the four M6 EX discovery tables (ADR-044 §7). A v33 stream ends after section 60: ConstructionHolds is
     /// left EMPTY, which is exact in every pipeline the executor composes — construction clears and rebuilds it before road
     /// development reads it (D-056: the read is a declared same-step edge, and TurnExecutor refuses the road-first order). A v32 stream ends after
@@ -1074,7 +1101,7 @@ public static class CanonicalSchema
     {
         if (!IsReadable(version))
             throw new ArgumentOutOfRangeException(nameof(version), version,
-                $"this build reads canonical streams of version 32, 33, 34 and {Version} only.");
+                $"this build reads canonical streams of version 32, 33, 34, 35 and {Version} only.");
         return ReadStream(reader, version, out expectedTerrainHash);
     }
 
@@ -1692,6 +1719,14 @@ public static class CanonicalSchema
         for (int i = 0; i < surveyCount; i++)
             world.SettlementSurveys.Add(new SettlementSurveyRow(new PolityId(reader.ReadInt32()), new SettlementId(reader.ReadInt32()), reader.ReadInt64()));
 
+        // v35 streams end here (the v35 → v36 migration: ResearchLevels stays empty — ADR-049).
+        if (version < 36) return world;
+
+        int levelCount = ReadCount(reader);
+        for (int i = 0; i < levelCount; i++)
+            world.ResearchLevels.Add(new ResearchLevelRow(
+                new PolityId(reader.ReadInt32()), new ResearchNodeId(reader.ReadInt32()), reader.ReadInt32()));
+
         return world;
     }
 
@@ -1768,5 +1803,6 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.KnownExtents.Count * KnownExtentRowWidth
         + CountPrefixWidth + (long)world.Explorations.Count * ExplorationRowWidth
         + CountPrefixWidth + (long)world.SettlementSightings.Count * SettlementSightingRowWidth
-        + CountPrefixWidth + (long)world.SettlementSurveys.Count * SettlementSurveyRowWidth;
+        + CountPrefixWidth + (long)world.SettlementSurveys.Count * SettlementSurveyRowWidth
+        + CountPrefixWidth + (long)world.ResearchLevels.Count * ResearchLevelRowWidth;
 }

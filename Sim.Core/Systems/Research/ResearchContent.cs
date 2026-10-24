@@ -49,8 +49,14 @@ public sealed record ResearchTuning(
     double EffectiveCostFloorFraction, double AccelerationCreditCeilingFraction, ResearchCostModel CostModel,
     double CityStatePaceFraction = 0.0, CivicsPointsTuning? CivicsPoints = null, bool AiCheapestOrRoute = false,
     bool AiSupportingMilestones = false, bool AgeSweep = false, bool DestinationRouting = false,
-    bool KnowledgeEffects = false, PacingScale? Pacing = null)
+    bool KnowledgeEffects = false, PacingScale? Pacing = null, bool RepeatableLevels = false)
 {
+    // RepeatableLevels (ADR-049; D-063 R4, CR-024): research.json tuning.repeatableLevels. On, a node whose repeatable
+    // descriptor carries "levels": true is completed REPEATEDLY — each completion raises its level in ResearchLevels, the
+    // next level costs BaseCost × costGrowth^level, and the node stays available. Off (absent or false — the shipped value
+    // on the t2-levels branch) is the complete-once engine exactly (D-044 R11): no ResearchLevels row is ever written, the
+    // attribution switch.
+
     /// <summary>ADR-043: whether the two-lane model is on — Research Points fund only the Technology target and Civics
     /// Points fund only the Civics target. Off (tuning.civicsPoints absent or enabled false) is the v34 one-pool model
     /// exactly: one target in either tree, funded by RP, and no CivicsPoints row is ever written (the attribution twin).</summary>
@@ -167,6 +173,15 @@ public sealed record ResearchCostRationale(
     string Tier, double Novelty, double Difficulty, double Material, double Institutional, double Breadth,
     double PrerequisiteComplexity, double Magnitude, double ContentCost, double CalibrationAdjustment, string? Note);
 
+/// <summary>ADR-049 — one operand effect of a repeatable level: level n adds <c>cap × k × (1 − k)^(n−1)</c> to Σ of
+/// <see cref="Operand"/> (an id of <see cref="RepeatableOperands"/>), k = <see cref="GapFraction"/> ∈ (0, 0.5].</summary>
+public sealed record RepeatableLevelEffect(string Operand, double GapFraction);
+
+/// <summary>ADR-049 — the machine part of a repeatable descriptor (<c>"levels": true</c>): level n costs
+/// BaseCost × <see cref="CostGrowth"/>^(n−1), g ∈ [1.10, 1.30], and carries <see cref="Effects"/> (operand effects only — a
+/// level never grants an entity unlock).</summary>
+public sealed record RepeatableLevels(double CostGrowth, IReadOnlyList<RepeatableLevelEffect> Effects);
+
 /// <summary>A node's relevance to one specialized-university type — a DOMAIN CLASSIFICATION
 /// only, with no number attached (finalization; D-045 §8). <see cref="Role"/> is
 /// "primary" or "secondary".</summary>
@@ -224,11 +239,16 @@ public sealed class ResearchNode
     public required IReadOnlyList<int> Dependents { get; init; }
     public required string? Family { get; init; }
     public required int? Generation { get; init; }
-    /// <summary>The corpus's repeatable-frontier descriptor is kept as data; levels
-    /// are NOT implemented — the node completes once (D-044 Part D T6; recursive mechanics deferred).</summary>
+    /// <summary>The corpus's repeatable-frontier descriptor is kept as data. Its machine part, when it declares
+    /// <c>"levels": true</c>, is <see cref="Levels"/> (ADR-049).</summary>
     public required bool HasRepeatableDescriptor { get; init; }
-    /// <summary>In researchSets.recursive: available only once every FINITE node of its own
-    /// subtree is complete; excluded from finite exhaustion and pacing.</summary>
+    /// <summary>ADR-049: the level rule (cost growth and per-level operand effects), or null — a node without it, or a
+    /// repeatable whose descriptor is documentary only, completes once. Levels apply only with
+    /// <see cref="ResearchTuning.RepeatableLevels"/> on (ResearchQuery.IsLevelled).</summary>
+    public RepeatableLevels? Levels { get; init; }
+    /// <summary>In researchSets.recursive: excluded from finite exhaustion and pacing. Available only once — a subtree
+    /// technology — every FINITE node of its own subtree is complete (ruling 3); a trunk technology — its own prerequisites
+    /// only; a civic — every FINITE civic of Age A9 is complete (ADR-049; contract §4: the end-of-tree safety valve).</summary>
     public required bool IsRecursive { get; init; }
     /// <summary>In researchSets.speculative_finite: finite, but speculative content.</summary>
     public required bool IsSpeculative { get; init; }
@@ -283,6 +303,8 @@ public sealed class ResearchContent
     /// <summary>Per subtree (0..4), the dense indices of its FINITE (non-recursive) technologies —
     /// what a recursive node of that subtree waits on.</summary>
     public required IReadOnlyList<IReadOnlyList<int>> FiniteNodesBySubtree { get; init; }
+    /// <summary>ADR-049: the dense indices of every FINITE (non-recursive) civic of Age A9 — what a recursive civic waits on.</summary>
+    public IReadOnlyList<int> FiniteFinalAgeCivics { get; init; } = [];
 
     // Lookup arrays, set by the loader: keys ascending (node order), and ids sorted
     // ordinally with the node index each maps to — binary search, never a dictionary.
@@ -773,6 +795,13 @@ public static class ResearchContentLoader
         // ---- research sets: finite, recursive (repeatables), speculative_finite ----
         (bool[] recursive, bool[] speculative, int[][] finiteBySubtree) =
             ValidateResearchSets(f.ResearchSets, raw, n, techCount, branchOf, branches, IdLookup, prereqNodes, rationales);
+        var levels = new RepeatableLevels?[n];
+        var finiteFinalCivics = new List<int>();
+        for (int i = 0; i < n; i++)
+        {
+            if (recursive[i]) levels[i] = ValidateLevels(raw[i].Json, $"{raw[i].Path} ({raw[i].Json.Id})", unlocked[i].Length);
+            else if (i >= techCount && raw[i].Json.Age == FinalAge) finiteFinalCivics.Add(i);
+        }
 
         // ---- assemble ----
         var nodes = new ResearchNode[n];
@@ -809,6 +838,7 @@ public static class ResearchContentLoader
                 Family = j.Family,
                 Generation = j.Generation,
                 HasRepeatableDescriptor = j.Repeatable.ValueKind == JsonValueKind.Object,
+                Levels = levels[i],
                 IsRecursive = recursive[i],
                 IsSpeculative = speculative[i],
                 RealizedEffects = realized[i],
@@ -830,6 +860,7 @@ public static class ResearchContentLoader
             QuantityGoods = quantityGoods,
             CorpusSha256 = f.Source.CorpusSha256,
             FiniteNodesBySubtree = finiteBySubtree,
+            FiniteFinalAgeCivics = [.. finiteFinalCivics],
             SortedKeys = keys,
             SortedIds = sortedIds,
             SortedIdIndex = idOrder,
@@ -952,7 +983,7 @@ public static class ResearchContentLoader
         return new ResearchTuning(rp.Coefficient, rp.Exponent, anchors, t.EffectiveCostFloorFraction,
             t.AccelerationCreditCeilingFraction, new ResearchCostModel(cm.U, cm.K), t.CityStatePaceFraction ?? 0.0, civics,
             t.AiCheapestOrRoute ?? false, t.AiSupportingMilestones ?? false, t.AgeSweep ?? false, t.DestinationRouting ?? false,
-            t.KnowledgeEffects ?? false, ValidatePacing(t.PacingScale));
+            t.KnowledgeEffects ?? false, ValidatePacing(t.PacingScale), t.RepeatableLevels ?? false);
     }
 
     /// <summary>tuning.pacingScale (D-063 R6): nine finite scales in (0, 4] per tree, one per content Age A1..A9.</summary>
@@ -1091,9 +1122,19 @@ public static class ResearchContentLoader
                     throw Fail($"{path}: requires the recursive node '{raw[p].Json.Id}' — a finite node can never wait on a " +
                                "repeatable, which itself waits for its subtree's finite research to be exhausted.");
             if (!recursive[i]) continue;
+            // ADR-049 (D-063 R4): a CIVIC repeatable belongs to the final Age and waits for every finite A9 civic; a TRUNK
+            // technology repeatable waits on its own prerequisites only. Neither names a subtree.
             if (i >= techCount || branchOf[i] < 0)
-                throw Fail($"{path}: a recursive node must belong to a subtree — its availability waits on that subtree's " +
-                           "finite research.");
+            {
+                if (i >= techCount && j.Age != FinalAge)
+                    throw Fail($"{path}: a civics repeatable belongs to the final Age {FinalAge} — its availability waits for every " +
+                               $"finite civic of {FinalAge} (contract §4), not age '{j.Age}'.");
+                if (j.Repeatable.TryGetProperty("availability", out JsonElement own) && own.ValueKind == JsonValueKind.Object
+                    && own.TryGetProperty("subtree", out _))
+                    throw Fail($"{path}.repeatable.availability names a subtree, but a {(i >= techCount ? "civic" : "trunk technology")} " +
+                               "belongs to none.");
+                continue;
+            }
             if (!j.Repeatable.TryGetProperty("availability", out JsonElement av) || av.ValueKind != JsonValueKind.Object
                 || !av.TryGetProperty("subtree", out JsonElement sub) || sub.ValueKind != JsonValueKind.String
                 || !av.TryGetProperty("finite_nodes_to_exhaust", out JsonElement cnt) || cnt.ValueKind != JsonValueKind.Number)
@@ -1108,6 +1149,56 @@ public static class ResearchContentLoader
         int[][] finite = new int[branches.Length][];
         for (int b = 0; b < branches.Length; b++) finite[b] = [.. finiteBySubtree[b]];
         return (recursive, speculative, finite);
+    }
+
+    /// <summary>ADR-049 (CR-024 option 1, D-063 R4): THE FINAL AGE — the Age whose finite civics a civics repeatable waits
+    /// for. A content label, read only by these repeatable rules (contract §4), never the polity's Age.</summary>
+    public const string FinalAge = "A9";
+
+    /// <summary>The bounds of a level rule (contract §4): costGrowth g ∈ [1.10, 1.30]; gapFraction k ∈ (0, 0.5].</summary>
+    public const double MinCostGrowth = 1.10, MaxCostGrowth = 1.30, MaxGapFraction = 0.5;
+
+    /// <summary>
+    /// ADR-049 — the MACHINE part of a repeatable descriptor, or null when it declares none (documentary only: the node
+    /// completes once). <c>"levels": true</c> requires <c>"costGrowth"</c> (a number in [1.10, 1.30]) and a non-empty
+    /// <c>"effects"</c> list of <c>{ "operand": id, "gapFraction": k }</c> — each id in <see cref="RepeatableOperands"/>,
+    /// k ∈ (0, 0.5], no operand twice. A levelled node carries operand effects only: an entity unlock would be re-granted
+    /// by nothing but would still read as a one-time capability, so it is refused (contract §4).
+    /// </summary>
+    private static RepeatableLevels? ValidateLevels(NodeJson j, string path, int unlockedEntities)
+    {
+        JsonElement r = j.Repeatable;
+        if (!r.TryGetProperty("levels", out JsonElement lv)) return null;
+        string rp = $"{path}.repeatable";
+        if (lv.ValueKind != JsonValueKind.True)
+            throw Fail($"{rp}.levels must be true when present (omit it for a documentary descriptor that completes once).");
+        if (!r.TryGetProperty("costGrowth", out JsonElement g) || g.ValueKind != JsonValueKind.Number
+            || !(double.IsFinite(g.GetDouble()) && g.GetDouble() >= MinCostGrowth && g.GetDouble() <= MaxCostGrowth))
+            throw Fail($"{rp}.costGrowth must be a number in [{Inv(MinCostGrowth)}, {Inv(MaxCostGrowth)}]: level n costs " +
+                       "BaseCost × costGrowth^(n−1) (contract §4).");
+        if (!r.TryGetProperty("effects", out JsonElement fx) || fx.ValueKind != JsonValueKind.Array || fx.GetArrayLength() == 0)
+            throw Fail($"{rp}.effects must be a non-empty list of {{ \"operand\", \"gapFraction\" }}: a level changes an operand.");
+        var effects = new List<RepeatableLevelEffect>();
+        int e = 0;
+        foreach (JsonElement x in fx.EnumerateArray())   // document order
+        {
+            string ep = $"{rp}.effects[{e++}]";
+            if (x.ValueKind != JsonValueKind.Object || !x.TryGetProperty("operand", out JsonElement op) || op.ValueKind != JsonValueKind.String)
+                throw Fail($"{ep}: operand must be a string.");
+            string id = op.GetString()!;
+            if (RepeatableOperands.IndexOf(id) < 0)
+                throw Fail($"{ep}: operand '{id}' is not in the tranche-2 operand registry (contract §1.1).");
+            foreach (RepeatableLevelEffect seen in effects)
+                if (string.Equals(seen.Operand, id, StringComparison.Ordinal)) throw Fail($"{ep}: operand '{id}' is listed twice.");
+            if (!x.TryGetProperty("gapFraction", out JsonElement k) || k.ValueKind != JsonValueKind.Number
+                || !(double.IsFinite(k.GetDouble()) && k.GetDouble() > 0.0 && k.GetDouble() <= MaxGapFraction))
+                throw Fail($"{ep}: gapFraction must be in (0, {Inv(MaxGapFraction)}]: each level closes that fraction of the " +
+                           "remaining gap to the operand's cap.");
+            effects.Add(new RepeatableLevelEffect(id, k.GetDouble()));
+        }
+        if (unlockedEntities != 0)
+            throw Fail($"{path}: a levelled repeatable carries operand effects only — it may not unlock an entity (contract §4).");
+        return new RepeatableLevels(g.GetDouble(), [.. effects]);
     }
 
     private static ResearchBaselineCapability[] ValidateBaseline(BaselineJson[] baseline, string[] nodeIds)
@@ -1571,7 +1662,8 @@ public static class ResearchContentLoader
         [property: JsonPropertyName("ageSweep")] bool? AgeSweep = null,
         [property: JsonPropertyName("destinationRouting")] bool? DestinationRouting = null,
         [property: JsonPropertyName("knowledgeEffects")] bool? KnowledgeEffects = null,
-        [property: JsonPropertyName("pacingScale")] PacingScaleJson? PacingScale = null);
+        [property: JsonPropertyName("pacingScale")] PacingScaleJson? PacingScale = null,
+        [property: JsonPropertyName("repeatableLevels")] bool? RepeatableLevels = null);
 
     private sealed record PacingScaleJson(
         [property: JsonPropertyName("technology"), JsonRequired] double[] Technology,

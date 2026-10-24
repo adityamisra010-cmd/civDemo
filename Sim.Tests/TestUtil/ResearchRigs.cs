@@ -29,10 +29,14 @@ internal static class ResearchRigs
         bool? EvaluableNow = null, string Kind = "environmental", string Source = "authored",
         string Justification = "rig justification");
 
+    /// <summary>ADR-049: a node's level rule — costGrowth and its operand effects (operand id, gapFraction).</summary>
+    public sealed record LevelRule(double CostGrowth, (string Operand, double GapFraction)[] Effects);
+
     /// <summary>A rig node. <paramref name="Age"/> is its content Age label (A1..A9; ADR-048's sweep reads it).</summary>
     public sealed record Node(
         int Key, string Id, string? Prereq = null, double Cost = 2500.0, string? Branch = null,
-        Eu[]? Eurekas = null, string[]? Institutions = null, string[]? Buildings = null, string Age = "A1");
+        Eu[]? Eurekas = null, string[]? Institutions = null, string[]? Buildings = null,
+        string Age = "A1", LevelRule? Levels = null);
 
     public sealed record Entity(string Id, string Kind, string? Requires, string[]? Unresolved = null);
 
@@ -72,6 +76,8 @@ internal static class ResearchRigs
         public bool AgeSweep { get; set; }
         /// <summary>ADR-048: tuning.destinationRouting — false (the default) = absent, available-only targets.</summary>
         public bool DestinationRouting { get; set; }
+        /// <summary>ADR-049: tuning.repeatableLevels — null (the default) = absent, the complete-once engine.</summary>
+        public bool? RepeatableLevels { get; set; }
 
         public string Json()
         {
@@ -139,11 +145,23 @@ internal static class ResearchRigs
                 if (recursive)
                 {
                     int finite = Technologies.FindAll(t => t.Branch == n.Branch && !Recursive.Contains(t.Id)).Count;
-                    o["repeatable"] = new JsonObject
+                    var rep = new JsonObject
                     {
                         ["repeatable"] = true,
-                        ["availability"] = new JsonObject { ["subtree"] = n.Branch, ["finite_nodes_to_exhaust"] = finite },
+                        // ADR-049: a civic or trunk repeatable names no subtree.
+                        ["availability"] = civic || n.Branch is null
+                            ? new JsonObject { ["rule"] = "rig" }
+                            : new JsonObject { ["subtree"] = n.Branch, ["finite_nodes_to_exhaust"] = finite },
                     };
+                    if (n.Levels is { } rule)
+                    {
+                        rep["levels"] = true;
+                        rep["costGrowth"] = rule.CostGrowth;
+                        var fx = new JsonArray();
+                        foreach ((string op, double k) in rule.Effects) fx.Add(new JsonObject { ["operand"] = op, ["gapFraction"] = k });
+                        rep["effects"] = fx;
+                    }
+                    o["repeatable"] = rep;
                 }
                 else o["repeatable"] = null;
                 var relevance = new JsonArray();
@@ -223,6 +241,7 @@ internal static class ResearchRigs
                     ["ageSweep"] = AgeSweep ? true : null,
                     ["cityStatePaceFraction"] = CityStatePace,
                     ["destinationRouting"] = DestinationRouting ? true : null,
+                    ["repeatableLevels"] = RepeatableLevels,
                 },
                 ["baseline"] = WithBaseline
                     ? new JsonArray(new JsonObject

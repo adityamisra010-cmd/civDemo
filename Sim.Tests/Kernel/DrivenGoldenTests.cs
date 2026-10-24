@@ -98,7 +98,7 @@ public class DrivenGoldenTests
     // TestConfigs.PreTreeTranche returns the same hash). CONTROLS: CivicsPointsAttributionTests.DrivenGoldenSeed42Turn300_…
     // and DiscoveryLayoutAttributionTests.DrivenGoldenSeed42Turn300_… (TestConfigs.PreM6 returns eb88663a… through
     // SchemaProjection.V34).
-    internal const string Golden = "392e280665e78eefc09540244d7a240bcdbf12445543e703ff91e5d4d6db3d0c";
+    internal const string Golden = "96ddd58124bcbe8aedd439463caeac09ed93793619ab8ffb43f720b1beea86aa";
 
     /// <summary>Batch 3 (D-054, integration R1, 2026-10-14): THE CYLINDER-ALONE LINK — the driven golden's world through the
     /// v32 projection (SchemaProjection.V32: the two v33 tables dropped, asserted EMPTY). It equals the driven golden the W1
@@ -641,7 +641,7 @@ public class DrivenGoldenTests
         // ADR-043 RE-PIN (2026-10-22, D-062 Track CP; MEASURED on this tree by the agent writing this line).
         //   OLD  eb88663ac944da5b4bed584e60fa786ce90d1fc9cc6777906576ac608887e893
         //   NEW  1fb16d8b2a253b873d50f6a7fea55ef52f8e66205792829d8f9736c70e5b78b9
-        //   M6 RE-PIN NEW  392e280665e78eefc09540244d7a240bcdbf12445543e703ff91e5d4d6db3d0c (causes CP, EX and TREE on Golden)
+        //   M6 RE-PIN NEW  96ddd58124bcbe8aedd439463caeac09ed93793619ab8ffb43f720b1beea86aa (causes CP, EX and TREE on Golden)
         //   CAUSE schema v35 appends CivicsPoints and the player Empire accrues Civics Points every step (one account row;
         //         the driving batch sets no research target).
         //   CONTROL CivicsPointsAttributionTests.DrivenGoldenSeed42Turn300_MovedForCivicsPointsAlone (Track CP off and CP
