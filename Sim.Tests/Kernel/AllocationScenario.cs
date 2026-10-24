@@ -147,6 +147,11 @@ internal static class AllocationScenario
         return SimConfigLoader.Load(sim, needs, goods, research, ages, families);
     }
 
+    /// <summary>D-063: <paramref name="cli"/> on the pre-tranche-2 research (TestConfigs.PreTranche2). The CLI's configuration
+    /// loads research.json itself, so its (identical) research is first replaced by the canonical instance the twin swaps.</summary>
+    internal static SimConfig PreTranche2(SimConfig cli) =>
+        Sim.Tests.TestUtil.TestConfigs.PreTranche2(cli with { Research = Sim.Tests.TestUtil.TestConfigs.Research() });
+
     /// <summary>The founded production executor exactly as `sim run --founded` builds it (era table, pipeline.json, the
     /// catalogue with the worldgen config attached).</summary>
     internal static TurnExecutor Executor(SimConfig cfg, OrderLog log)
@@ -237,7 +242,9 @@ public sealed class AllocationScenarioRun
     /// stone the split sees changes). So, by the R4 rule, the scenario keeps the newer discovery layer OFF (TestConfigs.PreDiscovery;
     /// Track CP and the research tranche move nothing it reads) and the ci.yml leg runs the CLI with `--without-discovery`, the
     /// same rules. Re-deriving S42-ALLOC-H under the shipped rules is an open item for the Director (ADR-044 §12).</summary>
-    public AllocationScenarioRun() : this(Sim.Tests.TestUtil.TestConfigs.PreDiscovery(AllocationScenario.CliConfig())) { }
+    // Tranche 2 (D-063) moves the shipped research; this scenario's subject is construction allocation (the split, the holds,
+    // the heads), so it runs on the pre-tranche-2 research (TestConfigs.PreTranche2) and its literals are unchanged.
+    public AllocationScenarioRun() : this(AllocationScenario.PreTranche2(Sim.Tests.TestUtil.TestConfigs.PreDiscovery(AllocationScenario.CliConfig()))) { }
 
     /// <summary>D-058 (2026-10-19): the same run under another configuration — the attribution twin
     /// (TestConfigs.PreContinueWithinTurn of the CLI's configuration, <see cref="AllocationScenarioPreD058Run"/>).</summary>
@@ -345,7 +352,7 @@ public sealed class AllocationScenarioCollection : ICollectionFixture<Allocation
 /// Director's "build one at a time" ruling moved is reproduced on it (AllocationScenarioD058AttributionTests).
 /// </summary>
 public sealed class AllocationScenarioPreD058Run() : AllocationScenarioRunHolder(new AllocationScenarioRun(
-    Sim.Tests.TestUtil.TestConfigs.PreContinueWithinTurn(Sim.Tests.TestUtil.TestConfigs.PreDiscovery(AllocationScenario.CliConfig()))));   // M6 EX: discovery off, as the live run (R4)
+    AllocationScenario.PreTranche2(Sim.Tests.TestUtil.TestConfigs.PreContinueWithinTurn(Sim.Tests.TestUtil.TestConfigs.PreDiscovery(AllocationScenario.CliConfig())))));   // M6 EX: discovery off, as the live run (R4); D-063: pre-tranche-2 research, as the live run (both arms on the same content)
 
 /// <summary>Holds one <see cref="AllocationScenarioRun"/> built with a non-default configuration (an xUnit fixture needs a
 /// public parameterless constructor).</summary>
