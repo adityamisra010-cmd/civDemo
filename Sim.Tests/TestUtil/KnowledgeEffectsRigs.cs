@@ -84,11 +84,10 @@ internal static class KnowledgeEffectsRigs
         return ResearchContentLoader.Load(json, GoodsConfigLoader.Load(goods));
     }
 
-    public static JsonObject ShippedDocument()
-    {
-        using var stream = Sim.Data.DataFiles.OpenResearch();
-        return JsonNode.Parse(stream)!.AsObject();
-    }
+    /// <summary>The base the rigs add their effects to: the pre-tranche-2 research.json (TestConfigs.PreTranche2Doc), whose
+    /// nodes declare no realized effect — the engine mechanics are tested on a content the rig controls entirely (the
+    /// shipped tranche-2 content carries 979 nodes of effects; Tranche2ContentTests covers it).</summary>
+    public static JsonObject ShippedDocument() => TestConfigs.PreTranche2Doc();
 
     /// <summary>Writes <paramref name="effects"/> as the node's effects.realized (effects.immediate kept).</summary>
     public static void SetRealized(JsonObject node, params (string Operand, double Delta)[] effects)

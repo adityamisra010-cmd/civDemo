@@ -119,11 +119,15 @@ public class KnowledgeEffectsTests
     }
 
     [Fact]
-    public void TheSwitch_DefaultsOffWhenAbsent_AndTheShippedContentShipsItOnWithNoEffect()
+    public void TheSwitch_DefaultsOffWhenAbsent_AndTheShippedContentShipsItOnWithItsEffects()
     {
         Assert.True(TestConfigs.Research().Tuning.KnowledgeEffects);
-        Assert.False(TestConfigs.Research().HasRealizedEffects);   // tranche 2: the switch, not the content
-        foreach (ResearchNode n in TestConfigs.Research().Nodes) Assert.Empty(n.RealizedEffects);
+        Assert.True(TestConfigs.Research().HasRealizedEffects);   // tranche 2 content (D-063 R1): the switch AND the content
+        // The pre-tranche-2 content (the engine branch's shipped file) declared the switch with no effect.
+        ResearchContent pre = TestConfigs.PreTranche2(TestConfigs.Sim()).Research!;
+        Assert.True(pre.Tuning.KnowledgeEffects);
+        Assert.False(pre.HasRealizedEffects);
+        foreach (ResearchNode n in pre.Nodes) Assert.Empty(n.RealizedEffects);
         ResearchContent twin = TestConfigs.PreKnowledgeEffects(TestConfigs.Sim()).Research!;
         Assert.False(twin.Tuning.KnowledgeEffects);
         SimConfig once = TestConfigs.PreKnowledgeEffects(TestConfigs.Sim());
@@ -419,11 +423,19 @@ public class KnowledgeEffectsTests
     [Fact]
     public void SwitchOff_IsByteIdentical_OnALongAiRun()
     {
-        SimConfig shipped = TestConfigs.Sim();
+        // On a content with NO realized effect (the pre-tranche-2 file) the switch changes nothing: on, absent, and a rig
+        // declaring effects with the switch off are one world. (The shipped tranche-2 content has effects: there the
+        // switch is the attribution control, TestConfigs.PreKnowledgeEffects.)
+        SimConfig shipped = TestConfigs.PreTranche2(TestConfigs.Sim());
         string live = WorldHash.ComputeHex(RunAi(shipped, 300));
-        Assert.Equal(live, WorldHash.ComputeHex(RunAi(TestConfigs.PreKnowledgeEffects(shipped), 300)));
+        var absent = TestConfigs.PreTranche2Doc();
+        TestConfigs.UndoKnowledgeEffects(absent);
+        Assert.Equal(live, WorldHash.ComputeHex(RunAi(shipped with { Research = KnowledgeEffectsRigs.Load(absent.ToJsonString()) }, 300)));
         SimConfig declaredOff = shipped with { Research = KnowledgeEffectsRigs.Load(KnowledgeEffectsRigs.EarlyJson(on: false)) };
         Assert.Equal(live, WorldHash.ComputeHex(RunAi(declaredOff, 300)));
+        // And on the shipped content the switch BITES: its twin is a different world.
+        Assert.NotEqual(WorldHash.ComputeHex(RunAi(TestConfigs.Sim(), 120)),
+            WorldHash.ComputeHex(RunAi(TestConfigs.PreKnowledgeEffects(TestConfigs.Sim()), 120)));
     }
 
     /// <summary>With effects ACTIVE (the switch on and early nodes the AI completes), the run is deterministic — two runs

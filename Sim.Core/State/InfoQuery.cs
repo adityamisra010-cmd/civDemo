@@ -423,6 +423,22 @@ public static class InfoQuery
             simulated = true;
             b.Enables.Add(new InfoLink("The research stage (opens the five specialised subtrees together)", null, c.Stage, r.Stage.Source.Replace('_', ' ')));
         }
+        // ADR-047 / ADR-049: its realized effects and level effects — each read by the operand's owning system.
+        if (KnowledgeEffects.IsOn(r))
+            foreach (RealizedEffect e in n.RealizedEffects)
+            {
+                KnowledgeOperandInfo op = KnowledgeOperands.All[(int)e.Operand];
+                simulated = true;
+                b.Enables.Add(new InfoLink((op.Direction == OperandDirection.Higher ? "+" : "-") + N1(e.Delta * 100.0) + "%: " + op.Meaning,
+                    null, done, "read by " + op.ReadBy + " (" + op.Id + ")"));
+            }
+        if (levelled && n.Levels is { } rule)
+            foreach (RepeatableLevelEffect e in rule.Effects)
+            {
+                simulated = true;
+                b.Enables.Add(new InfoLink("Each level closes " + N1(e.GapFraction * 100.0) + "% of the remaining gap: " +
+                    RepeatableOperands.Get(e.Operand).Meaning, null, c.Done[i], e.Operand));
+            }
         foreach (int d in n.Dependents) b.Enables.Add(NodeLink(c, d, "leads to"));
 
         foreach (string s in n.Capabilities) b.KnowledgeOnly.Add(s);
@@ -437,9 +453,11 @@ public static class InfoQuery
             _ => "Read by the simulation: see what it enables.",
         };
 
-        if (Find(c, ActionDomain.Research, 1) is { } set)
-            foreach (ActionTarget at in set.Targets)
-                if (at.Kind == ActionTargetKind.ResearchNode && at.Id == n.Key.Value) { b.Action = set; break; }
+        // Its action: set it as the target (Id 1, available now) or — ADR-048, routing on — as a destination (Id 4).
+        foreach (int id in new[] { 1, 4 })
+            if (b.Action is null && Find(c, ActionDomain.Research, id) is { } set)
+                foreach (ActionTarget at in set.Targets)
+                    if (at.Kind == ActionTargetKind.ResearchNode && at.Id == n.Key.Value) { b.Action = set; break; }
     }
 
     // ================================================================== registry entity

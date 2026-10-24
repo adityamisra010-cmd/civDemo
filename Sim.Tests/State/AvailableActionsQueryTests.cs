@@ -171,7 +171,8 @@ public class AvailableActionsQueryTests
         int grinding = Research.IndexOfId("grinding_stone");
         w.ResearchTargets.Add(new ResearchTargetRow(Player, Research.Nodes[grinding].Key));
         ActionDescriptor[] research = Of(AvailableActionsQuery.For(w, Cfg, Player), ActionDomain.Research);
-        Assert.Equal(["research.set-target", "research.clear-target"], research.Select(a => a.Key));
+        // ADR-048 (routing on): the destination action (Id 4) follows the clear.
+        Assert.Equal(["research.set-target", "research.clear-target", "research.set-destination"], research.Select(a => a.Key));
         ActionTarget current = Assert.Single(research[0].Targets, t => t.Current);
         Assert.Equal(Research.Nodes[grinding].Key.Value, current.Id);
         Assert.Equal(Research.Nodes[grinding].BaseCost, current.Cost);
