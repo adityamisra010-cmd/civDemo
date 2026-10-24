@@ -157,14 +157,18 @@ public class ResearchAgeSweepTests
         }
     }
 
-    /// <summary>The pre-ADR-048 availability, restated: not completed, subtree open, prerequisites, recursive exhaustion.</summary>
+    /// <summary>The pre-ADR-048 availability, restated: not completed, subtree open, prerequisites, recursive exhaustion
+    /// (ADR-049: a subtree repeatable waits for its subtree's finite set, a civics repeatable for every finite A9 civic, a
+    /// trunk repeatable for nothing more).</summary>
     private static bool OldRule(ResearchContent c, int i, bool[] done)
     {
         ResearchNode n = c.Nodes[i];
         if (done[i] || (n.Branch >= 0 && !ResearchQuery.StageReached(c, done))) return false;
         if (n.Prerequisite is { } p && !p.Evaluate(null, a => done[a], null)) return false;
         if (!n.IsRecursive) return true;
-        foreach (int f in c.FiniteNodesBySubtree[n.Branch]) if (!done[f]) return false;
+        IReadOnlyList<int> exhaust = n.Branch >= 0 ? c.FiniteNodesBySubtree[n.Branch]
+            : n.Tree == ResearchTree.Civics ? c.FiniteFinalAgeCivics : [];
+        foreach (int f in exhaust) if (!done[f]) return false;
         return true;
     }
 

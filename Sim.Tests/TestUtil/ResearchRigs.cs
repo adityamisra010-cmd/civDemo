@@ -78,6 +78,8 @@ internal static class ResearchRigs
         public bool DestinationRouting { get; set; }
         /// <summary>ADR-049: tuning.repeatableLevels — null (the default) = absent, the complete-once engine.</summary>
         public bool? RepeatableLevels { get; set; }
+        /// <summary>ADR-047: tuning.knowledgeEffects — false (the default) = absent, every operand at its base.</summary>
+        public bool KnowledgeEffects { get; set; }
 
         public string Json()
         {
@@ -242,6 +244,7 @@ internal static class ResearchRigs
                     ["cityStatePaceFraction"] = CityStatePace,
                     ["destinationRouting"] = DestinationRouting ? true : null,
                     ["repeatableLevels"] = RepeatableLevels,
+                    ["knowledgeEffects"] = KnowledgeEffects ? true : null,
                 },
                 ["baseline"] = WithBaseline
                     ? new JsonArray(new JsonObject

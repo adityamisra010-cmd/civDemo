@@ -341,10 +341,13 @@ public static class ResearchRoutePlanner
             ResearchNode node = _c.Nodes[x];
             var list = new List<Component>(4);
             if (node.Prerequisite is { } pre) list.Add(new Component(Build(pre), RouteReason.Prerequisite, 0));
-            if (node.IsRecursive && node.Branch >= 0)
+            if (node.IsRecursive && (node.Branch >= 0 || node.Tree == ResearchTree.Civics))
             {
+                // The exhaustion rule (ResearchQuery.IsAvailable): a subtree repeatable waits for its subtree's finite set,
+                // a civics repeatable for every finite civic of Age A9 (ADR-049), a trunk repeatable for nothing more.
                 var parts = new List<Req>();
-                foreach (int i in _c.FiniteNodesBySubtree[node.Branch]) if (!_done[i]) parts.Add(new AtomReq(i));
+                IReadOnlyList<int> exhaust = node.Branch >= 0 ? _c.FiniteNodesBySubtree[node.Branch] : _c.FiniteFinalAgeCivics;
+                foreach (int i in exhaust) if (!_done[i]) parts.Add(new AtomReq(i));
                 if (parts.Count > 0) list.Add(new Component(new AllReq([.. parts]), RouteReason.Prerequisite, 0));
             }
             if (node.Branch >= 0 && !_stageReached)

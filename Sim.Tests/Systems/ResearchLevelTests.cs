@@ -321,6 +321,27 @@ public class ResearchLevelTests
         Assert.Equal(0.0, ResearchQuery.LevelContribution(w, On, new PolityId(9), Farming, 3.0));
     }
 
+    /// <summary>ADR-047 × ADR-049: the effects engine reads the levels through its seam — the operand's Σ is exactly the levels'
+    /// contribution at the registry cap (3.0 for farming yield), and nothing with either switch off.</summary>
+    [Fact]
+    public void KnowledgeEffects_ReadsTheLevelsThroughTheSeam()
+    {
+        static ResearchContent With(bool levels, bool effects)
+        {
+            Spec s = LevelSpec(levels);
+            s.KnowledgeEffects = effects;
+            return s.Load();
+        }
+        ResearchContent both = With(true, true);
+        WorldState w = Run(Executor(both, TargetEveryTurn(Rep, 3)), Ready(), 3);
+        Assert.True(KnowledgeEffects.LevelsPresent(w, both));
+        Assert.Equal(2.625, KnowledgeEffects.Improvement(w, both, P1, KnowledgeOperand.FarmingYieldPerArableKm2PerYear));
+        Assert.Equal(0.0, KnowledgeEffects.Improvement(w, both, P1, KnowledgeOperand.ResearchResearchPointsCoefficient));
+        Assert.Equal(0.0, KnowledgeEffects.Improvement(w, With(false, true), P1, KnowledgeOperand.FarmingYieldPerArableKm2PerYear));
+        Assert.False(KnowledgeEffects.LevelsPresent(w, With(false, true)));
+        Assert.Equal(0.0, KnowledgeEffects.Improvement(w, With(true, false), P1, KnowledgeOperand.FarmingYieldPerArableKm2PerYear));
+    }
+
     // ------------------------------------------------------------------ determinism
 
     [Fact]

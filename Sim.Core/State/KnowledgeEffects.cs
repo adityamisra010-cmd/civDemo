@@ -8,7 +8,7 @@ namespace Sim.Core.State;
 ///
 /// <para><b>The rule.</b> For a knowledge holder with completed set S and an operand op (<see cref="KnowledgeOperands"/>):
 /// Σ = Σ delta over the nodes of S that declare a realized effect on op (research.json <c>effects.realized</c>), plus
-/// the repeatable levels (<see cref="LevelContribution"/> — 0 until the levels track lands); Σ is clamped to [0, cap];
+/// the repeatable levels (<see cref="LevelContribution"/>, ADR-049); Σ is clamped to [0, cap];
 /// a <c>higher</c> operand reads base × (1 + Σ), a <c>lower</c> one base × (1 − Σ) (cap &lt; 1); an integer operand is
 /// rounded DOWN after scaling; where the registry states a result bound the value is clamped to it (never below the
 /// base). Σ = 0 returns the base EXACTLY — the same double, bit for bit.</para>
@@ -118,16 +118,26 @@ public static class KnowledgeEffects
     // ------------------------------------------------------------------ the repeatable-levels seam (contract §4)
 
     /// <summary>
-    /// THE REPEATABLE-LEVELS SEAM (contract §4): the improvement the holder's repeatable LEVELS add to Σ of
-    /// <paramref name="op"/> — level n of a node adds cap × k × (1 − k)^(n−1). Tranche 2's levels track implements it
-    /// here, and only here (with <see cref="LevelsPresent"/>, its fast-path companion); until then no level exists and it
-    /// is 0. Both <see cref="Improvement"/> and <see cref="KnowledgeEffectsSnapshot"/> add it before the clamp.
+    /// THE REPEATABLE-LEVELS SEAM (contract §4; ADR-049): the improvement the holder's repeatable LEVELS add to Σ of
+    /// <paramref name="op"/> — level n of a node adds cap × k × (1 − k)^(n−1), summed by
+    /// <see cref="ResearchQuery.LevelContribution"/> with the registry cap. 0 with tuning.repeatableLevels off. Both
+    /// <see cref="Improvement"/> and <see cref="KnowledgeEffectsSnapshot"/> add it before the clamp.
     /// </summary>
-    public static double LevelContribution(IReadOnlyWorldState world, ResearchContent content, PolityId holder, KnowledgeOperand op) => 0.0;
+    public static double LevelContribution(IReadOnlyWorldState world, ResearchContent content, PolityId holder, KnowledgeOperand op)
+    {
+        if (!content.Tuning.RepeatableLevels) return 0.0;
+        KnowledgeOperandInfo info = KnowledgeOperands.All[(int)op];
+        return ResearchQuery.LevelContribution(world, content, holder, info.Id, info.Cap);
+    }
 
-    /// <summary>Part of the levels seam: whether ANY holder may have a level contribution in <paramref name="world"/>
-    /// (false until the levels track lands). Lets a snapshot with no realized rows skip holder resolution entirely.</summary>
-    public static bool LevelsPresent(IReadOnlyWorldState world, ResearchContent content) => false;
+    /// <summary>Part of the levels seam: whether ANY holder may have a level contribution — tuning.repeatableLevels on and
+    /// some node of the content levelled (ADR-049). Lets a snapshot with no realized rows skip holder resolution entirely.</summary>
+    public static bool LevelsPresent(IReadOnlyWorldState world, ResearchContent content)
+    {
+        if (!content.Tuning.RepeatableLevels) return false;
+        for (int i = 0; i < content.Nodes.Count; i++) if (content.Nodes[i].Levels is not null) return true;
+        return false;
+    }
 
     // ------------------------------------------------------------------ the per-step snapshot
 
