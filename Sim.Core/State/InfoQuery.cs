@@ -387,6 +387,10 @@ public static class InfoQuery
                 b.WhyLocked.Add(new InfoLink("Its subtree is closed until the research stage is reached (" + r.Stage.Source.Replace('_', ' ') + ")", null, false));
             if (n.IsRecursive && n.Branch >= 0 && !ResearchQuery.SubtreeExhausted(r, n.Branch, c.Done))
                 b.WhyLocked.Add(new InfoLink("Recursive: it waits for every finite node of its subtree", null, false));
+            // ADR-048: the Age sweep, reported apart from the prerequisites (never as one).
+            if (ResearchQuery.SweepBlock(r, c.Done, i) is { Blocked: true } sweep)
+                b.WhyLocked.Add(new InfoLink("Age " + Inv(sweep.CohortAge) + " sweep: " + Inv(sweep.Outstanding.Length) +
+                    " node" + (sweep.Outstanding.Length == 1 ? "" : "s") + " of Age " + Inv(sweep.CohortAge) + " still outstanding", null, false));
         }
 
         // WHAT IT ENABLES: entities (each with what realizes it), dependents, Age milestones, the tax edict, the stage.

@@ -29,9 +29,10 @@ internal static class ResearchRigs
         bool? EvaluableNow = null, string Kind = "environmental", string Source = "authored",
         string Justification = "rig justification");
 
+    /// <summary>A rig node. <paramref name="Age"/> is its content Age label (A1..A9; ADR-048's sweep reads it).</summary>
     public sealed record Node(
         int Key, string Id, string? Prereq = null, double Cost = 2500.0, string? Branch = null,
-        Eu[]? Eurekas = null, string[]? Institutions = null, string[]? Buildings = null);
+        Eu[]? Eurekas = null, string[]? Institutions = null, string[]? Buildings = null, string Age = "A1");
 
     public sealed record Entity(string Id, string Kind, string? Requires, string[]? Unresolved = null);
 
@@ -65,6 +66,12 @@ internal static class ResearchRigs
         public (bool Enabled, double Coefficient, double Exponent)? CivicsPoints { get; set; }
         /// <summary>ADR-046: tuning.aiCheapestOrRoute — false (the default) = absent, the union-over-OR AI goal closures.</summary>
         public bool AiCheapestOrRoute { get; set; }
+        /// <summary>R2a: tuning.cityStatePaceFraction — null (the default) = absent (city-state research off).</summary>
+        public double? CityStatePace { get; set; }
+        /// <summary>ADR-048: tuning.ageSweep — false (the default) = absent, no Age sweep.</summary>
+        public bool AgeSweep { get; set; }
+        /// <summary>ADR-048: tuning.destinationRouting — false (the default) = absent, available-only targets.</summary>
+        public bool DestinationRouting { get; set; }
 
         public string Json()
         {
@@ -108,7 +115,7 @@ internal static class ResearchRigs
                 var o = new JsonObject
                 {
                     ["key"] = n.Key, ["id"] = n.Id, ["name"] = n.Id.ToUpperInvariant(), ["desc"] = "rig node",
-                    ["age"] = "A1", ["frontier"] = false, ["emerged"] = null,
+                    ["age"] = n.Age, ["frontier"] = false, ["emerged"] = null,
                 };
                 if (!civic) o["branch"] = n.Branch;
                 o["domain"] = "science";
@@ -213,6 +220,9 @@ internal static class ResearchRigs
                         }
                         : null,
                     ["aiCheapestOrRoute"] = AiCheapestOrRoute ? true : null,
+                    ["ageSweep"] = AgeSweep ? true : null,
+                    ["cityStatePaceFraction"] = CityStatePace,
+                    ["destinationRouting"] = DestinationRouting ? true : null,
                 },
                 ["baseline"] = WithBaseline
                     ? new JsonArray(new JsonObject

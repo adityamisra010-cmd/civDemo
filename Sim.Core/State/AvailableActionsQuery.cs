@@ -167,7 +167,8 @@ public sealed record ActionQueryContext(IReadOnlyList<OrderRecord>? Queued = nul
 ///   the activity it expresses now (research.json sectorActivities; ADR-033 D1).</item>
 /// <item><b>Research</b> (OrderKind 6) — <see cref="ResearchQuery"/>: set a target among the AVAILABLE nodes
 ///   (<see cref="ResearchQuery.AvailableMask"/>, what ResearchSystem applies), with costs, retained progress
-///   and the current target; clear the target when one is set.</item>
+///   and the current target; clear the target when one is set; ADR-048, with tuning.destinationRouting, set a
+///   DESTINATION among the incomplete nodes not available now (<see cref="ResearchQuery.IsDestinationAdmissible"/>).</item>
 /// <item><b>Age</b> (OrderKind 7) — <see cref="AgeQuery"/>: advance when <see cref="AgeQuery.CheckAdvance(IReadOnlyWorldState, AgeContent, PolityId, int, int)"/>
 ///   accepts it (what AgeTransitionSystem applies) and no advance is already pending this turn.</item>
 /// <item><b>Construction</b> (OrderKind 4) — <see cref="ConstructionQuery"/>: each project
@@ -312,6 +313,24 @@ public static class AvailableActionsQuery
             into.Add(new ActionDescriptor(
                 ActionDomain.Research, 3, ActionKind.Order, "research.clear-civics-target", "Clear civics target",
                 OrderKind.SetResearchTarget, [NodeTarget(world, content, polity, civicIndex, true)], null, ActionProvenance.None));
+        // ADR-048 (tuning.destinationRouting): set a DESTINATION (Id 4) — every incomplete node that is not available now
+        // (an available one is Id 1), the admission ResearchSystem applies (ResearchQuery.IsDestinationAdmissible).
+        if (content.Tuning.DestinationRouting)
+        {
+            bool[] completed = ResearchQuery.CompletedMask(world, content, polity);
+            var destinations = ImmutableArray.CreateBuilder<ActionTarget>();
+            for (int i = 0; i < available.Length; i++)
+            {
+                if (available[i] || !ResearchQuery.IsDestinationAdmissible(content, i, completed)) continue;
+                int key = content.Nodes[i].Key.Value;
+                destinations.Add(NodeTarget(world, content, polity, i, (hasTarget && key == current.Value) || (hasCivic && key == civic.Value)));
+            }
+            if (destinations.Count > 0)
+                into.Add(new ActionDescriptor(
+                    ActionDomain.Research, 4, ActionKind.Order, "research.set-destination", "Set research destination",
+                    OrderKind.SetResearchTarget, destinations.ToImmutable(), null, ActionProvenance.None,
+                    $"{Inv(destinations.Count)} reachable by route"));
+        }
     }
 
     private static ActionTarget NodeTarget(IReadOnlyWorldState world, ResearchContent content, PolityId polity, int index, bool current)

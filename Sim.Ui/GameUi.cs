@@ -1012,6 +1012,10 @@ public sealed partial class GameUi
             // The screen built the order with ResearchOrderFactory; the session logs it through
             // the same factory (it refuses anything the simulation would ignore).
             if (cmd.Node is { } node && _session.EmitResearchOrder(node)) { SaveSession(); RefreshHud(); }
+            // ADR-048: CANCEL DESTINATION — the lane's existing clear (−1 / −2; the one target in the one-pool model).
+            if (cmd.CancelLane is { } lane
+                && (_session.Config.Research is { Tuning.TwoLanes: true } ? _session.ClearResearchTarget(lane) : _session.ClearResearchTarget()))
+            { SaveSession(); RefreshHud(); }
         }
         screen.Advance(dt);
     }

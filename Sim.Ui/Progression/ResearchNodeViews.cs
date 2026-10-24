@@ -12,7 +12,7 @@ public enum NodeState { Completed = 1, CurrentTarget = 2, Available = 3, Partial
 
 /// <summary>Why a locked node cannot be researched (several may hold).</summary>
 [Flags]
-public enum LockReason { None = 0, MissingPrerequisites = 1, ResearchStage = 2, SubtreeNotExhausted = 4 }
+public enum LockReason { None = 0, MissingPrerequisites = 1, ResearchStage = 2, SubtreeNotExhausted = 4, AgeSweep = 8 }
 
 public sealed record PrereqView(int ContentIndex, string Name, bool Completed, EdgeKind Kind);
 
@@ -61,6 +61,18 @@ public sealed class ResearchSnapshot
     /// <summary>ADR-043: the Civics Points a step of the current length accrues (ResearchQuery.CivicsPointsMilli / 1000).</summary>
     public double CivicsPerTurn { get; init; }
 
+    /// <summary>ADR-048: whether destination research is on (research.json tuning.destinationRouting).</summary>
+    public bool Routing { get; init; }
+    /// <summary>ADR-048: the Technology lane's route — <see cref="ResearchQuery.Route"/> itself, never recomputed here.</summary>
+    public ResearchRoute TechnologyRoute { get; init; } = ResearchRoute.None(ResearchTree.Technology);
+    /// <summary>ADR-048: the Civics lane's route — <see cref="ResearchQuery.Route"/> itself.</summary>
+    public ResearchRoute CivicsRoute { get; init; } = ResearchRoute.None(ResearchTree.Civics);
+    /// <summary>ADR-048: per node, the Age sweep as it bears on it (<see cref="ResearchQuery.SweepBlock(ResearchContent, bool[], int)"/>).</summary>
+    public IReadOnlyList<ResearchQuery.SweepState> Sweeps { get; init; } = [];
+
+    /// <summary>ADR-048: the route of <paramref name="tree"/>'s lane.</summary>
+    public ResearchRoute RouteOn(ResearchTree tree) => tree == ResearchTree.Civics ? CivicsRoute : TechnologyRoute;
+
     /// <summary>The target on <paramref name="tree"/>'s lane: in the two-lane model each tree's own; in the one-pool model
     /// the one target when it lies in that tree.</summary>
     public int? TargetOn(ResearchTree tree, IReadOnlyList<ResearchNodeView> nodes) =>
@@ -91,6 +103,7 @@ public sealed class ResearchSnapshot
         }
 
         var views = new ResearchNodeView[n];
+        var sweeps = new ResearchQuery.SweepState[n];
         int doneTech = 0, doneCiv = 0;
         for (int i = 0; i < n; i++)
         {
@@ -109,6 +122,9 @@ public sealed class ResearchSnapshot
                 if (node.IsRecursive && node.Branch >= 0 && !ResearchQuery.SubtreeExhausted(content, node.Branch, completed))
                     lockReason |= LockReason.SubtreeNotExhausted;
             }
+            // ADR-048: the engine's sweep predicate, reported on its own (never as a missing prerequisite).
+            sweeps[i] = ResearchQuery.SweepBlock(content, completed, i);
+            if (!done && sweeps[i].Blocked) lockReason |= LockReason.AgeSweep;
             NodeState state = done ? NodeState.Completed
                 : isTarget ? NodeState.CurrentTarget
                 : available ? NodeState.Available
@@ -166,6 +182,10 @@ public sealed class ResearchSnapshot
             CivicsTargetIndex = civicTarget,
             CivicsBalance = ResearchQuery.CivicsPointsBalance(world, polity),
             CivicsPerTurn = ResearchQuery.CivicsPointsMilli(world, content, polity, world.Clock.DtYears) / 1000.0,
+            Routing = content.Tuning.DestinationRouting,
+            TechnologyRoute = content.Tuning.DestinationRouting ? ResearchQuery.Route(world, content, polity, ResearchTree.Technology) : ResearchRoute.None(ResearchTree.Technology),
+            CivicsRoute = content.Tuning.DestinationRouting ? ResearchQuery.Route(world, content, polity, ResearchTree.Civics) : ResearchRoute.None(ResearchTree.Civics),
+            Sweeps = sweeps,
         };
     }
 }

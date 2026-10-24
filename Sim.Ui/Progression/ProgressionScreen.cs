@@ -12,7 +12,7 @@ namespace Sim.Ui.Progression;
 /// <summary>The two sibling trees under KNOWLEDGE &amp; TECHNOLOGY (ruling 11).</summary>
 public enum TreeTab { Technology = 0, Civics = 1 }
 
-public enum HitKind { Lens, Tab, SetTarget, Close, Minimap, LaneToggle, Frontier, Fit, MinimapToggle, Reset, AgeOpen, CloseDetail, Panel }
+public enum HitKind { Lens, Tab, SetTarget, Close, Minimap, LaneToggle, Frontier, Fit, MinimapToggle, Reset, AgeOpen, CloseDetail, Panel, CancelDestination }
 
 public readonly record struct HitRegion(RectD Rect, HitKind Kind, int Arg);
 
@@ -22,6 +22,10 @@ public sealed record ProgressionCommand(bool Close, OrderRecord? Order, Research
 {
     /// <summary>The Age header chip was clicked: the host opens the Age surface (ADR-031).</summary>
     public bool OpenAge { get; init; }
+
+    /// <summary>ADR-048: CANCEL DESTINATION was clicked for this lane; <see cref="Order"/> is its clear order, which the host
+    /// logs through the session's clear (UiSession.ClearResearchTarget — the same factory).</summary>
+    public ResearchTree? CancelLane { get; init; }
 
     public static readonly ProgressionCommand None = new(false, null, null);
 }
@@ -259,7 +263,7 @@ public sealed partial class ProgressionScreen
     public void Refresh(IReadOnlyWorldState world)
     {
         if (ReferenceEquals(world, _world) && Snapshot is not null) return;
-        if (Snapshot is not null && world.Clock.Turn != Snapshot.Turn) PendingTarget = -1;
+        if (Snapshot is not null && world.Clock.Turn != Snapshot.Turn) { PendingTarget = -1; Array.Clear(_pendingCancel); }
         _world = world;
         Snapshot = ResearchSnapshot.Build(world, Content, Polity);
         Page = Lenses.Page(Lens, world, Content, Polity);
@@ -357,6 +361,7 @@ public sealed partial class ProgressionScreen
                 case HitKind.Lens: SetLens((Lens)h.Arg); return ProgressionCommand.None;
                 case HitKind.Tab: Tab = (TreeTab)h.Arg; return ProgressionCommand.None;
                 case HitKind.SetTarget: return Issue(h.Arg);
+                case HitKind.CancelDestination: return CancelDestination((ResearchTree)h.Arg);
                 case HitKind.LaneToggle: ToggleLane(h.Arg); return ProgressionCommand.None;
                 case HitKind.Frontier: JumpToFrontier(); return ProgressionCommand.None;
                 case HitKind.Fit: FitAll(); return ProgressionCommand.None;
@@ -383,11 +388,88 @@ public sealed partial class ProgressionScreen
     {
         if (_world is null || Snapshot is null) return ProgressionCommand.None;
         ResearchNodeView v = Snapshot.Nodes[node];
-        if (!v.Available || v.IsTarget || PendingTarget == node) return ProgressionCommand.None;
+        // ADR-048: with destination research on, a click on ANY incomplete node orders it as the lane's destination (the
+        // factory — ResearchQuery.TargetOrder — admits exactly what ResearchSystem admits); off, only an available node.
+        bool admissible = Snapshot.Routing ? v.State != NodeState.Completed : v.Available;
+        if (!admissible || v.IsTarget || PendingTarget == node) return ProgressionCommand.None;
         OrderRecord? order = ResearchOrderFactory.SetTarget(_world, Content, Polity, v.Key);
         if (order is null) return ProgressionCommand.None;
         PendingTarget = node;
         return new ProgressionCommand(false, order, v.Key);
+    }
+
+    /// <summary>ADR-048: a lane whose destination cancel was ordered this turn (UI hint only; cleared on a new turn).</summary>
+    private readonly bool[] _pendingCancel = new bool[2];
+
+    /// <summary>Whether the cancel of <paramref name="lane"/>'s destination is ordered and awaits End Turn.</summary>
+    public bool CancelPending(ResearchTree lane) => _pendingCancel[lane == ResearchTree.Civics ? 1 : 0];
+
+    /// <summary>ADR-048: CANCEL DESTINATION — the existing clear order for the lane (−1 Technology, −2 Civics; in the
+    /// one-pool model −1 clears the one destination), built by <see cref="ResearchOrderFactory.ClearTarget(IReadOnlyWorldState, PolityId, ResearchTree)"/>.</summary>
+    private ProgressionCommand CancelDestination(ResearchTree lane)
+    {
+        if (_world is null || Snapshot is null || Snapshot.RouteOn(lane).Destination is null || CancelPending(lane)) return ProgressionCommand.None;
+        OrderRecord order = Snapshot.TwoLanes ? ResearchOrderFactory.ClearTarget(_world, Polity, lane) : ResearchOrderFactory.ClearTarget(_world, Polity);
+        _pendingCancel[lane == ResearchTree.Civics ? 1 : 0] = true;
+        return new ProgressionCommand(false, order, null) { CancelLane = lane };
+    }
+
+    /// <summary>
+    /// ADR-048: the ROUTE block of the research panel for <paramref name="tree"/>'s lane, as text lines — read verbatim from
+    /// <see cref="ResearchSnapshot.RouteOn"/> (<see cref="ResearchQuery.Route"/>, the engine's one route calculator), never
+    /// recomputed: the destination, the current research, the next node on the route, the remaining cost, then the
+    /// outstanding blockers grouped by reason (prerequisites, research stage, each Age sweep — "Age 2 sweep: 7 nodes
+    /// outstanding: …" — and the other lane). Empty when destination research is off.
+    /// </summary>
+    public List<string> RouteLines(ResearchTree tree)
+    {
+        var lines = new List<string>();
+        ResearchSnapshot? s = Snapshot;
+        if (s is null || !s.Routing) return lines;
+        ResearchRoute r = s.RouteOn(tree);
+        string Name(ResearchNodeId? key) => key is { } k && Content.IndexOf(k) is int i and >= 0 ? Content.Nodes[i].Name : "-";
+        string Names(List<RouteBlocker> list)
+        {
+            var names = new List<string>(list.Count);
+            foreach (RouteBlocker b in list) names.Add(Content.Nodes[b.Index].Name);
+            return string.Join(", ", names);
+        }
+        static string Count(int n, string one, string many) => n.ToString(CultureInfo.InvariantCulture) + " " + (n == 1 ? one : many);
+        if (r.Destination is null)
+        {
+            lines.Add("Destination: none - click any node to set one");
+            return lines;
+        }
+        lines.Add(r.Assisting ? "Destination: none - assisting " + Name(r.AssistedDestination) : "Destination: " + Name(r.Destination));
+        lines.Add("Current research: " + (r.Current is null ? "none - waiting on the other lane" : Name(r.Current)));
+        lines.Add("Next on route: " + (r.Next is null ? "-" : Name(r.Next)));
+        if (!r.Assisting)
+            lines.Add("Remaining: " + Math.Ceiling(r.RemainingCost).ToString("#,0", CultureInfo.InvariantCulture) + " " + s.UnitOn(tree));
+        if (!r.Feasible) lines.Add("Route blocked: the destination cannot be reached from here");
+        List<RouteBlocker> prereq = r.BlockersOf(RouteReason.Prerequisite);
+        if (prereq.Count > 0) lines.Add("Prerequisites: " + Count(prereq.Count, "node", "nodes") + " outstanding: " + Names(prereq));
+        List<RouteBlocker> stage = r.BlockersOf(RouteReason.Stage);
+        if (stage.Count > 0) lines.Add("Research stage: " + Count(stage.Count, "node", "nodes") + " outstanding: " + Names(stage));
+        for (int k = 1; k <= 9; k++)
+        {
+            List<RouteBlocker> sweep = r.BlockersOf(RouteReason.Sweep, k);
+            if (sweep.Count > 0) lines.Add("Age " + k.ToString(CultureInfo.InvariantCulture) + " sweep: " + Count(sweep.Count, "node", "nodes") + " outstanding: " + Names(sweep));
+        }
+        List<RouteBlocker> other = r.BlockersOf(RouteReason.OtherLane);
+        if (other.Count > 0)
+            lines.Add("Other lane (" + (tree == ResearchTree.Civics ? "Technology" : "Civics") + "): " + Count(other.Count, "node", "nodes") + " outstanding: " + Names(other));
+        return lines;
+    }
+
+    /// <summary>ADR-048: the sweep line of a node the Age sweep blocks — "Age 2 sweep: 7 nodes outstanding: …" — from the
+    /// engine's predicate (<see cref="ResearchSnapshot.Sweeps"/>), or null.</summary>
+    public string? SweepLine(int contentIndex)
+    {
+        if (Snapshot is not { } s || s.Sweeps.Count <= contentIndex || s.Sweeps[contentIndex] is not { Blocked: true } sw) return null;
+        var names = new List<string>(sw.Outstanding.Length);
+        foreach (ResearchNodeId k in sw.Outstanding) names.Add(Content.Nodes[Content.IndexOf(k)].Name);
+        return "Age " + sw.CohortAge.ToString(CultureInfo.InvariantCulture) + " sweep: " + sw.Outstanding.Length.ToString(CultureInfo.InvariantCulture)
+            + (sw.Outstanding.Length == 1 ? " node" : " nodes") + " outstanding: " + string.Join(", ", names);
     }
 
     public void SetLens(Lens lens)
@@ -679,11 +761,16 @@ public sealed partial class ProgressionScreen
         {
             PanelFrame.Paint(d, cap, t, 140, FrameKind.Chip, t.Semantic.ActiveFill, A(t.Semantic.Active, 0.8), 1.0);
             ResearchNodeView v = s.Nodes[ti];
-            d.Write(t, cap.X + Sp(12), cap.Y + Sp(3), "RESEARCHING", caps, Ink.Active, TextAlign.Left, FontRole.Caps);
+            // ADR-048: with destination research the capsule names the DESTINATION and the node researched now on its route.
+            ResearchRoute route = s.RouteOn(v.Tree);
+            bool onRoute = s.Routing && route.Current is { } cur && cur != v.Key;
+            string name = onRoute ? v.Name + " - now: " + Content.Nodes[Content.IndexOf(route.Current!.Value)].Name
+                : s.Routing && route.Current is null && !route.DestinationAvailable ? v.Name + " - waiting" : v.Name;
+            d.Write(t, cap.X + Sp(12), cap.Y + Sp(3), s.Routing ? "DESTINATION" : "RESEARCHING", caps, Ink.Active, TextAlign.Left, FontRole.Caps);
             string pct = Pct(v.Fraction);
             double data = Px(TypeRole.Data, FontRole.Numeric);
             double pw = m.Width(t, pct, data, FontRole.Numeric);
-            WriteFit(d, m, cap.X + Sp(12), cap.Y + Sp(3) + Line(caps) - Sp(2), v.Name, body, cap.W - Sp(24) - Sp(96) - pw, t.Ink.Text, TextAlign.Left, FontRole.Heading);
+            WriteFit(d, m, cap.X + Sp(12), cap.Y + Sp(3) + Line(caps) - Sp(2), name, body, cap.W - Sp(24) - Sp(96) - pw, t.Ink.Text, TextAlign.Left, FontRole.Heading);
             EraMarks.Progress(d, t, new RectD(cap.Right - Sp(18) - pw - Sp(82), cap.CenterY - Sp(4), Sp(76), Sp(8)), v.Fraction, t.Semantic.Active, 141);
             d.Write(t, cap.Right - Sp(12), cap.Y + (cap.H - t.Type.Size(data)) / 2 - Sp(2), pct, data, t.Ink.Text, TextAlign.Right, FontRole.Numeric);
             return;
@@ -1050,7 +1137,12 @@ public sealed partial class ProgressionScreen
         switch (v.State)
         {
             case NodeState.Completed: return "Known";
-            case NodeState.CurrentTarget: return Join("Researching", Pct(v.Fraction), Turns(v.EffectiveCost - v.Progress));
+            case NodeState.CurrentTarget:
+                // ADR-048: a destination not yet available is reached through its route (ResearchQuery.Route).
+                if (s.Routing && s.RouteOn(v.Tree) is { DestinationAvailable: false } route && route.Destination == v.Key)
+                    return Join("Destination", route.Current is { } now ? "now: " + Content.Nodes[Content.IndexOf(now)].Name : "waiting",
+                        (route.Blockers.Count == 1 ? "1 node" : route.Blockers.Count.ToString(CultureInfo.InvariantCulture) + " nodes") + " to go");
+                return Join("Researching", Pct(v.Fraction), Turns(v.EffectiveCost - v.Progress));
             case NodeState.Available:
                 return PendingTarget == contentIndex ? "Ordered - applies at End Turn" : Join("Available", Turns(v.EffectiveCost - v.Progress));
         }
@@ -1088,6 +1180,8 @@ public sealed partial class ProgressionScreen
         }
         if (v.Lock.HasFlag(LockReason.ResearchStage)) return "Needs university";
         if (v.Lock.HasFlag(LockReason.SubtreeNotExhausted)) return "Waits for its whole subtree";
+        if (v.Lock.HasFlag(LockReason.AgeSweep) && Snapshot!.Sweeps[contentIndex] is { } sw)
+            return "Age " + sw.CohortAge.ToString(CultureInfo.InvariantCulture) + " sweep: " + sw.Outstanding.Length.ToString(CultureInfo.InvariantCulture) + " outstanding";
         return "Locked";
     }
 
@@ -1443,6 +1537,7 @@ public sealed partial class ProgressionScreen
         for (int v = 0; v < Graph.OwnCount; v++) if (s.Nodes[Graph.Vertices[v].ContentIndex].Available) avail++;
         y = Stat(d, m, x, w, y, "Available now", avail.ToString(CultureInfo.InvariantCulture), _availableInk);
         y += Sp(14);
+        y = PaintRoute(d, m, x, w, y, _infoClip ?? DetailRect);
         foreach (string line in FlowText.Wrap(m, "Hover a node for its details. Click an available node to make it the research target; the order applies at End Turn. Shift+click any node or name for its full card. The wheel scrolls; Ctrl + wheel zooms.", TypeRole.Body, _scale, w))
         { d.Write(t, x, y, line, body, t.Ink.TextSoft); y += FlowText.Slot(TypeRole.Body, _scale); }
         return y;
@@ -1505,6 +1600,7 @@ public sealed partial class ProgressionScreen
         }
         y += Sp(8);
         y = PaintAction(d, m, n, node, x, w, y, view) + Sp(14);
+        y = PaintRoute(d, m, x, w, y, view);
 
         // ENABLES: what completing it gives — the capabilities, techniques and applications the content declares, the
         // entities it unlocks — and the nodes it leads to (all read from the content, nothing invented).
@@ -1575,6 +1671,9 @@ public sealed partial class ProgressionScreen
             { d.Write(t, x, y, line, body, Ink.Progress); y += FlowText.Slot(TypeRole.Body, _scale); }
         if (n.Lock.HasFlag(LockReason.SubtreeNotExhausted))
             foreach (string line in FlowText.Wrap(m, "Recursive: waits for every finite node of its subtree.", TypeRole.Body, _scale, w))
+            { d.Write(t, x, y, line, body, Ink.Progress); y += FlowText.Slot(TypeRole.Body, _scale); }
+        if (SweepLine(node) is { } sweepLine)   // ADR-048: the Age sweep, apart from the prerequisites
+            foreach (string line in FlowText.Wrap(m, sweepLine, TypeRole.Body, _scale, w))
             { d.Write(t, x, y, line, body, Ink.Progress); y += FlowText.Slot(TypeRole.Body, _scale); }
         y += Sp(8);
 
@@ -1650,14 +1749,16 @@ public sealed partial class ProgressionScreen
     {
         EraTheme t = Theme;
         var btn = new RectD(x, y, w, Sp(46));
-        bool can = n.Available && !n.IsTarget && PendingTarget != node;
+        bool routing = Snapshot!.Routing;   // ADR-048: any incomplete node may be ordered as the destination
+        bool can = (routing ? n.State != NodeState.Completed : n.Available) && !n.IsTarget && PendingTarget != node;
         bool hover = can && Over(btn) && view.Contains(btn.CenterX, btn.CenterY);
         string label = n.State switch
         {
             NodeState.Completed => "Known",
-            NodeState.CurrentTarget => "Current research target",
+            NodeState.CurrentTarget => routing ? "Current destination" : "Current research target",
             _ when PendingTarget == node => "Ordered - applies at End Turn",
             NodeState.Available => "Set as research target",
+            _ when routing => "Set as research destination",
             _ => "Locked",
         };
         double caps = Px(TypeRole.Body, FontRole.Caps);
@@ -1687,6 +1788,33 @@ public sealed partial class ProgressionScreen
         }
         InfoNode(btn, node);   // M5 polish: Shift+click on the button shows the node's card, never an order
         return btn.Bottom;
+    }
+
+    /// <summary>ADR-048: the ROUTE section (destination research on): <see cref="RouteLines"/> for the open tab's lane, then
+    /// CANCEL DESTINATION while the lane holds its own destination. Nothing when routing is off.</summary>
+    private double PaintRoute(DrawList d, ITextMeasure m, double x, double w, double y, RectD view)
+    {
+        ResearchSnapshot s = Snapshot!;
+        if (!s.Routing) return y;
+        EraTheme t = Theme;
+        double body = Px(TypeRole.Body), caps = Px(TypeRole.Body, FontRole.Caps);
+        y = Heading(d, m, x, w, y, "ROUTE", 7);
+        foreach (string text in RouteLines(TabTree))
+            foreach (string line in FlowText.Wrap(m, text, TypeRole.Body, _scale, w))
+            { d.Write(t, x, y, line, body, t.Ink.Text); y += FlowText.Slot(TypeRole.Body, _scale); }
+        ResearchRoute r = s.RouteOn(TabTree);
+        if (r.Destination is not null && !r.Assisting)
+        {
+            var btn = new RectD(x, y + Sp(6), w, Sp(40));
+            bool pending = CancelPending(TabTree);
+            bool hover = !pending && Over(btn) && view.Contains(btn.CenterX, btn.CenterY);
+            PanelFrame.Paint(d, btn, t, 189, FrameKind.Button, hover ? HoverFill : t.Material.PanelRaised, t.Material.BorderStrong, 1.4);
+            string label = pending ? "Cancel ordered - applies at End Turn" : "Cancel destination";
+            WriteFit(d, m, btn.CenterX, btn.Y + (btn.H - t.Type.Size(caps)) / 2 - Sp(2), label.ToUpperInvariant(), caps, btn.W - Sp(16), t.Ink.Text, TextAlign.Center, FontRole.Caps);
+            if (!pending && view.Contains(btn.CenterX, btn.CenterY)) _hits.Add(new HitRegion(btn, HitKind.CancelDestination, (int)TabTree));
+            y = btn.Bottom + Sp(8);
+        }
+        return y + Sp(8);
     }
 
     /// <summary>A section heading: capitals at the heading role in the accent's TEXT ink, over a hairline.</summary>

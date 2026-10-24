@@ -48,7 +48,7 @@ public sealed record ResearchTuning(
     double RpCoefficient, double RpExponent, IReadOnlyList<(double Population, double ResearchPoints)> RpAnchors,
     double EffectiveCostFloorFraction, double AccelerationCreditCeilingFraction, ResearchCostModel CostModel,
     double CityStatePaceFraction = 0.0, CivicsPointsTuning? CivicsPoints = null, bool AiCheapestOrRoute = false,
-    bool AiSupportingMilestones = false)
+    bool AiSupportingMilestones = false, bool AgeSweep = false, bool DestinationRouting = false)
 {
     /// <summary>ADR-043: whether the two-lane model is on — Research Points fund only the Technology target and Civics
     /// Points fund only the Civics target. Off (tuning.civicsPoints absent or enabled false) is the v34 one-pool model
@@ -61,6 +61,12 @@ public sealed record ResearchTuning(
     // AiSupportingMilestones (ADR-046 §6, 2026-10-23): the AI also pursues the cheapest RESEARCH supporting milestones its
     // next Age still needs (AiResearchPolicy.SupportingGoalClosure); it acts only with AiCheapestOrRoute (it is costed by
     // those routes). false (tuning.aiSupportingMilestones absent) is the core-and-capability goals exactly.
+    // AgeSweep (ADR-048; tranche-2 contract §2): a node of content Age a >= 3 is eligible only once every non-repeatable node
+    // of Age a - 2, in both trees, is complete (ResearchQuery.SweepSatisfied — the one predicate). false (tuning.ageSweep
+    // absent) is the pre-sweep availability exactly — the twin.
+    // DestinationRouting (ADR-048; contract §3): SetResearchTarget may name any incomplete node; the target row is the
+    // persistent DESTINATION and each step funds the planner's CURRENT node (ResearchRoutePlanner). false
+    // (tuning.destinationRouting absent) is the available-only target exactly — the twin.
 }
 
 /// <summary>
@@ -156,8 +162,13 @@ public sealed class ResearchNode
     public required string Id { get; init; }
     public required string Name { get; init; }
     public required string Description { get; init; }
-    /// <summary>Age relevance — METADATA ONLY (D-044 R13, law 4): nothing gates on it.</summary>
+    /// <summary>The node's content Age label (A1..A9). D-044 R13 (research never reads Age) is superseded for ONE
+    /// predicate only (tranche-2 contract §9, D-063; ADR-048): the Age sweep (<see cref="ResearchQuery.SweepSatisfied"/>,
+    /// switch tuning.ageSweep) reads this content label — never the polity's Age and never a date (law 4). Nothing else
+    /// gates on it.</summary>
     public required string Age { get; init; }
+    /// <summary>ADR-048: <see cref="Age"/> as its number 1..9 (the loader admits only A1..A9).</summary>
+    public int AgeNumber => Age[1] - '0';
     public required bool Frontier { get; init; }
     public required string? Emerged { get; init; }
     public required ResearchTree Tree { get; init; }
@@ -835,7 +846,7 @@ public static class ResearchContentLoader
         }
         return new ResearchTuning(rp.Coefficient, rp.Exponent, anchors, t.EffectiveCostFloorFraction,
             t.AccelerationCreditCeilingFraction, new ResearchCostModel(cm.U, cm.K), t.CityStatePaceFraction ?? 0.0, civics,
-            t.AiCheapestOrRoute ?? false, t.AiSupportingMilestones ?? false);
+            t.AiCheapestOrRoute ?? false, t.AiSupportingMilestones ?? false, t.AgeSweep ?? false, t.DestinationRouting ?? false);
     }
 
     private static readonly (string Name, double Min, double Max)[] CostFactorRanges =
@@ -1434,7 +1445,9 @@ public static class ResearchContentLoader
         [property: JsonPropertyName("cityStatePaceFraction")] double? CityStatePaceFraction = null,
         [property: JsonPropertyName("civicsPoints")] CivicsPointsJson? CivicsPoints = null,
         [property: JsonPropertyName("aiCheapestOrRoute")] bool? AiCheapestOrRoute = null,
-        [property: JsonPropertyName("aiSupportingMilestones")] bool? AiSupportingMilestones = null);
+        [property: JsonPropertyName("aiSupportingMilestones")] bool? AiSupportingMilestones = null,
+        [property: JsonPropertyName("ageSweep")] bool? AgeSweep = null,
+        [property: JsonPropertyName("destinationRouting")] bool? DestinationRouting = null);
 
     private sealed record CivicsPointsJson(
         [property: JsonPropertyName("enabled"), JsonRequired] bool Enabled,

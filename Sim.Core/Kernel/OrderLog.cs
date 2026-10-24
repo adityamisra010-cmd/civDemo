@@ -91,6 +91,14 @@ public enum OrderKind
     /// precedent); an order naming an unavailable node changes nothing. DELIVERY: an
     /// order stamped turn t retargets the step t → t+1, and that step's RP already
     /// goes to the new target.
+    ///
+    /// ADR-048 (tranche-2 contract §3): with research.json tuning.destinationRouting the order names a DESTINATION —
+    /// ANY incomplete node, available or not (an order naming a completed or unknown node still changes nothing). The
+    /// target row is the persistent destination (no new table; saves keep their shape). Each step the lane funds the
+    /// destination when it is available, else the CURRENT node of its route (ResearchRoutePlanner via
+    /// ResearchQuery.Route); the row is removed when the DESTINATION completes. -1 and -2 still clear a lane (cancel the
+    /// destination). DELIVERY is unchanged: stamped turn t, the step t → t+1 already funds the new destination's current
+    /// node. With destinationRouting off (or absent) the available-only rule above holds exactly (the twin).
     /// </summary>
     SetResearchTarget = 6,
 
