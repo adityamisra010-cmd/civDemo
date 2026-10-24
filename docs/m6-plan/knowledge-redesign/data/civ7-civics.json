@@ -1,0 +1,7708 @@
+{
+ "meta": {
+  "game": "Sid Meier's Civilization VII",
+  "dataSnapshot": "mateicanavra/civ7-official-resources @ 9f6b93e129d47faf96ed6814f652560e7b7573d0 (snapshot 2026-10-01, includes all DLC folders in repo)",
+  "provenance": "All content parsed from shipped game XML (Base/modules/* and DLC/*/modules/*) and en_us text; Delete rows applied. Mastery = UnlockDepth=2 rows of the same node. unlock condition fields (requiredTraitType=civ-only, requiredGovernmentType=government-gated policy) copied from data. Interpretive notes marked secondary.",
+  "counts": {
+   "antiquity": {
+    "nodes": 14,
+    "nodesExclFutureCivic": 13,
+    "masteries": 4,
+    "nodesPlusMasteries": 18,
+    "mainTreeNodes": 14,
+    "branchNodes": 0
+   },
+   "exploration": {
+    "nodes": 15,
+    "nodesExclFutureCivic": 14,
+    "masteries": 6,
+    "nodesPlusMasteries": 21,
+    "mainTreeNodes": 13,
+    "branchNodes": 2
+   },
+   "modern": {
+    "nodes": 19,
+    "nodesExclFutureCivic": 18,
+    "masteries": 8,
+    "nodesPlusMasteries": 27,
+    "mainTreeNodes": 10,
+    "branchNodes": 9
+   }
+  },
+  "notes": [
+   "Civ VII calls slotted cards \"policies\" (common, from civics tree) and \"traditions\" (civ-unique, from unique civics trees); both are rows in the Traditions table; categorisation here: TraitType present => tradition.",
+   "Exploration common tree = TREE_CIVICS_EX_MAIN (13 incl. Future Civic) + TREE_CIVICS_EX_BRANCH_THEOLOGY (Theology, Reformation). Modern = TREE_CIVICS_MO_MAIN (10 incl. Future Civic) + 3 ideology branch trees x 3 nodes.",
+   "testOfTime = trees for the Test of Time mode content (civ-injected Foundation/Hierarchy/Administration, Syncretism, and per-civ Origins/Renaissance/Modernization bridge nodes) - shipped in base data, separate from the standard common tree."
+  ]
+ },
+ "ages": {
+  "antiquity": [
+   {
+    "id": "NODE_CIVIC_AQ_MAIN_CHIEFDOM",
+    "name": "Chiefdom",
+    "tree": "TREE_CIVICS_AQ_MAIN",
+    "cost": 90,
+    "prereqs": [],
+    "prereqNames": [],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_CHARISMATIC_LEADER",
+       "name": "Charismatic Leader"
+      },
+      {
+       "id": "TRADITION_TOOL_MAKING",
+       "name": "Tool Making"
+      }
+     ],
+     "effects": [
+      {
+       "id": "MOD_CODE_OF_LAWS_REVEAL_CIV_CULTURE_TREE"
+      },
+      {
+       "id": "MOD_CODE_OF_LAWS_REVEAL_CIV_CULTURE_TREE_AKSUM",
+       "hidden": true
+      },
+      {
+       "id": "MOD_CODE_OF_LAWS_REVEAL_CIV_CULTURE_TREE_EGYPT",
+       "hidden": true
+      },
+      {
+       "id": "MOD_CODE_OF_LAWS_REVEAL_CIV_CULTURE_TREE_GREECE",
+       "hidden": true
+      },
+      {
+       "id": "MOD_CODE_OF_LAWS_REVEAL_CIV_CULTURE_TREE_HAN",
+       "hidden": true
+      },
+      {
+       "id": "MOD_CODE_OF_LAWS_REVEAL_CIV_CULTURE_TREE_KHMER",
+       "hidden": true
+      },
+      {
+       "id": "MOD_CODE_OF_LAWS_REVEAL_CIV_CULTURE_TREE_MAURYA",
+       "hidden": true
+      },
+      {
+       "id": "MOD_CODE_OF_LAWS_REVEAL_CIV_CULTURE_TREE_MAYA",
+       "hidden": true
+      },
+      {
+       "id": "MOD_CODE_OF_LAWS_REVEAL_CIV_CULTURE_TREE_MISSISSIPPIAN",
+       "hidden": true
+      },
+      {
+       "id": "MOD_CODE_OF_LAWS_REVEAL_CIV_CULTURE_TREE_PERSIA",
+       "hidden": true
+      },
+      {
+       "id": "MOD_CODE_OF_LAWS_REVEAL_CIV_CULTURE_TREE_ROME",
+       "hidden": true
+      },
+      {
+       "id": "MOD_REVEAL_CIV_CULTURE_TREE_TEST_OF_TIME_ANTIQUITY",
+       "hidden": true
+      },
+      {
+       "id": "MOD_REVEAL_CIV_CULTURE_TREE_ASSYRIA",
+       "hidden": true,
+       "source": "DLC/assyria"
+      },
+      {
+       "id": "MOD_REVEAL_CIV_CULTURE_TREE_BABYLON",
+       "hidden": true,
+       "source": "DLC/babylon"
+      },
+      {
+       "id": "MOD_REVEAL_CIV_CULTURE_TREE_CARTHAGE",
+       "hidden": true,
+       "source": "DLC/carthage"
+      },
+      {
+       "id": "MOD_REVEAL_CIV_CULTURE_TREE_GAUL",
+       "hidden": true,
+       "source": "DLC/gaul"
+      },
+      {
+       "id": "MOD_REVEAL_CIV_CULTURE_TREE_HEIAN",
+       "hidden": true,
+       "source": "DLC/heian"
+      },
+      {
+       "id": "MOD_REVEAL_CIV_CULTURE_TREE_SILLA",
+       "hidden": true,
+       "source": "DLC/silla"
+      },
+      {
+       "id": "MOD_CODE_OF_LAWS_REVEAL_CIV_CULTURE_TREE_TONGA",
+       "hidden": true,
+       "source": "DLC/tonga"
+      }
+     ]
+    },
+    "masteries": [],
+    "definedIn": "Base/modules/age-antiquity/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_AQ_MAIN_MYSTICISM",
+    "name": "Mysticism",
+    "tree": "TREE_CIVICS_AQ_MAIN",
+    "cost": 125,
+    "prereqs": [
+     "NODE_CIVIC_AQ_MAIN_CHIEFDOM"
+    ],
+    "prereqNames": [
+     "Chiefdom"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_PRIESTHOOD",
+       "name": "Priesthood"
+      }
+     ],
+     "buildings": [
+      {
+       "id": "BUILDING_ALTAR",
+       "name": "Altar"
+      }
+     ],
+     "effects": [
+      {
+       "id": "MOD_PANTHEON_UNLOCK"
+      }
+     ]
+    },
+    "masteries": [
+     {
+      "id": "NODE_CIVIC_AQ_MAIN_MYSTICISM_MASTERY",
+      "name": "Mysticism Mastery",
+      "depth": 2,
+      "unlocks": {
+       "policies": [
+        {
+         "id": "TRADITION_CLAN_NETWORKS",
+         "name": "Clan Networks"
+        }
+       ],
+       "wonders": [
+        {
+         "id": "WONDER_GREAT_STELE",
+         "name": "Great Stele"
+        }
+       ]
+      }
+     }
+    ],
+    "definedIn": "Base/modules/age-antiquity/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_AQ_MAIN_DISCIPLINE",
+    "name": "Discipline",
+    "tree": "TREE_CIVICS_AQ_MAIN",
+    "cost": 125,
+    "prereqs": [
+     "NODE_CIVIC_AQ_MAIN_CHIEFDOM"
+    ],
+    "prereqNames": [
+     "Chiefdom"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_SURVEY",
+       "name": "Survey"
+      }
+     ],
+     "wonders": [
+      {
+       "id": "WONDER_DUR_SHARRUKIN",
+       "name": "Dur-Sharrukin"
+      }
+     ],
+     "units": [
+      {
+       "id": "UNIT_ARMY_COMMANDER",
+       "name": "Army Commander"
+      },
+      {
+       "id": "UNIT_HAZARAPATIS",
+       "name": "Hazarapatis",
+       "requiredTraitType": "TRAIT_PERSIA"
+      },
+      {
+       "id": "UNIT_LEGATUS",
+       "name": "Legatus",
+       "requiredTraitType": "TRAIT_ROME"
+      },
+      {
+       "id": "UNIT_TURTANU",
+       "name": "Turtanu",
+       "requiredTraitType": "TRAIT_ASSYRIA",
+       "source": "DLC/assyria"
+      },
+      {
+       "id": "UNIT_FLEET_COMMANDER",
+       "name": "Fleet Commander",
+       "requiredTraitType": "TRAIT_LEADER_YI_SUN_SIN_ABILITY",
+       "source": "DLC/yi-sun-sin"
+      }
+     ],
+     "effects": [
+      {
+       "id": "MOD_DISCIPLINE_FREE_COMMANDER"
+      }
+     ]
+    },
+    "masteries": [
+     {
+      "id": "NODE_CIVIC_AQ_MAIN_DISCIPLINE_MASTERY",
+      "name": "Discipline Mastery",
+      "depth": 2,
+      "unlocks": {
+       "policies": [
+        {
+         "id": "TRADITION_HONOR",
+         "name": "Honor"
+        }
+       ],
+       "wonders": [
+        {
+         "id": "WONDER_GATE_OF_ALL_NATIONS",
+         "name": "Gate of All Nations"
+        }
+       ]
+      }
+     }
+    ],
+    "definedIn": "Base/modules/age-antiquity/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_AQ_MAIN_PUBLIC_LIFE",
+    "name": "Public Life",
+    "tree": "TREE_CIVICS_AQ_MAIN",
+    "cost": 245,
+    "prereqs": [
+     "NODE_CIVIC_AQ_MAIN_MYSTICISM"
+    ],
+    "prereqNames": [
+     "Mysticism"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_CITY_GUARD",
+       "name": "City Guard"
+      },
+      {
+       "id": "TRADITION_ANNONA",
+       "name": "Annona",
+       "requiredGovernmentType": "GOVERNMENT_OLIGARCHY"
+      }
+     ],
+     "wonders": [
+      {
+       "id": "WONDER_ORACLE",
+       "name": "Oracle"
+      }
+     ]
+    },
+    "masteries": [],
+    "definedIn": "Base/modules/age-antiquity/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_AQ_MAIN_CODE_OF_LAWS",
+    "name": "Code of Laws",
+    "tree": "TREE_CIVICS_AQ_MAIN",
+    "cost": 245,
+    "prereqs": [
+     "NODE_CIVIC_AQ_MAIN_MYSTICISM",
+     "NODE_CIVIC_AQ_MAIN_DISCIPLINE"
+    ],
+    "prereqNames": [
+     "Mysticism",
+     "Discipline"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_ORATORY",
+       "name": "Oratory"
+      }
+     ],
+     "wonders": [
+      {
+       "id": "WONDER_PETRA",
+       "name": "Petra"
+      }
+     ],
+     "effects": [
+      {
+       "id": "MOD_TOT_TRADITION_SLOT"
+      },
+      {
+       "id": "MOD_AQ_FREE_MERCHANT"
+      }
+     ],
+     "units": [
+      {
+       "id": "UNIT_MERCHANT",
+       "name": "Merchant"
+      },
+      {
+       "id": "UNIT_VAISHYA",
+       "name": "Vaishya",
+       "requiredTraitType": "TRAIT_KHMER"
+      },
+      {
+       "id": "UNIT_TAMKARU",
+       "name": "Tamkāru",
+       "requiredTraitType": "TRAIT_BABYLON",
+       "source": "DLC/babylon"
+      },
+      {
+       "id": "UNIT_SANGDAEDEUNG",
+       "name": "Sangdaedeung",
+       "requiredTraitType": "TRAIT_SILLA",
+       "source": "DLC/silla"
+      }
+     ],
+     "diplomaticActions": [
+      {
+       "id": "DIPLOMACY_ACTION_IMPROVE_TRADE_RELATIONS",
+       "name": "Improve Trade Relations"
+      }
+     ]
+    },
+    "masteries": [
+     {
+      "id": "NODE_CIVIC_AQ_MAIN_CODE_OF_LAWS_MASTERY",
+      "name": "Code of Laws Mastery",
+      "depth": 2,
+      "unlocks": {
+       "policies": [
+        {
+         "id": "TRADITION_ETHICS",
+         "name": "Ethics"
+        }
+       ],
+       "wonders": [
+        {
+         "id": "WONDER_MUNDO_PERDIDO",
+         "name": "Mundo Perdido"
+        },
+        {
+         "id": "WONDER_HOO_DO_HALL",
+         "name": "Hoo-do",
+         "source": "DLC/heian"
+        }
+       ],
+       "diplomaticActions": [
+        {
+         "id": "DIPLOMACY_ACTION_ESPIONAGE_STEAL_CIVIC",
+         "name": "Steal Government Secrets"
+        }
+       ]
+      }
+     }
+    ],
+    "definedIn": "Base/modules/age-antiquity/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_AQ_MAIN_TACTICS",
+    "name": "Tactics",
+    "tree": "TREE_CIVICS_AQ_MAIN",
+    "cost": 245,
+    "prereqs": [
+     "NODE_CIVIC_AQ_MAIN_DISCIPLINE"
+    ],
+    "prereqNames": [
+     "Discipline"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_DRILLS",
+       "name": "Drills"
+      },
+      {
+       "id": "TRADITION_COMMANDERIES",
+       "name": "Commanderies",
+       "requiredGovernmentType": "GOVERNMENT_DESPOTISM"
+      }
+     ],
+     "wonders": [
+      {
+       "id": "WONDER_TERRACOTTA_ARMY",
+       "name": "Terracotta Army"
+      }
+     ]
+    },
+    "masteries": [],
+    "definedIn": "Base/modules/age-antiquity/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_AQ_MAIN_ENTERTAINMENT",
+    "name": "Entertainment",
+    "tree": "TREE_CIVICS_AQ_MAIN",
+    "cost": 450,
+    "prereqs": [
+     "NODE_CIVIC_AQ_MAIN_PUBLIC_LIFE"
+    ],
+    "prereqNames": [
+     "Public Life"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_RITES_AND_RITUALS",
+       "name": "Rites and Rituals"
+      }
+     ],
+     "wonders": [
+      {
+       "id": "WONDER_COLOSSEUM",
+       "name": "Colosseum"
+      }
+     ],
+     "effects": [
+      {
+       "id": "MOD_AQ_SETTLEMENT_CAP_INCREASE"
+      },
+      {
+       "id": "MOD_AQ_ENTERTAINMENT_CELEBRATION_VP"
+      },
+      {
+       "id": "TRAIT_MOD_REVOLUCION_AQ_CELEBRATION_TOURISM",
+       "requiredTraitType": "TRAIT_MEXICO",
+       "hidden": true
+      }
+     ]
+    },
+    "masteries": [],
+    "definedIn": "Base/modules/age-antiquity/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_AQ_MAIN_CITIZENSHIP",
+    "name": "Citizenship",
+    "tree": "TREE_CIVICS_AQ_MAIN",
+    "cost": 450,
+    "prereqs": [
+     "NODE_CIVIC_AQ_MAIN_CODE_OF_LAWS"
+    ],
+    "prereqNames": [
+     "Code of Laws"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_CASTES",
+       "name": "Castes"
+      },
+      {
+       "id": "TRADITION_DRAMA_AND_POETRY",
+       "name": "Drama and Poetry"
+      },
+      {
+       "id": "TRADITION_YAXCHE",
+       "name": "Yaxche",
+       "requiredGovernmentType": "GOVERNMENT_CLASSICAL_REPUBLIC"
+      }
+     ],
+     "wonders": [
+      {
+       "id": "WONDER_EMILE_BELL",
+       "name": "Emile Bell"
+      }
+     ],
+     "projects": [
+      {
+       "id": "PROJECT_CITY_CULTURE_PROJECT",
+       "name": "Cultural Festival"
+      }
+     ]
+    },
+    "masteries": [
+     {
+      "id": "NODE_CIVIC_AQ_MAIN_CITIZENSHIP_MASTERY",
+      "name": "Citizenship Mastery",
+      "depth": 2,
+      "unlocks": {
+       "policies": [
+        {
+         "id": "TRADITION_HOSPITALITY",
+         "name": "Hospitality"
+        }
+       ],
+       "wonders": [
+        {
+         "id": "WONDER_WEIYANG_PALACE",
+         "name": "Weiyang Palace"
+        }
+       ],
+       "diplomaticActions": [
+        {
+         "id": "DIPLOMACY_ACTION_WONDER_CONSTRUCTION",
+         "name": "Wonder Construction"
+        }
+       ]
+      }
+     }
+    ],
+    "definedIn": "Base/modules/age-antiquity/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_AQ_MAIN_ORG_MILITARY",
+    "name": "Organized Military",
+    "tree": "TREE_CIVICS_AQ_MAIN",
+    "cost": 450,
+    "prereqs": [
+     "NODE_CIVIC_AQ_MAIN_TACTICS"
+    ],
+    "prereqNames": [
+     "Tactics"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_CONSCRIPTION",
+       "name": "Conscription"
+      },
+      {
+       "id": "TRADITION_FAJIA",
+       "name": "Fajia",
+       "requiredGovernmentType": "GOVERNMENT_DESPOTISM"
+      }
+     ],
+     "wonders": [
+      {
+       "id": "WONDER_MAUSOLEUM_OF_THEODORIC",
+       "name": "Mausoleum of Theodoric"
+      }
+     ],
+     "effects": [
+      {
+       "id": "MOD_AQ_SETTLEMENT_CAP_INCREASE"
+      }
+     ]
+    },
+    "masteries": [],
+    "definedIn": "Base/modules/age-antiquity/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_AQ_MAIN_LITERACY",
+    "name": "Literacy",
+    "tree": "TREE_CIVICS_AQ_MAIN",
+    "cost": 600,
+    "prereqs": [
+     "NODE_CIVIC_AQ_MAIN_CITIZENSHIP"
+    ],
+    "prereqNames": [
+     "Citizenship"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_LITERATURE",
+       "name": "Literature"
+      }
+     ],
+     "wonders": [
+      {
+       "id": "WONDER_NALANDA",
+       "name": "Nalanda"
+      }
+     ],
+     "effects": [
+      {
+       "id": "MOD_AQ_CODEX_CIVIC"
+      },
+      {
+       "id": "MOD_AQ_LITERACY_SCIENCE_VP"
+      }
+     ]
+    },
+    "masteries": [],
+    "definedIn": "Base/modules/age-antiquity/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_AQ_MAIN_SKILLED_TRADES",
+    "name": "Skilled Trades",
+    "tree": "TREE_CIVICS_AQ_MAIN",
+    "cost": 600,
+    "prereqs": [
+     "NODE_CIVIC_AQ_MAIN_CITIZENSHIP"
+    ],
+    "prereqNames": [
+     "Citizenship"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_COINAGE",
+       "name": "Coinage"
+      },
+      {
+       "id": "TRADITION_HANGJIAO",
+       "name": "Hangjiao",
+       "requiredGovernmentType": "GOVERNMENT_OLIGARCHY"
+      }
+     ],
+     "wonders": [
+      {
+       "id": "WONDER_SANCHI_STUPA",
+       "name": "Sanchi Stupa"
+      }
+     ],
+     "effects": [
+      {
+       "id": "MOD_AQ_SKILLED_TRADE_GDP"
+      }
+     ]
+    },
+    "masteries": [],
+    "definedIn": "Base/modules/age-antiquity/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_AQ_MAIN_PHILOSOPHY",
+    "name": "Philosophy",
+    "tree": "TREE_CIVICS_AQ_MAIN",
+    "cost": 750,
+    "prereqs": [
+     "NODE_CIVIC_AQ_MAIN_LITERACY"
+    ],
+    "prereqNames": [
+     "Literacy"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_SCHOLARS",
+       "name": "Scholars"
+      },
+      {
+       "id": "TRADITION_POIEISIS",
+       "name": "Poiesis",
+       "requiredGovernmentType": "GOVERNMENT_CLASSICAL_REPUBLIC"
+      }
+     ],
+     "wonders": [
+      {
+       "id": "WONDER_ANGKOR_WAT",
+       "name": "Angkor Wat"
+      }
+     ]
+    },
+    "masteries": [],
+    "definedIn": "Base/modules/age-antiquity/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_AQ_MAIN_COMMERCE",
+    "name": "Commerce",
+    "tree": "TREE_CIVICS_AQ_MAIN",
+    "cost": 750,
+    "prereqs": [
+     "NODE_CIVIC_AQ_MAIN_SKILLED_TRADES"
+    ],
+    "prereqNames": [
+     "Skilled Trades"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_COMMODITIES",
+       "name": "Commodities"
+      },
+      {
+       "id": "TRADITION_MEDICINE",
+       "name": "Medicine"
+      }
+     ],
+     "wonders": [
+      {
+       "id": "WONDER_MONKS_MOUND",
+       "name": "Monks Mound"
+      }
+     ]
+    },
+    "masteries": [],
+    "definedIn": "Base/modules/age-antiquity/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_AQ_MAIN_FUTURE_CIVIC",
+    "name": "Future Civic",
+    "tree": "TREE_CIVICS_AQ_MAIN",
+    "cost": 1000,
+    "prereqs": [
+     "NODE_CIVIC_AQ_MAIN_ENTERTAINMENT",
+     "NODE_CIVIC_AQ_MAIN_PHILOSOPHY",
+     "NODE_CIVIC_AQ_MAIN_COMMERCE",
+     "NODE_CIVIC_AQ_MAIN_ORG_MILITARY"
+    ],
+    "prereqNames": [
+     "Entertainment",
+     "Philosophy",
+     "Commerce",
+     "Organized Military"
+    ],
+    "repeatable": true,
+    "repeatCost": {
+     "model": "COST_PROGRESSION_PREVIOUS_COPIES",
+     "param1": "1000"
+    },
+    "unlocks": {
+     "effects": [
+      {
+       "id": "MOD_AQ_FUTURE_CIVIC_ATTRIBUTE"
+      },
+      {
+       "id": "MOD_AQ_FUTURE_CIVIC_BOOST"
+      },
+      {
+       "id": "MOD_AQ_FUTURE_CIVIC_AGE_PROGRESS"
+      },
+      {
+       "id": "MOD_AQ_FUTURE_CIVIC_CULTURE_VP"
+      }
+     ]
+    },
+    "masteries": [],
+    "definedIn": "Base/modules/age-antiquity/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   }
+  ],
+  "exploration": [
+   {
+    "id": "NODE_CIVIC_EX_MAIN_ECONOMICS",
+    "name": "Economics",
+    "tree": "TREE_CIVICS_EX_MAIN",
+    "cost": 700,
+    "prereqs": [],
+    "prereqNames": [],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_MARITIME_LAW",
+       "name": "Maritime Law"
+      }
+     ],
+     "wonders": [
+      {
+       "id": "WONDER_GRAND_BAZAAR",
+       "name": "Grand Bazaar",
+       "source": "DLC/asia-wonders"
+      }
+     ]
+    },
+    "masteries": [],
+    "definedIn": "Base/modules/age-exploration/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_EX_MAIN_PIETY",
+    "name": "Piety",
+    "tree": "TREE_CIVICS_EX_MAIN",
+    "cost": 700,
+    "prereqs": [],
+    "prereqNames": [],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_COMMUNE",
+       "name": "Commune"
+      }
+     ],
+     "buildings": [
+      {
+       "id": "BUILDING_TEMPLE",
+       "name": "Temple"
+      }
+     ],
+     "wonders": [
+      {
+       "id": "WONDER_WAT_XIENG_THONG",
+       "name": "Wat Xieng Thong",
+       "source": "DLC/asia-wonders"
+      }
+     ]
+    },
+    "masteries": [],
+    "definedIn": "Base/modules/age-exploration/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_EX_MAIN_MERCANTILISM",
+    "name": "Mercantilism",
+    "tree": "TREE_CIVICS_EX_MAIN",
+    "cost": 900,
+    "prereqs": [
+     "NODE_CIVIC_EX_MAIN_ECONOMICS"
+    ],
+    "prereqNames": [
+     "Economics"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_TRADE_WINDS",
+       "name": "Trade Winds"
+      },
+      {
+       "id": "TRADITION_PRIMITIVE_ACCUMULATION",
+       "name": "Primitive Accumulation",
+       "requiredGovernmentType": "GOVERNMENT_PLUTOCRACY"
+      }
+     ],
+     "wonders": [
+      {
+       "id": "WONDER_TOMB_OF_ASKIA",
+       "name": "Tomb of Askia"
+      }
+     ]
+    },
+    "masteries": [],
+    "definedIn": "Base/modules/age-exploration/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_EX_MAIN_AUTHORITY",
+    "name": "Authority",
+    "tree": "TREE_CIVICS_EX_MAIN",
+    "cost": 900,
+    "prereqs": [
+     "NODE_CIVIC_EX_MAIN_ECONOMICS",
+     "NODE_CIVIC_EX_MAIN_PIETY"
+    ],
+    "prereqNames": [
+     "Economics",
+     "Piety"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_VASSALAGE",
+       "name": "Vassalage"
+      }
+     ],
+     "effects": [
+      {
+       "id": "MOD_TOT_TRADITION_SLOT"
+      }
+     ],
+     "diplomaticActions": [
+      {
+       "id": "DIPLOMACY_ACTION_COUNTER_SPY",
+       "name": "Counter Spy"
+      }
+     ]
+    },
+    "masteries": [
+     {
+      "id": "NODE_CIVIC_EX_MAIN_AUTHORITY_MASTERY",
+      "name": "Authority Mastery",
+      "depth": 2,
+      "unlocks": {
+       "policies": [
+        {
+         "id": "TRADITION_LEVIES",
+         "name": "Levies"
+        }
+       ],
+       "wonders": [
+        {
+         "id": "WONDER_ERDENE_ZUU",
+         "name": "Erdene Zuu"
+        }
+       ]
+      }
+     }
+    ],
+    "definedIn": "Base/modules/age-exploration/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_EX_MAIN_INSPIRATION",
+    "name": "Inspiration",
+    "tree": "TREE_CIVICS_EX_MAIN",
+    "cost": 900,
+    "prereqs": [
+     "NODE_CIVIC_EX_MAIN_PIETY"
+    ],
+    "prereqNames": [
+     "Piety"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_RENAISSANCE",
+       "name": "Renaissance"
+      }
+     ],
+     "wonders": [
+      {
+       "id": "WONDER_HALE_O_KEAWE",
+       "name": "Hale o Keawe"
+      },
+      {
+       "id": "WONDER_BUSEOKSA",
+       "name": "Buseoksa",
+       "source": "DLC/goryeo"
+      }
+     ]
+    },
+    "masteries": [],
+    "definedIn": "Base/modules/age-exploration/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_EX_MAIN_COLONIALISM",
+    "name": "Colonialism",
+    "tree": "TREE_CIVICS_EX_MAIN",
+    "cost": 1300,
+    "prereqs": [
+     "NODE_CIVIC_EX_MAIN_MERCANTILISM"
+    ],
+    "prereqNames": [
+     "Mercantilism"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_CHARTERS",
+       "name": "Charters"
+      },
+      {
+       "id": "TRADITION_COLONIAL_SURPLUS",
+       "name": "Colonial Surplus"
+      }
+     ]
+    },
+    "masteries": [
+     {
+      "id": "NODE_CIVIC_EX_MAIN_COLONIALISM_MASTERY",
+      "name": "Colonialism Mastery",
+      "depth": 2,
+      "unlocks": {
+       "wonders": [
+        {
+         "id": "WONDER_EL_ESCORIAL",
+         "name": "El Escorial"
+        }
+       ],
+       "effects": [
+        {
+         "id": "MOD_EX_SETTLEMENT_CAP_INCREASE"
+        },
+        {
+         "id": "MOD_EX_RELIC_REDUX",
+         "notTraitType": "TRAIT_ASSYRIA",
+         "source": "DLC/assyria"
+        }
+       ]
+      }
+     }
+    ],
+    "definedIn": "Base/modules/age-exploration/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_EX_MAIN_BUREAUCRACY",
+    "name": "Bureaucracy",
+    "tree": "TREE_CIVICS_EX_MAIN",
+    "cost": 1300,
+    "prereqs": [
+     "NODE_CIVIC_EX_MAIN_AUTHORITY"
+    ],
+    "prereqNames": [
+     "Authority"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_CONSTITUTION",
+       "name": "Constitution"
+      }
+     ],
+     "wonders": [
+      {
+       "id": "WONDER_BOROBUDUR",
+       "name": "Borobudur"
+      }
+     ]
+    },
+    "masteries": [],
+    "definedIn": "Base/modules/age-exploration/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_EX_MAIN_DIPLOMATIC_SERVICE",
+    "name": "Diplomatic Service",
+    "tree": "TREE_CIVICS_EX_MAIN",
+    "cost": 1300,
+    "prereqs": [
+     "NODE_CIVIC_EX_MAIN_AUTHORITY"
+    ],
+    "prereqNames": [
+     "Authority"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_HEQIN",
+       "name": "Heqin"
+      }
+     ],
+     "wonders": [
+      {
+       "id": "WONDER_BRIHADEESWARAR_TEMPLE",
+       "name": "Brihadeeswarar Temple"
+      }
+     ]
+    },
+    "masteries": [],
+    "definedIn": "Base/modules/age-exploration/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_EX_MAIN_SOCIETY",
+    "name": "Society",
+    "tree": "TREE_CIVICS_EX_MAIN",
+    "cost": 1300,
+    "prereqs": [
+     "NODE_CIVIC_EX_MAIN_INSPIRATION"
+    ],
+    "prereqNames": [
+     "Inspiration"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_PATRONAGE",
+       "name": "Patronage"
+      },
+      {
+       "id": "TRADITION_UPOSATHA",
+       "name": "Uposatha"
+      },
+      {
+       "id": "TRADITION_MARCHER_LORDS",
+       "name": "Marcher Lords",
+       "requiredGovernmentType": "GOVERNMENT_FEUDAL_MONARCHY"
+      }
+     ]
+    },
+    "masteries": [
+     {
+      "id": "NODE_CIVIC_EX_MAIN_SOCIETY_MASTERY",
+      "name": "Society Mastery",
+      "depth": 2,
+      "unlocks": {
+       "wonders": [
+        {
+         "id": "WONDER_HOUSE_OF_WISDOM",
+         "name": "House of Wisdom"
+        },
+        {
+         "id": "WONDER_REYKHOLT",
+         "name": "Reykjaholt",
+         "source": "DLC/iceland"
+        }
+       ],
+       "effects": [
+        {
+         "id": "MOD_EX_SETTLEMENT_CAP_INCREASE"
+        },
+        {
+         "id": "MOD_EX_RELIC_REDUX",
+         "notTraitType": "TRAIT_ASSYRIA",
+         "source": "DLC/assyria"
+        }
+       ],
+       "diplomaticActions": [
+        {
+         "id": "DIPLOMACY_ACTION_ESPIONAGE_SABOTAGE_WORKERS",
+         "name": "Sabotage Specialist Morale"
+        }
+       ]
+      }
+     }
+    ],
+    "definedIn": "Base/modules/age-exploration/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_EX_MAIN_IMPERIALISM",
+    "name": "Imperialism",
+    "tree": "TREE_CIVICS_EX_MAIN",
+    "cost": 2100,
+    "prereqs": [
+     "NODE_CIVIC_EX_MAIN_COLONIALISM",
+     "NODE_CIVIC_EX_MAIN_BUREAUCRACY"
+    ],
+    "prereqNames": [
+     "Colonialism",
+     "Bureaucracy"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_INDENTURE",
+       "name": "Indenture"
+      },
+      {
+       "id": "TRADITION_TARIFFS",
+       "name": "Tariffs"
+      },
+      {
+       "id": "TRADITION_TEQUITL",
+       "name": "Tequitl",
+       "requiredGovernmentType": "GOVERNMENT_PLUTOCRACY"
+      }
+     ],
+     "effects": [
+      {
+       "id": "MOD_EX_SETTLEMENT_CAP_INCREASE"
+      }
+     ]
+    },
+    "masteries": [
+     {
+      "id": "NODE_CIVIC_EX_MAIN_IMPERIALISM_MASTERY",
+      "name": "Imperialism Mastery",
+      "depth": 2,
+      "unlocks": {
+       "policies": [
+        {
+         "id": "TRADITION_COMMISSIONED_OFFICERS",
+         "name": "Commissioned Officers"
+        },
+        {
+         "id": "TRADITION_METROPOLE",
+         "name": "Metropole"
+        }
+       ],
+       "wonders": [
+        {
+         "id": "WONDER_WHITE_TOWER",
+         "name": "White Tower"
+        }
+       ],
+       "effects": [
+        {
+         "id": "MOD_EX_RESOURCE_INSTANCE_COUNT_IMPERIALISM"
+        }
+       ]
+      }
+     }
+    ],
+    "definedIn": "Base/modules/age-exploration/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_EX_MAIN_SOVEREIGNTY",
+    "name": "Sovereignty",
+    "tree": "TREE_CIVICS_EX_MAIN",
+    "cost": 2100,
+    "prereqs": [
+     "NODE_CIVIC_EX_MAIN_BUREAUCRACY",
+     "NODE_CIVIC_EX_MAIN_DIPLOMATIC_SERVICE"
+    ],
+    "prereqNames": [
+     "Bureaucracy",
+     "Diplomatic Service"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_DIVINE_RIGHT",
+       "name": "Divine Right"
+      },
+      {
+       "id": "TRADITION_REGULARS",
+       "name": "Regulars"
+      },
+      {
+       "id": "TRADITION_MAHAKRUNG",
+       "name": "Mahakrung",
+       "requiredGovernmentType": "GOVERNMENT_FEUDAL_MONARCHY"
+      }
+     ],
+     "effects": [
+      {
+       "id": "MOD_EX_SETTLEMENT_CAP_INCREASE"
+      }
+     ],
+     "wonders": [
+      {
+       "id": "WONDER_GLOBE_THEATRE",
+       "name": "Globe Theatre",
+       "source": "DLC/england"
+      }
+     ]
+    },
+    "masteries": [
+     {
+      "id": "NODE_CIVIC_EX_MAIN_SOVEREIGNTY_MASTERY",
+      "name": "Sovereignty Mastery",
+      "depth": 2,
+      "unlocks": {
+       "policies": [
+        {
+         "id": "TRADITION_DE_FACTO",
+         "name": "De Facto"
+        },
+        {
+         "id": "TRADITION_DE_JURE",
+         "name": "De Jure"
+        }
+       ],
+       "effects": [
+        {
+         "id": "MOD_EX_RELIC_REDUX",
+         "notTraitType": "TRAIT_ASSYRIA",
+         "source": "DLC/assyria"
+        }
+       ]
+      }
+     }
+    ],
+    "definedIn": "Base/modules/age-exploration/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_EX_MAIN_SOCIAL_CLASS",
+    "name": "Social Class",
+    "tree": "TREE_CIVICS_EX_MAIN",
+    "cost": 2100,
+    "prereqs": [
+     "NODE_CIVIC_EX_MAIN_DIPLOMATIC_SERVICE",
+     "NODE_CIVIC_EX_MAIN_SOCIETY"
+    ],
+    "prereqNames": [
+     "Diplomatic Service",
+     "Society"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_CHIVALRY",
+       "name": "Chivalry"
+      },
+      {
+       "id": "TRADITION_ENLIGHTENMENT",
+       "name": "Enlightenment"
+      }
+     ],
+     "effects": [
+      {
+       "id": "MOD_EX_SETTLEMENT_CAP_INCREASE"
+      },
+      {
+       "id": "MOD_EX_SOCIAL_CLASS_SCIENCE_VP"
+      }
+     ]
+    },
+    "masteries": [
+     {
+      "id": "NODE_CIVIC_EX_MAIN_SOCIAL_CLASS_MASTERY",
+      "name": "Social Class Mastery",
+      "depth": 2,
+      "unlocks": {
+       "policies": [
+        {
+         "id": "TRADITION_BOURGEOISIE",
+         "name": "Bourgeoisie"
+        },
+        {
+         "id": "TRADITION_YEOMANRY",
+         "name": "Yeomanry"
+        }
+       ],
+       "wonders": [
+        {
+         "id": "WONDER_NOTRE_DAME",
+         "name": "Notre Dame"
+        }
+       ],
+       "effects": [
+        {
+         "id": "MOD_EX_RESOURCE_INSTANCE_COUNT_SOCIAL_CLASS"
+        }
+       ]
+      }
+     }
+    ],
+    "definedIn": "Base/modules/age-exploration/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_EX_MAIN_FUTURE_CIVIC",
+    "name": "Future Civic",
+    "tree": "TREE_CIVICS_EX_MAIN",
+    "cost": 3000,
+    "prereqs": [
+     "NODE_CIVIC_EX_MAIN_IMPERIALISM",
+     "NODE_CIVIC_EX_MAIN_SOVEREIGNTY",
+     "NODE_CIVIC_EX_MAIN_SOCIAL_CLASS"
+    ],
+    "prereqNames": [
+     "Imperialism",
+     "Sovereignty",
+     "Social Class"
+    ],
+    "repeatable": true,
+    "repeatCost": {
+     "model": "COST_PROGRESSION_PREVIOUS_COPIES",
+     "param1": "3000"
+    },
+    "unlocks": {
+     "effects": [
+      {
+       "id": "MOD_EX_FUTURE_CIVIC_ATTRIBUTE"
+      },
+      {
+       "id": "MOD_EX_FUTURE_CIVIC_BOOST"
+      },
+      {
+       "id": "MOD_EX_FUTURE_CIVIC_AGE_PROGRESS"
+      },
+      {
+       "id": "MOD_EX_FUTURE_CIVIC_CULTURE_VP"
+      }
+     ]
+    },
+    "masteries": [],
+    "definedIn": "Base/modules/age-exploration/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_EX_BRANCH_THEOLOGY",
+    "name": "Theology",
+    "tree": "TREE_CIVICS_EX_BRANCH_THEOLOGY",
+    "cost": 700,
+    "prereqs": [],
+    "prereqNames": [],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_EVANGELISM",
+       "name": "Evangelism"
+      },
+      {
+       "id": "TRADITION_DARGAH",
+       "name": "Dargah",
+       "requiredGovernmentType": "GOVERNMENT_THEOCRACY"
+      },
+      {
+       "id": "TRADITION_VINAYA",
+       "name": "Vinaya",
+       "requiredGovernmentType": "GOVERNMENT_THEOCRACY"
+      }
+     ],
+     "effects": [
+      {
+       "id": "MOD_REFORMATION_BELIEF"
+      },
+      {
+       "id": "MOD_EX_RELIC_REDUX",
+       "notTraitType": "TRAIT_ASSYRIA",
+       "source": "DLC/assyria"
+      }
+     ]
+    },
+    "masteries": [],
+    "definedIn": "Base/modules/age-exploration/data/progression-trees-culture-common.xml",
+    "branch": "Theology",
+    "branchTree": "TREE_CIVICS_EX_BRANCH_THEOLOGY",
+    "branchRevealCondition": "Branch tree revealed by REQSET_CULTURE_TREE_THEOLOGY = player has founded a religion (REQUIREMENT_FOUNDED_NO_RELIGION inverse) AND age is Exploration"
+   },
+   {
+    "id": "NODE_CIVIC_EX_BRANCH_REFORMATION",
+    "name": "Reformation",
+    "tree": "TREE_CIVICS_EX_BRANCH_THEOLOGY",
+    "cost": 900,
+    "prereqs": [
+     "NODE_CIVIC_EX_BRANCH_THEOLOGY"
+    ],
+    "prereqNames": [
+     "Theology"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_RATIONALISM",
+       "name": "Rationalism"
+      },
+      {
+       "id": "TRADITION_RELIGIOUS_ORDERS",
+       "name": "Religious Orders"
+      }
+     ],
+     "diplomaticActions": [
+      {
+       "id": "DIPLOMACY_ACTION_ESPIONAGE_CONVERT_POPULATION",
+       "name": "Convert Population"
+      }
+     ]
+    },
+    "masteries": [],
+    "definedIn": "Base/modules/age-exploration/data/progression-trees-culture-common.xml",
+    "branch": "Theology",
+    "branchTree": "TREE_CIVICS_EX_BRANCH_THEOLOGY",
+    "branchRevealCondition": "Branch tree revealed by REQSET_CULTURE_TREE_THEOLOGY = player has founded a religion (REQUIREMENT_FOUNDED_NO_RELIGION inverse) AND age is Exploration"
+   }
+  ],
+  "modern": [
+   {
+    "id": "NODE_CIVIC_MO_MAIN_MODERNIZATION",
+    "name": "Modernity",
+    "tree": "TREE_CIVICS_MO_MAIN",
+    "cost": 1600,
+    "prereqs": [],
+    "prereqNames": [],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_CIVIL_ENGINEERING",
+       "name": "Civil Engineering"
+      },
+      {
+       "id": "TRADITION_LIVING_STANDARDS",
+       "name": "Living Standards"
+      }
+     ],
+     "wonders": [
+      {
+       "id": "WONDER_HERMITAGE",
+       "name": "Hermitage"
+      }
+     ]
+    },
+    "masteries": [
+     {
+      "id": "NODE_CIVIC_MO_MAIN_MODERNIZATION_MASTERY",
+      "name": "Modernity Mastery",
+      "depth": 2,
+      "unlocks": {
+       "wonders": [
+        {
+         "id": "WONDER_SULTANAHMET_CAMII",
+         "name": "Sultanahmet Camii",
+         "source": "DLC/ottomans"
+        }
+       ]
+      }
+     }
+    ],
+    "definedIn": "Base/modules/age-modern/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_MO_MAIN_NATURAL_HISTORY",
+    "name": "Natural History",
+    "tree": "TREE_CIVICS_MO_MAIN",
+    "cost": 1600,
+    "prereqs": [],
+    "prereqNames": [],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_LAND_HERITAGE",
+       "name": "Land Heritage"
+      }
+     ],
+     "buildings": [
+      {
+       "id": "BUILDING_MUSEUM",
+       "name": "Museum"
+      }
+     ],
+     "wonders": [
+      {
+       "id": "WONDER_MUZIBU_AZAALA_MPANGA",
+       "name": "Muzibu Azaala Mpanga"
+      }
+     ],
+     "units": [
+      {
+       "id": "UNIT_EXPLORER",
+       "name": "Explorer"
+      },
+      {
+       "id": "UNIT_ANTIQUARIAN",
+       "name": "Antiquarian",
+       "requiredTraitType": "TRAIT_GREAT_BRITAIN",
+       "source": "DLC/great-britain"
+      }
+     ],
+     "effects": [
+      {
+       "id": "MOD_MO_OPEN_EXPLORATION_ARCHAEOLOGY"
+      }
+     ]
+    },
+    "masteries": [
+     {
+      "id": "NODE_CIVIC_MO_MAIN_NATURAL_HISTORY_MASTERY",
+      "name": "Natural History Mastery",
+      "depth": 2,
+      "unlocks": {
+       "effects": [
+        {
+         "id": "MOD_MO_EXPLORER_SIGHT"
+        },
+        {
+         "id": "MOD_MO_NATURAL_WONDER_ARCHAEOLOGY_REDUX",
+         "notTraitType": "TRAIT_ASSYRIA",
+         "source": "DLC/assyria"
+        }
+       ]
+      }
+     }
+    ],
+    "definedIn": "Base/modules/age-modern/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_MO_MAIN_SOCIAL_QUESTION",
+    "name": "Social Question",
+    "tree": "TREE_CIVICS_MO_MAIN",
+    "cost": 1600,
+    "prereqs": [],
+    "prereqNames": [],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_HUMANISM",
+       "name": "Humanism"
+      },
+      {
+       "id": "TRADITION_SOCIAL_SCIENCE",
+       "name": "Social Science"
+      }
+     ],
+     "wonders": [
+      {
+       "id": "WONDER_DOGO_ONSEN",
+       "name": "Dogo Onsen"
+      }
+     ]
+    },
+    "masteries": [
+     {
+      "id": "NODE_CIVIC_MO_MAIN_SOCIAL_QUESTION_MASTERY",
+      "name": "Social Question Mastery",
+      "depth": 2,
+      "unlocks": {
+       "wonders": [
+        {
+         "id": "WONDER_HWASEONG",
+         "name": "Hwaseong",
+         "source": "DLC/joseon"
+        }
+       ]
+      }
+     }
+    ],
+    "definedIn": "Base/modules/age-modern/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_MO_MAIN_POLITICAL_THEORY",
+    "name": "Political Theory",
+    "tree": "TREE_CIVICS_MO_MAIN",
+    "cost": 2750,
+    "prereqs": [
+     "NODE_CIVIC_MO_MAIN_MODERNIZATION",
+     "NODE_CIVIC_MO_MAIN_NATURAL_HISTORY",
+     "NODE_CIVIC_MO_MAIN_SOCIAL_QUESTION"
+    ],
+    "prereqNames": [
+     "Modernity",
+     "Natural History",
+     "Social Question"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_FREE_SPEECH",
+       "name": "Free Speech"
+      },
+      {
+       "id": "TRADITION_EVIDENZBUREAU",
+       "name": "Evidenzbureau",
+       "requiredGovernmentType": "GOVERNMENT_BUREAUCRATIC_MONARCHY"
+      }
+     ],
+     "effects": [
+      {
+       "id": "MOD_TOT_TRADITION_SLOT"
+      },
+      {
+       "id": "MOD_MO_UNLOCK_IDEOLOGIES"
+      }
+     ],
+     "wonders": [
+      {
+       "id": "WONDER_DOI_SUTHEP",
+       "name": "Doi Suthep"
+      }
+     ]
+    },
+    "masteries": [],
+    "definedIn": "Base/modules/age-modern/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_MO_MAIN_GLOBALISM",
+    "name": "Globalism",
+    "tree": "TREE_CIVICS_MO_MAIN",
+    "cost": 3750,
+    "prereqs": [
+     "NODE_CIVIC_MO_MAIN_POLITICAL_THEORY"
+    ],
+    "prereqNames": [
+     "Political Theory"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_AMBASSADORS",
+       "name": "Ambassadors"
+      },
+      {
+       "id": "TRADITION_CROWN_PROPERTIES",
+       "name": "Crown Properties",
+       "requiredGovernmentType": "GOVERNMENT_BUREAUCRATIC_MONARCHY"
+      },
+      {
+       "id": "TRADITION_THINK_TANKS",
+       "name": "Think-tanks",
+       "requiredGovernmentType": "GOVERNMENT_ELECTIVE_REPUBLIC"
+      }
+     ],
+     "effects": [
+      {
+       "id": "MOD_MO_SETTLEMENT_CAP_INCREASE"
+      }
+     ]
+    },
+    "masteries": [
+     {
+      "id": "NODE_CIVIC_MO_MAIN_GLOBALISM_MASTERY",
+      "name": "Globalism Mastery",
+      "depth": 2,
+      "unlocks": {
+       "policies": [
+        {
+         "id": "TRADITION_PRESERVATION_SOCIETIES",
+         "name": "Preservation Societies"
+        }
+       ],
+       "wonders": [
+        {
+         "id": "WONDER_PALACIO_DE_BELLAS_ARTES",
+         "name": "Palacio de Bellas Artes"
+        }
+       ],
+       "diplomaticActions": [
+        {
+         "id": "DIPLOMACY_ACTION_ESPIONAGE_FAKE_ARTIFACTS",
+         "name": "Spread Rumors of Fake Artifacts"
+        }
+       ],
+       "effects": [
+        {
+         "id": "MOD_MO_RESORT_TOWN_VP"
+        }
+       ]
+      }
+     }
+    ],
+    "definedIn": "Base/modules/age-modern/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_MO_MAIN_NATIONALISM",
+    "name": "Nationalism",
+    "tree": "TREE_CIVICS_MO_MAIN",
+    "cost": 3750,
+    "prereqs": [
+     "NODE_CIVIC_MO_MAIN_POLITICAL_THEORY"
+    ],
+    "prereqNames": [
+     "Political Theory"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_DEMAGOGY",
+       "name": "Demagogy"
+      },
+      {
+       "id": "TRADITION_GARRISON_STATE",
+       "name": "Garrison State",
+       "requiredGovernmentType": "GOVERNMENT_AUTHORITARIANISM"
+      },
+      {
+       "id": "TRADITION_ARMY_CORPS_OF_ENGINEERS",
+       "name": "Army Corps of Engineers",
+       "requiredGovernmentType": "GOVERNMENT_ELECTIVE_REPUBLIC"
+      }
+     ],
+     "effects": [
+      {
+       "id": "MOD_MO_SETTLEMENT_CAP_INCREASE"
+      }
+     ],
+     "wonders": [
+      {
+       "id": "WONDER_BOUDHANATH",
+       "name": "Boudhanath",
+       "source": "DLC/nepal"
+      }
+     ]
+    },
+    "masteries": [
+     {
+      "id": "NODE_CIVIC_MO_MAIN_NATIONALISM_MASTERY",
+      "name": "Nationalism Mastery",
+      "depth": 2,
+      "unlocks": {
+       "policies": [
+        {
+         "id": "TRADITION_PEOPLES_ARMY",
+         "name": "People's Army"
+        }
+       ],
+       "wonders": [
+        {
+         "id": "WONDER_TAJ_MAHAL",
+         "name": "Taj Mahal"
+        }
+       ],
+       "diplomaticActions": [
+        {
+         "id": "DIPLOMACY_ACTION_ESPIONAGE_INFILTRATE_ENEMY_POSITIONS",
+         "name": "Infiltrate Enemy Positions"
+        }
+       ]
+      }
+     }
+    ],
+    "definedIn": "Base/modules/age-modern/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_MO_MAIN_CAPITALISM",
+    "name": "Capitalism",
+    "tree": "TREE_CIVICS_MO_MAIN",
+    "cost": 7500,
+    "prereqs": [
+     "NODE_CIVIC_MO_MAIN_GLOBALISM"
+    ],
+    "prereqNames": [
+     "Globalism"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_LAISSEZ_FAIRE",
+       "name": "Laissez-Faire"
+      }
+     ],
+     "effects": [
+      {
+       "id": "MOD_MO_SPECIALIST_CAP_INCREASE"
+      },
+      {
+       "id": "MOD_MO_CAPITALISM_RESOURCE_VP"
+      }
+     ],
+     "wonders": [
+      {
+       "id": "WONDER_STATUE_OF_LIBERTY",
+       "name": "Statue of Liberty"
+      }
+     ]
+    },
+    "masteries": [
+     {
+      "id": "NODE_CIVIC_MO_MAIN_CAPITALISM_MASTERY",
+      "name": "Capitalism Mastery",
+      "depth": 2,
+      "unlocks": {
+       "effects": [
+        {
+         "id": "MOD_MO_CAPITALISM_TOURISM_VP"
+        }
+       ],
+       "policies": [
+        {
+         "id": "TRADITION_MONOPOLIES",
+         "name": "Monopolies"
+        }
+       ],
+       "wonders": [
+        {
+         "id": "WONDER_CHENGDE_MOUNTAIN_RESORT",
+         "name": "Chengde Mountain Resort"
+        }
+       ]
+      }
+     }
+    ],
+    "definedIn": "Base/modules/age-modern/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_MO_MAIN_MILITARISM",
+    "name": "Militarism",
+    "tree": "TREE_CIVICS_MO_MAIN",
+    "cost": 7500,
+    "prereqs": [
+     "NODE_CIVIC_MO_MAIN_NATIONALISM"
+    ],
+    "prereqNames": [
+     "Nationalism"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_MATERIEL",
+       "name": "Materiel"
+      },
+      {
+       "id": "TRADITION_TRENCHWORKS",
+       "name": "Trenchworks"
+      },
+      {
+       "id": "TRADITION_JINGOISM",
+       "name": "Jingoism",
+       "requiredGovernmentType": "GOVERNMENT_AUTHORITARIANISM"
+      }
+     ],
+     "effects": [
+      {
+       "id": "MOD_MO_MILITARISM_GDP"
+      }
+     ]
+    },
+    "masteries": [
+     {
+      "id": "NODE_CIVIC_MO_MAIN_MILITARISM_MASTERY",
+      "name": "Militarism Mastery",
+      "depth": 2,
+      "unlocks": {
+       "policies": [
+        {
+         "id": "TRADITION_DRAFT",
+         "name": "Draft"
+        },
+        {
+         "id": "TRADITION_PROJECTION_OF_FORCE",
+         "name": "Projection of Force"
+        }
+       ],
+       "wonders": [
+        {
+         "id": "WONDER_BRANDENBURG_GATE",
+         "name": "Brandenburg Gate"
+        }
+       ]
+      }
+     }
+    ],
+    "definedIn": "Base/modules/age-modern/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_MO_MAIN_HEGEMONY",
+    "name": "Hegemony",
+    "tree": "TREE_CIVICS_MO_MAIN",
+    "cost": 7500,
+    "prereqs": [
+     "NODE_CIVIC_MO_MAIN_GLOBALISM",
+     "NODE_CIVIC_MO_MAIN_NATIONALISM"
+    ],
+    "prereqNames": [
+     "Globalism",
+     "Nationalism"
+    ],
+    "unlocks": {
+     "effects": [
+      {
+       "id": "MOD_MO_OPEN_ANTIQUITY_ARCHAEOLOGY"
+      },
+      {
+       "id": "MOD_MO_SETTLEMENT_CAP_INCREASE"
+      }
+     ],
+     "policies": [
+      {
+       "id": "TRADITION_CULTURAL_IMPERIALISM",
+       "name": "Cultural Imperialism"
+      }
+     ],
+     "wonders": [
+      {
+       "id": "WONDER_ERAM_GARDEN",
+       "name": "Eram Garden",
+       "source": "DLC/qajar"
+      }
+     ]
+    },
+    "masteries": [
+     {
+      "id": "NODE_CIVIC_MO_MAIN_HEGEMONY_MASTERY",
+      "name": "Hegemony Mastery",
+      "depth": 2,
+      "unlocks": {
+       "wonders": [
+        {
+         "id": "WONDER_WORLDS_FAIR",
+         "name": "World's Fair"
+        }
+       ],
+       "policies": [
+        {
+         "id": "TRADITION_SPHERE_OF_INFLUENCE",
+         "name": "Sphere of Influence"
+        }
+       ]
+      }
+     }
+    ],
+    "definedIn": "Base/modules/age-modern/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_MO_MAIN_FUTURE_CIVIC",
+    "name": "Future Civic",
+    "tree": "TREE_CIVICS_MO_MAIN",
+    "cost": 8000,
+    "prereqs": [
+     "NODE_CIVIC_MO_MAIN_HEGEMONY",
+     "NODE_CIVIC_MO_MAIN_MILITARISM",
+     "NODE_CIVIC_MO_MAIN_CAPITALISM"
+    ],
+    "prereqNames": [
+     "Hegemony",
+     "Militarism",
+     "Capitalism"
+    ],
+    "repeatable": true,
+    "repeatCost": {
+     "model": "COST_PROGRESSION_PREVIOUS_COPIES",
+     "param1": "8000"
+    },
+    "unlocks": {
+     "effects": [
+      {
+       "id": "MOD_MO_FUTURE_CIVIC_ATTRIBUTE"
+      },
+      {
+       "id": "MOD_MO_FUTURE_CIVIC_AGE_PROGRESS"
+      },
+      {
+       "id": "MOD_MO_ARTIFACT"
+      },
+      {
+       "id": "MOD_MO_FUTURE_CIVIC_CULTURE_VP"
+      }
+     ]
+    },
+    "masteries": [],
+    "definedIn": "Base/modules/age-modern/data/progression-trees-culture-common.xml",
+    "branch": "main"
+   },
+   {
+    "id": "NODE_CIVIC_MO_BRANCH_DEMOCRACY",
+    "name": "Democracy",
+    "tree": "TREE_CIVIC_MO_BRANCH_DEMOCRACY",
+    "cost": 2750,
+    "prereqs": [],
+    "prereqNames": [],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_FIRESIDE_CHATS",
+       "name": "Fireside Chats"
+      },
+      {
+       "id": "TRADITION_SUFFRAGE",
+       "name": "Suffrage"
+      }
+     ],
+     "effects": [
+      {
+       "id": "MOD_DEMOCRACY_RIFLEMEN"
+      },
+      {
+       "id": "MOD_DEMOCRACY_CULTURAL_ATTRIBUTE"
+      },
+      {
+       "id": "MOD_DEMOCRACY_POLITICAL_ATTRIBUTE"
+      }
+     ]
+    },
+    "masteries": [],
+    "definedIn": "Base/modules/age-modern/data/progression-trees-culture-common.xml",
+    "branch": "Democracy",
+    "branchTree": "TREE_CIVIC_MO_BRANCH_DEMOCRACY",
+    "branchRevealCondition": "Ideology branch tree revealed by REQSET_RESEARCHED_POLITICAL_THEORY (after Political Theory); choosing it = adopting the ideology"
+   },
+   {
+    "id": "NODE_CIVIC_MO_BRANCH_LIBERALISM",
+    "name": "Liberalism",
+    "tree": "TREE_CIVIC_MO_BRANCH_DEMOCRACY",
+    "cost": 3250,
+    "prereqs": [
+     "NODE_CIVIC_MO_BRANCH_DEMOCRACY"
+    ],
+    "prereqNames": [
+     "Democracy"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_FREE_PRESS",
+       "name": "Free Press"
+      },
+      {
+       "id": "TRADITION_WELFARE_STATE",
+       "name": "Welfare State"
+      }
+     ]
+    },
+    "masteries": [],
+    "definedIn": "Base/modules/age-modern/data/progression-trees-culture-common.xml",
+    "branch": "Democracy",
+    "branchTree": "TREE_CIVIC_MO_BRANCH_DEMOCRACY",
+    "branchRevealCondition": "Ideology branch tree revealed by REQSET_RESEARCHED_POLITICAL_THEORY (after Political Theory); choosing it = adopting the ideology"
+   },
+   {
+    "id": "NODE_CIVIC_MO_BRANCH_PROGRESSIVISM",
+    "name": "Progressivism",
+    "tree": "TREE_CIVIC_MO_BRANCH_DEMOCRACY",
+    "cost": 4500,
+    "prereqs": [
+     "NODE_CIVIC_MO_BRANCH_LIBERALISM"
+    ],
+    "prereqNames": [
+     "Liberalism"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_AVANT_GARDE",
+       "name": "Avant Garde"
+      },
+      {
+       "id": "TRADITION_NEW_DEAL",
+       "name": "New Deal"
+      },
+      {
+       "id": "TRADITION_THEIR_FINEST_HOUR",
+       "name": "Their Finest Hour"
+      }
+     ]
+    },
+    "masteries": [],
+    "definedIn": "Base/modules/age-modern/data/progression-trees-culture-common.xml",
+    "branch": "Democracy",
+    "branchTree": "TREE_CIVIC_MO_BRANCH_DEMOCRACY",
+    "branchRevealCondition": "Ideology branch tree revealed by REQSET_RESEARCHED_POLITICAL_THEORY (after Political Theory); choosing it = adopting the ideology"
+   },
+   {
+    "id": "NODE_CIVIC_MO_BRANCH_FASCISM",
+    "name": "Fascism",
+    "tree": "TREE_CIVIC_MO_BRANCH_FASCISM",
+    "cost": 2750,
+    "prereqs": [],
+    "prereqNames": [],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_ASSEMBLY_LINE",
+       "name": "Assembly Line"
+      },
+      {
+       "id": "TRADITION_DIRIGISME",
+       "name": "Dirigisme"
+      }
+     ],
+     "effects": [
+      {
+       "id": "MOD_FASCISM_LANDSHIP"
+      },
+      {
+       "id": "MOD_FASCISM_ECONOMIC_ATTRIBUTE"
+      },
+      {
+       "id": "MOD_FASCISM_MILITARISTIC_ATTRIBUTE"
+      }
+     ]
+    },
+    "masteries": [],
+    "definedIn": "Base/modules/age-modern/data/progression-trees-culture-common.xml",
+    "branch": "Fascism",
+    "branchTree": "TREE_CIVIC_MO_BRANCH_FASCISM",
+    "branchRevealCondition": "Ideology branch tree revealed by REQSET_RESEARCHED_POLITICAL_THEORY (after Political Theory); choosing it = adopting the ideology"
+   },
+   {
+    "id": "NODE_CIVIC_MO_BRANCH_RADICALISM",
+    "name": "Radicalism",
+    "tree": "TREE_CIVIC_MO_BRANCH_FASCISM",
+    "cost": 3250,
+    "prereqs": [
+     "NODE_CIVIC_MO_BRANCH_FASCISM"
+    ],
+    "prereqNames": [
+     "Fascism"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_MARTIAL_LAW",
+       "name": "Martial Law"
+      },
+      {
+       "id": "TRADITION_PROPAGANDA",
+       "name": "Propaganda"
+      }
+     ]
+    },
+    "masteries": [],
+    "definedIn": "Base/modules/age-modern/data/progression-trees-culture-common.xml",
+    "branch": "Fascism",
+    "branchTree": "TREE_CIVIC_MO_BRANCH_FASCISM",
+    "branchRevealCondition": "Ideology branch tree revealed by REQSET_RESEARCHED_POLITICAL_THEORY (after Political Theory); choosing it = adopting the ideology"
+   },
+   {
+    "id": "NODE_CIVIC_MO_BRANCH_AUTHORITARIANISM",
+    "name": "Absolutism",
+    "tree": "TREE_CIVIC_MO_BRANCH_FASCISM",
+    "cost": 4500,
+    "prereqs": [
+     "NODE_CIVIC_MO_BRANCH_RADICALISM"
+    ],
+    "prereqNames": [
+     "Radicalism"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_MILITARY_INDUSTRIAL_COMPLEX",
+       "name": "Military-Industrial Complex"
+      },
+      {
+       "id": "TRADITION_STRATEGIC_RAILWAYS",
+       "name": "Strategic Railways"
+      },
+      {
+       "id": "TRADITION_SCORCHED_EARTH",
+       "name": "Scorched Earth"
+      }
+     ]
+    },
+    "masteries": [],
+    "definedIn": "Base/modules/age-modern/data/progression-trees-culture-common.xml",
+    "branch": "Fascism",
+    "branchTree": "TREE_CIVIC_MO_BRANCH_FASCISM",
+    "branchRevealCondition": "Ideology branch tree revealed by REQSET_RESEARCHED_POLITICAL_THEORY (after Political Theory); choosing it = adopting the ideology"
+   },
+   {
+    "id": "NODE_CIVIC_MO_BRANCH_COMMUNISM",
+    "name": "Communism",
+    "tree": "TREE_CIVIC_MO_BRANCH_COMMUNISM",
+    "cost": 2750,
+    "prereqs": [],
+    "prereqNames": [],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_PRODUCTIVE_FORCES_DETERMINISM",
+       "name": "Productive Forces Determinism"
+      },
+      {
+       "id": "TRADITION_PROLETARIAT",
+       "name": "Proletariat"
+      }
+     ],
+     "effects": [
+      {
+       "id": "MOD_COMMUNISM_AT_GUNS"
+      },
+      {
+       "id": "MOD_COMMUNISM_EXPANSIONIST_ATTRIBUTE"
+      },
+      {
+       "id": "MOD_COMMUNISM_SCIENTIFIC_ATTRIBUTE"
+      }
+     ]
+    },
+    "masteries": [],
+    "definedIn": "Base/modules/age-modern/data/progression-trees-culture-common.xml",
+    "branch": "Communism",
+    "branchTree": "TREE_CIVIC_MO_BRANCH_COMMUNISM",
+    "branchRevealCondition": "Ideology branch tree revealed by REQSET_RESEARCHED_POLITICAL_THEORY (after Political Theory); choosing it = adopting the ideology"
+   },
+   {
+    "id": "NODE_CIVIC_MO_BRANCH_CENTRALISM",
+    "name": "Centralism",
+    "tree": "TREE_CIVIC_MO_BRANCH_COMMUNISM",
+    "cost": 3250,
+    "prereqs": [
+     "NODE_CIVIC_MO_BRANCH_COMMUNISM"
+    ],
+    "prereqNames": [
+     "Communism"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_COLLECTIVIZATION",
+       "name": "Collectivization"
+      },
+      {
+       "id": "TRADITION_NAUKOGRAD",
+       "name": "Naukograd"
+      }
+     ]
+    },
+    "masteries": [],
+    "definedIn": "Base/modules/age-modern/data/progression-trees-culture-common.xml",
+    "branch": "Communism",
+    "branchTree": "TREE_CIVIC_MO_BRANCH_COMMUNISM",
+    "branchRevealCondition": "Ideology branch tree revealed by REQSET_RESEARCHED_POLITICAL_THEORY (after Political Theory); choosing it = adopting the ideology"
+   },
+   {
+    "id": "NODE_CIVIC_MO_BRANCH_SOCIALISM",
+    "name": "Socialism",
+    "tree": "TREE_CIVIC_MO_BRANCH_COMMUNISM",
+    "cost": 4500,
+    "prereqs": [
+     "NODE_CIVIC_MO_BRANCH_CENTRALISM"
+    ],
+    "prereqNames": [
+     "Centralism"
+    ],
+    "unlocks": {
+     "policies": [
+      {
+       "id": "TRADITION_DEFENSE_OF_THE_MOTHERLAND",
+       "name": "Defense of the Motherland"
+      },
+      {
+       "id": "TRADITION_POLICE_STATE",
+       "name": "Police State"
+      },
+      {
+       "id": "TRADITION_PUBLIC_WORKS",
+       "name": "Public Works"
+      }
+     ]
+    },
+    "masteries": [],
+    "definedIn": "Base/modules/age-modern/data/progression-trees-culture-common.xml",
+    "branch": "Communism",
+    "branchTree": "TREE_CIVIC_MO_BRANCH_COMMUNISM",
+    "branchRevealCondition": "Ideology branch tree revealed by REQSET_RESEARCHED_POLITICAL_THEORY (after Political Theory); choosing it = adopting the ideology"
+   }
+  ]
+ },
+ "governments": [
+  {
+   "id": "GOVERNMENT_CLASSICAL_REPUBLIC",
+   "name": "Classical Republic",
+   "age": [
+    "antiquity"
+   ],
+   "unlock": "Chosen at start of age (StartingGovernments: AGE_ANTIQUITY); selection is free at age start, no civic prerequisite",
+   "celebration": "We Love The Assembly Day!",
+   "passives": [
+    {
+     "modifier": "MOD_CLASSICAL_REPUBLIC_PASSIVE_HAPPY_CITIES",
+     "text": "+1  Culture in Happy or happier Settlements. +4 additional  Culture in Joyous or happier Cities."
+    },
+    {
+     "modifier": "MOD_CLASSICAL_REPUBLIC_PASSIVE_JOYOUS_CITIES"
+    }
+   ],
+   "governmentGatedPolicies": [
+    [
+     "TRADITION_POIEISIS",
+     "Poiesis"
+    ],
+    [
+     "TRADITION_YAXCHE",
+     "Yaxche"
+    ]
+   ]
+  },
+  {
+   "id": "GOVERNMENT_DESPOTISM",
+   "name": "Despotism",
+   "age": [
+    "antiquity"
+   ],
+   "unlock": "Chosen at start of age (StartingGovernments: AGE_ANTIQUITY); selection is free at age start, no civic prerequisite",
+   "celebration": "We Love The Tyrant Day!",
+   "passives": [
+    {
+     "modifier": "MOD_DESPOTISM_PASSIVE_UNHAPPINESS_MITIGATION",
+     "text": "+2  Science for each conquered Settlement. Unhappiness causes -3% reduction in Yields in your Settlements per point of negative  Happiness (usually -5%)."
+    },
+    {
+     "modifier": "MOD_DESPOTISM_PASSIVE_CONQUEST_SCIENCE"
+    }
+   ],
+   "governmentGatedPolicies": [
+    [
+     "TRADITION_COMMANDERIES",
+     "Commanderies"
+    ],
+    [
+     "TRADITION_FAJIA",
+     "Fajia"
+    ]
+   ]
+  },
+  {
+   "id": "GOVERNMENT_OLIGARCHY",
+   "name": "Oligarchy",
+   "age": [
+    "antiquity"
+   ],
+   "unlock": "Chosen at start of age (StartingGovernments: AGE_ANTIQUITY); selection is free at age start, no civic prerequisite",
+   "celebration": "We Love The Council Day!",
+   "passives": [
+    {
+     "modifier": "MOD_OLIGARCHY_PASSIVE_BUILDING_CONSTRUCTION",
+     "text": "+10%  Production towards Buildings. +10%  Gold towards purchasing Warehouses in Fishing and Farming Towns."
+    },
+    {
+     "modifier": "MOD_OLIGARCHY_PASSIVE_FARMING_WAREHOUSE_PURCHASE"
+    },
+    {
+     "modifier": "MOD_OLIGARCHY_PASSIVE_FISHING_WAREHOUSE_PURCHASE"
+    }
+   ],
+   "governmentGatedPolicies": [
+    [
+     "TRADITION_ANNONA",
+     "Annona"
+    ],
+    [
+     "TRADITION_HANGJIAO",
+     "Hangjiao"
+    ]
+   ]
+  },
+  {
+   "id": "GOVERNMENT_REVOLUCION",
+   "name": "Revolución",
+   "age": [
+    "antiquity",
+    "exploration",
+    "modern"
+   ],
+   "unlock": "Civ-unique: Mexico (Modern) trait sets it (TRAIT_MOD_REVOLUCION_GOVERNMENT_UNIQUE, EFFECT_PLAYER_SET_GOVERNMENT); defined in all three age modules (Antiquity/Exploration variants exist for Test of Time / cross-age play). Not in StartingGovernments.",
+   "celebration": "¡Viva la Revolución!",
+   "passives": [
+    {
+     "modifier": "MOD_REVOLUCION_AQ_PASSIVE_HAPPINESS",
+     "text": "+2  Happiness in Cities for every  Tradition slotted in the  Government."
+    },
+    {
+     "modifier": "MOD_REVOLUCION_EX_PASSIVE_HAPPINESS",
+     "text": "+4  Happiness in Cities for every  Tradition slotted in the  Government."
+    },
+    {
+     "modifier": "MOD_REVOLUCION_MO_PASSIVE_HAPPINESS",
+     "text": "+6  Happiness in Cities for every  Tradition slotted in the  Government."
+    }
+   ],
+   "governmentGatedPolicies": []
+  },
+  {
+   "id": "GOVERNMENT_FEUDAL_MONARCHY",
+   "name": "Feudal Monarchy",
+   "age": [
+    "exploration"
+   ],
+   "unlock": "Chosen at start of age (StartingGovernments: AGE_EXPLORATION); selection is free at age start, no civic prerequisite",
+   "celebration": "We Love The Monarch Day!",
+   "passives": [
+    {
+     "modifier": "MOD_FEUDAL_MONARCHY_PASSIVE_WALLS_PRODUCTION",
+     "text": "+10%  Production towards training Military Units and constructing Walls."
+    },
+    {
+     "modifier": "MOD_FEUDAL_MONARCHY_PASSIVE_UNIT_PRODUCTION"
+    }
+   ],
+   "governmentGatedPolicies": [
+    [
+     "TRADITION_MAHAKRUNG",
+     "Mahakrung"
+    ],
+    [
+     "TRADITION_MARCHER_LORDS",
+     "Marcher Lords"
+    ]
+   ]
+  },
+  {
+   "id": "GOVERNMENT_PLUTOCRACY",
+   "name": "Plutocracy",
+   "age": [
+    "exploration"
+   ],
+   "unlock": "Chosen at start of age (StartingGovernments: AGE_EXPLORATION); selection is free at age start, no civic prerequisite",
+   "celebration": "We Love The Guilds Day!",
+   "passives": [
+    {
+     "modifier": "MOD_PLUTOCRACY_PASSIVE_OVERBUILDING",
+     "text": "+20%  Production towards Overbuilding."
+    }
+   ],
+   "governmentGatedPolicies": [
+    [
+     "TRADITION_PRIMITIVE_ACCUMULATION",
+     "Primitive Accumulation"
+    ],
+    [
+     "TRADITION_TEQUITL",
+     "Tequitl"
+    ]
+   ]
+  },
+  {
+   "id": "GOVERNMENT_THEOCRACY",
+   "name": "Theocracy",
+   "age": [
+    "exploration"
+   ],
+   "unlock": "Chosen at start of age (StartingGovernments: AGE_EXPLORATION); selection is free at age start, no civic prerequisite",
+   "celebration": "We Love The Demiurge Day!",
+   "passives": [
+    {
+     "modifier": "MOD_THEOCRACY_PASSIVE_TEMPLE_PRODUCTION",
+     "text": "+20%  Production and  Gold towards constructing or purchasing Temples and Missionaries."
+    },
+    {
+     "modifier": "MOD_THEOCRACY_PASSIVE_TEMPLE_PURCHASING"
+    },
+    {
+     "modifier": "MOD_THEOCRACY_PASSIVE_MISSIONARY_PRODUCTION"
+    },
+    {
+     "modifier": "MOD_THEOCRACY_PASSIVE_MISSIONARY_PURCHASING"
+    }
+   ],
+   "governmentGatedPolicies": [
+    [
+     "TRADITION_DARGAH",
+     "Dargah"
+    ],
+    [
+     "TRADITION_VINAYA",
+     "Vinaya"
+    ]
+   ]
+  },
+  {
+   "id": "GOVERNMENT_REVOLUTIONARY_AUTHORITARIANISM",
+   "name": "Revolutionary Authoritarianism",
+   "age": [
+    "exploration"
+   ],
+   "unlock": "Not selectable at age start. Forced by Exploration-age Revolution crisis narrative outcome (EC003D_NARRATIVE_MODIFIER)",
+   "celebration": "Long Live the Regime!",
+   "passives": [],
+   "governmentGatedPolicies": []
+  },
+  {
+   "id": "GOVERNMENT_CONSTITUTIONAL_MONARCHY",
+   "name": "Constitutional Monarchy",
+   "age": [
+    "exploration"
+   ],
+   "unlock": "Not selectable at age start. Forced by Exploration-age Revolution crisis narrative outcome (EC003B_NARRATIVE_MODIFIER, EFFECT_PLAYER_SET_GOVERNMENT; narrative-crises-stories-gameeffects.xml)",
+   "celebration": "Long Live the Monarchy!",
+   "passives": [],
+   "governmentGatedPolicies": []
+  },
+  {
+   "id": "GOVERNMENT_REVOLUTIONARY_REPUBLIC",
+   "name": "Revolutionary Republic",
+   "age": [
+    "exploration"
+   ],
+   "unlock": "Not selectable at age start. Forced by Exploration-age Revolution crisis narrative outcome (EC003C_NARRATIVE_MODIFIER)",
+   "celebration": "Long Live the Republic!",
+   "passives": [],
+   "governmentGatedPolicies": []
+  },
+  {
+   "id": "GOVERNMENT_AUTHORITARIANISM",
+   "name": "Authoritarianism",
+   "age": [
+    "modern"
+   ],
+   "unlock": "Chosen at start of age (StartingGovernments: AGE_MODERN); selection is free at age start, no civic prerequisite",
+   "celebration": "We Love The Leader Day!",
+   "passives": [
+    {
+     "modifier": "MOD_AUTHORITARIANISM_PASSIVE_UNHAPPINESS_MITIGATION",
+     "text": "+3  Food and  Gold in Settlements you have conquered in this Age. Unhappiness causes -3% reduction in Yields in your Settlements per point of negative  Happiness (usually -5%)."
+    },
+    {
+     "modifier": "MOD_AUTHORITARIANISM_PASSIVE_CONQUEST_YIELDS"
+    }
+   ],
+   "governmentGatedPolicies": [
+    [
+     "TRADITION_GARRISON_STATE",
+     "Garrison State"
+    ],
+    [
+     "TRADITION_JINGOISM",
+     "Jingoism"
+    ]
+   ]
+  },
+  {
+   "id": "GOVERNMENT_BUREAUCRATIC_MONARCHY",
+   "name": "Bureaucratic Monarchy",
+   "age": [
+    "modern"
+   ],
+   "unlock": "Chosen at start of age (StartingGovernments: AGE_MODERN); selection is free at age start, no civic prerequisite",
+   "celebration": "We Love The Sovereign Day!",
+   "passives": [
+    {
+     "modifier": "MOD_BUREAUCRATIC_MONARCHY_PASSIVE_PURCHASE_DISCOUNT",
+     "text": "+5%  Gold towards Purchasing  Buildings in  Cities, or +10% in Joyous or happier  Cities."
+    },
+    {
+     "modifier": "MOD_BUREAUCRATIC_MONARCHY_PASSIVE_JOYOUS_PURCHASE_DISCOUNT"
+    }
+   ],
+   "governmentGatedPolicies": [
+    [
+     "TRADITION_CROWN_PROPERTIES",
+     "Crown Properties"
+    ],
+    [
+     "TRADITION_EVIDENZBUREAU",
+     "Evidenzbureau"
+    ]
+   ]
+  },
+  {
+   "id": "GOVERNMENT_ELECTIVE_REPUBLIC",
+   "name": "Elective Republic",
+   "age": [
+    "modern"
+   ],
+   "unlock": "Chosen at start of age (StartingGovernments: AGE_MODERN); selection is free at age start, no civic prerequisite",
+   "celebration": "We Love The Prime Minister Day!",
+   "passives": [
+    {
+     "modifier": "MOD_ELECTIVE_REPUBLIC_PASSIVE_WORKER_YIELDS",
+     "text": "Specialists get +1  Science and  Culture, and +1  Happiness Maintenance."
+    },
+    {
+     "modifier": "MOD_ELECTIVE_REPUBLIC_PASSIVE_MAINTENANCE_PER_SPECIALIST"
+    }
+   ],
+   "governmentGatedPolicies": [
+    [
+     "TRADITION_ARMY_CORPS_OF_ENGINEERS",
+     "Army Corps of Engineers"
+    ],
+    [
+     "TRADITION_THINK_TANKS",
+     "Think-tanks"
+    ]
+   ]
+  }
+ ],
+ "ideologies": [
+  {
+   "id": "IDEOLOGY_COMMUNISM",
+   "name": "Communism",
+   "tree": "TREE_CIVIC_MO_BRANCH_COMMUNISM",
+   "firstNode": "NODE_CIVIC_MO_BRANCH_COMMUNISM",
+   "rivalIdeology": "IDEOLOGY_DEMOCRACY",
+   "treeRevealRequirement": "REQSET_RESEARCHED_POLITICAL_THEORY",
+   "nodes": [
+    [
+     "NODE_CIVIC_MO_BRANCH_COMMUNISM",
+     "Communism"
+    ],
+    [
+     "NODE_CIVIC_MO_BRANCH_CENTRALISM",
+     "Centralism"
+    ],
+    [
+     "NODE_CIVIC_MO_BRANCH_SOCIALISM",
+     "Socialism"
+    ]
+   ],
+   "adoptionModifiers": [
+    [
+     "1",
+     "MOD_IDEOLOGY_FIRST_ADOPTER_SLOTS"
+    ],
+    [
+     "2",
+     "MOD_IDEOLOGY_SECOND_ADOPTER_SLOTS"
+    ]
+   ]
+  },
+  {
+   "id": "IDEOLOGY_DEMOCRACY",
+   "name": "Democracy",
+   "tree": "TREE_CIVIC_MO_BRANCH_DEMOCRACY",
+   "firstNode": "NODE_CIVIC_MO_BRANCH_DEMOCRACY",
+   "rivalIdeology": "IDEOLOGY_FASCISM",
+   "treeRevealRequirement": "REQSET_RESEARCHED_POLITICAL_THEORY",
+   "nodes": [
+    [
+     "NODE_CIVIC_MO_BRANCH_DEMOCRACY",
+     "Democracy"
+    ],
+    [
+     "NODE_CIVIC_MO_BRANCH_LIBERALISM",
+     "Liberalism"
+    ],
+    [
+     "NODE_CIVIC_MO_BRANCH_PROGRESSIVISM",
+     "Progressivism"
+    ]
+   ],
+   "adoptionModifiers": [
+    [
+     "1",
+     "MOD_IDEOLOGY_FIRST_ADOPTER_SLOTS"
+    ],
+    [
+     "2",
+     "MOD_IDEOLOGY_SECOND_ADOPTER_SLOTS"
+    ]
+   ]
+  },
+  {
+   "id": "IDEOLOGY_FASCISM",
+   "name": "Fascism",
+   "tree": "TREE_CIVIC_MO_BRANCH_FASCISM",
+   "firstNode": "NODE_CIVIC_MO_BRANCH_FASCISM",
+   "rivalIdeology": "IDEOLOGY_COMMUNISM",
+   "treeRevealRequirement": "REQSET_RESEARCHED_POLITICAL_THEORY",
+   "nodes": [
+    [
+     "NODE_CIVIC_MO_BRANCH_FASCISM",
+     "Fascism"
+    ],
+    [
+     "NODE_CIVIC_MO_BRANCH_RADICALISM",
+     "Radicalism"
+    ],
+    [
+     "NODE_CIVIC_MO_BRANCH_AUTHORITARIANISM",
+     "Absolutism"
+    ]
+   ],
+   "adoptionModifiers": [
+    [
+     "1",
+     "MOD_IDEOLOGY_FIRST_ADOPTER_SLOTS"
+    ],
+    [
+     "2",
+     "MOD_IDEOLOGY_SECOND_ADOPTER_SLOTS"
+    ]
+   ]
+  }
+ ],
+ "uniqueCivics": [
+  {
+   "civ": "Achaemenid Persia",
+   "civKey": "PERSIA",
+   "age": "antiquity",
+   "tree": "TREE_CIVICS_AQ_PERSIA",
+   "treeName": "Achaemenid Persian Civic",
+   "source": "age-antiquity",
+   "civics": [
+    "Spada",
+    "Satrapies",
+    "Baziš"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_AQ_PERSIA_SPADA",
+     "name": "Spada",
+     "cost": 150,
+     "prereqs": [],
+     "traditions": [
+      "Kara I"
+     ],
+     "otherUnlocks": [
+      "WONDER_GATE_OF_ALL_NATIONS"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_PERSIA_SATRAPIES",
+     "name": "Satrapies",
+     "cost": 150,
+     "prereqs": [
+      "NODE_CIVIC_AQ_PERSIA_SPADA"
+     ],
+     "traditions": [
+      "Čāpār-Kāna I"
+     ],
+     "otherUnlocks": [
+      "IMPROVEMENT_PAIRIDAEZA",
+      "MOD_AQ_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_PERSIA_ACHAEMENID_EMPIRE",
+     "name": "Baziš",
+     "cost": 250,
+     "prereqs": [
+      "NODE_CIVIC_AQ_PERSIA_SATRAPIES"
+     ],
+     "traditions": [
+      "Shahanshah I"
+     ],
+     "otherUnlocks": [
+      "MOD_AQ_SETTLEMENT_CAP_INCREASE",
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Aksum",
+   "civKey": "AKSUM",
+   "age": "antiquity",
+   "tree": "TREE_CIVICS_AQ_AKSUM",
+   "treeName": "Aksumite Civics",
+   "source": "age-antiquity",
+   "civics": [
+    "Periplus of the Erythraean Sea",
+    "Monumentum Adulitanum",
+    "Book of the Himyarites"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_AQ_AKSUM_PERIPLUS_OF_THE_ERYTHRAEAN_SEA",
+     "name": "Periplus of the Erythraean Sea",
+     "cost": 150,
+     "prereqs": [],
+     "traditions": [
+      "Port of Nations I"
+     ],
+     "otherUnlocks": [
+      "WONDER_GREAT_STELE"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_AKSUM_MONUMENTUM_ADULITANUM",
+     "name": "Monumentum Adulitanum",
+     "cost": 250,
+     "prereqs": [
+      "NODE_CIVIC_AQ_AKSUM_PERIPLUS_OF_THE_ERYTHRAEAN_SEA"
+     ],
+     "traditions": [
+      "Throne Of My Fathers"
+     ],
+     "otherUnlocks": [
+      "IMPROVEMENT_HAWELT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_AKSUM_BOOK_OF_THE_HIMYARITES",
+     "name": "Book of the Himyarites",
+     "cost": 400,
+     "prereqs": [
+      "NODE_CIVIC_AQ_AKSUM_MONUMENTUM_ADULITANUM"
+     ],
+     "traditions": [
+      "May This Please The People I"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Assyria",
+   "civKey": "ASSYRIA",
+   "age": "antiquity",
+   "tree": "TREE_CIVICS_AQ_ASSYRIA",
+   "treeName": "Assyrian Civics",
+   "source": "DLC/assyria",
+   "civics": [
+    "Birtūtu",
+    "Tupšarrūtu",
+    "Kibrāt Arba’i"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_AQ_ASSYRIA_BIRTUTU",
+     "name": "Birtūtu",
+     "cost": 150,
+     "prereqs": [],
+     "traditions": [
+      "Dūrāni I"
+     ],
+     "otherUnlocks": [
+      "BUILDING_CITADEL",
+      "WONDER_DUR_SHARRUKIN",
+      "MOD_AQ_SETTLEMENT_CAP_INCREASE",
+      "MOD_ASSYRIAN_CODEX"
+     ],
+     "hasMastery": true
+    },
+    {
+     "id": "NODE_CIVIC_AQ_ASSYRIA_TUPSARRUTU",
+     "name": "Tupšarrūtu",
+     "cost": 250,
+     "prereqs": [
+      "NODE_CIVIC_AQ_ASSYRIA_BIRTUTU"
+     ],
+     "traditions": [
+      "Miḫiṣtu I"
+     ],
+     "otherUnlocks": [
+      "BUILDING_ROYAL_LIBRARY",
+      "UNIT_TURTANU",
+      "MOD_ASSYRIAN_CODEX"
+     ],
+     "hasMastery": true
+    },
+    {
+     "id": "NODE_CIVIC_AQ_ASSYRIA_KIBRAT_ARBA_I",
+     "name": "Kibrāt Arba’i",
+     "cost": 400,
+     "prereqs": [
+      "NODE_CIVIC_AQ_ASSYRIA_TUPSARRUTU"
+     ],
+     "traditions": [
+      "Girru I"
+     ],
+     "otherUnlocks": [
+      "MOD_AQ_SETTLEMENT_CAP_INCREASE",
+      "MOD_TOT_TRADITION_SLOT",
+      "MOD_ASSYRIAN_CODEX"
+     ],
+     "hasMastery": true
+    }
+   ]
+  },
+  {
+   "civ": "Babylon",
+   "civKey": "BABYLON",
+   "age": "antiquity",
+   "tree": "TREE_CIVICS_AQ_BABYLON",
+   "treeName": "Babylon Civics",
+   "source": "DLC/babylon",
+   "civics": [
+    "Purattu",
+    "Akitu",
+    "Enuma Elish",
+    "Golden Interval"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_AQ_BABYLON_PURATTU",
+     "name": "Purattu",
+     "cost": 150,
+     "prereqs": [],
+     "traditions": [
+      "Muballitum I"
+     ],
+     "otherUnlocks": [
+      "IMPROVEMENT_KIRIMAHU",
+      "WONDER_HANGING_GARDENS"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_BABYLON_AKITU",
+     "name": "Akitu",
+     "cost": 250,
+     "prereqs": [
+      "NODE_CIVIC_AQ_BABYLON_PURATTU"
+     ],
+     "traditions": [
+      "Harrānu I"
+     ],
+     "otherUnlocks": [
+      "UNIT_TAMKARU"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_BABYLON_ENUMA_ELISH",
+     "name": "Enuma Elish",
+     "cost": 250,
+     "prereqs": [
+      "NODE_CIVIC_AQ_BABYLON_PURATTU"
+     ],
+     "traditions": [
+      "Ammī-ditāna's Hymn"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_BABYLON_GOLDEN_INTERVAL",
+     "name": "Golden Interval",
+     "cost": 400,
+     "prereqs": [
+      "NODE_CIVIC_AQ_BABYLON_AKITU",
+      "NODE_CIVIC_AQ_BABYLON_ENUMA_ELISH"
+     ],
+     "traditions": [
+      "Mār-banê"
+     ],
+     "otherUnlocks": [],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Carthage",
+   "civKey": "CARTHAGE",
+   "age": "antiquity",
+   "tree": "TREE_CIVICS_AQ_CARTHAGE",
+   "treeName": "Carthage Civics",
+   "source": "DLC/carthage",
+   "civics": [
+    "Shipsheds",
+    "Wisdom of Tanit",
+    "Sicilian Wars"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_AQ_CARTHAGE_SHIPSHEDS",
+     "name": "Shipsheds",
+     "cost": 150,
+     "prereqs": [],
+     "traditions": [
+      "Quinquereme I"
+     ],
+     "otherUnlocks": [
+      "BUILDING_COTHON",
+      "WONDER_BYRSA"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_CARTHAGE_RED_SLIP",
+     "name": "Wisdom of Tanit",
+     "cost": 150,
+     "prereqs": [],
+     "traditions": [
+      "Gaulos I"
+     ],
+     "otherUnlocks": [
+      "BUILDING_DOCKYARD"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_CARTHAGE_SICILIAN_WARS",
+     "name": "Sicilian Wars",
+     "cost": 250,
+     "prereqs": [
+      "NODE_CIVIC_AQ_CARTHAGE_RED_SLIP",
+      "NODE_CIVIC_AQ_CARTHAGE_SHIPSHEDS"
+     ],
+     "traditions": [
+      "Suffetes"
+     ],
+     "otherUnlocks": [
+      "MOD_SICILIAN_WARS_SETTLEMENT_CAP",
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Egypt",
+   "civKey": "EGYPT",
+   "age": "antiquity",
+   "tree": "TREE_CIVICS_AQ_EGYPT",
+   "treeName": "Egyptian Civics",
+   "source": "age-antiquity",
+   "civics": [
+    "Arrival of Hapi",
+    "Scales of Anubis",
+    "Light of Amun-Ra"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_AQ_EGYPT_ARRIVAL_OF_HAPI",
+     "name": "Arrival of Hapi",
+     "cost": 150,
+     "prereqs": [],
+     "traditions": [
+      "Akhet I"
+     ],
+     "otherUnlocks": [
+      "BUILDING_MORTUARY_TEMPLE"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_EGYPT_SCALES_OF_ANUBIS",
+     "name": "Scales of Anubis",
+     "cost": 150,
+     "prereqs": [],
+     "traditions": [
+      "Riches of the Duat"
+     ],
+     "otherUnlocks": [
+      "BUILDING_MASTABA"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_EGYPT_LIGHT_OF_AMUN_RA",
+     "name": "Light of Amun-Ra",
+     "cost": 250,
+     "prereqs": [
+      "NODE_CIVIC_AQ_EGYPT_ARRIVAL_OF_HAPI",
+      "NODE_CIVIC_AQ_EGYPT_SCALES_OF_ANUBIS"
+     ],
+     "traditions": [
+      "Kemet I"
+     ],
+     "otherUnlocks": [
+      "WONDER_PYRAMIDS",
+      "MOD_TOT_TRADITION_SLOT",
+      "MOD_AQ_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Gauls",
+   "civKey": "GAUL",
+   "age": "antiquity",
+   "tree": "TREE_CIVICS_AQ_GAUL",
+   "treeName": "Gaul Civics",
+   "source": "DLC/gaul",
+   "civics": [
+    "Dobnoredus Gobannus",
+    "Coligny Quinquennium",
+    "Vae Victis"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_AQ_GAUL_DOBNOREDUS_GOBANNUS",
+     "name": "Dobnoredus Gobannus",
+     "cost": 150,
+     "prereqs": [],
+     "traditions": [
+      "Terror Cimbricus"
+     ],
+     "otherUnlocks": [
+      "BUILDING_GOBEN",
+      "MOD_AQ_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_GAUL_COLIGNY_QUINQUENNIUM",
+     "name": "Coligny Quinquennium",
+     "cost": 150,
+     "prereqs": [],
+     "traditions": [
+      "Giamilos I"
+     ],
+     "otherUnlocks": [
+      "BUILDING_NEMETON",
+      "WONDER_VIX"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_GAUL_VAE_VICTIS",
+     "name": "Vae Victis",
+     "cost": 250,
+     "prereqs": [
+      "NODE_CIVIC_AQ_GAUL_DOBNOREDUS_GOBANNUS",
+      "NODE_CIVIC_AQ_GAUL_COLIGNY_QUINQUENNIUM"
+     ],
+     "traditions": [
+      "Balkan Expedition I"
+     ],
+     "otherUnlocks": [
+      "MOD_AQ_SETTLEMENT_CAP_INCREASE",
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Greece",
+   "civKey": "GREECE",
+   "age": "antiquity",
+   "tree": "TREE_CIVICS_AQ_GREECE",
+   "treeName": "Greek Civics",
+   "source": "age-antiquity",
+   "civics": [
+    "Ekklesia",
+    "Agoge",
+    "Symmachia"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_AQ_GREECE_EKKLESIA",
+     "name": "Ekklesia",
+     "cost": 150,
+     "prereqs": [],
+     "traditions": [
+      "Xenia I"
+     ],
+     "otherUnlocks": [
+      "BUILDING_ODEON"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_GREECE_AGOGE",
+     "name": "Agoge",
+     "cost": 150,
+     "prereqs": [],
+     "traditions": [
+      "Strategoi"
+     ],
+     "otherUnlocks": [
+      "BUILDING_PARTHENON"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_GREECE_SYMMACHIA",
+     "name": "Symmachia",
+     "cost": 250,
+     "prereqs": [
+      "NODE_CIVIC_AQ_GREECE_EKKLESIA",
+      "NODE_CIVIC_AQ_GREECE_AGOGE"
+     ],
+     "traditions": [
+      "Delian League I",
+      "Peloponnesian League I"
+     ],
+     "otherUnlocks": [
+      "MOD_AQ_SETTLEMENT_CAP_INCREASE",
+      "MOD_TOT_TRADITION_SLOT",
+      "WONDER_ORACLE"
+     ],
+     "hasMastery": true
+    }
+   ]
+  },
+  {
+   "civ": "Han",
+   "civKey": "HAN",
+   "age": "antiquity",
+   "tree": "TREE_CIVICS_AQ_HAN",
+   "treeName": "Han Civics",
+   "source": "age-antiquity",
+   "civics": [
+    "Ren",
+    "Yi",
+    "Li",
+    "Zhi"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_AQ_HAN_REN",
+     "name": "Ren",
+     "cost": 150,
+     "prereqs": [],
+     "traditions": [
+      "Xumin Zhao"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_HAN_YI",
+     "name": "Yi",
+     "cost": 250,
+     "prereqs": [
+      "NODE_CIVIC_AQ_HAN_REN"
+     ],
+     "traditions": [
+      "Fenghuo I"
+     ],
+     "otherUnlocks": [
+      "IMPROVEMENT_HAN_GREAT_WALL"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_HAN_LI",
+     "name": "Li",
+     "cost": 250,
+     "prereqs": [
+      "NODE_CIVIC_AQ_HAN_REN"
+     ],
+     "traditions": [],
+     "otherUnlocks": [
+      "WONDER_WEIYANG_PALACE",
+      "MOD_AQ_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_HAN_ZHI",
+     "name": "Zhi",
+     "cost": 250,
+     "prereqs": [
+      "NODE_CIVIC_AQ_HAN_REN"
+     ],
+     "traditions": [
+      "Xiu Taixue",
+      "Ju Xian I"
+     ],
+     "otherUnlocks": [],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Heian Japan",
+   "civKey": "HEIAN",
+   "age": "antiquity",
+   "tree": "TREE_CIVICS_AQ_HEIAN",
+   "treeName": "Heian Civics",
+   "source": "DLC/heian",
+   "civics": [
+    "Ritsuryo",
+    "Waka",
+    "Urban Grid",
+    "Mono No Aware"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_AQ_HEIAN_RITSURYO",
+     "name": "Ritsuryo",
+     "cost": 150,
+     "prereqs": [],
+     "traditions": [
+      "Insei I"
+     ],
+     "otherUnlocks": [
+      "IMPROVEMENT_JINJA_LAND",
+      "IMPROVEMENT_JINJA_SEA",
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_HEIAN_WAKA",
+     "name": "Waka",
+     "cost": 250,
+     "prereqs": [
+      "NODE_CIVIC_AQ_HEIAN_RITSURYO"
+     ],
+     "traditions": [
+      "Utsurou"
+     ],
+     "otherUnlocks": [
+      "MOD_AQ_CODEX_CIVIC"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_HEIAN_URBAN_GRID",
+     "name": "Urban Grid",
+     "cost": 250,
+     "prereqs": [
+      "NODE_CIVIC_AQ_HEIAN_RITSURYO"
+     ],
+     "traditions": [
+      "Jo-bo System I"
+     ],
+     "otherUnlocks": [
+      "WONDER_HOO_DO_HALL"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_HEIAN_MONO_NO_AWARE",
+     "name": "Mono No Aware",
+     "cost": 400,
+     "prereqs": [
+      "NODE_CIVIC_AQ_HEIAN_WAKA",
+      "NODE_CIVIC_AQ_HEIAN_URBAN_GRID"
+     ],
+     "traditions": [
+      "Monogatari"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Khmer",
+   "civKey": "KHMER",
+   "age": "antiquity",
+   "tree": "TREE_CIVICS_AQ_KHMER",
+   "treeName": "Khmer Civics",
+   "source": "age-antiquity",
+   "civics": [
+    "Mousong",
+    "Amnach",
+    "Chakravarti"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_AQ_KHMER_MOUSONG",
+     "name": "Mousong",
+     "cost": 150,
+     "prereqs": [],
+     "traditions": [
+      "Pithi Chrat I"
+     ],
+     "otherUnlocks": [
+      "IMPROVEMENT_BARAY",
+      "UNIT_VAISHYA"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_KHMER_AMNACH",
+     "name": "Amnach",
+     "cost": 250,
+     "prereqs": [
+      "NODE_CIVIC_AQ_KHMER_MOUSONG"
+     ],
+     "traditions": [
+      "Bon Om Touk"
+     ],
+     "otherUnlocks": [
+      "WONDER_ANGKOR_WAT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_KHMER_CHAKRAVARTI",
+     "name": "Chakravarti",
+     "cost": 400,
+     "prereqs": [
+      "NODE_CIVIC_AQ_KHMER_AMNACH"
+     ],
+     "traditions": [
+      "Kambu-Mera I"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Maurya",
+   "civKey": "MAURYA",
+   "age": "antiquity",
+   "tree": "TREE_CIVICS_AQ_MAURYA",
+   "treeName": "Mauryan Civics",
+   "source": "age-antiquity",
+   "civics": [
+    "Acharya",
+    "Vyuham",
+    "Mantriparishad"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_AQ_MAURYA_ACHARYA",
+     "name": "Acharya",
+     "cost": 150,
+     "prereqs": [],
+     "traditions": [
+      "Charvaka I"
+     ],
+     "otherUnlocks": [
+      "BUILDING_DHARAMSHALA",
+      "BUILDING_VIHARA",
+      "MOD_ACHARYA_PANTHEON"
+     ],
+     "hasMastery": true
+    },
+    {
+     "id": "NODE_CIVIC_AQ_MAURYA_VYUHAM",
+     "name": "Vyuham",
+     "cost": 250,
+     "prereqs": [
+      "NODE_CIVIC_AQ_MAURYA_ACHARYA"
+     ],
+     "traditions": [
+      "Kshatriya"
+     ],
+     "otherUnlocks": [
+      "MOD_AQ_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_MAURYA_MANTRIPARISHAD",
+     "name": "Mantriparishad",
+     "cost": 400,
+     "prereqs": [
+      "NODE_CIVIC_AQ_MAURYA_VYUHAM"
+     ],
+     "traditions": [
+      "Arthashastra I"
+     ],
+     "otherUnlocks": [
+      "WONDER_SANCHI_STUPA",
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Maya",
+   "civKey": "MAYA",
+   "age": "antiquity",
+   "tree": "TREE_CIVICS_AQ_MAYA",
+   "treeName": "Maya Civics",
+   "source": "age-antiquity",
+   "civics": [
+    "Rain of Chaac",
+    "Lords of Xibalba",
+    "Calendar Round"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_AQ_MAYA_RAIN_OF_CHAAC",
+     "name": "Rain of Chaac",
+     "cost": 150,
+     "prereqs": [],
+     "traditions": [
+      "Pet Kot"
+     ],
+     "otherUnlocks": [
+      "BUILDING_KUH_NAH"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_MAYA_LORDS_OF_XIBALBA",
+     "name": "Lords of Xibalba",
+     "cost": 150,
+     "prereqs": [],
+     "traditions": [
+      "Miracles of the Twins I"
+     ],
+     "otherUnlocks": [
+      "BUILDING_JALAW"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_MAYA_CALENDAR_ROUND",
+     "name": "Calendar Round",
+     "cost": 250,
+     "prereqs": [
+      "NODE_CIVIC_AQ_MAYA_RAIN_OF_CHAAC",
+      "NODE_CIVIC_AQ_MAYA_LORDS_OF_XIBALBA"
+     ],
+     "traditions": [
+      "Tzolk'in I",
+      "Haab' I"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT",
+      "WONDER_MUNDO_PERDIDO",
+      "MOD_AQ_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": true
+    }
+   ]
+  },
+  {
+   "civ": "Mississippian",
+   "civKey": "MISSISSIPPIAN",
+   "age": "antiquity",
+   "tree": "TREE_CIVICS_AQ_MISSISSIPPIAN",
+   "treeName": "Mississippian Civics",
+   "source": "age-antiquity",
+   "civics": [
+    "Earthworks",
+    "Cah-nah-ha",
+    "Waahih"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_AQ_MISSISSIPPIAN_EARTHWORKS",
+     "name": "Earthworks",
+     "cost": 150,
+     "prereqs": [],
+     "traditions": [
+      "Shell-Tempered Pottery I"
+     ],
+     "otherUnlocks": [
+      "IMPROVEMENT_POTKOP",
+      "UNIT_WATONATHI",
+      "WONDER_MONKS_MOUND"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_MISSISSIPPIAN_CAH_NAH_HA",
+     "name": "Cah-nah-ha",
+     "cost": 150,
+     "prereqs": [],
+     "traditions": [
+      "Gift Economy I"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_MISSISSIPPIAN_WAAHIH",
+     "name": "Waahih",
+     "cost": 250,
+     "prereqs": [
+      "NODE_CIVIC_AQ_MISSISSIPPIAN_EARTHWORKS",
+      "NODE_CIVIC_AQ_MISSISSIPPIAN_CAH_NAH_HA"
+     ],
+     "traditions": [
+      "Buzzard Cult"
+     ],
+     "otherUnlocks": [
+      "MOD_AQ_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Rome",
+   "civKey": "ROME",
+   "age": "antiquity",
+   "tree": "TREE_CIVICS_AQ_ROME",
+   "treeName": "Roman Civics",
+   "source": "age-antiquity",
+   "civics": [
+    "Exercitus Romanus",
+    "Civis Romanus",
+    "Legatus Pro Praetore",
+    "Senatus Populusque Romanus"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_AQ_ROME_EXERCITUS_ROMANUS",
+     "name": "Exercitus Romanus",
+     "cost": 150,
+     "prereqs": [],
+     "traditions": [
+      "Auxilia I"
+     ],
+     "otherUnlocks": [
+      "BUILDING_TEMPLE_OF_JUPITER"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_ROME_CIVIS_ROMANUS",
+     "name": "Civis Romanus",
+     "cost": 150,
+     "prereqs": [],
+     "traditions": [
+      "Cursus Honorum"
+     ],
+     "otherUnlocks": [
+      "BUILDING_BASILICA"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_ROME_LEGATUS_PRO_PRAETORE",
+     "name": "Legatus Pro Praetore",
+     "cost": 250,
+     "prereqs": [
+      "NODE_CIVIC_AQ_ROME_EXERCITUS_ROMANUS",
+      "NODE_CIVIC_AQ_ROME_CIVIS_ROMANUS"
+     ],
+     "traditions": [
+      "Latinitas I"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT",
+      "MOD_AQ_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_ROME_SENATUS_POPULUSQUE_ROMANUS",
+     "name": "Senatus Populusque Romanus",
+     "cost": 400,
+     "prereqs": [
+      "NODE_CIVIC_AQ_ROME_LEGATUS_PRO_PRAETORE"
+     ],
+     "traditions": [
+      "Princeps Civitatis I"
+     ],
+     "otherUnlocks": [
+      "MOD_SENATUS_POPULUSQUE_ROMANUS_TRADITION_SLOTS",
+      "MOD_AQ_SETTLEMENT_CAP_INCREASE",
+      "WONDER_COLOSSEUM"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Silla",
+   "civKey": "SILLA",
+   "age": "antiquity",
+   "tree": "TREE_CIVICS_AQ_SILLA",
+   "treeName": "Silla Civics",
+   "source": "DLC/silla",
+   "civics": [
+    "Kolp'um",
+    "Samguk Sagi",
+    "Seonggol",
+    "Jingol"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_AQ_SILLA_KOLP_UM",
+     "name": "Kolp'um",
+     "cost": 108,
+     "prereqs": [],
+     "traditions": [
+      "Beopseong I"
+     ],
+     "otherUnlocks": [
+      "BUILDING_PAGODA",
+      "BUILDING_LECTURE_HALL"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_SILLA_SAMGUK_SAGI",
+     "name": "Samguk Sagi",
+     "cost": 120,
+     "prereqs": [
+      "NODE_CIVIC_AQ_SILLA_KOLP_UM"
+     ],
+     "traditions": [
+      "Strategic Allies"
+     ],
+     "otherUnlocks": [
+      "WONDER_EMILE_BELL"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_SILLA_SEONGGOL",
+     "name": "Seonggol",
+     "cost": 120,
+     "prereqs": [
+      "NODE_CIVIC_AQ_SILLA_KOLP_UM"
+     ],
+     "traditions": [
+      "The Golden Road I"
+     ],
+     "otherUnlocks": [
+      "UNIT_SANGDAEDEUNG",
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_SILLA_JINGOL",
+     "name": "Jingol",
+     "cost": 120,
+     "prereqs": [
+      "NODE_CIVIC_AQ_SILLA_KOLP_UM"
+     ],
+     "traditions": [
+      "Seorabeol I"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Tonga",
+   "civKey": "TONGA",
+   "age": "antiquity",
+   "tree": "TREE_CIVICS_AQ_TONGA",
+   "treeName": "Tongan Civics",
+   "source": "DLC/tonga",
+   "civics": [
+    "Lapita Origins",
+    "ʻEsi Maka Faakinanga",
+    "Kava Ceremony"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_AQ_TONGA_LAPITA_ORIGINS",
+     "name": "Lapita Origins",
+     "cost": 150,
+     "prereqs": [],
+     "traditions": [
+      "Takuaka"
+     ],
+     "otherUnlocks": [
+      "BUILDING_VAI_KAUKAU",
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_TONGA_ESI_MAKA_FAAKINANGA",
+     "name": "ʻEsi Maka Faakinanga",
+     "cost": 150,
+     "prereqs": [],
+     "traditions": [
+      "Tongiaki I"
+     ],
+     "otherUnlocks": [
+      "BUILDING_LANGI",
+      "MOD_AQ_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_AQ_TONGA_KAVA_CEREMONY",
+     "name": "Kava Ceremony",
+     "cost": 250,
+     "prereqs": [
+      "NODE_CIVIC_AQ_TONGA_ESI_MAKA_FAAKINANGA",
+      "NODE_CIVIC_AQ_TONGA_LAPITA_ORIGINS"
+     ],
+     "traditions": [
+      "Ngatu I"
+     ],
+     "otherUnlocks": [
+      "WONDER_HA_AMONGA_A_MAUI",
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Abbasid",
+   "civKey": "ABBASID",
+   "age": "exploration",
+   "tree": "TREE_CIVICS_EX_ABBASID",
+   "treeName": "Abbasid Civics",
+   "source": "age-exploration",
+   "civics": [
+    "Round City",
+    "Mawla",
+    "Al-Jabr"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_EX_ABBASID_ROUND_CITY",
+     "name": "Round City",
+     "cost": 800,
+     "prereqs": [],
+     "traditions": [
+      "City of Peace II"
+     ],
+     "otherUnlocks": [
+      "BUILDING_MOSQUE",
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_ABBASID_MAWLA",
+     "name": "Mawla",
+     "cost": 800,
+     "prereqs": [],
+     "traditions": [
+      "Sales and Trade I"
+     ],
+     "otherUnlocks": [
+      "BUILDING_MADRASA",
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_ABBASID_AL_JABR",
+     "name": "Al-Jabr",
+     "cost": 1200,
+     "prereqs": [
+      "NODE_CIVIC_EX_ABBASID_ROUND_CITY",
+      "NODE_CIVIC_EX_ABBASID_MAWLA"
+     ],
+     "traditions": [
+      "Compendious Book"
+     ],
+     "otherUnlocks": [
+      "WONDER_HOUSE_OF_WISDOM"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Bulgaria",
+   "civKey": "BULGARIA",
+   "age": "exploration",
+   "tree": "TREE_CIVICS_EX_BULGARIA",
+   "treeName": "Bulgaria Civics",
+   "source": "DLC/bulgaria",
+   "civics": [
+    "Seven Tribes",
+    "Tarnovo Schools",
+    "Tsarstvie"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_EX_BULGARIA_SEVEN_TRIBES",
+     "name": "Seven Tribes",
+     "cost": 800,
+     "prereqs": [],
+     "traditions": [
+      "False Retreat"
+     ],
+     "otherUnlocks": [
+      "IMPROVEMENT_HIDDEN_FORTRESS"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_BULGARIA_TARNOVO_SCHOOLS",
+     "name": "Tarnovo Schools",
+     "cost": 1200,
+     "prereqs": [
+      "NODE_CIVIC_EX_BULGARIA_SEVEN_TRIBES"
+     ],
+     "traditions": [
+      "Iconolatry I"
+     ],
+     "otherUnlocks": [
+      "WONDER_RILA_MONASTERY",
+      "MOD_EX_RELIC"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_BULGARIA_TSARSTVIE",
+     "name": "Tsarstvie",
+     "cost": 2000,
+     "prereqs": [
+      "NODE_CIVIC_EX_BULGARIA_SEVEN_TRIBES"
+     ],
+     "traditions": [
+      "Stratagems II"
+     ],
+     "otherUnlocks": [
+      "MOD_EX_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Chola",
+   "civKey": "CHOLA",
+   "age": "exploration",
+   "tree": "TREE_CIVICS_EX_CHOLA",
+   "treeName": "Chola Civics",
+   "source": "age-exploration",
+   "civics": [
+    "Nagaram",
+    "Kanakam",
+    "Digvijaya",
+    "Monsoon Winds"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_EX_CHOLA_NAGARAM",
+     "name": "Nagaram",
+     "cost": 800,
+     "prereqs": [],
+     "traditions": [],
+     "otherUnlocks": [
+      "BUILDING_MANIGRAMAM",
+      "BUILDING_ANJUVANNAM",
+      "WONDER_BRIHADEESWARAR_TEMPLE"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_CHOLA_KANAKAM",
+     "name": "Kanakam",
+     "cost": 1200,
+     "prereqs": [
+      "NODE_CIVIC_EX_CHOLA_NAGARAM"
+     ],
+     "traditions": [
+      "Devakoshta II"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_CHOLA_DIGVIJAYA",
+     "name": "Digvijaya",
+     "cost": 1200,
+     "prereqs": [
+      "NODE_CIVIC_EX_CHOLA_NAGARAM"
+     ],
+     "traditions": [
+      "Marakkalam"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_CHOLA_MONSOON_WINDS",
+     "name": "Monsoon Winds",
+     "cost": 2000,
+     "prereqs": [
+      "NODE_CIVIC_EX_CHOLA_DIGVIJAYA",
+      "NODE_CIVIC_EX_CHOLA_KANAKAM"
+     ],
+     "traditions": [
+      "Angadi I"
+     ],
+     "otherUnlocks": [
+      "MOD_EX_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "England",
+   "civKey": "ENGLAND",
+   "age": "exploration",
+   "tree": "TREE_CIVICS_EX_ENGLAND",
+   "treeName": "England Civics",
+   "source": "DLC/england",
+   "civics": [
+    "Angevin Empire",
+    "English Reformation",
+    "Board of Trade"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_EX_ENGLAND_ANGEVIN_EMPIRE",
+     "name": "Angevin Empire",
+     "cost": 800,
+     "prereqs": [],
+     "traditions": [
+      "Charter of the Forest II"
+     ],
+     "otherUnlocks": [
+      "BUILDING_CHAPEL",
+      "BUILDING_CHAPTER_HOUSE"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_ENGLAND_ENGLISH_REFORMATION",
+     "name": "English Reformation",
+     "cost": 1200,
+     "prereqs": [
+      "NODE_CIVIC_EX_ENGLAND_ANGEVIN_EMPIRE"
+     ],
+     "traditions": [
+      "Act of Supremacy"
+     ],
+     "otherUnlocks": [
+      "WONDER_GLOBE_THEATRE",
+      "MOD_EX_SETTLEMENT_CAP_INCREASE",
+      "MOD_REFORMATION_BELIEF_ADD"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_ENGLAND_BOARD_OF_TRADES",
+     "name": "Board of Trade",
+     "cost": 2000,
+     "prereqs": [
+      "NODE_CIVIC_EX_ENGLAND_ENGLISH_REFORMATION"
+     ],
+     "traditions": [
+      "Rights of Englishmen I"
+     ],
+     "otherUnlocks": [
+      "TRAIT_MOD_ENGLAND_GOLD_GDP",
+      "MOD_EX_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Goryeo",
+   "civKey": "GORYEO",
+   "age": "exploration",
+   "tree": "TREE_CIVICS_EX_GORYEO",
+   "treeName": "Goryeo Civics",
+   "source": "DLC/goryeo",
+   "civics": [
+    "Cheonsu",
+    "Tripitaka Koreana",
+    "Jikji"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_EX_GORYEO_CHEONSU",
+     "name": "Cheonsu",
+     "cost": 800,
+     "prereqs": [],
+     "traditions": [
+      "Bongwan I"
+     ],
+     "otherUnlocks": [
+      "IMPROVEMENT_GAMA",
+      "MOD_TOT_TRADITION_SLOT",
+      "WONDER_BUSEOKSA"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_GORYEO_TRIPITAKA_KOREANA",
+     "name": "Tripitaka Koreana",
+     "cost": 1200,
+     "prereqs": [
+      "NODE_CIVIC_EX_GORYEO_CHEONSU"
+     ],
+     "traditions": [
+      "Hoguk Jonggyo II"
+     ],
+     "otherUnlocks": [
+      "MOD_EX_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_GORYEO_JIKJI",
+     "name": "Jikji",
+     "cost": 1200,
+     "prereqs": [
+      "NODE_CIVIC_EX_GORYEO_CHEONSU"
+     ],
+     "traditions": [
+      "Sagae Chibubeop"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Hawai'i",
+   "civKey": "HAWAII",
+   "age": "exploration",
+   "tree": "TREE_CIVICS_EX_HAWAII",
+   "treeName": "Hawai'i Civics",
+   "source": "age-exploration",
+   "civics": [
+    "Mana",
+    "Ohana",
+    "He'e nalu"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_EX_HAWAII_MANA",
+     "name": "Mana",
+     "cost": 800,
+     "prereqs": [],
+     "traditions": [
+      "Kapa"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_HAWAII_OHANA",
+     "name": "Ohana",
+     "cost": 800,
+     "prereqs": [],
+     "traditions": [
+      "Ahupua'a I"
+     ],
+     "otherUnlocks": [
+      "IMPROVEMENT_LO_I_KALO",
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_HAWAII_HE_E_NALU",
+     "name": "He'e nalu",
+     "cost": 1200,
+     "prereqs": [
+      "NODE_CIVIC_EX_HAWAII_MANA",
+      "NODE_CIVIC_EX_HAWAII_OHANA"
+     ],
+     "traditions": [
+      "Ho'okupu II"
+     ],
+     "otherUnlocks": [
+      "MOD_HE_E_NALU_TWO_RELICS",
+      "MOD_EX_SETTLEMENT_CAP_INCREASE",
+      "WONDER_HALE_O_KEAWE"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Iceland",
+   "civKey": "ICELAND",
+   "age": "exploration",
+   "tree": "TREE_CIVICS_EX_ICELAND",
+   "treeName": "Iceland Civics",
+   "source": "DLC/iceland",
+   "civics": [
+    "Landnámabók",
+    "Hugins Drekka",
+    "Væringjar",
+    "Þjóðveldið"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_EX_ICELAND_LANDNAMABOK",
+     "name": "Landnámabók",
+     "cost": 800,
+     "prereqs": [],
+     "traditions": [
+      "Dróttkvætt II",
+      "Reiði Guðanna"
+     ],
+     "otherUnlocks": [
+      "IMPROVEMENT_THING",
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": true
+    },
+    {
+     "id": "NODE_CIVIC_EX_ICELAND_HUGINS_DREKKA",
+     "name": "Hugins Drekka",
+     "cost": 1200,
+     "prereqs": [
+      "NODE_CIVIC_EX_ICELAND_LANDNAMABOK"
+     ],
+     "traditions": [
+      "Strandhögg"
+     ],
+     "otherUnlocks": [],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_ICELAND_VAERINGJAR",
+     "name": "Væringjar",
+     "cost": 1200,
+     "prereqs": [
+      "NODE_CIVIC_EX_ICELAND_LANDNAMABOK"
+     ],
+     "traditions": [
+      "Lyfsteinn I"
+     ],
+     "otherUnlocks": [
+      "MOD_EX_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_ICELAND_THJODVELDID",
+     "name": "Þjóðveldið",
+     "cost": 2000,
+     "prereqs": [
+      "NODE_CIVIC_EX_ICELAND_HUGINS_DREKKA",
+      "NODE_CIVIC_EX_ICELAND_VAERINGJAR"
+     ],
+     "traditions": [],
+     "otherUnlocks": [
+      "MOD_THJODVELDID_RELIC",
+      "WONDER_REYKHOLT",
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Inca",
+   "civKey": "INCA",
+   "age": "exploration",
+   "tree": "TREE_CIVICS_EX_INCA",
+   "treeName": "Incan Civics",
+   "source": "age-exploration",
+   "civics": [
+    "Mit'a",
+    "Ayllu",
+    "Qhapaq Ñan"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_EX_INCA_MITA",
+     "name": "Mit'a",
+     "cost": 800,
+     "prereqs": [],
+     "traditions": [
+      "Tirakuna II"
+     ],
+     "otherUnlocks": [
+      "IMPROVEMENT_TERRACE_FARM",
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_INCA_AYLLU",
+     "name": "Ayllu",
+     "cost": 1200,
+     "prereqs": [
+      "NODE_CIVIC_EX_INCA_MITA"
+     ],
+     "traditions": [
+      "Qullqa I"
+     ],
+     "otherUnlocks": [
+      "WONDER_MACHU_PIKCHU"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_INCA_QHAPAQ_NAN",
+     "name": "Qhapaq Ñan",
+     "cost": 1200,
+     "prereqs": [
+      "NODE_CIVIC_EX_INCA_MITA"
+     ],
+     "traditions": [
+      "Quipu"
+     ],
+     "otherUnlocks": [
+      "MOD_QHAPAQ_NAN_AUTO_TREASURE_FLEET"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Majapahit",
+   "civKey": "MAJAPAHIT",
+   "age": "exploration",
+   "tree": "TREE_CIVICS_EX_MAJAPAHIT",
+   "treeName": "Majapahit Civics",
+   "source": "age-exploration",
+   "civics": [
+    "Wayang",
+    "Aliran Kepercayaan",
+    "Nusantara"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_EX_MAJAPAHIT_WAYANG",
+     "name": "Wayang",
+     "cost": 800,
+     "prereqs": [],
+     "traditions": [
+      "Panji"
+     ],
+     "otherUnlocks": [
+      "BUILDING_CANDI_BENTAR",
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_MAJAPAHIT_ALIRAN_KEPERCAYAAN",
+     "name": "Aliran Kepercayaan",
+     "cost": 800,
+     "prereqs": [],
+     "traditions": [
+      "Negarakertagama I"
+     ],
+     "otherUnlocks": [
+      "BUILDING_MERU",
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_MAJAPAHIT_NUSUNTARA",
+     "name": "Nusantara",
+     "cost": 1200,
+     "prereqs": [
+      "NODE_CIVIC_EX_MAJAPAHIT_WAYANG",
+      "NODE_CIVIC_EX_MAJAPAHIT_ALIRAN_KEPERCAYAAN"
+     ],
+     "traditions": [
+      "Awisan Dalem II"
+     ],
+     "otherUnlocks": [
+      "MOD_EX_SETTLEMENT_CAP_INCREASE",
+      "WONDER_BOROBUDUR"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Ming",
+   "civKey": "MING",
+   "age": "exploration",
+   "tree": "TREE_CIVICS_EX_MING",
+   "treeName": "Ming Civics",
+   "source": "age-exploration",
+   "civics": [
+    "Nine Garrisons",
+    "Lijia",
+    "Da Ming Lu"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_EX_MING_NINE_GARRISONS",
+     "name": "Nine Garrisons",
+     "cost": 800,
+     "prereqs": [],
+     "traditions": [
+      "Divine Engine Division"
+     ],
+     "otherUnlocks": [
+      "IMPROVEMENT_MING_GREAT_WALL"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_MING_LIJIA",
+     "name": "Lijia",
+     "cost": 1200,
+     "prereqs": [
+      "NODE_CIVIC_EX_MING_NINE_GARRISONS"
+     ],
+     "traditions": [
+      "Baojia II"
+     ],
+     "otherUnlocks": [
+      "MOD_EX_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_MING_DA_MING_LU",
+     "name": "Da Ming Lu",
+     "cost": 1200,
+     "prereqs": [
+      "NODE_CIVIC_EX_MING_NINE_GARRISONS"
+     ],
+     "traditions": [
+      "Grand Secretariat I"
+     ],
+     "otherUnlocks": [
+      "WONDER_FORBIDDEN_CITY"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Mongolia",
+   "civKey": "MONGOLIA",
+   "age": "exploration",
+   "tree": "TREE_CIVICS_EX_MONGOLIA",
+   "treeName": "Mongolian Civics",
+   "source": "age-exploration",
+   "civics": [
+    "Ulus",
+    "Four Hounds",
+    "Yassa"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_EX_MONGOLIA_ULUS",
+     "name": "Ulus",
+     "cost": 800,
+     "prereqs": [],
+     "traditions": [
+      "Gerege"
+     ],
+     "otherUnlocks": [
+      "IMPROVEMENT_ORTOO",
+      "WONDER_ERDENE_ZUU",
+      "MOD_EX_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_MONGOLIA_FOUR_HOUNDS",
+     "name": "Four Hounds",
+     "cost": 1200,
+     "prereqs": [
+      "NODE_CIVIC_EX_MONGOLIA_ULUS"
+     ],
+     "traditions": [
+      "Baghatur II"
+     ],
+     "otherUnlocks": [
+      "MOD_EX_SETTLEMENT_CAP_INCREASE",
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_MONGOLIA_YASSA",
+     "name": "Yassa",
+     "cost": 2000,
+     "prereqs": [
+      "NODE_CIVIC_EX_MONGOLIA_FOUR_HOUNDS"
+     ],
+     "traditions": [
+      "Jarlig I"
+     ],
+     "otherUnlocks": [
+      "MOD_EX_SETTLEMENT_CAP_INCREASE_MORE"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Norman",
+   "civKey": "NORMAN",
+   "age": "exploration",
+   "tree": "TREE_CIVICS_EX_NORMAN",
+   "treeName": "Norman Civics",
+   "source": "age-exploration",
+   "civics": [
+    "Consuetudines et Justicie",
+    "Common Law",
+    "Domesday Book"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_EX_NORMAN_CONSUETUDINES_ET_JUSTICIE",
+     "name": "Consuetudines et Justicie",
+     "cost": 800,
+     "prereqs": [],
+     "traditions": [
+      "Palisading II",
+      "Familia Regis"
+     ],
+     "otherUnlocks": [
+      "BUILDING_MOTTE",
+      "BUILDING_BAILEY",
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": true
+    },
+    {
+     "id": "NODE_CIVIC_EX_NORMAN_COMMON_LAW",
+     "name": "Common Law",
+     "cost": 1200,
+     "prereqs": [
+      "NODE_CIVIC_EX_NORMAN_CONSUETUDINES_ET_JUSTICIE"
+     ],
+     "traditions": [
+      "Juré II",
+      "Servitium Debitum"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT",
+      "MOD_EX_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": true
+    },
+    {
+     "id": "NODE_CIVIC_EX_NORMAN_DOMESDAY_BOOK",
+     "name": "Domesday Book",
+     "cost": 2000,
+     "prereqs": [
+      "NODE_CIVIC_EX_NORMAN_COMMON_LAW"
+     ],
+     "traditions": [
+      "Bayeux Tapestry I"
+     ],
+     "otherUnlocks": [
+      "WONDER_WHITE_TOWER",
+      "MOD_EX_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Republic of Pirates",
+   "civKey": "PIRATE_REPUBLIC",
+   "age": "exploration",
+   "tree": "TREE_CIVICS_EX_PIRATE_REPUBLIC",
+   "treeName": "Pirate Civics",
+   "source": "DLC/pirate-republic",
+   "civics": [
+    "Articles of Agreement",
+    "Ports of Call",
+    "Enemy of All Nations"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_EX_PIRATE_REPUBLIC_ARTICLES_OF_AGREEMENT",
+     "name": "Articles of Agreement",
+     "cost": 800,
+     "prereqs": [],
+     "traditions": [
+      "Press Gangs I"
+     ],
+     "otherUnlocks": [
+      "BUILDING_NAVAL_STATION"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_PIRATE_REPUBLIC_PORTS_OF_CALL",
+     "name": "Ports of Call",
+     "cost": 1200,
+     "prereqs": [
+      "NODE_CIVIC_EX_PIRATE_REPUBLIC_ARTICLES_OF_AGREEMENT"
+     ],
+     "traditions": [
+      "Merry Life and a Short One"
+     ],
+     "otherUnlocks": [
+      "BUILDING_NAVAL_ARSENAL",
+      "WONDER_HAVANA_HARBOR",
+      "MOD_EX_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": true
+    },
+    {
+     "id": "NODE_CIVIC_EX_PIRATE_REPUBLIC_ENEMY_OF_ALL_NATIONS",
+     "name": "Enemy of All Nations",
+     "cost": 2000,
+     "prereqs": [
+      "NODE_CIVIC_EX_PIRATE_REPUBLIC_PORTS_OF_CALL"
+     ],
+     "traditions": [
+      "Black Flag II"
+     ],
+     "otherUnlocks": [
+      "ENEMY_OF_ALL_NATIONS_MOD_TREASURE_FLEET_CS",
+      "ENEMY_OF_ALL_NATIONS_MOD_TREASURE_FLEET_EXTRA_VP"
+     ],
+     "hasMastery": true
+    }
+   ]
+  },
+  {
+   "civ": "Sengoku Japan",
+   "civKey": "SENGOKU",
+   "age": "exploration",
+   "tree": "TREE_CIVICS_EX_SENGOKU",
+   "treeName": "Sengoku Civics",
+   "source": "DLC/sengoku",
+   "civics": [
+    "Tenka Bito",
+    "Ikki",
+    "Rakuichi-Rakuza",
+    "Kinsei"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_EX_SENGOKU_TENKA_BITO",
+     "name": "Tenka Bito",
+     "cost": 800,
+     "prereqs": [],
+     "traditions": [],
+     "otherUnlocks": [
+      "IMPROVEMENT_TEA_HOUSE",
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_SENGOKU_IKKI",
+     "name": "Ikki",
+     "cost": 800,
+     "prereqs": [],
+     "traditions": [
+      "Gekokujo II"
+     ],
+     "otherUnlocks": [
+      "WONDER_HIMEJI_CASTLE"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_SENGOKU_RAKUICHI_RAKUZA",
+     "name": "Rakuichi-Rakuza",
+     "cost": 800,
+     "prereqs": [],
+     "traditions": [
+      "Kabunakama I"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_SENGOKU_KINSEI",
+     "name": "Kinsei",
+     "cost": 2000,
+     "prereqs": [
+      "NODE_CIVIC_EX_SENGOKU_TENKA_BITO",
+      "NODE_CIVIC_EX_SENGOKU_IKKI",
+      "NODE_CIVIC_EX_SENGOKU_RAKUICHI_RAKUZA"
+     ],
+     "traditions": [
+      "Daimyo"
+     ],
+     "otherUnlocks": [
+      "KINSEI_MOD_MOD_SAMURAI_2",
+      "MOD_EX_SETTLEMENT_CAP_INCREASE_MORE"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Shawnee",
+   "civKey": "SHAWNEE",
+   "age": "exploration",
+   "tree": "TREE_CIVICS_EX_SHAWNEE",
+   "treeName": "Shawnee Civics",
+   "source": "DLC/shawnee-tecumseh",
+   "civics": [
+    "Wiyehi Simekofi",
+    "Miyaska Latoweki",
+    "Telwatiki",
+    "Maleki Kintake"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_EX_SHAWNEE_WYEHI_SIMEKOFI",
+     "name": "Wiyehi Simekofi",
+     "cost": 800,
+     "prereqs": [],
+     "traditions": [
+      "Bread Dance I"
+     ],
+     "otherUnlocks": [
+      "WONDER_SERPENT_MOUND",
+      "IMPROVEMENT_MAWASKAWE_SKOTE"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_SHAWNEE_MIYASKA_LATOWEKI",
+     "name": "Miyaska Latoweki",
+     "cost": 1200,
+     "prereqs": [
+      "NODE_CIVIC_EX_SHAWNEE_WYEHI_SIMEKOFI"
+     ],
+     "traditions": [
+      "Niwiitikeemekonaaki I"
+     ],
+     "otherUnlocks": [
+      "MOD_EX_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_SHAWNEE_TELWATIKI",
+     "name": "Telwatiki",
+     "cost": 1200,
+     "prereqs": [
+      "NODE_CIVIC_EX_SHAWNEE_WYEHI_SIMEKOFI"
+     ],
+     "traditions": [
+      "Helikhilenawewipe II"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_SHAWNEE_MALEKI_KINTAKE",
+     "name": "Maleki Kintake",
+     "cost": 2000,
+     "prereqs": [
+      "NODE_CIVIC_EX_SHAWNEE_MIYASKA_LATOWEKI",
+      "NODE_CIVIC_EX_SHAWNEE_TELWATIKI"
+     ],
+     "traditions": [
+      "Takesiyake Yepepoki"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Songhai",
+   "civKey": "SONGHAI",
+   "age": "exploration",
+   "tree": "TREE_CIVICS_EX_SONGHAI",
+   "treeName": "Songhai Civics",
+   "source": "age-exploration",
+   "civics": [
+    "Ships of the Desert",
+    "Hi-Koi",
+    "Kanta"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_EX_SONGHAI_SHIPS_OF_THE_DESERT",
+     "name": "Ships of the Desert",
+     "cost": 800,
+     "prereqs": [],
+     "traditions": [
+      "Timbuktu I",
+      "Mud Brick I"
+     ],
+     "otherUnlocks": [
+      "IMPROVEMENT_CARAVANSERAI",
+      "WONDER_TOMB_OF_ASKIA",
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": true
+    },
+    {
+     "id": "NODE_CIVIC_EX_SONGHAI_HI_KOI",
+     "name": "Hi-Koi",
+     "cost": 800,
+     "prereqs": [],
+     "traditions": [
+      "Isa"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_SONGHAI_KANTA",
+     "name": "Kanta",
+     "cost": 1200,
+     "prereqs": [
+      "NODE_CIVIC_EX_SONGHAI_SHIPS_OF_THE_DESERT",
+      "NODE_CIVIC_EX_SONGHAI_HI_KOI"
+     ],
+     "traditions": [
+      "Wakia II"
+     ],
+     "otherUnlocks": [
+      "MOD_KANTA_AUTO_TREASURE_FLEET",
+      "MOD_EX_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Spain",
+   "civKey": "SPAIN",
+   "age": "exploration",
+   "tree": "TREE_CIVICS_EX_SPAIN",
+   "treeName": "Spanish Civics",
+   "source": "age-exploration",
+   "civics": [
+    "Council of the Indies",
+    "Armada",
+    "New World Riches"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_EX_SPAIN_COUNCIL_OF_THE_INDIES",
+     "name": "Council of the Indies",
+     "cost": 800,
+     "prereqs": [],
+     "traditions": [
+      "Conquista"
+     ],
+     "otherUnlocks": [
+      "BUILDING_CASA_CONSISTORIAL",
+      "BUILDING_CASA_DE_CONTRATACION",
+      "WONDER_EL_ESCORIAL",
+      "MOD_EX_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": true
+    },
+    {
+     "id": "NODE_CIVIC_EX_SPAIN_ARMADA",
+     "name": "Armada",
+     "cost": 1200,
+     "prereqs": [
+      "NODE_CIVIC_EX_SPAIN_COUNCIL_OF_THE_INDIES"
+     ],
+     "traditions": [
+      "Great and Most Fortunate Navy I"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_SPAIN_NEW_WORLD_RICHES",
+     "name": "New World Riches",
+     "cost": 1200,
+     "prereqs": [
+      "NODE_CIVIC_EX_SPAIN_COUNCIL_OF_THE_INDIES"
+     ],
+     "traditions": [
+      "Cerro Rico II"
+     ],
+     "otherUnlocks": [
+      "MOD_NEW_WORLD_RICHES_TREASURE_FLEET_MOVEMENT",
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Đại Việt",
+   "civKey": "DAI_VIET",
+   "age": "exploration",
+   "tree": "TREE_CIVICS_EX_DAI_VIET",
+   "treeName": "Đại Việt Civics",
+   "source": "DLC/dai-viet",
+   "civics": [
+    "Cấm Quân",
+    "Chữ Nôm",
+    "Thành Hoàng",
+    "Tứ Dân"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_EX_DAI_VIET_CAM_QUAN",
+     "name": "Cấm Quân",
+     "cost": 800,
+     "prereqs": [],
+     "traditions": [
+      "Cấm Binh II"
+     ],
+     "otherUnlocks": [
+      "WONDER_THANH_HUE"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_DAI_VIET_CHU_NOM",
+     "name": "Chữ Nôm",
+     "cost": 800,
+     "prereqs": [],
+     "traditions": [
+      "Con Kênh"
+     ],
+     "otherUnlocks": [
+      "MOD_EX_RELIC"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_DAI_VIET_THANH_HOANG",
+     "name": "Thành Hoàng",
+     "cost": 800,
+     "prereqs": [],
+     "traditions": [],
+     "otherUnlocks": [
+      "IMPROVEMENT_WATER_PUPPET_THEATER",
+      "MOD_TOT_TRADITION_SLOT_TWO"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_EX_DAI_VIET_TU_DAN",
+     "name": "Tứ Dân",
+     "cost": 1200,
+     "prereqs": [
+      "NODE_CIVIC_EX_DAI_VIET_CAM_QUAN",
+      "NODE_CIVIC_EX_DAI_VIET_CHU_NOM",
+      "NODE_CIVIC_EX_DAI_VIET_THANH_HOANG"
+     ],
+     "traditions": [
+      "Ruộng Làng Xã I"
+     ],
+     "otherUnlocks": [
+      "MOD_EX_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "America",
+   "civKey": "AMERICA",
+   "age": "modern",
+   "tree": "TREE_CIVICS_MO_AMERICA",
+   "treeName": "American Civics",
+   "source": "age-modern",
+   "civics": [
+    "Yankee Ingenuity",
+    "Captains of Industry",
+    "Wartime Manufacturing"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_MO_AMERICA_YANKEE_INGENUITY",
+     "name": "Yankee Ingenuity",
+     "cost": 2000,
+     "prereqs": [],
+     "traditions": [
+      "Gold Rush II"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT",
+      "BUILDING_STEEL_MILL"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_AMERICA_CAPTAINS_OF_INDUSTRY",
+     "name": "Captains of Industry",
+     "cost": 2000,
+     "prereqs": [],
+     "traditions": [
+      "Robber Baron II"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT",
+      "BUILDING_RAILYARD"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_AMERICA_WARTIME_MANUFACTURING",
+     "name": "Wartime Manufacturing",
+     "cost": 3000,
+     "prereqs": [
+      "NODE_CIVIC_MO_AMERICA_YANKEE_INGENUITY",
+      "NODE_CIVIC_MO_AMERICA_CAPTAINS_OF_INDUSTRY"
+     ],
+     "traditions": [
+      "Lend-Lease"
+     ],
+     "otherUnlocks": [
+      "WONDER_STATUE_OF_LIBERTY",
+      "MOD_MO_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Buganda",
+   "civKey": "BUGANDA",
+   "age": "modern",
+   "tree": "TREE_CIVICS_MO_BUGANDA",
+   "treeName": "Buganda Civics",
+   "source": "age-modern",
+   "civics": [
+    "'Nnalubaale",
+    "Olutabaalo",
+    "Nyanza"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_MO_BUGANDA_NNALUBAALE",
+     "name": "'Nnalubaale",
+     "cost": 2000,
+     "prereqs": [],
+     "traditions": [
+      "Clan Society II"
+     ],
+     "otherUnlocks": [
+      "IMPROVEMENT_KABAKAS_LAKE",
+      "MOD_TOT_TRADITION_SLOT",
+      "WONDER_MUZIBU_AZAALA_MPANGA"
+     ],
+     "hasMastery": true
+    },
+    {
+     "id": "NODE_CIVIC_MO_BUGANDA_OLUTABAALO",
+     "name": "Olutabaalo",
+     "cost": 3000,
+     "prereqs": [
+      "NODE_CIVIC_MO_BUGANDA_NNALUBAALE"
+     ],
+     "traditions": [
+      "Ng'oma II"
+     ],
+     "otherUnlocks": [],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_BUGANDA_NYANZA",
+     "name": "Nyanza",
+     "cost": 4000,
+     "prereqs": [
+      "NODE_CIVIC_MO_BUGANDA_OLUTABAALO"
+     ],
+     "traditions": [
+      "Interlacustrine II"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "French Empire",
+   "civKey": "FRENCH_EMPIRE",
+   "age": "modern",
+   "tree": "TREE_CIVICS_MO_FRENCH_EMPIRE",
+   "treeName": "French Civics",
+   "source": "age-modern",
+   "civics": [
+    "Belle Époque",
+    "Voie Triomphale",
+    "Grande Armée",
+    "Code Civil des Français"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_MO_FRENCH_EMPIRE_BELLE_EPOQUE",
+     "name": "Belle Époque",
+     "cost": 2000,
+     "prereqs": [],
+     "traditions": [
+      "Style Empire II"
+     ],
+     "otherUnlocks": [
+      "BUILDING_SALON"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_FRENCH_EMPIRE_VOIE_TRIOMPHALE",
+     "name": "Voie Triomphale",
+     "cost": 2000,
+     "prereqs": [],
+     "traditions": [
+      "Cocorico II"
+     ],
+     "otherUnlocks": [
+      "BUILDING_FORMAL_GARDEN"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_FRENCH_EMPIRE_GRANDE_ARMEE",
+     "name": "Grande Armée",
+     "cost": 3000,
+     "prereqs": [
+      "NODE_CIVIC_MO_FRENCH_EMPIRE_BELLE_EPOQUE",
+      "NODE_CIVIC_MO_FRENCH_EMPIRE_VOIE_TRIOMPHALE"
+     ],
+     "traditions": [
+      "Bataillon-Carré"
+     ],
+     "otherUnlocks": [
+      "MOD_MO_SETTLEMENT_CAP_INCREASE",
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_FRENCH_EMPIRE_CODE_CIVIL",
+     "name": "Code Civil des Français",
+     "cost": 4000,
+     "prereqs": [
+      "NODE_CIVIC_MO_FRENCH_EMPIRE_GRANDE_ARMEE"
+     ],
+     "traditions": [],
+     "otherUnlocks": [
+      "WONDER_EIFFEL_TOWER",
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Great Britain",
+   "civKey": "GREAT_BRITAIN",
+   "age": "modern",
+   "tree": "TREE_CIVICS_MO_GREAT_BRITAIN",
+   "treeName": "Great Britain Civics",
+   "source": "DLC/great-britain",
+   "civics": [
+    "Pax Britannica",
+    "Society of Antiquaries",
+    "Chartered Companies",
+    "Splendid Isolation"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_MO_GREAT_BRITAIN_PAX_BRITANNICA",
+     "name": "Pax Britannica",
+     "cost": 2000,
+     "prereqs": [],
+     "traditions": [],
+     "otherUnlocks": [
+      "WONDER_BATTERSEA_POWER_STATION",
+      "BUILDING_ROYAL_EXCHANGE",
+      "BUILDING_MANUFACTORY",
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_GREAT_BRITAIN_SOCIETY_OF_ANTIQUARIES",
+     "name": "Society of Antiquaries",
+     "cost": 3000,
+     "prereqs": [
+      "NODE_CIVIC_MO_GREAT_BRITAIN_PAX_BRITANNICA"
+     ],
+     "traditions": [
+      "Proceedings"
+     ],
+     "otherUnlocks": [
+      "MOD_MO_ARTIFACT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_GREAT_BRITAIN_CHARTERED_COMPANIES",
+     "name": "Chartered Companies",
+     "cost": 4000,
+     "prereqs": [
+      "NODE_CIVIC_MO_GREAT_BRITAIN_SOCIETY_OF_ANTIQUARIES"
+     ],
+     "traditions": [
+      "East India Company II"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_GREAT_BRITAIN_SPLENDID_ISOLATION",
+     "name": "Splendid Isolation",
+     "cost": 4000,
+     "prereqs": [
+      "NODE_CIVIC_MO_GREAT_BRITAIN_SOCIETY_OF_ANTIQUARIES"
+     ],
+     "traditions": [
+      "No Eternal Allies II"
+     ],
+     "otherUnlocks": [
+      "MOD_MO_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Joseon",
+   "civKey": "JOSEON",
+   "age": "modern",
+   "tree": "TREE_CIVICS_MO_JOSEON",
+   "treeName": "Joseon Civics",
+   "source": "DLC/joseon",
+   "civics": [
+    "Seongnihak",
+    "Seonbi",
+    "Gyeongguk Daejeon",
+    "Samgang"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_MO_JOSEON_IHAK",
+     "name": "Seongnihak",
+     "cost": 2000,
+     "prereqs": [],
+     "traditions": [
+      "Gwageo II"
+     ],
+     "otherUnlocks": [
+      "BUILDING_CONFUCIAN_ACADEMY",
+      "WONDER_HWASEONG",
+      "MOD_PROGRESSION_TREE_JOSEON_CITY_LIMIT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_JOSEON_SEONBI",
+     "name": "Seonbi",
+     "cost": 2000,
+     "prereqs": [],
+     "traditions": [
+      "Silhak"
+     ],
+     "otherUnlocks": [
+      "BUILDING_PRINTING_HOUSE",
+      "MOD_PROGRESSION_TREE_JOSEON_CITY_LIMIT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_JOSEON_GYEONGGUK_DAEJEON",
+     "name": "Gyeongguk Daejeon",
+     "cost": 3000,
+     "prereqs": [
+      "NODE_CIVIC_MO_JOSEON_IHAK",
+      "NODE_CIVIC_MO_JOSEON_SEONBI"
+     ],
+     "traditions": [
+      "Yangbeobmiui II"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_JOSEON_SAMGANG",
+     "name": "Samgang",
+     "cost": 4000,
+     "prereqs": [
+      "NODE_CIVIC_MO_JOSEON_GYEONGGUK_DAEJEON"
+     ],
+     "traditions": [
+      "Yangban Bureaucracy II"
+     ],
+     "otherUnlocks": [
+      "MOD_PROGRESSION_TREE_JOSEON_CITY_LIMIT"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Meiji Japan",
+   "civKey": "MEIJI",
+   "age": "modern",
+   "tree": "TREE_CIVICS_MO_MEIJI",
+   "treeName": "Meiji Civics",
+   "source": "age-modern",
+   "civics": [
+    "Bunmei Kaika",
+    "Oath in Five Articles",
+    "Supreme War Council",
+    "Kantai Kessen"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_MO_MEIJI_BUNMEI_KAIKA",
+     "name": "Bunmei Kaika",
+     "cost": 2000,
+     "prereqs": [],
+     "traditions": [
+      "Fukoku Kyōhei II"
+     ],
+     "otherUnlocks": [
+      "BUILDING_JUKOGYO",
+      "WONDER_DOGO_ONSEN"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_MEIJI_OATH_IN_FIVE_ARTICLES",
+     "name": "Oath in Five Articles",
+     "cost": 2000,
+     "prereqs": [],
+     "traditions": [
+      "O-yatoi Gaikokujin II"
+     ],
+     "otherUnlocks": [
+      "BUILDING_GINKO"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_MEIJI_SUPREME_WAR_COUNCIL",
+     "name": "Supreme War Council",
+     "cost": 3000,
+     "prereqs": [
+      "NODE_CIVIC_MO_MEIJI_BUNMEI_KAIKA",
+      "NODE_CIVIC_MO_MEIJI_OATH_IN_FIVE_ARTICLES"
+     ],
+     "traditions": [
+      "Shusei Kokubō II"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_MEIJI_KANTAI_KESSEN",
+     "name": "Kantai Kessen",
+     "cost": 4000,
+     "prereqs": [
+      "NODE_CIVIC_MO_MEIJI_SUPREME_WAR_COUNCIL"
+     ],
+     "traditions": [
+      "Kōkūtai"
+     ],
+     "otherUnlocks": [
+      "MOD_MO_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Mexico",
+   "civKey": "MEXICO",
+   "age": "modern",
+   "tree": "TREE_CIVICS_MO_MEXICO",
+   "treeName": "Mexico Civics",
+   "source": "age-modern",
+   "civics": [
+    "Planes Políticos",
+    "Plan of Iguala",
+    "Plan of Ayutla",
+    "Plan of Tuxtepec"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_MO_MEXICO_PLANES_POLITICOS",
+     "name": "Planes Políticos",
+     "cost": 2000,
+     "prereqs": [],
+     "traditions": [
+      "Corridos",
+      "Muralismo III"
+     ],
+     "otherUnlocks": [
+      "BUILDING_CATEDRAL",
+      "BUILDING_PORTAL_DE_MERCADERES",
+      "WONDER_PALACIO_DE_BELLAS_ARTES"
+     ],
+     "hasMastery": true
+    },
+    {
+     "id": "NODE_CIVIC_MO_MEXICO_PLAN_OF_IGUALA",
+     "name": "Plan of Iguala",
+     "cost": 3000,
+     "prereqs": [
+      "NODE_CIVIC_MO_MEXICO_PLANES_POLITICOS"
+     ],
+     "traditions": [
+      "Cry of Dolores"
+     ],
+     "otherUnlocks": [
+      "MOD_PLAN_OF_IGUALA_GOLDEN_AGE",
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_MEXICO_PLAN_OF_AYUTLA",
+     "name": "Plan of Ayutla",
+     "cost": 3000,
+     "prereqs": [
+      "NODE_CIVIC_MO_MEXICO_PLANES_POLITICOS"
+     ],
+     "traditions": [
+      "La Reforma II"
+     ],
+     "otherUnlocks": [
+      "MOD_PLAN_OF_AYUTLA_GOLDEN_AGE",
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_MEXICO_PLAN_OF_TUXTEPEC",
+     "name": "Plan of Tuxtepec",
+     "cost": 3000,
+     "prereqs": [
+      "NODE_CIVIC_MO_MEXICO_PLANES_POLITICOS"
+     ],
+     "traditions": [
+      "Order and Progress II"
+     ],
+     "otherUnlocks": [
+      "MOD_PLAN_OF_TUXTEPEC_GOLDEN_AGE",
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Mughal",
+   "civKey": "MUGHAL",
+   "age": "modern",
+   "tree": "TREE_CIVICS_MO_MUGHAL",
+   "treeName": "Mughal Civics",
+   "source": "age-modern",
+   "civics": [
+    "Zabt",
+    "Jagir",
+    "Mansabdari",
+    "Gardens of Paradise"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_MO_MUGHAL_ZABT",
+     "name": "Zabt",
+     "cost": 2000,
+     "prereqs": [],
+     "traditions": [
+      "Jins-i Kamil"
+     ],
+     "otherUnlocks": [
+      "IMPROVEMENT_STEPWELL",
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_MUGHAL_JAGIR",
+     "name": "Jagir",
+     "cost": 3000,
+     "prereqs": [
+      "NODE_CIVIC_MO_MUGHAL_ZABT"
+     ],
+     "traditions": [
+      "Qilachas II"
+     ],
+     "otherUnlocks": [
+      "MOD_MO_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_MUGHAL_MANSABDARI",
+     "name": "Mansabdari",
+     "cost": 3000,
+     "prereqs": [
+      "NODE_CIVIC_MO_MUGHAL_ZABT"
+     ],
+     "traditions": [
+      "Gunpowder Empire"
+     ],
+     "otherUnlocks": [
+      "WONDER_RED_FORT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_MUGHAL_GARDENS_OF_PARADISE",
+     "name": "Gardens of Paradise",
+     "cost": 4000,
+     "prereqs": [
+      "NODE_CIVIC_MO_MUGHAL_JAGIR",
+      "NODE_CIVIC_MO_MUGHAL_MANSABDARI"
+     ],
+     "traditions": [
+      "Mayūrāsana II"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Nepal",
+   "civKey": "NEPAL",
+   "age": "modern",
+   "tree": "TREE_CIVICS_MO_NEPAL",
+   "treeName": "Nepal Civics",
+   "source": "DLC/nepal",
+   "civics": [
+    "Jyumdo Bagha",
+    "Singha Durbar",
+    "Gorkhapatra"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_MO_NEPAL_JYUMDO_BAGHA",
+     "name": "Jyumdo Bagha",
+     "cost": 2000,
+     "prereqs": [],
+     "traditions": [
+      "Tundikhel"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_NEPAL_SINGHA_DURBAR",
+     "name": "Singha Durbar",
+     "cost": 2000,
+     "prereqs": [],
+     "traditions": [
+      "Maitri Sandhi II"
+     ],
+     "otherUnlocks": [
+      "WONDER_BOUDHANATH",
+      "MOD_GIFT_GURKHA"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_NEPAL_GORKHAPATRA",
+     "name": "Gorkhapatra",
+     "cost": 3000,
+     "prereqs": [
+      "NODE_CIVIC_MO_NEPAL_JYUMDO_BAGHA",
+      "NODE_CIVIC_MO_NEPAL_SINGHA_DURBAR"
+     ],
+     "traditions": [
+      "Himāl II",
+      "Sagarmatha"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Ottomans",
+   "civKey": "OTTOMANS",
+   "age": "modern",
+   "tree": "TREE_CIVICS_MO_OTTOMANS",
+   "treeName": "Ottoman Civics",
+   "source": "DLC/ottomans",
+   "civics": [
+    "Şahi Topu",
+    "Harbiye Nezâreti",
+    "Lâle Devri",
+    "Tanẓîmât"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_MO_OTTOMANS_SAHI_TOPU",
+     "name": "Şahi Topu",
+     "cost": 2000,
+     "prereqs": [],
+     "traditions": [
+      "Siege Train"
+     ],
+     "otherUnlocks": [
+      "MOD_MO_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_OTTOMANS_HARBIYE_NEZARETI",
+     "name": "Harbiye Nezâreti",
+     "cost": 3000,
+     "prereqs": [
+      "NODE_CIVIC_MO_OTTOMANS_SAHI_TOPU"
+     ],
+     "traditions": [
+      "Erkân-ı Harbiye Mektebi"
+     ],
+     "otherUnlocks": [
+      "MOD_MO_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_OTTOMANS_LALE_DEVRI",
+     "name": "Lâle Devri",
+     "cost": 2000,
+     "prereqs": [],
+     "traditions": [
+      "Sedef Kakma II"
+     ],
+     "otherUnlocks": [
+      "BUILDING_HAMMAM",
+      "WONDER_SULTANAHMET_CAMII",
+      "BUILDING_CAMII",
+      "MOD_TOT_TRADITION_SLOT_TWO"
+     ],
+     "hasMastery": true
+    },
+    {
+     "id": "NODE_CIVIC_MO_OTTOMANS_TANZIMAT",
+     "name": "Tanẓîmât",
+     "cost": 3000,
+     "prereqs": [
+      "NODE_CIVIC_MO_OTTOMANS_LALE_DEVRI"
+     ],
+     "traditions": [
+      "Osmanlı Barok II"
+     ],
+     "otherUnlocks": [
+      "MOD_MO_ARTIFACT"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Prussia",
+   "civKey": "PRUSSIA",
+   "age": "modern",
+   "tree": "TREE_CIVICS_MO_PRUSSIA",
+   "treeName": "Prussian Civics",
+   "source": "age-modern",
+   "civics": [
+    "Ruhr",
+    "Zollverein",
+    "Ems Dispatch",
+    "Bewegungskrieg"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_MO_PRUSSIA_RUHR",
+     "name": "Ruhr",
+     "cost": 2000,
+     "prereqs": [],
+     "traditions": [
+      "Coking II"
+     ],
+     "otherUnlocks": [
+      "MOD_MO_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_PRUSSIA_ZOLLVEREIN",
+     "name": "Zollverein",
+     "cost": 2000,
+     "prereqs": [
+      "NODE_CIVIC_MO_PRUSSIA_RUHR"
+     ],
+     "traditions": [
+      "Mediatization"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_PRUSSIA_EMS_DISPATCH",
+     "name": "Ems Dispatch",
+     "cost": 3000,
+     "prereqs": [
+      "NODE_CIVIC_MO_PRUSSIA_ZOLLVEREIN"
+     ],
+     "traditions": [
+      "Realpolitik II"
+     ],
+     "otherUnlocks": [
+      "WONDER_BRANDENBURG_GATE"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_PRUSSIA_BEWEGUNGSKRIEG",
+     "name": "Bewegungskrieg",
+     "cost": 4000,
+     "prereqs": [
+      "NODE_CIVIC_MO_PRUSSIA_EMS_DISPATCH"
+     ],
+     "traditions": [
+      "Iron Cross"
+     ],
+     "otherUnlocks": [
+      "MOD_MO_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Qajar",
+   "civKey": "QAJAR",
+   "age": "modern",
+   "tree": "TREE_CIVICS_MO_QAJAR",
+   "treeName": "Qajar Civics",
+   "source": "DLC/qajar",
+   "civics": [
+    "The Sun Throne",
+    "Twelve Gates",
+    "Neẓām-e J̌adīd"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_MO_QAJAR_THE_SUN_THRONE",
+     "name": "The Sun Throne",
+     "cost": 2000,
+     "prereqs": [],
+     "traditions": [
+      "Soleymaniyeh Palace II"
+     ],
+     "otherUnlocks": [
+      "WONDER_ERAM_GARDEN",
+      "BUILDING_TAKYEH"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_QAJAR_TWELVE_GATES",
+     "name": "Twelve Gates",
+     "cost": 2000,
+     "prereqs": [],
+     "traditions": [
+      "Dār al-Fonūn II"
+     ],
+     "otherUnlocks": [
+      "BUILDING_GHAHVE_KHANE",
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_QAJAR_NEZAM_E_JADID",
+     "name": "Neẓām-e J̌adīd",
+     "cost": 3000,
+     "prereqs": [
+      "NODE_CIVIC_MO_QAJAR_THE_SUN_THRONE",
+      "NODE_CIVIC_MO_QAJAR_TWELVE_GATES"
+     ],
+     "traditions": [
+      "Qullarāqāsi"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Qing",
+   "civKey": "QING",
+   "age": "modern",
+   "tree": "TREE_CIVICS_MO_QING",
+   "treeName": "Qing Civics",
+   "source": "age-modern",
+   "civics": [
+    "Ten Great Campaigns",
+    "Open Customs",
+    "Kang Xi Tax Reformation",
+    "Stabilizing Frontier"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_MO_QING_TEN_GREAT_CAMPAIGNS",
+     "name": "Ten Great Campaigns",
+     "cost": 2000,
+     "prereqs": [],
+     "traditions": [
+      "Tun Ken II"
+     ],
+     "otherUnlocks": [
+      "MOD_MO_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_QING_OPEN_CUSTOMS",
+     "name": "Open Customs",
+     "cost": 3000,
+     "prereqs": [
+      "NODE_CIVIC_MO_QING_TEN_GREAT_CAMPAIGNS"
+     ],
+     "traditions": [
+      "Cohong II"
+     ],
+     "otherUnlocks": [
+      "BUILDING_MONEY_SHOP",
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_QING_KANG_XI_TAX_REFORMATION",
+     "name": "Kang Xi Tax Reformation",
+     "cost": 3000,
+     "prereqs": [
+      "NODE_CIVIC_MO_QING_TEN_GREAT_CAMPAIGNS"
+     ],
+     "traditions": [
+      "Farmland Assessment"
+     ],
+     "otherUnlocks": [
+      "BUILDING_EXAMINATION_HALL",
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_QING_STABILIZING_FRONTIER",
+     "name": "Stabilizing Frontier",
+     "cost": 4000,
+     "prereqs": [
+      "NODE_CIVIC_MO_QING_OPEN_CUSTOMS",
+      "NODE_CIVIC_MO_QING_KANG_XI_TAX_REFORMATION"
+     ],
+     "traditions": [
+      "Banner Army II"
+     ],
+     "otherUnlocks": [
+      "WONDER_CHENGDE_MOUNTAIN_RESORT"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Russia",
+   "civKey": "RUSSIA",
+   "age": "modern",
+   "tree": "TREE_CIVICS_MO_RUSSIA",
+   "treeName": "Russian Civics",
+   "source": "age-modern",
+   "civics": [
+    "Serfdom",
+    "Table of Ranks",
+    "Samoderzhaviye"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_MO_RUSSIA_SERFDOM",
+     "name": "Serfdom",
+     "cost": 2000,
+     "prereqs": [],
+     "traditions": [
+      "Krestyanskaya Reforma II"
+     ],
+     "otherUnlocks": [
+      "IMPROVEMENT_OBSHCHINA",
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_RUSSIA_TABLE_OF_RANKS",
+     "name": "Table of Ranks",
+     "cost": 3000,
+     "prereqs": [
+      "NODE_CIVIC_MO_RUSSIA_SERFDOM"
+     ],
+     "traditions": [
+      "Západnichestvo II"
+     ],
+     "otherUnlocks": [
+      "WONDER_HERMITAGE",
+      "MOD_MO_SETTLEMENT_CAP_INCREASE"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_RUSSIA_SAMODERZHAVIYE",
+     "name": "Samoderzhaviye",
+     "cost": 4000,
+     "prereqs": [
+      "NODE_CIVIC_MO_RUSSIA_TABLE_OF_RANKS"
+     ],
+     "traditions": [
+      "General Moroz II"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    }
+   ]
+  },
+  {
+   "civ": "Siam",
+   "civKey": "SIAM",
+   "age": "modern",
+   "tree": "TREE_CIVICS_MO_SIAM",
+   "treeName": "Siam Civics",
+   "source": "age-modern",
+   "civics": [
+    "Nine Gems",
+    "Mandala",
+    "Sriwilai"
+   ],
+   "nodes": [
+    {
+     "id": "NODE_CIVIC_MO_SIAM_NINE_GEMS",
+     "name": "Nine Gems",
+     "cost": 2000,
+     "prereqs": [],
+     "traditions": [
+      "San Lak Mueang II",
+      "Sakdina"
+     ],
+     "otherUnlocks": [
+      "IMPROVEMENT_BANG",
+      "WONDER_DOI_SUTHEP"
+     ],
+     "hasMastery": true
+    },
+    {
+     "id": "NODE_CIVIC_MO_SIAM_MANDALA",
+     "name": "Mandala",
+     "cost": 3000,
+     "prereqs": [
+      "NODE_CIVIC_MO_SIAM_NINE_GEMS"
+     ],
+     "traditions": [
+      "Prathetsarat"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    },
+    {
+     "id": "NODE_CIVIC_MO_SIAM_SRIWILAI",
+     "name": "Sriwilai",
+     "cost": 4000,
+     "prereqs": [
+      "NODE_CIVIC_MO_SIAM_MANDALA"
+     ],
+     "traditions": [
+      "Monthon II"
+     ],
+     "otherUnlocks": [
+      "MOD_TOT_TRADITION_SLOT"
+     ],
+     "hasMastery": false
+    }
+   ]
+  }
+ ],
+ "repeatables": [
+  {
+   "id": "NODE_CIVIC_AQ_MAIN_FUTURE_CIVIC",
+   "name": "Future Civic",
+   "tree": "TREE_CIVICS_AQ_MAIN",
+   "baseCost": 1000,
+   "costModel": "COST_PROGRESSION_PREVIOUS_COPIES",
+   "costParam1": "1000",
+   "prereqs": [
+    "NODE_CIVIC_AQ_MAIN_ENTERTAINMENT",
+    "NODE_CIVIC_AQ_MAIN_PHILOSOPHY",
+    "NODE_CIVIC_AQ_MAIN_COMMERCE",
+    "NODE_CIVIC_AQ_MAIN_ORG_MILITARY"
+   ],
+   "prereqNames": [
+    "Entertainment",
+    "Philosophy",
+    "Commerce",
+    "Organized Military"
+   ],
+   "effects": {
+    "effects": [
+     {
+      "id": "MOD_AQ_FUTURE_CIVIC_ATTRIBUTE"
+     },
+     {
+      "id": "MOD_AQ_FUTURE_CIVIC_BOOST"
+     },
+     {
+      "id": "MOD_AQ_FUTURE_CIVIC_AGE_PROGRESS"
+     },
+     {
+      "id": "MOD_AQ_FUTURE_CIVIC_CULTURE_VP"
+     }
+    ]
+   }
+  },
+  {
+   "id": "NODE_CIVIC_EX_MAIN_FUTURE_CIVIC",
+   "name": "Future Civic",
+   "tree": "TREE_CIVICS_EX_MAIN",
+   "baseCost": 3000,
+   "costModel": "COST_PROGRESSION_PREVIOUS_COPIES",
+   "costParam1": "3000",
+   "prereqs": [
+    "NODE_CIVIC_EX_MAIN_IMPERIALISM",
+    "NODE_CIVIC_EX_MAIN_SOVEREIGNTY",
+    "NODE_CIVIC_EX_MAIN_SOCIAL_CLASS"
+   ],
+   "prereqNames": [
+    "Imperialism",
+    "Sovereignty",
+    "Social Class"
+   ],
+   "effects": {
+    "effects": [
+     {
+      "id": "MOD_EX_FUTURE_CIVIC_ATTRIBUTE"
+     },
+     {
+      "id": "MOD_EX_FUTURE_CIVIC_BOOST"
+     },
+     {
+      "id": "MOD_EX_FUTURE_CIVIC_AGE_PROGRESS"
+     },
+     {
+      "id": "MOD_EX_FUTURE_CIVIC_CULTURE_VP"
+     }
+    ]
+   }
+  },
+  {
+   "id": "NODE_CIVIC_MO_MAIN_FUTURE_CIVIC",
+   "name": "Future Civic",
+   "tree": "TREE_CIVICS_MO_MAIN",
+   "baseCost": 8000,
+   "costModel": "COST_PROGRESSION_PREVIOUS_COPIES",
+   "costParam1": "8000",
+   "prereqs": [
+    "NODE_CIVIC_MO_MAIN_HEGEMONY",
+    "NODE_CIVIC_MO_MAIN_MILITARISM",
+    "NODE_CIVIC_MO_MAIN_CAPITALISM"
+   ],
+   "prereqNames": [
+    "Hegemony",
+    "Militarism",
+    "Capitalism"
+   ],
+   "effects": {
+    "effects": [
+     {
+      "id": "MOD_MO_FUTURE_CIVIC_ATTRIBUTE"
+     },
+     {
+      "id": "MOD_MO_FUTURE_CIVIC_AGE_PROGRESS"
+     },
+     {
+      "id": "MOD_MO_ARTIFACT"
+     },
+     {
+      "id": "MOD_MO_FUTURE_CIVIC_CULTURE_VP"
+     }
+    ]
+   }
+  }
+ ],
+ "testOfTime": {
+  "antiquity": {
+   "tree": "TREE_CIVICS_AQ_TEST_OF_TIME",
+   "treeName": "Antiquity Test of Time",
+   "nodeCount": 35,
+   "commonNodes": [
+    {
+     "id": "NODE_CIVIC_AQ_FOUNDATION",
+     "name": "Foundation",
+     "tree": "TREE_CIVICS_AQ_TEST_OF_TIME",
+     "cost": 250,
+     "prereqs": [
+      "NODE_CIVIC_AQ_ABBASID_ORIGINS",
+      "NODE_CIVIC_AQ_CHOLA_ORIGINS",
+      "NODE_CIVIC_AQ_HAWAII_ORIGINS",
+      "NODE_CIVIC_AQ_INCAN_ORIGINS",
+      "NODE_CIVIC_AQ_MAJAPAHIT_ORIGINS",
+      "NODE_CIVIC_AQ_MONGOLIA_ORIGINS",
+      "NODE_CIVIC_AQ_MING_ORIGINS",
+      "NODE_CIVIC_AQ_NORMAN_ORIGINS",
+      "NODE_CIVIC_AQ_SONGHAI_ORIGINS",
+      "NODE_CIVIC_AQ_SPAIN_ORIGINS",
+      "NODE_CIVIC_AQ_AMERICAN_ORIGINS",
+      "NODE_CIVIC_AQ_BUGANDA_ORIGINS",
+      "NODE_CIVIC_AQ_FRENCH_EMPIRE_ORIGINS",
+      "NODE_CIVIC_AQ_MEIJI_ORIGINS",
+      "NODE_CIVIC_AQ_MEXICO_ORIGINS",
+      "NODE_CIVIC_AQ_MUGHAL_ORIGINS",
+      "NODE_CIVIC_AQ_PRUSSIA_ORIGINS",
+      "NODE_CIVIC_AQ_QING_ORIGINS",
+      "NODE_CIVIC_AQ_RUSSIA_ORIGINS",
+      "NODE_CIVIC_AQ_SIAM_ORIGINS",
+      "NODE_CIVIC_AQ_BULGARIA_ORIGINS",
+      "NODE_CIVIC_AQ_DAI_VIET_ORIGINS",
+      "NODE_CIVIC_AQ_ENGLAND_ORIGINS",
+      "NODE_CIVIC_AQ_GORYEO_FOUNDATION",
+      "NODE_CIVIC_AQ_GREAT_BRITAIN_ORIGINS",
+      "NODE_CIVIC_AQ_ICELAND_ORIGINS",
+      "NODE_CIVIC_AQ_JOSEON_ORIGINS",
+      "NODE_CIVIC_AQ_NEPAL_ORIGINS",
+      "NODE_CIVIC_AQ_OTTOMANS_ORIGINS",
+      "NODE_CIVIC_AQ_PIRATE_REPUBLIC_ORIGINS",
+      "NODE_CIVIC_AQ_QAJAR_ORIGINS",
+      "NODE_CIVIC_AQ_SENGOKU_FOUNDATION",
+      "NODE_CIVIC_AQ_SHAWNEE_ORIGINS"
+     ],
+     "prereqNames": [
+      "Abbasid Origins",
+      "Chola Origins",
+      "Hawaiian Origins",
+      "Incan Origins",
+      "Majapahit Origins",
+      "Mongolia Origins",
+      "Ming Origins",
+      "Norman Origins",
+      "Songhai Origins",
+      "Spain Origins",
+      "American Origins",
+      "Bugandan Origins",
+      "French Imperial Origins",
+      "Meiji Origins",
+      "Mexico Origins",
+      "Mughal Origins",
+      "Prussian Origins",
+      "Qing Origins",
+      "Russian Origins",
+      "Siamese Origins",
+      "Bulgarian Origins",
+      "Vietnamese Origins",
+      "English Origins",
+      "Goryeo Origins",
+      "British Origins",
+      "Icelandic Origins",
+      "Joseon Origins",
+      "Nepali Origins",
+      "Ottoman Origins",
+      "Pirate Origins",
+      "Qajar Origins",
+      "Sengoku Origins",
+      "Shawnee Origins"
+     ],
+     "unlocks": {
+      "traditions": [
+       {
+        "id": "TRADITION_AQ_ATTRIBUTE_CULTURAL_01",
+        "name": "Enlightened Rule",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_CULTURAL_TOT_AQ"
+       },
+       {
+        "id": "TRADITION_AQ_ATTRIBUTE_DIPLOMATIC_01_HAPPINESS",
+        "name": "Priestly Class",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_POLITICAL_TOT_AQ_HAPPINESS"
+       },
+       {
+        "id": "TRADITION_AQ_ATTRIBUTE_DIPLOMATIC_01_INFLUENCE",
+        "name": "Emissaries",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_POLITICAL_TOT_AQ_INFLUENCE"
+       },
+       {
+        "id": "TRADITION_AQ_ATTRIBUTE_ECONOMIC_01",
+        "name": "Merchant Class",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_ECONOMIC_TOT_AQ"
+       },
+       {
+        "id": "TRADITION_AQ_ATTRIBUTE_EXPANSIONIST_01",
+        "name": "Fractal Cities",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_EXPANSIONIST_TOT_AQ"
+       },
+       {
+        "id": "TRADITION_AQ_ATTRIBUTE_MILITARISTIC_01",
+        "name": "Warrior Class",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_MILITARISTIC_TOT_AQ"
+       },
+       {
+        "id": "TRADITION_AQ_ATTRIBUTE_SCIENTIFIC_01",
+        "name": "Experimentation",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_SCIENTIFIC_TOT_AQ"
+       }
+      ],
+      "wonders": [
+       {
+        "id": "WONDER_PYRAMID_OF_THE_SUN",
+        "name": "Pyramid Of The Sun",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_CULTURAL_TOT_AQ"
+       }
+      ],
+      "effects": [
+       {
+        "id": "MOD_CIVIC_AQ_ATTRIBUTE_EXPANSIONIST_SETTLEMENT_CAP_INCREASE",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_EXPANSIONIST_TOT_AQ_WIDE",
+        "notTraitType": "TRAIT_ATTRIBUTE_MILITARISTIC_EXPANSIONIST"
+       },
+       {
+        "id": "MOD_CIVIC_AQ_ATTRIBUTE_EXPANSIONIST_SPECIALIST_CAP_INCREASE",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_EXPANSIONIST_TOT_AQ_TALL"
+       },
+       {
+        "id": "MOD_AQ_SETTLEMENT_CAP_INCREASE",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_MILITARISTIC_TOT_AQ",
+        "notTraitType": "TRAIT_ATTRIBUTE_MILITARISTIC_EXPANSIONIST"
+       },
+       {
+        "id": "MOD_AQ_CODEX_CIVIC",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_SCIENTIFIC_TOT_AQ"
+       },
+       {
+        "id": "MOD_CIVIC_AQ_ATTRIBUTE_MILITARISTIC_EXPANSIONIST_SETTLEMENT_CAP_INCREASE",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_MILITARISTIC_EXPANSIONIST"
+       }
+      ]
+     },
+     "masteries": [],
+     "civInjectedName": "{1_Civilization_Adjective} Foundation",
+     "definedIn": "Base/modules/age-antiquity/data/progression-trees-culture-tot-common.xml"
+    },
+    {
+     "id": "NODE_CIVIC_AQ_SYNCRETISM_CHOICE",
+     "name": "Syncretism",
+     "tree": "TREE_CIVICS_AQ_TEST_OF_TIME",
+     "cost": 250,
+     "prereqs": [
+      "NODE_CIVIC_AQ_ABBASID_ORIGINS",
+      "NODE_CIVIC_AQ_CHOLA_ORIGINS",
+      "NODE_CIVIC_AQ_HAWAII_ORIGINS",
+      "NODE_CIVIC_AQ_INCAN_ORIGINS",
+      "NODE_CIVIC_AQ_MAJAPAHIT_ORIGINS",
+      "NODE_CIVIC_AQ_MONGOLIA_ORIGINS",
+      "NODE_CIVIC_AQ_MING_ORIGINS",
+      "NODE_CIVIC_AQ_NORMAN_ORIGINS",
+      "NODE_CIVIC_AQ_SONGHAI_ORIGINS",
+      "NODE_CIVIC_AQ_SPAIN_ORIGINS",
+      "NODE_CIVIC_AQ_AMERICAN_ORIGINS",
+      "NODE_CIVIC_AQ_BUGANDA_ORIGINS",
+      "NODE_CIVIC_AQ_FRENCH_EMPIRE_ORIGINS",
+      "NODE_CIVIC_AQ_MEIJI_ORIGINS",
+      "NODE_CIVIC_AQ_MEXICO_ORIGINS",
+      "NODE_CIVIC_AQ_MUGHAL_ORIGINS",
+      "NODE_CIVIC_AQ_PRUSSIA_ORIGINS",
+      "NODE_CIVIC_AQ_QING_ORIGINS",
+      "NODE_CIVIC_AQ_RUSSIA_ORIGINS",
+      "NODE_CIVIC_AQ_SIAM_ORIGINS",
+      "NODE_CIVIC_AQ_BULGARIA_ORIGINS",
+      "NODE_CIVIC_AQ_DAI_VIET_ORIGINS",
+      "NODE_CIVIC_AQ_ENGLAND_ORIGINS",
+      "NODE_CIVIC_AQ_GORYEO_FOUNDATION",
+      "NODE_CIVIC_AQ_GREAT_BRITAIN_ORIGINS",
+      "NODE_CIVIC_AQ_ICELAND_ORIGINS",
+      "NODE_CIVIC_AQ_JOSEON_ORIGINS",
+      "NODE_CIVIC_AQ_NEPAL_ORIGINS",
+      "NODE_CIVIC_AQ_OTTOMANS_ORIGINS",
+      "NODE_CIVIC_AQ_PIRATE_REPUBLIC_ORIGINS",
+      "NODE_CIVIC_AQ_QAJAR_ORIGINS",
+      "NODE_CIVIC_AQ_SENGOKU_FOUNDATION",
+      "NODE_CIVIC_AQ_SHAWNEE_ORIGINS"
+     ],
+     "prereqNames": [
+      "Abbasid Origins",
+      "Chola Origins",
+      "Hawaiian Origins",
+      "Incan Origins",
+      "Majapahit Origins",
+      "Mongolia Origins",
+      "Ming Origins",
+      "Norman Origins",
+      "Songhai Origins",
+      "Spain Origins",
+      "American Origins",
+      "Bugandan Origins",
+      "French Imperial Origins",
+      "Meiji Origins",
+      "Mexico Origins",
+      "Mughal Origins",
+      "Prussian Origins",
+      "Qing Origins",
+      "Russian Origins",
+      "Siamese Origins",
+      "Bulgarian Origins",
+      "Vietnamese Origins",
+      "English Origins",
+      "Goryeo Origins",
+      "British Origins",
+      "Icelandic Origins",
+      "Joseon Origins",
+      "Nepali Origins",
+      "Ottoman Origins",
+      "Pirate Origins",
+      "Qajar Origins",
+      "Sengoku Origins",
+      "Shawnee Origins"
+     ],
+     "unlocks": {
+      "effects": [
+       {
+        "id": "MOD_SYNCRETISM"
+       }
+      ]
+     },
+     "masteries": [],
+     "definedIn": "Base/modules/age-antiquity/data/progression-trees-culture-tot-common.xml"
+    }
+   ],
+   "perCivBridgeNodes": [
+    {
+     "id": "NODE_CIVIC_AQ_ABBASID_ORIGINS",
+     "name": "Abbasid Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_ABBASID"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_AQ_CHOLA_ORIGINS",
+     "name": "Chola Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_CHOLA"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_AQ_HAWAII_ORIGINS",
+     "name": "Hawaiian Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_HAWAII"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_AQ_INCAN_ORIGINS",
+     "name": "Incan Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_INCA"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_AQ_MAJAPAHIT_ORIGINS",
+     "name": "Majapahit Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_MAJAPAHIT"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_AQ_MONGOLIA_ORIGINS",
+     "name": "Mongolia Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_MONGOLIA"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_AQ_MING_ORIGINS",
+     "name": "Ming Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_MING"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_AQ_NORMAN_ORIGINS",
+     "name": "Norman Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_NORMAN"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_AQ_SONGHAI_ORIGINS",
+     "name": "Songhai Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_SONGHAI"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_AQ_SPAIN_ORIGINS",
+     "name": "Spain Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_SPAIN"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_AQ_AMERICAN_ORIGINS",
+     "name": "American Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_AMERICA"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_AQ_BUGANDA_ORIGINS",
+     "name": "Bugandan Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_BUGANDA"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_AQ_FRENCH_EMPIRE_ORIGINS",
+     "name": "French Imperial Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_FRENCH_EMPIRE"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_AQ_MEIJI_ORIGINS",
+     "name": "Meiji Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_MEIJI"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_AQ_MEXICO_ORIGINS",
+     "name": "Mexico Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_MEXICO"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_AQ_MUGHAL_ORIGINS",
+     "name": "Mughal Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_MUGHAL"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_AQ_PRUSSIA_ORIGINS",
+     "name": "Prussian Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_PRUSSIA"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_AQ_QING_ORIGINS",
+     "name": "Qing Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_QING"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_AQ_RUSSIA_ORIGINS",
+     "name": "Russian Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_RUSSIA"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_AQ_SIAM_ORIGINS",
+     "name": "Siamese Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_SIAM"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_AQ_BULGARIA_ORIGINS",
+     "name": "Bulgarian Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_BULGARIA"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_AQ_DAI_VIET_ORIGINS",
+     "name": "Vietnamese Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_DAI_VIET"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_AQ_ENGLAND_ORIGINS",
+     "name": "English Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_ENGLAND"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_AQ_GORYEO_FOUNDATION",
+     "name": "Goryeo Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_GORYEO"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_AQ_GREAT_BRITAIN_ORIGINS",
+     "name": "British Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_GREAT_BRITAIN"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_AQ_ICELAND_ORIGINS",
+     "name": "Icelandic Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_ICELAND"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_AQ_JOSEON_ORIGINS",
+     "name": "Joseon Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_JOSEON"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_AQ_NEPAL_ORIGINS",
+     "name": "Nepali Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_NEPAL"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_AQ_OTTOMANS_ORIGINS",
+     "name": "Ottoman Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_OTTOMANS"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_AQ_PIRATE_REPUBLIC_ORIGINS",
+     "name": "Pirate Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_PIRATE_REPUBLIC"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_AQ_QAJAR_ORIGINS",
+     "name": "Qajar Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_QAJAR"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_AQ_SENGOKU_FOUNDATION",
+     "name": "Sengoku Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_SENGOKU"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_AQ_SHAWNEE_ORIGINS",
+     "name": "Shawnee Origins",
+     "cost": 150,
+     "requiredTraits": [
+      "TRAIT_SHAWNEE"
+     ]
+    }
+   ]
+  },
+  "exploration": {
+   "tree": "TREE_CIVICS_EX_TEST_OF_TIME",
+   "treeName": "Exploration Test of Time",
+   "nodeCount": 34,
+   "commonNodes": [
+    {
+     "id": "NODE_CIVIC_EX_HIERARCHY",
+     "name": "Hierarchy",
+     "tree": "TREE_CIVICS_EX_TEST_OF_TIME",
+     "cost": 1200,
+     "prereqs": [
+      "NODE_CIVIC_EX_AKSUM_RENAISSANCE",
+      "NODE_CIVIC_EX_EGYPT_RENAISSANCE",
+      "NODE_CIVIC_EX_GREECE_RENAISSANCE",
+      "NODE_CIVIC_EX_HAN_RENAISSANCE",
+      "NODE_CIVIC_EX_KHMER_RENAISSANCE",
+      "NODE_CIVIC_EX_MAURYA_RENAISSANCE",
+      "NODE_CIVIC_EX_MAYA_RENAISSANCE",
+      "NODE_CIVIC_EX_MISSISSIPPIAN_RENAISSANCE",
+      "NODE_CIVIC_EX_PERSIA_RENAISSANCE",
+      "NODE_CIVIC_EX_ROMAN_RENAISSANCE",
+      "NODE_CIVIC_EX_AMERICAN_RENAISSANCE",
+      "NODE_CIVIC_EX_BUGANDA_RENAISSANCE",
+      "NODE_CIVIC_EX_FRENCH_EMPIRE_RENAISSANCE",
+      "NODE_CIVIC_EX_MEIJI_RENAISSANCE",
+      "NODE_CIVIC_EX_MEXICO_RENAISSANCE",
+      "NODE_CIVIC_EX_MUGHAL_RENAISSANCE",
+      "NODE_CIVIC_EX_PRUSSIA_RENAISSANCE",
+      "NODE_CIVIC_EX_QING_RENAISSANCE",
+      "NODE_CIVIC_EX_RUSSIA_RENAISSANCE",
+      "NODE_CIVIC_EX_SIAM_RENAISSANCE",
+      "NODE_CIVIC_EX_ASSYRIA_RENAISSANCE",
+      "NODE_CIVIC_EX_BABYLON_RENAISSANCE",
+      "NODE_CIVIC_EX_CARTHAGE_RENAISSANCE",
+      "NODE_CIVIC_EX_GAUL_RENAISSANCE",
+      "NODE_CIVIC_EX_GREAT_BRITAIN_RENAISSANCE",
+      "NODE_CIVIC_EX_HEIAN_RENAISSANCE",
+      "NODE_CIVIC_EX_JOSEON_RENAISSANCE",
+      "NODE_CIVIC_EX_NEPAL_RENAISSANCE",
+      "NODE_CIVIC_EX_OTTOMANS_RENAISSANCE",
+      "NODE_CIVIC_EX_QAJAR_RENAISSANCE",
+      "NODE_CIVIC_EX_SILLA_RENAISSANCE",
+      "NODE_CIVIC_EX_TONGA_RENAISSANCE"
+     ],
+     "prereqNames": [
+      "Aksumite Renaissance",
+      "Egyptian Renaissance",
+      "Greek Renaissance",
+      "Han Renaissance",
+      "Khmer Renaissance",
+      "Maurya Renaissance",
+      "Maya Renaissance",
+      "Mississippian Renaissance",
+      "Achaemenid Persian Renaissance",
+      "Roman Renaissance",
+      "American Renaissance",
+      "Bugandan Renaissance",
+      "French Imperial Renaissance",
+      "Meiji Renaissance",
+      "Mexico Renaissance",
+      "Mughal Renaissance",
+      "Prussian Renaissance",
+      "Qing Renaissance",
+      "Russian Renaissance",
+      "Siamese Renaissance",
+      "Assyrian Renaissance",
+      "Babylonian Renaissance",
+      "Carthaginian Renaissance",
+      "Gallic Renaissance",
+      "British Renaissance",
+      "Heian Renaissance",
+      "Joseon Renaissance",
+      "Nepali Renaissance",
+      "Ottoman Renaissance",
+      "Qajar Renaissance",
+      "Silla Renaissance",
+      "Tongan Renaissance"
+     ],
+     "unlocks": {
+      "traditions": [
+       {
+        "id": "TRADITION_EX_ATTRIBUTE_CULTURAL_01",
+        "name": "Classical Revival",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_CULTURAL_TOT_EX"
+       },
+       {
+        "id": "TRADITION_EX_ATTRIBUTE_DIPLOMATIC_01_HAPPINESS",
+        "name": "Jubilee",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_POLITICAL_TOT_EX_HAPPINESS"
+       },
+       {
+        "id": "TRADITION_EX_ATTRIBUTE_DIPLOMATIC_01_INFLUENCE",
+        "name": "Spy Network",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_POLITICAL_TOT_EX_INFLUENCE"
+       },
+       {
+        "id": "TRADITION_EX_ATTRIBUTE_ECONOMIC_01",
+        "name": "Supply and Demand",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_ECONOMIC_TOT_EX"
+       },
+       {
+        "id": "TRADITION_EX_ATTRIBUTE_EXPANSIONIST_01_TALL",
+        "name": "Municipal Charters",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_EXPANSIONIST_TOT_EX_TALL"
+       },
+       {
+        "id": "TRADITION_EX_ATTRIBUTE_EXPANSIONIST_01_WIDE",
+        "name": "Yanakuna",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_EXPANSIONIST_TOT_EX_WIDE"
+       },
+       {
+        "id": "TRADITION_EX_ATTRIBUTE_MILITARISTIC_01",
+        "name": "Professional Army",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_MILITARISTIC_TOT_EX"
+       },
+       {
+        "id": "TRADITION_EX_ATTRIBUTE_SCIENTIFIC_01",
+        "name": "Alchemy",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_SCIENTIFIC_TOT_EX"
+       },
+       {
+        "id": "TRADITION_CLAN_SOCIETY_I",
+        "name": "Clan Society I",
+        "requiredTraitType": "TRAIT_BUGANDA"
+       },
+       {
+        "id": "TRADITION_GWAGEO_I",
+        "name": "Gwageo I",
+        "requiredTraitType": "TRAIT_JOSEON",
+        "source": "DLC/joseon"
+       }
+      ],
+      "wonders": [
+       {
+        "id": "WONDER_NOTRE_DAME",
+        "name": "Notre Dame",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_CULTURAL_TOT_EX"
+       }
+      ],
+      "effects": [
+       {
+        "id": "MOD_CIVIC_EX_ATTRIBUTE_EXPANSIONIST_SPECIALIST_CAP_INCREASE",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_EXPANSIONIST_TOT_EX_TALL"
+       },
+       {
+        "id": "MOD_CIVIC_EX_ATTRIBUTE_EXPANSIONIST_SETTLEMENT_CAP_INCREASE",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_EXPANSIONIST_TOT_EX_WIDE"
+       },
+       {
+        "id": "MOD_EX_SETTLEMENT_CAP_INCREASE",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_MILITARISTIC_TOT_EX"
+       }
+      ]
+     },
+     "masteries": [],
+     "civInjectedName": "{1_Civilization_Adjective} Hierarchy",
+     "definedIn": "Base/modules/age-exploration/data/progression-trees-culture-tot-common.xml"
+    },
+    {
+     "id": "NODE_CIVIC_EX_SYNCRETISM_CHOICE",
+     "name": "Syncretism",
+     "tree": "TREE_CIVICS_EX_TEST_OF_TIME",
+     "cost": 1200,
+     "prereqs": [
+      "NODE_CIVIC_EX_AKSUM_RENAISSANCE",
+      "NODE_CIVIC_EX_EGYPT_RENAISSANCE",
+      "NODE_CIVIC_EX_GREECE_RENAISSANCE",
+      "NODE_CIVIC_EX_HAN_RENAISSANCE",
+      "NODE_CIVIC_EX_KHMER_RENAISSANCE",
+      "NODE_CIVIC_EX_MAURYA_RENAISSANCE",
+      "NODE_CIVIC_EX_MAYA_RENAISSANCE",
+      "NODE_CIVIC_EX_MISSISSIPPIAN_RENAISSANCE",
+      "NODE_CIVIC_EX_PERSIA_RENAISSANCE",
+      "NODE_CIVIC_EX_ROMAN_RENAISSANCE",
+      "NODE_CIVIC_EX_AMERICAN_RENAISSANCE",
+      "NODE_CIVIC_EX_BUGANDA_RENAISSANCE",
+      "NODE_CIVIC_EX_FRENCH_EMPIRE_RENAISSANCE",
+      "NODE_CIVIC_EX_MEIJI_RENAISSANCE",
+      "NODE_CIVIC_EX_MEXICO_RENAISSANCE",
+      "NODE_CIVIC_EX_MUGHAL_RENAISSANCE",
+      "NODE_CIVIC_EX_PRUSSIA_RENAISSANCE",
+      "NODE_CIVIC_EX_QING_RENAISSANCE",
+      "NODE_CIVIC_EX_RUSSIA_RENAISSANCE",
+      "NODE_CIVIC_EX_SIAM_RENAISSANCE",
+      "NODE_CIVIC_EX_ASSYRIA_RENAISSANCE",
+      "NODE_CIVIC_EX_BABYLON_RENAISSANCE",
+      "NODE_CIVIC_EX_CARTHAGE_RENAISSANCE",
+      "NODE_CIVIC_EX_GAUL_RENAISSANCE",
+      "NODE_CIVIC_EX_GREAT_BRITAIN_RENAISSANCE",
+      "NODE_CIVIC_EX_HEIAN_RENAISSANCE",
+      "NODE_CIVIC_EX_JOSEON_RENAISSANCE",
+      "NODE_CIVIC_EX_NEPAL_RENAISSANCE",
+      "NODE_CIVIC_EX_OTTOMANS_RENAISSANCE",
+      "NODE_CIVIC_EX_QAJAR_RENAISSANCE",
+      "NODE_CIVIC_EX_SILLA_RENAISSANCE",
+      "NODE_CIVIC_EX_TONGA_RENAISSANCE"
+     ],
+     "prereqNames": [
+      "Aksumite Renaissance",
+      "Egyptian Renaissance",
+      "Greek Renaissance",
+      "Han Renaissance",
+      "Khmer Renaissance",
+      "Maurya Renaissance",
+      "Maya Renaissance",
+      "Mississippian Renaissance",
+      "Achaemenid Persian Renaissance",
+      "Roman Renaissance",
+      "American Renaissance",
+      "Bugandan Renaissance",
+      "French Imperial Renaissance",
+      "Meiji Renaissance",
+      "Mexico Renaissance",
+      "Mughal Renaissance",
+      "Prussian Renaissance",
+      "Qing Renaissance",
+      "Russian Renaissance",
+      "Siamese Renaissance",
+      "Assyrian Renaissance",
+      "Babylonian Renaissance",
+      "Carthaginian Renaissance",
+      "Gallic Renaissance",
+      "British Renaissance",
+      "Heian Renaissance",
+      "Joseon Renaissance",
+      "Nepali Renaissance",
+      "Ottoman Renaissance",
+      "Qajar Renaissance",
+      "Silla Renaissance",
+      "Tongan Renaissance"
+     ],
+     "unlocks": {
+      "effects": [
+       {
+        "id": "MOD_SYNCRETISM"
+       }
+      ]
+     },
+     "masteries": [],
+     "definedIn": "Base/modules/age-exploration/data/progression-trees-culture-tot-common.xml"
+    }
+   ],
+   "perCivBridgeNodes": [
+    {
+     "id": "NODE_CIVIC_EX_AKSUM_RENAISSANCE",
+     "name": "Aksumite Renaissance",
+     "cost": 800,
+     "requiredTraits": [
+      "TRAIT_AKSUM"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_EX_EGYPT_RENAISSANCE",
+     "name": "Egyptian Renaissance",
+     "cost": 800,
+     "requiredTraits": [
+      "TRAIT_EGYPT"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_EX_GREECE_RENAISSANCE",
+     "name": "Greek Renaissance",
+     "cost": 800,
+     "requiredTraits": [
+      "TRAIT_GREECE"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_EX_HAN_RENAISSANCE",
+     "name": "Han Renaissance",
+     "cost": 800,
+     "requiredTraits": [
+      "TRAIT_HAN"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_EX_KHMER_RENAISSANCE",
+     "name": "Khmer Renaissance",
+     "cost": 800,
+     "requiredTraits": [
+      "TRAIT_KHMER"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_EX_MAURYA_RENAISSANCE",
+     "name": "Maurya Renaissance",
+     "cost": 800,
+     "requiredTraits": [
+      "TRAIT_MAURYA"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_EX_MAYA_RENAISSANCE",
+     "name": "Maya Renaissance",
+     "cost": 800,
+     "requiredTraits": [
+      "TRAIT_MAYA"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_EX_MISSISSIPPIAN_RENAISSANCE",
+     "name": "Mississippian Renaissance",
+     "cost": 800,
+     "requiredTraits": [
+      "TRAIT_MISSISSIPPIAN"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_EX_PERSIA_RENAISSANCE",
+     "name": "Achaemenid Persian Renaissance",
+     "cost": 800,
+     "requiredTraits": [
+      "TRAIT_PERSIA"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_EX_ROMAN_RENAISSANCE",
+     "name": "Roman Renaissance",
+     "cost": 800,
+     "requiredTraits": [
+      "TRAIT_ROME"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_EX_AMERICAN_RENAISSANCE",
+     "name": "American Renaissance",
+     "cost": 800,
+     "requiredTraits": [
+      "TRAIT_AMERICA"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_EX_BUGANDA_RENAISSANCE",
+     "name": "Bugandan Renaissance",
+     "cost": 800,
+     "requiredTraits": [
+      "TRAIT_BUGANDA"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_EX_FRENCH_EMPIRE_RENAISSANCE",
+     "name": "French Imperial Renaissance",
+     "cost": 800,
+     "requiredTraits": [
+      "TRAIT_FRENCH_EMPIRE"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_EX_MEIJI_RENAISSANCE",
+     "name": "Meiji Renaissance",
+     "cost": 800,
+     "requiredTraits": [
+      "TRAIT_MEIJI"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_EX_MEXICO_RENAISSANCE",
+     "name": "Mexico Renaissance",
+     "cost": 800,
+     "requiredTraits": [
+      "TRAIT_MEXICO"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_EX_MUGHAL_RENAISSANCE",
+     "name": "Mughal Renaissance",
+     "cost": 800,
+     "requiredTraits": [
+      "TRAIT_MUGHAL"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_EX_PRUSSIA_RENAISSANCE",
+     "name": "Prussian Renaissance",
+     "cost": 800,
+     "requiredTraits": [
+      "TRAIT_PRUSSIA"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_EX_QING_RENAISSANCE",
+     "name": "Qing Renaissance",
+     "cost": 800,
+     "requiredTraits": [
+      "TRAIT_QING"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_EX_RUSSIA_RENAISSANCE",
+     "name": "Russian Renaissance",
+     "cost": 800,
+     "requiredTraits": [
+      "TRAIT_RUSSIA"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_EX_SIAM_RENAISSANCE",
+     "name": "Siamese Renaissance",
+     "cost": 800,
+     "requiredTraits": [
+      "TRAIT_SIAM"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_EX_ASSYRIA_RENAISSANCE",
+     "name": "Assyrian Renaissance",
+     "cost": 800,
+     "requiredTraits": [
+      "TRAIT_ASSYRIA"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_EX_BABYLON_RENAISSANCE",
+     "name": "Babylonian Renaissance",
+     "cost": 800,
+     "requiredTraits": [
+      "TRAIT_BABYLON"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_EX_CARTHAGE_RENAISSANCE",
+     "name": "Carthaginian Renaissance",
+     "cost": 800,
+     "requiredTraits": [
+      "TRAIT_CARTHAGE"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_EX_GAUL_RENAISSANCE",
+     "name": "Gallic Renaissance",
+     "cost": 800,
+     "requiredTraits": [
+      "TRAIT_GAUL"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_EX_GREAT_BRITAIN_RENAISSANCE",
+     "name": "British Renaissance",
+     "cost": 800,
+     "requiredTraits": [
+      "TRAIT_GREAT_BRITAIN"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_EX_HEIAN_RENAISSANCE",
+     "name": "Heian Renaissance",
+     "cost": 800,
+     "requiredTraits": [
+      "TRAIT_HEIAN"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_EX_JOSEON_RENAISSANCE",
+     "name": "Joseon Renaissance",
+     "cost": 800,
+     "requiredTraits": [
+      "TRAIT_JOSEON"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_EX_NEPAL_RENAISSANCE",
+     "name": "Nepali Renaissance",
+     "cost": 800,
+     "requiredTraits": [
+      "TRAIT_NEPAL"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_EX_OTTOMANS_RENAISSANCE",
+     "name": "Ottoman Renaissance",
+     "cost": 800,
+     "requiredTraits": [
+      "TRAIT_OTTOMANS"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_EX_QAJAR_RENAISSANCE",
+     "name": "Qajar Renaissance",
+     "cost": 800,
+     "requiredTraits": [
+      "TRAIT_QAJAR"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_EX_SILLA_RENAISSANCE",
+     "name": "Silla Renaissance",
+     "cost": 800,
+     "requiredTraits": [
+      "TRAIT_SILLA"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_EX_TONGA_RENAISSANCE",
+     "name": "Tongan Renaissance",
+     "cost": 800,
+     "requiredTraits": [
+      "TRAIT_TONGA"
+     ]
+    }
+   ]
+  },
+  "modern": {
+   "tree": "TREE_CIVICS_MO_TEST_OF_TIME",
+   "treeName": "Modern Test of Time",
+   "nodeCount": 37,
+   "commonNodes": [
+    {
+     "id": "NODE_CIVIC_MO_ADMINISTRATION",
+     "name": "Administration",
+     "tree": "TREE_CIVICS_MO_TEST_OF_TIME",
+     "cost": 3000,
+     "prereqs": [
+      "NODE_CIVIC_MO_AKSUM_MODERNIZATION",
+      "NODE_CIVIC_MO_EGYPT_MODERNIZATION",
+      "NODE_CIVIC_MO_GREECE_MODERNIZATION",
+      "NODE_CIVIC_MO_HAN_MODERNIZATION",
+      "NODE_CIVIC_MO_KHMER_MODERNIZATION",
+      "NODE_CIVIC_MO_MAURYA_MODERNIZATION",
+      "NODE_CIVIC_MO_MAYA_MODERNIZATION",
+      "NODE_CIVIC_MO_MISSISSIPPIAN_MODERNIZATION",
+      "NODE_CIVIC_MO_PERSIA_MODERNIZATION",
+      "NODE_CIVIC_MO_ROMAN_MODERNIZATION",
+      "NODE_CIVIC_MO_ABBASID_MODERNIZATION",
+      "NODE_CIVIC_MO_CHOLA_MODERNIZATION",
+      "NODE_CIVIC_MO_HAWAII_MODERNIZATION",
+      "NODE_CIVIC_MO_INCAN_MODERNIZATION",
+      "NODE_CIVIC_MO_MAJAPAHIT_MODERNIZATION",
+      "NODE_CIVIC_MO_MONGOLIA_MODERNIZATION",
+      "NODE_CIVIC_MO_MING_MODERNIZATION",
+      "NODE_CIVIC_MO_NORMAN_MODERNIZATION",
+      "NODE_CIVIC_MO_SONGHAI_MODERNIZATION",
+      "NODE_CIVIC_MO_SPAIN_MODERNIZATION",
+      "NODE_CIVIC_MO_ASSYRIA_MODERNIZATION",
+      "NODE_CIVIC_MO_BABYLON_MODERNIZATION",
+      "NODE_CIVIC_MO_BULGARIA_MODERNIZATION",
+      "NODE_CIVIC_MO_CARTHAGE_MODERNIZATION",
+      "NODE_CIVIC_MO_DAI_VIET_MODERNIZATION",
+      "NODE_CIVIC_MO_ENGLAND_MODERNIZATION",
+      "NODE_CIVIC_MO_GAUL_MODERNIZATION",
+      "NODE_CIVIC_MO_GORYEO_MODERNIZATION",
+      "NODE_CIVIC_MO_HEIAN_MODERNIZATION",
+      "NODE_CIVIC_MO_ICELAND_MODERNIZATION",
+      "NODE_CIVIC_MO_PIRATE_REPUBLIC_MODERNIZATION",
+      "NODE_CIVIC_MO_SENGOKU_MODERNIZATION",
+      "NODE_CIVIC_MO_SHAWNEE_MODERNIZATION",
+      "NODE_CIVIC_MO_SILLA_MODERNIZATION",
+      "NODE_CIVIC_MO_TONGA_MODERNIZATION"
+     ],
+     "prereqNames": [
+      "Aksumite Modernization",
+      "Egyptian Modernization",
+      "Greek Modernization",
+      "Han Modernization",
+      "Khmer Modernization",
+      "Maurya Modernization",
+      "Maya Modernization",
+      "Mississippian Modernization",
+      "Achaemenid Persian Modernization",
+      "Roman Modernization",
+      "Abbasid Modernization",
+      "Chola Modernization",
+      "Hawaiian Modernization",
+      "Incan Modernization",
+      "Majapahit Modernization",
+      "Mongolia Modernization",
+      "Ming Modernization",
+      "Norman Modernization",
+      "Songhai Modernization",
+      "Spain Modernization",
+      "Assyrian Modernization",
+      "Babylonian Modernization",
+      "Bulgarian Modernization",
+      "Carthaginian Modernization",
+      "Vietnamese Modernization",
+      "English Modernization",
+      "Gallic Modernization",
+      "Goryeo Modernization",
+      "Heian Modernization",
+      "Icelandic Modernization",
+      "Pirate Modernization",
+      "Sengoku Modernization",
+      "Shawnee Modernization",
+      "Silla Modernization",
+      "Tongan Modernization"
+     ],
+     "unlocks": {
+      "traditions": [
+       {
+        "id": "TRADITION_MUD_BRICK_II",
+        "name": "Mud Brick II",
+        "requiredTraitType": "TRAIT_SONGHAI"
+       },
+       {
+        "id": "TRADITION_MO_ATTRIBUTE_CULTURAL_01",
+        "name": "Romanticism",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_CULTURAL_TOT_MO"
+       },
+       {
+        "id": "TRADITION_MO_ATTRIBUTE_DIPLOMATIC_01_HAPPINESS",
+        "name": "Vaudeville",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_POLITICAL_TOT_MO_HAPPINESS"
+       },
+       {
+        "id": "TRADITION_MO_ATTRIBUTE_DIPLOMATIC_01_INFLUENCE",
+        "name": "The Great Game",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_POLITICAL_TOT_MO_INFLUENCE"
+       },
+       {
+        "id": "TRADITION_MO_ATTRIBUTE_ECONOMIC_01",
+        "name": "Gold Standard",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_ECONOMIC_TOT_MO"
+       },
+       {
+        "id": "TRADITION_MO_ATTRIBUTE_EXPANSIONIST_01_TALL",
+        "name": "Developmentalism",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_EXPANSIONIST_TOT_MO_TALL"
+       },
+       {
+        "id": "TRADITION_MO_ATTRIBUTE_EXPANSIONIST_01_WIDE",
+        "name": "Industrial Agriculture",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_EXPANSIONIST_TOT_MO_WIDE"
+       },
+       {
+        "id": "TRADITION_MO_ATTRIBUTE_MILITARISTIC_01",
+        "name": "Force Structuring",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_MILITARISTIC_TOT_MO"
+       },
+       {
+        "id": "TRADITION_MO_ATTRIBUTE_SCIENTIFIC_01",
+        "name": "Location Theory",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_SCIENTIFIC_TOT_MO"
+       },
+       {
+        "id": "TRADITION_BREAD_DANCE_II",
+        "name": "Bread Dance II",
+        "requiredTraitType": "TRAIT_SHAWNEE",
+        "source": "DLC/shawnee-tecumseh"
+       },
+       {
+        "id": "TRADITION_BEOPSEONG_II",
+        "name": "Beopseong II",
+        "requiredTraitType": "TRAIT_SILLA",
+        "source": "DLC/silla"
+       }
+      ],
+      "wonders": [
+       {
+        "id": "WONDER_TAJ_MAHAL",
+        "name": "Taj Mahal",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_CULTURAL_TOT_MO"
+       }
+      ],
+      "effects": [
+       {
+        "id": "MOD_CIVIC_MO_ATTRIBUTE_EXPANSIONIST_SPECIALIST_CAP_INCREASE",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_EXPANSIONIST_TOT_MO_TALL"
+       },
+       {
+        "id": "MOD_CIVIC_MO_ATTRIBUTE_EXPANSIONIST_SETTLEMENT_CAP_INCREASE",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_EXPANSIONIST_TOT_MO_WIDE",
+        "notTraitType": "TRAIT_ATTRIBUTE_MILITARISTIC_EXPANSIONIST"
+       },
+       {
+        "id": "MOD_MO_SETTLEMENT_CAP_INCREASE",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_MILITARISTIC_TOT_MO",
+        "notTraitType": "TRAIT_ATTRIBUTE_MILITARISTIC_EXPANSIONIST"
+       },
+       {
+        "id": "MOD_CIVIC_MO_ATTRIBUTE_MILITARISTIC_EXPANSIONIST_SETTLEMENT_CAP_INCREASE",
+        "requiredTraitType": "TRAIT_ATTRIBUTE_MILITARISTIC_EXPANSIONIST"
+       }
+      ]
+     },
+     "masteries": [],
+     "civInjectedName": "{1_Civilization_Adjective} Administration",
+     "definedIn": "Base/modules/age-modern/data/progression-trees-culture-tot-common.xml"
+    },
+    {
+     "id": "NODE_CIVIC_MO_SYNCRETISM_CHOICE",
+     "name": "Syncretism",
+     "tree": "TREE_CIVICS_MO_TEST_OF_TIME",
+     "cost": 3000,
+     "prereqs": [
+      "NODE_CIVIC_MO_AKSUM_MODERNIZATION",
+      "NODE_CIVIC_MO_EGYPT_MODERNIZATION",
+      "NODE_CIVIC_MO_GREECE_MODERNIZATION",
+      "NODE_CIVIC_MO_HAN_MODERNIZATION",
+      "NODE_CIVIC_MO_KHMER_MODERNIZATION",
+      "NODE_CIVIC_MO_MAURYA_MODERNIZATION",
+      "NODE_CIVIC_MO_MAYA_MODERNIZATION",
+      "NODE_CIVIC_MO_MISSISSIPPIAN_MODERNIZATION",
+      "NODE_CIVIC_MO_PERSIA_MODERNIZATION",
+      "NODE_CIVIC_MO_ROMAN_MODERNIZATION",
+      "NODE_CIVIC_MO_ABBASID_MODERNIZATION",
+      "NODE_CIVIC_MO_CHOLA_MODERNIZATION",
+      "NODE_CIVIC_MO_HAWAII_MODERNIZATION",
+      "NODE_CIVIC_MO_INCAN_MODERNIZATION",
+      "NODE_CIVIC_MO_MAJAPAHIT_MODERNIZATION",
+      "NODE_CIVIC_MO_MONGOLIA_MODERNIZATION",
+      "NODE_CIVIC_MO_MING_MODERNIZATION",
+      "NODE_CIVIC_MO_NORMAN_MODERNIZATION",
+      "NODE_CIVIC_MO_SONGHAI_MODERNIZATION",
+      "NODE_CIVIC_MO_SPAIN_MODERNIZATION",
+      "NODE_CIVIC_MO_ASSYRIA_MODERNIZATION",
+      "NODE_CIVIC_MO_BABYLON_MODERNIZATION",
+      "NODE_CIVIC_MO_BULGARIA_MODERNIZATION",
+      "NODE_CIVIC_MO_CARTHAGE_MODERNIZATION",
+      "NODE_CIVIC_MO_DAI_VIET_MODERNIZATION",
+      "NODE_CIVIC_MO_ENGLAND_MODERNIZATION",
+      "NODE_CIVIC_MO_GAUL_MODERNIZATION",
+      "NODE_CIVIC_MO_GORYEO_MODERNIZATION",
+      "NODE_CIVIC_MO_HEIAN_MODERNIZATION",
+      "NODE_CIVIC_MO_ICELAND_MODERNIZATION",
+      "NODE_CIVIC_MO_PIRATE_REPUBLIC_MODERNIZATION",
+      "NODE_CIVIC_MO_SENGOKU_MODERNIZATION",
+      "NODE_CIVIC_MO_SHAWNEE_MODERNIZATION",
+      "NODE_CIVIC_MO_SILLA_MODERNIZATION",
+      "NODE_CIVIC_MO_TONGA_MODERNIZATION"
+     ],
+     "prereqNames": [
+      "Aksumite Modernization",
+      "Egyptian Modernization",
+      "Greek Modernization",
+      "Han Modernization",
+      "Khmer Modernization",
+      "Maurya Modernization",
+      "Maya Modernization",
+      "Mississippian Modernization",
+      "Achaemenid Persian Modernization",
+      "Roman Modernization",
+      "Abbasid Modernization",
+      "Chola Modernization",
+      "Hawaiian Modernization",
+      "Incan Modernization",
+      "Majapahit Modernization",
+      "Mongolia Modernization",
+      "Ming Modernization",
+      "Norman Modernization",
+      "Songhai Modernization",
+      "Spain Modernization",
+      "Assyrian Modernization",
+      "Babylonian Modernization",
+      "Bulgarian Modernization",
+      "Carthaginian Modernization",
+      "Vietnamese Modernization",
+      "English Modernization",
+      "Gallic Modernization",
+      "Goryeo Modernization",
+      "Heian Modernization",
+      "Icelandic Modernization",
+      "Pirate Modernization",
+      "Sengoku Modernization",
+      "Shawnee Modernization",
+      "Silla Modernization",
+      "Tongan Modernization"
+     ],
+     "unlocks": {
+      "effects": [
+       {
+        "id": "MOD_SYNCRETISM"
+       }
+      ]
+     },
+     "masteries": [],
+     "definedIn": "Base/modules/age-modern/data/progression-trees-culture-tot-common.xml"
+    }
+   ],
+   "perCivBridgeNodes": [
+    {
+     "id": "NODE_CIVIC_MO_AKSUM_MODERNIZATION",
+     "name": "Aksumite Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_AKSUM"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_EGYPT_MODERNIZATION",
+     "name": "Egyptian Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_EGYPT"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_GREECE_MODERNIZATION",
+     "name": "Greek Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_GREECE"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_HAN_MODERNIZATION",
+     "name": "Han Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_HAN"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_KHMER_MODERNIZATION",
+     "name": "Khmer Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_KHMER"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_MAURYA_MODERNIZATION",
+     "name": "Maurya Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_MAURYA"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_MAYA_MODERNIZATION",
+     "name": "Maya Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_MAYA"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_MISSISSIPPIAN_MODERNIZATION",
+     "name": "Mississippian Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_MISSISSIPPIAN"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_PERSIA_MODERNIZATION",
+     "name": "Achaemenid Persian Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_PERSIA"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_ROMAN_MODERNIZATION",
+     "name": "Roman Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_ROME"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_ABBASID_MODERNIZATION",
+     "name": "Abbasid Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_ABBASID"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_CHOLA_MODERNIZATION",
+     "name": "Chola Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_CHOLA"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_HAWAII_MODERNIZATION",
+     "name": "Hawaiian Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_HAWAII"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_INCAN_MODERNIZATION",
+     "name": "Incan Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_INCA"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_MAJAPAHIT_MODERNIZATION",
+     "name": "Majapahit Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_MAJAPAHIT"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_MONGOLIA_MODERNIZATION",
+     "name": "Mongolia Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_MONGOLIA"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_MING_MODERNIZATION",
+     "name": "Ming Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_MING"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_NORMAN_MODERNIZATION",
+     "name": "Norman Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_NORMAN"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_SONGHAI_MODERNIZATION",
+     "name": "Songhai Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_SONGHAI"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_SPAIN_MODERNIZATION",
+     "name": "Spain Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_SPAIN"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_ASSYRIA_MODERNIZATION",
+     "name": "Assyrian Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_ASSYRIA"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_BABYLON_MODERNIZATION",
+     "name": "Babylonian Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_BABYLON"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_BULGARIA_MODERNIZATION",
+     "name": "Bulgarian Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_BULGARIA"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_CARTHAGE_MODERNIZATION",
+     "name": "Carthaginian Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_CARTHAGE"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_DAI_VIET_MODERNIZATION",
+     "name": "Vietnamese Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_DAI_VIET"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_ENGLAND_MODERNIZATION",
+     "name": "English Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_ENGLAND"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_GAUL_MODERNIZATION",
+     "name": "Gallic Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_GAUL"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_GORYEO_MODERNIZATION",
+     "name": "Goryeo Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_GORYEO"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_HEIAN_MODERNIZATION",
+     "name": "Heian Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_HEIAN"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_ICELAND_MODERNIZATION",
+     "name": "Icelandic Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_ICELAND"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_PIRATE_REPUBLIC_MODERNIZATION",
+     "name": "Pirate Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_PIRATE_REPUBLIC"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_SENGOKU_MODERNIZATION",
+     "name": "Sengoku Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_SENGOKU"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_SHAWNEE_MODERNIZATION",
+     "name": "Shawnee Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_SHAWNEE"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_SILLA_MODERNIZATION",
+     "name": "Silla Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_SILLA"
+     ]
+    },
+    {
+     "id": "NODE_CIVIC_MO_TONGA_MODERNIZATION",
+     "name": "Tongan Modernization",
+     "cost": 2000,
+     "requiredTraits": [
+      "TRAIT_TONGA"
+     ]
+    }
+   ]
+  }
+ },
+ "sources": [
+  "https://github.com/mateicanavra/civ7-official-resources (commit 9f6b93e129d47faf96ed6814f652560e7b7573d0)",
+  "https://github.com/mateicanavra/civ7-official-resources/blob/9f6b93e129d47faf96ed6814f652560e7b7573d0/Base/modules/age-antiquity/data/progression-trees-culture-common.xml",
+  "https://github.com/mateicanavra/civ7-official-resources/blob/9f6b93e129d47faf96ed6814f652560e7b7573d0/Base/modules/age-exploration/data/progression-trees-culture-common.xml",
+  "https://github.com/mateicanavra/civ7-official-resources/blob/9f6b93e129d47faf96ed6814f652560e7b7573d0/Base/modules/age-modern/data/progression-trees-culture-common.xml",
+  "https://github.com/mateicanavra/civ7-official-resources/tree/9f6b93e129d47faf96ed6814f652560e7b7573d0/Base/modules/age-antiquity/data (governments.xml, traditions.xml, progression-trees-culture-unique*.xml, *-tot-*.xml; same for age-exploration, age-modern)",
+  "https://github.com/mateicanavra/civ7-official-resources/blob/9f6b93e129d47faf96ed6814f652560e7b7573d0/Base/modules/age-exploration/data/narrative-crises-stories-gameeffects.xml",
+  "https://github.com/mateicanavra/civ7-official-resources/tree/9f6b93e129d47faf96ed6814f652560e7b7573d0/DLC (DLC civ unique trees and text)",
+  "Base/modules/*/text/en_us/*.xml and DLC/*/modules/text/**/*.xml for English names"
+ ]
+}
