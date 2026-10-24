@@ -12,7 +12,9 @@ namespace Sim.Ui.Tests;
 /// turned on, a stepped real world, and frontier_crops researched three times. The node is never shown complete; it shows
 /// "Researched 3×", the next level's cost (BaseCost × 1.2^3), and per operand the next level's benefit and the cumulative
 /// benefit — both ResearchQuery's own numbers (RepeatableLevelBenefit / RepeatableContribution) with the operand's meaning.
-/// With the switch off (the shipped value) the same world shows the node complete, as before.
+/// With the switch off the same world shows the node complete, as before. D-063 (tranche 2, 2026-10-24): the shipped
+/// research.json now carries the switch ON, so the levelled panel reads the shipped content as it ships and the switch-off
+/// case is the same file with only tuning.repeatableLevels turned off (the ADR-049 attribution switch).
 /// </summary>
 public class RepeatableLevelsUiTests(SteppedWorldFixture fx) : IClassFixture<SteppedWorldFixture>
 {
@@ -20,11 +22,17 @@ public class RepeatableLevelsUiTests(SteppedWorldFixture fx) : IClassFixture<Ste
 
     private static ResearchContent LevelsOn(SteppedWorldFixture fx)
     {
+        Assert.True(fx.Content.Tuning.RepeatableLevels);   // D-063: the shipped switch is on (tranche 2)
+        return fx.Content;
+    }
+
+    private static ResearchContent LevelsOff(SteppedWorldFixture fx)
+    {
         using var stream = Sim.Data.DataFiles.OpenResearch();
         string text = new StreamReader(stream).ReadToEnd();
-        const string off = "\"repeatableLevels\": false,";
-        Assert.Contains(off, text);   // the shipped switch: off on this branch
-        return ResearchContentLoader.Load(text.Replace(off, "\"repeatableLevels\": true,"), fx.Session.Config.Goods);
+        const string on = "\"repeatableLevels\": true,";
+        Assert.Contains(on, text);   // the shipped switch: on since tranche 2 (D-063)
+        return ResearchContentLoader.Load(text.Replace(on, "\"repeatableLevels\": false,"), fx.Session.Config.Goods);
     }
 
     private static WorldState WithCrops(IReadOnlyWorldState world, ResearchContent c, int level)
@@ -34,6 +42,12 @@ public class RepeatableLevelsUiTests(SteppedWorldFixture fx) : IClassFixture<Ste
         // Every technology known (so the agriculture subtree is exhausted and crops is open), crops among them.
         for (int n = 0; n < c.TechnologyCount; n++)
             if (!ResearchQuery.IsCompleted(w, Me, c.Nodes[n].Key)) w.ResearchCompleted.Add(new ResearchCompletedRow(Me, c.Nodes[n].Key));
+        // D-063 (tranche 2 ships tuning.ageSweep on): an Age-9 node also waits for every Age-7 node of BOTH trees (ADR-048),
+        // so the civics up to Age 7 are known too.
+        for (int n = c.TechnologyCount; n < c.Nodes.Count; n++)
+            if (c.Nodes[n].AgeNumber <= 7 && !ResearchQuery.IsCompleted(w, Me, c.Nodes[n].Key))
+                w.ResearchCompleted.Add(new ResearchCompletedRow(Me, c.Nodes[n].Key));
+        Assert.False(ResearchQuery.SweepBlock(w, c, Me, crops).Blocked);
         w.ResearchLevels.Add(new ResearchLevelRow(Me, crops, level));
         return w;
     }
@@ -86,7 +100,7 @@ public class RepeatableLevelsUiTests(SteppedWorldFixture fx) : IClassFixture<Ste
     [Fact]
     public void WithTheSwitchOff_TheSameWorldShowsTheRepeatableCompleteAsBefore()
     {
-        ResearchContent c = fx.Content;
+        ResearchContent c = LevelsOff(fx);
         Assert.False(c.Tuning.RepeatableLevels);
         WorldState w = WithCrops(fx.Session.World, c, 3);
         int i = c.IndexOfId("frontier_crops");

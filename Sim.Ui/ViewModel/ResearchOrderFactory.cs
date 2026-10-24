@@ -17,7 +17,8 @@ public static class ResearchOrderFactory
     /// stamped with the CURRENT turn (delivered to the next End Turn, whose RP already goes to it), or
     /// null when the node is not available to that Empire now (unknown, completed, locked by
     /// prerequisites, or in a subtree whose research stage is not reached) — exactly
-    /// <see cref="ResearchQuery.TargetOrder"/>.</summary>
+    /// <see cref="ResearchQuery.TargetOrder"/>. With tuning.destinationRouting (ADR-048) the same order names any
+    /// INCOMPLETE node as the lane's destination; only an unknown or completed node is refused.</summary>
     public static OrderRecord? SetTarget(
         IReadOnlyWorldState world, ResearchContent content, PolityId issuer, ResearchNodeId node) =>
         ResearchQuery.TargetOrder(world, content, issuer, node);

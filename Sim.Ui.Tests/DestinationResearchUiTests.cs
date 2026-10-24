@@ -156,8 +156,9 @@ public class DestinationResearchUiTests(SteppedWorldFixture fx) : IClassFixture<
         Assert.Equal(expected, cmd.Order);
         Assert.Equal(on.Nodes[pick].Key.Value, cmd.Order!.Value.TargetId);
 
-        // Routing off (the shipped switches): the same locked node offers no order.
-        ResearchContent off = fx.Content;
+        // Routing off (D-063: the shipped content ships it on since tranche 2, so the control is the same file with only
+        // tuning.destinationRouting off): the same locked node offers no order.
+        ResearchContent off = ContentWith(sweep: true, routing: false);
         ProgressionScreen t = Screen(off, w);
         t.Selected = pick;
         t.Paint(W, H, ApproxTextMeasure.Instance);
@@ -173,6 +174,13 @@ public class DestinationResearchUiTests(SteppedWorldFixture fx) : IClassFixture<
         ResearchContent c = Both.Value;
         WorldState w = WithDestination(c, Age3(c, fx.Session.World));
         ProgressionScreen s = Screen(c, w);
+        // D-063 (tranche 2): the route block above the button lists every outstanding node of the Age-1 sweep (41 names on
+        // this world), so at 1600 x 1000 the button sits below the panel's fold — scroll the panel to it, as a player would.
+        for (int k = 0; k < 40 && !s.Hits.Any(h => h.Kind == HitKind.CancelDestination); k++)
+        {
+            s.Wheel(s.DetailRect.CenterX, s.DetailRect.CenterY, -1);
+            s.Paint(W, H, ApproxTextMeasure.Instance);
+        }
         HitRegion cancel = Find(s, HitKind.CancelDestination, (int)ResearchTree.Technology);
         ProgressionCommand cmd = s.Click(cancel.Rect.CenterX, cancel.Rect.CenterY);
         Assert.Equal(ResearchQuery.ClearTargetOrder(w, Me, ResearchTree.Technology), cmd.Order);

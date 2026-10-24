@@ -342,7 +342,8 @@ public sealed partial class ProgressionScreen
     /// A click at a screen point. Chrome first (lens, tab, close, the detail panel's button,
     /// the minimap), then the tree: a card is SELECTED, and if the node is available to the
     /// player now, the SetResearchTarget order is built by <see cref="ResearchOrderFactory"/>
-    /// and returned for the host to log. Locked or completed nodes only select.
+    /// and returned for the host to log. Locked or completed nodes only select — except that with destination routing on
+    /// (ADR-048) a locked node is ordered as the lane's destination, by the same factory.
     /// </summary>
     public ProgressionCommand Click(double x, double y)
     {

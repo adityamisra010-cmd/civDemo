@@ -225,26 +225,48 @@ public class ProgressionScreenTests(SteppedWorldFixture fx) : IClassFixture<Step
         Assert.Null(s.Click(x, y).Order);
     }
 
+    /// <summary>A completed node or the current target only selects. A LOCKED node only selects with destination routing
+    /// off; D-063 (tranche 2) ships routing on, and then the click orders the locked node as the lane's DESTINATION (ADR-048)
+    /// — exactly the factory's order. Both switches are checked on the fixture's world: the shipped content, and the same
+    /// file with only tuning.destinationRouting off.</summary>
     [Fact]
     public void ClickingLockedOrCompletedNodes_OnlySelects()
     {
-        ProgressionScreen s = Screen();
-        ResearchContent c = fx.Content;
-        foreach (NodeState state in new[] { NodeState.Locked, NodeState.Completed, NodeState.CurrentTarget })
+        Assert.True(fx.Content.Tuning.DestinationRouting);
+        using var stream = Sim.Data.DataFiles.OpenResearch();
+        string text = new StreamReader(stream).ReadToEnd();
+        const string on = "\"destinationRouting\": true,";
+        Assert.Contains(on, text);
+        ResearchContent off = ResearchContentLoader.Load(text.Replace(on, "\"destinationRouting\": false,"), fx.Session.Config.Goods);
+        foreach (ResearchContent c in new[] { fx.Content, off })
         {
-            int pick = -1;
-            for (int i = 0; i < c.TechnologyCount; i++) if (s.Snapshot!.Nodes[i].State == state) { pick = i; break; }
-            Assert.True(pick >= 0, state.ToString());
-            s.Focus(pick, jump: true);
+            bool routing = c.Tuning.DestinationRouting;
+            var s = new ProgressionScreen(c, Me);
+            s.Refresh(fx.Session.World);
             s.Paint(W, H, ApproxTextMeasure.Instance);
-            (double x, double y) = ScreenCenter(s, pick);
-            ProgressionCommand cmd = s.Click(x, y);
-            Assert.Null(cmd.Order);
-            Assert.Equal(pick, s.Selected);
-            // Locked/completed: the factory refuses too. The current target is still "available" to the
-            // factory (re-setting it is a no-op order); the screen does not log a redundant one.
-            if (state != NodeState.CurrentTarget)
-                Assert.Null(ResearchOrderFactory.SetTarget(fx.Session.World, c, Me, c.Nodes[pick].Key));
+            foreach (NodeState state in new[] { NodeState.Locked, NodeState.Completed, NodeState.CurrentTarget })
+            {
+                int pick = -1;
+                for (int i = 0; i < c.TechnologyCount; i++) if (s.Snapshot!.Nodes[i].State == state) { pick = i; break; }
+                Assert.True(pick >= 0, state.ToString());
+                s.Focus(pick, jump: true);
+                s.Paint(W, H, ApproxTextMeasure.Instance);
+                (double x, double y) = ScreenCenter(s, pick);
+                ProgressionCommand cmd = s.Click(x, y);
+                Assert.Equal(pick, s.Selected);
+                OrderRecord? factory = ResearchOrderFactory.SetTarget(fx.Session.World, c, Me, c.Nodes[pick].Key);
+                if (state == NodeState.Locked && routing)
+                {
+                    // ADR-048: the destination order, built by the factory, never by the screen.
+                    Assert.NotNull(factory);
+                    Assert.Equal(factory, cmd.Order);
+                    continue;
+                }
+                Assert.Null(cmd.Order);
+                // Locked (routing off) / completed: the factory refuses too. The current target is still "available" to
+                // the factory (re-setting it is a no-op order); the screen does not log a redundant one.
+                if (state != NodeState.CurrentTarget) Assert.Null(factory);
+            }
         }
     }
 
