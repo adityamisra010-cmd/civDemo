@@ -45,6 +45,17 @@
    "rationale": "T4: coking presupposes coal as a fuel (new coal_fuel node)"
   },
   {
+   "id": "interchangeable_parts",
+   "old": {
+    "prereq": "slide_rest_lathe"
+   },
+   "new": {
+    "prereq": "slide_rest_lathe"
+   },
+   "action": "integrator cross-lane edge",
+   "rationale": "Audit edge declined: milling_machine is generation 3 of the machine_tool family, the same generation as interchangeable_parts; D-044 R7 / D-047 forbid a same-family prerequisite of the same or a later generation. The historical point (Hall's milling) is kept in the audit record."
+  },
+  {
    "id": "marxist_leninist_state",
    "old": {
     "prereq": "mass_political_party AND central_planning",
@@ -279,19 +290,6 @@
    "rationale": "Remove timber_frame: not causal, and dated 1,500 years after the node's own emerged date (contract §6 chronology). The textile workshop it requires (inst.textile_workshop) is not live, so the node gets a specialist-class effect."
   },
   {
-   "id": "interchangeable_parts",
-   "old": {
-    "prereq": "slide_rest_lathe",
-    "age": "A8"
-   },
-   "new": {
-    "prereq": "slide_rest_lathe AND milling_machine",
-    "age": "A8"
-   },
-   "action": "add-prereq",
-   "rationale": "Add milling_machine: the Harpers Ferry and Springfield achievement (Hall 1820s, North) depended on milling, not only turning. Milling (~1,818) predates the node (~1,820)."
-  },
-  {
    "id": "skyscraper",
    "old": {
     "prereq": "structural_iron AND bessemer AND electric_motor",
@@ -500,7 +498,13 @@
    "rationale": "Replace guided_munitions with guided_missile AND computer: the interceptor lineage is the guided missile, and fire control is computed. Closure barely changes (laser drops out)."
   }
  ],
- "rejected": [],
+ "rejected": [
+  {
+   "id": "interchangeable_parts",
+   "why": "superseded by an integrator edit (decisions.extraEdits)",
+   "action": "add-prereq"
+  }
+ ],
  "warnings": [],
  "review": [
   {
@@ -1020,12 +1024,52 @@
  ],
  "impliedEurekasDropped": [
   {
+   "id": "iron_bloomery",
+   "when": "copper_smelting"
+  },
+  {
+   "id": "paper",
+   "when": "cuneiform OR hieroglyphic OR chinese_script"
+  },
+  {
    "id": "windmill_post",
    "when": "gearing"
   },
   {
+   "id": "steam_atmospheric",
+   "when": "mining_shaft"
+  },
+  {
+   "id": "railway",
+   "when": "joint_stock"
+  },
+  {
    "id": "railway",
    "when": "mining_shaft"
+  },
+  {
+   "id": "dynamite",
+   "when": "mining_shaft"
+  },
+  {
+   "id": "vaccination",
+   "when": "cattle"
+  },
+  {
+   "id": "germ_theory",
+   "when": "fermentation_grain"
+  },
+  {
+   "id": "photography",
+   "when": "optics_ibn_haytham"
+  },
+  {
+   "id": "percussion_drilling",
+   "when": "salt_extraction"
+  },
+  {
+   "id": "punched_card_tabulation",
+   "when": "census"
   }
  ],
  "counts": {

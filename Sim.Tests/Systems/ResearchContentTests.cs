@@ -17,6 +17,16 @@ public class ResearchContentTests
 {
     private static readonly ResearchContent Canonical = TestConfigs.Research();
 
+    /// <summary>D-063 (tranche 2): the research content as it stood BEFORE tranche 2 (Fixtures/research-pre-tranche2.json).
+    /// The structure pins below that document earlier layers (corpus order, ADR-045 counts, key spaces, Eureka totals) are
+    /// asserted on it; tranche 2's own structure (515 / 477 finite, effects, sweep, repeatables) is pinned by
+    /// Tranche2ContentTests.</summary>
+    private static readonly ResearchContent PreT2 = TestConfigs.PreTranche2(TestConfigs.Sim()).Research!;
+
+    /// <summary>The shipped content with the Age sweep off — authored prerequisites alone. Under the sweep (D-063 R2) every
+    /// Age-x node is mandatory before Age x+2, so "a path without cuneiform" is a statement about the authored graph.</summary>
+    private static readonly ResearchContent NoSweep = ResearchAgeSweepTests.ContentWith(sweep: false, routing: false);
+
     private static JsonDocument Corpus()
     {
         return JsonDocument.Parse(File.ReadAllBytes(Path.Combine(RepoPaths.Root(), "tech-graph-v0.6.json")));
@@ -27,6 +37,7 @@ public class ResearchContentTests
     [Fact]
     public void Canonical_IntegratesEveryCorpusTechnology_InCorpusOrder_WithItsStableId()
     {
+        // D-063: pins the PRE-tranche-2 structure (see PreT2).
         // Ids, keys and names are the corpus's. Prerequisites, ages and Eurekas were then curated
         // by the Director's finalization (Group A and Group B), so they are not compared here.
         using JsonDocument corpus = Corpus();
@@ -36,16 +47,16 @@ public class ResearchContentTests
         // motor_road, key 425, the ratified highway class (Director transport ruling 16).
         // R2a appended the authored Trade technology, key 426 (Director decision 1/13).
         // ADR-045 (D-062, 2026-10-22) appended the 70 proposal technologies, keys 427..496 in the proposal's order.
-        Assert.Equal(496, Canonical.TechnologyCount);
-        for (int i = 426; i < 496; i++) Assert.Equal(i + 1, Canonical.Nodes[i].Key.Value);
-        Assert.Equal("motor_road", Canonical.Nodes[424].Id);
-        Assert.Equal(425, Canonical.Nodes[424].Key.Value);
-        Assert.Equal("trade", Canonical.Nodes[425].Id);
-        Assert.Equal(426, Canonical.Nodes[425].Key.Value);
+        Assert.Equal(496, PreT2.TechnologyCount);
+        for (int i = 426; i < 496; i++) Assert.Equal(i + 1, PreT2.Nodes[i].Key.Value);
+        Assert.Equal("motor_road", PreT2.Nodes[424].Id);
+        Assert.Equal(425, PreT2.Nodes[424].Key.Value);
+        Assert.Equal("trade", PreT2.Nodes[425].Id);
+        Assert.Equal(426, PreT2.Nodes[425].Key.Value);
         for (int i = 0; i < 424; i++)
         {
             JsonElement t = techs[i];
-            ResearchNode n = Canonical.Nodes[i];
+            ResearchNode n = PreT2.Nodes[i];
             Assert.Equal(t.GetProperty("id").GetString(), n.Id);
             Assert.Equal(i + 1, n.Key.Value);
             if (D047Renamed.TryGetValue(n.Id, out string? renamed) || Adr045Renamed.TryGetValue(n.Id, out renamed))
@@ -63,29 +74,30 @@ public class ResearchContentTests
     [Fact]
     public void Canonical_CivicsAreTheSixArchitectureCandidates_PlusTaxation_OnTheSameKeySpace()
     {
+        // D-063: pins the PRE-tranche-2 structure (see PreT2).
         // R5 (Director 2026-10-04) appended the authored Taxation civic, key 1007 (no renumbering).
         // ADR-045 (D-062) appended the 60 proposal civics, keys 1008..1067, as KNOWLEDGE-ONLY civics: capability
         // strings and no entity unlock (no regime or policy entity kind exists; adoption is M8).
         // ADR-049 appended the three civics repeatables, keys 1990–1992, at the END (1068–1989 reserved for the civics expansion).
-        Assert.Equal(70, Canonical.CivicsCount);
+        Assert.Equal(70, PreT2.CivicsCount);
         for (int i = 7; i < 67; i++)
         {
-            ResearchNode n = Canonical.Nodes[Canonical.TechnologyCount + i];
+            ResearchNode n = PreT2.Nodes[PreT2.TechnologyCount + i];
             Assert.Equal(ResearchTree.Civics, n.Tree);
             Assert.Equal(1001 + i, n.Key.Value);
             Assert.Equal(-1, n.Branch);
             Assert.NotEmpty(n.Capabilities);
-            foreach (int e in n.UnlockedEntities) Assert.Equal(ResearchEntityKind.Institution, Canonical.Entities[e].Kind);
+            foreach (int e in n.UnlockedEntities) Assert.Equal(ResearchEntityKind.Institution, PreT2.Entities[e].Kind);
         }
         string[] ids = new string[7];
         for (int i = 0; i < 7; i++)
         {
-            ResearchNode n = Canonical.Nodes[Canonical.TechnologyCount + i];
+            ResearchNode n = PreT2.Nodes[PreT2.TechnologyCount + i];
             ids[i] = n.Id;
             Assert.Equal(ResearchTree.Civics, n.Tree);
             Assert.Equal(1001 + i, n.Key.Value);
             Assert.Equal(-1, n.Branch);
-            foreach (int e in n.UnlockedEntities) Assert.Equal(ResearchEntityKind.Institution, Canonical.Entities[e].Kind);
+            foreach (int e in n.UnlockedEntities) Assert.Equal(ResearchEntityKind.Institution, PreT2.Entities[e].Kind);
         }
         Assert.Equal(["law_code", "legal_code_roman", "census", "coined_wage", "patent", "joint_stock", "taxation"], ids);
     }
@@ -93,18 +105,19 @@ public class ResearchContentTests
     [Fact]
     public void Canonical_TreeOneViews_TrunkAndExactlyFiveSubtrees_WithTheMeasuredCounts()
     {
+        // D-063: pins the PRE-tranche-2 structure (see PreT2).
         int[] counts = new int[6]; // trunk, then 1.1..1.5
-        for (int i = 0; i < Canonical.TechnologyCount; i++) counts[Canonical.Nodes[i].Branch + 1]++;
+        for (int i = 0; i < PreT2.TechnologyCount; i++) counts[PreT2.Nodes[i].Branch + 1]++;
         // ADR-032: motor_road joined engineering; R2a: trade joined the trunk. ADR-045 (D-062): 22 crafts relocated to the
         // trunk and 70 nodes appended (trunk 177 - 0 + 22 relocated + 8 new; military 37 - 1 + 8; medicine 22 + 8;
         // engineering 131 - 16 + 24; natural science 44 - 1 + 18; agriculture 15 - 4 + 4).
         Assert.Equal([207, 44, 30, 139, 61, 15], counts);
-        Assert.Equal(ResearchContentLoader.RuledBranchIds.Length, Canonical.Branches.Count);
+        Assert.Equal(ResearchContentLoader.RuledBranchIds.Length, PreT2.Branches.Count);
         for (int b = 0; b < 5; b++)
         {
-            Assert.Equal(ResearchContentLoader.RuledBranchIds[b], Canonical.Branches[b].Id);
-            Assert.Equal($"1.{b + 1}", Canonical.Branches[b].Number);
-            Assert.Equal(b, Canonical.UniversityTypes[b].Branch); // one specialized university type per subtree
+            Assert.Equal(ResearchContentLoader.RuledBranchIds[b], PreT2.Branches[b].Id);
+            Assert.Equal($"1.{b + 1}", PreT2.Branches[b].Number);
+            Assert.Equal(b, PreT2.UniversityTypes[b].Branch); // one specialized university type per subtree
         }
     }
 
@@ -129,10 +142,12 @@ public class ResearchContentTests
         {
             ResearchCostRationale r = n.CostRationale;
             Assert.Equal(0.0, r.CalibrationAdjustment);
-            Assert.Equal(n.BaseCost, r.ContentCost);
+            // D-063 R6: BaseCost = content cost x the recorded per-(tree, Age) pacing scale (none: x 1).
+            double scale = Canonical.Tuning.Pacing is { } pace ? pace.Of(n.Tree, n.AgeNumber) : 1.0;
+            Assert.Equal(r.ContentCost * scale, n.BaseCost);
             Assert.True(Math.Abs(r.Novelty + r.Difficulty + r.Material + r.Institutional + r.Breadth + r.PrerequisiteComplexity - r.Magnitude) <= 1e-9, n.Id);
             double formula = m.U * Math.Pow(m.K, r.Magnitude);
-            Assert.True(Math.Abs(n.BaseCost - formula) <= Math.Max(5.0, 1e-3 * n.BaseCost), $"{n.Id}: {n.BaseCost} vs {formula}");
+            Assert.True(Math.Abs(r.ContentCost - formula) <= Math.Max(5.0, 1e-3 * r.ContentCost), $"{n.Id}: {r.ContentCost} vs {formula}");
         }
         // Not depth-derived: within one Age and one depth, costs still differ by content.
         var depthCost = new Dictionary<(string, int), double>();   // test-side check, not sim logic
@@ -144,7 +159,7 @@ public class ResearchContentTests
         }
         Assert.True(varies, "costs within one Age and depth never differ: they would be depth-derived");
         // The cheapest A9 node is cheaper than most A2 nodes: content, not Age, sets it.
-        Assert.Equal(740.0, Canonical.Nodes[Canonical.IndexOfId("oral_rehydration")].BaseCost);
+        Assert.Equal(740.0, Canonical.Nodes[Canonical.IndexOfId("oral_rehydration")].CostRationale.ContentCost);   // D-063 R6: content cost
     }
 
     /// <summary>The D-047 re-scopes: the ONLY nodes whose name departs from the corpus.</summary>
@@ -176,6 +191,7 @@ public class ResearchContentTests
     [Fact]
     public void PreTrancheFixture_IsTheFileBeforeAdr045_AndEveryOldKeyKeepsItsId()
     {
+        // D-063: pins the PRE-tranche-2 structure (see PreT2).
         string text = TestConfigs.PreTreeTrancheResearchJson();
         Assert.Equal("7a3bf38896f443e4cdfe582503d57f7f17abbab4f87acafe5ac4c3ef8ed9b791",
             Convert.ToHexStringLower(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text))));
@@ -183,11 +199,11 @@ public class ResearchContentTests
         Assert.Equal((426, 7), (pre.TechnologyCount, pre.CivicsCount));
         foreach (ResearchNode n in pre.Nodes)
         {
-            int i = Canonical.IndexOf(n.Key);
+            int i = PreT2.IndexOf(n.Key);
             Assert.True(i >= 0, $"key {n.Key.Value} ({n.Id}) was retired");
-            Assert.Equal(n.Id, Canonical.Nodes[i].Id);
+            Assert.Equal(n.Id, PreT2.Nodes[i].Id);
         }
-        Assert.Equal(pre.Nodes.Count + 133, Canonical.Nodes.Count);   // ADR-045's 130 + ADR-049's three civics repeatables
+        Assert.Equal(pre.Nodes.Count + 133, PreT2.Nodes.Count);   // ADR-045's 130 + ADR-049's three civics repeatables
     }
 
     [Fact]
@@ -200,8 +216,9 @@ public class ResearchContentTests
     [Fact]
     public void Canonical_Eurekas_98On97Nodes_26EvaluableToday_AllAuthored_EveryNodeWithinTheFortyPercentCeiling()
     {
+        // D-063: pins the PRE-tranche-2 structure (see PreT2).
         int total = 0, nodes = 0, evaluable = 0, authored = 0, inherited = 0;
-        foreach (ResearchNode n in Canonical.Nodes)
+        foreach (ResearchNode n in PreT2.Nodes)
         {
             if (n.Eurekas.Count > 0) nodes++;
             double sum = 0.0;
@@ -226,11 +243,11 @@ public class ResearchContentTests
         // arsenical-ore exposure, so 18 -> 17 evaluable.
         Assert.Equal(26, evaluable);
         Assert.Equal((98, 0), (authored, inherited));
-        foreach (ResearchNode n in Canonical.Nodes)
+        foreach (ResearchNode n in PreT2.Nodes)
             foreach (ResearchEureka e in n.Eurekas)
                 Assert.DoesNotContain("inherited", e.Justification, StringComparison.Ordinal);
         // railway is the one node with two conditions: 0.2 each, together the full 0.40.
-        ResearchNode railway = Canonical.Nodes[Canonical.IndexOfId("railway")];
+        ResearchNode railway = PreT2.Nodes[PreT2.IndexOfId("railway")];
         Assert.Equal([0.2, 0.2], [railway.Eurekas[0].Weight, railway.Eurekas[1].Weight]);
     }
 
@@ -249,25 +266,30 @@ public class ResearchContentTests
                 var excluded = new bool[Canonical.Nodes.Count];
                 excluded[i] = true;
                 foreach (int a in cond.AtomIds) excluded[a] = true;
-                bool[] done = ReachWithout(excluded);
+                bool[] done = ReachWithout(excluded, Canonical);   // the shipped rules, Age sweep included
                 Assert.True(ResearchQuery.IsAvailable(Canonical, i, done, ResearchQuery.StageReached(Canonical, done)),
                     $"{Canonical.Nodes[i].Id}: no witness state");
                 Assert.False(cond.Evaluate(null, a => done[a], null), $"{Canonical.Nodes[i].Id}: '{cond.Source}' holds in the witness");
                 checkedConditions++;
             }
-        Assert.Equal(24, checkedConditions);   // ADR-045: + 9 knowledge conditions on the new technologies
+        // ADR-045: + 9 knowledge conditions on the new technologies. D-063 (tranche 2): - 12 whose condition the Age sweep or
+        // a new hard prerequisite now guarantees (dropped by tools/import_tranche2.py; listed in tranche2-change-report.md).
+        Assert.Equal(12, checkedConditions);
     }
 
     /// <summary>The largest completed set reachable while every excluded node stays incomplete.</summary>
-    private static bool[] ReachWithout(bool[] excluded)
+    /// <summary>What can be researched never completing <paramref name="excluded"/>: on the AUTHORED graph (the sweep-off
+    /// twin — under the Age sweep every node is eventually required, D-063 R2).</summary>
+    private static bool[] ReachWithout(bool[] excluded, ResearchContent? content = null)
     {
-        var done = new bool[Canonical.Nodes.Count];
+        ResearchContent c = content ?? NoSweep;
+        var done = new bool[c.Nodes.Count];
         for (bool changed = true; changed;)
         {
             changed = false;
-            bool stage = ResearchQuery.StageReached(Canonical, done);
+            bool stage = ResearchQuery.StageReached(c, done);
             for (int j = 0; j < done.Length; j++)
-                if (!done[j] && !excluded[j] && ResearchQuery.IsAvailable(Canonical, j, done, stage))
+                if (!done[j] && !excluded[j] && ResearchQuery.IsAvailable(c, j, done, stage))
                     done[j] = changed = true;
         }
         return done;
@@ -378,8 +400,9 @@ public class ResearchContentTests
     [Fact]
     public void Canonical_RecursiveSet_TheTenRepeatables_WaitForTheirOwnSubtreesFiniteResearch()
     {
+        // D-063: pins the PRE-tranche-2 structure (see PreT2).
         int recursive = 0, speculative = 0, finite = 0;
-        foreach (ResearchNode n in Canonical.Nodes)
+        foreach (ResearchNode n in PreT2.Nodes)
         {
             // ADR-049: the ten frontier technologies wait on their subtrees; the three civics repeatables (keys 1990–1992)
             // wait on every finite A9 civic. Every one is levelled (costGrowth 1.2, gapFraction 0.1).
@@ -398,20 +421,20 @@ public class ResearchContentTests
         Assert.Equal(6, speculative);
         // ADR-032: + motor_road; R2a: + trade; R5: + taxation (civic); ADR-045: + 70 technologies + 60 civics.
         Assert.Equal(553, finite);
-        Assert.Equal([43, 29, 133, 60, 14], [.. Canonical.FiniteNodesBySubtree.Select(l => l.Count)]);
+        Assert.Equal([43, 29, 133, 60, 14], [.. PreT2.FiniteNodesBySubtree.Select(l => l.Count)]);
 
         // frontier_launch (engineering): with EVERYTHING else complete it is available; leave one finite
         // engineering node incomplete and it is not — per-subtree exhaustion, nothing else.
-        int launch = Canonical.IndexOfId("frontier_launch");
-        var all = new bool[Canonical.Nodes.Count];
-        for (int i = 0; i < all.Length; i++) all[i] = !Canonical.Nodes[i].IsRecursive;
-        Assert.True(ResearchQuery.IsAvailable(Canonical, launch, all, true));
-        all[Canonical.IndexOfId("jet_airliner")] = false;
-        Assert.False(ResearchQuery.IsAvailable(Canonical, launch, all, true));
+        int launch = PreT2.IndexOfId("frontier_launch");
+        var all = new bool[PreT2.Nodes.Count];
+        for (int i = 0; i < all.Length; i++) all[i] = !PreT2.Nodes[i].IsRecursive;
+        Assert.True(ResearchQuery.IsAvailable(PreT2, launch, all, true));
+        all[PreT2.IndexOfId("jet_airliner")] = false;
+        Assert.False(ResearchQuery.IsAvailable(PreT2, launch, all, true));
         // ...and a finite node of ANOTHER subtree does not hold it back.
-        all[Canonical.IndexOfId("jet_airliner")] = true;
-        all[Canonical.Nodes[Canonical.FiniteNodesBySubtree[1][0]].Index] = false;      // a medicine node
-        Assert.True(ResearchQuery.IsAvailable(Canonical, launch, all, true));
+        all[PreT2.IndexOfId("jet_airliner")] = true;
+        all[PreT2.Nodes[PreT2.FiniteNodesBySubtree[1][0]].Index] = false;      // a medicine node
+        Assert.True(ResearchQuery.IsAvailable(PreT2, launch, all, true));
     }
 
     // ------------------------------------------------------------------ D-047 (Civ VI reference and progression rulings)

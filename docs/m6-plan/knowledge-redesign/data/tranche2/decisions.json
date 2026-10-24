@@ -68,6 +68,11 @@
    "id": "coke",
    "newPrereq": "blast_furnace_water AND coal_fuel",
    "why": "T4: coking presupposes coal as a fuel (new coal_fuel node)"
+  },
+  {
+   "id": "interchangeable_parts",
+   "newPrereq": "slide_rest_lathe",
+   "why": "Audit edge declined: milling_machine is generation 3 of the machine_tool family, the same generation as interchangeable_parts; D-044 R7 / D-047 forbid a same-family prerequisite of the same or a later generation. The historical point (Hall's milling) is kept in the audit record."
   }
  ]
 }

@@ -28,7 +28,8 @@ internal static class UniversityRigs
         // strips the newer layer). The university and save/load scenarios are pre-M6 economies (a hidden stone or clay
         // deposit would change every material figure they pin, and the fog would refuse their scripted foundings); the
         // discovery tables' save/load and replay are DiscoverySchemaV35Tests'.
-        SimConfig cfg = TestConfigs.PreDiscovery(TestConfigs.Sim());
+        // D-063 (tranche 2): and the tranche-2 research content off (TestConfigs.PreTranche2) — the same R4 rule.
+        SimConfig cfg = TestConfigs.PreDiscovery(TestConfigs.PreTranche2(TestConfigs.Sim()));
         UniversitiesConfig u = cfg.Institutions!.Universities with { AdultsPerUniversity = adultsPerUniversity };
         if (tune is not null) u = tune(u);
         return cfg with { Institutions = cfg.Institutions with { Universities = u } };

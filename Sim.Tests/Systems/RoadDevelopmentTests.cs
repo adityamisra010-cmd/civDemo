@@ -1104,8 +1104,10 @@ public class RoadDevelopmentTests
         Assert.All(n.Capabilities, c => Assert.Contains("class", c, StringComparison.Ordinal));   // a class unlock, not a construction
         // ADR-029 methodology: BaseCost = U × K^magnitude, rounded to 10 RP, magnitude = the sum of the six factors.
         double U = Research.Tuning.CostModel.U, K = Research.Tuning.CostModel.K;
-        Assert.Equal(Math.Round(U * Math.Pow(K, 8.5) / 10.0) * 10.0, n.BaseCost);
-        Assert.Equal(33450.0, n.BaseCost);
+        Assert.Equal(Math.Round(U * Math.Pow(K, 8.5) / 10.0) * 10.0, n.CostRationale.ContentCost);
+        Assert.Equal(33450.0, n.CostRationale.ContentCost);
+        // D-063 R6: BaseCost is the content cost times the (tree, Age) pacing scale
+        Assert.Equal(33450.0 * Research.Tuning.Pacing!.Of(n.Tree, n.AgeNumber), n.BaseCost);
         // ADR-045 (D-062, 2026-10-22): the tranche's rewires deepened automobile_mass's chain, so the longest path no longer
         // runs through reinforced_concrete; the depth is still 1 + the deepest prerequisite (the loader's rule).
         Assert.Equal(1 + n.PrerequisiteNodes.Max(p => Research.Nodes[p].Depth), n.Depth);

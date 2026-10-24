@@ -126,7 +126,7 @@ public class MerchantTests
     public void MerchantsEmerge_WithTheCylinderOff_AtTheBatch2Turn()
     {
         // M6 EX (2026-10-22): the newer discovery layer off too (R4; MEASURED with it on: 118).
-        (int firstActive, int activeTurns) = MerchantLatch(TestConfigs.PreCylinderWorldgen(TestConfigs.Worldgen()), TestConfigs.PreDiscovery(TestConfigs.Sim()));
+        (int firstActive, int activeTurns) = MerchantLatch(TestConfigs.PreCylinderWorldgen(TestConfigs.Worldgen()), TestConfigs.PreDiscovery(TestConfigs.PreTranche2(TestConfigs.Sim())));
         Assert.True(activeTurns > 0, "no merchant town on the flat world either");
         Assert.Equal(127, firstActive);
     }
@@ -200,14 +200,27 @@ public class MerchantTests
         // again), which moves the production and trade-volume series this predicate reads (MEASURED 138 at e7a1ae7, the
         // rulings commit, before the TREE merge); Track TREE moved nothing here (MEASURED: 138 again after the merge); Track
         // CP's part is in the 148 the discovery-off control returns.
-        Assert.Equal(138, firstActive);   // moves with the trajectory; re-measured per packet
+        // D-063 TRANCHE-2 RE-PIN (2026-10-24; VALUE, MEASURED on this tree by the agent writing this line): first active
+        // 138 -> 39. CAUSE: the tranche-2 research content — the realized knowledge effects raise production and population
+        // from the first Ages, so the trade-volume series this predicate reads crosses its threshold a century sooner.
+        // ATTRIBUTION: MerchantsEmerge_OnThePreTranche2Content_AtTheM6Turn (TestConfigs.PreTranche2) returns 138.
+        Assert.Equal(39, firstActive);   // moves with the trajectory; re-measured per packet
+    }
+
+    /// <summary>D-063 ATTRIBUTION CONTROL: the live run on the pre-tranche-2 research content returns the M6 turn, 138.</summary>
+    [Fact]
+    public void MerchantsEmerge_OnThePreTranche2Content_AtTheM6Turn()
+    {
+        (int firstActive, int activeTurns) = MerchantLatch(TestConfigs.Worldgen(), TestConfigs.PreTranche2(TestConfigs.Sim()));
+        Assert.True(activeTurns > 0);
+        Assert.Equal(138, firstActive);
     }
 
     /// <summary>M6 Track EX (D-062, ADR-044) ATTRIBUTION CONTROL: the live run with ONLY the discovery layer off returns 148.</summary>
     [Fact]
     public void MerchantsEmerge_WithTheDiscoveryLayerOff_AtTheTrackCpTurn()
     {
-        (int firstActive, int activeTurns) = MerchantLatch(TestConfigs.Worldgen(), TestConfigs.PreDiscovery(TestConfigs.Sim()));
+        (int firstActive, int activeTurns) = MerchantLatch(TestConfigs.Worldgen(), TestConfigs.PreDiscovery(TestConfigs.PreTranche2(TestConfigs.Sim())));
         Assert.True(activeTurns > 0);
         Assert.Equal(148, firstActive);
     }
