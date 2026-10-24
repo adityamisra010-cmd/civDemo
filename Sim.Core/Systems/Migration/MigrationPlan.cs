@@ -50,6 +50,9 @@ public sealed class MigrationPlan
     public bool[] HasDistances { get; }
     /// <summary>Per settlement, its PREV bucket rows in table order (the bucket-key order).</summary>
     public int[][] BucketRows { get; }
+    /// <summary>ADR-047: the gap-channel base rate per year a SOURCE's people move at — migration.baseRatePerYear improved
+    /// by the source holder's realized research (the sim.json base exactly without an effect).</summary>
+    public double[] BaseRate { get; }
 
     // --- source side (§3.4) ------------------------------------------------------
     /// <summary>ω_i = max_{j≠i} damping_ij × viability_j — EXIT OPENNESS ∈ [0,1]; 0 ⇒ die at home.</summary>
@@ -127,6 +130,7 @@ public sealed class MigrationPlan
         SmoothedRowIndex = new int[settlementCount];
         Smoothed = new double[settlementCount];
         HasDistances = new bool[settlementCount];
+        BaseRate = new double[settlementCount];
         BucketRows = new int[settlementCount][];
         ExitOpenness = new double[settlementCount];
         ShareNormaliser = new double[settlementCount];

@@ -92,14 +92,18 @@ public static class Governance
     /// read as perfect administration; an unreachable place (+∞ cost) reaches 0.0 by construction.
     /// </summary>
     public static double AdministrativeReach(
-        IReadOnlyWorldState world, PolityId polity, SettlementId place, GovernanceConfig governance)
+        IReadOnlyWorldState world, PolityId polity, SettlementId place, GovernanceConfig governance,
+        Systems.Research.ResearchContent? research = null)
     {
         ArgumentNullException.ThrowIfNull(governance);
         if (!EmpireQuery.TryGetCapital(world, polity, out SettlementId seat)) return 0.0;
         if (!EmpireQuery.ControlsSettlement(world, polity, seat)) return 0.0;   // a lost seat administers nothing
         if (seat.Value == place.Value) return 1.0;                             // the seat administers itself in full
 
-        double decay = governance.AuthorityDecayCostUnits;
+        // ADR-047: governance.authorityDecayCostUnits, the polity's — its realized research extends the e-fold of its
+        // reach (the base exactly without an effect, or with no research content passed).
+        double decay = KnowledgeEffects.Apply(world, research, polity, KnowledgeOperand.GovernanceAuthorityDecayCostUnits,
+            governance.AuthorityDecayCostUnits);
         if (!(decay > 0.0)) return 0.0;
 
         for (int i = 0; i < world.SettlementDistances.Count; i++)
@@ -163,7 +167,11 @@ public static class Governance
     {
         double rate = EffectiveTaxRate(world, settlement, cfg);
         if (rate <= 0.0) return 1.0;
-        return 1.0 + cfg.Governance!.TaxExtractionResponseMax * rate;
+        // ADR-047: governance.taxExtractionResponseMax, the controller's (the settlement's holder; the base exactly
+        // without an effect).
+        double response = KnowledgeEffects.ApplyAt(world, cfg.Research, settlement, KnowledgeOperand.GovernanceTaxExtractionResponseMax,
+            cfg.Governance!.TaxExtractionResponseMax);
+        return 1.0 + response * rate;
     }
 
     /// <summary>

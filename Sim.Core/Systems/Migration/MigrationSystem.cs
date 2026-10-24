@@ -292,6 +292,17 @@ public sealed class MigrationSystem : ISimSystem<MigrationTables>
         for (int s = 0; s < n; s++) maxId = Math.Max(maxId, prev.Settlements[s].Id.Value);
         var settlementIndex = new int[maxId + 1]; // id → row index (array, law 5: no dictionaries in sim logic)
         Array.Fill(settlementIndex, -1);
+        // ADR-047: the SOURCE holder's realized research — migration.baseRatePerYear (the gap channel's rate) and
+        // migration.dampingDecayCostUnits (how far its migrants travel). Both the sim.json bases without an effect.
+        KnowledgeEffectsSnapshot fx = KnowledgeEffects.Snapshot(prev, cfg.Research);
+        double[] baseRate = plan.BaseRate;
+        var dampingDecay = new double[n];
+        for (int s = 0; s < n; s++)
+        {
+            PolityId holder = fx.HolderOf(prev.Settlements[s].Id);
+            baseRate[s] = fx.Apply(holder, KnowledgeOperand.MigrationBaseRatePerYear, m.BaseRatePerYear);
+            dampingDecay[s] = fx.Apply(holder, KnowledgeOperand.MigrationDampingDecayCostUnits, m.DampingDecayCostUnits);
+        }
         for (int s = 0; s < n; s++)
         {
             SettlementId id = prev.Settlements[s].Id;
@@ -408,7 +419,7 @@ public sealed class MigrationSystem : ISimSystem<MigrationTables>
             int ti = row.To.Value <= maxId ? settlementIndex[row.To.Value] : -1;
             if (fi >= 0 && ti >= 0)
             {
-                damping[fi, ti] = Math.Exp(-row.TravelCost / m.DampingDecayCostUnits);
+                damping[fi, ti] = Math.Exp(-row.TravelCost / dampingDecay[fi]);
                 hasDistances[fi] = true;
             }
         }
@@ -524,7 +535,7 @@ public sealed class MigrationSystem : ISimSystem<MigrationTables>
                 foreach (int row in bucketRows[src])
                 {
                     BucketRow b = prev.Buckets[row];
-                    gapDesire += m.BaseRatePerYear * m.CohortProfile[b.CohortIdx]
+                    gapDesire += baseRate[src] * m.CohortProfile[b.CohortIdx]
                                  * b.Count.Value * dtYears * damping[src, dst]
                                  * viability[dst] * gap;
                 }
@@ -692,7 +703,7 @@ public sealed class MigrationSystem : ISimSystem<MigrationTables>
                     double heads = 0.0;
                     if (gapOpen)
                     {
-                        double perCount = m.BaseRatePerYear * m.CohortProfile[b.CohortIdx] * count * dtYears;
+                        double perCount = baseRate[src] * m.CohortProfile[b.CohortIdx] * count * dtYears;
                         heads += perCount * damping[src, dst] * viability[dst] * (gsBasin * gap);
                     }
                     if (flightOpen) heads += phi[row] * count * share[src, dst];
@@ -753,7 +764,7 @@ public sealed class MigrationSystem : ISimSystem<MigrationTables>
             {
                 BucketRow b = prev.Buckets[row];
                 long count = b.Count.Value;
-                double perCount = m.BaseRatePerYear * m.CohortProfile[b.CohortIdx]
+                double perCount = baseRate[src] * m.CohortProfile[b.CohortIdx]
                                   * count * dtYears;
                 if (perCount <= 0.0) continue;
                 double total = 0.0;
@@ -843,7 +854,7 @@ public sealed class MigrationSystem : ISimSystem<MigrationTables>
                     long prevCount = b.Count.Value;
                     if (prevCount <= 0 && buckets.Ref(srcRow).MigrationRemainder == 0.0) continue;
 
-                    double desired = m.BaseRatePerYear * m.CohortProfile[b.CohortIdx]
+                    double desired = plan.BaseRate[src] * m.CohortProfile[b.CohortIdx]
                                      * prevCount * ctx.DtYears * push;
                     if (flightWeight > 0.0) desired += phi[srcRow] * prevCount * flightWeight;
                     // Overdraw scaling: never ask for more than the bucket held.

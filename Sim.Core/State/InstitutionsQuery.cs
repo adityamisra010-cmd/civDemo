@@ -81,7 +81,7 @@ public static class InstitutionsQuery
         if (cfg.Research is not { } research) return [];
         int health = InstitutionContent.HealthTypeKey(cfg);
         double saturatedAt = cfg.Institutions?.Universities.SaturatedAt ?? 1.0;
-        double maxCut = cfg.Institutions?.Universities.MaxResearchCostReduction ?? 0.0;
+        double maxCut = InstitutionEffects.MaxResearchCostReduction(world, cfg, owner);   // ADR-047: the owner's
         var result = new UniversitySpecialtyView[research.UniversityTypes.Count];
         for (int t = 0; t < result.Length; t++)
         {

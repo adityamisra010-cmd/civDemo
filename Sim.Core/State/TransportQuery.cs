@@ -198,7 +198,22 @@ public static class TransportQuery
     /// order, a strictly-better cost only (an equal cost keeps the first found).
     /// </summary>
     public static FreightEstimate EstimateFreight(
-        IReadOnlyWorldState world, RoadsConfig roads, SettlementId from, SettlementId to, double tonnes)
+        IReadOnlyWorldState world, RoadsConfig roads, SettlementId from, SettlementId to, double tonnes) =>
+        EstimateFreight(world, roads, from, to, tonnes, roads.BaselineKmPerDay);
+
+    /// <summary>
+    /// ADR-047 — the travel-time hook for a SHIPPER: as <see cref="EstimateFreight(IReadOnlyWorldState, RoadsConfig,
+    /// SettlementId, SettlementId, double)"/>, with roads.baselineKmPerDay improved by <paramref name="shipper"/>'s realized
+    /// research (faster overland travel; the content speed exactly without an effect or without research content).
+    /// </summary>
+    public static FreightEstimate EstimateFreight(
+        IReadOnlyWorldState world, RoadsConfig roads, SettlementId from, SettlementId to, double tonnes,
+        Systems.Research.ResearchContent? research, PolityId shipper) =>
+        EstimateFreight(world, roads, from, to, tonnes,
+            KnowledgeEffects.Apply(world, research, shipper, KnowledgeOperand.RoadsBaselineKmPerDay, roads.BaselineKmPerDay));
+
+    private static FreightEstimate EstimateFreight(
+        IReadOnlyWorldState world, RoadsConfig roads, SettlementId from, SettlementId to, double tonnes, double baselineKmPerDay)
     {
         double kmPerCost = KmPerCostUnit(world);
         int n = world.Settlements.Count;
@@ -265,7 +280,7 @@ public static class TransportQuery
         links.Reverse();
         if (src == dst) bottleneck = 0;
 
-        double transit = dist[dst] / roads.BaselineKmPerDay;
+        double transit = dist[dst] / baselineKmPerDay;
         double throughput = bottleneck > 0 ? tonnes / bottleneck * DaysPerYear : 0.0;
         return new FreightEstimate(true, dist[dst], transit, bottleneck == long.MaxValue ? 0 : bottleneck,
             throughput, transit + throughput, [.. path], [.. links]);

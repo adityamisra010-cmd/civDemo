@@ -663,7 +663,7 @@ public static class AvailableActionsQuery
                 if (cfg.Institutions is { } institutions)
                 {
                     double x = InstitutionEffects.MaturityWeighted(world, polity, type.Key);
-                    double cut = institutions.Universities.MaxResearchCostReduction * InstitutionEffects.NextMarginal(x);
+                    double cut = InstitutionEffects.MaxResearchCostReduction(world, cfg, polity) * InstitutionEffects.NextMarginal(x);
                     detail += $" · a mature one cuts {research.Branches[type.Branch].Name} costs by {Percent(cut)} more";
                 }
 
@@ -793,7 +793,8 @@ public static class AvailableActionsQuery
             SettlementId source = world.Settlements[s].Id;
             if (!EmpireQuery.ControlsSettlement(world, polity, source)) continue;
             if (context.Queued is { } queued && FoundingQueued(queued, polity, source)) continue;
-            if (FoundingQuery.Departure(world.Buckets, world.GoodStocks, cfg, source, null, out long party) != FoundingVerdict.Legal) continue;
+            if (FoundingQuery.Departure(world.Buckets, world.GoodStocks, cfg, source, null, out long party,
+                    FoundingQuery.PartyFraction(world, cfg, source)) != FoundingVerdict.Legal) continue;
             long provisions = FoundingQuery.ProvisionsShare(world.GoodStocks, world.Buckets, source, grain, party);
             into.Add(new ActionDescriptor(
                 ActionDomain.Colonization, source.Value, ActionKind.Order, $"colonization.found.{Inv(source.Value)}", "Found a settlement",
@@ -837,7 +838,7 @@ public static class AvailableActionsQuery
                     ? "already ordered this turn" : DiscoveryQuery.ExploreBlocker(v, cfg, world);
                 string detail = v == ExploreVerdict.AtCap
                     ? $"explored to {DiscoveryQuery.RangeText(world, radius)} around it (the limit)"
-                    : $"range {DiscoveryQuery.RangeText(world, radius)} → {DiscoveryQuery.RangeText(world, DiscoveryQuery.NextRadius(world, f, polity, id))}, cost {Inv(DiscoveryQuery.ExploreCost(cfg))} {grainName}";
+                    : $"range {DiscoveryQuery.RangeText(world, radius)} → {DiscoveryQuery.RangeText(world, DiscoveryQuery.NextRadius(world, f, polity, id, cfg.Research))}, cost {Inv(DiscoveryQuery.ExploreCost(cfg))} {grainName}";
                 into.Add(new ActionDescriptor(
                     ActionDomain.Discovery, (long)id.Value * 4, ActionKind.Order, $"discovery.explore.{Inv(id.Value)}",
                     "Explore surroundings", OrderKind.Explore, [SettlementTarget(id)], blocker, ActionProvenance.None, detail));

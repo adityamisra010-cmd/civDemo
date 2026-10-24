@@ -175,6 +175,8 @@ public sealed class ConsumptionSystem : ISimSystem<ConsumptionTables>
         long[]? required = pooled ? new long[count] : null;
         long[]? obtained = pooled ? new long[count] : null;
         double[]? annualGrain = pooled ? new double[count] : null;
+        // ADR-047: each settlement's store bound reads its holder's consumption operands (the base without an effect).
+        KnowledgeEffectsSnapshot fx = KnowledgeEffects.Snapshot(prev, _cfg.Research);
 
         // Ascending settlement-row order — the fixed iteration order (law 5).
         for (int s = 0; s < count; s++)
@@ -193,7 +195,7 @@ public sealed class ConsumptionSystem : ISimSystem<ConsumptionTables>
                 //
                 // Grain only. B-2a's base layer is STORED GRAIN; every other good's
                 // bounding is enrichment and out of this packet's fence.
-                BoundStore(ctx, stores, settlement, _grain, annualGrainDemand, dt, _cfg.Consumption);
+                BoundStore(ctx, stores, settlement, _grain, annualGrainDemand, dt, _cfg.Consumption, fx);
                 continue;
             }
             required![s] = requiredUnits;
@@ -205,7 +207,7 @@ public sealed class ConsumptionSystem : ISimSystem<ConsumptionTables>
         RelieveShortages(ctx, stores, deficits, required!, obtained!);
 
         for (int s = 0; s < count; s++)
-            BoundStore(ctx, stores, prev.Settlements[s].Id, _grain, annualGrain![s], dt, _cfg.Consumption);
+            BoundStore(ctx, stores, prev.Settlements[s].Id, _grain, annualGrain![s], dt, _cfg.Consumption, fx);
     }
 
     /// <summary>
@@ -538,17 +540,20 @@ public sealed class ConsumptionSystem : ISimSystem<ConsumptionTables>
     private static void BoundStore(
         SimContext<ConsumptionTables> ctx, Table<GoodStockRow> stores,
         SettlementId settlement, GoodId good, double annualGrainDemand,
-        double dt, ConsumptionConfig cfg)
+        double dt, ConsumptionConfig cfg, KnowledgeEffectsSnapshot fx)
     {
         int index = GoodStockIndex.IndexOf(stores, settlement, good);
         if (index < 0) return;
         ref GoodStockRow row = ref stores.Ref(index);
+        // ADR-047: consumption.grainSpoilagePerYear and consumption.granaryYearsOfDemand, the settlement holder's.
+        double spoilagePerYear = fx.ApplyAt(settlement, KnowledgeOperand.ConsumptionGrainSpoilagePerYear, cfg.GrainSpoilagePerYear);
+        double yearsOfDemand = fx.ApplyAt(settlement, KnowledgeOperand.ConsumptionGranaryYearsOfDemand, cfg.GranaryYearsOfDemand);
 
         // 1. SPOILAGE — a fraction of what is actually held.
         long held = row.Amount.Value;
-        if (held > 0 && cfg.GrainSpoilagePerYear > 0.0 && dt > 0.0)
+        if (held > 0 && spoilagePerYear > 0.0 && dt > 0.0)
         {
-            double lostFraction = 1.0 - Math.Exp(-cfg.GrainSpoilagePerYear * dt);
+            double lostFraction = 1.0 - Math.Exp(-spoilagePerYear * dt);
             long spoiled = ConservedMath.WholeUnits(
                 held * lostFraction, $"grain spoilage (settlement {settlement.Value})");
             if (spoiled > 0)
@@ -560,10 +565,10 @@ public sealed class ConsumptionSystem : ISimSystem<ConsumptionTables>
         }
 
         // 2. GRANARY CAPACITY — what is left must fit.
-        if (cfg.GranaryYearsOfDemand > 0.0 && annualGrainDemand > 0.0)
+        if (yearsOfDemand > 0.0 && annualGrainDemand > 0.0)
         {
             long capacity = ConservedMath.WholeUnits(
-                cfg.GranaryYearsOfDemand * annualGrainDemand,
+                yearsOfDemand * annualGrainDemand,
                 $"granary capacity (settlement {settlement.Value})");
             long over = row.Amount.Value - capacity;
             // `capacity > 0`: a ceiling that floors to zero is not representable

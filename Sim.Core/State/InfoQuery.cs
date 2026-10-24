@@ -1570,7 +1570,9 @@ public static class InfoQuery
         // where the viewer may read them (PolityKnowledge.ReadsInternals); another empire's source names neither.
         bool books = c.K.ReadsInternals(id);
         long party = 0, provisions = 0;
-        FoundingVerdict departure = books ? FoundingQuery.Departure(c.W.Buckets, c.W.GoodStocks, c.Cfg, id, null, out party) : FoundingVerdict.NotControlled;
+        FoundingVerdict departure = books
+            ? FoundingQuery.Departure(c.W.Buckets, c.W.GoodStocks, c.Cfg, id, null, out party, FoundingQuery.PartyFraction(c.W, c.Cfg, id))
+            : FoundingVerdict.NotControlled;
         if (books && c.Cfg.Goods is { } goods) provisions = FoundingQuery.ProvisionsShare(c.W.GoodStocks, c.W.Buckets, id, new GoodId(goods.GrainId), party);
         bool queued = c.Q.Queued is { } q && AvailableActionsQuery.FoundingQueued(q, c.P, id);
         string grain = GoodName(c.Cfg.Goods, c.Cfg.Goods?.GrainId ?? -1);
@@ -1578,7 +1580,7 @@ public static class InfoQuery
         if (books)
         {
             b.Requirements.Add(new InfoLink("A party: " + N0(party) + " people would leave", null, mine ? party >= 1 : null,
-                "FoundingQuery.AllocateParty: " + Pct(FoundingQuery.PartyFraction(c.Cfg)) + " of the source's people, every group keeping one."));
+                "FoundingQuery.AllocateParty: " + Pct(FoundingQuery.PartyFraction(c.W, c.Cfg, id)) + " of the source's people, every group keeping one."));
             b.Requirements.Add(new InfoLink("Provisions: " + N0(provisions) + " " + grain + " would go with them", null, mine && party >= 1 ? provisions >= 1 : null,
                 "FoundingQuery.ProvisionsShare: the party's per-head share of the source's grain store."));
         }

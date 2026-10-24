@@ -527,7 +527,9 @@ public sealed class CausalChain
         into.Add(new Link(ChainNode.Population, "population", pop, LinkKind.Summed, from, "Buckets", -1,
             "Σ BucketRow.Count over the settlement (NeedsGrievanceSystem.cs:135-137). Demographics and migration "
             + "move it; no lever."));
-        into.Add(new Link(ChainNode.PersonsPerDwelling, "PersonsPerDwelling", housing.PersonsPerDwelling,
+        into.Add(new Link(ChainNode.PersonsPerDwelling, "PersonsPerDwelling",
+            Sim.Core.State.KnowledgeEffects.ApplyAt(w, cfg.Research, s, Sim.Core.State.KnowledgeOperand.HousingPersonsPerDwelling,
+                housing.PersonsPerDwelling),
             LinkKind.Read, SourceWorld.Config, "SimConfig", -1, "sim.json housing.personsPerDwelling (TUNE)."));
 
         if (h >= 0)

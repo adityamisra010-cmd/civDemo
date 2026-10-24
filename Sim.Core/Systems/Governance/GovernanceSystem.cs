@@ -90,7 +90,7 @@ public sealed class GovernanceSystem(SimConfig cfg) : ISimSystem<GovernanceTable
         for (int i = 0; i < controls.Count; i++)
         {
             ControlRow row = controls[i];
-            double reach = State.Governance.AdministrativeReach(prev, row.Polity, row.Place, governance);
+            double reach = State.Governance.AdministrativeReach(prev, row.Polity, row.Place, governance, _cfg.Research);
             if (BitConverter.DoubleToInt64Bits(reach) != BitConverter.DoubleToInt64Bits(row.Strength))
                 controls[i] = row with { Strength = reach };
         }

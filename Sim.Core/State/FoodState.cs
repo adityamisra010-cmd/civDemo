@@ -89,7 +89,7 @@ public static class FoodState
             return FoodStateKind.Famine;
         }
         reason = FamineReason.None;
-        if (d > SevereThreshold(cfg)) return FoodStateKind.Severe;
+        if (d > SevereThreshold(w, s, cfg)) return FoodStateKind.Severe;
         if (d > 0.0) return FoodStateKind.Stress;
         return FoodStateKind.Normal;
     }
@@ -98,6 +98,16 @@ public static class FoodState
     /// starvation begins: exactly the absorbable shortfall <c>a</c> (θ_sev := a).</summary>
     public static double SevereThreshold(SimConfig cfg) =>
         cfg.FoodState.AdaptationAbsorbableShortfall;
+
+    /// <summary>ADR-047 — the absorbable shortfall <c>a</c> AT <paramref name="s"/>: foodState.adaptationAbsorbableShortfall
+    /// improved by the settlement holder's realized research (KnowledgeEffects; the base exactly without an effect). Both
+    /// halves of the one boundary read it — the SEVERE threshold and the dead zone of the effective deficit.</summary>
+    public static double AbsorbableShortfall(IReadOnlyWorldState w, SettlementId s, SimConfig cfg) =>
+        KnowledgeEffects.ApplyAt(w, cfg.Research, s, KnowledgeOperand.FoodStateAdaptationAbsorbableShortfall,
+            cfg.FoodState.AdaptationAbsorbableShortfall);
+
+    /// <summary>The SEVERE threshold at <paramref name="s"/> (θ_sev := a, the settlement's <see cref="AbsorbableShortfall"/>).</summary>
+    public static double SevereThreshold(IReadOnlyWorldState w, SettlementId s, SimConfig cfg) => AbsorbableShortfall(w, s, cfg);
 
     /// <summary>
     /// The EFFECTIVE deficit (T4.21 §3.2) — the dead-zone adaptation form,
@@ -109,10 +119,13 @@ public static class FoodState
     /// fertility suppression's gate, the rebound release gate, destination
     /// viability, happiness, appropriation, demote-first — keeps the NOMINAL d.
     /// </summary>
-    public static double EffectiveDeficit(double d, FoodStateKind state, SimConfig cfg)
+    public static double EffectiveDeficit(double d, FoodStateKind state, SimConfig cfg) =>
+        EffectiveDeficit(d, state, cfg.FoodState.AdaptationAbsorbableShortfall);
+
+    /// <summary>The dead-zone form with an explicit absorbable shortfall <paramref name="a"/> (ADR-047: the settlement's).</summary>
+    public static double EffectiveDeficit(double d, FoodStateKind state, double a)
     {
         if (state == FoodStateKind.Famine) return d;
-        double a = cfg.FoodState.AdaptationAbsorbableShortfall;
         return d <= a ? 0.0 : (d - a) / (1.0 - a);
     }
 
@@ -130,7 +143,7 @@ public static class FoodState
     /// </summary>
     public static double EffectiveDeficit(IReadOnlyWorldState w, SettlementId s, double d, FoodStateKind state, SimConfig cfg)
     {
-        double dEff = EffectiveDeficit(d, state, cfg);
+        double dEff = EffectiveDeficit(d, state, AbsorbableShortfall(w, s, cfg));
         return dEff > 0.0 ? WithGranaries(w, s, dEff, GranaryEffects.Bind(cfg)) : dEff;
     }
 
@@ -139,7 +152,7 @@ public static class FoodState
     public static double EffectiveDeficit(IReadOnlyWorldState w, SettlementId s, double d, FoodStateKind state, SimConfig cfg,
         GranaryBinding granaries)
     {
-        double dEff = EffectiveDeficit(d, state, cfg);
+        double dEff = EffectiveDeficit(d, state, AbsorbableShortfall(w, s, cfg));
         return dEff > 0.0 ? WithGranaries(w, s, dEff, granaries) : dEff;
     }
 

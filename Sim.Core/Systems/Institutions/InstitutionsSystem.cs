@@ -61,11 +61,15 @@ public sealed class InstitutionsSystem(SimConfig cfg) : ISimSystem<InstitutionsT
 
         // 1. MATURE the rows PREV held (NEXT starts as PREV's clone, so they are rows [0, held)).
         int held = table.Count;
+        // ADR-047: the owner's realized research shortens maturation (institutions.universities.maturityTauYears) and
+        // deepens the research-cost cut (maxResearchCostReduction); both are the sim.json bases without an effect.
+        KnowledgeEffectsSnapshot fx = KnowledgeEffects.Snapshot(prev, research);
         for (int i = 0; i < held; i++)
         {
             ref InstitutionRow row = ref table.Ref(i);
             row.Maturity = InstitutionViability.ToSustain(prev, _cfg, row.Settlement).Viable
-                ? InstitutionEffects.Grow(row.Maturity, ctx.DtYears, u.MaturityTauYears)
+                ? InstitutionEffects.Grow(row.Maturity, ctx.DtYears,
+                    fx.Apply(row.Polity, KnowledgeOperand.InstitutionsUniversitiesMaturityTauYears, u.MaturityTauYears))
                 : InstitutionEffects.Decay(row.Maturity, ctx.DtYears, u.DecayTauYears);
         }
 
@@ -96,11 +100,12 @@ public sealed class InstitutionsSystem(SimConfig cfg) : ISimSystem<InstitutionsT
             PolityId polity = prev.Polities[p].Id;
             if (seen.Contains(polity.Value)) continue;   // a duplicated roster row counts once
             seen.Add(polity.Value);
+            double maxCut = fx.Apply(polity, KnowledgeOperand.InstitutionsUniversitiesMaxResearchCostReduction, u.MaxResearchCostReduction);
             foreach (UniversityType type in research.UniversityTypes)
             {
                 double x = InstitutionEffects.MaturityWeighted(ctx.Owned.Institutions, polity, type.Key);
                 if (!(x > 0.0)) continue;
-                modifiers.Add(new ResearchCostModifierRow(polity, type.Key, InstitutionEffects.ResearchFactor(u, x)));
+                modifiers.Add(new ResearchCostModifierRow(polity, type.Key, InstitutionEffects.ResearchFactor(maxCut, x)));
             }
         }
     }

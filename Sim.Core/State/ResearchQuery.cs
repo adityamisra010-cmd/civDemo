@@ -429,13 +429,25 @@ public static class ResearchQuery
     /// line is the only place it is spent.
     /// </summary>
     public static double ResearchPointPool(IReadOnlyWorldState world, ResearchContent content, PolityId polity) =>
-        ResearchPoints(content.Tuning, Population(world, polity));
+        ResearchPoints(ResearchPointsCoefficient(world, content, polity), content.Tuning.RpExponent, Population(world, polity));
+
+    /// <summary>ADR-047 — research.researchPointsCoefficient for <paramref name="holder"/>: rpPerTurn.coefficient improved by
+    /// the holder's realized research (KnowledgeEffects; the base exactly without an effect).</summary>
+    public static double ResearchPointsCoefficient(IReadOnlyWorldState world, ResearchContent content, PolityId holder) =>
+        KnowledgeEffects.Apply(world, content, holder, KnowledgeOperand.ResearchResearchPointsCoefficient, content.Tuning.RpCoefficient);
+
+    /// <summary>The RP curve with an explicit coefficient (ADR-047: the holder's) — <see cref="ResearchPoints(ResearchTuning,
+    /// double)"/>'s arithmetic, which it equals bit for bit at the content coefficient.</summary>
+    private static double ResearchPoints(double coefficient, double exponent, double population) =>
+        population <= 0.0 ? 0.0 : coefficient * Math.Pow(population, exponent);
 
     /// <summary>R2a: the RP an UNCONTROLLED settlement (a city-state) generates this turn —
     /// tuning.cityStatePaceFraction × the content's RP curve of the settlement's own population. Per turn,
     /// never × dtYears (ADR-030 §2, as <see cref="ResearchPointPool"/>).</summary>
     public static double CityStateResearchPoints(IReadOnlyWorldState world, ResearchContent content, SettlementId settlement) =>
-        content.Tuning.CityStatePaceFraction * ResearchPoints(content.Tuning, Population(world, SettlementKnowledge.LocalHolder(settlement)));
+        content.Tuning.CityStatePaceFraction * ResearchPoints(
+            ResearchPointsCoefficient(world, content, SettlementKnowledge.LocalHolder(settlement)), content.Tuning.RpExponent,
+            Population(world, SettlementKnowledge.LocalHolder(settlement)));
 
     // ------------------------------------------------------------------ Civics Points (ADR-043)
 
@@ -458,7 +470,12 @@ public static class ResearchQuery
     {
         if (!content.Tuning.TwoLanes || !(dtYears > 0.0)) return 0L;
         double pace = SettlementKnowledge.IsLocalHolder(holder) ? content.Tuning.CityStatePaceFraction : 1.0;
-        double milli = Math.Floor(1000.0 * pace * CivicsPointsPerYear(content.Tuning, Population(world, holder)) * dtYears);
+        // ADR-047: research.civicsPointsCoefficient, the holder's (the content coefficient exactly without an effect).
+        CivicsPointsTuning cp = content.Tuning.CivicsPoints!;
+        double coefficient = KnowledgeEffects.Apply(world, content, holder, KnowledgeOperand.ResearchCivicsPointsCoefficient, cp.CoefficientPerYear);
+        double population = Population(world, holder);
+        double perYear = population <= 0.0 ? 0.0 : coefficient * Math.Pow(population, cp.Exponent);
+        double milli = Math.Floor(1000.0 * pace * perYear * dtYears);
         return milli > 0.0 ? (long)milli : 0L;
     }
 

@@ -94,10 +94,13 @@ public sealed class PriceSystem(SimConfig cfg) : ISimSystem<PriceTables>
         terms.Clear(); // one row per (settlement, good) PER TURN — never stale (T3.3 precedent)
 
         PriceConfig p = _cfg.Price;
+        // ADR-047: price.stockReleaseRatePerYear, the settlement holder's (the base exactly without an effect).
+        KnowledgeEffectsSnapshot fx = KnowledgeEffects.Snapshot(prev, _cfg.Research);
 
         for (int s = 0; s < prev.Settlements.Count; s++)
         {
             SettlementId settlement = prev.Settlements[s].Id;
+            double releaseRatePerYear = fx.ApplyAt(settlement, KnowledgeOperand.PriceStockReleaseRatePerYear, p.StockReleaseRatePerYear);
 
             for (int g = 0; g < goods.Goods.Length; g++)
             {
@@ -128,7 +131,7 @@ public sealed class PriceSystem(SimConfig cfg) : ISimSystem<PriceTables>
                     break;
                 }
 
-                double stockRelease = p.StockReleaseRatePerYear * stock * ctx.DtYears;
+                double stockRelease = releaseRatePerYear * stock * ctx.DtYears;
                 double scale = Math.Max(production + stockRelease, p.MarketScaleFloorPerYear * ctx.DtYears);
 
                 // EXACT INTEGRATION (ADR-016). The growth RATE contributed by

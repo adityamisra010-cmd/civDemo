@@ -201,20 +201,22 @@ public static class DiscoveryQuery
 
     /// <summary>KNOWN: the stored extent ∪ the seed discs of the polity's controlled settlements ∪ its formations' sight
     /// discs (see the type's remarks). Null without terrain.</summary>
-    public static ulong[]? KnownBits(IReadOnlyWorldState world, FogConfig fog, PolityId polity)
+    public static ulong[]? KnownBits(IReadOnlyWorldState world, FogConfig fog, PolityId polity,
+        Systems.Research.ResearchContent? research = null)
     {
         (int l, _, _, bool wrap) = Lattice(world);
         if (l == 0) return null;
         ulong[] bits = StoredExtent(world, polity, WordCount(l));
         foreach (SettlementId s in Controlled(world, polity))
             OrDisc(bits, l, wrap, NodeOfSettlement(world, s), fog.SeedRadiusNodes);
-        OrFormationSight(world, fog, polity, bits, l, wrap);
+        OrFormationSight(world, fog, polity, bits, l, wrap, research);
         return bits;
     }
 
     /// <summary>VISIBLE: the node of every settlement the polity controls ∪ the sight disc of every formation it owns. Null
     /// without terrain.</summary>
-    public static ulong[]? VisibleBits(IReadOnlyWorldState world, FogConfig fog, PolityId polity)
+    public static ulong[]? VisibleBits(IReadOnlyWorldState world, FogConfig fog, PolityId polity,
+        Systems.Research.ResearchContent? research = null)
     {
         (int l, _, _, bool wrap) = Lattice(world);
         if (l == 0) return null;
@@ -224,18 +226,43 @@ public static class DiscoveryQuery
             int node = NodeOfSettlement(world, s);
             if (node >= 0) Set(bits, node);
         }
-        OrFormationSight(world, fog, polity, bits, l, wrap);
+        OrFormationSight(world, fog, polity, bits, l, wrap, research);
         return bits;
     }
 
-    private static void OrFormationSight(IReadOnlyWorldState world, FogConfig fog, PolityId polity, ulong[] bits, int l, bool wrap)
+    private static void OrFormationSight(IReadOnlyWorldState world, FogConfig fog, PolityId polity, ulong[] bits, int l, bool wrap,
+        Systems.Research.ResearchContent? research)
     {
+        int sight = -1;   // resolved once, on the first owned formation
         for (int i = 0; i < world.MilitaryUnits.Count; i++)
         {
             MilitaryUnitRow unit = world.MilitaryUnits[i];
             if (unit.Owner.Value != polity.Value) continue;
-            OrDisc(bits, l, wrap, FormationNode(world, unit), fog.FormationSightNodes);
+            if (sight < 0) sight = FormationSightNodes(world, research, fog, polity);
+            OrDisc(bits, l, wrap, FormationNode(world, unit), sight);
         }
+    }
+
+    // ADR-047 — the three fog operands, per polity: the content value improved by the polity's realized research and
+    // rounded DOWN (integer operands); exactly the content value without an effect or without research content.
+
+    /// <summary>fog.formationSightNodes for <paramref name="polity"/> (ADR-047).</summary>
+    public static int FormationSightNodes(IReadOnlyWorldState world, Systems.Research.ResearchContent? research, FogConfig fog, PolityId polity) =>
+        IntOperand(world, research, polity, KnowledgeOperand.FogFormationSightNodes, fog.FormationSightNodes);
+
+    /// <summary>fog.exploreStepNodes for <paramref name="polity"/> (ADR-047).</summary>
+    public static int ExploreStepNodes(IReadOnlyWorldState world, Systems.Research.ResearchContent? research, FogConfig fog, PolityId polity) =>
+        IntOperand(world, research, polity, KnowledgeOperand.FogExploreStepNodes, fog.ExploreStepNodes);
+
+    /// <summary>fog.exploreMaxRadiusNodes for <paramref name="polity"/> (ADR-047).</summary>
+    public static int ExploreMaxRadiusNodes(IReadOnlyWorldState world, Systems.Research.ResearchContent? research, FogConfig fog, PolityId polity) =>
+        IntOperand(world, research, polity, KnowledgeOperand.FogExploreMaxRadiusNodes, fog.ExploreMaxRadiusNodes);
+
+    private static int IntOperand(IReadOnlyWorldState world, Systems.Research.ResearchContent? research, PolityId polity,
+        KnowledgeOperand op, int baseValue)
+    {
+        double v = KnowledgeEffects.Apply(world, research, polity, op, baseValue);
+        return v >= int.MaxValue ? int.MaxValue : (int)v;
     }
 
     /// <summary>Where a formation stands: its station's node when stationed in a settlement, else the node under its
@@ -271,8 +298,10 @@ public static class DiscoveryQuery
     }
 
     /// <summary>The radius one more Explore from <paramref name="settlement"/> would reach (capped).</summary>
-    public static int NextRadius(IReadOnlyWorldState world, FogConfig fog, PolityId polity, SettlementId settlement) =>
-        Math.Min(fog.ExploreMaxRadiusNodes, ExploredRadius(world, fog, polity, settlement) + fog.ExploreStepNodes);
+    public static int NextRadius(IReadOnlyWorldState world, FogConfig fog, PolityId polity, SettlementId settlement,
+        Systems.Research.ResearchContent? research = null) =>
+        Math.Min(ExploreMaxRadiusNodes(world, research, fog, polity),
+            ExploredRadius(world, fog, polity, settlement) + ExploreStepNodes(world, research, fog, polity));
 
     /// <summary>ADR-046 (M6 review item 3): <paramref name="nodeSteps"/> fog radius steps as kilometres on
     /// <paramref name="world"/>'s map (LatticeGeometry.NodeStepsKm: 16 km a step on the canonical map), 0 without terrain.</summary>
@@ -364,7 +393,7 @@ public static class DiscoveryQuery
         if (world.Polities.Count > 0 && !EmpireQuery.TryGetCommandSource(world, polity, out _)) return ExploreVerdict.NotEmpire;
         if (NodeOfSettlement(world, settlement) < 0 || !EmpireQuery.ControlsSettlement(world, polity, settlement))
             return ExploreVerdict.NotControlled;
-        if (ExploredRadius(world, fog, polity, settlement) >= fog.ExploreMaxRadiusNodes) return ExploreVerdict.AtCap;
+        if (ExploredRadius(world, fog, polity, settlement) >= ExploreMaxRadiusNodes(world, cfg.Research, fog, polity)) return ExploreVerdict.AtCap;
         SettlementId[] holders = EmpireStockpile.Holders(world, settlement);
         if (FreeHolding(world, cfg, stocks, holds, holders, new GoodId(cfg.Goods.GrainId), out _) < ExploreCost(cfg))
             return ExploreVerdict.Unaffordable;

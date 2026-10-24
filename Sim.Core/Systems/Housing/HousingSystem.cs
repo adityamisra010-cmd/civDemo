@@ -88,10 +88,18 @@ public sealed class HousingSystem(SimConfig cfg) : ISimSystem<HousingTables>
         double dt = ctx.DtYears;
         Table<HousingRow> housing = ctx.Owned.Housing;
         Table<GoodStockRow> stocks = ctx.Owned.GoodStocks;
+        // ADR-047: the settlement holder's realized housing operands (each its sim.json base without an effect).
+        KnowledgeEffectsSnapshot fx = KnowledgeEffects.Snapshot(prev, _cfg.Research);
 
         for (int s = 0; s < prev.Settlements.Count; s++)
         {
             SettlementId settlement = prev.Settlements[s].Id;
+            PolityId holder = fx.HolderOf(settlement);
+            double upkeepTimber = fx.Apply(holder, KnowledgeOperand.HousingUpkeepTimberPerDwellingYear, h.UpkeepTimberPerDwellingYear);
+            double tauYears = fx.Apply(holder, KnowledgeOperand.HousingTauYears, h.TauYears);
+            double personsPerDwelling = fx.Apply(holder, KnowledgeOperand.HousingPersonsPerDwelling, h.PersonsPerDwelling);
+            double buildLabor = fx.Apply(holder, KnowledgeOperand.HousingBuildLaborAdultYearsPerDwelling, h.BuildLaborAdultYearsPerDwelling);
+            double buildTimber = fx.Apply(holder, KnowledgeOperand.HousingBuildTimberPerDwelling, h.BuildTimberPerDwelling);
             long pop = 0;
             for (int i = 0; i < prev.Buckets.Count; i++)
                 if (prev.Buckets[i].Settlement == settlement) pop += prev.Buckets[i].Count.Value;
@@ -111,7 +119,7 @@ public sealed class HousingSystem(SimConfig cfg) : ISimSystem<HousingTables>
             double m = 1.0;
             if (dwellings > 0)
             {
-                double demandT = dwellings * h.UpkeepTimberPerDwellingYear * dt;
+                double demandT = dwellings * upkeepTimber * dt;
                 double demandC = dwellings * h.UpkeepClayPerDwellingYear * dt;
                 double availT = timberIdx >= 0 ? stocks[timberIdx].Amount.Value : 0.0;
                 double availC = clayIdx >= 0 ? stocks[clayIdx].Amount.Value : 0.0;
@@ -130,7 +138,7 @@ public sealed class HousingSystem(SimConfig cfg) : ISimSystem<HousingTables>
                 if (m < 1.0)
                 {
                     ref HousingRow row = ref housing.Ref(rowIdx);
-                    double lostExact = dwellings * (1.0 - Math.Exp(-(1.0 - m) * dt / h.TauYears))
+                    double lostExact = dwellings * (1.0 - Math.Exp(-(1.0 - m) * dt / tauYears))
                         + row.DecayRemainder;
                     long lost = ConservedMath.WholeUnits(lostExact,
                         $"housing decay (settlement {settlement.Value})");
@@ -157,15 +165,15 @@ public sealed class HousingSystem(SimConfig cfg) : ISimSystem<HousingTables>
             double laborUsed = 0.0;
             {
                 ref HousingRow row = ref housing.Ref(rowIdx);
-                double demand = pop / h.PersonsPerDwelling;
+                double demand = pop / personsPerDwelling;
                 double target = demand * h.SurplusCapRatio;
                 double deficit = target - row.Dwellings.Value;
                 if (deficit > 0.0 && pop > 0)
                 {
-                    double laborCap = h.BuildLaborAdultYearsPerDwelling > 0.0
-                        ? builderYears / h.BuildLaborAdultYearsPerDwelling : deficit;
-                    double timberCap = h.BuildTimberPerDwelling > 0.0
-                        ? (timberIdx >= 0 ? stocks[timberIdx].Amount.Value : 0.0) / h.BuildTimberPerDwelling
+                    double laborCap = buildLabor > 0.0
+                        ? builderYears / buildLabor : deficit;
+                    double timberCap = buildTimber > 0.0
+                        ? (timberIdx >= 0 ? stocks[timberIdx].Amount.Value : 0.0) / buildTimber
                         : deficit;
                     double clayCap = h.BuildClayPerDwelling > 0.0
                         ? (clayIdx >= 0 ? stocks[clayIdx].Amount.Value : 0.0) / h.BuildClayPerDwelling
@@ -177,7 +185,7 @@ public sealed class HousingSystem(SimConfig cfg) : ISimSystem<HousingTables>
                     row.BuildRemainder = buildExact - built;
                     if (built > 0)
                     {
-                        SinkRounded(ctx, stocks, timberIdx, _timber, built * h.BuildTimberPerDwelling);
+                        SinkRounded(ctx, stocks, timberIdx, _timber, built * buildTimber);
                         SinkRounded(ctx, stocks, clayIdx, _clay, built * h.BuildClayPerDwelling);
                         ctx.Ledger.Flow(ref row.Dwellings, ConservedQuantityIds.Dwellings,
                             ReasonIds.HousingBuilt, built, FlowDirection.Source,
@@ -185,7 +193,7 @@ public sealed class HousingSystem(SimConfig cfg) : ISimSystem<HousingTables>
                         // Never report more labor than the budget held (the
                         // remainder carry can push `built` one unit past what
                         // this turn's labor alone financed).
-                        laborUsed = Math.Min(built * h.BuildLaborAdultYearsPerDwelling, builderYears);
+                        laborUsed = Math.Min(built * buildLabor, builderYears);
                     }
                 }
             }

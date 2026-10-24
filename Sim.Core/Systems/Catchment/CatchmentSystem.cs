@@ -71,6 +71,29 @@ public sealed class CatchmentSystem(SimConfig cfg) : ISimSystem<CatchmentTables>
     public static double TierBudget(SimConfig cfg, TraversalLattice lattice, int tier) =>
         TravelBudgetCostUnits(cfg, lattice) * (1.0 + cfg.Catchment.SizeBonusMaxRatio * tier / 4.0);
 
+    /// <summary>ADR-047: the tier budget of a settlement whose hinterland radius is <paramref name="hinterlandRadiusKm"/>
+    /// (its holder's — <see cref="HinterlandRadiusKm"/>). Equal to <see cref="TierBudget(SimConfig, TraversalLattice, int)"/>
+    /// bit for bit at the base radius.</summary>
+    public static double TierBudget(SimConfig cfg, TraversalLattice lattice, int tier, double hinterlandRadiusKm) =>
+        hinterlandRadiusKm == cfg.Catchment.HinterlandRadiusKm
+            ? TierBudget(cfg, lattice, tier)
+            : LatticeGeometry.CostUnitsForIdealGroundKm(lattice, hinterlandRadiusKm) * (1.0 + cfg.Catchment.SizeBonusMaxRatio * tier / 4.0);
+
+    /// <summary>ADR-047 — catchment.hinterlandRadiusKm at <paramref name="settlement"/>: the base improved by its knowledge
+    /// holder's realized research (State.KnowledgeEffects; the base exactly without an effect).</summary>
+    public static double HinterlandRadiusKm(IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement) =>
+        KnowledgeEffects.ApplyAt(world, cfg.Research, settlement, KnowledgeOperand.CatchmentHinterlandRadiusKm, cfg.Catchment.HinterlandRadiusKm);
+
+    /// <summary>
+    /// The revision catchments key their staleness on: the combined network revision (ADR-032) plus — ADR-047 — the
+    /// number of completed rows naming a node with a realized effect on catchment.hinterlandRadiusKm, so a completion
+    /// that widens some settlement's hinterland is a recompute event like a new road. That term is 0 whenever no node
+    /// declares such an effect (or the switch is off), so the revision is then the network revision exactly. A change of
+    /// controller alone is not an event: a captured settlement takes its new holder's radius at the next recompute.
+    /// </summary>
+    public static int Revision(IReadOnlyWorldState world, SimConfig cfg) =>
+        RoadPerformance.NetworkRevision(world) + KnowledgeEffects.CompletionsWith(world, cfg.Research, KnowledgeOperand.CatchmentHinterlandRadiusKm);
+
     /// <summary>A settlement's size tier as the catchment recompute reads it: its HousingRow's dwellings through
     /// <see cref="SizeTier"/>, 0 when it has no row yet (a colony starts homeless). M5 P8: public (no behaviour
     /// change) so a read-only site assessment computes the partition a founding would cause with the system's own
@@ -96,7 +119,7 @@ public sealed class CatchmentSystem(SimConfig cfg) : ISimSystem<CatchmentTables>
         // log — so a road modernization (a cheaper lane in Pathfinder's overlay) is a D-016
         // recompute event exactly like a new dirt path. Equal to NetworkMeta's revision on a
         // world with no road development.
-        int revision = RoadPerformance.NetworkRevision(prev);
+        int revision = Revision(prev, _cfg);
         if (!IsStale(prev, revision)) return; // D-016: no event → no recompute
 
         TraversalLattice lattice = TraversalLattice.Build(prev.Terrain, _cfg.Transport.RiverCostFactor);
@@ -120,7 +143,8 @@ public sealed class CatchmentSystem(SimConfig cfg) : ISimSystem<CatchmentTables>
         {
             origins[s] = OriginLatticeNode(lattice, prev.Terrain.Size, prev.Settlements[s].SiteCell);
             tiers[s] = TierOf(prev, _cfg, prev.Settlements[s].Id);
-            budgets[s] = TierBudget(_cfg, lattice, tiers[s]); // T3.8 size bonus, per settlement
+            // T3.8 size bonus, per settlement; ADR-047: the settlement holder's hinterland radius.
+            budgets[s] = TierBudget(_cfg, lattice, tiers[s], HinterlandRadiusKm(prev, _cfg, prev.Settlements[s].Id));
         }
         Pathfinder.PartitionResult part = Pathfinder.Partition(lattice, prev, origins, budgets);
 

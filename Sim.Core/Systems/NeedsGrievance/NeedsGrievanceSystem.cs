@@ -163,7 +163,9 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
         for (int i = 0; i < prev.Housing.Count; i++)
         {
             if (prev.Housing[i].Settlement != settlement) continue;
-            double capacity = prev.Housing[i].Dwellings.Value * _personsPerDwelling;
+            // ADR-047: housing.personsPerDwelling, the settlement holder's (the base exactly without an effect).
+            double capacity = prev.Housing[i].Dwellings.Value
+                * KnowledgeEffects.ApplyAt(prev, _cfg.Research, settlement, KnowledgeOperand.HousingPersonsPerDwelling, _personsPerDwelling);
             return Math.Min(1.0, capacity / pop);
         }
         return 0.0;
@@ -193,10 +195,15 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
         Span<double> otherSat = stackalloc double[needCount];
         Span<double> otherWeight = stackalloc double[needCount];
         Span<bool> otherGate = stackalloc bool[needCount];
+        // ADR-047: society.grievanceRelief — the settlement holder's realized research makes grievance BUILD more slowly:
+        // the engine maps the operand onto the ACCUMULATION term of both stocks (needs and levy), accrual × (1 − Σ), Σ the
+        // holder's clamped improvement (≤ 0.6). Σ = 0 without an effect, and the accrual is then left untouched.
+        KnowledgeEffectsSnapshot fx = KnowledgeEffects.Snapshot(prev, _cfg.Research);
 
         for (int s = 0; s < prev.Settlements.Count; s++)
         {
             SettlementId settlement = prev.Settlements[s].Id;
+            double relief = fx.ImprovementAt(settlement, KnowledgeOperand.SocietyGrievanceRelief);
 
             long settlementPop = 0;
             for (int b = 0; b < prev.Buckets.Count; b++)
@@ -340,7 +347,7 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
 
                 double aggregate = AggregateSatisfaction(
                     sat[..bound], isGate[..bound], weight[..bound], agg, adjusted[..bound]);
-                double accrualPerYear = AccrualPerYear(rawWeightSum, aggregate);
+                double accrualPerYear = Relieved(AccrualPerYear(rawWeightSum, aggregate), relief);
 
                 double gPrev = 0.0;
                 for (int i = 0; i < prev.Grievances.Count; i++)
@@ -355,8 +362,9 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
                 // --- H2: the segment's LEVY GRIEVANCE (only where a tax instrument exists) ---
                 if (dignitySlot >= 0)
                 {
-                    double levyAccrual = LevyAccrualPerYear(
-                        sat[..bound], isGate[..bound], weight[..bound], dignitySlot, rawWeightSum, agg, otherSat[..bound], adjusted[..bound]);
+                    double levyAccrual = Relieved(LevyAccrualPerYear(
+                        sat[..bound], isGate[..bound], weight[..bound], dignitySlot, rawWeightSum, agg, otherSat[..bound], adjusted[..bound]),
+                        relief);
                     int at = LevyRow(levy, settlement, cls);
                     if (at >= 0 || levyAccrual > 0.0)
                     {
@@ -615,6 +623,10 @@ public sealed class NeedsGrievanceSystem : ISimSystem<NeedsGrievanceTables>
     /// expectation baseline lives HERE and nowhere else.</summary>
     public static double AccrualPerYear(double rawWeightSum, double aggregate) =>
         rawWeightSum * Math.Max(0.0, Expectation - aggregate);
+
+    /// <summary>ADR-047: an accrual under the holder's grievance relief Σ — accrual × (1 − Σ); the accrual itself when Σ = 0.</summary>
+    public static double Relieved(double accrualPerYear, double relief) =>
+        relief == 0.0 ? accrualPerYear : accrualPerYear * (1.0 - relief);
 
     /// <summary>The turn's accrual: accrualPerYear × dt.</summary>
     public static double TurnAccrual(double accrualPerYear, double dtYears) => accrualPerYear * dtYears;

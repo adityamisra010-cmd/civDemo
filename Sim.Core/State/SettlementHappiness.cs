@@ -144,7 +144,7 @@ public static class SettlementHappiness
         double personsPerDwelling = cfg.Housing?.PersonsPerDwelling
             ?? throw new ArgumentException(
                 "SimConfig.Housing is not loaded — happiness reads persons-per-dwelling.",
-                nameof(cfg));
+                nameof(cfg)); personsPerDwelling = KnowledgeEffects.ApplyAt(world, cfg.Research, settlement, KnowledgeOperand.HousingPersonsPerDwelling, personsPerDwelling); // ADR-047: the holder's (same line: forensic citations pin this file's line numbers)
 
         long pop = 0;
         for (int i = 0; i < world.Buckets.Count; i++)

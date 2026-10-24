@@ -89,7 +89,8 @@ public sealed class PolityKnowledge
         if (cfg?.Fog is not { Enabled: true } fog || world.Terrain is null)
             return new PolityKnowledge(world, polity, null, null);
         return new PolityKnowledge(world, polity,
-            DiscoveryQuery.KnownBits(world, fog, polity), DiscoveryQuery.VisibleBits(world, fog, polity), sightings: true);
+            DiscoveryQuery.KnownBits(world, fog, polity, cfg.Research), DiscoveryQuery.VisibleBits(world, fog, polity, cfg.Research),
+            sightings: true);
     }
 
     /// <summary>

@@ -225,9 +225,15 @@ public sealed class DemographicsSystem : ISimSystem<DemographicsTables>
 
         // Group anchors: cohort-0 rows; group member rows located once.
         // (Linear scans, law 5 — same access pattern the T2.1 kernel used.)
+        // ADR-047: the settlement holder's realized demographic operands (each its sim.json base without an effect).
+        KnowledgeEffectsSnapshot fx = KnowledgeEffects.Snapshot(prev, _cfg.Research);
+
         for (int s = 0; s < prev.Settlements.Count; s++)
         {
             SettlementId settlement = prev.Settlements[s].Id;
+            PolityId holder = fx.HolderOf(settlement);
+            double starvationMax = fx.Apply(holder, KnowledgeOperand.DemographicsStarvationMortalityMaxPerYear, d.StarvationMortalityMaxPerYear);
+            double childMultiplier = fx.Apply(holder, KnowledgeOperand.DemographicsStarvationChildMultiplier, d.StarvationChildMultiplier);
 
             // PREV turn's deficit ratio (absent before the first consumption turn → 0).
             double deficit = 0.0;
@@ -273,8 +279,9 @@ public sealed class DemographicsSystem : ISimSystem<DemographicsTables>
             double health = InstitutionEffects.MortalityMultiplier(prev, _cfg, settlement);
             for (int c = 0; c < Cohorts.Count; c++)
             {
-                starveRate[c] = StarvationRate(d, c, dEff);
-                baseRate[c] = d.MortalityPerYear[c] * health;
+                starveRate[c] = StarvationRate(d, c, dEff, starvationMax, childMultiplier);
+                // ADR-047: demographics.mortalityPerYear scales EVERY cohort's base rate by the holder's (1 − Σ).
+                baseRate[c] = fx.Apply(holder, KnowledgeOperand.DemographicsMortalityPerYear, d.MortalityPerYear[c]) * health;
                 totalRate[c] = baseRate[c] + starveRate[c];
             }
 
@@ -497,11 +504,12 @@ public sealed class DemographicsSystem : ISimSystem<DemographicsTables>
         }
     }
 
-    private static double StarvationRate(DemographicsConfig d, int cohortIdx, double deficit)
+    private static double StarvationRate(
+        DemographicsConfig d, int cohortIdx, double deficit, double starvationMaxPerYear, double childMultiplier)
     {
-        double multiplier = BandViews.IsChild(cohortIdx) ? d.StarvationChildMultiplier
+        double multiplier = BandViews.IsChild(cohortIdx) ? childMultiplier
             : BandViews.IsElder(cohortIdx) ? d.StarvationElderMultiplier : 1.0;
-        return d.StarvationMortalityMaxPerYear * deficit * multiplier;
+        return starvationMaxPerYear * deficit * multiplier;
     }
 
     private static bool SameGroup(in BucketRow a, in BucketRow b) =>
