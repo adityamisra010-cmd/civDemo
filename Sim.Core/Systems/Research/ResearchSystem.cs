@@ -65,7 +65,16 @@ public sealed record ResearchTables(
 ///
 /// Completion builds nothing (D-044 R14). It makes declared capabilities and entity
 /// eligibility answerable through <see cref="ResearchQuery"/>, and the owning
-/// systems realize them. Age is never read (D-044 R13, law 4).
+/// systems realize them. Age is never read (D-044 R13, law 4) — EXCEPT by the Age sweep predicate (ADR-048; D-063
+/// supersedes R13 for that predicate only): with tuning.ageSweep, availability also requires every cohort node of content
+/// Age a − 2 complete (ResearchQuery.SweepSatisfied, inside the one availability predicate — city states obey it too).
+///
+/// ADR-048 DESTINATION RESEARCH (tuning.destinationRouting; Empires only): an order may name ANY incomplete node; the target
+/// row is then the persistent DESTINATION. Each step, per lane, an available destination is funded itself; otherwise the
+/// lane funds the CURRENT node of the destination's route (ResearchRoutePlanner: the minimum-remaining-cost set that makes
+/// the destination eligible; the current node is its eligible node of this lane with the smallest (remaining EffectiveCost,
+/// key)); a lane with no destination funds the other lane's route nodes (free-lane assist). Completion removes the row only
+/// when the DESTINATION completes. Off: the available-only target exactly (the twin).
 ///
 /// STATELESS; no RNG, so it adds no RngStreams rows; no Ledger (research is none of
 /// people, money or goods — nor is CP: its audit is the identity Balance == Generated − Spent, ADR-043 §5). Every rule it applies is a <see cref="ResearchQuery"/>
@@ -112,12 +121,22 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
 
             bool[] completed = ResearchQuery.CompletedMask(prev, content, polity);
             bool[] available = ResearchQuery.AvailableMask(content, completed);
+            // ADR-048: destination research (tuning.destinationRouting) — Empires only; a city-state keeps its own rule.
+            bool routing = content.Tuning.DestinationRouting && !local;
 
             // 1. The directive — one target slot per LANE (ADR-043): slot 0 is the Technology lane, funded by RP;
             //    slot 1 the Civics lane, funded by CP. In the one-pool model (TwoLanes off — the v34 behaviour exactly)
             //    slot 0 holds the one target, whichever tree, and slot 1 is never used.
+            //    ADR-048 (routing on): target[] holds each lane's DESTINATION — any incomplete node (the persistent row) — and
+            //    fund[] below the node the step actually funds (ResearchRoutePlanner.Fund). Routing off: fund IS target.
             var target = new[] { -1, -1 };
-            if (!twoLanes)
+            if (routing)
+            {
+                int[] destinations = ResearchQuery.Destinations(prev, content, polity, completed);
+                target[0] = destinations[0];
+                target[1] = destinations[1];
+            }
+            else if (!twoLanes)
             {
                 if (ResearchQuery.TryGetTarget(prev, polity, out ResearchNodeId current))
                 {
@@ -164,7 +183,19 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
                     continue;
                 }
                 int index = content.IndexOf(new ResearchNodeId(order.TargetId));
-                if (index >= 0 && available[index]) target[LaneOf(content, index, twoLanes)] = index;
+                bool admissible = routing ? ResearchQuery.IsDestinationAdmissible(content, index, completed) : index >= 0 && available[index];
+                if (admissible) target[LaneOf(content, index, twoLanes)] = index;
+            }
+
+            // 1b. ADR-048 — what each lane FUNDS: an available destination itself, else the planner's CURRENT route node of
+            //     the lane (smallest (remaining EffectiveCost, key)); a lane without a destination may assist the other's
+            //     route. Read from PREV — exactly what ResearchQuery.Route reports from the same state and destinations.
+            int[] fund = target;
+            if (routing)
+            {
+                LaneFunding[] lanes = ResearchRoutePlanner.Fund(content, completed, available,
+                    ResearchQuery.RemainingCosts(prev, content, polity), target, twoLanes);
+                fund = [lanes[0].Current, twoLanes ? lanes[1].Current : -1];
             }
 
             // Working view of this polity's progress rows (Next starts as a copy of Prev).
@@ -224,14 +255,14 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
             // 3. RP throughput to the Technology target (in the one-pool model, the one target). ADR-030 §2: Research
             //    Points are generated and spent PER TURN — deliberately NOT multiplied by dtYears (the scoped exception
             //    to law 3; this is its one code site). RP that reaches no node is lost (no general bank, D-044 R20-D).
-            if (target[0] >= 0)
+            if (fund[0] >= 0)
             {
                 double amount = local
                     ? ResearchQuery.CityStateResearchPoints(prev, content, SettlementKnowledge.SettlementOf(polity))
                     : ResearchQuery.ResearchPointPool(prev, content, polity);
                 if (amount > 0.0)
-                    Credit(owned, rowOf, polity, content.Nodes[target[0]], amount,
-                        ResearchQuery.EffectiveCost(prev, content, polity, target[0]));
+                    Credit(owned, rowOf, polity, content.Nodes[fund[0]], amount,
+                        ResearchQuery.EffectiveCost(prev, content, polity, fund[0]));
             }
 
             // 3b. ADR-043 — CP accrual, then CP spend (two-lane model only). Accrual is a per-SIM-YEAR rate integrated
@@ -248,9 +279,9 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
                 {
                     CivicsPointsRow account = accountRow >= 0 ? owned.CivicsPoints[accountRow] : new CivicsPointsRow(polity, 0L, 0L, 0L);
                     long balance = checked(account.BalanceMilli + generated);
-                    long spent = target[1] >= 0
-                        ? SpendCivics(owned, rowOf, polity, content.Nodes[target[1]], balance,
-                            ResearchQuery.EffectiveCost(prev, content, polity, target[1]))
+                    long spent = fund[1] >= 0
+                        ? SpendCivics(owned, rowOf, polity, content.Nodes[fund[1]], balance,
+                            ResearchQuery.EffectiveCost(prev, content, polity, fund[1]))
                         : 0L;
                     var updated = new CivicsPointsRow(polity, balance - spent,
                         checked(account.GeneratedMilli + generated), checked(account.SpentMilli + spent));
@@ -318,8 +349,7 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
     }
 
     /// <summary>ADR-043: the lane slot of a node — 1 (Civics, CP-funded) for a civic in the two-lane model, else 0.</summary>
-    private static int LaneOf(ResearchContent content, int index, bool twoLanes) =>
-        twoLanes && content.Nodes[index].Tree == ResearchTree.Civics ? 1 : 0;
+    private static int LaneOf(ResearchContent content, int index, bool twoLanes) => ResearchRoutePlanner.LaneOf(content, index, twoLanes);
 
     /// <summary>A mask over node indices: the nodes of one tree.</summary>
     private static bool[] TreeMask(ResearchContent content, ResearchTree tree)

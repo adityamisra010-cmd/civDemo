@@ -96,16 +96,93 @@ public static class ResearchQuery
     public static bool PrerequisitesMet(ResearchContent content, int node, bool[] completed) =>
         content.Nodes[node].Prerequisite is not { } p || p.Evaluate(null, a => completed[a], null);
 
-    /// <summary>AVAILABLE = not completed, its subtree open, its prerequisite expression
-    /// (AND / OR / nested) satisfied by completed knowledge (D-044 R8), and — for a RECURSIVE
+    /// <summary>AVAILABLE (= ELIGIBLE) = not completed, its subtree open, its prerequisite expression
+    /// (AND / OR / nested) satisfied by completed knowledge (D-044 R8), — for a RECURSIVE
     /// node only — every finite node of its own subtree complete (finalization ruling 4:
-    /// per-subtree exhaustion; repeat mechanics are deferred, so it still completes once).</summary>
-    public static bool IsAvailable(ResearchContent content, int node, bool[] completed, bool stageReached)
+    /// per-subtree exhaustion; repeat mechanics are deferred, so it still completes once), and — ADR-048, with
+    /// tuning.ageSweep — the Age sweep (<see cref="SweepSatisfied"/>). This is THE eligibility predicate: the player's
+    /// orders, the AI, city states, the UI and the route planner all read it (through <see cref="AvailableMask"/> or here).</summary>
+    public static bool IsAvailable(ResearchContent content, int node, bool[] completed, bool stageReached) =>
+        IsAvailable(content, node, completed, stageReached, null);
+
+    /// <summary><see cref="IsAvailable(ResearchContent, int, bool[], bool)"/> with the Age sweep read from a precomputed
+    /// <see cref="SweptAges"/> (null: computed for this node alone) — the same predicate, for callers that test many nodes.</summary>
+    public static bool IsAvailable(ResearchContent content, int node, bool[] completed, bool stageReached, bool[]? sweptAges)
     {
         ResearchNode n = content.Nodes[node];
         if (completed[node] || (n.Branch >= 0 && !stageReached) || !PrerequisitesMet(content, node, completed)) return false;
-        return !n.IsRecursive || SubtreeExhausted(content, n.Branch, completed);
+        if (n.IsRecursive && !SubtreeExhausted(content, n.Branch, completed)) return false;
+        return sweptAges is null ? SweepSatisfied(content, node, completed) : SweepOpen(content, node, sweptAges);
     }
+
+    // ------------------------------------------------------------------ the Age sweep (ADR-048)
+
+    /// <summary>ADR-048 (tranche-2 contract §2): whether a node is a member of its Age's SWEEP COHORT — every node except one
+    /// carrying a repeatable descriptor (repeatables are exempt: their own Age's finite set already counts).</summary>
+    public static bool IsSweepCohortMember(ResearchNode node) => !node.HasRepeatableDescriptor;
+
+    /// <summary>
+    /// ADR-048 — THE AGE SWEEP PREDICATE (tranche-2 contract §2; D-063 supersedes D-044 R13 for this predicate only). With
+    /// research.json tuning.ageSweep, a node of content Age a ≥ 3 is eligible only if EVERY sweep-cohort node of Age a − 2,
+    /// in BOTH trees, is complete. It reads the node's content Age label — never the polity's Age, never a date (law 4) —
+    /// and it is kept apart from the authored prerequisites (<see cref="SweepBlock(ResearchContent, bool[], int)"/> reports
+    /// it on its own; no prerequisite edge is generated). Ages 1 and 2 are exempt. Switch off: always true (the twin).
+    /// </summary>
+    public static bool SweepSatisfied(ResearchContent content, int node, bool[] completed)
+    {
+        if (!content.Tuning.AgeSweep) return true;
+        int cohort = content.Nodes[node].AgeNumber - 2;
+        if (cohort < 1) return true;
+        for (int i = 0; i < content.Nodes.Count; i++)
+        {
+            ResearchNode c = content.Nodes[i];
+            if (!completed[i] && c.AgeNumber == cohort && IsSweepCohortMember(c)) return false;
+        }
+        return true;
+    }
+
+    /// <summary>ADR-048: per content Age 1..9 (index 0 unused), whether every sweep-cohort node of that Age is complete —
+    /// the sweep of many nodes at once (<see cref="IsAvailable(ResearchContent, int, bool[], bool, bool[])"/>). Equal to
+    /// <see cref="SweepSatisfied"/> node by node.</summary>
+    public static bool[] SweptAges(ResearchContent content, bool[] completed)
+    {
+        var swept = new bool[10];
+        Array.Fill(swept, true);
+        for (int i = 0; i < content.Nodes.Count; i++)
+        {
+            ResearchNode c = content.Nodes[i];
+            if (!completed[i] && IsSweepCohortMember(c)) swept[c.AgeNumber] = false;
+        }
+        return swept;
+    }
+
+    private static bool SweepOpen(ResearchContent content, int node, bool[] sweptAges)
+    {
+        if (!content.Tuning.AgeSweep) return true;
+        int cohort = content.Nodes[node].AgeNumber - 2;
+        return cohort < 1 || sweptAges[cohort];
+    }
+
+    /// <summary>ADR-048: the Age sweep as it bears on one node — whether it applies (switch on and Age ≥ 3), whether it
+    /// BLOCKS the node now, the cohort Age (a − 2) and the cohort nodes still outstanding (key-ascending; both trees).</summary>
+    public sealed record SweepState(bool Applies, bool Blocked, int CohortAge, ResearchNodeId[] Outstanding);
+
+    public static SweepState SweepBlock(ResearchContent content, bool[] completed, int node)
+    {
+        int cohort = content.Nodes[node].AgeNumber - 2;
+        if (!content.Tuning.AgeSweep || cohort < 1) return new SweepState(false, false, Math.Max(0, cohort), []);
+        var outstanding = new List<ResearchNodeId>();
+        for (int i = 0; i < content.Nodes.Count; i++)   // ascending index = ascending key
+        {
+            ResearchNode c = content.Nodes[i];
+            if (!completed[i] && c.AgeNumber == cohort && IsSweepCohortMember(c)) outstanding.Add(c.Key);
+        }
+        return new SweepState(true, outstanding.Count > 0, cohort, [.. outstanding]);
+    }
+
+    /// <summary>ADR-048: <see cref="SweepBlock(ResearchContent, bool[], int)"/> for a polity's completed knowledge.</summary>
+    public static SweepState SweepBlock(IReadOnlyWorldState world, ResearchContent content, PolityId polity, ResearchNodeId node) =>
+        SweepBlock(content, CompletedMask(world, content, polity), RequireIndex(content, node));
 
     /// <summary>Whether every FINITE node of the subtree is complete — what a recursive node
     /// of that subtree waits for.</summary>
@@ -118,8 +195,9 @@ public static class ResearchQuery
     public static bool[] AvailableMask(ResearchContent content, bool[] completed)
     {
         bool stage = StageReached(content, completed);
+        bool[]? swept = content.Tuning.AgeSweep ? SweptAges(content, completed) : null;
         var mask = new bool[completed.Length];
-        for (int i = 0; i < mask.Length; i++) mask[i] = IsAvailable(content, i, completed, stage);
+        for (int i = 0; i < mask.Length; i++) mask[i] = IsAvailable(content, i, completed, stage, swept);
         return mask;
     }
 
@@ -198,8 +276,10 @@ public static class ResearchQuery
     /// AgeQuery.AdvanceOrder / RoadDevelopmentQuery.DevelopOrder precedent): the SetResearchTarget order
     /// that makes <paramref name="node"/> the issuer's one active target, stamped with the CURRENT turn (the
     /// step executing from this state already spends its RP on it), or null when the node is not AVAILABLE
-    /// to the issuer now — refused by <see cref="IsAvailable"/>, the availability ResearchSystem applies, so
-    /// no caller ever logs an order the simulation would ignore.
+    /// to the issuer now — refused by <see cref="IsAvailable(ResearchContent, int, bool[], bool)"/>, the availability
+    /// ResearchSystem applies, so no caller ever logs an order the simulation would ignore.
+    /// ADR-048: with tuning.destinationRouting the order names a DESTINATION and any INCOMPLETE node is accepted
+    /// (<see cref="IsDestinationAdmissible"/>, the rule ResearchSystem applies in that mode).
     /// </summary>
     public static Kernel.OrderRecord? TargetOrder(
         IReadOnlyWorldState world, ResearchContent content, PolityId issuer, ResearchNodeId node)
@@ -207,9 +287,83 @@ public static class ResearchQuery
         int index = content.IndexOf(node);
         if (index < 0) return null;
         bool[] completed = CompletedMask(world, content, issuer);
-        if (!IsAvailable(content, index, completed, StageReached(content, completed))) return null;
+        bool admissible = content.Tuning.DestinationRouting
+            ? IsDestinationAdmissible(content, index, completed)
+            : IsAvailable(content, index, completed, StageReached(content, completed));
+        if (!admissible) return null;
         return Kernel.OrderRecord.From(world.Clock.Turn, issuer, Kernel.OrderKind.SetResearchTarget, node.Value, 0.0);
     }
+
+    // ------------------------------------------------------------------ destination research (ADR-048)
+
+    /// <summary>ADR-048 (tranche-2 contract §3): with tuning.destinationRouting, a SetResearchTarget order may name ANY
+    /// INCOMPLETE node as the lane's destination, available or not. The one admission rule ResearchSystem, the order
+    /// builder and the UI apply.</summary>
+    public static bool IsDestinationAdmissible(ResearchContent content, int node, bool[] completed) =>
+        node >= 0 && node < completed.Length && !completed[node];
+
+    /// <summary>ADR-048: what each node still costs the polity — EffectiveCost minus the progress it holds, floored at 0
+    /// (0 for a completed node). The route planner's cost vector.</summary>
+    public static double[] RemainingCosts(IReadOnlyWorldState world, ResearchContent content, PolityId polity)
+    {
+        bool[] completed = CompletedMask(world, content, polity);
+        var remaining = new double[content.Nodes.Count];
+        for (int i = 0; i < remaining.Length; i++) remaining[i] = completed[i] ? 0.0 : EffectiveCost(world, content, polity, i);
+        for (int r = 0; r < world.ResearchProgress.Count; r++)
+        {
+            ResearchProgressRow row = world.ResearchProgress[r];
+            if (row.Polity.Value != polity.Value) continue;
+            int index = content.IndexOf(row.Node);
+            if (index >= 0 && !completed[index]) remaining[index] = Math.Max(0.0, remaining[index] - row.Progress);
+        }
+        return remaining;
+    }
+
+    /// <summary>
+    /// ADR-048: the polity's DESTINATION per lane slot (0 = Technology, or the one target in the one-pool model; 1 =
+    /// Civics, two-lane model only) as dense indices, -1 for none — read from the target rows exactly as ResearchSystem
+    /// reads them with tuning.destinationRouting: in the one-pool model the polity's first row, in the two-lane model the
+    /// first row on each lane; a row is a destination while its node is INCOMPLETE.
+    /// </summary>
+    public static int[] Destinations(IReadOnlyWorldState world, ResearchContent content, PolityId polity, bool[] completed)
+    {
+        var destination = new[] { -1, -1 };
+        bool twoLanes = content.Tuning.TwoLanes;
+        for (int r = 0; r < world.ResearchTargets.Count; r++)
+        {
+            ResearchTargetRow row = world.ResearchTargets[r];
+            if (row.Polity.Value != polity.Value) continue;
+            int index = content.IndexOf(row.Node);
+            if (!twoLanes)
+            {
+                if (index >= 0 && !completed[index]) destination[0] = index;
+                break;   // the one-pool model reads the first row only (TryGetTarget)
+            }
+            int lane = ResearchRoutePlanner.LaneOf(content, index < 0 ? 0 : index, twoLanes);
+            if (index >= 0 && !completed[index] && destination[lane] < 0) destination[lane] = index;
+        }
+        return destination;
+    }
+
+    /// <summary>
+    /// ADR-048 — THE ROUTE of one lane (tranche-2 contract §3), the ONLY route calculator: the UI, the AI and the Glass Box
+    /// read it, and ResearchSystem funds exactly its <see cref="ResearchRoute.Current"/> (both call
+    /// <see cref="ResearchRoutePlanner.Fund"/> over the same inputs). It reports the lane's destination, the CURRENT node the
+    /// next step funds, the NEXT node after it, the ordered route, every blocker with its reason (prerequisite, sweep(Age k),
+    /// stage, otherLane) and the remaining cost. A lane with no destination of its own reports the node it ASSISTS the other
+    /// lane with (free-lane assist), if any. In the one-pool model the one destination is reported on its own tree's lane.
+    /// </summary>
+    public static ResearchRoute Route(IReadOnlyWorldState world, ResearchContent content, PolityId polity, ResearchTree lane)
+    {
+        bool[] completed = CompletedMask(world, content, polity);
+        bool[] available = AvailableMask(content, completed);
+        int[] destinations = Destinations(world, content, polity, completed);
+        bool twoLanes = content.Tuning.TwoLanes;
+        if (!twoLanes && destinations[0] >= 0 && content.Nodes[destinations[0]].Tree != lane) destinations[0] = -1;
+        double[] remaining = RemainingCosts(world, content, polity);
+        return ResearchRoutePlanner.Describe(content, completed, available, remaining, destinations, twoLanes, lane);
+    }
+
 
     /// <summary>ADR-043: the SetResearchTarget TargetId that clears the TECHNOLOGY lane (in the one-pool model, the one
     /// target — the v34 meaning of −1).</summary>

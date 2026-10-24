@@ -51,6 +51,11 @@ namespace Sim.Core.Systems.Research;
 /// a lane orders only when IT has no live target. So the taxation goal's civic (taxation) is worked on the Civics lane,
 /// funded by Civics Points, while its technology prerequisites stay goal work on the Technology lane — the civic never
 /// waits on a lane that cannot fund its prerequisites. With civicsPoints off the policy is the one-pool rule above.
+///
+/// ADR-048 — DESTINATION RESEARCH (research.json tuning.destinationRouting). A lane's row is a destination, live while its
+/// node is incomplete; the AI orders only when the lane holds none. The goal choice is unchanged; the goal's NODE
+/// (<see cref="GoalDestination"/>) becomes the destination and ResearchRoutePlanner — the player's planner — picks what is
+/// funded on the way (<see cref="ChooseDestination"/>). Off: the rule above exactly.
 /// </summary>
 public static class AiResearchPolicy
 {
@@ -77,11 +82,14 @@ public static class AiResearchPolicy
         if (!EmpireQuery.TryGetCommandSource(world, polity, out CommandSource source) || source != CommandSource.Ai) return null;
         bool[] completed = ResearchQuery.CompletedMask(world, content, polity);
         bool[] available = ResearchQuery.AvailableMask(content, completed);
-        // A live target is kept: switching would only scatter progress (it is retained, never lost).
+        // A live target is kept: switching would only scatter progress (it is retained, never lost). ADR-048: with routing
+        // the row is a DESTINATION, live while its node is incomplete (available or not).
+        bool routing = content.Tuning.DestinationRouting;
         if (ResearchQuery.TryGetTarget(world, polity, out ResearchNodeId current)
-            && content.IndexOf(current) is int held and >= 0 && available[held]) return null;
+            && content.IndexOf(current) is int held and >= 0 && (routing ? !completed[held] : available[held])) return null;
 
-        int choice = Choose(world, cfg, polity, completed, available);
+        int choice = routing ? ChooseDestination(world, cfg, polity, completed, available, null)
+            : Choose(world, cfg, polity, completed, available);
         return choice < 0 ? null : ResearchQuery.TargetOrder(world, content, polity, content.Nodes[choice].Key);
     }
 
@@ -93,11 +101,63 @@ public static class AiResearchPolicy
         if (!EmpireQuery.TryGetCommandSource(world, polity, out CommandSource source) || source != CommandSource.Ai) return null;
         bool[] completed = ResearchQuery.CompletedMask(world, content, polity);
         bool[] available = ResearchQuery.AvailableMask(content, completed);
+        bool routing = content.Tuning.DestinationRouting;
         if (ResearchQuery.TryGetTarget(world, content, polity, lane, out ResearchNodeId current)
-            && content.IndexOf(current) is int held and >= 0 && available[held]) return null;
+            && content.IndexOf(current) is int held and >= 0 && (routing ? !completed[held] : available[held])) return null;
 
-        int choice = Choose(world, cfg, polity, completed, available, lane);
+        int choice = routing ? ChooseDestination(world, cfg, polity, completed, available, lane)
+            : Choose(world, cfg, polity, completed, available, lane);
         return choice < 0 ? null : ResearchQuery.TargetOrder(world, content, polity, content.Nodes[choice].Key);
+    }
+
+    /// <summary>
+    /// ADR-048 (tuning.destinationRouting) — the AI's DESTINATION, the same goal choice as <see cref="Choose(IReadOnlyWorldState, SimConfig, PolityId, bool[], bool[])"/>
+    /// (on <paramref name="lane"/>'s tree when given): the goal worked now is <see cref="ChooseGoal"/>'s, and its GOAL NODE —
+    /// <see cref="GoalDestination"/> — becomes the destination, so the route planner (the player's, ResearchRoutePlanner)
+    /// chooses what to fund on the way. With no goal (or a goal without an incomplete node), the cheapest available node of
+    /// the lane, as before. -1 when nothing is left.
+    /// </summary>
+    public static int ChooseDestination(IReadOnlyWorldState world, SimConfig cfg, PolityId polity, bool[] completed, bool[] available,
+        ResearchTree? lane)
+    {
+        ResearchContent content = cfg.Research ?? throw new ArgumentException("the AI research policy needs research content", nameof(cfg));
+        bool[]? tree = null;
+        bool[][] goals = Goals(world, cfg, polity);
+        if (lane is { } l)
+        {
+            tree = new bool[content.Nodes.Count];
+            for (int i = 0; i < tree.Length; i++) tree[i] = content.Nodes[i].Tree == l;
+            for (int g = 0; g < goals.Length; g++)
+                for (int i = 0; i < tree.Length; i++) goals[g][i] &= tree[i];
+        }
+        int goal = ChooseGoal(world, content, polity, goals, completed, available);
+        if (goal >= 0 && GoalDestination(world, content, polity, goals[goal], completed, available) is int d and >= 0) return d;
+        return Cheapest(world, content, polity, available, tree);
+    }
+
+    /// <summary>
+    /// ADR-048: a goal closure's GOAL NODE — among its SINKS (incomplete closure nodes no other incomplete closure node
+    /// depends on: the milestone, requirement or entity nodes the closure exists for), the one whose route is cheapest:
+    /// composite key (remaining route cost incl. the node — ResearchRoutePlanner, the player's planner — , key), an
+    /// ascending-key scan replacing only on a strictly lower cost. -1 when the closure has no incomplete node.
+    /// </summary>
+    public static int GoalDestination(IReadOnlyWorldState world, ResearchContent content, PolityId polity, bool[] closure,
+        bool[] completed, bool[] available)
+    {
+        double[] remaining = ResearchQuery.RemainingCosts(world, content, polity);
+        int best = -1;
+        double bestCost = 0.0;
+        for (int i = 0; i < closure.Length; i++)
+        {
+            if (!closure[i] || completed[i]) continue;
+            bool sink = true;
+            foreach (int dep in content.Nodes[i].Dependents)
+                if (closure[dep] && !completed[dep]) { sink = false; break; }
+            if (!sink) continue;
+            double cost = available[i] ? remaining[i] : ResearchRoutePlanner.Plan(content, completed, remaining, i).RemainingCost;
+            if (best < 0 || cost < bestCost) { best = i; bestCost = cost; }
+        }
+        return best;
     }
 
     /// <summary>
