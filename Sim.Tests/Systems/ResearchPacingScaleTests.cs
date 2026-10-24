@@ -58,7 +58,7 @@ public class ResearchPacingScaleTests
     [InlineData(10, 0.5)]
     [InlineData(9, 0.0)]
     [InlineData(9, -1.0)]
-    [InlineData(9, 4.5)]
+    [InlineData(9, 16.5)]
     public void Malformed_IsRefused(int length, double value)
     {
         JsonObject doc = Shipped();

@@ -986,7 +986,7 @@ public static class ResearchContentLoader
             t.KnowledgeEffects ?? false, ValidatePacing(t.PacingScale), t.RepeatableLevels ?? false);
     }
 
-    /// <summary>tuning.pacingScale (D-063 R6): nine finite scales in (0, 4] per tree, one per content Age A1..A9.</summary>
+    /// <summary>tuning.pacingScale (D-063 R6): nine finite scales in (0, 16] per tree, one per content Age A1..A9.</summary>
     private static PacingScale? ValidatePacing(PacingScaleJson? p)
     {
         if (p is null) return null;
@@ -995,8 +995,8 @@ public static class ResearchContentLoader
             if (v is null || v.Length != 9)
                 throw Fail($"tuning.pacingScale.{tree} must hold exactly 9 scales, one per content Age A1..A9.");
             for (int a = 0; a < v.Length; a++)
-                if (!(double.IsFinite(v[a]) && v[a] > 0.0 && v[a] <= 4.0))
-                    throw Fail($"tuning.pacingScale.{tree}[{a}] {Inv(v[a])} must be finite and in (0, 4].");
+                if (!(double.IsFinite(v[a]) && v[a] > 0.0 && v[a] <= 16.0))
+                    throw Fail($"tuning.pacingScale.{tree}[{a}] {Inv(v[a])} must be finite and in (0, 16].");
             return v;
         }
         return new PacingScale(Check(p.Technology, "technology"), Check(p.Civics, "civics"));

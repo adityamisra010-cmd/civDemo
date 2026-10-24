@@ -67,28 +67,28 @@
   "_civicsPoints": "ADR-043 (D-062, the Director's 2026-10-22 ruling): Civics Points fund ONLY the Civics target; Research Points fund ONLY the Technology target. CP is banked without cap or loss (Balance = Generated - Spent). Population is the same input RP reads; the PROPOSED coefficient 0.008/yr equals RP's 0.08/turn at a 10-year turn. enabled false restores the v34 one-pool model (civics funded by RP, one target) \u2014 the attribution switch. Other CP sources (institutions, specialists, embassies, spies, artists, scholars) and the RP<->CP exchange are DEFERRED.",
   "pacingScale": {
    "technology": [
-    0.712889,
-    0.507446,
-    0.316308,
-    0.310323,
-    0.250657,
-    0.298481,
-    0.187856,
-    0.025301,
-    0.002528
+    0.395862,
+    0.803516,
+    1.367587,
+    3.40823,
+    5.044871,
+    4.822191,
+    5.072868,
+    0.775796,
+    0.068141
    ],
    "civics": [
-    1.361563,
-    0.522511,
-    0.222215,
-    0.126243,
-    0.09464,
-    0.067569,
-    0.023371,
-    0.003277,
-    0.000398
+    0.645983,
+    0.998856,
+    0.907987,
+    1.306316,
+    1.396621,
+    1.791944,
+    0.757433,
+    0.070609,
+    0.008686
    ],
-   "_doc": "D-063 R6 (tranche 2): BaseCost = content cost (U x K^magnitude) x pacingScale[tree][Age-1]. Calibrated by tools/calibrate_pacing.py from a measured reference empire so both trees complete each Age in the same turns ('pincer'); see docs/m6-plan/knowledge-redesign/tranche2-balance-report.md."
+   "_doc": "D-063 R6 (tranche 2): BaseCost = content cost (U x K^magnitude) x pacingScale[tree][Age-1]. Calibrated from measured AI empires (Sim.Tests PacingReferenceMeasurement, seeds 1, 2, 42, 7): a first pass by tools/calibrate_pacing.py, then tools/recalibrate_observed.py passes against observed Age-completion turns (targets: Age x complete by the midpoint of E[x+1] and E[x+2]; the slowest seed binds; each tree pulled to the pair's midpoint, the pincer). The scale is a recorded per-(tree, Age) number, never per node. Measurements and residuals: docs/m6-plan/knowledge-redesign/tranche2-balance-report.md."
   }
  },
  "baseline": [

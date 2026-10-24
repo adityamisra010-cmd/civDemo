@@ -18,144 +18,144 @@
    "tree": "technology",
    "age": 1,
    "rubricTotal": 11630,
-   "targetTotal": 8291,
-   "scale": 0.7129,
+   "targetTotal": 8612,
+   "scale": 0.7384,
    "researchableByTurn": 240.0
   },
   {
    "tree": "technology",
    "age": 2,
    "rubricTotal": 48590,
-   "targetTotal": 24657,
-   "scale": 0.5074,
+   "targetTotal": 40994,
+   "scale": 0.809,
    "researchableByTurn": 510.0
   },
   {
    "tree": "technology",
    "age": 3,
    "rubricTotal": 93280,
-   "targetTotal": 29505,
-   "scale": 0.3163,
+   "targetTotal": 137464,
+   "scale": 1.4652,
    "researchableByTurn": 690.0
   },
   {
    "tree": "technology",
    "age": 4,
    "rubricTotal": 92370,
-   "targetTotal": 28665,
-   "scale": 0.3103,
+   "targetTotal": 400931,
+   "scale": 3.5734,
    "researchableByTurn": 820.0
   },
   {
    "tree": "technology",
    "age": 5,
    "rubricTotal": 165390,
-   "targetTotal": 41456,
-   "scale": 0.2507,
+   "targetTotal": 1438464,
+   "scale": 4.0,
    "researchableByTurn": 970.0
   },
   {
    "tree": "technology",
    "age": 6,
    "rubricTotal": 205380,
-   "targetTotal": 61302,
-   "scale": 0.2985,
+   "targetTotal": 2650009,
+   "scale": 4.0,
    "researchableByTurn": 1155.0
   },
   {
    "tree": "technology",
    "age": 7,
    "rubricTotal": 353830,
-   "targetTotal": 66469,
-   "scale": 0.1879,
+   "targetTotal": 3828947,
+   "scale": 4.0,
    "researchableByTurn": 1325.0
   },
   {
    "tree": "technology",
    "age": 8,
    "rubricTotal": 2279390,
-   "targetTotal": 57672,
-   "scale": 0.0253,
+   "targetTotal": 3583616,
+   "scale": 0.858,
    "researchableByTurn": 1460.0
   },
   {
    "tree": "technology",
    "age": 9,
    "rubricTotal": 10041250,
-   "targetTotal": 25388,
-   "scale": 0.0025,
+   "targetTotal": 1580933,
+   "scale": 0.0855,
    "researchableByTurn": 1520.0
   },
   {
    "tree": "civics",
    "age": 1,
    "rubricTotal": 6090,
-   "targetTotal": 8292,
-   "scale": 1.3616,
+   "targetTotal": 8614,
+   "scale": 1.4103,
    "researchableByTurn": 240.0
   },
   {
    "tree": "civics",
    "age": 2,
    "rubricTotal": 24200,
-   "targetTotal": 12645,
-   "scale": 0.5225,
+   "targetTotal": 20858,
+   "scale": 0.827,
    "researchableByTurn": 510.0
   },
   {
    "tree": "civics",
    "age": 3,
    "rubricTotal": 59460,
-   "targetTotal": 13213,
-   "scale": 0.2222,
+   "targetTotal": 58001,
+   "scale": 0.9598,
    "researchableByTurn": 690.0
   },
   {
    "tree": "civics",
    "age": 4,
    "rubricTotal": 68120,
-   "targetTotal": 8600,
-   "scale": 0.1262,
+   "targetTotal": 118363,
+   "scale": 1.4081,
    "researchableByTurn": 820.0
   },
   {
    "tree": "civics",
    "age": 5,
    "rubricTotal": 124980,
-   "targetTotal": 11828,
-   "scale": 0.0946,
+   "targetTotal": 374758,
+   "scale": 1.9413,
    "researchableByTurn": 970.0
   },
   {
    "tree": "civics",
    "age": 6,
    "rubricTotal": 181450,
-   "targetTotal": 12260,
-   "scale": 0.0676,
+   "targetTotal": 449174,
+   "scale": 1.5459,
    "researchableByTurn": 1155.0
   },
   {
    "tree": "civics",
    "age": 7,
    "rubricTotal": 241460,
-   "targetTotal": 5643,
-   "scale": 0.0234,
+   "targetTotal": 255945,
+   "scale": 0.6158,
    "researchableByTurn": 1325.0
   },
   {
    "tree": "civics",
    "age": 8,
    "rubricTotal": 879820,
-   "targetTotal": 2884,
-   "scale": 0.0033,
+   "targetTotal": 137831,
+   "scale": 0.0889,
    "researchableByTurn": 1460.0
   },
   {
    "tree": "civics",
    "age": 9,
    "rubricTotal": 3187040,
-   "targetTotal": 1269,
-   "scale": 0.0004,
+   "targetTotal": 60805,
+   "scale": 0.0108,
    "researchableByTurn": 1520.0
   }
  ]

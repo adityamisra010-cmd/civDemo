@@ -13,7 +13,7 @@ Both trees use the SAME turns, so at the reference trajectory the two trees fini
 costs keep their rubric magnitudes (content cost = U x K^m) and the engine applies BaseCost = cost x scale
 (research.json tuning.pacingScale). Writes the scale into research.json and a report.
 
-Usage: python3 -I tools/calibrate_pacing.py <trajectory.txt> [--seed 42] [--write]
+Usage: python3 -I tools/calibrate_pacing.py <trajectory.txt> [--seed 42] [--damp 0.5] [--write]
 """
 import json
 import re
@@ -74,9 +74,16 @@ def main(argv):
             mid = (ENTRY[x + 1] + ENTRY[x + 2]) / 2.0
             target = UTIL * cumulative(rows, mid, col)
             # no floor that overrides the target: a floor above the accrual would make the Age unreachable at the
-            # reference rate (the loader bounds the scale to (0, 4]); 1e-6 only guards a non-positive difference
+            # reference rate (the loader bounds the scale to (0, 16]); 1e-6 only guards a non-positive difference
             age_target = max(target - prev_target, 1e-6 * rubric[tree][x])
             s = age_target / rubric[tree][x] if rubric[tree][x] else 1.0
+            # --damp d: the trajectory depends on the costs (research feeds population through the knowledge effects,
+            # population feeds RP and CP), so one pass overshoots; iterate with s = s_prev^(1-d) x s_new^d.
+            prev_scale = (d["tuning"].get("pacingScale") or {}).get(tree)
+            if "--damp" in argv and prev_scale:
+                dd = float(argv[argv.index("--damp") + 1])
+                s = prev_scale[x - 1] ** (1.0 - dd) * s ** dd
+            s = min(max(s, 1e-6), 16.0)
             scale[tree].append(round(s, 6))
             report.append({"tree": tree, "age": x, "rubricTotal": round(rubric[tree][x]), "targetTotal": round(age_target),
                            "scale": round(s, 4), "researchableByTurn": mid})
