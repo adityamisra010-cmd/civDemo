@@ -43,9 +43,13 @@ public partial class IntegratedSaveLoadBatteryTests
     /// the battery variant TheBatteryVariant_AYoungerGranaryWaitsBehindTheUniversitysSetAside_… passes one).</summary>
     internal sealed record Rig(SimConfig Cfg, WorldgenConfig Dev, WorldgenConfig Production, Func<IReadOnlyWorldState, OrderRecord[]>? Extra = null);
 
+    // Tranche 2 (D-063) moves the shipped research; this battery's subject is save/load (and the construction lifecycle it
+    // scripts), so it runs on the pre-tranche-2 research (UniversityRigs.Cfg builds on TestConfigs.PreTranche2) and its
+    // literals are unchanged. The rigs' node lookups and the scripted research targets read that same content
+    // (Research = Cfg.Research).
     private static readonly Rig Shipped = new(UniversityRigs.Cfg(adultsPerUniversity: 100), TestConfigs.DevWorldgen(), TestConfigs.Worldgen());
     private static readonly SimConfig Cfg = Shipped.Cfg;
-    private static readonly ResearchContent Research = TestConfigs.Research();
+    private static readonly ResearchContent Research = Cfg.Research!;
     private static readonly AgeContent Ages = TestConfigs.Ages();
     private static readonly PolityId Player = new(1);
     private static readonly PolityId Rival = new(2);
